@@ -340,8 +340,19 @@ namespace UnityEngine.Rendering
             // Make sure unloading happens.
             prv.PerformPendingOperations();
 
-            // Write back the assets.
-            WriteBakingCells(m_BakingBatch.cells.ToArray());
+            // Validate baking cells size before writing
+            var bakingCellsArray = m_BakingBatch.cells.ToArray();
+            var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
+            var hasVirtualOffsets = m_BakingSet.settings.virtualOffsetSettings.useVirtualOffset;
+            var hasRenderingLayers = m_BakingSet.useRenderingLayers;
+            
+            if (ValidateBakingCellsSize(bakingCellsArray, chunkSizeInProbes, hasVirtualOffsets, hasRenderingLayers))
+            {
+                // Write back the assets.
+                WriteBakingCells(bakingCellsArray);
+            }
+
+            m_BakingBatch?.Dispose();
             m_BakingBatch = null;
 
             foreach (var data in prv.perSceneDataList)

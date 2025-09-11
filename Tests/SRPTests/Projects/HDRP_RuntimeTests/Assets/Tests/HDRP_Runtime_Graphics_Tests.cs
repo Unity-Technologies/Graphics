@@ -64,6 +64,16 @@ public class HDRP_Runtime_Graphics_Tests
         "Artifacts appear at random on objects within the scene, see UUM-113462.",
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.GameCoreXboxSeries }
     )]
+	[IgnoreGraphicsTest(
+        "003-VirtualTexturing$",
+        "PS4 https://jira.unity3d.com/browse/UUM-115757",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.PS4 }
+    )]
+    [IgnoreGraphicsTest(
+        "003-VirtualTexturing-Forward$",
+        "PS4 https://jira.unity3d.com/browse/UUM-115756",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.PS4 }
+    )]
     [IgnoreGraphicsTest(
         "004-CloudsFlaresDecals$",
         "Area with cloud-coverage is blue on Intel-based MacOS (CI).",

@@ -49,10 +49,12 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Retrieves path to new shader.
         /// </summary>
-        public string NewShaderPath
-        {
-            get => m_NewShader;
-        }
+        public string NewShaderPath => m_NewShader;
+
+        /// <summary>
+        /// Retrieves path to old shader.
+        /// </summary>
+        public string OldShaderPath => m_OldShader;
 
         MaterialFinalizer m_Finalizer;
 

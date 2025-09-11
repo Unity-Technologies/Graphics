@@ -6,13 +6,15 @@ The Shader Graph package offers sample Assets, which you can download through **
 
 ## Add samples
 
-To add samples to your Project, go to **Window** > **Package Manager**. Locate **Shader Graph** in the list of available packages, and select it. Under the package description, there is list of available samples. Click the **Import into Project** button next to the sample you wish to add.
+To add samples to your project:
 
-![](images/PatternSamples_01.png)
+1. In the main menu, go to **Window** > **Package Management** > **Package Manager**.
 
-Unity places imported samples in your Project's Asset folder under **Assets** > **Samples** > **Shader Graph** > **[version number]** > **[sample name]**. The example below shows the samples for **Procedural Patterns**.
+1. Select **Shader Graph** from the list of packages.
 
-![](images/PatternSamples_02.png)
+1. In the **Samples** section, select **Import** next to a sample.
+
+1. Open the sample assets from the `Assets/Samples/Shader Graph/<your version>/` folder.
 
 ## Available samples
 

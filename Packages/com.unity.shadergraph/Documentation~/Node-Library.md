@@ -1,22 +1,29 @@
-# Node Library
+# Node library
 
-## Description
+Explore nodes that enable color and channel manipulation, mathematical and procedural generation, input data handling, custom texture management, UV mapping, utility logic, and shader data representation.
 
-The **Node Library** contains documentation for all the individual [Nodes](Node.md) in Shader Graph; including descriptions, ports, parameters, shader code and example images. The [Nodes](Node.md) are organised in the same categories as found in the [Create Node Menu](Create-Node-Menu.md) for convenience.
+## Graph nodes
 
-## Graph Nodes
+| **Topic**                                                     | **Description**                                                                                                                              |
+|:--------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| [Artistic](Artistic-Nodes.md)                                 | Learn about color adjustment, blending, filtering, masking, normal map manipulation, and color space conversion.                             |
+| [Channel](Channel-Nodes.md)                                   | Learn about combining, splitting, reordering, or flipping vector and color channels. |
+| [Custom Render Texture nodes](Custom-Render-Texture-Nodes.md) | Learn about properties and data of custom render textures.                           |
+| [Input](Input-Nodes.md)                                       | Learn about values, mesh attributes, gradients, matrices, deformation data, PBR parameters, scene information, and texture sampling options. |
+| [Math](Math-Nodes.md)                                         | Learn about mathematical operations.                                                 |
+| [Procedural](Procedural-Nodes.md)                             | Learn about creating patterns, noise textures, and geometric shapes.                                                                         |
+| [Utility](Utility-Nodes.md)                                   | Learn about basic preview, sub-graph referencing, and essential logic operations.    |
+| [UV](UV-Nodes.md)                                             | Learn about manipulation and mapping effects, enabling advanced texture animations, coordinate transformations, and warping techniques.      |
 
-| | |
-|:--|:--|
-| [Artistic](Artistic-Nodes.md)| [Channel](Channel-Nodes.md)|
-| [Input](Input-Nodes.md) | [Math](Math-Nodes.md) |
-| [Procedural](Procedural-Nodes.md) | [Utility](Utility-Nodes.md)|
-| [UV](UV-Nodes.md) | |
+## Block nodes
 
+| **Topic**                      | **Description**                                                                           |
+|:-------------------------------|-------------------------------------------------------------------------------------------|
+| [Block](Block-Node.md)         | You can find these nodes in the **Vertex** and **Fragment** contexts of the Master Stack. |
 
-## Block Nodes
+## Additional resources
 
-| | |
-|:-|:-|
-| [Built In](Built-In-Blocks.md) |  |
-| Universal | High Definition |
+* [Node](Node.md)
+* [Create Node Menu](Create-Node-Menu.md)
+* [Shader Graph Node Reference Samples](ShaderGraph-Samples.md)
+

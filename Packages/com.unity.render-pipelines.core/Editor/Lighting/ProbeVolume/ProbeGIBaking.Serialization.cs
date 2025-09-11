@@ -726,6 +726,63 @@ namespace UnityEngine.Rendering
 
         static long AlignRemainder16(long count) => count % 16L;
 
+        /// <summary>
+        /// Calculates support data chunk size based on provided configuration.
+        /// </summary>
+        /// <param name="chunkSizeInProbes">Number of probes per chunk</param>
+        /// <param name="hasVirtualOffsets">Whether virtual offsets are enabled</param>
+        /// <param name="hasRenderingLayers">Whether rendering layers are enabled</param>
+        /// <returns>The size in bytes of a single support data chunk</returns>
+        static int CalculateSupportDataChunkSize(int chunkSizeInProbes, bool hasVirtualOffsets, bool hasRenderingLayers)
+        {
+            int supportPositionChunkSize = UnsafeUtility.SizeOf<Vector3>() * chunkSizeInProbes;
+            int supportValidityChunkSize = UnsafeUtility.SizeOf<float>() * chunkSizeInProbes;
+            int supportTouchupChunkSize = UnsafeUtility.SizeOf<float>() * chunkSizeInProbes;
+            int supportLayerMaskChunkSize = hasRenderingLayers ? UnsafeUtility.SizeOf<byte>() * chunkSizeInProbes : 0;
+            int supportOffsetsChunkSize = hasVirtualOffsets ? UnsafeUtility.SizeOf<Vector3>() * chunkSizeInProbes : 0;
+            
+            return supportPositionChunkSize + supportValidityChunkSize + 
+                   supportOffsetsChunkSize + supportLayerMaskChunkSize + supportTouchupChunkSize;
+        }
+
+        /// <summary>
+        /// Validates that the baking cells can be written without exceeding system limits.
+        /// This method performs size calculations without accessing any global state.
+        /// </summary>
+        /// <param name="bakingCells">Array of baking cells to validate</param>
+        /// <param name="chunkSizeInProbes">Number of probes per chunk</param>
+        /// <param name="hasVirtualOffsets">Whether virtual offsets are enabled</param>
+        /// <param name="hasRenderingLayers">Whether rendering layers are enabled</param>
+        /// <returns>True if cells can be written safely, false if they exceed limits</returns>
+        static bool ValidateBakingCellsSize(BakingCell[] bakingCells, int chunkSizeInProbes, bool hasVirtualOffsets, bool hasRenderingLayers)
+        {
+            if (bakingCells == null || bakingCells.Length == 0)
+                return true;
+
+            int supportDataChunkSize = CalculateSupportDataChunkSize(chunkSizeInProbes, hasVirtualOffsets, hasRenderingLayers);
+            
+            // Calculate total chunks count - need to call AnalyzeBrickForIndirectionEntries to get shChunkCount
+            // Create a copy to avoid modifying the original cells during validation
+            var tempCells = new BakingCell[bakingCells.Length];
+            int totalChunksCount = 0;
+            for (var i = 0; i < bakingCells.Length; ++i)
+            {
+                tempCells[i] = bakingCells[i]; // Shallow copy is sufficient for this validation
+                AnalyzeBrickForIndirectionEntries(ref tempCells[i]);
+                totalChunksCount += tempCells[i].shChunkCount;
+            }
+            
+            // Perform the critical size check
+            long supportDataTotalSize = (long)totalChunksCount * supportDataChunkSize;
+            if (supportDataTotalSize > int.MaxValue)
+            {
+                Debug.LogError($"The size of the Adaptive Probe Volume (APV) baking set chunks exceed the current system limit of {int.MaxValue}, unable to save the baked cell assets. Reduce density either by adjusting the general Probe Spacing in the Lighting window, or by modifying the Adaptive Probe Volumes in the scene to limit where the denser subdivision levels are used.");
+                return false;
+            }
+
+            return true;
+        }
+
         static void WriteNativeArray<T>(System.IO.FileStream fs, NativeArray<T> array) where T : struct
         {
             unsafe
@@ -736,7 +793,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// This method converts a list of baking cells into 5 separate assets:
+        /// This method attempts to convert a list of baking cells into 5 separate assets:
         ///  2 assets per baking state:
         ///   CellData: a binary flat file containing L0L1 probes data
         ///   CellOptionalData: a binary flat file containing L2 probe data (when present)
@@ -745,7 +802,7 @@ namespace UnityEngine.Rendering
         ///   CellSharedData: a binary flat file containing bricks data
         ///   CellSupportData: a binary flat file containing debug data (stripped from player builds if building without debug shaders)
         /// </summary>
-        unsafe static void WriteBakingCells(BakingCell[] bakingCells)
+        static unsafe bool WriteBakingCells(BakingCell[] bakingCells)
         {
             m_BakingSet.GetBlobFileNames(m_BakingSet.lightingScenario, out var cellDataFilename, out var cellBricksDataFilename, out var cellOptionalDataFilename, out var cellProbeOcclusionDataFilename, out var cellSharedDataFilename, out var cellSupportDataFilename);
 
@@ -846,16 +903,16 @@ namespace UnityEngine.Rendering
             // Brick data
             using var bricks = new NativeArray<Brick>(m_TotalCellCounts.bricksCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
-            // CellSupportData
-            m_BakingSet.supportPositionChunkSize = sizeof(Vector3) * chunkSizeInProbes;
-            m_BakingSet.supportValidityChunkSize = sizeof(float) * chunkSizeInProbes;
-            m_BakingSet.supportOffsetsChunkSize = hasVirtualOffsets ? sizeof(Vector3) * chunkSizeInProbes : 0;
-            m_BakingSet.supportTouchupChunkSize = sizeof(float) * chunkSizeInProbes;
-            m_BakingSet.supportLayerMaskChunkSize = hasRenderingLayers ? sizeof(byte) * chunkSizeInProbes : 0;
+            // CellSupportData - use pure helper function for calculation
+            m_BakingSet.supportPositionChunkSize = UnsafeUtility.SizeOf<Vector3>() * chunkSizeInProbes;
+            m_BakingSet.supportValidityChunkSize = UnsafeUtility.SizeOf<float>() * chunkSizeInProbes;
+            m_BakingSet.supportOffsetsChunkSize = hasVirtualOffsets ? UnsafeUtility.SizeOf<Vector3>() * chunkSizeInProbes : 0;
+            m_BakingSet.supportTouchupChunkSize = UnsafeUtility.SizeOf<float>() * chunkSizeInProbes;
+            m_BakingSet.supportLayerMaskChunkSize = hasRenderingLayers ? UnsafeUtility.SizeOf<byte>() * chunkSizeInProbes : 0;
 
-            m_BakingSet.supportDataChunkSize = m_BakingSet.supportPositionChunkSize + m_BakingSet.supportValidityChunkSize + m_BakingSet.supportOffsetsChunkSize + m_BakingSet.supportLayerMaskChunkSize + m_BakingSet.supportTouchupChunkSize;
-            var supportDataTotalSize = m_TotalCellCounts.chunksCount * m_BakingSet.supportDataChunkSize;
-            using var supportData = new NativeArray<byte>(supportDataTotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            m_BakingSet.supportDataChunkSize = CalculateSupportDataChunkSize(chunkSizeInProbes, hasVirtualOffsets, hasRenderingLayers);
+            long supportDataTotalSize = (long)m_TotalCellCounts.chunksCount * m_BakingSet.supportDataChunkSize;
+            using var supportData = new NativeArray<byte>((int)supportDataTotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             var sceneStateHash = m_BakingSet.GetBakingHashCode();
             var startCounts = new CellCounts();
@@ -1093,6 +1150,8 @@ namespace UnityEngine.Rendering
             m_BakingSet.cellSupportDataAsset = new ProbeVolumeStreamableAsset(kAPVStreamingAssetsPath, cellSupportDescs, m_BakingSet.supportDataChunkSize, bakingSetGUID, AssetDatabase.AssetPathToGUID(cellSupportDataFilename));
 
             EditorUtility.SetDirty(m_BakingSet);
+
+            return true;
         }
 
         unsafe static void WriteDilatedCells(List<Cell> cells)

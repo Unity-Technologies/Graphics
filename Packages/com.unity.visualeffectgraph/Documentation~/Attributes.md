@@ -4,11 +4,27 @@ An Attribute is a piece of data attached to elements in a System. For example, t
 
 Systems can read from, or write to, Attributes in order to perform custom behavior and differentiate between elements.
 
+![An attribute in the Custom Attributes list with a yellow three-axes icon that represents a Vector3.](Images/blackboard-attribute.png)
+
 A System only stores Attributes when it needs them. This means that the System does not store any unnecessary data and thus saves memory.
 
-## Using Attributes
+## Manage Attributes
 
-### Writing Attributes
+You can manage Attributes as follows:
+
+- To duplicate a custom attribute, use the shortcut **Ctrl+D** (macOS: **Cmd+D**) or the context menu.
+
+- To select several custom attributes, hold **Shift+Click** or **Ctrl+Click** (macOS: **Cmd+Click**), then drag and drop them into the graph as needed.
+
+- To copy custom attributes and paste them across different VFX Graphs, use **Ctrl+C** and **Ctrl+V**.
+
+- To highlight all nodes using a custom or a built-in attribute, hover over the attribute in the Blackboard panel. Similarly, hover over a node in the graph to highlight its corresponding attribute in the Blackboard panel.
+
+- To identify unused custom attributes, right-click on categories or at the top of the Blackboard panel and select the appropriate option from the context menu. This is useful for cleaning up your VFX Graph.
+
+- To quickly create a custom attribute, duplicate a built-in attribute using **Ctrl+D** (macOS: **Cmd+D**). This creates a new custom attribute with a name like `originalname_1` and the same type.
+
+### Write Attributes
 
 To write to an Attribute, use a [Block](Blocks.md). Blocks are the only graph elements that can write Attributes to the System.
 
@@ -17,7 +33,7 @@ The Visual Effect Graph only stores an Attribute that you write to in simulation
 * When you write to an Attribute in Initialize or Update Contexts, the Visual Effect Graph only stores the Attribute in simulation data if a later Update or Output Context reads from the Attribute.
 * When you write to an Attribute in Output Contexts, the Visual Effect Graph does not store the Attribute in simulation data and only uses the Attribute for rendering.
 
-### Reading Attributes
+### Read Attributes
 
 To read from an Attribute, use an Operator or Block:
 
@@ -28,6 +44,7 @@ To read from an Attribute, use an Operator or Block:
 
 * If you read from an Attribute that the Visual Effect Graph has not stored in the simulation data, the Attribute passes its default, constant value.
 * Currently, you can only read from Attributes in Particle and ParticleStrip Systems. To read from Attributes in Spawn Systems, use [Spawner Callbacks](SpawnerCallbacks.md).
+* To avoid typos when writing [custom HLSL](CustomHLSL-Common.md) code, drag and drop an attribute directly into the HLSL code editor in Unity.
 
 ## Attribute Locations
 
@@ -58,3 +75,4 @@ When you read from a variadic Attribute, it reads from all other implicit compon
 For example, you can express the **scale** of a Quad particle as a **Vector2** (as the width, and length of the quad), whereas, to express the **scale** of a Box particle, you can use a **Vector3** (as the width, length, and depth of the cube). When you set variadic attributes, a drop-down of all channel combinations allows you to write only to the necessary channels.
 
 Another example is for the rotation of a sprite around its normal. You only need the **Z** component of the angle Attribute (**angleZ**), so it is unnecessary to store **angleX**, and **angleY**.
+

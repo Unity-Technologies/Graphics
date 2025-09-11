@@ -2,7 +2,8 @@
 
 ## Description
 
-Provides access to the **Eye Index** when stereo rendering is enabled.
+Provides access to the **Eye Index** when stereo rendering is enabled. The **Eye Index** node outputs a value of `0` for the left eye and `1` for the right eye.
+
 
 ## Ports
 

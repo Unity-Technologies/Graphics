@@ -1005,27 +1005,36 @@ namespace UnityEngine.Rendering
 
                 if (!failed)
                 {
-                    for (int c = 0; c < bakingCells.Length; c++)
+                    // Validate baking cells size before any global state modifications
+                    var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
+                    var hasVirtualOffsets = m_BakingSet.settings.virtualOffsetSettings.useVirtualOffset;
+                    var hasRenderingLayers = m_BakingSet.useRenderingLayers;
+                    
+                    if (ValidateBakingCellsSize(bakingCells, chunkSizeInProbes, hasVirtualOffsets, hasRenderingLayers))
                     {
-                        ref var cell = ref bakingCells[c];
-                        ComputeValidityMasks(cell);
-                    }
+                        for (int c = 0; c < bakingCells.Length; c++)
+                        {
+                            ref var cell = ref bakingCells[c];
+                            ComputeValidityMasks(cell);
+                        }
 
-                    // Write result to disk
-                    WriteBakingCells(bakingCells);
+                        // Attempt to write the result to disk
+                        if (WriteBakingCells(bakingCells))
+                        {
+                            // Reload everything
+                            AssetDatabase.SaveAssets();
+                            AssetDatabase.Refresh();
 
-                    // Reload everything
-                    AssetDatabase.SaveAssets();
-                    AssetDatabase.Refresh();
+                            if (m_BakingSet.hasDilation)
+                            {
+                                // Force reloading of data
+                                foreach (var data in prv.perSceneDataList)
+                                    data.Initialize();
 
-                    if (m_BakingSet.hasDilation)
-                    {
-                        // Force reloading of data
-                        foreach (var data in prv.perSceneDataList)
-                            data.Initialize();
-
-                        InitDilationShaders();
-                        PerformDilation();
+                                InitDilationShaders();
+                                PerformDilation();
+                            }
+                        }
                     }
                 }
             }
@@ -1045,6 +1054,7 @@ namespace UnityEngine.Rendering
                 bakingSet.settings.virtualOffsetSettings.useVirtualOffset = savedVirtualOffset;
                 bakingSet.useRenderingLayers = savedRenderingLayers;
 
+                m_BakingBatch?.Dispose();
                 m_BakingBatch = null;
                 m_BakingSet = null;
             }

@@ -12,3 +12,4 @@ Instead of using a constant color, fog can use the background sky as a source fo
 
 Optionally, you can enable volumetric fog for GameObjects close to the camera. It realistically simulates the interaction of lights with fog, which allows for physically plausible rendering of glow and crepuscular rays, which are beams of light that stream through gaps in objects like clouds and trees from a central point.
 
+**Note:** Volumetric fog doesn't support [light rendering layers](Rendering-Layers).
