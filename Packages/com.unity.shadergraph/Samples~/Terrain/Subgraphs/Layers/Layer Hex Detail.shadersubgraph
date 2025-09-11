@@ -904,7 +904,7 @@
                 "m_Node": {
                     "m_Id": "87978396010342e4a3b776d4e781d526"
                 },
-                "m_SlotId": 1
+                "m_SlotId": 0
             }
         },
         {
@@ -1954,8 +1954,8 @@
     "m_ObjectId": "2514389d2bc94b2fb59d0ca99fc900b9",
     "m_Title": "Compute Hex Tiles and blend weights",
     "m_Position": {
-        "x": -828.6666259765625,
-        "y": -342.00006103515627
+        "x": -827.9999389648438,
+        "y": -341.99993896484377
     }
 }
 
@@ -2948,8 +2948,8 @@
     "m_ObjectId": "4987c12228b84022b1529db3054da679",
     "m_Title": "Sample Random Tiled Mask Texture",
     "m_Position": {
-        "x": 264.66668701171877,
-        "y": -72.00006103515625
+        "x": 265.3333740234375,
+        "y": -71.99989318847656
     }
 }
 
@@ -5200,8 +5200,8 @@
     "m_ObjectId": "9a4b61fb317b4ad2b55a55b09fd570af",
     "m_Title": "Compute Random UV Tiling for each Hex Tile",
     "m_Position": {
-        "x": -373.3333435058594,
-        "y": -612.0000610351563
+        "x": -372.6666259765625,
+        "y": -611.9999389648438
     }
 }
 
@@ -7504,8 +7504,8 @@
     "m_ObjectId": "f5afbfeea0ec44d3be84e7e5dcd14fa1",
     "m_Title": "Sample Random Tiled Color Texture",
     "m_Position": {
-        "x": 244.0,
-        "y": -708.666748046875
+        "x": 244.0000457763672,
+        "y": -708.6665649414063
     }
 }
 
