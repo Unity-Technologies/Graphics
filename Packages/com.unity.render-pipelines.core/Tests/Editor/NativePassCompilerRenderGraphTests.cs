@@ -529,7 +529,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
-        public void NonFragmentUseBreaksPass()
+        public void NonFragmentSamplingBreaksPass()
         {
             var g = AllocateRenderGraph();
             var buffers = ImportAndCreateBuffers(g);
@@ -554,6 +554,64 @@ namespace UnityEngine.Rendering.Tests
 
             Assert.AreEqual(2, passes.Count);
             Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.NextPassReadsTexture, passes[0].breakAudit.reason);
+        }
+
+        [Test]
+        public void FragmentAfterSamplingWithInputAttachmentBreaksPass()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateBuffers(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.UseTexture(buffers.extraBuffers[0], AccessFlags.Read);
+                builder.SetRenderAttachment(buffers.extraBuffers[1], 0, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.SetInputAttachment(buffers.extraBuffers[1], 1, AccessFlags.Read);
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 2, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(2, passes.Count);
+            Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.NextPassTargetsTexture, passes[0].breakAudit.reason);
+        }
+
+        [Test]
+        public void FragmentAfterSamplingBreaksPass()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateBuffers(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.UseTexture(buffers.extraBuffers[0], AccessFlags.Read);
+                builder.SetRenderAttachment(buffers.extraBuffers[1], 0, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachment(buffers.extraBuffers[2], 1, AccessFlags.Read);
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 2, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(2, passes.Count);
+            Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.NextPassTargetsTexture, passes[0].breakAudit.reason);
         }
 
         [Test]
