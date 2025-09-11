@@ -42,7 +42,6 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure the stencil state for the opaque and transparent render passes.");
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
             public static readonly GUIContent invalidStencilOverride = EditorGUIUtility.TrTextContent("Error: When using the deferred rendering path, the Renderer requires the control over the 4 highest bits of the stencil buffer to store Material types. The current combination of the stencil override options prevents the Renderer from controlling the required bits. Try changing one of the options to Replace.");
-            public static readonly GUIContent intermediateTextureMode = EditorGUIUtility.TrTextContent("Intermediate Texture", "Controls when URP renders via an intermediate texture.");
             public static readonly GUIContent deferredPlusIncompatibleWarning = EditorGUIUtility.TrTextContent("Deferred+ is only available with Render Graph. In compatibility mode, Deferred+ falls back to Forward+.");
         }
 
@@ -60,7 +59,6 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_PostProcessData;
         SerializedProperty m_Shaders;
         SerializedProperty m_ShadowTransparentReceiveProp;
-        SerializedProperty m_IntermediateTextureMode;
 
         List<string> m_DepthFormatStrings = new List<string>();
 
@@ -80,7 +78,6 @@ namespace UnityEditor.Rendering.Universal
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
             m_Shaders = serializedObject.FindProperty("shaders");
             m_ShadowTransparentReceiveProp = serializedObject.FindProperty("m_ShadowTransparentReceive");
-            m_IntermediateTextureMode = serializedObject.FindProperty("m_IntermediateTextureMode");
         }
 
         private void PopulateCompatibleDepthFormats(int renderingMode)
@@ -159,7 +156,7 @@ namespace UnityEditor.Rendering.Universal
         {
             serializedObject.Update();
 
-            EditorGUILayout.Space();
+            DisplayIntermediateTextureWarnings();
 
             EditorGUILayout.LabelField(Styles.FilteringSectionLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
@@ -206,17 +203,28 @@ namespace UnityEditor.Rendering.Universal
             if (m_RenderingMode.intValue == (int)RenderingMode.Forward || m_RenderingMode.intValue == (int)RenderingMode.ForwardPlus)
             {
                 EditorGUI.indentLevel++;
-
-                EditorGUILayout.PropertyField(m_DepthPrimingMode, Styles.DepthPrimingModeLabel);
-                if (m_DepthPrimingMode.intValue != (int)DepthPrimingMode.Disabled)
+                if (isIntermediateTextureForbidden)
                 {
-                    if (GraphicsSettings.currentRenderPipeline != null && GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset asset && asset.msaaSampleCount > 1)
+                    using (new EditorGUI.DisabledScope(true))
                     {
-                        EditorGUILayout.HelpBox(Styles.DepthPrimingMSAAWarning.text, MessageType.Warning);
+                        var rect = EditorGUILayout.GetControlRect();
+                        EditorGUI.EnumPopup(rect, UniversalRenderPipelineAssetUI.Styles.GetNoIntermediateTextureVariant(Styles.DepthPrimingModeLabel), DepthPrimingMode.Disabled);
                     }
-                    else
+                }
+                else
+                {
+
+                    EditorGUILayout.PropertyField(m_DepthPrimingMode, Styles.DepthPrimingModeLabel);
+                    if (m_DepthPrimingMode.intValue != (int)DepthPrimingMode.Disabled)
                     {
-                        EditorGUILayout.HelpBox(Styles.DepthPrimingModeInfo.text, MessageType.Info);
+                        if (GraphicsSettings.currentRenderPipeline != null && GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset asset && asset.msaaSampleCount > 1)
+                        {
+                            EditorGUILayout.HelpBox(Styles.DepthPrimingMSAAWarning.text, MessageType.Warning);
+                        }
+                        else
+                        {
+                            EditorGUILayout.HelpBox(Styles.DepthPrimingModeInfo.text, MessageType.Info);
+                        }
                     }
                 }
 
@@ -249,18 +257,35 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
-            EditorGUILayout.LabelField(Styles.PostProcessingSectionLabel, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            EditorGUI.BeginChangeCheck();
-            var postProcessIncluded = EditorGUILayout.Toggle(Styles.PostProcessIncluded, m_PostProcessData.objectReferenceValue != null);
-            if (EditorGUI.EndChangeCheck())
+            if (isIntermediateTextureForbidden)
             {
-                m_PostProcessData.objectReferenceValue = postProcessIncluded ? PostProcessData.GetDefaultPostProcessData() : null;
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    EditorGUILayout.LabelField(Styles.PostProcessingSectionLabel, EditorStyles.boldLabel);
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.Toggle(UniversalRenderPipelineAssetUI.Styles.GetNoIntermediateTextureVariant(Styles.PostProcessIncluded), false);
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.ObjectField(UniversalRenderPipelineAssetUI.Styles.GetNoIntermediateTextureVariant(Styles.PostProcessLabel), null, typeof(PostProcessData),
+                        allowSceneObjects: false);
+                    EditorGUI.indentLevel--;
+                    EditorGUI.indentLevel--;
+                }
             }
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_PostProcessData, Styles.PostProcessLabel);
-            EditorGUI.indentLevel--;
-            EditorGUI.indentLevel--;
+            else
+            {
+                EditorGUILayout.LabelField(Styles.PostProcessingSectionLabel, EditorStyles.boldLabel);
+                EditorGUI.indentLevel++;
+                EditorGUI.BeginChangeCheck();
+                var postProcessIncluded = EditorGUILayout.Toggle(Styles.PostProcessIncluded, m_PostProcessData.objectReferenceValue != null);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    m_PostProcessData.objectReferenceValue = postProcessIncluded ? PostProcessData.GetDefaultPostProcessData() : null;
+                }
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_PostProcessData, Styles.PostProcessLabel);
+                EditorGUI.indentLevel--;
+                EditorGUI.indentLevel--;
+            }
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField(Styles.OverridesSectionLabel, EditorStyles.boldLabel);
@@ -284,14 +309,6 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.HelpBox(Styles.invalidStencilOverride.text, MessageType.Error, true);
             }
 
-            EditorGUI.indentLevel--;
-            EditorGUILayout.Space();
-
-            EditorGUILayout.LabelField("Compatibility", EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            {
-                EditorGUILayout.PropertyField(m_IntermediateTextureMode, Styles.intermediateTextureMode);
-            }
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 

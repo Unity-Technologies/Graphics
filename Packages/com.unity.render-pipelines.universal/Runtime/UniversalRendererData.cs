@@ -7,6 +7,7 @@ using System;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -122,7 +123,8 @@ namespace UnityEngine.Rendering.Universal
         [MenuItem("Assets/Create/Rendering/URP Universal Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 2)]
         static void CreateUniversalRendererData()
         {
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalRendererAsset>(), "New Custom Universal Renderer Data.asset", null, null);
+            var icon = CoreUtils.GetIconForType<ScriptableRendererData>();
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalRendererAsset>(), "New Custom Universal Renderer Data.asset", icon, null);
         }
 
 #endif
@@ -152,7 +154,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         bool m_AccurateGbufferNormals = false;
 
-        [SerializeField] IntermediateTextureMode m_IntermediateTextureMode = IntermediateTextureMode.Always;
+        // Kept for data migration (see UniversalRenderPipelineAsset version 13)
+        [SerializeField, FormerlySerializedAs("m_IntermediateTextureMode")] internal IntermediateTextureMode m_ObsoleteIntermediateTextureMode = IntermediateTextureMode.Always;
 
         /// <inheritdoc/>
         protected override ScriptableRenderer Create()
@@ -335,13 +338,21 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Controls when URP renders via an intermediate texture.
         /// </summary>
+        [Obsolete("Use UniversalRenderPipelineAsset.intermediateTextureMode instead", false)]
         public IntermediateTextureMode intermediateTextureMode
         {
-            get => m_IntermediateTextureMode;
+            get
+            {
+                var asset = QualitySettings.renderPipeline as UniversalRenderPipelineAsset;
+                if (asset == null)
+                    return m_ObsoleteIntermediateTextureMode; // No value to return normally. So prefer returning former value in case it is still relevant, instead of default.
+                return asset.intermediateTextureMode;
+            }
             set
             {
-                SetDirty();
-                m_IntermediateTextureMode = value;
+                var asset = QualitySettings.renderPipeline as UniversalRenderPipelineAsset;
+                if (asset != null)
+                    asset.intermediateTextureMode = value;
             }
         }
 
@@ -358,7 +369,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool usesClusterLightLoop => m_RenderingMode == RenderingMode.ForwardPlus ||
                                             m_RenderingMode == RenderingMode.DeferredPlus;
-        
+
         internal override bool stripShadowsOffVariants
         {
             get => m_StripShadowsOffVariants;

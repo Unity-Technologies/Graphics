@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             public string debugName;
             public bool disablePassCulling;
             public bool disablePassMerging;
+            public RenderTextureUVOriginStrategy renderTextureUVOriginStrategy;
         }
 
         internal RenderGraphInputInfo graph;
@@ -69,7 +70,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         }
 
         public bool Initialize(RenderGraphResourceRegistry resources, List<RenderGraphPass> renderPasses, RenderGraphDebugParams debugParams, string debugName, bool useCompilationCaching,
-            int graphHash, int frameIndex)
+            int graphHash, int frameIndex, RenderTextureUVOriginStrategy renderTextureUVOriginStrategy)
         {
             bool cached = false;
             if (!useCompilationCaching)
@@ -82,6 +83,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             graph.disablePassCulling = debugParams.disablePassCulling;
             graph.disablePassMerging = debugParams.disablePassMerging;
             graph.debugName = debugName;
+            graph.renderTextureUVOriginStrategy = renderTextureUVOriginStrategy;
 
             Clear(clearContextData: !useCompilationCaching);
 
@@ -141,6 +143,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             DetectMemoryLessResources();
 
             PrepareNativeRenderPasses();
+
+            if (graph.renderTextureUVOriginStrategy == RenderTextureUVOriginStrategy.PropagateAttachmentOrientation)
+                PropagateTextureUVOrigin();
         }
 
         public void Clear(bool clearContextData)
@@ -164,6 +169,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             NRPRGComp_TryMergeNativePasses,
             NRPRGComp_FindResourceUsageRanges,
             NRPRGComp_DetectMemorylessResources,
+            NRPRGComp_PropagateTextureUVOrigin,
             NRPRGComp_ExecuteInitializeResources,
             NRPRGComp_ExecuteBeginRenderpassCommand,
             NRPRGComp_ExecuteDestroyResources,
@@ -173,7 +179,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         void ValidatePasses()
         {
             if (RenderGraph.enableValidityChecks)
-            { 
+            {
                 int tilePropertiesPassIndex = -1;
                 for (int passId = 0; passId < graph.m_RenderPasses.Count; passId++)
                 {
@@ -468,8 +474,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 }
 
                 // Update graph based on freshly culled nodes, remove any connection to them
+                // We start from the latest passes to the first ones as we might need to decrement the version number of unwritten resources
                 var numPasses = ctx.passData.Length;
-                for (int passIndex = 0; passIndex < numPasses; passIndex++)
+                for (int passIndex = numPasses - 1; passIndex >= 0; passIndex--)
                 {
                     ref readonly var pass = ref ctx.passData.ElementAt(passIndex);
 
@@ -753,6 +760,62 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             {
                 ref var nativePassData = ref contextData.nativePassData.ElementAt(passIdx);
                 DetermineLoadStoreActions(ref nativePassData);
+            }
+        }
+
+        void PropagateTextureUVOrigin()
+        {
+            using (new ProfilingScope(ProfilingSampler.Get(NativeCompilerProfileId.NRPRGComp_PropagateTextureUVOrigin)))
+            {
+                // Work backwards through the native pass list and propagate the texture uv origin we store with to
+                // any texture attachments that are not explicitly known (usually intermediate memoryless attachments).
+                for (int passIdx = contextData.nativePassData.Length - 1; passIdx >= 0; --passIdx)
+                {
+                    ref NativePassData nativePassData = ref contextData.nativePassData.ElementAt(passIdx);
+
+                    // Find a texture attachment that is storing to find out the orientation for this pass.
+                    int attachmentsCount = nativePassData.attachments.size;
+                    int firstStoreAttachmentIndex = 0;
+                    TextureUVOriginSelection storeUVOrigin = TextureUVOriginSelection.Unknown;
+                    for (int attIdx = 0; attIdx < attachmentsCount; ++attIdx)
+                    {
+                        ref NativePassAttachment nativePassAttachment = ref nativePassData.attachments[attIdx];
+                        if (nativePassAttachment.storeAction != RenderBufferStoreAction.DontCare)
+                        {
+                            if (nativePassAttachment.handle.type == RenderGraphResourceType.Texture) // Only textures have orientation
+                            {
+                                ref ResourceUnversionedData resData = ref contextData.UnversionedResourceData(nativePassAttachment.handle);
+                                storeUVOrigin = resData.textureUVOrigin; // Inherit the orientation of the store if we are currently storing to an unknown orientation.
+                                firstStoreAttachmentIndex = attIdx;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Update any texture attachments with an unknown uv origin to the one we are going to use for storing and validate
+                    // we don't have a mixture of uv origins on the texture attachment list as this would mean something is going to be
+                    // read/written upside down.
+                    for (int attIdx = 0; attIdx < attachmentsCount; ++attIdx)
+                    {
+                        ref NativePassAttachment nativePassAttachment = ref nativePassData.attachments[attIdx];
+
+                        if (nativePassAttachment.handle.type == RenderGraphResourceType.Texture)
+                        {
+                            ref ResourceUnversionedData resData = ref contextData.UnversionedResourceData(nativePassAttachment.handle);
+                            if (storeUVOrigin != TextureUVOriginSelection.Unknown && resData.textureUVOrigin != TextureUVOriginSelection.Unknown && resData.textureUVOrigin != storeUVOrigin)
+                            {
+                                ref NativePassAttachment firstStoreNativePassAttachment = ref nativePassData.attachments[firstStoreAttachmentIndex];
+                                var firstStoreAttachmentName = graph.m_ResourcesForDebugOnly.GetRenderGraphResourceName(firstStoreNativePassAttachment.handle);
+                                var name = graph.m_ResourcesForDebugOnly.GetRenderGraphResourceName(nativePassAttachment.handle);
+
+                                throw new InvalidOperationException($"From pass '{contextData.passNames[nativePassData.firstGraphPass]}' to pass '{contextData.passNames[nativePassData.lastGraphPass]}' when trying to store resource '{name}' of type {nativePassAttachment.handle.type} at index {nativePassAttachment.handle.index} - "
+                                                                    + RenderGraph.RenderGraphExceptionMessages.IncompatibleTextureUVOriginStore(firstStoreAttachmentName, storeUVOrigin, name, resData.textureUVOrigin));
+                            }
+
+                            resData.textureUVOrigin = storeUVOrigin;
+                        }
+                    }
+                }
             }
         }
 

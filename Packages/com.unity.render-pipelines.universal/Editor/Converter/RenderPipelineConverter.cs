@@ -5,8 +5,13 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.2D.PixelPerfect.Editor")]
 namespace UnityEditor.Rendering.Universal
 {
+    internal interface IRenderPipelineConverter
+    {
+        bool isEnabled { get; }
+    }
+
     // Might need to change this name before making it public
-    internal abstract class RenderPipelineConverter
+    internal abstract class RenderPipelineConverter : IRenderPipelineConverter
     {
         /// <summary>
         /// Name of the converter.
@@ -22,6 +27,11 @@ namespace UnityEditor.Rendering.Universal
         /// A check if the converter is enabled or not. Can be used to do a check if prerequisites are met to have it enabled or disabled.
         /// </summary>
         public virtual bool isEnabled => true;
+
+        /// <summary>
+        /// The message if the converter is disabled. This will be shown in the UI when hovering over the disabled converter.
+        /// </summary>
+        public virtual string isDisabledWarningMessage => string.Empty;
 
         /// <summary>
         /// A priority of the converter. The lower the number (can be negative), the earlier it will be executed. Can be used to make sure that a converter runs before another converter.

@@ -36,10 +36,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public readonly bool discard; // graph.m_Resources.GetTextureResourceDesc(fragment.resource).discardBuffer;
         public readonly bool bindMS;
 
+        public TextureUVOriginSelection textureUVOrigin;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public string GetName(CompilerContextData ctx, ResourceHandle h) => ctx.GetResourceName(h);
 
-        public ResourceUnversionedData(IRenderGraphResource rll, ref RenderTargetInfo info, ref TextureDesc desc, bool isResourceShared)
+        public ResourceUnversionedData(TextureResource rll, ref RenderTargetInfo info, ref TextureDesc desc, bool isResourceShared)
         {
             isImported = rll.imported;
             isShared = isResourceShared;
@@ -59,6 +61,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             clear = desc.clearBuffer;
             discard = desc.discardBuffer;
             bindMS = info.bindMS;
+            textureUVOrigin = rll.textureUVOrigin;
         }
 
         public ResourceUnversionedData(IRenderGraphResource rll, ref BufferDesc _, bool isResourceShared)
@@ -83,6 +86,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             clear = false;
             discard = false;
             bindMS = false;
+            textureUVOrigin = TextureUVOriginSelection.Unknown;
         }
 
         public ResourceUnversionedData(IRenderGraphResource rll, ref RayTracingAccelerationStructureDesc _, bool isResourceShared)
@@ -107,6 +111,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             clear = false;
             discard = false;
             bindMS = false;
+            textureUVOrigin = TextureUVOriginSelection.Unknown;
         }
 
         public void InitializeNullResource()
@@ -114,6 +119,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             firstUsePassID = -1;
             lastUsePassID = -1;
             lastWritePassID = -1;
+            textureUVOrigin = TextureUVOriginSelection.Unknown;
         }
     }
 
@@ -276,11 +282,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     {
                         case (int)RenderGraphResourceType.Texture:
                             {
+                                var tex = rll as TextureResource;
                                 resources.GetRenderTargetInfo(h, out var info);
-                                ref var desc = ref (rll as TextureResource).desc;
+                                ref var desc = ref tex.desc;
                                 bool isResourceShared = resources.IsRenderGraphResourceShared(h);
 
-                                unversionedData[t][r] = new ResourceUnversionedData(rll, ref info, ref desc, isResourceShared);
+                                unversionedData[t][r] = new ResourceUnversionedData(tex, ref info, ref desc, isResourceShared);
                                 break;
                             }
                         case (int)RenderGraphResourceType.Buffer:

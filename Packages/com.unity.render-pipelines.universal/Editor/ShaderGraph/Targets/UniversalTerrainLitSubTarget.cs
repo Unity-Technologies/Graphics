@@ -19,12 +19,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override int latestVersion => 1;
 
         [SerializeField]
-        private bool m_EnableHeightBlend;
-
-        [SerializeField]
-        float m_HeightTransition;
-
-        [SerializeField]
         bool m_EnableInstancedPerPixelNormal = true;
 
         [SerializeField]
@@ -34,18 +28,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         bool m_BlendModePreserveSpecular = true;
 
         protected override ShaderID shaderID => ShaderID.SG_TerrainLit;
-
-        public bool enableHeightBlend
-        {
-            get => m_EnableHeightBlend;
-            set => m_EnableHeightBlend = value;
-        }
-
-        public float heightTransition
-        {
-            get => m_HeightTransition;
-            set => m_HeightTransition = value;
-        }
 
         public bool enableInstancedPerPixelNormal
         {
@@ -148,25 +130,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-            collector.AddShaderProperty(new BooleanShaderProperty
-            {
-                value = enableHeightBlend,
-                hidden = true,
-                overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                overrideReferenceName = "_EnableHeightBlend",
-                displayName = "Enable Height Blend",
-            });
-            collector.AddShaderProperty(new Vector1ShaderProperty
-            {
-                floatType = FloatType.Slider,
-                value = heightTransition,
-                hidden = false,
-                overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                overrideReferenceName = "_HeightTransition",
-                displayName = "Height Transition",
-            });
             collector.AddShaderProperty(new BooleanShaderProperty
             {
                 value = enableInstancedPerPixelNormal,
@@ -927,7 +890,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.defines.Add(TerrainDefines.TerrainSplat23, 1);
                 result.keywords.Add(TerrainDefines.TerrainNormalmap);
                 result.keywords.Add(TerrainDefines.TerrainMaskmap);
-                result.keywords.Add(TerrainDefines.TerrainBlendHeight);
                 result.keywords.Add(TerrainDefines.TerrainInstancedPerPixelNormal);
                 result.defines.Add(TerrainDefines.MetallicSpecGlossMap, 1);
                 result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
@@ -978,7 +940,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.defines.Add(TerrainDefines.TerrainSplat23, 1);
                 result.keywords.Add(TerrainDefines.TerrainNormalmap);
                 result.keywords.Add(TerrainDefines.TerrainMaskmap);
-                result.keywords.Add(TerrainDefines.TerrainBlendHeight);
                 result.keywords.Add(TerrainDefines.TerrainInstancedPerPixelNormal);
                 result.defines.Add(TerrainDefines.MetallicSpecGlossMap, 1);
                 result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
@@ -1113,7 +1074,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.defines.Add(TerrainDefines.TerrainSplat23, 1);
                 result.defines.Add(TerrainDefines.TerrainAlphaClipEnable, target.alphaClip?1:0);
                 result.keywords.Add(TerrainDefines.TerrainNormalmap);
-                result.keywords.Add(TerrainDefines.TerrainBlendHeight);
                 result.keywords.Add(TerrainDefines.TerrainInstancedPerPixelNormal);
 
                 CorePasses.AddAlphaClipControlToPass(ref result, target);
@@ -1466,16 +1426,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 displayName = "Terrain Mask Map",
                 referenceName = "_MASKMAP",
-                type = KeywordType.Boolean,
-                definition = KeywordDefinition.ShaderFeature,
-                scope = KeywordScope.Local,
-                stages = KeywordShaderStage.Fragment,
-            };
-
-            public static KeywordDescriptor TerrainBlendHeight = new KeywordDescriptor()
-            {
-                displayName = "Terrain Blend Height",
-                referenceName = "_TERRAIN_BLEND_HEIGHT",
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.ShaderFeature,
                 scope = KeywordScope.Local,

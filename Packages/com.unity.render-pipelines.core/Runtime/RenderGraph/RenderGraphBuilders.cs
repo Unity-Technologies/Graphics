@@ -292,10 +292,30 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        private void CheckTextureUVOriginIsValid(ResourceHandle handle, TextureResource texRes)
+        {
+            if (texRes.textureUVOrigin == TextureUVOriginSelection.TopLeft)
+            {
+                var name = m_Resources.GetRenderGraphResourceName(handle);
+                throw new ArgumentException($"In pass '{m_RenderPass.name}' when trying to use resource '{name}' of type `{handle.type}` at index `{handle.index}` - " + RenderGraph.RenderGraphExceptionMessages.IncompatibleTextureUVOriginUseTexture(texRes.textureUVOrigin));
+            }
+        }
+
         public void UseTexture(in TextureHandle input, AccessFlags flags)
         {
             CheckNotUseFragment(input);
             UseResource(input.handle, flags);
+
+            if ((flags & AccessFlags.Read) == AccessFlags.Read)
+            {
+                if (m_RenderGraph.renderTextureUVOriginStrategy == RenderTextureUVOriginStrategy.PropagateAttachmentOrientation)
+                {
+                    TextureResource texRes = m_Resources.GetTextureResource(input.handle);
+                    CheckTextureUVOriginIsValid(input.handle, texRes);
+                    texRes.textureUVOrigin = TextureUVOriginSelection.BottomLeft;
+                }
+            }
         }
 
         public void UseGlobalTexture(int propertyId, AccessFlags flags)
@@ -380,6 +400,53 @@ namespace UnityEngine.Rendering.RenderGraphModule
                         {
                             var name = m_Resources.GetRenderGraphResourceName(tex.handle);
                             throw new InvalidOperationException($"In pass '{m_RenderPass.name}' when trying to use resource '{name}' of type {tex.handle.type} at index {tex.handle.index} - " + RenderGraph.RenderGraphExceptionMessages.k_SetRenderAttachmentOnDepthTexture);
+                        }
+                    }
+
+                    if (m_RenderGraph.renderTextureUVOriginStrategy == RenderTextureUVOriginStrategy.PropagateAttachmentOrientation)
+                    {
+                        var texResource = m_Resources.GetTextureResource(tex.handle);
+                        TextureResource checkTexResource = null;
+                        for (int i = 0; i < m_RenderPass.fragmentInputMaxIndex + 1; ++i)
+                        {
+                            if (m_RenderPass.fragmentInputAccess[i].textureHandle.IsValid())
+                            {
+                                ref readonly TextureHandle texCheck = ref m_RenderPass.fragmentInputAccess[i].textureHandle;
+                                checkTexResource = m_Resources.GetTextureResource(texCheck.handle);
+                                if (texResource.textureUVOrigin != TextureUVOriginSelection.Unknown && checkTexResource.textureUVOrigin != TextureUVOriginSelection.Unknown && texResource.textureUVOrigin != checkTexResource.textureUVOrigin)
+                                {
+                                    var name = m_Resources.GetRenderGraphResourceName(tex.handle);
+                                    var checkName = m_Resources.GetRenderGraphResourceName(texCheck.handle);
+                                    throw new InvalidOperationException($"In pass '{m_RenderPass.name}' when trying to use resource '{name}' of type {tex.handle.type} at index {tex.handle.index} - " + RenderGraph.RenderGraphExceptionMessages.IncompatibleTextureUVOrigin(texResource.textureUVOrigin, "input", checkName, texCheck.handle.type, texCheck.handle.index, checkTexResource.textureUVOrigin));
+                                }
+                            }
+                        }
+
+                        for (int i = 0; i < m_RenderPass.colorBufferMaxIndex + 1; ++i)
+                        {
+                            if (m_RenderPass.colorBufferAccess[i].textureHandle.IsValid())
+                            {
+                                ref readonly TextureHandle texCheck = ref m_RenderPass.colorBufferAccess[i].textureHandle;
+                                checkTexResource = m_Resources.GetTextureResource(texCheck.handle);
+                                if (texResource.textureUVOrigin != TextureUVOriginSelection.Unknown && checkTexResource.textureUVOrigin != TextureUVOriginSelection.Unknown && texResource.textureUVOrigin != checkTexResource.textureUVOrigin)
+                                {
+                                    var name = m_Resources.GetRenderGraphResourceName(tex.handle);
+                                    var checkName = m_Resources.GetRenderGraphResourceName(texCheck.handle);
+                                    throw new InvalidOperationException($"In pass '{m_RenderPass.name}' when trying to use resource '{name}' of type {tex.handle.type} at index {tex.handle.index} - " + RenderGraph.RenderGraphExceptionMessages.IncompatibleTextureUVOrigin(texResource.textureUVOrigin, "render", checkName, texCheck.handle.type, texCheck.handle.index, checkTexResource.textureUVOrigin));
+                                }
+                            }
+                        }
+
+                        if (!isDepth && m_RenderPass.depthAccess.textureHandle.IsValid())
+                        {
+                            TextureHandle texCheck = m_RenderPass.depthAccess.textureHandle;
+                            checkTexResource = m_Resources.GetTextureResource(texCheck.handle);
+                            if (texResource.textureUVOrigin != TextureUVOriginSelection.Unknown && checkTexResource.textureUVOrigin != TextureUVOriginSelection.Unknown && texResource.textureUVOrigin != checkTexResource.textureUVOrigin)
+                            {
+                                var name = m_Resources.GetRenderGraphResourceName(tex.handle);
+                                var checkName = m_Resources.GetRenderGraphResourceName(texCheck.handle);
+                                throw new InvalidOperationException($"In pass '{m_RenderPass.name}' when trying to use resource '{name}' of type {tex.handle.type} at index {tex.handle.index} - " + RenderGraph.RenderGraphExceptionMessages.IncompatibleTextureUVOrigin(texResource.textureUVOrigin, "depth", checkName, texCheck.handle.type, texCheck.handle.index, checkTexResource.textureUVOrigin));
+                            }
                         }
                     }
                 }

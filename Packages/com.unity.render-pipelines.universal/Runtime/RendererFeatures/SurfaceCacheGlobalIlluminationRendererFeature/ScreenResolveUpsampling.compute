@@ -6,6 +6,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
+#include "SurfaceCacheCore/VectorLogic.hlsl"
 #include "SurfaceCacheCore/IrradianceCompression.hlsl"
 #include "SurfaceCacheCore/PatchUtil.hlsl"
 #include "SurfaceCacheCore/Common.hlsl"
@@ -59,7 +60,7 @@ void Upsample(uint2 targetPixelPos : SV_DispatchThreadID)
         sincos(angle, sinCos.x, sinCos.y);
         const int2 samplePixelPosLowRes = targetPixelPosLowRes + int2(sinCos * radius);
 
-        if(any((samplePixelPosLowRes < 0) + (int2(fullRes) <= samplePixelPosLowRes)))
+        if(any(VECTOR_LOGIC_OR(samplePixelPosLowRes < 0, int2(fullRes) <= samplePixelPosLowRes)))
             continue;
 
         const uint2 samplePixelPosFullRes = samplePixelPosLowRes * lowResScreenScaling;

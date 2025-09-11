@@ -421,4 +421,4 @@ MonoBehaviour:
     ActiveImageTests: 1
     ActivePixelTests: 7
   WaitFrames: 0
-  XRCompatible: 0
+  XRCompatible: 1

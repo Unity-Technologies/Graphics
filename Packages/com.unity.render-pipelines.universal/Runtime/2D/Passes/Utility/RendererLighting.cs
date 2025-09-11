@@ -12,8 +12,10 @@ namespace UnityEngine.Rendering.Universal
         private static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
         public static readonly Color k_NormalClearColor = new Color(0.5f, 0.5f, 0.5f, 1.0f);
         private static readonly string k_UsePointLightCookiesKeyword = "USE_POINT_LIGHT_COOKIES";
+        private static readonly string k_UseSpriteLight = "USE_SPRITE_LIGHT";
         private static readonly string k_LightQualityFastKeyword = "LIGHT_QUALITY_FAST";
         private static readonly string k_UseNormalMap = "USE_NORMAL_MAP";
+        private static readonly string k_UseShadowMap = "USE_SHADOW_MAP";
         private static readonly string k_UseAdditiveBlendingKeyword = "USE_ADDITIVE_BLENDING";
         private static readonly string k_UseVolumetric = "USE_VOLUMETRIC";
 
@@ -195,14 +197,14 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #if URP_COMPATIBILITY_MODE
-        private static bool CanRenderLight(IRenderPass2D pass, Light2D light, int blendStyleIndex, int layerToRender, bool isVolume, ref Mesh lightMesh, ref Material lightMaterial)
+        private static bool CanRenderLight(IRenderPass2D pass, Light2D light, int blendStyleIndex, int layerToRender, bool isVolume, bool hasShadows, ref Mesh lightMesh, ref Material lightMaterial)
         {
             if (light != null && light.lightType != Light2D.LightType.Global && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender))
             {
                 lightMesh = light.lightMesh;
                 if (lightMesh == null)
                     return false;
-                lightMaterial = pass.rendererData.GetLightMaterial(light, isVolume);
+                lightMaterial = pass.rendererData.GetLightMaterial(light, isVolume, hasShadows);
                 if (lightMaterial == null)
                     return false;
                 return true;
@@ -227,7 +229,7 @@ namespace UnityEngine.Rendering.Universal
         {
             Mesh lightMesh = null;
             Material lightMaterial = null;
-            if (!CanRenderLight(pass, light, blendStyleIndex, layerToRender, isVolume, ref lightMesh, ref lightMaterial))
+            if (!CanRenderLight(pass, light, blendStyleIndex, layerToRender, isVolume, hasShadows, ref lightMesh, ref lightMaterial))
                 return;
 
             // For Batching.
@@ -669,7 +671,7 @@ namespace UnityEngine.Rendering.Universal
             material.SetFloat(k_DstBlendID, (float)dst);
         }
 
-        private static uint GetLightMaterialIndex(Light2D light, bool isVolume)
+        private static uint GetLightMaterialIndex(Light2D light, bool isVolume, bool useShadows)
         {
             var isPoint = light.isPointLight;
             var bitIndex = 0;
@@ -681,14 +683,18 @@ namespace UnityEngine.Rendering.Universal
             bitIndex++;
             var pointCookieBit = (isPoint && light.lightCookieSprite != null && light.lightCookieSprite.texture != null) ? 1u << bitIndex : 0u;
             bitIndex++;
+            var spriteLightBit = (light.lightType == Light2D.LightType.Sprite) ? 1u << bitIndex : 0u;
+            bitIndex++;
             var fastQualityBit = (light.normalMapQuality == Light2D.NormalMapQuality.Fast) ? 1u << bitIndex : 0u;
             bitIndex++;
             var useNormalMap = light.normalMapQuality != Light2D.NormalMapQuality.Disabled ? 1u << bitIndex : 0u;
+            bitIndex++;
+            var useShadowMap = useShadows ? 1u << bitIndex : 0u;
 
-            return fastQualityBit | pointCookieBit | additiveBit | shapeBit | volumeBit | useNormalMap;
+            return fastQualityBit | pointCookieBit | spriteLightBit | additiveBit | shapeBit | volumeBit | useNormalMap | useShadowMap;
         }
 
-        private static Material CreateLightMaterial(Renderer2DData rendererData, Light2D light, bool isVolume)
+        private static Material CreateLightMaterial(Renderer2DData rendererData, Light2D light, bool isVolume, bool useShadows)
         {
             if (!GraphicsSettings.TryGetRenderPipelineSettings<Renderer2DResources>(out var resources))
                 return null;
@@ -720,22 +726,28 @@ namespace UnityEngine.Rendering.Universal
             if (isPoint && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                 material.EnableKeyword(k_UsePointLightCookiesKeyword);
 
+            if (light.lightType == Light2D.LightType.Sprite)
+                material.EnableKeyword(k_UseSpriteLight);
+
             if (light.normalMapQuality == Light2D.NormalMapQuality.Fast)
                 material.EnableKeyword(k_LightQualityFastKeyword);
 
             if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled)
                 material.EnableKeyword(k_UseNormalMap);
 
+            if (useShadows)
+                material.EnableKeyword(k_UseShadowMap);
+
             return material;
         }
 
-        internal static Material GetLightMaterial(this Renderer2DData rendererData, Light2D light, bool isVolume)
+        internal static Material GetLightMaterial(this Renderer2DData rendererData, Light2D light, bool isVolume, bool useShadows)
         {
-            var materialIndex = GetLightMaterialIndex(light, isVolume);
+            var materialIndex = GetLightMaterialIndex(light, isVolume, useShadows);
 
             if (!rendererData.lightMaterials.TryGetValue(materialIndex, out var material))
             {
-                material = CreateLightMaterial(rendererData, light, isVolume);
+                material = CreateLightMaterial(rendererData, light, isVolume, useShadows);
                 rendererData.lightMaterials[materialIndex] = material;
             }
 

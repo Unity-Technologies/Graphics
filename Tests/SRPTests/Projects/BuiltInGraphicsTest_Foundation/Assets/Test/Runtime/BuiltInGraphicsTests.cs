@@ -9,17 +9,13 @@ using UnityEngine.TestTools.Graphics;
 
 public class BuiltInGraphicsTests
 {
-#if UNITY_ANDROID
     static bool wasFirstSceneRan = false;
     const int firstSceneAdditionalFrames = 3;
-#endif
-
-    public const string builtinPackagePath = "Assets/ReferenceImages";
 
     [UnityTest, Category("BuiltInRP")]
-    [PrebuildSetup("SetupGraphicsTestCases")]
-    [UseGraphicsTestCases(builtinPackagePath)]
-    public IEnumerator Run(GraphicsTestCase testCase)
+    [SceneGraphicsTest("Assets/Scenes")]
+    [IgnoreGraphicsTest("051_Shader_Graphs_canvas", "Disabled from Test Filters")]
+    public IEnumerator Run(SceneGraphicsTestCase testCase)
     {
 		Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
         SceneManager.LoadScene(testCase.ScenePath);
@@ -56,7 +52,7 @@ public class BuiltInGraphicsTests
         }
 #endif
 
-        ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings, testCase.ReferenceImagePathLog);
+        ImageAssert.AreEqual(testCase.ReferenceImage.Image, cameras.Where(x => x != null), settings.ImageComparisonSettings, testCase.ReferenceImagePathLog);
 
         // Does it allocate memory when it renders what's on the main camera?
         bool allocatesMemory = false;
@@ -75,20 +71,11 @@ public class BuiltInGraphicsTests
             Assert.Fail("Allocated memory when rendering what is on main camera");
     }
 
-#if UNITY_EDITOR
-    [TearDown]
-    public void DumpImagesInEditor()
-    {
-        UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
-    }
-
-#if ENABLE_VR
+#if UNITY_EDITOR && ENABLE_VR
     [TearDown]
     public void TearDownXR()
     {
         XRGraphicsAutomatedTests.running = false;
     }
-
-#endif
 #endif
 }

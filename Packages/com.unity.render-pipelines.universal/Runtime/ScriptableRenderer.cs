@@ -23,9 +23,9 @@ namespace UnityEngine.Rendering.Universal
     ///
     /// The <c>ScriptableRenderer</c> is a run-time object. The resources and asset data for the renderer are serialized in
     /// <c>ScriptableRendererData</c> (more specifically a class derived from <c>ScriptableRendererData</c> which contains additional data for your renderer).
-    /// 
+    ///
     /// The high-level steps needed to create and use your own scriptable renderer are:
-    /// 
+    ///
     /// 1. Create subclasses of  <c>ScriptableRenderer</c> and <c>ScriptableRendererData</c> and implement the rendering logic. Key functions to implement here are:
     /// <c>ScriptableRenderer.OnRecordRenderGraph</c> which will define the rendergraph to execute when rendering a camera. And <c>ScriptableRendererData.Create</c> to create
     /// an instance of your new <c>ScriptableRenderer</c> subclass.
@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler setupLights = new ProfilingSampler($"{k_Name}.{nameof(SetupLights)}");
             public static readonly ProfilingSampler setupRenderPasses = new ProfilingSampler($"{k_Name}.{nameof(SetupRenderPasses)}");
             public static readonly ProfilingSampler internalStartRendering = new ProfilingSampler($"{k_Name}.{nameof(InternalStartRendering)}");
-            
+
             public static class RenderBlock
             {
                 private const string k_Name = nameof(RenderPassBlock);
@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.Universal
         /// Check if the given camera render type is supported in the renderer's current state. The default implementation
         /// simply checks if the camera type is part of the <see cref="SupportedCameraStackingTypes'"/> bitmask.
         /// </summary>
-        /// <seealso cref="CameraRenderType"/>        
+        /// <seealso cref="CameraRenderType"/>
         /// <param name="cameraRenderType">The camera render type that is checked if supported.</param>
         /// <returns>True if the given camera render type is supported in the renderer's current state.</returns>
         public bool SupportsCameraStackingType(CameraRenderType cameraRenderType)
@@ -650,8 +650,10 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int AfterRendering = 3;
         }
 
+#if URP_COMPATIBILITY_MODE
         private StoreActionsOptimization m_StoreActionsOptimizationSetting = StoreActionsOptimization.Auto;
         private static bool m_UseOptimizedStoreActions = false;
+#endif
 
         const int k_RenderPassBlockCount = 4;
 
@@ -771,12 +773,11 @@ namespace UnityEngine.Rendering.Universal
             Clear(CameraRenderType.Base);
             m_ActiveRenderPassQueue.Clear();
 
+#if URP_COMPATIBILITY_MODE
             if (UniversalRenderPipeline.asset)
-            {
                 m_StoreActionsOptimizationSetting = UniversalRenderPipeline.asset.storeActionsOptimization;
-            }
-
             m_UseOptimizedStoreActions = m_StoreActionsOptimizationSetting != StoreActionsOptimization.Store;
+#endif
         }
 
         /// <summary>
@@ -822,7 +823,7 @@ namespace UnityEngine.Rendering.Universal
         internal virtual void ReleaseRenderTargets()
         {
         }
-        
+
 #if URP_COMPATIBILITY_MODE
         /// <summary>
         /// Configures the camera target.
@@ -997,7 +998,8 @@ namespace UnityEngine.Rendering.Universal
 
             }
         }
-        internal void SetupRenderGraphCameraProperties(RenderGraph renderGraph, bool isTargetBackbuffer)
+
+        internal void SetupRenderGraphCameraProperties(RenderGraph renderGraph, bool isTargetBackbuffer, TextureHandle target)
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(Profiling.setupCamera.name, out var passData,
                 Profiling.setupCamera))
@@ -1006,12 +1008,13 @@ namespace UnityEngine.Rendering.Universal
                 passData.cameraData = frameData.Get<UniversalCameraData>();
                 passData.cameraTargetSizeCopy = new Vector2Int(passData.cameraData.cameraTargetDescriptor.width, passData.cameraData.cameraTargetDescriptor.height);
                 passData.isTargetBackbuffer = isTargetBackbuffer;
+                passData.target = target;
 
                 builder.AllowGlobalStateModification(true);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    bool yFlip = !SystemInfo.graphicsUVStartsAtTop || data.isTargetBackbuffer;
+                    bool yFlipped = SystemInfo.graphicsUVStartsAtTop && RenderingUtils.IsHandleYFlipped(context, in data.target);
 
                     // This is still required because of the following reasons:
                     // - Camera billboard properties.
@@ -1024,13 +1027,13 @@ namespace UnityEngine.Rendering.Universal
                     if (data.cameraData.renderType == CameraRenderType.Base)
                     {
                         context.cmd.SetupCameraProperties(data.cameraData.camera);
-                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, data.cameraTargetSizeCopy, !yFlip);
+                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, data.cameraTargetSizeCopy, yFlipped);
                     }
                     else
                     {
                         // Set new properties
-                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, data.cameraTargetSizeCopy, !yFlip);
-                        data.renderer.SetPerCameraClippingPlaneProperties(context.cmd, in data.cameraData, !yFlip);
+                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, data.cameraTargetSizeCopy, yFlipped);
+                        data.renderer.SetPerCameraClippingPlaneProperties(context.cmd, in data.cameraData, yFlipped);
                         data.renderer.SetPerCameraBillboardProperties(context.cmd, data.cameraData);
                     }
 
@@ -1239,6 +1242,7 @@ namespace UnityEngine.Rendering.Universal
             internal ScriptableRenderer renderer;
             internal UniversalCameraData cameraData;
             internal bool isTargetBackbuffer;
+            internal TextureHandle target;
 
             // The size of the camera target changes during the frame so we must make a copy of it here to preserve its record-time value.
             internal Vector2Int cameraTargetSizeCopy;
@@ -1557,7 +1561,7 @@ namespace UnityEngine.Rendering.Universal
         public void EnqueuePass(ScriptableRenderPass pass)
         {
             m_ActiveRenderPassQueue.Add(pass);
-            
+
 #if URP_COMPATIBILITY_MODE
             if (disableNativeRenderPassInFeatures)
                 pass.useNativeRenderPass = false;
@@ -1661,36 +1665,76 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(Profiling.addRenderPasses);
 
+            var urpAsset = UniversalRenderPipeline.asset;
+            var isIntermediateTextureFilteringEnabled = urpAsset != null && urpAsset.intermediateTextureMode == IntermediateTextureMode.Never;
+
             // Add render passes from custom renderer features
-            for (int i = 0; i < rendererFeatures.Count; ++i)
+            for (int featureIndex = 0; featureIndex < rendererFeatures.Count; ++featureIndex)
             {
-                if (!rendererFeatures[i].isActive)
-                {
+                var rendererFeature = rendererFeatures[featureIndex];
+                if (!rendererFeature.isActive)
                     continue;
-                }
+
+                // skipping if declaration made it not compatible
+                rendererFeature.deactivatedAfterIntermediateNotAllowed = false;
+                if (isIntermediateTextureFilteringEnabled && rendererFeature.useIntermediateTexturesInternal == ScriptableRendererFeature.IntermediateTextureUsage.Required)
+                    continue;
+
+                int previousCount = activeRenderPassQueue.Count;
 
 #if URP_COMPATIBILITY_MODE
-                if (!rendererFeatures[i].SupportsNativeRenderPass())
+                if (!rendererFeature.SupportsNativeRenderPass())
                     disableNativeRenderPassInFeatures = true;
 #endif
 
-                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+                rendererFeature.AddRenderPasses(this, ref renderingData);
 #if URP_COMPATIBILITY_MODE
                 disableNativeRenderPassInFeatures = false;
 #endif
+
+                if (isIntermediateTextureFilteringEnabled)
+                {
+                    bool declaresNoIntermediateTexture = rendererFeature.useIntermediateTexturesInternal == ScriptableRendererFeature.IntermediateTextureUsage.NotRequired;
+#if !(DEVELOPMENT_BUILD || UNITY_EDITOR)
+                    // In release builds, trust the declaration and skip verification if feature declares it won't use it.
+                    if (declaresNoIntermediateTexture)
+                        continue;
+#endif
+                    VerifyAndFilterRendererFeaturePasses(rendererFeature, previousCount, declaresNoIntermediateTexture);
+                }
             }
 
             // Remove any null render pass that might have been added by user by mistake
-            int count = activeRenderPassQueue.Count;
-            for (int i = count - 1; i >= 0; i--)
+            activeRenderPassQueue.RemoveAll(item => item == null);
+
+#if URP_COMPATIBILITY_MODE
+            // if any pass was injected, the "automatic" store optimization policy will disable the optimized load actions
+            if (activeRenderPassQueue.Count > 0 && m_StoreActionsOptimizationSetting == StoreActionsOptimization.Auto)
+                m_UseOptimizedStoreActions = false;
+#endif
+        }
+
+        private void VerifyAndFilterRendererFeaturePasses(ScriptableRendererFeature feature, int startIndex, bool declaresNoIntermediateTexture)
+        {
+            // Remove fully any feature requiring IntermediateTexture in any pass if it is forbidden by settings
+            bool requiresIntermediateTexture = false;
+            for (int passIndex = activeRenderPassQueue.Count - 1; passIndex >= startIndex && !requiresIntermediateTexture; passIndex--)
             {
-                if (activeRenderPassQueue[i] == null)
-                    activeRenderPassQueue.RemoveAt(i);
+                var renderPass = activeRenderPassQueue[passIndex];
+                requiresIntermediateTexture |= renderPass.requiresIntermediateTexture
+                                                      || (renderPass.input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None // Needs color
+                                                      || (renderPass.input & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None; // Needs depth
             }
 
-            // if any pass was injected, the "automatic" store optimization policy will disable the optimized load actions
-            if (count > 0 && m_StoreActionsOptimizationSetting == StoreActionsOptimization.Auto)
-                m_UseOptimizedStoreActions = false;
+            if (!requiresIntermediateTexture)
+                return;
+
+            if (declaresNoIntermediateTexture)
+                Debug.LogError($"{feature.name} declare not using IntermediateTexture but actually use it. Deactivating it. Important: This will cause issue on non development builds!");
+
+            activeRenderPassQueue.RemoveRange(startIndex, activeRenderPassQueue.Count - startIndex);
+
+            feature.deactivatedAfterIntermediateNotAllowed = true;
         }
 
 #if URP_COMPATIBILITY_MODE
@@ -2362,7 +2406,7 @@ namespace UnityEngine.Rendering.Universal
 
         private protected int AdjustAndGetScreenMSAASamples(RenderGraph renderGraph, bool useIntermediateColorTarget)
         {
-            // In the editor (ConfigureTargetTexture in PlayModeView.cs) and many platforms, the system render target is always allocated without MSAA    
+            // In the editor (ConfigureTargetTexture in PlayModeView.cs) and many platforms, the system render target is always allocated without MSAA
             if (!SystemInfo.supportsMultisampledBackBuffer) return 1;
 
             // For mobile platforms, when URP main rendering is done to an intermediate target and NRP enabled
@@ -2372,7 +2416,7 @@ namespace UnityEngine.Rendering.Universal
                                                 && useIntermediateColorTarget
                                                 && renderGraph.nativeRenderPassesEnabled
                                                 && Screen.msaaSamples > 1;
-            
+
             if (canOptimizeScreenMSAASamples)
             {
                 Screen.SetMSAASamples(1);

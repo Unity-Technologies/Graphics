@@ -3,6 +3,7 @@
 #pragma exclude_renderers switch switch2
 #pragma kernel Scroll
 
+#include "VectorLogic.hlsl"
 #include "Common.hlsl"
 #include "PatchUtil.hlsl"
 
@@ -36,7 +37,7 @@ void Scroll(uint3 threadId : SV_DispatchThreadID)
 
     // If the old position (in grid space) is outside [0, GridSize]^3 after the scroll (offsetDelta) has been applied, we know
     // it will no longer be queried, so we can remove it.
-    if (any((offsettedOldPositionGridSpace < 0) + ((int)_GridSize <= offsettedOldPositionGridSpace)))
+    if (any(VECTOR_LOGIC_OR(offsettedOldPositionGridSpace < 0, (int)_GridSize <= offsettedOldPositionGridSpace)))
     {
         for (uint directionIdx = 0; directionIdx < PatchUtil::gridCellAngularResolution * PatchUtil::gridCellAngularResolution; ++directionIdx)
         {

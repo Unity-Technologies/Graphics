@@ -846,7 +846,7 @@ namespace UnityEngine.Rendering.Universal
 
                 using (new ProfilingScope(Profiling.Pipeline.initializeRenderingData))
                 {
-                    CreateUniversalResourceData(frameData);
+                    CreateUniversalResourceData(frameData, asset);
                     lightData = CreateLightData(frameData, asset, data.cullResults.visibleLights, renderingMode);
                     shadowData = CreateShadowData(frameData, asset, renderingMode);
                     CreatePostProcessingData(frameData, asset);
@@ -883,7 +883,7 @@ namespace UnityEngine.Rendering.Universal
                 else
 #endif
                 {
-                    RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera);
+                    RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera, asset);
                     renderer.FinishRenderGraphRendering(cmd);
                 }
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
@@ -1926,9 +1926,11 @@ namespace UnityEngine.Rendering.Universal
             return postProcessingData;
         }
 
-        static UniversalResourceData CreateUniversalResourceData(ContextContainer frameData)
+        static UniversalResourceData CreateUniversalResourceData(ContextContainer frameData, UniversalRenderPipelineAsset settings)
         {
-            return frameData.Create<UniversalResourceData>();
+            var data = frameData.Create<UniversalResourceData>();
+            data.allowsIntermediateTexture = settings.intermediateTextureMode != IntermediateTextureMode.Never;
+            return data;
         }
 
         static UniversalLightData CreateLightData(ContextContainer frameData, UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, RenderingMode? renderingMode)
@@ -2465,6 +2467,20 @@ namespace UnityEngine.Rendering.Universal
             {
                 cameraData.cameraTargetDescriptor.width = (int)(cameraData.camera.pixelWidth * cameraData.renderScale);
                 cameraData.cameraTargetDescriptor.height = (int)(cameraData.camera.pixelHeight * cameraData.renderScale);
+#if ENABLE_UPSCALER_FRAMEWORK
+                if (cameraData.upscalingFilter == ImageUpscalingFilter.IUpscaler)
+                {
+                    // An IUpscaler is active. It might want to change the pre-upscale resolution. Negotiate with it.
+                    IUpscaler activeUpscaler = upscaling.GetActiveUpscaler();
+                    Debug.Assert(activeUpscaler != null);
+                    Vector2Int res = new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.scaledHeight);
+                    activeUpscaler.NegotiatePreUpscaleResolution(ref res, new Vector2Int(cameraData.pixelWidth, cameraData.pixelHeight));
+                    cameraData.cameraTargetDescriptor.width = res.x;
+                    cameraData.cameraTargetDescriptor.height = res.y;
+                }
+#endif
+                cameraData.scaledWidth = cameraData.cameraTargetDescriptor.width;
+                cameraData.scaledHeight = cameraData.cameraTargetDescriptor.height;
             }
 
             var antialiasingQualityIndex = (int)cameraData.antialiasingQuality - AdaptivePerformance.AdaptivePerformanceRenderSettings.AntiAliasingQualityBias;

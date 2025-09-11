@@ -259,7 +259,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [MenuItem("Assets/Create/Rendering/HDRP Diffusion Profile", priority = CoreUtils.Sections.section4 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void MenuCreateDiffusionProfile()
         {
-            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            var icon = CoreUtils.GetIconForType<DiffusionProfileSettings>();
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile.asset", icon, null);
         }
 

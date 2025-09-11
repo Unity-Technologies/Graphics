@@ -263,7 +263,7 @@ MonoBehaviour:
     ActiveImageTests: 1
     ActivePixelTests: 7
   WaitFrames: 0
-  XRCompatible: 0
+  XRCompatible: 1
 --- !u!20 &380492253
 Camera:
   m_ObjectHideFlags: 0

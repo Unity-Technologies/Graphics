@@ -26,8 +26,6 @@ namespace UnityEditor.Rendering.HighDefinition
         internal class Styles
         {
             public static GUIContent optionText { get; } = EditorGUIUtility.TrTextContent("Terrain Options");
-            public static readonly GUIContent enableHeightBlend = new GUIContent("Enable Height-based Blend", "Blend terrain layers based on height values.");
-            public static readonly GUIContent heightTransition = new GUIContent("Height Transition", "Size in world units of the smooth transition between layers.");
             public static readonly GUIContent enableInstancedPerPixelNormal = new GUIContent("Enable Per-pixel Normal", "Enable per-pixel normal when the terrain uses instanced rendering.");
 
             public static readonly GUIContent diffuseTexture = new GUIContent("Diffuse");
@@ -51,8 +49,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent smoothness = new GUIContent("A: Smoothness");
         }
 
-        private MaterialProperty enableHeightBlend = null;
-        private MaterialProperty heightTransition = null;
         private MaterialProperty enableInstancedPerPixelNormal = null;
 
         private bool m_ShowChannelRemapping = false;
@@ -80,17 +76,6 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         protected override void OnGUIOpen()
         {
-            if (enableHeightBlend != null)
-            {
-                materialEditor.ShaderProperty(enableHeightBlend, Styles.enableHeightBlend);
-                if (enableHeightBlend.floatValue > 0)
-                {
-                    EditorGUI.indentLevel++;
-                    materialEditor.ShaderProperty(heightTransition, Styles.heightTransition);
-                    EditorGUI.indentLevel--;
-                }
-            }
-
             if (enableInstancedPerPixelNormal != null)
             {
                 EditorGUI.BeginDisabledGroup(!materialEditor.IsInstancingEnabled());
@@ -298,11 +283,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             foreach (var prop in props)
             {
-                if (prop.name == HDMaterialProperties.kEnableHeightBlend)
-                    enableHeightBlend = prop;
-                else if (prop.name == HDMaterialProperties.kHeightTransition)
-                    heightTransition = prop;
-                else if (prop.name == HDMaterialProperties.kEnableInstancedPerPixelNormal)
+                if (prop.name == HDMaterialProperties.kEnableInstancedPerPixelNormal)
                     enableInstancedPerPixelNormal = prop;
             }
         }

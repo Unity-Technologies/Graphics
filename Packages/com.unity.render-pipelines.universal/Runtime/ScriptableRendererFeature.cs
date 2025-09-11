@@ -18,6 +18,37 @@ namespace UnityEngine.Rendering.Universal
         public bool isActive => m_Active;
 
         /// <summary>
+        /// Specifies whether a render pass makes use of an intermediate texture.
+        /// This allows for early optimization by skipping incompatible passes.
+        /// </summary>
+        public enum IntermediateTextureUsage 
+        {
+            /// <summary>
+            /// The usage is not specified. The system will attempt to run the passes and determine compatibility at execution time.
+            /// </summary>
+            Unknown, 
+            /// <summary>
+            /// The passes require or use an intermediate texture.
+            /// </summary>
+            Required, 
+            /// <summary>
+            /// The passes do not use an intermediate texture.
+            /// This signals that the passes can be safely skipped if no intermediate texture is available.
+            /// </summary>
+            NotRequired 
+        }
+        
+        /// <summary>
+        /// Specifies the feature's dependency on an intermediate texture. Override this property to allow the renderer to optimize its setup by skipping the creation of render passes for features that are incompatible with the pipeline's Intermediate Texture setting.
+        /// </summary>
+        protected virtual IntermediateTextureUsage useIntermediateTextures => IntermediateTextureUsage.Unknown;
+        
+        internal IntermediateTextureUsage useIntermediateTexturesInternal => useIntermediateTextures;
+
+        // Set by AddRenderPasses pass enqueued when useIntermediateTextures is set to Unknown
+        internal bool deactivatedAfterIntermediateNotAllowed = false;
+
+        /// <summary>
         /// Initializes this feature's resources. This is called every time serialization happens.
         /// </summary>
         public abstract void Create();

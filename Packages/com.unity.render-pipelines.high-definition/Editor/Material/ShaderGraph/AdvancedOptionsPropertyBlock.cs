@@ -21,6 +21,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             None = 0,
             SpecularOcclusion = 1 << 0,
+            OverrideBakedGI = 1 << 1,
+            LodCrossfade = 1 << 2,
+            PrecomputedVelocity = 1 << 3,
+            DebugSymbols = 1 << 4,
 
             StackLit = All ^ SpecularOcclusion,
             All = ~0
@@ -46,12 +50,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 if ((enabledFeatures & Features.SpecularOcclusion) != 0)
                     AddProperty(specularOcclusionModeText, () => lightingData.specularOcclusionMode, (newValue) => lightingData.specularOcclusionMode = newValue);
-                AddProperty(Styles.overrideBakedGI, () => lightingData.overrideBakedGI, (newValue) => lightingData.overrideBakedGI = newValue);
+                if ((enabledFeatures & Features.OverrideBakedGI) != 0)
+                    AddProperty(Styles.overrideBakedGI, () => lightingData.overrideBakedGI, (newValue) => lightingData.overrideBakedGI = newValue);
             }
-            AddProperty(Styles.supportLodCrossFade, () => builtinData.supportLodCrossFade, (newValue) => builtinData.supportLodCrossFade = newValue);
-            AddProperty(addPrecomputedVelocityText, () => builtinData.addPrecomputedVelocity, (newValue) => builtinData.addPrecomputedVelocity = newValue);
+            if ((enabledFeatures & Features.LodCrossfade) != 0)
+                AddProperty(Styles.supportLodCrossFade, () => builtinData.supportLodCrossFade, (newValue) => builtinData.supportLodCrossFade = newValue);
+            if ((enabledFeatures & Features.PrecomputedVelocity) != 0)
+                AddProperty(addPrecomputedVelocityText, () => builtinData.addPrecomputedVelocity, (newValue) => builtinData.addPrecomputedVelocity = newValue);
 
-            if (Unsupported.IsDeveloperMode())
+            if (Unsupported.IsDeveloperMode() && (enabledFeatures & Features.DebugSymbols) != 0)
                 AddProperty(Styles.debugSymbolsText, () => systemData.debugSymbols, (newValue) => systemData.debugSymbols = newValue);
         }
     }

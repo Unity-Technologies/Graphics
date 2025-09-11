@@ -48,8 +48,6 @@ namespace UnityEngine.Rendering.Universal
                 case DefaultMaterialType.SpriteMask:
                     return resources.defaultMaskMaterial;
 
-                case DefaultMaterialType.RenderAs2D:
-                    return resources.defaultRenderAs2D;
                 default:
                     return null;
             }

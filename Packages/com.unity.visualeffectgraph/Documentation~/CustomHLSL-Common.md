@@ -187,6 +187,6 @@ The HLSL Code Editor supports the following shortcuts:
 - `Ctrl + S` to save the current HLSL code
 - `Ctrl + Mouse Wheel` to change the font size
 
->If you need to write down the name of a particle attribute, you can drag&drop drop the attribute from the blackboard to the code editor. This helps avoid any typo.
+>If you need to write down the name of a particle attribute, you can drag and drop the attribute from the blackboard to the code editor. This helps avoid any typo.
 
 ![Custom HLSL Editor](Images/custom-hlsl-editor.png)

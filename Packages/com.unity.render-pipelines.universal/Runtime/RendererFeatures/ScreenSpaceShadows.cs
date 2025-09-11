@@ -31,6 +31,9 @@ namespace UnityEngine.Rendering.Universal
 
         // Constants
         private const string k_ShaderName = "Hidden/Universal Render Pipeline/ScreenSpaceShadows";
+        
+        /// <inheritdoc/>
+        protected override IntermediateTextureUsage useIntermediateTextures => IntermediateTextureUsage.Required;
 
         /// <inheritdoc/>
         public override void Create()

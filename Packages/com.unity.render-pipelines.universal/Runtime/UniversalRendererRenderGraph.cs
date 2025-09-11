@@ -574,12 +574,14 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             resourceData.InitFrame();
+                        
+            if (!resourceData.allowsIntermediateTexture)
+                frameData.Get<UniversalCameraData>().ForceNoIntermediateTexture();
         }
 
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
@@ -601,7 +603,7 @@ namespace UnityEngine.Rendering.Universal
             bool requireDepthTexture = RequireDepthTexture(cameraData, in renderPassInputs, applyPostProcessing);
             bool requirePrepassForTextures = RequirePrepassForTextures(cameraData, renderPassInputs, requireDepthTexture);
 
-            useDepthPriming = IsDepthPrimingEnabledRenderGraph(cameraData, renderPassInputs, m_DepthPrimingMode, requireDepthTexture, requirePrepassForTextures, usesDeferredLighting);
+            useDepthPriming = IsDepthPrimingEnabledRenderGraph(cameraData, renderPassInputs, m_DepthPrimingMode, requireDepthTexture, requirePrepassForTextures, usesDeferredLighting, m_IntermediateTextureMode);
 
             bool requirePrepass = requirePrepassForTextures || useDepthPriming;
 
@@ -612,7 +614,7 @@ namespace UnityEngine.Rendering.Universal
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRendering);
 
-            SetupRenderGraphCameraProperties(renderGraph, resourceData.isActiveTargetBackBuffer);
+            SetupRenderGraphCameraProperties(renderGraph, resourceData.isActiveTargetBackBuffer, resourceData.activeColorTexture.IsValid() ? resourceData.activeColorTexture : resourceData.activeDepthTexture);
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             ProcessVFXCameraCommand(renderGraph);
@@ -726,7 +728,7 @@ namespace UnityEngine.Rendering.Universal
             // The camera need to be setup again after the shadows since those passes override some settings
             // TODO RENDERGRAPH: move the setup code into the shadow passes
             if (renderShadows)
-                SetupRenderGraphCameraProperties(renderGraph, resourceData.isActiveTargetBackBuffer);
+                SetupRenderGraphCameraProperties(renderGraph, resourceData.isActiveTargetBackBuffer, resourceData.activeColorTexture.IsValid()  ? resourceData.activeColorTexture : resourceData.activeDepthTexture);
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingShadows);
 
@@ -962,7 +964,6 @@ namespace UnityEngine.Rendering.Universal
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
-            UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
 
             if (!renderGraph.nativeRenderPassesEnabled)
             {
@@ -1060,13 +1061,13 @@ namespace UnityEngine.Rendering.Universal
                         // Therefore we need to set the camera properties for the DepthNormal to be consistent with rendering to an intermediate render target.
                         if (resourceData.isActiveTargetBackBuffer)
                         {
-                            SetupRenderGraphCameraProperties(renderGraph, false);
+                            SetupRenderGraphCameraProperties(renderGraph, false, depthTarget);
                         }
                         DepthNormalPrepassRender(renderGraph, renderPassInputs, depthTarget, batchLayerMask, setGlobalDepth, setGlobalTextures);
                         // Restore camera properties for the rest of the render graph execution.
                         if (resourceData.isActiveTargetBackBuffer)
                         {
-                            SetupRenderGraphCameraProperties(renderGraph, true);
+                            SetupRenderGraphCameraProperties(renderGraph, true, resourceData.activeColorTexture.IsValid() ? resourceData.activeColorTexture : resourceData.activeDepthTexture);
                         }
                     }
                     else
@@ -1584,8 +1585,11 @@ namespace UnityEngine.Rendering.Universal
         /// to ensure that the pipeline will actually do depth priming.
         /// When this is true then we are sure that after RenderPassEvent.AfterRenderingPrePasses the currentCameraDepth has been primed.
         /// </summary>
-        static bool IsDepthPrimingEnabledRenderGraph(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs, DepthPrimingMode depthPrimingMode, bool requireDepthTexture, bool requirePrepassForTextures, bool usesDeferredLighting)
+        static bool IsDepthPrimingEnabledRenderGraph(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs, DepthPrimingMode depthPrimingMode, bool requireDepthTexture, bool requirePrepassForTextures, bool usesDeferredLighting, IntermediateTextureMode intermediateTextureMode)
         {
+            if (intermediateTextureMode == IntermediateTextureMode.Never)
+                return false;
+            
 #if UNITY_EDITOR
             // We need to disable depth-priming for DrawCameraMode.Wireframe, since depth-priming forces ZTest to Equal
             // for opaques rendering, which breaks wireframe rendering.
@@ -1675,15 +1679,21 @@ namespace UnityEngine.Rendering.Universal
             // then we can discard MSAA buffers and only resolve, otherwise we must store and resolve
             bool noStoreOnlyResolveBBColor = !m_RequiresIntermediateAttachments && !isNativeRenderingAfterURP && (cameraData.cameraTargetDescriptor.msaaSamples > 1);
 
+            //Backbuffer orientation is used for either the actual backbuffer (not a texture), or in XR for the eye texture.
+            bool useActualBackbufferOrienation = !cameraData.isSceneViewCamera && !cameraData.isPreviewCamera && cameraData.targetTexture == null;
+            TextureUVOrigin backbufferTextureUVOrigin = useActualBackbufferOrienation ? (SystemInfo.graphicsUVStartsAtTop ? TextureUVOrigin.TopLeft : TextureUVOrigin.BottomLeft) : TextureUVOrigin.BottomLeft;
+
             ImportResourceParams importBackbufferColorParams = new ImportResourceParams();
             importBackbufferColorParams.clearOnFirstUse = clearBackbufferOnFirstUse;
             importBackbufferColorParams.clearColor = clearBackgroundColor;
             importBackbufferColorParams.discardOnLastUse = noStoreOnlyResolveBBColor;
+            importBackbufferColorParams.textureUVOrigin = backbufferTextureUVOrigin;
 
             ImportResourceParams importBackbufferDepthParams = new ImportResourceParams();
             importBackbufferDepthParams.clearOnFirstUse = clearBackbufferOnFirstUse;
             importBackbufferDepthParams.clearColor = clearBackgroundColor;
             importBackbufferDepthParams.discardOnLastUse = !isCameraTargetOffscreenDepth;
+            importBackbufferDepthParams.textureUVOrigin = backbufferTextureUVOrigin;
 
 #if UNITY_EDITOR
             // UUM-47698, UUM-97414: on TBDR GPUs like Apple M1/M2, we need to preserve the backbuffer depth for overlay cameras in Editor for Gizmos & preview grid

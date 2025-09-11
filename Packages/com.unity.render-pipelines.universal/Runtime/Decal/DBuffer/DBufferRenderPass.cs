@@ -235,6 +235,8 @@ namespace UnityEngine.Rendering.Universal
 
             TextureHandle depthTarget = resourceData.dBufferDepth.IsValid() ? resourceData.dBufferDepth : resourceData.activeDepthTexture;
 
+            TextureHandle renderingLayersTexture = resourceData.renderingLayersTexture;
+
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 InitPassData(ref passData);
@@ -278,8 +280,8 @@ namespace UnityEngine.Rendering.Universal
                     builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
                 if (cameraNormalsTexture.IsValid())
                     builder.UseTexture(cameraNormalsTexture, AccessFlags.Read);
-                if (passData.decalLayers)
-                    builder.UseTexture(resourceData.renderingLayersTexture, AccessFlags.Read);
+                if (passData.decalLayers && renderingLayersTexture.IsValid())
+                    builder.UseTexture(renderingLayersTexture, AccessFlags.Read);
 
                 if (resourceData.ssaoTexture.IsValid())
                     builder.UseGlobalTexture(s_SSAOTextureID);

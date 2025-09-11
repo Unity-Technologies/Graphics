@@ -113,11 +113,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
-                    renderStates = target.sort3Das2DCompatible ? Universal2DSubTargetDescriptors.RenderStateCollections.Sort3Das2DCompatible : CoreRenderStates.Default,
+                    renderStates = target.sort3DAs2DCompatible ? Universal2DSubTargetDescriptors.RenderStateCollections.Sort3DAs2DCompatible : CoreRenderStates.Default,
                     pragmas = CorePragmas._2DDefault,
                     defines = new DefineCollection(),
                     keywords = SpriteCustomLitKeywords.Lit,
-                    includes = target.sort3Das2DCompatible ? MeshUnlitIncludes.Unlit : SpriteCustomLitIncludes.Unlit,
+                    includes = target.sort3DAs2DCompatible ? MeshUnlitIncludes.Unlit : SpriteCustomLitIncludes.Unlit,
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
@@ -156,10 +156,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
 
-                    renderStates = target.sort3Das2DCompatible ? Universal2DSubTargetDescriptors.RenderStateCollections.Sort3Das2DCompatible : CoreRenderStates.Default,
+                    renderStates = target.sort3DAs2DCompatible ? Universal2DSubTargetDescriptors.RenderStateCollections.Sort3DAs2DCompatible : CoreRenderStates.Default,
                     pragmas = CorePragmas._2DDefault,
                     defines = new DefineCollection(),
-                    includes = target.sort3Das2DCompatible ? UniversalMeshLitInfo.Includes.Normal : SpriteCustomLitIncludes.Normal,
+                    includes = target.sort3DAs2DCompatible ? UniversalMeshLitInfo.Includes.Normal : SpriteCustomLitIncludes.Normal,
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common

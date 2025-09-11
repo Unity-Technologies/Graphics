@@ -94,6 +94,17 @@ namespace UnityEngine.Rendering.RenderGraphModule
     }
 
     /// <summary>
+    /// The strategy that the render pipeline should use to determine the UV origin of RenderTextures who have an Unknown TextureUVOrigin when rendering.
+    /// </summary>
+    public enum RenderTextureUVOriginStrategy
+    {
+        /// <summary>RenderTextures are always treated as bottom left orientation.</summary>
+        BottomLeft,
+        /// <summary>RenderTextures may inherit the backbuffer attachment orientation if they are only used via attachment reads.</summary>
+        PropagateAttachmentOrientation
+    }
+
+    /// <summary>
     /// An object representing the internal context of a rendergraph pass execution.
     /// This object is public for technical reasons only and should not be used.
     /// </summary>
@@ -105,17 +116,21 @@ namespace UnityEngine.Rendering.RenderGraphModule
         internal RenderGraphObjectPool renderGraphPool;
         internal RenderGraphDefaultResources defaultResources;
         internal RenderGraphPass executingPass;
+        internal NativeRenderPassCompiler.CompilerContextData compilerContext;
         internal bool contextlessTesting;
     }
 
-    // This whole thing is  a bit of a mess InternalRenderGraphContext is public (but all members are internal)
-    // just because the C# standard says that all interface member function implementations should be public.
+    // InternalRenderGraphContext is public (but all members are internal)
+    // only because the C# standard says that all interface member function implementations must be public.
     // So below in for example the RasterGraphContext we can't implement the (internal) interface as
     // internal void FromInternalContext(InternalRenderGraphContext context) { ... }
     // So we have to make FromInternalContext public so InternalRenderGraphContext also becomes public.
     // This seems an oversight in c# where Interfaces used as Generic constraints could very well be useful
     // with internal only functions.
 
+    /// <summary>
+    /// Interface implemented by the different render graph contexts provided at execution timeline (via SetRenderFunc())
+    /// </summary>
     internal interface IDerivedRendergraphContext
     {
         /// <summary>
@@ -123,6 +138,16 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="context">The context to convert</param>
         public void FromInternalContext(InternalRenderGraphContext context);
+
+        /// <summary>
+        /// Retrieves the TextureUVOrigin of the Render Graph texture from its handle.
+        /// </summary>
+        /// <remarks>
+        /// This function can only be called when using the Native Render Pass Compiler (enabled by default).
+        /// </remarks>
+        /// <param name="textureHandle">The texture handle to query.</param>
+        /// <returns>The TextureUVOrigin of the texture.</returns>
+        public TextureUVOrigin GetTextureUVOrigin(in TextureHandle textureHandle);
     }
 
     /// <summary>
@@ -141,6 +166,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             wrappedContext = context;
         }
+
+        /// <inheritdoc />
+        public readonly TextureUVOrigin GetTextureUVOrigin(in TextureHandle textureHandle) { return TextureUVOrigin.BottomLeft;  }
 
         ///<summary>Scriptable Render Context used for rendering.</summary>
         public ScriptableRenderContext renderContext { get => wrappedContext.renderContext; }
@@ -171,6 +199,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public RenderGraphObjectPool renderGraphPool { get => wrappedContext.renderGraphPool; }
 
         static internal RasterCommandBuffer rastercmd = new RasterCommandBuffer(null, null, false);
+
         /// <inheritdoc />
         public void FromInternalContext(InternalRenderGraphContext context)
         {
@@ -178,6 +207,19 @@ namespace UnityEngine.Rendering.RenderGraphModule
             rastercmd.m_WrappedCommandBuffer = wrappedContext.cmd;
             rastercmd.m_ExecutingPass = context.executingPass;
             cmd = rastercmd;
+        }
+
+        /// <inheritdoc />
+        public readonly TextureUVOrigin GetTextureUVOrigin(in TextureHandle textureHandle)
+        {
+            if (!SystemInfo.graphicsUVStartsAtTop)
+                return TextureUVOrigin.BottomLeft;
+
+            if (wrappedContext.compilerContext != null)
+            {
+                return wrappedContext.compilerContext.GetTextureUVOrigin(textureHandle);
+            }
+            return TextureUVOrigin.BottomLeft;
         }
     }
 
@@ -209,6 +251,19 @@ namespace UnityEngine.Rendering.RenderGraphModule
             computecmd.m_ExecutingPass = context.executingPass;
             cmd = computecmd;
         }
+
+        /// <inheritdoc />
+        public TextureUVOrigin GetTextureUVOrigin(in TextureHandle textureHandle)
+        {
+            if (!SystemInfo.graphicsUVStartsAtTop)
+                return TextureUVOrigin.BottomLeft;
+
+            if (wrappedContext.compilerContext != null)
+            {
+                return wrappedContext.compilerContext.GetTextureUVOrigin(textureHandle);
+            }
+            return TextureUVOrigin.BottomLeft;
+        }
     }
 
     /// <summary>
@@ -238,6 +293,19 @@ namespace UnityEngine.Rendering.RenderGraphModule
             unsCmd.m_ExecutingPass = context.executingPass;
             cmd = unsCmd;
         }
+
+        /// <inheritdoc />
+        public TextureUVOrigin GetTextureUVOrigin(in TextureHandle textureHandle)
+        {
+            if (!SystemInfo.graphicsUVStartsAtTop)
+                return TextureUVOrigin.BottomLeft;
+
+            if (wrappedContext.compilerContext != null)
+            {
+                return wrappedContext.compilerContext.GetTextureUVOrigin(textureHandle);
+            }
+            return TextureUVOrigin.BottomLeft;
+        }
     }
 
     /// <summary>
@@ -265,6 +333,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
         ///This allows you to run tests that rely on code execution the way to the pass render functions
         ///This also changes some behaviours with exception handling and error logging so the test framework can act on exceptions to validate behaviour better.</summary>
         internal bool invalidContextForTesting;
+        ///<summary>The strategy that the rendergraph should use to determine the texture uv origin if Unknown of RenderTextures when rendering.</summary>
+        public RenderTextureUVOriginStrategy renderTextureUVOriginStrategy;
     }
 
     /// <summary>
@@ -510,6 +580,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         CompiledGraph m_DefaultCompiledGraph = new();
         CompiledGraph m_CurrentCompiledGraph;
         RenderGraphState m_RenderGraphState;
+        RenderTextureUVOriginStrategy m_renderTextureUVOriginStrategy;
 
         // Global container of registered render graphs, associated with the list of executions that have been registered for them.
         // When a RenderGraph is created, an entry is added to this dictionary. When that RenderGraph renders something,
@@ -526,6 +597,15 @@ namespace UnityEngine.Rendering.RenderGraphModule
             get { return m_RenderGraphState; }
             set { m_RenderGraphState = value; }
         }
+
+
+        /// <summary>The strategy the Render Graph will take for the uv origin of RenderTextures in the graph.</summary>
+        public RenderTextureUVOriginStrategy renderTextureUVOriginStrategy
+        {
+            get { return m_renderTextureUVOriginStrategy; }
+            internal set { m_renderTextureUVOriginStrategy = value; }
+        }
+
 
         /// <summary>If true, the Render Graph Viewer is active.</summary>
         public static bool isRenderGraphViewerActive => RenderGraphDebugSession.hasActiveDebugSession;
@@ -1137,7 +1217,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public BufferHandle ImportBuffer(GraphicsBuffer graphicsBuffer)
         {
             CheckNotUsedWhenExecuting();
-          
+
             return m_Resources.ImportBuffer(graphicsBuffer);
         }
 
@@ -1238,11 +1318,28 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        void CheckUsingNativeRenderPassCompiler()
+        {
+            if (enableValidityChecks && (!nativeRenderPassesEnabled || nativeCompiler == null))
+            {
+                throw new InvalidOperationException("Only compatible with the Native Render Pass Compiler.");
+            }
+        }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void CheckNotUsedWhenActive()
         {
             if (enableValidityChecks && (m_RenderGraphState & RenderGraphState.Active) != RenderGraphState.Idle)
                 throw new InvalidOperationException(RenderGraphExceptionMessages.GetExceptionMessage(RenderGraphState.Active));
         }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        void CheckNotUsedWhenIdle()
+        {
+            if (enableValidityChecks && m_RenderGraphState == RenderGraphState.Idle)
+                throw new InvalidOperationException(RenderGraphExceptionMessages.GetExceptionMessage(RenderGraphState.Active));
+        }
+
 
         /// <summary>
         /// Add a new Raster Render Pass to the Render Graph. Raster passes can execute rasterization workloads but cannot do other GPU work like copies or compute.
@@ -1514,6 +1611,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
             // Cannot do renderer list culling with compilation caching because it happens after compilation is done so it can lead to discrepancies.
             m_RendererListCulling = parameters.rendererListCulling && !m_EnableCompilationCaching;
 
+            m_renderTextureUVOriginStrategy = parameters.renderTextureUVOriginStrategy;
+
             m_Resources.BeginRenderGraph(m_ExecutionCount++);
 
             if (m_DebugParameters.enableLogging)
@@ -1635,6 +1734,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 else
                     CompileRenderGraph(graphHash);
 
+                // Must be set after compilation when the compiler has been initialized
+                m_RenderGraphContext.compilerContext = nativeRenderPassesEnabled ? nativeCompiler?.contextData : null;
+
                 m_Resources.BeginExecute(m_CurrentFrameIndex);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -1741,6 +1843,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_RenderGraphContext.cmd = null;
             m_RenderGraphContext.renderGraphPool = null;
             m_RenderGraphContext.defaultResources = null;
+            m_RenderGraphContext.compilerContext = null;
         }
 
         internal void OnPassAdded(RenderGraphPass pass)
@@ -2175,7 +2278,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     CompiledResourceInfo resourceInfo = resourceInfos[i];
 
                     bool sharedResource = m_Resources.IsRenderGraphResourceShared((RenderGraphResourceType)type, i);
-                    
+
                     // Imported resource needs neither creation nor release.
                     if (resourceInfo.imported && !sharedResource)
                         continue;

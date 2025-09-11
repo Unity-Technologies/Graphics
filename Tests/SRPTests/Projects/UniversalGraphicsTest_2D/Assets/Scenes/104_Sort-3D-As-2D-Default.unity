@@ -132,7 +132,7 @@ GameObject:
   - component: {fileID: 114176914}
   - component: {fileID: 114176913}
   - component: {fileID: 114176918}
-  - component: {fileID: 114176917}
+  - component: {fileID: 114176919}
   m_Layer: 0
   m_Name: Mesh Unlit - Cube
   m_TagString: Untagged
@@ -233,7 +233,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 45, y: 45, z: 0}
---- !u!1120581460 &114176917
+--- !u!210 &114176918
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 114176912}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_SortAtRoot: 0
+--- !u!1120581460 &114176919
 RenderAs2D:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -258,7 +270,7 @@ RenderAs2D:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: b697f6a938056384e968ccf6527dac83, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -282,18 +294,6 @@ RenderAs2D:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Owner: {fileID: 114176918}
---- !u!210 &114176918
-SortingGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 114176912}
-  m_Enabled: 1
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_SortAtRoot: 0
 --- !u!1 &140942888
 GameObject:
   m_ObjectHideFlags: 0
@@ -2559,7 +2559,7 @@ GameObject:
   - component: {fileID: 1611659889}
   - component: {fileID: 1611659888}
   - component: {fileID: 1611659893}
-  - component: {fileID: 1611659892}
+  - component: {fileID: 1611659894}
   m_Layer: 0
   m_Name: Mesh Lit - Cube
   m_TagString: Untagged
@@ -2660,7 +2660,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 45, y: 45, z: 0}
---- !u!1120581460 &1611659892
+--- !u!210 &1611659893
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1611659887}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_SortAtRoot: 0
+--- !u!1120581460 &1611659894
 RenderAs2D:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2685,7 +2697,7 @@ RenderAs2D:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: b697f6a938056384e968ccf6527dac83, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2709,18 +2721,6 @@ RenderAs2D:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Owner: {fileID: 1611659893}
---- !u!210 &1611659893
-SortingGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1611659887}
-  m_Enabled: 1
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_SortAtRoot: 0
 --- !u!1 &1711284038
 GameObject:
   m_ObjectHideFlags: 0
@@ -2764,7 +2764,7 @@ GameObject:
   - component: {fileID: 1720578183}
   - component: {fileID: 1720578182}
   - component: {fileID: 1720578185}
-  - component: {fileID: 1720578184}
+  - component: {fileID: 1720578186}
   m_Layer: 0
   m_Name: Skinned Mesh Unlit - Rabbit
   m_TagString: Untagged
@@ -2821,7 +2821,19 @@ Transform:
   - {fileID: 791672919}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -545.069, z: 0}
---- !u!1120581460 &1720578184
+--- !u!210 &1720578185
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1720578181}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: -1
+  m_SortAtRoot: 0
+--- !u!1120581460 &1720578186
 RenderAs2D:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2846,7 +2858,7 @@ RenderAs2D:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: b697f6a938056384e968ccf6527dac83, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2870,18 +2882,6 @@ RenderAs2D:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Owner: {fileID: 1720578185}
---- !u!210 &1720578185
-SortingGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1720578181}
-  m_Enabled: 1
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: -1
-  m_SortAtRoot: 0
 --- !u!1 &1805784941
 GameObject:
   m_ObjectHideFlags: 0
@@ -3423,7 +3423,7 @@ GameObject:
   - component: {fileID: 787861512732924730}
   - component: {fileID: 6633563706952778048}
   - component: {fileID: 6633563706952778050}
-  - component: {fileID: 6633563706952778049}
+  - component: {fileID: 6633563706952778051}
   m_Layer: 0
   m_Name: Skinned Mesh Lit - Rabbit
   m_TagString: Untagged
@@ -5308,7 +5308,19 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!1120581460 &6633563706952778049
+--- !u!210 &6633563706952778050
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 118460779402199424}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_SortAtRoot: 0
+--- !u!1120581460 &6633563706952778051
 RenderAs2D:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5333,7 +5345,7 @@ RenderAs2D:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: b697f6a938056384e968ccf6527dac83, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -5357,18 +5369,6 @@ RenderAs2D:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Owner: {fileID: 6633563706952778050}
---- !u!210 &6633563706952778050
-SortingGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 118460779402199424}
-  m_Enabled: 1
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_SortAtRoot: 0
 --- !u!4 &6929055677307623865
 Transform:
   m_ObjectHideFlags: 0

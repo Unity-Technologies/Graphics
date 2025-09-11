@@ -117,7 +117,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(TerrainKeywordDescriptors.TerrainMaskmap);
             pass.keywords.Add(TerrainKeywordDescriptors.Terrain8Layers);
             pass.keywords.Add(TerrainKeywordDescriptors.TerrainSpecularOcclusionNone);
-            pass.keywords.Add(TerrainKeywordDescriptors.TerrainBlendHeight);
             pass.keywords.Add(CoreKeywordDescriptors.DepthOffset, new FieldCondition(HDFields.DepthOffset, true));
             pass.keywords.Add(CoreKeywordDescriptors.ConservativeDepthOffset, new FieldCondition(HDFields.ConservativeDepthOffset, true));
 
@@ -238,27 +237,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             collector.AddShaderProperty(new BooleanShaderProperty
             {
-                value = terrainLitData.enableHeightBlend,
-                hidden = true,
-                overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                overrideReferenceName = "_EnableHeightBlend",
-                displayName = "Enable Height Blend",
-            });
-
-            collector.AddShaderProperty(new Vector1ShaderProperty
-            {
-                floatType = FloatType.Slider,
-                value = terrainLitData.heightTransition,
-                hidden = false,
-                overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                overrideReferenceName = "_HeightTransition",
-                displayName = "Height Transition",
-            });
-
-            collector.AddShaderProperty(new BooleanShaderProperty
-            {
                 value = terrainLitData.enableInstancedPerPixelNormal,
                 hidden = false,
                 overrideHLSLDeclaration = true,
@@ -295,6 +273,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 overrideReferenceName = "_DefaultWhiteTex",
                 displayName = "DefaultWhiteTex",
+            });
+
+            collector.AddShaderProperty(new Texture2DShaderProperty
+            {
+                defaultType = Texture2DShaderProperty.DefaultType.Black,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_BlackTex",
+                displayName = "DefaultBlackTex",
             });
 
             collector.AddShaderProperty(new ColorShaderProperty()
@@ -432,7 +420,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
         {
             blockList.AddPropertyBlock(new TerrainLitSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Lit));
-            blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
+            var disabledAdvancedFeatures = AdvancedOptionsPropertyBlock.Features.LodCrossfade
+                                           | AdvancedOptionsPropertyBlock.Features.PrecomputedVelocity
+                                           | AdvancedOptionsPropertyBlock.Features.DebugSymbols;
+            blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock(AdvancedOptionsPropertyBlock.Features.All ^ disabledAdvancedFeatures));
         }
 
 
@@ -448,6 +439,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     HDStructFields.AttributesMesh.positionOS,
                     HDStructFields.AttributesMesh.normalOS,
                     HDStructFields.AttributesMesh.uv0,
+                    HDStructFields.AttributesMesh.color,
+                    HDStructFields.AttributesMesh.instanceID,
+                    HDStructFields.AttributesMesh.vertexID,
+                }
+            };
+
+            public static StructDescriptor MetaAttributesMesh = new StructDescriptor()
+            {
+                name = "AttributesMesh",
+                packFields = false,
+                fields = new FieldDescriptor[]
+                {
+                    HDStructFields.AttributesMesh.positionOS,
+                    HDStructFields.AttributesMesh.normalOS,
+                    HDStructFields.AttributesMesh.uv0,
+                    HDStructFields.AttributesMesh.uv1,
+                    HDStructFields.AttributesMesh.uv2,
                     HDStructFields.AttributesMesh.color,
                     HDStructFields.AttributesMesh.instanceID,
                     HDStructFields.AttributesMesh.vertexID,
@@ -480,6 +488,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static StructCollection Basic = new StructCollection
             {
                 { HDTerrainStructs.AttributesMesh },
+                { HDTerrainStructs.VaryingsMeshToPS },
+                { Structs.VertexDescriptionInputs },
+                { Structs.SurfaceDescriptionInputs },
+            };
+
+            public static StructCollection Meta = new StructCollection
+            {
+                { HDTerrainStructs.MetaAttributesMesh },
                 { HDTerrainStructs.VaryingsMeshToPS },
                 { Structs.VertexDescriptionInputs },
                 { Structs.SurfaceDescriptionInputs },
@@ -547,15 +563,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 displayName = "Terrain Non Specular Occlusion",
                 referenceName = "_SPECULAR_OCCLUSION_NONE",
-                type = KeywordType.Boolean,
-                definition = KeywordDefinition.ShaderFeature,
-                scope = KeywordScope.Local,
-            };
-
-            public static KeywordDescriptor TerrainBlendHeight = new KeywordDescriptor()
-            {
-                displayName = "Terrain Blend Height",
-                referenceName = "_TERRAIN_BLEND_HEIGHT",
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.ShaderFeature,
                 scope = KeywordScope.Local,
@@ -746,7 +753,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             public static PassDescriptor GenerateMETA(bool supportLighting)
             {
-                return new PassDescriptor
+                var pass = new PassDescriptor
                 {
                     // Definition
                     displayName = "META",
@@ -758,7 +765,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     validVertexBlocks = new BlockFieldDescriptor[0],
 
                     // Collections
-                    structs = GenerateStructs(),
+                    structs = new StructCollection { TerrainStructCollections.Meta },
                     requiredFields = CoreRequiredFields.Meta,
                     renderStates = CoreRenderStates.Meta,
                     // Note: no tessellation for meta pass
@@ -767,6 +774,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization, HDTerrainPasses.AlphaTestOn, },
                     includes = GenerateIncludes(),
                 };
+                return pass;
 
                 IncludeCollection GenerateIncludes()
                 {

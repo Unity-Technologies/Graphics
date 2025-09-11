@@ -21,6 +21,6 @@
             <ui:Image name="successImage" style="max-width: 16px; max-height: 16px; min-width: 16px; min-height: 16px;" />
             <ui:Label name="successLabel" style="flex-grow: 0; flex-shrink: 0;" />
         </ui:VisualElement>
-        <ui:ListView focusable="true" name="converterItems" show-alternating-row-backgrounds="All" text="Info" style="flex-grow: 1; flex-shrink: 0; height: 100px; width: 602px; padding-bottom: 0; margin-bottom: 0; margin-top: 0;" />
+        <ui:ListView focusable="true" name="converterItems" show-alternating-row-backgrounds="All" text="Info" style="flex-grow: 1; flex-shrink: 1; padding-bottom: 0; margin-bottom: 0; margin-top: 0;" />
     </ui:VisualElement>
 </ui:UXML>
