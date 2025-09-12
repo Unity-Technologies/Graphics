@@ -513,9 +513,11 @@ namespace UnityEditor.VFX.UI
             m_HeatmapSettingsContainer.Add(m_TopExecutionTimeField);
             m_TopExecutionTimeField.RegisterValueChangedCallback(evt =>
             {
+                var value = Mathf.Max(0, evt.newValue);
+                m_TopExecutionTimeField.SetValueWithoutNotify(value);
                 foreach (var anchoredPanel in m_AnchoredProfilerPanels)
                 {
-                    anchoredPanel.SetHeatmapRefValue(evt.newValue);
+                    anchoredPanel.SetHeatmapRefValue(value);
                 }
             });
         }
