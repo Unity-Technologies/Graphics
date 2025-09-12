@@ -50,16 +50,6 @@ public class HDRP_Runtime_Graphics_Tests
         runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch }
     )]
     [IgnoreGraphicsTest(
-        "003-VirtualTexturing$",
-        "Artifacts appear at random on objects within the scene, see UUM-113462.",
-        graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.GameCoreXboxSeries }
-    )]
-    [IgnoreGraphicsTest(
-        "003-VirtualTexturing-Forward$",
-        "Artifacts appear at random on objects within the scene, see UUM-113462.",
-        graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.GameCoreXboxSeries }
-    )]
-    [IgnoreGraphicsTest(
         "004-CloudsFlaresDecals$",
         "Area with cloud-coverage is blue on Intel-based MacOS (CI).",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
