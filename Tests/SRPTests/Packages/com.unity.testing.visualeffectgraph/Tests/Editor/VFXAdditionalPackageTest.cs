@@ -22,6 +22,7 @@ namespace UnityEditor.VFX.Test
         private static string m_CurrentMatch;
 
         [UnityTest, Timeout(10 * 60 * 1000)]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })] // Unstable: https://jira.unity3d.com/browse/UUM-117433
         public IEnumerator Check_Additional_Doesnt_Generate_Any_Errors([ValueSource(nameof(kAdditionalSampleMatches))] string expectedMatch)
         {
             m_CurrentMatch = expectedMatch;
