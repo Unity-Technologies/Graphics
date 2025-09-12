@@ -1134,7 +1134,14 @@ namespace UnityEditor.VFX.UI
 
         public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> visualEffects)
         {
-            m_ComponentBoard.OnVisualEffectComponentChanged(visualEffects);
+            if (attachedComponent == null || attachedComponent.visualEffectAsset != controller.graph.visualEffectResource.asset)
+            {
+                Detach();
+                foreach (VisualEffect visualEffect in visualEffects)
+                {
+                    TryAttachTo(visualEffect, true);
+                }
+            }
         }
 
         public void Delete()
