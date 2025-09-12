@@ -103,3 +103,23 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: 'Unstable on PS4: https://jira.unity3d.com/browse/UUM-113462 '
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 32f9dd5fabc57284bb43468761c84f36, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 31
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: 'Unstable on PS4: https://jira.unity3d.com/browse/UUM-113462 '
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 500813a390ad4074cba926bf26eef57a, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 31
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: 'Unstable on PS4: https://jira.unity3d.com/browse/UUM-113462 '
