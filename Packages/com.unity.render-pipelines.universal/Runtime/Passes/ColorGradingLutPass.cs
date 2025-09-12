@@ -317,6 +317,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        /// <inheritdoc cref="IRenderGraphRecorder.RecordRenderGraph"/>
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
+        {
+            var resourceData = frameData.Get<UniversalResourceData>();
+
+            TextureHandle colorLut;
+            Render(renderGraph, frameData, out colorLut);
+
+            resourceData.internalColorLut = colorLut;
+        }
+
         /// <summary>
         /// Cleans up resources used by the pass.
         /// </summary>

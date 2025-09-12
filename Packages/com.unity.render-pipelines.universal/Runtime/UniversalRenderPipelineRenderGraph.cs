@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class UniversalRenderPipeline
     {
-        static void RecordAndExecuteRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ScriptableRenderer renderer, CommandBuffer cmd, Camera camera, UniversalRenderPipelineAsset asset)
+        static void RecordAndExecuteRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ScriptableRenderer renderer, CommandBuffer cmd, Camera camera, RenderTextureUVOriginStrategy uvOriginStrategy)
         {
             RenderGraphParameters rgParams = new RenderGraphParameters
             {
@@ -14,11 +14,7 @@ namespace UnityEngine.Rendering.Universal
                 commandBuffer = cmd,
                 scriptableRenderContext = context,
                 currentFrameIndex = Time.frameCount,
-#if ENABLE_RENDERTEXTURE_UV_ORIGIN_STRATEGY
-                renderTextureUVOriginStrategy = asset.renderTextureUVOriginStrategy,
-#else
-                renderTextureUVOriginStrategy = RenderTextureUVOriginStrategy.BottomLeft,
-#endif
+                renderTextureUVOriginStrategy = uvOriginStrategy,
             };
 
             try

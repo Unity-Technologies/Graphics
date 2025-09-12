@@ -170,9 +170,9 @@ namespace UnityEngine.Rendering.Universal
         {
             null, null
         };
+
         private static RTHandle m_RenderGraphCameraDepthHandle;
         private static int m_CurrentColorHandle = 0;
-
         private static RTHandle m_RenderGraphDebugTextureHandle;
 
         private RTHandle currentRenderGraphCameraColorHandle
@@ -1825,9 +1825,7 @@ namespace UnityEngine.Rendering.Universal
 
         void CreateIntermediateCameraDepthAttachment(RenderGraph renderGraph, UniversalCameraData cameraData, bool clearDepth, Color clearBackgroundDepth, bool depthTextureIsDepthFormat)
         {
-            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-
-            bool lastCameraInTheStack = cameraData.resolveFinalTarget;
+            var resourceData = frameData.Get<UniversalResourceData>();
 
             var depthDescriptor = cameraData.cameraTargetDescriptor;
             depthDescriptor.useMipMap = false;
@@ -1847,18 +1845,36 @@ namespace UnityEngine.Rendering.Universal
             depthDescriptor.graphicsFormat = GraphicsFormat.None;
             depthDescriptor.depthStencilFormat = cameraDepthAttachmentFormat;
 
-            RenderingUtils.ReAllocateHandleIfNeeded(ref m_RenderGraphCameraDepthHandle, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: _CameraDepthAttachmentName);
-
-            ImportResourceParams importDepthParams = new ImportResourceParams();
-            importDepthParams.clearOnFirstUse = clearDepth;
-            importDepthParams.clearColor = clearBackgroundDepth;
-            importDepthParams.discardOnLastUse = lastCameraInTheStack; // Last camera in stack
+            // When there's a single camera setup, we can simplify the workflow by using a RenderGraph texture directly.
+            // In the multi camera setup case, we still have to use import mechanism because each camera records its own graph; they share the imported intermediate depth texture.
+            var isSingleCamera = cameraData.resolveFinalTarget && cameraData.renderType == CameraRenderType.Base;
+            if (isSingleCamera)
+            {
+                bool discardOnLastUse = cameraData.resolveFinalTarget; // Last camera in stack
 #if UNITY_EDITOR
-            // scene filtering will reuse "camera" depth  from the normal pass for the "filter highlight" effect
-            if (cameraData.isSceneViewCamera && CoreUtils.IsSceneFilteringEnabled())
-                importDepthParams.discardOnLastUse = false;
+                // scene filtering will reuse "camera" depth  from the normal pass for the "filter highlight" effect
+                if (cameraData.isSceneViewCamera && CoreUtils.IsSceneFilteringEnabled())
+                    discardOnLastUse = false;
 #endif
-            resourceData.cameraDepth = renderGraph.ImportTexture(m_RenderGraphCameraDepthHandle, importDepthParams);
+                resourceData.cameraDepth = CreateRenderGraphTexture(renderGraph, depthDescriptor, _CameraDepthAttachmentName, clearDepth, clearBackgroundDepth, FilterMode.Point, TextureWrapMode.Clamp, discardOnLastUse: discardOnLastUse);
+            }
+            else
+            {
+                RenderingUtils.ReAllocateHandleIfNeeded(ref m_RenderGraphCameraDepthHandle, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: _CameraDepthAttachmentName);
+
+                ImportResourceParams importDepthParams = new ImportResourceParams();
+                importDepthParams.clearOnFirstUse = clearDepth;
+                importDepthParams.clearColor = clearBackgroundDepth;
+                importDepthParams.discardOnLastUse = cameraData.resolveFinalTarget; // Last camera in stack
+
+#if UNITY_EDITOR
+                // scene filtering will reuse "camera" depth  from the normal pass for the "filter highlight" effect
+                if (cameraData.isSceneViewCamera && CoreUtils.IsSceneFilteringEnabled())
+                    importDepthParams.discardOnLastUse = false;
+#endif
+                resourceData.cameraDepth = renderGraph.ImportTexture(m_RenderGraphCameraDepthHandle, importDepthParams);
+            }
+
             resourceData.activeDepthID = UniversalResourceData.ActiveID.Camera;
 
             // Configure the copy depth pass based on the allocated depth texture

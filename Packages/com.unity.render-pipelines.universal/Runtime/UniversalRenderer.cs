@@ -230,6 +230,7 @@ namespace UnityEngine.Rendering.Universal
         internal CompatibilityMode.PostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
         internal RTHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
 #endif
+        internal bool isPostProcessPassRenderGraphActive { get => m_PostProcessPassRenderGraph != null; }
 
         internal DeferredLights deferredLights { get => m_DeferredLights; }
         internal LayerMask prepassLayerMask { get; set; }

@@ -836,6 +836,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         {
             using (new ProfilingScope(ProfilingSampler.Get(NativeCompilerProfileId.NRPRGComp_DetectMemorylessResources)))
             {
+                // No need to go further if we don't support memoryless textures
+                if (!SystemInfo.supportsMemorylessTextures)
+                    return;
+
                 // Native renderpasses and create/destroy lists have now been set-up. Detect memoryless resources, i.e resources that are created/destroyed
                 // within the scope of an nrp
                 foreach (ref readonly var nativePass in contextData.NativePasses)
@@ -1493,13 +1497,26 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                 if (nativePass.extendedFeatureFlags.HasFlag(ExtendedFeatureFlags.MultisampledShaderResolve))
                 {
+                    var lastSubpass = nativeSubPassArray[^1];
+
+                    // All input attachments must be memoryless for the shader resolve enabled subpass.
+                    for (int i = 0; i < lastSubpass.inputs.Length; i++)
+                    {
+                        int inputIndex = lastSubpass.inputs[i];
+                        ref var inputAttachment = ref m_BeginRenderPassAttachments.ElementAt(inputIndex);
+                        if (inputAttachment.storeAction != RenderBufferStoreAction.DontCare)
+                        {
+                            throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_MultisampledShaderResolveInputAttachmentNotMemoryless);
+                        }
+                    }
+
                     // The last subpass in a native pass with shader resolve is required to be the subpass that handles the resolve, and this subpass can only have 1 color attachment.
-                    if (nativeSubPassArray[^1].colorOutputs.Length != 1)
+                    if (lastSubpass.colorOutputs.Length != 1)
                         throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_MultisampledShaderResolveInvalidAttachmentSetup);
 
                     if (SystemInfo.supportsMultisampledShaderResolve)
                     {
-                        int attachmentIndex = nativeSubPassArray[^1].colorOutputs[0];
+                        int attachmentIndex = lastSubpass.colorOutputs[0];
 
                         ref var currBeginAttachment = ref m_BeginRenderPassAttachments.ElementAt(attachmentIndex);
                         currBeginAttachment.resolveTarget = currBeginAttachment.loadStoreTarget;

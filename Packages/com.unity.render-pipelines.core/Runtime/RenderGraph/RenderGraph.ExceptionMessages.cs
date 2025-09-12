@@ -151,6 +151,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
             internal const string k_MultisampledShaderResolveInvalidAttachmentSetup =
                 "Low level rendergraph error: last subpass with shader resolve must have one color attachment.";
 
+            internal const string k_MultisampledShaderResolveInputAttachmentNotMemoryless =
+                "Low level rendergraph error: last subpass with shader resolve must have all input attachments as memoryless attachments.";
+
             internal const string k_InvalidMRTSetup = "Multiple render texture (MRT) setup is invalid. Some indices are not used.";
 
             internal const string k_NoDepthBufferMRT = "Setting multiple render textures (MRTs) without a depth buffer is not supported.";

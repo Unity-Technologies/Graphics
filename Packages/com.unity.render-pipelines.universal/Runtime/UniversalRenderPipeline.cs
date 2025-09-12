@@ -178,6 +178,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal UniversalRenderPipelineRuntimeTextures runtimeTextures { get; private set; }
 
+        internal static RenderTextureUVOriginStrategy renderTextureUVOriginStrategy { private get; set; }
+
         /// <summary>
         /// The default Render Pipeline Global Settings.
         /// </summary>
@@ -861,6 +863,7 @@ namespace UnityEngine.Rendering.Universal
                 if (asset?.useAdaptivePerformance == true)
                     ApplyAdaptivePerformance(frameData);
 #endif
+                UniversalRenderPipeline.renderTextureUVOriginStrategy = RenderTextureUVOriginStrategy.BottomLeft;
 
                 CreateShadowAtlasAndCullShadowCasters(lightData, shadowData, cameraData, ref data.cullResults, ref context);
 
@@ -883,7 +886,8 @@ namespace UnityEngine.Rendering.Universal
                 else
 #endif
                 {
-                    RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera, asset);
+                    RenderTextureUVOriginStrategy uvOriginStrategy = UniversalRenderPipeline.renderTextureUVOriginStrategy;
+                    RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera, uvOriginStrategy);
                     renderer.FinishRenderGraphRendering(cmd);
                 }
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd

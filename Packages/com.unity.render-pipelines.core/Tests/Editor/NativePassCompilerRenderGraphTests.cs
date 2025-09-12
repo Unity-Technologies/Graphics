@@ -854,7 +854,7 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(2, firstUsed.Count);
             Assert.AreEqual(renderTargets.extraTextures[0].handle.index, firstUsed[1].index);
             ref var info = ref result.contextData.UnversionedResourceData(firstUsed[1]);
-            Assert.AreEqual(true, info.memoryLess);
+            Assert.AreEqual(SystemInfo.supportsMemorylessTextures, info.memoryLess);
 
             // Pass 1 : last used = {depthBuffer, extraTextures[0], backBuffer}
             List<ResourceHandle> lastUsed = new List<ResourceHandle>();
