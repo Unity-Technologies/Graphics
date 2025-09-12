@@ -40,6 +40,11 @@
             "define": "VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER"
         },
         {
+            "name": "com.unity.2d.animation",
+            "expression": "13.0.1",
+            "define": "USING_2DANIMATION_13_0_1_OR_ABOVE"
+        },
+        {
             "name": "com.unity.modules.vr",
             "expression": "1.0.0",
             "define": "ENABLE_VR_MODULE"
