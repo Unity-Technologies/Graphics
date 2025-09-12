@@ -919,6 +919,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, materialName, materialIcon, null);
+            EditorUtility.SetDirty(action.decalProjector);
         }
 
         [Shortcut("HDRP/Decal: Handle changing size stretching UV", typeof(SceneView), KeyCode.Keypad1, ShortcutModifiers.Action)]
