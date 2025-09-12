@@ -1,83 +1,18 @@
 using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("MaterialPostprocessor")]
 namespace UnityEditor.Rendering.Universal
 {
-    internal sealed class UniversalRenderPipelineMaterialUpgrader : RenderPipelineConverter
+    internal interface IBuiltInToURPMaterialUpgrader
     {
-        public override string name => "Material Upgrade";
-        public override string info => $@"This converter upgrades Materials from the Built-in Render Pipeline to URP.
-It uses {typeof(MaterialUpgrader).Name}instances that implement {typeof(IMaterialUpgradersProvider).Name}.";
+    }
 
-        public override int priority => -1000;
-        public override Type container => typeof(BuiltInToURPConverterContainer);
-
-        List<string> m_AssetsToConvert = new List<string>();
-
-        static List<MaterialUpgrader> m_Upgraders;
-
-        public UniversalRenderPipelineMaterialUpgrader()
-        {
-            m_Upgraders = MaterialUpgrader.FetchAllUpgradersForPipeline(typeof(UniversalRenderPipelineAsset));
-        }
-
-        /// <inheritdoc/>
-        public override void OnInitialize(InitializeConverterContext context, Action callback)
-        {
-            List<ConverterItemDescriptor> descriptors = new List<ConverterItemDescriptor>();
-
-            var entries = MaterialUpgrader.FetchAllUpgradableMaterialsForPipeline(typeof(UniversalRenderPipelineAsset));
-            foreach (var material in entries)
-            {
-                ConverterItemDescriptor desc = new ConverterItemDescriptor()
-                {
-                    name = material.name,
-                    info = AssetDatabase.GetAssetPath(material),
-                    warningMessage = string.Empty,
-                    helpLink = string.Empty,
-                };
-
-                descriptors.Add(desc);
-            }
-
-            descriptors.Sort(delegate (ConverterItemDescriptor a, ConverterItemDescriptor b)
-            {
-                return string.Compare(a.name, b.name, StringComparison.Ordinal);
-            });
-
-            foreach (var desc in descriptors)
-            {
-                context.AddAssetToConvert(desc);
-                m_AssetsToConvert.Add(desc.info);
-            }
-
-            callback.Invoke();
-        }
-
-        /// <inheritdoc/>
-        public override void OnRun(ref RunItemContext context)
-        {
-            var mat = AssetDatabase.LoadAssetAtPath<Material>(context.item.descriptor.info);
-            string message = String.Empty;
-
-            if (!MaterialUpgrader.Upgrade(mat, m_Upgraders, MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound, ref message))
-            {
-                context.didFail = true;
-                context.info = message;
-            }
-        }
-
-        /// <inheritdoc/>
-        public override void OnClicked(int index)
-        {
-            EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<Material>(m_AssetsToConvert[index]));
-        }
-
+    internal sealed class MaterialUpgradeUtils
+    {
         internal static void DisableKeywords(Material material)
         {
             // LOD fade is now controlled by the render pipeline, and not the individual material, so disable it.
@@ -214,7 +149,7 @@ It uses {typeof(MaterialUpgrader).Name}instances that implement {typeof(IMateria
     /// <summary>
     /// Upgrader for the standard and standard (specular setup) shaders.
     /// </summary>
-    public class StandardUpgrader : MaterialUpgrader
+    public class StandardUpgrader : MaterialUpgrader, IBuiltInToURPMaterialUpgrader
     {
         enum LegacyRenderingMode
         {
@@ -250,7 +185,7 @@ It uses {typeof(MaterialUpgrader).Name}instances that implement {typeof(IMateria
             UpdateSurfaceTypeAndBlendMode(material);
             UpdateDetailScaleOffset(material);
             BaseShaderGUI.SetupMaterialBlendMode(material);
-            UniversalRenderPipelineMaterialUpgrader.DisableKeywords(material);
+            MaterialUpgradeUtils.DisableKeywords(material);
         }
 
         /// <summary>
@@ -275,7 +210,7 @@ It uses {typeof(MaterialUpgrader).Name}instances that implement {typeof(IMateria
             UpdateSurfaceTypeAndBlendMode(material);
             UpdateDetailScaleOffset(material);
             BaseShaderGUI.SetupMaterialBlendMode(material);
-            UniversalRenderPipelineMaterialUpgrader.DisableKeywords(material);
+            MaterialUpgradeUtils.DisableKeywords(material);
         }
 
         static void UpdateDetailScaleOffset(Material material)
@@ -345,7 +280,7 @@ It uses {typeof(MaterialUpgrader).Name}instances that implement {typeof(IMateria
         }
     }
 
-    internal class StandardSimpleLightingUpgrader : MaterialUpgrader
+    internal class StandardSimpleLightingUpgrader : MaterialUpgrader, IBuiltInToURPMaterialUpgrader
     {
         internal StandardSimpleLightingUpgrader(string oldShaderName, UpgradeParams upgradeParams)
         {
@@ -388,7 +323,7 @@ It uses {typeof(MaterialUpgrader).Name}instances that implement {typeof(IMateria
             MaterialEditor.FixupEmissiveFlag(material);
             bool shouldEmissionBeEnabled = (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.AnyEmissive) != 0;
             CoreUtils.SetKeyword(material, "_EMISSION", shouldEmissionBeEnabled);
-            UniversalRenderPipelineMaterialUpgrader.DisableKeywords(material);
+            MaterialUpgradeUtils.DisableKeywords(material);
         }
 
         private static void UpdateMaterialSpecularSource(Material material)
@@ -414,7 +349,7 @@ It uses {typeof(MaterialUpgrader).Name}instances that implement {typeof(IMateria
     /// <summary>
     /// Upgrader for terrain materials.
     /// </summary>
-    public class TerrainUpgrader : MaterialUpgrader
+    public class TerrainUpgrader : MaterialUpgrader, IBuiltInToURPMaterialUpgrader
     {
         /// <summary>
         /// Constructor for the terrain upgrader.
@@ -422,30 +357,30 @@ It uses {typeof(MaterialUpgrader).Name}instances that implement {typeof(IMateria
         /// <param name="oldShaderName">The name of the old shader.</param>
         public TerrainUpgrader(string oldShaderName)
         {
-            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.TerrainLit), UniversalRenderPipelineMaterialUpgrader.DisableKeywords);
+            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.TerrainLit), MaterialUpgradeUtils.DisableKeywords);
         }
 
     }
 
-    internal class SpeedTreeUpgrader : MaterialUpgrader
+    internal class SpeedTreeUpgrader : MaterialUpgrader, IBuiltInToURPMaterialUpgrader
     {
         internal SpeedTreeUpgrader(string oldShaderName)
         {
-            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree7), UniversalRenderPipelineMaterialUpgrader.DisableKeywords);
+            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree7), MaterialUpgradeUtils.DisableKeywords);
         }
     }
-    internal class SpeedTreeBillboardUpgrader : MaterialUpgrader
+    internal class SpeedTreeBillboardUpgrader : MaterialUpgrader, IBuiltInToURPMaterialUpgrader
     {
         internal SpeedTreeBillboardUpgrader(string oldShaderName)
         {
-            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree7Billboard), UniversalRenderPipelineMaterialUpgrader.DisableKeywords);
+            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree7Billboard), MaterialUpgradeUtils.DisableKeywords);
         }
     }
 
     /// <summary>
     /// Upgrader for particle materials.
     /// </summary>
-    public class ParticleUpgrader : MaterialUpgrader
+    public class ParticleUpgrader : MaterialUpgrader, IBuiltInToURPMaterialUpgrader
     {
         /// <summary>
         /// Constructor for the particle upgrader.
@@ -482,7 +417,7 @@ It uses {typeof(MaterialUpgrader).Name}instances that implement {typeof(IMateria
         public static void UpdateStandardSurface(Material material)
         {
             UpdateSurfaceBlendModes(material);
-            UniversalRenderPipelineMaterialUpgrader.DisableKeywords(material);
+            MaterialUpgradeUtils.DisableKeywords(material);
         }
 
         /// <summary>
@@ -492,7 +427,7 @@ It uses {typeof(MaterialUpgrader).Name}instances that implement {typeof(IMateria
         public static void UpdateUnlit(Material material)
         {
             UpdateSurfaceBlendModes(material);
-            UniversalRenderPipelineMaterialUpgrader.DisableKeywords(material);
+            MaterialUpgradeUtils.DisableKeywords(material);
         }
 
         /// <summary>
@@ -541,7 +476,7 @@ It uses {typeof(MaterialUpgrader).Name}instances that implement {typeof(IMateria
     /// <summary>
     /// Upgrader for the autodesk interactive shaders.
     /// </summary>
-    public class AutodeskInteractiveUpgrader : MaterialUpgrader
+    public class AutodeskInteractiveUpgrader : MaterialUpgrader, IBuiltInToURPMaterialUpgrader
     {
         enum LegacyRenderingMode
         {
@@ -557,7 +492,7 @@ It uses {typeof(MaterialUpgrader).Name}instances that implement {typeof(IMateria
         /// <param name="oldShaderName">The name of the old shader.</param>
         public AutodeskInteractiveUpgrader(string oldShaderName)
         {
-            RenameShader(oldShaderName, "Universal Render Pipeline/Autodesk Interactive/AutodeskInteractive", UniversalRenderPipelineMaterialUpgrader.DisableKeywords);
+            RenameShader(oldShaderName, "Universal Render Pipeline/Autodesk Interactive/AutodeskInteractive", MaterialUpgradeUtils.DisableKeywords);
         }
 
         /// <inheritdoc/>
@@ -577,16 +512,16 @@ It uses {typeof(MaterialUpgrader).Name}instances that implement {typeof(IMateria
             switch (legacyRenderingMode)
             {
                 case LegacyRenderingMode.Opaque:
-                    RenameShader(OldShaderPath, GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineEditorShaders>().autodeskInteractiveShader.name, UniversalRenderPipelineMaterialUpgrader.DisableKeywords);
+                    RenameShader(OldShaderPath, GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineEditorShaders>().autodeskInteractiveShader.name, MaterialUpgradeUtils.DisableKeywords);
                     break;
                 case LegacyRenderingMode.Cutout:
-                    RenameShader(OldShaderPath, GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineEditorShaders>().autodeskInteractiveMaskedShader.name, UniversalRenderPipelineMaterialUpgrader.DisableKeywords);
+                    RenameShader(OldShaderPath, GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineEditorShaders>().autodeskInteractiveMaskedShader.name, MaterialUpgradeUtils.DisableKeywords);
                     dstMaterial.SetFloat("_UseOpacityMap", .0f);
                     dstMaterial.SetFloat("_OpacityThreshold", srcMaterial.GetFloat("_Cutoff"));
                     break;
                 case LegacyRenderingMode.Fade:
                 case LegacyRenderingMode.Transparent:
-                    RenameShader(OldShaderPath, GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineEditorShaders>().autodeskInteractiveTransparentShader.name, UniversalRenderPipelineMaterialUpgrader.DisableKeywords);
+                    RenameShader(OldShaderPath, GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineEditorShaders>().autodeskInteractiveTransparentShader.name, MaterialUpgradeUtils.DisableKeywords);
                     dstMaterial.SetFloat("_UseOpacityMap", .0f);
                     dstMaterial.SetFloat("_Opacity", srcMaterial.GetColor("_Color").a);
                     break;

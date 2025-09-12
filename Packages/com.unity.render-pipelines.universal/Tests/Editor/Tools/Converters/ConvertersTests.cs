@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.Universal.Tools
                 ConverterContainerId.BuiltInToURP,
                 new List<ConverterId> { ConverterId.Material },
                 ConverterFilter.Inclusive,
-                new List<Type> { typeof(UniversalRenderPipelineMaterialUpgrader) }
+                new List<Type> { typeof(BuiltInToURP3DMaterialUpgrader) }
             ).SetName("When Using Inclusive filter with Material in the correct category. The Filter only returns that converter");
             yield return new TestCaseData(
                 ConverterContainerId.BuiltInToURP,
@@ -36,7 +36,7 @@ namespace UnityEditor.Rendering.Universal.Tools
                 new List<Type>
                 {
                     typeof(AnimationClipConverter),
-                    typeof(UniversalRenderPipelineMaterialUpgrader),
+                    typeof(BuiltInToURP3DMaterialUpgrader),
                     typeof(ReadonlyMaterialConverter),
                 }
             ).SetName("When Using Exclusive filter. The filter returns everything except the given ids");
@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.Universal.Tools
 #endif
                     typeof(RenderSettingsConverter),
                     typeof(AnimationClipConverter),
-                    typeof(UniversalRenderPipelineMaterialUpgrader),
+                    typeof(BuiltInToURP3DMaterialUpgrader),
                     typeof(ReadonlyMaterialConverter),
                  }
             ).SetName("BuiltInToURP - When Using Exclusive filter with no converters. The filter returns everything");

@@ -6,23 +6,18 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEditor;
-using UnityEditor.Rendering;
 using UnityEditor.SceneManagement;
-using UnityEditor.Search;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using BIRPRendering = UnityEngine.Rendering.PostProcessing;
 using Object = UnityEngine.Object;
-using URPRenderingEditor = UnityEditor.Rendering.Universal;
 using URPRendering = UnityEngine.Rendering.Universal;
-using static UnityEngine.Rendering.VolumeComponent;
-using static UnityEditor.Rendering.AnimationClipUpgrader;
 
 namespace UnityEditor.Rendering.Universal
 {
-    internal class PPv2Converter : RenderPipelineConverter
+    internal class PPv2Converter : RenderPipelineAssetsConverter
     {
         public override string name => "Post-Processing Stack v2 Converter";
         public override string info =>
@@ -33,7 +28,8 @@ namespace UnityEditor.Rendering.Universal
 
         private List<Object> postConversionDestroyables = null;
 
-        List<RenderPipelineConverterAssetItem> assets = new ();
+        protected override List<(string query, string description)> contextSearchQueriesAndIds
+            => s_PostProcessTypesToSearch;
 
         static List<(string, string)> s_PostProcessTypesToSearch = new()
         {
@@ -70,28 +66,8 @@ namespace UnityEditor.Rendering.Universal
             );
         }
 
-        private Object LoadObject(ref RunItemContext ctx, StringBuilder sb)
+        protected override Status ConvertObject(UnityEngine.Object obj, StringBuilder message)
         {
-            var item = assets[ctx.item.index];
-            var obj = item.LoadObject();
-
-            if (obj == null)
-                sb.AppendLine($"Failed to load {ctx.item.descriptor.info} Global ID {item.guid} Asset Path {item.assetPath}");
-
-            return obj;
-        }
-
-        public override void OnRun(ref RunItemContext context)
-        {
-            var errorString = new StringBuilder();
-            var obj = LoadObject(ref context, errorString);
-            if (obj == null)
-            {
-                context.didFail = true;
-                context.info = errorString.ToString();
-                return;
-            }
-
             BIRPRendering.PostProcessVolume[] oldVolumes = null;
             BIRPRendering.PostProcessLayer[] oldLayers = null;
 
@@ -136,7 +112,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 foreach (var oldVolume in oldVolumes)
                 {
-                    ConvertVolume(oldVolume, ref succeeded, errorString);
+                    ConvertVolume(oldVolume, ref succeeded, message);
                 }
             }
 
@@ -144,24 +120,24 @@ namespace UnityEditor.Rendering.Universal
             {
                 foreach (var oldLayer in oldLayers)
                 {
-                    ConvertLayer(oldLayer, ref succeeded, errorString);
+                    ConvertLayer(oldLayer, ref succeeded, message);
                 }
             }
 
             if (obj is BIRPRendering.PostProcessProfile oldProfile)
             {
-                ConvertProfile(oldProfile, ref succeeded, errorString);
+                ConvertProfile(oldProfile, ref succeeded, message);
             }
 
             if (!succeeded)
             {
-                context.didFail = true;
-                context.info = errorString.ToString();
+                return Status.Error;
             }
             else
             {
                 var currentScene = SceneManager.GetActiveScene();
                 EditorSceneManager.SaveScene(currentScene);
+                return Status.Success;
             }
         }
 

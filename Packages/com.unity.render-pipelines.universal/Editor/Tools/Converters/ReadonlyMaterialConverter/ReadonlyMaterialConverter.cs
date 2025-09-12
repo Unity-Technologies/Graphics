@@ -1,16 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using Object = UnityEngine.Object;
+using UnityEditor.Rendering.Converter;
 
 namespace UnityEditor.Rendering.Universal
 {
-    enum IdentifierType { kNullIdentifier = 0, kImportedAsset = 1, kSceneObject = 2, kSourceAsset = 3, kBuiltInAsset = 4 };
-
     internal static class ReadonlyMaterialMap
     {
         public static bool TryGetMappingMaterial(Material material, out Material mappingMaterial)
@@ -100,62 +97,17 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    internal class ReadonlyMaterialConverter : RenderPipelineConverter
+    internal class ReadonlyMaterialConverter : RenderPipelineAssetsConverter
     {
-        private static bool s_HasShownWarning = false;
-        public override bool isEnabled
-        {
-            get
-            {
-                if (GraphicsSettings.currentRenderPipeline is not UniversalRenderPipelineAsset)
-                {
-                    if (!s_HasShownWarning)
-                        Debug.LogWarning("[Render Pipeline Converter] Readonly Material Converter requires URP. Convert your project to URP to use this converter.");
-                    s_HasShownWarning = true;
-                    return false;
-                }
+        public override bool isEnabled => GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset;
+        public override string isDisabledWarningMessage => "Converter requires URP. Convert your project to URP to use this converter.";
 
-                return true;
-            }
-        }
-            
-        public override string name => "Readonly Material Converter";
+        public override string name => "Materials Converter";
         public override string info => "Converts references to Built-In readonly materials to URP readonly materials. This will create temporarily a .index file and that can take a long time.";
         public override Type container => typeof(BuiltInToURPConverterContainer);
 
-        List<string> guids = new();
-        List<string> assetPaths = new ();
-
-        internal void Add(string guid, string assetPath)
-        {
-            guids.Add(guid);
-            assetPaths.Add(assetPath);
-        }
-
-        internal List<RenderPipelineConverterAssetItem> assets = new();
-
-        public override void OnInitialize(InitializeConverterContext ctx, Action callback)
-        {
-            SearchServiceUtils.RunQueuedSearch
-            (
-                SearchServiceUtils.IndexingOptions.DeepSearch,
-                ReadonlyMaterialMap.GetMaterialSearchList(),
-                (item, description) =>
-                {
-                    var assetItem = new RenderPipelineConverterAssetItem(item.id);
-                    assets.Add(assetItem);
-
-                    var itemDescriptor = new ConverterItemDescriptor()
-                    {
-                        name = assetItem.assetPath,
-                        info = description,
-                    };
-
-                    ctx.AddAssetToConvert(itemDescriptor);
-                },
-                callback
-            );
-        }
+        protected override List<(string query, string description)> contextSearchQueriesAndIds
+            => ReadonlyMaterialMap.GetMaterialSearchList();
 
         internal MaterialReferenceChanger m_MaterialReferenceChanger;
 
@@ -170,31 +122,14 @@ namespace UnityEditor.Rendering.Universal
             m_MaterialReferenceChanger = null;
         }
 
-        public override void OnRun(ref RunItemContext ctx)
+        protected override Status ConvertObject(UnityEngine.Object obj, StringBuilder message)
         {
-            var errorString = new StringBuilder();
-            var obj = LoadObject(ref ctx, errorString);
-            if (!m_MaterialReferenceChanger.ReassignUnityObjectMaterials(obj, errorString))
+            if (!m_MaterialReferenceChanger.ReassignUnityObjectMaterials(obj, message))
             {
-                ctx.didFail = true;
-                ctx.info = errorString.ToString();
+                return Status.Error;
             }
-        }
 
-        public override void OnClicked(int index)
-        {
-            assets[index].OnClicked();
-        }
-
-        private Object LoadObject(ref RunItemContext ctx, StringBuilder sb)
-        {
-            var item = assets[ctx.item.index];
-            var obj = item.LoadObject();
-
-            if (obj == null)
-                sb.AppendLine($"Failed to load {ctx.item.descriptor.info} Global ID {item.guid} Asset Path {item.assetPath}");
-
-            return obj;
+            return Status.Success;
         }
     }
 }

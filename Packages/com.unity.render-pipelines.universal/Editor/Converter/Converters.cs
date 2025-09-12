@@ -131,7 +131,7 @@ namespace UnityEditor.Rendering.Universal
         {
             protected override (ConverterId id, Type type)[] Map { get; } =
             {
-                (ConverterId.Material, typeof(UniversalRenderPipelineMaterialUpgrader)),
+                (ConverterId.Material, typeof(BuiltInToURP3DMaterialUpgrader)),
                 (ConverterId.RenderSettings, typeof(RenderSettingsConverter)),
                 (ConverterId.AnimationClip, typeof(AnimationClipConverter)),
                 (ConverterId.ReadonlyMaterial, typeof(ReadonlyMaterialConverter)),
