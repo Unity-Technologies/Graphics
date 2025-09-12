@@ -9,9 +9,9 @@
 #pragma multi_compile_local _ PROBE_VOLUMES_SKY_SHADING_DIRECTION
 #pragma multi_compile_local _ PROBE_VOLUMES_PROBE_OCCLUSION
 
-RWTexture3D<float4> _Out_L0_L1Rx;
-RWTexture3D<float4> _Out_L1G_L1Ry;
-RWTexture3D<float4> _Out_L1B_L1Rz;
+RWTexture3D<half4> _Out_L0_L1Rx;
+RWTexture3D<unorm float4> _Out_L1G_L1Ry;
+RWTexture3D<unorm float4> _Out_L1B_L1Rz;
 
 #ifdef PROBE_VOLUMES_SHARED_DATA
 

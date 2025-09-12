@@ -4,10 +4,10 @@
 
 #pragma kernel UploadDataL2
 
-RWTexture3D<float4> _Out_L2_0;
-RWTexture3D<float4> _Out_L2_1;
-RWTexture3D<float4> _Out_L2_2;
-RWTexture3D<float4> _Out_L2_3;
+RWTexture3D<unorm float4> _Out_L2_0;
+RWTexture3D<unorm float4> _Out_L2_1;
+RWTexture3D<unorm float4> _Out_L2_2;
+RWTexture3D<unorm float4> _Out_L2_3;
 
 
 [numthreads(64, 1, 1)]
