@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
     [Serializable]
     [SupportedOnRenderPipeline]
     [Categorization.CategoryInfo(Name = "R: Surface Cache URP Integration", Order = 1000), HideInInspector]
-    class SurfaceCacheRenderPipelineResourceSet : IRenderPipelineResources
+    sealed class SurfaceCacheRenderPipelineResourceSet : IRenderPipelineResources
     {
         [SerializeField, HideInInspector]
         int m_Version = 6;
@@ -557,10 +557,8 @@ namespace UnityEngine.Rendering.Universal
 
                 using (var builder = renderGraph.AddUnsafePass("Surface Cache World Update", out WorldUpdatePassData passData))
                 {
-                    const bool filterRealtimeLights = false;
                     const bool filterBakedLights = true;
-                    const bool filterMixedLights = true;
-                    var changes = _sceneTracker.GetChanges(filterRealtimeLights, filterBakedLights, filterMixedLights);
+                    var changes = _sceneTracker.GetChanges(filterBakedLights);
 
                     _worldAdapter.UpdateMaterials(_pathTracingWorld, changes.addedMaterials, changes.removedMaterials, changes.changedMaterials);
                     _worldAdapter.UpdateInstances(_pathTracingWorld, changes.addedInstances, changes.changedInstances, changes.removedInstances, RenderedGameObjectsFilter.All, true, _fallbackMaterial);
@@ -946,7 +944,7 @@ namespace UnityEngine.Rendering.Universal
                     for (int i = 0; i < allLights.Length; i++)
                     {
                         var light = allLights[i];
-                        if (light.type == LightType.Directional && light.lightmapBakeType == LightmapBakeType.Realtime)
+                        if (light.type == LightType.Directional && !light.bakingOutput.isBaked)
                         {
                             realtimeDirectionalLights.Add(light);
                         }
@@ -1091,8 +1089,8 @@ namespace UnityEngine.Rendering.Universal
                     uint[] masks = new uint[materials.Length];
                     for (int i = 0; i < masks.Length; i++)
                     {
-                        bool hasLightmaps = (meshRenderer.receiveGI == ReceiveGI.Lightmaps);
-                        var mask = World.GetInstanceMask(meshRenderer.shadowCastingMode, Util.IsStatic(meshRenderer.gameObject), renderedGameObjects, hasLightmaps);
+                        bool receiveGIFromLightmaps = false; // We don't currently support Mesh Renderers receiving GI from other sources.
+                        var mask = World.GetInstanceMask(meshRenderer.shadowCastingMode, Util.IsStatic(meshRenderer.gameObject), renderedGameObjects, receiveGIFromLightmaps);
                         masks[i] = visibility[i] ? mask : 0u;
                     }
 
@@ -1159,8 +1157,8 @@ namespace UnityEngine.Rendering.Universal
                                 uint[] masks = new uint[materials.Length];
                                 for (int i = 0; i < masks.Length; i++)
                                 {
-                                    bool hasLightmaps = (meshRenderer.receiveGI == ReceiveGI.Lightmaps);
-                                    var mask = World.GetInstanceMask(meshRenderer.shadowCastingMode, Util.IsStatic(meshRenderer.gameObject), renderedGameObjects, hasLightmaps);
+                                    bool receiveGIFromLightmaps = false; // We don't currently support Mesh Renderers receiving GI from other sources.
+                                    var mask = World.GetInstanceMask(meshRenderer.shadowCastingMode, Util.IsStatic(meshRenderer.gameObject), renderedGameObjects, receiveGIFromLightmaps);
                                     masks[i] = visibility[i] ? mask : 0u;
                                 }
                                 world.UpdateInstanceMask(instance, masks);
@@ -1271,7 +1269,11 @@ namespace UnityEngine.Rendering.Universal
 
                 {
                     var resources = new RayTracingResources();
+#if UNITY_EDITOR
                     resources.Load();
+#else
+                    resources.LoadFromRenderPipelineResources();
+#endif
                     _rtContext = new RayTracingContext(rtBackend, resources);
                 }
 
@@ -1283,7 +1285,7 @@ namespace UnityEngine.Rendering.Universal
                 Debug.Assert(worldLoadResult);
 
                 var coreResources = new Rendering.SurfaceCacheResourceSet((uint)SystemInfo.computeSubGroupSize);
-                var coreResourceLoadResult = coreResources.LoadFromRenderPipeResources(_rtContext);
+                var coreResourceLoadResult = coreResources.LoadFromRenderPipelineResources(_rtContext);
                 Debug.Assert(coreResourceLoadResult);
 
                 var gridParams = new SurfaceCacheGridParameterSet

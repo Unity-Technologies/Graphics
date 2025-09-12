@@ -248,7 +248,7 @@ namespace UnityEngine.Rendering
             SubGroupSize = subGroupSize;
         }
 
-        internal bool LoadFromRenderPipeResources(RayTracingContext rtContext)
+        internal bool LoadFromRenderPipelineResources(RayTracingContext rtContext)
         {
             var rpResources = GraphicsSettings.GetRenderPipelineSettings<Rendering.SurfaceCacheRenderPipelineResourceSet>();
             if (rpResources == null)
@@ -286,23 +286,23 @@ namespace UnityEngine.Rendering
 
             Object uniformEstimationUnifiedObj;
             Object restirCandidateTemporalUnifiedObj;
-            Object risEstimationObj;
+            Object risEstimationUnifiedObj;
             if (rtContext.BackendType == RayTracingBackend.Compute)
             {
                 uniformEstimationUnifiedObj = rpResources.uniformEstimationComputeShader;
                 restirCandidateTemporalUnifiedObj = rpResources.restirCandidateTemporalComputeShader;
-                risEstimationObj = rpResources.risEstimationComputeShader;
+                risEstimationUnifiedObj = rpResources.risEstimationComputeShader;
             }
             else
             {
                 uniformEstimationUnifiedObj = rpResources.uniformEstimationRayTracingShader;
                 restirCandidateTemporalUnifiedObj = rpResources.restirCandidateTemporalRayTracingShader;
-                risEstimationObj = rpResources.risEstimationRayTracingShader;
+                risEstimationUnifiedObj = rpResources.risEstimationRayTracingShader;
             }
 
             UniformEstimationShader = rtContext.CreateRayTracingShader(uniformEstimationUnifiedObj);
             RestirCandidateTemporalShader = rtContext.CreateRayTracingShader(restirCandidateTemporalUnifiedObj);
-            RisEstimationShader = rtContext.CreateRayTracingShader(risEstimationObj);
+            RisEstimationShader = rtContext.CreateRayTracingShader(risEstimationUnifiedObj);
 
             return true;
         }

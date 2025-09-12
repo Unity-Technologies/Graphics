@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
     [Serializable]
     [SupportedOnRenderPipeline()]
     [Categorization.CategoryInfo(Name = "R: Unified Ray Tracing", Order = 1000), HideInInspector]
-    internal class RayTracingRenderPipelineResources : IRenderPipelineResources
+    sealed class RayTracingRenderPipelineResources : IRenderPipelineResources
     {
         [SerializeField, HideInInspector] int m_Version = 1;
 

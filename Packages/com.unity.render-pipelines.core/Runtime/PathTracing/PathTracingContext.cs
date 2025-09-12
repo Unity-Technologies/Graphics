@@ -174,7 +174,7 @@ namespace UnityEngine.Rendering.LiveGI
                 // TODO: enable this only for debugging
                 Unity.Collections.NativeLeakDetection.Mode = Unity.Collections.NativeLeakDetectionMode.EnabledWithStackTrace;
 
-                var changes = _sceneUpdatesTracker.GetChanges(_pathTracingOutput == PathTracingOutput.GIPreview, false, false);
+                var changes = _sceneUpdatesTracker.GetChanges(_pathTracingOutput == PathTracingOutput.GIPreview);
                 _sceneChanged = changes.HasChanges();
 
                 UpdateMaterials(_world, _instanceIDToWorldMaterialHandles, _instanceIDToWorldMaterialDescriptors, changes.addedMaterials, changes.removedMaterials, changes.changedMaterials);

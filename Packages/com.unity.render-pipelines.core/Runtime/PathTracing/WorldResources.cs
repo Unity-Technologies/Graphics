@@ -10,7 +10,7 @@ namespace UnityEngine.PathTracing.Core
     [Serializable]
     [SupportedOnRenderPipeline()]
     [Categorization.CategoryInfo(Name = "R: Path Tracing Core World", Order = 1000), HideInInspector]
-    internal class WorldRenderPipelineResources : IRenderPipelineResources
+    sealed class WorldRenderPipelineResources : IRenderPipelineResources
     {
         [SerializeField, HideInInspector] int _version = 3;
 

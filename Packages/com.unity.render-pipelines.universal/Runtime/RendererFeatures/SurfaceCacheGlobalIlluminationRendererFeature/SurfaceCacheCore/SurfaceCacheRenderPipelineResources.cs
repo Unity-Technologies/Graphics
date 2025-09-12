@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering
     [Serializable]
     [SupportedOnRenderPipeline]
     [Categorization.CategoryInfo(Name = "R: Surface Cache Core Resources", Order = 1000), HideInInspector]
-    class SurfaceCacheRenderPipelineResourceSet : IRenderPipelineResources
+    sealed class SurfaceCacheRenderPipelineResourceSet : IRenderPipelineResources
     {
         [SerializeField, HideInInspector]
         int m_Version = 2;
@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering
         public ComputeShader m_RestirEstimationShader;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/RisEstimation.urtshader")]
-        ComputeShader m_RisEstimationComputeShader;
+        public ComputeShader m_RisEstimationComputeShader;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/RisEstimation.urtshader")]
         public RayTracingShader m_RisEstimationRayTracingShader;
