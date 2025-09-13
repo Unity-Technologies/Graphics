@@ -344,6 +344,7 @@ namespace UnityEngine.Rendering.Universal
                 return new Vector4(viewportScale.x, viewportScale.y, 0, 0);
         }
 
+        /// <inheritdoc cref="IRenderGraphRecorder.RecordRenderGraph"/>
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();

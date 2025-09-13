@@ -494,7 +494,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 }
 
                 // Second step of the algorithm, must come after
-                CullRenderGraphPassesWritingOnlyUnusedResources();
+                // TODO: The resources culling step is currently disabled due to an issue: https://jira.unity3d.com/projects/SRP/issues/SRP-897
+                // Renabled the resource culling step after addressing the depth attachment problem above.
+                // Renabled the relevent tests
+                // CullRenderGraphPassesWritingOnlyUnusedResources();
             }
         }
 
@@ -1562,13 +1565,26 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                 if (nativePass.extendedFeatureFlags.HasFlag(ExtendedFeatureFlags.MultisampledShaderResolve))
                 {
+                    var lastSubpass = nativeSubPassArray[^1];
+
+                    // All input attachments must be memoryless for the shader resolve enabled subpass.
+                    for (int i = 0; i < lastSubpass.inputs.Length; i++)
+                    {
+                        int inputIndex = lastSubpass.inputs[i];
+                        ref var inputAttachment = ref m_BeginRenderPassAttachments.ElementAt(inputIndex);
+                        if (inputAttachment.storeAction != RenderBufferStoreAction.DontCare)
+                        {
+                            throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_MultisampledShaderResolveInputAttachmentNotMemoryless);
+                        }
+                    }
+
                     // The last subpass in a native pass with shader resolve is required to be the subpass that handles the resolve, and this subpass can only have 1 color attachment.
-                    if (nativeSubPassArray[^1].colorOutputs.Length != 1)
+                    if (lastSubpass.colorOutputs.Length != 1)
                         throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_MultisampledShaderResolveInvalidAttachmentSetup);
 
                     if (SystemInfo.supportsMultisampledShaderResolve)
                     {
-                        int attachmentIndex = nativeSubPassArray[^1].colorOutputs[0];
+                        int attachmentIndex = lastSubpass.colorOutputs[0];
 
                         ref var currBeginAttachment = ref m_BeginRenderPassAttachments.ElementAt(attachmentIndex);
                         currBeginAttachment.resolveTarget = currBeginAttachment.loadStoreTarget;

@@ -1681,6 +1681,7 @@ namespace UnityEngine.Rendering.Tests
         }
 */
 
+/* // DepthAttachment bug: https://jira.unity3d.com/projects/SRP/issues/SRP-897
         [Test]
         public void UnusedResourceCulling_CullProducer_WhenVersionsAreNotExplicitlyRead()
         {
@@ -1786,6 +1787,7 @@ namespace UnityEngine.Rendering.Tests
             // extraBuffer[2] latest version remains at 1
             Assert.AreEqual(result.contextData.UnversionedResourceData(passes[0].attachments[1].handle).latestVersionNumber, 1);
         }
+*/
 
         [Test]
         public void UnusedResourceCulling_DoNotCullProducer_WhenOneOfItsWrittenResourcesIsExplicitlyRead()
