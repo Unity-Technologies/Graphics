@@ -164,7 +164,6 @@ namespace UnityEditor.VFX.UI
     class UintPropertyRM : NumericPropertyRM<uint, long>
     {
         private VFXEnumValuePopup m_EnumPopup;
-        private VFX32BitField m_BitField;
 
         public UintPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
@@ -212,6 +211,7 @@ namespace UnityEditor.VFX.UI
             {
                 var nameLabel = new Label(label);
                 nameLabel.AddToClassList("label");
+                nameLabel.AddToClassList("bitfield-label");
                 Insert(0, nameLabel);
                 return new VFX32BitField();
             }
