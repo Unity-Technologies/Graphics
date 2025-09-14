@@ -272,7 +272,7 @@ namespace UnityEditor.VFX
         }
 
         public bool Accept(VFXBlock block, int index = -1) => Accept(block.compatibleContexts, block.compatibleData);
-        public bool Accept(VFXContextType blockContexts, VFXDataType blockData) => (blockContexts & compatibleContextType) == compatibleContextType && (blockData & ownedType) != 0;
+        public bool Accept(VFXContextType blockContexts, VFXDataType blockData) => (blockContexts & compatibleContextType) == compatibleContextType && VFXData.IsCompatible(ownedType, blockData);
 
         public bool CanHaveBlocks()
         {
@@ -442,7 +442,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            if ((from.ownedType & to.ownedType) == to.ownedType && from.ownedType.HasFlag(VFXDataType.Particle))
+            if (VFXData.CanConvert(from.ownedType, to.ownedType) && from.ownedType.HasFlag(VFXDataType.Particle))
                 to.InnerSetData(from.GetData(), false);
 
             from.m_OutputFlowSlot[fromIndex].link.Add(new VFXContextLink() { context = to, slotIndex = toIndex });
@@ -486,6 +486,8 @@ namespace UnityEditor.VFX
             return null;
         }
 
+        public bool CanAccept(VFXDataType dataType) => VFXData.CanConvert(dataType, ownedType);
+
         public void SetDefaultData(bool notify)
         {
             InnerSetData(VFXData.CreateDataType(ownedType), notify);
@@ -515,7 +517,7 @@ namespace UnityEditor.VFX
                 // Propagate data downwards
                 if (ownedType.HasFlag(VFXDataType.Particle)) // Only propagate for particle type atm
                     foreach (var output in m_OutputFlowSlot.SelectMany(o => o.link.Select(l => l.context)))
-                        if (output.ownedType == ownedType)
+                        if (output.CanAccept(ownedType))
                             output.InnerSetData(data, notify);
             }
         }

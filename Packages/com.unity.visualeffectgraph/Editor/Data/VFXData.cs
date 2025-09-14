@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using UnityEditor.VFX;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
@@ -73,6 +72,9 @@ namespace UnityEditor.VFX
                 default: return null;
             }
         }
+
+        public static bool IsCompatible(VFXDataType fromType, VFXDataType toType) => (fromType & toType) != 0;
+        public static bool CanConvert(VFXDataType fromType, VFXDataType toType) => (fromType & toType) == toType;
 
         public override void OnEnable()
         {
