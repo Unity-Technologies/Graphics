@@ -89,5 +89,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/199_DepthPrimingDepthNormalPrepass.unity
     guid: cbda6333127961642bd444e8344550fe
+  - enabled: 1
+    path: Assets/Scenes/246_ShaderGraph_TerrainPropertiesNode.unity
+    guid: 0fa89b69da44c4ab4a72445c20ac86ed
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

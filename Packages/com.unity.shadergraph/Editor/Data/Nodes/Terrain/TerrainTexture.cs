@@ -6,8 +6,6 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Terrain", "Terrain Texture")]
-    // should do this so the node is only available in the correct subtargets
-    // unclear how to accomplish this with a cross pipeline node, but pipeline specific targets
     [SubTargetFilterAttribute(new[] { typeof(ITerrainSubTarget)})]
     class TerrainTexture : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {

@@ -36,17 +36,17 @@ CBUFFER_START(_Terrain)
     half4 _Splat0_ST, _Splat1_ST, _Splat2_ST, _Splat3_ST;
     half _HeightTransition;
     half _NumLayersCount;
+    float _TerrainBasemapDistance;
 
-    #ifdef UNITY_INSTANCING_ENABLED
+#ifdef UNITY_INSTANCING_ENABLED
     float4 _TerrainHeightmapRecipSize;   // float4(1.0f/width, 1.0f/height, 1.0f/(width-1), 1.0f/(height-1))
+#endif
     float4 _TerrainHeightmapScale;       // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
-    #endif
     #ifdef SCENESELECTIONPASS
     int _ObjectId;
     int _PassValue;
     #endif
 CBUFFER_END
-
 
 TEXTURE2D(_Control);    SAMPLER(sampler_Control);
 TEXTURE2D(_Splat0);     SAMPLER(sampler_Splat0);
