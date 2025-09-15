@@ -14,6 +14,7 @@ using UnityEngine.SceneManagement;
 using BIRPRendering = UnityEngine.Rendering.PostProcessing;
 using Object = UnityEngine.Object;
 using URPRendering = UnityEngine.Rendering.Universal;
+using UnityEditor.Rendering.Converter;
 
 namespace UnityEditor.Rendering.Universal
 {
