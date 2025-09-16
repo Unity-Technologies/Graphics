@@ -121,7 +121,9 @@ namespace UnityEngine.Rendering.Universal
         DebugScreenDepth,
         /// <summary>
         /// After Post Process Color. Stores the contents of the main color target after the post processing passes.
+        /// [Obsolete]
         /// </summary>
+        [System.Obsolete("AfterPostProcessColor has never been implemented and is obsolete")]
         AfterPostProcessColor,
         /// <summary>
         /// Overlay UI Texture. The DrawScreenSpaceUI pass writes to this texture when rendering off-screen.
@@ -227,7 +229,8 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Utility method to convert RenderTextureDescriptor to TextureHandle and create a RenderGraph texture
+        /// Utility method to convert RenderTextureDescriptor to TextureHandle and create a RenderGraph texture.
+        /// The use of RenderTextureDescriptor is obsolete with RenderGraph, use TextureDesc instead.
         /// </summary>
         /// <param name="renderGraph"></param>
         /// <param name="desc"></param>
@@ -239,48 +242,61 @@ namespace UnityEngine.Rendering.Universal
         public static TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, RenderTextureDescriptor desc, string name, bool clear,
             FilterMode filterMode = FilterMode.Point, TextureWrapMode wrapMode = TextureWrapMode.Clamp)
         {
-            TextureDesc rgDesc = new TextureDesc(desc.width, desc.height);
-            rgDesc.dimension = desc.dimension;
+            TextureDesc rgDesc;
+            GetTextureDesc(desc, out rgDesc);
+
             rgDesc.clearBuffer = clear;
-            rgDesc.bindTextureMS = desc.bindMS;
-            rgDesc.format = (desc.depthStencilFormat != GraphicsFormat.None) ? desc.depthStencilFormat : desc.graphicsFormat;
-            rgDesc.slices = desc.volumeDepth;
-            rgDesc.msaaSamples = (MSAASamples)desc.msaaSamples;
             rgDesc.name = name;
-            rgDesc.enableRandomWrite = desc.enableRandomWrite;
             rgDesc.filterMode = filterMode;
             rgDesc.wrapMode = wrapMode;
-            rgDesc.isShadowMap = desc.shadowSamplingMode != ShadowSamplingMode.None && desc.depthStencilFormat != GraphicsFormat.None;
-            rgDesc.vrUsage = desc.vrUsage;
-            rgDesc.enableShadingRate = desc.enableShadingRate;
-            rgDesc.useDynamicScale = desc.useDynamicScale;
-            rgDesc.useDynamicScaleExplicit = desc.useDynamicScaleExplicit;
 
             return renderGraph.CreateTexture(rgDesc);
         }
 
-        internal static TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, RenderTextureDescriptor desc, string name, bool clear, Color color,
+        internal static TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, in RenderTextureDescriptor desc, string name, bool clear, Color color,
             FilterMode filterMode = FilterMode.Point, TextureWrapMode wrapMode = TextureWrapMode.Clamp, bool discardOnLastUse = false)
         {
-            TextureDesc rgDesc = new TextureDesc(desc.width, desc.height);
-            rgDesc.dimension = desc.dimension;
+            TextureDesc rgDesc;
+            GetTextureDesc(desc, out rgDesc);
+
             rgDesc.clearBuffer = clear;
             rgDesc.clearColor = color;
-            rgDesc.bindTextureMS = desc.bindMS;
-            rgDesc.format = (desc.depthStencilFormat != GraphicsFormat.None) ? desc.depthStencilFormat : desc.graphicsFormat;
-            rgDesc.slices = desc.volumeDepth;
             rgDesc.msaaSamples = (MSAASamples)desc.msaaSamples;
             rgDesc.name = name;
-            rgDesc.enableRandomWrite = desc.enableRandomWrite;
             rgDesc.filterMode = filterMode;
             rgDesc.wrapMode = wrapMode;
-            rgDesc.enableShadingRate = desc.enableShadingRate;
-            rgDesc.useDynamicScale = desc.useDynamicScale;
-            rgDesc.useDynamicScaleExplicit = desc.useDynamicScaleExplicit;
             rgDesc.discardBuffer = discardOnLastUse;
-            rgDesc.vrUsage = desc.vrUsage;
 
             return renderGraph.CreateTexture(rgDesc);
+        }
+
+        internal static void GetTextureDesc(in RenderTextureDescriptor desc, out TextureDesc rgDesc)
+        {
+            rgDesc = new TextureDesc(desc.width, desc.height);
+            rgDesc.dimension = desc.dimension;
+            rgDesc.bindTextureMS = desc.bindMS;
+            rgDesc.format = (desc.depthStencilFormat != GraphicsFormat.None) ? desc.depthStencilFormat : desc.graphicsFormat;
+            rgDesc.isShadowMap = desc.shadowSamplingMode != ShadowSamplingMode.None && desc.depthStencilFormat != GraphicsFormat.None;
+            rgDesc.slices = desc.volumeDepth; 
+            rgDesc.msaaSamples = (MSAASamples)desc.msaaSamples; 
+            rgDesc.enableRandomWrite = desc.enableRandomWrite; 
+            rgDesc.enableShadingRate = desc.enableShadingRate; 
+            rgDesc.useDynamicScale = desc.useDynamicScale; 
+            rgDesc.useDynamicScaleExplicit = desc.useDynamicScaleExplicit; 
+            rgDesc.vrUsage = desc.vrUsage; 
+        }    
+
+        internal static TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, in TextureDesc desc, string name, bool clear,
+                FilterMode filterMode = FilterMode.Point, TextureWrapMode wrapMode = TextureWrapMode.Clamp, bool discardOnLastUse = false)
+        {
+            TextureDesc outDesc = desc;
+            outDesc.name = name;
+            outDesc.clearBuffer = clear;
+            outDesc.filterMode = filterMode;
+            outDesc.wrapMode = wrapMode;
+            outDesc.discardBuffer = discardOnLastUse;
+
+            return renderGraph.CreateTexture(outDesc);
         }
 
         bool RequiresIntermediateAttachments(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs, bool requireCopyFromDepth, bool applyPostProcessing)
@@ -390,9 +406,6 @@ namespace UnityEngine.Rendering.Universal
             CreateMotionVectorTextures(renderGraph, cameraData.cameraTargetDescriptor);
 
             CreateRenderingLayersTexture(renderGraph, cameraData.cameraTargetDescriptor);
-
-            if (!isCameraTargetOffscreenDepth)
-                CreateAfterPostProcessTexture(renderGraph, cameraData.cameraTargetDescriptor);
         }
 
         private readonly struct ClearCameraParams
@@ -1357,7 +1370,7 @@ namespace UnityEngine.Rendering.Universal
 
             // If the debugHandler displays HDR debug views, it needs to redirect (final) post-process output to an intermediate color target (debugScreenTexture)
             // and it will write into the post-process intended output.
-            TextureHandle debugHandlerColorTarget = resourceData.afterPostProcessColor;
+            TextureHandle debugHandlerColorTarget = resourceData.backBufferColor;
 
             if (applyPostProcessing)
             {
@@ -1971,14 +1984,6 @@ namespace UnityEngine.Rendering.Universal
 
                 resourceData.renderingLayersTexture = CreateRenderGraphTexture(renderGraph, renderingLayersDescriptor, m_RenderingLayersTextureName, true);
             }
-        }
-
-        void CreateAfterPostProcessTexture(RenderGraph renderGraph, RenderTextureDescriptor descriptor)
-        {
-            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-
-            var desc = PostProcessPassRenderGraph.GetCompatibleDescriptor(descriptor, descriptor.width, descriptor.height, descriptor.graphicsFormat, GraphicsFormat.None);
-            resourceData.afterPostProcessColor = CreateRenderGraphTexture(renderGraph, desc, "_AfterPostProcessTexture", true);
         }
 
         void DepthNormalPrepassRender(RenderGraph renderGraph, RenderPassInputSummary renderPassInputs, TextureHandle depthTarget, uint batchLayerMask, bool setGlobalDepth, bool setGlobalTextures)
