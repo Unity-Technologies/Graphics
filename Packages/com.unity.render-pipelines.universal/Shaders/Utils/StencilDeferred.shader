@@ -462,7 +462,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile _ _SCREEN_SPACE_OCCLUSION
-
+			#pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
+			
             // -------------------------------------
             // Includes
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
