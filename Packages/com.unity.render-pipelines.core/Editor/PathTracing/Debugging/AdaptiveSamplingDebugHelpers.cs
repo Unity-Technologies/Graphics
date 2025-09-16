@@ -57,7 +57,7 @@ namespace UnityEditor.PathTracing.Debugging
             WriteFilteredVariance(cmd, helpers, adaptiveOutput, varianceScale, $"{path}/varianceFiltered_{filenamePostfix}.r2d");
             WriteStandardError(cmd, helpers, adaptiveOutput, errorScale, $"{path}/standardError_{filenamePostfix}.r2d");
             WriteActiveTexels(cmd, helpers, adaptiveOutput, adaptiveThreshold, $"{path}/active_{filenamePostfix}.r2d");
-            LightmapIntegrationHelpers.WriteRenderTexture(cmd, $"{path}/adaptive_{filenamePostfix}.r2d", adaptiveOutput);
+            SerializationHelpers.WriteRenderTexture(cmd, $"{path}/adaptive_{filenamePostfix}.r2d", adaptiveOutput);
         }
 
         static void WriteIrradiance(CommandBuffer cmd, LightmapIntegrationHelpers.ComputeHelpers helpers, RenderTexture accumulatedOutput, string filename)
@@ -71,7 +71,7 @@ namespace UnityEditor.PathTracing.Debugging
             cmd.CopyTexture(accumulatedOutput, tempRTID);
             LightmapIntegrationHelpers.NormalizeByAlpha(cmd, helpers.ComputeHelperShader, LightmapIntegrationHelpers.ComputeHelpers.NormalizeByAlphaKernel, width, height, tempRTID);
             LightmapIntegrationHelpers.SetChannelRenderTexture(cmd, helpers.ComputeHelperShader, LightmapIntegrationHelpers.ComputeHelpers.SetChannelKernel, tempRTID, width, height, 3, 1.0f);
-            LightmapIntegrationHelpers.WriteRenderTexture(cmd, tempRTID, TextureFormat.RGBAFloat, width, height, filename);
+            SerializationHelpers.WriteRenderTexture(cmd, tempRTID, TextureFormat.RGBAFloat, width, height, filename);
 
             cmd.ReleaseTemporaryRT(tempRTID);
         }
@@ -89,7 +89,7 @@ namespace UnityEditor.PathTracing.Debugging
             LightmapIntegrationHelpers.SetChannelRenderTexture(cmd, helpers.ComputeHelperShader, LightmapIntegrationHelpers.ComputeHelpers.SetChannelKernel, tempRTID, width, height, 3, 1.0f);
             float samplesScale = 1.0f / maxSampleCount;
             LightmapIntegrationHelpers.MultiplyRenderTexture(cmd, helpers.ComputeHelperShader, LightmapIntegrationHelpers.ComputeHelpers.MultiplyKernel, tempRTID, width, height, new Vector4(samplesScale, samplesScale, samplesScale, 1.0f));
-            LightmapIntegrationHelpers.WriteRenderTexture(cmd, tempRTID, TextureFormat.RGBAFloat, width, height, filename);
+            SerializationHelpers.WriteRenderTexture(cmd, tempRTID, TextureFormat.RGBAFloat, width, height, filename);
 
             cmd.ReleaseTemporaryRT(tempRTID);
         }
@@ -106,7 +106,7 @@ namespace UnityEditor.PathTracing.Debugging
             LightmapIntegrationHelpers.BroadcastChannelRenderTexture(cmd, helpers.ComputeHelperShader, LightmapIntegrationHelpers.ComputeHelpers.BroadcastChannelKernel, tempRTID, width, height, 2);
             LightmapIntegrationHelpers.SetChannelRenderTexture(cmd, helpers.ComputeHelperShader, LightmapIntegrationHelpers.ComputeHelpers.SetChannelKernel, tempRTID, width, height, 3, 1.0f);
             LightmapIntegrationHelpers.MultiplyRenderTexture(cmd, helpers.ComputeHelperShader, LightmapIntegrationHelpers.ComputeHelpers.MultiplyKernel, tempRTID, width, height, new Vector4(scale, scale, scale, 1.0f));
-            LightmapIntegrationHelpers.WriteRenderTexture(cmd, tempRTID, TextureFormat.RGBAFloat, width, height, filename);
+            SerializationHelpers.WriteRenderTexture(cmd, tempRTID, TextureFormat.RGBAFloat, width, height, filename);
 
             cmd.ReleaseTemporaryRT(tempRTID);
         }
@@ -124,7 +124,7 @@ namespace UnityEditor.PathTracing.Debugging
             LightmapIntegrationHelpers.BroadcastChannelRenderTexture(cmd, helpers.ComputeHelperShader, LightmapIntegrationHelpers.ComputeHelpers.BroadcastChannelKernel, tempRTID, width, height, 2);
             LightmapIntegrationHelpers.SetChannelRenderTexture(cmd, helpers.ComputeHelperShader, LightmapIntegrationHelpers.ComputeHelpers.SetChannelKernel, tempRTID, width, height, 3, 1.0f);
             LightmapIntegrationHelpers.MultiplyRenderTexture(cmd, helpers.ComputeHelperShader, LightmapIntegrationHelpers.ComputeHelpers.MultiplyKernel, tempRTID, width, height, new Vector4(scale, scale, scale, 1.0f));
-            LightmapIntegrationHelpers.WriteRenderTexture(cmd, tempRTID, TextureFormat.RGBAFloat, width, height, filename);
+            SerializationHelpers.WriteRenderTexture(cmd, tempRTID, TextureFormat.RGBAFloat, width, height, filename);
 
             cmd.ReleaseTemporaryRT(tempRTID);
         }
@@ -141,7 +141,7 @@ namespace UnityEditor.PathTracing.Debugging
             LightmapIntegrationHelpers.BroadcastChannelRenderTexture(cmd, helpers.ComputeHelperShader, LightmapIntegrationHelpers.ComputeHelpers.BroadcastChannelKernel, tempRTID, width, height, 3);
             LightmapIntegrationHelpers.SetChannelRenderTexture(cmd, helpers.ComputeHelperShader, LightmapIntegrationHelpers.ComputeHelpers.SetChannelKernel, tempRTID, width, height, 3, 1.0f);
             LightmapIntegrationHelpers.MultiplyRenderTexture(cmd, helpers.ComputeHelperShader, LightmapIntegrationHelpers.ComputeHelpers.MultiplyKernel, tempRTID, width, height, new Vector4(scale, scale, scale, 1.0f));
-            LightmapIntegrationHelpers.WriteRenderTexture(cmd, tempRTID, TextureFormat.RGBAFloat, width, height, filename);
+            SerializationHelpers.WriteRenderTexture(cmd, tempRTID, TextureFormat.RGBAFloat, width, height, filename);
 
             cmd.ReleaseTemporaryRT(tempRTID);
         }
@@ -169,7 +169,7 @@ namespace UnityEditor.PathTracing.Debugging
             int width = adaptiveOutput.width;
             int height = adaptiveOutput.height;
             int tempRTID = GetActiveTexelImage(cmd, helpers, adaptiveOutput, adaptiveThreshold);
-            LightmapIntegrationHelpers.WriteRenderTexture(cmd, tempRTID, TextureFormat.RGBAFloat, width, height, filename);
+            SerializationHelpers.WriteRenderTexture(cmd, tempRTID, TextureFormat.RGBAFloat, width, height, filename);
             cmd.ReleaseTemporaryRT(tempRTID);
         }
 
