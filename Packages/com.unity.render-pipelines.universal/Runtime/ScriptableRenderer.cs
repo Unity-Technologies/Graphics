@@ -321,19 +321,8 @@ namespace UnityEngine.Rendering.Universal
 
             if (camera.allowDynamicResolution)
             {
-#if ENABLE_VR && ENABLE_XR_MODULE
-                // Use eye texture's scaled width and height as screen params when XR is enabled
-                if (cameraData.xr.enabled)
-                {
-                    scaledCameraTargetWidth = (float)cameraData.xr.renderTargetScaledWidth;
-                    scaledCameraTargetHeight = (float)cameraData.xr.renderTargetScaledHeight;
-                }
-                else
-#endif
-                {
-                    scaledCameraTargetWidth *= ScalableBufferManager.widthScaleFactor;
-                    scaledCameraTargetHeight *= ScalableBufferManager.heightScaleFactor;
-                }
+                scaledCameraTargetWidth *= ScalableBufferManager.widthScaleFactor;
+                scaledCameraTargetHeight *= ScalableBufferManager.heightScaleFactor;
             }
 
             float near = camera.nearClipPlane;
