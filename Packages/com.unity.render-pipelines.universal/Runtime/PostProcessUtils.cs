@@ -1,4 +1,6 @@
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.RenderGraphModule;
+using System.Runtime.CompilerServices;  // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -7,6 +9,111 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public static class PostProcessUtils
     {
+        /// <summary>
+        /// Creates a post-processing pass material from a shader. Shader is error checked for device support.
+        /// </summary>
+        /// <param name="shader">Shader used for the material</param>
+        /// <param name="passName">Pass name for error messages.</param>
+        /// <returns>A new Material instance using the provided shader. Null if the shader is not supported.</returns>
+        internal static Material LoadShader(Shader shader, string passName = "")
+        {
+            if (shader == null)
+            {
+                Debug.LogError($"Missing shader (in '{passName}'). PostProcessing render passes will not execute. Check for missing reference in the Renderer and/or PostProcessData resources.");
+                return null;
+            }
+            else if (!shader.isSupported)
+            {
+                Debug.LogWarning($"Shader '{shader.name}' is not supported (in '{passName}'). PostProcessing render passes will not execute.");
+                return null;
+            }
+
+            return CoreUtils.CreateEngineMaterial(shader);
+        }
+
+        /// <summary>
+        /// Creates a texture compatible with post-processing effects.
+        /// </summary>
+        /// <param name="renderGraph">RenderGraph that creates the texture.</param>
+        /// <param name="source">Source texture for the texture descriptor.</param>
+        /// <param name="name">Texture name.</param>
+        /// <param name="clear">Texture needs to be cleared on first use.</param>
+        /// <param name="filterMode">Texture filtering mode.</param>
+        /// <returns>Texture compatible with post-processing effects.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static TextureHandle CreateCompatibleTexture(RenderGraph renderGraph, in TextureHandle source, string name, bool clear, FilterMode filterMode)
+        {
+            var desc = source.GetDescriptor(renderGraph);
+            MakeCompatible(ref desc);
+            desc.name = name;
+            desc.clearBuffer = clear;
+            desc.filterMode = filterMode;
+            return renderGraph.CreateTexture(desc);
+        }
+
+        /// <summary>
+        /// Creates a texture compatible with post-processing effects.
+        /// </summary>
+        /// <param name="renderGraph">RenderGraph that creates the texture.</param>
+        /// <param name="desc">Texture descriptor.</param>
+        /// <param name="name">Texture name.</param>
+        /// <param name="clear">Texture needs to be cleared on first use.</param>
+        /// <param name="filterMode">Texture filtering mode.</param>
+        /// <returns>Texture compatible with post-processing effects.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static TextureHandle CreateCompatibleTexture(RenderGraph renderGraph, in TextureDesc desc, string name, bool clear, FilterMode filterMode)
+        {
+            var descCompatible = GetCompatibleDescriptor(desc);
+            descCompatible.name = name;
+            descCompatible.clearBuffer = clear;
+            descCompatible.filterMode = filterMode;
+            return renderGraph.CreateTexture(descCompatible);
+        }
+
+        /// <summary>
+        /// Converts existing descriptor into a post-processing compatible descriptor.
+        /// </summary>
+        /// <param name="desc">Source texture descriptor.</param>
+        /// <param name="width">Texture width.</param>
+        /// <param name="height">Texture height.</param>
+        /// <param name="format">Texture format.</param>
+        /// <returns>Texture descriptor compatible with post-processing.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static TextureDesc GetCompatibleDescriptor(TextureDesc desc, int width, int height, GraphicsFormat format)
+        {
+            desc.width = width;
+            desc.height = height;
+            desc.format = format;
+
+            MakeCompatible(ref desc);
+
+            return desc;
+        }
+
+        /// <summary>
+        /// Converts existing descriptor into a post-processing compatible descriptor.
+        /// Disables MSAA, mipmaps etc.
+        /// </summary>
+        /// <param name="desc">Source texture descriptor.</param>
+        /// <returns>Texture descriptor compatible with post-processing.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static TextureDesc GetCompatibleDescriptor(TextureDesc desc)
+        {
+            MakeCompatible(ref desc);
+
+            return desc;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void MakeCompatible(ref TextureDesc desc)
+        {
+            desc.msaaSamples = MSAASamples.None;
+            desc.useMipMap = false;
+            desc.autoGenerateMips = false;
+            desc.anisoLevel = 0;
+            desc.discardBuffer = false;
+        }
+
         /// <summary>
         /// Configures the blue noise dithering used.
         /// </summary>
@@ -39,30 +146,16 @@ namespace UnityEngine.Rendering.Universal
 
 #if LWRP_DEBUG_STATIC_POSTFX // Used by QA for automated testing
             index = 0;
-            float rndOffsetX = 0f;
-            float rndOffsetY = 0f;
 #else
             if (++index >= blueNoise.Length)
                 index = 0;
-
-            var oldState = Random.state;
-            Random.InitState(Time.frameCount);
-            float rndOffsetX = Random.value;
-            float rndOffsetY = Random.value;
-            Random.state = oldState;
 #endif
-
             // Ideally we would be sending a texture array once and an index to the slice to use
             // on every frame but these aren't supported on all Universal targets
             var noiseTex = blueNoise[index];
 
-            material.SetTexture(ShaderConstants._BlueNoise_Texture, noiseTex);
-            material.SetVector(ShaderConstants._Dithering_Params, new Vector4(
-                cameraPixelWidth / (float)noiseTex.width,
-                cameraPixelHeight / (float)noiseTex.height,
-                rndOffsetX,
-                rndOffsetY
-            ));
+            var tilingParams = CalcNoiseTextureTilingParams(noiseTex, cameraPixelWidth, cameraPixelHeight, GetRandomOffset2D());
+            ConfigureDitheringMaterial(material, noiseTex, tilingParams);
 
             return index;
         }
@@ -95,50 +188,190 @@ namespace UnityEngine.Rendering.Universal
             if (settings.type.value != FilmGrainLookup.Custom)
                 texture = data.textures.filmGrainTex[(int)settings.type.value];
 
+            var tilingParams = CalcNoiseTextureTilingParams(texture, cameraPixelWidth, cameraPixelHeight, GetRandomOffset2D());
+            ConfigureFilmGrainMaterial(material, texture, new Vector2(settings.intensity.value * 4f, settings.response.value), tilingParams);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static Vector2 GetRandomOffset2D()
+        {
 #if LWRP_DEBUG_STATIC_POSTFX
-            float rndOffsetX = 0f;
-            float rndOffsetY = 0f;
+            return Vector2.zero;
 #else
             var oldState = Random.state;
             Random.InitState(Time.frameCount);
             float rndOffsetX = Random.value;
             float rndOffsetY = Random.value;
             Random.state = oldState;
+            return new Vector2(rndOffsetX, rndOffsetY);
 #endif
+        }
 
-            var tilingParams = texture == null
-                ? Vector4.zero
-                : new Vector4(cameraPixelWidth / (float)texture.width, cameraPixelHeight / (float)texture.height, rndOffsetX, rndOffsetY);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static Vector4 CalcNoiseTextureTilingParams(Texture noiseTexture, int cameraPixelWidth, int cameraPixelHeight, Vector2 offset)
+        {
+            if (noiseTexture == null)
+                return Vector4.zero;
 
-            material.SetTexture(ShaderConstants._Grain_Texture, texture);
-            material.SetVector(ShaderConstants._Grain_Params, new Vector2(settings.intensity.value * 4f, settings.response.value));
+            return new Vector4(cameraPixelWidth / (float)noiseTexture.width, cameraPixelHeight / (float)noiseTexture.height, offset.x, offset.y);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void ConfigureDitheringMaterial(Material material, Texture noiseTexture, Vector4 tilingParams)
+        {
+            material.SetTexture(ShaderConstants._BlueNoise_Texture, noiseTexture);
+            material.SetVector(ShaderConstants._Dithering_Params, tilingParams);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void ConfigureFilmGrainMaterial(Material material, Texture grainTexture, Vector2 grainParams, Vector4 tilingParams)
+        {
+            material.SetTexture(ShaderConstants._Grain_Texture, grainTexture);
+            material.SetVector(ShaderConstants._Grain_Params, grainParams);
             material.SetVector(ShaderConstants._Grain_TilingParams, tilingParams);
         }
 
-        internal static void SetSourceSize(RasterCommandBuffer cmd, float width, float height, RenderTexture rt)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool IsFxaaEnabled(UniversalCameraData cameraData)
+        {
+            return (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool IsFsrEnabled(UniversalCameraData cameraData)
+        {
+            return ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
+        }
+
+        // TODO: Should these methods be in UniversalCameraData?
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool IsTaaSharpeningEnabled(UniversalCameraData cameraData)
+        {
+            return (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f) && !IsFsrEnabled(cameraData) && !cameraData.IsSTPEnabled() &&
+#if ENABLE_UPSCALER_FRAMEWORK
+                cameraData.upscalingFilter != ImageUpscalingFilter.IUpscaler
+#else
+                true
+#endif
+                ;
+        }
+
+#region HDR Output
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool RequireHDROutput(UniversalCameraData cameraData)
+        {
+            // If capturing, don't convert to HDR.
+            // If not last in the stack, don't convert to HDR.
+            return cameraData.isHDROutputActive && cameraData.captureActions == null;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void SetupHDROutput(Material material, HDROutputUtils.HDRDisplayInformation hdrDisplayInformation, ColorGamut hdrDisplayColorGamut, Tonemapping tonemapping, HDROutputUtils.Operation hdrOperations, bool rendersOverlayUI)
+        {
+            Vector4 hdrOutputLuminanceParams;
+            UniversalRenderPipeline.GetHDROutputLuminanceParameters(hdrDisplayInformation, hdrDisplayColorGamut, tonemapping, out hdrOutputLuminanceParams);
+            material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, hdrOutputLuminanceParams);
+
+            HDROutputUtils.ConfigureHDROutput(material, hdrDisplayColorGamut, hdrOperations);
+            CoreUtils.SetKeyword(material, ShaderKeywordStrings.HDROverlay, rendersOverlayUI);
+        }
+#endregion
+
+#region Blit
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static Vector4 CalcShaderSourceSize(float width, float height, RenderTexture rt)
         {
             if (rt != null && rt.useDynamicScale)
             {
                 width *= ScalableBufferManager.widthScaleFactor;
                 height *= ScalableBufferManager.heightScaleFactor;
             }
-            cmd.SetGlobalVector(ShaderConstants._SourceSize, new Vector4(width, height, 1.0f / width, 1.0f / height));
+            return new Vector4(width, height, 1.0f / width, 1.0f / height);
         }
 
-        internal static void SetSourceSize(CommandBuffer cmd, float width, float height, RenderTexture rt)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static Vector4 CalcShaderSourceSize(RTHandle source)
         {
-            SetSourceSize(CommandBufferHelpers.GetRasterCommandBuffer(cmd), width, height, rt);
+            return CalcShaderSourceSize(source.rt.width, source.rt.height, source.rt);
         }
 
-        internal static void SetSourceSize(RasterCommandBuffer cmd, RTHandle source)
+        internal static void SetGlobalShaderSourceSize(RasterCommandBuffer cmd, float width, float height, RenderTexture rt)
         {
-            SetSourceSize(cmd, source.rt.width, source.rt.height, source.rt);
+            cmd.SetGlobalVector(ShaderConstants._SourceSize, CalcShaderSourceSize(width, height, rt));
         }
 
-        internal static void SetSourceSize(CommandBuffer cmd, RTHandle source)
+        internal static void SetGlobalShaderSourceSize(CommandBuffer cmd, float width, float height, RenderTexture rt)
         {
-            SetSourceSize(CommandBufferHelpers.GetRasterCommandBuffer(cmd), source);
+            SetGlobalShaderSourceSize(CommandBufferHelpers.GetRasterCommandBuffer(cmd), width, height, rt);
         }
+
+        internal static void SetGlobalShaderSourceSize(RasterCommandBuffer cmd, RTHandle source)
+        {
+            SetGlobalShaderSourceSize(cmd, source.rt.width, source.rt.height, source.rt);
+        }
+
+        internal static void SetGlobalShaderSourceSize(CommandBuffer cmd, RTHandle source)
+        {
+            SetGlobalShaderSourceSize(CommandBufferHelpers.GetRasterCommandBuffer(cmd), source);
+        }
+
+        internal static void ScaleViewport(RasterCommandBuffer cmd, RTHandle sourceTextureHdl, RTHandle dest, UniversalCameraData cameraData, bool isFinalPass)
+        {
+            RenderTargetIdentifier cameraTarget = BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+                cameraTarget = cameraData.xr.renderTarget;
+#endif
+            if (dest.nameID == cameraTarget || cameraData.targetTexture != null)
+            {
+                if (!isFinalPass || !cameraData.resolveFinalTarget)
+                {
+                    // Inside the camera stack the target is the shared intermediate target, which can be scaled with render scale.
+                    // camera.pixelRect is the viewport of the final target in pixels, so it cannot be used for the intermediate target.
+                    // On intermediate target allocation the viewport size is baked into the target size.
+                    // Which means the intermediate target does not have a viewport rect. Its offset is always 0 and its size matches viewport size.
+                    // The overlay cameras inherit the base viewport, so they cannot have a different viewport,
+                    // a necessary limitation since the target covers only the base viewport area.
+                    // The offsetting is finally done by the final output viewport-rect to the final target.
+                    // Note: effectively this is setting a fullscreen viewport for the intermediate target.
+                    var targetWidth = cameraData.cameraTargetDescriptor.width;
+                    var targetHeight = cameraData.cameraTargetDescriptor.height;
+                    var targetViewportInPixels = new Rect(
+                        0,
+                        0,
+                        targetWidth,
+                        targetHeight);
+                    cmd.SetViewport(targetViewportInPixels);
+                }
+                else
+                    cmd.SetViewport(cameraData.pixelRect);
+            }
+        }
+
+        internal static void ScaleViewportAndBlit(RasterCommandBuffer cmd, RTHandle sourceTextureHdl, RTHandle dest, UniversalCameraData cameraData, Material material, bool isFinalPass)
+        {
+            Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(sourceTextureHdl, dest, cameraData);
+            ScaleViewport(cmd, sourceTextureHdl, dest, cameraData, isFinalPass);
+
+            Blitter.BlitTexture(cmd, sourceTextureHdl, scaleBias, material, 0);
+        }
+
+        internal static void ScaleViewportAndDrawVisibilityMesh(RasterCommandBuffer cmd, RTHandle sourceTextureHdl, RTHandle dest, UniversalCameraData cameraData, Material material, bool isFinalPass)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(sourceTextureHdl, dest, cameraData);
+            ScaleViewport(cmd, sourceTextureHdl, dest, cameraData, isFinalPass);
+
+            // Set property block for blit shader
+            MaterialPropertyBlock xrPropertyBlock = XRSystemUniversal.GetMaterialPropertyBlock();
+            xrPropertyBlock.SetVector(Shader.PropertyToID("_BlitScaleBias"), scaleBias);
+            xrPropertyBlock.SetTexture(Shader.PropertyToID("_BlitTexture"), sourceTextureHdl);
+            cameraData.xr.RenderVisibleMeshCustomMaterial(cmd, cameraData.xr.occlusionMeshScale, material, xrPropertyBlock, 1, cameraData.IsRenderTargetProjectionMatrixFlipped(dest));
+#endif
+        }
+#endregion
 
         // Precomputed shader ids to same some CPU cycles (mostly affects mobile)
         static class ShaderConstants

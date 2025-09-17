@@ -413,7 +413,7 @@ namespace UnityEngine.Rendering.Universal
                     RenderBufferLoadAction finalLoadAction = data.afterOpaque ? RenderBufferLoadAction.Load : RenderBufferLoadAction.DontCare;
 
                     // Setup
-                    PostProcessUtils.SetSourceSize(cmd, data.cameraData.cameraTargetDescriptor.width, data.cameraData.cameraTargetDescriptor.height, data.cameraColor);
+                    PostProcessUtils.SetGlobalShaderSourceSize(cmd, data.cameraData.cameraTargetDescriptor.width, data.cameraData.cameraTargetDescriptor.height, data.cameraColor);
 
                     if (data.cameraNormalsTexture.IsValid())
                         data.material.SetTexture(s_CameraNormalsTextureID, data.cameraNormalsTexture);
@@ -534,7 +534,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Allocate texture for the final SSAO results
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_SSAOTextures[3], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture");
-            PostProcessUtils.SetSourceSize(cmd, m_SSAOTextures[3]);
+            PostProcessUtils.SetGlobalShaderSourceSize(cmd, m_SSAOTextures[3]);
 
             // Disable obsolete warning for internal usage
             #pragma warning disable CS0618

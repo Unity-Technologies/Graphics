@@ -217,7 +217,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Post-Processing
         ColorGradingLutPass m_ColorGradingLutPassRenderGraph;
-        PostProcessPassRenderGraph m_PostProcessPassRenderGraph;
+        PostProcess m_PostProcess;
 
         private void CleanupRenderGraphResources()
         {
@@ -610,7 +610,7 @@ namespace UnityEngine.Rendering.Universal
 
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData.IsTemporalAAEnabled(), postProcessingData.isEnabled, cameraData.isSceneViewCamera, m_RenderingLayerProvidesByDepthNormalPass, activeRenderPassQueue, m_MotionVectorPass);
 
-            bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPassRenderGraph != null;
+            bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcess != null;
             bool requireDepthTexture = RequireDepthTexture(cameraData, in renderPassInputs, applyPostProcessing);
             bool requirePrepassForTextures = RequirePrepassForTextures(cameraData, renderPassInputs, requireDepthTexture);
 
@@ -743,12 +743,11 @@ namespace UnityEngine.Rendering.Universal
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingShadows);
 
-            bool requiredColorGradingLutPass = cameraData.postProcessEnabled && m_PostProcessPassRenderGraph != null;
+            bool requiredColorGradingLutPass = cameraData.postProcessEnabled && m_PostProcess != null;
             if (requiredColorGradingLutPass)
             {
-                TextureHandle internalColorLut;
-                m_ColorGradingLutPassRenderGraph.Render(renderGraph, frameData, out internalColorLut);
-                resourceData.internalColorLut = internalColorLut;
+                m_ColorGradingLutPassRenderGraph.RecordRenderGraph(renderGraph, frameData);
+                resourceData.internalColorLut = m_ColorGradingLutPassRenderGraph.colorLutTexture;
             }
         }
 
@@ -1334,7 +1333,7 @@ namespace UnityEngine.Rendering.Universal
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingPostProcessing);
 
             // There's at least a camera in the camera stack that applies post-processing
-            bool anyPostProcessing = postProcessingData.isEnabled && m_PostProcessPassRenderGraph != null;
+            bool anyPostProcessing = postProcessingData.isEnabled && m_PostProcess != null;
 
             // When FXAA or scaling is active, we must perform an additional pass at the end of the frame for the following reasons:
             // 1. FXAA expects to be the last shader running on the image before it's presented to the screen. Since users are allowed
@@ -1405,7 +1404,7 @@ namespace UnityEngine.Rendering.Universal
                         Debug.Assert(cameraData.resolveFinalTarget);
 
                         var desc = resourceData.cameraColor.GetDescriptor(renderGraph);
-                        PostProcessPassRenderGraph.MakeCompatible(ref desc);
+                        PostProcessUtils.MakeCompatible(ref desc);
 
                         desc.width = cameraData.pixelWidth;
                         desc.height = cameraData.pixelHeight;
@@ -1434,7 +1433,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 bool doSRGBEncoding = resolvePostProcessingToCameraTarget && needsColorEncoding;
-                m_PostProcessPassRenderGraph.RenderPostProcessingRenderGraph(renderGraph, frameData, in activeColor, in internalColorLut, in overlayUITexture, in target, applyFinalPostProcessing, resolveToDebugScreen, doSRGBEncoding);
+                m_PostProcess.RenderPostProcessing(renderGraph, frameData, in activeColor, in internalColorLut, in overlayUITexture, in target, applyFinalPostProcessing, doSRGBEncoding);
 
                 // Handle any after-post rendering debugger overlays
                 if (cameraData.resolveFinalTarget)
@@ -1469,7 +1468,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // make sure we are accessing the proper camera color in case it was replaced by injected passes
                 var source = resourceData.cameraColor;
-                m_PostProcessPassRenderGraph.RenderFinalPassRenderGraph(renderGraph, frameData, in source, in overlayUITexture, in target, needsColorEncoding);
+                m_PostProcess.RenderFinalPostProcessing(renderGraph, frameData, in source, in overlayUITexture, in target, needsColorEncoding);
 
                 resourceData.SwitchActiveTexturesToBackbuffer();
             }
