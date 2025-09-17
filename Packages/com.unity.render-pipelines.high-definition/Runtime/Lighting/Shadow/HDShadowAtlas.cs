@@ -433,7 +433,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             TextureHandle atlasTexture;
 
-            using (var builder = renderGraph.AddUnsafePass<RenderShadowMapsPassData>("Render Shadow Maps", out var passData, ProfilingSampler.Get(HDProfileId.RenderShadowMaps)))
+            using (var builder = renderGraph.AddUnsafePass<RenderShadowMapsPassData>(shadowPassName, out var passData, ProfilingSampler.Get(HDProfileId.RenderShadowMaps)))
             {
                 SetCommonRenderPassData(passData, builder, renderGraph, globalCBData);
 

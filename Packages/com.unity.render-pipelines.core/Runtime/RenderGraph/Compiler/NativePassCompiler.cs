@@ -991,8 +991,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             return true;
         }
 
-        private void ExecuteInitializeResource(InternalRenderGraphContext rgContext, RenderGraphResourceRegistry resources, in PassData pass)
+        private bool ExecuteInitializeResource(InternalRenderGraphContext rgContext, RenderGraphResourceRegistry resources, in PassData pass)
         {
+            bool haveGfxCommandsBeenAddedToCmd = false;
+
             using (new ProfilingScope(ProfilingSampler.Get(NativeCompilerProfileId.NRPRGComp_ExecuteInitializeResources)))
             {
                 resources.forceManualClearOfResource = true;
@@ -1028,12 +1030,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                                     // We create the resources from a pool
                                     // memoryless resources are also created but will not allocate in system memory
-                                    resources.CreatePooledResource(rgContext, res.iType, res.index);
+                                    haveGfxCommandsBeenAddedToCmd |= resources.CreatePooledResource(rgContext, res.iType, res.index);
                                 }
                                 else // Imported resource
                                 {
                                     if (resInfo.clear && !resInfo.memoryLess && resources.forceManualClearOfResource)
-                                        resources.ClearResource(rgContext, res.iType, res.index);
+                                    {
+                                        haveGfxCommandsBeenAddedToCmd |= resources.ClearResource(rgContext, res.iType, res.index);
+                                    }
                                 }
                             }
                         }
@@ -1047,18 +1051,22 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         ref readonly var pointTo = ref contextData.UnversionedResourceData(create);
                         if (!pointTo.isImported)
                         {
-                            resources.CreatePooledResource(rgContext, create.iType, create.index);
+                            haveGfxCommandsBeenAddedToCmd |= resources.CreatePooledResource(rgContext, create.iType, create.index);
                         }
                         else // Imported resource
                         {
                             if (pointTo.clear)
-                                resources.ClearResource(rgContext, create.iType, create.index);
+                            {
+                                haveGfxCommandsBeenAddedToCmd |= resources.ClearResource(rgContext, create.iType, create.index);
+                            }
                         }
                     }
                 }
 
                 resources.forceManualClearOfResource = true;
             }
+
+            return haveGfxCommandsBeenAddedToCmd;
         }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -1806,10 +1814,17 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     continue;
 
                 bool nrpBegan = false;
-                ExecuteInitializeResource(rgContext, resources, passData);
+                bool haveGfxCommandsBeenAddedToCmdDuringResInit = ExecuteInitializeResource(rgContext, resources, passData);
 
                 if (passData.type == RenderGraphPassType.Compute && passData.asyncCompute)
                 {
+                    GraphicsFence previousFence = new GraphicsFence();
+                    // We add a fence to the gfx cmd if the async compute cmd needs to wait for some resources to be cleared
+                    if (haveGfxCommandsBeenAddedToCmdDuringResInit)
+                    {
+                        previousFence = rgContext.cmd.CreateGraphicsFence(GraphicsFenceType.AsyncQueueSynchronisation, SynchronisationStageFlags.AllGPUOperations);
+                    }
+
                     if (!rgContext.contextlessTesting)
                         rgContext.renderContext.ExecuteCommandBuffer(rgContext.cmd);
                     rgContext.cmd.Clear();
@@ -1817,6 +1832,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     var asyncCmd = CommandBufferPool.Get("async cmd");
                     asyncCmd.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
                     rgContext.cmd = asyncCmd;
+
+                    if (haveGfxCommandsBeenAddedToCmdDuringResInit)
+                    {
+                        rgContext.cmd.WaitOnAsyncGraphicsFence(previousFence, SynchronisationStageFlags.PixelProcessing);
+                    }
                 }
 
                 // also make sure to insert fence=waits for multiple queue syncs
@@ -1839,7 +1859,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         }
                     }
                 }
-
                 else if (passData.type == RenderGraphPassType.Unsafe)
                 {
                     ExecuteSetRenderTargets(passes[passIndex], rgContext);
@@ -1860,7 +1879,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                 if (passData.numRandomAccessResources > 0)
                 {
-                    foreach (var randomWriteAttachment in passData.RandomWriteTextures(contextData))
+                    foreach (ref readonly var randomWriteAttachment in passData.RandomWriteTextures(contextData))
                     {
                         ExecuteSetRandomWriteTarget(rgContext.cmd, resources, randomWriteAttachment.index,
                             randomWriteAttachment.resource);
@@ -1869,7 +1888,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                 ExecuteRenderGraphPass(ref rgContext, resources, passes[passData.passId]);
                 EndRenderGraphPass(ref rgContext, ref passData, ref inRenderPass, resources, nrpBegan);
-
             }
         }
 
