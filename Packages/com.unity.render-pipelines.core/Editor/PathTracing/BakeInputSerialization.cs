@@ -403,6 +403,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
         public bool receiveShadows;
         public Int32 lodGroup;
         public byte lodMask;
+        public Int32 contributingLodLevel;
         public Int32[] subMeshMaterialIndices; // -1 is no material for a given subMesh entry
 
         public void Transfer(IBakeInputVisitor visitor)
@@ -415,6 +416,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             visitor.TransferBoolean(ref receiveShadows);
             visitor.TransferBlittable(ref lodGroup);
             visitor.TransferBlittable(ref lodMask);
+            visitor.TransferBlittable(ref contributingLodLevel);
             visitor.TransferBlittableArray(ref subMeshMaterialIndices);
         }
     }
@@ -921,7 +923,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
     {
         // Should match BakeInputSerialization::kCurrentFileVersion in BakeInputSerialization.h.
         // If these are out of sync, the implementation in this file probably needs to be updated.
-        const UInt64 CurrentFileVersion = 202405161;
+        const UInt64 CurrentFileVersion = 202509021;
 
         public static bool Deserialize(string path, out BakeInput bakeInput)
         {
