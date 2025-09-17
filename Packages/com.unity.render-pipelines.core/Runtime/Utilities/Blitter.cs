@@ -514,8 +514,9 @@ namespace UnityEngine.Rendering
         /// </example>
         public static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
+            var dimension = (source.rt != null) ? source.rt.dimension : TextureXR.dimension;
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevel);
-            BlitTexture(cmd, source, scaleBias, GetBlitMaterial(source.rt.dimension), s_BlitShaderPassIndicesMap[bilinear ? 1 : 0]);
+            BlitTexture(cmd, source, scaleBias, GetBlitMaterial(dimension), s_BlitShaderPassIndicesMap[bilinear ? 1 : 0]);
         }
 
         /// <summary>
