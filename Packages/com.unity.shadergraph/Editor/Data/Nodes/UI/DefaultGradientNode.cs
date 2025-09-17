@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph
 
             sb.AppendLine("float4 {0} = float4(1, 1, 0, 1);", outputVarName);
 
-            sb.AppendLine("[branch] if (UIE_RENDER_TYPE_SOLID || UIE_RENDER_TYPE_ANY && round(IN.typeTexSettings.x) == k_FragTypeSvgGradient)");
+            sb.AppendLine("[branch] if (_UIE_RENDER_TYPE_GRADIENT || _UIE_RENDER_TYPE_ANY && round(IN.typeTexSettings.x) == k_FragTypeSvgGradient)");
             using (sb.BlockScope())
             {
                 sb.AppendLine("SvgGradientFragInput Unity_UIE_RenderTypeSwitchNode_SvgGradient_Input;");

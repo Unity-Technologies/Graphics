@@ -193,12 +193,11 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
                 //Conditional State
                 renderStates = UITKRenderStates.GenerateRenderStateDeclaration(),
                 pragmas  = UITKPragmas.Default,
+                keywords = UITKKeywords.Default,
                 includes = AdditionalIncludesOnly(),
 
                 //definitions
                 defines  = GetPassDefines(),
-                keywords = new KeywordCollection(),
-
             };
             return DefaultUITKPass;
         }
@@ -308,6 +307,67 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             StructFields.Varyings.texCoord4,
         };
     }
+#endregion
+
+#region Keywords
+
+    static class UITKKeywords
+    {
+        public static KeywordDescriptor ForceGamma = new()
+        {
+            displayName = "Force Gamma",
+            referenceName = "",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Local,
+            entries = new KeywordEntry[]
+            {
+                new(){ displayName = "Disabled", referenceName = "" },
+                new(){ displayName = "Enabled", referenceName = "UIE_FORCE_GAMMA" },
+            }
+        };
+
+        public static KeywordDescriptor ForceTextureSlotCount = new()
+        {
+            displayName = "Force Texture Slot Count",
+            referenceName = "",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Local,
+            entries = new KeywordEntry[]
+            {
+                new(){ displayName = "8 Dynamic Texture Slots", referenceName = "" },
+                new(){ displayName = "4 Dynamic Texture Slots", referenceName = "UIE_TEXTURE_SLOT_COUNT_4" },
+                new(){ displayName = "2 Dynamic Texture Slots", referenceName = "UIE_TEXTURE_SLOT_COUNT_2" },
+                new(){ displayName = "No Dynamic Texture Slot", referenceName = "UIE_TEXTURE_SLOT_COUNT_1" },
+            }
+        };
+
+        public static KeywordDescriptor ForceRenderType = new()
+        {
+            displayName = "Force Render Type",
+            referenceName = "",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Local,
+            entries = new KeywordEntry[]
+            {
+                new(){ displayName = "Any Render Type", referenceName = "" },
+                new(){ displayName = "Force Solid", referenceName = "UIE_RENDER_TYPE_SOLID" },
+                new(){ displayName = "Force Texture", referenceName = "UIE_RENDER_TYPE_TEXTURE" },
+                new(){ displayName = "Force Text", referenceName = "UIE_RENDER_TYPE_TEXT" },
+                new(){ displayName = "Force Gradient", referenceName = "UIE_RENDER_TYPE_GRADIENT" },
+            }
+        };
+
+        public static KeywordCollection Default = new()
+        {
+            ForceGamma,
+            ForceTextureSlotCount,
+            ForceRenderType,
+        };
+    }
+
 #endregion
 
 #region RenderStates

@@ -62,18 +62,23 @@ namespace Unity.Rendering.Universal.Tests
             yield return null;
 
             var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x => x.GetComponent<Camera>());
-            Assert.True(cameras != null && cameras.Any(),
-                "Invalid test scene, couldn't find a camera with MainCamera tag.");
 
             // Disable camera track for OCULUS_SDK and OPENXR_SDK so we ensure we get a consistent screen capture for image comparison
 #if OCULUS_SDK || OPENXR_SDK
             // This code is added to hande a case where some test(001_SimpleCube_deferred_RenderPass) would throw error on Quest Vulkan, which would pollute the console for the tests running after.
             UnityEngine.Debug.ClearDeveloperConsole();
-
-            XRDevice.DisableAutoXRCameraTracking(Camera.main, true);
 #endif
             var settings = Object.FindAnyObjectByType<UniversalGraphicsTestSettings>();
             Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
+
+#if OCULUS_SDK || OPENXR_SDK
+            if(!settings.XRCompatible)
+            {
+                Assert.Ignore("Quest XR Automation: Test scene is not compatible with XR and will be skipped.");
+            }
+
+            XRDevice.DisableAutoXRCameraTracking(Camera.main, true);
+#endif
 
             if (!settings.gpuDrivenCompatible && GPUResidentDrawerRequested())
                 Assert.Ignore("Test scene is not compatible with GPU Driven and and will be skipped.");
@@ -92,11 +97,6 @@ namespace Unity.Rendering.Universal.Tests
 
             // for OCULUS_SDK or OPENXR_SDK, this ensures we wait for a reliable image rendering before screen capture and image comparison
 #if OCULUS_SDK || OPENXR_SDK
-            if(!settings.XRCompatible)
-            {
-                Assert.Ignore("Quest XR Automation: Test scene is not compatible with XR and will be skipped.");
-            }
-
             waitFrames = 4;
 #elif ENABLE_VR && USE_XR_MOCK_HMD
             waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.XRCompatible, settings.WaitFrames, settings.ImageComparisonSettings);
@@ -183,11 +183,11 @@ namespace Unity.Rendering.Universal.Tests
 #endif
 
 #endif
-            // Does it allocate memory when it renders what's on the main camera?
-            var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
 
             if (settings == null || settings.CheckMemoryAllocation)
             {
+                // Does it allocate memory when it renders what's on the main camera?
+                var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
                 yield return ImageAssert.CheckGCAllocWithCallstack(mainCamera, settings?.ImageComparisonSettings);
             }
         }
