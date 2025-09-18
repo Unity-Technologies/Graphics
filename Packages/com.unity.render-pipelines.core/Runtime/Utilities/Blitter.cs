@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering
                 s_BlitTexArraySingleSlice.EnableKeyword("BLIT_SINGLE_SLICE");
             }
 
-            if (SystemInfo.graphicsShaderLevel < 30)
+            if (SystemInfo.graphicsShaderLevel <= 30)
             {
                 /*UNITY_NEAR_CLIP_VALUE*/
                 float nearClipZ = -1;
@@ -186,7 +186,7 @@ namespace UnityEngine.Rendering
 
         static private void DrawTriangle(CommandBuffer cmd, Material material, int shaderPass)
         {
-            if (SystemInfo.graphicsShaderLevel < 30)
+            if (SystemInfo.graphicsShaderLevel <= 30)
                 cmd.DrawMesh(s_TriangleMesh, Matrix4x4.identity, material, 0, shaderPass, s_PropertyBlock);
             else
                 cmd.DrawProcedural(Matrix4x4.identity, material, shaderPass, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering
 
         static internal void DrawQuad(CommandBuffer cmd, Material material, int shaderPass)
         {
-            if (SystemInfo.graphicsShaderLevel < 30)
+            if (SystemInfo.graphicsShaderLevel <= 30)
                 cmd.DrawMesh(s_QuadMesh, Matrix4x4.identity, material, 0, shaderPass, s_PropertyBlock);
             else
                 cmd.DrawProcedural(Matrix4x4.identity, material, shaderPass, MeshTopology.Quads, 4, 1, s_PropertyBlock);
