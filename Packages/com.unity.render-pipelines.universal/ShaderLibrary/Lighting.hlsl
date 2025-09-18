@@ -207,14 +207,29 @@ half4 CalculateFinalColor(LightingData lightingData, half3 albedo, half alpha, f
 {
     half fogFactor = 0;
     #if defined(_FOG_FRAGMENT)
+    bool anyFogEnabled = false;
+    
     #if defined(FOG_LINEAR_KEYWORD_DECLARED)
-        if (FOG_LINEAR || FOG_EXP || FOG_EXP2)
-        {
-            float viewZ = -fogCoord;
-            float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
-            fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
-        }
-    #endif // defined(FOG_LINEAR_KEYWORD_DECLARED)
+    if (FOG_LINEAR)
+        anyFogEnabled = true;
+    #endif
+    
+    #if defined(FOG_EXP_KEYWORD_DECLARED)
+    if (FOG_EXP)
+        anyFogEnabled = true;
+    #endif
+    
+    #if defined(FOG_EXP2_KEYWORD_DECLARED)
+    if (FOG_EXP2)
+        anyFogEnabled = true;
+    #endif
+    
+    if (anyFogEnabled)
+    {
+        float viewZ = -fogCoord;
+        float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
+        fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
+    }
     #else  // #if defined(_FOG_FRAGMENT)
     fogFactor = fogCoord;
     #endif // #if defined(_FOG_FRAGMENT)
