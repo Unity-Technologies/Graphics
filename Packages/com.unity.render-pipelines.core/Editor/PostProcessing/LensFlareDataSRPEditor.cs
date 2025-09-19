@@ -251,8 +251,13 @@ namespace UnityEditor.Rendering
         {
             int previousCount = m_List.count;
             int newCount = EditorGUI.DelayedIntField(rect, previousCount);
+
+            const int k_MaxElementCount = 100;
             if (newCount < 0)
                 newCount = 0;
+            if (newCount > k_MaxElementCount)
+                newCount = k_MaxElementCount;
+
             if (newCount != previousCount)
             {
                 m_Elements.arraySize = newCount;
