@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     spot.shadow = light.shadows != LightShadows.None;
                     spot.mode = lightMode;
 #if UNITY_EDITOR
-                    spot.sphereRadius = light.shadows != LightShadows.None ? light.shadowRadius : 0.0f;
+                    spot.sphereRadius = light.shadows != LightShadows.None ? light.shapeRadius : 0.0f;
 #else
                     spot.sphereRadius = 0.0f;
 #endif
@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightDataGI.innerConeAngle = 0.0f;
 
 #if UNITY_EDITOR
-                    lightDataGI.shape0 = light.shadows != LightShadows.None ? light.shadowRadius : 0.0f;
+                    lightDataGI.shape0 = light.shadows != LightShadows.None ? light.shapeRadius : 0.0f;
 #else
                     lightDataGI.shape0 = 0.0f;
 #endif

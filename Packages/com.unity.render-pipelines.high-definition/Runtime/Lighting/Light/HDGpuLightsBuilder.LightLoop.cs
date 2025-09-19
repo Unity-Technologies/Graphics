@@ -907,10 +907,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static float GetNonDirectionalSoftness(in HDShadowRequest shadowRequest, in HDAdditionalLightDataUpdateInfo additionalLightData)
+        internal static float GetNonDirectionalSoftness(in HDShadowRequest shadowRequest, in HDAdditionalLightDataUpdateInfo additionalLightData, float shapeRadius)
         {
             // This derivation has been fitted with quartic regression checking against raytracing reference and with a resolution of 512
-            float x = additionalLightData.shapeRadius * additionalLightData.softnessScale;
+            float x = shapeRadius * additionalLightData.softnessScale;
             float x2 = x * x;
             float softness = 0.02403461f + 3.452916f * x - 1.362672f * x2 + 0.6700115f * x2 * x + 0.2159474f * x2 * x2;
             softness /= 100.0f;
@@ -1015,7 +1015,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float4 zBufferParam = GetZBufferParam(visibleLight, nearPlane);
 
             Vector3 position = GetPositionFromVisibleLight(visibleLight, cameraPos, forwardOffset, shaderConfigCameraRelativeRendering);
-            float softness = GetNonDirectionalSoftness(shadowRequest, additionalLightData);
+            float softness = GetNonDirectionalSoftness(shadowRequest, additionalLightData, visibleLight.shapeRadius);
             float baseBias = GetBaseBias(areaFilteringQuality == HDAreaShadowFilteringQuality.High, softness);
 
             SetCommonShadowRequestSettings(ref shadowRequest, shadowRequestHandle, cameraPos, invViewProjection, projection,
@@ -1056,7 +1056,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 position = GetPositionFromView(shadowRequest.cullingSplit.view);
             }
 
-            float softness = GetNonDirectionalSoftness(shadowRequest, additionalLightData);
+            float softness = GetNonDirectionalSoftness(shadowRequest, additionalLightData, visibleLight.shapeRadius);
             float baseBias = GetBaseBias(filteringQuality == HDShadowFilteringQuality.High, softness);
 
             SetCommonShadowRequestSettings(ref shadowRequest, shadowRequestHandle, cameraPos, invViewProjection, projection,
@@ -1078,7 +1078,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float nearPlane = Mathf.Max(additionalLightData.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane);
             float4 zBufferParam = GetZBufferParam(visibleLight, nearPlane);
             Vector3 position = GetPositionFromVisibleLight(visibleLight, cameraPos, 0f, shaderConfigCameraRelativeRendering);
-            float softness = GetNonDirectionalSoftness(shadowRequest, additionalLightData);
+            float softness = GetNonDirectionalSoftness(shadowRequest, additionalLightData, visibleLight.shapeRadius);
             float baseBias = GetBaseBias(filteringQuality == HDShadowFilteringQuality.High, softness);
 
             SetCommonShadowRequestSettings(ref shadowRequest, shadowRequestHandle, cameraPos, invViewProjection, projection,

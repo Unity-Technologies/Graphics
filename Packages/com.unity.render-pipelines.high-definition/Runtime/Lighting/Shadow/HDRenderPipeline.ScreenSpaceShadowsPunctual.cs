@@ -139,8 +139,8 @@ namespace UnityEngine.Rendering.HighDefinition
             PunctualShadowProperties props = new PunctualShadowProperties();
             props.lightType = lightData.lightType;
             props.lightIndex = lightIndex;
-            props.softShadow = additionalLightData.shapeRadius > 0.0 ? true : false;
-            props.lightRadius = additionalLightData.shapeRadius;
+            props.softShadow = additionalLightData.legacyLight.shapeRadius > 0.0 ? true : false;
+            props.lightRadius = additionalLightData.legacyLight.shapeRadius;
             props.lightPosition = additionalLightData.transform.position;
             props.kernelSize = additionalLightData.filterSizeTraced;
             props.lightConeAngle = additionalLightData.legacyLight.spotAngle * Mathf.PI / 180.0f;

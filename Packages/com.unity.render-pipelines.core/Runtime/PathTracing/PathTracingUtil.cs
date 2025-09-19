@@ -220,11 +220,7 @@ namespace UnityEngine.PathTracing.Core
                 ld.ShadowMaskChannel = -1;
                 ld.UseColorTemperature = light.useColorTemperature;
                 ld.FalloffType = Experimental.GlobalIllumination.FalloffType.InverseSquared; // When we extract lights for the path tracer, we assume inverse squared falloff.
-#if UNITY_EDITOR
-                ld.ShadowRadius = Util.IsPunctualLightType(light.type) ? light.shadowRadius : 0.0f;
-#else
-                ld.ShadowRadius = 0.0f;
-#endif
+                ld.ShadowRadius = Util.IsPunctualLightType(light.type) ? light.shapeRadius : 0.0f;
                 ld.CookieTexture = light.cookie;
                 ld.CookieSize = Math.Max(light.cookieSize2D.x, light.cookieSize2D.y);
             }

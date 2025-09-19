@@ -568,6 +568,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     visibleLight.spotAngle = lightComponent.spotAngle;
                     visibleLight.innerSpotAngle = lightComponent.innerSpotAngle;
                     visibleLight.areaSize = lightComponent.areaSize;
+                    visibleLight.shapeRadius = lightComponent.shapeRadius;
 
                     int shadowIndex = additionalLightData.shadowIndex;
 

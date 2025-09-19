@@ -314,25 +314,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // Only for Punctual/Sphere/Disc. Default shape radius is not 0 so that specular highlight is visible by default, it matches the previous default of 0.99 for MaxSmoothness.
-        [SerializeField, FormerlySerializedAs("shapeRadius")]
-        float m_ShapeRadius = 0.025f;
-        /// <summary>
-        /// Get/Set the radius of a light
-        /// </summary>
-        public float shapeRadius
-        {
-            get => m_ShapeRadius;
-            set
-            {
-                if (m_ShapeRadius == value)
-                    return;
 
-                m_ShapeRadius = Mathf.Clamp(value, 0, float.MaxValue);
-                UpdateAllLightValues();
-                HDLightRenderDatabase.instance.SetShapeRadius(lightEntity, m_ShapeRadius);
-            }
-        }
 
         [SerializeField]
         float m_SoftnessScale = 1.0f;
@@ -890,23 +872,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_SunLightConeAngle = Mathf.Clamp(value, 0.0f, 2.0f);
-            }
-        }
-
-        [SerializeField, FormerlySerializedAs("lightShadowRadius")]
-        float m_LightShadowRadius = 0.5f;
-        /// <summary>
-        /// Angular size of the sun in degree.
-        /// </summary>
-        public float lightShadowRadius
-        {
-            get => m_LightShadowRadius;
-            set
-            {
-                if (m_LightShadowRadius == value)
-                    return;
-
-                m_LightShadowRadius = Mathf.Max(value, 0.001f);
             }
         }
 
@@ -2800,7 +2765,6 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_AffectDiffuse = m_AffectDiffuse;
             data.m_AffectSpecular = m_AffectSpecular;
             data.m_NonLightmappedOnly = m_NonLightmappedOnly;
-            data.m_ShapeRadius = m_ShapeRadius;
             data.m_SoftnessScale = m_SoftnessScale;
             data.m_UseCustomSpotLightShadowCone = m_UseCustomSpotLightShadowCone;
             data.m_CustomSpotLightShadowCone = m_CustomSpotLightShadowCone;
@@ -2838,7 +2802,6 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_FilterTracedShadow = m_FilterTracedShadow;
             data.m_FilterSizeTraced = m_FilterSizeTraced;
             data.m_SunLightConeAngle = m_SunLightConeAngle;
-            data.m_LightShadowRadius = m_LightShadowRadius;
             data.m_SemiTransparentShadow = m_SemiTransparentShadow;
             data.m_ColorShadow = m_ColorShadow;
             data.m_DistanceBasedFiltering = m_DistanceBasedFiltering;
@@ -2958,7 +2921,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RefreshCachedShadow();
 
-            shapeRadius = Mathf.Max(shapeRadius, 0.0f);
 
 #if UNITY_EDITOR
             // If modification are due to change on prefab asset, we want to have prefab instances to self-update, but we cannot check in OnValidate if this is part of
@@ -3538,7 +3500,6 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.shadowFadeDistance = m_ShadowFadeDistance;
             lightRenderData.volumetricShadowDimmer = m_VolumetricShadowDimmer;
             lightRenderData.spotIESCutoffPercent = m_SpotIESCutoffPercent;
-            lightRenderData.shapeRadius = m_ShapeRadius;
             lightRenderData.barnDoorLength = m_BarnDoorLength;
             lightRenderData.barnDoorAngle = m_BarnDoorAngle;
             lightRenderData.affectVolumetric = useVolumetric;

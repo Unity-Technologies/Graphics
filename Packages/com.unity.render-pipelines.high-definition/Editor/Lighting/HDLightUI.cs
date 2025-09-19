@@ -358,13 +358,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if (lightType == LightType.Point)
             {
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(serialized.shapeRadius, s_Styles.lightRadius);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    //Also affect baked shadows
-                    serialized.settings.bakedShadowRadiusProp.floatValue = serialized.shapeRadius.floatValue;
-                }
+                EditorGUILayout.PropertyField(serialized.settings.shapeRadius, s_Styles.lightRadius);
             }
             else if (lightType.IsSpot())
             {
@@ -492,7 +486,6 @@ namespace UnityEditor.Rendering.HighDefinition
                             serialized.settings.innerSpotAngle.floatValue = Mathf.Clamp(serialized.settings.innerSpotAngle.floatValue, HDAdditionalLightData.k_MinSpotAngle, serialized.settings.spotAngle.floatValue);
                             // Update other dependent values
                             serialized.customSpotLightShadowCone.floatValue = Mathf.Min(serialized.customSpotLightShadowCone.floatValue, serialized.settings.spotAngle.floatValue);
-                            serialized.settings.bakedShadowRadiusProp.floatValue = serialized.shapeRadius.floatValue;
 
                             if (isReflectorRelevant)
                             {
@@ -508,14 +501,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
 
                         EditorGUI.indentLevel = indent - 1;
-                        EditorGUI.BeginChangeCheck();
-                        EditorGUILayout.PropertyField(serialized.shapeRadius, s_Styles.lightRadius);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            //Also affect baked shadows
-                            serialized.settings.bakedShadowRadiusProp.floatValue = serialized.shapeRadius.floatValue;
-                        }
-
+                        EditorGUILayout.PropertyField(serialized.settings.shapeRadius, s_Styles.lightRadius);
                         EditorGUI.indentLevel = indent;
                     }
                     else if (lightType == LightType.Pyramid)
@@ -559,13 +545,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             float newCandela = LightUnitUtils.LumenToCandela(oldLumen, newSolidAngle);
                             serialized.settings.intensity.floatValue = newCandela;
                         }
-                        EditorGUI.BeginChangeCheck();
-                        EditorGUILayout.PropertyField(serialized.shapeRadius, s_Styles.lightRadius);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            //Also affect baked shadows
-                            serialized.settings.bakedShadowRadiusProp.floatValue = serialized.shapeRadius.floatValue;
-                        }
+                        EditorGUILayout.PropertyField(serialized.settings.shapeRadius, s_Styles.lightRadius);
                     }
                     else
                     {
