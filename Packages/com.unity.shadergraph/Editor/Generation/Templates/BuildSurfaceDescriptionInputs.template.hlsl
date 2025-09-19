@@ -56,6 +56,17 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.NDCPosition:                              output.NDCPosition = output.PixelPosition.xy / _ScreenParams.xy;
     $SurfaceDescriptionInputs.NDCPosition:                              output.NDCPosition.y = 1.0f - output.NDCPosition.y;
 
+
+#if defined(UNITY_UIE_INCLUDED)
+    $SurfaceDescriptionInputs.uv0:                                      output.uv0 =                                        float4(input.texCoord0.x, input.texCoord0.y, 0, 0);
+    $SurfaceDescriptionInputs.uv1:                                      output.uv1 =                                        float4(0, 0, 0, 0);
+    $SurfaceDescriptionInputs.uv2:                                      output.uv2 =                                        float4(0, 0, 0, 0);
+    $SurfaceDescriptionInputs.uv3:                                      output.uv3 =                                        float4(0, 0, 0, 0);
+    $SurfaceDescriptionInputs.uv4:                                      output.uv4 =                                        float4(0, 0, 0, 0);
+    $SurfaceDescriptionInputs.uv5:                                      output.uv5 =                                        float4(0, 0, 0, 0);
+    $SurfaceDescriptionInputs.uv6:                                      output.uv6 =                                        float4(0, 0, 0, 0);
+    $SurfaceDescriptionInputs.uv7:                                      output.uv7 =                                        float4(0, 0, 0, 0);
+#else
     $SurfaceDescriptionInputs.uv0:                                      output.uv0 =                                        input.texCoord0;
     $SurfaceDescriptionInputs.uv1:                                      output.uv1 =                                        input.texCoord1;
     $SurfaceDescriptionInputs.uv2:                                      output.uv2 =                                        input.texCoord2;
@@ -64,6 +75,8 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.uv5:                                      output.uv5 =                                        input.texCoord5;
     $SurfaceDescriptionInputs.uv6:                                      output.uv6 =                                        input.texCoord6;
     $SurfaceDescriptionInputs.uv7:                                      output.uv7 =                                        input.texCoord7;
+#endif
+    
     $SurfaceDescriptionInputs.VertexColor:                              output.VertexColor =                                input.color;
     $SurfaceDescriptionInputs.VertexID:                                 output.VertexID =                                   input.vertexID;
 
@@ -72,15 +85,6 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.typeTexSettings:                          output.typeTexSettings =                            input.texCoord1;
     $SurfaceDescriptionInputs.textCoreLoc:                              output.textCoreLoc =                                input.texCoord3.xy;
     $SurfaceDescriptionInputs.layoutUV:                                 output.layoutUV =                                   input.texCoord3.zw;
-    
-    $SurfaceDescriptionInputs.layoutUV_uv0:                             output.uv0 =                                        float4(input.texCoord3.zw, 0, 0);
-    $SurfaceDescriptionInputs.layoutUV_uv1:                             output.uv1 =                                        float4(input.texCoord3.zw, 0, 0);
-    $SurfaceDescriptionInputs.layoutUV_uv2:                             output.uv2 =                                        float4(input.texCoord3.zw, 0, 0);
-    $SurfaceDescriptionInputs.layoutUV_uv3:                             output.uv3 =                                        float4(input.texCoord3.zw, 0, 0);    
-    $SurfaceDescriptionInputs.layoutUV_uv4:                             output.uv4 =                                        float4(input.texCoord3.zw, 0, 0);
-    $SurfaceDescriptionInputs.layoutUV_uv5:                             output.uv5 =                                        float4(input.texCoord3.zw, 0, 0);
-    $SurfaceDescriptionInputs.layoutUV_uv6:                             output.uv6 =                                        float4(input.texCoord3.zw, 0, 0);
-    $SurfaceDescriptionInputs.layoutUV_uv7:                             output.uv7 =                                        float4(input.texCoord3.zw, 0, 0);    
     
     $SurfaceDescriptionInputs.circle:                                   output.circle =                                     input.texCoord4;
     

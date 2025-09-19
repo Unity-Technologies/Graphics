@@ -290,14 +290,14 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void ReportAnyErrors_EmptyManager()
         {
-            var ret = m_EmptyMgr.AnyError();
+            var ret = m_EmptyMgr.HasSeverity();
             Assert.IsFalse(ret);
         }
 
         [Test]
         public void ReportAnyErrors_ComplexManager()
         {
-            var ret = m_ComplexMgr.AnyError();
+            var ret = m_ComplexMgr.HasSeverity();
             Assert.IsTrue(ret);
         }
 
@@ -307,7 +307,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_EmptyMgr.AddOrAppendError(p0, node0.objectId, w0);
             m_EmptyMgr.AddOrAppendError(p1, node1.objectId, w1);
 
-            var ret = m_EmptyMgr.AnyError();
+            var ret = m_EmptyMgr.HasSeverity();
             Assert.IsFalse(ret);
         }
 
@@ -317,7 +317,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_EmptyMgr.AddOrAppendError(p0, node0.objectId, w0);
             m_EmptyMgr.AddOrAppendError(p1, node1.objectId, e1);
 
-            var ret = m_EmptyMgr.AnyError();
+            var ret = m_EmptyMgr.HasSeverity();
             Assert.IsTrue(ret);
         }
     }

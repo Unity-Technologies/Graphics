@@ -154,7 +154,7 @@ Shader ""Hidden/GraphErrorShader2""
                     var shaderString = generatedShader.codeString;
 
                     // we only care if an error was reported for a node that we actually used
-                    if (graph.messageManager.AnyError((nodeId) => NodeWasUsedByGraph(nodeId, graph)) ||
+                    if (graph.messageManager.HasSeverity((nodeId) => NodeWasUsedByGraph(nodeId, graph), Rendering.ShaderCompilerMessageSeverity.Error) ||
                         shaderString == null)
                     {
                         shaderString = k_ErrorShader.Replace("Hidden/GraphErrorShader2", generatedShader.shaderName);
@@ -481,7 +481,7 @@ Shader ""Hidden/GraphErrorShader2""
                 configuredTextures = generator.configuredTextures;
 
                 // we only care if an error was reported for a node that we actually used
-                if (graph.messageManager.AnyError((nodeId) => NodeWasUsedByGraph(nodeId, graph)))
+                if (graph.messageManager.HasSeverity((nodeId) => NodeWasUsedByGraph(nodeId, graph), Rendering.ShaderCompilerMessageSeverity.Error))
                 {
                     shaderString = null;
                 }

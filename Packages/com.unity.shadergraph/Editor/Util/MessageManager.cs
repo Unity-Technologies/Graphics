@@ -162,7 +162,7 @@ namespace UnityEditor.Graphing.Util
             }
         }
 
-        public bool AnyError(Func<string, bool> nodeFilter = null)
+        public bool HasSeverity(Func<string, bool> nodeFilter = null, ShaderCompilerMessageSeverity severity = ShaderCompilerMessageSeverity.Error)
         {
             if (m_Messages == null)
                 return false;
@@ -179,7 +179,7 @@ namespace UnityEditor.Graphing.Util
                     {
                         foreach (var message in messageList)
                         {
-                            if (message.severity == ShaderCompilerMessageSeverity.Error)
+                            if (message.severity == severity)
                             {
                                 return true;
                             }
