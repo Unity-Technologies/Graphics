@@ -4,7 +4,7 @@
 #pragma kernel ResolveFlatNormals
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-#include "SurfaceCacheCore/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/Common.hlsl"
 
 Texture2D<float> _ScreenDepths;
 RWTexture2D<float3> _ScreenFlatNormals;

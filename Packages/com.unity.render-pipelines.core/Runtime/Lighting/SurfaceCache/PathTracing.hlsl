@@ -3,8 +3,8 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Common.hlsl"
-#include "PathTracingCommon.hlsl"
-#include "PathTracingMaterials.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/PathTracingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/PathTracingMaterials.hlsl"
 
 static const float3 invalidRadianceSample = float3(-1.0f, -1.0f, -1.0f);
 

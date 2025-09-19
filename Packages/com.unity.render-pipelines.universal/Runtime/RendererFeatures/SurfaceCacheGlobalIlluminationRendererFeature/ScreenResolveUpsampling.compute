@@ -6,10 +6,10 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
-#include "SurfaceCacheCore/VectorLogic.hlsl"
-#include "SurfaceCacheCore/IrradianceCompression.hlsl"
-#include "SurfaceCacheCore/PatchUtil.hlsl"
-#include "SurfaceCacheCore/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/VectorLogic.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/IrradianceCompression.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/PatchUtil.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/Common.hlsl"
 
 Texture2D<float> _FullResDepths;
 Texture2D<float3> _FullResFlatNormals;
@@ -86,7 +86,7 @@ void Upsample(uint2 targetPixelPos : SV_DispatchThreadID)
         weight += 0.01f;
 
         if (all(contribution.l0 == PatchUtil::invalidIrradiance))
-            weight = 0.0f;
+            continue;
 
         weightSum += weight;
         SphericalHarmonics::MulAddMut(irradianceSum, weight, contribution);
@@ -95,8 +95,9 @@ void Upsample(uint2 targetPixelPos : SV_DispatchThreadID)
     float3 output = 0.0f;
     if (weightSum != 0.0f)
     {
-        SphericalHarmonics::RGBL1 irradiance = SphericalHarmonics::MulPure(irradianceSum, rcp(weightSum));
-        output = SphericalHarmonics::Eval(irradiance, UnpackGBufferNormal(_FullResShadedNormals[targetPixelPos]));
+        const SphericalHarmonics::RGBL1 irradiance = SphericalHarmonics::MulPure(irradianceSum, rcp(weightSum));
+        const float3 unpackedNormal = UnpackGBufferNormal(_FullResShadedNormals[targetPixelPos]);
+        output = max(0.0f, SphericalHarmonics::Eval(irradiance, unpackedNormal));
     }
 
     _FullResIrradiances[targetPixelPos] = float4(output, 1);

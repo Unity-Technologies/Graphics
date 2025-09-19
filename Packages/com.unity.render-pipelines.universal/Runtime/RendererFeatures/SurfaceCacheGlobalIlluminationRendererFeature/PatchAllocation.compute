@@ -9,9 +9,9 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Hashes.hlsl"
-#include "SurfaceCacheCore/VectorLogic.hlsl"
-#include "SurfaceCacheCore/IrradianceCompression.hlsl"
-#include "SurfaceCacheCore/PatchUtil.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/VectorLogic.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/IrradianceCompression.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/PatchUtil.hlsl"
 
 RWStructuredBuffer<uint> _RingConfigBuffer;
 RWStructuredBuffer<PatchUtil::PatchGeometry> _PatchGeometries;

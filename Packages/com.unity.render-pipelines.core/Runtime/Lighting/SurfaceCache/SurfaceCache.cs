@@ -220,6 +220,7 @@ namespace UnityEngine.Rendering
         internal ComputeShader DefragShader;
         internal int DefragKernel;
         internal uint3 DefragKernelGroupSize;
+        internal LocalKeyword DefragKeyword;
 
         internal IRayTracingShader UniformEstimationShader;
         internal IRayTracingShader RestirCandidateTemporalShader;
@@ -280,9 +281,12 @@ namespace UnityEngine.Rendering
 
             Debug.Assert(SubGroupSize == 8 || SubGroupSize == 16 || SubGroupSize == 32 || SubGroupSize == 48 || SubGroupSize == 64);
             DefragShader = rpResources.defragShader;
-            DefragShader.EnableKeyword("SUB_GROUP_SIZE_" + SubGroupSize);
+            var defragKeyword = "SUB_GROUP_SIZE_" + SubGroupSize;
+            DefragShader.EnableKeyword(defragKeyword);
             DefragKernel = DefragShader.FindKernel("Defrag");
             DefragShader.GetKernelThreadGroupSizes(DefragKernel, out DefragKernelGroupSize.x, out DefragKernelGroupSize.y, out DefragKernelGroupSize.z);
+            DefragKeyword = new LocalKeyword(DefragShader, defragKeyword);
+            DefragShader.DisableKeyword(defragKeyword);
 
             Object uniformEstimationUnifiedObj;
             Object restirCandidateTemporalUnifiedObj;
@@ -361,6 +365,7 @@ namespace UnityEngine.Rendering
         {
             internal ComputeShader Shader;
             internal int KernelIndex;
+            internal LocalKeyword Keyword;
             internal uint PatchCapacity;
             internal uint3 ThreadGroupSize;
             internal uint IterationOffset;
@@ -616,6 +621,7 @@ namespace UnityEngine.Rendering
                 passData.IterationOffset = frameIdx * _defragCount;
                 passData.IterationCount = _defragCount;
                 passData.Shader = _resources.DefragShader;
+                passData.Keyword = _resources.DefragKeyword;
                 passData.KernelIndex = _resources.DefragKernel;
                 passData.PatchCapacity = PatchList.Capacity;
                 passData.RingConfigStartFlipflop = RingConfig.FlipFlop;
@@ -1036,6 +1042,16 @@ namespace UnityEngine.Rendering
             var shader = data.Shader;
             var kernelIndex = data.KernelIndex;
 
+            cmd.EnableKeyword(shader, data.Keyword);
+            cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._RingConfigBuffer, data.RingConfigBuffer);
+            cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchCellIndices, data.PatchCellIndices);
+            cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._CellPatchIndices, data.CellPatchIndices);
+            cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchCounterSets, data.PatchCounterSets);
+            cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchIrradiances0, data.PatchIrradiances0);
+            cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchIrradiances1, data.PatchIrradiances1);
+            cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchGeometries, data.PatchGeometries);
+            cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchStatistics, data.PatchStatistics);
+
             uint iterationEnd = data.IterationOffset + data.IterationCount;
             uint flipflop = data.RingConfigStartFlipflop;
             for (uint iterationIndex = data.IterationOffset; iterationIndex < iterationEnd; ++iterationIndex)
@@ -1044,14 +1060,6 @@ namespace UnityEngine.Rendering
                 uint writeOffset = SurfaceCacheRingConfig.GetOffsetB(flipflop);
                 uint patchOffset = iterationIndex % 2 == 0 ? data.EvenIterationPatchOffset : data.OddIterationPatchOffset;
 
-                cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._RingConfigBuffer, data.RingConfigBuffer);
-                cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchCellIndices, data.PatchCellIndices);
-                cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._CellPatchIndices, data.CellPatchIndices);
-                cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchCounterSets, data.PatchCounterSets);
-                cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchIrradiances0, data.PatchIrradiances0);
-                cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchIrradiances1, data.PatchIrradiances1);
-                cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchGeometries, data.PatchGeometries);
-                cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchStatistics, data.PatchStatistics);
                 cmd.SetComputeIntParam(shader, ShaderIDs._RingConfigReadOffset, (int)readOffset);
                 cmd.SetComputeIntParam(shader, ShaderIDs._RingConfigWriteOffset, (int)writeOffset);
                 cmd.SetComputeIntParam(shader, ShaderIDs._PatchOffset, (int)patchOffset);
@@ -1061,6 +1069,8 @@ namespace UnityEngine.Rendering
 
                 flipflop = SurfaceCacheRingConfig.Flip(flipflop);
             }
+
+            cmd.DisableKeyword(shader, data.Keyword);
         }
 
         static void FilterSpatially(SpatialFilterPassData data, ComputeGraphContext cgContext)

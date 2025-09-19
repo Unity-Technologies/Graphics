@@ -372,7 +372,7 @@ namespace UnityEngine.Rendering.LiveGI
                 var light = item.Value.objectReference;
 
                 bool isBakedLight = light.bakingOutput.lightmapBakeType == LightmapBakeType.Baked;
-                if (!light.enabled || !light.gameObject.activeInHierarchy || !(filterBakedLights && isBakedLight))
+                if (!light.enabled || !light.gameObject.activeInHierarchy || (filterBakedLights && isBakedLight))
                 {
                     continue;
                 }
