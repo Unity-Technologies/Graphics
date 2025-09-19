@@ -14,43 +14,43 @@ namespace UnityEngine.Rendering
 
         int IRenderPipelineGraphicsSettings.version => m_Version;
 
-        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/TemporalFiltering.compute")]
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGI/SurfaceCacheCore/TemporalFiltering.compute")]
         public ComputeShader m_TemporalFilteringShader;
 
-        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/SpatialFiltering.compute")]
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGI/SurfaceCacheCore/SpatialFiltering.compute")]
         public ComputeShader m_SpatialFilteringShader;
 
-        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/RestirEstimation.compute")]
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGI/SurfaceCacheCore/RestirEstimation.compute")]
         public ComputeShader m_RestirEstimationShader;
 
-        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/RisEstimation.urtshader")]
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGI/SurfaceCacheCore/RisEstimation.urtshader")]
         ComputeShader m_RisEstimationComputeShader;
 
-        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/RisEstimation.urtshader")]
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGI/SurfaceCacheCore/RisEstimation.urtshader")]
         public RayTracingShader m_RisEstimationRayTracingShader;
 
-        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/Scrolling.compute")]
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGI/SurfaceCacheCore/Scrolling.compute")]
         public ComputeShader m_ScrollingShader;
 
-        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/Defrag.compute")]
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGI/SurfaceCacheCore/Defrag.compute")]
         public ComputeShader m_DefragShader;
 
-        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/Eviction.compute")]
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGI/SurfaceCacheCore/Eviction.compute")]
         public ComputeShader m_EvictionShader;
 
-        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/UniformEstimation.urtshader")]
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGI/SurfaceCacheCore/UniformEstimation.urtshader")]
         public ComputeShader m_UniformEstimationComputeShader;
 
-        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/UniformEstimation.urtshader")]
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGI/SurfaceCacheCore/UniformEstimation.urtshader")]
         public RayTracingShader m_UniformEstimationRayTracingShader;
 
-        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/RestirCandidateTemporal.urtshader")]
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGI/SurfaceCacheCore/RestirCandidateTemporal.urtshader")]
         public ComputeShader m_RestirCandidateTemporalComputeShader;
 
-        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/RestirCandidateTemporal.urtshader")]
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGI/SurfaceCacheCore/RestirCandidateTemporal.urtshader")]
         public RayTracingShader m_RestirCandidateTemporalRayTracingShader;
 
-        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/RestirSpatial.compute")]
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGI/SurfaceCacheCore/RestirSpatial.compute")]
         public ComputeShader m_RestirSpatialShader;
 
         public ComputeShader spatialFilteringShader
