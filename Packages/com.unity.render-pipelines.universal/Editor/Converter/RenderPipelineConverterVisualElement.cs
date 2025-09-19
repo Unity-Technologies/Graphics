@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEditor.Categorization;
 using UnityEditor.Rendering.Converter;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -15,17 +16,15 @@ namespace UnityEditor.Rendering.Universal
         static Lazy<VisualTreeAsset> s_VisualTreeAsset = new Lazy<VisualTreeAsset>(() => AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(k_Uxml));
         static Lazy<StyleSheet> s_StyleSheet = new Lazy<StyleSheet>(() => AssetDatabase.LoadAssetAtPath<StyleSheet>(k_Uss));
 
-        ConverterInfo m_ConverterInfo;
+        Node<ConverterInfo> m_ConverterInfo;
 
-        // TODO: Once attributes land on all the converters use m_ConverterInfo;
-        public string displayName => converter.name;
-        public string description => converter.info;
+        public string displayName => m_ConverterInfo.name;
+        public string description => m_ConverterInfo.description;
 
-        public ConverterState state => m_ConverterInfo.state;
-        public RenderPipelineConverter converter => m_ConverterInfo.converter as RenderPipelineConverter;
+        public ConverterState state => m_ConverterInfo.data.state;
+        public RenderPipelineConverter converter => m_ConverterInfo.data.converter as RenderPipelineConverter;
 
-        public bool isActiveAndEnabled => converter.isEnabled && state.isSelected;
-        public bool requiresInitialization => !state.isInitialized && isActiveAndEnabled;
+        public bool isSelectedAndEnabled => converter.isEnabled && state.isSelected;
 
         VisualElement m_RootVisualElement;
         Label m_PendingLabel;
@@ -36,13 +35,33 @@ namespace UnityEditor.Rendering.Universal
         public Action showMoreInfo; // TODO Remove with the UX rework
         public Action converterSelected;
 
-        public RenderPipelineConverterVisualElement(ConverterInfo converterInfo)
+        public RenderPipelineConverterVisualElement(Node<ConverterInfo> converterInfo)
         {
             m_ConverterInfo = converterInfo;
 
             m_RootVisualElement = new VisualElement();
             s_VisualTreeAsset.Value.CloneTree(m_RootVisualElement);
             m_RootVisualElement.styleSheets.Add(s_StyleSheet.Value);
+
+            m_RootVisualElement.SetEnabled(converter.isEnabled);
+            m_RootVisualElement.Q<Label>("converterName").text = displayName;
+
+            var helpButton = m_RootVisualElement.Q<Button>("containerHelpButton");
+            if (string.IsNullOrEmpty(converterInfo.helpUrl))
+            {
+                helpButton.style.display = DisplayStyle.None;
+            }
+            else
+            {
+                helpButton.Q<Image>("containerHelpImage").image = CoreEditorStyles.iconHelp;
+                helpButton.RemoveFromClassList("unity-button");
+                helpButton.AddToClassList(EditorGUIUtility.isProSkin ? "dark" : "light");
+                helpButton.RegisterCallback<ClickEvent>((evt) =>
+                {
+                    Help.BrowseURL(converterInfo.helpUrl);
+                    evt.StopPropagation(); // This toggle needs to stop propagation since it is inside another clickable element
+                });
+            }
 
             var converterEnabledToggle = m_RootVisualElement.Q<Toggle>("converterEnabled");
             converterEnabledToggle.SetValueWithoutNotify(state.isSelected);
@@ -59,6 +78,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 showMoreInfo?.Invoke();
             });
+            topElement.tooltip = (converter.isEnabled) ? description : converter.isDisabledWarningMessage;
 
             topElement.RegisterCallback<TooltipEvent>(evt =>
             {

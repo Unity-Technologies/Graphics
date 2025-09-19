@@ -47,6 +47,7 @@ namespace UnityEditor.Rendering
                     }
                     return;
                 }
+                
                 var id = contextSearchQueriesAndIds[index].description;
                 var query = contextSearchQueriesAndIds[index].query;
                 var context = Search.SearchService.CreateContext(query);

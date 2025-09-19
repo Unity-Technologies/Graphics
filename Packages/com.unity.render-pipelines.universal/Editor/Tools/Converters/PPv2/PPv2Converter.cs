@@ -7,6 +7,9 @@ using System.Reflection;
 using System.Text;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEngine.Categorization;
+using UnityEditor.Rendering.Converter;
+using UnityEditor.Search;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -18,6 +21,12 @@ using UnityEditor.Rendering.Converter;
 
 namespace UnityEditor.Rendering.Universal
 {
+    [URPHelpURL("features/rp-converter")]
+    [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
+    [ElementInfo(Name = "Post-Processing Stack v2",
+                 Order = int.MaxValue,
+                 Description = "This converter creates Universal Render Pipeline (URP) assets and corresponding Renderer assets, configuring their settings to match the equivalent settings from the Built-in Render Pipeline.")]
+    
     internal class PPv2Converter : RenderPipelineAssetsConverter
     {
         public override string name => "Post-Processing Stack v2 Converter";

@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEditor.Rendering.Universal;
+using UnityEditor.Rendering.Converter;
+using UnityEngine.Categorization;
 using UnityEngine.Rendering.Universal;
 using ClipPath = UnityEditor.Rendering.AnimationClipUpgrader.ClipPath;
 using ClipProxy = UnityEditor.Rendering.AnimationClipUpgrader.AnimationClipProxy;
@@ -10,13 +11,13 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.Universal
 {
+    [URPHelpURL("features/rp-converter")]
+    [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
+    [ElementInfo(Name = "Animation Clip",
+                 Order = 0,
+                 Description = "This converter updates all animation clips so that they reference the correct Materials.")]
     internal sealed class AnimationClipConverter : RenderPipelineConverter
     {
-        public override string name => "Animation Clip Converter";
-        public override string info => "This converter updates all animation clips so that they reference the correct Materials.";
-        public override string category { get; }
-        public override Type container => typeof(BuiltInToURPConverterContainer);
-
         List<GlobalObjectId> m_AssetsToConvert = new List<GlobalObjectId>(64);
 
         IDictionary<AnimationClipUpgrader.IAnimationClip, (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<EditorCurveBinding, string> PropertyRenames)> m_ClipData =

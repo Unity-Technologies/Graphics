@@ -6,15 +6,13 @@
         </ui:VisualElement>
     </ui:VisualElement>
     <ui:VisualElement name="converterEditorMainVE" style="max-width: 100%; min-width: 620px; flex-grow: 1; padding-left: 19px; padding-right: 19px; padding-top: 15px; width: auto; padding-bottom: 20px;">
-        <ui:VisualElement name="topInformationVE" style="flex-grow: 0;">
+        <ui:VisualElement name="topInformationVE" style="flex-shrink:0;">
             <ui:VisualElement style="flex-direction: row; padding-left: 2px;">
-                <ui:DropdownField index="-1" name="conversionsDropDown" style="height: 27px; width: 208px; display: flex; margin-left: 0;" />
-                <ui:VisualElement style="flex-grow: 1;" />
-                <ui:Button name="containerHelpButton" class="iconButton unity-icon-button" style="width: 16px; height: 16px; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0; margin-left: 0; margin-right: 0; margin-top: 0;">
-                    <ui:Image name="containerHelpImage" class="unity-icon-button" style="background-image: none; flex-grow: 1;" />
-                </ui:Button>
+                <ui:DropdownField index="-1" name="conversionsDropDown" style="flex-grow:1; display: flex; margin-left: 0;" />
+                <ui:DropdownField label="Source Pipeline" name="sourcePipelineDropDown" style="flex-grow:2; display: flex; margin-left: 6px;" />
+                <ui:DropdownField label="Target Pipeline" name="targetPipelineDropDown" style="flex-grow:2; width: 208px; display: flex; margin-left: 6px;" />
             </ui:VisualElement>
-            <ui:HelpBox message-type="Info" name="conversionInfo" style="flex-grow: 0;" />
+            <ui:HelpBox message-type="Info" text="Select your source and target pipeline, choose the required converters, and then click Initialize Converters to begin the conversion process." name="conversionInfo" style="flex-grow: 0;" />
         </ui:VisualElement>
         <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" name="convertersScrollView" horizontal-scroller-visibility="Hidden" vertical-scroller-visibility="Auto" style="flex-grow: 1; align-items: flex-start;" />
         <ui:VisualElement name="bottomButtonVE" style="flex-direction: column; flex-shrink: 0; padding-left: 0; padding-right: 0; margin-top: 6px; width: auto; align-items: stretch; flex-grow: 0;">

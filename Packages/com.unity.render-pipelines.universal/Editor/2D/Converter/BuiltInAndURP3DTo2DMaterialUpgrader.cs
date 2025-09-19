@@ -1,21 +1,16 @@
-using System;
-using System.IO;
-using System.Collections.Generic;
-using UnityEditor.Rendering.Universal;
+using UnityEditor.Rendering.Converter;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
+using UnityEngine.Categorization;
 using static UnityEditor.AssetDatabase;
-using System.Collections;
 
 namespace UnityEditor.Rendering.Universal
 {
+    [PipelineTools]
+    [ElementInfo(Name = "Convert Built-in and URP ( Universal Renderer ) Materials to Mesh2D-Lit-Default",
+                 Order = 300,
+                 Description = "This will upgrade/crossgrade all 3D materials and 3D material references for URP 2D.")]
     internal sealed class BuiltInAndURP3DTo2DMaterialUpgrader : Base2DMaterialUpgrader
     {
-        public override string name => "Material and Material Reference Upgrade";
-        public override string info => "This will upgrade/crossgrade all 3D materials and 3D material references for URP 2D.";
-        public override int priority => -1000;
-        public override Type container => typeof(BuiltInAndURP3DTo2DConverterContainer);
-
         public override MaterialConversionInfo[] InitializeMaterialConversionInfo()
         {
             // Note: functions here are shortened versions using static AssetDatabase

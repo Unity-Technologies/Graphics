@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -20,6 +21,17 @@ namespace UnityEditor.Rendering.Universal
         /// Use this to exclude converters matching the filter.
         /// </summary>
         Exclusive
+    }
+
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
+    internal class RenderPipelineConverterContainerAttribute : Attribute
+    {
+        public Type container { get; }
+
+        public RenderPipelineConverterContainerAttribute(Type container)
+        {
+            this.container = container;
+        }
     }
 
     /// <summary>
@@ -58,41 +70,49 @@ namespace UnityEditor.Rendering.Universal
         /// <summary>
         /// Use this for the material converters.
         /// </summary>
+        [RenderPipelineConverterContainer(typeof(BuiltInToURPConverterContainer))]
         Material,
 
         /// <summary>
         /// Use this for the render settings converters.
         /// </summary>
+        [RenderPipelineConverterContainer(typeof(BuiltInToURPConverterContainer))]
         RenderSettings,
 
         /// <summary>
         /// Use this for the animation clip converters.
         /// </summary>
+        [RenderPipelineConverterContainer(typeof(BuiltInToURPConverterContainer))]
         AnimationClip,
 
         /// <summary>
         /// Use this for readonly material converters.
         /// </summary>
+        [RenderPipelineConverterContainer(typeof(BuiltInToURPConverterContainer))]
         ReadonlyMaterial,
 
         /// <summary>
         /// Use this for 2D material conversion
         /// </summary>
+        [RenderPipelineConverterContainer(typeof(BuiltInToURP2DConverterContainer))]
         ReadonlyMaterial2D,
 
         /// <summary>
         /// Use this for 3D URP material conversion
         /// </summary>
+        [RenderPipelineConverterContainer(typeof(BuiltInAndURP3DTo2DConverterContainer))]
         URPToReadonlyMaterial2D,
 
         /// <summary>
         /// Use this for post processing V2 converters.
         /// </summary>
+        [RenderPipelineConverterContainer(typeof(BuiltInToURPConverterContainer))]
         PPv2,
 
         /// <summary>
         /// Use this for parametric to freeform light converters.
         /// </summary>
+        [RenderPipelineConverterContainer(typeof(UpgradeURP2DAssetsContainer))]
         ParametricToFreeformLight,
     }
 
@@ -183,6 +203,18 @@ namespace UnityEditor.Rendering.Universal
             BatchConverters(FilterConverters(containerName, converterList, converterFilter));
         }
 
+        internal static Type GetConverterContainer(this ConverterId value)
+        {
+            var memberInfo = typeof(ConverterId).GetMember(value.ToString());
+            if (memberInfo.Length > 0)
+            {
+                var attr = memberInfo[0].GetCustomAttribute<RenderPipelineConverterContainerAttribute>();
+                if (attr != null)
+                    return attr.container;
+            }
+            return null;
+        }
+
         internal static List<RenderPipelineConverter> FilterConverters(ConverterContainerId containerName, List<ConverterId> converterList, ConverterFilter converterFilter)
         {
             var converterContainerMap = new ConverterContainerTypeMap();
@@ -213,7 +245,8 @@ namespace UnityEditor.Rendering.Universal
                     if ((converterFilter == ConverterFilter.Inclusive) ^ !inFilter)
                     {
                         var instance = Activator.CreateInstance(converter) as RenderPipelineConverter;
-                        if (instance.container == containerID)
+                        var converterId = converterMap.GetIdForType(converter);
+                        if (converterId.HasValue && GetConverterContainer(converterId.Value) == containerID)
                             convertersToExecute.Add(instance);
                     }
                 }

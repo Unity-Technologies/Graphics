@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEditor.Rendering.Converter;
 using UnityEngine;
+using UnityEngine.Categorization;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEditor.Rendering.Converter;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -97,14 +98,14 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
+    [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
+    [ElementInfo(Name = "Materials Converter",
+                 Order = 100,
+                 Description = "Converts references to Built-In readonly materials to URP readonly materials. This will create temporarily a .index file and that can take a long time.")]
     internal class ReadonlyMaterialConverter : RenderPipelineAssetsConverter
     {
         public override bool isEnabled => GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset;
         public override string isDisabledWarningMessage => "Converter requires URP. Convert your project to URP to use this converter.";
-
-        public override string name => "Materials Converter";
-        public override string info => "Converts references to Built-In readonly materials to URP readonly materials. This will create temporarily a .index file and that can take a long time.";
-        public override Type container => typeof(BuiltInToURPConverterContainer);
 
         protected override List<(string query, string description)> contextSearchQueriesAndIds
             => ReadonlyMaterialMap.GetMaterialSearchList();

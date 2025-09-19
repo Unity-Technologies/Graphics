@@ -5,6 +5,9 @@
             <ui:Toggle name="converterEnabled" value="false" tooltip="Enabling this checkbox adds this converter to the initialization and conversion list." style="flex-grow: 0; height: 24px; margin-top: 0; margin-bottom: 0;" />
             <ui:Label name="converterName" text="Name Of The Converter" style="width: auto; -unity-text-align: middle-left; flex-grow: 1; flex-direction: column; max-height: 20%; height: 20px; min-height: 20px; padding-top: 3px; -unity-font-style: bold; padding-left: 4px; cursor: initial;" />
             <ui:Label name="converterStats" style="flex-grow: 0; -unity-text-align: middle-right; -unity-font-style: bold; padding-right: 16px;" />
+            <ui:Button name="containerHelpButton" class="iconButton unity-icon-button" style="width: 16px; height: 16px; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0; margin-left: 0; margin-right: 10; margin-top: 0;">
+               <ui:Image name="containerHelpImage" class="unity-icon-button" style="background-image: none; flex-grow: 1;" />
+            </ui:Button>
         </ui:VisualElement>
         <ui:VisualElement style="flex-grow: 1; flex-shrink:0; background-color: rgba(0, 0, 0, 0); flex-direction: row; min-width: auto; min-height: auto; padding-right: 15px; padding-left: 4px;">
             <ui:Image name="converterStateInfoIcon" style="max-width: 16px; max-height: 16px; min-width: 16px; min-height: 16px;" />

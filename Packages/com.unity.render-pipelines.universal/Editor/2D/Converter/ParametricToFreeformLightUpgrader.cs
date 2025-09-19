@@ -4,17 +4,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEditor.SceneManagement;
+using UnityEngine.Categorization;
+using UnityEditor.Rendering.Converter;
 
 namespace UnityEditor.Rendering.Universal
 {
+    [PipelineTools]
+    [ElementInfo(Name = "Parametric to Freeform Light Upgrade",
+             Order = 100,
+             Description = "This will upgrade all parametric lights to freeform lights.")]
     internal sealed class ParametricToFreeformLightUpgrader : RenderPipelineConverter
     {
         const float k_EnscribedSquareDiagonalLength = 0.70710678118654752440084436210485f;
-
-        public override string name => "Parametric to Freeform Light Upgrade";
-        public override string info => "This will upgrade all parametric lights to freeform lights.";
-        public override int priority => -1000;
-        public override Type container => typeof(UpgradeURP2DAssetsContainer);
 
         List<string> m_AssetsToConvert = new List<string>();
 

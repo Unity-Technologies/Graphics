@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEditor.Rendering.Converter;
 using UnityEngine;
 
 namespace UnityEditor.Rendering.Universal
@@ -65,6 +66,7 @@ namespace UnityEditor.Rendering.Universal
 
         internal void Reset()
         {
+            converterStates.Clear();
             ReloadConverters();
         }
 

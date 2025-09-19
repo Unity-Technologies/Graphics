@@ -1,30 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using UnityEditor.SceneManagement;
 using UnityEditor.Rendering.Converter;
+using UnityEngine.Categorization;
 
 [assembly: InternalsVisibleTo("PPv2URPConverters")]
 [assembly: InternalsVisibleTo("Unity.2D.PixelPerfect.Editor")]
 namespace UnityEditor.Rendering.Universal
 {
-    internal interface IRenderPipelineConverter
-    {
-        bool isEnabled { get; }
-    }
-
     // Might need to change this name before making it public
     internal abstract class RenderPipelineConverter : IRenderPipelineConverter
     {
         /// <summary>
         /// Name of the converter.
         /// </summary>
-        public abstract string name { get; }
+        public virtual string name { get; }
 
         /// <summary>
         /// The information when hovering over the converter.
         /// </summary>
-        public abstract string info { get; }
+        public virtual string info { get; }
 
         private bool m_Enabled = true;
         /// <summary>
@@ -63,7 +58,7 @@ namespace UnityEditor.Rendering.Universal
 
         // This is in which drop down item the converter belongs to.
         // Not properly implemented yet
-        public abstract Type container { get; }
+        public virtual Type container { get; }
         
 
         /// <summary>
