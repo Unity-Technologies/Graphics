@@ -87,7 +87,7 @@ float3 SampleIncomingRadianceAssumingLambertianBrdf(
         {
             const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(hitResult.instanceID);
             const PTHitGeom hitGeo = GetHitGeomInfo(hitInstance, hitResult);
-            const MaterialProperties hitMat = LoadMaterialProperties(hitInstance, false, hitGeo);
+            const MaterialProperties hitMat = LoadMaterialProperties(hitInstance, false, hitGeo.uv0, hitGeo.uv1);
 
             radianceSample = SampleOutgoingRadianceAssumingLambertianBrdf(
                 hitGeo.worldPosition,

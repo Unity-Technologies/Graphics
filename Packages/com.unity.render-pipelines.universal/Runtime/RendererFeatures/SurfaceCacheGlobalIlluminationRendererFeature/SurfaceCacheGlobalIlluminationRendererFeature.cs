@@ -10,7 +10,7 @@ using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.UnifiedRayTracing;
 using InstanceHandle = UnityEngine.PathTracing.Core.Handle<UnityEngine.PathTracing.Core.World.InstanceKey>;
 using LightHandle = UnityEngine.PathTracing.Core.Handle<UnityEngine.PathTracing.Core.World.LightDescriptor>;
-using MaterialHandle = UnityEngine.PathTracing.Core.Handle<UnityEngine.PathTracing.Core.World.MaterialDescriptor>;
+using MaterialHandle = UnityEngine.PathTracing.Core.Handle<UnityEngine.PathTracing.Core.MaterialPool.MaterialDescriptor>;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -852,9 +852,9 @@ namespace UnityEngine.Rendering.Universal
             private Dictionary<EntityId, MaterialHandle> _entityIDToWorldMaterialHandles = new();
 
             // We also keep track of associated material descriptors, so we can free temporary temporary textures when a material is removed
-            private Dictionary<EntityId, World.MaterialDescriptor> _entityIDToWorldMaterialDescriptors = new();
+            private Dictionary<EntityId, MaterialPool.MaterialDescriptor> _entityIDToWorldMaterialDescriptors = new();
 
-            private World.MaterialDescriptor _fallbackMaterialDescriptor;
+            private MaterialPool.MaterialDescriptor _fallbackMaterialDescriptor;
             private MaterialHandle _fallbackMaterialHandle;
 
             public WorldAdapter(World world, Material fallbackMaterial)
@@ -870,9 +870,9 @@ namespace UnityEngine.Rendering.Universal
                 UpdateMaterials(world, _entityIDToWorldMaterialHandles, _entityIDToWorldMaterialDescriptors, addedMaterials, removedMaterials, changedMaterials);
             }
 
-            private static void UpdateMaterials(World world, Dictionary<EntityId, MaterialHandle> entityIDToHandle, Dictionary<EntityId, World.MaterialDescriptor> entityIDToDescriptor, List<Material> addedMaterials, List<EntityId> removedMaterials, List<Material> changedMaterials)
+            private static void UpdateMaterials(World world, Dictionary<EntityId, MaterialHandle> entityIDToHandle, Dictionary<EntityId, MaterialPool.MaterialDescriptor> entityIDToDescriptor, List<Material> addedMaterials, List<EntityId> removedMaterials, List<Material> changedMaterials)
             {
-                static void DeleteTemporaryTextures(ref World.MaterialDescriptor desc)
+                static void DeleteTemporaryTextures(ref MaterialPool.MaterialDescriptor desc)
                 {
                     CoreUtils.Destroy(desc.Albedo);
                     CoreUtils.Destroy(desc.Emission);

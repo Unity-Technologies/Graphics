@@ -169,7 +169,7 @@ uint TraceBounceRay(inout PathIterator iterator, int bounceIndex, uint rayMask, 
         iterator.hitGeo.FixNormals(iterator.ray.direction);
 
         // Evaluate material properties at hit location
-        iterator.material = LoadMaterialProperties(instanceInfo, g_PathtracerAsGiPreviewMode && isFirstRay, iterator.hitGeo);
+        iterator.material = LoadMaterialProperties(instanceInfo, g_PathtracerAsGiPreviewMode && isFirstRay, iterator.hitGeo.uv0, iterator.hitGeo.uv1);
         traceResult = TRACE_HIT;
     }
     else

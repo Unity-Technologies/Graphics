@@ -70,7 +70,7 @@ void GenerateCandidateAndResampleTemporally(UnifiedRT::DispatchInfo dispatchInfo
             {
                 UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(hitResult.instanceID);
                 PTHitGeom hitGeo = GetHitGeomInfo(hitInstance, hitResult);
-                MaterialProperties mat = LoadMaterialProperties(hitInstance, false, hitGeo);
+                MaterialProperties mat = LoadMaterialProperties(hitInstance, false, hitGeo.uv0, hitGeo.uv1);
 
                 sample.sampleType = SAMPLE_TYPE_HIT;
                 sample.hitPointOrDirection = hitGeo.worldPosition;

@@ -14,6 +14,32 @@ namespace UnityEngine.PathTracing.Core
 
     internal class MaterialPool : IDisposable
     {
+        internal struct MaterialDescriptor
+        {
+            public Texture Albedo;
+            public Vector2 AlbedoScale;
+            public Vector2 AlbedoOffset;
+
+            public Texture Emission;
+            public Vector2 EmissionScale;
+            public Vector2 EmissionOffset;
+            public Vector3 EmissionColor;
+            public MaterialPropertyType EmissionType;
+
+            public Texture Transmission;
+            public Vector2 TransmissionScale;
+            public Vector2 TransmissionOffset;
+            public TransmissionChannels TransmissionChannels;
+
+            public float Alpha;
+            public float AlphaCutoff;
+            public bool UseAlphaCutoff;
+
+            public bool DoubleSidedGI;
+
+            public bool PointSampleTransmission;
+        }
+
         [Flags]
         private enum MaterialFlags : uint
         {
@@ -23,7 +49,7 @@ namespace UnityEngine.PathTracing.Core
             PointSampleTransmission = 1 << 2,
         }
 
-        private struct PTMaterial
+        private struct GpuMaterialEntry
         {
             public int AlbedoTextureIndex;
             public int EmissionTextureIndex;
@@ -59,14 +85,14 @@ namespace UnityEngine.PathTracing.Core
             public bool PointSampleTransmission;
         };
 
-        private readonly Dictionary<UInt64, MaterialEntry> _materials = new();
+        private readonly Dictionary<UInt64, MaterialEntry> _materialMap = new();
         private readonly Dictionary<ulong, BlockAllocator.Allocation> _lightCookies = new();  // this dictionary is used to keep track of which textures are inserted in the atlas and avoid duplication (important for LiveGI)
         private readonly Dictionary<int, ulong> _cookieHandleToID = new();                    // this dictionary is used when deleting lights with cookies attached, so we can free-up the atlas slots
 
-        public int MaterialCount => _materials.Count;
+        public int MaterialCount => _materialMap.Count;
         private BlockAllocator _materialSlotAllocator;
         public ComputeBuffer MaterialBuffer;
-        private NativeArray<PTMaterial> _materialList;
+        private NativeArray<GpuMaterialEntry> _gpuMaterialList;
         private bool _materialArrayDirty = true;
 
         private readonly TextureSlotAllocator _albedoTextureAllocator;
@@ -117,8 +143,8 @@ namespace UnityEngine.PathTracing.Core
             _transmissionTextureAllocator = new TextureSlotAllocator(AtlasSize, GetTextureFormat(TextureType.Transmission), FilterMode.Bilinear);
 
             _materialSlotAllocator.Initialize(initialMaxMaterialCount);
-            MaterialBuffer = new ComputeBuffer(initialMaxMaterialCount, Marshal.SizeOf<PTMaterial>());
-            _materialList = new NativeArray<PTMaterial>(initialMaxMaterialCount, Allocator.Persistent);
+            MaterialBuffer = new ComputeBuffer(initialMaxMaterialCount, Marshal.SizeOf<GpuMaterialEntry>());
+            _gpuMaterialList = new NativeArray<GpuMaterialEntry>(initialMaxMaterialCount, Allocator.Persistent);
 
             LightCookieTextures = CreateTextureArray(initialMaxLightCookieTextureCount, TextureType.LightCookie);
             _lightCookieTexturesSlotAllocator.Initialize(initialMaxLightCookieTextureCount);
@@ -131,8 +157,8 @@ namespace UnityEngine.PathTracing.Core
         {
             _materialSlotAllocator.Dispose();
             MaterialBuffer?.Dispose();
-            if (_materialList.IsCreated)
-                _materialList.Dispose();
+            if (_gpuMaterialList.IsCreated)
+                _gpuMaterialList.Dispose();
 
             _albedoTextureAllocator.Dispose();
             _emissionTextureAllocator.Dispose();
@@ -153,16 +179,16 @@ namespace UnityEngine.PathTracing.Core
             }
         }
 
-        public void AddMaterial(UInt64 materialHandle, in World.MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel)
+        public void AddMaterial(UInt64 materialHandle, in MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel)
         {
             MaterialEntry materialEntry;
-            Debug.Assert(!_materials.ContainsKey(materialHandle), "Material was already added to the pool.");
+            Debug.Assert(!_materialMap.ContainsKey(materialHandle), "Material was already added to the pool.");
 
             var slotAllocation = _materialSlotAllocator.Allocate(1);
             if (!slotAllocation.valid)
             {
                 _materialSlotAllocator.Grow(_materialSlotAllocator.capacity+1);
-                RecreateMaterialList();
+                RecreateGpuMaterialList();
                 slotAllocation = _materialSlotAllocator.Allocate(1);
                 Assert.IsTrue(slotAllocation.valid);
             }
@@ -170,20 +196,20 @@ namespace UnityEngine.PathTracing.Core
             materialEntry = new MaterialEntry(slotAllocation);
             UpdateMaterial(in material, albedoAndEmissionUVChannel, materialEntry);
 
-            _materials.Add(materialHandle, materialEntry);
+            _materialMap.Add(materialHandle, materialEntry);
 
             UpdateMaterialList(materialEntry);
         }
 
-        public void UpdateMaterial(UInt64 materialHandle, in World.MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel)
+        public void UpdateMaterial(UInt64 materialHandle, in MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel)
         {
-            MaterialEntry materialEntry = _materials[materialHandle];
+            MaterialEntry materialEntry = _materialMap[materialHandle];
             UpdateMaterial(in material, albedoAndEmissionUVChannel, materialEntry);
         }
 
         public void RemoveMaterial(UInt64 materialInstanceID)
         {
-            if (!_materials.TryGetValue(materialInstanceID, out var materialEntry))
+            if (!_materialMap.TryGetValue(materialInstanceID, out var materialEntry))
             {
                 Debug.Assert(false, "Material was not added to the pool.");
                 return;
@@ -194,13 +220,13 @@ namespace UnityEngine.PathTracing.Core
             RemoveTextureIfPresent(TextureType.Emission, ref materialEntry.EmissionTextureLocation);
             RemoveTextureIfPresent(TextureType.Transmission, ref materialEntry.TransmissionTextureLocation);
 
-            _materials.Remove(materialInstanceID);
+            _materialMap.Remove(materialInstanceID);
         }
 
         public void GetMaterialInfo(UInt64 materialHandle, out uint materialIndex, out bool isTransmissive)
         {
             MaterialEntry entry;
-            if (_materials.TryGetValue(materialHandle, out entry))
+            if (_materialMap.TryGetValue(materialHandle, out entry))
             {
                 materialIndex = (uint)entry.IndexInBuffer.block.offset;
                 isTransmissive = entry.IsTransmissive;
@@ -214,7 +240,7 @@ namespace UnityEngine.PathTracing.Core
             float3 zero = new(0, 0, 0);
             emissionColor = zero;
 
-            if (_materials.TryGetValue(materialHandle, out var entry))
+            if (_materialMap.TryGetValue(materialHandle, out var entry))
             {
                 if (entry.EmissionTextureLocation.IsValid || math.any(entry.EmissionColor != zero))
                 {
@@ -233,12 +259,12 @@ namespace UnityEngine.PathTracing.Core
                 throw new InvalidOperationException("Invalid CommandBuffer, did you forget to call Initialize()?");
             if (_materialArrayDirty)
             {
-                cmd.SetBufferData(MaterialBuffer, _materialList);
+                cmd.SetBufferData(MaterialBuffer, _gpuMaterialList);
                 _materialArrayDirty = false;
             }
         }
 
-        private void UpdateMaterial(in World.MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel, MaterialEntry materialEntry)
+        private void UpdateMaterial(in MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel, MaterialEntry materialEntry)
         {
             AddOrUpdateTexture(in material, TextureType.Albedo, ref materialEntry.AlbedoTextureLocation);
 
@@ -282,7 +308,7 @@ namespace UnityEngine.PathTracing.Core
         private void UpdateMaterialList(MaterialEntry entry)
         {
             // Default values, filled in below
-            var gpuMat = new PTMaterial()
+            var gpuMat = new GpuMaterialEntry()
             {
                 // Default values, filled in below
                 AlbedoTextureIndex = -1,
@@ -325,7 +351,7 @@ namespace UnityEngine.PathTracing.Core
                 gpuMat.TransmissionOffset = transmissionOffset;
             }
 
-            _materialList[entry.IndexInBuffer.block.offset] = gpuMat;
+            _gpuMaterialList[entry.IndexInBuffer.block.offset] = gpuMat;
             _materialArrayDirty = true;
         }
 
@@ -494,7 +520,7 @@ namespace UnityEngine.PathTracing.Core
         }
         #endregion
 
-        private void AddOrUpdateTexture(in World.MaterialDescriptor material, TextureType textureType, ref TextureSlotAllocator.TextureLocation location)
+        private void AddOrUpdateTexture(in MaterialDescriptor material, TextureType textureType, ref TextureSlotAllocator.TextureLocation location)
         {
             // Find appropriate allocator, scale, offset and texture
             var allocator = _transmissionTextureAllocator;
@@ -548,7 +574,7 @@ namespace UnityEngine.PathTracing.Core
             location = TextureSlotAllocator.TextureLocation.Invalid;
         }
 
-        private void FillAlbedoTextureAlphaWithOpacity(in World.MaterialDescriptor material, TextureSlotAllocator.TextureLocation location)
+        private void FillAlbedoTextureAlphaWithOpacity(in MaterialDescriptor material, TextureSlotAllocator.TextureLocation location)
         {
             if (material.Transmission == null)
                 return;
@@ -617,9 +643,9 @@ namespace UnityEngine.PathTracing.Core
         }
 
         // The textures referenced by the material descriptor are owned by the material descriptor.
-        public static World.MaterialDescriptor ConvertUnityMaterialToMaterialDescriptor(Material material)
+        public static MaterialPool.MaterialDescriptor ConvertUnityMaterialToMaterialDescriptor(Material material)
         {
-            World.MaterialDescriptor descriptor = new();
+            MaterialPool.MaterialDescriptor descriptor = new();
 
             // Emission
             var emission = MaterialAspectOracle.GetEmission(material);
@@ -706,14 +732,14 @@ namespace UnityEngine.PathTracing.Core
             return texture;
         }
 
-        private void RecreateMaterialList()
+        private void RecreateGpuMaterialList()
         {
             MaterialBuffer?.Dispose();
-            MaterialBuffer = new ComputeBuffer(_materialSlotAllocator.capacity, Marshal.SizeOf<PTMaterial>());
+            MaterialBuffer = new ComputeBuffer(_materialSlotAllocator.capacity, Marshal.SizeOf<GpuMaterialEntry>());
 
-            var oldMaterialList = _materialList;
-            _materialList = new NativeArray<PTMaterial>(_materialSlotAllocator.capacity, Allocator.Persistent);
-            NativeArray<PTMaterial>.Copy(oldMaterialList, _materialList, oldMaterialList.Length);
+            var oldMaterialList = _gpuMaterialList;
+            _gpuMaterialList = new NativeArray<GpuMaterialEntry>(_materialSlotAllocator.capacity, Allocator.Persistent);
+            NativeArray<GpuMaterialEntry>.Copy(oldMaterialList, _gpuMaterialList, oldMaterialList.Length);
             oldMaterialList.Dispose();
         }
         private static Mesh CreateQuadMesh()
@@ -757,5 +783,3 @@ namespace UnityEngine.PathTracing.Core
         }
     }
 }
-
-

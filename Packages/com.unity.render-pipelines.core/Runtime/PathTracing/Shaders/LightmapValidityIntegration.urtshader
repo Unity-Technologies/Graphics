@@ -47,7 +47,7 @@ void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
         // Something was hit
         UnifiedRT::InstanceData instance = UnifiedRT::GetInstance(hitResult.instanceID);
         PTHitGeom geometry = GetHitGeomInfo(instance, hitResult);
-        MaterialProperties material = LoadMaterialProperties(instance, false, geometry);
+        MaterialProperties material = LoadMaterialProperties(instance, false, geometry.uv0, geometry.uv1);
 
         // Check for transmission
         if (ShouldTransmitRay(rngState, material))

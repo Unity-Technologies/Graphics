@@ -12,7 +12,7 @@ using UnityEngine.Rendering.UnifiedRayTracing;
 
 namespace UnityEditor.PathTracing.LightBakerBridge
 {
-    using MaterialHandle = Handle<World.MaterialDescriptor>;
+    using MaterialHandle = Handle<MaterialPool.MaterialDescriptor>;
     using LightHandle = Handle<World.LightDescriptor>;
 
     internal static class BakeInputToWorldConversion
@@ -244,7 +244,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             int allocationCount = allocatedObjects.Count;
 
             // Create albedo and emission textures from materials
-            var perTexturePairMaterials = new World.MaterialDescriptor[bakeInput.albedoData.Length];
+            var perTexturePairMaterials = new MaterialPool.MaterialDescriptor[bakeInput.albedoData.Length];
             Debug.Assert(bakeInput.albedoData.Length == bakeInput.emissiveData.Length);
             for (int i = 0; i < bakeInput.albedoData.Length; i++)
             {
@@ -300,7 +300,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 // Get base (per-instance) material
                 ref readonly InstanceData instanceData = ref bakeInput.instanceData[instanceIdx];
                 uint texturePairIdx = bakeInput.instanceToTextureDataIndex[instanceIdx];
-                ref readonly World.MaterialDescriptor baseMaterial = ref perTexturePairMaterials[texturePairIdx];
+                ref readonly MaterialPool.MaterialDescriptor baseMaterial = ref perTexturePairMaterials[texturePairIdx];
 
                 // Make space for per-submesh materials and visibility
                 perInstanceSubMeshMaterials[instanceIdx] = new MaterialHandle[instanceData.subMeshMaterialIndices.Length];
@@ -320,7 +320,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                     }
 
                     // Copy the base material
-                    World.MaterialDescriptor subMeshMaterial = baseMaterial;
+                    MaterialPool.MaterialDescriptor subMeshMaterial = baseMaterial;
 
                     // Get per-subMesh material properties, set them on the copy
                     if (-1 != subMeshMaterialIdx)
