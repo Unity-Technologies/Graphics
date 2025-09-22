@@ -134,14 +134,29 @@ void UnlitPassFragment(
 
     half fogFactor = 0;
 #if defined(_FOG_FRAGMENT)
-#if defined(FOG_LINEAR_KEYWORD_DECLARED)
-    if (FOG_LINEAR || FOG_EXP || FOG_EXP2)
+    bool anyFogEnabled = false;
+    
+    #if defined(FOG_LINEAR_KEYWORD_DECLARED)
+    if (FOG_LINEAR)
+        anyFogEnabled = true;
+    #endif
+    
+    #if defined(FOG_EXP_KEYWORD_DECLARED)
+    if (FOG_EXP)
+        anyFogEnabled = true;
+    #endif
+    
+    #if defined(FOG_EXP2_KEYWORD_DECLARED)
+    if (FOG_EXP2)
+        anyFogEnabled = true;
+    #endif
+    
+    if (anyFogEnabled)
     {
         float viewZ = -input.fogCoord;
         float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
         fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
     }
-#endif // #if defined(FOG_LINEAR_KEYWORD_DECLARED)
 #else // #if defined(_FOG_FRAGMENT)
     fogFactor = input.fogCoord;
 #endif // #if defined(_FOG_FRAGMENT)
