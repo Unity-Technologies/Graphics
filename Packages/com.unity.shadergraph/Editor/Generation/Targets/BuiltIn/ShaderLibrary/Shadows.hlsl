@@ -49,7 +49,7 @@ TEXTURE2D_SHADOW(_AdditionalLightsShadowmapTexture);
 SAMPLER_CMP(sampler_AdditionalLightsShadowmapTexture);
 
 // GLES3 causes a performance regression in some devices when using CBUFFER.
-#ifndef SHADER_API_GLES3
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_START(MainLightShadows)
 #endif
 // Last cascade is initialized with a no-op matrix. It always transforms
@@ -67,7 +67,7 @@ half4       _MainLightShadowOffset2;
 half4       _MainLightShadowOffset3;
 half4       _MainLightShadowParams;   // (x: shadowStrength, y: 1.0 if soft shadows, 0.0 otherwise, z: main light fade scale, w: main light fade bias)
 float4      _MainLightShadowmapSize;  // (xy: 1/width and 1/height, zw: width and height)
-#ifndef SHADER_API_GLES3
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
 #endif
 
@@ -98,7 +98,7 @@ float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width an
 #endif
 
 // GLES3 causes a performance regression in some devices when using CBUFFER.
-#ifndef SHADER_API_GLES3
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_START(AdditionalLightShadows)
 #endif
 
@@ -112,7 +112,7 @@ half4       _AdditionalShadowOffset3;
 half4       _AdditionalShadowFadeParams; // x: additional light fade scale, y: additional light fade bias, z: 0.0, w: 0.0)
 float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
 
-#ifndef SHADER_API_GLES3
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
 #endif
 

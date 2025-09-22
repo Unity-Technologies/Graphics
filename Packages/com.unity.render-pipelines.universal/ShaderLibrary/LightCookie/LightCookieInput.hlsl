@@ -13,7 +13,7 @@ SAMPLER(sampler_MainLightCookieTexture);
 
 // Buffers
 // GLES3 causes a performance regression in some devices when using CBUFFER.
-#ifndef SHADER_API_GLES3
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_START(LightCookies)
 #endif
     float4x4 _MainLightWorldToLight;
@@ -25,7 +25,7 @@ CBUFFER_START(LightCookies)
     float4 _AdditionalLightsCookieAtlasUVRects[MAX_VISIBLE_LIGHTS]; // (xy: uv size, zw: uv offset)
     float _AdditionalLightsLightTypes[MAX_VISIBLE_LIGHTS];
 #endif
-#ifndef SHADER_API_GLES3
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
 #endif
 
