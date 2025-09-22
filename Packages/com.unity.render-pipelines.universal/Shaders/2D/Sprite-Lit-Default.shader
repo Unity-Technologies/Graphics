@@ -44,6 +44,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 float3 positionOS   : POSITION;
                 float4 color        : COLOR;
                 float2 uv           : TEXCOORD0;
+                float3 normal       : NORMAL;
                 UNITY_SKINNED_VERTEX_INPUTS
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
@@ -56,6 +57,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 half2   lightingUV  : TEXCOORD1;
                 #if defined(DEBUG_DISPLAY)
                 float3  positionWS  : TEXCOORD2;
+                half3  normalWS     : TEXCOORD3;
                 #endif
                 UNITY_VERTEX_OUTPUT_STEREO
             };
@@ -69,6 +71,9 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             TEXTURE2D(_MaskTex);
             SAMPLER(sampler_MaskTex);
+
+            TEXTURE2D(_NormalMap);
+            SAMPLER(sampler_NormalMap);
 
             // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
             CBUFFER_START(UnityPerMaterial)
@@ -103,6 +108,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 o.positionCS = TransformObjectToHClip(v.positionOS);
                 #if defined(DEBUG_DISPLAY)
                 o.positionWS = TransformObjectToWorld(v.positionOS);
+                o.normalWS = TransformObjectToWorldDir(v.normal);
                 #endif
                 o.uv = v.uv;
                 o.lightingUV = half2(ComputeScreenPos(o.positionCS / o.positionCS.w).xy);
@@ -117,13 +123,18 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             {
                 const half4 main = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
                 const half4 mask = SAMPLE_TEXTURE2D(_MaskTex, sampler_MaskTex, i.uv);
+                const half3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, i.uv));
+
                 SurfaceData2D surfaceData;
                 InputData2D inputData;
 
-                InitializeSurfaceData(main.rgb, main.a, mask, surfaceData);
+                InitializeSurfaceData(main.rgb, main.a, mask, normalTS, surfaceData);
                 InitializeInputData(i.uv, i.lightingUV, inputData);
 
+#if defined(DEBUG_DISPLAY)
                 SETUP_DEBUG_TEXTURE_DATA_2D_NO_TS(inputData, i.positionWS, i.positionCS, _MainTex);
+                surfaceData.normalWS = i.normalWS;
+#endif
 
                 return CombinedShapeLightShared(surfaceData, inputData);
             }
@@ -169,6 +180,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
+
             TEXTURE2D(_NormalMap);
             SAMPLER(sampler_NormalMap);
 

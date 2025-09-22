@@ -46,6 +46,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
                 float3 positionOS   : POSITION;
                 float4 color        : COLOR;
                 float2 uv           : TEXCOORD0;
+                float3 normal       : NORMAL;
                 UNITY_SKINNED_VERTEX_INPUTS
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
@@ -57,6 +58,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
                 float2  uv          : TEXCOORD0;
                 #if defined(DEBUG_DISPLAY)
                 float3  positionWS  : TEXCOORD2;
+                half3  normalWS     : TEXCOORD3;
                 #endif
                 UNITY_VERTEX_OUTPUT_STEREO
             };
@@ -82,6 +84,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
                 o.positionCS = TransformObjectToHClip(v.positionOS);
                 #if defined(DEBUG_DISPLAY)
                 o.positionWS = TransformObjectToWorld(v.positionOS);
+                o.normalWS = TransformObjectToWorldDir(v.normal);
                 #endif
                 o.uv = v.uv;
                 o.color = v.color * _Color * unity_SpriteColor;
@@ -100,6 +103,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
                 InitializeSurfaceData(mainTex.rgb, mainTex.a, surfaceData);
                 InitializeInputData(i.uv, inputData);
                 SETUP_DEBUG_TEXTURE_DATA_2D_NO_TS(inputData, i.positionWS, i.positionCS, _MainTex);
+                surfaceData.normalWS = i.normalWS;
 
                 if(CanDebugOverrideOutputColor(surfaceData, inputData, debugColor))
                 {

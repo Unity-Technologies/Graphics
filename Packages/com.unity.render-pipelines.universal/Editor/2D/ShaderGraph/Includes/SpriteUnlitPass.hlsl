@@ -13,6 +13,9 @@ PackedVaryings vert(Attributes input)
     input.positionOS = UnityFlipSprite(input.positionOS, unity_SpriteProps.xy);
     output = BuildVaryings(input);
     output.color *= _RendererColor * unity_SpriteColor; // vertex color has to applied here
+#if defined(DEBUG_DISPLAY)
+    output.normalWS = TransformObjectToWorldNormal(input.normalOS);
+#endif
     PackedVaryings packedOutput = PackVaryings(output);
     return packedOutput;
 }
@@ -38,9 +41,13 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     clip(color.a - surfaceDescription.AlphaClipThreshold);
 #endif
 
-    #if defined(DEBUG_DISPLAY)
+#if defined(DEBUG_DISPLAY)
     SurfaceData2D surfaceData;
     InitializeSurfaceData(color.rgb, color.a, surfaceData);
+    surfaceData.normalWS = unpacked.normalWS;
+#if (SHADERPASS == SHADERPASS_SPRITELIT)
+    surfaceData.normalTS = surfaceDescription.NormalTS;
+#endif 
     InputData2D inputData;
     InitializeInputData(unpacked.positionWS.xy, half2(unpacked.texCoord0.xy), inputData);
     half4 debugColor = 0;
@@ -51,7 +58,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     {
         return debugColor;
     }
-    #endif
+#endif
 
     // Disable vertex color multiplication. Users can get the color from VertexColor node
 #if !defined(HAVE_VFX_MODIFICATION) && !defined(_DISABLE_COLOR_TINT)

@@ -225,9 +225,22 @@ namespace UnityEngine.Rendering.Universal
         {
             Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
             CommonResourceData commonResourceData = frameData.Get<CommonResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
+            DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(cameraData);
+            var isDebugLightingActive = debugHandler?.IsLightingActive ?? true;
+
+#if UNITY_EDITOR
+            if (cameraData.isSceneViewCamera && UnityEditor.SceneView.currentDrawingSceneView != null)
+                isDebugLightingActive &= UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
+
+            if (cameraData.camera.cameraType == CameraType.Preview)
+                isDebugLightingActive = false;
+#endif
 
             if (!layerBatch.lightStats.useLights ||
-                isVolumetric && !layerBatch.lightStats.useVolumetricLights)
+                isVolumetric && !layerBatch.lightStats.useVolumetricLights ||
+                !isDebugLightingActive)
                 return;
 
             // Render single RTs by using low level pass for apis that don't support MRTs
