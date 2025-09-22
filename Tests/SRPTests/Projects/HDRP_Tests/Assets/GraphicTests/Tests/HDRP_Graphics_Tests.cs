@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "2319_Mixed_Cached_ShadowMap_Area|1705_Decals-stress-test",
             "Fails when GRD is enabled.",
             contextTypes: new[] { typeof(GpuResidentDrawerGlobalContext) },
-            contextMasks: new[] { (int)GpuResidentDrawerContext.GpuResidentDrawerInstancedDrawing }
+            contextMasks: new[] { (int)GpuResidentDrawerContext.GRDEnabled }
         )]
         [IgnoreGraphicsTest(
             "1206_Lit_Transparent_Distortion$",
@@ -304,7 +304,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
             architectures: new[] { Architecture.X64 },
             contextTypes: new[] { typeof(GpuResidentDrawerGlobalContext) },
-            contextMasks: new[] { (int)GpuResidentDrawerContext.GpuResidentDrawerInstancedDrawing }
+            contextMasks: new[] { (int)GpuResidentDrawerContext.GRDEnabled }
         )]
         [IgnoreGraphicsTest(
             "9950-LineRendering",
@@ -312,7 +312,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
             architectures: new[] { Architecture.Arm64 },
             contextTypes: new[] { typeof(GpuResidentDrawerGlobalContext) },
-            contextMasks: new[] { (int)GpuResidentDrawerContext.GpuResidentDrawerInstancedDrawing }
+            contextMasks: new[] { (int)GpuResidentDrawerContext.GRDEnabled }
         )]
         [IgnoreGraphicsTest(
             "2120_APV_Baking",
@@ -320,7 +320,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             runtimePlatforms: new[] { RuntimePlatform.WindowsEditor },
             architectures: new[] { Architecture.X64 },
             contextTypes: new[] { typeof(GpuResidentDrawerGlobalContext) },
-            contextMasks: new[] { (int)GpuResidentDrawerContext.GpuResidentDrawerInstancedDrawing }
+            contextMasks: new[] { (int)GpuResidentDrawerContext.GRDEnabled }
         )]
         [IgnoreGraphicsTest(
             "4107_DRS-FSR2-Hardware",
@@ -348,10 +348,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 
 
             Debug.ClearDeveloperConsole();
-
+#if UNITY_EDITOR
             UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(
                 TestContext.CurrentContext.Test
             );
+#endif
 #if ENABLE_VR
             XRGraphicsAutomatedTests.running = false;
 #endif
@@ -377,13 +378,13 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             get
             {
                 yield return new TestFixtureData(
-                    GpuResidentDrawerContext.GpuResidentDrawerDisabled
+                    GpuResidentDrawerContext.GRDDisabled
                 );
 
                 if (GraphicsTestPlatform.Current.IsEditorPlatform)
                 {
                     yield return new TestFixtureData(
-                        GpuResidentDrawerContext.GpuResidentDrawerInstancedDrawing
+                        GpuResidentDrawerContext.GRDEnabled
                     );
                 }
             }
