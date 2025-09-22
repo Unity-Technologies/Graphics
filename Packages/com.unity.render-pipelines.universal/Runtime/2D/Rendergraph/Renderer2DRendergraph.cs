@@ -99,6 +99,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 clearColor = true;
                 clearDepth = true;
+                debugHandler.TryGetScreenClearColor(ref cameraBackgroundColor);
             }
 
             output.cameraColorParams.clearOnFirstUse = clearColor;
@@ -817,11 +818,14 @@ namespace UnityEngine.Rendering.Universal
             // If HDR debug views are enabled, DebugHandler will perform the blit from debugScreenColor (== finalColorHandle) to backBufferColor.
             DebugHandler?.Render(renderGraph, cameraData, finalColorHandle, commonResourceData.overlayUITexture, commonResourceData.backBufferColor);
 
-            if (cameraData.isSceneViewCamera)
-                DrawRenderGraphWireOverlay(renderGraph, frameData, commonResourceData.backBufferColor);
+            if (cameraData.resolveFinalTarget)
+            {
+                if (cameraData.isSceneViewCamera)
+                    DrawRenderGraphWireOverlay(renderGraph, frameData, commonResourceData.backBufferColor);
 
-            if (drawGizmos)
-                DrawRenderGraphGizmos(renderGraph, frameData, commonResourceData.activeColorTexture, commonResourceData.activeDepthTexture, GizmoSubset.PostImageEffects);
+                if (drawGizmos)
+                    DrawRenderGraphGizmos(renderGraph, frameData, commonResourceData.activeColorTexture, commonResourceData.activeDepthTexture, GizmoSubset.PostImageEffects);
+            }
         }
 
         private void CleanupRenderGraphResources()
