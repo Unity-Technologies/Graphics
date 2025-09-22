@@ -4,14 +4,13 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor.Categorization;
 using UnityEditor.Rendering.Analytics;
-using UnityEditor.Rendering.Converter;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.Rendering;
+using UnityEngine.Pool;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Rendering.Universal
+namespace UnityEditor.Rendering.Converter
 {
     // This is the serialized class that stores the state of each item in the list of items to convert
     [Serializable]
@@ -109,9 +108,11 @@ namespace UnityEditor.Rendering.Universal
     [EditorWindowTitle(title = "Render Pipeline Converters")]
     internal class RenderPipelineConvertersEditor : EditorWindow, IHasCustomMenu
     {
-        public VisualTreeAsset converterEditorAsset;
-        public VisualTreeAsset converterItem;
-        public VisualTreeAsset converterWidgetMainAsset;
+        const string k_Uxml = "Packages/com.unity.render-pipelines.core/Editor-PrivateShared/Tools/Converter/Window/RenderPipelineConvertersEditor.uxml";
+        const string k_Uss = "Packages/com.unity.render-pipelines.core/Editor-PrivateShared/Tools/Converter/Window/RenderPipelineConvertersEditor.uss";
+
+        static Lazy<VisualTreeAsset> s_VisualTreeAsset = new Lazy<VisualTreeAsset>(() => AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(k_Uxml));
+        static Lazy<StyleSheet> s_StyleSheet = new Lazy<StyleSheet>(() => AssetDatabase.LoadAssetAtPath<StyleSheet>(k_Uss));
 
         ScrollView m_ScrollView;
         RenderPipelineConverterVisualElement m_ConverterSelectedVE;
@@ -176,7 +177,8 @@ namespace UnityEditor.Rendering.Universal
         public void CreateGUI()
         {
             rootVisualElement.Clear();
-            converterEditorAsset.CloneTree(rootVisualElement);
+            s_VisualTreeAsset.Value.CloneTree(rootVisualElement);
+            rootVisualElement.styleSheets.Add(s_StyleSheet.Value);
 
             // Getting the scrollview where the converters should be added
             m_ScrollView = rootVisualElement.Q<ScrollView>("convertersScrollView");
@@ -374,13 +376,13 @@ namespace UnityEditor.Rendering.Universal
                 var current = selectedConverters[iConverterIndex];
                 var converter = current.converter;
 
-                if (EditorUtility.DisplayCancelableProgressBar("Initializing converters", $"({iConverterIndex} of {count}) {converter.name}", (float)iConverterIndex / (float)count))
+                if (EditorUtility.DisplayCancelableProgressBar("Initializing converters",
+                    $"({iConverterIndex} of {count}) {current.displayName}", (float)iConverterIndex / (float)count))
                 {
                     InitializationFinish();
                     return;
                 }
 
-                List<ConverterItemDescriptor> converterItemInfos = new List<ConverterItemDescriptor>();
                 void OnConverterScanFinished()
                 {
                     // Try to execute the next converter

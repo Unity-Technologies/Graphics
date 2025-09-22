@@ -6,12 +6,12 @@ using UnityEditor.Rendering.Converter;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Rendering.Universal
+namespace UnityEditor.Rendering.Converter
 {
     internal class RenderPipelineConverterVisualElement : VisualElement
     {
-        const string k_Uxml = "Packages/com.unity.render-pipelines.universal/Editor/Converter/converter_widget_main.uxml";
-        const string k_Uss = "Packages/com.unity.render-pipelines.universal/Editor/Converter/converter_widget_main.uss";
+        const string k_Uxml = "Packages/com.unity.render-pipelines.core/Editor-PrivateShared/Tools/Converter/Window/RenderPipelineConverterVisualElement.uxml";
+        const string k_Uss = "Packages/com.unity.render-pipelines.core/Editor-PrivateShared/Tools/Converter/Window/RenderPipelineConverterVisualElement.uss";
 
         static Lazy<VisualTreeAsset> s_VisualTreeAsset = new Lazy<VisualTreeAsset>(() => AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(k_Uxml));
         static Lazy<StyleSheet> s_StyleSheet = new Lazy<StyleSheet>(() => AssetDatabase.LoadAssetAtPath<StyleSheet>(k_Uss));
@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.Universal
         public string description => m_ConverterInfo.description;
 
         public ConverterState state => m_ConverterInfo.data.state;
-        public RenderPipelineConverter converter => m_ConverterInfo.data.converter as RenderPipelineConverter;
+        public IRenderPipelineConverter converter => m_ConverterInfo.data.converter as IRenderPipelineConverter;
 
         public bool isSelectedAndEnabled => converter.isEnabled && state.isSelected;
 
@@ -78,7 +78,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 showMoreInfo?.Invoke();
             });
-            topElement.tooltip = (converter.isEnabled) ? description : converter.isDisabledWarningMessage;
+            topElement.tooltip = (converter.isEnabled) ? description : converter.isDisabledMessage;
 
             topElement.RegisterCallback<TooltipEvent>(evt =>
             {
@@ -116,7 +116,10 @@ namespace UnityEditor.Rendering.Universal
                 var item = element as RenderPipelineConverterItemVisualElement;
                 item.Bind(state.items[index]);
             };
-            listView.selectionChanged += obj => { converter.OnClicked(listView.selectedIndex); };
+            listView.selectionChanged += obj =>
+            {
+                state.items[listView.selectedIndex].item.OnClicked();
+            };
 
             // setup the images
             m_RootVisualElement.Q<Image>("pendingImage").image = CoreEditorStyles.iconPending;
@@ -241,22 +244,19 @@ namespace UnityEditor.Rendering.Universal
             UpdateInfo();
             m_RootVisualElement.SetEnabled(converter.isEnabled);
             m_RootVisualElement.Q<Label>("converterName").text = displayName;
-            m_RootVisualElement.Q<VisualElement>("converterTopVisualElement").tooltip = (converter.isEnabled) ? description : converter.isDisabledWarningMessage;
+            m_RootVisualElement.Q<VisualElement>("converterTopVisualElement").tooltip = (converter.isEnabled) ? description : converter.isDisabledMessage;
         }
 
         public void Scan(Action onScanFinish)
         {
-            // Create the context to call the converter init method
-            List<ConverterItemDescriptor> converterItemInfos = new List<ConverterItemDescriptor>();
-            var initCtx = new InitializeConverterContext { items = converterItemInfos };
-
+            state.Clear();
             state.isLoading = true;
             converter.Scan(OnConverterCompleteDataCollection);
 
             void OnConverterCompleteDataCollection(List<IRenderPipelineConverterItem> items)
             {
                 // Set the item infos list to to the right index
-                state.items = new List<ConverterItemState>(converterItemInfos.Count);
+                state.items = new List<ConverterItemState>(items.Count);
 
                 foreach(var item in items)
                 {
@@ -281,7 +281,7 @@ namespace UnityEditor.Rendering.Universal
         {
             if (state.pending == 0)
             {
-                Debug.Log($"Skipping conversion, {converter.name} has no pending items to convert.");
+                Debug.Log($"Skipping conversion, {displayName} has no pending items to convert.");
                 return;
             }
 

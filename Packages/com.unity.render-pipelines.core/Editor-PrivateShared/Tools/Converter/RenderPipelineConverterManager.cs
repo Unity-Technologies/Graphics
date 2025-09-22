@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using UnityEditor.Rendering.Converter;
 using UnityEngine;
 
-namespace UnityEditor.Rendering.Universal
+namespace UnityEditor.Rendering.Converter
 {
     class RenderPipelineConverterManager : ScriptableSingleton<RenderPipelineConverterManager>
         , ISerializationCallbackReceiver
@@ -40,7 +39,7 @@ namespace UnityEditor.Rendering.Universal
                     if (serializedConverter != null)
                         continue;
 
-                    var renderPipelineConverter = Activator.CreateInstance(converterType) as RenderPipelineConverter;
+                    var renderPipelineConverter = Activator.CreateInstance(converterType) as IRenderPipelineConverter;
 
                     // Create a new ConvertState which holds the active state of the converter
                     var converterState = new ConverterState

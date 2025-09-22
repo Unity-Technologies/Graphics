@@ -1,13 +1,21 @@
 using System;
 using UnityEditor.SceneManagement;
+using UnityEngine;
 
-namespace UnityEditor.Rendering.Universal
+namespace UnityEditor.Rendering.Converter
 {
     [Serializable]
-    internal class RenderPipelineConverterAssetItem
+    internal class RenderPipelineConverterAssetItem : IRenderPipelineConverterItem
     {
         public string assetPath { get; }
         public string guid { get; }
+
+        public string name => assetPath;
+
+        public string info => guid;
+
+        public bool isEnabled { get; set; }
+        public string isDisabledMessage { get; set; }
 
         public RenderPipelineConverterAssetItem(string id)
         {

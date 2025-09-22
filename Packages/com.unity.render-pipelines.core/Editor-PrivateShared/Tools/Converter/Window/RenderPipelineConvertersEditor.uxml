@@ -1,5 +1,4 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <Style src="project://database/Packages/com.unity.render-pipelines.universal/Editor/Converter/converter_editor.uss?fileID=7433441132597879392&amp;guid=0356b27d63ed56a4c9b6fa5b729c89f8&amp;type=3#converter_editor" />
     <ui:VisualElement name="singleConverterVE" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); display: none; padding-left: 19px; padding-right: 19px; padding-top: 20px; padding-bottom: 20px;">
         <ui:VisualElement name="backButtonVE" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; height: 0; flex-shrink: 1; max-height: 22px; display: flex; min-height: 22px; margin-bottom: 10px;">
             <ui:Button tabindex="-1" text="&lt; Back" display-tooltip-when-elided="true" name="backButton" style="width: 110px; margin-left: 3px; display: flex;" />

@@ -99,25 +99,25 @@ namespace UnityEditor.Rendering.Universal
     }
 
     [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
-    [ElementInfo(Name = "Materials Converter",
+    [ElementInfo(Name = "Material Reference Converter",
                  Order = 100,
                  Description = "Converts references to Built-In readonly materials to URP readonly materials. This will create temporarily a .index file and that can take a long time.")]
-    internal class ReadonlyMaterialConverter : RenderPipelineAssetsConverter
+    internal class ReadonlyMaterialConverter : AssetsConverter
     {
         public override bool isEnabled => GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset;
-        public override string isDisabledWarningMessage => "Converter requires URP. Convert your project to URP to use this converter.";
+        public override string isDisabledMessage => "Converter requires URP. Convert your project to URP to use this converter.";
 
         protected override List<(string query, string description)> contextSearchQueriesAndIds
             => ReadonlyMaterialMap.GetMaterialSearchList();
 
         internal MaterialReferenceChanger m_MaterialReferenceChanger;
 
-        public override void OnPreRun()
+        public override void BeforeConvert()
         {
             m_MaterialReferenceChanger = new MaterialReferenceChanger();
         }
 
-        public override void OnPostRun()
+        public override void AfterConvert()
         {
             m_MaterialReferenceChanger?.Dispose();
             m_MaterialReferenceChanger = null;

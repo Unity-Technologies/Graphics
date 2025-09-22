@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using UnityEditor.Rendering.Converter;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -78,23 +79,15 @@ namespace UnityEditor.Rendering.Universal.Tools
             var assetItem = new RenderPipelineConverterAssetItem(gid, k_PrefabPath);
             materialConverter.assets.Add(assetItem);
 
-            RunItemContext runItemContext = new RunItemContext(new ConverterItemInfo
-            {
-                descriptor = new ConverterItemDescriptor()
-                {
-                    name = m_GO.name
-                },
-                index = 0,
-            });
+            Assert.IsNull(materialConverter.m_MaterialReferenceChanger, "MaterialReferenceChanger should be null before BeforeConvert");
+            materialConverter.BeforeConvert();
+            Assert.IsNotNull(materialConverter.m_MaterialReferenceChanger, "MaterialReferenceChanger should NOT be null after BeforeConvert");
+            var status = materialConverter.Convert(assetItem, out var message);
+            materialConverter.AfterConvert();
+            Assert.IsNull(materialConverter.m_MaterialReferenceChanger, "MaterialReferenceChanger should be null after AfterConvert");
 
-            Assert.IsNull(materialConverter.m_MaterialReferenceChanger, "MaterialReferenceChanger should be null before OnPreRun");
-            materialConverter.OnPreRun();
-            Assert.IsNotNull(materialConverter.m_MaterialReferenceChanger, "MaterialReferenceChanger should NOT be null after OnPreRun");
-            materialConverter.OnRun(ref runItemContext);
-            materialConverter.OnPostRun();
-            Assert.IsNull(materialConverter.m_MaterialReferenceChanger, "MaterialReferenceChanger should be null after OnPostRun");
-
-            Assert.IsFalse(runItemContext.didFail, runItemContext.info);
+            Assert.AreEqual(Status.Success, status);
+            Assert.IsTrue(string.IsNullOrEmpty(message), $"Message should be empty. Message: {message}");
             CheckMaterials(m_MeshRenderer.sharedMaterials);
         }
     }

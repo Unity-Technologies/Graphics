@@ -1,12 +1,14 @@
 using System.Collections.Generic;
 using System.Text;
-using UnityEditor.Rendering.Converter;
 using UnityEngine;
 
-namespace UnityEditor.Rendering.Universal
+namespace UnityEditor.Rendering.Converter
 {
-    internal abstract class RenderPipelineConverterMaterialUpgrader : RenderPipelineAssetsConverter
+    internal abstract class RenderPipelineConverterMaterialUpgrader : AssetsConverter
     {
+        public override bool isEnabled => m_UpgradersCache.Count > 0;
+        public override string isDisabledMessage => "No upgraders specified for this converter.";
+
         /// <summary>
         /// List of material upgraders to use for this converter.
         /// </summary>

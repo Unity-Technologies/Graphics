@@ -1,13 +1,12 @@
 using System;
-using UnityEditor.Rendering.Converter;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Rendering.Universal
+namespace UnityEditor.Rendering.Converter
 {
     internal class RenderPipelineConverterItemVisualElement : VisualElement
     {
-        const string k_Uxml = "Packages/com.unity.render-pipelines.universal/Editor/Converter/converter_widget_item.uxml";
+        const string k_Uxml = "Packages/com.unity.render-pipelines.core/Editor-PrivateShared/Tools/Converter/Window/RenderPipelineConverterItemVisualElement.uxml";
 
         static Lazy<VisualTreeAsset> s_VisualTreeAsset = new Lazy<VisualTreeAsset>(() => AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(k_Uxml));
 
