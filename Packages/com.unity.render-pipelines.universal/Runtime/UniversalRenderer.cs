@@ -2036,13 +2036,14 @@ namespace UnityEngine.Rendering.Universal
                 isCompatibleBackbufferTextureDimension = cameraData.xr.renderTargetDesc.dimension == cameraTargetDescriptor.dimension;
             }
 #endif
-            bool requiresBlitForOffscreenCamera = applyPostProcessing || cameraData.requiresOpaqueTexture || requiresExplicitMsaaResolve || !cameraData.isDefaultViewport;
+            bool requiresOpaqueTexture = cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
+
+            bool requiresBlitForOffscreenCamera = applyPostProcessing || requiresOpaqueTexture || requiresExplicitMsaaResolve || !cameraData.isDefaultViewport;
             if (isOffscreenRender)
                 return requiresBlitForOffscreenCamera;
 
             return requiresBlitForOffscreenCamera || isScaledRender || isScalableBufferManagerUsed || cameraData.isHdrEnabled ||
-                !isCompatibleBackbufferTextureDimension || isCapturing || cameraData.requireSrgbConversion ||
-                renderPassInputs.requiresColorTexture;
+                !isCompatibleBackbufferTextureDimension || isCapturing || cameraData.requireSrgbConversion;
         }
 
         // There is two ways to control the dynamic resolution in URP:
