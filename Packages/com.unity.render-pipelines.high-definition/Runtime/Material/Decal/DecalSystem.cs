@@ -284,7 +284,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // to work on Vulkan Mobile?
         // Core\CoreRP\ShaderLibrary\UnityInstancing.hlsl
-        // #if (defined(SHADER_API_VULKAN) && defined(SHADER_API_MOBILE)) || defined(SHADER_API_SWITCH)
+        // #if (defined(SHADER_API_VULKAN) && defined(SHADER_API_MOBILE)) || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2)
         //      #define UNITY_INSTANCED_ARRAY_SIZE  250
         private const int kDrawIndexedBatchSize = 250;
 
@@ -318,10 +318,10 @@ namespace UnityEngine.Rendering.HighDefinition
         static public Vector4[] m_BaseColor = new Vector4[kDecalBlockSize];
 
         // Clustered decal world space info -- useful when m_CullingMode is set to WorldspaceBasedCulling
-        // This data is cached and can be queried for algorithms doing their own clustering (e.g. path tracing). 
+        // This data is cached and can be queried for algorithms doing their own clustering (e.g. path tracing).
         static public Vector3[] m_DecalDatasWSPositions = new Vector3[kDecalBlockSize];
         static public Vector3[] m_DecalDatasWSRanges = new Vector3[kDecalBlockSize];
- 
+
         static public int m_DecalDatasCount = 0;
 
         static public float[] m_BoundingDistances = new float[1];
@@ -638,7 +638,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float normalBlendSrc = 0.0f;
                     float maskBlendSrc = 1.0f;
                     m_BlendParams = new Vector3(normalBlendSrc, maskBlendSrc, (float)affectFlags);
-                    
+
                     m_SampleNormalAlpha = 1.0f;
                     // Metallic, AO and Smoothness remapping can be done directly in the shader graph
                     // By hard coding those values we do an additional lerp within EvalDecalMask which could be avoided
@@ -648,7 +648,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_ScalingBlueMaskMap = 1.0f;
                     m_RemappingMetallic = new Vector2(remapMin, remapMax);
                     m_RemappingAOS = new Vector4(remapMin, remapMax, remapMin, remapMax);
-                    
+
                     // With ShaderGraph it is possible that the pass isn't generated. But if it is, it can be disabled.
                     m_cachedProjectorPassValue = m_Material.FindPass(s_MaterialDecalPassNames[(int)MaterialDecalPass.DBufferProjector]);
                     if (m_cachedProjectorPassValue != -1 && m_Material.GetShaderPassEnabled(s_MaterialDecalPassNames[(int)MaterialDecalPass.DBufferProjector]) == false)
@@ -938,7 +938,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var camera = instance.CurrentCamera;
                 Matrix4x4 worldToView = HDRenderPipeline.WorldToCamera(camera);
 
-                /* Prepare data for the DBuffer drawing */ 
+                /* Prepare data for the DBuffer drawing */
                 if ((DecalSystem.m_CullingMode & DecalCullingMode.ViewspaceBasedCulling) != 0)
                 {
                     int cullingMask = camera.cullingMask;
@@ -960,7 +960,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         int decalMask = 1 << m_CachedLayerMask[decalIndex];
                         ulong decalSceneCullingMask = m_CachedSceneLayerMask[decalIndex];
                         bool sceneViewCullingMaskTest = true;
-#if UNITY_EDITOR    
+#if UNITY_EDITOR
                         // In the player, both masks will be zero. Besides we don't want to pay the cost in this case.
                         sceneViewCullingMaskTest = (sceneCullingMask & decalSceneCullingMask) != 0;
 #endif
@@ -1609,7 +1609,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void CreateDrawData()
         {
-            // Reset number of clustered decals 
+            // Reset number of clustered decals
             m_DecalDatasCount = 0;
             // Count the current maximum number of decals to cluster, to allow reallocation if needed
             int maxDecalsToCluster = m_DecalsVisibleThisFrame;

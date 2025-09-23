@@ -6,7 +6,7 @@ Shader "Hidden/HDRP/DebugLightCluster"
 
         HLSLINCLUDE
 
-        #pragma only_renderers d3d11 xboxseries ps5
+        #pragma only_renderers d3d11 xboxseries ps5 switch2
 
         static const float3 cubeVertices[24] =
         {

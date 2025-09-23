@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool m_FrameSettingsHistoryEnabled = false;
 
-#if UNITY_SWITCH
+#if UNITY_SWITCH //|| UNITY_SWITCH2 ?
         internal static bool k_PreferFragment = true;
 #else
         internal static bool k_PreferFragment = false;
@@ -355,8 +355,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
             bool hdrInPlayerSettings = true;
 #endif
+            bool supportsSwitchingHDR = SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.RuntimeSwitchable);
+            bool hdrOutputActive = HDROutputSettings.main.available && HDROutputSettings.main.active;
 
-            if (hdrInPlayerSettings && HDROutputSettings.main.available)
+            if (hdrInPlayerSettings && supportsSwitchingHDR && hdrOutputActive)
             {
                 if (camera.camera.cameraType != CameraType.Game)
                 {
@@ -684,7 +686,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DepthPyramidMipLevelOffsetsBuffer = new ComputeBuffer(15, sizeof(int) * 2);
 
             m_CustomPassColorBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetCustomBufferFormat(), enableRandomWrite: true, useDynamicScale: true, name: "CustomPassColorBuffer"));
-            m_CustomPassDepthBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.None, useDynamicScale: true, name: "CustomPassDepthBuffer", depthBufferBits: DepthBits.Depth32));
+            m_CustomPassDepthBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.None, useDynamicScale: true, name: "CustomPassDepthBuffer", depthBufferBits: CoreUtils.GetDefaultDepthBufferBits()));
 
             // For debugging
             MousePositionDebug.instance.Build();

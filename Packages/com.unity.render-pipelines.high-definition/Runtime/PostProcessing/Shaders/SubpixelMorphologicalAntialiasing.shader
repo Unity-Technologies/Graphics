@@ -8,7 +8,7 @@ Shader "Hidden/PostProcessing/SubpixelMorphologicalAntialiasing"
 
     HLSLINCLUDE
 
-    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
     #pragma multi_compile_fragment SMAA_PRESET_LOW SMAA_PRESET_MEDIUM SMAA_PRESET_HIGH
     #pragma editor_sync_compilation
 

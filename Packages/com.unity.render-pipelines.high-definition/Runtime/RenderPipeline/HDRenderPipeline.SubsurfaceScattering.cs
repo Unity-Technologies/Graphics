@@ -159,7 +159,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOne &&
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOneD3D12 &&
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.GameCoreXboxOne &&
-                SystemInfo.graphicsDeviceType != GraphicsDeviceType.GameCoreXboxSeries);
+                SystemInfo.graphicsDeviceType != GraphicsDeviceType.GameCoreXboxSeries &&
+                SystemInfo.graphicsDeviceType != GraphicsDeviceType.Switch2);
         }
 
         // Albedo + SSS Profile and mask / Specular occlusion (when no SSS)

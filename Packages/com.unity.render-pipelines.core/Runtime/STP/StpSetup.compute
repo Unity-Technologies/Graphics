@@ -14,7 +14,7 @@
 
 #pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch glcore
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2 glcore
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -59,7 +59,7 @@ TEXTURE2D_X(_StpPriorFeedback);
 
 #define STP_SETUP_PER_VIEW_CONSTANTS_STEREO_OFFSET (SLICE_ARRAY_INDEX * STPSETUPPERVIEWCONSTANTS_COUNT)
 
-#if defined(SHADER_API_PSSL) || defined(SHADER_API_SWITCH) || (defined(SHADER_API_METAL) && !defined(SHADER_API_MOBILE))
+#if defined(SHADER_API_PSSL) || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2) || (defined(SHADER_API_METAL) && !defined(SHADER_API_MOBILE))
     // Force usage of the 32-bit reduction path even in 16-bit environments
     #define STP_FORCE_32BIT_REDUCTION
 #endif

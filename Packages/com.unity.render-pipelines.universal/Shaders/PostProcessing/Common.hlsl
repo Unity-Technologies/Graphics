@@ -19,7 +19,7 @@
 //     On all other platforms we could basically get away with preset 15 which has slightly better edge quality.
 
 // Tweakable params (can be changed to get different performance and quality tradeoffs)
-#if SHADER_API_PS5 && defined(HDR_INPUT)
+#if (SHADER_API_PS5 || SHADER_API_SWITCH2) && defined(HDR_INPUT)
 // The console implementation does not generate artefacts when the input pixels are in nits (monitor HDR range).
 #define FXAA_PC 0
 #else

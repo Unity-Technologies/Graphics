@@ -1,7 +1,7 @@
 #pragma kernel MipGeneration
 #pragma kernel CopyMip
 
-#pragma only_renderers d3d11 xboxseries ps5
+#pragma only_renderers d3d11 xboxseries ps5 switch2
 
 // #pragma enable_d3d11_debug_symbols
 

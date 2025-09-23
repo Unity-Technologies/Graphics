@@ -6,7 +6,7 @@ Shader "Hidden/HDRP/Sky/CloudLayer"
 
     #pragma editor_sync_compilation
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
     //#pragma enable_d3d11_debug_symbols
 
     #pragma multi_compile_local LAYER1_STATIC LAYER1_PROCEDURAL LAYER1_FLOWMAP

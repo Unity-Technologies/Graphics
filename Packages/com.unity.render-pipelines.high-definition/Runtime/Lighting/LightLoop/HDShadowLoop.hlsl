@@ -229,6 +229,7 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
                         }
                         else
 #endif
+                        if ( lightData.shadowIndex >= 0 )
                         {
                             float3 L;
                             float4 distances; // {d, d^2, 1/d, d_proj}

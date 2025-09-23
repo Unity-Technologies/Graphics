@@ -25,7 +25,7 @@ Shader "Hidden/HDRP/WaterExclusion"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
             // #pragma enable_d3d11_debug_symbols

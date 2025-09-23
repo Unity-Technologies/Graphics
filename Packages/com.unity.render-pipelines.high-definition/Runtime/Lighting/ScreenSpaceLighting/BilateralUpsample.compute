@@ -3,7 +3,7 @@
 
 //#pragma enable_d3d11_debug_symbols
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
 #define BILATERAL_UPSAMPLE_TILE_SIZE 8
 
@@ -139,7 +139,7 @@ void BilateralUpSampleColor(uint3 currentCoord : SV_DispatchThreadID)
     float closestDepth = max(depthNeighborhood.x, max(depthNeighborhood.y, max(depthNeighborhood.z, depthNeighborhood.w)));
 
     float2 uvAtLowRes = min((currentCoord.xy) * _RayMarchingLowResPercentage + 0.5, _HalfScreenSize.xy - 1) * _ScreenSize.zw;
-    float2 sampleUV = ClampAndScaleUVForBilinear(uvAtLowRes); 
+    float2 sampleUV = ClampAndScaleUVForBilinear(uvAtLowRes);
 
     float2 samplePixel = sampleUV * _ScreenSize.xy;
     float2 bottomRight = frac(samplePixel + 0.5);
