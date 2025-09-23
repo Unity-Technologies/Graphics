@@ -569,6 +569,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/360_Shader_Graphs_UITK.unity
     guid: 131227f8302d12c49aa595b7f090a7a7
+  - enabled: 1
+    path: Assets/Scenes/361_UIToolkit_Blending.unity
+    guid: 4ecd08597ff2da342b149c57aa96d35b
+  - enabled: 1
+    path: Assets/Scenes/362_UIToolkit_Keywords.unity
+    guid: e9b15c579f66cc94c951cdd18318f5ef
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 20e925b8abdd424429b17f709e9d00f8,
       type: 2}
