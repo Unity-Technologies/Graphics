@@ -85,7 +85,9 @@ namespace UnityEngine.Rendering
             /// <param name="value">Input value.</param>
             public virtual void SetValue(T value)
             {
-                Assert.IsNotNull(setter);
+                if (setter == null)
+                    return;
+
                 var v = ValidateValue(value);
 
                 if (v == null || !v.Equals(getter()))
