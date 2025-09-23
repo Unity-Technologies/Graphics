@@ -284,10 +284,11 @@ namespace UnityEngine.Rendering
 
             public SettingsPanel(DebugDisplayGPUResidentDrawer data)
             {
+                DocumentationUtils.TryGetHelpURL(typeof(DebugDisplayGPUResidentDrawer), out var documentationUrl);
                 var foldout = new DebugUI.Foldout()
                 {
                     displayName = Strings.drawerSettingsContainerName,
-                    documentationUrl = typeof(DebugDisplayGPUResidentDrawer).GetCustomAttribute<HelpURLAttribute>()?.URL
+                    documentationUrl = documentationUrl
                 };
                 AddWidget(foldout);
 

@@ -8,7 +8,8 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Render Graph-related Rendering Debugger settings.
     /// </summary>
-    [CurrentPipelineHelpURL(pageName: "features/rendering-debugger-reference", pageHash: "render-graph")]
+    [PipelineHelpURL("UniversalRenderPipelineAsset", pageName: "features/rendering-debugger-reference", pageHash: "render-graph")]
+    [PipelineHelpURL("HDRenderPipelineAsset", pageName: "rendering-debugger-window-reference", pageHash: "render-graph")]
     class DebugDisplaySettingsRenderGraph : IDebugDisplaySettingsData
     {
         public DebugDisplaySettingsRenderGraph()
@@ -24,10 +25,11 @@ namespace UnityEngine.Rendering
         {
             public SettingsPanel(DebugDisplaySettingsRenderGraph _)
             {
+                DocumentationUtils.TryGetHelpURL(typeof(DebugDisplaySettingsRenderGraph), out var documentationUrl);
                 var foldout = new DebugUI.Foldout()
                 {
                     displayName = "Render Graph",
-                    documentationUrl = typeof(DebugDisplaySettingsRenderGraph).GetCustomAttribute<HelpURLAttribute>()?.URL
+                    documentationUrl = documentationUrl
                 };
                 AddWidget(foldout);
 
