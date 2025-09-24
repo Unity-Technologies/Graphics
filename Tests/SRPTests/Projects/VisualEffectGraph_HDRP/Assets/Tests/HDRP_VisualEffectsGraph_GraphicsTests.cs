@@ -25,6 +25,7 @@ namespace UnityEngine.VFX.Test
         [IgnoreGraphicsTest("022_Repro_Crash_Null_Indexbuffer", "No reference images provided")]
         [IgnoreGraphicsTest("023_Check_Garbage_Timeline", "No reference images provided")]
         [IgnoreGraphicsTest("026_InstancingGPUevents", "See UUM-88671", graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal })]
+        [IgnoreGraphicsTest("026_RWBuffer", "Unstable: https://jira.unity3d.com/browse/UUM-119810")]
         [IgnoreGraphicsTest("36_SkinnedSDF", "See UUM-66822 and VFXG-539", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.GameCoreXboxOne, RuntimePlatform.Switch })]
         [IgnoreGraphicsTest("39_SmokeLighting_APV", "Too many bindings when using APVs", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch })]
         [IgnoreGraphicsTest("102_ShadergraphShadow", "See UUM-96202", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch })]
