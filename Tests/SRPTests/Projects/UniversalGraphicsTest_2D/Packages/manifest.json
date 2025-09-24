@@ -17,7 +17,7 @@
     "com.unity.testing.urp": "file:../../../Packages/com.unity.testing.urp",
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
     "local.utf.references": "file:../../../Packages/local.utf.references",
-    "com.unity.testframework.graphics": "8.11.0-exp.1",
+    "com.unity.testframework.graphics": "8.12.0-exp.2",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
     "com.unity.ugui": "2.0.0",
     "com.unity.modules.ai": "1.0.0",
