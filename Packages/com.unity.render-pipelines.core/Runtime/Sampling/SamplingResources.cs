@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.Sampling
         private Texture2D m_SobolOwenScrambled256Samples;
         private GraphicsBuffer m_SobolBuffer;
 
-        static public readonly uint[] sobolMatrices = SobolData.SobolMatrices;
+        static internal readonly uint[] sobolMatrices = SobolData.SobolMatrices;
 
 #if UNITY_EDITOR
         public void Load(uint resourceBitmask = (uint)ResourceType.BlueNoiseTextures)
