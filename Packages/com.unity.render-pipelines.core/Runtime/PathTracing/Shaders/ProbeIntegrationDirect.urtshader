@@ -7,6 +7,8 @@
 #include "PathTracing.hlsl"
 #include "SphericalHarmonicsUtils.hlsl"
 
+#pragma exclude_renderers switch switch2
+
 RWStructuredBuffer<float3> g_Positions;
 RWStructuredBuffer<float> g_RadianceShl2;
 uint g_PositionsOffset;

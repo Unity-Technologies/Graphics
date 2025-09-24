@@ -8,6 +8,8 @@
 #include "PathTracing.hlsl"
 #include "LightmapIntegrationHelpers.hlsl"
 
+#pragma exclude_renderers switch switch2
+
 int g_AccumulateDirectional;
 int g_SampleOffset;
 uint g_ReceiveShadows;
