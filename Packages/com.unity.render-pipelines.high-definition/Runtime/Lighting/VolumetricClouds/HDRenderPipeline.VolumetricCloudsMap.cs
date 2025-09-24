@@ -160,10 +160,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddUnsafePass<VolumetricCloudsMapData>("Volumetric cloud map generation", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudMapGeneration)))
             {
-                builder.AllowPassCulling(false);
-
                 passData.parameters = PrepareCloudMapGenerationParameters(in settings);
                 passData.cloudMapTexture = renderGraph.ImportTexture(m_AdvancedCloudMap);
+                builder.UseTexture(passData.cloudMapTexture, AccessFlags.Write);
 
                 builder.SetRenderFunc(
                     (VolumetricCloudsMapData data, UnsafeGraphContext ctx) =>
