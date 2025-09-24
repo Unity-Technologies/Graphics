@@ -129,10 +129,10 @@ namespace UnityEditor.Rendering
 
         static LensFlareDataSRPEditor()
         {
-            MethodInfo FillPropertyContextMenuInfo = typeof(EditorGUI).GetMethod("FillPropertyContextMenu", BindingFlags.Static | BindingFlags.NonPublic);
+            MethodInfo FillPropertyContextMenuInfo = typeof(EditorGUI).GetMethod("FillPropertyContextMenu", BindingFlags.Static | BindingFlags.NonPublic, null, new Type[] {typeof(SerializedProperty), typeof(SerializedProperty), typeof(GenericMenu)}, null);
             var propertyParam = Expression.Parameter(typeof(SerializedProperty), "property");
             var FillPropertyContextMenuBlock = Expression.Block(
-                Expression.Call(null, FillPropertyContextMenuInfo, propertyParam, Expression.Constant(null, typeof(SerializedProperty)), Expression.Constant(null, typeof(GenericMenu)), Expression.Constant(null, typeof(VisualElement)))
+                Expression.Call(null, FillPropertyContextMenuInfo, propertyParam, Expression.Constant(null, typeof(SerializedProperty)), Expression.Constant(null, typeof(GenericMenu)))
             );
             var FillPropertyContextMenuLambda = Expression.Lambda<Func<SerializedProperty, GenericMenu>>(FillPropertyContextMenuBlock, propertyParam);
             FillPropertyContextMenu = FillPropertyContextMenuLambda.Compile();
