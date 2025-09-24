@@ -919,6 +919,10 @@ namespace UnityEditor.Rendering
             return (Convert.ToInt32(value) & Convert.ToInt32(flag)) == Convert.ToInt32(flag);
         }
 
+        // Need to keep track of the ToggleDropdown event handlers to be able to remove them when rebuilding the UI
+        readonly Dictionary<ToggleDropdown, Action<bool>> m_ToggleHandlers = new();
+        readonly Dictionary<ToggleDropdown, Action<int[]>> m_SelectionHandlers = new();
+
         void BuildEnumFlagsToggleDropdown<T>(ToggleDropdown dropdown, T currentValue, string prefsKey, Action<T> setValue, bool defaultEnabled = true) where T : Enum
         {
             if (!HasValidDebugData)
@@ -927,6 +931,12 @@ namespace UnityEditor.Rendering
                 return;
             }
             dropdown.style.display = DisplayStyle.Flex;
+
+            // Unsubscribe old handlers if present
+            if (m_ToggleHandlers.TryGetValue(dropdown, out var oldToggleChanged))
+                dropdown.toggleChanged -= oldToggleChanged;
+            if (m_SelectionHandlers.TryGetValue(dropdown, out var oldSelectionChanged))
+                dropdown.selectionChanged -= oldSelectionChanged;
 
             Array enumValues = Enum.GetValues(typeof(T));
             List<string> optionNames = new List<string>();
@@ -959,13 +969,15 @@ namespace UnityEditor.Rendering
             dropdown.SetEnabled(isEnabled);
             UpdateFilterEnabledState(prefsKey, isEnabled);
 
-            dropdown.toggleChanged += (enabled) => {
+            Action<bool> toggleChanged = enabled =>
+            {
                 UpdateFilterEnabledState(prefsKey, enabled);
                 SaveFilterEnabledState(prefsKey, enabled);
                 RebuildGraphViewerUI();
             };
 
-            dropdown.selectionChanged += (indices) => {
+            Action<int[]> selectionChanged = indices =>
+            {
                 int newValueInt = 0;
                 foreach (int index in indices)
                 {
@@ -984,6 +996,12 @@ namespace UnityEditor.Rendering
                     RebuildGraphViewerUI();
                 }
             };
+
+            m_ToggleHandlers[dropdown] = toggleChanged;
+            dropdown.toggleChanged += toggleChanged;
+
+            m_SelectionHandlers[dropdown] = selectionChanged;
+            dropdown.selectionChanged += selectionChanged;
         }
 
         bool GetFilterEnabledState(string prefsKey, bool defaultValue)
