@@ -3,8 +3,41 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/PathTracingCommon.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/PathTracingMaterials.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/MaterialPool/MaterialPool.hlsl"
+
+struct SurfaceGeometry
+{
+    float3 position;
+    float3 normal;
+    float2 uv0;
+    float2 uv1;
+};
+
+SurfaceGeometry FetchSurfaceGeometry(UnifiedRT::InstanceData instanceInfo, UnifiedRT::Hit hit)
+{
+    UnifiedRT::HitGeomAttributes attributes = UnifiedRT::FetchHitGeomAttributes(hit);
+
+    SurfaceGeometry res;
+    res.position = mul(instanceInfo.localToWorld, float4(attributes.position, 1)).xyz;
+    res.normal = normalize(mul((float3x3)instanceInfo.localToWorldNormals, attributes.faceNormal));
+    res.uv0 = attributes.uv0.xy;
+    res.uv1 = attributes.uv1.xy;
+
+    return res;
+}
+
+struct MaterialPoolParamSet
+{
+    StructuredBuffer<MaterialPool::MaterialEntry> materialEntries;
+    Texture2DArray<float4> albedoTextures;
+    Texture2DArray<float4> transmissionTextures;
+    Texture2DArray<float4> emissionTextures;
+    SamplerState emissionSampler;
+    SamplerState albedoSampler;
+    SamplerState transmissionSampler;
+    float atlasTexelSize; // The size of 1 texel in the atlases above
+    float albedoBoost;
+};
 
 static const float3 invalidRadianceSample = float3(-1.0f, -1.0f, -1.0f);
 
@@ -13,7 +46,8 @@ float3 SampleOutgoingRadianceAssumingLambertianBrdf(
     float3 normal,
     UnifiedRT::DispatchInfo dispatchInfo,
     UnifiedRT::RayTracingAccelStruct accelStruct,
-    StructuredBuffer<PTLight> lightList,
+    float3 dirLightDirection,
+    float3 dirLightIntensity,
     bool multiBounce,
     IrradianceBufferType patchIrradiances,
     StructuredBuffer<uint> cellPatchIndices,
@@ -27,23 +61,22 @@ float3 SampleOutgoingRadianceAssumingLambertianBrdf(
 {
     float3 radianceSample = 0.0f;
 
-    // For now we assume only a single directional light has been added.
-    // Support for more lights will be added.
-    PTLight sun = lightList[0];
-
-    const float worldHitNormalDotSunDir = dot(sun.forward, normal);
-    if (worldHitNormalDotSunDir < 0.0f)
+    if (any(dirLightIntensity != 0.0f))
     {
-        UnifiedRT::Ray ray2;
-        ray2.origin = OffsetRayOrigin(position, normal);
-        ray2.direction = -sun.forward;
-        ray2.tMin = 0;
-        ray2.tMax = FLT_MAX;
-
-        UnifiedRT::Hit hitResult2 = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, ray2, UnifiedRT::kRayFlagNone);
-        if (!hitResult2.IsValid())
+        const float worldHitNormalDotSunDir = dot(dirLightDirection, normal);
+        if (worldHitNormalDotSunDir < 0.0f)
         {
-            radianceSample += sun.intensity * dot(-sun.forward, normal);
+            UnifiedRT::Ray ray2;
+            ray2.origin = OffsetRayOrigin(position, normal);
+            ray2.direction = -dirLightDirection;
+            ray2.tMin = 0;
+            ray2.tMax = FLT_MAX;
+
+            UnifiedRT::Hit hitResult2 = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, ray2, UnifiedRT::kRayFlagNone);
+            if (!hitResult2.IsValid())
+            {
+                radianceSample += dirLightIntensity * dot(-dirLightDirection, normal);
+            }
         }
     }
 
@@ -63,7 +96,9 @@ float3 SampleIncomingRadianceAssumingLambertianBrdf(
     UnifiedRT::DispatchInfo dispatchInfo,
     UnifiedRT::RayTracingAccelStruct accelStruct,
     UnifiedRT::Ray ray,
-    StructuredBuffer<PTLight> lightList,
+    MaterialPoolParamSet matPoolParams,
+    float3 dirLightDirection,
+    float3 dirLightIntensity,
     bool multiBounce,
     TextureCube<float3> envTex,
     SamplerState envSampler,
@@ -86,15 +121,28 @@ float3 SampleIncomingRadianceAssumingLambertianBrdf(
         else
         {
             const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(hitResult.instanceID);
-            const PTHitGeom hitGeo = GetHitGeomInfo(hitInstance, hitResult);
-            const MaterialProperties hitMat = LoadMaterialProperties(hitInstance, false, hitGeo.uv0, hitGeo.uv1);
+            const SurfaceGeometry hitGeo = FetchSurfaceGeometry(hitInstance, hitResult);
+            const MaterialPool::MaterialProperties hitMat = MaterialPool::LoadMaterialProperties(
+                matPoolParams.materialEntries,
+                matPoolParams.albedoTextures,
+                matPoolParams.albedoSampler,
+                matPoolParams.transmissionTextures,
+                matPoolParams.transmissionSampler,
+                matPoolParams.emissionTextures,
+                matPoolParams.emissionSampler,
+                matPoolParams.albedoBoost,
+                matPoolParams.atlasTexelSize,
+                hitInstance.userMaterialID,
+                hitGeo.uv0,
+                hitGeo.uv1);
 
             radianceSample = SampleOutgoingRadianceAssumingLambertianBrdf(
-                hitGeo.worldPosition,
-                hitGeo.worldFaceNormal,
+                hitGeo.position,
+                hitGeo.normal,
                 dispatchInfo,
                 accelStruct,
-                lightList,
+                dirLightDirection,
+                dirLightIntensity,
                 multiBounce,
                 patchIrradiances,
                 cellPatchIndices,

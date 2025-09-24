@@ -11,10 +11,16 @@ StructuredBuffer<PatchUtil::PatchGeometry> _PatchGeometries;
 StructuredBuffer<uint> _CellPatchIndices;
 StructuredBuffer<int3> _CascadeOffsets;
 RWStructuredBuffer<Realization> _PatchRealizations;
-
-UNIFIED_RT_DECLARE_ACCEL_STRUCT(g_SceneAccelStruct);
-
-StructuredBuffer<PTLight> g_LightList;
+StructuredBuffer<MaterialPool::MaterialEntry> _MaterialEntries;
+Texture2DArray<float4> _AlbedoTextures;
+Texture2DArray<float4> _TransmissionTextures;
+Texture2DArray<float4> _EmissionTextures;
+SamplerState sampler_EmissionTextures;
+SamplerState sampler_AlbedoTextures;
+SamplerState sampler_TransmissionTextures;
+TextureCube<float3> _EnvironmentCubemap;
+SamplerState sampler_EnvironmentCubemap;
+UNIFIED_RT_DECLARE_ACCEL_STRUCT(_RayTracingAccelerationStructure);
 
 uint _FrameIdx;
 uint _GridSize;
@@ -25,9 +31,10 @@ float _ConfidenceCap;
 uint _ValidationFrameInterval;
 uint _RingConfigOffset;
 float3 _GridTargetPos;
-
-TextureCube<float3> g_EnvTex;
-SamplerState sampler_g_EnvTex;
+float _MaterialAtlasTexelSize; // The size of 1 texel in the atlases above
+float _AlbedoBoost;
+float3 _DirectionalLightDirection;
+float3 _DirectionalLightIntensity;
 
 void GenerateCandidateAndResampleTemporally(UnifiedRT::DispatchInfo dispatchInfo)
 {
@@ -36,9 +43,20 @@ void GenerateCandidateAndResampleTemporally(UnifiedRT::DispatchInfo dispatchInfo
     if (RingBuffer::IsPositionUnused(_RingConfigBuffer, _RingConfigOffset, patchIdx))
         return;
 
-    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(g_SceneAccelStruct);
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_RayTracingAccelerationStructure);
     const Realization oldRealization = _PatchRealizations[patchIdx];
     Realization newRealization = (Realization)0; // Initializing only to silence shader warning.
+
+    MaterialPoolParamSet matPoolParams;
+    matPoolParams.materialEntries = _MaterialEntries;
+    matPoolParams.albedoTextures = _AlbedoTextures;
+    matPoolParams.transmissionTextures = _TransmissionTextures;
+    matPoolParams.emissionTextures = _EmissionTextures;
+    matPoolParams.emissionSampler = sampler_EmissionTextures;
+    matPoolParams.albedoSampler = sampler_AlbedoTextures;
+    matPoolParams.transmissionSampler = sampler_TransmissionTextures;
+    matPoolParams.atlasTexelSize = _MaterialAtlasTexelSize;
+    matPoolParams.albedoBoost = _AlbedoBoost;
 
     const bool isCandidateFrame = _FrameIdx % _ValidationFrameInterval != _ValidationFrameInterval - 1;
 
@@ -68,12 +86,24 @@ void GenerateCandidateAndResampleTemporally(UnifiedRT::DispatchInfo dispatchInfo
             sample.rayDirection = ray.direction;
             if (hitResult.IsValid())
             {
-                UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(hitResult.instanceID);
-                PTHitGeom hitGeo = GetHitGeomInfo(hitInstance, hitResult);
-                MaterialProperties mat = LoadMaterialProperties(hitInstance, false, hitGeo.uv0, hitGeo.uv1);
+                const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(hitResult.instanceID);
+                const SurfaceGeometry hitGeo = FetchSurfaceGeometry(hitInstance, hitResult);
+                const MaterialPool::MaterialProperties mat = MaterialPool::LoadMaterialProperties(
+                    _MaterialEntries,
+                    _AlbedoTextures,
+                    sampler_AlbedoTextures,
+                    _TransmissionTextures,
+                    sampler_TransmissionTextures,
+                    _EmissionTextures,
+                    sampler_EmissionTextures,
+                    _AlbedoBoost,
+                    _MaterialAtlasTexelSize,
+                    hitInstance.userMaterialID,
+                    hitGeo.uv0,
+                    hitGeo.uv1);
 
                 sample.sampleType = SAMPLE_TYPE_HIT;
-                sample.hitPointOrDirection = hitGeo.worldPosition;
+                sample.hitPointOrDirection = hitGeo.position;
 
                 if (!hitResult.isFrontFace)
                 {
@@ -85,11 +115,12 @@ void GenerateCandidateAndResampleTemporally(UnifiedRT::DispatchInfo dispatchInfo
                 else
                 {
                     sample.radiance = SampleOutgoingRadianceAssumingLambertianBrdf(
-                            hitGeo.worldPosition,
-                            hitGeo.worldFaceNormal,
+                            hitGeo.position,
+                            hitGeo.normal,
                             dispatchInfo,
                             accelStruct,
-                            g_LightList,
+                            _DirectionalLightDirection,
+                            _DirectionalLightIntensity,
                             _MultiBounce,
                             _PatchIrradiances,
                             _CellPatchIndices,
@@ -105,7 +136,7 @@ void GenerateCandidateAndResampleTemporally(UnifiedRT::DispatchInfo dispatchInfo
             else
             {
                 sample.sampleType = SAMPLE_TYPE_ENV;
-                sample.radiance = g_EnvTex.SampleLevel(sampler_g_EnvTex, ray.direction, 0);
+                sample.radiance = _EnvironmentCubemap.SampleLevel(sampler_EnvironmentCubemap, ray.direction, 0);
                 sample.hitPointOrDirection = ray.direction;
             }
 
@@ -134,10 +165,12 @@ void GenerateCandidateAndResampleTemporally(UnifiedRT::DispatchInfo dispatchInfo
             dispatchInfo,
             accelStruct,
             ray,
-            g_LightList,
+            matPoolParams,
+            _DirectionalLightDirection,
+            _DirectionalLightIntensity,
             _MultiBounce,
-            g_EnvTex,
-            sampler_g_EnvTex,
+            _EnvironmentCubemap,
+            sampler_EnvironmentCubemap,
             _PatchIrradiances,
             _CellPatchIndices,
             _GridSize,

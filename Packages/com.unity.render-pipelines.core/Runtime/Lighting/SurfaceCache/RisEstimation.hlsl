@@ -39,10 +39,16 @@ RWStructuredBuffer<PatchUtil::PatchCounterSet> _PatchCounterSets;
 StructuredBuffer<uint> _CellPatchIndices;
 StructuredBuffer<int3> _CascadeOffsets;
 RWStructuredBuffer<SphericalHarmonics::ScalarL2> _PatchAccumulatedLuminances;
-
-UNIFIED_RT_DECLARE_ACCEL_STRUCT(g_SceneAccelStruct);
-
-StructuredBuffer<PTLight> g_LightList;
+StructuredBuffer<MaterialPool::MaterialEntry> _MaterialEntries;
+Texture2DArray<float4> _AlbedoTextures;
+Texture2DArray<float4> _TransmissionTextures;
+Texture2DArray<float4> _EmissionTextures;
+SamplerState sampler_EmissionTextures;
+SamplerState sampler_AlbedoTextures;
+SamplerState sampler_TransmissionTextures;
+TextureCube<float3> _EnvironmentCubemap;
+SamplerState sampler_EnvironmentCubemap;
+UNIFIED_RT_DECLARE_ACCEL_STRUCT(_RayTracingAccelerationStructure);
 
 uint _FrameIdx;
 uint _GridSize;
@@ -54,9 +60,10 @@ float _TargetFunctionUpdateWeight;
 uint _RingConfigOffset;
 float _ShortHysteresis;
 float3 _GridTargetPos;
-
-TextureCube<float3>             g_EnvTex;
-SamplerState                    sampler_g_EnvTex;
+float _MaterialAtlasTexelSize; // The size of 1 texel in the atlases above
+float _AlbedoBoost;
+float3 _DirectionalLightDirection;
+float3 _DirectionalLightIntensity;
 
 void ProcessAndStoreLuminanceSample(RWStructuredBuffer<SphericalHarmonics::ScalarL2> patchLuminances, uint patchIdx, SphericalHarmonics::ScalarL2 luminanceSample, float updateWeight)
 {
@@ -109,7 +116,7 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
         return;
 
     uint candidateCount = _CandidateCount;
-    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(g_SceneAccelStruct);
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_RayTracingAccelerationStructure);
 
     Reservoir reservoir;
     reservoir.Init();
@@ -139,14 +146,27 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
     ray.tMin = 0;
     ray.tMax = FLT_MAX;
 
+    MaterialPoolParamSet matPoolParams;
+    matPoolParams.materialEntries = _MaterialEntries;
+    matPoolParams.albedoTextures = _AlbedoTextures;
+    matPoolParams.transmissionTextures = _TransmissionTextures;
+    matPoolParams.emissionTextures = _EmissionTextures;
+    matPoolParams.emissionSampler = sampler_EmissionTextures;
+    matPoolParams.albedoSampler = sampler_AlbedoTextures;
+    matPoolParams.transmissionSampler = sampler_TransmissionTextures;
+    matPoolParams.atlasTexelSize = _MaterialAtlasTexelSize;
+    matPoolParams.albedoBoost = _AlbedoBoost;
+
     const float3 radianceSample = SampleIncomingRadianceAssumingLambertianBrdf(
         dispatchInfo,
         accelStruct,
         ray,
-        g_LightList,
+        matPoolParams,
+        _DirectionalLightDirection,
+        _DirectionalLightIntensity,
         _MultiBounce,
-        g_EnvTex,
-        sampler_g_EnvTex,
+        _EnvironmentCubemap,
+        sampler_EnvironmentCubemap,
         _PatchIrradiances,
         _CellPatchIndices,
         _GridSize,

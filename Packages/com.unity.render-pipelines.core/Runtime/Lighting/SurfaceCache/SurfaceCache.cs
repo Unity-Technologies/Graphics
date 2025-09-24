@@ -326,6 +326,8 @@ namespace UnityEngine.Rendering
 
         private float _shortHysteresis;
         readonly private uint _defragCount = 2;
+        readonly private uint _environmentCubemapResolution = 32;
+        readonly private float _albedoBoost = 1.0f;
 
         public SurfaceCachePatchList PatchList => _patchList;
         public SurfaceCacheGrid Grid => _grid;
@@ -394,7 +396,8 @@ namespace UnityEngine.Rendering
             internal GraphicsBuffer PatchCounterSets;
             internal GraphicsBuffer CellPatchIndices;
             internal GraphicsBuffer CascadeOffsets;
-            internal PathTracing.Core.World World;
+            internal SurfaceCacheWorld World;
+            internal float AlbedoBoost;
             internal uint FrameIdx;
             internal uint GridSize;
             internal uint CascadeCount;
@@ -405,6 +408,7 @@ namespace UnityEngine.Rendering
             internal float VoxelMinSize;
             internal Vector3 GridTargetPos;
             internal GraphicsBuffer TraceScratchBuffer;
+            internal uint EnvironmentCubemapResolution;
         }
 
         private class RestirCandidateTemporalPassData
@@ -418,7 +422,8 @@ namespace UnityEngine.Rendering
             internal GraphicsBuffer CascadeOffsets;
             internal GraphicsBuffer CellPatchIndices;
             internal Vector3 GridTargetPos;
-            internal PathTracing.Core.World World;
+            internal SurfaceCacheWorld World;
+            internal float AlbedoBoost;
             internal uint FrameIdx;
             internal uint GridSize;
             internal uint RingConfigOffset;
@@ -428,6 +433,7 @@ namespace UnityEngine.Rendering
             internal float VoxelMinSize;
             internal uint ValidationFrameInterval;
             internal GraphicsBuffer TraceScratchBuffer;
+            internal uint EnvironmentCubemapResolution;
         }
 
         private class RestirSpatialPassData
@@ -480,7 +486,8 @@ namespace UnityEngine.Rendering
             internal GraphicsBuffer CascadeOffsets;
             internal GraphicsBuffer CellPatchIndices;
             internal GraphicsBuffer PatchAccumulatedLuminances;
-            internal PathTracing.Core.World World;
+            internal SurfaceCacheWorld World;
+            internal float AlbedoBoost;
             internal uint FrameIdx;
             internal uint GridSize;
             internal uint CascadeCount;
@@ -492,6 +499,7 @@ namespace UnityEngine.Rendering
             internal float TargetFunctionUpdateWeight;
             internal float VoxelMinSize;
             internal GraphicsBuffer TraceScratchBuffer;
+            internal uint EnvironmentCubemapResolution;
         }
 
         private class SpatialFilterPassData
@@ -535,7 +543,16 @@ namespace UnityEngine.Rendering
         {
             public static readonly int _CellAllocationMarks = Shader.PropertyToID("_CellAllocationMarks");
             public static readonly int _CellPatchIndices = Shader.PropertyToID("_CellPatchIndices");
+            public static readonly int _MaterialEntries = Shader.PropertyToID("_MaterialEntries");
+            public static readonly int _AlbedoTextures = Shader.PropertyToID("_AlbedoTextures");
+            public static readonly int _AlbedoBoost = Shader.PropertyToID("_AlbedoBoost");
+            public static readonly int _DirectionalLightDirection = Shader.PropertyToID("_DirectionalLightDirection");
+            public static readonly int _DirectionalLightIntensity = Shader.PropertyToID("_DirectionalLightIntensity");
+            public static readonly int _MaterialAtlasTexelSize = Shader.PropertyToID("_MaterialAtlasTexelSize");
+            public static readonly int _TransmissionTextures = Shader.PropertyToID("_TransmissionTextures");
+            public static readonly int _EmissionTextures = Shader.PropertyToID("_EmissionTextures");
             public static readonly int _GridTargetPos = Shader.PropertyToID("_GridTargetPos");
+            public static readonly int _EnvironmentCubemap = Shader.PropertyToID("_EnvironmentCubemap");
             public static readonly int _NewCascadeOffsets = Shader.PropertyToID("_NewCascadeOffsets");
             public static readonly int _OldCascadeOffsets = Shader.PropertyToID("_OldCascadeOffsets");
             public static readonly int _GridSize = Shader.PropertyToID("_GridSize");
@@ -597,8 +614,6 @@ namespace UnityEngine.Rendering
 
             Debug.Assert(0.0f <= patchFilteringParams.TemporalSmoothing && patchFilteringParams.TemporalSmoothing <= 1.0f);
             _shortHysteresis = Mathf.Lerp(0.75f, 0.95f, patchFilteringParams.TemporalSmoothing);
-
-            _defragCount = 2;
         }
 
         public void RecordPreparation(RenderGraph renderGraph, uint frameIdx)
@@ -608,7 +623,7 @@ namespace UnityEngine.Rendering
             RecordDefragmentation(renderGraph, frameIdx);
         }
 
-        internal uint RecordPatchUpdate(RenderGraph renderGraph, uint frameIdx, PathTracing.Core.World world)
+        internal uint RecordPatchUpdate(RenderGraph renderGraph, uint frameIdx, SurfaceCacheWorld world)
         {
             RecordEstimation(renderGraph, frameIdx, world);
             return RecordFiltering(renderGraph, frameIdx);
@@ -723,7 +738,7 @@ namespace UnityEngine.Rendering
             return outputIrradianceBufferIdx;
         }
 
-        private void RecordEstimation(RenderGraph renderGraph, uint frameIdx, PathTracing.Core.World world)
+        private void RecordEstimation(RenderGraph renderGraph, uint frameIdx, SurfaceCacheWorld world)
         {
             if (_estimationParams.Method == SurfaceCacheEstimationMethod.Uniform)
             {
@@ -740,6 +755,7 @@ namespace UnityEngine.Rendering
                     passData.CellPatchIndices = Grid.CellPatchIndices;
                     passData.GridTargetPos = Grid.TargetPos;
                     passData.FrameIdx = frameIdx;
+                    passData.AlbedoBoost = _albedoBoost;
                     passData.GridSize = Grid.GridSize;
                     passData.CascadeOffsets = Grid.CascadeOffsetBuffer;
                     passData.CascadeCount = Grid.CascadeCount;
@@ -751,6 +767,7 @@ namespace UnityEngine.Rendering
 
                     RayTracingHelper.ResizeScratchBufferForTrace(passData.Shader, passData.PatchCapacity, 1, 1, ref _traceScratch);
                     passData.TraceScratchBuffer = _traceScratch;
+                    passData.EnvironmentCubemapResolution = _environmentCubemapResolution;
 
                     builder.AllowGlobalStateModification(true); // Set to ensure ordering.
                     builder.SetRenderFunc((UniformEstimationPassData data, UnsafeGraphContext cgContext) => UniformEstimate(data, cgContext));
@@ -768,6 +785,7 @@ namespace UnityEngine.Rendering
                     passData.PatchRealizations = PatchList.RestirRealizations[0];
                     passData.CascadeOffsets = Grid.CascadeOffsetBuffer;
                     passData.World = world;
+                    passData.AlbedoBoost = _albedoBoost;
                     passData.CellPatchIndices = Grid.CellPatchIndices;
                     passData.GridTargetPos = Grid.TargetPos;
                     passData.FrameIdx = frameIdx;
@@ -778,6 +796,7 @@ namespace UnityEngine.Rendering
                     passData.ConfidenceCap = _estimationParams.RestirEstimationConfidenceCap;
                     passData.VoxelMinSize = Grid.VoxelMinSize;
                     passData.ValidationFrameInterval = _estimationParams.RestirEstimationValidationFrameInterval;
+                    passData.EnvironmentCubemapResolution = _environmentCubemapResolution;
 
                     RayTracingHelper.ResizeScratchBufferForTrace(passData.Shader, passData.PatchCapacity, 1, 1, ref _traceScratch);
                     passData.TraceScratchBuffer = _traceScratch;
@@ -843,6 +862,7 @@ namespace UnityEngine.Rendering
                     passData.PatchCounterSets = PatchList.CounterSets;
                     passData.CascadeOffsets = Grid.CascadeOffsetBuffer;
                     passData.World = world;
+                    passData.AlbedoBoost = _albedoBoost;
                     passData.CellPatchIndices = Grid.CellPatchIndices;
                     passData.FrameIdx = frameIdx;
                     passData.GridSize = Grid.GridSize;
@@ -855,6 +875,7 @@ namespace UnityEngine.Rendering
                     passData.TargetFunctionUpdateWeight = _estimationParams.RisEstimationTargetFunctionUpdateWeight;
                     passData.VoxelMinSize = Grid.VoxelMinSize;
                     passData.PatchAccumulatedLuminances = PatchList.RisAccumulatedLuminances;
+                    passData.EnvironmentCubemapResolution = _environmentCubemapResolution;
 
                     RayTracingHelper.ResizeScratchBufferForTrace(passData.Shader, passData.PatchCapacity, 1, 1, ref _traceScratch);
                     passData.TraceScratchBuffer = _traceScratch;
@@ -930,11 +951,29 @@ namespace UnityEngine.Rendering
             shader.SetIntParam(cmd, ShaderIDs._RingConfigOffset, (int)data.RingConfigOffset);
             shader.SetBufferParam(cmd, ShaderIDs._CellPatchIndices, data.CellPatchIndices);
             shader.SetVectorParam(cmd, ShaderIDs._GridTargetPos, data.GridTargetPos);
+            shader.SetTextureParam(cmd, ShaderIDs._EnvironmentCubemap, data.World.GetEnvironmentTexture((int)data.EnvironmentCubemapResolution));
+            shader.SetBufferParam(cmd, ShaderIDs._MaterialEntries, data.World.GetMaterialListBuffer());
+            shader.SetTextureParam(cmd, ShaderIDs._AlbedoTextures, data.World.GetMaterialAlbedoTextures());
+            shader.SetTextureParam(cmd, ShaderIDs._EmissionTextures, data.World.GetMaterialEmissionTextures());
+            shader.SetTextureParam(cmd, ShaderIDs._TransmissionTextures, data.World.GetMaterialTransmissionTextures());
+            shader.SetFloatParam(cmd, ShaderIDs._AlbedoBoost, data.AlbedoBoost);
+            shader.SetFloatParam(cmd, ShaderIDs._MaterialAtlasTexelSize, GetMaterialAtlasTexelSize(data.World.GetMaterialAlbedoTextures()));
 
-            PathTracing.Core.Util.BindWorld(cmd, data.Shader, data.World, 32);
-            shader.SetFloatParam(cmd, UnityEngine.PathTracing.Core.Util.ShaderProperties.AlbedoBoost, 1.0f);
+            var (dirLightDirection, dirLightIntensity) = GetDirectionalLightUniforms(data.World.GetDirectionalLight());
+            shader.SetVectorParam(cmd, ShaderIDs._DirectionalLightDirection, dirLightDirection);
+            shader.SetVectorParam(cmd, ShaderIDs._DirectionalLightIntensity, dirLightIntensity);
+
+            data.World.GetAccelerationStructure().Bind(cmd, "_RayTracingAccelerationStructure", data.Shader);
 
             shader.Dispatch(cmd, data.TraceScratchBuffer, data.PatchCapacity, 1, 1);
+        }
+
+        static (Vector3, Vector3) GetDirectionalLightUniforms(SurfaceCacheWorld.DirectionalLight? dirLight)
+        {
+            if (dirLight.HasValue)
+                return (dirLight.Value.Direction, dirLight.Value.Intensity);
+            else
+                return (Vector3.zero, Vector3.zero);
         }
 
         static void RestirGenerateCandidateAndResampleTemporally(RestirCandidateTemporalPassData data, UnsafeGraphContext graphCtx)
@@ -957,9 +996,19 @@ namespace UnityEngine.Rendering
             shader.SetFloatParam(cmd, ShaderIDs._VoxelMinSize, data.VoxelMinSize);
             shader.SetBufferParam(cmd, ShaderIDs._CellPatchIndices, data.CellPatchIndices);
             shader.SetVectorParam(cmd, ShaderIDs._GridTargetPos, data.GridTargetPos);
+            shader.SetTextureParam(cmd, ShaderIDs._EnvironmentCubemap, data.World.GetEnvironmentTexture((int)data.EnvironmentCubemapResolution));
+            shader.SetBufferParam(cmd, ShaderIDs._MaterialEntries, data.World.GetMaterialListBuffer());
+            shader.SetTextureParam(cmd, ShaderIDs._AlbedoTextures, data.World.GetMaterialAlbedoTextures());
+            shader.SetTextureParam(cmd, ShaderIDs._EmissionTextures, data.World.GetMaterialEmissionTextures());
+            shader.SetTextureParam(cmd, ShaderIDs._TransmissionTextures, data.World.GetMaterialTransmissionTextures());
+            shader.SetFloatParam(cmd, ShaderIDs._AlbedoBoost, data.AlbedoBoost);
+            shader.SetFloatParam(cmd, ShaderIDs._MaterialAtlasTexelSize, GetMaterialAtlasTexelSize(data.World.GetMaterialAlbedoTextures()));
 
-            PathTracing.Core.Util.BindWorld(cmd, data.Shader, data.World, 32);
-            shader.SetFloatParam(cmd, PathTracing.Core.Util.ShaderProperties.AlbedoBoost, 1.0f);
+            var (dirLightIntensity, dirLightDirection) = GetDirectionalLightUniforms(data.World.GetDirectionalLight());
+            shader.SetVectorParam(cmd, ShaderIDs._DirectionalLightIntensity, dirLightIntensity);
+            shader.SetVectorParam(cmd, ShaderIDs._DirectionalLightDirection, dirLightDirection);
+
+            data.World.GetAccelerationStructure().Bind(cmd, "_RayTracingAccelerationStructure", data.Shader);
 
             shader.Dispatch(cmd, data.TraceScratchBuffer, data.PatchCapacity, 1, 1);
         }
@@ -1029,9 +1078,19 @@ namespace UnityEngine.Rendering
             shader.SetIntParam(cmd, ShaderIDs._RingConfigOffset, (int)data.RingConfigOffset);
             shader.SetFloatParam(cmd, ShaderIDs._ShortHysteresis, data.ShortHysteresis);
             shader.SetVectorParam(cmd, ShaderIDs._GridTargetPos, data.GridTargetPos);
+            shader.SetTextureParam(cmd, ShaderIDs._EnvironmentCubemap, data.World.GetEnvironmentTexture((int)data.EnvironmentCubemapResolution));
+            shader.SetBufferParam(cmd, ShaderIDs._MaterialEntries, data.World.GetMaterialListBuffer());
+            shader.SetTextureParam(cmd, ShaderIDs._AlbedoTextures, data.World.GetMaterialAlbedoTextures());
+            shader.SetTextureParam(cmd, ShaderIDs._EmissionTextures, data.World.GetMaterialEmissionTextures());
+            shader.SetTextureParam(cmd, ShaderIDs._TransmissionTextures, data.World.GetMaterialTransmissionTextures());
+            shader.SetFloatParam(cmd, ShaderIDs._AlbedoBoost, data.AlbedoBoost);
+            shader.SetFloatParam(cmd, ShaderIDs._MaterialAtlasTexelSize, GetMaterialAtlasTexelSize(data.World.GetMaterialAlbedoTextures()));
 
-            PathTracing.Core.Util.BindWorld(cmd, data.Shader, data.World, 32);
-            shader.SetFloatParam(cmd, PathTracing.Core.Util.ShaderProperties.AlbedoBoost, 1.0f);
+            var (dirLightIntensity, dirLightDirection) = GetDirectionalLightUniforms(data.World.GetDirectionalLight());
+            shader.SetVectorParam(cmd, ShaderIDs._DirectionalLightIntensity, dirLightIntensity);
+            shader.SetVectorParam(cmd, ShaderIDs._DirectionalLightDirection, dirLightDirection);
+
+            data.World.GetAccelerationStructure().Bind(cmd, "_RayTracingAccelerationStructure", data.Shader);
 
             shader.Dispatch(cmd, data.TraceScratchBuffer, data.PatchCapacity, 1, 1);
         }
@@ -1169,6 +1228,12 @@ namespace UnityEngine.Rendering
 
             uint3 groupCount = DivUp(new uint3(passData.PatchCapacity, 1, 1), passData.ThreadGroupSize);
             cmd.DispatchCompute(shader, kernelIndex, (int)groupCount.x, (int)groupCount.y, 1);
+        }
+
+        static float GetMaterialAtlasTexelSize(RenderTexture albedoTextures)
+        {
+            Debug.Assert(albedoTextures.width == albedoTextures.height, "Atlas textures are assumed to be square.");
+            return 1.0f / albedoTextures.width;
         }
     }
 }

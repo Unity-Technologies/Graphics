@@ -768,18 +768,18 @@ namespace UnityEngine.PathTracing.Core
             return range;
         }
 
-        public void UpdateLights(LightHandle[] lights, Span<LightDescriptor> lightDescriptors,
+        public void UpdateLights(LightHandle[] lightHandles, Span<LightDescriptor> lightDescriptors,
             bool respectLightLayers,
             bool autoEstimateLUTRange,
             MixedLightingMode mixedLightingMode)
         {
-            Debug.Assert(lights.Length == lightDescriptors.Length);
+            Debug.Assert(lightHandles.Length == lightDescriptors.Length);
 
             Dictionary<int, int> falloffHashToFalloffIndex = new();
             int falloffIndex = 0;
 
             // Convert the lights.
-            for (int i = 0; i < lights.Length; i++)
+            for (int i = 0; i < lightHandles.Length; i++)
             {
                 ref readonly LightDescriptor light = ref lightDescriptors[i];
 
@@ -891,7 +891,7 @@ namespace UnityEngine.PathTracing.Core
 
                 newLight.cookieIndex = _materialPool.AddCookieTexture(light.CookieTexture);
 
-                _lightState.LightHandleToLightListEntry[lights[i]] = newLight;
+                _lightState.LightHandleToLightListEntry[lightHandles[i]] = newLight;
             }
         }
 
