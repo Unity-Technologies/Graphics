@@ -145,15 +145,13 @@ namespace PatchUtil
         return angularSquarePos.y * angularResolution + angularSquarePos.x;
     }
 
-    // Unlike the regular HLSL % operator, this function supports the case where the first
-    // argument is negative and the second argument is positive.
+    // Unlike the regular HLSL % operator where both operands must both be signed or unsigned,
+    // this function additionally supports the case where the first argument is negative and
+    // the second argument is positive.
     uint3 SignedIntegerModulo(int3 x, uint modulus)
     {
-        #pragma warning (disable : 3556)
-        const int modulusInt = int(modulus);
-        const int3 result = x - x / modulusInt * modulusInt;
-        return VECTOR_LOGIC_SELECT(result < 0, result + modulusInt, result);
-        #pragma warning (default : 3556)
+        const uint3 remainder = uint3(abs(x)) % modulus;
+        return VECTOR_LOGIC_SELECT(x < 0 && remainder != 0, modulus - remainder, remainder);
     }
 
     uint3 ConvertGridSpaceToStorageSpace(uint3 posGridSpace, uint gridSize, int3 cascadeOffset)
