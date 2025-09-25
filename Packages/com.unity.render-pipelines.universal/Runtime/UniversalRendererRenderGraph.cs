@@ -1535,7 +1535,7 @@ namespace UnityEngine.Rendering.Universal
         bool RequirePrepassForTextures(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs, bool requireDepthTexture)
         {
             bool requiresDepthTexturePrepass = requireDepthTexture && !CanCopyDepth(cameraData);
-            requiresDepthTexturePrepass |= m_CopyDepthMode == CopyDepthMode.ForcePrepass;
+            requiresDepthTexturePrepass |= cameraData.requiresDepthTexture && m_CopyDepthMode == CopyDepthMode.ForcePrepass;
             requiresDepthTexturePrepass |= renderPassInputs.requiresDepthPrepass;
             requiresDepthTexturePrepass |= DebugHandlerRequireDepthPass(cameraData);
             requiresDepthTexturePrepass |= renderPassInputs.requiresNormalsTexture; // This must be checked explicitly because some features inject normal requirements later in the frame
