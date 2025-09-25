@@ -121,7 +121,7 @@ namespace Unity.UI.Shaders.Sample
 
         public virtual Material GetModifiedMaterial(Material baseMaterial)
         {
-            _material = new Material(baseMaterial);
+            _material ??= new(baseMaterial);
 
             _material.SetFloat(StatePropertyId, (int)currentSelectionState);
 

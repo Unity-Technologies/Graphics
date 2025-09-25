@@ -847,7 +847,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var node in m_Graph.pastedNodes)
             {
-                if (lookupTable.TryGetValue(node.objectId, out var nodeView) && nodeView is IShaderNodeView)
+                if (lookupTable.TryGetValue(node, out var nodeView) && nodeView is IShaderNodeView)
                     m_GraphView.AddToSelection((Node)nodeView);
             }
 
