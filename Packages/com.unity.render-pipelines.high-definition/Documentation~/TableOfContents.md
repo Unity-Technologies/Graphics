@@ -70,6 +70,7 @@
     * [Use the shadows volume component override](Override-Shadows.md)
     * [Visualize and adjust shadows](shadows-visualize-and-adjust.md)
     * [Control shadow resolution and quality](Shadows-in-HDRP.md)
+    * [Soften shadows](shadows-soften.md)
     * [Realtime shadows](realtime-shadows.md)
       * [Set a shadow update mode](shadow-update-mode.md)
       * [Use shadowmasks](Lighting-Mode-Shadowmask.md)
