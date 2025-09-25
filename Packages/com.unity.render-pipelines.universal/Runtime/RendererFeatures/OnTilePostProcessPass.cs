@@ -87,7 +87,7 @@ public class OnTilePostProcessPass : ScriptableRenderPass
 
         SetupVignette(m_OnTileUberMaterial, cameraData.xr, srcDesc.width, srcDesc.height, vignette);
         SetupLut(m_OnTileUberMaterial, colorLookup, colorAdjustments, lutSize);
-        SetupTonemapping(m_OnTileUberMaterial, tonemapping);
+        SetupTonemapping(m_OnTileUberMaterial, tonemapping, isHdrGrading: postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange);
         SetupGrain(m_OnTileUberMaterial, cameraData, filmgrain, m_PostProcessData);
         SetupDithering(m_OnTileUberMaterial, cameraData, m_PostProcessData);
 
@@ -386,12 +386,19 @@ public class OnTilePostProcessPass : ScriptableRenderPass
 
 #endregion
 
-    private void SetupTonemapping(Material onTileUberMaterial, Tonemapping tonemapping)
+    private void SetupTonemapping(Material onTileUberMaterial, Tonemapping tonemapping, bool isHdrGrading)
     {
-        CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.TonemapNeutral,
-            tonemapping.mode.value == TonemappingMode.Neutral);
-        CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.TonemapACES,
-            tonemapping.mode.value == TonemappingMode.ACES);
+        if (isHdrGrading)
+        {
+            CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.HDRGrading, isHdrGrading);
+        }
+        else
+        {
+            CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.TonemapNeutral,
+                tonemapping.mode.value == TonemappingMode.Neutral);
+            CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.TonemapACES,
+                tonemapping.mode.value == TonemappingMode.ACES);
+        }
     }
 
     void SetupGrain(Material onTileUberMaterial, UniversalCameraData cameraData, FilmGrain filmgrain, PostProcessData data)
