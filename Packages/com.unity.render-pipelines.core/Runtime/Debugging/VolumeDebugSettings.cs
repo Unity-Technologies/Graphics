@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering
         public Volume[] GetVolumes()
         {
             return VolumeManager.instance.GetVolumes(selectedCameraLayerMask)
-                .Where(v => v.sharedProfile != null)
+                .Where(v => v.profileRef != null)
                 .Reverse().ToArray();
         }
 
