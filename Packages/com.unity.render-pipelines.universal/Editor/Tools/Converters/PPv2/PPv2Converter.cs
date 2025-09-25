@@ -5,11 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine.Categorization;
 using UnityEditor.Rendering.Converter;
-using UnityEditor.Search;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -17,7 +15,6 @@ using UnityEngine.SceneManagement;
 using BIRPRendering = UnityEngine.Rendering.PostProcessing;
 using Object = UnityEngine.Object;
 using URPRendering = UnityEngine.Rendering.Universal;
-using UnityEditor.Rendering.Converter;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -26,13 +23,11 @@ namespace UnityEditor.Rendering.Universal
     [ElementInfo(Name = "Post-Processing Stack v2",
                  Order = int.MaxValue,
                  Description = "This converter creates Universal Render Pipeline (URP) assets and corresponding Renderer assets, configuring their settings to match the equivalent settings from the Built-in Render Pipeline.")]
-    
-    internal class PPv2Converter : RenderPipelineAssetsConverter
+
+    internal class PPv2Converter : AssetsConverter
     {
-        public override string name => "Post-Processing Stack v2 Converter";
-        public override string info =>
-            "Converts PPv2 Volumes, Profiles, and Layers to URP Volumes, Profiles, and Cameras. This process creates a temporary .index file and might take a long time.";
-        public override Type container => typeof(BuiltInToURPConverterContainer);
+        public override bool isEnabled => effectConverters?.Count() > 0;
+        public override string isDisabledMessage => "No converters specified.";
 
         private IEnumerable<PostProcessEffectSettingsConverter> effectConverters = null;
 
@@ -47,33 +42,12 @@ namespace UnityEditor.Rendering.Universal
             ("p: t:PostProcessLayer", "Contains Post Process Layer Component"),
             ("p: t:PostProcessProfile", "Contains Instance of Post Process Profile")
         };
-        public override void OnInitialize(InitializeConverterContext context, Action callback)
+        public override void BeforeConvert()
         {
             // Converters should already be set to null on domain reload,
             // but we're doing it here just in case anything somehow lingers.
             effectConverters = null;
-
             postConversionDestroyables = new List<Object>();
-
-            SearchServiceUtils.RunQueuedSearch
-            (
-                SearchServiceUtils.IndexingOptions.DeepSearch,
-                s_PostProcessTypesToSearch,
-                (item, description) =>
-                {
-                    var assetItem = new RenderPipelineConverterAssetItem(item.id);
-                    assets.Add(assetItem);
-
-                    var itemDescriptor = new ConverterItemDescriptor()
-                    {
-                        name = assetItem.assetPath,
-                        info = description,
-                    };
-
-                    context.AddAssetToConvert(itemDescriptor);
-                },
-                callback
-            );
         }
 
         protected override Status ConvertObject(UnityEngine.Object obj, StringBuilder message)
@@ -151,7 +125,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        public override void OnPostRun()
+        public override void AfterConvert()
         {
             for (var i = 0; i < postConversionDestroyables.Count; i++)
             {
@@ -159,11 +133,6 @@ namespace UnityEditor.Rendering.Universal
             }
 
             postConversionDestroyables.Clear();
-        }
-
-        public override void OnClicked(int index)
-        {
-            assets[index].OnClicked();
         }
 
 #region Conversion_Entry_Points
