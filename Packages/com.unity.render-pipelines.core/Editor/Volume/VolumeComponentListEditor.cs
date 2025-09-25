@@ -470,7 +470,7 @@ namespace UnityEditor.Rendering
             if (VolumeComponentCopyPaste.CanPaste(targetComponent))
                 menu.AddItem(EditorGUIUtility.TrTextContent("Paste Settings"), false, () =>
                 {
-                    VolumeComponentCopyPaste.PasteSettings(targetComponent);
+                    VolumeComponentCopyPaste.PasteSettings(targetComponent, asset);
                     VolumeManager.instance.OnVolumeProfileChanged(asset);
                 });
             else

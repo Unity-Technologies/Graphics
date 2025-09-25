@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.Tests
         {
             VolumeComponentCopyPaste.CopySettings(m_Src1);
             m_Src1.AssertEquality(m_Dst1, Assert.AreNotEqual);
-            VolumeComponentCopyPaste.PasteSettings(m_Dst1);
+            VolumeComponentCopyPaste.PasteSettings(m_Dst1, null);
             m_Src1.AssertEquality(m_Dst1, Assert.AreEqual);
         }
 
@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.Tests
         public void CopyPasteSingleUndoRedo()
         {
             VolumeComponentCopyPaste.CopySettings(m_Src1);
-            VolumeComponentCopyPaste.PasteSettings(m_Dst1);
+            VolumeComponentCopyPaste.PasteSettings(m_Dst1, null);
             Undo.PerformUndo();
             m_Dst1.AssertEquality(m_Default1, Assert.AreEqual); // paste target is unchanged
             Undo.PerformRedo();
@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.Tests
             m_Src2.AssertEquality(m_Dst2, Assert.AreNotEqual);
             m_Src3.AssertEquality(m_Dst3, Assert.AreNotEqual);
 
-            VolumeComponentCopyPaste.PasteSettings(new List<VolumeComponent> { m_Dst1, m_Dst2, m_Dst3 });
+            VolumeComponentCopyPaste.PasteSettings(new List<VolumeComponent> { m_Dst1, m_Dst2, m_Dst3 }, null);
             m_Src1.AssertEquality(m_Dst1, Assert.AreEqual);
             m_Src2.AssertEquality(m_Dst2, Assert.AreEqual);
             m_Src3.AssertEquality(m_Dst3, Assert.AreEqual);
@@ -79,7 +79,7 @@ namespace UnityEditor.Rendering.Tests
             m_Src2.AssertEquality(m_Dst2, Assert.AreNotEqual);
             m_Src3.AssertEquality(m_Dst3, Assert.AreNotEqual);
 
-            VolumeComponentCopyPaste.PasteSettings(new List<VolumeComponent> { m_Dst3, m_Dst1, m_Dst2 });
+            VolumeComponentCopyPaste.PasteSettings(new List<VolumeComponent> { m_Dst3, m_Dst1, m_Dst2 }, null);
             m_Src1.AssertEquality(m_Dst1, Assert.AreEqual);
             m_Src2.AssertEquality(m_Dst2, Assert.AreEqual);
             m_Src3.AssertEquality(m_Dst3, Assert.AreEqual);
@@ -89,9 +89,9 @@ namespace UnityEditor.Rendering.Tests
         public void CopyPasteMultipleToSingleComponent()
         {
             VolumeComponentCopyPaste.CopySettings(new List<VolumeComponent> { m_Src1, m_Src2, m_Src3 });
-            VolumeComponentCopyPaste.PasteSettings(new List<VolumeComponent> { m_Dst3 });
-            VolumeComponentCopyPaste.PasteSettings(new List<VolumeComponent> { m_Dst2 });
-            VolumeComponentCopyPaste.PasteSettings(new List<VolumeComponent> { m_Dst1 });
+            VolumeComponentCopyPaste.PasteSettings(new List<VolumeComponent> { m_Dst3 }, null);
+            VolumeComponentCopyPaste.PasteSettings(new List<VolumeComponent> { m_Dst2 }, null);
+            VolumeComponentCopyPaste.PasteSettings(new List<VolumeComponent> { m_Dst1 }, null);
             m_Src1.AssertEquality(m_Dst1, Assert.AreEqual);
             m_Src2.AssertEquality(m_Dst2, Assert.AreEqual);
             m_Src3.AssertEquality(m_Dst3, Assert.AreEqual);
@@ -101,7 +101,7 @@ namespace UnityEditor.Rendering.Tests
         public void CopyPasteSingleToMultipleComponent()
         {
             VolumeComponentCopyPaste.CopySettings(new List<VolumeComponent> { m_Src1 });
-            VolumeComponentCopyPaste.PasteSettings(new List<VolumeComponent> { m_Dst3, m_Dst1, m_Dst2 });
+            VolumeComponentCopyPaste.PasteSettings(new List<VolumeComponent> { m_Dst3, m_Dst1, m_Dst2 }, null);
             m_Src1.AssertEquality(m_Dst1, Assert.AreEqual);
         }
 
@@ -109,7 +109,7 @@ namespace UnityEditor.Rendering.Tests
         public void CopyPasteMultipleUndoRedo()
         {
             VolumeComponentCopyPaste.CopySettings(new List<VolumeComponent> { m_Src1, m_Src2, m_Src3 });
-            VolumeComponentCopyPaste.PasteSettings(new List<VolumeComponent> { m_Dst1, m_Dst2, m_Dst3 });
+            VolumeComponentCopyPaste.PasteSettings(new List<VolumeComponent> { m_Dst1, m_Dst2, m_Dst3 }, null);
 
             Undo.PerformUndo();
 
@@ -165,6 +165,45 @@ namespace UnityEditor.Rendering.Tests
         {
             VolumeComponentCopyPaste.CopySettings(new List<VolumeComponent> { m_Src1, m_Src2, m_Src3 });
             Assert.True(VolumeComponentCopyPaste.CanPaste(new List<VolumeComponent> { m_Dst1,  m_Dst3, m_Dst2 }));
+        }
+
+        [Test]
+        public void AfterPasteSettings_VolumeProfileAssetIsDirty()
+        {
+            const string kAssetPath = "Assets/AfterPasteSettings_VolumeProfileAssetIsDirty.asset";
+            var sourceProfile = ScriptableObject.CreateInstance<VolumeProfile>();
+            sourceProfile.Add<CopyPasteTestComponent1>();
+            var volumeProfileAsset = VolumeProfileFactory.CreateVolumeProfileAtPath(kAssetPath, sourceProfile);
+
+            VolumeComponentCopyPaste.CopySettings(m_Src1);
+            Assume.That(volumeProfileAsset.TryGet<CopyPasteTestComponent1>(out var dst));
+
+            int dirtyCountBeforePaste = EditorUtility.GetDirtyCount(volumeProfileAsset);
+            VolumeComponentCopyPaste.PasteSettings(dst, volumeProfileAsset);
+            Assert.AreEqual(EditorUtility.GetDirtyCount(volumeProfileAsset), dirtyCountBeforePaste + 1);
+
+            dirtyCountBeforePaste = EditorUtility.GetDirtyCount(volumeProfileAsset);
+            VolumeComponentCopyPaste.PasteSettings(new List<VolumeComponent>{ dst } , volumeProfileAsset);
+            Assert.AreEqual(EditorUtility.GetDirtyCount(volumeProfileAsset), dirtyCountBeforePaste + 1);
+
+            AssetDatabase.DeleteAsset(kAssetPath);
+        }
+
+        [Test]
+        public void AfterPasteSettings_VolumeProfileInstanceIsNotDirty()
+        {
+            var volumeProfileInstance = ScriptableObject.CreateInstance<VolumeProfile>();
+            CopyPasteTestComponent1 dst = volumeProfileInstance.Add<CopyPasteTestComponent1>();
+
+            VolumeComponentCopyPaste.CopySettings(m_Src1);
+
+            int dirtyCountBeforePaste = EditorUtility.GetDirtyCount(volumeProfileInstance);
+            VolumeComponentCopyPaste.PasteSettings(dst, volumeProfileInstance);
+            Assert.AreEqual(EditorUtility.GetDirtyCount(volumeProfileInstance), dirtyCountBeforePaste);
+
+            dirtyCountBeforePaste = EditorUtility.GetDirtyCount(volumeProfileInstance);
+            VolumeComponentCopyPaste.PasteSettings(new List<VolumeComponent>{ dst }, volumeProfileInstance);
+            Assert.AreEqual(EditorUtility.GetDirtyCount(volumeProfileInstance), dirtyCountBeforePaste);
         }
     }
 }
