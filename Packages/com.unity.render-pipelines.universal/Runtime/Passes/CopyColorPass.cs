@@ -213,7 +213,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             ConfigureDescriptor(downsampling, ref srcDesc, out var filterMode);
 
-            destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, srcDesc, "_CameraOpaqueTexture", true, filterMode);
+            destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, srcDesc, "_CameraOpaqueTexture", true, srcDesc.clearColor, filterMode);
             
             RenderInternal(renderGraph, destination, source, cameraData.xr.enabled);   
 
