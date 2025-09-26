@@ -44,12 +44,22 @@ namespace UnityEditor.VFX
                 }
             }
 
-            if (currentShaderGraph != null && !currentShaderGraph.generatesWithShaderGraph)
+            if (currentShaderGraph != null)
             {
-                if (errors != null)
-                    errors.Add(("DeprecatedOldShaderGraph", VFXErrorType.Error, ParticleShadingShaderGraph.kErrorOldSG));
+                if (!currentShaderGraph.generatesWithShaderGraph)
+                {
+                    if (errors != null)
+                        errors.Add(("DeprecatedOldShaderGraph", VFXErrorType.Error, ParticleShadingShaderGraph.kErrorOldSG));
 
-                currentShaderGraph = VFXResources.errorFallbackShaderGraph;
+                    currentShaderGraph = VFXResources.errorFallbackShaderGraph;
+                } 
+                else if (VFXLibrary.currentSRPBinder != null && !VFXLibrary.currentSRPBinder.IsShaderVFXCompatible(currentShaderGraph))
+                {
+                    if (errors != null)
+                        errors.Add(("NoSRPCompatibleSG", VFXErrorType.Error, "The current Shader Graph doesn't support the current SRP or VFX Support is not enabled."));
+
+                    currentShaderGraph = VFXResources.errorFallbackShaderGraph;
+                }
             }
 
             if (currentShaderGraph == null)
@@ -112,7 +122,8 @@ namespace UnityEditor.VFX
                 }
                 desc.hasAlphaClipping = actualShaderGraph.alphaClipping;
 
-                var shaderGraphProperties = VFXShaderGraphHelpers.GetProperties(actualShaderGraph);
+                //Retrieve properties from shaderGraph (and not actualShaderGraph) to prevent slot removal when listing is available for another SRP
+                var shaderGraphProperties = VFXShaderGraphHelpers.GetProperties(shaderGraph);
                 foreach (var sgProperty in shaderGraphProperties)
                 {
                     desc.properties.Add(sgProperty.property);
