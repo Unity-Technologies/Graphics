@@ -1,7 +1,7 @@
 #ifndef UNITY_FOVEATED_RENDERING_METAL_INCLUDED
 #define UNITY_FOVEATED_RENDERING_METAL_INCLUDED
 
-#if !defined(UNITY_COMPILER_DXC) && (defined(UNITY_PLATFORM_OSX) || defined(UNITY_PLATFORM_IOS) || defined(UNITY_PLATFORM_VISIONOS))
+#if !defined(UNITY_COMPILER_DXC) && (defined(UNITY_PLATFORM_VISIONOS) || defined(UNITY_METAL_DEBUG_FOVEATED_RENDERING))
 
     // These are tokens that hlslcc is looking for in order to inject Variable Rasterization Rate MSL code.
     // DO NOT RENAME unless you also change logic in translation.
