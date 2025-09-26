@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private RenderTextureDescriptor m_MainLightShadowDescriptor;
         private readonly Vector4[] m_CascadeSplitDistances;
         private readonly Matrix4x4[] m_MainLightShadowMatrices;
-        private readonly ProfilingSampler m_ProfilingSetupSampler = new ("Setup Main Shadowmap");
+        private readonly ProfilingSampler m_ProfilingSetupSampler = new("Setup Main Shadowmap");
         private readonly ShadowSliceData[] m_CascadeSlices;
 
         // Constants and Statics
@@ -30,8 +30,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         private const int k_MaxCascades = 4;
         private const int k_ShadowmapBufferBits = 16;
         private const string k_MainLightShadowMapTextureName = "_MainLightShadowmapTexture";
-        private static Vector4 s_EmptyShadowParams = new (0f, 0f, 1f, 0f);
-        private static readonly Vector4 s_EmptyShadowmapSize = new (k_EmptyShadowMapDimensions, 1f / k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions);
+        private static Vector4 s_EmptyShadowParams = new(0f, 0f, 1f, 0f);
+        private static readonly Vector4 s_EmptyShadowmapSize = new(k_EmptyShadowMapDimensions, 1f / k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions);
 
 #if URP_COMPATIBILITY_MODE
         private bool m_EmptyShadowmapNeedsClear;
@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_MainLightShadowMatrices = new Matrix4x4[k_MaxCascades + 1];
             m_CascadeSlices = new ShadowSliceData[k_MaxCascades];
             m_CascadeSplitDistances = new Vector4[k_MaxCascades];
-            
+
 #if URP_COMPATIBILITY_MODE
             m_PassData = new PassData();
             m_EmptyShadowmapNeedsClear = true;
@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             Clear();
             int shadowLightIndex = lightData.mainLightIndex;
-            if (shadowLightIndex == -1)
+            if (shadowLightIndex == -1 || (cameraData.camera.targetTexture != null && cameraData.camera.targetTexture.format == RenderTextureFormat.Depth))
             {
                 if (shadowsEnabled)
                     return SetupForEmptyRendering(stripShadowsOffVariants, shadowsEnabled, null, cameraData, shadowData);
