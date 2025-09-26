@@ -99,6 +99,15 @@
         "com.unity.render-pipelines.high-definition/Samples~/Common",
         "com.unity.render-pipelines.core/Samples~/Common"
       ]
+    }, 
+	{
+      "displayName": "Renderer Shader User Value Samples",
+      "description": "Adds a set of examples using Renderer Shader User Value feature.",
+      "path": "Samples~/RendererShaderUserValueSamples",
+      "dependencies": [
+        "com.unity.render-pipelines.core/Samples~/Common",
+        "com.unity.render-pipelines.core/Samples~/RendererShaderUserValue_Common"
+      ]
     }
   ]
 }
