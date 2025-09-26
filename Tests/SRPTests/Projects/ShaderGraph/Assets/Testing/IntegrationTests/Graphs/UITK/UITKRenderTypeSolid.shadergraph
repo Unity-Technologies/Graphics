@@ -21,9 +21,6 @@
             "m_Id": "f176b3672d5e4410acc5f332822e7e5a"
         },
         {
-            "m_Id": "5f2292affc4746a389314884f6e49388"
-        },
-        {
             "m_Id": "d2df5180aab9455db77db1522f4a4ca8"
         },
         {
@@ -493,39 +490,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.DefaultSolidNode",
-    "m_ObjectId": "5f2292affc4746a389314884f6e49388",
-    "m_Group": {
-        "m_Id": ""
-    },
-    "m_Name": "Default Solid",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": -674.0,
-            "y": -74.99998474121094,
-            "width": 118.99993896484375,
-            "height": 76.99999237060547
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "7ed952595f844cdeb52ca6322517f235"
-        }
-    ],
-    "synonyms": [],
-    "m_Precision": 0,
-    "m_PreviewExpanded": true,
-    "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    }
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "77999f253395490cadf4273088359b6f",
     "m_Id": 6,
@@ -555,31 +519,6 @@
 }
 
 {
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.ColorRGBAMaterialSlot",
-    "m_ObjectId": "7ed952595f844cdeb52ca6322517f235",
-    "m_Id": 0,
-    "m_DisplayName": "Solid",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "Solid",
-    "m_StageCapability": 2,
-    "m_Value": {
-        "x": 1.0,
-        "y": 1.0,
-        "z": 1.0,
-        "w": 1.0
-    },
-    "m_DefaultValue": {
-        "x": 1.0,
-        "y": 1.0,
-        "z": 1.0,
-        "w": 1.0
-    },
-    "m_Labels": []
-}
-
-{
     "m_SGVersion": 1,
     "m_Type": "UnityEditor.Rendering.Universal.ShaderGraph.UniversalTarget",
     "m_ObjectId": "84a4e1a374a448989f971558781cb690",
@@ -601,6 +540,7 @@
     "m_CastShadows": true,
     "m_ReceiveShadows": true,
     "m_DisableTint": false,
+    "m_Sort3DAs2DCompatible": false,
     "m_AdditionalMotionVectorMode": 0,
     "m_AlembicMotionVectors": false,
     "m_SupportsLODCrossFade": false,
