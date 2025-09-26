@@ -35,9 +35,10 @@ namespace UnityEditor.ShaderGraph
 
             foreach(var validator in s_validators)
             {
-                var status = validator.GetValidationStatus(node, out var msg);
+               var status = validator.GetValidationStatus(node, out var msg);
 
-                if (node.owner.messageManager.AnyError(e => e == node.objectId))
+                if (node.owner.messageManager.HasSeverity(e => e == node.objectId, Rendering.ShaderCompilerMessageSeverity.Error) ||
+                    node.owner.messageManager.HasSeverity(e => e == node.objectId, Rendering.ShaderCompilerMessageSeverity.Warning))
                     node.owner.messageManager.ClearNodesFromProvider(validator, Enumerable.Repeat(node, 1));
 
                 if (status != INodeValidationExtension.Status.None)

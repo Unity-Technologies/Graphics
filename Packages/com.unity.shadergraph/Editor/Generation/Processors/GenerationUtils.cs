@@ -662,15 +662,6 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.layoutUV,                                    requirements.requiresUITK),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.circle,                                      requirements.requiresUITK),
 
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.layoutUV_uv0,                                requirements.requiresMeshUVs.Contains(UVChannel.UV0) && requirements.requiresUITK),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.layoutUV_uv1,                                requirements.requiresMeshUVs.Contains(UVChannel.UV1) && requirements.requiresUITK),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.layoutUV_uv2,                                requirements.requiresMeshUVs.Contains(UVChannel.UV2) && requirements.requiresUITK),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.layoutUV_uv3,                                requirements.requiresMeshUVs.Contains(UVChannel.UV3) && requirements.requiresUITK),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.layoutUV_uv4,                                requirements.requiresMeshUVs.Contains(UVChannel.UV4) && requirements.requiresUITK),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.layoutUV_uv5,                                requirements.requiresMeshUVs.Contains(UVChannel.UV5) && requirements.requiresUITK),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.layoutUV_uv6,                                requirements.requiresMeshUVs.Contains(UVChannel.UV6) && requirements.requiresUITK),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.layoutUV_uv7,                                requirements.requiresMeshUVs.Contains(UVChannel.UV7) && requirements.requiresUITK),
-
                 new ConditionalField(Fields.ObjectToWorld, requirements.requiresTransforms.Contains(NeededTransform.ObjectToWorld)),
                 new ConditionalField(Fields.WorldToObject, requirements.requiresTransforms.Contains(NeededTransform.WorldToObject)),
             };

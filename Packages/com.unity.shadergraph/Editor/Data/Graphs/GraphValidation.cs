@@ -69,6 +69,16 @@ namespace UnityEditor.ShaderGraph
                         {
                             disallowedByAllTargets = false;
                         }
+
+                        if (subtarget != null && subtarget.ValidateNodeCompatibility(node, out string warningMessage, out Rendering.ShaderCompilerMessageSeverity severity))
+                        {
+                            if (severity == Rendering.ShaderCompilerMessageSeverity.Error)
+                            {
+                                disallowedByAnySubTarget = true;
+                                node.isValid = false;
+                            }
+                            node.owner.AddValidationError(node.objectId, warningMessage, severity);
+                        }
                     }
 
                     // Subgraphs have no allegiance to a Target/SubTarget workflow,
