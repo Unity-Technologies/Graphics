@@ -63,9 +63,6 @@ public partial class OnTilePostProcessFeature : ScriptableRendererFeature
             // On-tile PP requries memoryless intermediate texture to work. In case intermediate texture is not memoryless, on-tile PP will falls back to offtile rendering.
             m_OnTilePostProcessPass.requiresIntermediateTexture = true;
         }
-
-        if (!TryLoadResources())
-            return;
     }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -121,6 +118,9 @@ public partial class OnTilePostProcessFeature : ScriptableRendererFeature
         if (m_ColorGradingLutPass == null || m_OnTilePostProcessPass == null)
             return;
 
+        if (!TryLoadResources())
+            return;
+
         var graphicsDeviceType = SystemInfo.graphicsDeviceType;
         var deviceSupportsFbf = graphicsDeviceType == GraphicsDeviceType.Vulkan || graphicsDeviceType == GraphicsDeviceType.Metal || graphicsDeviceType == GraphicsDeviceType.Direct3D12;
         if (!deviceSupportsFbf)
@@ -142,6 +142,10 @@ public partial class OnTilePostProcessFeature : ScriptableRendererFeature
             // Perform fallback logic to 1. use texture read(off-tile rendering) and 2. disable the UV origin propagation mode.
             m_OnTilePostProcessPass.m_UseTextureReadFallback = true;
             UniversalRenderPipeline.renderTextureUVOriginStrategy = RenderTextureUVOriginStrategy.BottomLeft;
+        }
+        else
+        {
+            m_OnTilePostProcessPass.m_UseTextureReadFallback = false;
         }
 
         renderer.EnqueuePass(m_ColorGradingLutPass);
