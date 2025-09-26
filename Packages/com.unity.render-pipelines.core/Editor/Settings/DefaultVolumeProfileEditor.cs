@@ -244,7 +244,7 @@ namespace UnityEditor.Rendering
             menu.AddItem(VolumeProfileUtils.Styles.copySettings, false, () => VolumeComponentCopyPaste.CopySettings(targetComponent));
 
             if (VolumeComponentCopyPaste.CanPaste(targetComponent))
-                menu.AddItem(VolumeProfileUtils.Styles.pasteSettings, false, () => VolumeComponentCopyPaste.PasteSettings(targetComponent));
+                menu.AddItem(VolumeProfileUtils.Styles.pasteSettings, false, () => VolumeComponentCopyPaste.PasteSettings(targetComponent, m_Profile));
             else
                 menu.AddDisabledItem(VolumeProfileUtils.Styles.pasteSettings);
 
