@@ -1,0 +1,19 @@
+{
+    "name": "SampleAssembly",
+    "rootNamespace": "",
+    "references": [
+        "Unity.InputSystem",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Editor",
+        "Unity.RenderPipelines.Core.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": ["ENABLE_INPUT_SYSTEM" ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
