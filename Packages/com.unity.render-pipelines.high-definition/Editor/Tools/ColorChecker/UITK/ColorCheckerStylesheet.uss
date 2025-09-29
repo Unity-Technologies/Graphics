@@ -1,0 +1,9 @@
+.color-fields-row
+{
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-around;
+    align-self: stretch;
+    max-height: 22px;
+    flex-wrap: nowrap;
+}

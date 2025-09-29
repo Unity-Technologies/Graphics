@@ -4,6 +4,8 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.Rendering.HighDefinition;
+using System;
 
 [ExecuteInEditMode]
 [SelectionBaseAttribute]
@@ -241,15 +243,17 @@ public class ColorCheckerTool : MonoBehaviour
         if (ColorCheckerObject == null) 
         {
             ColorCheckerObject = new GameObject("Colorchecker Geometry");
-            ColorCheckerObject.transform.position = transform.position;
-            ColorCheckerObject.transform.rotation= transform.rotation;
+            ColorCheckerObject.transform.SetPositionAndRotation(transform.position, transform.rotation);
             ColorCheckerObject.transform.localScale = transform.localScale;
             ColorCheckerObject.tag = "EditorOnly"; 
             ColorCheckerObject.transform.parent = transform;
             ColorCheckerRenderer = ColorCheckerObject.AddComponent<MeshRenderer>();
             ColorCheckerFilter = ColorCheckerObject.AddComponent<MeshFilter>();
             ColorCheckerFilter.hideFlags = HideFlags.NotEditable;
-            ColorCheckerRenderer.sharedMaterial = Resources.Load<Material>("ColorCheckerMaterial");
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<ColorCheckerResources>(out var res))
+                throw new Exception("Resources not found. ColorCheckerTool can only be used with the High Definition Render Pipeline.");
+
+            ColorCheckerRenderer.sharedMaterial = res.colorCheckerMaterial;
             ColorCheckerRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         }
         else
