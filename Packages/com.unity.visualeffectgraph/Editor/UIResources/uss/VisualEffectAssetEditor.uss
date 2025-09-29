@@ -10,5 +10,7 @@
 }
 
 .unity-base-text-field__input--multiline {
-    min-height: 32px;
+    min-height: 64px;
+    max-height: 128px;
+    white-space: normal;
 }
