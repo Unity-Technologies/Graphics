@@ -107,6 +107,9 @@ namespace UnityEditor.VFX
 
         public static IEnumerable<Property> GetProperties(ShaderGraphVfxAsset shaderGraph)
         {
+            if (shaderGraph == null)
+                yield break;
+
             foreach (var property in shaderGraph.properties)
             {
                 if (property is AbstractShaderProperty shaderProperty)

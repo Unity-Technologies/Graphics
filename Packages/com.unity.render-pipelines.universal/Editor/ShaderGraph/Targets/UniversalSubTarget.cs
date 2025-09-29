@@ -76,7 +76,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 urpMetadata.hasVertexModificationInMotionVector = false;
             }
             
-            urpMetadata.isVFXCompatible = graphData.IsVFXCompatible();
+            urpMetadata.isVFXCompatible = target.SupportsVFX();
             return urpMetadata;
         }
 
