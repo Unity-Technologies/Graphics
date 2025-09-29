@@ -531,8 +531,6 @@ namespace UnityEditor.VFX.Block
         };
 
         static readonly Regex s_IncludeParser = new Regex(@"^#include ""(?<filepath>.*)""", RegexOptions.Compiled | RegexOptions.Multiline);
-        static readonly Regex s_MultilineCommentsParser = new Regex(@"/\*[\s\S]*?\*/", RegexOptions.Compiled|RegexOptions.Multiline);
-        static readonly Regex s_SinglelineCommentsParser = new Regex(@"^\s*/{2}[^/].*$", RegexOptions.Compiled|RegexOptions.Multiline|RegexOptions.IgnorePatternWhitespace);
 
         public static Type HLSLToUnityType(string type)
         {
@@ -564,13 +562,6 @@ namespace UnityEditor.VFX.Block
             {
                 yield return ((Match)include).Groups["filepath"].Value;
             }
-        }
-
-        public static string StripCommentedCode(string hlsl)
-        {
-            return string.IsNullOrEmpty(hlsl)
-                ? string.Empty
-                : s_SinglelineCommentsParser.Replace(s_MultilineCommentsParser.Replace(hlsl, string.Empty), string.Empty);
         }
     }
 }
