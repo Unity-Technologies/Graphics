@@ -576,6 +576,7 @@ namespace UnityEditor.VFX.UI
             parent.RemoveFromClassList("treeleaf");
             parent.RemoveFromClassList("separator");
             parent.UnregisterCallback<ClickEvent>(OnToggleCategory);
+            parent.UnregisterCallback<ClickEvent>(OnAddNode);
             parent.visible = true;
         }
 
