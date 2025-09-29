@@ -698,7 +698,10 @@ namespace UnityEditor.Rendering.Universal
                 serializedObject.ApplyModifiedProperties();
 
             if (materialChanged)
+            {
                 UpdateMaterialEditor();
+                EditorUtility.SetDirty(target);
+            }
 
             if (layerMaskHasMultipleValues || layerMask != (target as Component).gameObject.layer)
             {
