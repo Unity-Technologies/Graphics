@@ -587,7 +587,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (ensureVisible)
                 {
-                    blackboard.scrollView.ScrollToElementAfterGeometryChange(blackboardCategoryController.blackboardCategoryView);
+                    VisualElement scrollTo = blackboardCategoryController.blackboardCategoryView;
+                    scrollTo = scrollTo.Q("categoryTitleFoldout") ?? scrollTo;
+                    blackboard.scrollView.ScrollToElementAfterGeometryChange(scrollTo);
                 }
 
             }
