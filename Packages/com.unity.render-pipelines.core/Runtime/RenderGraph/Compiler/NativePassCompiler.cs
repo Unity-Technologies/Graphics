@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         internal CommandBuffer previousCommandBuffer;
         Stack<int> m_HasSideEffectPassIdCullingStack;
         List<Stack<ResourceHandle>> m_UnusedVersionedResourceIdCullingStacks;
+        Dictionary<int, List<ResourceHandle>> m_DelayedLastUseListPerPassMap;
 
         RenderGraphCompilationCache m_CompilationCache;
 
@@ -45,6 +46,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             m_UnusedVersionedResourceIdCullingStacks = new List<Stack<ResourceHandle>>();
             for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
                 m_UnusedVersionedResourceIdCullingStacks.Add(new Stack<ResourceHandle>());
+
+            m_DelayedLastUseListPerPassMap = new Dictionary<int, List<ResourceHandle>>(k_EstimatedPassCount);
+            for (int passId = 0; passId < k_EstimatedPassCount; ++passId)
+               m_DelayedLastUseListPerPassMap.Add(passId, new List<ResourceHandle>());
 
             m_TempMRTArrays = new RenderTargetIdentifier[RenderGraph.kMaxMRTCount][];
             for (int i = 0; i < RenderGraph.kMaxMRTCount; ++i)
@@ -142,7 +147,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             HandleExtendedFeatureFlags();
 
-            FindResourceUsageRanges();
+            FindResourceUsageRangeAndSynchronization();
 
             DetectMemoryLessResources();
 
@@ -161,6 +166,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
                 m_UnusedVersionedResourceIdCullingStacks[type].Clear();
+
+            foreach (var resListPerPassId in m_DelayedLastUseListPerPassMap)
+                resListPerPassId.Value.Clear();
+
+            m_DelayedLastUseListPerPassMap.Clear();
         }
 
         void SetPassStatesForNativePass(int nativePassId)
@@ -672,30 +682,99 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
         }
 
-        void FindResourceUsageRanges()
+        bool FindFirstPassIdOnGraphicsQueueAwaitingFenceGoingForward(ref PassData startAsyncPass, out int firstPassIdAwaiting)
+        {
+            var ctx = contextData;
+
+            Debug.Assert(startAsyncPass.asyncCompute && !startAsyncPass.culled);
+
+            firstPassIdAwaiting = startAsyncPass.awaitingMyGraphicsFencePassId;
+
+            // This async pass has no one waiting for it, try the next async passes
+            if (firstPassIdAwaiting == -1)
+            {
+                var nextPassIndex = startAsyncPass.passId + 1;
+                var lastPassIndex = ctx.passData.Length - 1;
+
+                // Find the first async pass that is synchronized by the graphics queue
+                while (firstPassIdAwaiting == -1 && nextPassIndex <= lastPassIndex)
+                {
+                    ref var nextPass = ref ctx.passData.ElementAt(nextPassIndex);
+
+                    if (nextPass.asyncCompute && !nextPass.culled)
+                        firstPassIdAwaiting = nextPass.awaitingMyGraphicsFencePassId;
+
+                    nextPassIndex++;
+                }
+
+                // We didn't find any fence, this should not happen?
+                if (nextPassIndex > lastPassIndex)
+                {
+                    // For now we fallback to the last pass of the graph
+                    firstPassIdAwaiting = lastPassIndex;
+                    return false;
+                }
+            }
+
+            // Found a pass awaiting a fence
+            return true;
+        }
+
+        int FindFirstNonCulledPassIdGoingBackward(int startPassId, bool startPassIsIncluded)
+        {
+            var ctx = contextData;
+
+            Debug.Assert(startPassId >= 0 && startPassId < ctx.passData.Length);
+
+            var currPassId = startPassIsIncluded ? startPassId : Math.Max(0, startPassId - 1);
+
+            ref var currPass = ref ctx.passData.ElementAt(currPassId);
+
+            // If this pre pass is culled, fallback to the first previous one not culled
+            while (currPass.culled && currPassId > 0)
+            {
+                currPass = ref ctx.passData.ElementAt(--currPassId);
+            }
+
+            return currPass.passId;
+        }
+
+        void FindResourceUsageRangeAndSynchronization()
         {
             var ctx = contextData;
 
             using (new ProfilingScope(ProfilingSampler.Get(NativeCompilerProfileId.NRPRGComp_FindResourceUsageRanges)))
             {
-                // Find the passes that last use a resource
-                // First do a forward-pass increasing the refcount
-                // followed by another forward-pass decreasing it again (-> if we get 0, we must be the last ones using it)
+                // Algorithm is in two steps, traversing the list of passes twice
 
-                // TODO: I have a feeling this can be done more optimally by walking the graph instead of looping over all the passes twice
-                // to be investigated
-                // It also won't work if we start reordering passes.
+                // First forward traversal:
+                // - we find the passes that first use a resource
+                // - we increase the refcount of the last version for each resource used
+                // - we find where fences must be added in case of async compute/gfx queues and the related async pass dependencies
                 for (int passIndex = 0; passIndex < ctx.passData.Length; passIndex++)
                 {
                     ref var pass = ref ctx.passData.ElementAt(passIndex);
+
                     if (pass.culled)
                         continue;
+
+                    // In case of an async pass, we need to extend the lifetime of the resource to the first pass on the graphics queue that waits for this async pass to be completed.
+                    // By doing so, we ensure that the resource will not be released back to the pool right after adding the async pass commands to the async queue,
+                    // as it could create a data race condition if a non async pass reuses the resource from the pool while the async pass is still processing it
+                    // As contextData must be filled incrementally per pass, we store temporarily these delayed releases in a list.
+                    // Here we clear this list before using it later in the second foward traversal.
+                    ClearDelayedLastUseListAtPass(passIndex);
+
+                    pass.waitOnGraphicsFencePassId = -1;
+                    pass.awaitingMyGraphicsFencePassId = -1;
+                    pass.insertGraphicsFence = false;
 
                     // Loop over all the resources this pass needs (=inputs)
                     foreach (ref readonly var input in pass.Inputs(ctx))
                     {
                         var inputResource = input.resource;
                         ref var pointTo = ref ctx.UnversionedResourceData(inputResource);
+                        ref var pointToVer = ref ctx.VersionedResourceData(inputResource);
                         pointTo.lastUsePassID = -1;
 
                         // If nobody else is using it yet,
@@ -715,15 +794,28 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         {
                             pointTo.tag++; //Refcount of how many passes are using the last version of a resource
                         }
+
+                        // Verify if this pass needs to wait on a fence due to its inputs
+                        // If no RG pass writes to the resource, no need to wait for anyone
+                        if (pointToVer.written)
+                        {
+                            ref var writingPass = ref ctx.passData.ElementAt(pointToVer.writePassId);
+                            if (writingPass.asyncCompute != pass.asyncCompute)
+                            {
+                                // Find the last pass on the opposite queue that the current pass must wait on
+                                var currWaitForPassId = pass.waitOnGraphicsFencePassId;
+                                pass.waitOnGraphicsFencePassId = Math.Max(writingPass.passId, currWaitForPassId);
+                            }
+                        }
                     }
 
                     //Also look at outputs (but with version 1) for edge case were we do a Write (but no read) to a texture and the pass is manually excluded from culling
                     //As it isn't read it won't be in the inputs array with V0
-
                     foreach (ref readonly var output in pass.Outputs(ctx))
                     {
                         var outputResource = output.resource;
                         ref var pointTo = ref ctx.UnversionedResourceData(outputResource);
+                        ref var pointToVer = ref ctx.VersionedResourceData(outputResource);
 
                         // If nobody else is using it yet (no explicit read),
                         // Mark this pass as the first using the resource.
@@ -743,17 +835,41 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             Debug.Assert(pointTo.lastWritePassID == -1); // Only one can be the last writer
                             pointTo.lastWritePassID = pass.passId;
                         }
+
+                        // Resolve if this pass should insert a fence for its outputs
+                        var numReaders = pointToVer.numReaders;
+                        for (var i = 0; i < numReaders; ++i)
+                        {
+                            var readerIndex = ctx.resources.IndexReader(outputResource, i);
+                            ref var readerData = ref ctx.resources.readerData[outputResource.iType].ElementAt(readerIndex);
+                            ref var readerPass = ref ctx.passData.ElementAt(readerData.passId);
+                            if (pass.asyncCompute != readerPass.asyncCompute)
+                            {
+                                // A subsequent pass on the opposite queue will read this resource written by the current pass,
+                                // so this subsequent pass needs to wait for the completion of the current pass
+                                // to do so, the current pass will insert a fence on its queue after its execution
+                                pass.insertGraphicsFence = true;
+
+                                // Different async passes can wait for different resources
+                                // Find the first pass on the opposite queue that will wait for this fence
+                                var currFirstPassId = pass.awaitingMyGraphicsFencePassId;
+                                pass.awaitingMyGraphicsFencePassId = currFirstPassId == -1 ? readerData.passId : Math.Min(currFirstPassId, readerData.passId);
+                            }
+                        }
                     }
                 }
 
+                // Second forward traversal:
+                // - we decrease the refcount to detect which is the last pass using the last version of a resource, i.e when we can release it
+                // - in case of async processing, we must delay the release to the first pass on gfx queue waiting for a fence
                 for (int passIndex = 0; passIndex < ctx.passData.Length; passIndex++)
                 {
                     ref var pass = ref ctx.passData.ElementAt(passIndex);
+                    
                     if (pass.culled)
                         continue;
 
-                    pass.waitOnGraphicsFencePassId = -1;
-                    pass.insertGraphicsFence = false;
+                    bool isAsync = pass.asyncCompute;
 
                     foreach (ref readonly var input in pass.Inputs(ctx))
                     {
@@ -765,26 +881,22 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             var refC = pointTo.tag - 1; //Decrease refcount this pass is done using it
                             if (refC == 0) // We're the last pass done using it, this pass should destroy it.
                             {
-                                pointTo.lastUsePassID = pass.passId;
-                                pass.AddLastUse(inputResource, ctx);
+                                if (isAsync)
+                                {
+                                    // If no fence found, we fallback to the last non culled pass of the graph on graphics queue, not ideal but safe
+                                    bool foundFence = FindFirstPassIdOnGraphicsQueueAwaitingFenceGoingForward(ref pass, out int firstWaitingOrLastPassId);
+                                    var delayLastUsedPassId = FindFirstNonCulledPassIdGoingBackward(firstWaitingOrLastPassId, !foundFence);
+                                    pointTo.lastUsePassID = delayLastUsedPassId;
+                                    AddDelayedLastUseToPass(inputResource, delayLastUsedPassId);
+                                }
+                                else
+                                {
+                                    pointTo.lastUsePassID = pass.passId;
+                                    pass.AddLastUse(inputResource, ctx);
+                                }
                             }
 
                             pointTo.tag = refC;
-                        }
-
-                        // Resolve if this pass needs to wait on a fence due to its inputs
-                        if (pass.waitOnGraphicsFencePassId == -1)
-                        {
-                            ref var pointToVer = ref ctx.VersionedResourceData(inputResource);
-                            // If no RG pass writes to the resource, no need to wait for anyone
-                            if (pointToVer.written)
-                            {
-                                ref var wPass = ref ctx.passData.ElementAt(pointToVer.writePassId);
-                                if (wPass.asyncCompute != pass.asyncCompute)
-                                {
-                                    pass.waitOnGraphicsFencePassId = wPass.passId;
-                                }
-                            }
                         }
                     }
 
@@ -798,26 +910,58 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         ref var pointToVer = ref ctx.VersionedResourceData(outputResource);
                         var last = pointTo.latestVersionNumber;
                         if (last == outputResource.version && pointToVer.numReaders == 0)
-                        {
-                            pointTo.lastUsePassID = pass.passId;
-                            pass.AddLastUse(outputResource, ctx);
-                        }
-
-                        // Resolve if this pass should insert a fence for its outputs
-                        var numReaders = pointToVer.numReaders;
-                        for (var i = 0; i < numReaders; ++i)
-                        {
-                            var depIdx = ctx.resources.IndexReader(outputResource, i);
-                            ref var dep = ref ctx.resources.readerData[outputResource.iType].ElementAt(depIdx);
-                            ref var depPass = ref ctx.passData.ElementAt(dep.passId);
-                            if (pass.asyncCompute != depPass.asyncCompute)
+                        { 
+                            if (isAsync)
                             {
-                                pass.insertGraphicsFence = true;
-                                break;
+                                // If no fence found, we fallback to the last non culled pass of the graph, not ideal but safe
+                                bool foundFence = FindFirstPassIdOnGraphicsQueueAwaitingFenceGoingForward(ref pass, out int firstWaitingOrLastPassId);
+                                var delayLastUsedPassId = FindFirstNonCulledPassIdGoingBackward(firstWaitingOrLastPassId, !foundFence);
+                                pointTo.lastUsePassID = delayLastUsedPassId;
+                                AddDelayedLastUseToPass(outputResource, delayLastUsedPassId);
+                            }
+                            else
+                            {
+                                pointTo.lastUsePassID = pass.passId;
+                                pass.AddLastUse(outputResource, ctx);
                             }
                         }
                     }
+
+                    // Add any potential delayed resource releases to the contextData
+                    AddLastUseFromDelayedList(ref pass);
                 }
+            }
+        }
+
+        void ClearDelayedLastUseListAtPass(int passId)
+        {
+            if (m_DelayedLastUseListPerPassMap.TryGetValue(passId, out var lastUseListForPassId))
+            {
+                lastUseListForPassId.Clear();
+            }
+        }
+
+        void AddDelayedLastUseToPass(in ResourceHandle releaseResource, int passId)
+        {
+            if (!m_DelayedLastUseListPerPassMap.TryGetValue(passId, out var lastUseListForPassId))
+            {
+                lastUseListForPassId = new List<ResourceHandle>();
+                m_DelayedLastUseListPerPassMap.Add(passId, lastUseListForPassId);
+            }
+
+            lastUseListForPassId.Add(releaseResource);
+        }
+
+        public void AddLastUseFromDelayedList(ref PassData passData)
+        {
+            if (m_DelayedLastUseListPerPassMap.TryGetValue(passData.passId, out var lastUseListForPassId))
+            {
+                foreach (var resource in lastUseListForPassId)
+                {
+                    passData.AddLastUse(resource, contextData);
+                }
+
+                lastUseListForPassId.Clear();
             }
         }
 
@@ -1842,8 +1986,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 // also make sure to insert fence=waits for multiple queue syncs
                 if (passData.waitOnGraphicsFencePassId != -1)
                 {
-                    var fence = contextData.fences[passData.waitOnGraphicsFencePassId];
-                    rgContext.cmd.WaitOnAsyncGraphicsFence(fence, SynchronisationStageFlags.PixelProcessing);
+                    rgContext.cmd.WaitOnAsyncGraphicsFence(contextData.fences[passData.waitOnGraphicsFencePassId], SynchronisationStageFlags.PixelProcessing);
                 }
 
                 if (passData.type == RenderGraphPassType.Raster && passData.mergeState <= PassMergeState.Begin)
