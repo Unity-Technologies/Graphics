@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             graphData.OnEnable();
             graphData.ValidateGraph();
 
-            var subGraphnodeName = "ShaderStageCapability_SubGraph";
+            var subGraphnodeName = "Shader Stage Capability_Sub Graph";
             var subGraphNode = FindFirstNodeOfType<SubGraphNode>(graphData, subGraphnodeName);
             if (subGraphNode == null)
             {
@@ -142,7 +142,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 graphData.RemoveEdge(edge);
             }
 
-            var subGraphNode = FindFirstNodeOfType<SubGraphNode>(graphData, "SubShaderInvalidCapabilities_SubGraph");
+            var subGraphNode = FindFirstNodeOfType<SubGraphNode>(graphData, "Sub Shader Invalid Capabilities_Sub Graph");
             var vertexIdNode = FindFirstNodeOfType<VertexIDNode>(graphData);
             var sampleTextureNode = FindFirstNodeOfType<SampleTexture2DNode>(graphData);
             var baseColorNode = FindFirstNodeOfType<BlockNode>(graphData, $"{BlockFields.SurfaceDescription.BaseColor.tag}.{BlockFields.SurfaceDescription.BaseColor.name}");
