@@ -180,8 +180,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 }
             }
 
-            // Validate that we're correctly building up the fragment lists we can only append to the last list
-            // not int the middle of lists
+            // Validate that we're correctly building up the fragment lists, we can only append to the last list
+            // not in the middle of the other lists
             Debug.Assert(listFirstIndex + numItems == fragmentData.Length);
 
             fragmentData.Add(new PassFragmentData(

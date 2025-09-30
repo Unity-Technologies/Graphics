@@ -493,6 +493,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return input;
         }
 
+        public void SetShadingRateImageAttachment(in TextureHandle tex)
+        {
+            CheckNotUseFragment(tex);
+            var versionedTextureHandle = new TextureHandle(UseResource(tex.handle, AccessFlags.Read));
+            m_RenderPass.SetShadingRateImageRaw(versionedTextureHandle);
+        }
+
         public BufferHandle UseBufferRandomAccess(BufferHandle input, int index, AccessFlags flags = AccessFlags.Read)
         {
             var h = UseBuffer(input, flags);
@@ -586,17 +593,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
                         throw new InvalidOperationException($"This API is not supported with MSAA attachments on the current platform: {SystemInfo.graphicsDeviceType}");
                 }
             }
-        }
-
-        public void SetShadingRateImageAttachment(in TextureHandle sriTextureHandle)
-        {
-            CheckNotUseFragment(sriTextureHandle);
-
-            // shading rate image access flag is always read, only 1 mip and 1 slice
-            var newSriTextureHandle = new TextureHandle();
-            newSriTextureHandle.handle = UseResource(sriTextureHandle.handle, AccessFlags.Read);
-
-            m_RenderPass.SetShadingRateImage(newSriTextureHandle, AccessFlags.Read, 0, 0);
         }
 
         public void SetShadingRateFragmentSize(ShadingRateFragmentSize shadingRateFragmentSize)

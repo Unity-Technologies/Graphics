@@ -265,16 +265,18 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 }
             }
 
-            // shading rate
-            if (inputPass.hasShadingRateImage &&
-                inputPass.shadingRateAccess.textureHandle.handle.IsValid())
+            // shading rate image - this is a specific type of attachment (more of an image resource that can't be sampled, only used by the rasterizer)
+            if (inputPass.hasShadingRateImage && inputPass.shadingRateAccess.textureHandle.handle.IsValid())
             {
-                ctxPass.shadingRateImageIndex = ctx.fragmentData.Length;
-                ctx.TryAddToFragmentList(inputPass.shadingRateAccess, ctxPass.shadingRateImageIndex, 0, out errorMessage);
+                if (ctx.TryAddToFragmentList(inputPass.shadingRateAccess, ctxPass.firstFragment, ctxPass.numFragments, out errorMessage))
+                {
+                    ctxPass.shadingRateImageIndex = ctx.fragmentData.Length - 1;
+                }
 
                 if (errorMessage != null)
                 {
-                    errorMessage = $"when trying to add VRS attachment of type {inputPass.shadingRateAccess.textureHandle.handle.type} at index {inputPass.shadingRateAccess.textureHandle.handle.index} - {errorMessage}";
+                    errorMessage =
+                        $"when trying to add VRS attachment of type {inputPass.shadingRateAccess.textureHandle.handle.type} at index {inputPass.shadingRateAccess.textureHandle.handle.index} - {errorMessage}";
                     return false;
                 }
             }
@@ -287,9 +289,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 // Skip unused fragment input slots
                 if (!inputPass.fragmentInputAccess[ci].textureHandle.IsValid()) continue;
 
-                var resource = inputPass.fragmentInputAccess[ci].textureHandle;
-                if (ctx.TryAddToFragmentList(inputPass.fragmentInputAccess[ci], ctxPass.firstFragmentInput,
-                        ctxPass.numFragmentInputs, out errorMessage))
+                if (ctx.TryAddToFragmentList(inputPass.fragmentInputAccess[ci], ctxPass.firstFragmentInput, ctxPass.numFragmentInputs, out errorMessage))
                 {
                     ctxPass.TryAddFragmentInput(inputPass.fragmentInputAccess[ci].textureHandle.handle, ctx, out errorMessage);
                 }
@@ -312,8 +312,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 // Skip unused random write slots
                 if (!uav.h.IsValid()) continue;
 
-                if (ctx.TryAddToRandomAccessResourceList(uav.h, ci, uav.preserveCounterValue,
-                        ctxPass.firstRandomAccessResource, ctxPass.numRandomAccessResources, out errorMessage))
+                if (ctx.TryAddToRandomAccessResourceList(uav.h, ci, uav.preserveCounterValue, ctxPass.firstRandomAccessResource, ctxPass.numRandomAccessResources, out errorMessage))
                 {
                     ctxPass.AddRandomAccessResource();
                 }
@@ -481,8 +480,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     // Flow upstream from this node
                     foreach (ref readonly var input in passData.Inputs(ctx))
                     {
-                        int inputPassIndex = ctx.resources[input.resource].writePassId;
-                        m_HasSideEffectPassIdCullingStack.Push(inputPassIndex);
+                        ref var inputVersionedDataRes = ref ctx.resources[input.resource];
+
+                        if (inputVersionedDataRes.written)
+                        {
+                            m_HasSideEffectPassIdCullingStack.Push(inputVersionedDataRes.writePassId);
+                        }
                     }
 
                     // We need this node, don't cull it
