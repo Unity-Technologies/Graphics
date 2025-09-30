@@ -408,18 +408,27 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
         float z = positionLS.z;
         float r = light.range;
 
+        cookie.a = 1.0;
         // Box lights have no range attenuation, so we must clip manually.
-        bool isInBounds = Max3(abs(positionCS.x), abs(positionCS.y), abs(z - 0.5 * r) - 0.5 * r + 1) <= light.boxLightSafeExtent;
-        if (lightType != GPULIGHTTYPE_PROJECTOR_PYRAMID && lightType != GPULIGHTTYPE_PROJECTOR_BOX)
+        if ( Max3(abs(positionCS.x), abs(positionCS.y), abs(z - 0.5 * r) - 0.5 * r + 1) > light.boxLightSafeExtent )
         {
-            isInBounds = isInBounds && (dot(positionCS, positionCS) <= light.iesCut * light.iesCut);
+            cookie.a = 0.0;
         }
-
+        else
+        {
+            if (lightType != GPULIGHTTYPE_PROJECTOR_PYRAMID && lightType != GPULIGHTTYPE_PROJECTOR_BOX)
+            {
+                float iesCut = light.iesCut;
+                if (dot(positionCS, positionCS) > (iesCut * iesCut))
+                {
+                    cookie.a = 0;
+                }
+            }
+        }
         float2 positionNDC = positionCS * 0.5 + 0.5;
 
         // Manually clamp to border (black).
         cookie.rgb = SampleCookie2D(positionNDC, light.cookieScaleOffset, lod);
-        cookie.a   = isInBounds ? 1.0 : 0.0;
     }
 
 #else
