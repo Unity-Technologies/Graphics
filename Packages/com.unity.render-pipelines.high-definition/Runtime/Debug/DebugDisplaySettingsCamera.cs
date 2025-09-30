@@ -10,29 +10,8 @@ namespace UnityEngine.Rendering
         [Serializable]
         public class FrameSettingsDebugData
         {
-            private Camera m_SelectedCamera;
-            public Camera selectedCamera
-            {
-                get
-                {
-#if UNITY_EDITOR
-                    if (m_SelectedCamera == null && UnityEditor.SceneView.lastActiveSceneView != null)
-                    {
-                        var sceneCamera = UnityEditor.SceneView.lastActiveSceneView.camera;
-                        if (sceneCamera != null)
-                            m_SelectedCamera = sceneCamera;
-                    }
-#endif
-                    return m_SelectedCamera;
-                }
-                set
-                {
-                    if (value != null && value != m_SelectedCamera)
-                    {
-                        m_SelectedCamera = value;
-                    }
-                }
-            }
+            public Camera selectedCamera { get; set; }
+
             public Dictionary<Camera, (HDAdditionalCameraData, IDebugData)> registeredCameras = new ();
         }
 
@@ -98,8 +77,8 @@ namespace UnityEngine.Rendering
                     getter = () => panel.data.frameSettingsData.selectedCamera,
                     setter = value =>
                     {
-                        if (value is Camera cam && value != panel.data.frameSettingsData.selectedCamera)
-                            panel.data.frameSettingsData.selectedCamera = cam;
+                        if (value != panel.data.frameSettingsData.selectedCamera)
+                            panel.data.frameSettingsData.selectedCamera = value as Camera;
                     },
                     onValueChanged = refresh
                 };
@@ -134,6 +113,12 @@ namespace UnityEngine.Rendering
                 : base(data)
             {
                 m_CameraSelector = WidgetFactory.CreateCameraSelector(this, (_, __) => Refresh());
+
+                // Select first camera if none is selected
+                var availableCameras = m_CameraSelector.getObjects() as List<Camera>;
+                if (data.frameSettingsData.selectedCamera == null && availableCameras is { Count: > 0 })
+                    data.frameSettingsData.selectedCamera = availableCameras[0];
+                
                 AddWidget(m_CameraSelector);
 
                 if (GetOrCreateFrameSettingsWidgets(out var frameSettingsWidgets))
