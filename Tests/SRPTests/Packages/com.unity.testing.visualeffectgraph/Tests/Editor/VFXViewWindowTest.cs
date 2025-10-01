@@ -24,16 +24,6 @@ namespace UnityEditor.VFX.Test
         [SerializeField] private VisualEffectAsset m_Domain_Reload_With_VFX_Live_In_Scene_Asset;
         [SerializeField] private VFXGraph m_Domain_Reload_With_VFX_Live_In_Scene_Graph;
 
-        static Object[] GetPreviewAssets(VFXGraph vfxGraph)
-        {
-            var previewAssetField = vfxGraph.GetType().GetField("m_PreviewAsset", BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.IsNotNull(previewAssetField);
-            var valuePreviewAsset = previewAssetField.GetValue(vfxGraph);
-            Assert.IsNotNull(valuePreviewAsset);
-            Assert.IsInstanceOf<List<Object>>(valuePreviewAsset);
-            return ((List<Object>)valuePreviewAsset).ToArray();
-        }
-
         [UnityTest, Description("Cover UUM-112719")]
         public IEnumerator Domain_Reload_With_VFX_Live_In_Scene()
         {
@@ -60,7 +50,7 @@ namespace UnityEditor.VFX.Test
             var vfxComponent = mainObject.AddComponent<VisualEffect>();
             m_Domain_Reload_With_VFX_Live_In_Scene_Asset = vfxGraph.GetResource().asset;
 
-            var previewAssets = GetPreviewAssets(vfxGraph);
+            var previewAssets = VFXTestCommon.GetPreviewAssets(vfxGraph);
             Assert.AreEqual(0, previewAssets.Length);
 
             vfxComponent.visualEffectAsset = vfxGraph.GetResource().asset;
@@ -81,7 +71,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(EditorUtility.IsDirty(vfxGraph));
             yield return null;
 
-            previewAssets = GetPreviewAssets(vfxGraph);
+            previewAssets = VFXTestCommon.GetPreviewAssets(vfxGraph);
             Assert.AreEqual(5, previewAssets.Length);
             Assert.AreEqual(1, previewAssets.OfType<Shader>().Count());
             Assert.AreEqual(1, previewAssets.OfType<Material>().Count());
@@ -101,7 +91,7 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(VFXCompilationMode.Edition, VisualEffectAssetUtility.GetCompilationMode(m_Domain_Reload_With_VFX_Live_In_Scene_Asset));
 
-            previewAssets = GetPreviewAssets(m_Domain_Reload_With_VFX_Live_In_Scene_Graph);
+            previewAssets = VFXTestCommon.GetPreviewAssets(m_Domain_Reload_With_VFX_Live_In_Scene_Graph);
             Assert.AreEqual(5, previewAssets.Length);
             Assert.AreEqual(1, previewAssets.OfType<Shader>().Count());
             Assert.AreEqual(1, previewAssets.OfType<Material>().Count());
