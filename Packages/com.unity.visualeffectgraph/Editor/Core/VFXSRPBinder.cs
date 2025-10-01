@@ -29,6 +29,15 @@ namespace UnityEditor.VFX
         abstract public string SRPAssetTypeStr { get; }
         abstract public Type SRPOutputDataType { get; }
 
+        public bool IsShaderVFXCompatible(ShaderGraphVfxAsset shaderGraph)
+        {
+            var path = AssetDatabase.GetAssetPath(shaderGraph);
+            var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+            if (shader != null)
+                return IsShaderVFXCompatible(shader);
+            return false;
+        }
+
         public abstract bool IsShaderVFXCompatible(Shader shader);
         public virtual void SetupMaterial(Material mat, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null) { }
 
@@ -112,6 +121,7 @@ namespace UnityEditor.VFX
             yield return GraphicsDeviceType.PlayStation4;
             yield return GraphicsDeviceType.PlayStation5;
             yield return GraphicsDeviceType.Switch;
+            yield return GraphicsDeviceType.Switch2;
             yield return GraphicsDeviceType.WebGPU;
         }
     }

@@ -2854,6 +2854,11 @@ namespace UnityEditor.ShaderGraph
                 node.OnEnable();
             }
 
+            foreach (var node in GetNodes<AbstractMaterialNode>())
+            {
+                node.SetupSlots();
+            }
+
             ShaderGraphPreferences.onVariantLimitChanged += OnKeywordChanged;
         }
 

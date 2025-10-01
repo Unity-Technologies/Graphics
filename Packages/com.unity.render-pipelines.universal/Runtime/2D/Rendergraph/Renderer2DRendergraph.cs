@@ -99,6 +99,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 clearColor = true;
                 clearDepth = true;
+                debugHandler.TryGetScreenClearColor(ref cameraBackgroundColor);
             }
 
             output.cameraColorParams.clearOnFirstUse = clearColor;
@@ -325,7 +326,7 @@ namespace UnityEngine.Rendering.Universal
                         m_CopyDepthPass.m_CopyResolvedDepth = !depthDescriptor.bindMS;
 
                     depthDescriptor.graphicsFormat = GraphicsFormat.None;
-                    depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
+                    depthDescriptor.depthStencilFormat = CoreUtils.GetDefaultDepthStencilFormat();
 
                     RenderingUtils.ReAllocateHandleIfNeeded(ref m_RenderGraphCameraDepthHandle, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
                     commonResourceData.activeDepthID = ActiveID.Camera;
@@ -423,7 +424,7 @@ namespace UnityEngine.Rendering.Universal
                     normalsDepthDesc.graphicsFormat = GraphicsFormat.None;
                     normalsDepthDesc.autoGenerateMips = false;
                     normalsDepthDesc.msaaSamples = descriptor.msaaSamples;
-                    normalsDepthDesc.depthStencilFormat = k_DepthStencilFormat;
+                    normalsDepthDesc.depthStencilFormat = CoreUtils.GetDefaultDepthStencilFormat();
 
                     resourceData.normalsDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, normalsDepthDesc, "_NormalDepth", false, FilterMode.Bilinear);
                 }
@@ -470,7 +471,7 @@ namespace UnityEngine.Rendering.Universal
             var shadowDepthDesc = new RenderTextureDescriptor(width, height);
             shadowDepthDesc.graphicsFormat = GraphicsFormat.None;
             shadowDepthDesc.autoGenerateMips = false;
-            shadowDepthDesc.depthStencilFormat = k_DepthStencilFormat;
+            shadowDepthDesc.depthStencilFormat = CoreUtils.GetDefaultDepthStencilFormat();
 
             resourceData.shadowDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, shadowDepthDesc, "_ShadowDepth", false, FilterMode.Bilinear);
         }
@@ -668,7 +669,7 @@ namespace UnityEngine.Rendering.Universal
             if (shouldRenderUI && outputToHDR)
             {
                 TextureHandle overlayUI;
-                m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, frameData, k_DepthStencilFormat, out overlayUI);
+                m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, frameData, CoreUtils.GetDefaultDepthStencilFormat(), out overlayUI);
                 commonResourceData.overlayUITexture = overlayUI;
             }
         }
@@ -696,7 +697,7 @@ namespace UnityEngine.Rendering.Universal
                 commonResourceData.debugScreenColor = UniversalRenderer.CreateRenderGraphTexture(renderGraph, colorDesc, "_DebugScreenColor", false);
 
                 RenderTextureDescriptor depthDesc = cameraData.cameraTargetDescriptor;
-                DebugHandler.ConfigureDepthDescriptorForDebugScreen(ref depthDesc, k_DepthStencilFormat, cameraData.pixelWidth, cameraData.pixelHeight);
+                DebugHandler.ConfigureDepthDescriptorForDebugScreen(ref depthDesc, CoreUtils.GetDefaultDepthStencilFormat(), cameraData.pixelWidth, cameraData.pixelHeight);
                 commonResourceData.debugScreenDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, "_DebugScreenDepth", false);
             }
 
@@ -817,11 +818,14 @@ namespace UnityEngine.Rendering.Universal
             // If HDR debug views are enabled, DebugHandler will perform the blit from debugScreenColor (== finalColorHandle) to backBufferColor.
             DebugHandler?.Render(renderGraph, cameraData, finalColorHandle, commonResourceData.overlayUITexture, commonResourceData.backBufferColor);
 
-            if (cameraData.isSceneViewCamera)
-                DrawRenderGraphWireOverlay(renderGraph, frameData, commonResourceData.backBufferColor);
+            if (cameraData.resolveFinalTarget)
+            {
+                if (cameraData.isSceneViewCamera)
+                    DrawRenderGraphWireOverlay(renderGraph, frameData, commonResourceData.backBufferColor);
 
-            if (drawGizmos)
-                DrawRenderGraphGizmos(renderGraph, frameData, commonResourceData.activeColorTexture, commonResourceData.activeDepthTexture, GizmoSubset.PostImageEffects);
+                if (drawGizmos)
+                    DrawRenderGraphGizmos(renderGraph, frameData, commonResourceData.activeColorTexture, commonResourceData.activeDepthTexture, GizmoSubset.PostImageEffects);
+            }
         }
 
         private void CleanupRenderGraphResources()

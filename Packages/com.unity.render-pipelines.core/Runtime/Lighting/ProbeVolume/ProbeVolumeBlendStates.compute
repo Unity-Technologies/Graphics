@@ -1,4 +1,4 @@
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch webgpu gles3
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2 webgpu gles3
 //#pragma enable_d3d11_debug_symbols
 
 #pragma kernel BlendScenarios

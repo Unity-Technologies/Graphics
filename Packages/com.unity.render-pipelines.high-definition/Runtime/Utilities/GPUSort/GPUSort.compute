@@ -4,7 +4,7 @@
 // Ref: https://poniesandlight.co.uk/reflect/bitonic_merge_sort/
 
 #pragma multi_compile _ STAGE_BMS STAGE_LOCAL_DISPERSE STAGE_BIG_FLIP STAGE_BIG_DISPERSE
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
 // Disable warning for auto unrolling of single iteration loop.
 #pragma warning(disable : 3557)

@@ -13,6 +13,4 @@ half4 NormalsRenderingShared(half4 color, half3 normalTS, half3 tangent, half3 b
 
     return normalColor;
 }
-
-
 #endif

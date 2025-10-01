@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering
             public static readonly string batchRendererGroupShaderStrippingModeInvalid = $"{nameof(GPUResidentDrawer)} \"BatchRendererGroup Variants\" setting must be \"Keep All\". " +
                 " The current setting will cause errors when building a player because all DOTS instancing shaders will be stripped" +
                 " To fix, modify Graphics settings and set \"BatchRendererGroup Variants\" to \"Keep All\".";
+            public static readonly string visionOSNotSupported = $"{nameof(GPUResidentDrawer)} Disabled on VisionOS as it is non applicable. This platform uses a custom rendering path and doesn't go through the resident drawer.";
         }
 
         internal static bool IsProjectSupported()
@@ -29,6 +30,13 @@ namespace UnityEngine.Rendering
         {
             message = string.Empty;
             severity = LogType.Log;
+
+            if (Application.platform == RuntimePlatform.VisionOS)
+            {
+                message = Strings.visionOSNotSupported;
+                severity = LogType.Log;
+                return false;
+            }
 
             // The GPUResidentDrawer only has support when the RawBuffer path of providing data
             // ConstantBuffer path and any other unsupported platforms early out here

@@ -21,7 +21,7 @@
 #pragma kernel Blur          BLUR_KERNEL_NAME=Blur BLUR
 #pragma kernel Blur_FullRes  BLUR_KERNEL_NAME=Blur_FullRes BLUR   FULL_RES
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
 TEXTURE2D_X(_AOPackedData);
 RW_TEXTURE2D_X(float, _OcclusionTexture);

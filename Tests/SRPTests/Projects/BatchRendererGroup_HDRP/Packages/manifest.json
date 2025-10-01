@@ -18,7 +18,7 @@
     "com.unity.render-pipelines.high-definition-config": "file:../../../../../Packages/com.unity.render-pipelines.high-definition-config",
     "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
     "local.utf.references": "file:../../../Packages/local.utf.references",
-    "com.unity.testframework.graphics": "8.11.0-exp.1",
+    "com.unity.testframework.graphics": "8.12.0-exp.2",
     "com.unity.testing.brg": "file:../../../Packages/com.unity.testing.brg",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
     "com.unity.ugui": "2.0.0",

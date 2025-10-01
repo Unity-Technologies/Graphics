@@ -165,11 +165,13 @@ namespace UnityEditor.Rendering.Universal
             internal bool isHololens { get; private set; }
             internal bool isQuest { get; private set; }
             internal bool isSwitch { get; private set; }
+            internal bool isSwitch2 { get; private set; }
 
             private PlatformBuildTimeDetect()
             {
                 BuildTargetGroup buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
                 isSwitch = buildTargetGroup == BuildTargetGroup.Switch;
+                isSwitch2 = buildTargetGroup == BuildTargetGroup.Switch2;
 
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
                 var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
@@ -279,7 +281,7 @@ namespace UnityEditor.Rendering.Universal
 
             PlatformBuildTimeDetect platformBuildTimeDetect = PlatformBuildTimeDetect.GetInstance();
             bool isShaderAPIMobileDefined = GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.SHADER_API_MOBILE);
-            if (platformBuildTimeDetect.isSwitch || isShaderAPIMobileDefined)
+            if (platformBuildTimeDetect.isSwitch || platformBuildTimeDetect.isSwitch2 || isShaderAPIMobileDefined)
                 s_UseSHPerVertexForSHAuto = true;
 
             // XR Stripping

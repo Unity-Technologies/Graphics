@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureDesc depthDesc = new TextureDesc(Vector2.one, true, true)
             {
-                format = GraphicsFormat.D32_SFloat_S8_UInt,
+                format = CoreUtils.GetDefaultDepthStencilFormat(),
                 bindTextureMS = msaa,
                 msaaSamples = msaaSamples,
                 clearBuffer = clear,
@@ -1338,7 +1338,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxOne ||
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries;
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch2;
 
             if (!canReadBoundDepthBuffer)
             {
@@ -1511,7 +1512,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthTexture = builder.ReadTexture(output.depthPyramidTexture);
 
                 passData.downsampledDepthBuffer = builder.UseDepthBuffer(renderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one * hdCamera.lowResScale, true, true) { format = GraphicsFormat.D32_SFloat_S8_UInt, name = "LowResDepthBuffer" }), DepthAccess.Write);
+                    new TextureDesc(Vector2.one * hdCamera.lowResScale, true, true) { format = CoreUtils.GetDefaultDepthStencilFormat(), name = "LowResDepthBuffer" }), DepthAccess.Write);
 
                 builder.SetRenderFunc(
                     (DownsampleDepthForLowResPassData data, RenderGraphContext context) =>

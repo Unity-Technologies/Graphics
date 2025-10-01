@@ -1,7 +1,7 @@
 #ifndef UNITY_ENTITY_LIGHTING_INCLUDED
 #define UNITY_ENTITY_LIGHTING_INCLUDED
 
-#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH || defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL)
+#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH  || SHADER_API_SWITCH2|| defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL)
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
@@ -307,7 +307,7 @@ real3 SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSa
     return SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(lightmapTex, lightmapSampler), TEXTURE2D_LIGHTMAP_ARGS(lightmapDirTex, lightmapDirSampler), LIGHTMAP_EXTRA_ARGS_USE, transform, normalWS, isStaticLightmap);
 }
 
-#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH
+#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH || SHADER_API_SWITCH2
 #pragma warning (enable : 3205) // conversion of larger type to smaller
 #endif
 

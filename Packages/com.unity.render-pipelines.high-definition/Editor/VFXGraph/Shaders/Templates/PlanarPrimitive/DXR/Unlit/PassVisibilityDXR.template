@@ -1,4 +1,4 @@
-﻿
+
         Pass
         {
             Name "VisibilityDXR"
@@ -6,7 +6,7 @@
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
             #pragma multi_compile _ TRANSPARENT_COLOR_SHADOW
             #pragma skip_variants INSTANCING_ON

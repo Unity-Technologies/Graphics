@@ -64,7 +64,7 @@ Shader "Hidden/DebugVTBlit"
             HLSLPROGRAM
                 #pragma vertex vert
                 #pragma fragment frag
-                #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+                #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             ENDHLSL
         }
 
@@ -73,7 +73,7 @@ Shader "Hidden/DebugVTBlit"
             HLSLPROGRAM
                 #pragma vertex vert
                 #pragma fragment fragMSAA
-                #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+                #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             ENDHLSL
         }
     }

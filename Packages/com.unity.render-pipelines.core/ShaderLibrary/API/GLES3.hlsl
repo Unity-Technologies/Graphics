@@ -38,6 +38,15 @@
 #define GLES3_1_AEP 0
 #endif
 
+// GLES3 causes a performance regression in some devices when using CBUFFER.
+// WebGL needs to put LightShadow uniforms into a uniform buffer,
+// despite being a GLES3 API. Some mobile devices, such as Adreno GPUs,
+// have a small GL_MAX_FRAGMENT_UNIFORM_VECTORS limit, causing Lit shaders
+// to fail on those devices. https://jira.unity3d.com/browse/UUM-87232
+#if !defined(UNITY_PLATFORM_WEBGL)
+#define LIGHT_SHADOWS_NO_CBUFFER
+#endif
+
 // Initialize arbitrary structure with zero values.
 // Do not exist on some platform, in this case we need to have a standard name that call a function that will initialize all parameters to 0
 #define ZERO_INITIALIZE(type, name) name = (type)0;

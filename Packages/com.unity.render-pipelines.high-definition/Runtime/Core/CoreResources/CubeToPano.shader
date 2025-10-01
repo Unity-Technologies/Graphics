@@ -20,7 +20,7 @@ CGPROGRAM
 #pragma target 4.5
 #pragma vertex vert
 #pragma fragment frag
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
 #include "UnityCG.cginc"
 

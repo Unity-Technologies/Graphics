@@ -39,7 +39,7 @@ bool CalculateDebugColorMaterialSettings(in SurfaceData2D surfaceData, in InputD
 
         case DEBUGMATERIALMODE_ALBEDO:
         {
-            debugColor = half4(surfaceData.albedo, 1);
+            debugColor = half4(surfaceData.albedo, surfaceData.alpha);
             return true;
         }
 
@@ -55,10 +55,15 @@ bool CalculateDebugColorMaterialSettings(in SurfaceData2D surfaceData, in InputD
             return true;
         }
 
-        case DEBUGMATERIALMODE_NORMAL_TANGENT_SPACE:
         case DEBUGMATERIALMODE_NORMAL_WORLD_SPACE:
         {
-            debugColor = half4(surfaceData.normalTS, 1);
+            debugColor = half4(surfaceData.normalWS * 0.5 + 0.5, surfaceData.alpha);
+            return true;
+        }
+
+        case DEBUGMATERIALMODE_NORMAL_TANGENT_SPACE:
+        {
+            debugColor = half4(surfaceData.normalTS * 0.5 + 0.5, surfaceData.alpha);
             return true;
         }
 

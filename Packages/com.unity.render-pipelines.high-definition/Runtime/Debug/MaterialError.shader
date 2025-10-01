@@ -8,7 +8,7 @@ Shader "Hidden/HDRP/MaterialError"
         {
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
             #pragma vertex vert
             #pragma fragment frag

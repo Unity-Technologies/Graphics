@@ -5,7 +5,7 @@
 #pragma kernel Main      SEGMENTS_PER_CLUSTER=2048  LDS_STRIDE=5 DEBUG
 #pragma kernel Main      SEGMENTS_PER_CLUSTER=256   LDS_STRIDE=2 COMPILING_SHADER
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
 int _HairDebugMode;
 

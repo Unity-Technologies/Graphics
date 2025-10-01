@@ -1,7 +1,7 @@
 #ifndef UNITY_COLOR_INCLUDED
 #define UNITY_COLOR_INCLUDED
 
-#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH || defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL)
+#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH || SHADER_API_SWITCH2 || defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL)
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
@@ -676,7 +676,7 @@ float3 AcesTonemap(float3 aces)
     const float d = 0.4329510f;
     const float e = 0.238081f;
 
-#if defined(SHADER_API_SWITCH)
+#if defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2)
     // To reduce the likelyhood of extremely large values, we avoid using the x^2 term and therefore
     // divide numerator and denominator by it. This will lead to the constant factors of the
     // quadratic in the numerator and denominator to be divided by x; we add a tiny epsilon to avoid divide by 0.
@@ -729,7 +729,7 @@ half3 DecodeRGBM(half4 rgbm)
     return rgbm.xyz * rgbm.w * kRGBMRange;
 }
 
-#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH
+#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH || SHADER_API_SWITCH2
 #pragma warning (enable : 3205) // conversion of larger type to smaller
 #endif
 

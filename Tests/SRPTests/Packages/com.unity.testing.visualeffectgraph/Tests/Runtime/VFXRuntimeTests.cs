@@ -167,10 +167,8 @@ namespace UnityEngine.VFX.Test
             Assert.IsFalse(hasBlendMode);
             Assert.AreEqual(0.0f, actualMaterial.GetFloat("_Blend"));
 
-            //URP doesn't use alpha independent blending mode with SG integration
-            Assert.IsFalse(actualMaterial.HasFloat("_SrcBlendAlpha"));
-            Assert.IsFalse(actualMaterial.HasFloat("_DstBlendAlpha"));
-            //Only rely on Blend [_SrcBlend] [_DstBlend]
+            Assert.AreEqual((float)Rendering.BlendMode.One, actualMaterial.GetFloat("_SrcBlendAlpha"));
+            Assert.AreEqual((float)Rendering.BlendMode.OneMinusSrcAlpha, actualMaterial.GetFloat("_DstBlendAlpha"));
             Assert.AreEqual((float)Rendering.BlendMode.SrcAlpha, actualMaterial.GetFloat("_SrcBlend")); //N.B.: Conflict with HDRP
             Assert.AreEqual((float)Rendering.BlendMode.OneMinusSrcAlpha, actualMaterial.GetFloat("_DstBlend"));
 #endif

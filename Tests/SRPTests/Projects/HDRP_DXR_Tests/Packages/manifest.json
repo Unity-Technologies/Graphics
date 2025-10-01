@@ -10,7 +10,7 @@
     "com.unity.rendering.denoising": "1.0.5",
     "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
     "local.utf.references": "file:../../../Packages/local.utf.references",
-    "com.unity.testframework.graphics": "8.11.0-exp.1",
+    "com.unity.testframework.graphics": "8.12.0-exp.2",
     "com.unity.testing.hdrp": "file:../../../Packages/com.unity.testing.hdrp",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
     "com.unity.ugui": "2.0.0",

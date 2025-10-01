@@ -16,7 +16,7 @@ Shader "Hidden/HDRP/DebugHDR"
 
     #pragma vertex Vert
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
     TEXTURE2D_X(_DebugFullScreenTexture);
 

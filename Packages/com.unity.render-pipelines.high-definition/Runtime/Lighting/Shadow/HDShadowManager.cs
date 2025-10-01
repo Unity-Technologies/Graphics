@@ -367,7 +367,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return new HDShadowAtlasInitParams()
                 {
                     shadowAtlasResolution = k_DefaultShadowAtlasResolution,
-                    shadowAtlasDepthBits = k_DefaultShadowMapDepthBits,
+                    shadowAtlasDepthBits = CoreUtils.GetDefaultDepthBufferBits(),
                     useDynamicViewportRescale = true
                 };
             }
@@ -376,7 +376,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static HDShadowInitParameters NewDefault() => new HDShadowInitParameters()
         {
             maxShadowRequests = k_DefaultMaxShadowRequests,
-            directionalShadowsDepthBits = k_DefaultShadowMapDepthBits,
+            directionalShadowsDepthBits = CoreUtils.GetDefaultDepthBufferBits(),
             punctualLightShadowAtlas = HDShadowAtlasInitParams.GetDefault(),
             areaLightShadowAtlas = HDShadowAtlasInitParams.GetDefault(),
             cachedPunctualLightShadowAtlas = 2048,
@@ -398,7 +398,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal const int k_DefaultShadowAtlasResolution = 4096;
         internal const int k_DefaultMaxShadowRequests = 128;
-        internal const DepthBits k_DefaultShadowMapDepthBits = DepthBits.Depth32;
 
         /// <summary>Maximum number of shadow requests at the same time.</summary>
         public int maxShadowRequests;

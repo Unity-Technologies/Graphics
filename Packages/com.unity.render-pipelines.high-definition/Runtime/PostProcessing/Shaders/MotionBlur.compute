@@ -1,7 +1,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
 #pragma kernel MotionBlurCS
 
@@ -182,7 +182,7 @@ float3 BlendMotionBlurLayers(float3 centralColor, float4 accumulation, float sca
     //  accumulation - rgb hold the unormalized weighted sum of the blur kernel. So Sum(c * w[i]). The w component holds the sum of all the weights Sum(w[i])
     //  scatterNeighborhoodIntensity - Within the tile (neighborhood) how blurry this pixel will look like. High value means this pixels motion vector has a high intensity relative to neighborhood, and viceversa
     //  invSampleCount - reciprocal of number of samples added in accumulation (1.0 / N)
-    // 
+    //
     // Explanation of blur algorithm:
     // We split this blend into a top layer, and a back layer.
     // Top layer -
@@ -192,7 +192,7 @@ float3 BlendMotionBlurLayers(float3 centralColor, float4 accumulation, float sca
     //      is the unormalized / low intensity color bleeding into background pixels. This looks good when a foreground object is moving fast, and the background is static. It however adds a ringing artifact when the background is fast moving and the foreground is static.
     // To get the best of both results, we blend them depending on how much the current pixel has to scatter. If the current pixel scatters a lot (high motion vector intensity relative to tile) we opt for a top layer.
     // on the other hand, if the current pixel doesn't scatter as much (has a low intensity motion vector) we are ok showing more of the bottom layer.
-    
+
     float3 topLayerColor = accumulation.w < 1e-4 ? centralColor.rgb : accumulation.rgb/accumulation.w;
     float topLayerAlpha = accumulation.w * invSampleCount;
     float3 backLayerColor = lerp(centralColor.rgb, topLayerColor, topLayerAlpha);

@@ -18,7 +18,7 @@
 #if defined(SHADER_API_MOBILE) && defined(SHADER_API_GLES30)
     #define MAX_VISIBLE_LIGHTS MAX_VISIBLE_LIGHT_COUNT_LOW_END_MOBILE
 // WebGPU's minimal limits are based on mobile rather than desktop, so it will need to assume mobile.
-#elif defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES3) || defined(SHADER_API_WEBGPU) // Workaround because SHADER_API_GLCORE is also defined when SHADER_API_SWITCH is
+#elif defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH) && !defined(SHADER_API_SWITCH2)) || defined(SHADER_API_GLES3) || defined(SHADER_API_WEBGPU) // Workaround because SHADER_API_GLCORE is also defined when SHADER_API_SWITCH is
     #define MAX_VISIBLE_LIGHTS MAX_VISIBLE_LIGHT_COUNT_MOBILE
 #else
     #define MAX_VISIBLE_LIGHTS MAX_VISIBLE_LIGHT_COUNT_DESKTOP
@@ -163,7 +163,7 @@ StructuredBuffer<LightData> _AdditionalLightsBuffer;
 StructuredBuffer<int> _AdditionalLightsIndices;
 #else
 // GLES3 causes a performance regression in some devices when using CBUFFER.
-#ifndef SHADER_API_GLES3
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_START(AdditionalLights)
 #endif
 float4 _AdditionalLightsPosition[MAX_VISIBLE_LIGHTS];
@@ -173,7 +173,7 @@ half4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
 float _AdditionalLightsLayerMasks[MAX_VISIBLE_LIGHTS]; // we want uint[] but Unity api does not support it.
-#ifndef SHADER_API_GLES3
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
 #endif
 #endif
@@ -193,14 +193,14 @@ float urp_ReflProbes_Count;
 // 2023.3 Deprecated. This is for backwards compatibility. Remove in the future.
 #define samplerurp_ReflProbes_Atlas sampler_LinearClamp
 
-#ifndef SHADER_API_GLES3
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_START(urp_ReflectionProbeBuffer)
 #endif
 float4 urp_ReflProbes_BoxMax[MAX_REFLECTION_PROBES];          // w contains the blend distance
 float4 urp_ReflProbes_BoxMin[MAX_REFLECTION_PROBES];          // w contains the importance
 float4 urp_ReflProbes_ProbePosition[MAX_REFLECTION_PROBES];   // w is positive for box projection, |w| is max mip level
 float4 urp_ReflProbes_MipScaleOffset[MAX_REFLECTION_PROBES * 7];
-#ifndef SHADER_API_GLES3
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
 #endif
 

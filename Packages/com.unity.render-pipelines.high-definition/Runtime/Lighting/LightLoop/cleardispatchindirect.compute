@@ -1,5 +1,5 @@
 #pragma kernel ClearDispatchIndirect
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
 RWBuffer<uint> g_DispatchIndirectBuffer : register( u0 );   // Indirect arguments have to be in a _buffer_, not a structured buffer
 

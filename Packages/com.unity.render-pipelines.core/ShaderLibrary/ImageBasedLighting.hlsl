@@ -1,7 +1,7 @@
 #ifndef UNITY_IMAGE_BASED_LIGHTING_HLSL_INCLUDED
 #define UNITY_IMAGE_BASED_LIGHTING_HLSL_INCLUDED
 
-#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH || defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL)
+#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH || SHADER_API_SWITCH2 || defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL)
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
@@ -399,7 +399,7 @@ uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
     {
         case 1: sampleCount = 21; break;
         case 2: sampleCount = 34; break;
-#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
+#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2) || defined(SHADER_API_SWITCH2)
         case 3: sampleCount = 34; break;
         case 4: sampleCount = 34; break;
         case 5: sampleCount = 34; break;
@@ -696,7 +696,7 @@ float InfluenceFadeNormalWeight(float3 normal, float3 centerToPos)
     return saturate((-1.0f / 0.4f) * dot(normal, centerToPos) + (0.6f / 0.4f));
 }
 
-#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH
+#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH || SHADER_API_SWITCH2
 #pragma warning (enable : 3205) // conversion of larger type to smaller
 #endif
 

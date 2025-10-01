@@ -130,6 +130,70 @@ namespace UnityEditor.VFX.Test
             }
         }
 
+        [UnityTest, Description("Covers UUM-115004, N.B.: This coverage can't be full without cross SRP project")]
+        public IEnumerator Failing_SG_Target_With_Current_Pipeline()
+        {
+            var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_115004.unitypackage";
+            AssetDatabase.ImportPackageImmediately(packagePath);
+            yield return null;
+
+            var vfxPath = VFXTestCommon.tempBasePath + "Repro_UUM_115004.vfx";
+            var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
+            Assert.IsNotNull(vfxAsset);
+
+            var vfxResource = vfxAsset.GetResource();
+            Assert.IsNotNull(vfxResource);
+
+            var vfxGraph = vfxResource.GetOrCreateGraph();
+            Assert.IsNotNull(vfxGraph);
+
+            var window = VFXViewWindow.GetWindow(vfxGraph, true, true);
+            window.LoadAsset(vfxAsset, null);
+            window.Focus();
+            yield return null; //No error preventing to open the graph
+
+            var particleOutputs = vfxGraph.children.OfType<VFXComposedParticleOutput>().ToArray();
+            Assert.AreEqual(4, particleOutputs.Length);
+            foreach (var particleOutput in particleOutputs)
+            {
+                Assert.IsNotNull(particleOutput.inputFlowSlot[0].link[0].context);
+
+                var serializedShaderGraph = particleOutput.GetSettingValue("shaderGraph") as ShaderGraphVfxAsset;
+                var actualShaderGraph = particleOutput.GetShaderGraph();
+                Assert.IsNotNull(actualShaderGraph);
+
+                bool isCompatibleWithCurrentSRP = false;
+#if VFX_TESTS_HAS_HDRP && VFX_TESTS_HAS_URP
+                Assert.Fail("This suite doesn't support both pipeline yet.");
+#elif VFX_TESTS_HAS_HDRP
+                if (particleOutput.label.Contains("HDRP"))
+                {
+                    isCompatibleWithCurrentSRP = true;
+                }
+#elif VFX_TESTS_HAS_URP
+                if (particleOutput.label.Contains("URP"))
+                {
+                    isCompatibleWithCurrentSRP = true;
+                }
+#endif
+                if (isCompatibleWithCurrentSRP)
+                {
+                    Assert.AreEqual(1, particleOutput.inputSlots.Count);
+                    Assert.IsTrue((bool)particleOutput.inputSlots[0].HasLink());
+                    Assert.IsNotNull(serializedShaderGraph);
+                }
+                else
+                {
+                    //N.B.: This asset won't be null if both SRP are available, checking reference to missing data here (but known guid)
+                    Assert.IsFalse(object.ReferenceEquals(serializedShaderGraph, null));
+                    Assert.IsTrue(serializedShaderGraph == null);
+                }
+            }
+
+            window.Close();
+            yield return null;
+        }
+
         public struct Check_Material_Override_Behavior_Test_Case
         {
             internal string name;

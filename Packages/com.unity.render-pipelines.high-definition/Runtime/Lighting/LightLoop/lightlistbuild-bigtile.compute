@@ -8,7 +8,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightingConvexHullUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/SortingComputeUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightCullUtils.hlsl"
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
 #pragma multi_compile _ GENERATE_VOLUMETRIC_BIGTILE
 
@@ -159,7 +159,11 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
         }
     }
 
-#if NR_THREADS > PLATFORM_LANE_COUNT || defined(SHADER_API_XBOXONE) || defined(SHADER_API_GAMECORE) || defined(SHADER_API_SWITCH) // not sure why XB1 and Switch need the barrier (it will not be correct without)
+    // For some platforms we always need GroupMemoryBarrierWithGroupSync() otherwise results are incorrect.
+	// Reason is under investigation, related discussions:
+	// https://unity.slack.com/archives/C02C8FWPNHE/p1704321597295329
+	// https://unity.slack.com/archives/G3JUQKYV8/p1705081617447289
+#if NR_THREADS > PLATFORM_LANE_COUNT || defined(SHADER_API_XBOXONE) || defined(SHADER_API_GAMECORE) || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2)
     GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -189,19 +193,17 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
     for(i = t; i * 2 < iNrCoarseLights + 1; i += NR_THREADS / 2)
     {
         uint id = i * 2;
-		
         uint lightIndexOrCount0 = iNrCoarseLights; // Count
         if (id > 0) // cannot use ternary operator here (it would evaluate both sides and fetch invalid indices, causing crash on some GPUs)
         {
             lightIndexOrCount0 = lightsListLDS[id - 1]; // Index0
         }
-		
+
         uint lightIndex1 = 0;  // Index1
         if (id < iNrCoarseLights) // cannot use ternary operator here (it would evaluate both sides and fetch invalid indices, causing crash on some GPUs)
         {
             lightIndex1 = lightsListLDS[id];
         }
-		
         // Pack 2 light indices into a single bigtile value
         g_vLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * offs / 2 + i] = (lightIndexOrCount0 & 0xFFFF) | (lightIndex1 << 16);
     }
