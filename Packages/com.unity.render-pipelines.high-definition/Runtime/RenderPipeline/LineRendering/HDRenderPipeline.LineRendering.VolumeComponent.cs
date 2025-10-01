@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [Serializable, VolumeComponentMenu("Rendering/High Quality Lines")]
+    [HDRPHelpURL("Override-High-Quality-Lines")]
     [DisplayInfo(name = "High Quality Line Rendering")]
     public class HighQualityLineRenderingVolumeComponent : VolumeComponent
     {
