@@ -825,7 +825,7 @@ namespace UnityEngine.Rendering.Universal.CompatibilityMode
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_PingTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_PingTexture");
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_PongTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_PongTexture");
 
-            PostProcessUtils.SetSourceSize(cmd, m_FullCoCTexture);
+            PostProcessUtils.SetGlobalShaderSourceSize(cmd, m_FullCoCTexture);
             cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
 
             // Compute CoC
@@ -944,7 +944,7 @@ namespace UnityEngine.Rendering.Universal.CompatibilityMode
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_PingTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_PingTexture");
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_PongTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_PongTexture");
 
-            PostProcessUtils.SetSourceSize(cmd, m_FullCoCTexture);
+            PostProcessUtils.SetGlobalShaderSourceSize(cmd, m_FullCoCTexture);
             cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
             float uvMargin = (1.0f / m_Descriptor.height) * downSample;
             cmd.SetGlobalVector(ShaderConstants._BokehConstants, new Vector4(uvMargin, uvMargin * 2.0f));
@@ -1234,7 +1234,7 @@ namespace UnityEngine.Rendering.Universal.CompatibilityMode
                 material.SetTexture(MotionVectorRenderPass.k_MotionVectorTextureName, motionVectors);
             }
 
-            PostProcessUtils.SetSourceSize(cmd, source);
+            PostProcessUtils.SetGlobalShaderSourceSize(cmd, source);
 
             CoreUtils.SetKeyword(material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, cameraData.isAlphaOutputEnabled);
             Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, pass);
@@ -1608,7 +1608,7 @@ namespace UnityEngine.Rendering.Universal.CompatibilityMode
 
             // Disable obsolete warning for internal usage
             #pragma warning disable CS0618
-            PostProcessUtils.SetSourceSize(cmd, cameraData.renderer.cameraColorTargetHandle);
+            PostProcessUtils.SetGlobalShaderSourceSize(cmd, cameraData.renderer.cameraColorTargetHandle);
             #pragma warning restore CS0618
 
             SetupGrain(renderingData.cameraData.universalCameraData, material);
@@ -1771,7 +1771,7 @@ namespace UnityEngine.Rendering.Universal.CompatibilityMode
 
                                 // Update the source texture for the next operation
                                 sourceTex = m_UpscaledTarget;
-                                PostProcessUtils.SetSourceSize(cmd, m_UpscaledTarget);
+                                PostProcessUtils.SetGlobalShaderSourceSize(cmd, m_UpscaledTarget);
 
                                 break;
                             }

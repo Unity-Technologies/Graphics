@@ -17,7 +17,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty nonLightmappedOnly;
         public SerializedProperty barnDoorAngle;
         public SerializedProperty barnDoorLength;
-        public SerializedProperty shapeRadius;
         public SerializedProperty maxSmoothness;
         public SerializedProperty applyRangeAttenuation;
         public SerializedProperty volumetricDimmer;
@@ -51,7 +50,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty filterTracedShadow;
         public SerializedProperty filterSizeTraced;
         public SerializedProperty sunLightConeAngle;
-        public SerializedProperty lightShadowRadius;
         public SerializedProperty semiTransparentShadow;
         public SerializedProperty colorShadow;
         public SerializedProperty distanceBasedFiltering;
@@ -260,7 +258,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 nonLightmappedOnly = o.Find("m_NonLightmappedOnly");
                 barnDoorAngle = o.Find("m_BarnDoorAngle");
                 barnDoorLength = o.Find("m_BarnDoorLength");
-                shapeRadius = o.Find("m_ShapeRadius");
                 maxSmoothness = o.Find("m_MaxSmoothness");
                 applyRangeAttenuation = o.Find("m_ApplyRangeAttenuation");
                 shadowNearPlane = o.Find("m_ShadowNearPlane");
@@ -284,7 +281,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 filterTracedShadow = o.Find("m_FilterTracedShadow");
                 filterSizeTraced = o.Find("m_FilterSizeTraced");
                 sunLightConeAngle = o.Find("m_SunLightConeAngle");
-                lightShadowRadius = o.Find("m_LightShadowRadius");
                 semiTransparentShadow = o.Find("m_SemiTransparentShadow");
                 colorShadow = o.Find("m_ColorShadow");
                 distanceBasedFiltering = o.Find("m_DistanceBasedFiltering");

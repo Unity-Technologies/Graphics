@@ -25,6 +25,11 @@
             "name": "com.unity.rendering.denoising",
             "expression": "2.0.0",
             "define": "ENABLE_UNITY_DENOISING_PLUGIN"
+        },
+        {
+            "name": "com.unity.modules.imageconversion",
+            "expression": "1.0.0",
+            "define": "ENABLE_IMAGECONVERSION_MODULE"
         }
     ],
     "noEngineReferences": false

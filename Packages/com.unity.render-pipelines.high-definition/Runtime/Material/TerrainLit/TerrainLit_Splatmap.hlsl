@@ -25,6 +25,7 @@ DECLARE_TERRAIN_LAYER_TEXS(3);
 
 SAMPLER(sampler_Splat0);
 SAMPLER(sampler_Control0);
+float _TerrainBasemapDistance;
 
 float GetSumHeight(float4 heights0, float4 heights1)
 {

@@ -5,80 +5,53 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using UnityEditor;
-using UnityEditor.Rendering;
 using UnityEditor.SceneManagement;
-using UnityEditor.Search;
+using UnityEngine.Categorization;
+using UnityEditor.Rendering.Converter;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using BIRPRendering = UnityEngine.Rendering.PostProcessing;
 using Object = UnityEngine.Object;
-using URPRenderingEditor = UnityEditor.Rendering.Universal;
 using URPRendering = UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    internal class PPv2Converter : RenderPipelineConverter
+    [URPHelpURL("features/rp-converter")]
+    [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
+    [ElementInfo(Name = "Post-Processing Stack v2",
+                 Order = int.MaxValue,
+                 Description = "This converter creates Universal Render Pipeline (URP) assets and corresponding Renderer assets, configuring their settings to match the equivalent settings from the Built-in Render Pipeline.")]
+
+    internal class PPv2Converter : AssetsConverter
     {
-        public override string name => "Post-Processing Stack v2 Converter";
-        public override string info =>
-            "Converts PPv2 Volumes, Profiles, and Layers to URP Volumes, Profiles, and Cameras. This process creates a temporary .index file and might take a long time.";
-        public override Type container => typeof(BuiltInToURPConverterContainer);
-        public override bool needsIndexing => true;
+        public override bool isEnabled => effectConverters?.Count() > 0;
+        public override string isDisabledMessage => "No converters specified.";
 
         private IEnumerable<PostProcessEffectSettingsConverter> effectConverters = null;
 
         private List<Object> postConversionDestroyables = null;
 
-        List<string> guids = new List<string>();
-        public override void OnInitialize(InitializeConverterContext context, Action callback)
+        protected override List<(string query, string description)> contextSearchQueriesAndIds
+            => s_PostProcessTypesToSearch;
+
+        static List<(string, string)> s_PostProcessTypesToSearch = new()
+        {
+            ("p: t:PostProcessVolume", "Contains Post Process Volume Component"),
+            ("p: t:PostProcessLayer", "Contains Post Process Layer Component"),
+            ("p: t:PostProcessProfile", "Contains Instance of Post Process Profile")
+        };
+        public override void BeforeConvert()
         {
             // Converters should already be set to null on domain reload,
             // but we're doing it here just in case anything somehow lingers.
             effectConverters = null;
-
             postConversionDestroyables = new List<Object>();
-
-            // We are using separate searchContexts here and Adding them in this order:
-            //      - Components from Prefabs & Scenes (Volumes & Layers)
-            //      - ScriptableObjects (Profiles)
-            //
-            // This allows the old objects to be both re-referenced and deleted safely as they are converted in OnRun.
-            // The process of converting Volumes will convert Profiles as-needed, and then the explicit followup Profile
-            // conversion step will convert any non-referenced assets and delete all old Profiles.
-
-            // Components First
-            using var componentContext =
-                Search.SearchService.CreateContext("asset", "urp=convert-ppv2component a=URPConverterIndex");
-            using var componentItems = Search.SearchService.Request(componentContext, SearchFlags.Synchronous);
-            {
-                AddSearchItemsAsConverterAssetEntries(componentItems, context);
-            }
-
-            // Then ScriptableObjects
-            using var scriptableObjectContext =
-                Search.SearchService.CreateContext("asset", "urp=convert-ppv2scriptableobject a=URPConverterIndex ");
-            using var scriptableObjectItems = Search.SearchService.Request(scriptableObjectContext, SearchFlags.Synchronous);
-            {
-                AddSearchItemsAsConverterAssetEntries(scriptableObjectItems, context);
-            }
-
-            callback.Invoke();
         }
 
-        public override void OnRun(ref RunItemContext context)
+        protected override Status ConvertObject(UnityEngine.Object obj, StringBuilder message)
         {
-            var obj = GetContextObject(ref context);
-
-            if (!obj)
-            {
-                context.didFail = true;
-                context.info = "Could not be converted because the target object was lost.";
-                return;
-            }
-
             BIRPRendering.PostProcessVolume[] oldVolumes = null;
             BIRPRendering.PostProcessLayer[] oldLayers = null;
 
@@ -111,7 +84,6 @@ namespace UnityEditor.Rendering.Universal
             // Note: even if nothing needs to be converted, that should still count as success,
             //       though it shouldn't ever actually occur.
             var succeeded = true;
-            var errorString = new StringBuilder();
 
             if (effectConverters == null ||
                 effectConverters.Count() == 0 ||
@@ -124,7 +96,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 foreach (var oldVolume in oldVolumes)
                 {
-                    ConvertVolume(oldVolume, ref succeeded, errorString);
+                    ConvertVolume(oldVolume, ref succeeded, message);
                 }
             }
 
@@ -132,28 +104,28 @@ namespace UnityEditor.Rendering.Universal
             {
                 foreach (var oldLayer in oldLayers)
                 {
-                    ConvertLayer(oldLayer, ref succeeded, errorString);
+                    ConvertLayer(oldLayer, ref succeeded, message);
                 }
             }
 
             if (obj is BIRPRendering.PostProcessProfile oldProfile)
             {
-                ConvertProfile(oldProfile, ref succeeded, errorString);
+                ConvertProfile(oldProfile, ref succeeded, message);
             }
 
             if (!succeeded)
             {
-                context.didFail = true;
-                context.info = errorString.ToString();
+                return Status.Error;
             }
             else
             {
                 var currentScene = SceneManager.GetActiveScene();
                 EditorSceneManager.SaveScene(currentScene);
+                return Status.Success;
             }
         }
 
-        public override void OnPostRun()
+        public override void AfterConvert()
         {
             for (var i = 0; i < postConversionDestroyables.Count; i++)
             {
@@ -161,96 +133,6 @@ namespace UnityEditor.Rendering.Universal
             }
 
             postConversionDestroyables.Clear();
-        }
-
-        public override void OnClicked(int index)
-        {
-            if (GlobalObjectId.TryParse(guids[index], out var gid))
-            {
-                var containerPath = AssetDatabase.GUIDToAssetPath(gid.assetGUID);
-                EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<Object>(containerPath));
-            }
-        }
-
-        private void AddSearchItemsAsConverterAssetEntries(ISearchList searchItems, InitializeConverterContext context)
-        {
-            foreach (var searchItem in searchItems)
-            {
-                if (searchItem == null || !GlobalObjectId.TryParse(searchItem.id, out var globalId))
-                {
-                    continue;
-                }
-
-                var description = searchItem.provider.fetchDescription(searchItem, searchItem.context);
-
-                var item = new ConverterItemDescriptor()
-                {
-                    name = description.Split('/').Last().Split('.').First(),
-                    info = $"{ReturnType(globalId)}",
-                };
-
-                guids.Add(globalId.ToString());
-                context.AddAssetToConvert(item);
-            }
-        }
-
-        string ReturnType(GlobalObjectId gid)
-        {
-            var containerPath = AssetDatabase.GUIDToAssetPath(gid.assetGUID);
-            return AssetDatabase.LoadAssetAtPath<Object>(containerPath).GetType().ToString().Split('.').Last();
-        }
-
-        private Object GetContextObject(ref RunItemContext ctx)
-        {
-            var item = ctx.item;
-            var guid = guids[item.index];
-
-            if (GlobalObjectId.TryParse(guid, out var globalId))
-            {
-                // Try loading the object
-                // TODO: Upcoming changes to GlobalObjectIdentifierToObjectSlow will allow it
-                //       to return direct references to prefabs and their children.
-                //       Once that change happens there are several items which should be adjusted.
-                var obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(globalId);
-
-                // If the object was not loaded, it is probably part of an unopened scene;
-                // if so, then the solution is to first load the scene here.
-                var objIsInSceneOrPrefab = globalId.identifierType == 2; // 2 is IdentifierType.kSceneObject
-                if (!obj &&
-                    objIsInSceneOrPrefab)
-                {
-                    // Open the Containing Scene Asset in the Hierarchy so the Object can be manipulated
-                    var mainAssetPath = AssetDatabase.GUIDToAssetPath(globalId.assetGUID);
-                    var mainAsset = AssetDatabase.LoadAssetAtPath<Object>(mainAssetPath);
-                    AssetDatabase.OpenAsset(mainAsset);
-
-                    // If a prefab stage was opened, then mainAsset is the root of the
-                    // prefab that contains the target object, so reference that for now,
-                    // until GlobalObjectIdentifierToObjectSlow is updated
-                    if (PrefabStageUtility.GetCurrentPrefabStage() != null)
-                    {
-                        obj = mainAsset;
-                    }
-
-                    // Reload object if it is still null (because it's in a previously unopened scene)
-                    if (!obj)
-                    {
-                        obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(globalId);
-                        if (!obj)
-                        {
-                            ctx.didFail = true;
-                            ctx.info = $"Object {globalId.assetGUID} failed to load...";
-                        }
-                    }
-                }
-
-                return obj;
-            }
-
-            ctx.didFail = true;
-            ctx.info = $"Failed to parse Global ID {item.descriptor.info}...";
-
-            return null;
         }
 
 #region Conversion_Entry_Points

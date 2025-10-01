@@ -2122,7 +2122,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void EndRenderRequest(in RenderRequest renderRequest, CommandBuffer cmd)
+        void EndRenderRequest(in RenderRequest renderRequest)
         {
             // release reference because the RenderTexture might be destroyed before the camera
             if (renderRequest.clearCameraSettings)
@@ -2429,7 +2429,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 cmd.SetInvertCulling(false);
                             }
 
-                            EndRenderRequest(renderRequest, cmd);
+                            EndRenderRequest(renderRequest);
 
                             // Render XR mirror view once all render requests have been completed
                             if (isLast && renderRequest.hdCamera.camera.cameraType == CameraType.Game && renderRequest.hdCamera.camera.targetTexture == null)
@@ -2870,11 +2870,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.LogException(e);
                 }
             } // using (ListPool<RTHandle>.Get(out var aovCustomPassBuffers))
-
-            // This is required so that all commands up to here are executed before EndCameraRendering is called for the user.
-            // Otherwise command would not be rendered in order.
-            renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
         }
 
         void SetupCameraProperties(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)

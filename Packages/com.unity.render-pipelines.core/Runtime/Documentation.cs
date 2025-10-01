@@ -1,8 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
 using System.Diagnostics.CodeAnalysis;
 #if UNITY_EDITOR
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
@@ -49,7 +47,7 @@ namespace UnityEngine.Rendering
     /// Use this attribute to define documentation url for the current Render Pipeline.
     /// </summary>
     /// <example>
-    /// [CoreRPHelpURLAttribute("Volume")]
+    /// [CurrentPipelineHelpURLAttribute("Volume")]
     /// public class Volume : MonoBehaviour
     /// </example>
     [Conditional("UNITY_EDITOR")]
@@ -79,7 +77,10 @@ namespace UnityEngine.Rendering
             get
             {
 #if UNITY_EDITOR
-                if (DocumentationUtils.TryGetPackageInfoForType(GraphicsSettings.currentRenderPipelineAssetType ?? typeof(DocumentationInfo), out var package, out var version))
+                if (!GraphicsSettings.isScriptableRenderPipelineEnabled)
+                    return string.Empty;
+
+                if (DocumentationUtils.TryGetPackageInfoForType(GraphicsSettings.currentRenderPipelineAssetType, out var package, out var version))
                 {
                     return DocumentationInfo.GetPackageLink(package, version, pageName, pageHash);
                 }
@@ -257,12 +258,11 @@ namespace UnityEngine.Rendering
         public static string GetHelpURL<TEnum>(TEnum mask = default)
             where TEnum : struct, IConvertible
         {
-            var helpURLAttribute = (HelpURLAttribute)mask
+            var helpURLAttributes = mask
                 .GetType()
-                .GetCustomAttributes(typeof(HelpURLAttribute), false)
-                .FirstOrDefault();
+                .GetCustomAttributes(typeof(HelpURLAttribute), false);
 
-            return helpURLAttribute == null ? string.Empty : $"{helpURLAttribute.URL}#{mask}";
+            return helpURLAttributes.Length == 0 ? string.Empty : $"{((HelpURLAttribute)helpURLAttributes[0]).URL}#{mask}";
         }
 
         /// <summary>
@@ -273,9 +273,19 @@ namespace UnityEngine.Rendering
         /// <returns>Returns true if the attribute is present, and false otherwise.</returns>
         public static bool TryGetHelpURL(Type type, out string url)
         {
-            var attribute = type.GetCustomAttribute<HelpURLAttribute>(false);
-            url = attribute?.URL;
-            return attribute != null;
+            var helpURLAttributes = type.GetCustomAttributes(typeof(HelpURLAttribute), true);
+            for (int i = 0; i < helpURLAttributes.Length; i++)
+            {
+                var attr = (HelpURLAttribute)helpURLAttributes[i];
+                var attributeUrl = attr.URL;
+                if (string.IsNullOrEmpty(attributeUrl))
+                    continue;
+
+                url = attributeUrl;
+                return true;
+            }
+            url = null;
+            return false;
         }
 
 #if UNITY_EDITOR

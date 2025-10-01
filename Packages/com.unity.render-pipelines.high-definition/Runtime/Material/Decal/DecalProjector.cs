@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [CanEditMultipleObjects]
 #endif
     [AddComponentMenu("Rendering/HDRP Decal Projector")]
-    [Icon("DecalProjector")]
+    [Icon("Packages/com.unity.render-pipelines.core/Editor/Icons/Processed/DecalProjector Icon.asset")]
     public partial class DecalProjector : MonoBehaviour
     {
         [SerializeField]

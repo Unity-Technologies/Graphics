@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEditor.Rendering.Converter;
+using UnityEngine.Categorization;
 
 [assembly: InternalsVisibleTo("PPv2URPConverters")]
 [assembly: InternalsVisibleTo("Unity.2D.PixelPerfect.Editor")]
@@ -13,24 +14,24 @@ namespace UnityEditor.Rendering.Universal
         /// <summary>
         /// Name of the converter.
         /// </summary>
-        public abstract string name { get; }
+        public virtual string name { get; }
 
         /// <summary>
         /// The information when hovering over the converter.
         /// </summary>
-        public abstract string info { get; }
+        public virtual string info { get; }
 
         private bool m_Enabled = true;
+
         /// <summary>
         /// A check if the converter is enabled or not. Can be used to do a check if prerequisites are met to have it enabled or disabled.
         /// </summary>
         public virtual bool isEnabled { get => m_Enabled; set => m_Enabled = value; }
-        public virtual string isDisabledMessage { get; set; }
 
         /// <summary>
         /// The message if the converter is disabled. This will be shown in the UI when hovering over the disabled converter.
         /// </summary>
-        public virtual string isDisabledWarningMessage => string.Empty;
+        public virtual string isDisabledMessage { get; set; }
 
         /// <summary>
         /// A priority of the converter. The lower the number (can be negative), the earlier it will be executed. Can be used to make sure that a converter runs before another converter.
@@ -57,7 +58,7 @@ namespace UnityEditor.Rendering.Universal
 
         // This is in which drop down item the converter belongs to.
         // Not properly implemented yet
-        public abstract Type container { get; }
+        public virtual Type container { get; }
         
 
         /// <summary>

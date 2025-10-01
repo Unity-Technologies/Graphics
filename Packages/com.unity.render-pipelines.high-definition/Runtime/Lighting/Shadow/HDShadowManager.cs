@@ -1381,15 +1381,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 (hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects) || hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects)))
             {
                 // Punctual
-                result.cachedPunctualShadowResult = cachedShadowManager.punctualShadowAtlas.RenderShadows(renderGraph, renderContext, cullResults, globalCB, hdCamera.frameSettings, "Cached Punctual Lights Shadows rendering");
+                result.cachedPunctualShadowResult = cachedShadowManager.punctualShadowAtlas.RenderShadows(renderGraph, renderContext, cullResults, globalCB, hdCamera.frameSettings, "Render Cached Punctual Lights Shadow Maps");
                 BlitCachedShadows(renderGraph, ShadowMapType.PunctualAtlas);
-                result.punctualShadowResult = m_Atlas.RenderShadows(renderGraph, renderContext, cullResults, globalCB, hdCamera.frameSettings, "Punctual Lights Shadows rendering");
+                result.punctualShadowResult = m_Atlas.RenderShadows(renderGraph, renderContext, cullResults, globalCB, hdCamera.frameSettings, "Render Punctual Lights Shadow Maps");
 
                 if (ShaderConfig.s_AreaLights == 1)
                 {
-                    cachedShadowManager.areaShadowAtlas.RenderShadowMaps(renderGraph, renderContext, cullResults, globalCB, hdCamera.frameSettings, "Cached Area Lights Shadows rendering");
+                    cachedShadowManager.areaShadowAtlas.RenderShadowMaps(renderGraph, renderContext, cullResults, globalCB, hdCamera.frameSettings, "Render Cached Area Lights Shadow Maps");
                     BlitCachedShadows(renderGraph, ShadowMapType.AreaLightAtlas);
-                    m_AreaLightShadowAtlas.RenderShadowMaps(renderGraph, renderContext, cullResults, globalCB, hdCamera.frameSettings, "Area Light Shadows rendering");
+                    m_AreaLightShadowAtlas.RenderShadowMaps(renderGraph, renderContext, cullResults, globalCB, hdCamera.frameSettings, "Render Area Light Shadow Maps");
                     result.areaShadowResult = m_AreaLightShadowAtlas.BlurShadows(renderGraph);
                     result.cachedAreaShadowResult = cachedShadowManager.areaShadowAtlas.BlurShadows(renderGraph);
                 }
@@ -1400,11 +1400,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (cachedShadowManager.directionalLightAtlas.HasShadowRequests())
                     {
                         cachedShadowManager.UpdateDirectionalCacheTexture(renderGraph);
-                        cachedShadowManager.directionalLightAtlas.RenderShadows(renderGraph, renderContext, cullResults, globalCB, hdCamera.frameSettings, "Cached Directional Lights Shadows rendering");
+                        cachedShadowManager.directionalLightAtlas.RenderShadows(renderGraph, renderContext, cullResults, globalCB, hdCamera.frameSettings, "Render Cached Directional Lights Shadow Maps");
                     }
                     BlitCachedShadows(renderGraph, ShadowMapType.CascadedDirectional);
                 }
-                result.directionalShadowResult = m_CascadeAtlas.RenderShadows(renderGraph, renderContext, cullResults, globalCB, hdCamera.frameSettings, "Directional Light Shadows rendering");
+                result.directionalShadowResult = m_CascadeAtlas.RenderShadows(renderGraph, renderContext, cullResults, globalCB, hdCamera.frameSettings, "Render Directional Light Shadow Maps");
             }
 
             // TODO RENDERGRAPH
@@ -1464,7 +1464,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddUnsafePass<BindShadowGlobalResourcesPassData>("BindShadowGlobalResources", out var passData))
             {
                 passData.shadowResult = ReadShadowResult(shadowResult, builder);
-                builder.AllowPassCulling(false);
+                builder.AllowGlobalStateModification(true);
                 builder.SetRenderFunc(
                     (BindShadowGlobalResourcesPassData data, UnsafeGraphContext ctx) =>
                     {
@@ -1481,7 +1481,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddUnsafePass<BindShadowGlobalResourcesPassData>("BindDefaultShadowGlobalResources", out var passData))
             {
-                builder.AllowPassCulling(false);
+                builder.AllowGlobalStateModification(true);
                 builder.SetRenderFunc(
                     (BindShadowGlobalResourcesPassData data, UnsafeGraphContext ctx) =>
                     {

@@ -553,6 +553,16 @@ namespace UnityEngine.Rendering.RenderGraphModule
             generator.Append(GetRenderFuncHash());
         }
 
+        public void SetShadingRateImageRaw(in TextureHandle shadingRateImage)
+        {
+            if (ShadingRateInfo.supportsPerImageTile)
+            {
+                hasShadingRateImage = true;
+                // shading rate image access flag is always read, only 1 mip and 1 slice
+                shadingRateAccess = new TextureAccess(shadingRateImage, AccessFlags.Read, 0, 0);
+            }
+        }
+
         public void SetShadingRateImage(in TextureHandle shadingRateImage, AccessFlags accessFlags, int mipLevel, int depthSlice)
         {
             if (ShadingRateInfo.supportsPerImageTile)

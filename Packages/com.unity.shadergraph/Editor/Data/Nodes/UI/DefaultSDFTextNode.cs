@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new DefaultVector4MaterialSlot(k_InputSlotIdTint, k_InputSlotNameTint, k_InputSlotNameTint, "From Styles"));
+            AddSlot(new DefaultVector4MaterialSlot(k_InputSlotIdTint, k_InputSlotNameTint, k_InputSlotNameTint, "Default"));
             AddSlot(new ColorRGBAMaterialSlot(k_OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, Vector4.one, ShaderStageCapability.Fragment));
             RemoveSlotsNameNotMatching(new[] { k_InputSlotIdTint, k_OutputSlotId });
         }
@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph
 
             sb.AppendLine("float4 {0} = float4(1, 1, 0, 1);", outputVarName);
 
-            sb.AppendLine("[branch] if ((UIE_RENDER_TYPE_TEXT || UIE_RENDER_TYPE_ANY) && round(IN.typeTexSettings.x) == k_FragTypeSdfText)");
+            sb.AppendLine("[branch] if ((_UIE_RENDER_TYPE_TEXT || _UIE_RENDER_TYPE_ANY) && round(IN.typeTexSettings.x) == k_FragTypeSdfText)");
             using (sb.BlockScope())
             {
                 bool hasTint = GetInputNodeFromSlot(k_InputSlotIdTint) != null;
@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.textureSlot = IN.typeTexSettings.y;");
                 sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.uv = IN.uvClip.xy;");
                 sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.extraDilate = IN.circle.x;");
-                sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.textCoreLoc = IN.textCoreLoc;");
+                sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.textCoreLoc = round(IN.textCoreLoc);");
                 sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.opacity = IN.typeTexSettings.z;");
                 sb.AppendLine("CommonFragOutput Unity_UIE_EvaluateSdfTextNode_Output = uie_std_frag_sdf_text(Unity_UIE_EvaluateSdfTextNode_Input);");
                 sb.AppendLine("{0} = Unity_UIE_EvaluateSdfTextNode_Output.color;", outputVarName);

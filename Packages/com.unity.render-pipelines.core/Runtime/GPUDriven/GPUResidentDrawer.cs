@@ -422,6 +422,16 @@ namespace UnityEngine.Rendering
             Shader.EnableKeyword(useLegacyLightmapsKeyword);
 
             InsertIntoPlayerLoop();
+
+            string extraText = IsForcedOnViaCommandLine() ? " (forced on via commandline)" : "";
+            extraText = MaintainContext ? " (forced on via MaintainContext)" : extraText;
+            if (settings.enableOcclusionCulling)
+            {
+                string occlusionText = IsOcclusionForcedOnViaCommandLine() ? " (forced on via commandline)" : "";
+                occlusionText = ForceOcclusion ? " (forced on via ForceOcclusion)" : occlusionText;
+                extraText = $"{extraText} with GPU Occlusion Culling{occlusionText}";
+            }
+            Console.WriteLine($"GPU Resident Drawer created{extraText}.");
         }
 
         private void Dispose()
@@ -460,6 +470,8 @@ namespace UnityEngine.Rendering
             m_GPUDrivenProcessor.Dispose();
 
             m_ContextIntPtr = IntPtr.Zero;
+
+            Console.WriteLine($"GPU Resident Drawer disposed.");
         }
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)

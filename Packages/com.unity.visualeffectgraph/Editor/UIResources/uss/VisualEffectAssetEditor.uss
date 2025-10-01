@@ -5,10 +5,12 @@
     padding-left: 32px;
     -unity-text-align: middle-left;
     border-width: 1px 0 0 0;
-    border-color: #1F1F1F;
-    background-color: #323232;
+    border-color: var(--unity-colors-default-border);
+    background-color: var(--unity-colors-tab-background);
 }
 
 .unity-base-text-field__input--multiline {
-    min-height: 32px;
+    min-height: 64px;
+    max-height: 128px;
+    white-space: normal;
 }

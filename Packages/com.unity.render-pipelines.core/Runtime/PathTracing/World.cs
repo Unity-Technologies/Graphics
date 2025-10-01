@@ -13,8 +13,8 @@ namespace UnityEngine.PathTracing.Core
     using LightHandle = Handle<World.LightDescriptor>;
     using LightHandleSet = HandleSet<World.LightDescriptor>;
 
-    using MaterialHandle = Handle<World.MaterialDescriptor>;
-    using MaterialHandleSet = HandleSet<World.MaterialDescriptor>;
+    using MaterialHandle = Handle<MaterialPool.MaterialDescriptor>;
+    using MaterialHandleSet = HandleSet<MaterialPool.MaterialDescriptor>;
 
     internal enum RenderedGameObjectsFilter
     {
@@ -47,32 +47,6 @@ namespace UnityEngine.PathTracing.Core
         // This trivial type only exists so that handles can be type-safe.
         // If we make an InstanceDescriptor type, we can use that instead.
         internal readonly struct InstanceKey { }
-
-        internal struct MaterialDescriptor
-        {
-            public Texture Albedo;
-            public Vector2 AlbedoScale;
-            public Vector2 AlbedoOffset;
-
-            public Texture Emission;
-            public Vector2 EmissionScale;
-            public Vector2 EmissionOffset;
-            public Vector3 EmissionColor;
-            public MaterialPropertyType EmissionType;
-
-            public Texture Transmission;
-            public Vector2 TransmissionScale;
-            public Vector2 TransmissionOffset;
-            public TransmissionChannels TransmissionChannels;
-
-            public float Alpha;
-            public float AlphaCutoff;
-            public bool UseAlphaCutoff;
-
-            public bool DoubleSidedGI;
-
-            public bool PointSampleTransmission;
-        }
 
         internal struct LightDescriptor
         {
@@ -498,7 +472,7 @@ namespace UnityEngine.PathTracing.Core
             }
         }
 
-        public MaterialHandle AddMaterial(in MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel)
+        public MaterialHandle AddMaterial(in MaterialPool.MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel)
         {
             MaterialHandle handle = _materialHandleSet.Add();
             try
@@ -512,7 +486,7 @@ namespace UnityEngine.PathTracing.Core
             return handle;
         }
 
-        public void UpdateMaterial(MaterialHandle materialHandle, in MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel)
+        public void UpdateMaterial(MaterialHandle materialHandle, in MaterialPool.MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel)
         {
             try
             {
@@ -794,18 +768,18 @@ namespace UnityEngine.PathTracing.Core
             return range;
         }
 
-        public void UpdateLights(LightHandle[] lights, Span<LightDescriptor> lightDescriptors,
+        public void UpdateLights(LightHandle[] lightHandles, Span<LightDescriptor> lightDescriptors,
             bool respectLightLayers,
             bool autoEstimateLUTRange,
             MixedLightingMode mixedLightingMode)
         {
-            Debug.Assert(lights.Length == lightDescriptors.Length);
+            Debug.Assert(lightHandles.Length == lightDescriptors.Length);
 
             Dictionary<int, int> falloffHashToFalloffIndex = new();
             int falloffIndex = 0;
 
             // Convert the lights.
-            for (int i = 0; i < lights.Length; i++)
+            for (int i = 0; i < lightHandles.Length; i++)
             {
                 ref readonly LightDescriptor light = ref lightDescriptors[i];
 
@@ -917,7 +891,7 @@ namespace UnityEngine.PathTracing.Core
 
                 newLight.cookieIndex = _materialPool.AddCookieTexture(light.CookieTexture);
 
-                _lightState.LightHandleToLightListEntry[lights[i]] = newLight;
+                _lightState.LightHandleToLightListEntry[lightHandles[i]] = newLight;
             }
         }
 
@@ -960,6 +934,5 @@ namespace UnityEngine.PathTracing.Core
             _rayTracingAccelerationStructure.GetInstanceIDs(handle.ToInt(), out ids);
             return (UInt64)ids[0];
         }
-
     }
 }

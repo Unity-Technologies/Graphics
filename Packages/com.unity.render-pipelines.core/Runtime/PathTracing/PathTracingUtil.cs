@@ -220,11 +220,7 @@ namespace UnityEngine.PathTracing.Core
                 ld.ShadowMaskChannel = -1;
                 ld.UseColorTemperature = light.useColorTemperature;
                 ld.FalloffType = Experimental.GlobalIllumination.FalloffType.InverseSquared; // When we extract lights for the path tracer, we assume inverse squared falloff.
-#if UNITY_EDITOR
-                ld.ShadowRadius = Util.IsPunctualLightType(light.type) ? light.shadowRadius : 0.0f;
-#else
-                ld.ShadowRadius = 0.0f;
-#endif
+                ld.ShadowRadius = Util.IsPunctualLightType(light.type) ? light.shapeRadius : 0.0f;
                 ld.CookieTexture = light.cookie;
                 ld.CookieSize = Math.Max(light.cookieSize2D.x, light.cookieSize2D.y);
             }
@@ -237,7 +233,7 @@ namespace UnityEngine.PathTracing.Core
             return new Color(color.r * multiplier, color.g * multiplier, color.b * multiplier, color.a);
         }
 
-        private static Vector3 GetLinearLightColor(Light light)
+        internal static Vector3 GetLinearLightColor(Light light)
         {
             Color lightColor = (GraphicsSettings.lightsUseLinearIntensity) ? RGBMultiplied(light.color.linear, light.intensity) : RGBMultiplied(light.color, light.intensity).linear;
             lightColor *= light.useColorTemperature ? Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature) : Color.white;
@@ -267,7 +263,7 @@ namespace UnityEngine.PathTracing.Core
         {
             Debug.Assert(UnsafeUtility.SizeOf<EntityId>() == sizeof(int),
                 "If this assert is firing, the size of EntityId has changed. Remove the intermediate cast to int below, and cast directly to ulong instead.");
-            
+
             return (ulong)(int)id;
         }
     }

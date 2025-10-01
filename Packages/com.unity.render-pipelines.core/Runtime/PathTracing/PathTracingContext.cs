@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.LiveGI
 {
     using InstanceHandle = Handle<World.InstanceKey>;
     using LightHandle = Handle<World.LightDescriptor>;
-    using MaterialHandle = Handle<World.MaterialDescriptor>;
+    using MaterialHandle = Handle<MaterialPool.MaterialDescriptor>;
 
     [Serializable]
     internal class PathTracingSettings
@@ -174,7 +174,7 @@ namespace UnityEngine.Rendering.LiveGI
                 // TODO: enable this only for debugging
                 Unity.Collections.NativeLeakDetection.Mode = Unity.Collections.NativeLeakDetectionMode.EnabledWithStackTrace;
 
-                var changes = _sceneUpdatesTracker.GetChanges(_pathTracingOutput == PathTracingOutput.GIPreview, false, false);
+                var changes = _sceneUpdatesTracker.GetChanges(_pathTracingOutput == PathTracingOutput.GIPreview);
                 _sceneChanged = changes.HasChanges();
 
                 UpdateMaterials(_world, _instanceIDToWorldMaterialHandles, _instanceIDToWorldMaterialDescriptors, changes.addedMaterials, changes.removedMaterials, changes.changedMaterials);
@@ -296,7 +296,7 @@ namespace UnityEngine.Rendering.LiveGI
         private int _previousLightsHashCode;
 
         private readonly Material _defaultMaterial;
-        private World.MaterialDescriptor _defaultMaterialDescriptor;
+        private MaterialPool.MaterialDescriptor _defaultMaterialDescriptor;
 
         private readonly PathTracingOutput _pathTracingOutput;
 
@@ -314,7 +314,7 @@ namespace UnityEngine.Rendering.LiveGI
         private Dictionary<EntityId, MaterialHandle> _instanceIDToWorldMaterialHandles = new();
 
         // We also keep track of associated material descriptors, so we can free temporary temporary textures when a material is removed
-        private Dictionary<EntityId, World.MaterialDescriptor> _instanceIDToWorldMaterialDescriptors = new();
+        private Dictionary<EntityId, MaterialPool.MaterialDescriptor> _instanceIDToWorldMaterialDescriptors = new();
 
         public static Vector4 GetCameraFrustum(Camera camera)
         {
@@ -328,9 +328,9 @@ namespace UnityEngine.Rendering.LiveGI
             return new Vector4(left, right, bottom, top);
         }
 
-        internal static void UpdateMaterials(World world, Dictionary<EntityId, MaterialHandle> instanceIDToHandle, Dictionary<EntityId, World.MaterialDescriptor> instanceIDToDescriptor, List<Material> addedMaterials, List<EntityId> removedMaterials, List<Material> changedMaterials)
+        internal static void UpdateMaterials(World world, Dictionary<EntityId, MaterialHandle> instanceIDToHandle, Dictionary<EntityId, MaterialPool.MaterialDescriptor> instanceIDToDescriptor, List<Material> addedMaterials, List<EntityId> removedMaterials, List<Material> changedMaterials)
         {
-            static void DeleteTemporaryTextures(ref World.MaterialDescriptor desc)
+            static void DeleteTemporaryTextures(ref MaterialPool.MaterialDescriptor desc)
             {
                 CoreUtils.Destroy(desc.Albedo);
                 CoreUtils.Destroy(desc.Emission);

@@ -14,7 +14,7 @@ using UnityEditor;
 namespace UnityEngine.PathTracing.Lightmapping
 {
     using InstanceHandle = Handle<World.InstanceKey>;
-    using MaterialHandle = Handle<World.MaterialDescriptor>;
+    using MaterialHandle = Handle<MaterialPool.MaterialDescriptor>;
 
     internal struct LodInstanceBuildData
     {

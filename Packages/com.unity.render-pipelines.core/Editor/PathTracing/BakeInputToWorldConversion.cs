@@ -8,10 +8,11 @@ using UnityEngine;
 using UnityEngine.PathTracing.Lightmapping;
 using UnityEngine.PathTracing.Integration;
 using UnityEngine.Rendering.Sampling;
+using UnityEngine.Rendering.UnifiedRayTracing;
 
 namespace UnityEditor.PathTracing.LightBakerBridge
 {
-    using MaterialHandle = Handle<World.MaterialDescriptor>;
+    using MaterialHandle = Handle<MaterialPool.MaterialDescriptor>;
     using LightHandle = Handle<World.LightDescriptor>;
 
     internal static class BakeInputToWorldConversion
@@ -243,7 +244,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             int allocationCount = allocatedObjects.Count;
 
             // Create albedo and emission textures from materials
-            var perTexturePairMaterials = new World.MaterialDescriptor[bakeInput.albedoData.Length];
+            var perTexturePairMaterials = new MaterialPool.MaterialDescriptor[bakeInput.albedoData.Length];
             Debug.Assert(bakeInput.albedoData.Length == bakeInput.emissiveData.Length);
             for (int i = 0; i < bakeInput.albedoData.Length; i++)
             {
@@ -299,7 +300,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 // Get base (per-instance) material
                 ref readonly InstanceData instanceData = ref bakeInput.instanceData[instanceIdx];
                 uint texturePairIdx = bakeInput.instanceToTextureDataIndex[instanceIdx];
-                ref readonly World.MaterialDescriptor baseMaterial = ref perTexturePairMaterials[texturePairIdx];
+                ref readonly MaterialPool.MaterialDescriptor baseMaterial = ref perTexturePairMaterials[texturePairIdx];
 
                 // Make space for per-submesh materials and visibility
                 perInstanceSubMeshMaterials[instanceIdx] = new MaterialHandle[instanceData.subMeshMaterialIndices.Length];
@@ -319,7 +320,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                     }
 
                     // Copy the base material
-                    World.MaterialDescriptor subMeshMaterial = baseMaterial;
+                    MaterialPool.MaterialDescriptor subMeshMaterial = baseMaterial;
 
                     // Get per-subMesh material properties, set them on the copy
                     if (-1 != subMeshMaterialIdx)
@@ -368,6 +369,12 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             Debug.Assert(allocatedObjects.Count == allocationCount + bakeInput.albedoData.Length * 2 + bakeInput.transmissionData.Length, "InjectMaterials allocated objects incorrectly");
         }
 
+        internal static Mesh TerrainDataToMesh(in TerrainData terrainData, in HeightmapData heightmapData, in TerrainHoleData holeData)
+        {
+            var outMesh = TerrainToMesh.Convert(heightmapData.resolution, heightmapData.resolution, heightmapData.data, terrainData.heightmapScale, holeData.resolution, holeData.resolution, holeData.data);
+            return outMesh;
+        }
+
         internal static void ConvertInstancesAndMeshes(
             World world,
             in BakeInput bakeInput,
@@ -388,6 +395,16 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             {
                 meshes[meshIndex] = MeshDataToMesh(in bakeInput.meshData[meshIndex]);
                 meshes[meshIndex].name = $"{meshIndex}";
+                meshIndex++;
+            }
+
+            // Extract terrains
+            int terrainMeshOffset = meshIndex; // remember where the terrains start
+            for (int i = 0; i < bakeInput.terrainData.Length; i++)
+            {
+                var heightMap = bakeInput.heightMapData[bakeInput.terrainData[i].heightMapIndex];
+                var holeMap = bakeInput.terrainData[i].terrainHoleIndex >= 0 ? bakeInput.terrainHoleData[bakeInput.terrainData[i].terrainHoleIndex] : new TerrainHoleData();
+                meshes[meshIndex] = TerrainDataToMesh(in bakeInput.terrainData[i], in heightMap, in holeMap);
                 meshIndex++;
             }
 
@@ -420,10 +437,12 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 float4x4 localToWorldFloat4x4 = instanceData.transform;
                 Matrix4x4 localToWorldMatrix4x4 = new Matrix4x4(localToWorldFloat4x4.c0, localToWorldFloat4x4.c1, localToWorldFloat4x4.c2, localToWorldFloat4x4.c3);
                 ShadowCastingMode shadowCastingMode = instanceData.castShadows ? ShadowCastingMode.On : ShadowCastingMode.Off;
-                Debug.Assert(instanceData.meshIndex >= 0 && instanceData.meshIndex < meshes.Length);
-                Mesh mesh = meshes[instanceData.meshIndex];
-                Vector2 uvBoundsSize = uvBoundsSizes[instanceData.meshIndex];
-                Vector2 uvBoundsOffset = uvBoundsOffsets[instanceData.meshIndex];
+
+                int globalMeshIndex = instanceData.meshIndex >= 0 ? instanceData.meshIndex : terrainMeshOffset + instanceData.terrainIndex; // the mesh array is a concatenation of the meshes and terrain meshes - figure out the right index
+                Debug.Assert(globalMeshIndex >= 0 && globalMeshIndex < meshes.Length);
+                Mesh mesh = meshes[globalMeshIndex];
+                Vector2 uvBoundsSize = uvBoundsSizes[globalMeshIndex];
+                Vector2 uvBoundsOffset = uvBoundsOffsets[globalMeshIndex];
 
                 // Calculate bounds
                 var bounds = new Bounds();
@@ -449,7 +468,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 var boundingSphere = new BoundingSphere();
                 boundingSphere.position = localToWorldMatrix4x4.MultiplyPoint(mesh.bounds.center);
                 boundingSphere.radius = (localToWorldMatrix4x4.MultiplyPoint(mesh.bounds.extents) - boundingSphere.position).magnitude;
-                var lodIdentifier = new LodIdentifier(instanceData.lodGroup, instanceData.lodMask, 0); // TODO(pema.malling): Contributing lod level
+                var lodIdentifier = new LodIdentifier(instanceData.lodGroup, instanceData.lodMask, instanceData.contributingLodLevel);
                 var fatInstance = new FatInstance
                 {
                     BoundingSphere = boundingSphere,

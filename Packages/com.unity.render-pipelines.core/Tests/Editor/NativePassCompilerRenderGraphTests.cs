@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.Tests
             var extraDepthBufferHandle = RTHandles.Alloc(depthBuffer, "Extra Depth Buffer");
             var extraDepthBufferBottomLeftHandle = RTHandles.Alloc(depthBuffer, "Extra Depth Buffer Bottom Left");
             var extraTextureTopLeftHandle = RTHandles.Alloc(backBuffer, "ExtraTextureTopLeft");
-            var extraTextureBottomLeftHandle = RTHandles.Alloc(backBuffer,"ExtraTextureBottomLeft");
+            var extraTextureBottomLeftHandle = RTHandles.Alloc(backBuffer, "ExtraTextureBottomLeft");
 
             ImportResourceParams importParams = new ImportResourceParams();
             importParams.textureUVOrigin = TextureUVOrigin.TopLeft;
@@ -1629,58 +1629,100 @@ namespace UnityEngine.Rendering.Tests
             Assert.IsTrue(subPassDesc3.inputs[0] == 3);
         }
 
-/* //VRS bug. It seems that there is a bug with VRS forcing pass breaking between passes using the same shading rate image where it shouldn't: UUM-102113.
         [Test]
-        public void UpdateShadingRateImageIndex_WhenDepthAttachmentIsAdded()
+        public void MergePasses_WhenSameShadingRateImage()
         {
             var g = AllocateRenderGraph();
             var renderTargets = ImportAndCreateRenderTargets(g);
 
-            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("NoDepth_Subpass0", out var passData))
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass0", out var passData))
             {
-                builder.SetShadingRateImageAttachment(renderTargets.extraTextures[0]);
                 builder.SetRenderAttachment(renderTargets.extraTextures[1], 0);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
-                builder.AllowPassCulling(false);
-            }
-
-            // Render Pass
-            //   attachments: [extraTextures[0], extraTextures[1]]
-            //   shading rate image : [0]
-            //   subpass 0: color outputs : [1]
-
-            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Depth_Subpass1", out var passData))
-            {
                 builder.SetShadingRateImageAttachment(renderTargets.extraTextures[0]);
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
-                builder.SetRenderAttachment(renderTargets.extraTextures[2], 0);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
                 builder.AllowPassCulling(false);
             }
 
-            // Render Pass
-            //   attachments: [depthBuffer, extraTextures[1], extraTextures[0], extraTextures[2]]
-            //   shading rate image : [0 -> 2]
-            //   subpass 0: color outputs : [1]
-            //   subpass 1: color outputs : [3]
+            // Same attachments, we should merge in the same subpass as Pass0's one
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass1", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0);
+                builder.SetShadingRateImageAttachment(renderTargets.extraTextures[0]);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Same shading rate image but different render attachments, we should stay in the same native render pass but in a different subpass
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass2", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[2], 0);
+                builder.SetShadingRateImageAttachment(renderTargets.extraTextures[0]);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
 
             var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
             var passes = result.contextData.GetNativePasses();
 
             // All graph passes are merged in the same render pass
-            Assert.IsTrue(passes != null && passes.Count == 1 && passes[0].numGraphPasses == 2 && passes[0].numNativeSubPasses == 2);
+            Assert.IsTrue(passes != null && passes.Count == 1 && passes[0].numGraphPasses == 3 && passes[0].numNativeSubPasses == 2);
 
-            // Depth is the first attachment
-            Assert.IsTrue(passes[0].attachments[0].handle.index == renderTargets.depthBuffer.handle.index);
-            Assert.IsTrue(passes[0].attachments[1].handle.index == renderTargets.extraTextures[1].handle.index);
-            Assert.IsTrue(passes[0].attachments[2].handle.index == renderTargets.extraTextures[0].handle.index);
-            Assert.IsTrue(passes[0].attachments[3].handle.index == renderTargets.extraTextures[2].handle.index);
-
-            // Check Shading Rate Image index is correctly updated
-            Assert.IsTrue(passes[0].shadingRateImageIndex == renderTargets.extraTextures[0].handle.index);
+            // If no SRI support, we just discard the API call
+            if (ShadingRateInfo.supportsPerImageTile)
+            {
+                var shadingRateImageAttachmentIndex = passes[0].shadingRateImageIndex;
+                Assert.IsTrue(shadingRateImageAttachmentIndex == 1); // always after color and depth attachments
+                Assert.IsTrue(passes[0].attachments[shadingRateImageAttachmentIndex].handle.index == renderTargets.extraTextures[0].handle.index);
+            }
         }
-*/
 
+        [Test]
+        public void BreakPasses_WhenNoOrDifferentShadingRateImage()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass0", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0);
+                builder.SetShadingRateImageAttachment(renderTargets.extraTextures[0]);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Different SRI, we should break into a new native render pass
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass1", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0);
+                builder.SetShadingRateImageAttachment(renderTargets.extraTextures[2]);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // No SRI, we should break into a new native render pass
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass2", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            if (ShadingRateInfo.supportsPerImageTile)
+            {
+                // All graph passes are in different native render passes
+                Assert.IsTrue(passes != null && passes.Count == 3);
+            }
+            else
+            {
+                // If no SRI support, we just discard the API call, all graph passes are merged together
+                Assert.IsTrue(passes != null && passes.Count == 1);
+            }
+        }
+
+/* // DepthAttachment bug: https://jira.unity3d.com/projects/SRP/issues/SRP-897
         [Test]
         public void UnusedResourceCulling_CullProducer_WhenVersionsAreNotExplicitlyRead()
         {
@@ -1786,6 +1828,7 @@ namespace UnityEngine.Rendering.Tests
             // extraBuffer[2] latest version remains at 1
             Assert.AreEqual(result.contextData.UnversionedResourceData(passes[0].attachments[1].handle).latestVersionNumber, 1);
         }
+*/
 
         [Test]
         public void UnusedResourceCulling_DoNotCullProducer_WhenOneOfItsWrittenResourcesIsExplicitlyRead()

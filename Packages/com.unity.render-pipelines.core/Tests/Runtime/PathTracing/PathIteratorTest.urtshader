@@ -4,6 +4,8 @@
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/PathTracing.hlsl"
 
+#pragma exclude_renderers switch switch2
+
 uint g_SampleCount;
 
 struct TestRay

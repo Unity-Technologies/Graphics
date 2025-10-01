@@ -1,0 +1,42 @@
+fileFormatVersion: 2
+guid: def488a52add6574d9f295a507032cb8
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  exposeTemplateAsShader: 0
+  template:
+    name: Terrain Simple
+    category: Terrain
+    description: 'A simple Shader Graph terrain shader that only supports color textures.
+      It does not support normal, smoothness, ambient occlusion, etc. But it is also
+      very cheap to render. With this template, you can extend or simplify the functionality
+      of the terrain shader to suit the needs of your project including adding or
+      removing layers. This version currently supports 4 layers.
+
+      
+
+      
+
+      For
+      more ideas and examples of how to work with terrain shaders, import the Terrain
+      Shaders sample from the Shader Graph package in the Package Manager.
+
+      
+
+      
+
+      <i>Supported
+      Pipeline(s): HDRP & URP
+
+      Active Target: Terrain Lit
+
+      VFX Graph
+      Support: disabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: f7b60a412d492fa4a96583e253626880, type: 3}

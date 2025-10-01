@@ -78,6 +78,23 @@ namespace UnityEngine.Rendering.Universal.Internal
             filterMode = downsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear;
         }
 
+        internal static void ConfigureDescriptor(Downsampling downsamplingMethod, ref TextureDesc descriptor, out FilterMode filterMode)
+        {
+            descriptor.msaaSamples = MSAASamples.None;
+            if (downsamplingMethod == Downsampling._2xBilinear)
+            {
+                descriptor.width = Mathf.Max(1, descriptor.width / 2);
+                descriptor.height = Mathf.Max(1, descriptor.height / 2);
+            }
+            else if (downsamplingMethod == Downsampling._4xBox || downsamplingMethod == Downsampling._4xBilinear)
+            {
+                descriptor.width = Mathf.Max(1, descriptor.width / 4);
+                descriptor.height = Mathf.Max(1, descriptor.height / 4);
+            }
+
+            filterMode = downsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear;
+        }
+
         /// <summary>
         /// Configure the pass with the source and destination to execute on.
         /// </summary>
@@ -124,8 +141,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             var cmd = renderingData.commandBuffer;
 
-            // TODO RENDERGRAPH: Do we need a similar check in the RenderGraph path?
-            //It is possible that the given color target is now the frontbuffer
             if (source == renderingData.cameraData.renderer.GetCameraColorFrontBuffer(cmd))
             {
                 source = renderingData.cameraData.renderer.cameraColorTargetHandle;
@@ -136,7 +151,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
 #endif
             ScriptableRenderer.SetRenderTarget(cmd, destination, k_CameraTarget, clearFlag, clearColor);
-            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, source, renderingData.cameraData.xr.enabled);
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyColor)))
+            {
+                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, source, renderingData.cameraData.xr.enabled);
+            }
         }
 #endif
 
@@ -154,28 +172,25 @@ namespace UnityEngine.Rendering.Universal.Internal
                     samplingMaterial);
                 return;
             }
+          
+            Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyColor)))
+            switch (downsamplingMethod)
             {
-                Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-
-                switch (downsamplingMethod)
-                {
-                    case Downsampling.None:
-                        Blitter.BlitTexture(cmd, source, viewportScale, copyColorMaterial, 0);
-                        break;
-                    case Downsampling._2xBilinear:
-                        Blitter.BlitTexture(cmd, source, viewportScale, copyColorMaterial, 1);
-                        break;
-                    case Downsampling._4xBox:
-                        samplingMaterial.SetFloat(sampleOffsetShaderHandle, 2);
-                        Blitter.BlitTexture(cmd, source, viewportScale, samplingMaterial, 0);
-                        break;
-                    case Downsampling._4xBilinear:
-                        Blitter.BlitTexture(cmd, source, viewportScale, copyColorMaterial, 1);
-                        break;
-                }
-            }
+                case Downsampling.None:
+                    Blitter.BlitTexture(cmd, source, viewportScale, copyColorMaterial, 0);
+                    break;
+                case Downsampling._2xBilinear:
+                    Blitter.BlitTexture(cmd, source, viewportScale, copyColorMaterial, 1);
+                    break;
+                case Downsampling._4xBox:
+                    samplingMaterial.SetFloat(sampleOffsetShaderHandle, 2);
+                    Blitter.BlitTexture(cmd, source, viewportScale, samplingMaterial, 0);
+                    break;
+                case Downsampling._4xBilinear:
+                    Blitter.BlitTexture(cmd, source, viewportScale, copyColorMaterial, 1);
+                    break;
+            }            
         }
 
         private class PassData
@@ -194,12 +209,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_DownsamplingMethod = downsampling;
 
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            RenderTextureDescriptor descriptor = cameraData.cameraTargetDescriptor;
-            ConfigureDescriptor(downsampling, ref descriptor, out var filterMode);
+            var srcDesc = source.GetDescriptor(renderGraph);
 
-            destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, descriptor, "_CameraOpaqueTexture", true, filterMode);
+            ConfigureDescriptor(downsampling, ref srcDesc, out var filterMode);
 
-            RenderInternal(renderGraph, destination, source, cameraData.xr.enabled);
+            destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, srcDesc, "_CameraOpaqueTexture", true, srcDesc.clearColor, filterMode);
+            
+            RenderInternal(renderGraph, destination, source, cameraData.xr.enabled);   
 
             return destination;
         }

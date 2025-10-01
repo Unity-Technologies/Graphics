@@ -62,7 +62,7 @@ namespace UnityEditor.Rendering
             EditorGUIUtility.systemCopyBuffer = writer.ToString();
         }
 
-        public static void PasteSettings(VolumeComponent targetComponent)
+        public static void PasteSettings(VolumeComponent targetComponent, VolumeProfile asset)
         {
             if (targetComponent == null)
                 return;
@@ -72,6 +72,11 @@ namespace UnityEditor.Rendering
             using var reader = new StringReader(EditorGUIUtility.systemCopyBuffer);
             if (TryReadCopyBuffer(reader, out var typeAndValue))
                 JsonUtility.FromJsonOverwrite(typeAndValue[1], targetComponent);
+
+            if (EditorUtility.IsPersistent(asset))
+            {
+                EditorUtility.SetDirty(asset);
+            }
         }
 
         public static void CopySettings(List<VolumeComponent> targetComponents)
@@ -87,7 +92,7 @@ namespace UnityEditor.Rendering
             EditorGUIUtility.systemCopyBuffer = writer.ToString();
         }
 
-        public static void PasteSettings(List<VolumeComponent> targetComponents)
+        public static void PasteSettings(List<VolumeComponent> targetComponents, VolumeProfile asset)
         {
             if (targetComponents == null || targetComponents.Count == 0)
                 return;
@@ -112,6 +117,11 @@ namespace UnityEditor.Rendering
                 {
                     JsonUtility.FromJsonOverwrite(typeAndValue[1], targetComponent);
                 }
+            }
+
+            if (EditorUtility.IsPersistent(asset))
+            {
+                EditorUtility.SetDirty(asset);
             }
         }
     }

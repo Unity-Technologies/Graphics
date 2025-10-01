@@ -1,0 +1,91 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5
+
+#pragma multi_compile_local SUB_GROUP_SIZE_8 SUB_GROUP_SIZE_16 SUB_GROUP_SIZE_32 SUB_GROUP_SIZE_48 SUB_GROUP_SIZE_64
+
+#ifdef SUB_GROUP_SIZE_8
+#define SUB_GROUP_SIZE 8
+#endif
+#ifdef SUB_GROUP_SIZE_16
+#define SUB_GROUP_SIZE 16
+#endif
+#ifdef SUB_GROUP_SIZE_32
+#define SUB_GROUP_SIZE 32
+#endif
+#ifdef SUB_GROUP_SIZE_48
+#define SUB_GROUP_SIZE 48
+#endif
+#ifdef SUB_GROUP_SIZE_64
+#define SUB_GROUP_SIZE 64
+#endif
+
+#pragma kernel Defrag
+
+#define RING_BUFFER_USE_RW_RING_CONFIG_BUFFER
+#define GROUP_SIZE 512
+
+#include "RingBuffer.hlsl"
+#include "PatchUtil.hlsl"
+
+#define THREADING_BLOCK_SIZE GROUP_SIZE
+#define THREADING_WAVE_SIZE SUB_GROUP_SIZE
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Threading.hlsl"
+
+RWStructuredBuffer<uint> _RingConfigBuffer;
+RWStructuredBuffer<uint> _CellPatchIndices;
+RWStructuredBuffer<uint> _PatchCellIndices;
+RWStructuredBuffer<PatchUtil::PatchCounterSet> _PatchCounterSets;
+RWStructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances0;
+RWStructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances1;
+RWStructuredBuffer<PatchUtil::PatchGeometry> _PatchGeometries;
+RWStructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
+
+uint _RingConfigReadOffset;
+uint _RingConfigWriteOffset;
+uint _PatchOffset;
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void Defrag(Threading::Group group)
+{
+    const uint patchIdx = (group.dispatchID.x + _PatchOffset) % patchCapacity;
+    Threading::Wave wave = group.GetWave();
+
+    const RingBuffer::Config config = RingBuffer::LoadConfig(_RingConfigBuffer, _RingConfigReadOffset);
+    const bool isInRingContentRange = !RingBuffer::IsPositionUnused(config, patchIdx);
+
+    const uint firstLaneIndexOutsideContentRange = wave.Min(!isInRingContentRange ? wave.GetLaneIndex() : UINT_MAX);
+    const bool isLaneIndexAfterFirstLaneIndexThatIsOutsideContentRange = firstLaneIndexOutsideContentRange == UINT_MAX || firstLaneIndexOutsideContentRange < wave.GetLaneIndex();
+    const bool startEndHazardCheck = config.start != config.end || RingBuffer::IsPositionOutsideRangeAssumingStartNotEqualEnd((config.start - SUB_GROUP_SIZE) % patchCapacity, config.start, patchIdx);
+
+    const uint patchCellIdx = _PatchCellIndices[patchIdx];
+    const uint isReclaimable =
+        patchCellIdx == PatchUtil::invalidCellIndex &&
+        isInRingContentRange &&
+        isLaneIndexAfterFirstLaneIndexThatIsOutsideContentRange && // Ensures we only defrag elements that are inside the "content range" of the ring buffer.
+        startEndHazardCheck; // Ensures we avoid defragging "across" the start/end boundary in the special case when start == end.
+
+    const uint leftReclaimableCount = wave.PrefixSum(isReclaimable);
+    const uint reclaimableCount = wave.Sum(isReclaimable);
+    const uint rightReclaimableCount = reclaimableCount - leftReclaimableCount;
+
+    if(patchIdx == config.start)
+    {
+        _RingConfigBuffer[_RingConfigWriteOffset + RingBuffer::countConfigIndex] = config.count - reclaimableCount;
+        _RingConfigBuffer[_RingConfigWriteOffset + RingBuffer::startConfigIndex] = _RingConfigBuffer[_RingConfigReadOffset + RingBuffer::startConfigIndex] + reclaimableCount;
+        _RingConfigBuffer[_RingConfigWriteOffset + RingBuffer::endConfigIndex] = _RingConfigBuffer[_RingConfigReadOffset + RingBuffer::endConfigIndex];
+    }
+
+    if(reclaimableCount != 0 && !isReclaimable && isInRingContentRange && isLaneIndexAfterFirstLaneIndexThatIsOutsideContentRange && startEndHazardCheck) {
+        uint oldPatchCellIndex = _PatchCellIndices[patchIdx];
+        _PatchCellIndices[patchIdx] = PatchUtil::invalidCellIndex;
+
+        const uint newPatchIdx = (patchIdx + rightReclaimableCount) % patchCapacity;
+        _PatchCellIndices[newPatchIdx] = oldPatchCellIndex;
+        _PatchCounterSets[newPatchIdx] = _PatchCounterSets[patchIdx];
+        _PatchIrradiances0[newPatchIdx] = _PatchIrradiances0[patchIdx];
+        _PatchIrradiances1[newPatchIdx] = _PatchIrradiances1[patchIdx];
+        _PatchGeometries[newPatchIdx] = _PatchGeometries[patchIdx];
+        _PatchStatistics[newPatchIdx] = _PatchStatistics[patchIdx];
+
+        _CellPatchIndices[patchCellIdx] = newPatchIdx;
+    }
+}

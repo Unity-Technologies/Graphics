@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateLightShapeToCore,
             UpdateLightUnitsToCore,
             UpdateSpotLightParamsToCore,
+            UpdateShapeRadiusToCore,
         }
 
         /// <summary>
@@ -270,6 +271,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     light.areaSize = new Vector2(data.m_ShapeWidth, data.m_ShapeHeight);
                     data.m_ShapeWidth = data.m_ShapeHeight = -1.0f;
                 }
+            }),
+            MigrationStep.New(Version.UpdateShapeRadiusToCore, (HDAdditionalLightData data) =>
+            {
+                var light = data.GetComponent<Light>();
+                light.shapeRadius = data.m_ShapeRadius;
+                data.m_ShapeRadius = -1.0f;
             })
             );
 
@@ -305,6 +312,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_ShapeWidth != -1.0f || m_ShapeHeight != -1.0f)
                     legacyLight.areaSize = new Vector2(m_ShapeWidth, m_ShapeHeight);
             }
+
+            if (m_ShapeRadius != -1.0f)
+                legacyLight.shapeRadius = m_ShapeRadius;
         }
 #pragma warning restore 0618, 0612
 

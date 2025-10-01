@@ -265,8 +265,9 @@ namespace UnityEngine.Rendering.Universal
         internal TextureHandle _debugScreenDepth;
 
         /// <summary>
-        /// After Post Process Color. Stores the contents of the main color target after the post processing passes.
+        /// After Post Process Color is obsolete.
         /// </summary>
+        [Obsolete("AfterPostProcessColor has never been implemented. Use cameraColor instead.", false)]
         public TextureHandle afterPostProcessColor
         {
             get => CheckAndGetTextureHandle(ref _afterPostProcessColor);

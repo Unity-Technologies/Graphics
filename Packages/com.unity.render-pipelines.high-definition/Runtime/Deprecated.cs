@@ -719,7 +719,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 UpdateAllLightValues();
             }
         }
-    }
+
+        [Obsolete("This property has been deprecated.", false)]
+        [SerializeField, FormerlySerializedAs("shapeRadius")]
+        float m_ShapeRadius = -1.0f;
+
+        /// <summary>
+        /// Get/Set the radius of a light
+        /// </summary>
+        [Obsolete("This property has been deprecated. (UnityUpgradable) -> legacyLight.shapeRadius", false)]
+        public float shapeRadius
+        {
+            get => legacyLight.shapeRadius;
+            set => legacyLight.shapeRadius = value;
+        }
+    }    
 
     public static partial class GameObjectExtension
     {

@@ -611,7 +611,7 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
     // Note: blendMasks.argb because a is main layer
     float4 opacityAsDensity = saturate((inputAlphaMask - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks.argb)) * 20.0); // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
     float4 useOpacityAsDensityParam = float4(_OpacityAsDensity0, _OpacityAsDensity1, _OpacityAsDensity2, _OpacityAsDensity3);
-    blendMasks.argb = lerp(blendMasks.argb, opacityAsDensity, useOpacityAsDensityParam);
+    blendMasks.argb = ceil(opacityAsDensity);
 #endif
 
 #if LAYERS_HEIGHTMAP_ENABLE

@@ -8,6 +8,8 @@
 #include "PathTracing.hlsl"
 #include "LightmapIntegrationHelpers.hlsl"
 
+#pragma exclude_renderers switch switch2
+
 int g_AccumulateDirectional;
 int g_SampleOffset;
 uint g_ReceiveShadows;
@@ -83,7 +85,7 @@ void EstimateMISWeightedIrradianceUsingCosineSampling(
             UnifiedRT::InstanceData instance = UnifiedRT::GetInstance(hitResult.instanceID);
             PTHitGeom geometry = GetHitGeomInfo(instance, hitResult);
             geometry.FixNormals(ray.direction);
-            MaterialProperties material = LoadMaterialProperties(instance, false, geometry);
+            MaterialProperties material = LoadMaterialProperties(instance, false, geometry.uv0, geometry.uv1);
 
             // Transmissive material, continue ray and attenuate
             if (material.isTransmissive)

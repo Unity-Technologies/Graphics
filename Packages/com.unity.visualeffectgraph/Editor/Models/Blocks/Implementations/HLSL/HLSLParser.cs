@@ -375,7 +375,7 @@ namespace UnityEditor.VFX.Block
             var randMatches = s_RandMatcher.Matches(hlsl);
             if (randMatches.Count > 0)
             {
-                readAttributes.Add(VFXAttribute.Seed.name);
+                yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
                 for (int i = 0; i < randMatches.Count; i++)
                 {
                     if (randMatches[i].Groups["fixed"].Success)
@@ -531,8 +531,6 @@ namespace UnityEditor.VFX.Block
         };
 
         static readonly Regex s_IncludeParser = new Regex(@"^#include ""(?<filepath>.*)""", RegexOptions.Compiled | RegexOptions.Multiline);
-        static readonly Regex s_MultilineCommentsParser = new Regex(@"/\*[\s\S]*?\*/", RegexOptions.Compiled|RegexOptions.Multiline);
-        static readonly Regex s_SinglelineCommentsParser = new Regex(@"^\s*/{2}[^/].*$", RegexOptions.Compiled|RegexOptions.Multiline|RegexOptions.IgnorePatternWhitespace);
 
         public static Type HLSLToUnityType(string type)
         {
@@ -564,13 +562,6 @@ namespace UnityEditor.VFX.Block
             {
                 yield return ((Match)include).Groups["filepath"].Value;
             }
-        }
-
-        public static string StripCommentedCode(string hlsl)
-        {
-            return string.IsNullOrEmpty(hlsl)
-                ? string.Empty
-                : s_SinglelineCommentsParser.Replace(s_MultilineCommentsParser.Replace(hlsl, string.Empty), string.Empty);
         }
     }
 }

@@ -306,15 +306,6 @@ namespace UnityEditor.ShaderGraph
             public static FieldDescriptor layoutUV = new FieldDescriptor(SurfaceDescriptionInputs.name, "layoutUV", "", ShaderValueType.Float2, subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor circle = new FieldDescriptor(SurfaceDescriptionInputs.name, "circle", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional);
 
-            public static FieldDescriptor layoutUV_uv0 = new FieldDescriptor(SurfaceDescriptionInputs.name, "layoutUV_uv0", "", ShaderValueType.Float2, subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor layoutUV_uv1 = new FieldDescriptor(SurfaceDescriptionInputs.name, "layoutUV_uv1", "", ShaderValueType.Float2, subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor layoutUV_uv2 = new FieldDescriptor(SurfaceDescriptionInputs.name, "layoutUV_uv2", "", ShaderValueType.Float2, subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor layoutUV_uv3 = new FieldDescriptor(SurfaceDescriptionInputs.name, "layoutUV_uv3", "", ShaderValueType.Float2, subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor layoutUV_uv4 = new FieldDescriptor(SurfaceDescriptionInputs.name, "layoutUV_uv4", "", ShaderValueType.Float2, subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor layoutUV_uv5 = new FieldDescriptor(SurfaceDescriptionInputs.name, "layoutUV_uv5", "", ShaderValueType.Float2, subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor layoutUV_uv6 = new FieldDescriptor(SurfaceDescriptionInputs.name, "layoutUV_uv6", "", ShaderValueType.Float2, subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor layoutUV_uv7 = new FieldDescriptor(SurfaceDescriptionInputs.name, "layoutUV_uv7", "", ShaderValueType.Float2, subscriptOptions: StructFieldOptions.Optional);
-
             // VFX
             public static FieldDescriptor worldToElement = new FieldDescriptor(SurfaceDescriptionInputs.name, "worldToElement", "", ShaderValueType.Matrix4, subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor elementToWorld = new FieldDescriptor(SurfaceDescriptionInputs.name, "elementToWorld", "", ShaderValueType.Matrix4, subscriptOptions: StructFieldOptions.Optional);

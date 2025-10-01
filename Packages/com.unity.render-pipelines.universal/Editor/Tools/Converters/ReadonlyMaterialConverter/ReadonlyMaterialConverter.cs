@@ -1,16 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using UnityEditor.SceneManagement;
+using UnityEditor.Rendering.Converter;
 using UnityEngine;
+using UnityEngine.Categorization;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.Universal
 {
-    enum IdentifierType { kNullIdentifier = 0, kImportedAsset = 1, kSceneObject = 2, kSourceAsset = 3, kBuiltInAsset = 4 };
-
     internal static class ReadonlyMaterialMap
     {
         public static bool TryGetMappingMaterial(Material material, out Material mappingMaterial)
@@ -100,133 +98,39 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    internal class ReadonlyMaterialConverter : RenderPipelineConverter
+    [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
+    [ElementInfo(Name = "Material Reference Converter",
+                 Order = 100,
+                 Description = "Converts references to Built-In readonly materials to URP readonly materials. This will create temporarily a .index file and that can take a long time.")]
+    internal class ReadonlyMaterialConverter : AssetsConverter
     {
-        private static bool s_HasShownWarning = false;
-        public override bool isEnabled
-        {
-            get
-            {
-                if (GraphicsSettings.currentRenderPipeline is not UniversalRenderPipelineAsset)
-                {
-                    if (!s_HasShownWarning)
-                        Debug.LogWarning("[Render Pipeline Converter] Readonly Material Converter requires URP. Convert your project to URP to use this converter.");
-                    s_HasShownWarning = true;
-                    return false;
-                }
+        public override bool isEnabled => GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset;
+        public override string isDisabledMessage => "Converter requires URP. Convert your project to URP to use this converter.";
 
-                return true;
-            }
-        }
-            
-        public override string name => "Readonly Material Converter";
-        public override string info => "Converts references to Built-In readonly materials to URP readonly materials. This will create temporarily a .index file and that can take a long time.";
-        public override Type container => typeof(BuiltInToURPConverterContainer);
-
-        List<string> guids = new();
-        List<string> assetPaths = new ();
-
-        internal void Add(string guid, string assetPath)
-        {
-            guids.Add(guid);
-            assetPaths.Add(assetPath);
-        }
-
-        public override void OnInitialize(InitializeConverterContext ctx, Action callback)
-        {
-            SearchServiceUtils.RunQueuedSearch
-            (
-                SearchServiceUtils.IndexingOptions.DeepSearch,
-                ReadonlyMaterialMap.GetMaterialSearchList(),
-                (item, description) =>
-                {
-                    if (GlobalObjectId.TryParse(item.id, out var gid))
-                    {
-                        var assetPath = AssetDatabase.GUIDToAssetPath(gid.assetGUID);
-                        var itemDescriptor = new ConverterItemDescriptor()
-                        {
-                            name = assetPath,
-                            info = description,
-                        };
-                        Add(gid.ToString(), assetPath);
-                        ctx.AddAssetToConvert(itemDescriptor);
-                    }
-                },
-                callback
-            );
-        }
+        protected override List<(string query, string description)> contextSearchQueriesAndIds
+            => ReadonlyMaterialMap.GetMaterialSearchList();
 
         internal MaterialReferenceChanger m_MaterialReferenceChanger;
 
-        public override void OnPreRun()
+        public override void BeforeConvert()
         {
             m_MaterialReferenceChanger = new MaterialReferenceChanger();
         }
 
-        public override void OnPostRun()
+        public override void AfterConvert()
         {
             m_MaterialReferenceChanger?.Dispose();
             m_MaterialReferenceChanger = null;
         }
 
-        public override void OnRun(ref RunItemContext ctx)
+        protected override Status ConvertObject(UnityEngine.Object obj, StringBuilder message)
         {
-            var errorString = new StringBuilder();
-            var obj = LoadObject(ref ctx, errorString);
-            if (!m_MaterialReferenceChanger.ReassignUnityObjectMaterials(obj, errorString))
+            if (!m_MaterialReferenceChanger.ReassignUnityObjectMaterials(obj, message))
             {
-                ctx.didFail = true;
-                ctx.info = errorString.ToString();
-            }
-        }
-
-        public override void OnClicked(int index)
-        {
-            EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<Object>(assetPaths[index]));
-        }
-
-        private Object LoadObject(ref RunItemContext ctx, StringBuilder sb)
-        {
-            var item = ctx.item;
-            var guid = guids[item.index];
-
-            if (GlobalObjectId.TryParse(guid, out var gid))
-            {
-                var obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
-                if (!obj)
-                {
-                    // Open container scene
-                    if (gid.identifierType == (int)IdentifierType.kSceneObject)
-                    {
-                        var containerPath = AssetDatabase.GUIDToAssetPath(gid.assetGUID);
-
-                        var mainInstanceID = AssetDatabase.LoadAssetAtPath<Object>(containerPath);
-                        AssetDatabase.OpenAsset(mainInstanceID);
-
-                        // if we have a prefab open, then we already have the object we need to update
-                        var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
-                        if (prefabStage != null)
-                        {
-                            obj = mainInstanceID;
-                        }
-
-                        // Reload object if it is still null
-                        if (obj == null)
-                        {
-                            obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
-                            if (!obj)
-                            {
-                                sb.AppendLine($"Object {gid.assetGUID} failed to load...");
-                            }
-                        }
-                    }
-                }
-
-                return obj;
+                return Status.Error;
             }
 
-            sb.AppendLine($"Failed to parse Global ID {item.descriptor.info}...");
-            return null;
+            return Status.Success;
         }
     }
 }

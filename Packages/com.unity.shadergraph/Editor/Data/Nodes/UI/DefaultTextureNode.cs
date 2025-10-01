@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new DefaultVector2MaterialSlot(k_InputSlotIdUV, k_InputSlotNameUV, k_InputSlotNameUV));
-            AddSlot(new DefaultVector4MaterialSlot(k_InputSlotIdTint, k_InputSlotNameTint, k_InputSlotNameTint, "From Styles"));
+            AddSlot(new DefaultVector4MaterialSlot(k_InputSlotIdTint, k_InputSlotNameTint, k_InputSlotNameTint, "Default"));
             AddSlot(new ColorRGBAMaterialSlot(k_OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, Vector4.one, ShaderStageCapability.Fragment));
             RemoveSlotsNameNotMatching(new[] { k_InputSlotIdUV, k_InputSlotIdTint, k_OutputSlotId });
         }
@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph
 
             sb.AppendLine("float4 {0} = float4(1, 1, 0, 1);", outputVarName);
 
-            sb.AppendLine("[branch] if (UIE_RENDER_TYPE_TEXTURED || UIE_RENDER_TYPE_ANY && round(IN.typeTexSettings.x) == k_FragTypeTexture)");
+            sb.AppendLine("[branch] if (_UIE_RENDER_TYPE_TEXTURE || _UIE_RENDER_TYPE_ANY && round(IN.typeTexSettings.x) == k_FragTypeTexture)");
             using (sb.BlockScope())
             {
                 bool hasTint = GetInputNodeFromSlot(k_InputSlotIdTint) != null;

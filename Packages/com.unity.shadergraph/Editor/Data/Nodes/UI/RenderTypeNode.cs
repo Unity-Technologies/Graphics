@@ -39,11 +39,11 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            sb.AppendLine("bool {0} = UIE_RENDER_TYPE_SOLID || UIE_RENDER_TYPE_ANY && round(IN.typeTexSettings.x) == k_FragTypeSolid;", GetVariableNameForSlot(k_OutputSlotIdSolid));
-            sb.AppendLine("bool {0} = UIE_RENDER_TYPE_TEXTURED || UIE_RENDER_TYPE_ANY && round(IN.typeTexSettings.x) == k_FragTypeTexture;", GetVariableNameForSlot(k_OutputSlotIdTexture));
-            sb.AppendLine("bool {0} = (UIE_RENDER_TYPE_TEXT || UIE_RENDER_TYPE_ANY) && round(IN.typeTexSettings.x) == k_FragTypeSdfText;", GetVariableNameForSlot(k_OutputSlotIdSDFText));
-            sb.AppendLine("bool {0} = (UIE_RENDER_TYPE_TEXT || UIE_RENDER_TYPE_ANY) && round(IN.typeTexSettings.x) == k_FragTypeBitmapText;", GetVariableNameForSlot(k_OutputSlotIdBitmapText));
-            sb.AppendLine("bool {0} = UIE_RENDER_TYPE_SVG_GRADIENT || UIE_RENDER_TYPE_ANY && round(IN.typeTexSettings.x) == k_FragTypeSvgGradient;", GetVariableNameForSlot(k_OutputSlotIdGradient));
+            sb.AppendLine("bool {0} = _UIE_RENDER_TYPE_SOLID || _UIE_RENDER_TYPE_ANY && round(IN.typeTexSettings.x) == k_FragTypeSolid;", GetVariableNameForSlot(k_OutputSlotIdSolid));
+            sb.AppendLine("bool {0} = _UIE_RENDER_TYPE_TEXTURE || _UIE_RENDER_TYPE_ANY && round(IN.typeTexSettings.x) == k_FragTypeTexture;", GetVariableNameForSlot(k_OutputSlotIdTexture));
+            sb.AppendLine("bool {0} = (_UIE_RENDER_TYPE_TEXT || _UIE_RENDER_TYPE_ANY) && round(IN.typeTexSettings.x) == k_FragTypeSdfText;", GetVariableNameForSlot(k_OutputSlotIdSDFText));
+            sb.AppendLine("bool {0} = (_UIE_RENDER_TYPE_TEXT || _UIE_RENDER_TYPE_ANY) && round(IN.typeTexSettings.x) == k_FragTypeBitmapText;", GetVariableNameForSlot(k_OutputSlotIdBitmapText));
+            sb.AppendLine("bool {0} = _UIE_RENDER_TYPE_GRADIENT || _UIE_RENDER_TYPE_ANY && round(IN.typeTexSettings.x) == k_FragTypeSvgGradient;", GetVariableNameForSlot(k_OutputSlotIdGradient));
         }
 
         public bool RequiresUITK(ShaderStageCapability stageCapability)

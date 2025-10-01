@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("float3 {0} = float3(0, 0, 0);", outputVarNameColor);
             sb.AppendLine("float {0} = 1.0;", outputVarNameAlpha);
 
-            sb.AppendLine("[branch] if (UIE_RENDER_TYPE_SOLID || UIE_RENDER_TYPE_ANY && TestType(IN.typeTexSettings.x, k_FragTypeSolid))");
+            sb.AppendLine("[branch] if (_UIE_RENDER_TYPE_SOLID || _UIE_RENDER_TYPE_ANY && TestType(IN.typeTexSettings.x, k_FragTypeSolid))");
             using (sb.BlockScope())
             {
                 if (GetInputNodeFromSlot(k_InputSlotIdSolid) != null)
@@ -73,7 +73,7 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine("{0} = Unity_UIE_RenderTypeSwitchNode_Output.color.a;", outputVarNameAlpha);
                 }
             }
-            sb.AppendLine("else [branch] if (UIE_RENDER_TYPE_TEXTURED || UIE_RENDER_TYPE_ANY && TestType(IN.typeTexSettings.x, k_FragTypeTexture))");
+            sb.AppendLine("else [branch] if (_UIE_RENDER_TYPE_TEXTURE || _UIE_RENDER_TYPE_ANY && TestType(IN.typeTexSettings.x, k_FragTypeTexture))");
             using (sb.BlockScope())
             {
                 if (GetInputNodeFromSlot(k_InputSlotIdTexture) != null)
@@ -95,7 +95,7 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine("{0} = Unity_UIE_RenderTypeSwitchNode_Output.color.a;", outputVarNameAlpha);
                 }
             }
-            sb.AppendLine("else [branch] if ((UIE_RENDER_TYPE_TEXT || UIE_RENDER_TYPE_ANY) && TestType(IN.typeTexSettings.x, k_FragTypeSdfText))");
+            sb.AppendLine("else [branch] if ((_UIE_RENDER_TYPE_TEXT || _UIE_RENDER_TYPE_ANY) && TestType(IN.typeTexSettings.x, k_FragTypeSdfText))");
             using (sb.BlockScope())
             {
                 if (GetInputNodeFromSlot(k_InputSlotIdSdfText) != null)
@@ -110,14 +110,14 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_SdfText_Input.textureSlot = IN.typeTexSettings.y;");
                     sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_SdfText_Input.uv = IN.uvClip.xy;");
                     sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_SdfText_Input.extraDilate = IN.circle.x;");
-                    sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_SdfText_Input.textCoreLoc = IN.textCoreLoc;");
+                    sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_SdfText_Input.textCoreLoc = round(IN.textCoreLoc);");
                     sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_SdfText_Input.opacity = IN.typeTexSettings.z;");
                     sb.AppendLine("CommonFragOutput Unity_UIE_RenderTypeSwitchNode_Output = uie_std_frag_sdf_text(Unity_UIE_RenderTypeSwitchNode_SdfText_Input);");
                     sb.AppendLine("{0} = Unity_UIE_RenderTypeSwitchNode_Output.color.rgb;", outputVarNameColor);
                     sb.AppendLine("{0} = Unity_UIE_RenderTypeSwitchNode_Output.color.a;", outputVarNameAlpha);
                 }
             }
-            sb.AppendLine("else [branch] if (UIE_RENDER_TYPE_TEXT || UIE_RENDER_TYPE_ANY && TestType(IN.typeTexSettings.x, k_FragTypeBitmapText))");
+            sb.AppendLine("else [branch] if (_UIE_RENDER_TYPE_TEXT || _UIE_RENDER_TYPE_ANY && TestType(IN.typeTexSettings.x, k_FragTypeBitmapText))");
             using (sb.BlockScope())
             {
                 if (GetInputNodeFromSlot(k_InputSlotIdBitmapText) != null)

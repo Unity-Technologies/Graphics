@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool m_CreateDepthTexture;
         bool ppcUpscaleRT = false;
 
-        PostProcessPassRenderGraph m_PostProcessPassRenderGraph;
+        PostProcess m_PostProcess;
         ColorGradingLutPass m_ColorGradingLutPassRenderGraph;
 
         private RTHandle currentRenderGraphCameraColorHandle
@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (data.postProcessData != null)
             {
-                m_PostProcessPassRenderGraph = new PostProcessPassRenderGraph(data.postProcessData, GraphicsFormat.B10G11R11_UFloatPack32);
+                m_PostProcess = new PostProcess(data.postProcessData);
                 m_ColorGradingLutPassRenderGraph = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrePasses, data.postProcessData);
             }
 
@@ -525,9 +525,6 @@ namespace UnityEngine.Rendering.Universal
             commonResourceData.backBufferColor = renderGraph.ImportTexture(m_RenderGraphBackbufferColorHandle, importSummary.importInfo, importSummary.backBufferColorParams);
             commonResourceData.backBufferDepth = renderGraph.ImportTexture(m_RenderGraphBackbufferDepthHandle, importSummary.importInfoDepth, importSummary.backBufferDepthParams);
 
-            var postProcessDesc = PostProcessPassRenderGraph.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat);
-            commonResourceData.afterPostProcessColor = UniversalRenderer.CreateRenderGraphTexture(renderGraph, postProcessDesc, "_AfterPostProcessTexture", true);
-
             if (RequiresDepthCopyPass(cameraData))
                 CreateCameraDepthCopyTexture(renderGraph, cameraTargetDescriptor);
         }
@@ -621,7 +618,7 @@ namespace UnityEngine.Rendering.Universal
         {
             var renderPassInputs = GetRenderPassInputs(cameraData);
             bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture;
-            bool cameraHasPostProcessingWithDepth = cameraData.postProcessEnabled && m_PostProcessPassRenderGraph != null && cameraData.postProcessingRequiresDepthTexture;
+            bool cameraHasPostProcessingWithDepth = cameraData.postProcessEnabled && m_PostProcess != null && cameraData.postProcessingRequiresDepthTexture;
             bool requiresDepthCopyPass = (cameraHasPostProcessingWithDepth || requiresDepthTexture) && m_CreateDepthTexture;
 
             return requiresDepthCopyPass;
@@ -729,12 +726,12 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
             // Color Grading LUT
-            bool requiredColorGradingLutPass = cameraData.postProcessEnabled && m_PostProcessPassRenderGraph != null;
+            bool requiredColorGradingLutPass = cameraData.postProcessEnabled && m_PostProcess != null;
 
             if (requiredColorGradingLutPass)
             {
-                TextureHandle internalColorLut;
-                m_ColorGradingLutPassRenderGraph.Render(renderGraph, frameData, out internalColorLut);
+                TextureHandle internalColorLut = TextureHandle.nullHandle;
+                m_ColorGradingLutPassRenderGraph.Render(renderGraph, frameData, ref internalColorLut);
                 commonResourceData.internalColorLut = internalColorLut;
             }
 
@@ -832,8 +829,8 @@ namespace UnityEngine.Rendering.Universal
                 commonResourceData.debugScreenDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, "_DebugScreenDepth", false);
             }
 
-            bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPassRenderGraph != null;
-            bool anyPostProcessing = postProcessingData.isEnabled && m_PostProcessPassRenderGraph != null;
+            bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcess != null;
+            bool anyPostProcessing = postProcessingData.isEnabled && m_PostProcess != null;
 
             cameraData.camera.TryGetComponent<PixelPerfectCamera>(out var ppc);
             bool requirePixelPerfectUpscale = IsPixelPerfectCameraEnabled(cameraData) && ppc.requiresUpscalePass;
@@ -878,7 +875,7 @@ namespace UnityEngine.Rendering.Universal
                 if (resolveToDebugScreen && isTargetBackbuffer)
                     target = commonResourceData.debugScreenColor;
 
-                m_PostProcessPassRenderGraph.RenderPostProcessingRenderGraph(
+                m_PostProcess.RenderPostProcessing(
                     renderGraph,
                     frameData,
                     activeColor,
@@ -886,7 +883,6 @@ namespace UnityEngine.Rendering.Universal
                     commonResourceData.overlayUITexture,
                     target,
                     applyFinalPostProcessing,
-                    resolveToDebugScreen,
                     doSRGBEncoding);
 
                 if (isTargetBackbuffer)
@@ -913,7 +909,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (applyFinalPostProcessing)
             {
-                m_PostProcessPassRenderGraph.RenderFinalPassRenderGraph(renderGraph, frameData, in finalColorHandle, commonResourceData.overlayUITexture, in finalBlitTarget, needsColorEncoding);
+                m_PostProcess.RenderFinalPostProcessing(renderGraph, frameData, in finalColorHandle, commonResourceData.overlayUITexture, in finalBlitTarget, needsColorEncoding);
 
                 finalColorHandle = finalBlitTarget;
 
@@ -983,7 +979,7 @@ namespace UnityEngine.Rendering.Universal
             m_FinalBlitPass?.Dispose();
             m_DrawOffscreenUIPass?.Dispose();
             m_DrawOverlayUIPass?.Dispose();
-            m_PostProcessPassRenderGraph?.Cleanup();
+            m_PostProcess?.Dispose();
             m_ColorGradingLutPassRenderGraph?.Cleanup();
 
             m_RenderGraphCameraColorHandles[0]?.Release();

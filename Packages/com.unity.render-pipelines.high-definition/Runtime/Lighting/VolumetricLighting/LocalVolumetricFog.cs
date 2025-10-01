@@ -197,7 +197,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [HDRPHelpURLAttribute("create-a-local-fog-effect")]
     [ExecuteAlways]
     [AddComponentMenu("Rendering/Local Volumetric Fog")]
-    [Icon("Fog")]
+    [Icon("Packages/com.unity.render-pipelines.core/Editor/Icons/Processed/LocalVolumetricFog Icon.asset")]
     public partial class LocalVolumetricFog : MonoBehaviour
     {
         /// <summary>Local Volumetric Fog parameters.</summary>

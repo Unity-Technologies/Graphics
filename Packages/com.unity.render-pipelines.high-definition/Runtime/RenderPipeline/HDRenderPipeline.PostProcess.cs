@@ -1273,6 +1273,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool IsExposureFixed(HDCamera camera) => m_Exposure.mode.value == ExposureMode.Fixed || m_Exposure.mode.value == ExposureMode.UsePhysicalCamera
 #if UNITY_EDITOR
         || (camera.camera.cameraType == CameraType.SceneView && HDAdditionalSceneViewSettings.sceneExposureOverriden)
+        || (UnityEditor.SceneView.lastActiveSceneView != null && UnityEditor.SceneView.lastActiveSceneView.isUsingSceneFiltering)
 #endif
         ;
 
@@ -6028,10 +6029,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.uiBuffer, AccessFlags.Read);
                 passData.cubemapFace = cubemapFace;
                 passData.postProcessIsFinalPass = postProcessIsFinalPass;
-
-                builder.AllowPassCulling(false); // TODO RG P2 - remove it
-                                                 // - something is wrong with intermediate postprocess buffer not used anywhere
-                                                 // -> whole dependency chain being culled - check RG Viewer
 
                 if (passData.hdrOutputIsActive)
                 {

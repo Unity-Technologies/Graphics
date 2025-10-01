@@ -64,14 +64,15 @@ namespace UnityEditor.Rendering.HighDefinition
             MaterialEditor.EndProperty();
             MaterialEditor.EndProperty();
 
-            DrawDiffusionProfileWarning(diffusionProfile);
+            if (diffusionProfile == null)
+                EditorGUILayout.HelpBox(diffusionProfileNotAssigned, MessageType.Error);
+            else
+                DrawDiffusionProfileWarning(diffusionProfile);
         }
 
         internal static void DrawDiffusionProfileWarning(DiffusionProfileSettings materialProfile)
         {
-            if (materialProfile == null)
-                EditorGUILayout.HelpBox(diffusionProfileNotAssigned, MessageType.Error);
-            else
+            if (materialProfile != null)
             {
                 if (GraphicsSettings.TryGetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>(
                         out var defaultVolumeProfileSettings))

@@ -215,78 +215,68 @@ These settings control skybox reflections and skybox lighting.
 | **Reflection Size**        | Use the drop-down to select the maximum resolution of the cube map HDRP uses to manage fallback reflection when no local reflection probes are present. This property has no effect on the quality of the sky itself. |
 | **Lighting Override Mask** | Use the drop-down to select the [Volume](understand-volumes.md) layer mask HDRP uses to override sky lighting. Use this to decouple the display sky and lighting. See the [Environment Lighting](Environment-Lighting.md#DecoupleVisualEnvironment) for information on how to decouple environment lighting from the sky background. |
 
-### Shadow
+<a name="lighting-shadows"></a>
 
-These settings adjust the size of the shadowmask. Smaller values causes Unity to discard more distant shadows, while higher values lead to Unity displaying more shadows at longer distances from the Camera.
+### Shadows
+
+These settings adjust the size of the shadowmask. For numerical inputs, use smaller values to discard more distant shadows and use higher values to display more shadows at longer distances from the camera.
 
 | **Property**                     | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
-| **Shadowmask**                  | Enable the checkbox to make HDRP support the [Shadowmask lighting mode](Lighting-Mode-Shadowmask.md) in your Unity Project. |
-| **Maximum** **Shadow on Screen** | The maximum number of shadows you can have in view. A Spot Light casts a single shadow, a Point Light casts six shadows, and a Directional Light casts shadows equal to the number of cascades defined in the [HD Shadow Settings](Override-Shadows.md) override. |
-| **Punctual Shadow Filtering Quality** | Use the drop-down to select the filtering quality for punctual shadows. A higher shadow quality makes the shadow softer. For information on each filtering quality preset, see the [Filtering Quality](#filtering-quality) table. |
-| **Directional Shadow Filtering Quality** | Use the drop-down to select the filtering quality for punctual shadows. A higher shadow quality makes the shadow softer. For information on each filtering quality preset, see the [Filtering Quality](#filtering-quality) table. |
-| **Area Shadow Filtering Quality**| Use the drop-down to select the filtering quality for area shadows. Higher values increase the area shadow quality in HDRP as better filtering improves the shape of the penumbra of very soft shadows and reduces light leaking. For information on each area filtering quality preset, see the [Filtering Quality](#filtering-quality) table. |
-| **Screen Space Shadows**         | Enable the checkbox to allow HDRP to compute shadows in a separate pass and store them in a screen-aligned Texture. |
-| - **Maximum**                    | Set the maximum number of screen space shadows that HDRP can handle. |
-| - **Buffer Format**              | Defines the format (R11G11B10 or R16G16B16A16) of the buffer used for screen space shadows.|
+| **Shadowmask**                  | Enables HDRP to support the [Shadowmask lighting mode](Lighting-Mode-Shadowmask.md) in your project. |
+| **Maximum Shadows on Screen** | Sets the maximum number of shadows you can have in view. A Spot Light casts a single shadow, a Point Light casts six shadows, and a Directional Light casts shadows equal to the number of cascades defined in the [HD Shadow Settings](Override-Shadows.md) override. |
+| **Punctual Shadow Filtering Quality** | Selects the filtering quality for punctual shadows. The options are **Low**, **Medium**, and **High**. The higher the shadow quality, the softer the shadow. <br/>For more information, refer to [Soften shadows](shadows-soften.md). |
+| **Directional Shadow Filtering Quality** | Selects the filtering quality for directional shadows. The options are **Low**, **Medium**, and **High**. The higher the shadow quality, the softer the shadow. <br/>For more information, refer to [Soften shadows](shadows-soften.md). |
+| **Area Shadow Filtering Quality**| Selects the filtering quality for area shadows. The options are **Medium** and **High**. Use **High** for better area shadow quality in HDRP as it improves the softness and shape of shadow edges (penumbra) and reduces light leaking. <br/>For more information, refer to [Soften shadows](shadows-soften.md). |
+| **Screen Space Shadows**         | Enables HDRP to compute shadows in a separate pass and store them in a screen-aligned texture. |
+| **Maximum**                    | Sets the maximum number of screen space shadows that HDRP can handle. <br/>This property is available only when **Screen Space Shadows** is enabled. |
+| **Buffer Format**              | Defines the format of the buffer used for screen space shadows. The options are R11G11B10 or R16G16B16A16.<br/>This property is available only when **Screen Space Shadows** is enabled.|
+| **Use Contact Shadows** | Enables HDRP to use [contact shadows](Override-Contact-Shadows.md).  The options are **Low**, **Medium**, and **High**. |
 
 <a name="ShadowMapSettings"></a>
 
-The following sections allow you to customize the shadow atlases and individual shadow resolution tiers for each type of Light in HDRP. Shadow resolution tiers are useful because, instead of defining the shadow resolution for each individual Light as a number, you can assign a numbered resolution to a named shadow resolution tier then use the named tier instead of rewriting the number. For example, instead of setting the resolution of each Light to 512, you could say that **Medium** resolution shadows have a resolution of 512 and then set the shadow quality of each Light to be **Medium**. This way, you can more easily have consistent shadow quality across your HDRP Project.
+#### Punctual Light Shadows
 
-The three sections here are:
+Customize the shadow atlases and individual shadow resolution tiers for punctual lights in HDRP. Assign a numerical resolution to each of the named shadow resolution tier to create consistent shadow quality for lights across your project.
 
-- **Directional Light Shadows**
-- **Punctual Light Shadows**
-- **Area Light Shadows**
+| **Property** | **Description** |
+| :---- | :---- |
+| **Resolution Tiers** | Sets the resolution of all shadows where the **Resolution** of these lights are set as the corresponding quality. You can set the resolution for **Low**, **Medium**, **High**, and **Ultra** tiers. |
+| **Max Resolution** | Sets the maximum resolution of any shadow map of this Light type. If you set any shadow resolution to a value higher than this, HDRP clamps it to this value. |
+| **Light Atlas** | Contains the properties for the light atlas. Refer to the [Light Atlas table](#light-atlas). |
 
-They all share the same properties, except **Directional Light Shadows** which doesn't include **Resolution** or **Dynamic Rescale** and **Cached Shadow Atlas Resolution**.
+#### Directional Light Shadows
 
-| **Light Atlas property**        | **Description**                                              |
-| ------------------- | ------------------------------------------------------------ |
-| **Resolution**      | Use the drop-down to select the resolution of the shadow atlas. |
-| **Precision**       | Use the drop-down to select the precision of the shadow map. This sets the bit depth of each pixel of the shadow map. **16 bit** is faster and uses less memory at the expense of precision. |
-| **Dynamic Rescale** | Enable the checkbox to allow HDRP to rescale the shadow atlas if all the shadows on the screen don't currently fit onto it. |
+Customize the shadow atlases and individual shadow resolution tiers for directional lights in HDRP. Assign a numerical resolution to each of the named shadow resolution tier to create consistent shadow quality for lights across your project.
 
-| **Shadow Resolution Tiers**      | **Description**                                                             |
-| ---------------------------------- | ------------------------------------------------------------ |
-| **L**                              | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **Low** use this resolution for their shadows. |
-| **M**                              | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **Medium** use this resolution for their shadows. |
-| **H**                              | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **High** use this resolution for their shadows. |
-| **U**                              | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **Ultra** use this resolution for their shadows. |
-| **Maximum Shadow Resolution**      | Set the maximum resolution of any shadow map of this Light type. If you set any shadow resolution to a value higher than this, HDRP clamps it to this value. |
-| **Cached Shadow Atlas Resolution** | Use the drop-down to select the resolution of the shadow atlas used for cached shadows (Update mode set to OnEnable or OnDemand). |
+| **Property** | **Description** |
+| :---- | :---- |
+| **Allow Mixed Cached Shadows** | Enables using mixed cached shadows in your project.|
+| **Precision** | Selects the precision of the shadow map. This sets the bit depth of each pixel of the shadow map. The options are: **32 bit**: For precision. **16 bit**: For speed and less memory. |
+| **Resolution Tiers** | Sets the resolution of all shadows where the **Resolution** of these lights are set as the corresponding quality. You can set the resolution for **Low**, **Medium**, **High**, and **Ultra** tiers. |
+| **Max Resolution** | Sets the maximum resolution of any shadow map of this Light type. If you set any shadow resolution to a value higher than this, HDRP clamps it to this value. |
 
-<a name="filtering-quality"></a>
-#### Filtering Quality
+#### Area Light Shadows
 
-| **Punctual Shadow Filtering Quality** | **Algorithm**                                       |
-| ---------------------------- | ------------------------------------------------------------ |
-| **Low**                      | Percentage Closer Filtering (PCF) 3x3 (4 taps). |
-| **Medium**                   | PCF 5x5 (9 taps). |
-| **High**                     | Percentage Closer Soft Shadows (PCSS). |
+Customize the shadow atlases and individual shadow resolution tiers for area lights in HDRP. Assign a numerical resolution to each of the named shadow resolution tier to create consistent shadow quality for lights across your project.
 
-| **Directional Shadow Filtering Quality** | **Algorithm**                                    |
-| ---------------------------- | ------------------------------------------------------------ |
-| **Low**                      | PCF Tent 5x5 (9 taps). |
-| **Medium**                   | PCF Tent 5x5 (9 taps). |
-| **High**                     | PCSS. |
+| **Property** | **Description** |
+| :---- | :---- |
+| **Resolution Tiers** | Sets the resolution of all shadows where the **Resolution** of these lights are set as the corresponding quality. You can set the resolution for **Low**, **Medium**, **High**, and **Ultra** tiers. |
+| **Max Resolution** | Sets the maximum resolution of any shadow map of this Light type. If you set any shadow resolution to a value higher than this, HDRP clamps it to this value. |
+| **Light Atlas** | Contains the properties for the light atlas. Refer to the [Light Atlas table](#light-atlas). |
 
-| **Area Shadow Filtering Quality** | **Algorithm**                                                |
-| --------------------------------- | ------------------------------------------------------------ |
-| **Medium**                        | Exponential Variance Shadow Map (EVSM). |
-| **High**                          | PCSS. |
+<a name="light-atlas"></a>
 
-The PCF algorithm applies a fixed size blur. PCSS applies a different blur size depending on the distance between the shadowed pixel and the shadow caster. This results in a more realistic shadow that is also more resource intensive to compute.
+##### Light Atlas
 
-PCSS: You can change the sample count to decrease the resource intensity of this algorithm, which decreases the quality of these shadows. To change the sample count, set the **Filter Sample Count** and **Blocker Sample Count** in the Inspector of each Light component.
+| **Property** | **Description** |
+| :---- | :---- |
+| **Resolution** | Selects the resolution of the shadow atlas. |
+| **Cached Resolution** | Selects the resolution of the shadow atlas used for cached shadows. |
+| **Precision** | Selects the precision of the shadow map. This sets the bit depth of each pixel of the shadow map. The options are: <br/>**32 bit**: For precision. <br/>**16 bit**: For speed and less memory. |
+| **Dynamic Rescale** | Enables HDRP to rescale the shadow atlas if all the shadows on the screen don't currently fit onto it. |
 
-The following factors determine the softness of PCSS shadows:
-- Point and Spot Lights: The **Shape** property **Radius**.
-- Directional Lights: **Angular Diameter**.
-- Area Lights: The position and size of the shadow's near plane, determined by the dimensions of the Light and its **Near Plane** distance setting.
-
-Use **Radius Scale for Softness** or **Angular Diameter Scale for Softness** for additional shadow softness adjustments.
 
 ### Lights
 

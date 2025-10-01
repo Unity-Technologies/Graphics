@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2d42b04b66a34c83a686972e6210a77, type: 3}
+  m_Name: avatar.default.eyeshape.round_plain
+  m_EditorClassIdentifier: 
+  _controllerGuid: cd0bbff3a240e48e5bcee5bd1c2c68bc
+  <SlotName>k__BackingField: eyeshape
+  <ShouldRecolor>k__BackingField: 0
+  <RecoloringValues>k__BackingField:
+    <RecoloringValue1>k__BackingField: {r: 0, g: 0, b: 0, a: 0}
+    <RecoloringValue2>k__BackingField: {r: 0, g: 0, b: 0, a: 0}
+    <RecoloringValue3>k__BackingField: {r: 0, g: 0, b: 0, a: 0}
+    <RecoloringValue4>k__BackingField: {r: 0, g: 0, b: 0, a: 0}
+    <RecoloringValue5>k__BackingField: {r: 0, g: 0, b: 0, a: 0}
+    <RecoloringValue6>k__BackingField: {r: 0, g: 0, b: 0, a: 0}
+  _colorCategoryOverrides:
+  - 
+  - 
+  - headshape
+  - headshape
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - headshape
+  - headshape
+  - headshape
+  - headshape
+  _excludedSlots: []
+  _hiddenParts: []
+  _excludedAnimations: []
+  _stateTriggers: []
+  _restrictedAnimatedLayers: []
+  _parts:
+  - <Sprite>k__BackingField: {fileID: 21300000, guid: 7a17fe4901f136c49b4075f8386270d1,
+      type: 3}
+  - <Sprite>k__BackingField: {fileID: 21300000, guid: 748a83bc2e156ac4a90012c1cf49c289,
+      type: 3}
+  - <Sprite>k__BackingField: {fileID: 21300000, guid: 1e64625a4fef2fe41a05750e8f6a617a,
+      type: 3}
+  - <Sprite>k__BackingField: {fileID: 21300000, guid: eb907389d433dea4ea06a5f39568c503,
+      type: 3}
+  - <Sprite>k__BackingField: {fileID: 21300000, guid: eb609fe1fa956e14da2fb588ff6345cf,
+      type: 3}
+  - <Sprite>k__BackingField: {fileID: 21300000, guid: 22210e1b2a24be247b87edc1ee859f42,
+      type: 3}
+  - <Sprite>k__BackingField: {fileID: 21300000, guid: 7ce58053ebbe42642823d3c41256ce2f,
+      type: 3}
+  - <Sprite>k__BackingField: {fileID: 21300000, guid: 8f0286ed3937ea743a625e874605072e,
+      type: 3}
+  - <Sprite>k__BackingField: {fileID: 21300000, guid: ae3eab99ddb77754e9e983da01bb1610,
+      type: 3}
+  - <Sprite>k__BackingField: {fileID: 21300000, guid: f6a21cf49fe34094fbb1fbae0b7311e2,
+      type: 3}
+  - <Sprite>k__BackingField: {fileID: 21300000, guid: f468e93519f79e342b79f272b50396fb,
+      type: 3}
+  - <Sprite>k__BackingField: {fileID: 21300000, guid: 086467601cbfd734ba8589a22ca00019,
+      type: 3}
+  - <Sprite>k__BackingField: {fileID: 21300000, guid: 27ce829a05b454c4f87d18f006ded9fc,
+      type: 3}
+  - <Sprite>k__BackingField: {fileID: 21300000, guid: 23b54fc609b0bc04388f5217d2bef899,
+      type: 3}
+  _stateDependentParts: []

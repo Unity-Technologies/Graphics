@@ -15,4 +15,4 @@ Each material type page contains information on which settings the material type
 * [StackLit Master Stack](stacklit-master-stack-reference.md)
 * [Unlit Master Stack](unlit-master-stack-reference.md)
 * [Canvas Master Stack](canvas-master-stack-reference.md)
-
+* [Terrain Master Stack](terrain-master-stack-reference.md)

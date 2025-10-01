@@ -656,93 +656,73 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             header.AddToClassList("inspector-header");
             root.Add(header);
 
+            var allImportersSerializedObject = new SerializedObject(importers.ToArray());
+            var useAsTemplateProperty = allImportersSerializedObject.FindProperty("m_UseAsTemplate");
             var useAsTemplateCheckbox = new Toggle("Use as Template") { tooltip = "When enabled, this asset will be used as a template for new Visual Effect Assets" };
-            SetupField(useAsTemplateCheckbox, importers, x => x.useAsTemplateProperty, null, () => importers.ForEach(x => x.useAsTemplateProperty = useAsTemplateCheckbox.value));
+            useAsTemplateCheckbox.BindProperty(useAsTemplateProperty);
+            useAsTemplateCheckbox.TrackPropertyValue(useAsTemplateProperty,
+                x =>
+                {
+                    if (x.boolValue)
+                    {
+                        // When enabling the template for the first time, initialize the template name with the asset name if not already done
+                        // so that the name is never empty when used as a template.
+                        for (int i = 0; i < importers.Count; i++)
+                        {
+                            var template = importers[i].templateProperty;
+                            if (string.IsNullOrEmpty(template.name))
+                            {
+                                template.name = targets[i].name;
+                                importers[i].templateProperty = template;
+                            }
+                        }
+                    }
+                });
             root.Add(useAsTemplateCheckbox);
 
             var expander = new Foldout { text = "Template", style = { marginLeft = 15f } };
             root.Add(expander);
 
+            // Name field
             var nameTooltip = targets.Length == 1
                 ? "Name of the template displayed in the template window"
                 : "When multiple Visual Effect Assets are selected, the template name cannot be edited to avoid conflicts";
             var nameField = new TextField("Name", 128, false, false, '*') { tooltip = nameTooltip, isDelayed = true };
-            if (importers.Count == 1)
+            nameField.BindProperty(allImportersSerializedObject.FindProperty("m_Template.name"));
+            nameField.enabledSelf = importers.Count == 1;
+            if (importers.Count > 1)
             {
-                SetupField(nameField, importers, x => x.templateProperty.name, (x, y) => { x.name = y.Trim(); return x; });
+                nameField.RegisterCallback<ContextualMenuPopulateEvent>(evt =>
+                {
+                    evt.menu.ClearItems();
+                    evt.StopImmediatePropagation();
+                });
             }
-            else
-            {
-                nameField.enabledSelf = false;
-            }
+
             expander.Add(nameField);
 
+            // Category field
             var categoryField = new TextField("Category", 64, false, false, '*') { tooltip = "Category of the template, used to organize templates in the Template window.", isDelayed = true };
-            SetupField(categoryField, importers, x => x.templateProperty.category, (x, y) => { x.category = y.Trim(); return x; });
+            categoryField.BindProperty(allImportersSerializedObject.FindProperty("m_Template.category"));
             expander.Add(categoryField);
 
-            // TODO: should be multi-line but currently there's an issue when serializing line return in the meta file
-            var descriptionField = new TextField("Description", 256, false, false, '*') { tooltip = "Description of the template, used to provide additional information about the template.", isDelayed = true  };
-            descriptionField.showMixedValue = true;
-            SetupField(descriptionField, importers, x => x.templateProperty.description, (x, y) => { x.description = y.Trim(); return x; });
+            // Description field
+            var descriptionField = new TextField("Description", 512, true, false, '*') { tooltip = "Description of the template, used to provide additional information about the template.", isDelayed = true };
+            descriptionField.BindProperty(allImportersSerializedObject.FindProperty("m_Template.description"));
             expander.Add(descriptionField);
 
+            // Icon field
             var iconField = new ObjectField("Icon") { objectType = typeof(Texture2D), tooltip = "Icon of the template, used to represent the template in the Template window." };
-            SetupField(iconField, importers, x => x.templateProperty.icon, (x, y) => { x.icon = (Texture2D)y; return x; });
+            iconField.BindProperty(allImportersSerializedObject.FindProperty("m_Template.icon"));
             expander.Add(iconField);
 
+            // Thumbnail field
             var thumbnailField = new ObjectField("Thumbnail") { objectType = typeof(Texture2D), tooltip = "Thumbnail of the template, used to represent the template in the Template window details view." };
-            SetupField(thumbnailField, importers, x => x.templateProperty.thumbnail, (x, y) => { x.thumbnail = (Texture2D)y; return x; });
+            thumbnailField.BindProperty(allImportersSerializedObject.FindProperty("m_Template.thumbnail"));
             expander.Add(thumbnailField);
-
-            if (Application.isPlaying)
-            {
-                root.Add(new HelpBox("When in play mode, the template cannot be modified.", HelpBoxMessageType.Info));
-            }
         }
 
         return root;
-    }
-
-    private void SetupField<T>(INotifyValueChanged<T> control, List<VisualEffectImporter> importers, Func<VisualEffectImporter, T> valueGetter, Func<VFXTemplate, T, VFXTemplate> valueSetter, Action fallbackAction = null)
-    {
-        var values = importers.Select(valueGetter.Invoke).Distinct().ToArray();
-        if (values.Length == 1)
-        {
-            control.value = values[0];
-        }
-        else
-        {
-            ((IMixedValueSupport)control).showMixedValue = true;
-        }
-
-        ((VisualElement)control).enabledSelf = !Application.isPlaying;
-        control.RegisterValueChangedCallback(x =>
-        {
-            try
-            {
-                if (valueSetter != null)
-                {
-                    foreach (var importer in importers)
-                    {
-                        importer.templateProperty = valueSetter.Invoke(importer.templateProperty, x.newValue);
-                    }
-                }
-                else
-                {
-                    fallbackAction?.Invoke();
-                }
-
-                var paths = targets.Select(AssetDatabase.GetAssetPath).ToArray();
-                AssetDatabase.ForceReserializeAssets(paths, ForceReserializeAssetsOptions.ReserializeMetadata);
-            }
-            catch (InvalidCastException)
-            {
-                var objectField = control as ObjectField;
-                Debug.LogWarning($"Expected value of type {objectField?.objectType.Name} not {x.newValue.GetType().Name}");
-                control.value = x.previousValue;
-            }
-        });
     }
 
     private void OnInspectorGUIEmbedded()

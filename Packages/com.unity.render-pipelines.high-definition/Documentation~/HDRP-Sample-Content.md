@@ -100,3 +100,14 @@ The scene includes examples focusing on the following effects:
 - Atmospheric Scattering: Replaces volumetric fog for distant coloration, integrated directly into the PBR Sky.
 - Aerosol Parameters: Uses existing parameters in the PBR Sky, requiring no additional setup.
 - Ozone Light Scattering: Accounts for the ozone layer's density at the camera's altitude, improving visual fidelity.
+
+## Renderer Shader User Value samples
+
+![A bunch of different instanced soldiers looking at their king.](Images/rsuv-samples.png)
+
+This sample showcases the use of Shader User Value on multiple renderers. 
+The scenes include different possible usages and show how to customize a material using this method. This includes: 
+- Offseting UV to sample color palettes. 
+- Modifying the vertices of a mesh to alter its look.
+- Removing geometry from a mesh to have more combinations.
+- Altering a Vertex Animation Texture speed and index. 

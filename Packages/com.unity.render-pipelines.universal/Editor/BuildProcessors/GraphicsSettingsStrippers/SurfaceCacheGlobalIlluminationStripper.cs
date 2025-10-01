@@ -1,7 +1,9 @@
 #if SURFACE_CACHE
 using System.Collections.Generic;
 using UnityEditor.Rendering.Universal;
+using UnityEngine.PathTracing.Core;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.UnifiedRayTracing;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering
@@ -20,7 +22,7 @@ namespace UnityEditor.Rendering
                     foreach (var rendererFeature in rendererData.rendererFeatures)
                     {
                         if (rendererFeature is SurfaceCacheGlobalIlluminationRendererFeature { isActive: true })
-                            return false;
+                            return true;
                     }
                 }
             }
@@ -57,7 +59,26 @@ namespace UnityEditor.Rendering
         {
             return SurfaceCacheStripperUtility.CanRemoveSurfaceCacheSettings(URPBuildData.instance.renderPipelineAssets);
         }
+    }
 
+    class RayTracingResourcesStripper : IRenderPipelineGraphicsSettingsStripper<RayTracingRenderPipelineResources>
+    {
+        public bool active => URPBuildData.instance.buildingPlayerForUniversalRenderPipeline;
+
+        public bool CanRemoveSettings(RayTracingRenderPipelineResources settings)
+        {
+            return SurfaceCacheStripperUtility.CanRemoveSurfaceCacheSettings(URPBuildData.instance.renderPipelineAssets);
+        }
+    }
+
+    class PathTracingWorldResourcesStripper : IRenderPipelineGraphicsSettingsStripper<WorldRenderPipelineResources>
+    {
+        public bool active => URPBuildData.instance.buildingPlayerForUniversalRenderPipeline;
+
+        public bool CanRemoveSettings(WorldRenderPipelineResources settings)
+        {
+            return SurfaceCacheStripperUtility.CanRemoveSurfaceCacheSettings(URPBuildData.instance.renderPipelineAssets);
+        }
     }
 }
 #endif

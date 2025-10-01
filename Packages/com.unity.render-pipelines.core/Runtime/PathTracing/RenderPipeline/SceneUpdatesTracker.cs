@@ -85,13 +85,16 @@ namespace UnityEngine.Rendering.LiveGI
                 this.timestamp.lastVisit = timestamp;
                 this.material = material;
                 metaPassIndex = material.FindPass("Meta");
+#if UNITY_EDITOR
                 shaderCompiled = metaPassIndex != -1 ? ShaderUtil.IsPassCompiled(material, metaPassIndex) : true;
+#endif
             }
 
             public Material material;
             public int metaPassIndex;
+#if UNITY_EDITOR
             public bool shaderCompiled;
-
+#endif
             public Timestamp timestamp;
         }
 
@@ -144,14 +147,14 @@ namespace UnityEngine.Rendering.LiveGI
             m_Changes.Clear();
         }
 
-        public SceneChanges GetChanges(bool filterRealtimeLights, bool filterBakedLights, bool filterMixedLights)
+        public SceneChanges GetChanges(bool filterBakedLights)
         {
             m_Timestamp++;
             m_Changes.Clear();
 
             FindInstancesChanges();
             FindMaterialsChanges();
-            FindLightChanges(filterRealtimeLights, filterBakedLights, filterMixedLights);
+            FindLightChanges(filterBakedLights);
 
             return m_Changes;
         }
@@ -328,7 +331,7 @@ namespace UnityEngine.Rendering.LiveGI
             };
         }
 
-        private void FindLightChanges(bool filterRealtimeLights, bool filterBakedLights, bool filterMixedLights)
+        private void FindLightChanges(bool filterBakedLights)
         {
             // Handle changed lights
             using var lightChanges = m_ObjectDispatcher.GetTypeChangesAndClear<Light>(Unity.Collections.Allocator.Temp);
@@ -349,11 +352,8 @@ namespace UnityEngine.Rendering.LiveGI
                 if (!m_Lights[key].light)
                     continue;
 
-                bool isRealtimeLight = m_Lights[key].light.lightmapBakeType == LightmapBakeType.Realtime;
-                bool isBakedLight = m_Lights[key].light.lightmapBakeType == LightmapBakeType.Baked;
-                bool isMixedLight = m_Lights[key].light.lightmapBakeType == LightmapBakeType.Mixed;
-
-                if (m_Lights[key].light.enabled && m_Lights[key].light.gameObject.activeInHierarchy && !(filterRealtimeLights && isRealtimeLight) && !(filterBakedLights && isBakedLight) && !(filterMixedLights && isMixedLight))
+                bool isBakedLight = m_Lights[key].light.bakingOutput.isBaked;
+                if (m_Lights[key].light.enabled && m_Lights[key].light.gameObject.activeInHierarchy && !(filterBakedLights && isBakedLight))
                 {
                     m_Lights[key].timestamp.lastVisit = m_Timestamp;
                 }
@@ -371,11 +371,8 @@ namespace UnityEngine.Rendering.LiveGI
             {
                 var light = item.Value.objectReference;
 
-                bool isRealtimeLight = light.lightmapBakeType == LightmapBakeType.Realtime;
-                bool isBakedLight = light.lightmapBakeType == LightmapBakeType.Baked;
-                bool isMixedLight = light.lightmapBakeType == LightmapBakeType.Mixed;
-
-                if (!light.enabled || !light.gameObject.activeInHierarchy || (filterRealtimeLights && isRealtimeLight) && !(filterBakedLights && isBakedLight) && !(filterMixedLights && isMixedLight))
+                bool isBakedLight = light.bakingOutput.lightmapBakeType == LightmapBakeType.Baked;
+                if (!light.enabled || !light.gameObject.activeInHierarchy || (filterBakedLights && isBakedLight))
                 {
                     continue;
                 }

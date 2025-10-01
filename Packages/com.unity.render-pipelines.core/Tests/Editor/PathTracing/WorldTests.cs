@@ -11,7 +11,7 @@ using RayTracingBackend = UnityEngine.Rendering.UnifiedRayTracing.RayTracingBack
 namespace UnityEngine.PathTracing.Tests
 {
     using InstanceHandle = Handle<World.InstanceKey>;
-    using MaterialHandle = Handle<World.MaterialDescriptor>;
+    using MaterialHandle = Handle<MaterialPool.MaterialDescriptor>;
 
     [TestFixture("Compute")]
     [TestFixture("Hardware")]

@@ -1,21 +1,21 @@
 using System;
 using System.Text.RegularExpressions;
+using UnityEditor.Rendering.Converter;
 using UnityEngine;
+using UnityEngine.Categorization;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using ShadowQuality = UnityEngine.ShadowQuality;
 
 namespace UnityEditor.Rendering.Universal
 {
+    [URPHelpURL("features/rp-converter")]
+    [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
+    [ElementInfo(Name = "Rendering Settings",
+                 Order = int.MinValue,
+                 Description = "This converter creates Universal Render Pipeline (URP) assets and corresponding Renderer assets, configuring their settings to match the equivalent settings from the Built-in Render Pipeline.")]
     internal class RenderSettingsConverter : RenderPipelineConverter
     {
-        public override int priority => -9000;
-        public override string name => "Renderer and Settings Assets Setup";
-
-        public override string info =>
-            "This converter creates Universal Render Pipeline (URP) assets and corresponding Renderer assets, configuring their settings " +
-            "to match the equivalent settings from the Built-in Render Pipeline.";
-
         public override Type container => typeof(BuiltInToURPConverterContainer);
 
         public override void OnInitialize(InitializeConverterContext context, Action callback)

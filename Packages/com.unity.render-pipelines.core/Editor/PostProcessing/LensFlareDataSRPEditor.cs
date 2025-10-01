@@ -129,10 +129,10 @@ namespace UnityEditor.Rendering
 
         static LensFlareDataSRPEditor()
         {
-            MethodInfo FillPropertyContextMenuInfo = typeof(EditorGUI).GetMethod("FillPropertyContextMenu", BindingFlags.Static | BindingFlags.NonPublic);
+            MethodInfo FillPropertyContextMenuInfo = typeof(EditorGUI).GetMethod("FillPropertyContextMenu", BindingFlags.Static | BindingFlags.NonPublic, null, new Type[] {typeof(SerializedProperty), typeof(SerializedProperty), typeof(GenericMenu)}, null);
             var propertyParam = Expression.Parameter(typeof(SerializedProperty), "property");
             var FillPropertyContextMenuBlock = Expression.Block(
-                Expression.Call(null, FillPropertyContextMenuInfo, propertyParam, Expression.Constant(null, typeof(SerializedProperty)), Expression.Constant(null, typeof(GenericMenu)), Expression.Constant(null, typeof(VisualElement)))
+                Expression.Call(null, FillPropertyContextMenuInfo, propertyParam, Expression.Constant(null, typeof(SerializedProperty)), Expression.Constant(null, typeof(GenericMenu)))
             );
             var FillPropertyContextMenuLambda = Expression.Lambda<Func<SerializedProperty, GenericMenu>>(FillPropertyContextMenuBlock, propertyParam);
             FillPropertyContextMenu = FillPropertyContextMenuLambda.Compile();
@@ -251,8 +251,13 @@ namespace UnityEditor.Rendering
         {
             int previousCount = m_List.count;
             int newCount = EditorGUI.DelayedIntField(rect, previousCount);
+
+            const int k_MaxElementCount = 100;
             if (newCount < 0)
                 newCount = 0;
+            if (newCount > k_MaxElementCount)
+                newCount = k_MaxElementCount;
+
             if (newCount != previousCount)
             {
                 m_Elements.arraySize = newCount;

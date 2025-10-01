@@ -180,8 +180,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 }
             }
 
-            // Validate that we're correctly building up the fragment lists we can only append to the last list
-            // not int the middle of lists
+            // Validate that we're correctly building up the fragment lists, we can only append to the last list
+            // not in the middle of the other lists
             Debug.Assert(listFirstIndex + numItems == fragmentData.Length);
 
             fragmentData.Add(new PassFragmentData(
@@ -260,6 +260,46 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
         }
 
+        #region Helpers For Testing Only
+
+        // Helper to loop over render graph passes
+        public ref struct PassIterator
+        {
+            readonly CompilerContextData m_Ctx;
+            int m_Index;
+
+            public PassIterator(CompilerContextData ctx)
+            {
+                m_Ctx = ctx;
+                m_Index = -1;
+            }
+
+            public ref readonly PassData Current => ref m_Ctx.passData.ElementAt(m_Index);
+
+            public bool MoveNext()
+            {
+                return ++m_Index < m_Ctx.passData.Length;
+            }
+
+            public PassIterator GetEnumerator()
+            {
+                return this;
+            }
+        }
+
+        public PassIterator Passes => new PassIterator(this);
+
+        // Use for testing only
+        internal List<PassData> GetPasses()
+        {
+            var result = new List<PassData>();
+            foreach (ref readonly var pass in Passes)
+            {
+                result.Add(pass);
+            }
+            return result;
+        }
+
         // Helper to loop over native passes
         public ref struct NativePassIterator
         {
@@ -295,7 +335,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         // the list may contain empty dummy entries after merging
         public NativePassIterator NativePasses => new NativePassIterator(this);
 
-
         // Use for testing only
         internal List<NativePassData> GetNativePasses()
         {
@@ -306,6 +345,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
             return result;
         }
+        #endregion
 
         // IDisposable implementation
 

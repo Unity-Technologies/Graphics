@@ -117,11 +117,13 @@ public class BaseGraphicsTests
         }
     }
 
+#if UNITY_EDITOR
     [TearDown]
     public void DumpImagesInEditor()
     {
         ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
     }
+#endif
 
     class AsyncShaderCompilationScope : IDisposable
     {

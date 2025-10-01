@@ -77,14 +77,14 @@ struct APVResources
 
 struct APVResourcesRW
 {
-    RWTexture3D<float4> L0_L1Rx;
-    RWTexture3D<float4> L1G_L1Ry;
-    RWTexture3D<float4> L1B_L1Rz;
-    RWTexture3D<float4> L2_0;
-    RWTexture3D<float4> L2_1;
-    RWTexture3D<float4> L2_2;
-    RWTexture3D<float4> L2_3;
-    RWTexture3D<float4> ProbeOcclusion;
+    RWTexture3D<half4> L0_L1Rx;
+    RWTexture3D<unorm float4> L1G_L1Ry;
+    RWTexture3D<unorm float4> L1B_L1Rz;
+    RWTexture3D<unorm float4> L2_0;
+    RWTexture3D<unorm float4> L2_1;
+    RWTexture3D<unorm float4> L2_2;
+    RWTexture3D<unorm float4> L2_3;
+    RWTexture3D<unorm float4> ProbeOcclusion;
 };
 
 #ifndef USE_APV_PROBE_OCCLUSION
@@ -911,18 +911,24 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
 void EvaluateAdaptiveProbeVolume(in float3 posWS, in float2 positionSS, out float3 bakeDiffuseLighting)
 {
     APVResources apvRes = FillAPVResources();
-
     posWS = AddNoiseToSamplingPosition(posWS, positionSS, 1);
     posWS -= _APVWorldOffset;
+
+    float3 ambientProbe = EvaluateAmbientProbe(0);
 
     float3 uvw;
     if (TryToGetPoolUVW(apvRes, posWS, 0, 0, uvw))
     {
         bakeDiffuseLighting = SAMPLE_TEXTURE3D_LOD(apvRes.L0_L1Rx, s_linear_clamp_sampler, uvw, 0).rgb;
+        if (_APVSkyOcclusionWeight > 0)
+        {
+            float skyOcclusionL0 = kSHBasis0 * SAMPLE_TEXTURE3D_LOD(apvRes.SkyOcclusionL0L1, s_linear_clamp_sampler, uvw, 0).x;
+            bakeDiffuseLighting += ambientProbe * skyOcclusionL0;
+        }
     }
     else
     {
-        bakeDiffuseLighting = EvaluateAmbientProbe(0);
+        bakeDiffuseLighting = ambientProbe;
     }
 }
 

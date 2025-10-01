@@ -38,7 +38,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float shadowFadeDistance;
         public float volumetricShadowDimmer;
         public float spotIESCutoffPercent;
-        public float shapeRadius;
         public float barnDoorLength;
         public float barnDoorAngle;
         public bool affectVolumetric;
@@ -63,7 +62,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float areaLightShadowCone;
         public float softnessScale;
         public float angularDiameter;
-        public float shapeRadius;
         public float slopeBias;
         public float minFilterSize;
         public float lightAngle;
@@ -135,7 +133,6 @@ namespace UnityEngine.Rendering.HighDefinition
             areaLightShadowCone = additionalLightData.areaLightShadowCone;
             softnessScale = additionalLightData.softnessScale;
             angularDiameter = additionalLightData.angularDiameter;
-            shapeRadius = additionalLightData.shapeRadius;
             slopeBias = additionalLightData.slopeBias;
             minFilterSize = additionalLightData.minFilterSize;
             lightAngle = additionalLightData.lightAngle;
@@ -243,16 +240,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDAdditionalLightDataUpdateInfo* data = (HDAdditionalLightDataUpdateInfo*)m_AdditionalLightDataUpdateInfos.GetUnsafePtr<HDAdditionalLightDataUpdateInfo>() + dataIndex;
                 return ref UnsafeUtility.AsRef<HDAdditionalLightDataUpdateInfo>(data);
             }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetShapeRadius(in HDLightRenderEntity entity, float shapeRadius)
-        {
-            if (!entity.valid)
-                return;
-
-            EditLightDataAsRef(entity).shapeRadius = shapeRadius;
-            EditAdditionalLightUpdateDataAsRef(entity).shapeRadius = shapeRadius;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

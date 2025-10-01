@@ -119,13 +119,13 @@ namespace Unity.Rendering.Universal.Tests
                 {
                     yield return new TestFixtureData(
                         RenderGraphContext.CompatibilityMode,
-                        GpuResidentDrawerContext.GpuResidentDrawerDisabled
+                        GpuResidentDrawerContext.GRDDisabled
                     );
                 }
 
                 yield return new TestFixtureData(
                     RenderGraphContext.RenderGraphMode,
-                    GpuResidentDrawerContext.GpuResidentDrawerDisabled
+                    GpuResidentDrawerContext.GRDDisabled
                 );
 
                 if (GraphicsTestPlatform.Current.IsEditorPlatform)
@@ -134,13 +134,13 @@ namespace Unity.Rendering.Universal.Tests
                     {
                         yield return new TestFixtureData(
                             RenderGraphContext.CompatibilityMode,
-                            GpuResidentDrawerContext.GpuResidentDrawerInstancedDrawing
+                            GpuResidentDrawerContext.GRDEnabled
                         );
                     }
 
                     yield return new TestFixtureData(
                         RenderGraphContext.RenderGraphMode,
-                        GpuResidentDrawerContext.GpuResidentDrawerInstancedDrawing
+                        GpuResidentDrawerContext.GRDEnabled
                     );
                 }
             }

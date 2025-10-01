@@ -1,0 +1,14 @@
+#pragma kernel CSMain
+// The RT used as input
+RWTexture2D<float> heatmapTexture;
+// The RT used as output
+RWTexture2D<float4> result;
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    // This code slightly brightens every pixel.
+    int2 pixel = int2(id.xy);
+    heatmapTexture[pixel] = heatmapTexture[pixel] + 0.1f;
+    result[id.xy] = heatmapTexture[pixel];
+}

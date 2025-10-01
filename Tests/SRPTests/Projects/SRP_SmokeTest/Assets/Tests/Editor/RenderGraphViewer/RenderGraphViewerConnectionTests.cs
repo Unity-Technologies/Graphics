@@ -114,7 +114,6 @@ namespace UnityEditor.Rendering.Tests
 
         [UnityTest]
         [Timeout(5 * 60 * 1000)]
-        [UnityPlatform(exclude = new[] { RuntimePlatform.WindowsEditor })] // Unstable: https://jira.unity3d.com/browse/UUM-110857
         public IEnumerator ManuallyConnectRenderGraphViewer(
             [Values(WindowOpenState.BeforePlayerStart, WindowOpenState.AfterPlayerStarted)] WindowOpenState openState)
         {

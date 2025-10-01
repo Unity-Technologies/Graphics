@@ -11,12 +11,12 @@ namespace UnityEditor.Rendering.Converter
         /// <summary>
         /// Gets a value indicating whether the converter is enabled and can be used.
         /// </summary>
-        bool isEnabled { get; set; }
+        bool isEnabled { get; }
 
         /// <summary>
         /// Gets or sets the reason message shown when the converter item is disabled.
         /// </summary>
-        string isDisabledMessage { get; set; }
+        string isDisabledMessage { get; }
 
         /// <summary>
         /// Scans for available render pipeline converter items.

@@ -40,6 +40,23 @@ namespace UnityEngine.Rendering.Universal
         public override int Priority() { return 10; }  // give higher than default menu priority
         public override bool IsShapeSource(Component sourceComponent) { return sourceComponent is SpriteSkin; }
 
+#if USING_2DANIMATION_13_0_1_OR_ABOVE
+        public override void Enabled(Component sourceComponent, ShadowShape2D persistantShadowShape)
+        {
+            if (sourceComponent.TryGetComponent(out SpriteSkin spriteSkin))
+            {
+                spriteSkin.RegisterOutlineDependency();
+            }
+        }
+
+        public override void Disabled(Component sourceComponent, ShadowShape2D persistantShadowShape)
+        {
+            if (sourceComponent.TryGetComponent(out SpriteSkin spriteSkin))
+            {
+                spriteSkin.UnregisterOutlineDependency();
+            }
+        }
+#endif
         public override void OnPersistantDataCreated(Component sourceComponent, ShadowShape2D persistantShadowShape)
         {
             SpriteSkin spriteSkin = (SpriteSkin)sourceComponent;

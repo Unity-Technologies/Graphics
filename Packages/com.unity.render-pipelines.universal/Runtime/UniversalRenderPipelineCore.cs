@@ -1035,7 +1035,6 @@ namespace UnityEngine.Rendering.Universal
         public static GlobalKeyword LinearToSRGBConversion;
         public static GlobalKeyword _ENABLE_ALPHA_OUTPUT;
         public static GlobalKeyword ForwardPlus; // Backward compatibility. Deprecated in 6.1.
-
         // TODO: Move following keywords to Local keywords?
         // https://docs.unity3d.com/ScriptReference/Rendering.LocalKeyword.html
         //public static GlobalKeyword TonemapACES;
@@ -1480,6 +1479,12 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Deprecated keyword. Use ClusterLightLoop instead. </summary>
         internal const string ForwardPlus = "_FORWARD_PLUS"; // Backward compatibility. Deprecated in 6.1.
+
+        /// <summary> Keyword used for Multi Sampling Anti-Aliasing (MSAA) with 2 per pixel sample count. </summary>
+        public const string Msaa2 = "_MSAA_2";
+
+        /// <summary> Keyword used for Multi Sampling Anti-Aliasing (MSAA) with 4 per pixel sample count. </summary>
+        public const string Msaa4 = "_MSAA_4";
     }
 
     public sealed partial class UniversalRenderPipeline

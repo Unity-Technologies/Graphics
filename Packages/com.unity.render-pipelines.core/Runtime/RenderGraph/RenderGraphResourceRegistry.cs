@@ -1078,15 +1078,20 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return executedWork;
         }
 
-        internal void ClearResource(InternalRenderGraphContext rgContext, int type, int index)
+        internal bool ClearResource(InternalRenderGraphContext rgContext, int type, int index)
         {
+            bool executedWork = false;
+
             var resource = m_RenderGraphResources[type].resourceArray[index];
 
             // Only TextureResource for now, but we expect to want to handle other types of resources in the future
             if (resource is TextureResource textureResource)
             {
                 ClearTexture(rgContext, textureResource);
+                executedWork = true;
             }
+
+            return executedWork;
         }
 
         private void ClearTexture(InternalRenderGraphContext rgContext, TextureResource resource)

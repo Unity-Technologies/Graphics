@@ -252,7 +252,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightData.iesCut = 1.0f;
                 }
 
-                float shapeRadiusVal = lightRenderData.shapeRadius;
+                float shapeRadiusVal = light.shapeRadius;
                 if (lightData.lightType != GPULightType.Directional && lightData.lightType != GPULightType.ProjectorBox)
                 {
                     // Store the squared radius of the light to simulate a fill light.

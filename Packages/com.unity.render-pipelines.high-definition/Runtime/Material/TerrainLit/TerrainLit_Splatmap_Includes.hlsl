@@ -35,10 +35,12 @@
         DECLARE_TERRAIN_LAYER_PROPS(7)      \
         float4 _Control1_TexelSize;         \
         float _HeightTransition;
+        uint _NumLayersCount;
 #else
     #define UNITY_TERRAIN_CB_VARS \
         DECLARE_TERRAIN_LAYER_PROPS_FIRST_4 \
         float _HeightTransition;
+        uint _NumLayersCount;
 #endif
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
