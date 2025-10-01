@@ -193,3 +193,27 @@ Defines a **Boolean** value. Displays a **ToggleUI** field in the material inspe
 | Field        | Type  | Description |
 |:-------------|:------|:------------|
 | Default | Boolean | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
+
+## Matrix 2x2
+
+Defines a Matrix 2. Matrices do not display in the **Inspector** window of the material.
+
+| Field   | Type     |
+|:--------|:---------|
+| Default | Matrix 2 |
+
+## Matrix 3x3
+
+Defines a Matrix 3 value. Can't be displayed in the material inspector.
+
+| Field   | Type     |
+|:--------|:---------|
+| Default | Matrix 3 |
+
+## Matrix 4x4
+
+Defines a Matrix 4 value. Can't be displayed in the material inspector.
+
+| Field   | Type     |
+|:--------|:---------|
+| Default | Matrix 4 |
