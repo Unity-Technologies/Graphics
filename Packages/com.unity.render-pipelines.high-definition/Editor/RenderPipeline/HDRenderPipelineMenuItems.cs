@@ -233,9 +233,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        class DoCreateNewAsset<TAssetType> : ProjectWindowCallback.EndNameEditAction where TAssetType : ScriptableObject
+        class DoCreateNewAsset<TAssetType> : ProjectWindowCallback.AssetCreationEndAction where TAssetType : ScriptableObject
         {
-            public override void Action(int instanceId, string pathName, string resourceFile)
+            public override void Action(EntityId entityId, string pathName, string resourceFile)
             {
                 var newAsset = CreateInstance<TAssetType>();
                 newAsset.name = Path.GetFileName(pathName);

@@ -36,9 +36,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             GraphUtil.CreateNewGraphWithOutputs(new[] { target }, blockDescriptors);
         }
 
-        class DoCreateNewWaterShaderGraph : ProjectWindowCallback.EndNameEditAction
+        class DoCreateNewWaterShaderGraph : ProjectWindowCallback.AssetCreationEndAction
         {
-            public override void Action(int instanceId, string pathName, string resourceFile)
+            public override void Action(EntityId entityId, string pathName, string resourceFile)
             {
                 var shader = GraphicsSettings.GetRenderPipelineSettings<WaterSystemRuntimeResources>().waterPS;
                 AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(shader), pathName);

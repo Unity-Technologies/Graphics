@@ -238,11 +238,11 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
-    class DoCreatePBRSkyDefaultMaterial : ProjectWindowCallback.EndNameEditAction
+    class DoCreatePBRSkyDefaultMaterial : ProjectWindowCallback.AssetCreationEndAction
     {
         public PhysicallyBasedSky physicallyBasedSky;
         public Material material = null;
-        public override void Action(int instanceId, string pathName, string resourceFile)
+        public override void Action(EntityId entityId, string pathName, string resourceFile)
         {
             var shader = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>().pbrSkyMaterial;
             material = new Material(shader);

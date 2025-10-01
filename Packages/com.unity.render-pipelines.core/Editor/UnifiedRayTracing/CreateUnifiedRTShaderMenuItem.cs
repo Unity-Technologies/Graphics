@@ -14,9 +14,9 @@ namespace UnityEditor.Rendering.UnifiedRayTracing
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, "NewUnifiedRayTracingShader.urtshader", null, null);
         }
 
-        internal class DoCreateUnifiedRayTracingShader : EndNameEditAction
+        internal class DoCreateUnifiedRayTracingShader : AssetCreationEndAction
         {
-            public override void Action(int instanceId, string pathName, string resourceFile)
+            public override void Action(EntityId entityId, string pathName, string resourceFile)
             {
                 string fullPath = Path.GetFullPath(pathName);
                 File.WriteAllText(fullPath, shaderContent);

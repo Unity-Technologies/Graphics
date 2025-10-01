@@ -16,9 +16,9 @@ namespace UnityEditor.Rendering
         }
 
         #region Asset Factory
-        class LensFlareDataSRPCreator : UnityEditor.ProjectWindowCallback.EndNameEditAction
+        class LensFlareDataSRPCreator : UnityEditor.ProjectWindowCallback.AssetCreationEndAction
         {
-            public override void Action(int instanceId, string pathName, string resourceFile)
+            public override void Action(EntityId entityId, string pathName, string resourceFile)
             {
                 LensFlareDataSRP asset = ScriptableObject.CreateInstance<LensFlareDataSRP>();
                 UnityEngine.Assertions.Assert.IsNotNull(asset, $"failed to create instance of {nameof(LensFlareDataSRP)}");

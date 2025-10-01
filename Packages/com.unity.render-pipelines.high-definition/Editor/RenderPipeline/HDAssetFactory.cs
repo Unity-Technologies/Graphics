@@ -9,9 +9,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
     static partial class HDAssetFactory
     {
-        class DoCreateNewAssetHDRenderPipeline : ProjectWindowCallback.EndNameEditAction
+        class DoCreateNewAssetHDRenderPipeline : ProjectWindowCallback.AssetCreationEndAction
         {
-            public override void Action(int instanceId, string pathName, string resourceFile)
+            public override void Action(EntityId entityId, string pathName, string resourceFile)
             {
                 var newAsset = CreateInstance<HDRenderPipelineAsset>();
                 newAsset.name = Path.GetFileName(pathName);

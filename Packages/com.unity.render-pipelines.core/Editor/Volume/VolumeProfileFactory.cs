@@ -118,18 +118,18 @@ namespace UnityEditor.Rendering
         }
     }
 
-    class CreateVolumeProfileAction : EndNameEditAction
+    class CreateVolumeProfileAction : AssetCreationEndAction
     {
-        public override void Action(int instanceId, string pathName, string resourceFile)
+        public override void Action(EntityId entityId, string pathName, string resourceFile)
         {
             var profile = VolumeProfileFactory.CreateVolumeProfileAtPath(pathName);
             ProjectWindowUtil.ShowCreatedAsset(profile);
         }
     }
 
-    class CreateVolumeProfileWithCallbackAction : EndNameEditAction
+    class CreateVolumeProfileWithCallbackAction : AssetCreationEndAction
     {
-        public override void Action(int instanceId, string pathName, string resourceFile)
+        public override void Action(EntityId entityId, string pathName, string resourceFile)
         {
             var profile = VolumeProfileFactory.CreateVolumeProfileAtPath(pathName);
             ProjectWindowUtil.ShowCreatedAsset(profile);
