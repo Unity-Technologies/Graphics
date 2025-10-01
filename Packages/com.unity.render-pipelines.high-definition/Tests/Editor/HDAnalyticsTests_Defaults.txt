@@ -22,6 +22,7 @@
 {"maximumWaterDecalCount":"48"},
 {"waterScriptInteractionsMode":"GPUReadback"},
 {"waterFullCPUSimulation":"False"},
+{"waterCausticsMeshResolution":"Medium256"},
 {"supportComputeThickness":"False"},
 {"computeThicknessResolution":"Half"},
 {"supportDistortion":"True"},

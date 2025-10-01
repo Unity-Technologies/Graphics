@@ -329,9 +329,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Specifies the resolution at which the water caustics are rendered (simulation only).
+        /// Specifies the resolution at which the water caustics texture is rendered.
         /// </summary>
-        [Tooltip("Specifies the resolution at which the water caustics are rendered (simulation only).")]
+        [Tooltip("Specifies the resolution at which the water caustics texture is rendered. For better definition, you can also change the Caustics Mesh Resolution in the water settings asset.")]
         public WaterCausticsResolution causticsResolution = WaterCausticsResolution.Caustics256;
 
         /// <summary>

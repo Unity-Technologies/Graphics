@@ -38,6 +38,25 @@ namespace UnityEngine.Rendering.HighDefinition
         High256 = 256,
     }
 
+    /// <summary>
+    /// Enum that defines the sets of resolution at which the mesh used for the generating the caustics texture is generated.
+    /// </summary>
+    public enum WaterCausticsMeshResolution
+    {
+        /// <summary>
+        /// The caustics texture will be renderer from a mesh with a resolution of 128x128 vertices.
+        /// </summary>
+        Low128 = 128,
+        /// <summary>
+        /// The caustics texture will be renderer from a mesh with a resolution of 256x256 vertices..
+        /// </summary>
+        Medium256 = 256,
+        /// <summary>
+        /// The caustics texture will be renderer from a mesh with a resolution of 512x512 vertices.
+        /// </summary>
+        High512 = 512,
+    }
+
     internal class WaterSimulationResourcesGPU
     {
         // Texture that holds the Phillips spectrum
@@ -485,8 +504,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.WaterSurfaceCaustics)))
             {
+
                 // Initialize the indices buffer
-                int meshResolution = WaterConsts.k_WaterCausticsMeshResolution;
+                int meshResolution = (int) m_RenderPipeline.asset.currentPlatformRenderPipelineSettings.waterCausticsMeshResolution;
+                int meshNumQuads = meshResolution * meshResolution;
+
                 if (!m_CausticsBufferGeometryInitialized)
                 {
                     int meshTileCount = (meshResolution + 7) / 8;
@@ -510,7 +532,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Render the caustics
                 CoreUtils.SetRenderTarget(cmd, currentWater.simulation.gpuBuffers.causticsBuffer, clearFlag: ClearFlag.Color, Color.black);
-                cmd.DrawProcedural(m_CausticsGeometry, Matrix4x4.identity, m_CausticsMaterial, 0, MeshTopology.Triangles, WaterConsts.k_WaterCausticsMeshNumQuads * 6, 1, m_WaterMaterialPropertyBlock);
+                cmd.DrawProcedural(m_CausticsGeometry, Matrix4x4.identity, m_CausticsMaterial, 0, MeshTopology.Triangles, meshNumQuads * 6, 1, m_WaterMaterialPropertyBlock);
 
                 // Make sure the mip-maps are generated
                 currentWater.simulation.gpuBuffers.causticsBuffer.rt.Create();

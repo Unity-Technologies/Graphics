@@ -41,6 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty maximumWaterDecalCount;
         public SerializedProperty waterScriptInteractionsMode;
         public SerializedProperty waterFullCPUSimulation;
+        public SerializedProperty waterCausticsMeshResolution;
 
         public SerializedProperty supportComputeThickness;
         public SerializedProperty computeThicknessResolution;
@@ -135,6 +136,7 @@ namespace UnityEditor.Rendering.HighDefinition
             maximumWaterDecalCount = root.Find((RenderPipelineSettings s) => s.maximumWaterDecalCount);
             waterScriptInteractionsMode = root.Find((RenderPipelineSettings s) => s.waterScriptInteractionsMode);
             waterFullCPUSimulation = root.Find((RenderPipelineSettings s) => s.waterFullCPUSimulation);
+            waterCausticsMeshResolution = root.Find((RenderPipelineSettings s) => s.waterCausticsMeshResolution);
 
             supportComputeThickness = root.Find((RenderPipelineSettings s) => s.supportComputeThickness);
             computeThicknessResolution = root.Find((RenderPipelineSettings s) => s.computeThicknessResolution);

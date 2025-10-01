@@ -121,7 +121,9 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeInstancingData();
 
             // Create the caustics water geometry
-            m_CausticsGeometry = new GraphicsBuffer(GraphicsBuffer.Target.Raw | GraphicsBuffer.Target.Index, WaterConsts.k_WaterCausticsMeshNumQuads * 6, sizeof(int));
+            int waterCausticsMeshResolution = (int)hdPipeline.asset.currentPlatformRenderPipelineSettings.waterCausticsMeshResolution;
+            int waterCausticsMeshNumQuads = waterCausticsMeshResolution * waterCausticsMeshResolution;
+            m_CausticsGeometry = new GraphicsBuffer(GraphicsBuffer.Target.Raw | GraphicsBuffer.Target.Index, waterCausticsMeshNumQuads * 6, sizeof(int));
             m_CausticsBufferGeometryInitialized = false;
             m_CausticsMaterial = CoreUtils.CreateEngineMaterial(m_RuntimeResources.waterCausticsPS);
 

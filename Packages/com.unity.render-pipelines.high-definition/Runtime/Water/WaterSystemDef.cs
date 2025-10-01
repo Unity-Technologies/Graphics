@@ -24,10 +24,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Maximum wind speed that the system allows for the agitation (in km/h)
         public const float k_AgitationMaximumWindSpeed = 50.0f;
 
-        // Resolution of the mesh used to render the caustics grid
-        public const int k_WaterCausticsMeshResolution = 256;
-        public const int k_WaterCausticsMeshNumQuads = k_WaterCausticsMeshResolution * k_WaterCausticsMeshResolution;
-
         // Resolution of the mesh used to render the tessellated water surface
         public const int k_WaterTessellatedMeshResolution = 128;
         public const int k_WaterTessellatedMeshNumQuads = k_WaterTessellatedMeshResolution * k_WaterTessellatedMeshResolution;
