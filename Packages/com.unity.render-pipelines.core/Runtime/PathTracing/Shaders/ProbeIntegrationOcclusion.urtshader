@@ -1,11 +1,10 @@
+#pragma only_renderers d3d11 vulkan metal glcore
 #define UNIFIED_RT_GROUP_SIZE_X 128
 #define UNIFIED_RT_GROUP_SIZE_Y 1
 #define UNIFIED_RT_RAYGEN_FUNC IntegrateOcclusion
 
 #include "PathTracing.hlsl"
 #include "LightSampling.hlsl"
-
-#pragma exclude_renderers switch switch2
 
 RWStructuredBuffer<float3> g_Positions;
 RWStructuredBuffer<int> g_PerProbeLightIndices;

@@ -1,3 +1,4 @@
+#pragma only_renderers d3d11 vulkan metal glcore
 // See UnityComputeProbeIntegrator.IntegrateOcclusion()
 #pragma kernel MapIndices
 

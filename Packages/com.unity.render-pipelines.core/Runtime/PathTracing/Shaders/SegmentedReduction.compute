@@ -1,3 +1,4 @@
+#pragma only_renderers d3d11 vulkan metal glcore
 // This shader computes a strided segmented reduction - essentially N reductions in parallel, in a single pass.
 // A very simple approach is used, where each thread just computes the i'th reduction sequentially.
 // Each segment is assumed to be the same length. The shader adds to its output, so zero-initialize it if needed.

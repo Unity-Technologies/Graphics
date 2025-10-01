@@ -1,5 +1,5 @@
 // This implementation is adapted from BuildProbabilityTables.compute
-
+#pragma only_renderers d3d11 vulkan metal glcore
 #define COMPUTE_PATH_TRACING_SKY_SAMPLING_DATA
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

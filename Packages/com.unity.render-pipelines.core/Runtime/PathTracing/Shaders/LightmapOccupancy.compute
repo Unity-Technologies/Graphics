@@ -1,3 +1,4 @@
+#pragma only_renderers d3d11 vulkan metal glcore
 RWTexture2D<float4> g_LightmapInOut;
 Texture2D<half2> g_UvFallback;
 int g_InstanceOffsetX;
