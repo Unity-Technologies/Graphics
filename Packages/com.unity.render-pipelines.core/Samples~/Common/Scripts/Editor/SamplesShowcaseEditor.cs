@@ -310,7 +310,7 @@ public class SamplesShowcaseEditor : Editor
         // Add tab spacing to lists
         parsedText = Regex.Replace(parsedText, "•.*?(?:<br>|$)", "<margin=1em>$0</margin>");
 
-        // Remove ingore tags
+        // Remove ignore tags
         parsedText = Regex.Replace(parsedText, @"<\/?ignore>", "");
 
         // Register link callbacks
