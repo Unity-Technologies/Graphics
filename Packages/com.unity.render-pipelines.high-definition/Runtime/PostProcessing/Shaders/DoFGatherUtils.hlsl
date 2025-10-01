@@ -140,7 +140,8 @@ void LoadTileData(float2 sampleTC, SampleData centerSample, float rings, inout D
 
 #ifdef ADAPTIVE_SAMPLING
     float minRadius = min(cocRanges.minFarCoC, -cocRanges.minNearCoC) * OneOverResScale;
-    tileData.numSamples = (int)ceil((minRadius / tileData.maxRadius < 0.1) ? tileData.numSamples * AdaptiveSamplingWeights.x : tileData.numSamples * AdaptiveSamplingWeights.y);
+    float ratio = saturate(minRadius / tileData.maxRadius);
+    tileData.numSamples = (int)ceil(tileData.numSamples * lerp(AdaptiveSamplingWeights.x, AdaptiveSamplingWeights.y, ratio));
 #endif
 
     // By default split the fg and bg layers at 0

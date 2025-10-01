@@ -18,9 +18,10 @@ float4 _Params2;
 float4 _Params3;
 CBUFFER_END
 
-#define NumRings            _Params.x
-#define MaxCoCRadius        _Params.y
-#define Anamorphism         _Params.z
+#define NearNumRings        _Params.x
+#define FarNumRings         _Params.y
+#define MaxCoCRadius        _Params.z
+#define Anamorphism         _Params.w
 #define MaxCoCMipLevel      _Params2.x
 #define MaxColorMip         _Params2.y
 #define OneOverResScale     _Params2.z
@@ -55,8 +56,10 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         return;
     }
 
+    uint numRings = centerSample.CoC > 0 ? FarNumRings : NearNumRings;
+
     DoFTile tileData;
-    LoadTileData(posInputs.positionSS, centerSample, NumRings, tileData);
+    LoadTileData(posInputs.positionSS, centerSample, numRings, tileData);
 
     float4 outColor;
     float outAlpha;

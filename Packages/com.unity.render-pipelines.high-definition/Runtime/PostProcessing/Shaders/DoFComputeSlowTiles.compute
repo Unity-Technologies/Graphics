@@ -18,9 +18,10 @@ float4 _Params;
 float4 _Params2;
 CBUFFER_END
 
-#define NumRings            _Params.x
-#define MaxCoCRadius        _Params.y
-#define Anamorphism         _Params.z
+#define NearNumRings        _Params.x
+#define FarNumRings         _Params.y
+#define MaxCoCRadius        _Params.z
+#define Anamorphism         _Params.w
 
 // Here we write the final output
 RW_TEXTURE2D_X(CTYPE, _OutputTexture);
@@ -50,8 +51,10 @@ void ComputeSlowTiles(uint3 dispatchThreadId : SV_DispatchThreadID)
         centerSample.color = output;
         centerSample.CoC = GetCoCRadius(posInputs.positionSS);
 
+        uint numRings = centerSample.CoC > 0 ? FarNumRings : NearNumRings;
+
         DoFTile tileData;
-        LoadTileData(posInputs.positionSS, centerSample, NumRings, tileData);
+        LoadTileData(posInputs.positionSS, centerSample, numRings, tileData);
 
         float4 outColor;
         float outAlpha;
