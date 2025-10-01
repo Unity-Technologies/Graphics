@@ -83,7 +83,7 @@ float3 _Transform_Out = GetAbsolutePositionWS(In);
 **World > Screen**
 
 ```
-float4 hclipPosition = TransformWorldToHClipDir(In);
+float4 hclipPosition = TransformWorldToHClip(In);
 float3 screenPos = hclipPosition.xyz / hclipPosition.w;
 float3 _Transform_Out = float3(screenPos.xy * 0.5 + 0.5, screenPos.z);
 ```
