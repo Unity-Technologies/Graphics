@@ -44,12 +44,22 @@ namespace UnityEditor.VFX
                 }
             }
 
-            if (currentShaderGraph != null && !currentShaderGraph.generatesWithShaderGraph)
+            if (currentShaderGraph != null)
             {
-                if (errors != null)
-                    errors.Add(("DeprecatedOldShaderGraph", VFXErrorType.Error, ParticleShadingShaderGraph.kErrorOldSG));
+                if (!currentShaderGraph.generatesWithShaderGraph)
+                {
+                    if (errors != null)
+                        errors.Add(("DeprecatedOldShaderGraph", VFXErrorType.Error, ParticleShadingShaderGraph.kErrorOldSG));
 
-                currentShaderGraph = VFXResources.errorFallbackShaderGraph;
+                    currentShaderGraph = VFXResources.errorFallbackShaderGraph;
+                } 
+                else if (VFXLibrary.currentSRPBinder != null && !VFXLibrary.currentSRPBinder.IsShaderVFXCompatible(currentShaderGraph))
+                {
+                    if (errors != null)
+                        errors.Add(("NoSRPCompatibleSG", VFXErrorType.Error, "The current Shader Graph doesn't support the current SRP or VFX Support is not enabled."));
+
+                    currentShaderGraph = VFXResources.errorFallbackShaderGraph;
+                }
             }
 
             if (currentShaderGraph == null)
@@ -112,7 +122,8 @@ namespace UnityEditor.VFX
                 }
                 desc.hasAlphaClipping = actualShaderGraph.alphaClipping;
 
-                var shaderGraphProperties = VFXShaderGraphHelpers.GetProperties(actualShaderGraph);
+                //Retrieve properties from shaderGraph (and not actualShaderGraph) to prevent slot removal when listing is available for another SRP
+                var shaderGraphProperties = VFXShaderGraphHelpers.GetProperties(shaderGraph);
                 foreach (var sgProperty in shaderGraphProperties)
                 {
                     desc.properties.Add(sgProperty.property);
@@ -279,7 +290,6 @@ namespace UnityEditor.VFX
             }
 
             var actualShaderGraph = GetOrRefreshShaderGraphObject();
-            var previousBlendMode = VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(actualShaderGraph, materialSettings);
             var materialChanged = false;
             using (new EditorGUI.DisabledScope(!isVariant))
             {
@@ -299,26 +309,30 @@ namespace UnityEditor.VFX
                     if (!materialChanged && HasOverridenPropertiesChanged(m_MaterialEditor.serializedObject, m_OverridenPropertiesCache))
                     {
                         GetOverridenProperties(m_MaterialEditor.serializedObject, m_OverridenPropertiesCache);
-                        materialChanged = true;
+                        materialChanged = !Undo.isProcessing;
                     }
                 }
             }
 
-            var currentBlendMode = VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(actualShaderGraph, materialSettings);
             if (materialChanged)
             {
+                var recordMessage = string.IsNullOrEmpty(parent.label) ? "VFX Material Changed" : $"VFX Material Changed - {parent.label}";
+                Undo.RecordObject(parent, recordMessage);
+
+                var previousBlendMode = VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(actualShaderGraph, materialSettings);
                 var material = parent.FindMaterial();
                 if (material != null)
                     materialSettings.SyncFromMaterial(material);
 
                 // If the blend mode is changed to one that may require sorting (Auto), we require a full recompilation.
-                if (previousBlendMode != currentBlendMode)
+                if (previousBlendMode != VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(actualShaderGraph, materialSettings))
                     invalidationCause = VFXModel.InvalidationCause.kSettingChanged;
                 else
                     invalidationCause = VFXModel.InvalidationCause.kMaterialChanged;
             }
 
             //Warning & Info display
+            var currentBlendMode = VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(actualShaderGraph, materialSettings);
             var materialShadowOverride = VFXLibrary.currentSRPBinder.TryGetCastShadowFromMaterial(actualShaderGraph, materialSettings, out var castShadow);
             var materialSortingPriorityOverride = VFXLibrary.currentSRPBinder.TryGetQueueOffset(actualShaderGraph, materialSettings, out var queueOffset) && parent.subOutput.supportsSortingPriority;
 

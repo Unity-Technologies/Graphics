@@ -1,0 +1,8 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5
+
+#define UNIFIED_RT_GROUP_SIZE_X 64
+#define UNIFIED_RT_GROUP_SIZE_Y 1
+#define UNIFIED_RT_GROUP_SIZE_Z 1
+#define UNIFIED_RT_RAYGEN_FUNC Estimate
+
+#include "RisEstimation.hlsl"

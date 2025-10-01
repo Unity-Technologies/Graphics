@@ -1,0 +1,104 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5
+
+#pragma kernel Lookup
+
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
+#include "SurfaceCacheCore/Common.hlsl"
+#include "SurfaceCacheCore/PatchUtil.hlsl"
+#include "SurfaceCacheCore/IrradianceCompression.hlsl"
+
+Texture2D<float> _ScreenDepths;
+Texture2D<float3> _ScreenFlatNormals;
+RWTexture2D<float3> _ResultL0;
+RWTexture2D<float3> _ResultL10;
+RWTexture2D<float3> _ResultL11;
+RWTexture2D<float3> _ResultL12;
+RWTexture2D<float> _ResultNdcDepths;
+RWStructuredBuffer<PatchUtil::PatchCounterSet> _PatchCounterSets;
+
+StructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances;
+StructuredBuffer<uint> _CellPatchIndices;
+StructuredBuffer<int3> _CascadeOffsets;
+
+uint _GridSize;
+uint _CascadeCount;
+uint _SampleCount;
+float _VoxelMinSize;
+float4x4 _ClipToWorldTransform;
+uint _FrameIdx;
+float3 _GridTargetPos;
+
+#define GROUP_SIZE 8
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void Lookup(uint2 lowResPixelPos : SV_DispatchThreadID)
+{
+    uint2 lowResSize;
+    _ResultL0.GetDimensions(lowResSize.x, lowResSize.y);
+
+    if (any(lowResPixelPos >= lowResSize))
+        return;
+
+    const uint2 fullResPixelPos = lowResPixelPos * lowResScreenScaling;
+
+    uint2 fullResSize;
+    _ScreenDepths.GetDimensions(fullResSize.x, fullResSize.y);
+
+    const float ndcDepth = LoadNdcDepth(_ScreenDepths, fullResPixelPos);
+    _ResultNdcDepths[lowResPixelPos] = ndcDepth;
+    if (ndcDepth == invalidNdcDepth)
+        return;
+
+    const float2 uv = PixelPosToUvPos(fullResPixelPos, rcp(float2(fullResSize)));
+    const float3 worldPos = ComputeWorldSpacePosition(uv, ndcDepth, _ClipToWorldTransform);
+    const float3 worldNormal = _ScreenFlatNormals[fullResPixelPos];
+
+    QrngKronecker rng;
+    rng.Init(lowResPixelPos, 0);
+
+    const int cascadeResolution = PatchUtil::ResolveCascadeIndex(_GridTargetPos, worldPos, _GridSize, _CascadeCount, _VoxelMinSize);
+    const uint cascadeIdx = cascadeResolution == -1 ? _CascadeCount - 1 : cascadeResolution;
+    const float voxelSize = PatchUtil::GetVoxelSize(_VoxelMinSize, cascadeIdx);
+
+    SphericalHarmonics::RGBL1 irradianceSum = (SphericalHarmonics::RGBL1)0;
+    float weightSum = 0.0f;
+    {
+        uint patchIdx = PatchUtil::FindPatchIndexAndUpdateLastAccess(_GridTargetPos, _CellPatchIndices, _GridSize, _CascadeOffsets, _PatchCounterSets, _CascadeCount, _VoxelMinSize, worldPos, worldNormal, _FrameIdx);
+        if (patchIdx != PatchUtil::invalidPatchIndex)
+        {
+            const float weight = 0.01f;
+            irradianceSum = SphericalHarmonics::MulPure(_PatchIrradiances[patchIdx], weight);
+            weightSum = weight;
+        }
+    }
+
+    const float3x3 orthoBasis = OrthoBasisFromVector(worldNormal);
+    for (uint sampleIdx = 0; sampleIdx < _SampleCount; ++sampleIdx)
+    {
+        float2 jitter = float2(rng.GetFloat(0), rng.GetFloat(1)) * 2.0f - 1.0f;
+        const float3 jitteredWorldPos = worldPos + (orthoBasis[0] * jitter.x + orthoBasis[1] * jitter.y) * voxelSize;
+
+        jitter = float2(rng.GetFloat(2), rng.GetFloat(3));
+        const float cosSpread = 0.9f; // This constant was empirically determined.
+        const float3 localJitteredDirection = SampleConeUniform(jitter.x, jitter.y, cosSpread);
+        const float3 jitteredWorldDir = mul(orthoBasis, localJitteredDirection);
+
+        uint patchIdx = PatchUtil::FindPatchIndexAndUpdateLastAccess(_GridTargetPos, _CellPatchIndices, _GridSize, _CascadeOffsets, _PatchCounterSets, _CascadeCount, _VoxelMinSize, jitteredWorldPos, jitteredWorldDir, _FrameIdx);
+        if (patchIdx != PatchUtil::invalidPatchIndex)
+        {
+            SphericalHarmonics::AddMut(irradianceSum, _PatchIrradiances[patchIdx]);
+            weightSum += 1.0f;
+        }
+
+        rng.NextSample();
+    }
+
+    SphericalHarmonics::RGBL1 output = (SphericalHarmonics::RGBL1)0; // Initialization is theoretically not required. Only done to silence shader compiler warning.
+    PatchUtil::MarkInvalid(output);
+    if (weightSum != 0.0f)
+        output = SphericalHarmonics::MulPure(irradianceSum, rcp(weightSum));
+
+    IrradianceCompression::CompressAndStore(output, _ResultL0, _ResultL10, _ResultL11, _ResultL12, lowResPixelPos);
+}

@@ -1,0 +1,102 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5
+
+#pragma kernel Upsample
+
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
+#include "SurfaceCacheCore/VectorLogic.hlsl"
+#include "SurfaceCacheCore/IrradianceCompression.hlsl"
+#include "SurfaceCacheCore/PatchUtil.hlsl"
+#include "SurfaceCacheCore/Common.hlsl"
+
+Texture2D<float> _FullResDepths;
+Texture2D<float3> _FullResFlatNormals;
+Texture2D<float3> _FullResShadedNormals;
+Texture2D<float3> _LowResIrradiancesL0;
+Texture2D<float3> _LowResIrradiancesL10;
+Texture2D<float3> _LowResIrradiancesL11;
+Texture2D<float3> _LowResIrradiancesL12;
+RWTexture2D<float4> _FullResIrradiances;
+
+float _FilterRadius;
+uint _SampleCount;
+float4x4 _ClipToWorldTransform;
+
+[numthreads(16, 16, 1)]
+void Upsample(uint2 targetPixelPos : SV_DispatchThreadID)
+{
+    uint2 fullRes;
+    _FullResDepths.GetDimensions(fullRes.x, fullRes.y);
+
+    if (any(targetPixelPos >= fullRes))
+        return;
+
+    QrngKronecker rng;
+    rng.Init(targetPixelPos, 0);
+
+    const float ndcDepth = LoadNdcDepth(_FullResDepths, targetPixelPos);
+    if (ndcDepth == invalidNdcDepth)
+        return;
+
+    const float2 targetPixelUv = PixelPosToUvPos(targetPixelPos, rcp(float2(fullRes)));
+    const float3 targetWorldPos = ComputeWorldSpacePosition(targetPixelUv, ndcDepth, _ClipToWorldTransform);
+    const float3 targetWorldFlatNormal = _FullResFlatNormals[targetPixelPos];
+    const int2 targetPixelPosLowRes = int2(targetPixelPos / lowResScreenScaling);
+    const float reciprocalSampleCount = rcp(_SampleCount);
+
+    float weightSum = 0.0f;
+    SphericalHarmonics::RGBL1 irradianceSum = (SphericalHarmonics::RGBL1)0;
+
+    for (uint sampleIdx = 0; sampleIdx < _SampleCount; ++sampleIdx)
+    {
+        const float goldenAngle = 2.39996323f;
+        const float kernelExponent = 0.5f;
+        const float angle = rng.GetFloat(0) + goldenAngle * sampleIdx;
+        const float radius = pow(float(sampleIdx + 1) * reciprocalSampleCount, kernelExponent) * _FilterRadius;
+
+        float2 sinCos;
+        sincos(angle, sinCos.x, sinCos.y);
+        const int2 samplePixelPosLowRes = targetPixelPosLowRes + int2(sinCos * radius);
+
+        if(any(VECTOR_LOGIC_OR(samplePixelPosLowRes < 0, int2(fullRes) <= samplePixelPosLowRes)))
+            continue;
+
+        const uint2 samplePixelPosFullRes = samplePixelPosLowRes * lowResScreenScaling;
+        const float sampleDepth = _FullResDepths[samplePixelPosFullRes];
+
+        if (sampleDepth == 0.0f)
+            continue;
+
+        const float2 sampleUvPosFullRes = (float2(samplePixelPosFullRes) + 0.5f) / float2(fullRes);
+        const float3 sampleWorldPos = ComputeWorldSpacePosition(sampleUvPosFullRes, sampleDepth, _ClipToWorldTransform);
+        const float3 sampleWorldFlatNormal = _FullResFlatNormals[samplePixelPosFullRes].xyz;
+
+        const SphericalHarmonics::RGBL1 contribution = IrradianceCompression::LoadAndDecompress(_LowResIrradiancesL0, _LowResIrradiancesL10, _LowResIrradiancesL11, _LowResIrradiancesL12, samplePixelPosLowRes);
+
+        float weight = 1.0f;
+        weight *= max(0.0f, dot(targetWorldFlatNormal, sampleWorldFlatNormal));
+        const float planeDistance = abs(dot(targetWorldFlatNormal, sampleWorldPos - targetWorldPos));
+
+        const float maxWeight = 32.0f;
+        weight *= min(1.0f / planeDistance, maxWeight);
+
+        // This effectively acts as a fallback in cases where a pixel finds no good samples.
+        weight += 0.01f;
+
+        if (all(contribution.l0 == PatchUtil::invalidIrradiance))
+            weight = 0.0f;
+
+        weightSum += weight;
+        SphericalHarmonics::MulAddMut(irradianceSum, weight, contribution);
+    }
+
+    float3 output = 0.0f;
+    if (weightSum != 0.0f)
+    {
+        SphericalHarmonics::RGBL1 irradiance = SphericalHarmonics::MulPure(irradianceSum, rcp(weightSum));
+        output = SphericalHarmonics::Eval(irradiance, UnpackGBufferNormal(_FullResShadedNormals[targetPixelPos]));
+    }
+
+    _FullResIrradiances[targetPixelPos] = float4(output, 1);
+}

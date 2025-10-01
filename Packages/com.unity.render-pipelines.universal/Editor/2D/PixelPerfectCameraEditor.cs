@@ -22,7 +22,6 @@ namespace UnityEditor.Rendering.Universal
             public const string cameraStackingWarning = "Pixel Perfect Camera won't function properly if stacked with another camera.";
             public const string nonRenderer2DWarning = "URP Pixel Perfect Camera requires a camera using a 2D Renderer. Some features, such as Upscale Render Texture, are not supported with other Renderers.";
             public const string nonRenderer2DError = "URP Pixel Perfect Camera requires a camera using a 2D Renderer.";
-            public const string intermediateTextureForbiddenError = "URP Pixel Perfect Camera requires intermediate texture to apply but this is currently prevented on the current URP Asset.";
 
             public GUIStyle centeredLabel;
 
@@ -86,14 +85,6 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        bool IsIntermediateTextureForbidden()
-        {
-            var asset = UniversalRenderPipeline.asset as UniversalRenderPipelineAsset;
-            if (asset == null)
-                return false;
-            return asset.intermediateTextureMode == IntermediateTextureMode.Never;
-        }
-
         void CheckForCameraStacking()
         {
             m_CameraStacking = false;
@@ -148,11 +139,6 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox(Style.nonRenderer2DError, MessageType.Error);
                 return;
             }
-            else if (IsIntermediateTextureForbidden())
-            {
-                EditorGUILayout.HelpBox(Style.intermediateTextureForbiddenError, MessageType.Error);
-                return;
-            } 
             else if (!UsingRenderer2D())
             {
                 EditorGUILayout.HelpBox(Style.nonRenderer2DWarning, MessageType.Warning);

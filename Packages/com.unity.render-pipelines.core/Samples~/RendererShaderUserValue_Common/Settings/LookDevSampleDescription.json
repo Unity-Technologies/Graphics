@@ -1,0 +1,70 @@
+{
+    "introduction": 
+	"""Welcome to the Renderer Shader User Value Samples.
+	The <a href="https://docs.unity3d.com/6000.3/Documentation/ScriptReference/MeshRenderer.SetShaderUserValue.html">Renderer Shader User Value</a> allows you to set a specific value on a MeshRenderer or SkinnedMeshRenderer that can be used in shaders.
+
+	This scene showcases the use of Renderer Shader User Values on a single instance using multiple techniques.
+
+	<i>To ensure the project is set up correctly, check whether the Input System package is installed by clicking the button at the top of this GameObject, then set it in Active Input Handling under Player Settings. In addition, to make the most of this feature, it is recommended to:
+• Enable <b>GPU Resident Drawer</b> by setting it to <b>Instanced Drawing</b> in the SRP Asset Rendering tab.
+• Set <b>Batch Render Group Variants</b> to <b>Keep All</b> in Graphics Settings.
+• Disable <b>Static Batching</b> in Player Settings.
+</i>
+	
+<h1>Functions / Helpers / Shader Graph</h1>	
+
+	The <link="HelpersRSUV.cs">HelpersRSUV</link> C# script provides functions to easily encode and decode data: 
+	• <code>SetBit()</code> enables or disables a bit on a 32-bit uint.  
+	• <code>EncodeData()</code> encodes an int at a specific index using a number of bits on a 32-bit uint.  
+	• <code>DecodeData()</code> decodes a variable bit size int at a specific bit offset of the Shader User Value.  
+
+	The <link="HelpersRSUV.hlsl">HelpersRSUV</link> HLSL file provides functions to easily decode data sent from C# in shaders:  
+	• <code>GetData()</code> returns the full raw uint sent from C#.  
+	• <code>GetBit()</code> retrieves a specific bit as a boolean.  
+	• <code>DecodeBitsToInt()</code> decodes a variable bit size int at a specific bit offset as an int.
+	• <code>DecodeUintToFloat4()</code> decodes the full 32 bits as a Vector4 (for example, a 32-bit color).  
+
+	These HLSL helpers are then used in the <link="FunctionsRSUV.hlsl">FunctionsRSUV</link> HLSL script to create functions that can be used in a <a href="https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/Custom-Function-Node.html">Custom Function node</a> directly in Shader Graphs.
+
+<h1>Health</h1>
+
+<link="HealthRSUV.cs">Open Healthbar C# Component</link>  
+<link="SG_HealthBar_RSUV.shadergraph">Open Healthbar Shader Graph</link>  
+The healthbar is a simple quad with its vertex position manipulated in the Shader Graph to always face the camera.  
+From the C# component, three different values are encoded:  
+• Health (3 bits)  
+• Show healthbar (1 bit)  
+• Healthbar opacity (3 bits)  
+
+This requires a total of 7 bits, leaving 25 free bits for this Renderer.
+
+<h1>Soldier</h1>
+
+<link="BodyRSUV.cs">Open Soldier BodyRSUV C# Component</link>  
+The Soldier is composed of two materials:  
+• <link="FacialHair.mat">Facial Hair</link> material, using the <link="SG_FacialHair_RSUV.shadergraph">Facial Hair</link> Shader Graph, which manages hairstyle, eyebrow style, beard style, and their associated colors.  
+• <link="Soldier.mat">Soldier</link> material, using the <link="SG_Soldier.shadergraph">Soldier</link> Shader Graph, which renders the rest of the mesh and head features (helmet and crown).  
+
+Since the data is passed to the SkinnedMeshRenderer, it is shared between both materials.  
+Most values are encoded into 3 bits, since the enums have no more than 8 values.  
+These values are used in two different ways in the Shader Graphs.  
+
+	<h1>1. Color Palettes</h1>
+
+	For skin, hair, and clothing colors, the enum value is encoded as an int. This int is then transformed into a UV offset in the Shader Graph, used to retrieve a specific color from a palette (<link="HairColorPalette.png">Hair Color Palette</link>, <link="ClothColorPalette.png">Cloth Color Palette</link>, <link="SkinColorPalette.png">Skin Color Palette</link>).  
+	The sampled color is then combined with masks contained in the Soldier’s input textures to apply the color only to specific parts of the final UV.  
+
+	<h1>2. Vertex Position</h1>
+
+	The head features are painted using vertex colors:  
+	<color="#FF0000">Red</color> for hair, <color="#00FF00">Green</color> for eyebrows, <color="#0000FF">Blue</color> for beard.  
+	Each variation is painted with a 10% increment of the color.  
+	Example: Bun is painted 100% red, ponytail 90% red, Tintin 80% red, and so on.  
+
+	The enum value is encoded as an int. This int is then transformed into a value between 0 and 1, corresponding to an amount of vertex color. The vertices not matching this value are discarded by setting their Position to (0,0,0) in the Shader Graph. The resulting triangle is discarded by the rasterizer, skipping the fragment stage.  
+
+	For the belly, the <color="#808080">Alpha</color> channel of the vertex color defines which vertices are affected.  
+	Each of these vertices is then inflated from an arbitrary center point, depending on the belly value passed to the Shader Graph. 
+""",
+    "samples": []	
+}

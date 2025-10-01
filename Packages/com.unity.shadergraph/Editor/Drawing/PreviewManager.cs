@@ -763,7 +763,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_SceneResources.camera.orthographic = true;
 
                 foreach (var renderData in renderList2D)
-                    RenderPreview(renderData, m_SceneResources.quad, Matrix4x4.identity, perMaterialPreviewProperties);
+                    RenderPreview(renderData, prefersUITKPreview ? m_SceneResources.uitk_quad : m_SceneResources.quad, Matrix4x4.identity, perMaterialPreviewProperties);
 
                 // Render 3D previews
                 m_SceneResources.camera.transform.position = -Vector3.forward * 5;

@@ -71,7 +71,7 @@ void DepthNormalOnlyFragment(
     VaryingsDepthNormal IN
     , out half4 outNormalWS : SV_Target0
 #ifdef _WRITE_RENDERING_LAYERS
-    , out uint4 outRenderingLayers : SV_Target1
+    , out uint outRenderingLayers : SV_Target1
 #endif
     )
 {

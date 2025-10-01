@@ -136,6 +136,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                     3, 0, 2
                 };
 
+                quadMeshForUITK.SetUVs(0, new List<Vector4>
+                {
+                    new Vector4(0.0f, 0.0f, 0.0f, 1.0f),
+                    new Vector4(1.0f, 0.0f, 0.0f, 1.0f),
+                    new Vector4(0.0f, 1.0f, 0.0f, 1.0f),
+                    new Vector4(1.0f, 1.0f, 0.0f, 1.0f)
+                });
+
                 quadMeshForUITK.SetUVs(3, new List<Vector4>
                 {
                     new Vector4(0, 0, 0.0f, 0.0f),

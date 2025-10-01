@@ -624,7 +624,7 @@ namespace UnityEditor.VFX.UI
                     if (m_Field is IVFXNotifyValueChanged<U> vfxNotifyValueChanged)
                         vfxNotifyValueChanged.SetValueWithoutNotify(value, force);
                     else
-                        m_Field.SetValueWithoutNotify(value);
+                        m_Field.value = value;
                 }
                 catch (System.Exception ex)
                 {

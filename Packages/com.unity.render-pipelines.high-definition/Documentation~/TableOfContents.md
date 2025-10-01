@@ -434,6 +434,7 @@
       * [Canvas Master Stack reference](canvas-master-stack-reference.md)
       * [Fog Volume Master Stack reference](fog-volume-master-stack-reference.md)
       * [Water Master Stack reference](master-stack-water.md)
+      * [Terrain Master Stack reference](terrain-master-stack-reference.md)
   * [Environmental effects reference](reference-environmental-effects.md)
     * [Sky reference](reference-sky.md)
       * [Gradient Sky Volume Override reference](gradient-sky-volume-override-reference.md)

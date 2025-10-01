@@ -8,7 +8,7 @@
     <ui:VisualElement name="converterEditorMainVE" style="max-width: 100%; min-width: 620px; flex-grow: 1; padding-left: 19px; padding-right: 19px; padding-top: 15px; width: auto; padding-bottom: 20px;">
         <ui:VisualElement name="topInformationVE" style="flex-grow: 0;">
             <ui:VisualElement style="flex-direction: row; padding-left: 2px;">
-                <ui:DropdownField index="-1" name="conversionsDropDown" style="height: 27px; width: 208px; display: flex; margin-left: 0;" />
+                <ui:DropdownField index="-1" name="conversionsDropDown" style="flex-grow: 1; display: flex; margin-left: 0;" />
                 <ui:VisualElement style="flex-grow: 1;" />
                 <ui:Button name="containerHelpButton" class="iconButton unity-icon-button" style="width: 16px; height: 16px; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0; margin-left: 0; margin-right: 0; margin-top: 0;">
                     <ui:Image name="containerHelpImage" class="unity-icon-button" style="background-image: none; flex-grow: 1;" />

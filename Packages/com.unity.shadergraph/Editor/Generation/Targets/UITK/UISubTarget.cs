@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             "SURFACEDESCRIPTION_COVERAGE", new FloatControl(1), ShaderStage.Fragment, true);
     }
 
-    internal abstract class UISubTarget<T> : SubTarget<T>, IUISubTarget, IRequiresData<UIData> where T : Target
+    internal abstract class UISubTarget<T> : SubTarget<T>, IUISubTarget, INodeValidationExtension, IRequiresData<UIData> where T : Target
     {
         const string kAssetGuid = "a5150c3db0b6942f6a0b1f7a9ce97d5c"; // UISubTarget.cs
 
@@ -193,12 +193,11 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
                 //Conditional State
                 renderStates = UITKRenderStates.GenerateRenderStateDeclaration(),
                 pragmas  = UITKPragmas.Default,
+                keywords = UITKKeywords.Default,
                 includes = AdditionalIncludesOnly(),
 
                 //definitions
                 defines  = GetPassDefines(),
-                keywords = new KeywordCollection(),
-
             };
             return DefaultUITKPass;
         }
@@ -212,6 +211,107 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
         }
 
         System.Collections.Generic.HashSet<Type> m_UnsupportedNodes;
+
+        public string GetValidatorKey()
+        {
+            return "UISubTarget";
+        }
+
+        public INodeValidationExtension.Status GetValidationStatus(AbstractMaterialNode node, out string msg)
+        {
+            // Make sure node is in our graph first
+            if (node.owner == null)
+            {
+                msg = null;
+                return INodeValidationExtension.Status.None;
+            }
+
+            foreach (var item in node.owner.activeTargets)
+            {
+                if (item.prefersUITKPreview)
+                {
+                    if (ValidateUV(node, out msg))
+                    {
+                        return INodeValidationExtension.Status.Warning;
+                    }
+
+                    UVNode uvNode = node as UVNode;
+                    if (uvNode != null)
+                    {
+                        if (uvNode.uvChannel != UnityEditor.ShaderGraph.Internal.UVChannel.UV0)
+                        {
+                            msg = "UI Material does not support UV1-7. Consider using 'UV0'.";
+                            return INodeValidationExtension.Status.Warning;
+                        }
+                    }
+                }
+            }
+
+            msg = null;
+            return INodeValidationExtension.Status.None;
+        }
+
+        private bool ValidateUV(AbstractMaterialNode node, out string warningMessage)
+        {
+            List<UVMaterialSlot> uvSlots = new();
+            node.GetInputSlots<UVMaterialSlot>(uvSlots);
+
+            foreach (var uvSlot in uvSlots)
+            {
+                if (uvSlot.channel != UnityEditor.ShaderGraph.Internal.UVChannel.UV0)
+                {
+                    warningMessage = "UI Material does not support UV1-7. Consider using 'UV0'.";
+                    return true;
+                }
+            }
+
+            warningMessage = null;
+            return false;
+        }
+
+        public override bool ValidateNodeCompatibility(AbstractMaterialNode node, out string warningMessage, out Rendering.ShaderCompilerMessageSeverity severity)
+        {
+            List<UVMaterialSlot> uvSlots = new();
+            node.GetInputSlots<UVMaterialSlot>(uvSlots);
+            severity = ShaderCompilerMessageSeverity.Warning;
+
+            if (ValidateUV(node, out warningMessage))
+                return true;
+
+            foreach (var uvSlot in uvSlots)
+            {
+                if (uvSlot.channel != UnityEditor.ShaderGraph.Internal.UVChannel.UV0)
+                {
+                    warningMessage = "UI Material does not support UV1-7. Consider using 'UV0'.";
+                    return true;
+                }
+            }
+
+            SubGraphNode subGraphNode = node as SubGraphNode;
+            if (subGraphNode != null)
+            {
+                SubGraphAsset subGraphAsset = subGraphNode.asset;
+                if (subGraphAsset == null)
+                {
+                    warningMessage = null;
+                    return false;
+                }
+                else
+                {
+                    foreach (var item in subGraphAsset.requirements.requiresMeshUVs)
+                    {
+                        if (item != UnityEditor.ShaderGraph.Internal.UVChannel.UV0)
+                        {
+                            warningMessage = "UI Material does not support UV1-7. Consider using 'UV0' in the subgraph.";
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            warningMessage = null;
+            return false;
+        }
 
         public override bool IsNodeAllowedBySubTarget(Type nodeType)
         {
@@ -308,6 +408,67 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             StructFields.Varyings.texCoord4,
         };
     }
+#endregion
+
+#region Keywords
+
+    static class UITKKeywords
+    {
+        public static KeywordDescriptor ForceGamma = new()
+        {
+            displayName = "Force Gamma",
+            referenceName = "",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Local,
+            entries = new KeywordEntry[]
+            {
+                new(){ displayName = "Disabled", referenceName = "" },
+                new(){ displayName = "Enabled", referenceName = "UIE_FORCE_GAMMA" },
+            }
+        };
+
+        public static KeywordDescriptor ForceTextureSlotCount = new()
+        {
+            displayName = "Force Texture Slot Count",
+            referenceName = "",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Local,
+            entries = new KeywordEntry[]
+            {
+                new(){ displayName = "8 Dynamic Texture Slots", referenceName = "" },
+                new(){ displayName = "4 Dynamic Texture Slots", referenceName = "UIE_TEXTURE_SLOT_COUNT_4" },
+                new(){ displayName = "2 Dynamic Texture Slots", referenceName = "UIE_TEXTURE_SLOT_COUNT_2" },
+                new(){ displayName = "No Dynamic Texture Slot", referenceName = "UIE_TEXTURE_SLOT_COUNT_1" },
+            }
+        };
+
+        public static KeywordDescriptor ForceRenderType = new()
+        {
+            displayName = "Force Render Type",
+            referenceName = "",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Local,
+            entries = new KeywordEntry[]
+            {
+                new(){ displayName = "Any Render Type", referenceName = "" },
+                new(){ displayName = "Force Solid", referenceName = "UIE_RENDER_TYPE_SOLID" },
+                new(){ displayName = "Force Texture", referenceName = "UIE_RENDER_TYPE_TEXTURE" },
+                new(){ displayName = "Force Text", referenceName = "UIE_RENDER_TYPE_TEXT" },
+                new(){ displayName = "Force Gradient", referenceName = "UIE_RENDER_TYPE_GRADIENT" },
+            }
+        };
+
+        public static KeywordCollection Default = new()
+        {
+            ForceGamma,
+            ForceTextureSlotCount,
+            ForceRenderType,
+        };
+    }
+
 #endregion
 
 #region RenderStates

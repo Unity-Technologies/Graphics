@@ -1,0 +1,227 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5
+
+#pragma kernel Allocate
+
+#define PATCH_UTIL_USE_RW_IRRADIANCE_BUFFER
+#define PATCH_UTIL_USE_RW_CELL_INDEX_BUFFER
+#define PATCH_UTIL_USE_RW_CELL_ALLOCATION_MARK_BUFFER
+
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Hashes.hlsl"
+#include "SurfaceCacheCore/VectorLogic.hlsl"
+#include "SurfaceCacheCore/IrradianceCompression.hlsl"
+#include "SurfaceCacheCore/PatchUtil.hlsl"
+
+RWStructuredBuffer<uint> _RingConfigBuffer;
+RWStructuredBuffer<PatchUtil::PatchGeometry> _PatchGeometries;
+RWStructuredBuffer<uint> _PatchCellIndices;
+RWStructuredBuffer<PatchUtil::PatchCounterSet> _PatchCounterSets;
+RWStructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances0;
+RWStructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances1;
+RWStructuredBuffer<uint> _CellAllocationMarks;
+RWStructuredBuffer<uint> _CellPatchIndices;
+
+StructuredBuffer<int3> _CascadeOffsets;
+
+Texture2D<float> _CurrentFullResScreenDepths;
+Texture2D<float3> _CurrentFullResScreenFlatNormals;
+Texture2D<float2> _CurrentFullResScreenMotionVectors;
+Texture2D<float3> _PreviousLowResScreenIrradiancesL0;
+Texture2D<float3> _PreviousLowResScreenIrradiancesL10;
+Texture2D<float3> _PreviousLowResScreenIrradiancesL11;
+Texture2D<float3> _PreviousLowResScreenIrradiancesL12;
+Texture2D<float> _PreviousLowResScreenNdcDepths;
+
+uint _FrameIdx;
+uint _GridSize;
+float _VoxelMinSize;
+uint _CascadeCount;
+uint _RingConfigOffset;
+float4x4 _CurrentClipToWorldTransform;
+float4x4 _PreviousClipToWorldTransform;
+float3 _GridTargetPos;
+uint2 _LowResScreenSize;
+uint2 _FullResPixelOffset;
+int _UseMotionVectorSeeding;
+
+uint CountLeadingZeroes(uint x)
+{
+    // Note that this assumes firstbithigh(0) = -1.
+    return 31 - firstbithigh(x);
+}
+
+// https://andrew-helmer.github.io/permute/
+// https://graphics.pixar.com/library/MultiJitteredSampling/
+uint RandomPermute(uint idx, uint len, uint seed)
+{
+    const uint mask = 0xFFFFFFFF >> CountLeadingZeroes(len - 1);
+
+    // This max guard is required and it is not clear why.
+    // https://jira.unity3d.com/browse/GFXLIGHT-1616
+    const uint iterMax = 16;
+
+    uint iterCount = 0;
+    do {
+        idx ^= seed;
+        idx *= 0xe170893d;
+        idx ^= seed >> 16;
+        idx ^= (idx & mask) >> 4;
+        idx ^= seed >> 8;
+        idx *= 0x0929eb3f;
+        idx ^= seed >> 23;
+        idx ^= (idx & mask) >> 1;
+        idx *= 1 | seed >> 27;
+        idx *= 0x6935fa69;
+        idx ^= (idx & mask) >> 11;
+        idx *= 0x74dcb303;
+        idx ^= (idx & mask) >> 2;
+        idx *= 0x9e501cc3;
+        idx ^= (idx & mask) >> 2;
+        idx *= 0xc860a3df;
+        idx &= mask;
+        idx ^= idx >> 5;
+
+        iterCount++;
+    } while (idx >= len && iterCount < iterMax);
+
+    return idx;
+}
+
+#define GROUP_SIZE 8
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void Allocate(uint2 lowResPixelPos : SV_DispatchThreadID)
+{
+    if (any(lowResPixelPos >= _LowResScreenSize))
+        return;
+
+    const uint lowResThreadPosIndex = lowResPixelPos.y * _LowResScreenSize.x + lowResPixelPos.x;
+    const uint shuffleHash = LowBiasHash32(_FrameIdx, 1); // We pass a seed of 1 to avoid the degenerate zero case.
+    const uint shuffledLowResThreadPosIndex = RandomPermute(lowResThreadPosIndex, _LowResScreenSize.x * _LowResScreenSize.y, shuffleHash);
+    lowResPixelPos = uint2(shuffledLowResThreadPosIndex % _LowResScreenSize.x, shuffledLowResThreadPosIndex / _LowResScreenSize.x);
+
+    const uint2 fullResPixelPos = lowResPixelPos * lowResScreenScaling + _FullResPixelOffset;
+    uint2 fullResScreenSize;
+    _CurrentFullResScreenDepths.GetDimensions(fullResScreenSize.x, fullResScreenSize.y);
+
+    if (any(fullResPixelPos >= fullResScreenSize))
+        return;
+
+    const float ndcDepth = LoadNdcDepth(_CurrentFullResScreenDepths, fullResPixelPos);
+    if (ndcDepth == invalidNdcDepth)
+        return;
+
+    const float2 rcpFullResScreenSize = rcp(float2(fullResScreenSize));
+
+    const float2 sourceUvPos = PixelPosToUvPos(fullResPixelPos, rcpFullResScreenSize);
+    const float3 sourceWorldPosition = ComputeWorldSpacePosition(sourceUvPos, ndcDepth, _CurrentClipToWorldTransform);
+    const float3 sourceWorldFlatNormal = _CurrentFullResScreenFlatNormals[fullResPixelPos];
+
+    PatchUtil::VolumePositionResolution patchPosResolution = PatchUtil::ResolveVolumePosition(sourceWorldPosition, _GridTargetPos, _GridSize, _CascadeOffsets, _CascadeCount, _VoxelMinSize);
+
+    if (patchPosResolution.isValid())
+    {
+        const uint directionIdx = PatchUtil::GetDirectionIndex(sourceWorldFlatNormal, PatchUtil::gridCellAngularResolution);
+        const uint3 positionStorageSpace = PatchUtil::ConvertGridSpaceToStorageSpace(patchPosResolution.positionGridSpace, _GridSize, _CascadeOffsets[patchPosResolution.cascadeIdx]);
+        const uint cellIdx = PatchUtil::GetCellIndex(patchPosResolution.cascadeIdx, positionStorageSpace, directionIdx, _GridSize, PatchUtil::gridCellAngularResolution);
+
+        PatchUtil::PatchIndexResolutionResult resolutionResult = PatchUtil::ResolvePatchIndex(
+            _RingConfigBuffer,
+            _RingConfigOffset,
+            _CellPatchIndices,
+            _CellAllocationMarks,
+            cellIdx);
+
+        if (resolutionResult.code != PatchUtil::patchIndexResolutionCodeAllocationFailure)
+        {
+            PatchUtil::PatchGeometry geo;
+            geo.position = sourceWorldPosition;
+            geo.normal = sourceWorldFlatNormal;
+            _PatchGeometries[resolutionResult.patchIdx] = geo;
+        }
+
+        if (resolutionResult.code == PatchUtil::patchIndexResolutionCodeAllocationSuccess)
+        {
+            _PatchCellIndices[resolutionResult.patchIdx] = cellIdx;
+
+            PatchUtil::PatchCounterSet counterSet;
+            PatchUtil::Reset(counterSet);
+            PatchUtil::SetLastAccessFrame(counterSet, _FrameIdx);
+
+            SphericalHarmonics::RGBL1 irradianceSeed = (SphericalHarmonics::RGBL1)0;
+            if (_FrameIdx != 0)
+            {
+                if (_UseMotionVectorSeeding)
+                {
+                    const float2 threadUvPos = PixelPosToUvPos(fullResPixelPos, rcpFullResScreenSize);
+                    float2 reprojectedThreadUvPos = threadUvPos - _CurrentFullResScreenMotionVectors[fullResPixelPos];
+                    if (all(VECTOR_LOGIC_AND(0.0f < reprojectedThreadUvPos, reprojectedThreadUvPos < 1.0f)))
+                    {
+                        const uint2 reprojectedThreadPixelPos = reprojectedThreadUvPos * fullResScreenSize;
+                        const uint2 seedLowResPixelPos = reprojectedThreadPixelPos / lowResScreenScaling;
+                        const float seedNdcDepth = _PreviousLowResScreenNdcDepths[seedLowResPixelPos];
+
+                        if (seedNdcDepth != invalidNdcDepth)
+                        {
+                            const float2 seedFullResUvPos = PixelPosToUvPos(seedLowResPixelPos * lowResScreenScaling, rcpFullResScreenSize);
+                            const float3 seedWorldPosition = ComputeWorldSpacePosition(seedFullResUvPos, seedNdcDepth, _PreviousClipToWorldTransform);
+                            const float voxelSize = PatchUtil::GetVoxelSize(_VoxelMinSize, patchPosResolution.cascadeIdx);
+                            const float patchPlaneToSeedPositionDistance = dot(sourceWorldFlatNormal, seedWorldPosition - sourceWorldPosition);
+                            if (patchPlaneToSeedPositionDistance < voxelSize)
+                            {
+                                irradianceSeed = IrradianceCompression::LoadAndDecompress(
+                                    _PreviousLowResScreenIrradiancesL0,
+                                    _PreviousLowResScreenIrradiancesL10,
+                                    _PreviousLowResScreenIrradiancesL11,
+                                    _PreviousLowResScreenIrradiancesL12,
+                                    seedLowResPixelPos);
+
+                                if (PatchUtil::IsValid(irradianceSeed))
+                                    PatchUtil::SetUpdateCount(counterSet, PatchUtil::updateMax / 2);
+                                #ifdef SEED_DEBUGGING
+                                else
+                                {
+                                    irradianceSeed = (SphericalHarmonics::RGBL1)0;
+                                    PatchUtil::SetUpdateCount(counterSet, PatchUtil::updateMax);
+                                    irradianceSeed.l0 = float3(10, 0, 0);
+                                }
+                                #endif
+                            }
+                            #ifdef SEED_DEBUGGING
+                            else
+                            {
+                                PatchUtil::SetUpdateCount(counterSet, PatchUtil::updateMax);
+                                irradianceSeed.l0 = float3(0, 0, 10);
+                            }
+                            #endif
+                        }
+                    }
+                }
+                else
+                {
+                    irradianceSeed = IrradianceCompression::LoadAndDecompress(
+                        _PreviousLowResScreenIrradiancesL0,
+                        _PreviousLowResScreenIrradiancesL10,
+                        _PreviousLowResScreenIrradiancesL11,
+                        _PreviousLowResScreenIrradiancesL12,
+                        lowResPixelPos);
+
+                    if (PatchUtil::IsValid(irradianceSeed))
+                        PatchUtil::SetUpdateCount(counterSet, PatchUtil::updateMax / 2);
+                }
+                #ifdef SEED_DEBUGGING
+                // For debugging: Add color to unseeded patches.
+                if (PatchUtil::GetUpdateCount(counterSet) == 0)
+                {
+                    PatchUtil::SetUpdateCount(counterSet, PatchUtil::updateMax);
+                    irradianceSeed.l0 = float3(0, 10, 0);
+                }
+                #endif
+            }
+
+            _PatchIrradiances0[resolutionResult.patchIdx] = irradianceSeed;
+            _PatchIrradiances1[resolutionResult.patchIdx] = irradianceSeed;
+            _PatchCounterSets[resolutionResult.patchIdx] = counterSet;
+        }
+    }
+}

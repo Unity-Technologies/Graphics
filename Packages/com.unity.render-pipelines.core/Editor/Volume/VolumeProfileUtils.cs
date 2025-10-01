@@ -325,7 +325,7 @@ namespace UnityEditor.Rendering
                 if (VolumeComponentCopyPaste.CanPaste(volumeProfile.components))
                     menu.AddItem(Styles.pasteSettings, false, () =>
                     {
-                        VolumeComponentCopyPaste.PasteSettings(volumeProfile.components);
+                        VolumeComponentCopyPaste.PasteSettings(volumeProfile.components, volumeProfile);
                         VolumeManager.instance.OnVolumeProfileChanged(volumeProfile);
                     });
                 else
@@ -411,7 +411,7 @@ namespace UnityEditor.Rendering
                 if (VolumeComponentCopyPaste.CanPaste(volumeProfile.components))
                     menu.AddItem(Styles.pasteSettings, false, () =>
                     {
-                        VolumeComponentCopyPaste.PasteSettings(volumeProfile.components);
+                        VolumeComponentCopyPaste.PasteSettings(volumeProfile.components, volumeProfile);
                         VolumeManager.instance.OnVolumeProfileChanged(volumeProfile);
                     });
                 else

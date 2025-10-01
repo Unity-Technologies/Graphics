@@ -1,0 +1,41 @@
+fileFormatVersion: 2
+guid: bc3def193b270c649b041063a70a1a1f
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  exposeTemplateAsShader: 0
+  template:
+    name: Terrain Standard 4 Layers URP
+    category: Terrain
+    description: 'A Shader Graph terrain shader that closely mimics the feature set
+      of the code version of the terrain shader. With this template, you can extend
+      or simplify the functionality of the terrain shader to suit the needs of your
+      project including adding or removing layers.
+
+
+      In URP, if the terrain
+      has more than 4 layers, the shader is rendered again in a second pass for each
+      additional set of 4 layers. So this shader with 4 layers can also be used for
+      a terrain with 8 or more layers.
+
+
+      For more ideas and examples of how
+      to work with terrain shaders, import the Terrain Shaders sample from the Shader
+      Graph package in the Package Manager.
+
+
+
+      <i>Supported Pipeline(s): URP
+
+      Active
+      Target: Terrain Lit
+
+      VFX Graph Support: disabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 6e413e07ed366984daa954acc11e85e9, type: 3}

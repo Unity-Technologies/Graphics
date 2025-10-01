@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering
         {
             /// <summary>Composition will occur before the color pyramid is generated.</summary>
             BeforeColorPyramid = 0,
-            /// <summary>Composition will occur before the color pyramid is generated but after clouds are composited.</summary>
+            /// <summary>Composition will occur before the color pyramid is generated but after clouds and water are composited.</summary>
             BeforeColorPyramidAfterClouds = 3,
             /// <summary>Composition will occur after temporal anti-aliasing.</summary>
             AfterTemporalAntialiasing = 1,

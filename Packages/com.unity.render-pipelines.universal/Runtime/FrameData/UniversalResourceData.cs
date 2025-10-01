@@ -37,6 +37,19 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Switch the active color and depth texture to the backbuffer. Once switched, isActiveTargetBackBuffer will return true.
+        /// The activeColorTexture and activeDepthTexture will then return the backbuffer. This should be called after a render pass
+        /// that blits/copies the cameraColor to the backbuffer is recorded in the render graph. The following passes will then 
+        /// automatically use the backbuffer as active color and depth. URP will not add the final blit pass if this method is called before
+        /// that render pass.
+        /// </summary>
+        public void SwitchActiveTexturesToBackbuffer()
+        {
+            activeColorID = UniversalResourceData.ActiveID.BackBuffer;
+            activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
+        }
+
+        /// <summary>
         /// The active depth target ID.
         /// </summary>
         internal ActiveID activeDepthID { get; set; }
@@ -338,7 +351,6 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Reset()
         {
-            base.Reset();
             _backBufferColor = TextureHandle.nullHandle;
             _backBufferDepth = TextureHandle.nullHandle;
             _cameraColor = TextureHandle.nullHandle;

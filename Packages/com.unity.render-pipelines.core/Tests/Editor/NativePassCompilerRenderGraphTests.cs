@@ -557,7 +557,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
-        public void NonFragmentUseBreaksPass()
+        public void NonFragmentSamplingBreaksPass()
         {
             var g = AllocateRenderGraph();
             var renderTargets = ImportAndCreateRenderTargets(g);
@@ -582,6 +582,64 @@ namespace UnityEngine.Rendering.Tests
 
             Assert.AreEqual(2, passes.Count);
             Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.NextPassReadsTexture, passes[0].breakAudit.reason);
+        }
+
+        [Test]
+        public void FragmentAfterSamplingWithInputAttachmentBreaksPass()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateRenderTargets(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.UseTexture(buffers.extraTextures[0], AccessFlags.Read);
+                builder.SetRenderAttachment(buffers.extraTextures[1], 0, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.SetInputAttachment(buffers.extraTextures[1], 1, AccessFlags.Read);
+                builder.SetRenderAttachment(buffers.extraTextures[0], 2, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(2, passes.Count);
+            Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.NextPassTargetsTexture, passes[0].breakAudit.reason);
+        }
+
+        [Test]
+        public void FragmentAfterSamplingBreaksPass()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateRenderTargets(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.UseTexture(buffers.extraTextures[0], AccessFlags.Read);
+                builder.SetRenderAttachment(buffers.extraTextures[1], 0, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachment(buffers.extraTextures[2], 1, AccessFlags.Read);
+                builder.SetRenderAttachment(buffers.extraTextures[0], 2, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(2, passes.Count);
+            Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.NextPassTargetsTexture, passes[0].breakAudit.reason);
         }
 
         [Test]
@@ -796,7 +854,7 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(2, firstUsed.Count);
             Assert.AreEqual(renderTargets.extraTextures[0].handle.index, firstUsed[1].index);
             ref var info = ref result.contextData.UnversionedResourceData(firstUsed[1]);
-            Assert.AreEqual(true, info.memoryLess);
+            Assert.AreEqual(SystemInfo.supportsMemorylessTextures, info.memoryLess);
 
             // Pass 1 : last used = {depthBuffer, extraTextures[0], backBuffer}
             List<ResourceHandle> lastUsed = new List<ResourceHandle>();
@@ -1376,7 +1434,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.AllowPassCulling(true);
             }
 
-            // Bumping version of extraBuffer within RG to 3 as we write to it in third pass
+            // Bumping version of exteraTexture within RG to 3 as we write to it in third pass
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0);
@@ -1384,7 +1442,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.AllowPassCulling(true);
             }
 
-            // Bumping version of extraBuffer within RG to 4 as we write to it in forth pass
+            // Bumping version of exteraTexture within RG to 4 as we write to it in forth pass
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass3", out var passData))
             {
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0);

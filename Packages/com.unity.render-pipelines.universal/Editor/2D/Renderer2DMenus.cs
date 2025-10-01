@@ -101,7 +101,8 @@ namespace UnityEditor.Rendering.Universal
 
         static Light2D CreateLight(MenuCommand menuCommand, Light2D.LightType type, Vector3[] shapePath = null)
         {
-            GameObject go = ObjectFactory.CreateGameObject("Light 2D", typeof(Light2D));
+            var lightName = type != Light2D.LightType.Point ? type.ToString() : "Spot";
+            GameObject go = ObjectFactory.CreateGameObject(lightName + " Light 2D", typeof(Light2D));
             Light2D light2D = go.GetComponent<Light2D>();
             light2D.batchSlotIndex = LightBatch.batchSlotIndex;
             light2D.lightType = type;

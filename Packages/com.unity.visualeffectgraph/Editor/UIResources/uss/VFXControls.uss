@@ -120,6 +120,10 @@ VFXStringFieldPushButton > Label {
     -unity-slice-right: 12;
 }
 
+.propertyrm > Label.bitfield-label {
+    margin-left: 0;
+}
+
 VFX32BitField {
     margin-left: 2px;
 }

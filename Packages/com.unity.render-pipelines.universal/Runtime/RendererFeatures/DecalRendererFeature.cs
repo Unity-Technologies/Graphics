@@ -223,9 +223,6 @@ namespace UnityEngine.Rendering.Universal
         internal bool intermediateRendering => m_Technique == DecalTechnique.DBuffer;
         internal bool requiresDecalLayers => m_Settings.decalLayers;
         internal static bool isGLDevice => SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore;
-        
-        /// <inheritdoc/>
-        protected override IntermediateTextureUsage useIntermediateTextures => IntermediateTextureUsage.Required;
 
         /// <inheritdoc />
         public override void Create()

@@ -373,7 +373,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (var builder = renderGraph.AddUnsafePass<SetGlobalSkyDataPassData>("SetGlobalSkyData", out var passData))
                 {
-                    builder.AllowPassCulling(false);
+                    builder.AllowGlobalStateModification(true);
 
                     builtinParameters.CopyTo(passData.builtinParameters);
                     passData.builtinParameters.skySettings = skyContext.skySettings;
@@ -780,8 +780,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddUnsafePass<RenderSkyToCubemapPassData>("RenderSkyToCubemap", out var passData, ProfilingSampler.Get(profileId)))
             {
-                builder.AllowPassCulling(false);
-
                 UpdateBuiltinParameters(ref passData.builtinParameters, skyContext, hdCamera, m_CurrentSunLight, m_CurrentDebugDisplaySettings);
 
                 ref var cachedContext = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];

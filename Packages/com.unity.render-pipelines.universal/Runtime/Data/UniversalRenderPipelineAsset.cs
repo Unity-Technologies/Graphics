@@ -484,7 +484,6 @@ namespace UnityEngine.Rendering.Universal
         // Quality settings
         [SerializeField] bool m_SupportsHDR = true;
         [SerializeField] HDRColorBufferPrecision m_HDRColorBufferPrecision = HDRColorBufferPrecision._32Bits;
-        [SerializeField] IntermediateTextureMode m_IntermediateTextureMode = IntermediateTextureMode.Always;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
         [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
@@ -581,9 +580,6 @@ namespace UnityEngine.Rendering.Universal
         // Advanced settings
         [SerializeField] bool m_UseSRPBatcher = true;
         [SerializeField] bool m_SupportsDynamicBatching = false;
-#if ENABLE_RENDERTEXTURE_UV_ORIGIN_STRATEGY
-        [SerializeField] RenderTextureUVOriginStrategy m_RenderTextureUVOriginStrategy;
-#endif
 #if UNITY_EDITOR
         // multi_compile _ LIGHTMAP_SHADOW_MIXING
         [ShaderKeywordFilter.RemoveIf(false, keywordNames: ShaderKeywordStrings.LightmapShadowMixing)]
@@ -609,7 +605,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Post-processing settings
         [SerializeField] ColorGradingMode m_ColorGradingMode = ColorGradingMode.LowDynamicRange;
-        [SerializeField] int m_ColorGradingLutSize = k_DefaultColorGradingLutSize;
+        [SerializeField] int m_ColorGradingLutSize = 32;
 #if UNITY_EDITOR // multi_compile_fragment _ _ENABLE_ALPHA_OUTPUT
         [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT)]
 #endif
@@ -631,7 +627,7 @@ namespace UnityEngine.Rendering.Universal
         GPUResidentDrawerSettings IGPUResidentRenderPipeline.gpuResidentDrawerSettings => new()
         {
             mode = m_GPUResidentDrawerMode,
-            enableOcclusionCulling = gpuResidentDrawerEnableOcclusionCullingInCameras,
+            enableOcclusionCulling = m_GPUResidentDrawerEnableOcclusionCullingInCameras,
             supportDitheringCrossFade = m_EnableLODCrossFade,
             allowInEditMode = true,
             smallMeshScreenPercentage = m_SmallMeshScreenPercentage,
@@ -669,8 +665,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal const int k_ShadowCascadeMinCount = 1;
         internal const int k_ShadowCascadeMaxCount = 4;
-
-        const int k_DefaultColorGradingLutSize = 32;
 
         /// <summary>
         /// The default low tier resolution for additional lights shadow texture.
@@ -1052,30 +1046,20 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// When true, the pipeline creates a depth texture that can be read in shaders. The depth texture can be accessed as _CameraDepthTexture. This setting can be overridden per camera.
-        /// If intermediateTextureMode is set to Never, this cannot be changed and the value is always false.
         /// </summary>
         public bool supportsCameraDepthTexture
         {
-            get => intermediateTextureMode != IntermediateTextureMode.Never && m_RequireDepthTexture;
-            set
-            {
-                if (IsAllowedByIntermediateTextureMode())
-                    m_RequireDepthTexture = value;
-            }
+            get => m_RequireDepthTexture;
+            set => m_RequireDepthTexture = value;
         }
 
         /// <summary>
         /// When true, the pipeline creates a texture that contains a copy of the color buffer after rendering opaque objects. This texture can be accessed in shaders as _CameraOpaqueTexture. This setting can be overridden per camera.
-        /// If intermediateTextureMode is set to Never, this cannot be changed and the value is always false.
         /// </summary>
         public bool supportsCameraOpaqueTexture
         {
-            get => intermediateTextureMode != IntermediateTextureMode.Never && m_RequireOpaqueTexture;
-            set
-            {
-                if (IsAllowedByIntermediateTextureMode())
-                    m_RequireOpaqueTexture = value;
-            }
+            get => m_RequireOpaqueTexture;
+            set => m_RequireOpaqueTexture = value;
         }
 
         /// <summary>
@@ -1101,17 +1085,12 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// When enabled, the camera renders to HDR buffers. This setting can be overridden per camera.
-        /// If intermediateTextureMode is set to Never, this cannot be changed and the value is always false.
         /// </summary>
         /// <see href="https://docs.unity3d.com/Manual/HDR.html"/>
         public bool supportsHDR
         {
-            get => intermediateTextureMode != IntermediateTextureMode.Never && m_SupportsHDR;
-            set
-            {
-                if (IsAllowedByIntermediateTextureMode())
-                    m_SupportsHDR = value;
-            }
+            get => m_SupportsHDR;
+            set => m_SupportsHDR = value;
         }
 
         /// <summary>
@@ -1121,15 +1100,6 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_HDRColorBufferPrecision;
             set => m_HDRColorBufferPrecision = value;
-        }
-        
-        /// <summary>
-        /// Controls when URP renders via an intermediate texture.
-        /// </summary>
-        public IntermediateTextureMode intermediateTextureMode
-        {
-            get => m_IntermediateTextureMode;
-            set => m_IntermediateTextureMode = value;
         }
 
         /// <summary>
@@ -1144,16 +1114,11 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Specifies the render scale which scales the render target resolution used by this <c>UniversalRenderPipelineAsset</c>.
-        /// If intermediateTextureMode is set to Never, this cannot be changed and the value is always 1.0f.
         /// </summary>
         public float renderScale
         {
-            get => intermediateTextureMode == IntermediateTextureMode.Never ? 1.0f : m_RenderScale;
-            set
-            {
-                if (IsAllowedByIntermediateTextureMode())
-                    m_RenderScale = ValidateRenderScale(value);
-            }
+            get => m_RenderScale;
+            set => m_RenderScale = ValidateRenderScale(value);
         }
 
         /// <summary>
@@ -1168,18 +1133,13 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Returns the upscaling filter desired by the user
-        /// If intermediateTextureMode is set to Never, this cannot be changed and the value is always UpscalingFilterSelection.Auto.
         /// Note: Filter selections differ from actual filters in that they may include "meta-filters" such as
         ///       "Automatic" which resolve to an actual filter at a later time.
         /// </summary>
         public UpscalingFilterSelection upscalingFilter
         {
-            get => intermediateTextureMode == IntermediateTextureMode.Never ? UpscalingFilterSelection.Auto : m_UpscalingFilter;
-            set
-            {
-                if (IsAllowedByIntermediateTextureMode())
-                    m_UpscalingFilter = value;
-            }
+            get => m_UpscalingFilter;
+            set => m_UpscalingFilter = value;
         }
 
 
@@ -1683,68 +1643,44 @@ namespace UnityEngine.Rendering.Universal
             OnValidate();
         }
 
-#if ENABLE_RENDERTEXTURE_UV_ORIGIN_STRATEGY
-        /// <summary>
-        /// Returns the intermediate texture uv origin strategy for the current render pipeline.
-        /// </summary>
-        public RenderTextureUVOriginStrategy renderTextureUVOriginStrategy
-        {
-            get => m_RenderTextureUVOriginStrategy;
-            set => m_RenderTextureUVOriginStrategy = value;
-        }
-#endif
         /// <summary>
         /// Returns the selected ColorGradingMode in the URP Asset.
-        /// If intermediateTextureMode is set to Never, this cannot be changed and the value is always ColorGradingMode.LowDynamicRange.
         /// <see cref="ColorGradingMode"/>
         /// </summary>
         public ColorGradingMode colorGradingMode
         {
-            get => intermediateTextureMode == IntermediateTextureMode.Never ? ColorGradingMode.LowDynamicRange : m_ColorGradingMode;
-            set 
-            {
-                if (IsAllowedByIntermediateTextureMode())
-                    m_ColorGradingMode = value;
-            }
+            get => m_ColorGradingMode;
+            set => m_ColorGradingMode = value;
         }
 
         /// <summary>
         /// Specifies the color grading LUT (lookup table) size in the URP Asset.
-        /// If intermediateTextureMode is set to Never, this cannot be changed and the value is always 32.
         /// </summary>
         public int colorGradingLutSize
         {
-            get => intermediateTextureMode == IntermediateTextureMode.Never ? k_DefaultColorGradingLutSize : m_ColorGradingLutSize;
-            set 
-            {
-                if (IsAllowedByIntermediateTextureMode())
-                    m_ColorGradingLutSize = Mathf.Clamp(value, k_MinLutSize, k_MaxLutSize);
-            }
+            get => m_ColorGradingLutSize;
+            set => m_ColorGradingLutSize = Mathf.Clamp(value, k_MinLutSize, k_MaxLutSize);
         }
 
         /// <summary>
         /// Returns true if post-processing should process and output alpha. Requires the color target to have an alpha channel.
-        /// If intermediateTextureMode is set to Never, this cannot be changed and the value is always false.
         /// </summary>
-        public bool allowPostProcessAlphaOutput => intermediateTextureMode != IntermediateTextureMode.Never && m_AllowPostProcessAlphaOutput;
+        public bool allowPostProcessAlphaOutput => m_AllowPostProcessAlphaOutput;
 
         /// <summary>
         /// Returns true if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.
-        /// If intermediateTextureMode is set to Never, this cannot be changed and the value is always false.
         /// </summary>
-        public bool useFastSRGBLinearConversion => intermediateTextureMode != IntermediateTextureMode.Never && m_UseFastSRGBLinearConversion;
+        public bool useFastSRGBLinearConversion => m_UseFastSRGBLinearConversion;
 
         /// <summary>
         /// Returns true if Screen Space Lens Flare are supported by this asset, false otherwise.
-        /// If intermediateTextureMode is set to Never, this cannot be changed and the value is always true.
         /// </summary>
-        public bool supportScreenSpaceLensFlare => intermediateTextureMode == IntermediateTextureMode.Never || m_SupportScreenSpaceLensFlare;
+        public bool supportScreenSpaceLensFlare => m_SupportScreenSpaceLensFlare;
 
         /// <summary>
         /// Returns true if Data Driven Lens Flare are supported by this asset, false otherwise.
-        /// If intermediateTextureMode is set to Never, this cannot be changed and the value is always true.
         /// </summary>
-        public bool supportDataDrivenLensFlare => intermediateTextureMode == IntermediateTextureMode.Never || m_SupportDataDrivenLensFlare;
+        public bool supportDataDrivenLensFlare => m_SupportDataDrivenLensFlare;
 
         /// <summary>
         /// Set to true to allow Adaptive performance to modify graphics quality settings during runtime.
@@ -1813,10 +1749,10 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool gpuResidentDrawerEnableOcclusionCullingInCameras
         {
-            get => m_IntermediateTextureMode != IntermediateTextureMode.Never && m_GPUResidentDrawerEnableOcclusionCullingInCameras ;
+            get => m_GPUResidentDrawerEnableOcclusionCullingInCameras;
             set
             {
-                if (!IsAllowedByIntermediateTextureMode() || value == m_GPUResidentDrawerEnableOcclusionCullingInCameras)
+                if (value == m_GPUResidentDrawerEnableOcclusionCullingInCameras)
                     return;
 
                 m_GPUResidentDrawerEnableOcclusionCullingInCameras = value;
@@ -1870,14 +1806,6 @@ namespace UnityEngine.Rendering.Universal
                 m_SmallMeshScreenPercentage = Mathf.Clamp(value, 0.0f, 20.0f);
                 OnValidate();
             }
-        }
-        
-        bool IsAllowedByIntermediateTextureMode()
-        {
-            if (intermediateTextureMode != IntermediateTextureMode.Never) 
-                return true;
-            Debug.LogWarning($"Cannot be changed if {nameof(intermediateTextureMode)} == {IntermediateTextureMode.Never}");
-            return false;
         }
 
         /// <summary>
@@ -2058,21 +1986,9 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore CS0618 // Type or member is obsolete
                 asset.k_AssetPreviousVersion = 12;
             }
-
+            
             if (asset.k_AssetPreviousVersion < 13)
             {
-                bool hasAlways = false, hasAuto = false;
-                foreach (var rendererData in asset.m_RendererDataList)
-                {
-                    if (rendererData is not UniversalRendererData universalData)
-                        continue;
-
-#pragma warning disable CS0618 // Type or member is obsolete
-                    hasAlways |= universalData.m_ObsoleteIntermediateTextureMode == IntermediateTextureMode.Always;
-                    hasAuto |= universalData.m_ObsoleteIntermediateTextureMode == IntermediateTextureMode.Auto;
-#pragma warning restore CS0618 // Type or member is obsolete
-                }
-                asset.intermediateTextureMode = hasAuto && !hasAlways ? IntermediateTextureMode.Auto : IntermediateTextureMode.Always;
                 asset.k_AssetPreviousVersion = 13;
             }
 

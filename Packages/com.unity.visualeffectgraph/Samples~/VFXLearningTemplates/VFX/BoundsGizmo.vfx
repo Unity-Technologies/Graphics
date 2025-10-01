@@ -16,10 +16,10 @@ MonoBehaviour:
   - title: Vector Rotation
     position:
       serializedVersion: 2
-      x: 186
-      y: 349
-      width: 1058
-      height: 222
+      x: 64
+      y: 117
+      width: 1094
+      height: 458
     contents:
     - model: {fileID: 8926484042661614617}
       id: 0
@@ -36,12 +36,71 @@ MonoBehaviour:
     - model: {fileID: 8926484042661614810}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 3
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 4
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 1207
+      y: -713
+      width: 949
+      height: 2352
+    contents:
+    - model: {fileID: 8926484042661614555}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614556}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614558}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614569}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614580}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614583}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614585}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614589}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614834}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614845}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614593}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 2
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 0
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 1
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 5
+      isStickyNote: 1
   stickyNoteInfos:
   - title: '01.Bounds:'
     position:
       serializedVersion: 2
-      x: 1209
-      y: -303
+      x: 1232
+      y: -319
       width: 234
       height: 327
     contents: "The system is only visible if the bounding box is in the \u201Ccamera
@@ -52,13 +111,14 @@ MonoBehaviour:
       will be computed each frame. This can be needed for dynamic VFX or when iterating
       on a VFX. Be aware that this consumes resources, and it\u2019s better to use
       the manual or recorded mode when possible. \r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: '02.Bounds experiment:'
     position:
       serializedVersion: 2
-      x: 977
-      y: 115
+      x: 1536
+      y: -209
       width: 265
       height: 207
     contents: 'Culling a system is important for performance, and that''s why bound''s
@@ -80,13 +140,14 @@ MonoBehaviour:
       modes and adjust the bounds so that the particles don''t disappear.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: '03.GIZMO Visualisation:  '
     position:
       serializedVersion: 2
-      x: 1711
-      y: 222
+      x: 1714
+      y: 210
       width: 416
       height: 215
     contents: "Many blocks give you the options to either tweak the value directly
@@ -98,13 +159,14 @@ MonoBehaviour:
       the attachment made, selecting the \u201Cinitialize Context Block\u201D should
       allow you to see the \u201CBound Gizmo\u201D (if manual or record mode is on).\r\nYou
       can directly edit the Gizmo in the scene.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Vector Rotation
     position:
       serializedVersion: 2
-      x: -228
-      y: 367
+      x: 105
+      y: 371
       width: 403
       height: 179
     contents: "We're creating a sine wave based on time. This \u201Ctime\u201D input
@@ -113,13 +175,14 @@ MonoBehaviour:
       of the oscillation.\r\n\r\nThis is used in a \u201Ctransform direction\u201D
       operator. So we're rotating the direction (0,1,0) on the Z-axis.\r\n\r\nWe
       could have used a \u201CRotate 3D\u201D operator for the same result.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Collapse
     position:
       serializedVersion: 2
-      x: 541
-      y: 21
+      x: 98
+      y: 177
       width: 246
       height: 134
     contents: 'When double-clicking on an operator, you''re able to collapse it to
@@ -131,15 +194,27 @@ MonoBehaviour:
       Try it yourself; double-click to collapse or expand an operator.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
+  - title: BOUNDS
+    position:
+      serializedVersion: 2
+      x: 1282
+      y: -653
+      width: 375
+      height: 103
+    contents: 
+    theme: 
+    textSize: Huge
+    colorTheme: 2
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: -228
-    y: -544
-    width: 2355
-    height: 2163
+    x: 64
+    y: -713
+    width: 2091
+    height: 2352
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -219,7 +294,7 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 18
+  m_GraphVersion: 19
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -235,10 +310,6 @@ VisualEffectResource:
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 1
-      rayTracingMode: 0
-      receiveShadows: 0
-      reflectionProbeUsage: 0
-      lightProbeUsage: 0
     m_CullingFlags: 0
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
@@ -262,7 +333,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661614556}
-  m_UIPosition: {x: 1276, y: -544}
+  m_UIPosition: {x: 1279, y: -556}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -354,7 +425,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661614569}
   - {fileID: 8926484042661614580}
-  m_UIPosition: {x: 1271, y: 95}
+  m_UIPosition: {x: 1274, y: 83}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -471,7 +542,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1271, y: 710}
+  m_UIPosition: {x: 1274, y: 698}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -510,7 +581,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614834}
   - {fileID: 8926484042661614845}
   - {fileID: 8926484042661614593}
-  m_UIPosition: {x: 1271, y: 929}
+  m_UIPosition: {x: 1274, y: 917}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -535,6 +606,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661614590}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -911,7 +983,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 211, y: 426}
+  m_UIPosition: {x: 89, y: 316}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -968,7 +1040,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 549, y: 426}
+  m_UIPosition: {x: 427, y: 316}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -1063,7 +1135,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 379, y: 426}
+  m_UIPosition: {x: 257, y: 316}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -1199,7 +1271,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 705, y: 426}
+  m_UIPosition: {x: 583, y: 316}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -1985,7 +2057,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 883, y: 408}
+  m_UIPosition: {x: 761, y: 298}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:

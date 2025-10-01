@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine.TestTools;
 using NUnit.Framework;
+using UnityEditor.Rendering.BuiltIn.ShaderGraph;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEditor.VFX;
@@ -25,6 +26,8 @@ namespace UnityEditor.VFX.Test
         [OneTimeTearDown]
         public void CleanUp()
         {
+            while (EditorWindow.HasOpenInstances<VFXViewWindow>())
+                EditorWindow.GetWindow<VFXViewWindow>().Close();
             VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
@@ -128,6 +131,70 @@ namespace UnityEditor.VFX.Test
                 Assert.AreEqual(expectedRemainder[i].name, materialSettingsWith[i].name);
                 Assert.AreEqual(expectedRemainder[i].value, materialSettingsWith[i].value);
             }
+        }
+
+        [UnityTest, Description("Covers UUM-115004, N.B.: This coverage can't be full without cross SRP project")]
+        public IEnumerator Failing_SG_Target_With_Current_Pipeline()
+        {
+            var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_115004.unitypackage";
+            AssetDatabase.ImportPackageImmediately(packagePath);
+            yield return null;
+
+            var vfxPath = VFXTestCommon.tempBasePath + "Repro_UUM_115004.vfx";
+            var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
+            Assert.IsNotNull(vfxAsset);
+
+            var vfxResource = vfxAsset.GetResource();
+            Assert.IsNotNull(vfxResource);
+
+            var vfxGraph = vfxResource.GetOrCreateGraph();
+            Assert.IsNotNull(vfxGraph);
+
+            var window = VFXViewWindow.GetWindow(vfxGraph, true, true);
+            window.LoadAsset(vfxAsset, null);
+            window.Focus();
+            yield return null; //No error preventing to open the graph
+
+            var particleOutputs = vfxGraph.children.OfType<VFXComposedParticleOutput>().ToArray();
+            Assert.AreEqual(4, particleOutputs.Length);
+            foreach (var particleOutput in particleOutputs)
+            {
+                Assert.IsNotNull(particleOutput.inputFlowSlot[0].link[0].context);
+
+                var serializedShaderGraph = particleOutput.GetSettingValue("shaderGraph") as ShaderGraphVfxAsset;
+                var actualShaderGraph = particleOutput.GetShaderGraph();
+                Assert.IsNotNull(actualShaderGraph);
+
+                bool isCompatibleWithCurrentSRP = false;
+#if VFX_TESTS_HAS_HDRP && VFX_TESTS_HAS_URP
+                Assert.Fail("This suite doesn't support both pipeline yet.");
+#elif VFX_TESTS_HAS_HDRP
+                if (particleOutput.label.Contains("HDRP"))
+                {
+                    isCompatibleWithCurrentSRP = true;
+                }
+#elif VFX_TESTS_HAS_URP
+                if (particleOutput.label.Contains("URP"))
+                {
+                    isCompatibleWithCurrentSRP = true;
+                }
+#endif
+                if (isCompatibleWithCurrentSRP)
+                {
+                    Assert.AreEqual(1, particleOutput.inputSlots.Count);
+                    Assert.IsTrue((bool)particleOutput.inputSlots[0].HasLink());
+                    Assert.IsNotNull(serializedShaderGraph);
+                }
+                else
+                {
+                    //N.B.: This asset won't be null if both SRP are available, checking reference to missing data here (but known guid)
+                    Assert.IsFalse(object.ReferenceEquals(serializedShaderGraph, null));
+                    Assert.IsTrue(serializedShaderGraph == null);
+                }
+            }
+
+            window.Close();
+            yield return null;
         }
 
         public struct Check_Material_Override_Behavior_Test_Case
@@ -549,5 +616,207 @@ namespace UnityEditor.VFX.Test
             VFXViewWindow.GetWindow<VFXViewWindow>().Close();
             VFXTestCommon.CloseAllUnecessaryWindows();
         }
+
+        IEnumerator PrepareSimpleGraphWithSgOutput(VFXGraph graph)
+        {
+            var sgOutput = ScriptableObject.CreateInstance<VFXComposedParticleOutput>();
+            sgOutput.SetSettingValue("m_Topology", new ParticleTopologyPlanarPrimitive());
+
+            var sgPath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/SG_Unlit_Opaque.shadergraph";
+            var sgVfxAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(sgPath);
+            Assert.IsNotNull(sgVfxAsset);
+            sgOutput.SetSettingValue("shaderGraph", sgVfxAsset);
+
+            var updateContext = graph.children.OfType<VFXBasicUpdate>().Single();
+            updateContext.UnlinkTo(graph.children.OfType<VFXAbstractRenderedOutput>().Single());
+            updateContext.LinkTo(sgOutput);
+            graph.AddChild(sgOutput);
+            graph.GetResource().WriteAssetWithSubAssets();
+            Assert.IsFalse(EditorUtility.IsDirty(graph));
+            Assert.AreEqual(VFXCompilationMode.Runtime, VisualEffectAssetUtility.GetCompilationMode(graph.GetResource().asset));
+            yield return null;
+
+            var window = VFXViewWindow.GetWindow(graph, true, true);
+            window.LoadAsset(graph.GetResource().asset, null);
+            for (int i = 0; i < 8; ++i)
+            {
+                if (VisualEffectAssetUtility.GetCompilationMode(graph.GetResource().asset) == VFXCompilationMode.Runtime)
+                    yield return null;
+            }
+        }
+
+        [UnityTest, Description("Cover UUM-115015")]
+        public IEnumerator Modify_Material_And_Check_VFX_Dirty()
+        {
+            var graph = VFXTestCommon.CreateGraph_And_System();
+            yield return PrepareSimpleGraphWithSgOutput(graph);
+
+            Assert.AreEqual(VFXCompilationMode.Edition, VisualEffectAssetUtility.GetCompilationMode(graph.GetResource().asset));
+            Assert.IsFalse(EditorUtility.IsDirty(graph));
+
+            graph.CompileAndUpdateAsset(graph.GetResource().asset);
+            var allMaterials = VFXTestCommon.GetPreviewAssets(graph).OfType<Material>().ToArray();
+            Assert.AreEqual(2, allMaterials.Length);
+            Assert.IsFalse(EditorUtility.IsDirty(graph));
+            yield return null;
+
+            var writableMaterial = allMaterials.Single(o => o.isVariant);
+#if VFX_TESTS_HAS_HDRP && VFX_TESTS_HAS_URP
+            Assert.Fail("This suite doesn't support both pipeline yet.");
+#elif VFX_TESTS_HAS_URP
+            writableMaterial.SetFloat("_Cull", 123.0f);
+#elif VFX_TESTS_HAS_HDRP
+            writableMaterial.SetFloat("_CullMode", 123.0f);
+#endif
+            var sgOutput = graph.children.OfType<VFXComposedParticleOutput>().Single();
+            Assert.AreEqual(sgOutput.FindMaterial(), writableMaterial);
+
+            //Mimicking what would do the Material Inspector (aka modify material settings and invoke only materialChanged)
+            var materialSettings = sgOutput.GetSettingValue("materialSettings") as VFXMaterialSerializedSettings;
+            Assert.IsNotNull(materialSettings);
+            materialSettings.SyncFromMaterial(writableMaterial);
+            //Check expected dirty
+            sgOutput.Invalidate(sgOutput, VFXModel.InvalidationCause.kMaterialChanged);
+            Assert.IsTrue(EditorUtility.IsDirty(graph));
+            yield return null;
+        }
+
+        public static bool[] kModify_SG_Output_And_Redo = { false, true };
+        [UnityTest, Description("Cover UUM-115036")]
+        public IEnumerator Modify_SG_Output_And_Redo([ValueSource(nameof(kModify_SG_Output_And_Redo))] bool modifySettings)
+        {
+            var graph = VFXTestCommon.CreateGraph_And_System();
+            yield return PrepareSimpleGraphWithSgOutput(graph);
+            var sgOutput = graph.children.OfType<VFXComposedParticleOutput>().Single();
+            if (modifySettings)
+            {
+                graph.CompileAndUpdateAsset(graph.GetResource().asset);
+                var allMaterials = VFXTestCommon.GetPreviewAssets(graph).OfType<Material>().ToArray();
+                Assert.AreEqual(2, allMaterials.Length);
+                Assert.IsFalse(EditorUtility.IsDirty(graph));
+                var writableMaterial = allMaterials.Single(o => o.isVariant);
+#if VFX_TESTS_HAS_HDRP && VFX_TESTS_HAS_URP
+            Assert.Fail("This suite doesn't support both pipeline yet.");
+#elif VFX_TESTS_HAS_URP
+            writableMaterial.SetFloat("_Cull", 789.0f);
+#elif VFX_TESTS_HAS_HDRP
+                writableMaterial.SetFloat("_CullMode", 789.0f);
+#endif
+
+                var materialSettings = new VFXMaterialSerializedSettings();
+                materialSettings.SyncFromMaterial(writableMaterial);
+                sgOutput.SetSettingValues(new KeyValuePair<string, object>[] { new("materialSettings", materialSettings) }, true);
+                graph.GetResource().WriteAsset();
+            }
+
+            Undo.IncrementCurrentGroup();
+            var blockAttributeDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.variant.modelType == typeof(Block.SetAttribute));
+            Assert.IsNotNull(blockAttributeDesc);
+            var blockAttribute = blockAttributeDesc.variant.CreateInstance();
+            blockAttribute.SetSettingValue("attribute", "alive");
+            sgOutput.AddChild(blockAttribute);
+            Assert.AreEqual(1, sgOutput.children.Count());
+
+            Undo.PerformUndo();
+            Assert.AreEqual(0, sgOutput.children.Count());
+            yield return null;
+            Assert.AreEqual(0, sgOutput.children.Count());
+
+            Undo.PerformRedo();
+            Assert.AreEqual(1, sgOutput.children.Count());
+            yield return null;
+            Assert.AreEqual(1, sgOutput.children.Count());
+
+            Undo.PerformUndo();
+            Assert.AreEqual(0, sgOutput.children.Count());
+            yield return null;
+            Assert.AreEqual(0, sgOutput.children.Count());
+
+            yield return null;
+        }
+
+        [UnityTest, Description("Cover Undo/Redo of material properties in SG Output")]
+        public IEnumerator Modify_SG_Output_Material_Property_Slow_Path()
+        {
+            var graph = VFXTestCommon.CreateGraph_And_System();
+            yield return PrepareSimpleGraphWithSgOutput(graph);
+            var sgOutput = graph.children.OfType<VFXComposedParticleOutput>().Single();
+            Assert.AreEqual(0, ExtractMaterialSettings(sgOutput).Count);
+
+            var currentBlendMode = VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(sgOutput.GetShaderGraph(), (VFXMaterialSerializedSettings)sgOutput.GetSettingValue("materialSettings"));
+            Assert.AreEqual(VFXAbstractRenderedOutput.BlendMode.Opaque, currentBlendMode);
+
+            Undo.IncrementCurrentGroup();
+            {
+                var material = sgOutput.FindMaterial();
+#if VFX_TESTS_HAS_HDRP && VFX_TESTS_HAS_URP
+#elif VFX_TESTS_HAS_HDRP
+                material.SetFloat("_SurfaceType", (float)1.0f);
+#elif VFX_TESTS_HAS_URP
+                material.SetFloat("_Surface", (float)BaseShaderGUI.SurfaceType.Transparent);
+                BaseShaderGUI.SetupMaterialBlendMode(material);
+#endif
+                ((VFXMaterialSerializedSettings)sgOutput.GetSettingValue("materialSettings")).SyncFromMaterial(material);
+                sgOutput.Invalidate(VFXModel.InvalidationCause.kSettingChanged); //See DoInspectorGUI "previousBlendMode != currentBlendMode"
+            }
+            yield return null;
+
+            currentBlendMode = VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(sgOutput.GetShaderGraph(), (VFXMaterialSerializedSettings)sgOutput.GetSettingValue("materialSettings"));
+            Assert.AreEqual(VFXAbstractRenderedOutput.BlendMode.Alpha, currentBlendMode);
+
+            Undo.PerformUndo();
+            yield return null;
+
+            currentBlendMode = VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(sgOutput.GetShaderGraph(), (VFXMaterialSerializedSettings)sgOutput.GetSettingValue("materialSettings"));
+            Assert.AreEqual(VFXAbstractRenderedOutput.BlendMode.Opaque, currentBlendMode);
+
+            Undo.PerformRedo();
+            yield return null;
+
+            currentBlendMode = VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(sgOutput.GetShaderGraph(), (VFXMaterialSerializedSettings)sgOutput.GetSettingValue("materialSettings"));
+            Assert.AreEqual(VFXAbstractRenderedOutput.BlendMode.Alpha, currentBlendMode);
+        }
+
+#if VFX_TESTS_HAS_URP
+
+        [UnityTest, Description("Cover Undo/Redo of material properties in SG Output")]
+        public IEnumerator Modify_SG_Output_Material_Property_Fast_Path()
+        {
+            var graph = VFXTestCommon.CreateGraph_And_System();
+            yield return PrepareSimpleGraphWithSgOutput(graph);
+            var sgOutput = graph.children.OfType<VFXComposedParticleOutput>().Single();
+            Assert.AreEqual(0, ExtractMaterialSettings(sgOutput).Count);
+
+            Assert.IsTrue(VFXLibrary.currentSRPBinder.TryGetCastShadowFromMaterial(sgOutput.GetShaderGraph(), (VFXMaterialSerializedSettings)sgOutput.GetSettingValue("materialSettings"), out var castShadow));
+            Assert.IsTrue(castShadow);
+
+            Undo.IncrementCurrentGroup();
+            {
+                var material = sgOutput.FindMaterial();
+                material.SetFloat("_CastShadows", 0.0f);
+
+                Undo.RecordObject(sgOutput, "TODOPAUL: this isn't done by UX (yet)");
+                ((VFXMaterialSerializedSettings)sgOutput.GetSettingValue("materialSettings")).SyncFromMaterial(material);
+                sgOutput.Invalidate(VFXModel.InvalidationCause.kMaterialChanged); //See DoInspectorGUI "previousBlendMode != currentBlendMode", fast path is available for _CastShadow
+                //sgOutput.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+            }
+            yield return null;
+
+            Assert.IsTrue(VFXLibrary.currentSRPBinder.TryGetCastShadowFromMaterial(sgOutput.GetShaderGraph(), (VFXMaterialSerializedSettings)sgOutput.GetSettingValue("materialSettings"), out castShadow));
+            Assert.IsFalse(castShadow);
+
+            Undo.PerformUndo();
+            yield return null;
+
+            Assert.IsTrue(VFXLibrary.currentSRPBinder.TryGetCastShadowFromMaterial(sgOutput.GetShaderGraph(), (VFXMaterialSerializedSettings)sgOutput.GetSettingValue("materialSettings"), out castShadow));
+            Assert.IsTrue(castShadow);
+
+            Undo.PerformRedo();
+            yield return null;
+
+            Assert.IsTrue(VFXLibrary.currentSRPBinder.TryGetCastShadowFromMaterial(sgOutput.GetShaderGraph(), (VFXMaterialSerializedSettings)sgOutput.GetSettingValue("materialSettings"), out castShadow));
+            Assert.IsFalse(castShadow);
+        }
+#endif
     }
 }

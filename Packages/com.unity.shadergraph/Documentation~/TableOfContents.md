@@ -300,6 +300,7 @@
         * [Parallax Occlusion Mapping](Parallax-Occlusion-Mapping-Node.md)
     * [Block Nodes](Block-Node.md)
       * [Built In Blocks](Built-In-Blocks.md)
+    * [Terrain Texture](Terrain-Texture-Node.md)
 * [Samples](ShaderGraph-Samples.md)
     * [Feature Examples](Shader-Graph-Sample-Feature-Examples.md)
     * [Production Ready Shaders](Shader-Graph-Sample-Production-Ready.md)

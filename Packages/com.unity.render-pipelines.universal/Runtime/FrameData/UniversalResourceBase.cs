@@ -98,13 +98,5 @@ namespace UnityEngine.Rendering.Universal
 
             return isAccessible;
         }
-
-        internal bool allowsIntermediateTexture { get; set; } = true;
-
-        /// <inheritdoc />
-        public override void Reset()
-        {
-            allowsIntermediateTexture = true;
-        }
     }
 }

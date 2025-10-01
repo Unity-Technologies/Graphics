@@ -6019,10 +6019,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.cubemapFace = cubemapFace;
                 passData.postProcessIsFinalPass = postProcessIsFinalPass;
 
-                builder.AllowPassCulling(false); // TODO RG P2 - remove it
-                                                 // - something is wrong with intermediate postprocess buffer not used anywhere
-                                                 // -> whole dependency chain being culled - check RG Viewer
-
                 if (passData.hdrOutputIsActive)
                 {
                     GetHDROutputParameters(HDRDisplayInformationForCamera(hdCamera), HDRDisplayColorGamutForCamera(hdCamera), m_Tonemapping, out passData.hdroutParameters, out passData.hdroutParameters2);

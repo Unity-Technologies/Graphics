@@ -1,0 +1,19 @@
+.WhiteRectangle {
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    background-color: rgb(255, 255, 255);
+    background-size: 100% 100%;
+}
+
+#OpacityContainer {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background-color: rgb(0, 255, 0);
+    background-size: 40px 40px;
+}
+
+.TestOpacity {
+    -unity-material: url("project://database/Assets/Scenes/363_UIToolkit_Misc/OpacityOverride363.shadergraph?fileID=-876546973899608171&guid=7cc114cad8443cc41995ecdfa0d5bff7&type=3#OpacityOverride363");
+}

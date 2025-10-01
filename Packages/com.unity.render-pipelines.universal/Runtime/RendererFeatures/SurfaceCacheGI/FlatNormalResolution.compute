@@ -1,0 +1,92 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5
+
+#pragma kernel ResolveFlatNormals
+
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "SurfaceCacheCore/Common.hlsl"
+
+Texture2D<float> _ScreenDepths;
+RWTexture2D<float3> _ScreenFlatNormals;
+
+float4x4 _ClipToWorldTransform;
+
+[numthreads(8, 8, 1)]
+void ResolveFlatNormals(uint2 centerPixelPos : SV_DispatchThreadID)
+{
+    // This is inspired by https://wickedengine.net/2019/09/improved-normal-reconstruction-from-depth/.
+    // In addition to the center sample, we take 4 depth samples in a cross around the center.
+    // Of these 4, we pick the best in the horizontal direction and the best in the vertical direction
+    // and use these to approximate the triangle surface orientation.
+
+    uint2 screenSize;
+    _ScreenDepths.GetDimensions(screenSize.x, screenSize.y);
+
+    if (any(screenSize <= centerPixelPos))
+        return;
+
+    const float centerNdcDepth = LoadNdcDepth(_ScreenDepths, centerPixelPos);
+    if (centerNdcDepth == invalidNdcDepth)
+        return;
+
+    const float2 reciprocalScreenSize = rcp(float2(screenSize));
+    const float2 centerUvPos = PixelPosToUvPos(centerPixelPos, reciprocalScreenSize);
+    const float3 centerWorldPos = ComputeWorldSpacePosition(centerUvPos, centerNdcDepth, _ClipToWorldTransform);
+
+    bool handednessFlip = false; // Account for handedness and winding order.
+
+    float3 ddxPos;
+    {
+        const uint2 rightPixelPos = centerPixelPos + int2(1, 0);
+        const float rightNdcDepth = LoadNdcDepth(_ScreenDepths, rightPixelPos);
+        const uint2 leftPixelPos = centerPixelPos + int2(-1, 0);
+        const float leftNdcDepth = LoadNdcDepth(_ScreenDepths, leftPixelPos);
+
+        uint2 horizontalPixelPos;
+        float horizontalNdcDepth;
+        if (abs(centerNdcDepth - leftNdcDepth) < abs(centerNdcDepth - rightNdcDepth))
+        {
+            horizontalPixelPos = leftPixelPos;
+            horizontalNdcDepth = leftNdcDepth;
+            handednessFlip = !handednessFlip;
+        }
+        else
+        {
+            horizontalPixelPos = rightPixelPos;
+            horizontalNdcDepth = rightNdcDepth;
+        }
+        const float2 horizontalUvPos = PixelPosToUvPos(horizontalPixelPos, reciprocalScreenSize);
+        const float3 horizontalWorldPos = ComputeWorldSpacePosition(horizontalUvPos, horizontalNdcDepth, _ClipToWorldTransform);
+        ddxPos = horizontalWorldPos - centerWorldPos;
+    }
+
+    float3 ddyPos;
+    {
+        const uint2 upPixelPos = centerPixelPos + int2(0, 1);
+        const float upNdcDepth = LoadNdcDepth(_ScreenDepths, upPixelPos);
+        const uint2 downPixelPos = centerPixelPos + int2(0, -1);
+        const float downNdcDepth = LoadNdcDepth(_ScreenDepths, downPixelPos);
+
+        uint2 verticalPixelPos;
+        float verticalNdcDepth;
+        if (abs(centerNdcDepth - downNdcDepth) < abs(centerNdcDepth - upNdcDepth))
+        {
+            verticalPixelPos = downPixelPos;
+            verticalNdcDepth = downNdcDepth;
+        }
+        else
+        {
+            verticalPixelPos = upPixelPos;
+            verticalNdcDepth = upNdcDepth;
+            handednessFlip = !handednessFlip;
+        }
+        const float2 verticalUvPos = PixelPosToUvPos(verticalPixelPos, reciprocalScreenSize);
+        const float3 verticalWorldPos = ComputeWorldSpacePosition(verticalUvPos, verticalNdcDepth, _ClipToWorldTransform);
+        ddyPos = verticalWorldPos - centerWorldPos;
+    }
+
+    float3 flatNormal = normalize(cross(ddxPos, ddyPos));
+    if (handednessFlip)
+        flatNormal = -flatNormal;
+
+    _ScreenFlatNormals[centerPixelPos] = flatNormal;
+}

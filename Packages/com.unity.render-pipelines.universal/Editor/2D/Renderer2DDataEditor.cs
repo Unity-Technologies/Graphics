@@ -143,8 +143,6 @@ namespace UnityEditor.Rendering.Universal
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            
-            DisplayIntermediateTextureWarnings();
 
             DrawFiltering();
             DrawGeneral();
@@ -222,11 +220,7 @@ namespace UnityEditor.Rendering.Universal
             if (m_DefaultMaterialType.intValue == (int)Renderer2DData.Renderer2DDefaultMaterialType.Custom)
                 EditorGUILayout.PropertyField(m_DefaultCustomMaterial, Styles.defaultCustomMaterial);
 
-            if (isIntermediateTextureForbidden)
-                using (new EditorGUI.DisabledScope(true))
-                    EditorGUILayout.Toggle(UniversalRenderPipelineAssetUI.Styles.GetNoIntermediateTextureVariant(Styles.useDepthStencilBuffer), false);
-            else
-                EditorGUILayout.PropertyField(m_UseDepthStencilBuffer, Styles.useDepthStencilBuffer);
+            EditorGUILayout.PropertyField(m_UseDepthStencilBuffer, Styles.useDepthStencilBuffer);
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_HDREmulationScale, Styles.hdrEmulationScale);
@@ -280,27 +274,16 @@ namespace UnityEditor.Rendering.Universal
             if (!m_PostProcessingFoldout.value)
                 return;
 
-            if (isIntermediateTextureForbidden)
-                using (new EditorGUI.DisabledScope(true))
-                {
-                    EditorGUILayout.Toggle(UniversalRenderPipelineAssetUI.Styles.GetNoIntermediateTextureVariant(Styles.postProcessIncluded), false);
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.ObjectField(UniversalRenderPipelineAssetUI.Styles.GetNoIntermediateTextureVariant(Styles.postProcessData), null, typeof(PostProcessData), allowSceneObjects: false);
-                    EditorGUI.indentLevel--;
-                }
-            else
+            EditorGUI.BeginChangeCheck();
+            var postProcessIncluded = EditorGUILayout.Toggle(Styles.postProcessIncluded, m_PostProcessData.objectReferenceValue != null);
+            if (EditorGUI.EndChangeCheck())
             {
-                EditorGUI.BeginChangeCheck();
-                var postProcessIncluded = EditorGUILayout.Toggle(Styles.postProcessIncluded, m_PostProcessData.objectReferenceValue != null);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    m_PostProcessData.objectReferenceValue = postProcessIncluded ? UnityEngine.Rendering.Universal.PostProcessData.GetDefaultPostProcessData() : null;
-                }
-
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
-                EditorGUI.indentLevel--;
+                m_PostProcessData.objectReferenceValue = postProcessIncluded ? UnityEngine.Rendering.Universal.PostProcessData.GetDefaultPostProcessData() : null;
             }
+
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
+            EditorGUI.indentLevel--;
 
             EditorGUILayout.Space();
         }

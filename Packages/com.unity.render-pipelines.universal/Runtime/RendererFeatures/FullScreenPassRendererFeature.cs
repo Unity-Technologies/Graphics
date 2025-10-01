@@ -70,13 +70,6 @@ namespace UnityEngine.Rendering.Universal
         private FullScreenRenderPass m_FullScreenPass;
 
         /// <inheritdoc/>
-        protected override IntermediateTextureUsage useIntermediateTextures
-            => fetchColorBuffer || (requirements & (ScriptableRenderPassInput.Color | ScriptableRenderPassInput.Depth)) != ScriptableRenderPassInput.None
-            || !IsCustomPassUsed(requirements, bindDepthStencilAttachment) 
-            ? IntermediateTextureUsage.Required
-            : IntermediateTextureUsage.NotRequired;
-
-        /// <inheritdoc/>
         public override void Create()
         {
             m_FullScreenPass = new FullScreenRenderPass(name);
@@ -122,10 +115,6 @@ namespace UnityEngine.Rendering.Universal
             m_FullScreenPass.Dispose();
         }
 #endif
-        static bool IsCustomPassUsed(ScriptableRenderPassInput input, bool bindDepthStencilAttachment)
-        {
-            return input != ScriptableRenderPassInput.None || bindDepthStencilAttachment;
-        }
 
         internal class FullScreenRenderPass : ScriptableRenderPass
         {
@@ -259,11 +248,16 @@ namespace UnityEngine.Rendering.Universal
                 destination = resourcesData.activeColorTexture;
 
                 // The AddBlitPass utility is not used when m_BindDepthStencilAttachment is active since SetRenderAttachmentDepth is not available with the returned builder of AddBlitPass.
-                if (IsCustomPassUsed(input, m_BindDepthStencilAttachment))
+                bool useCustomPass = input != ScriptableRenderPassInput.None || m_BindDepthStencilAttachment;
+
+                if (useCustomPass)
+                {
                     AddFullscreenRenderPassInputPass(renderGraph, resourcesData, cameraData, source, destination);
+                }
                 else
                 {
                     var blitMaterialParameters = new BlitMaterialParameters(source, destination, m_Material, m_PassIndex);
+
                     renderGraph.AddBlitPass(blitMaterialParameters, passName: "Blit Color Full Screen");
                 }
             }

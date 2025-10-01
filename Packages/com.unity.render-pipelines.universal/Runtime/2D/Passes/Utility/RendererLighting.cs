@@ -12,7 +12,6 @@ namespace UnityEngine.Rendering.Universal
         private static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
         public static readonly Color k_NormalClearColor = new Color(0.5f, 0.5f, 0.5f, 1.0f);
         private static readonly string k_UsePointLightCookiesKeyword = "USE_POINT_LIGHT_COOKIES";
-        private static readonly string k_UseSpriteLight = "USE_SPRITE_LIGHT";
         private static readonly string k_LightQualityFastKeyword = "LIGHT_QUALITY_FAST";
         private static readonly string k_UseNormalMap = "USE_NORMAL_MAP";
         private static readonly string k_UseShadowMap = "USE_SHADOW_MAP";
@@ -683,15 +682,13 @@ namespace UnityEngine.Rendering.Universal
             bitIndex++;
             var pointCookieBit = (isPoint && light.lightCookieSprite != null && light.lightCookieSprite.texture != null) ? 1u << bitIndex : 0u;
             bitIndex++;
-            var spriteLightBit = (light.lightType == Light2D.LightType.Sprite) ? 1u << bitIndex : 0u;
-            bitIndex++;
             var fastQualityBit = (light.normalMapQuality == Light2D.NormalMapQuality.Fast) ? 1u << bitIndex : 0u;
             bitIndex++;
             var useNormalMap = light.normalMapQuality != Light2D.NormalMapQuality.Disabled ? 1u << bitIndex : 0u;
             bitIndex++;
             var useShadowMap = useShadows ? 1u << bitIndex : 0u;
 
-            return fastQualityBit | pointCookieBit | spriteLightBit | additiveBit | shapeBit | volumeBit | useNormalMap | useShadowMap;
+            return fastQualityBit | pointCookieBit | additiveBit | shapeBit | volumeBit | useNormalMap | useShadowMap;
         }
 
         private static Material CreateLightMaterial(Renderer2DData rendererData, Light2D light, bool isVolume, bool useShadows)
@@ -725,9 +722,6 @@ namespace UnityEngine.Rendering.Universal
 
             if (isPoint && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                 material.EnableKeyword(k_UsePointLightCookiesKeyword);
-
-            if (light.lightType == Light2D.LightType.Sprite)
-                material.EnableKeyword(k_UseSpriteLight);
 
             if (light.normalMapQuality == Light2D.NormalMapQuality.Fast)
                 material.EnableKeyword(k_LightQualityFastKeyword);

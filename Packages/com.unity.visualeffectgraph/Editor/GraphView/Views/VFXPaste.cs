@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 
+using UnityEditor.VFX.Block;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -204,6 +205,9 @@ namespace UnityEditor.VFX.UI
                 {
                     m_NodesInTheSameOrder[cpt] = new VFXNodeID(newBlock, 0);
                     targetModelContext.AddChild(newBlock, targetIndex, false); // only notify once after all blocks have been added
+                    // Input properties of CustomHLSL blocks need to be copied after being added to the graph
+                    // because it needs to access the AttributesManager to analyze the hlsl code
+                    CopyCustomHLSLInputProperties(newBlock as CustomHLSL, block);
 
                     targetIndex++;
                 }
@@ -227,6 +231,23 @@ namespace UnityEditor.VFX.UI
             }
 
             return targetIndex;
+        }
+
+        void CopyCustomHLSLInputProperties(CustomHLSL customHlslBlock, Node node)
+        {
+            if (customHlslBlock is IVFXSlotContainer slotContainer)
+            {
+                var inputSlots = slotContainer.inputSlots;
+                for (int i = 0; i < node.inputSlots.Length && i < inputSlots.Count; ++i)
+                {
+                    if (inputSlots[i].name == node.inputSlots[i].name)
+                    {
+                        inputSlots[i].value = node.inputSlots[i].value.Get();
+                        if (inputSlots[i].spaceable)
+                            inputSlots[i].space = node.inputSlots[i].space;
+                    }
+                }
+            }
         }
 
         VFXNodeID[] m_NodesInTheSameOrder = null;

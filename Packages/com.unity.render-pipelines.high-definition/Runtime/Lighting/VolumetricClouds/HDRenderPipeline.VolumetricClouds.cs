@@ -612,7 +612,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (!opticalFogTransmittance.IsValid())
                         opticalFogTransmittance = renderGraph.CreateTexture(HDRenderPipeline.GetOpticalFogTransmittanceDesc(hdCamera));
-                    builder.SetRenderAttachmentDepth(transparentPrepass.depthBufferPreRefraction, AccessFlags.Read); // Dummy buffer to avoid 'Setting MRT without a depth buffer is not supported'
+
+                    if (!passData.perPixelSorting)
+                        builder.SetRenderAttachmentDepth(transparentPrepass.depthBufferPreRefraction, AccessFlags.Read); // Dummy buffer to avoid 'Setting MRT without a depth buffer is not supported'
+
                     builder.SetRenderAttachment(opticalFogTransmittance, opticalFogBufferIndex);
                 }
 

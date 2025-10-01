@@ -282,7 +282,8 @@ namespace UnityEditor.VFX.UI
                    type != typeof(Gradient) &&
                    type != typeof(CameraBuffer) &&
                    type != typeof(Matrix4x4) &&
-                   type != typeof(GPUEvent);
+                   type != typeof(GPUEvent) &&
+                   type != typeof(GraphicsBuffer);
         }
     }
 }

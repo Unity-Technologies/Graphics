@@ -80,7 +80,6 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Reset()
         {
-            base.Reset();
             _normalsDepth = TextureHandle.nullHandle;
             _shadowDepth = TextureHandle.nullHandle;
             _upscaleTexture = TextureHandle.nullHandle;

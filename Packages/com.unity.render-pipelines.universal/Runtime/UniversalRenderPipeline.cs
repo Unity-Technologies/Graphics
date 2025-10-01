@@ -178,6 +178,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal UniversalRenderPipelineRuntimeTextures runtimeTextures { get; private set; }
 
+        internal static RenderTextureUVOriginStrategy renderTextureUVOriginStrategy { private get; set; }
+
         /// <summary>
         /// The default Render Pipeline Global Settings.
         /// </summary>
@@ -846,7 +848,7 @@ namespace UnityEngine.Rendering.Universal
 
                 using (new ProfilingScope(Profiling.Pipeline.initializeRenderingData))
                 {
-                    CreateUniversalResourceData(frameData, asset);
+                    CreateUniversalResourceData(frameData);
                     lightData = CreateLightData(frameData, asset, data.cullResults.visibleLights, renderingMode);
                     shadowData = CreateShadowData(frameData, asset, renderingMode);
                     CreatePostProcessingData(frameData, asset);
@@ -861,6 +863,7 @@ namespace UnityEngine.Rendering.Universal
                 if (asset?.useAdaptivePerformance == true)
                     ApplyAdaptivePerformance(frameData);
 #endif
+                UniversalRenderPipeline.renderTextureUVOriginStrategy = RenderTextureUVOriginStrategy.BottomLeft;
 
                 CreateShadowAtlasAndCullShadowCasters(lightData, shadowData, cameraData, ref data.cullResults, ref context);
 
@@ -883,7 +886,8 @@ namespace UnityEngine.Rendering.Universal
                 else
 #endif
                 {
-                    RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera, asset);
+                    RenderTextureUVOriginStrategy uvOriginStrategy = UniversalRenderPipeline.renderTextureUVOriginStrategy;
+                    RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera, uvOriginStrategy);
                     renderer.FinishRenderGraphRendering(cmd);
                 }
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
@@ -1029,12 +1033,6 @@ namespace UnityEngine.Rendering.Universal
 
                     // Apply XR display's viewport scale to URP's dynamic resolution solution
                     float scaleToApply = XRSystem.GetRenderViewportScale();
-                    if (XRSystem.GetDynamicResolutionScale() < 1.0f)
-                    {
-                        // If XR dynamic resolution is enabled use the XRSystem dynamic resolution scale
-                        // Smaller than 1.0 renderViewport scale are not supported to have the best performance gain
-                        scaleToApply = XRSystem.GetDynamicResolutionScale();
-                    }
                     ScalableBufferManager.ResizeBuffers(scaleToApply, scaleToApply);
                 }
 
@@ -1926,11 +1924,9 @@ namespace UnityEngine.Rendering.Universal
             return postProcessingData;
         }
 
-        static UniversalResourceData CreateUniversalResourceData(ContextContainer frameData, UniversalRenderPipelineAsset settings)
+        static UniversalResourceData CreateUniversalResourceData(ContextContainer frameData)
         {
-            var data = frameData.Create<UniversalResourceData>();
-            data.allowsIntermediateTexture = settings.intermediateTextureMode != IntermediateTextureMode.Never;
-            return data;
+            return frameData.Create<UniversalResourceData>();
         }
 
         static UniversalLightData CreateLightData(ContextContainer frameData, UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, RenderingMode? renderingMode)

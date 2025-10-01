@@ -1,0 +1,34 @@
+{
+    "introduction": 
+	"""Welcome to the Renderer Shader User Value Samples.
+	The <a href="https://docs.unity3d.com/6000.3/Documentation/ScriptReference/MeshRenderer.SetShaderUserValue.html">Renderer Shader User Value</a> allows you to set a specific value on a MeshRenderer or SkinnedMeshRenderer that can be used in shaders.
+
+	This scene demonstrates the use of Shader User Value with multiple instances. It uses the same mesh from the LookDev scene. 
+
+	<i>To ensure the project is set up correctly, check whether the Input System package is installed by clicking the button at the top of this GameObject, then set it in Active Input Handling under Player Settings. In addition, to make the most of this feature, it is recommended to:
+• Enable <b>GPU Resident Drawer</b> by setting it to <b>Instanced Drawing</b> in the SRP Asset Rendering tab.
+• Set <b>Batch Render Group Variants</b> to <b>Keep All</b> in Graphics Settings.
+• Disable <b>Static Batching</b> in Player Settings.
+</i>
+
+<h1>Vertex Animation Textures</h1>
+
+	For optimization purposes, and to leverage the latest improvements from GPU Resident Drawer, the instanced soldiers use a MeshRenderer animated with a baked Vertex Animation Texture Array.  
+	This enables all identical shaders to be batched together, allowing the scene to be rendered with only one draw call per shader type (Ground, Props, Hair, and Soldiers).  
+
+	The same shaders as in the LookDev scene are used, with a branch for Vertex Animation directly in the Shader Graph. This avoids duplicating the same logic across multiple graphs (same shaders, different materials).  
+
+	A <link="VertexAnimationTextureBaker.cs">VertexAnimationTextureBaker</link> script (Tools > Vertex Animation Texture Baker) is included to bake a Texture2DArray from a SkinnedMeshRenderer and a set of animation clips.  
+	A <link="VertexAnimationTextureArray.asset">Texture2DArray</link> asset is generated where:  
+	• Each row corresponds to vertex positions (X, Y, Z) encoded in the R, G, B channels.  
+	• Each column corresponds to a specific frame of the animation.  
+	• Each slice of the Texture2DArray corresponds to an animation clip.  
+
+	Using the <link="BodyRSUV.cs">BodyRSUV</link> C# script, a Frame Time variable (encoded into 6 bits, allowing at least 64 frames) and an Animation Index variable (1 bit) are updated every frame.  
+
+<h1>Texture2DArray</h1>
+
+	When a click is registered on a soldier using the <link="JumpOnClick.cs">JumpOnClick</link> script, the soldier’s Frame Time variable is reset to 0 and the Animation Index is switched from 0 to 1 for the duration of the jumping animation.  
+""",
+    "samples": []	
+}

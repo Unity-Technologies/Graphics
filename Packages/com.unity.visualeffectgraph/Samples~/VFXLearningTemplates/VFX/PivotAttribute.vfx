@@ -16,10 +16,10 @@ MonoBehaviour:
   - title: Debug outputs
     position:
       serializedVersion: 2
-      x: -45
-      y: 1414
+      x: -798
+      y: 1743
       width: 902
-      height: 1105
+      height: 1129
     contents:
     - model: {fileID: 8926484042661615133}
       id: 0
@@ -30,10 +30,10 @@ MonoBehaviour:
   - title: Pivot Offset
     position:
       serializedVersion: 2
-      x: -3
-      y: 555
-      width: 674
-      height: 295
+      x: 103
+      y: 517
+      width: 571
+      height: 321
     contents:
     - model: {fileID: 8926484042661615812}
       id: 0
@@ -41,13 +41,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615763}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 1
+      isStickyNote: 1
   - title: Angular Velocity
     position:
       serializedVersion: 2
-      x: -3
-      y: 943
-      width: 639
-      height: 294
+      x: 71
+      y: 847
+      width: 579
+      height: 352
     contents:
     - model: {fileID: 8926484042661615755}
       id: 0
@@ -55,14 +58,78 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615717}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 2
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 696
+      y: -331
+      width: 993
+      height: 1587
+    contents:
+    - model: {fileID: 8926484042661615656}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615703}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615678}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615757}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615681}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615911}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615684}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615686}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615692}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 3
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 0
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 526
+      y: 1437
+      width: 100
+      height: 100
+    contents:
+    - model: {fileID: 8926484042661614639}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614937}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614652}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614939}
+      id: 0
+      isStickyNote: 0
   stickyNoteInfos:
   - title: 'Pivot:'
     position:
       serializedVersion: 2
-      x: 1159
-      y: 212
-      width: 744
-      height: 550
+      x: 1155
+      y: 624
+      width: 508
+      height: 243
     contents: "The pivot is the origin position of a rendered element (quad, mesh,
       strip, etc.). This means that we can offset a rendered \u201Cquad\u201D from
       the particle position.\r\n\r\nPivot.X lets you offset the rendered quad on
@@ -73,24 +140,26 @@ MonoBehaviour:
       so that the scale and rotation happens on the bottom edges of a quad.\n\nIt's
       also useful to offset the Pivot.Z axis with billboard facing quad as it allows
       you to push or pull along the camera plane.\r\n"
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 3
   - title: 'Pivot Offset:'
     position:
       serializedVersion: 2
-      x: 27
-      y: 581
+      x: 135
+      y: 698
       width: 182
       height: 115
     contents: The particleId is used to switch between three different pivots offset.
       This offsets the pivot of each particle on a different axis.
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: 'Pivot Offset:'
     position:
       serializedVersion: 2
-      x: 7
-      y: 951
+      x: 97
+      y: 1044
       width: 200
       height: 129
     contents: 'Each particle is assigned a different angular velocity based on its
@@ -100,25 +169,27 @@ MonoBehaviour:
       the pivot attribute values.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: Pivot Leaf
     position:
       serializedVersion: 2
-      x: 696
-      y: -261
+      x: 731
+      y: -272
       width: 409
-      height: 101
+      height: 120
     contents: 
-    theme: Black
+    theme: 
     textSize: Huge
+    colorTheme: 2
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: -44
-    y: -261
-    width: 1947
-    height: 2809
+    x: -798
+    y: -323
+    width: 2487
+    height: 3195
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -152,7 +223,7 @@ MonoBehaviour:
   m_CustomAttributes: []
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 18
+  m_GraphVersion: 19
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -168,10 +239,6 @@ VisualEffectResource:
     m_RendererSettings:
       motionVectorGenerationMode: 1
       shadowCastingMode: 0
-      rayTracingMode: 0
-      receiveShadows: 0
-      reflectionProbeUsage: 0
-      lightProbeUsage: 0
     m_CullingFlags: 3
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
@@ -195,7 +262,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661614937}
-  m_UIPosition: {x: 897, y: 1473}
+  m_UIPosition: {x: 526, y: 1437}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -228,6 +295,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661614644}
   - {fileID: 8926484042661615958}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -253,7 +321,6 @@ MonoBehaviour:
     m_PropertyNames: []
     m_PropertyValues: []
     renderQueue: -1
-  useBaseColorMap: 3
   useMaskMap: 1
   useNormalMap: 1
   useEmissiveMap: 0
@@ -551,7 +618,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661614939}
-  m_UIPosition: {x: 1337, y: 1473}
+  m_UIPosition: {x: 966, y: 1437}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -584,6 +651,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661614657}
   - {fileID: 8926484042661615959}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -612,7 +680,6 @@ MonoBehaviour:
   materialType: 0
   workflowMode: 0
   smoothnessSource: 1
-  useBaseColorMap: 3
   useOcclusionMap: 0
   useMetallicMap: 1
   useSpecularMap: 0
@@ -1774,7 +1841,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661615140}
-  m_UIPosition: {x: 407, y: 1473}
+  m_UIPosition: {x: -347, y: 1802}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -1800,6 +1867,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661615136}
   - {fileID: 8926484042661615960}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -2304,7 +2372,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615178}
   - {fileID: 8926484042661615162}
   - {fileID: 8926484042661615166}
-  m_UIPosition: {x: -19, y: 1473}
+  m_UIPosition: {x: -773, y: 1802}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2330,6 +2398,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661615165}
   - {fileID: 8926484042661615961}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -3018,7 +3087,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615757}
   - {fileID: 8926484042661615681}
   - {fileID: 8926484042661615911}
-  m_UIPosition: {x: 685, y: 175}
+  m_UIPosition: {x: 721, y: 172}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3514,7 +3583,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661615686}
-  m_UIPosition: {x: 685, y: -129}
+  m_UIPosition: {x: 721, y: -132}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -3765,7 +3834,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 685, y: 1081}
+  m_UIPosition: {x: 721, y: 1078}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -4282,7 +4351,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 321, y: 1001}
+  m_UIPosition: {x: 320, y: 906}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -4893,7 +4962,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 22, y: 1097}
+  m_UIPosition: {x: 98, y: 906}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -4979,7 +5048,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 356, y: 614}
+  m_UIPosition: {x: 345, y: 576}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -5107,7 +5176,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 22, y: 711}
+  m_UIPosition: {x: 129, y: 576}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []

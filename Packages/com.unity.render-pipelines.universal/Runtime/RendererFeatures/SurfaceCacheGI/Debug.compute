@@ -1,0 +1,180 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5
+
+#pragma kernel Visualize
+
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Hashes.hlsl"
+#include "SurfaceCacheCore/PatchUtil.hlsl"
+#include "SurfaceCacheCore/RingBuffer.hlsl"
+
+StructuredBuffer<uint> _RingConfigBuffer;
+StructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances;
+StructuredBuffer<uint> _PatchCellIndices;
+StructuredBuffer<PatchUtil::PatchGeometry> _PatchGeometries;
+StructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
+StructuredBuffer<uint> _CellPatchIndices;
+StructuredBuffer<int3> _CascadeOffsets;
+RWStructuredBuffer<PatchUtil::PatchCounterSet> _PatchCounterSets;
+
+RWTexture2D<float4> _Result;
+Texture2D<float> _ScreenDepths;
+Texture2D<float3> _ScreenShadedNormals;
+Texture2D<float3> _ScreenFlatNormals;
+
+uint _RingConfigOffset;
+uint _GridSize;
+uint _CascadeCount;
+float _VoxelMinSize;
+uint _ViewMode;
+uint _ShowSamplePosition;
+float4x4 _ClipToWorldTransform;
+uint _FrameIdx;
+float3 _GridTargetPos;
+
+uint _DummyBlackbox; // By using a uniform we force the compiler to not make any assumptions.
+float3 IsActuallyNan(float3 val) {
+    return isnan(asfloat(_DummyBlackbox ^ asuint(val)));
+}
+
+float3 IsActuallyInf(float3 val) {
+    return isinf(asfloat(_DummyBlackbox ^ asuint(val)));
+}
+
+[numthreads(8,8,1)]
+void Visualize(uint2 threadIdx : SV_DispatchThreadID)
+{
+    uint2 screenSize;
+    _ScreenDepths.GetDimensions(screenSize.x, screenSize.y);
+
+    float3 output;
+
+    const float statusBarHeight = 0.05f;
+    if (float(threadIdx.y) / screenSize.y < statusBarHeight)
+    {
+        const RingBuffer::Config ringConfig = RingBuffer::LoadConfig(_RingConfigBuffer, _RingConfigOffset);
+        const uint patchIdx = float(threadIdx.x) / screenSize.x * patchCapacity;
+        if (RingBuffer::IsPositionUnused(ringConfig, patchIdx))
+        {
+            output = float3(1.0f, 1.0f, 1.0f);
+        }
+        else
+        {
+            if (_PatchCellIndices[patchIdx] == PatchUtil::invalidCellIndex)
+                output = float3(1.0f, 0.0f, 0.0f);
+            else
+                output = float3(0.0f, 1.0f, 0.0f);
+        }
+    }
+    else
+    {
+        const float ndcDepth = LoadNdcDepth(_ScreenDepths, threadIdx);
+        if (ndcDepth == invalidNdcDepth)
+            return;
+
+        const float2 uv = (float2(threadIdx.xy) + 0.5f) / float2(screenSize);
+        const float3 worldPos = ComputeWorldSpacePosition(uv, ndcDepth, _ClipToWorldTransform);
+        const float3 worldShadedNormal = UnpackGBufferNormal(_ScreenShadedNormals[threadIdx.xy]);
+        const float3 worldFlatNormal = _ScreenFlatNormals[threadIdx.xy];
+
+        PatchUtil::VolumePositionResolution posResolution = PatchUtil::ResolveVolumePosition(worldPos, _GridTargetPos, _GridSize, _CascadeOffsets, _CascadeCount, _VoxelMinSize);
+        output = float3(1.0f, 0.0f, 1.0f);
+        if (posResolution.isValid())
+        {
+            const uint directionIdx = PatchUtil::GetDirectionIndex(worldFlatNormal, PatchUtil::gridCellAngularResolution);
+            const uint3 positionStorageSpace = PatchUtil::ConvertGridSpaceToStorageSpace(posResolution.positionGridSpace, _GridSize, _CascadeOffsets[posResolution.cascadeIdx]);
+            const uint cellIdx = PatchUtil::GetCellIndex(posResolution.cascadeIdx, positionStorageSpace, directionIdx, _GridSize, PatchUtil::gridCellAngularResolution);
+            const uint patchIdx = _CellPatchIndices[cellIdx];
+            const bool hasPatch = (patchIdx != PatchUtil::invalidPatchIndex);
+
+            SphericalHarmonics::RGBL1 patchIrradiance = (SphericalHarmonics::RGBL1)0;
+            float3 patchPos = 0; // initializing value only to silence shader warning
+            if (hasPatch)
+            {
+                patchIrradiance = _PatchIrradiances[patchIdx];
+                patchPos = _PatchGeometries[patchIdx].position;
+                PatchUtil::WriteLastFrameAccess(_PatchCounterSets, patchIdx, _FrameIdx);
+            }
+
+            if (_ShowSamplePosition == 1 && hasPatch && length(worldPos - patchPos) < 0.12f)
+            {
+                output = 30.0f;
+            }
+            else if (_ViewMode == 0)
+            {
+                const float arbitraryBoost = 5.0f;
+                output = arbitraryBoost * float3(
+                    UintToFloat01(LowBiasHash32(cellIdx, 0)),
+                    UintToFloat01(LowBiasHash32(cellIdx, 1)),
+                    UintToFloat01(LowBiasHash32(cellIdx, 2)));
+            }
+            else if (_ViewMode == 1)
+            {
+                if (hasPatch)
+                {
+                    const float3 shEval = SphericalHarmonics::Eval(patchIrradiance, worldShadedNormal);
+                    if (any(IsActuallyNan(shEval)))
+                        output = float3(1, 0, 0);
+                    else if (any(IsActuallyInf(shEval)))
+                        output = float3(0, 1, 0);
+                    else
+                        output = max(0, shEval);
+                }
+            }
+            else if (_ViewMode == 2) // fast irradiance
+            {
+                if (hasPatch)
+                {
+                    output = _PatchStatistics[patchIdx].mean * SphericalHarmonics::y0;
+                }
+            }
+            else if (_ViewMode == 3) // coefficient of variation
+            {
+                if (hasPatch)
+                {
+                    const PatchUtil::PatchStatisticsSet stats = _PatchStatistics[patchIdx];
+                    output = sqrt(stats.variance) / max(0.01f, stats.mean) / 20.0f;
+                }
+            }
+            else if (_ViewMode == 4)
+            {
+                if (hasPatch)
+                {
+                    const PatchUtil::PatchStatisticsSet stats = _PatchStatistics[patchIdx];
+                    float3 longIrradiance = _PatchIrradiances[patchIdx].l0;
+                    float3 shortStdDev = sqrt(stats.variance);
+                    float3 drift = abs(longIrradiance - stats.mean) / max(0.001f, shortStdDev);
+                    output = drift * 0.25f;
+                }
+            }
+            else if (_ViewMode == 5)
+            {
+                if (hasPatch)
+                {
+                    output = sqrt(_PatchStatistics[patchIdx].variance) * 0.1f;
+                }
+            }
+            else if (_ViewMode == 6)
+            {
+                if (hasPatch)
+                {
+                    const float3 green = float3(0, 1, 0);
+                    const float3 red = float3(1, 0, 0);
+                    const PatchUtil::PatchCounterSet counterSet = _PatchCounterSets[patchIdx];
+                    const uint updateCount = PatchUtil::GetUpdateCount(counterSet);
+                    const float s = float(updateCount) / PatchUtil::updateMax;
+                    const float3 redGreenMix = lerp(red, green, s);
+                    const float3 checker = UintToFloat01(LowBiasHash32(cellIdx, 0)); // To make cells visible.
+                    output = lerp(redGreenMix, checker, 0.25f);
+                }
+            }
+            else if (_ViewMode == 7)
+            {
+                output = worldFlatNormal * 0.5f + 0.5f;
+            }
+        }
+    }
+
+    _Result[threadIdx.xy] = float4(output, 1.0f);
+}

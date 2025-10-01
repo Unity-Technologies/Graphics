@@ -130,6 +130,7 @@ namespace UnityEditor.ShaderGraph.Internal
             set => m_LiteralFloatMode = value;
         }
 
+        [SerializeField]
         Vector2 m_RangeValues = new Vector2(0, 1);
 
         public Vector2 rangeValues

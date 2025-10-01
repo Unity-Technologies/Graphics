@@ -16,10 +16,10 @@ MonoBehaviour:
   - title: Flower Rotate distribution
     position:
       serializedVersion: 2
-      x: 345
-      y: -61
-      width: 830
-      height: 421
+      x: 311
+      y: -38
+      width: 849
+      height: 473
     contents:
     - model: {fileID: 8926484042661615258}
       id: 0
@@ -36,13 +36,19 @@ MonoBehaviour:
     - model: {fileID: 8926484042661614792}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 3
+      isStickyNote: 1
+    - model: {fileID: 8926484042661615268}
+      id: 0
+      isStickyNote: 0
   - title: Random Var Size per Flower * Rand Size per Petal * Size Overlife
     position:
       serializedVersion: 2
-      x: -393
-      y: 1668
-      width: 1339
-      height: 548
+      x: -123
+      y: 1591
+      width: 1343
+      height: 559
     contents:
     - model: {fileID: 8926484042661615862}
       id: 0
@@ -71,13 +77,19 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616197}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 9
+      isStickyNote: 1
+    - model: {fileID: 8926484042661615438}
+      id: 0
+      isStickyNote: 0
   - title: SG Bend Animation
     position:
       serializedVersion: 2
-      x: 542
-      y: 1232
-      width: 673
-      height: 412
+      x: 396
+      y: 1156
+      width: 806
+      height: 406
     contents:
     - model: {fileID: 8926484042661616224}
       id: 0
@@ -94,13 +106,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615528}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 8
+      isStickyNote: 1
   - title: Pivot Offset Animation
     position:
       serializedVersion: 2
-      x: 430
-      y: 2266
-      width: 713
-      height: 204
+      x: 126
+      y: 2211
+      width: 1021
+      height: 253
     contents:
     - model: {fileID: 8926484042661615000}
       id: 0
@@ -111,13 +126,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616234}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 1
+      isStickyNote: 1
   - title: Tip Position Sampling
     position:
       serializedVersion: 2
-      x: 0
-      y: 0
-      width: 100
-      height: 100
+      x: 405
+      y: -340
+      width: 790
+      height: 250
     contents:
     - model: {fileID: 8926484042661615787}
       id: 0
@@ -125,13 +143,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615791}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 2
+      isStickyNote: 1
   - title: Bend Animation Logic
     position:
       serializedVersion: 2
-      x: 510
-      y: 649
-      width: 711
-      height: 258
+      x: 288
+      y: 577
+      width: 918
+      height: 455
     contents:
     - model: {fileID: 8926484042661614952}
       id: 0
@@ -145,13 +166,22 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616222}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 5
+      isStickyNote: 1
+    - model: {fileID: 8926484042661615029}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615031}
+      id: 0
+      isStickyNote: 0
   - title: Animated Noise Rotation values
     position:
       serializedVersion: 2
-      x: 2440
-      y: 626
-      width: 1347
-      height: 299
+      x: 2608
+      y: 689
+      width: 1125
+      height: 365
     contents:
     - model: {fileID: 8926484042661616042}
       id: 0
@@ -174,10 +204,10 @@ MonoBehaviour:
   - title: Random Rotation Distribution
     position:
       serializedVersion: 2
-      x: 3206
-      y: 196
-      width: 573
-      height: 428
+      x: 3165
+      y: 165
+      width: 882
+      height: 517
     contents:
     - model: {fileID: 8926484042661615962}
       id: 0
@@ -188,22 +218,193 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616068}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 12
+      isStickyNote: 1
+    - model: {fileID: 8926484042661616002}
+      id: 0
+      isStickyNote: 0
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 4950
+      y: -855
+      width: 1078
+      height: 1705
+    contents:
+    - model: {fileID: 8926484042661616108}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616110}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 13
+      isStickyNote: 1
+    - model: {fileID: 8926484042661615677}
+      id: 1
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616073}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616092}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616674}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616681}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616694}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616687}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616769}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616775}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616781}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616785}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 14
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 3948
+      y: -875
+      width: 797
+      height: 1669
+    contents:
+    - model: {fileID: 8926484042661615677}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615805}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615984}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615810}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615918}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616528}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616529}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616535}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616541}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 10
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 11
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 1246
+      y: 641
+      width: 100
+      height: 100
+    contents:
+    - model: {fileID: 8926484042661614583}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615450}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614938}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615008}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615802}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616580}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616603}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 7
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 6
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 1220
+      y: -948
+      width: 857
+      height: 1367
+    contents:
+    - model: {fileID: 8926484042661614555}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614816}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614558}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615761}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614819}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615248}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615085}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 0
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 4
+      isStickyNote: 1
   stickyNoteInfos:
   - title: Flower Blossom
     position:
       serializedVersion: 2
-      x: 1162
-      y: -890
+      x: 1245
+      y: -889
       width: 639
       height: 101
     contents: 
-    theme: Black
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: 'Pivot Offset Animation:'
     position:
       serializedVersion: 2
-      x: 130
-      y: 2303
+      x: 151
+      y: 2270
       width: 295
       height: 166
     contents: 'The initial pivot of the petal mesh is on its root. This has been
@@ -220,13 +421,14 @@ MonoBehaviour:
       falling.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: 'Tip Position:'
     position:
       serializedVersion: 2
-      x: 411
-      y: -303
+      x: 430
+      y: -281
       width: 326
       height: 165
     contents: "We want to position the petals particles at the tips of the stem mesh.
@@ -234,38 +436,41 @@ MonoBehaviour:
       and their indices were set to be the firsts of the mesh.\r\nSo by sampling
       only the first three triangles of the stem mesh, we can place the particles
       at the correct position.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Flower Rotate distribution:'
     position:
       serializedVersion: 2
-      x: 55
-      y: -57
+      x: 384
+      y: 185
       width: 295
       height: 156
     contents: "By rotating the petals around the X axis, we can create a flower.\r\nWe
       distribute the petals with ParticleId % 3 *120 degree and add some randomness
       to cover the full 360\xB0 circle.\r\n\r\nParticleID % 3 will distribute all
       of our particles on the three first triangles.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Angular Velocity
     position:
       serializedVersion: 2
-      x: 1677
-      y: 277
+      x: 1763
+      y: 239
       width: 289
       height: 112
     contents: We want our petals to rotate while they fall. We're setting an angular
       velocity that will be integrated by the update context later on. The update
       context will use this angular velocity to rotate the particles.
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Bend Anim Bool
     position:
       serializedVersion: 2
-      x: 251
-      y: 659
+      x: 313
+      y: 637
       width: 272
       height: 167
     contents: "We're sampling a 0\u20131 curve over the lifetime of the particles.
@@ -273,15 +478,16 @@ MonoBehaviour:
       bend animation is ending at 0.5 of the total life of the particles.\r\nWe're
       doing a logic statement to drive the activation of gravity, turbulence force,
       and rotation integration.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Activation Port
     position:
       serializedVersion: 2
-      x: 1686
-      y: 669
-      width: 488
-      height: 258
+      x: 1680
+      y: 737
+      width: 376
+      height: 130
     contents: 'We want the particles to only fall down, and rotate when they finished
       blooming.
 
@@ -290,8 +496,9 @@ MonoBehaviour:
       forces.
 
 '
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 2
   - title: Collide Blocks
     position:
       serializedVersion: 2
@@ -307,27 +514,29 @@ MonoBehaviour:
       it.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Bend Animation
     position:
       serializedVersion: 2
-      x: -1
-      y: 1240
-      width: 528
-      height: 284
+      x: 421
+      y: 1237
+      width: 346
+      height: 123
     contents: "We're sampling the curve thanks to the particle's age over its lifetime
       to shape the bend animation. \n\nThe value is passed to the shader, and the
       bend is done thanks to the RotateAboutAxis node in the vertex shader."
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 2
   - title: 'Size:'
     position:
       serializedVersion: 2
-      x: -1035
-      y: 1673
-      width: 635
-      height: 394
+      x: -87
+      y: 1917
+      width: 547
+      height: 158
     contents: 'ParticleID % 3 * X is used as a seed for a constant random number.
       Thanks to the seed, we can get a random variation per flower.
 
@@ -343,35 +552,38 @@ MonoBehaviour:
       the particles grow when born and shrink when dying
 
 '
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 2
   - title: Green Leaf
     position:
       serializedVersion: 2
-      x: 4053
-      y: -797
+      x: 4040
+      y: -815
       width: 489
-      height: 102
+      height: 113
     contents: 
-    theme: Black
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: Spawn On Mesh
     position:
       serializedVersion: 2
-      x: 4529
-      y: -75
+      x: 4533
+      y: -49
       width: 187
       height: 100
     contents: The leaf particles are positioned randomly on the stem mesh.
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Rotation Distribution
     position:
       serializedVersion: 2
-      x: 2757
-      y: 213
-      width: 433
-      height: 261
+      x: 3391
+      y: 225
+      width: 422
+      height: 119
     contents: 'We''re rotating randomly from -180 to 180 degrees around the X axis
       to fully revolve around the stem mesh.
 
@@ -380,35 +592,38 @@ MonoBehaviour:
       back and forth.
 
 '
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 2
   - title: Spiness
     position:
       serializedVersion: 2
-      x: 5006
-      y: -802
+      x: 5335
+      y: -795
       width: 275
       height: 101
     contents: 
-    theme: Black
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: Spawn On Mesh
     position:
       serializedVersion: 2
-      x: 5347
-      y: -37
+      x: 5677
+      y: -61
       width: 187
       height: 100
     contents: The spines particles are positioned randomly on the stem mesh.
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: -1035
-    y: -890
-    width: 6707
-    height: 3361
+    x: -123
+    y: -948
+    width: 6151
+    height: 3411
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -484,7 +699,7 @@ MonoBehaviour:
   m_CustomAttributes: []
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 18
+  m_GraphVersion: 19
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -500,10 +715,6 @@ VisualEffectResource:
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 1
-      rayTracingMode: 0
-      receiveShadows: 0
-      reflectionProbeUsage: 0
-      lightProbeUsage: 0
     m_CullingFlags: 3
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
@@ -527,7 +738,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661614816}
-  m_UIPosition: {x: 1243, y: -766}
+  m_UIPosition: {x: 1327, y: -765}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -564,7 +775,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614819}
   - {fileID: 8926484042661615248}
   - {fileID: 8926484042661615085}
-  m_UIPosition: {x: 1246, y: -441}
+  m_UIPosition: {x: 1329, y: -439}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -993,7 +1204,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1035, y: 1449}
+  m_UIPosition: {x: 1031, y: 1373}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -1219,7 +1430,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 371, y: -3}
+  m_UIPosition: {x: 336, y: 21}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -1525,7 +1736,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 615, y: 31}
+  m_UIPosition: {x: 580, y: 55}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -1655,7 +1866,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 468, y: 2091}
+  m_UIPosition: {x: 738, y: 2027}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3051,7 +3262,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 901, y: 965}
+  m_UIPosition: {x: 847, y: 894}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -3108,7 +3319,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1073, y: 965}
+  m_UIPosition: {x: 1019, y: 894}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3368,7 +3579,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 793, y: 31}
+  m_UIPosition: {x: 758, y: 55}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3469,7 +3680,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 995, y: 124}
+  m_UIPosition: {x: 960, y: 149}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3606,7 +3817,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 769, y: 184}
+  m_UIPosition: {x: 734, y: 209}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3670,7 +3881,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1013, y: 397}
+  m_UIPosition: {x: 909, y: 337}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3877,7 +4088,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 979, y: 1673}
+  m_UIPosition: {x: 922, y: 1650}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -3958,7 +4169,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 803, y: 1291}
+  m_UIPosition: {x: 799, y: 1215}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -4084,18 +4295,18 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615678}
       inputSlot: {fileID: 8926484042661615919}
-    position: {x: 3971.3333, y: 2.666668}
+    position: {x: 3973.3333, y: 21.333332}
     expandedSlots: []
     expanded: 0
-    supecollapsed: 0
+    supecollapsed: 1
   - m_Id: 1
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615678}
       inputSlot: {fileID: 8926484042661616093}
-    position: {x: 4744, y: -28.666668}
+    position: {x: 5109.3335, y: -22.666666}
     expandedSlots: []
     expanded: 0
-    supecollapsed: 0
+    supecollapsed: 1
 --- !u!114 &8926484042661615678
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5499,7 +5710,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -368, y: 1779}
+  m_UIPosition: {x: -98, y: 1715}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -5523,7 +5734,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -118, y: 1813}
+  m_UIPosition: {x: 152, y: 1749}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -5653,7 +5864,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 240, y: 1727}
+  m_UIPosition: {x: 510, y: 1663}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -5753,7 +5964,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 64, y: 1813}
+  m_UIPosition: {x: 334, y: 1749}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -6435,7 +6646,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 3231, y: 255}
+  m_UIPosition: {x: 3190, y: 255}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -6534,8 +6745,8 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 3115, y: 735}
-  m_UICollapsed: 1
+  m_UIPosition: {x: 3173, y: 795}
+  m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 8926484042661615968}
@@ -7239,8 +7450,8 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2543, y: 685}
-  m_UICollapsed: 0
+  m_UIPosition: {x: 2785, y: 749}
+  m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
@@ -7263,7 +7474,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 3489, y: 375}
+  m_UIPosition: {x: 3448, y: 375}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -7563,7 +7774,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 3801, y: 552}
+  m_UIPosition: {x: 3743, y: 543}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -7869,9 +8080,9 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 3497, y: 735}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
+  m_UIPosition: {x: 3564, y: 903}
+  m_UICollapsed: 0
+  m_UISuperCollapsed: 1
   m_InputSlots:
   - {fileID: 8926484042661616018}
   - {fileID: 8926484042661616026}
@@ -8448,7 +8659,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2465, y: 821}
+  m_UIPosition: {x: 2633, y: 845}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -8715,9 +8926,9 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2817, y: 737}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
+  m_UIPosition: {x: 3003, y: 841}
+  m_UICollapsed: 0
+  m_UISuperCollapsed: 1
   m_InputSlots:
   - {fileID: 8926484042661616046}
   - {fileID: 8926484042661616054}
@@ -9226,7 +9437,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2625, y: 817}
+  m_UIPosition: {x: 2793, y: 841}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -9362,7 +9573,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 3231, y: 429}
+  m_UIPosition: {x: 3190, y: 429}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -9462,7 +9673,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661616092}
-  m_UIPosition: {x: 4916, y: -309}
+  m_UIPosition: {x: 5245, y: -333}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -10378,7 +10589,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661616110}
-  m_UIPosition: {x: 4916, y: -675}
+  m_UIPosition: {x: 5245, y: -669}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -10596,7 +10807,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 251, y: 2111}
+  m_UIPosition: {x: 521, y: 2047}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -10788,7 +10999,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 468, y: 1825}
+  m_UIPosition: {x: 738, y: 1761}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -10925,7 +11136,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 240, y: 1903}
+  m_UIPosition: {x: 510, y: 1839}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -11059,10 +11270,10 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661616223}
       inputSlot: {fileID: 8926484042661616227}
-    position: {x: 611.3333, y: 1456}
+    position: {x: 594, y: 1403.3333}
     expandedSlots: []
     expanded: 0
-    supecollapsed: 0
+    supecollapsed: 1
 --- !u!114 &8926484042661616223
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11114,7 +11325,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 567, y: 1539}
+  m_UIPosition: {x: 563, y: 1463}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -11170,7 +11381,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 771, y: 1479}
+  m_UIPosition: {x: 767, y: 1403}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -11298,7 +11509,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 762, y: 1903}
+  m_UIPosition: {x: 1032, y: 1839}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -11522,6 +11733,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661616527}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -11932,6 +12144,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661616554}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -14966,7 +15179,7 @@ MonoBehaviour:
   - {fileID: 8926484042661616681}
   - {fileID: 8926484042661616694}
   - {fileID: 8926484042661616687}
-  m_UIPosition: {x: 4645, y: 231}
+  m_UIPosition: {x: 4975, y: 207}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -14993,6 +15206,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661616679}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -15018,7 +15232,6 @@ MonoBehaviour:
     m_PropertyNames: []
     m_PropertyValues: []
     renderQueue: -1
-  useBaseColorMap: 3
   useMaskMap: 0
   useNormalMap: 0
   useEmissiveMap: 0
@@ -15213,7 +15426,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661616674}
   m_Children: []
-  m_UIPosition: {x: 0, y: 210}
+  m_UIPosition: {x: 0, y: 2}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -15411,7 +15624,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661616674}
   m_Children: []
-  m_UIPosition: {x: 0, y: 2}
+  m_UIPosition: {x: 0, y: 198}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -15609,7 +15822,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661616674}
   m_Children: []
-  m_UIPosition: {x: 0, y: 113}
+  m_UIPosition: {x: 0, y: 101}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -15743,7 +15956,7 @@ MonoBehaviour:
   - {fileID: 8926484042661616775}
   - {fileID: 8926484042661616781}
   - {fileID: 8926484042661616785}
-  m_UIPosition: {x: 5247, y: 207}
+  m_UIPosition: {x: 5577, y: 183}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -15770,6 +15983,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661616774}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -15798,7 +16012,6 @@ MonoBehaviour:
   materialType: 0
   workflowMode: 0
   smoothnessSource: 0
-  useBaseColorMap: 3
   useOcclusionMap: 0
   useMetallicMap: 0
   useSpecularMap: 0
@@ -15953,7 +16166,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661616769}
   m_Children: []
-  m_UIPosition: {x: 294.1587, y: 246.1712}
+  m_UIPosition: {x: 0, y: 2}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -16151,7 +16364,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661616769}
   m_Children: []
-  m_UIPosition: {x: 294.1587, y: 149.1712}
+  m_UIPosition: {x: 0, y: 101}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -16282,7 +16495,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661616769}
   m_Children: []
-  m_UIPosition: {x: 294.1587, y: 38.171204}
+  m_UIPosition: {x: 0, y: 198}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:

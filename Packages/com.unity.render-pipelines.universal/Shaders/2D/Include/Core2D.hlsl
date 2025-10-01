@@ -19,6 +19,7 @@
 #define COMMON_2D_INPUTS                 \
         float3 positionOS   : POSITION;  \
         float2 uv           : TEXCOORD0; \
+        float3 normal       : NORMAL;    \
         UNITY_VERTEX_INPUT_INSTANCE_ID
 
 #define COMMON_2D_OUTPUTS_SHARED              \
@@ -29,7 +30,8 @@
 #if defined(DEBUG_DISPLAY)
     #define COMMON_2D_OUTPUTS                \
             COMMON_2D_OUTPUTS_SHARED         \
-            float3 positionWS  : TEXCOORD2;    
+            float3 positionWS  : TEXCOORD2;  \
+            half3  normalWS    : TEXCOORD3;
 #else
     #define COMMON_2D_OUTPUTS                \
             COMMON_2D_OUTPUTS_SHARED             
@@ -38,7 +40,6 @@
 // Normals
 #define COMMON_2D_NORMALS_INPUTS       \
         COMMON_2D_INPUTS               \
-        float3 normal       : NORMAL;  \
         float4 tangent      : TANGENT; \
 
 #define COMMON_2D_NORMALS_OUTPUTS          \

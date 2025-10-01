@@ -76,7 +76,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                $"- {passName}: {pass.fragmentInfoWidth}x{pass.fragmentInfoHeight}, {pass.fragmentInfoSamples} sample(s).";
                     break;
                 case PassBreakReason.NextPassReadsTexture:
-                    message += "The next pass reads one of the outputs as a regular texture, the pass needs to break.";
+                    message += $"{prevPassName} output is sampled by {passName} as a regular texture, the pass needs to break.";
+                    break;
+                case PassBreakReason.NextPassTargetsTexture:
+                    message += $"{prevPassName} reads a texture that {passName} targets to, the pass needs to break.";
                     break;
                 case PassBreakReason.NonRasterPass:
                     message += $"{prevPassName} is type {prevPass.type}. Only Raster passes can be merged.";

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -19,16 +20,9 @@ namespace UnityEditor.VFX
     }
 
     [Serializable]
-    class VFXMaterialSerializedSettings : ISerializationCallbackReceiver
+    class VFXMaterialSerializedSettings : ISerializationCallbackReceiver, ICloneable
     {
         private Dictionary<string, float> m_PropertyMap = new Dictionary<string, float>();
-
-        public static VFXMaterialSerializedSettings CreateFromMaterial(Material material)
-        {
-            VFXMaterialSerializedSettings settings = new VFXMaterialSerializedSettings();
-            settings.SyncFromMaterial(material);
-            return settings;
-        }
 
         public void UpgradeToMaterialWorkflowVersion(Material referenceMaterial)
         {
@@ -101,7 +95,7 @@ namespace UnityEditor.VFX
                 currentEntry.FindPropertyRelative("second").floatValue = kvp.Value;
             }
 
-            serializedMaterial.ApplyModifiedProperties();
+            serializedMaterial.ApplyModifiedPropertiesWithoutUndo();
             //N.B.: We can't used serialized properties here because renderQueue changes aren't automatically mark this entry as override
             material.renderQueue = renderQueue;
         }
@@ -153,6 +147,16 @@ namespace UnityEditor.VFX
             m_PropertyMap = new Dictionary<string, float>();
             for (int i = 0; i != Math.Min(m_PropertyNames.Count, m_PropertyValues.Count); i++)
                 m_PropertyMap.Add(m_PropertyNames[i], m_PropertyValues[i]);
+        }
+
+        public object Clone()
+        {
+            var newMaterialSettings = new VFXMaterialSerializedSettings
+            {
+                m_PropertyMap = new(m_PropertyMap),
+                renderQueue = renderQueue
+            };
+            return newMaterialSettings;
         }
     }
 }

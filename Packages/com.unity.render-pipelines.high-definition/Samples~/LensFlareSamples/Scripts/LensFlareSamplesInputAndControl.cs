@@ -1,16 +1,8 @@
-#if (ENABLE_INPUT_SYSTEM && INPUT_SYSTEM_INSTALLED)
-#define USE_INPUT_SYSTEM
-#endif
-
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
 
-#if USE_INPUT_SYSTEM
-using UnityEngine.InputSystem;
-#endif
-
-// Script that allows easy navigation of provided lens flare assets and ability to add custom lens flare assets for development
 [ExecuteInEditMode]
 public class LensFlareSamplesInputAndControl : MonoBehaviour
 {
@@ -37,8 +29,6 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
     private LensFlareComponentSRP lensFlareComponent;
     private GameObject lensFlareLight;
 
-    
-    private int flareNumber;
     private Vector3 vectorNoise = Vector3.zero;
 
     void Start()
@@ -48,7 +38,6 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
 
     void Update()
     {
-
         if (Application.isFocused)
         {
             lensFlareLight = this.transform.GetChild(0).gameObject;
@@ -62,33 +51,18 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
 
     private void SetSkyFromInput()
     {
-#if USE_INPUT_SYSTEM
-        if (Keyboard.current.digit1Key.wasPressedThisFrame)
+        if (Keyboard.current.digit1Key.wasPressedThisFrame || Keyboard.current.numpad1Key.wasPressedThisFrame)
         {
             SetSky(0);
         }
-        else if (Keyboard.current.digit2Key.wasPressedThisFrame)
+        else if (Keyboard.current.digit2Key.wasPressedThisFrame || Keyboard.current.numpad2Key.wasPressedThisFrame)
         {
             SetSky(1);
         }
-        else if (Keyboard.current.digit3Key.wasPressedThisFrame)
+        else if (Keyboard.current.digit3Key.wasPressedThisFrame || Keyboard.current.numpad3Key.wasPressedThisFrame)
         {
             SetSky(2);
         }
-#else
-        if (Input.GetKeyDown("1"))
-        {
-            SetSky(0);
-        }
-        else if (Input.GetKeyDown("2"))
-        {
-            SetSky(1);
-        }
-        else if (Input.GetKeyDown("3"))
-        {
-            SetSky(2);
-        }
-#endif
     }
 
     void SetSky(int inputNumber)
@@ -106,26 +80,18 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
 
     private void MoveLightWithMouse()
     {
-#if USE_INPUT_SYSTEM
-        if (Mouse.current.leftButton.IsPressed())
+        if (Mouse.current.leftButton.isPressed)
         {
             var mousePosition = Mouse.current.position.ReadValue();
-            lensFlareLight.transform.position = cameraComponent.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, lightDistance));
+            lensFlareLight.transform.position = cameraComponent.ScreenToWorldPoint(
+                new Vector3(mousePosition.x, mousePosition.y, lightDistance));
         }
-#else
-        if (Input.GetMouseButton(0))
-        {
-            lensFlareLight.transform.position = cameraComponent.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, lightDistance));
-        }
-#endif
     }
-
 
     private void CameraMovementWithMouse()
     {
         LockCursorWhileMouseButtonDown();
 
-#if USE_INPUT_SYSTEM
         if (Mouse.current.rightButton.isPressed)
         {
             var mouseMovement = Mouse.current.delta.ReadValue() * cameraRotationSpeed / 30f;
@@ -139,26 +105,10 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
                 cameraGameObject.transform.localEulerAngles += new Vector3(mouseMovement.y * -1f, mouseMovement.x, 0f);
             }
         }
-#else
-        if (Input.GetMouseButton(1))
-        {
-            var mouseMovement = new Vector2(Input.GetAxis("Mouse Y"), Input.GetAxis("Mouse X")) * Time.deltaTime * cameraRotationSpeed * 200.0f;
-
-            if (useMouseDragInsteadOfFPSControl)
-            {
-                cameraGameObject.transform.localEulerAngles += new Vector3(mouseMovement.x, mouseMovement.y * -1f, 0f);
-            }
-            else
-            {
-                cameraGameObject.transform.localEulerAngles += new Vector3(mouseMovement.x * -1f, mouseMovement.y, 0f);
-            }
-        }
-#endif
     }
 
     private void LockCursorWhileMouseButtonDown()
     {
-#if USE_INPUT_SYSTEM
         if (Mouse.current.rightButton.wasPressedThisFrame)
         {
             Cursor.lockState = CursorLockMode.Locked;
@@ -169,18 +119,6 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
         }
-#else
-        if (Input.GetMouseButtonDown(1))
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-        }
-
-        if (Input.GetMouseButtonUp(1))
-        {
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
-        }
-#endif
     }
 
     private void CameraShake()
@@ -189,7 +127,10 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
         {
             cameraGameObject.transform.localEulerAngles -= vectorNoise;
 
-            vectorNoise = new Vector3(Mathf.PerlinNoise(0, Time.time * cameraShakeSpeed), Mathf.PerlinNoise(1, Time.time * cameraShakeSpeed), Mathf.PerlinNoise(2, Time.time * cameraShakeSpeed)) * cameraShakeAmplitude;
+            vectorNoise = new Vector3(
+                Mathf.PerlinNoise(0, Time.time * cameraShakeSpeed),
+                Mathf.PerlinNoise(1, Time.time * cameraShakeSpeed),
+                Mathf.PerlinNoise(2, Time.time * cameraShakeSpeed)) * cameraShakeAmplitude;
 
             cameraGameObject.transform.localEulerAngles += vectorNoise;
         }

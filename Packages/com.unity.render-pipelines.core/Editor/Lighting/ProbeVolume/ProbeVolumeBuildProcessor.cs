@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Collections.Generic;
 using UnityEditor.Build;
@@ -120,10 +121,16 @@ namespace UnityEditor.Rendering
                     // APV doesn't work with WebGL, so let's warn the user.
                     if (buildPlayerContext.BuildPlayerOptions.target == BuildTarget.WebGL)
                     {
-                        Debug.LogError(
-                            $"The scene '{scene}' contains baked Adaptive Probe Volumes, but the build target is WebGL. " +
-                            "Adaptive Probe Volumes are not supported when targeting WebGL.");
-                        continue;
+                        // WebGPU does support APV so only warn if WebGPU is not enabled.
+                        GraphicsDeviceType[] apis = PlayerSettings.GetGraphicsAPIs(BuildTarget.WebGL);
+                        var index = Array.FindIndex(apis, x => x == GraphicsDeviceType.WebGPU);
+                        if (index == -1)
+                        {
+                            Debug.LogError(
+                                $"The scene '{scene}' contains baked Adaptive Probe Volumes, but the build target is WebGL. " +
+                                "Adaptive Probe Volumes are not supported when targeting WebGL.");
+                            continue;
+                        }
                     }
 
                     var bakingSetGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(bakingSet));

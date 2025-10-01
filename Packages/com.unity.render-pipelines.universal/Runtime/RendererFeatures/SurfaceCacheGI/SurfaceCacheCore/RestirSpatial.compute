@@ -1,0 +1,70 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5
+
+#pragma kernel ResampleSpatially
+
+#include "PatchUtil.hlsl"
+#include "RingBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
+#include "RestirEstimation.hlsl"
+
+StructuredBuffer<uint> _RingConfigBuffer;
+StructuredBuffer<Realization> _InputPatchRealizations;
+StructuredBuffer<PatchUtil::PatchGeometry> _PatchGeometries;
+RWStructuredBuffer<Realization> _OutputPatchRealizations;
+StructuredBuffer<uint> _CellPatchIndices;
+StructuredBuffer<int3> _CascadeOffsets;
+
+uint _FrameIdx;
+uint _CascadeCount;
+uint _GridSize;
+uint _SampleCount;
+float _FilterSize;
+float _VoxelMinSize;
+uint _RingConfigOffset;
+float3 _GridTargetPos;
+
+[numthreads(64, 1, 1)]
+void ResampleSpatially(uint patchIdx : SV_DispatchThreadID)
+{
+    if (RingBuffer::IsPositionUnused(_RingConfigBuffer, _RingConfigOffset, patchIdx))
+        return;
+
+    Reservoir reservoir;
+    reservoir.Init();
+
+    const PatchUtil::PatchGeometry patchGeo = _PatchGeometries[patchIdx];
+    const int cascadeResolution = PatchUtil::ResolveCascadeIndex(_GridTargetPos, patchGeo.position, _GridSize, _CascadeCount, _VoxelMinSize);
+    const uint cascadeIdx = cascadeResolution != -1 ? cascadeResolution : _CascadeCount - 1;
+
+    QrngKronecker rng;
+    rng.Init(uint2(patchIdx, 0), _FrameIdx * _SampleCount);
+
+    {
+        const Realization realization = _InputPatchRealizations[patchIdx];
+        const float candidateWeight = TargetFunction(realization.sample) * realization.weight * realization.confidence;
+        reservoir.Update(realization.sample, realization.confidence, candidateWeight, 0.5f);
+    }
+
+    for (uint sampleIdx = 0; sampleIdx < _SampleCount; ++sampleIdx)
+    {
+        float3 up;
+        float3 right;
+        OrthoBasisFromVector(patchGeo.normal, up, right);
+
+        const float2 jitter = (float2(rng.GetFloat(0), rng.GetFloat(1)) * 2.0f - 1.0f) * _FilterSize;
+        const float3 displacement = (up * jitter.x + right * jitter.y) * PatchUtil::GetVoxelSize(_VoxelMinSize, cascadeIdx);
+        const float3 jitteredPosition = patchGeo.position + displacement;
+
+        uint neighbourPatchIdx = PatchUtil::FindPatchIndex(_GridTargetPos, _CellPatchIndices, _GridSize, _CascadeOffsets, _CascadeCount, _VoxelMinSize, jitteredPosition, patchGeo.normal);
+        if (neighbourPatchIdx != PatchUtil::invalidPatchIndex)
+        {
+            Realization realization = _InputPatchRealizations[neighbourPatchIdx];
+            float candidateWeight = TargetFunction(realization.sample) * realization.weight * realization.confidence;
+            reservoir.Update(realization.sample, realization.confidence, candidateWeight, rng.GetFloat(2));
+        }
+
+        rng.NextSample();
+    }
+
+    _OutputPatchRealizations[patchIdx] = CreateRealizationFromReservoir(reservoir);
+}

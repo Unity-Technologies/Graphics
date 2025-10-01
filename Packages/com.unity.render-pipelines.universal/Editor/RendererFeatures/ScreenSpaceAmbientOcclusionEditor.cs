@@ -111,16 +111,15 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel++;
 
                 // Selecting source is not available for Deferred Rendering...
-                bool oldEnablement = GUI.enabled;
-                GUI.enabled &= !isDeferredRenderingMode;
+                GUI.enabled = !isDeferredRenderingMode;
                 EditorGUILayout.PropertyField(m_Source, Styles.Source);
 
                 // We only enable this field when depth source is selected...
-                GUI.enabled &= m_Source.enumValueIndex == (int)ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth;
+                GUI.enabled = !isDeferredRenderingMode && m_Source.enumValueIndex == (int)ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth;
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_NormalQuality, Styles.NormalQuality);
                 EditorGUI.indentLevel--;
-                GUI.enabled = oldEnablement;
+                GUI.enabled = true;
 
                 EditorGUILayout.PropertyField(m_Downsample, Styles.Downsample);
                 EditorGUILayout.PropertyField(m_AfterOpaque, Styles.AfterOpaque);

@@ -16,10 +16,10 @@ MonoBehaviour:
   - title: Random TexIndex Animation
     position:
       serializedVersion: 2
-      x: -1524
-      y: 606
-      width: 1453
-      height: 429
+      x: -1521
+      y: 600
+      width: 1447
+      height: 452
     contents:
     - model: {fileID: 8926484042661615124}
       id: 0
@@ -48,13 +48,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615253}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 4
+      isStickyNote: 1
   - title: Color
     position:
       serializedVersion: 2
-      x: -1063
-      y: 1436
-      width: 739
-      height: 279
+      x: -1062
+      y: 1331
+      width: 628
+      height: 378
     contents:
     - model: {fileID: 8926484042661615208}
       id: 0
@@ -68,22 +71,133 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615276}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 5
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: -62
+      y: -153
+      width: 1009
+      height: 1138
+    contents:
+    - model: {fileID: 8926484042661614707}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615965}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615987}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614972}
+      id: 2
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 1
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 2
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 3
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 148
+      y: -665
+      width: 593
+      height: 487
+    contents:
+    - model: {fileID: 8926484042661614700}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 0
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 1483
+      y: -297
+      width: 1226
+      height: 2081
+    contents:
+    - model: {fileID: 8926484042661615285}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 7
+      isStickyNote: 1
+    - model: {fileID: 8926484042661614972}
+      id: 1
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615494}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615600}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615911}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616038}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615291}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 8
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: -416
+      y: 1113
+      width: 1664
+      height: 749
+    contents:
+    - model: {fileID: 8926484042661615084}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615781}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616010}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616015}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615186}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615198}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 6
+      isStickyNote: 1
   stickyNoteInfos:
   - title: Decal Pattern
     position:
       serializedVersion: 2
-      x: 204
-      y: -622
+      x: 173
+      y: -606
       width: 542
-      height: 100
-    contents: type something here
-    theme: Black
+      height: 114
+    contents: 
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: 'Position Skinned Mesh:'
     position:
       serializedVersion: 2
-      x: 662
-      y: 631
+      x: 643
+      y: 601
       width: 278
       height: 100
     contents: 'This block in the update context will make our particles stick to
@@ -92,94 +206,102 @@ MonoBehaviour:
 
 
       Enter play mode to see the mesh animated.'
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Random Angle.Z
     position:
       serializedVersion: 2
-      x: 657
-      y: 365
+      x: 639
+      y: 335
       width: 200
       height: 100
     contents: We add a random initial rotation on the Z axis of our particles.
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Scale.XYZ
     position:
       serializedVersion: 2
-      x: 661
-      y: 157
+      x: 649
+      y: 200
       width: 188
       height: 120
     contents: 'The Z-scale component is being reduced. By doing this, we are reducing
       the projection''s length of the decal particles.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Random TexIndex Anim
     position:
       serializedVersion: 2
-      x: -1853
-      y: 611
+      x: -1378
+      y: 926
       width: 327
       height: 100
     contents: With the time operator, we are sampling a 1D value noise to animate
       the texIndex attribute. This makes a sprite move by randomly changing the frames
       in the sprite sheet.
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Color '
     position:
       serializedVersion: 2
-      x: -1225
-      y: 1459
+      x: -1033
+      y: 1391
       width: 156
       height: 106
     contents: We're sampling a noise to change the color intensity over time.
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Decal
     position:
       serializedVersion: 2
-      x: 226
-      y: 1209
-      width: 445
-      height: 382
+      x: 267
+      y: 1273
+      width: 285
+      height: 152
     contents: "The decal output is responsible for rendering particle decals. \n\nYou
       will find some settings in the Inspector related to the buffer you wish to
       affect.\n\r\nNormals? Smoothness? Metallic? Color, etc\u2026\r\n"
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 3
   - title: Decal Logo
     position:
       serializedVersion: 2
-      x: 1865
-      y: -273
-      width: 542
-      height: 100
-    contents: type something here
-    theme: Black
+      x: 1918
+      y: -237
+      width: 471
+      height: 112
+    contents: 
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: 'Position Skinned Mesh:'
     position:
       serializedVersion: 2
-      x: 2365
-      y: 1173
+      x: 2405
+      y: 997
       width: 278
       height: 136
     contents: "This block in the update context will make our particles stick to
       the animated skinned mesh.\r\n\nIn this system, we've chosen a specific triangle
       that is roughly centered. \n\nEnter play mode to see the mesh animated.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: -1853
-    y: -622
-    width: 4496
-    height: 2557
+    x: -1521
+    y: -665
+    width: 4230
+    height: 2527
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -248,7 +370,7 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 18
+  m_GraphVersion: 19
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -264,10 +386,6 @@ VisualEffectResource:
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 0
-      rayTracingMode: 0
-      receiveShadows: 0
-      reflectionProbeUsage: 0
-      lightProbeUsage: 0
     m_CullingFlags: 3
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
@@ -291,7 +409,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661614703}
-  m_UIPosition: {x: 232, y: -512}
+  m_UIPosition: {x: 204, y: -492}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -477,7 +595,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615993}
   - {fileID: 8926484042661615999}
   - {fileID: 8926484042661616006}
-  m_UIPosition: {x: 232, y: -86}
+  m_UIPosition: {x: 209, y: -93}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -872,7 +990,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661614973}
       inputSlot: {fileID: 8926484042661616041}
-    position: {x: 1667.3334, y: 1247.3333}
+    position: {x: 1706.6666, y: 1072}
     expandedSlots: []
     expanded: 0
     supecollapsed: 0
@@ -880,10 +998,10 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661614973}
       inputSlot: {fileID: 8926484042661615968}
-    position: {x: -22, y: 664.6667}
+    position: {x: -36.666668, y: 681.3334}
     expandedSlots: []
     expanded: 0
-    supecollapsed: 0
+    supecollapsed: 1
 --- !u!114 &8926484042661614973
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -937,7 +1055,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661615180}
   - {fileID: 8926484042661615167}
-  m_UIPosition: {x: -251, y: 1183}
+  m_UIPosition: {x: -173, y: 1173}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -967,6 +1085,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615093}
+  useBaseColorMap: -1
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -985,14 +1104,13 @@ MonoBehaviour:
   enableRayTracing: 0
   decimationFactor: 1
   raytracedScaleMode: 0
-  needsOwnSort: 0
+  needsOwnSort: 1
   needsOwnAabbBuffer: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
     m_PropertyValues: []
     renderQueue: -1
-  useBaseColorMap: -1
   useMaskMap: 0
   useNormalMap: 0
   useEmissiveMap: 1
@@ -1176,7 +1294,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -1487, y: 665}
+  m_UIPosition: {x: -1484, y: 659}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -1941,7 +2059,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -553, y: 1718}
+  m_UIPosition: {x: -391, y: 1675}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -2136,7 +2254,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -487, y: 1465}
+  m_UIPosition: {x: -365, y: 1485}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -2427,7 +2545,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -571, y: 833}
+  m_UIPosition: {x: -568, y: 827}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2799,7 +2917,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -251, y: 833}
+  m_UIPosition: {x: -248, y: 827}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2894,7 +3012,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -945, y: 931}
+  m_UIPosition: {x: -942, y: 925}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2993,7 +3111,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -1307, y: 713}
+  m_UIPosition: {x: -1304, y: 707}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3130,7 +3248,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -1133, y: 713}
+  m_UIPosition: {x: -1130, y: 707}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3225,7 +3343,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -945, y: 793}
+  m_UIPosition: {x: -942, y: 787}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3362,7 +3480,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -1499, y: 809}
+  m_UIPosition: {x: -1496, y: 803}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3457,7 +3575,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -759, y: 833}
+  m_UIPosition: {x: -756, y: 827}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -4272,7 +4390,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661615287}
-  m_UIPosition: {x: 1939, y: -86}
+  m_UIPosition: {x: 1953, y: -93}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -4458,12 +4576,11 @@ MonoBehaviour:
   - {fileID: 8926484042661616029}
   - {fileID: 8926484042661616026}
   - {fileID: 8926484042661616035}
-  m_UIPosition: {x: 1939, y: 448}
+  m_UIPosition: {x: 1979, y: 273}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 8926484042661615292}
-  - {fileID: 8926484042661615301}
   m_OutputSlots: []
   m_Label: Initialize Particles
   m_Data: {fileID: 8926484042661615305}
@@ -4502,7 +4619,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.AABox, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"center":{"x":0.0,"y":-2.0,"z":0.0},"size":{"x":7.0,"y":8.0,"z":7.0}}'
+      m_SerializableObject: '{"center":{"x":0.0,"y":1.0,"z":0.0},"size":{"x":2.0,"y":2.0,"z":2.0}}'
     m_Space: 0
   m_Property:
     name: bounds
@@ -4781,142 +4898,6 @@ MonoBehaviour:
         PublicKeyToken=b77a5c561934e089
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &8926484042661615301
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ac39bd03fca81b849929b9c966f1836a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_UIIgnoredErrors: []
-  m_Parent: {fileID: 0}
-  m_Children:
-  - {fileID: 8926484042661615302}
-  - {fileID: 8926484042661615303}
-  - {fileID: 8926484042661615304}
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661615301}
-  m_MasterData:
-    m_Owner: {fileID: 8926484042661615291}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"x":0.5,"y":0.5,"z":0.5}'
-    m_Space: -1
-  m_Property:
-    name: boundsPadding
-    m_serializedType:
-      m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
-        Culture=neutral, PublicKeyToken=null
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &8926484042661615302
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_UIIgnoredErrors: []
-  m_Parent: {fileID: 8926484042661615301}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661615301}
-  m_MasterData:
-    m_Owner: {fileID: 0}
-    m_Value:
-      m_Type:
-        m_SerializableType: 
-      m_SerializableObject: 
-    m_Space: -1
-  m_Property:
-    name: x
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &8926484042661615303
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_UIIgnoredErrors: []
-  m_Parent: {fileID: 8926484042661615301}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661615301}
-  m_MasterData:
-    m_Owner: {fileID: 0}
-    m_Value:
-      m_Type:
-        m_SerializableType: 
-      m_SerializableObject: 
-    m_Space: -1
-  m_Property:
-    name: y
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &8926484042661615304
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_UIIgnoredErrors: []
-  m_Parent: {fileID: 8926484042661615301}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661615301}
-  m_MasterData:
-    m_Owner: {fileID: 0}
-    m_Value:
-      m_Type:
-        m_SerializableType: 
-      m_SerializableObject: 
-    m_Space: -1
-  m_Property:
-    name: z
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-  m_Direction: 0
-  m_LinkedSlots: []
 --- !u!114 &8926484042661615305
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4946,7 +4927,7 @@ MonoBehaviour:
   stripCapacity: 1
   particlePerStripCount: 32
   needsComputeBounds: 0
-  boundsMode: 0
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615494
 MonoBehaviour:
@@ -4964,7 +4945,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661615562}
-  m_UIPosition: {x: 1667, y: 1474}
+  m_UIPosition: {x: 1707, y: 1299}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -4992,6 +4973,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615521}
+  useBaseColorMap: 2
   colorMapping: 0
   uvMode: 3
   flipbookLayout: 0
@@ -5010,14 +4992,13 @@ MonoBehaviour:
   enableRayTracing: 0
   decimationFactor: 1
   raytracedScaleMode: 0
-  needsOwnSort: 0
+  needsOwnSort: 1
   needsOwnAabbBuffer: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
     m_PropertyValues: []
     renderQueue: -1
-  useBaseColorMap: 2
   useMaskMap: 0
   useNormalMap: 0
   useEmissiveMap: 0
@@ -5637,7 +5618,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1377, y: 1725}
+  m_UIPosition: {x: 1508, y: 1566}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -5663,7 +5644,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661615824}
   - {fileID: 8926484042661615830}
-  m_UIPosition: {x: 720, y: 1203}
+  m_UIPosition: {x: 797, y: 1193}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -5693,6 +5674,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615790}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -5721,7 +5703,6 @@ MonoBehaviour:
   materialType: 0
   workflowMode: 0
   smoothnessSource: 0
-  useBaseColorMap: 3
   useOcclusionMap: 0
   useMetallicMap: 0
   useSpecularMap: 0
@@ -6652,7 +6633,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661615953}
-  m_UIPosition: {x: 2199, y: 1474}
+  m_UIPosition: {x: 2239, y: 1299}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -6680,6 +6661,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615920}
+  useBaseColorMap: 2
   colorMapping: 0
   uvMode: 3
   flipbookLayout: 0
@@ -6708,7 +6690,6 @@ MonoBehaviour:
   materialType: 0
   workflowMode: 0
   smoothnessSource: 0
-  useBaseColorMap: 2
   useOcclusionMap: 0
   useMetallicMap: 0
   useSpecularMap: 0
@@ -7339,7 +7320,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661615967}
   - {fileID: 8926484042661616003}
-  m_UIPosition: {x: 232, y: 541}
+  m_UIPosition: {x: 209, y: 553}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -7376,7 +7357,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661615965}
   m_Children: []
-  m_UIPosition: {x: 0, y: 420}
+  m_UIPosition: {x: 0, y: 2}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -7923,7 +7904,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 26, y: 733}
+  m_UIPosition: {x: 17, y: 725}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -8250,7 +8231,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661615965}
   m_Children: []
-  m_UIPosition: {x: 0, y: 210}
+  m_UIPosition: {x: 0, y: 204}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -8312,7 +8293,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661614707}
   m_Children: []
-  m_UIPosition: {x: 0, y: 287}
+  m_UIPosition: {x: 0, y: 209}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -8443,7 +8424,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 453, y: 1549}
+  m_UIPosition: {x: 531, y: 1539}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -8467,7 +8448,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 437, y: 1690}
+  m_UIPosition: {x: 515, y: 1681}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -8678,7 +8659,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661616040}
-  m_UIPosition: {x: 1939, y: 1059}
+  m_UIPosition: {x: 1979, y: 883}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []

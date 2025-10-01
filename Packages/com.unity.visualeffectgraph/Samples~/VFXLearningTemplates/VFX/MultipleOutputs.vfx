@@ -12,13 +12,99 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d01270efd3285ea4a9d6c555cb0a8027, type: 3}
   m_Name: VFXUI
   m_EditorClassIdentifier: 
-  groupInfos: []
+  groupInfos:
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 309
+      y: -521
+      width: 1938
+      height: 2650
+    contents:
+    - model: {fileID: 8926484042661614649}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614729}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614558}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614953}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614973}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614959}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615230}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614583}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614585}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614589}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615038}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615053}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615046}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615056}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615062}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615071}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615147}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615155}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615158}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615184}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615190}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615192}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 0
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 1
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 2
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 3
+      isStickyNote: 1
   stickyNoteInfos:
   - title: 'SYSTEM Rename :'
     position:
       serializedVersion: 2
       x: 423
-      y: -56
+      y: -28
       width: 281
       height: 161
     contents: 'You can name your system by double-clicking on the green text in the
@@ -30,13 +116,14 @@ MonoBehaviour:
       so don''t forget to give informative names to your systems.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Block Context Inspector:'
     position:
       serializedVersion: 2
       x: 914
-      y: 172
+      y: 200
       width: 281
       height: 213
     contents: "Blocks usually display their settings directly inside the block layout
@@ -45,13 +132,14 @@ MonoBehaviour:
       \u201Cset size random\u201D block in the initialize context and look at the
       options in the Inspector.\r\n\r\nWe changed the \u201Crandom\u201D option from
       off to uniform, to allow the randomization of the size attribute's value.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Multiples Output Context:'
     position:
       serializedVersion: 2
       x: 334
-      y: 1154
+      y: 1182
       width: 406
       height: 204
     contents: "The \u201Cinitialize\u201D or \u201Cupdate\u201D context can be wired
@@ -62,13 +150,14 @@ MonoBehaviour:
       glow\u201D on top of it.\r\n\r\nNote that some Outputs are only compatible
       with a particular SRP. Example: the HDRP Volumetric Fog output is only compatible
       with HDRP."
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: 'Block Context Composition:'
     position:
       serializedVersion: 2
       x: 1291
-      y: 1437
+      y: 1465
       width: 390
       height: 252
     contents: "Another advanced option for a lot of context blocks is the composition
@@ -81,15 +170,16 @@ MonoBehaviour:
       to the current position. This allows us to \u201Cadd\u201D an \u201Coffset\u201D
       to the position of the \u201Cmesh\u201D and \u201Cquad lit\u201D outputs. 
       \r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: 334
-    y: -490
-    width: 1886
-    height: 2563
+    x: 309
+    y: -521
+    width: 1938
+    height: 2650
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -120,7 +210,7 @@ MonoBehaviour:
   m_CustomAttributes: []
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 18
+  m_GraphVersion: 19
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -136,10 +226,6 @@ VisualEffectResource:
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 1
-      rayTracingMode: 0
-      receiveShadows: 0
-      reflectionProbeUsage: 0
-      lightProbeUsage: 0
     m_CullingFlags: 3
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
@@ -166,7 +252,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614973}
   - {fileID: 8926484042661614959}
   - {fileID: 8926484042661615230}
-  m_UIPosition: {x: 1232, y: 0}
+  m_UIPosition: {x: 1232, y: 28}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -537,7 +623,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1232, y: 629}
+  m_UIPosition: {x: 1232, y: 657}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -581,7 +667,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661614589}
-  m_UIPosition: {x: 1232, y: 943}
+  m_UIPosition: {x: 1232, y: 971}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -605,6 +691,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661614590}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -761,7 +848,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661614729}
-  m_UIPosition: {x: 1232, y: -490}
+  m_UIPosition: {x: 1232, y: -462}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -1074,7 +1161,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661615053}
   - {fileID: 8926484042661615046}
-  m_UIPosition: {x: 764, y: 1124}
+  m_UIPosition: {x: 764, y: 1152}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -1102,6 +1189,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615045}
+  useBaseColorMap: -1
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -1127,7 +1215,6 @@ MonoBehaviour:
     m_PropertyNames: []
     m_PropertyValues: []
     renderQueue: -1
-  useBaseColorMap: -1
   useMaskMap: 0
   useNormalMap: 0
   useEmissiveMap: 0
@@ -1482,7 +1569,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661615062}
   - {fileID: 8926484042661615071}
-  m_UIPosition: {x: 1796, y: 1141}
+  m_UIPosition: {x: 1796, y: 1169}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -1510,6 +1597,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615061}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -1535,7 +1623,6 @@ MonoBehaviour:
     m_PropertyNames: []
     m_PropertyValues: []
     renderQueue: -1
-  useBaseColorMap: 3
   useMaskMap: 0
   useNormalMap: 0
   useEmissiveMap: 0
@@ -1976,7 +2063,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661615155}
   - {fileID: 8926484042661615158}
-  m_UIPosition: {x: 764, y: 1581}
+  m_UIPosition: {x: 764, y: 1609}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2004,6 +2091,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615154}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -2032,7 +2120,6 @@ MonoBehaviour:
   materialType: 0
   workflowMode: 0
   smoothnessSource: 0
-  useBaseColorMap: 3
   useOcclusionMap: 0
   useMetallicMap: 0
   useSpecularMap: 0
@@ -2381,7 +2468,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661615190}
   - {fileID: 8926484042661615192}
-  m_UIPosition: {x: 1796, y: 1611}
+  m_UIPosition: {x: 1796, y: 1639}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2409,6 +2496,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615189}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -2437,7 +2525,6 @@ MonoBehaviour:
   materialType: 0
   workflowMode: 0
   smoothnessSource: 0
-  useBaseColorMap: 3
   useOcclusionMap: 0
   useMetallicMap: 0
   useSpecularMap: 0

@@ -275,7 +275,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (ensureVisible)
                 {
-                    blackboard.scrollView.ScrollToElementAfterGeometryChange(itemView);
+                    VisualElement scrollTo = itemView.Q("pill") ?? itemView;
+                    blackboard.scrollView.ScrollToElementAfterGeometryChange(scrollTo);
                 }
 
                 return itemView;

@@ -23,6 +23,12 @@ namespace UnityEditor.ShaderGraph
         public virtual void ProcessPreviewMaterial(Material material) { }
         public virtual object saveContext => null;
         public virtual bool IsNodeAllowedBySubTarget(Type nodeType) => true;
+        public virtual bool ValidateNodeCompatibility(AbstractMaterialNode node, out string errorMessage, out Rendering.ShaderCompilerMessageSeverity severity)
+        {
+            errorMessage = null;
+            severity = Rendering.ShaderCompilerMessageSeverity.Warning;
+            return false;
+        }
 
         // Call after SubTarget parent Target has been deserialized and Subtarget.target has been set to a non-null value.
         internal virtual void OnAfterParentTargetDeserialized() { }

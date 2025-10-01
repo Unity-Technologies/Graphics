@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.Universal
                             CED.Group(
                                 CED.Group(DrawerOutputHDR),
                                 CED.Conditional(
-                                    (serialized, owner) => PlayerSettings.allowHDRDisplaySupport && !Rendering.IsIntermediateTextureForbidden(UniversalRenderPipeline.asset),
+                                    (serialized, owner) => PlayerSettings.allowHDRDisplaySupport,
                                     CED.Group(DrawerOutputHDROutput)
                                     ),
                                 CED.Group(DrawerOutputMSAA),
@@ -54,72 +54,78 @@ namespace UnityEditor.Rendering.Universal
 
             static void DrawerOutputMultiDisplay(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
-                using var checkScope = new EditorGUI.ChangeCheckScope();
-                p.baseCameraSettings.DrawMultiDisplay();
-                if (checkScope.changed)
+                using (var checkScope = new EditorGUI.ChangeCheckScope())
                 {
-                    UpdateStackCamerasOutput(p, camera =>
+                    p.baseCameraSettings.DrawMultiDisplay();
+                    if (checkScope.changed)
                     {
-                        bool isChanged = false;
-                        // Force same target display
-                        int targetDisplay = p.baseCameraSettings.targetDisplay.intValue;
-                        if (camera.targetDisplay != targetDisplay)
+                        UpdateStackCamerasOutput(p, camera =>
                         {
-                            camera.targetDisplay = targetDisplay;
-                            isChanged = true;
-                        }
+                            bool isChanged = false;
+                            // Force same target display
+                            int targetDisplay = p.baseCameraSettings.targetDisplay.intValue;
+                            if (camera.targetDisplay != targetDisplay)
+                            {
+                                camera.targetDisplay = targetDisplay;
+                                isChanged = true;
+                            }
 
-                        // Force same target display
-                        StereoTargetEyeMask stereoTargetEye = (StereoTargetEyeMask)p.baseCameraSettings.targetEye.intValue;
-                        if (camera.stereoTargetEye != stereoTargetEye)
-                        {
-                            camera.stereoTargetEye = stereoTargetEye;
-                            isChanged = true;
-                        }
+                            // Force same target display
+                            StereoTargetEyeMask stereoTargetEye = (StereoTargetEyeMask)p.baseCameraSettings.targetEye.intValue;
+                            if (camera.stereoTargetEye != stereoTargetEye)
+                            {
+                                camera.stereoTargetEye = stereoTargetEye;
+                                isChanged = true;
+                            }
 
-                        return isChanged;
-                    });
+                            return isChanged;
+                        });
+                    }
                 }
             }
 
             static void DrawerOutputAllowDynamicResolution(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
-                using var checkScope = new EditorGUI.ChangeCheckScope();
-                CameraUI.Output.Drawer_Output_AllowDynamicResolution(p, owner, Styles.allowDynamicResolution);
-                if (checkScope.changed)
+                using (var checkScope = new EditorGUI.ChangeCheckScope())
                 {
-                    UpdateStackCamerasOutput(p, camera =>
+                    CameraUI.Output.Drawer_Output_AllowDynamicResolution(p, owner, Styles.allowDynamicResolution);
+                    if (checkScope.changed)
                     {
-                        bool allowDynamicResolution = p.allowDynamicResolution.boolValue;
+                        UpdateStackCamerasOutput(p, camera =>
+                        {
+                            bool allowDynamicResolution = p.allowDynamicResolution.boolValue;
 
-                        if (camera.allowDynamicResolution == p.allowDynamicResolution.boolValue)
-                            return false;
+                            if (camera.allowDynamicResolution == p.allowDynamicResolution.boolValue)
+                                return false;
 
-                        EditorUtility.SetDirty(camera);
+                            EditorUtility.SetDirty(camera);
 
-                        camera.allowDynamicResolution = allowDynamicResolution;
-                        return true;
-                    });
+                            camera.allowDynamicResolution = allowDynamicResolution;
+                            return true;
+                        });
+                    }
                 }
             }
 
             static void DrawerOutputNormalizedViewPort(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
-                using var checkScope = new EditorGUI.ChangeCheckScope();
-                CameraUI.Output.Drawer_Output_NormalizedViewPort(p, owner);
-                if (checkScope.changed)
+                using (var checkScope = new EditorGUI.ChangeCheckScope())
                 {
-                    UpdateStackCamerasOutput(p, camera =>
+                    CameraUI.Output.Drawer_Output_NormalizedViewPort(p, owner);
+                    if (checkScope.changed)
                     {
-                        Rect rect = p.baseCameraSettings.normalizedViewPortRect.rectValue;
-                        if (camera.rect != rect)
+                        UpdateStackCamerasOutput(p, camera =>
                         {
-                            camera.rect = p.baseCameraSettings.normalizedViewPortRect.rectValue;
-                            return true;
-                        }
+                            Rect rect = p.baseCameraSettings.normalizedViewPortRect.rectValue;
+                            if (camera.rect != rect)
+                            {
+                                camera.rect = p.baseCameraSettings.normalizedViewPortRect.rectValue;
+                                return true;
+                            }
 
-                        return false;
-                    });
+                            return false;
+                        });
+                    }
                 }
             }
 
@@ -142,31 +148,33 @@ namespace UnityEditor.Rendering.Universal
             static void DrawerOutputTargetTexture(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
                 var rpAsset = UniversalRenderPipeline.asset;
-                using var checkScope = new EditorGUI.ChangeCheckScope();
-                EditorGUILayout.PropertyField(p.baseCameraSettings.targetTexture, Styles.targetTextureLabel);
-
-                var texture = p.baseCameraSettings.targetTexture.objectReferenceValue as RenderTexture;
-                if (!p.baseCameraSettings.targetTexture.hasMultipleDifferentValues && rpAsset != null)
+                using (var checkScope = new EditorGUI.ChangeCheckScope())
                 {
-                    int pipelineSamplesCount = rpAsset.msaaSampleCount;
+                    EditorGUILayout.PropertyField(p.baseCameraSettings.targetTexture, Styles.targetTextureLabel);
 
-                    if (texture && texture.antiAliasing > pipelineSamplesCount)
+                    var texture = p.baseCameraSettings.targetTexture.objectReferenceValue as RenderTexture;
+                    if (!p.baseCameraSettings.targetTexture.hasMultipleDifferentValues && rpAsset != null)
                     {
-                        string pipelineMSAACaps = (pipelineSamplesCount > 1) ? string.Format(Styles.pipelineMSAACapsSupportSamples, pipelineSamplesCount) : Styles.pipelineMSAACapsDisabled;
-                        EditorGUILayout.HelpBox(string.Format(Styles.cameraTargetTextureMSAA, texture.antiAliasing, pipelineMSAACaps), MessageType.Warning, true);
+                        int pipelineSamplesCount = rpAsset.msaaSampleCount;
+
+                        if (texture && texture.antiAliasing > pipelineSamplesCount)
+                        {
+                            string pipelineMSAACaps = (pipelineSamplesCount > 1) ? string.Format(Styles.pipelineMSAACapsSupportSamples, pipelineSamplesCount) : Styles.pipelineMSAACapsDisabled;
+                            EditorGUILayout.HelpBox(string.Format(Styles.cameraTargetTextureMSAA, texture.antiAliasing, pipelineMSAACaps), MessageType.Warning, true);
+                        }
                     }
-                }
 
-                if (checkScope.changed)
-                {
-                    UpdateStackCamerasOutput(p, camera =>
+                    if (checkScope.changed)
                     {
-                        if (camera.targetTexture == texture)
-                            return false;
+                        UpdateStackCamerasOutput(p, camera =>
+                        {
+                            if (camera.targetTexture == texture)
+                                return false;
 
-                        camera.targetTexture = texture;
-                        return true;
-                    });
+                            camera.targetTexture = texture;
+                            return true;
+                        });
+                    }
                 }
             }
 
@@ -174,87 +182,97 @@ namespace UnityEditor.Rendering.Universal
             static void DrawerOutputXRRendering(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
                 Rect controlRect = EditorGUILayout.GetControlRect(true);
-                using var propertyScope = new EditorGUI.PropertyScope(controlRect, Styles.xrTargetEye, p.allowXRRendering);
-                using var checkScope = new EditorGUI.ChangeCheckScope();
-                
-                int selectedValue = !p.allowXRRendering.boolValue ? 0 : 1;
-                bool allowXRRendering = EditorGUI.IntPopup(controlRect, Styles.xrTargetEye, selectedValue, Styles.xrTargetEyeOptions, Styles.xrTargetEyeValues) == 1;
-                if (checkScope.changed)
-                    p.allowXRRendering.boolValue = allowXRRendering;
+                EditorGUI.BeginProperty(controlRect, Styles.xrTargetEye, p.allowXRRendering);
+                {
+                    using (var checkScope = new EditorGUI.ChangeCheckScope())
+                    {
+                        int selectedValue = !p.allowXRRendering.boolValue ? 0 : 1;
+                        bool allowXRRendering = EditorGUI.IntPopup(controlRect, Styles.xrTargetEye, selectedValue, Styles.xrTargetEyeOptions, Styles.xrTargetEyeValues) == 1;
+                        if (checkScope.changed)
+                            p.allowXRRendering.boolValue = allowXRRendering;
+                    }
+                }
+                EditorGUI.EndProperty();
             }
 
 #endif
 
             static void DrawerOutputHDR(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
-                if (Rendering.IsIntermediateTextureForbidden(UniversalRenderPipeline.asset))
+                Rect controlRect = EditorGUILayout.GetControlRect(true);
+                EditorGUI.BeginProperty(controlRect, Styles.allowHDR, p.baseCameraSettings.HDR);
                 {
-                    using (new EditorGUI.DisabledScope(true))
-                        EditorGUILayout.IntPopup(UniversalRenderPipelineAssetUI.Styles.GetNoIntermediateTextureVariant(Styles.allowHDR), 0, Styles.displayedCameraOptions, Styles.cameraOptions);
-                }
-                else
-                {
-                    var controlRect = EditorGUILayout.GetControlRect(true);
-                    using var propertyScope = new EditorGUI.PropertyScope(controlRect, Styles.allowHDR, p.baseCameraSettings.HDR);
-                    using var checkScope = new EditorGUI.ChangeCheckScope();
-                    
-                    int selectedValue = !p.baseCameraSettings.HDR.boolValue ? 0 : 1;
-                    var allowHDR = EditorGUI.IntPopup(controlRect, Styles.allowHDR, selectedValue, Styles.displayedCameraOptions, Styles.cameraOptions) == 1;
-                    if (!checkScope.changed) 
-                        return;
-                    
-                    p.baseCameraSettings.HDR.boolValue = allowHDR;
-                    UpdateStackCamerasOutput(p, camera =>
+                    using (var checkScope = new EditorGUI.ChangeCheckScope())
                     {
-                        if (camera.allowHDR == allowHDR)
-                            return false;
+                        int selectedValue = !p.baseCameraSettings.HDR.boolValue ? 0 : 1;
+                        var allowHDR = EditorGUI.IntPopup(controlRect, Styles.allowHDR, selectedValue, Styles.displayedCameraOptions, Styles.cameraOptions) == 1;
+                        if (checkScope.changed)
+                        {
+                            p.baseCameraSettings.HDR.boolValue = allowHDR;
+                            UpdateStackCamerasOutput(p, camera =>
+                            {
+                                if (camera.allowHDR == allowHDR)
+                                    return false;
 
-                        camera.allowHDR = allowHDR;
-                        return true;
-                    });
+                                camera.allowHDR = allowHDR;
+                                return true;
+                            });
+                        }
+                    }
                 }
+                EditorGUI.EndProperty();
             }
             
             static void DrawerOutputHDROutput(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
                 Rect controlRect = EditorGUILayout.GetControlRect(true);
-                using var propertyScope = new EditorGUI.PropertyScope(controlRect, Styles.allowHDROutput, p.allowHDROutput);
-                using var checkScope = new EditorGUI.ChangeCheckScope();
-                
-                int selectedValue = !p.allowHDROutput.boolValue ? 0 : 1;
-                var allowHDROutput = EditorGUI.IntPopup(controlRect, Styles.allowHDROutput, selectedValue, Styles.hdrOuputOptions, Styles.hdrOuputValues) == 1;
+                EditorGUI.BeginProperty(controlRect, Styles.allowHDROutput, p.allowHDROutput);
+                {
+                    using (var checkScope = new EditorGUI.ChangeCheckScope())
+                    {
+                        int selectedValue = !p.allowHDROutput.boolValue ? 0 : 1;
+                        var allowHDROutput = EditorGUI.IntPopup(controlRect, Styles.allowHDROutput, selectedValue, Styles.hdrOuputOptions, Styles.hdrOuputValues) == 1;
 
-                var rpAsset = UniversalRenderPipeline.asset;
-                bool perCameraHDRDisabled = !p.baseCameraSettings.HDR.boolValue && (rpAsset == null || rpAsset.supportsHDR);
+                        var rpAsset = UniversalRenderPipeline.asset;
+                        bool perCameraHDRDisabled = !p.baseCameraSettings.HDR.boolValue && (rpAsset == null || rpAsset.supportsHDR);
                         
-                if (allowHDROutput && PlayerSettings.allowHDRDisplaySupport && perCameraHDRDisabled) 
-                    EditorGUILayout.HelpBox(Styles.disabledHDRRenderingWithHDROutput, MessageType.Warning);
+                        if (allowHDROutput && PlayerSettings.allowHDRDisplaySupport && perCameraHDRDisabled)
+                        {
+                            EditorGUILayout.HelpBox(Styles.disabledHDRRenderingWithHDROutput, MessageType.Warning);
+                        }
 
-                if (checkScope.changed)
-                    p.allowHDROutput.boolValue = allowHDROutput;
+                        if (checkScope.changed)
+                            p.allowHDROutput.boolValue = allowHDROutput;
+                    }
+                }
+                EditorGUI.EndProperty();
             }
 
             static void DrawerOutputMSAA(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
                 Rect controlRect = EditorGUILayout.GetControlRect(true);
-                using var propertyScope = new EditorGUI.PropertyScope(controlRect, Styles.allowMSAA, p.baseCameraSettings.allowMSAA);
-                using var checkScope = new EditorGUI.ChangeCheckScope();
-                
-                int selectedValue = !p.baseCameraSettings.allowMSAA.boolValue ? 0 : 1;
-                var allowMSAA = EditorGUI.IntPopup(controlRect, Styles.allowMSAA,
-                    selectedValue, Styles.displayedCameraOptions, Styles.cameraOptions) == 1;
-                if (!checkScope.changed) 
-                    return;
-                
-                p.baseCameraSettings.allowMSAA.boolValue = allowMSAA;
-                UpdateStackCamerasOutput(p, camera =>
+                EditorGUI.BeginProperty(controlRect, Styles.allowMSAA, p.baseCameraSettings.allowMSAA);
                 {
-                    if (camera.allowMSAA == allowMSAA)
-                        return false;
+                    using (var checkScope = new EditorGUI.ChangeCheckScope())
+                    {
+                        int selectedValue = !p.baseCameraSettings.allowMSAA.boolValue ? 0 : 1;
+                        var allowMSAA = EditorGUI.IntPopup(controlRect, Styles.allowMSAA,
+                            selectedValue, Styles.displayedCameraOptions, Styles.cameraOptions) == 1;
+                        if (checkScope.changed)
+                        {
+                            p.baseCameraSettings.allowMSAA.boolValue = allowMSAA;
+                            UpdateStackCamerasOutput(p, camera =>
+                            {
+                                if (camera.allowMSAA == allowMSAA)
+                                    return false;
 
-                    camera.allowMSAA = allowMSAA;
-                    return true;
-                });
+                                camera.allowMSAA = allowMSAA;
+                                return true;
+                            });
+                        }
+                    }
+                }
+                EditorGUI.EndProperty();
             }
         }
     }

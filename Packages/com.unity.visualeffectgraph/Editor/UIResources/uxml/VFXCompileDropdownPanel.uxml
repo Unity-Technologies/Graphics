@@ -8,7 +8,7 @@
     </ui:Box>
     <ui:Box style="flex-direction:row">
         <ui:Slider name="prewarmTime" label="Prewarm Time" tooltip="Specifies the duration of the prewarm used during authoring in seconds." showInputField="true" style="margin-bottom:4px;flex-grow:1" direction="Horizontal" />
-        <ui:FloatField name="prewarmTimeField" style="width :30px"/>
+        <ui:FloatField name="prewarmTimeField" style="width:36px" />
     </ui:Box>
     <ui:Box>
         <ui:Toggle name="runtimeMode" text="Runtime Mode" tooltip="Forces optimized compilation" />

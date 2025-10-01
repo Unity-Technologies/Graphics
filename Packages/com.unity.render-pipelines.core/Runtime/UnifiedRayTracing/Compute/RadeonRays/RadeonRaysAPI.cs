@@ -119,18 +119,18 @@ namespace UnityEngine.Rendering.RadeonRays
 
         public Transform Inverse()
         {
-            float4x4 m = new float4x4();
-            m[0] = new float4(row0.x, row1.x, row2.x, 0);
-            m[1] = new float4(row0.y, row1.y, row2.y, 0);
-            m[2] = new float4(row0.z, row1.z, row2.z, 0);
-            m[3] = new float4(row0.w, row1.w, row2.w, 1);
+            float3x3 m = new float3x3();
+            m[0] = new float3(row0.x, row1.x, row2.x);
+            m[1] = new float3(row0.y, row1.y, row2.y);
+            m[2] = new float3(row0.z, row1.z, row2.z);
 
-            m = math.fastinverse(m);
+            m = math.inverse(m);
+            var t = -math.mul(m, new float3(row0.w, row1.w, row2.w));
 
             Transform res;
-            res.row0 = new float4(m[0].x, m[1].x, m[2].x, m[3].x);
-            res.row1 = new float4(m[0].y, m[1].y, m[2].y, m[3].y);
-            res.row2 = new float4(m[0].z, m[1].z, m[2].z, m[3].z);
+            res.row0 = new float4(m[0].x, m[1].x, m[2].x, t.x);
+            res.row1 = new float4(m[0].y, m[1].y, m[2].y, t.y);
+            res.row2 = new float4(m[0].z, m[1].z, m[2].z, t.z);
 
             return res;
         }
