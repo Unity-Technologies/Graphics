@@ -15,9 +15,9 @@ Texture3D<float4> _State1_L0_L1Rx;
 Texture3D<float4> _State1_L1G_L1Ry;
 Texture3D<float4> _State1_L1B_L1Rz;
 
-RWTexture3D<float4> _Out_L0_L1Rx;
-RWTexture3D<float4> _Out_L1G_L1Ry;
-RWTexture3D<float4> _Out_L1B_L1Rz;
+RWTexture3D<half4> _Out_L0_L1Rx;
+RWTexture3D<unorm float4> _Out_L1G_L1Ry;
+RWTexture3D<unorm float4> _Out_L1B_L1Rz;
 
 #ifdef PROBE_VOLUMES_L2
 Texture3D<float4> _State0_L2_0;
@@ -30,16 +30,16 @@ Texture3D<float4> _State1_L2_1;
 Texture3D<float4> _State1_L2_2;
 Texture3D<float4> _State1_L2_3;
 
-RWTexture3D<float4> _Out_L2_0;
-RWTexture3D<float4> _Out_L2_1;
-RWTexture3D<float4> _Out_L2_2;
-RWTexture3D<float4> _Out_L2_3;
+RWTexture3D<unorm float4> _Out_L2_0;
+RWTexture3D<unorm float4> _Out_L2_1;
+RWTexture3D<unorm float4> _Out_L2_2;
+RWTexture3D<unorm float4> _Out_L2_3;
 #endif
 
 #ifdef USE_APV_PROBE_OCCLUSION
 Texture3D<float4> _State0_ProbeOcclusion;
 Texture3D<float4> _State1_ProbeOcclusion;
-RWTexture3D<float4> _Out_ProbeOcclusion;
+RWTexture3D<unorm float4> _Out_ProbeOcclusion;
 #endif
 
 float4 _ChunkList[1000];

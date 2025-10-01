@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
     [Title("UV", "Parallax Occlusion Mapping")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.ParallaxOcclusionMappingNode")]
     [FormerName("UnityEditor.Rendering.HighDefinition.ParallaxOcclusionMappingNode")]
-    class ParallaxOcclusionMappingNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireViewDirection, IMayRequireMeshUV
+    class ParallaxOcclusionMappingNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireViewDirection, IMayRequireMeshUV, IMayRequireTransform
     {
         public ParallaxOcclusionMappingNode()
         {
@@ -219,6 +219,8 @@ $precision2 {GetVariableNameForSlot(kParallaxUVsOutputSlotId)} = {heightmap}.Get
 $precision {GetVariableNameForSlot(kPixelDepthOffsetOutputSlotId)} = ({tmpMaxHeight} - {tmpOutHeight} * {tmpMaxHeight}) / max({tmpNdotV}, 0.0001);
 ");
         }
+
+        public NeededTransform[] RequiresTransform(ShaderStageCapability stageCapability = ShaderStageCapability.All) => new[] { NeededTransform.WorldToObject };
 
         public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability = ShaderStageCapability.All)
         {

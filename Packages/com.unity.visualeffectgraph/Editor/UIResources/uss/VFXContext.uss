@@ -319,7 +319,6 @@ TextField#user-title-textfield #unity-text-input
 #user-label
 {
     overflow: hidden;
-    max-height: 120px;
 }
 
 VFXContextUI.inputTypespawnevent #user-label

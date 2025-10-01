@@ -54,8 +54,15 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            // Draw all renderers in layer batch
-            cmd.DrawRendererList(passData.rendererList);
+            if (passData.activeDebugHandler)
+            {
+                passData.debugRendererLists.DrawWithRendererList(cmd);
+            }
+            else
+            {
+                // Draw all renderers in layer batch
+                cmd.DrawRendererList(passData.rendererList);
+            }
 
             RendererLighting.DisableAllKeywords(cmd);
         }
@@ -74,6 +81,8 @@ namespace UnityEngine.Rendering.Universal
             internal bool layerUseLights;
             internal TextureHandle[] lightTextures;
             internal RendererListHandle rendererList;
+            internal DebugRendererLists debugRendererLists;
+            internal bool activeDebugHandler;
 
 #if UNITY_EDITOR
             internal bool isLitView; // Required for prefab view and preview camera
@@ -140,9 +149,22 @@ namespace UnityEngine.Rendering.Universal
                 RendererLighting.GetTransparencySortingMode(rendererData, cameraData.camera, ref sortSettings);
                 drawSettings.sortingSettings = sortSettings;
 
-                var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
-                passData.rendererList = graph.CreateRendererList(param);
-                builder.UseRendererList(passData.rendererList);
+                var activeDebugHandler = GetActiveDebugHandler(cameraData);
+                passData.activeDebugHandler = activeDebugHandler != null;
+
+                if (activeDebugHandler != null)
+                {
+                    var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
+                    passData.debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(graph,
+                        ref renderingData.cullResults, ref drawSettings, ref filterSettings, ref renderStateBlock);
+                    passData.debugRendererLists.PrepareRendererListForRasterPass(builder);
+                }
+                else
+                {
+                    var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
+                    passData.rendererList = graph.CreateRendererList(param);
+                    builder.UseRendererList(passData.rendererList);
+                }
 
                 if (passData.layerUseLights)
                 {

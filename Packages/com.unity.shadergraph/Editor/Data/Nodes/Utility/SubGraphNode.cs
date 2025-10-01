@@ -140,7 +140,7 @@ namespace UnityEditor.ShaderGraph
                 m_SubGraph.LoadGraphData();
                 m_SubGraph.LoadDependencyData();
 
-                name = m_SubGraph.name;
+                name = ObjectNames.NicifyVariableName(m_SubGraph.name);
             }
         }
 

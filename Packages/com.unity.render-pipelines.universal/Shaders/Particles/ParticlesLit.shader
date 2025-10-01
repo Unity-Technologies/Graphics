@@ -221,6 +221,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
+            #pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
 
             // -------------------------------------
             // Unity defined keywords

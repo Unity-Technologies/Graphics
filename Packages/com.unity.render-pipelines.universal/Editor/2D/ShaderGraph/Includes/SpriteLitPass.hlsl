@@ -31,6 +31,9 @@ PackedVaryings vert(Attributes input)
     input.positionOS = UnityFlipSprite(input.positionOS, unity_SpriteProps.xy);
     output = BuildVaryings(input);
     output.color *= _RendererColor * unity_SpriteColor; // vertex color has to applied here
+#if defined(DEBUG_DISPLAY)
+    output.normalWS = TransformObjectToWorldNormal(input.normalOS);
+#endif
     PackedVaryings packedOutput = PackVaryings(output);
     return packedOutput;
 }
@@ -59,10 +62,13 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 #endif
 
     SurfaceData2D surfaceData;
-    InitializeSurfaceData(color.rgb, color.a, surfaceDescription.SpriteMask, surfaceData);
+    InitializeSurfaceData(color.rgb, color.a, surfaceDescription.SpriteMask, surfaceDescription.NormalTS, surfaceData);
     InputData2D inputData;
     InitializeInputData(unpacked.texCoord0.xy, half2(unpacked.screenPosition.xy / unpacked.screenPosition.w), inputData);
+#if defined(DEBUG_DISPLAY)
     SETUP_DEBUG_DATA_2D(inputData, unpacked.positionWS, unpacked.positionCS);
+    surfaceData.normalWS = unpacked.normalWS;
+#endif
 
     return CombinedShapeLightShared(surfaceData, inputData);
 }

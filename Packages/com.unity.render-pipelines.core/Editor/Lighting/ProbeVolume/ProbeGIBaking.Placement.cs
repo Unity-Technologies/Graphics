@@ -257,6 +257,13 @@ namespace UnityEngine.Rendering
             var dataList = GetPerSceneDataList();
             var result = new ProbeSubdivisionResult();
 
+            // We read bricks from the asset rather than using the currently loaded cells.
+            // This is because not all bricks from the previous bake are guaranteed to be currently loaded,
+            // we may for example have hit the max brick count given the selected memory budget.
+            ProbeVolumeStreamableAsset bricksDataAsset = m_BakingSet.cellBricksDataAsset;
+            bricksDataAsset.EnsureAssetLoaded();
+            using NativeArray<Brick> previousBricks = bricksDataAsset.asset.GetData<Brick>();
+
             foreach (var data in dataList)
             {
                 var cellSize = m_ProfileInfo.minDistanceBetweenProbes * 3.0f * m_ProfileInfo.cellSizeInBricks;
@@ -268,7 +275,6 @@ namespace UnityEngine.Rendering
                 foreach (var cellIndex in cells)
                 {
                     var cellDesc = m_BakingSet.GetCellDesc(cellIndex);
-                    var cellData = m_BakingSet.GetCellData(cellIndex);
                     var cellPos = cellDesc.position;
 
                     if (!result.scenesPerCells.ContainsKey(cellPos))
@@ -276,7 +282,13 @@ namespace UnityEngine.Rendering
                         result.scenesPerCells[cellPos] = new HashSet<string>();
 
                         var center = new Vector3((cellPos.x + 0.5f) * cellSize, (cellPos.y + 0.5f) * cellSize, (cellPos.z + 0.5f) * cellSize);
-                        result.cells.Add((cellPos, new Bounds(center, cellDimensions), cellData.bricks.ToArray()));
+
+                        var cellStreamingDesc = bricksDataAsset.streamableCellDescs[cellIndex];
+                        int bricksOffset = cellStreamingDesc.offset / bricksDataAsset.elementSize;
+                        int bricksCount = Mathf.Min(cellStreamingDesc.elementCount, cellDesc.bricksCount);
+                        Brick[] bricks = previousBricks.GetSubArray(bricksOffset, bricksCount).ToArray();
+
+                        result.cells.Add((cellPos, new Bounds(center, cellDimensions), bricks));
                     }
                     result.scenesPerCells[cellPos].Add(data.sceneGUID);
                 }

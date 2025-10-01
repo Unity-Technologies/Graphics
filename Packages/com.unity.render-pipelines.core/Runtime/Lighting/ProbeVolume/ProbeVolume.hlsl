@@ -77,14 +77,14 @@ struct APVResources
 
 struct APVResourcesRW
 {
-    RWTexture3D<float4> L0_L1Rx;
-    RWTexture3D<float4> L1G_L1Ry;
-    RWTexture3D<float4> L1B_L1Rz;
-    RWTexture3D<float4> L2_0;
-    RWTexture3D<float4> L2_1;
-    RWTexture3D<float4> L2_2;
-    RWTexture3D<float4> L2_3;
-    RWTexture3D<float4> ProbeOcclusion;
+    RWTexture3D<half4> L0_L1Rx;
+    RWTexture3D<unorm float4> L1G_L1Ry;
+    RWTexture3D<unorm float4> L1B_L1Rz;
+    RWTexture3D<unorm float4> L2_0;
+    RWTexture3D<unorm float4> L2_1;
+    RWTexture3D<unorm float4> L2_2;
+    RWTexture3D<unorm float4> L2_3;
+    RWTexture3D<unorm float4> ProbeOcclusion;
 };
 
 #ifndef USE_APV_PROBE_OCCLUSION

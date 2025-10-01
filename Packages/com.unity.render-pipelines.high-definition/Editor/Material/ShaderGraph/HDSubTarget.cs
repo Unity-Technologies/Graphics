@@ -78,7 +78,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             hdMetadata.migrateFromOldCrossPipelineSG = m_MigrateFromOldCrossPipelineSG;
             hdMetadata.hdSubTargetVersion = systemData.version;
             hdMetadata.hasVertexModificationInMotionVector = systemData.customVelocity || systemData.tessellation || graph.AnyVertexAnimationActive();
-            hdMetadata.isVFXCompatible = graph.IsVFXCompatible();
+            hdMetadata.isVFXCompatible = target.SupportsVFX();
             return hdMetadata;
         }
 
