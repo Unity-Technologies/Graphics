@@ -359,11 +359,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public void RenderBloomTexture(RenderGraph renderGraph, in TextureHandle source, out TextureHandle destination, bool enableAlphaOutput)
+        public Vector2Int CalcBloomResolution(Bloom bloom, in TextureDesc bloomSourceDesc)
         {
-            var srcDesc = source.GetDescriptor(renderGraph);
-
-            // Start at half-res
+                        // Start at half-res
             int downres = 1;
             switch (m_Bloom.downscale.value)
             {
@@ -379,13 +377,29 @@ namespace UnityEngine.Rendering.Universal
 
             //We should set the limit the downres result to ensure we dont turn 1x1 textures, which should technically be valid
             //into 0x0 textures which will be invalid
-            int tw = Mathf.Max(1, srcDesc.width >> downres);
-            int th = Mathf.Max(1, srcDesc.height >> downres);
+            int tw = Mathf.Max(1, bloomSourceDesc.width >> downres);
+            int th = Mathf.Max(1, bloomSourceDesc.height >> downres);
 
+            return new Vector2Int(tw, th);
+        }
+
+        public int CalcBloomMipCount(Bloom bloom, Vector2Int bloomResolution)
+        {
             // Determine the iteration count
-            int maxSize = Mathf.Max(tw, th);
+            int maxSize = Mathf.Max(bloomResolution.x, bloomResolution.y);
             int iterations = Mathf.FloorToInt(Mathf.Log(maxSize, 2f) - 1);
             int mipCount = Mathf.Clamp(iterations, 1, m_Bloom.maxIterations.value);
+            return mipCount;
+        }
+
+        public void RenderBloomTexture(RenderGraph renderGraph, in TextureHandle source, out TextureHandle destination, bool enableAlphaOutput)
+        {
+            var srcDesc = source.GetDescriptor(renderGraph);
+
+            Vector2Int bloomRes = CalcBloomResolution(m_Bloom, in srcDesc);
+            int mipCount = CalcBloomMipCount(m_Bloom, bloomRes);
+            int tw = bloomRes.x;
+            int th = bloomRes.y;
 
             // Setup
             using(new ProfilingScope(ProfilingSampler.Get(URPProfileId.RG_BloomSetup)))
@@ -2116,9 +2130,21 @@ namespace UnityEngine.Rendering.Universal
 
                     if (useLensFlareScreenSpace)
                     {
-                        int maxBloomMip = Mathf.Clamp(m_LensFlareScreenSpace.bloomMip.value, 0, m_Bloom.maxIterations.value/2);
-                        bool sameInputOutputTex = maxBloomMip == 0;
-                        bloomTexture = RenderLensFlareScreenSpace(renderGraph, cameraData.camera, srcDesc, bloomTexture, _BloomMipUp[maxBloomMip], sameInputOutputTex);
+                        // We need to take into account how many valid mips the bloom pass produced.
+                        int bloomMipCount = CalcBloomMipCount(m_Bloom, CalcBloomResolution(m_Bloom, in srcDesc));
+                        int maxBloomMip = Mathf.Clamp(bloomMipCount - 1, 0, m_Bloom.maxIterations.value / 2);
+                        int useBloomMip = Mathf.Clamp(m_LensFlareScreenSpace.bloomMip.value, 0, maxBloomMip);
+
+                        TextureHandle bloomMipFlareSource = _BloomMipUp[useBloomMip];
+                        bool sameBloomInputOutputTex = useBloomMip == 0;
+
+                        // Bloom does only the prefilter into MipDown if there's only 1 iteration.
+                        if(bloomMipCount == 1)
+                        {
+                            bloomMipFlareSource = _BloomMipDown[0];
+                        }
+
+                        bloomTexture = RenderLensFlareScreenSpace(renderGraph, cameraData.camera, srcDesc, bloomTexture, bloomMipFlareSource, sameBloomInputOutputTex);
                     }
 
                     UberPostSetupBloomPass(renderGraph, m_Materials.uber, srcDesc);
