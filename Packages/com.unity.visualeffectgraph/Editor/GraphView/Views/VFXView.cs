@@ -3162,6 +3162,7 @@ namespace UnityEditor.VFX.UI
             if (visualEffectObject != null && visualEffectObject != controller.model.visualEffectObject)
             {
                 var isOperator = visualEffectObject is VisualEffectSubgraphOperator;
+                var isBlock = visualEffectObject is VisualEffectSubgraphBlock;
                 var graph = visualEffectObject.GetResource().GetOrCreateGraph();
                 graph.BuildSubgraphDependencies();
                 var draggedObjectDependencies = graph.subgraphDependencies;
@@ -3172,7 +3173,7 @@ namespace UnityEditor.VFX.UI
                     return DragAndDropVisualMode.Rejected;
                 }
 
-                var vfxIntoVfx = !isOperator && !controller.model.isSubgraph; // dropping a vfx into a vfx
+                var vfxIntoVfx = !isOperator && !isBlock && !controller.model.isSubgraph; // dropping a vfx into a vfx
 
                 return vfxIntoVfx || isOperator
                     ? DragAndDropVisualMode.Move
@@ -3299,13 +3300,12 @@ namespace UnityEditor.VFX.UI
                     {
                         VFXContextType contextKind = subgraphBlock.GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().First().compatibleContextType;
                         VFXModelDescriptor<VFXContext> contextType = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXBasicInitialize));
-                        var model = (VFXContext)contextType.CreateInstance();
                         if ((contextKind & VFXContextType.Update) == VFXContextType.Update)
                             contextType = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXBasicUpdate));
                         else if ((contextKind & VFXContextType.Spawner) == VFXContextType.Spawner)
                             contextType = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXBasicSpawner));
                         else if ((contextKind & VFXContextType.Output) == VFXContextType.Output)
-                            contextType = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXPlanarPrimitiveOutput) && model.taskType == VFXTaskType.ParticleQuadOutput);
+                            contextType = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXPlanarPrimitiveOutput) && t.model.taskType == VFXTaskType.ParticleQuadOutput);
 
                         UpdateSelectionWithNewNode();
                         VFXContext ctx = controller.AddVFXContext(mousePosition, contextType.variant);
