@@ -1342,8 +1342,8 @@ namespace UnityEngine.Rendering.Universal
                 default:
                     throw new System.ArgumentOutOfRangeException();
             }
-            int tw = m_Descriptor.width >> downres;
-            int th = m_Descriptor.height >> downres;
+            int tw = Mathf.Max(1, m_Descriptor.width >> downres);
+            int th = Mathf.Max(1, m_Descriptor.height >> downres);
 
             // Determine the iteration count
             int maxSize = Mathf.Max(tw, th);
