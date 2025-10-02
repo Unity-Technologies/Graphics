@@ -71,7 +71,6 @@ namespace UnityEngine.Rendering.Universal
         {
             using (var builder = renderGraph.AddUnsafePass<LensFlarePassData>("Lens Flare Compute Occlusion", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDrivenComputeOcclusion)))
             {
-                RTHandle occH = LensFlareCommonSRP.occlusionRT;
                 TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
                 passData.destinationTexture = occlusionHandle;
                 builder.UseTexture(occlusionHandle, AccessFlags.Write);
@@ -80,7 +79,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.material = m_Material;
                 passData.width = (float)dstDesc.width;
                 passData.height = (float)dstDesc.height;
-                if (paniniProjection.IsActive())    // TODO: panini pass dependency! Should be outside of this pass.
+                if (paniniProjection.IsActive())
                 {
                     passData.usePanini = true;
                     passData.paniniDistance = paniniProjection.distance.value;

@@ -62,7 +62,6 @@ namespace UnityEngine.Rendering.Universal
         {
             // Setup
             internal int downsample;
-            internal RenderingData renderingData;
             internal Vector3 cocParams;
             internal bool highQualitySamplingValue;
             internal bool enableAlphaOutput;
@@ -74,7 +73,7 @@ namespace UnityEngine.Rendering.Universal
             // Pass textures
             internal TextureHandle halfCoCTexture;
             internal TextureHandle fullCoCTexture;
-            internal TextureHandle pingTexture;     // TODO: pingpong texture idiom is common, we should have a helper abstraction in core.
+            internal TextureHandle pingTexture;
             internal TextureHandle pongTexture;
             internal RenderTargetIdentifier[] multipleRenderTargets = new RenderTargetIdentifier[2];
             // Output textures

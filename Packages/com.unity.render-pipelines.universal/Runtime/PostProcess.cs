@@ -7,20 +7,6 @@ namespace UnityEngine.Rendering.Universal
 {
     internal sealed class PostProcess : IDisposable
     {
-        // Builtin effects settings (VolumeComponents)
-        DepthOfField m_DepthOfField;
-        MotionBlur m_MotionBlur;
-        PaniniProjection m_PaniniProjection;
-        Bloom m_Bloom;
-        ScreenSpaceLensFlare m_LensFlareScreenSpace;
-        LensDistortion m_LensDistortion;
-        ChromaticAberration m_ChromaticAberration;
-        Vignette m_Vignette;
-        ColorLookup m_ColorLookup;
-        ColorAdjustments m_ColorAdjustments;
-        Tonemapping m_Tonemapping;
-        FilmGrain m_FilmGrain;
-
         // Passes
         StopNanPostProcessPass m_StopNanPostProcessPass;
         SmaaPostProcessPass m_SmaaPostProcessPass;
@@ -138,9 +124,9 @@ namespace UnityEngine.Rendering.Universal
             return m_Resources.textures.blueNoise16LTex[GetNextDitherIndex()];
         }
 
-        TextureHandle TryGetCachedUserLutTextureHandle(RenderGraph renderGraph)
+        TextureHandle TryGetCachedUserLutTextureHandle(RenderGraph renderGraph, ColorLookup colorLookup)
         {
-            if (m_ColorLookup.texture.value == null)
+            if (colorLookup.texture.value == null)
             {
                 if (m_UserLut != null)
                 {
@@ -150,10 +136,10 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                if (m_UserLut == null || m_UserLut.externalTexture != m_ColorLookup.texture.value)
+                if (m_UserLut == null || m_UserLut.externalTexture != colorLookup.texture.value)
                 {
                     m_UserLut?.Release();
-                    m_UserLut = RTHandles.Alloc(m_ColorLookup.texture.value);
+                    m_UserLut = RTHandles.Alloc(colorLookup.texture.value);
                 }
             }
             return m_UserLut != null ? renderGraph.ImportTexture(m_UserLut) : TextureHandle.nullHandle;
@@ -176,18 +162,18 @@ namespace UnityEngine.Rendering.Universal
             UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
 
             var stack = VolumeManager.instance.stack;
-            m_DepthOfField = stack.GetComponent<DepthOfField>();
-            m_MotionBlur = stack.GetComponent<MotionBlur>();
-            m_PaniniProjection = stack.GetComponent<PaniniProjection>();
-            m_Bloom = stack.GetComponent<Bloom>();
-            m_LensFlareScreenSpace = stack.GetComponent<ScreenSpaceLensFlare>();
-            m_LensDistortion = stack.GetComponent<LensDistortion>();
-            m_ChromaticAberration = stack.GetComponent<ChromaticAberration>();
-            m_Vignette = stack.GetComponent<Vignette>();
-            m_ColorLookup = stack.GetComponent<ColorLookup>();
-            m_ColorAdjustments = stack.GetComponent<ColorAdjustments>();
-            m_Tonemapping = stack.GetComponent<Tonemapping>();
-            m_FilmGrain = stack.GetComponent<FilmGrain>();
+            var depthOfField = stack.GetComponent<DepthOfField>();
+            var motionBlur = stack.GetComponent<MotionBlur>();
+            var paniniProjection = stack.GetComponent<PaniniProjection>();
+            var bloom = stack.GetComponent<Bloom>();
+            var lensFlareScreenSpace = stack.GetComponent<ScreenSpaceLensFlare>();
+            var lensDistortion = stack.GetComponent<LensDistortion>();
+            var chromaticAberration = stack.GetComponent<ChromaticAberration>();
+            var vignette = stack.GetComponent<Vignette>();
+            var colorLookup = stack.GetComponent<ColorLookup>();
+            var colorAdjustments = stack.GetComponent<ColorAdjustments>();
+            var tonemapping = stack.GetComponent<Tonemapping>();
+            var filmGrain = stack.GetComponent<FilmGrain>();
 
             m_HasFinalPass = hasFinalPass;  // TODO: should this be external configuration property rather than a param?
 
@@ -200,17 +186,17 @@ namespace UnityEngine.Rendering.Universal
             //We blit back and forth without msaa untill the last blit.
             bool useStopNan = cameraData.isStopNaNEnabled && m_StopNanPostProcessPass.IsValid();
             bool useSubPixelMorpAA = (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing) && m_SmaaPostProcessPass.IsValid();
-            bool useDepthOfField = m_DepthOfField.IsActive() && !isSceneViewCamera && (m_DepthOfFieldGaussianPass.IsValid() || m_DepthOfFieldBokehPass.IsValid());
+            bool useDepthOfField = depthOfField.IsActive() && !isSceneViewCamera && (m_DepthOfFieldGaussianPass.IsValid() || m_DepthOfFieldBokehPass.IsValid());
             bool useLensFlare = !LensFlareCommonSRP.Instance.IsEmpty() && supportDataDrivenLensFlare;
-            bool useLensFlareScreenSpace = m_LensFlareScreenSpace.IsActive() && supportScreenSpaceLensFlare;
-            bool useMotionBlur = m_MotionBlur.IsActive() && !isSceneViewCamera && m_MotionBlurPass.IsValid();
-            bool usePaniniProjection = m_PaniniProjection.IsActive() && !isSceneViewCamera && m_PaniniProjectionPass.IsValid();
+            bool useLensFlareScreenSpace = lensFlareScreenSpace.IsActive() && supportScreenSpaceLensFlare;
+            bool useMotionBlur = motionBlur.IsActive() && !isSceneViewCamera && m_MotionBlurPass.IsValid();
+            bool usePaniniProjection = paniniProjection.IsActive() && !isSceneViewCamera && m_PaniniProjectionPass.IsValid();
 
             // Disable MotionBlur in EditMode, so that editing remains clear and readable.
             // NOTE: HDRP does the same via CoreUtils::AreAnimatedMaterialsEnabled().
             // Disable MotionBlurMode.CameraAndObjects on renderers that do not support motion vectors
             useMotionBlur = useMotionBlur && Application.isPlaying;
-            if (useMotionBlur && m_MotionBlur.mode.value == MotionBlurMode.CameraAndObjects)
+            if (useMotionBlur && motionBlur.mode.value == MotionBlurMode.CameraAndObjects)
             {
                 ScriptableRenderer renderer = cameraData.renderer;
                 useMotionBlur &= renderer.SupportsMotionVectors();
@@ -270,16 +256,16 @@ namespace UnityEngine.Rendering.Universal
             if (useDepthOfField)
             {
                     var doFTarget = PostProcessUtils.CreateCompatibleTexture(renderGraph, currentSource, DepthOfFieldGaussianPostProcessPass.k_TargetName, true, FilterMode.Bilinear);
-                    if(m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian)
+                    if(depthOfField.mode.value == DepthOfFieldMode.Gaussian)
                     {
-                        m_DepthOfFieldGaussianPass.depthOfField = m_DepthOfField;
+                        m_DepthOfFieldGaussianPass.depthOfField = depthOfField;
                         m_DepthOfFieldGaussianPass.sourceTexture = currentSource;
                         m_DepthOfFieldGaussianPass.destinationTexture = doFTarget;
                         m_DepthOfFieldGaussianPass.RecordRenderGraph(renderGraph, frameData);
                     }
                     else
                     {
-                        m_DepthOfFieldBokehPass.depthOfField = m_DepthOfField;
+                        m_DepthOfFieldBokehPass.depthOfField = depthOfField;
                         m_DepthOfFieldBokehPass.useFastSRGBLinearConversion = useFastSRGBLinearConversion;
                         m_DepthOfFieldBokehPass.sourceTexture = currentSource;
                         m_DepthOfFieldBokehPass.destinationTexture = doFTarget;
@@ -328,7 +314,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 var motionTarget = PostProcessUtils.CreateCompatibleTexture(renderGraph, currentSource, MotionBlurPostProcessPass.k_TargetName, true, FilterMode.Bilinear);
 
-                m_MotionBlurPass.motionBlur = m_MotionBlur;
+                m_MotionBlurPass.motionBlur = motionBlur;
                 m_MotionBlurPass.sourceTexture = currentSource;
                 m_MotionBlurPass.destinationTexture = motionTarget;
                 m_MotionBlurPass.RecordRenderGraph(renderGraph, frameData);
@@ -339,7 +325,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 var paniniTarget = PostProcessUtils.CreateCompatibleTexture(renderGraph, currentSource, PaniniProjectionPostProcessPass.k_TargetName, true, FilterMode.Bilinear);
 
-                m_PaniniProjectionPass.paniniProjection = m_PaniniProjection;
+                m_PaniniProjectionPass.paniniProjection = paniniProjection;
                 m_PaniniProjectionPass.sourceTexture = currentSource;
                 m_PaniniProjectionPass.destinationTexture = paniniTarget;
                 m_PaniniProjectionPass.RecordRenderGraph(renderGraph, frameData);
@@ -352,12 +338,12 @@ namespace UnityEngine.Rendering.Universal
 
                 // Bloom goes first
                 TextureHandle bloomTexture = TextureHandle.nullHandle;
-                bool bloomActive = m_Bloom.IsActive() || useLensFlareScreenSpace;
+                bool bloomActive = bloom.IsActive() || useLensFlareScreenSpace;
                 //Even if bloom is not active we need the texture if the lensFlareScreenSpace pass is active.
                 if (bloomActive)
                 {
                     // NOTE: bloom destination texture is some texture in the bloom mip pyramid. It's not explicitly set beforehand.
-                    m_BloomPass.bloom = m_Bloom;
+                    m_BloomPass.bloom = bloom;
                     m_BloomPass.sourceTexture = currentSource;
                     m_BloomPass.RecordRenderGraph(renderGraph, frameData);
                     bloomTexture = m_BloomPass.destinationTexture;
@@ -368,8 +354,8 @@ namespace UnityEngine.Rendering.Universal
 
                         // We need to take into account how many valid mips the bloom pass produced.
                         int bloomMipCount = mipPyramid.mipCount;
-                        int maxBloomMip = Mathf.Clamp(bloomMipCount - 1, 0, m_Bloom.maxIterations.value / 2);
-                        int useBloomMip = Mathf.Clamp(m_LensFlareScreenSpace.bloomMip.value, 0, maxBloomMip);
+                        int maxBloomMip = Mathf.Clamp(bloomMipCount - 1, 0, bloom.maxIterations.value / 2);
+                        int useBloomMip = Mathf.Clamp(lensFlareScreenSpace.bloomMip.value, 0, maxBloomMip);
 
                         TextureHandle bloomMipFlareSource = mipPyramid.GetResultMip(useBloomMip);
                         // Flare source and Flare target is the same texture. BloomMip[0]
@@ -377,13 +363,13 @@ namespace UnityEngine.Rendering.Universal
 
                         // Kawase blur does not use the mip pyramid.
                         // It is safe to pass the same texture to both input/output.
-                        if (m_Bloom.filter.value == BloomFilterMode.Kawase)
+                        if (bloom.filter.value == BloomFilterMode.Kawase)
                         {
                             bloomMipFlareSource = bloomTexture;
                             sameBloomSrcDestTex = true;
                         }
 
-                        m_LensFlareScreenSpacePass.lensFlareScreenSpace = m_LensFlareScreenSpace;
+                        m_LensFlareScreenSpacePass.lensFlareScreenSpace = lensFlareScreenSpace;
                         m_LensFlareScreenSpacePass.sameSourceDestinationTexture = sameBloomSrcDestTex;
                         m_LensFlareScreenSpacePass.colorBufferTextureDesc = colorSrcDesc;
                         m_LensFlareScreenSpacePass.sourceTexture = bloomMipFlareSource;
@@ -395,20 +381,20 @@ namespace UnityEngine.Rendering.Universal
                 if (useLensFlare)
                 {
                     // Lens Flares are procedurally generated and blended to the destination texture.
-                    m_LensFlareDataDrivenPass.paniniProjection = m_PaniniProjection;
+                    m_LensFlareDataDrivenPass.paniniProjection = paniniProjection;
                     m_LensFlareDataDrivenPass.destinationTexture = currentSource;
                     m_LensFlareDataDrivenPass.RecordRenderGraph(renderGraph, frameData);
                 }
 
                 // Settings
-                m_UberPass.colorLookup = m_ColorLookup;
-                m_UberPass.colorAdjustments = m_ColorAdjustments;
-                m_UberPass.tonemapping = m_Tonemapping;
-                m_UberPass.bloom = m_Bloom;
-                m_UberPass.lensDistortion = m_LensDistortion;
-                m_UberPass.chromaticAberration = m_ChromaticAberration;
-                m_UberPass.vignette = m_Vignette;
-                m_UberPass.filmGrain = m_FilmGrain;
+                m_UberPass.colorLookup = colorLookup;
+                m_UberPass.colorAdjustments = colorAdjustments;
+                m_UberPass.tonemapping = tonemapping;
+                m_UberPass.bloom = bloom;
+                m_UberPass.lensDistortion = lensDistortion;
+                m_UberPass.chromaticAberration = chromaticAberration;
+                m_UberPass.vignette = vignette;
+                m_UberPass.filmGrain = filmGrain;
 
                 m_UberPass.isFinalPass = !m_HasFinalPass;
                 m_UberPass.requireSRGBConversionBlit = RequireSRGBConversionBlitToBackBuffer(cameraData, enableColorEncodingIfNeeded);
@@ -430,7 +416,7 @@ namespace UnityEngine.Rendering.Universal
                 // Input
                 m_UberPass.sourceTexture = currentSource;
                 m_UberPass.internalLutTexture = internalColorLutTexture;
-                m_UberPass.userLutTexture = TryGetCachedUserLutTextureHandle(renderGraph);
+                m_UberPass.userLutTexture = TryGetCachedUserLutTextureHandle(renderGraph, colorLookup);
                 m_UberPass.bloomTexture = bloomTexture;
                 m_UberPass.overlayUITexture = activeOverlayUITexture;
                 m_UberPass.ditherTexture = cameraData.isDitheringEnabled ? GetNextDitherTexture() : null;
@@ -447,8 +433,8 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
             var stack = VolumeManager.instance.stack;
-            m_Tonemapping = stack.GetComponent<Tonemapping>();
-            m_FilmGrain = stack.GetComponent<FilmGrain>();
+            var tonemapping = stack.GetComponent<Tonemapping>();
+            var filmGrain = stack.GetComponent<FilmGrain>();
 
             // TODO RENDERGRAPH: when we remove the old path we should review the naming of these variables...
             // m_HasFinalPass is used to let FX passes know when they are not being called by the actual final pass, so they can skip any "final work"
@@ -506,7 +492,7 @@ namespace UnityEngine.Rendering.Universal
 
                     var scalingSetupTarget = PostProcessUtils.CreateCompatibleTexture(renderGraph, scalingSetupDesc, ScalingSetupPostProcessPass.k_TargetName, true, FilterMode.Point);
 
-                    m_ScalingSetupFinalPostProcessPass.tonemapping = m_Tonemapping;
+                    m_ScalingSetupFinalPostProcessPass.tonemapping = tonemapping;
                     m_ScalingSetupFinalPostProcessPass.hdrOperations = hdrOperations;
 
                     m_ScalingSetupFinalPostProcessPass.sourceTexture = currentSource;
@@ -569,8 +555,8 @@ namespace UnityEngine.Rendering.Universal
 
             bool renderOverlayUI = requireHDROutput && enableColorEncodingIfNeeded && cameraData.rendersOverlayUI;
 
-            m_FinalPostProcessPass.tonemapping = m_Tonemapping;
-            m_FinalPostProcessPass.filmGrain = m_FilmGrain;
+            m_FinalPostProcessPass.tonemapping = tonemapping;
+            m_FinalPostProcessPass.filmGrain = filmGrain;
 
             m_FinalPostProcessPass.samplingOperation = samplingOperation;
             m_FinalPostProcessPass.applyFxaa = applyFxaa;
