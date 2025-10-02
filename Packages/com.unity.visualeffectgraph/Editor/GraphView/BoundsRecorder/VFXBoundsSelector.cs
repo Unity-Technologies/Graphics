@@ -5,7 +5,8 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBoundsSelector : VisualElement, ISelection
+    [UxmlElement]
+    partial class VFXBoundsSelector : VisualElement, ISelection
     {
         [Obsolete("VFXBoundsSelectorFactory is deprecated and will be removed. Use UxmlElementAttribute instead.", false)]
         class VFXBoundsSelectorFactory : UxmlFactory<VFXBoundsSelector>
