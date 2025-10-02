@@ -59,23 +59,10 @@ namespace UnityEngine.Rendering
         /// <summary>Current camera to debug.</summary>
         public Camera selectedCamera
         {
-            get
-            {
-#if UNITY_EDITOR
-                // By default pick the one scene camera
-                if (m_SelectedCamera == null && SceneView.lastActiveSceneView != null)
-                {
-                    var sceneCamera = SceneView.lastActiveSceneView.camera;
-                    if (sceneCamera != null)
-                        m_SelectedCamera = sceneCamera;
-                }
-#endif
-
-                return m_SelectedCamera;
-            }
+            get => m_SelectedCamera;
             set
             {
-                if (value != null && value != m_SelectedCamera)
+                if (value != m_SelectedCamera)
                 {
                     m_SelectedCamera = value;
                     OnSelectionChanged();
@@ -333,7 +320,7 @@ namespace UnityEngine.Rendering
                 };
             }
 
-            public static DebugUI.ObjectPopupField CreateCameraSelector(SettingsPanel panel, Action<DebugUI.Field<Object>, Object> refresh)
+            public static DebugUI.CameraSelector CreateCameraSelector(SettingsPanel panel, Action<DebugUI.Field<Object>, Object> refresh)
             {
                 return new DebugUI.CameraSelector()
                 {
@@ -708,7 +695,14 @@ namespace UnityEngine.Rendering
             public SettingsPanel(DebugDisplaySettingsVolume data)
                 : base(data)
             {
-                AddWidget(WidgetFactory.CreateCameraSelector(this, (_, __) => Refresh()));
+                var cameraSelector = WidgetFactory.CreateCameraSelector(this, (_, __) => Refresh());
+
+                // Select first camera if none is selected
+                var availableCameras = cameraSelector.getObjects() as List<Camera>;
+                if (data.selectedCamera == null && availableCameras is { Count: > 0 })
+                    data.selectedCamera = availableCameras[0];
+
+                AddWidget(cameraSelector);
                 AddWidget(WidgetFactory.CreateComponentSelector(this, (_, __) => Refresh()));
 
                 Func<bool> hiddenCallback = () => data.selectedCamera == null || data.selectedComponent <= 0;
