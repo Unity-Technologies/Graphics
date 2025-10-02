@@ -85,7 +85,7 @@ You can use Scene view gizmos to visually customize specific properties.
 | ![Blend Normal Distance boundary gizmo](Images/ReflectionProbeGizmo3.png) | **Blend Normal Distance boundary**    | Provides Scene view handles that allow you to resize the boundary where pixels with a normal pointing away from the **Capture Position** don’t receive any influence from this Probe. |
 | ![Mirror Position gizmo](Images/ReflectionProbeGizmo4.png) | **Mirror Position**                   | Changes the behavior of the Move Tool so that it alters the **Mirror** **Position** property, rather than the **Position** of the **Transform**. |
 | ![Mirror Rotation gizmo](Images/ReflectionProbeGizmo5.png) | **Mirror Rotation**                   | Changes the behavior of the Rotate Tool so that it alters the **Mirror Rotation** property, rather than the **Rotation** of the **Transform**. |
-| ![Chrome gizmo](Images/ReflectionProbeGizmo6.png) | **Chrome Gizmo**.                     | Displays a chrome quad to preview the probe's texture in the scene. |
+| ![Chrome gizmo](Images/ReflectionProbeGizmo6.png) | **Chrome Gizmo**                     | Displays a chrome quad to preview the probe's texture in the scene. |
 
 ## Best practices
 
