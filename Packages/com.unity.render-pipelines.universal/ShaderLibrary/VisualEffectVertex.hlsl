@@ -7,7 +7,7 @@ void VertVFX(
     Attributes input
 #endif
 
-#if (SHADERPASS == SHADERPASS_MOTION_VECTORS)
+#if (SHADERPASS == SHADERPASS_MOTION_VECTORS || SHADERPASS == SHADERPASS_XR_MOTION_VECTORS)
     , out PackedMotionVectorPassVaryings packedMvOutput
 #endif
     , out PackedVaryings packedOutput
@@ -20,7 +20,7 @@ void VertVFX(
     input.instanceID = instanceID;
 #endif
 
-#if (SHADERPASS != SHADERPASS_MOTION_VECTORS)
+#if (SHADERPASS != SHADERPASS_MOTION_VECTORS || SHADERPASS == SHADERPASS_XR_MOTION_VECTORS)
     packedOutput = vert(input);
 #else
     MotionVectorPassAttributes dummy = (MotionVectorPassAttributes)0;

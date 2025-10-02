@@ -129,25 +129,32 @@ void vert(
         previousPositionOS -= passInput.alembicMotionVectorOS;
 #endif
 
+#if defined(APPLICATION_SPACE_WARP_MOTION)
+        // We do not need jittered position in ASW
+        mvOutput.positionCSNoJitter = mul(_NonJitteredViewProjMatrix, float4(currentFrameMvData.positionWS, 1.0f));
+        packedOutput.positionCS = mvOutput.positionCSNoJitter;
+        mvOutput.previousPositionCSNoJitter = mul(_PrevViewProjMatrix, mul(UNITY_PREV_MATRIX_M, float4(previousPositionOS, 1.0f)));
+#else
         mvOutput.positionCSNoJitter = mul(_NonJitteredViewProjMatrix, float4(currentFrameMvData.positionWS, 1.0f));
 
-#if defined(HAVE_VFX_MODIFICATION)
-    #if defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
-        #if defined(FEATURES_GRAPH_VERTEX_MOTION_VECTOR_OUTPUT) || defined(_ADD_PRECOMPUTED_VELOCITY)
-            #error Unexpected fast path rendering VFX motion vector while there are vertex modification afterwards.
-        #endif
-        mvOutput.previousPositionCSNoJitter = VFXGetPreviousClipPosition(input, currentFrameMvData.vfxElementAttributes, mvOutput.positionCSNoJitter);
-    #else
-        #if VFX_WORLD_SPACE
-            //previousPositionOS is already in world space
-            const float3 previousPositionWS = previousPositionOS;
+    #if defined(HAVE_VFX_MODIFICATION)
+        #if defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
+            #if defined(FEATURES_GRAPH_VERTEX_MOTION_VECTOR_OUTPUT) || defined(_ADD_PRECOMPUTED_VELOCITY)
+                #error Unexpected fast path rendering VFX motion vector while there are vertex modification afterwards.
+            #endif
+            mvOutput.previousPositionCSNoJitter = VFXGetPreviousClipPosition(input, currentFrameMvData.vfxElementAttributes, mvOutput.positionCSNoJitter);
         #else
-            const float3 previousPositionWS = mul(UNITY_PREV_MATRIX_M, float4(previousPositionOS, 1.0f)).xyz;
+            #if VFX_WORLD_SPACE
+                //previousPositionOS is already in world space
+                const float3 previousPositionWS = previousPositionOS;
+            #else
+                const float3 previousPositionWS = mul(UNITY_PREV_MATRIX_M, float4(previousPositionOS, 1.0f)).xyz;
+            #endif
+            mvOutput.previousPositionCSNoJitter = mul(_PrevViewProjMatrix, float4(previousPositionWS, 1.0f));
         #endif
-        mvOutput.previousPositionCSNoJitter = mul(_PrevViewProjMatrix, float4(previousPositionWS, 1.0f));
+    #else
+            mvOutput.previousPositionCSNoJitter = mul(_PrevViewProjMatrix, mul(UNITY_PREV_MATRIX_M, float4(previousPositionOS, 1.0f)));
     #endif
-#else
-        mvOutput.previousPositionCSNoJitter = mul(_PrevViewProjMatrix, mul(UNITY_PREV_MATRIX_M, float4(previousPositionOS, 1.0f)));
 #endif
     }
 
@@ -175,6 +182,11 @@ float4 frag(
     LODFadeCrossFade(input.positionCS);
 #endif
 
+
+#if defined(APPLICATION_SPACE_WARP_MOTION)
+    return float4(CalcAswNdcMotionVectorFromCsPositions(mvInput.positionCSNoJitter, mvInput.previousPositionCSNoJitter), 1);
+#else
     return float4(CalcNdcMotionVectorFromCsPositions(mvInput.positionCSNoJitter, mvInput.previousPositionCSNoJitter), 0, 0);
+#endif
 }
 #endif
