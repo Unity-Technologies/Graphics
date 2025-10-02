@@ -277,14 +277,14 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.bindTextureMS = desc.bindMS;
             rgDesc.format = (desc.depthStencilFormat != GraphicsFormat.None) ? desc.depthStencilFormat : desc.graphicsFormat;
             rgDesc.isShadowMap = desc.shadowSamplingMode != ShadowSamplingMode.None && desc.depthStencilFormat != GraphicsFormat.None;
-            rgDesc.slices = desc.volumeDepth; 
-            rgDesc.msaaSamples = (MSAASamples)desc.msaaSamples; 
-            rgDesc.enableRandomWrite = desc.enableRandomWrite; 
-            rgDesc.enableShadingRate = desc.enableShadingRate; 
-            rgDesc.useDynamicScale = desc.useDynamicScale; 
-            rgDesc.useDynamicScaleExplicit = desc.useDynamicScaleExplicit; 
-            rgDesc.vrUsage = desc.vrUsage; 
-        }    
+            rgDesc.slices = desc.volumeDepth;
+            rgDesc.msaaSamples = (MSAASamples)desc.msaaSamples;
+            rgDesc.enableRandomWrite = desc.enableRandomWrite;
+            rgDesc.enableShadingRate = desc.enableShadingRate;
+            rgDesc.useDynamicScale = desc.useDynamicScale;
+            rgDesc.useDynamicScaleExplicit = desc.useDynamicScaleExplicit;
+            rgDesc.vrUsage = desc.vrUsage;
+        }
 
         internal static TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, in TextureDesc desc, string name, bool clear, Color clearColor,
                 FilterMode filterMode = FilterMode.Point, TextureWrapMode wrapMode = TextureWrapMode.Clamp, bool discardOnLastUse = false)
@@ -764,7 +764,6 @@ namespace UnityEngine.Rendering.Universal
             if (requiredColorGradingLutPass)
             {
                 m_ColorGradingLutPassRenderGraph.RecordRenderGraph(renderGraph, frameData);
-                resourceData.internalColorLut = m_ColorGradingLutPassRenderGraph.colorLutTexture;
             }
         }
 

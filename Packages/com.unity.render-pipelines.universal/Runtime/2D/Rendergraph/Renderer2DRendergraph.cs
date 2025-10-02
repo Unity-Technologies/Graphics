@@ -731,7 +731,7 @@ namespace UnityEngine.Rendering.Universal
             if (requiredColorGradingLutPass)
             {
                 TextureHandle internalColorLut = TextureHandle.nullHandle;
-                m_ColorGradingLutPassRenderGraph.Render(renderGraph, frameData, ref internalColorLut);
+                m_ColorGradingLutPassRenderGraph.Render(renderGraph, frameData, out internalColorLut);
                 commonResourceData.internalColorLut = internalColorLut;
             }
 

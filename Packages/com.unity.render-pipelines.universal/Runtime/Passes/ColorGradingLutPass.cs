@@ -25,19 +25,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool m_AllowColorGradingACESHDR = true;
 
-        private TextureHandle m_ColorLutTexture;
-
-        /// <summary>
-        /// Set the texture to render the color grading LUT into.
-        /// If this is not set, the pass will create its own internal texture.
-        /// If the pass creates its own internal texture, it can be accessed through this property.
-        /// </summary>
-        internal TextureHandle colorLutTexture
-        {
-            get => m_ColorLutTexture;
-            set => m_ColorLutTexture = value;
-        }
-
         /// <summary>
         /// Creates a new <c>ColorGradingLutPass</c> instance.
         /// </summary>
@@ -159,7 +146,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal Material lutBuilderLdr;
             internal Material lutBuilderHdr;
 
-            internal TextureHandle colorLutTarget;
+            internal TextureHandle internalColorLut;
             internal int lutSize;
             internal bool hdrGrading;
             internal bool allowColorGradingACESHDR;
@@ -295,24 +282,20 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, ref TextureHandle colorLutTarget)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, out TextureHandle internalColorLut)
         {
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
 
-            // If the LUT target is not set, we create a new one. Otherwise, reuse the external one.
-            if (!colorLutTarget.IsValid())
-            {
-                this.ConfigureDescriptor(in postProcessingData, out var lutDesc, out var filterMode);
-                colorLutTarget = UniversalRenderer.CreateRenderGraphTexture(renderGraph, lutDesc, k_InternalColorLutName, true, filterMode);
-            }
+            this.ConfigureDescriptor(in postProcessingData, out var lutDesc, out var filterMode);
+            internalColorLut = UniversalRenderer.CreateRenderGraphTexture(renderGraph, lutDesc, k_InternalColorLutName, true, filterMode);
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 passData.cameraData = cameraData;
 
-                passData.colorLutTarget = colorLutTarget;
-                builder.SetRenderAttachment(colorLutTarget, 0, AccessFlags.WriteAll);
+                passData.internalColorLut = internalColorLut;
+                builder.SetRenderAttachment(internalColorLut, 0, AccessFlags.WriteAll);
                 passData.lutBuilderLdr = m_LutBuilderLdr;
                 passData.lutBuilderHdr = m_LutBuilderHdr;
                 passData.allowColorGradingACESHDR = m_AllowColorGradingACESHDR;
@@ -324,7 +307,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
-                    ExecutePass(context.cmd, data, data.colorLutTarget);
+                    ExecutePass(context.cmd, data, data.internalColorLut);
                 });
 
                 return;
@@ -334,14 +317,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc cref="IRenderGraphRecorder.RecordRenderGraph"/>
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            Render(renderGraph, frameData, ref m_ColorLutTexture);
-
-            // It is publicly documented that the LUT pass writes to resourceData.internalColorLut.
-            // This behavior is kept for backwards compatibility. It is also a simplifying helper for the common case of single LUT.
-            // In the case of multiple LUTs users are expected to use the 'colorLutTexture' property to get (and/or set) each LUT.separately.
-            // By default, this will only write the last rendered LUT into the internalColorLut.
             var resourceData = frameData.Get<UniversalResourceData>();
-            resourceData.internalColorLut = m_ColorLutTexture;
+
+            TextureHandle colorLut;
+            Render(renderGraph, frameData, out colorLut);
+
+            resourceData.internalColorLut = colorLut;
         }
 
         /// <summary>
