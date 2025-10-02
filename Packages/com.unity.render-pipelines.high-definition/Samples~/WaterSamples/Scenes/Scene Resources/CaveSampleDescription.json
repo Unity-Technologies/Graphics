@@ -19,7 +19,7 @@ You can open the <link="SG_CustomPassTriplanarCaustics.shadergraph">Custom Pass 
 <h1>Custom Local Volumetric Fog</h1>
 
 • To simulate light rays bouncing on the water surface, a  <link="Local Volumetric Fog">Local Volumetric Fog </link> with a <link="SG_LocalVolumetricFogCaustics.mat">custom material</link> is used.
-• This shader, simply sample the caustics texture passed by the <link="BindCaustics.cs">script</link> on the <link="Water">Water Surface</link> using absolute world position node.
+• This shader, simply sample the caustics texture passed by the <link="BindTexture.cs">BindTexture script</link> on the <link="Water">Water Surface</link> using absolute world position node.
 	  
 You can open the <link="SG_LocalVolumetricFogCaustics.shadergraph">Local Volumetric Fog Shader Graph</link> for more details.
 
