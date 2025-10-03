@@ -162,6 +162,10 @@
             * [Texture 2D Asset](Texture-2D-Asset-Node.md)
             * [Texture 3D Asset](Texture-3D-Asset-Node.md)
             * [Texture Size](Texture-Size-Node.md)
+        * UI
+            * [Element Layout UV](element-layout-uv-node.md)
+            * [Element Texture Size](element-texture-size-node.md)
+            * [Element Texture UV](element-texture-uv-node.md)
     * [Math](Math-Nodes.md)
         * Advanced
             * [Absolute](Absolute-Node.md)
@@ -252,6 +256,15 @@
             * [Rounded Polygon](Rounded-Polygon-Node.md)
             * [Rounded Rectangle](Rounded-Rectangle-Node.md)
         * [Checkerboard](Checkerboard-Node.md)
+    * [UI](ui-nodes.md)
+        * [Default Bitmap Text](default-bitmap-text-node.md)
+        * [Default Gradient](default-gradient-node.md)
+        * [Default SDF Text](default-sdf-text-node.md)
+        * [Default Solid](default-solid-node.md)
+        * [Default Texture](default-texture-node.md)
+        * [Render Type](render-type-node.md)
+        * [Render Type Branch](render-type-branch-node.md)
+        * [Sample Element Texture](sample-element-texture-node.md)
     * [Utility](Utility-Nodes.md)
         * Logic
             * [All](All-Node.md)
