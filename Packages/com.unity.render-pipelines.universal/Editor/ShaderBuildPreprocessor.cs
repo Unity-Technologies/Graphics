@@ -713,7 +713,11 @@ namespace UnityEditor.Rendering.Universal
                     continue;
 
                 // Rendering Layers...
-                if (rendererRequirements.isUniversalRenderer && rendererFeature.RequireRenderingLayers(isDeferredRenderer, rendererRequirements.needsGBufferAccurateNormals, out RenderingLayerUtils.Event rendererEvent, out _))
+                if (rendererRequirements.isUniversalRenderer &&
+                    RenderingLayerUtils.RequireRenderingLayers(rendererFeatures,
+                        rendererRequirements.renderingMode,
+                        rendererRequirements.needsGBufferAccurateNormals,
+                        rendererRequirements.msaaSampleCount, out RenderingLayerUtils.Event rendererEvent, out _))
                 {
                     usesRenderingLayers = true;
                     RenderingLayerUtils.CombineRendererEvents(isDeferredRenderer, rendererRequirements.msaaSampleCount, rendererEvent, ref renderingLayersEvent);
