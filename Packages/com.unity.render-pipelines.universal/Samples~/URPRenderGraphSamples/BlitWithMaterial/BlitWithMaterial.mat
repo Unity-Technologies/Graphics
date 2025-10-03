@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: BlitWithMaterial
-  m_Shader: {fileID: 4800000, guid: 385f641abc6b039499b848e66d7ca429, type: 3}
+  m_Shader: {fileID: 4800000, guid: fa0759f0cab2944609a61ef36ec489a2, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []

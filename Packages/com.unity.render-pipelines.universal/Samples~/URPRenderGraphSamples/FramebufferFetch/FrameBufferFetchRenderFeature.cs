@@ -20,13 +20,14 @@ public class FrameBufferFetchRenderFeature : ScriptableRendererFeature
         {
             m_FBFetchMaterial = fbFetchMaterial;
 
-            //The pass will read the current color texture. That needs to be an intermediate texture. It's not supported to use the BackBuffer as input texture. 
-            //By setting this property, URP will automatically create an intermediate texture. This has a performance cost so don't set this if you don't need it.
-            //It's good practice to set it here and not from the RenderFeature. This way, the pass is selfcontaining and you can use it to directly enqueue the pass from a monobehaviour without a RenderFeature.
+            // The pass will read the current color texture. That needs to be an intermediate texture. It's not supported to use the BackBuffer as input texture. 
+            // By setting this property, URP will automatically create an intermediate texture. This has a performance cost so don't set this if you don't need it.
+            // It's good practice to set it here and not from the RenderFeature. This way, the pass is self-containing,
+            // and you can use it to directly enqueue the pass from a MonoBehaviour without a RenderFeature.
             requiresIntermediateTexture = true;
         }
         
-        // This class stores the data needed by the pass, passed as parameter to the delegate function that executes the pass
+        // This class stores the data needed by the pass, passed as parameter to the delegate function that executes the pass.
         private class PassData
         {
             internal TextureHandle src;
@@ -34,7 +35,7 @@ public class FrameBufferFetchRenderFeature : ScriptableRendererFeature
             internal bool useMSAA;
         }
         
-        // This static method is used to execute the pass and passed as the RenderFunc delegate to the RenderGraph render pass
+        // This static method is used to execute the pass and passed as the RenderFunc delegate to the RenderGraph render pass.
         static void ExecuteFBFetchPass(PassData data, RasterGraphContext context)
         {
             context.cmd.DrawProcedural(Matrix4x4.identity, data.material, data.useMSAA? 1 : 0, MeshTopology.Triangles, 3, 1, null);
@@ -47,30 +48,30 @@ public class FrameBufferFetchRenderFeature : ScriptableRendererFeature
             // This simple pass copies the target of the previous pass to a new texture using a custom material and framebuffer fetch. This sample is for API demonstrative purposes,
             // so the new texture is not used anywhere else in the frame, you can use the frame debugger to verify its contents.
 
-            // add a raster render pass to the render graph, specifying the name and the data type that will be passed to the ExecutePass function
+            // add a raster render pass to the render graph, specifying the name and the data type that will be passed to the ExecutePass function.
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData))
             {
-                // Fill the pass data
+                // Fill the pass data.
                 passData.material = m_FBFetchMaterial;
                 passData.useMSAA = useMSAA;
 
-                // We declare the src as input attachment. This is required for Frame buffer fetch. 
+                // We declare the src as input attachment. This is required for framebuffer fetch. 
                 builder.SetInputAttachment(source, 0, AccessFlags.Read);
 
-                // Setup as a render target via UseTextureFragment, which is the equivalent of using the old cmd.SetRenderTarget
+                // Setup as a render target via UseTextureFragment, which is the equivalent of using the old cmd.SetRenderTarget.
                 builder.SetRenderAttachment(destination, 0);
                 
                 // We disable culling for this pass for the demonstrative purpose of this sample, as normally this pass would be culled,
-                // since the destination texture is not used anywhere else
+                // since the destination texture is not used anywhere else.
                 builder.AllowPassCulling(false);
 
-                // Assign the ExecutePass function to the render pass delegate, which will be called by the render graph when executing the pass
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) => ExecuteFBFetchPass(data, context));
+                // Assign the ExecutePass function to the render pass delegate, which will be called by the render graph when executing the pass.
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) => ExecuteFBFetchPass(data, context));
             }
         }
         
         // This is where the renderGraph handle can be accessed.
-        // Each ScriptableRenderPass can use the RenderGraph handle to add multiple render passes to the render graph
+        // Each ScriptableRenderPass can use the RenderGraph handle to add multiple render passes to the render graph.
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             // This pass showcases how to implement framebuffer fetch: this is an advanced TBDR GPU optimization
@@ -80,8 +81,8 @@ public class FrameBufferFetchRenderFeature : ScriptableRendererFeature
             // As a result, the passes are merged (you can verify in the RenderGraph Visualizer) and the bandwidth usage is reduced, since we can discard the temporary render target.
 
 
-            // UniversalResourceData contains all the texture handles used by the renderer, including the active color and depth textures
-            // The active color and depth textures are the main color and depth buffers that the camera renders into
+            // UniversalResourceData contains all the texture handles used by the renderer, including the active color and depth textures.
+            // The active color and depth textures are the main color and depth buffers that the camera renders into.
             var resourceData = frameData.Get<UniversalResourceData>();
 
             // The destination texture is created here, 
@@ -98,8 +99,8 @@ public class FrameBufferFetchRenderFeature : ScriptableRendererFeature
 
                 FBFetchPass(renderGraph, frameData, source, fbFetchDestination, destinationDesc.msaaSamples != MSAASamples.None);
 
-                //Copy back the FBF output to the camera color to easily see the result in the game view
-                //This copy pass also uses FBF under the hood. All the passes should be merged this way and the destination attachment should be memoryless (no load/store of memory).
+                // Copy back the FBF output to the camera color to easily see the result in the game view.
+                // This copy pass also uses FBF under the hood. All the passes should be merged this way and the destination attachment should be memoryless (no load/store of memory).
                 renderGraph.AddCopyPass(fbFetchDestination, source, passName: "Copy Back FF Destination (also using FBF)");
             }
             else
@@ -110,7 +111,6 @@ public class FrameBufferFetchRenderFeature : ScriptableRendererFeature
     }
 
     FrameBufferFetchPass m_FbFetchPass;
-    
     public Material m_FBFetchMaterial;
 
     /// <inheritdoc/>
