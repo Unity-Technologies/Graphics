@@ -1,6 +1,7 @@
 // ALso used for Direct3D 11 "feature level 9.x" target for Windows Store and Windows Phone
 #define UNITY_UV_STARTS_AT_TOP 1
 #define UNITY_REVERSED_Z 0
+#define UNITY_NEAR_CLIP_VALUE (0.0)
 #define UNITY_GATHER_SUPPORTED 0
 #define UNITY_CAN_READ_POSITION_IN_FRAGMENT_PROGRAM 1
 
