@@ -8,55 +8,35 @@ Each property has an associated **Data Type**. See [Data Types](Data-Types.md) f
 
 ## Common Parameters
 
-In addition to values specific to their [Data Types](Data-Types.md), most properties have the following common parameters.
+All properties have the following common parameters in addition to those specific to their [Data Types](Data-Types.md).
 
-| Name        | Type  | Description |
-|:------------ |:---|:---|
-| Display Name | String | The display name of the property |
-| Exposed | Boolean | If true this property will be exposed on the material inspector |
-| Reference Name | String | The internal name used for the property inside the shader |
-| Override Property Declaration | Boolean | An advanced option to enable explicit control of the shader declaration for this property |
-| Shader Declaration | Enumeration | Controls the shader declaration of this property |
-
-NOTE: If you overwrite the **Reference Name** parameter be aware of the following conditions:
-
-* If your **Reference Name** does not begin with an underscore, one will be automatically appended.
-* If your **Reference Name** contains any characters which are unsupported in HLSL they will be removed.
-* You can revert to the default **Reference Name** by right clicking on it and selecting **Reset Reference**.
+| Parameter | Description |
+| :--- | :--- |
+| **Name** | The display name of the property. |
+| **Reference** | The internal name for the property in the shader. Use this **Reference** name instead of the display **Name** when you reference the property in a script.<br /><br />If you overwrite this parameter, be aware of the following:<ul><li>If the string doesn't begin with an underscore, Unity automatically adds one.</li><li>If the string contains any characters that HLSL does not support, Unity removes them.</li><li>You can revert to the default value: right-click on the **Reference** field label, and select **Reset Reference**.</li></ul> |
+| **Precision** | Sets the data precision mode of the Property. The options are **Inherit**, **Single**, **Half**, and **Use Graph Precision**.<br />For more details, refer to [Precision Modes](Precision-Modes.md). |
+| **Scope** | Specifies where you expect to edit the property for materials. The options are:<ul><li>**Global**: Makes the property editable at a global level, through a C# script only, for all materials that use it. Selecting this option hides or grays out all parameters that relate to the Inspector UI display.</li><li>**Per Material**: Makes the property independently editable per material, either through a C# script, or in the Inspector UI if you enable **Show In Inspector**.</li><li>**Hybrid Per Instance**: Has the same effect as **Per Material**, unless you're using [DOTS instancing](https://docs.unity3d.com/Packages/com.unity.entities.graphics@latest/index.html?subfolder=/manual/dots-instancing-shader.html).</li></ul> |
+| **Show In Inspector** | Displays the property in the material inspector.<br/>If you disable this option, it includes an `[HideInInspector]` attribute to the material property (refer to [Properties block reference in ShaderLab](https://docs.unity3d.com/Manual/SL-Properties.html#material-property-attributes) for more details). |
 
 ## Float
 
 Defines a **Float** value.
 
-| Data Type    | Modes |
-|:-------------|:------|
-| Float    | Default, Slider, Integer |
+Parameters specific to Float properties in addition to the [common parameters](#common-parameters):
 
-#### Default
+| Parameter | Description |
+| :--- | :--- |
+| **Mode** | Select the UI mode in which you want to display the Property and manipulate its value in the material inspector. You need to define a specific subset of parameters according to the option you select.<br /><br />The options are:<ul><li>**Default**: Displays a scalar input field in the material inspector. Only requires a **Default Value**.</li><li>**Slider**: Defines the Float property in [`Range`](https://docs.unity3d.com/Manual/SL-Properties.html#material-property-declaration-syntax-by-type) mode to display a slider field in the material inspector. Use [additional parameters](#slider) to define the slider range.</li><li>**Integer**: Displays an integer input field in the material inspector. Only requires a **Default Value**.</li></ul> |
+| **Default Value** | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). <br />The value might be either a float or an integer according to the **Mode** you select. |
 
-Displays a scalar input field in the material inspector.
+### Slider
 
-| Field        | Type  | Description |
-|:-------------|:------|:------------|
-| Default | Float    | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
+Additional parameters available when you set the Float property **Mode** to **Slider**.
 
-#### Slider
-
-Displays a slider field in the material inspector.
-
-| Field        | Type  | Description |
-|:-------------|:------|:------------|
-| Default | Float    |  The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
-| Min | Float    | The minimum value of the slider. |
-| Max | Float    | The maximum value of the slider. |
-
-#### Integer
-
-Displays an integer input field in the material inspector.
-
-| Field        | Type  | Description |
-|:-------------|:------|:------------|
-| Default | Integer | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
+| Parameter | Description |
+| :--- | :--- |
+| **Min** | The minimum value of the slider range. |
+| **Max** | The maximum value of the slider range. |
 
 ## Vector 2
 
