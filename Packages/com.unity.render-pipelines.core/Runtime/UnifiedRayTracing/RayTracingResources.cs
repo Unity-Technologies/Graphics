@@ -5,6 +5,12 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.UnifiedRayTracing
 {
+    [Scripting.APIUpdating.MovedFrom(
+        autoUpdateAPI: true,
+        sourceNamespace: "UnityEngine.Rendering.UnifiedRayTracing",
+        sourceAssembly: "Unity.Rendering.LightTransport.Runtime",
+        sourceClassName: "RayTracingRenderPipelineResources"
+    )]
     [Serializable]
     [SupportedOnRenderPipeline()]
     [Categorization.CategoryInfo(Name = "R: Unified Ray Tracing", Order = 1000), HideInInspector]
