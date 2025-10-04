@@ -307,6 +307,25 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void MultiLink_GPUEvent_To_Initialize()
+        {
+            var from1 = ScriptableObject.CreateInstance<VFXBasicGPUEvent>();
+            var from2 = ScriptableObject.CreateInstance<VFXBasicGPUEvent>();
+
+            var to1 = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var to2 = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+
+            from1.LinkTo(to1);
+            from2.LinkTo(to2);
+
+            // Should disconnect from to1, but not from from2
+            from1.LinkTo(to2);
+
+            Assert.AreEqual(2, to2.inputContexts.Count());
+            Assert.AreEqual(1, from1.outputContexts.Count());
+        }
+
+        [Test]
         public void Link_Success_From_Update_To_Update()
         {
             var from = ScriptableObject.CreateInstance<VFXBasicUpdate>();

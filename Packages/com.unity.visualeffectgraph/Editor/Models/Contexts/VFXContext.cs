@@ -2,11 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEditor.VFX;
 using UnityEngine.VFX;
 
 using Type = System.Type;
-using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
@@ -371,27 +369,36 @@ namespace UnityEditor.VFX
 
         private bool CanLinkToMany()
         {
-            return contextType == VFXContextType.Spawner
-                || contextType == VFXContextType.Event;
+            return contextType switch
+            {
+                VFXContextType.Spawner or
+                VFXContextType.Event or
+                VFXContextType.Init or
+                VFXContextType.Update => true,
+                _ => false
+            };
         }
 
         private bool CanLinkFromMany()
         {
-            return contextType == VFXContextType.Output
-                || contextType == VFXContextType.OutputEvent
-                || contextType == VFXContextType.Spawner
-                || contextType == VFXContextType.Subgraph
-                || contextType == VFXContextType.Init;
+            return contextType switch
+            {
+                VFXContextType.OutputEvent or
+                VFXContextType.Spawner or
+                VFXContextType.Subgraph or
+                VFXContextType.Init => true,
+                _ => false
+            };
         }
 
         private static bool CanMixingFrom(VFXContextType from, VFXContextType to, VFXContextType lastFavoriteTo)
         {
             if (from == VFXContextType.Init || from == VFXContextType.Update)
             {
-                if (lastFavoriteTo == VFXContextType.Update)
-                    return to == VFXContextType.Update;
                 if (lastFavoriteTo == VFXContextType.Output)
                     return to == VFXContextType.Output;
+                //Excluding any other combination
+                return false;
             }
             //No special case outside init output which can't be mixed with output & update
             return true;
@@ -423,22 +430,22 @@ namespace UnityEditor.VFX
                 throw new ArgumentException(string.Format("Cannot link contexts {0} and {1}", from, to));
 
             // Handle constraints on connections
+            bool fromCanLinkToMany = from.CanLinkToMany();
             foreach (var link in from.m_OutputFlowSlot[fromIndex].link.ToArray())
             {
-                if (!link.context.CanLinkFromMany()
-                    || !CanMixingFrom(from.contextType, link.context.contextType, to.contextType))
+                if (!fromCanLinkToMany || !CanMixingFrom(from.contextType, link.context.contextType, to.contextType))
                 {
                     if (link.context.inputFlowCount > toIndex) //Special case from SubGraph, not sure how this test could be false
-                        InnerUnlink(from, link.context, fromIndex, toIndex, notify);
+                        InnerUnlink(from, link.context, fromIndex, link.slotIndex, notify);
                 }
             }
 
+            bool toCanLinkFromMany = to.CanLinkFromMany();
             foreach (var link in to.m_InputFlowSlot[toIndex].link.ToArray())
             {
-                if (!link.context.CanLinkToMany()
-                    || !CanMixingTo(link.context.contextType, to.contextType, from.contextType))
+                if (!toCanLinkFromMany || !CanMixingTo(link.context.contextType, to.contextType, from.contextType))
                 {
-                    InnerUnlink(link.context, to, fromIndex, toIndex, notify);
+                    InnerUnlink(link.context, to, link.slotIndex, toIndex, notify);
                 }
             }
 
