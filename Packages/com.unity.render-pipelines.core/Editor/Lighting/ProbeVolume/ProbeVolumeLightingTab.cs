@@ -428,7 +428,7 @@ namespace UnityEngine.Rendering
         {
             for (int i = 0; i < SceneManager.sceneCount; i++)
             {
-                var scene = SceneManager.GetSceneAt(i);
+                Scene scene = SceneManager.GetSceneAt(i);
                 if (scene.isLoaded && ProbeVolumeBakingSet.GetBakingSetForScene(scene) != activeSet)
                     scenesToUnload.Add(scene);
             }
@@ -467,7 +467,7 @@ namespace UnityEngine.Rendering
                             if (scenesToUnload.All(s => !s.isDirty) || EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                             {
                                 foreach (var scene in scenesToUnload)
-                                    EditorSceneManager.CloseScene(scene, false);
+                                    EditorSceneManager.CloseScene(scene, string.IsNullOrEmpty(scene.path)); // Remove the scene from the hierarchy iff it has never been saved.
                             }
                             break;
                     }
