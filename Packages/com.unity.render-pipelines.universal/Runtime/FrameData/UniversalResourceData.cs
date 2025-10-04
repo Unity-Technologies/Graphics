@@ -242,29 +242,6 @@ namespace UnityEngine.Rendering.Universal
         private TextureHandle _internalColorLut;
 
         /// <summary>
-        /// Color output of post-process passes (uberPost and finalPost) when HDR debug views are enabled. It replaces
-        /// the backbuffer color as standard output because the later cannot be sampled back (or may not be in HDR format).
-        /// If used, DebugHandler will perform the blit from DebugScreenTexture to BackBufferColor.
-        /// </summary>
-        internal TextureHandle debugScreenColor
-        {
-            get => CheckAndGetTextureHandle(ref _debugScreenColor);
-            set => CheckAndSetTextureHandle(ref _debugScreenColor, value);
-        }
-        internal TextureHandle _debugScreenColor;
-
-        /// <summary>
-        /// Depth output of post-process passes (uberPost and finalPost) when HDR debug views are enabled. It replaces
-        /// the backbuffer depth as standard output because the later cannot be sampled back.
-        /// </summary>
-        internal TextureHandle debugScreenDepth
-        {
-            get => CheckAndGetTextureHandle(ref _debugScreenDepth);
-            set => CheckAndSetTextureHandle(ref _debugScreenDepth, value);
-        }
-        internal TextureHandle _debugScreenDepth;
-
-        /// <summary>
         /// After Post Process Color is obsolete.
         /// </summary>
         [Obsolete("AfterPostProcessColor has never been implemented. Use cameraColor instead.", false)]
@@ -364,8 +341,6 @@ namespace UnityEngine.Rendering.Universal
             _motionVectorColor = TextureHandle.nullHandle;
             _motionVectorDepth = TextureHandle.nullHandle;
             _internalColorLut = TextureHandle.nullHandle;
-            _debugScreenColor = TextureHandle.nullHandle;
-            _debugScreenDepth = TextureHandle.nullHandle;
             _afterPostProcessColor = TextureHandle.nullHandle;
             _overlayUITexture = TextureHandle.nullHandle;
             _renderingLayersTexture = TextureHandle.nullHandle;

@@ -1366,41 +1366,41 @@ namespace UnityEngine.Rendering.Universal
 
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent >= RenderPassEvent.AfterRenderingPostProcessing && x.renderPassEvent < RenderPassEvent.AfterRendering) != null;
 
-            bool resolvePostProcessingToCameraTarget = !hasCaptureActions && !hasPassesAfterPostProcessing && !applyFinalPostProcessing;
-            bool needsColorEncoding = DebugHandler == null || !DebugHandler.HDRDebugViewIsActive(cameraData.resolveFinalTarget);
             bool xrDepthTargetResolved = resourceData.activeDepthID == UniversalResourceData.ActiveID.BackBuffer;
 
             DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(cameraData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
-            // Allocate debug screen texture if the debug mode needs it.
+            bool needsColorEncoding = !resolveToDebugScreen;
+
+            //When the debughandler displays HDR debug views, it needs to redirect (final) post-process output to an intermediate color target (debugScreenTexture).
+            //Therefore, we swap the backbuffer textures for the debug screen textures such that the next post processing passes don't need to be aware of the debug handler at all.
+            //At the end, when the handler is active, we swap them back. This isolates the debug handler code from the sequence of post process passes and is a common pattern to
+            //use the resourceData.
+            var debugRealBackBufferColor = TextureHandle.nullHandle;
+            var debugRealBackBufferDepth = TextureHandle.nullHandle;
+
             if (resolveToDebugScreen)
             {
+                debugRealBackBufferColor = resourceData.backBufferColor;
+                debugRealBackBufferDepth = resourceData.backBufferDepth;
+
                 RenderTextureDescriptor colorDesc = cameraData.cameraTargetDescriptor;
                 DebugHandler.ConfigureColorDescriptorForDebugScreen(ref colorDesc, cameraData.pixelWidth, cameraData.pixelHeight);
-                resourceData.debugScreenColor = CreateRenderGraphTexture(renderGraph, colorDesc, "_DebugScreenColor", false);
+                resourceData.backBufferColor = CreateRenderGraphTexture(renderGraph, colorDesc, "_DebugScreenColor", false);
 
                 RenderTextureDescriptor depthDesc = cameraData.cameraTargetDescriptor;
                 DebugHandler.ConfigureDepthDescriptorForDebugScreen(ref depthDesc, cameraDepthAttachmentFormat, cameraData.pixelWidth, cameraData.pixelHeight);
-                resourceData.debugScreenDepth = CreateRenderGraphTexture(renderGraph, depthDesc, "_DebugScreenDepth", false);
+                resourceData.backBufferDepth = CreateRenderGraphTexture(renderGraph, depthDesc, "_DebugScreenDepth", false);
             }
 
-            // If the debugHandler displays HDR debug views, it needs to redirect (final) post-process output to an intermediate color target (debugScreenTexture)
-            // and it will write into the post-process intended output.
-            TextureHandle debugHandlerColorTarget = resourceData.backBufferColor;
-
             if (applyPostProcessing)
-            {
-                TextureHandle activeColor = resourceData.activeColorTexture;
-                TextureHandle backbuffer = resourceData.backBufferColor;
-                TextureHandle internalColorLut = resourceData.internalColorLut;
-                TextureHandle overlayUITexture = resourceData.overlayUITexture;
-
-                bool isTargetBackbuffer = (cameraData.resolveFinalTarget && !applyFinalPostProcessing && !hasPassesAfterPostProcessing);
+            { 
+                bool isTargetBackbuffer = cameraData.resolveFinalTarget && !applyFinalPostProcessing && !hasPassesAfterPostProcessing && !hasCaptureActions;
 
                 TextureHandle target;
                 if (isTargetBackbuffer)
                 {
-                    target = backbuffer;
+                    target = resourceData.backBufferColor;
                 }
                 else
                 {
@@ -1427,30 +1427,20 @@ namespace UnityEngine.Rendering.Universal
                         desc.height = cameraData.pixelHeight;
                         desc.name = _CameraColorUpscaled;
 
-                        resourceData.cameraColor = renderGraph.CreateTexture(desc);
+                        target = renderGraph.CreateTexture(desc);
                     }
                     else
                     {
                         var isSingleCamera = cameraData.resolveFinalTarget && cameraData.renderType == CameraRenderType.Base;
 
-                        resourceData.cameraColor = (isSingleCamera)
-                            ? renderGraph.CreateTexture(activeColor, _CameraColorAfterPostProcessingName)
+                        target = (isSingleCamera)
+                            ? renderGraph.CreateTexture(resourceData.cameraColor, _CameraColorAfterPostProcessingName)
                             : renderGraph.ImportTexture(nextRenderGraphCameraColorHandle, importColorParams);
                     }
-
-                    target = resourceData.cameraColor;
                 }
 
-                // but we may actually render to an intermediate texture if debug views are enabled.
-                // In that case, DebugHandler will eventually blit DebugScreenTexture into AfterPostProcessColor.
-                if (resolveToDebugScreen && isTargetBackbuffer)
-                {
-                    debugHandlerColorTarget = target;
-                    target = resourceData.debugScreenColor;
-                }
-
-                bool doSRGBEncoding = resolvePostProcessingToCameraTarget && needsColorEncoding;
-                m_PostProcess.RenderPostProcessing(renderGraph, frameData, in activeColor, in internalColorLut, in overlayUITexture, in target, applyFinalPostProcessing, doSRGBEncoding);
+                bool doSRGBEncoding = isTargetBackbuffer && needsColorEncoding;
+                m_PostProcess.RenderPostProcessing(renderGraph, frameData, resourceData.cameraColor, resourceData.internalColorLut, resourceData.overlayUITexture, in target, applyFinalPostProcessing, doSRGBEncoding);
 
                 // Handle any after-post rendering debugger overlays
                 if (cameraData.resolveFinalTarget)
@@ -1460,60 +1450,33 @@ namespace UnityEngine.Rendering.Universal
                 {
                     resourceData.SwitchActiveTexturesToBackbuffer();
                 }
+                else
+                {
+                    resourceData.cameraColor = target;
+                }
             }
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingPostProcessing);
 
-            if (cameraData.captureActions != null)
+            if (hasCaptureActions)
             {
                 m_CapturePass.RecordRenderGraph(renderGraph, frameData);
             }
 
             if (applyFinalPostProcessing)
             {
-                TextureHandle backbuffer = resourceData.backBufferColor;
-                TextureHandle overlayUITexture = resourceData.overlayUITexture;
-
-                // Desired target for post-processing pass.
-                TextureHandle target = backbuffer;
-
-                if (resolveToDebugScreen)
-                {
-                    debugHandlerColorTarget = target;
-                    target = resourceData.debugScreenColor;
-                }
-
-                // make sure we are accessing the proper camera color in case it was replaced by injected passes
-                var source = resourceData.cameraColor;
-                m_PostProcess.RenderFinalPostProcessing(renderGraph, frameData, in source, in overlayUITexture, in target, needsColorEncoding);
+                m_PostProcess.RenderFinalPostProcessing(renderGraph, frameData, resourceData.cameraColor, resourceData.overlayUITexture, resourceData.backBufferColor, needsColorEncoding);
 
                 resourceData.SwitchActiveTexturesToBackbuffer();
             }
 
-            bool cameraTargetResolved =
-                // final PP always blit to camera target
-                applyFinalPostProcessing ||
-                // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
-                (applyPostProcessing && !hasPassesAfterPostProcessing && !hasCaptureActions);
-
-            if (!resourceData.isActiveTargetBackBuffer && cameraData.resolveFinalTarget && !cameraTargetResolved)
+            //Keep in mind that also our users could have done the final blit / final post processing and called SwitchActiveTexturesToBackbuffer().
+            //Checking resourceData.isActiveTargetBackBuffer is a robust way to check if this has happened, by our own code or by the user.
+            if (!resourceData.isActiveTargetBackBuffer && cameraData.resolveFinalTarget)
             {
-                TextureHandle backbuffer = resourceData.backBufferColor;
-                TextureHandle overlayUITexture = resourceData.overlayUITexture;
-                TextureHandle target = backbuffer;
-
-                if (resolveToDebugScreen)
-                {
-                    debugHandlerColorTarget = target;
-                    target = resourceData.debugScreenColor;
-                }
-
-                // make sure we are accessing the proper camera color in case it was replaced by injected passes
-                var source = resourceData.cameraColor;
-
                 debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, !resolveToDebugScreen);
 
-                m_FinalBlitPass.Render(renderGraph, frameData, cameraData, source, target, overlayUITexture);
+                m_FinalBlitPass.Render(renderGraph, frameData, cameraData, resourceData.cameraColor, resourceData.backBufferColor, resourceData.overlayUITexture);
                 resourceData.SwitchActiveTexturesToBackbuffer();
             }
 
@@ -1526,17 +1489,7 @@ namespace UnityEngine.Rendering.Universal
             bool outputToHDR = cameraData.isHDROutputActive;
             if (shouldRenderUI && !outputToHDR)
             {
-                TextureHandle depthBuffer = resourceData.backBufferDepth;
-                TextureHandle target = resourceData.backBufferColor;
-
-                if (resolveToDebugScreen)
-                {
-                    debugHandlerColorTarget = target;
-                    target = resourceData.debugScreenColor;
-                    depthBuffer = resourceData.debugScreenDepth;
-                }
-
-                m_DrawOverlayUIPass.RenderOverlay(renderGraph, frameData, in target, in depthBuffer);
+                m_DrawOverlayUIPass.RenderOverlay(renderGraph, frameData, resourceData.activeColorTexture, resourceData.activeDepthTexture);
             }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -1552,12 +1505,16 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
 
-            if (debugHandler != null)
+            if (resolveToDebugScreen)
             {
-                TextureHandle overlayUITexture = resourceData.overlayUITexture;
-                TextureHandle debugScreenTexture = resourceData.debugScreenColor;
+                //We swapped the backBuffer textures to the debug screen textures before post processing. This way, all those passes don't need to be aware of the debughandling at all.
+                var debugScreenTexture = resourceData.backBufferColor;
 
-                debugHandler.Render(renderGraph, cameraData, debugScreenTexture, overlayUITexture, debugHandlerColorTarget);
+                debugHandler.Render(renderGraph, cameraData, debugScreenTexture, resourceData.overlayUITexture, debugRealBackBufferColor);
+
+                //Swapping the backbuffer textures back
+                resourceData.backBufferColor = debugRealBackBufferColor;
+                resourceData.backBufferDepth = debugRealBackBufferDepth;
             }
 
             if (cameraData.resolveFinalTarget)
@@ -1574,10 +1531,10 @@ namespace UnityEngine.Rendering.Universal
                 }
 #endif
                 if (cameraData.isSceneViewCamera)
-                    DrawRenderGraphWireOverlay(renderGraph, frameData, resourceData.backBufferColor);
+                    DrawRenderGraphWireOverlay(renderGraph, frameData, resourceData.activeColorTexture);
 
                 if (drawGizmos)
-                    DrawRenderGraphGizmos(renderGraph, frameData, resourceData.backBufferColor, resourceData.activeDepthTexture, GizmoSubset.PostImageEffects);
+                    DrawRenderGraphGizmos(renderGraph, frameData, resourceData.activeColorTexture, resourceData.activeDepthTexture, GizmoSubset.PostImageEffects);
             }
         }
 
