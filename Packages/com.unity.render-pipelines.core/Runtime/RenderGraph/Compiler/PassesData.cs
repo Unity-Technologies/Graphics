@@ -262,14 +262,17 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public readonly ReadOnlySpan<PassInputData> Inputs(CompilerContextData ctx)
             => ctx.inputData.MakeReadOnlySpan(firstInput, numInputs);
 
+        // RenderAttachments - MRT colors and depth
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<PassFragmentData> Fragments(CompilerContextData ctx)
             => ctx.fragmentData.MakeReadOnlySpan(firstFragment, numFragments);
 
+        // ShadingRateImageAttachment
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly PassFragmentData ShadingRateImage(CompilerContextData ctx)
             => ctx.fragmentData[shadingRateImageIndex];
 
+        // RenderInputAttachments
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<PassFragmentData> FragmentInputs(CompilerContextData ctx)
             => ctx.fragmentData.MakeReadOnlySpan(firstFragmentInput, numFragmentInputs);
@@ -881,18 +884,21 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             foreach (ref readonly var input in passToMerge.Inputs(contextData))
             {
                 var inputResource = input.resource;
-                var writingPassId = contextData.resources[inputResource].writePassId;
-                // Is the writing pass enclosed in the current native renderpass
-                if (writingPassId >= nativePass.firstGraphPass && writingPassId < nativePass.lastGraphPass + 1)
+
+                ref readonly var inputDataVersioned = ref contextData.VersionedResourceData(inputResource);
+
+                bool isWrittenInCurrNativePass = inputDataVersioned.written && (inputDataVersioned.writePassId >= nativePass.firstGraphPass && inputDataVersioned.writePassId < nativePass.lastGraphPass + 1);
+
+                if (isWrittenInCurrNativePass)
                 {
-                    // If it's not used as a fragment, it's used as some sort of texture read of load so we need so sync it out
+                    // If it's not used as a fragment, it's used as some sort of texture read or load so we need to break the current native render pass
+                    // as we can't sample and write to it in the same native render pass
                     if (!passToMerge.IsUsedAsFragment(inputResource, contextData))
                     {
                         return new PassBreakAudit(PassBreakReason.NextPassReadsTexture, passIdToMerge);
                     }
                 }
             }
-
 
             // Gather which attachments to add to the current renderpass
             var attachmentsToTryAdding = new FixedAttachmentArray<PassFragmentData>();
@@ -929,7 +935,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     }
                 }
 
-                // Check if this fragment is already sampled in the native renderpass not as a fragment but as an input
+                // Check if this fragment is already sampled in the native renderpass as a standard texture
                 for (int i = nativePass.firstGraphPass; i <= nativePass.lastGraphPass; ++i)
                 {
                     ref var earlierPassData = ref contextData.passData.ElementAt(i);
@@ -947,7 +953,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     }
                 }
             }
-
 
             foreach (ref readonly var fragmentInput in passToMerge.FragmentInputs(contextData))
             {
@@ -1283,7 +1288,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 }
             }
 
-            // We also need to update the shading rate image index (VRS)
+            // We also need to update the shading rate image SRI index (used for VRS)
+            // This is unlikely to happen because the SRI is always added last, after color and input attachments
             if (hasShadingRateImage && shadingRateImageIndex == 0)
             {
                 shadingRateImageIndex = prevDepthIdx;
