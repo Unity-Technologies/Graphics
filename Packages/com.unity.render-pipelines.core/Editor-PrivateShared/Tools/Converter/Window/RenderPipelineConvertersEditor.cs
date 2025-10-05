@@ -435,6 +435,7 @@ namespace UnityEditor.Rendering.Converter
 
         void Convert(ClickEvent evt)
         {
+            if (!ShowIrreversibleChangesDialog()) return;
             // Ask to save save the current open scene and after the conversion is done reload the same scene.
             if (!SaveCurrentSceneAndContinue()) return;
 
@@ -496,6 +497,14 @@ namespace UnityEditor.Rendering.Converter
                     CreateGUI();
                 }
             );
+        }
+
+        internal static string k_DialogKey = $"{nameof(UnityEditor)}.{nameof(Rendering)}.{nameof(RenderPipelineConvertersEditor)}.{nameof(ShowIrreversibleChangesDialog)}";
+        private bool ShowIrreversibleChangesDialog()
+        {
+            return EditorUtility.DisplayDialog("Confirm Project Conversion",
+                    "This action will modify project assets and cannot be easily undone. It is strongly recommended to have a backup or use version control before continuing.",
+                    "Proceed", "Cancel", DialogOptOutDecisionType.ForThisMachine, k_DialogKey);
         }
     }
 }
