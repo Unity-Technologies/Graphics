@@ -19,11 +19,16 @@ PackedVaryings uie_custom_vert(Attributes input)
     uieInput.circle = input.uv6;
     uieInput.textureId = input.uv7.x;
 
-
     v2f uieOutput = uie_std_vert(uieInput);
 
     Varyings varyings = (Varyings)0;
     varyings.positionCS = uieOutput.pos;
+
+#ifdef VARYINGS_NEED_POSITION_WS
+    float3 positionWS = TransformObjectToWorld(input.positionOS);
+    varyings.positionWS = positionWS;
+#endif
+    
     varyings.color = uieOutput.color;
     varyings.texCoord0 = uieOutput.uvClip;
     varyings.texCoord1 = uieOutput.typeTexSettings;

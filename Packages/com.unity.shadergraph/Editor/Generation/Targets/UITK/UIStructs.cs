@@ -10,6 +10,8 @@ namespace UnityEditor.ShaderGraph
             fields = new[]
             {
                 StructFields.Varyings.positionCS,
+                StructFields.Varyings.positionWS,
+                StructFields.Varyings.screenPosition,
                 StructFields.Varyings.texCoord0,
                 StructFields.Varyings.texCoord1,
                 StructFields.Varyings.texCoord2,
@@ -68,6 +70,11 @@ namespace UnityEditor.ShaderGraph
                 // optionals
                 StructFields.VertexDescriptionInputs.VertexID,
                 StructFields.VertexDescriptionInputs.InstanceID,
+
+                StructFields.VertexDescriptionInputs.ObjectSpaceNormal,
+                StructFields.VertexDescriptionInputs.NDCPosition,
+                StructFields.VertexDescriptionInputs.PixelPosition,
+
             }
         };
         public static StructDescriptor UITKSurfaceDescriptionInputs = new StructDescriptor()
@@ -93,6 +100,11 @@ namespace UnityEditor.ShaderGraph
                 StructFields.SurfaceDescriptionInputs.uv5,
                 StructFields.SurfaceDescriptionInputs.uv6,
                 StructFields.SurfaceDescriptionInputs.uv7,
+
+                StructFields.SurfaceDescriptionInputs.WorldSpacePosition,
+                StructFields.SurfaceDescriptionInputs.ScreenPosition,
+                StructFields.SurfaceDescriptionInputs.NDCPosition,
+                StructFields.SurfaceDescriptionInputs.PixelPosition,
 
                 StructFields.SurfaceDescriptionInputs.TimeParameters,
             }
