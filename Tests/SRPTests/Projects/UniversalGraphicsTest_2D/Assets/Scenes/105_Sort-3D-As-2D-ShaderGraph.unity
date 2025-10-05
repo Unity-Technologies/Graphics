@@ -555,6 +555,7 @@ SortingGroup:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_SortAtRoot: 0
+  m_Sort3DAs2D: 1
 --- !u!1120581460 &114176919
 RenderAs2D:
   m_ObjectHideFlags: 3
@@ -603,7 +604,8 @@ RenderAs2D:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Owner: {fileID: 114176918}
+  m_OwningSortingGroup: {fileID: 114176918}
+  m_WasCreatedByOwner: 1
 --- !u!1 &139581595
 GameObject:
   m_ObjectHideFlags: 0
@@ -825,6 +827,7 @@ SortingGroup:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_SortAtRoot: 0
+  m_Sort3DAs2D: 1
 --- !u!1120581460 &213804573
 RenderAs2D:
   m_ObjectHideFlags: 3
@@ -873,7 +876,8 @@ RenderAs2D:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Owner: {fileID: 213804572}
+  m_OwningSortingGroup: {fileID: 213804572}
+  m_WasCreatedByOwner: 1
 --- !u!1 &240135210
 GameObject:
   m_ObjectHideFlags: 0
@@ -3710,6 +3714,7 @@ SortingGroup:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_SortAtRoot: 0
+  m_Sort3DAs2D: 1
 --- !u!1120581460 &1252527191
 RenderAs2D:
   m_ObjectHideFlags: 3
@@ -3758,7 +3763,8 @@ RenderAs2D:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Owner: {fileID: 1252527190}
+  m_OwningSortingGroup: {fileID: 1252527190}
+  m_WasCreatedByOwner: 1
 --- !u!1 &1279664809
 GameObject:
   m_ObjectHideFlags: 0
@@ -5085,6 +5091,7 @@ SortingGroup:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_SortAtRoot: 0
+  m_Sort3DAs2D: 1
 --- !u!1120581460 &1611659894
 RenderAs2D:
   m_ObjectHideFlags: 3
@@ -5133,7 +5140,8 @@ RenderAs2D:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Owner: {fileID: 1611659893}
+  m_OwningSortingGroup: {fileID: 1611659893}
+  m_WasCreatedByOwner: 1
 --- !u!1 &1620089285
 GameObject:
   m_ObjectHideFlags: 0
@@ -5750,6 +5758,7 @@ SortingGroup:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_SortAtRoot: 0
+  m_Sort3DAs2D: 1
 --- !u!1120581460 &2010257417
 RenderAs2D:
   m_ObjectHideFlags: 3
@@ -5798,7 +5807,8 @@ RenderAs2D:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Owner: {fileID: 2010257416}
+  m_OwningSortingGroup: {fileID: 2010257416}
+  m_WasCreatedByOwner: 1
 --- !u!1 &2029519282
 GameObject:
   m_ObjectHideFlags: 0
@@ -8102,6 +8112,7 @@ SortingGroup:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_SortAtRoot: 0
+  m_Sort3DAs2D: 1
 --- !u!1120581460 &6633563706952778051
 RenderAs2D:
   m_ObjectHideFlags: 3
@@ -8150,7 +8161,8 @@ RenderAs2D:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Owner: {fileID: 6633563706952778050}
+  m_OwningSortingGroup: {fileID: 6633563706952778050}
+  m_WasCreatedByOwner: 1
 --- !u!4 &6929055677307623865
 Transform:
   m_ObjectHideFlags: 0
