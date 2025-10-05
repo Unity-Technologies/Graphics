@@ -187,7 +187,7 @@ namespace UnityEngine.Rendering.Tests
             m_RenderGraphTestPipeline.invalidContextForTesting = false;
             // Cleaning all Render Graph resources and data structures
             // Nothing remains, Render Graph in next test will start from scratch
-            m_RenderGraph.ForceCleanup();
+            m_RenderGraph.CleanupResourcesAndGraph();
         }
     }
 }
