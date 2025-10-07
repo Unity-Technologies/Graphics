@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using UnityEditor.Rendering.Converter;
 using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -71,6 +72,7 @@ namespace UnityEditor.Rendering.Universal.Tools
 
         [Test]
         [Timeout(5 * 60 * 1000)]
+        [UnityPlatform(exclude = new[] { RuntimePlatform.WindowsEditor })] // Unstable: https://jira.unity3d.com/browse/UUM-121144
         public void ReassignGameObjectMaterials_Succeeds_WhenMaterialCanBeSet()
         {
             var materialConverter = new ReadonlyMaterialConverter();
