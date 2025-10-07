@@ -28,3 +28,4 @@ EditorSettings:
   m_ShowLightmapResolutionOverlay: 1
   m_UseLegacyProbeSampleCount: 0
   m_SerializeInlineMappingsOnOneLine: 1
+  m_HideBuildProfileClassicPlatforms: 1
