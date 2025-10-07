@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float shadowDimmer;
 
         public float volumetricShadowDimmer;  // Replaces 'shadowDimmer'
-        public int nonLightMappedOnly;      // Used with ShadowMask (TODO: use a bitfield)
+        public int useShadowMask;      // Used with ShadowMask (TODO: use a bitfield)
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public float minRoughness;            // Hack
         public int screenSpaceShadowIndex;  // -1 if unused (TODO: 16 bit)
@@ -177,7 +177,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float shadowDimmer;
 
         public float volumetricShadowDimmer;  // Replaces 'shadowDimmer'
-        public int nonLightMappedOnly;      // Used with ShadowMask feature (TODO: use a bitfield)
+        public int useShadowMask;      // Used with ShadowMask feature (TODO: use a bitfield)
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public float minRoughness;            // This is use to give a small "area" to punctual light, as if we have a light with a radius.
         // TODO: Instead of doing this, we should pack the ray traced shadow index into the tile cookie for instance

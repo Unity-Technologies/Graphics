@@ -130,7 +130,7 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
                     && L.y > 0.0)
                 {
                     shadowP = GetPunctualShadowAttenuation(shadowContext, posInput.positionSS, posInput.positionWS, normalWS, lightData.shadowIndex, L, distances.x, lightData.lightType == GPULIGHTTYPE_POINT, lightData.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
-                    shadowP = lightData.nonLightMappedOnly ? min(1.0f, shadowP) : shadowP;
+                    shadowP = lightData.useShadowMask ? min(1.0f, shadowP) : shadowP;
                     shadowP = lerp(1.0f, shadowP, lightData.shadowDimmer);
 
     #ifdef SHADOW_LOOP_MULTIPLY

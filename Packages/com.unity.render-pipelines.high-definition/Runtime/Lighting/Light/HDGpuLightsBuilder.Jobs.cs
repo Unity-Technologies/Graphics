@@ -301,13 +301,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (processedEntity.isBakedShadowMask)
                 {
                     lightData.shadowMaskSelector[visibleLightBakingOutput.occlusionMaskChannel] = 1.0f;
-                    lightData.nonLightMappedOnly = visibleLightShadowCasterMode == LightShadowCasterMode.NonLightmappedOnly ? 1 : 0;
+                    lightData.useShadowMask = visibleLightShadowCasterMode == LightShadowCasterMode.ShadowMask ? 1 : 0;
                 }
                 else
                 {
                     // use -1 to say that we don't use shadow mask
                     lightData.shadowMaskSelector.x = -1.0f;
-                    lightData.nonLightMappedOnly = 0;
+                    lightData.useShadowMask = 0;
                 }
             }
 
@@ -610,13 +610,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var bakingOutput = visibleLightBakingOutput[lightIndex];
                     lightData.shadowMaskSelector[bakingOutput.occlusionMaskChannel] = 1.0f;
-                    lightData.nonLightMappedOnly = visibleLightShadowCasterMode[lightIndex] == LightShadowCasterMode.NonLightmappedOnly ? 1 : 0;
+                    lightData.useShadowMask = visibleLightShadowCasterMode[lightIndex] == LightShadowCasterMode.ShadowMask ? 1 : 0;
                 }
                 else
                 {
                     // use -1 to say that we don't use shadow mask
                     lightData.shadowMaskSelector.x = -1.0f;
-                    lightData.nonLightMappedOnly = 0;
+                    lightData.useShadowMask = 0;
                 }
 
                 lightData.angularDiameter = lightRenderData.angularDiameter * Mathf.Deg2Rad;
