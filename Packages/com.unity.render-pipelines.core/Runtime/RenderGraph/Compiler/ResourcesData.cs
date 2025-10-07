@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public void RegisterReadingPass(CompilerContextData ctx, ResourceHandle h, int passId, int index)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (numReaders >= ctx.resources.MaxReaders)
+            if (numReaders >= ctx.resources.MaxReaders[h.iType])
             {
                 string passName = ctx.GetPassName(passId);
                 string resourceName = ctx.GetResourceName(h);
@@ -194,8 +194,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public NativeList<ResourceVersionedData>[] versionedData; // Flattened fixed size array storing up to MaxVersions versions per resource id.
         public NativeList<ResourceReaderData>[] readerData; // Flattened fixed size array storing up to MaxReaders per resource id per version.
 
-        public int MaxVersions;
-        public int MaxReaders;
+        public int[] MaxVersions;
+        public int[] MaxReaders;
 
         public DynamicArray<Name>[] resourceNames;
 
@@ -205,6 +205,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             versionedData = new NativeList<ResourceVersionedData>[(int)RenderGraphResourceType.Count];
             readerData = new NativeList<ResourceReaderData>[(int)RenderGraphResourceType.Count];
             resourceNames = new DynamicArray<Name>[(int)RenderGraphResourceType.Count];
+            MaxVersions = new int[(int)RenderGraphResourceType.Count];
+            MaxReaders = new int[(int)RenderGraphResourceType.Count];
 
             for (int t = 0; t < (int)RenderGraphResourceType.Count; t++)
                 resourceNames[t] = new DynamicArray<Name>(0); // T in NativeList<T> cannot contain managed types, so the names are stored separately
@@ -241,13 +243,13 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         public void Initialize(RenderGraphResourceRegistry resources)
         {
-            uint maxReaders = 0;
-            uint maxWriters = 0;
-
             for (int t = 0; t < (int)RenderGraphResourceType.Count; t++)
             {
                 RenderGraphResourceType resourceType = (RenderGraphResourceType) t;
                 var numResources = resources.GetResourceCount(resourceType);
+
+                uint maxReaders = 0;
+                uint maxWriters = 0;
 
                 // We don't clear the list as we reinitialize it right after
                 AllocateAndResizeNativeListIfNeeded(ref unversionedData[t], numResources, NativeArrayOptions.UninitializedMemory);
@@ -308,12 +310,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 }
 
                 // The first resource is a null resource, so we need to add 1 to the count.
-                MaxReaders = (int)maxReaders + 1;
-                MaxVersions = (int)maxWriters + 1;
+                MaxReaders[t] = (int)maxReaders + 1;
+                MaxVersions[t]  = (int)maxWriters + 1;
 
                 // Clear the other caching structures, they will be filled later
-                AllocateAndResizeNativeListIfNeeded(ref versionedData[t], MaxVersions * numResources, NativeArrayOptions.ClearMemory);
-                AllocateAndResizeNativeListIfNeeded(ref readerData[t], MaxVersions * MaxReaders * numResources, NativeArrayOptions.ClearMemory);
+                AllocateAndResizeNativeListIfNeeded(ref versionedData[t], MaxVersions[t] * numResources, NativeArrayOptions.ClearMemory);
+                AllocateAndResizeNativeListIfNeeded(ref readerData[t], MaxVersions[t] * MaxReaders[t] * numResources, NativeArrayOptions.ClearMemory);
             }
         }
 
@@ -322,10 +324,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public int Index(ResourceHandle h)
         {
 #if UNITY_EDITOR // Hot path
-            if (h.version < 0 || h.version >= MaxVersions)
+            if (h.version < 0 || h.version >= MaxVersions[h.iType])
                 throw new Exception("Invalid version: " + h.version);
 #endif
-            return h.index * MaxVersions + h.version;
+            return h.index * MaxVersions[h.iType] + h.version;
         }
 
         // Flatten array index
@@ -333,12 +335,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public int IndexReader(ResourceHandle h, int readerID)
         {
 #if UNITY_EDITOR // Hot path
-            if (h.version < 0 || h.version >= MaxVersions)
+            if (h.version < 0 || h.version >= MaxVersions[h.iType])
                 throw new Exception("Invalid version");
-            if (readerID < 0 || readerID >= MaxReaders)
+            if (readerID < 0 || readerID >= MaxReaders[h.iType])
                 throw new Exception("Invalid reader");
 #endif
-            return (h.index * MaxVersions + h.version) * MaxReaders + readerID;
+            return (h.index * MaxVersions[h.iType] + h.version) * MaxReaders[h.iType] + readerID;
         }
 
         // Lookup data for a given handle
