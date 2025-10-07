@@ -262,9 +262,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
         m_PreviewUtility.camera.farClipPlane = 10000.0f;
         m_PreviewUtility.camera.clearFlags = CameraClearFlags.SolidColor;
         m_PreviewUtility.ambientColor = new Color(.1f, .1f, .1f, 1.0f);
-        m_PreviewUtility.lights[0].intensity = 1.4f;
         m_PreviewUtility.lights[0].transform.rotation = Quaternion.Euler(40f, 40f, 0);
-        m_PreviewUtility.lights[1].intensity = 1.4f;
 
         m_VisualEffectGO = new GameObject("VisualEffect (Preview)");
 
@@ -462,6 +460,10 @@ class VisualEffectAssetEditor : UnityEditor.Editor
 
         if (needsRender)
         {
+            //Forcing fixed intensity in case of lazily addition of HDAdditionalLightData
+            m_PreviewUtility.lights[0].intensity = 1.4f;
+            m_PreviewUtility.lights[1].intensity = 1.4f;
+
             m_RemainingFramesToRender--;
             m_PreviewUtility.BeginPreview(m_LastArea, background);
 
