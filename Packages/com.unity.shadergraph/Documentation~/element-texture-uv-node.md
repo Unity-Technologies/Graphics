@@ -12,7 +12,7 @@ This node might output different coordinates than the [**Element Layout UV**](xr
 
 If the texture is part of an atlas, its UV coordinates only map to a specific region within the atlas. If you repeat UV coordinates or sample outside them, the data comes from other textures in the atlas. Use texture coordinates (UV) when you need precise control over how a texture appears on a UI element, and be mindful of atlas constraints.
 
-The texture UV can also originate from a custom mesh when you call [`MeshGenerationContext.DrawMesh`](xref:UnityEngine.UIElements.MeshGenerationContext.DrawMesh). In such cases, the UV values might vary depending on the mesh data. 
+The texture UV can also originate from a custom mesh when you call [`MeshGenerationContext.DrawMesh`](xref:UnityEngine.UIElements.MeshGenerationContext.DrawMesh(Unity.Collections.NativeSlice`1<UnityEngine.UIElements.Vertex>,Unity.Collections.NativeSlice`1<System.UInt16>,UnityEngine.Texture)). In such cases, the UV values might vary depending on the mesh data. 
 
 ## Ports
 

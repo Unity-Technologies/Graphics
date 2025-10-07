@@ -12,8 +12,8 @@ You can use this node combined with other nodes to create custom effects for the
 
 ## Ports
 
-| Name     | Direction | Type    | Description                          |
-|----------|-----------|---------|--------------------------------------|
+| Name     | Direction | Type    | Description                                   |
+|----------|-----------|---------|-----------------------------------------------|
 | Solid    | Output    | Color   | The solid color specified for the UI element. |
 
 ## Additional resources

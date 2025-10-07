@@ -1,5 +1,5 @@
 ---
-uid: default-bitmap-text
+uid: default-bitmap-text-node
 ---
 
 # Default Bitmap Text node
