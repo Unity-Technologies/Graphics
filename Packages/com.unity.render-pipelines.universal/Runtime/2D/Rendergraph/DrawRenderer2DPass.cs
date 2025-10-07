@@ -91,15 +91,16 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        public void Render(RenderGraph graph, ContextContainer frameData, Renderer2DData rendererData, ref LayerBatch[] layerBatches, int batchIndex, ref FilteringSettings filterSettings)
+        public void Render(RenderGraph graph, ContextContainer frameData, int batchIndex, ref FilteringSettings filterSettings)
         {
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
             Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
             CommonResourceData commonResourceData = frameData.Get<CommonResourceData>();
+            Renderer2DData rendererData = frameData.Get<Universal2DRenderingData>().renderingData;
+            var layerBatch = frameData.Get<Universal2DRenderingData>().layerBatches[batchIndex];
 
-            var layerBatch = layerBatches[batchIndex];
             bool isLitView = true;
 
 #if UNITY_EDITOR
@@ -124,7 +125,7 @@ namespace UnityEngine.Rendering.Universal
                             builder.UseTexture(passData.lightTextures[i]);
                     }
 
-                    SetGlobalLightTextures(graph, builder, passData.lightTextures, ref layerBatch, rendererData, isLitView);
+                    SetGlobalLightTextures(graph, builder, frameData, batchIndex, isLitView);
 
                     builder.AllowGlobalStateModification(true);
 
@@ -135,7 +136,10 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Renderer Pass
-            using (var builder = graph.AddRasterRenderPass<PassData>(k_RenderPass, out var passData, m_ProfilingSampler))
+            var passName = k_RenderPass;
+            LayerDebug.FormatPassName(layerBatch, ref passName);
+
+            using (var builder = graph.AddRasterRenderPass<PassData>(passName, out var passData, LayerDebug.GetProfilingSampler(passName, m_ProfilingSampler)))
             {
                 passData.lightBlendStyles = rendererData.lightBlendStyles;
                 passData.blendStyleIndices = layerBatch.activeBlendStylesIndices;
@@ -189,7 +193,7 @@ namespace UnityEngine.Rendering.Universal
                 // Post set global light textures for next renderer pass 
                 var nextBatch = batchIndex + 1;
                 if (nextBatch < universal2DResourceData.lightTextures.Length)
-                    SetGlobalLightTextures(graph, builder, universal2DResourceData.lightTextures[nextBatch], ref layerBatches[nextBatch], rendererData, isLitView);
+                    SetGlobalLightTextures(graph, builder, frameData, nextBatch, isLitView);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
@@ -198,8 +202,12 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void SetGlobalLightTextures(RenderGraph graph, IRasterRenderGraphBuilder builder, TextureHandle[] lightTextures, ref LayerBatch layerBatch, Renderer2DData rendererData, bool isLitView)
+        void SetGlobalLightTextures(RenderGraph graph, IRasterRenderGraphBuilder builder, ContextContainer frameData, int batchIndex, bool isLitView)
         {
+            Renderer2DData rendererData = frameData.Get<Universal2DRenderingData>().renderingData;
+            var layerBatch = frameData.Get<Universal2DRenderingData>().layerBatches[batchIndex];
+            var lightTextures = frameData.Get<Universal2DResourceData>().lightTextures[batchIndex];
+
             if (isLitView)
             {
                 if (layerBatch.lightStats.useLights)

@@ -43,16 +43,22 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle shadowDepth;
         }
 
-        public void Render(RenderGraph graph, ContextContainer frameData, Renderer2DData rendererData, ref LayerBatch layerBatch, int batchIndex, bool isVolumetric = false)
+        public void Render(RenderGraph graph, ContextContainer frameData, int batchIndex, bool isVolumetric = false)
         {
             Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
             CommonResourceData commonResourceData = frameData.Get<CommonResourceData>();
+            Renderer2DData rendererData = frameData.Get<Universal2DRenderingData>().renderingData;
+            var layerBatch = frameData.Get<Universal2DRenderingData>().layerBatches[batchIndex];
 
             if (!layerBatch.lightStats.useShadows ||
                 isVolumetric && !layerBatch.lightStats.useVolumetricShadowLights)
                 return;
 
-            using (var builder = graph.AddUnsafePass<PassData>(!isVolumetric ? k_ShadowPass : k_ShadowVolumetricPass, out var passData, !isVolumetric ? m_ProfilingSampler : m_ProfilingSamplerVolume))
+            var passName = !isVolumetric ? k_ShadowPass : k_ShadowVolumetricPass;
+            var profilingSampler = !isVolumetric ? m_ProfilingSampler : m_ProfilingSamplerVolume;
+            LayerDebug.FormatPassName(layerBatch, ref passName);
+
+            using (var builder = graph.AddUnsafePass<PassData>(passName, out var passData, LayerDebug.GetProfilingSampler(passName, profilingSampler)))
             {
                 passData.layerBatch = layerBatch;
                 passData.rendererData = rendererData;

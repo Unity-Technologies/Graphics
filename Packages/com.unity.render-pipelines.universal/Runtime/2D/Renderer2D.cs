@@ -235,7 +235,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData);
+            RenderPassInputSummary renderPassInputs = GetRenderPassInputs();
 
             RTHandle colorTargetHandle;
             RTHandle depthTargetHandle;

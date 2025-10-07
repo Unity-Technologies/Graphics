@@ -12,9 +12,11 @@ namespace UnityEngine.Rendering.Universal
             internal Vector2Int screenParams;
         }
 
-        internal static void Setup(RenderGraph graph, ContextContainer frameData, Renderer2DData rendererData, UniversalCameraData cameraData, bool useLights)
+        internal static void Setup(RenderGraph graph, ContextContainer frameData, bool useLights)
         {
             Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            Renderer2DData rendererData = frameData.Get<Universal2DRenderingData>().renderingData;
 
             using (var builder = graph.AddRasterRenderPass<PassData>(k_SetGlobalProperties, out var passData, m_SetGlobalPropertiesProfilingSampler))
             {

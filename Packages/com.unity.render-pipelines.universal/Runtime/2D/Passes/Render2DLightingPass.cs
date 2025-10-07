@@ -193,7 +193,7 @@ namespace UnityEngine.Rendering.Universal.CompatibilityMode
 
                     if (layerBatch.useNormals)
                     {
-                        LayerUtility.GetFilterSettings(m_Renderer2DData, ref layerBatch, out var filterSettings);
+                        LayerUtility.GetFilterSettings(m_Renderer2DData, layerBatch, out var filterSettings);
                         var depthTarget = m_NeedsDepth ? depthAttachmentHandle : null;
                         this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthTarget, normalsFirstClear);
 						normalsFirstClear = false;
@@ -273,7 +273,7 @@ namespace UnityEngine.Rendering.Universal.CompatibilityMode
                             copyStoreAction = RenderBufferStoreAction.Store;
 
 
-                        LayerUtility.GetFilterSettings(m_Renderer2DData, ref layerBatch, out var filterSettings);
+                        LayerUtility.GetFilterSettings(m_Renderer2DData, layerBatch, out var filterSettings);
 
                         Render(context, cmd, ref renderingData, ref filterSettings, drawSettings);
 
