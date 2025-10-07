@@ -883,13 +883,14 @@ namespace UnityEngine.Rendering.Universal
                     target = renderGraph.ImportTexture(nextRenderGraphCameraColorHandle, importColorParams);
                 }
 
-                m_PostProcess.RenderPostProcessing(
+                //We always pass a valid target because it's alway persistent. However, we still set target to the output to be correct when above code would change. So output handle is equal to input target now. See OnAfterRendering in UnversalRenderer for more context.
+                target = m_PostProcess.RenderPostProcessing(
                     renderGraph,
                     frameData,
                     commonResourceData.cameraColor,
                     commonResourceData.internalColorLut,
                     commonResourceData.overlayUITexture,
-                    target,
+                    in target,
                     applyFinalPostProcessing,
                     doSRGBEncoding);
 

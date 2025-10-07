@@ -34,10 +34,6 @@ namespace UnityEngine.Rendering.Universal
 
         int m_DitheringTextureIndex;    // 8-bit dithering
 
-        // If there's a final post process pass after this pass.
-        // If yes, Film Grain and Dithering are setup in the final pass, otherwise they are setup in this pass.
-        bool m_HasFinalPass;
-
         /// <summary>
         /// Creates a new <c>PostProcessPass</c> instance.
         /// </summary>
@@ -154,8 +150,12 @@ namespace UnityEngine.Rendering.Universal
             return resolveToDebugScreen;
         }
 
+        const string _CameraColorUpscaled = "_CameraColorUpscaled";
+        const string _CameraColorAfterPostProcessingName = "_CameraColorAfterPostProcessing";
 
-        public void RenderPostProcessing(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle activeCameraColorTexture, in TextureHandle internalColorLutTexture, in TextureHandle overlayUITexture, in TextureHandle postProcessingTarget, bool hasFinalPass, bool enableColorEncodingIfNeeded)
+        // If postProcessingTarget is not valid then this function will create an RG managed texture. Only pass postProcessingTarget if the output needs to be written to a certain persistent texture.
+        // If hasFinalPass == true, Film Grain and Dithering are setup in the final pass, otherwise they are setup in this pass.
+        public TextureHandle RenderPostProcessing(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle activeCameraColorTexture, in TextureHandle internalColorLutTexture, in TextureHandle overlayUITexture, in TextureHandle persistentTarget, bool hasFinalPass, bool enableColorEncodingIfNeeded)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
@@ -174,8 +174,6 @@ namespace UnityEngine.Rendering.Universal
             var colorAdjustments = stack.GetComponent<ColorAdjustments>();
             var tonemapping = stack.GetComponent<Tonemapping>();
             var filmGrain = stack.GetComponent<FilmGrain>();
-
-            m_HasFinalPass = hasFinalPass;  // TODO: should this be external configuration property rather than a param?
 
             bool useFastSRGBLinearConversion = postProcessingData.useFastSRGBLinearConversion;
             bool supportDataDrivenLensFlare = postProcessingData.supportDataDrivenLensFlare;
@@ -224,7 +222,7 @@ namespace UnityEngine.Rendering.Universal
                 TemporalAA.ValidateAndWarn(cameraData, isSTPRequested);
 
             // NOTE: Debug handling injects a global state render pass.
-            bool resolveToDebugScreen = UpdateGlobalDebugHandlerPass(renderGraph, cameraData, !m_HasFinalPass);
+            bool resolveToDebugScreen = UpdateGlobalDebugHandlerPass(renderGraph, cameraData, !hasFinalPass);
 
             TextureHandle currentSource = activeCameraColorTexture;
 
@@ -396,7 +394,7 @@ namespace UnityEngine.Rendering.Universal
                 m_UberPass.vignette = vignette;
                 m_UberPass.filmGrain = filmGrain;
 
-                m_UberPass.isFinalPass = !m_HasFinalPass;
+                m_UberPass.isFinalPass = !hasFinalPass;
                 m_UberPass.requireSRGBConversionBlit = RequireSRGBConversionBlitToBackBuffer(cameraData, enableColorEncodingIfNeeded);
                 m_UberPass.useFastSRGBLinearConversion = useFastSRGBLinearConversion;
                 m_UberPass.resolveToDebugScreen = resolveToDebugScreen;
@@ -407,7 +405,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // Color space conversion is already applied through color grading, do encoding if uber post is the last pass
                     // Otherwise encoding will happen in the final post process pass or the final blit pass
-                    m_UberPass.hdrOperations = !m_HasFinalPass && enableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
+                    m_UberPass.hdrOperations = !hasFinalPass && enableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
 
                     if(enableColorEncodingIfNeeded && overlayUITexture.IsValid())
                         activeOverlayUITexture = overlayUITexture;
@@ -421,9 +419,17 @@ namespace UnityEngine.Rendering.Universal
                 m_UberPass.overlayUITexture = activeOverlayUITexture;
                 m_UberPass.ditherTexture = cameraData.isDitheringEnabled ? GetNextDitherTexture() : null;
 
-                // Output
-                m_UberPass.destinationTexture = postProcessingTarget;
+                if (persistentTarget.IsValid())
+                {
+                    m_UberPass.destinationTexture = persistentTarget;
+                }else
+                {
+                    m_UberPass.destinationTexture = renderGraph.CreateTexture(m_UberPass.sourceTexture, _CameraColorAfterPostProcessingName);                   
+                }
+
                 m_UberPass.RecordRenderGraph(renderGraph, frameData);
+
+                return m_UberPass.destinationTexture;
             }
         }
 
@@ -436,12 +442,8 @@ namespace UnityEngine.Rendering.Universal
             var tonemapping = stack.GetComponent<Tonemapping>();
             var filmGrain = stack.GetComponent<FilmGrain>();
 
-            // TODO RENDERGRAPH: when we remove the old path we should review the naming of these variables...
-            // m_HasFinalPass is used to let FX passes know when they are not being called by the actual final pass, so they can skip any "final work"
-            m_HasFinalPass = false;
-
             // NOTE: Debug handling injects a global state render pass.
-            bool resolveToDebugScreen = UpdateGlobalDebugHandlerPass(renderGraph, cameraData, !m_HasFinalPass);
+            bool resolveToDebugScreen = UpdateGlobalDebugHandlerPass(renderGraph, cameraData, true);
 
             var srcDesc = renderGraph.GetTextureDesc(source);
 

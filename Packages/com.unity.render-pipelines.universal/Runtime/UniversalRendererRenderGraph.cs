@@ -350,8 +350,6 @@ namespace UnityEngine.Rendering.Universal
         const string _CameraTargetAttachmentBName = "_CameraTargetAttachmentB";
         const string _SingleCameraTargetAttachmentName = "_CameraTargetAttachment";
         const string _CameraDepthAttachmentName = "_CameraDepthAttachment";
-        const string _CameraColorUpscaled = "_CameraColorUpscaled";
-        const string _CameraColorAfterPostProcessingName = "_CameraColorAfterPostProcessing";
 
         void CreateRenderGraphCameraRenderTargets(RenderGraph renderGraph, bool isCameraTargetOffscreenDepth, bool requireIntermediateAttachments, bool depthTextureIsDepthFormat)
         {
@@ -1332,10 +1330,10 @@ namespace UnityEngine.Rendering.Universal
 
         private void OnAfterRendering(RenderGraph renderGraph, bool applyPostProcessing)
         {
-            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
+            var resourceData = frameData.Get<UniversalResourceData>();
+            var renderingData = frameData.Get<UniversalRenderingData>();
+            var cameraData = frameData.Get<UniversalCameraData>();
+            var postProcessingData = frameData.Get<UniversalPostProcessingData>();
 
             // if it's the last camera in the stack, setup the rendering debugger
             if (cameraData.resolveFinalTarget)
@@ -1360,10 +1358,11 @@ namespace UnityEngine.Rendering.Universal
             // 3. TAA sharpening using standalone RCAS pass is required. (When upscaling is not enabled).
             bool applyFinalPostProcessing = anyPostProcessing && cameraData.resolveFinalTarget &&
                                             ((cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing) ||
-                                             ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter != ImageUpscalingFilter.Linear)) ||
+                                             ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR)) ||
                                              (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f));
             bool hasCaptureActions = cameraData.captureActions != null && cameraData.resolveFinalTarget;
 
+            //We'll skip RecordCustomRenderGraphPasses(RenderPassEvent.AfterRenderingPostProcessing) if this is false so be careful when changing the check.
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent >= RenderPassEvent.AfterRenderingPostProcessing && x.renderPassEvent < RenderPassEvent.AfterRendering) != null;
 
             bool xrDepthTargetResolved = resourceData.activeDepthID == UniversalResourceData.ActiveID.BackBuffer;
@@ -1396,51 +1395,30 @@ namespace UnityEngine.Rendering.Universal
             if (applyPostProcessing)
             { 
                 bool isTargetBackbuffer = cameraData.resolveFinalTarget && !applyFinalPostProcessing && !hasPassesAfterPostProcessing && !hasCaptureActions;
+                var isSingleCamera = cameraData.resolveFinalTarget && cameraData.renderType == CameraRenderType.Base;
 
-                TextureHandle target;
+                //We will pass a nullHandle to the post processing if there is no persistent texture that needs to be the output. Then, post processing can create an RG managed texture and return it.
+                TextureHandle target = TextureHandle.nullHandle;
                 if (isTargetBackbuffer)
                 {
                     target = resourceData.backBufferColor;
                 }
-                else
+                else if (!isSingleCamera)
                 {
+                    //When part of a camera stack, we need to ensure the date ends up in the persistent A/B camera attachments to propagate the output to the cameras of the stack.
                     ImportResourceParams importColorParams = new ImportResourceParams();
                     importColorParams.clearOnFirstUse = true;
                     importColorParams.clearColor = Color.black;
                     importColorParams.discardOnLastUse = cameraData.resolveFinalTarget;  // check if last camera in the stack
 
-                    if (cameraData.IsSTPEnabled() || (cameraData.IsTemporalAAEnabled() &&
-#if ENABLE_UPSCALER_FRAMEWORK
-                        cameraData.upscalingFilter == ImageUpscalingFilter.IUpscaler
-#else
-                        false
-#endif
-                        ))
-                    {
-                        // STP is disabled when using camera stacking. In any case, we don't use persistent textures here so we need to make sure there is no next camera in the stack (should always be true).
-                        Debug.Assert(cameraData.resolveFinalTarget);
-
-                        var desc = resourceData.cameraColor.GetDescriptor(renderGraph);
-                        PostProcessUtils.MakeCompatible(ref desc);
-
-                        desc.width = cameraData.pixelWidth;
-                        desc.height = cameraData.pixelHeight;
-                        desc.name = _CameraColorUpscaled;
-
-                        target = renderGraph.CreateTexture(desc);
-                    }
-                    else
-                    {
-                        var isSingleCamera = cameraData.resolveFinalTarget && cameraData.renderType == CameraRenderType.Base;
-
-                        target = (isSingleCamera)
-                            ? renderGraph.CreateTexture(resourceData.cameraColor, _CameraColorAfterPostProcessingName)
-                            : renderGraph.ImportTexture(nextRenderGraphCameraColorHandle, importColorParams);
-                    }
+                    target = renderGraph.ImportTexture(nextRenderGraphCameraColorHandle, importColorParams);
                 }
 
                 bool doSRGBEncoding = isTargetBackbuffer && needsColorEncoding;
-                m_PostProcess.RenderPostProcessing(renderGraph, frameData, resourceData.cameraColor, resourceData.internalColorLut, resourceData.overlayUITexture, in target, applyFinalPostProcessing, doSRGBEncoding);
+
+                //If the target is the nullHandle, then the output/target is not a persistent texture, and postprocess can create an RG managed texture for the target. This is done inside the RenderPostProcessing
+                //such that all the upscaled target creation is isolated in the postprocessing and the calling code here does not need to be aware.
+                target = m_PostProcess.RenderPostProcessing(renderGraph, frameData, resourceData.cameraColor, resourceData.internalColorLut, resourceData.overlayUITexture, in target, applyFinalPostProcessing, doSRGBEncoding);
 
                 // Handle any after-post rendering debugger overlays
                 if (cameraData.resolveFinalTarget)
@@ -1456,7 +1434,9 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingPostProcessing);
+            //We already checked the passes so we can skip here if there are none as a small optimization 
+            if(hasPassesAfterPostProcessing)
+                RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingPostProcessing);
 
             if (hasCaptureActions)
             {
@@ -1466,7 +1446,6 @@ namespace UnityEngine.Rendering.Universal
             if (applyFinalPostProcessing)
             {
                 m_PostProcess.RenderFinalPostProcessing(renderGraph, frameData, resourceData.cameraColor, resourceData.overlayUITexture, resourceData.backBufferColor, needsColorEncoding);
-
                 resourceData.SwitchActiveTexturesToBackbuffer();
             }
 
@@ -1480,7 +1459,6 @@ namespace UnityEngine.Rendering.Universal
                 resourceData.SwitchActiveTexturesToBackbuffer();
             }
 
-            // TODO RENDERGRAPH: we need to discuss and decide if RenderPassEvent.AfterRendering injected passes should only be called after the last camera in the stack
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRendering);
 
             // We can explicitely render the overlay UI from URP when HDR output is not enabled.
