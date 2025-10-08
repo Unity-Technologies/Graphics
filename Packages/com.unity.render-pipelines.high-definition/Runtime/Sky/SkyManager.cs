@@ -82,6 +82,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static RenderTargetIdentifier nullRT = -1;
         /// <summary>Index of the current cubemap face to render (Unknown for texture2D).</summary>
         public CubemapFace cubemapFace = CubemapFace.Unknown;
+        /// <summary>Fallback for structured buffer of CelestialBodyData.</summary>
+        internal BufferHandle emptyCelestialBodyBuffer;
 
         /// <summary>
         /// Copy content of this BuiltinSkyParameters to another instance.
@@ -380,6 +382,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.builtinParameters.cloudSettings = skyContext.cloudSettings;
                     passData.builtinParameters.volumetricClouds = skyContext.volumetricClouds;
                     passData.skyRenderer = skyContext.skyRenderer;
+
+                    passData.builtinParameters.emptyCelestialBodyBuffer = builder.CreateTransientBuffer(
+                        new BufferDesc(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(CelestialBodyData))));
 
                     builder.SetRenderFunc(
                     (SetGlobalSkyDataPassData data, UnsafeGraphContext ctx) =>
