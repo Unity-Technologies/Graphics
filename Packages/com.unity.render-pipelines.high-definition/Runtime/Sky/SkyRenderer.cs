@@ -88,6 +88,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="builtinParams">Sky system builtin parameters.</param>
         public virtual void SetGlobalSkyData(CommandBuffer cmd, BuiltinSkyParameters builtinParams)
         {
+            // bind empty resources for non-PBR sky.
+            if (ShaderConfig.s_PrecomputedAtmosphericAttenuation == 0)
+            {
+                cmd.SetGlobalTexture(HDShaderIDs._AirSingleScatteringTexture, (RenderTargetIdentifier)CoreUtils.blackVolumeTexture);
+                cmd.SetGlobalTexture(HDShaderIDs._AerosolSingleScatteringTexture, (RenderTargetIdentifier)CoreUtils.blackVolumeTexture);
+                cmd.SetGlobalTexture(HDShaderIDs._MultipleScatteringTexture, (RenderTargetIdentifier)CoreUtils.blackVolumeTexture);
+            }
+            else
+                cmd.SetGlobalTexture(HDShaderIDs._AtmosphericScatteringLUT, (RenderTargetIdentifier)CoreUtils.blackVolumeTexture);
+
+            cmd.SetGlobalBuffer(HDShaderIDs._CelestialBodyDatas, builtinParams.emptyCelestialBodyBuffer);
         }
 
         internal bool DoUpdate(BuiltinSkyParameters parameters)
