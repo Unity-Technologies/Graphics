@@ -18,9 +18,24 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal ReorderableList reusableReorderableList;
 
+#if ENABLE_UPSCALER_FRAMEWORK
+        internal UpscalerOptionsEditorCache upscalerOptionsEditorCache => m_UpscalerOptionsEditorCache;
+        UpscalerOptionsEditorCache m_UpscalerOptionsEditorCache;
+#endif
+
         void OnEnable()
         {
             m_SerializedHDRenderPipeline = new SerializedHDRenderPipelineAsset(serializedObject);
+#if ENABLE_UPSCALER_FRAMEWORK
+            m_UpscalerOptionsEditorCache = new UpscalerOptionsEditorCache();
+#endif
+        }
+
+        void OnDisable()
+        {
+#if ENABLE_UPSCALER_FRAMEWORK
+            m_UpscalerOptionsEditorCache?.Cleanup();
+#endif            
         }
 
         public override void OnInspectorGUI()
