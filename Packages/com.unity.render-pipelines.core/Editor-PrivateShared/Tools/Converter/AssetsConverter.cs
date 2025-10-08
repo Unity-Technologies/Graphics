@@ -4,6 +4,7 @@ using System.Text;
 
 namespace UnityEditor.Rendering.Converter
 {
+    [Serializable]
     internal abstract class AssetsConverter : IRenderPipelineConverter
     {
         protected abstract List<(string query, string description)> contextSearchQueriesAndIds { get; }

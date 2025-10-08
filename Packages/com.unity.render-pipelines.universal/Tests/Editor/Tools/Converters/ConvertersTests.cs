@@ -1,13 +1,55 @@
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
-using static UnityEditor.Rendering.Universal.Converters;
 
 namespace UnityEditor.Rendering.Universal.Tools
 {
     [Category("Graphics Tools")]
     class ConverterTests
     {
+        [Serializable]
+        class BatchModeConverter : RenderPipelineConverter
+        {
+            public static bool s_Initialize = false;
+            public static bool s_Run = false;
+
+            public override void OnInitialize(InitializeConverterContext context, Action callback)
+            {
+                s_Initialize = true;
+                context.AddAssetToConvert(new ConverterItemDescriptor { name = "Dummy", info = "Some placeholder info." });
+                callback?.Invoke();
+            }
+
+            public override void OnRun(ref RunItemContext context)
+            {
+                s_Run = true;
+            }
+        }
+
+        [Test]
+        public void BatchModeRuns()
+        {
+            BatchModeConverter.s_Initialize = false;
+            BatchModeConverter.s_Run = false;
+            bool ok = Converters.RunInBatchMode(new List<Type>() { typeof(BatchModeConverter) });
+            Assert.IsTrue(BatchModeConverter.s_Initialize);
+            Assert.IsTrue(BatchModeConverter.s_Run);
+            Assert.IsTrue(ok);
+        }
+
+        class NotAConverterType
+        {
+
+        }
+
+        [Test]
+        public void BatchModeFails()
+        {
+            bool ok = Converters.RunInBatchMode(new List<Type>() { typeof(NotAConverterType) });
+            Assert.IsFalse(ok);
+        }
+
+#pragma warning disable CS0618 // Type or member is obsolete
         public static IEnumerable<TestCaseData> TestCases()
         {
             yield return new TestCaseData(
@@ -20,7 +62,7 @@ namespace UnityEditor.Rendering.Universal.Tools
                 ConverterContainerId.BuiltInToURP,
                 new List<ConverterId> { ConverterId.ParametricToFreeformLight },
                 ConverterFilter.Inclusive,
-                new List<Type> ()
+                new List<Type>()
             ).SetName("When Using Inclusive filter with Light in the wrong category. The Filter returns nothing");
 
             yield return new TestCaseData(
@@ -75,71 +117,29 @@ namespace UnityEditor.Rendering.Universal.Tools
             ).SetName("BuiltInToURP2D - When Using Exclusive filter with no converters. The filter returns everything");
 
             yield return new TestCaseData(
-                ConverterContainerId.BuiltInAndURPToURP2D,
+                ConverterContainerId.UpgradeURP2DAssets,
                 new List<ConverterId>(),
                 ConverterFilter.Exclusive,
-                 new List<Type>
-                 {
-                    typeof(BuiltInAndURP3DTo2DMaterialUpgrader),
-                 }
-            ).SetName("BuiltInAndURPToURP2D - When Using Exclusive filter with no converters. The filter returns everything");
-
-            yield return new TestCaseData(
-               ConverterContainerId.UpgradeURP2DAssets,
-               new List<ConverterId>(),
-               ConverterFilter.Exclusive,
                 new List<Type>
                 {
+                    typeof(BuiltInAndURP3DTo2DMaterialUpgrader),
                     typeof(ParametricToFreeformLightUpgrader)
                 }
-           ).SetName("UpgradeURP2DAssets - When Using Exclusive filter with no converters. The filter returns everything")
-           .Ignore("Temporarily disabled because of 2D pixel perfect upgrader");
+            ).SetName("UpgradeURP2DAssets - When Using Exclusive filter with no converters. The filter returns everything");
         }
 
         [TestCaseSource(nameof(TestCases))]
-        [Ignore("Temporarily disabled to land work")] //Task to re-enable SRP-922
         public void FilterConverters_ShouldReturnExpectedConverters(
                 ConverterContainerId containerId,
                 List<ConverterId> filterList,
                 ConverterFilter filterMode,
                 List<Type> expectedTypes)
         {
-            var result = Converters.FilterConverters(containerId, filterList, filterMode);
-
-            var actualTypes = new List<Type>();
-            foreach (var converter in result)
-            {
-                actualTypes.Add(converter.GetType());
-            }
-
+            var actualTypes = Converters.FilterConverters(containerId, filterList, filterMode);
             CollectionAssert.AreEquivalent(expectedTypes, actualTypes);
         }
 
-        [Test]
-        [Ignore("Temporarily disabled because of 2D pixel perfect upgrader")]
-        public void EnsureConverterIsNotForgottenForBatchMode()
-        {
-            var converterMap = new ConverterTypeMap();
-            foreach (var converter in TypeCache.GetTypesDerivedFrom<RenderPipelineConverter>())
-            {
-                if (converter.IsAbstract || converter.IsInterface)
-                    continue;
-
-                var id = converterMap.GetIdForType(converter);
-                Assert.IsNotNull(id, $"The converter '{converter.Name}' is missing from the ConverterTypeMap. Please add it to the mapping array.");
-            }
-
-            var converterContainerMap = new ConverterContainerTypeMap();
-            foreach (var converterContainer in TypeCache.GetTypesDerivedFrom<RenderPipelineConverterContainer>())
-            {
-                if (converterContainer.IsAbstract || converterContainer.IsInterface)
-                    continue;
-
-                var id = converterContainerMap.GetIdForType(converterContainer);
-                Assert.IsNotNull(id, $"The converter container '{converterContainer.Name}' is missing from the ConverterContainerTypeMap. Please add it to the mapping array.");
-            }
-        }
-
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 
 }

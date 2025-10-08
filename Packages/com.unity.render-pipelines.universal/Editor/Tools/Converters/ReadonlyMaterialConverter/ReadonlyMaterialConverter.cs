@@ -98,6 +98,7 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
+    [Serializable]
     [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
     [ElementInfo(Name = "Material Reference Converter",
                  Order = 100,
