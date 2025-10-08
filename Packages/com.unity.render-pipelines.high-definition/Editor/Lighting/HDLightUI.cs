@@ -532,6 +532,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             float newInnerSpotAngle = 360f / Mathf.PI * Mathf.Atan(newAspectRatio * Mathf.Tan(serialized.settings.spotAngle.floatValue * Mathf.PI / 360f));
                             serialized.settings.innerSpotAngle.floatValue = newInnerSpotAngle;
+                            serialized.settings.areaSizeX.floatValue = newAspectRatio;
                             needsReflectedIntensityRecalc = true;
                         }
 
