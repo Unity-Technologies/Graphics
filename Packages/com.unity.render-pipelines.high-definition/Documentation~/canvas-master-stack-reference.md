@@ -62,4 +62,4 @@ The following table describes the Surface options:
 
 [!include[](snippets/shader-properties/surface-options/material-type.md)]
 [!include[](snippets/shader-properties/surface-options/alpha-clipping.md)]
-
+[!include[](snippets/shader-properties/surface-options/disable-color-tint.md)]
