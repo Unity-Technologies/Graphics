@@ -112,9 +112,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (TryGet(typeof(LookDevVolumeProfileSettings), out var lookDevSettings) &&
                 lookDevSettings is LookDevVolumeProfileSettings lookDevVolumeProfileSettings &&
+                lookDevVolumeProfileSettings.volumeProfile == null &&
                 assets != null)
             {
-                lookDevVolumeProfileSettings.volumeProfile ??= VolumeUtils.CopyVolumeProfileFromResourcesToAssets(assets.lookDevVolumeProfile);
+                lookDevVolumeProfileSettings.volumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(assets.lookDevVolumeProfile);
             }
         }
 
