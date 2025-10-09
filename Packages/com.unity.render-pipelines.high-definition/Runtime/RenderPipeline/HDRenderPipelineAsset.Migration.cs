@@ -300,11 +300,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
 #pragma warning disable 618 // Type or member is obsolete
                 data.m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.Clear();
-                if(!data.m_RenderPipelineSettings.dynamicResolutionSettings.enableDLSS)
-                    return;
-
-                data.m_RenderPipelineSettings.dynamicResolutionSettings.enableDLSS = false;
-                data.m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.Add(AdvancedUpscalers.DLSS);
 #pragma warning restore 618
             }),
             MigrationStep.New(Version.AddNamesToUpscalers, (HDRenderPipelineAsset data) =>
