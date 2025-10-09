@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
@@ -23,7 +22,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         internal CompilerContextData contextData = null;
         internal CompilerContextData defaultContextData;
         internal CommandBuffer previousCommandBuffer;
-        Stack<int> toVisitPassIds;
+        Stack<int> m_HasSideEffectPassIdCullingStack;
+        List<Stack<ResourceHandle>> m_UnusedVersionedResourceIdCullingStacks;
 
         RenderGraphCompilationCache m_CompilationCache;
 
@@ -40,7 +40,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         {
             m_CompilationCache = cache;
             defaultContextData = new CompilerContextData();
-            toVisitPassIds = new Stack<int>(k_EstimatedPassCount);
+            m_HasSideEffectPassIdCullingStack = new Stack<int>(k_EstimatedPassCount);
+
+            m_UnusedVersionedResourceIdCullingStacks = new List<Stack<ResourceHandle>>();
+            for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
+                m_UnusedVersionedResourceIdCullingStacks.Add(new Stack<ResourceHandle>());
 
             m_TempMRTArrays = new RenderTargetIdentifier[RenderGraph.kMaxMRTCount][];
             for (int i = 0; i < RenderGraph.kMaxMRTCount; ++i)
@@ -132,7 +136,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             BuildGraph();
 
-            CullUnusedRenderPasses();
+            CullUnusedRenderGraphPasses();
 
             TryMergeNativePasses();
 
@@ -152,7 +156,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         {
             if (clearContextData)
                 contextData.Clear();
-            toVisitPassIds.Clear();
+
+            m_HasSideEffectPassIdCullingStack.Clear();
+
+            for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
+                m_UnusedVersionedResourceIdCullingStacks[type].Clear();
         }
 
         void SetPassStatesForNativePass(int nativePassId)
@@ -349,7 +357,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                     if (ctxPass.hasSideEffects)
                     {
-                        toVisitPassIds.Push(passId);
+                        m_HasSideEffectPassIdCullingStack.Push(passId);
                     }
 
                     // Set up the list of fragment attachments for this pass
@@ -381,7 +389,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 if (!ctxPass.hasSideEffects)
                                 {
                                     ctxPass.hasSideEffects = true;
-                                    toVisitPassIds.Push(passId);
+                                    m_HasSideEffectPassIdCullingStack.Push(passId);
                                 }
                             }
 
@@ -433,28 +441,26 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
         }
 
-        void CullUnusedRenderPasses()
+        void CullUnusedRenderGraphPasses()
         {
-            var ctx = contextData;
-
-            // Source = input of the graph and starting point that takes no inputs itself : e.g. z-prepass
-            // Sink = output of the graph and end point e.g. rendered frame
-            // Usually sinks will have to be pinned or write to an external resource or the whole graph would get culled :-)
-
             using (new ProfilingScope(ProfilingSampler.Get(NativeCompilerProfileId.NRPRGComp_CullNodes)))
             {
-                // No need to go further if we don't enable culling
                 if (graph.disablePassCulling)
                     return;
+
+                // Must come first
+                // TODO make another subfunction CullRenderGraphPassesWithNoSideEffect() for this first step of the culling stage
+                var ctx = contextData;
 
                 // Cull all passes first
                 ctx.CullAllPasses(true);
 
                 // Flood fill downstream algorithm using BFS,
-                // starting from the pinned nodes to all their dependencies
-                while (toVisitPassIds.Count != 0)
+                // starting from the passes with side effects (writting to imported texture, not allowed to be culled, globals modification...)
+                // to all their dependencies
+                while (m_HasSideEffectPassIdCullingStack.Count != 0)
                 {
-                    int passId = toVisitPassIds.Pop();
+                    int passId = m_HasSideEffectPassIdCullingStack.Pop();
 
                     ref var passData = ref ctx.passData.ElementAt(passId);
 
@@ -468,7 +474,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                         if (inputVersionedDataRes.written)
                         {
-                            toVisitPassIds.Push(inputVersionedDataRes.writePassId);
+                            m_HasSideEffectPassIdCullingStack.Push(inputVersionedDataRes.writePassId);
                         }
                     }
 
@@ -486,23 +492,90 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     // Remove the connections from the list so they won't be visited again
                     if (pass.culled)
                     {
-                        // If the culled pass was supposed to generate the latest version of a given resource,
-                        // we need to decrement the latestVersionNumber of this resource
-                        // because its last version will never be created due to its producer being culled
-                        foreach (ref readonly var output in pass.Outputs(ctx))
-                        {
-                            var outputResource = output.resource;
-                            bool isOutputLastVersion = (outputResource.version == ctx.UnversionedResourceData(outputResource).latestVersionNumber);
+                        pass.DisconnectFromResources(ctx);
+                    }
+                }
 
-                            if (isOutputLastVersion)
-                                ctx.UnversionedResourceData(outputResource).latestVersionNumber--;
-                        }
+                // Second step of the algorithm, must come after
+                // TODO: The resources culling step is currently disabled due to an issue: https://jira.unity3d.com/projects/SRP/issues/SRP-897
+                // Renabled the resource culling step after addressing the depth attachment problem above.
+                // Renabled the relevent tests
+                // CullRenderGraphPassesWritingOnlyUnusedResources();
+            }
+        }
 
-                        // Notifying the versioned resources that this pass is no longer reading them
-                        foreach (ref readonly var input in pass.Inputs(ctx))
+        void CullRenderGraphPassesWritingOnlyUnusedResources()
+        {
+            var ctx = contextData;
+
+            var numPasses = ctx.passData.Length;
+            for (int passIndex = 0; passIndex < numPasses; passIndex++)
+            {
+                ref var passData = ref ctx.passData.ElementAt(passIndex);
+
+                // Use the generic tag to monitor the number of written resources that are used
+                passData.tag = passData.numOutputs;
+
+                // Find all resources that are written by a pass but not read at all and add them to the stacks
+                foreach (ref readonly var output in passData.Outputs(ctx))
+                {
+                    ref readonly var outputResource = ref output.resource;
+                    ref var outputVersionedDataRes = ref ctx.resources[outputResource];
+
+                    if (outputVersionedDataRes.numReaders == 0)
+                        m_UnusedVersionedResourceIdCullingStacks[outputResource.iType].Push(outputResource);
+                }
+            }
+
+            // Go through each stack of unused resources and try to cull their producer
+            for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
+            {
+                var unusedVersionedResourceIdCullingStack = m_UnusedVersionedResourceIdCullingStacks[type];
+
+                // Goal is to find the producers of the unused resources and culled them if they only write to unused resources
+                while (unusedVersionedResourceIdCullingStack.Count != 0)
+                {
+                    var unusedResource = unusedVersionedResourceIdCullingStack.Pop();
+
+                    ref var unusedUnversionedDataRes = ref ctx.resources.unversionedData[type].ElementAt(unusedResource.index);
+                    if (unusedUnversionedDataRes.isImported) continue; // Not always unused as someone can read it outside the graph
+
+                    ref var unusedVersionedDataRes = ref ctx.resources[unusedResource];
+                    ref var producerData = ref ctx.passData.ElementAt(unusedVersionedDataRes.writePassId);
+                    if (producerData.culled) continue; // Producer has been culled already
+
+                    // Decrement the number of written resources that are used for this pass
+                    producerData.tag--;
+
+                    Debug.Assert(producerData.tag >= 0);
+
+                    // Producer is not necessary anymore, as it only writes to unused resources and has no side effects
+                    if (producerData.tag == 0 && !producerData.hasSideEffects)
+                    {
+                        producerData.culled = true;
+                        producerData.DisconnectFromResources(ctx, unusedVersionedResourceIdCullingStack, type);
+                    }
+                    else // Producer is (still) necessary, but we might need to remove the read of the previous version coming implicitly with the write of the current version
+                    {
+                        // We always add written resource to the stack so versionedIndex > 0
+                        var prevVersionedRes = new ResourceHandle(unusedResource, unusedResource.version - 1);
+
+                        // If no explicit read is requested by the user (AccessFlag.Write only), we need to remove the implicit read
+                        // so that we cut cleanly the connection between previous version of the resource and current producer
+                        bool isImplicitRead = graph.m_RenderPasses[producerData.passId].implicitReadsList.Contains(prevVersionedRes);
+
+                        if (isImplicitRead)
                         {
-                            var inputResource = input.resource;
-                            ctx.resources[inputResource].RemoveReadingPass(ctx, inputResource, pass.passId);
+                            ref var prevVersionedDataRes = ref ctx.resources[prevVersionedRes];
+
+                            // Notify the previous version of this resource that it is not read anymore by this pass
+                            prevVersionedDataRes.RemoveReadingPass(ctx, prevVersionedRes, producerData.passId);
+
+                            // We also need to add the previous version of the resource to the stack IF no other pass than current producer needed it
+                            if (prevVersionedDataRes.written && prevVersionedDataRes.numReaders == 0)
+                            {
+                                unusedVersionedResourceIdCullingStack.Push(prevVersionedRes);
+                            }
                         }
                     }
                 }
@@ -628,18 +701,15 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         ref var pointTo = ref ctx.UnversionedResourceData(inputResource);
                         pointTo.lastUsePassID = -1;
 
-                        // If we use version 0 and nobody else is using it yet,
+                        // If nobody else is using it yet,
                         // mark this pass as the first using the resource.
                         // It can happen that two passes use v0, e.g.:
                         // pass1.UseTex(v0,Read) -> this will clear the pass but keep it at v0
                         // pass2.UseTex(v0,Read) -> "reads" v0
-                        if (inputResource.version == 0)
+                        if (pointTo.firstUsePassID < 0)
                         {
-                            if (pointTo.firstUsePassID < 0)
-                            {
-                                pointTo.firstUsePassID = pass.passId;
-                                pass.AddFirstUse(inputResource, ctx);
-                            }
+                            pointTo.firstUsePassID = pass.passId;
+                            pass.AddFirstUse(inputResource, ctx);
                         }
 
                         // This pass uses the last version of a resource increase the ref count of this resource
@@ -657,18 +727,16 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     {
                         var outputResource = output.resource;
                         ref var pointTo = ref ctx.UnversionedResourceData(outputResource);
-                        if (outputResource.version == 1)
+
+                        // If nobody else is using it yet (no explicit read),
+                        // Mark this pass as the first using the resource.
+                        // It can happen that two passes use v0, e.g.:
+                        // pass1.UseTex(v0, Write) -> implicit read of v0, writes v1 - culled because none explicitly reads v1
+                        // pass3.UseTex(v1, Write) -> implicit read of v1, writes v2 - not culled because of unrelated reason
+                        if (pointTo.firstUsePassID < 0)
                         {
-                            // If we use version 0 and nobody else is using it yet,
-                            // Mark this pass as the first using the resource.
-                            // It can happen that two passes use v0, e.g.:
-                            // pass1.UseTex(v0,Read) -> this will clear the pass but keep it at v0
-                            // pass3.UseTex(v0,Read/Write) -> wites v0, brings it to v1 from here on
-                            if (pointTo.firstUsePassID < 0)
-                            {
-                                pointTo.firstUsePassID = pass.passId;
-                                pass.AddFirstUse(outputResource, ctx);
-                            }
+                            pointTo.firstUsePassID = pass.passId;
+                            pass.AddFirstUse(outputResource, ctx);
                         }
 
                         // This pass outputs the last version of a resource track that

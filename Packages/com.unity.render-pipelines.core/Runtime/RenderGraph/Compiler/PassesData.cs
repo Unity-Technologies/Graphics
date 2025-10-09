@@ -445,6 +445,35 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             return false;
         }
+
+        internal void DisconnectFromResources(CompilerContextData ctx, Stack<ResourceHandle> unusedVersionedResourceIdCullingStack = null, int type = 0)
+        {
+            // If the culled pass was supposed to generate the latest version of a given resource,
+            // we need to decrement the latestVersionNumber of this resource
+            // because its last version will never be created due to its producer being culled
+            foreach (ref readonly var output in Outputs(ctx))
+            {
+                ref readonly var outputResource = ref output.resource;
+                bool isOutputLastVersion = (outputResource.version == ctx.UnversionedResourceData(outputResource).latestVersionNumber);
+
+                if (isOutputLastVersion)
+                    ctx.UnversionedResourceData(outputResource).latestVersionNumber--;
+            }
+
+            // Notifying the versioned resources that this pass is no longer reading them
+            foreach (ref readonly var input in Inputs(ctx))
+            {
+                ref readonly var inputResource = ref input.resource;
+                ref var inputVersionedDataResource = ref ctx.resources[inputResource];
+                inputVersionedDataResource.RemoveReadingPass(ctx, inputResource, passId);
+
+                // If a resource of the same type is not used anymore, adding it to the stack
+                if (unusedVersionedResourceIdCullingStack != null && inputResource.iType == type && inputVersionedDataResource.written && inputVersionedDataResource.numReaders == 0)
+                {
+                    unusedVersionedResourceIdCullingStack.Push(inputResource);
+                }
+            }
+        }
     }
 
     // Data per attachment of a native renderpass
