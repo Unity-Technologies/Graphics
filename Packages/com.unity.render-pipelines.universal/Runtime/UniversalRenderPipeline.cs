@@ -2297,6 +2297,13 @@ namespace UnityEngine.Rendering.Universal
                     break;
                 }
 
+                case UpscalingFilterSelection.SGSR:
+                {
+                    filter = ImageUpscalingFilter.SGSR;
+
+                    break;
+                }
+
                 case UpscalingFilterSelection.STP:
                 {
                     filter = ImageUpscalingFilter.STP;
