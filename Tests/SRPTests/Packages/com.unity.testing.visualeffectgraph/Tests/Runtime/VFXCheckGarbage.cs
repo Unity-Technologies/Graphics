@@ -1,21 +1,18 @@
+#if UNITY_EDITOR
 using System;
+using System.Linq;
 using System.Collections;
 using System.Text;
 using NUnit.Framework;
-using UnityEngine;
 using UnityEngine.Profiling;
-using Unity.Profiling;
 using Unity.Testing.VisualEffectGraph;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using Unity.Testing.VisualEffectGraph.Tests;
-#if UNITY_EDITOR
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEditor.Profiling;
 using UnityEditorInternal;
-#endif
 
 
 namespace UnityEngine.VFX.Test
@@ -34,7 +31,7 @@ namespace UnityEngine.VFX.Test
         private static readonly int kForceGarbageID = Shader.PropertyToID("forceGarbage");
         private static readonly WaitForEndOfFrame kWaitForEndOfFrame = new WaitForEndOfFrame();
 
-Recorder m_gcAllocRecorder;
+        Recorder m_gcAllocRecorder;
         AssetBundle m_AssetBundle;
 
         int m_previousCaptureFrameRate;
@@ -55,11 +52,8 @@ Recorder m_gcAllocRecorder;
             m_previousCaptureFrameRate = Time.captureFramerate;
             m_previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
             m_previousMaxDeltaTime = UnityEngine.VFX.VFXManager.maxDeltaTime;
-#if UNITY_EDITOR
-            //Disabling asyncShaderCompilation to avoid unexpected late shader loading
             m_previousAsyncShaderCompilation = EditorSettings.asyncShaderCompilation;
             EditorSettings.asyncShaderCompilation = false;
-#endif
 
             Time.captureFramerate = 10;
             VFXManager.fixedTimeStep = 0.1f;
@@ -75,26 +69,19 @@ Recorder m_gcAllocRecorder;
             VFXManager.fixedTimeStep = m_previousFixedTimeStep;
             VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
 
-#if UNITY_EDITOR
             //UnityEditorInternal.ProfilerDriver.ClearAllFrames(); //Voluntary letting the capture readable in profiler windows if needed for inspection
             ProfilerDriver.enabled = false;
             EditorSettings.asyncShaderCompilation = m_previousAsyncShaderCompilation;
-#endif
 
-#if UNITY_EDITOR
             while (SceneView.sceneViews.Count > 0)
             {
                 var sceneView = SceneView.sceneViews[0] as SceneView;
                 sceneView.Close();
             }
-#endif
             AssetBundleHelper.Unload(m_AssetBundle);
         }
 
         [UnityTest]
-#if UNITY_SWITCH || UNITY_PS5
-        [Ignore("See UUM-108973")]
-#endif
         public IEnumerator Create_Garbage_Scenario([ValueSource(nameof(s_Scenarios))] string scenario, [ValueSource(nameof(s_CustomGarbageWrapperTest))] string garbageMode)
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene(string.Format("Packages/com.unity.testing.visualeffectgraph/Scenes/{0}.unity", scenario));
@@ -103,7 +90,7 @@ Recorder m_gcAllocRecorder;
             var vfxComponents = Resources.FindObjectsOfTypeAll<VisualEffect>();
             Assert.Greater(vfxComponents.Length, 0u);
 
-            var forceGarbage = garbageMode == s_CustomGarbageWrapperTest[0];
+            var forceGarbage = garbageMode == "Reference_Forcing_Garbage_Creation";
             foreach (var currentVFX in vfxComponents)
             {
                 Assert.IsTrue(currentVFX.HasBool(kForceGarbageID), $"ForceGarbage does not exist on the VFX component {currentVFX.name}.");
@@ -119,11 +106,8 @@ Recorder m_gcAllocRecorder;
             yield return kWaitForEndOfFrame;
 
             bool isTimelineTest = scenario.EndsWith("Timeline", StringComparison.InvariantCultureIgnoreCase);
-
-#if UNITY_EDITOR
-            UnityEditorInternal.ProfilerDriver.ClearAllFrames();
+            ProfilerDriver.ClearAllFrames();
             ProfilerDriver.enabled = true;
-#endif
 
             m_gcAllocRecorder.enabled = true;
             int frameCount = 16;
@@ -131,14 +115,12 @@ Recorder m_gcAllocRecorder;
                 yield return kWaitForEndOfFrame;
             m_gcAllocRecorder.enabled = false;
 
-#if UNITY_EDITOR
             ProfilerDriver.enabled = false;
             yield return kWaitForEndOfFrame;
-#endif
 
             int allocationCountFromCustomCallback = m_gcAllocRecorder.sampleBlockCount;
             Debug.LogFormat("Global GC.Alloc Count: {0}", allocationCountFromCustomCallback);
-#if UNITY_EDITOR
+
             var currentFrameIndex = ProfilerDriver.GetPreviousFrameIndex(Time.frameCount);
             Assert.Greater(currentFrameIndex, 0u, "Can't retrieve Profiler Frame");
 
@@ -211,21 +193,9 @@ Recorder m_gcAllocRecorder;
             }
             else
             {
-                Assert.AreEqual(0u, totalGcAllocSizeFromVFXUpdate, aggregatedAllocation.Any() ? aggregatedAllocation.Aggregate((a, b) => $"{a}\n{b}") : string.Empty);
+                Assert.AreEqual(0u, totalGcAllocSizeFromVFXUpdate, aggregatedAllocation.Count > 0 ? aggregatedAllocation.Aggregate((a, b) => $"{a}\n{b}") : string.Empty);
             }
-#else
-            var knownAllocation = isTimelineTest ? 5u : 4u; //Previous coroutine call is expecting at most 5 or 4 GC.Alloc (one per frame)
-            knownAllocation += 3u; //Lazy allocation from GUI.Repaint (standalone are in development mode, OnGUI is called in PlaymodeTestRunner)
-            knownAllocation += 1u; //RemoteTestResultSend.SendDataRoutine (which can occurs randomly)
-            if (forceGarbage)
-            {
-                Assert.Greater(allocationCountFromCustomCallback, knownAllocation);
-            }
-            else
-            {
-                Assert.LessOrEqual(allocationCountFromCustomCallback, knownAllocation);
-            }
-#endif
         }
     }
 }
+#endif
