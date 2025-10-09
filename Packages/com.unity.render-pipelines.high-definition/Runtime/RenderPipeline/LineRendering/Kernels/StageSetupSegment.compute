@@ -108,66 +108,79 @@ void Main(Group group)
     if (CulledLineLOD(segmentIndex))
         culled = true;
 
-    // Load Indices
-#if INDEX_FORMAT_UINT_32
-    const uint2 segmentIndices = _VertexOffset + _IndexBuffer. Load2(segmentIndex << 3);
-#else
-    const uint segmentIndicesCompressed = _IndexBuffer.Load(segmentIndex << 2);
-
-    const uint2 segmentIndices = _VertexOffset + uint2
-    (
-        segmentIndicesCompressed >> 0  & 0xFFFF,
-        segmentIndicesCompressed >> 16 & 0xFFFF
-    );
-#endif
-
-    // Load Vertices
-    const float4 positionCS0 = asfloat(_Vertex0RecordBuffer.Load4(segmentIndices.x << 4));
-    const float4 positionCS1 = asfloat(_Vertex0RecordBuffer.Load4(segmentIndices.y << 4));
-
-    // Cull segments with degenerate vertices (could be produced by vertex shader).
-    if (AnyIsNaN(positionCS0) || AnyIsNaN(positionCS1))
-    {
-        culled = true;
-    }
-
-    // Fast rejection for segments behind the near clipping plane.
-    if (positionCS0.w <= 0 || positionCS1.w <= 0)
-    {
-        culled = true;
-    }
-
-    // Perspective divide. Homogenous -> NDC.
-    float3 positionNDC0 = positionCS0.xyz * rcp(positionCS0.w);
-    float3 positionNDC1 = positionCS1.xyz * rcp(positionCS1.w);
-
-    // Cohen-Sutherland algorithm to perform line segment clipping in NDC space.
-    if(!ClipSegmentCohenSutherland(positionNDC0.x, positionNDC0.y, positionNDC1.x, positionNDC1.y))
-    {
-        culled = true;
-    }
-
-    // NDC -> Screen Space.
-    const float2 positionSS0 = _ScreenSize.xy * (0.5 + 0.5 * positionNDC0.xy);
-    const float2 positionSS1 = _ScreenSize.xy * (0.5 + 0.5 * positionNDC1.xy);
-
-    // Depth test against each segment vertex.
-    if(positionNDC1.z < LoadCameraDepth(float2(positionSS1.x, _ScreenSize.y - positionSS1.y)) && positionNDC0.z < LoadCameraDepth(float2(positionSS0.x, _ScreenSize.y - positionSS0.y)))
-    {
-        culled = true;
-    }
-
-    SegmentRecord record;
-    {
-        record.positionSS0  = positionSS0.xy;
-        record.positionSS1  = positionSS1.xy;
-        record.depthVS0     = LinearEyeDepth(positionNDC0.z, _ZBufferParams);
-        record.depthVS1     = LinearEyeDepth(positionNDC1.z, _ZBufferParams);
-        record.vertexIndex0 = segmentIndices.x;
-        record.vertexIndex1 = segmentIndices.y;
-    }
 
     Wave wave = group.GetWave();
+    SegmentRecord record;
+
+    record.positionSS0  = float2(0,0);
+    record.positionSS1  = float2(0,0);
+    record.depthVS0     = 0;
+    record.depthVS1     = 0;
+    record.vertexIndex0 = 0;
+    record.vertexIndex1 = 0;  
+
+    if (!culled)
+    {
+        
+        // Load Indices
+#if INDEX_FORMAT_UINT_32
+        const uint2 segmentIndices = _VertexOffset + _IndexBuffer. Load2(segmentIndex << 3);
+#else
+        const uint segmentIndicesCompressed = _IndexBuffer.Load(segmentIndex << 2);
+
+        const uint2 segmentIndices = _VertexOffset + uint2
+        (
+            segmentIndicesCompressed >> 0  & 0xFFFF,
+            segmentIndicesCompressed >> 16 & 0xFFFF
+        );
+#endif
+
+        // Load Vertices
+        const float4 positionCS0 = asfloat(_Vertex0RecordBuffer.Load4(segmentIndices.x << 4));
+        const float4 positionCS1 = asfloat(_Vertex0RecordBuffer.Load4(segmentIndices.y << 4));
+
+        // Cull segments with degenerate vertices (could be produced by vertex shader).
+        if (AnyIsNaN(positionCS0) || AnyIsNaN(positionCS1))
+        {
+            culled = true;
+        }
+
+        // Fast rejection for segments behind the near clipping plane.
+        if (positionCS0.w <= 0 || positionCS1.w <= 0)
+        {
+            culled = true;
+        }
+
+        // Perspective divide. Homogenous -> NDC.
+        float3 positionNDC0 = positionCS0.xyz * rcp(positionCS0.w);
+        float3 positionNDC1 = positionCS1.xyz * rcp(positionCS1.w);
+
+        // Cohen-Sutherland algorithm to perform line segment clipping in NDC space.
+        if(!ClipSegmentCohenSutherland(positionNDC0.x, positionNDC0.y, positionNDC1.x, positionNDC1.y))
+        {
+            culled = true;
+        }
+
+        // NDC -> Screen Space.
+        const float2 positionSS0 = _ScreenSize.xy * (0.5 + 0.5 * positionNDC0.xy);
+        const float2 positionSS1 = _ScreenSize.xy * (0.5 + 0.5 * positionNDC1.xy);
+
+        // Depth test against each segment vertex.
+        if(positionNDC1.z < LoadCameraDepth(float2(positionSS1.x, _ScreenSize.y - positionSS1.y)) && positionNDC0.z < LoadCameraDepth(float2(positionSS0.x, _ScreenSize.y - positionSS0.y)))
+        {
+            culled = true;
+        }
+
+        if (!culled)
+        {
+            record.positionSS0  = positionSS0.xy;
+            record.positionSS1  = positionSS1.xy;
+            record.depthVS0     = LinearEyeDepth(positionNDC0.z, _ZBufferParams);
+            record.depthVS1     = LinearEyeDepth(positionNDC1.z, _ZBufferParams);
+            record.vertexIndex0 = segmentIndices.x;
+            record.vertexIndex1 = segmentIndices.y;
+        }
+    }
 
     // Compute the minimum and maximum view space depths (needed for clustering).
     UpdateDepthRange(wave, record, !culled);
