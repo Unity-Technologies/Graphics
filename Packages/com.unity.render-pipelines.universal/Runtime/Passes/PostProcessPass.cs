@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.Universal.CompatibilityMode
 
         Material m_BlitMaterial;
 
-
+        internal bool useLensFlare => !LensFlareCommonSRP.Instance.IsEmpty() && m_SupportDataDrivenLensFlare;
 
         /// <summary>
         /// Creates a new <c>PostProcessPass</c> instance.
@@ -416,7 +416,6 @@ namespace UnityEngine.Rendering.Universal.CompatibilityMode
             bool useSubPixeMorpAA = cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing;
             var dofMaterial = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian ? m_Materials.gaussianDepthOfField : m_Materials.bokehDepthOfField;
             bool useDepthOfField = m_DepthOfField.IsActive() && !isSceneViewCamera && dofMaterial != null;
-            bool useLensFlare = !LensFlareCommonSRP.Instance.IsEmpty() && m_SupportDataDrivenLensFlare;
             bool useLensFlareScreenSpace = m_LensFlareScreenSpace.IsActive() && m_SupportScreenSpaceLensFlare;
             bool useMotionBlur = m_MotionBlur.IsActive() && !isSceneViewCamera;
             bool usePaniniProjection = m_PaniniProjection.IsActive() && !isSceneViewCamera;

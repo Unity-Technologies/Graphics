@@ -937,6 +937,7 @@ namespace UnityEngine.Rendering.Universal
             requiresDepthPrepass |= isPreviewCamera;
             requiresDepthPrepass |= renderPassInputs.requiresDepthPrepass;
             requiresDepthPrepass |= renderPassInputs.requiresNormalsTexture;
+            requiresDepthPrepass |= IsGLESDevice() && postProcessPass?.useLensFlare == true;
 
             // Current aim of depth prepass is to generate a copy of depth buffer, it is NOT to prime depth buffer and reduce overdraw on non-mobile platforms.
             // When deferred renderer is enabled, depth buffer is already accessible so depth prepass is not needed.
@@ -1412,11 +1413,6 @@ namespace UnityEngine.Rendering.Universal
                 if (RenderSettings.skybox != null || (camera.TryGetComponent(out Skybox cameraSkybox) && cameraSkybox.material != null))
                     EnqueuePass(m_DrawSkyboxPass);
             }
-
-            // Mali Valhall + SSAO compatibility: Force depth copy when needed
-#if UNITY_ANDROID
-            requiresDepthCopyPass |= PlatformAutoDetect.isRunningOnMaliValhallGPU && renderingData.cameraData.postProcessEnabled;
-#endif
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
             // Also skip if Deferred+RenderPass as CameraDepthTexture is used and filled by the GBufferPass
