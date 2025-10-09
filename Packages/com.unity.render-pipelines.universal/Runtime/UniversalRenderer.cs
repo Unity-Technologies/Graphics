@@ -661,13 +661,11 @@ namespace UnityEngine.Rendering.Universal
             bool depthPrimingRequested = (m_DepthPrimingRecommended && m_DepthPrimingMode == DepthPrimingMode.Auto) || m_DepthPrimingMode == DepthPrimingMode.Forced;
             bool isForwardRenderingMode = m_RenderingMode == RenderingMode.Forward || m_RenderingMode == RenderingMode.ForwardPlus;
             bool isFirstCameraToWriteDepth = cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth;
-            // Enabled Depth priming when baking Reflection Probes causes artefacts (UUM-12397)
-            bool isNotReflectionCamera = cameraData.cameraType != CameraType.Reflection;
             // Depth is not rendered in a depth-only camera setup with depth priming (UUM-38158)
             bool isNotOffscreenDepthTexture = !IsOffscreenDepthTexture(cameraData);
             bool isNotMSAA = cameraData.cameraTargetDescriptor.msaaSamples == 1;
 
-            return depthPrimingRequested && isForwardRenderingMode && isFirstCameraToWriteDepth && isNotReflectionCamera && isNotOffscreenDepthTexture && isNotWebGL && isNotMSAA;
+            return depthPrimingRequested && isForwardRenderingMode && isFirstCameraToWriteDepth && isNotOffscreenDepthTexture && isNotWebGL && isNotMSAA;
         }
 
         static bool IsWebGL()
