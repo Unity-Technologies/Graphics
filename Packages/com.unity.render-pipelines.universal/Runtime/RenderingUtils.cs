@@ -860,6 +860,41 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Re-allocate fixed-size RTHandle if it is not allocated or doesn't match the descriptor
+        /// </summary>
+        /// <param name="handle">RTHandle to check (can be null)</param>
+        /// <param name="descriptor">TextureDesc for the RTHandle to match</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <returns>If an allocation was done.</returns>
+        public static bool ReAllocateHandleIfNeeded(
+            ref RTHandle handle,
+            TextureDesc descriptor,
+            string name)
+        {
+            descriptor.name = name;
+            descriptor.sizeMode = TextureSizeMode.Explicit;
+
+            if (RTHandleNeedsReAlloc(handle, in descriptor, false))
+            {
+                if (handle != null && handle.rt != null)
+                {
+                    TextureDesc currentRTDesc = RTHandleResourcePool.CreateTextureDesc(handle.rt.descriptor, TextureSizeMode.Explicit, handle.rt.anisoLevel, handle.rt.mipMapBias, handle.rt.filterMode, handle.rt.wrapMode, handle.name);
+                    AddStaleResourceToPoolOrRelease(currentRTDesc, handle);
+                }
+
+                if (UniversalRenderPipeline.s_RTHandlePool.TryGetResource(descriptor, out handle))
+                {
+                    return true;
+                }
+
+                var allocInfo = CreateRTHandleAllocInfo(descriptor, name);
+                handle = RTHandles.Alloc(descriptor.width, descriptor.height, allocInfo);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Re-allocate dynamically resized RTHandle if it is not allocated or doesn't match the descriptor
         /// </summary>
         /// <param name="handle">RTHandle to check (can be null)</param>
@@ -1104,6 +1139,37 @@ namespace UnityEngine.Rendering.Universal
             allocInfo.isShadowMap = descriptor.shadowSamplingMode != ShadowSamplingMode.None;
             allocInfo.msaaSamples = (MSAASamples)descriptor.msaaSamples;
             allocInfo.bindTextureMS = descriptor.bindMS;
+            allocInfo.useDynamicScale = descriptor.useDynamicScale;
+            allocInfo.useDynamicScaleExplicit = descriptor.useDynamicScaleExplicit;
+            allocInfo.memoryless = descriptor.memoryless;
+            allocInfo.vrUsage = descriptor.vrUsage;
+            allocInfo.enableShadingRate = descriptor.enableShadingRate;
+            allocInfo.name = name;
+
+            return allocInfo;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static RTHandleAllocInfo CreateRTHandleAllocInfo(in TextureDesc descriptor, string name)
+        {
+            // NOTE: this calls default(RTHandleAllocInfo) not RTHandleAllocInfo(string = "")
+            RTHandleAllocInfo allocInfo = new RTHandleAllocInfo();
+            allocInfo.slices = descriptor.slices;
+            allocInfo.format = descriptor.format;
+            allocInfo.filterMode = descriptor.filterMode;
+            allocInfo.wrapModeU = descriptor.wrapMode;
+            allocInfo.wrapModeV = descriptor.wrapMode;
+            allocInfo.wrapModeW = descriptor.wrapMode;
+            allocInfo.dimension = descriptor.dimension;
+            allocInfo.enableRandomWrite = descriptor.enableRandomWrite;
+            allocInfo.enableShadingRate = descriptor.enableShadingRate;
+            allocInfo.useMipMap = descriptor.useMipMap;
+            allocInfo.autoGenerateMips = descriptor.autoGenerateMips;
+            allocInfo.anisoLevel = descriptor.anisoLevel;
+            allocInfo.mipMapBias = descriptor.mipMapBias;
+            allocInfo.isShadowMap = descriptor.isShadowMap;
+            allocInfo.msaaSamples = (MSAASamples)descriptor.msaaSamples;
+            allocInfo.bindTextureMS = descriptor.bindTextureMS;
             allocInfo.useDynamicScale = descriptor.useDynamicScale;
             allocInfo.useDynamicScaleExplicit = descriptor.useDynamicScaleExplicit;
             allocInfo.memoryless = descriptor.memoryless;
