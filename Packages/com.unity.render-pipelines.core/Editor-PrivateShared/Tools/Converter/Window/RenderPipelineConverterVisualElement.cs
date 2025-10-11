@@ -27,6 +27,11 @@ namespace UnityEditor.Rendering.Converter
         public bool isSelectedAndEnabled => converter.isEnabled && state.isSelected;
 
         VisualElement m_RootVisualElement;
+        ListView m_ItemsList;
+        HeaderFoldout m_HeaderFoldout;
+        VisualElement m_ListViewHeader;
+        HelpBox m_NoItemsFound;
+        HelpBox m_PressScan;
         Label m_PendingLabel;
         Label m_WarningLabel;
         Label m_ErrorLabel;
@@ -43,52 +48,25 @@ namespace UnityEditor.Rendering.Converter
             s_VisualTreeAsset.Value.CloneTree(m_RootVisualElement);
             m_RootVisualElement.styleSheets.Add(s_StyleSheet.Value);
 
-            m_RootVisualElement.SetEnabled(converter.isEnabled);
-            m_RootVisualElement.Q<Label>("converterName").text = displayName;
-
-            var helpButton = m_RootVisualElement.Q<Button>("containerHelpButton");
-            if (string.IsNullOrEmpty(converterInfo.helpUrl))
+            m_HeaderFoldout = m_RootVisualElement.Q<HeaderFoldout>("conveterFoldout");
+            m_HeaderFoldout.text = displayName;
+            m_HeaderFoldout.tooltip = (converter.isEnabled) ? description : converter.isDisabledMessage;
+            m_HeaderFoldout.SetEnabled(converter.isEnabled);
+            m_HeaderFoldout.value = state.isExpanded;
+            m_HeaderFoldout.RegisterCallback<ChangeEvent<bool>>((evt) =>
             {
-                helpButton.style.display = DisplayStyle.None;
-            }
-            else
-            {
-                helpButton.Q<Image>("containerHelpImage").image = CoreEditorStyles.iconHelp;
-                helpButton.RemoveFromClassList("unity-button");
-                helpButton.AddToClassList(EditorGUIUtility.isProSkin ? "dark" : "light");
-                helpButton.RegisterCallback<ClickEvent>((evt) =>
-                {
-                    Help.BrowseURL(converterInfo.helpUrl);
-                    evt.StopPropagation(); // This toggle needs to stop propagation since it is inside another clickable element
-                });
-            }
+                state.isExpanded = evt.newValue;
+            });
+            m_HeaderFoldout.showEnableCheckbox = true;
+            m_HeaderFoldout.documentationURL = converterInfo.helpUrl;
 
-            var converterEnabledToggle = m_RootVisualElement.Q<Toggle>("converterEnabled");
-            converterEnabledToggle.SetValueWithoutNotify(state.isSelected);
-            converterEnabledToggle.RegisterCallback<ClickEvent>((evt) =>
+            m_HeaderFoldout.enableToggle.SetValueWithoutNotify(state.isSelected);
+            m_HeaderFoldout.enableToggle.RegisterCallback<ClickEvent>((evt) =>
             {
                 state.isSelected = !state.isSelected;
                 converterSelected?.Invoke();
                 UpdateConversionInfo();
-                evt.StopPropagation(); // This toggle needs to stop propagation since it is inside another clickable element
             });
-
-            var topElement = m_RootVisualElement.Q<VisualElement>("converterTopVisualElement");
-            topElement.RegisterCallback<ClickEvent>((evt) => 
-            {
-                showMoreInfo?.Invoke();
-            });
-            topElement.tooltip = (converter.isEnabled) ? description : converter.isDisabledMessage;
-
-            topElement.RegisterCallback<TooltipEvent>(evt =>
-            {
-                // Show the tooltip around the toggle only
-                var rect = converterEnabledToggle.worldBound;
-                rect.position += new Vector2(150, -30); // offset it a bit to not be ove the toggle
-                evt.rect = rect; // position area that triggers it
-                evt.StopPropagation();
-            });
-
 
             var allLabel = m_RootVisualElement.Q<Label>("all");
             allLabel.RegisterCallback<ClickEvent>((evt) =>
@@ -103,22 +81,23 @@ namespace UnityEditor.Rendering.Converter
                 Refresh();
             });
 
-            ListView listView = m_RootVisualElement.Q<ListView>("converterItems");
-            listView.showBoundCollectionSize = false;
-            listView.makeItem = () =>
+            m_ListViewHeader = m_RootVisualElement.Q("listViewHeader");
+            m_ItemsList = m_RootVisualElement.Q<ListView>("converterItems");
+            m_ItemsList.showBoundCollectionSize = false;
+            m_ItemsList.makeItem = () =>
             {
                 var item = new RenderPipelineConverterItemVisualElement();
                 item.itemSelectionChanged += UpdateInfo;
                 return item;
             };
-            listView.bindItem = (element, index) =>
+            m_ItemsList.bindItem = (element, index) =>
             {
                 var item = element as RenderPipelineConverterItemVisualElement;
                 item.Bind(state.items[index]);
             };
-            listView.selectionChanged += obj =>
+            m_ItemsList.selectionChanged += obj =>
             {
-                state.items[listView.selectedIndex].item.OnClicked();
+                state.items[m_ItemsList.selectedIndex].item.OnClicked();
             };
 
             // setup the images
@@ -136,6 +115,11 @@ namespace UnityEditor.Rendering.Converter
             m_WarningLabel = m_RootVisualElement.Q<Label>("warningLabel");
             m_ErrorLabel = m_RootVisualElement.Q<Label>("errorLabel");
             m_SuccessLabel = m_RootVisualElement.Q<Label>("successLabel");
+
+            m_NoItemsFound = m_RootVisualElement.Q<HelpBox>("noItemsFoundHelpBox");
+            m_NoItemsFound.style.display = DisplayStyle.None;
+
+            m_PressScan = m_RootVisualElement.Q<HelpBox>("pressScanHelpBox");
 
             Add(m_RootVisualElement);
             Refresh();
@@ -156,7 +140,7 @@ namespace UnityEditor.Rendering.Converter
 
         void UpdateSelectedConverterItemsLabel()
         {
-            var text = $"{state.selectedItemsCount}/{state.items.Count} selected";
+            var text = $" ({state.selectedItemsCount} of {state.items.Count})";
             m_RootVisualElement.Q<Label>("converterStats").text = text;
         }
 
@@ -190,61 +174,43 @@ namespace UnityEditor.Rendering.Converter
 
         void UpdateConversionInfo()
         {
-            var info = GetConversionInfo();
+            if (state.isInitialized)
+            {
+                m_PressScan.style.display = DisplayStyle.None;
+                if (state.items.Count > 0)
+                {
+                    m_NoItemsFound.style.display = DisplayStyle.None;
+                    m_ListViewHeader.style.display = DisplayStyle.Flex;
+                    m_ItemsList.style.display = DisplayStyle.Flex;
+                    m_ItemsList.itemsSource = state.items;
 
-            m_RootVisualElement.Q<Label>("converterStateInfoL").text = info.message;
-            m_RootVisualElement.Q<Label>("converterStateInfoL").style.unityFontStyleAndWeight = FontStyle.Bold;
-            m_RootVisualElement.Q<Image>("converterStateInfoIcon").image = info.icon;
+                    m_PendingLabel.text = $"{state.pending}";
+                    m_WarningLabel.text = $"{state.warnings}";
+                    m_ErrorLabel.text = $"{state.errors}";
+                    m_SuccessLabel.text = $"{state.success}";
+                }
+                else
+                {
+                    m_NoItemsFound.style.display = DisplayStyle.Flex;
+                    m_ListViewHeader.style.display = DisplayStyle.None;
+                    m_ItemsList.style.display = DisplayStyle.None;
+                }
+            }
+            else
+            {
+                m_PressScan.style.display = DisplayStyle.Flex;
 
-            m_PendingLabel.text = $"{state.pending}";
-            m_WarningLabel.text = $"{state.warnings}";
-            m_ErrorLabel.text = $"{state.errors}";
-            m_SuccessLabel.text = $"{state.success}";
-        }
-
-        private (string message, Texture2D icon) GetConversionInfo()
-        {
-            if (!state.isSelected)
-                return ("Converter Not Selected", null);
-
-            if (!state.isInitialized)
-                return ("Initialization Pending", CoreEditorStyles.iconPending);
-
-            if (state.errors > 0)
-                return ("Conversion Complete with Errors", CoreEditorStyles.iconFail);
-
-            if (state.warnings > 0)
-                return ("Conversion Pending with Warnings", CoreEditorStyles.iconWarn);
-
-            if (state.pending > 0)
-                return ("Conversion Pending", CoreEditorStyles.iconPending);
-
-            if (state.success > 0)
-                return ("Conversion Complete", CoreEditorStyles.iconComplete);
-
-            return ("No items found to convert", CoreEditorStyles.iconInfo);
-        }
-
-        public void ShowConverterLayout()
-        {
-            m_RootVisualElement.Q<VisualElement>("informationVE").style.display = DisplayStyle.Flex;
-            m_RootVisualElement.Q<VisualElement>("converterItems").style.display = DisplayStyle.Flex;
-            m_RootVisualElement.Q<ListView>("converterItems").itemsSource = state.items;
-        }
-
-        public void HideConverterLayout()
-        {
-            m_RootVisualElement.Q<VisualElement>("converterItems").style.display = DisplayStyle.None;
-            m_RootVisualElement.Q<VisualElement>("informationVE").style.display = DisplayStyle.None;
+                m_NoItemsFound.style.display = DisplayStyle.None;
+                m_ListViewHeader.style.display = DisplayStyle.None;
+                m_ItemsList.style.display = DisplayStyle.None;
+            }
         }
 
         public void Refresh()
         {
-            m_RootVisualElement.Q<ListView>("converterItems").Rebuild();
+            m_ItemsList.Rebuild();
             UpdateInfo();
-            m_RootVisualElement.SetEnabled(converter.isEnabled);
-            m_RootVisualElement.Q<Label>("converterName").text = displayName;
-            m_RootVisualElement.Q<VisualElement>("converterTopVisualElement").tooltip = (converter.isEnabled) ? description : converter.isDisabledMessage;
+            m_HeaderFoldout.SetEnabled(converter.isEnabled);
         }
 
         public void Scan(Action onScanFinish)
@@ -271,6 +237,8 @@ namespace UnityEditor.Rendering.Converter
 
                 state.isLoading = false;
                 state.isInitialized = true;
+                m_HeaderFoldout.value = true; // Expand the foldout when we perform a search
+                m_ItemsList.itemsSource = state.items;
 
                 Refresh();
                 onScanFinish?.Invoke();

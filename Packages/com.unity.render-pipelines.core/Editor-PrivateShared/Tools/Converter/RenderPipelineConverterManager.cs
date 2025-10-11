@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using NUnit.Framework;
 using UnityEngine;
 
 namespace UnityEditor.Rendering.Converter
@@ -79,7 +80,14 @@ namespace UnityEditor.Rendering.Converter
 
         public void OnAfterDeserialize()
         {
-
+            // Something null, remove it
+            for (int i = converterStates.Count - 1; i >= 0; i--)
+            {
+                if (converterStates[i] == null || converterStates[i].converter == null)
+                {
+                    converterStates.RemoveAt(i);
+                }
+            }
         }
     }
 }

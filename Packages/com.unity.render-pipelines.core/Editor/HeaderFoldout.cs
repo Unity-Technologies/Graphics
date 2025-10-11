@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.Serialization.Configuration;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -92,6 +93,15 @@ namespace UnityEditor.Rendering
             set => m_Text.text = value;
         }
 
+        /// <summary>Property to get the tooltip</summary>
+        public new string tooltip
+        {
+            get => m_Text.tooltip;
+            set => m_Text.tooltip = value;
+        }
+
+        Vector2 m_LastLocalMousePos;
+
         /// <summary>Constructor</summary>
         public HeaderFoldout() : base()
         {
@@ -124,6 +134,21 @@ namespace UnityEditor.Rendering
 
             m_Text = new Label();
             m_Text.AddToClassList(k_LabelClass);
+            m_Text.RegisterCallback<PointerMoveEvent>(e =>
+            {
+                m_LastLocalMousePos = e.position; // in root's local coords
+            });
+            m_Text.RegisterCallback<TooltipEvent>(evt =>
+            {
+                // Offset the tooltip slightly from the cursor
+                const float tipWidth = 200f;   // approximate width; the system will size it
+                const float tipHeight = 24f;   // approximate height
+
+                evt.rect = new Rect(m_LastLocalMousePos.x, m_LastLocalMousePos.y, tipWidth, tipHeight);
+
+                // Optional: ensure only this handler sets the rect
+                evt.StopPropagation();
+            });
             line.Add(m_Text);
 
             m_HelpButton = new Button(Background.FromTexture2D(CoreEditorStyles.iconHelp), () => Help.BrowseURL(m_DocumentationURL));
