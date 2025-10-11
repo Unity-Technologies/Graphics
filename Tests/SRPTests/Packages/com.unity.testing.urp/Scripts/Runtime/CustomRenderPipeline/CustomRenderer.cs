@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering.Universal
             var targetHandle = renderGraph.ImportTexture(m_TargetColorHandle, importInfo, importBackbufferParams);
             var depthHandle = renderGraph.ImportTexture(m_TargetDepthHandle, importInfoDepth, importBackbufferParams);
 
-            SetupRenderGraphCameraProperties(renderGraph, cameraData.camera.targetTexture == null, targetHandle.IsValid() ? targetHandle : depthHandle);
+            SetupRenderGraphCameraProperties(renderGraph, targetHandle.IsValid() ? targetHandle : depthHandle);
 
             if (!renderGraph.nativeRenderPassesEnabled)
             {

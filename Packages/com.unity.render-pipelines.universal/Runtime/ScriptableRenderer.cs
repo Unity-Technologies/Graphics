@@ -987,7 +987,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void SetupRenderGraphCameraProperties(RenderGraph renderGraph, bool isTargetBackbuffer, TextureHandle target)
+        internal void SetupRenderGraphCameraProperties(RenderGraph renderGraph, TextureHandle target)
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(Profiling.setupCamera.name, out var passData,
                 Profiling.setupCamera))
@@ -995,7 +995,6 @@ namespace UnityEngine.Rendering.Universal
                 passData.renderer = this;
                 passData.cameraData = frameData.Get<UniversalCameraData>();
                 passData.cameraTargetSizeCopy = new Vector2Int(passData.cameraData.cameraTargetDescriptor.width, passData.cameraData.cameraTargetDescriptor.height);
-                passData.isTargetBackbuffer = isTargetBackbuffer;
                 passData.target = target;
 
                 builder.AllowGlobalStateModification(true);
@@ -1229,7 +1228,6 @@ namespace UnityEngine.Rendering.Universal
         {
             internal ScriptableRenderer renderer;
             internal UniversalCameraData cameraData;
-            internal bool isTargetBackbuffer;
             internal TextureHandle target;
 
             // The size of the camera target changes during the frame so we must make a copy of it here to preserve its record-time value.

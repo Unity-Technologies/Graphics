@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.ClearRandomWriteTargets();
         }
 
-        private static void ExecuteHDRDebugViewFinalPass(RasterCommandBuffer cmd, PassDataDebugView data, RTHandle sourceTexture, RTHandle destination, RTHandle xyTarget)
+        private static void ExecuteHDRDebugViewFinalPass(RasterCommandBuffer cmd, in PassDataDebugView data, RTHandle source, Vector4 scaleBias, RTHandle destination, RTHandle xyTarget)
         {
             if (data.cameraData.isHDROutputActive)
             {
@@ -122,9 +122,7 @@ namespace UnityEngine.Rendering.Universal
             Vector4 debugParameters = new Vector4(ShaderConstants._SizeOfHDRXYMapping, ShaderConstants._SizeOfHDRXYMapping, 0, 0);
             data.material.SetVector(ShaderConstants._HDRDebugParamsId, debugParameters);
             data.material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, data.luminanceParameters);
-            data.material.SetInteger(ShaderConstants._DebugHDRModeId, (int)data.hdrDebugMode);
-
-            Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(sourceTexture, destination, data.cameraData);
+            data.material.SetInteger(ShaderConstants._DebugHDRModeId, (int)data.hdrDebugMode);            
 
             RenderTargetIdentifier cameraTarget = BuiltinRenderTextureType.CameraTarget;
             #if ENABLE_VR && ENABLE_XR_MODULE
@@ -135,7 +133,7 @@ namespace UnityEngine.Rendering.Universal
             if (destination.nameID == cameraTarget || data.cameraData.targetTexture != null)
                 cmd.SetViewport(data.cameraData.pixelRect);
 
-            Blitter.BlitTexture(cmd, sourceTexture, scaleBias, data.material, 1);            
+            Blitter.BlitTexture(cmd, source, scaleBias, data.material, 1);            
         }
 
         // Non-RenderGraph path
@@ -213,7 +211,8 @@ namespace UnityEngine.Rendering.Universal
 
             using (new ProfilingScope(cmd, profilingSampler))
             {
-                ExecuteHDRDebugViewFinalPass(rasterCmd, dataDebugView, sourceTexture, destTexture, xyTarget);
+                Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(sourceTexture, destTexture, dataDebugView.cameraData);
+                ExecuteHDRDebugViewFinalPass(rasterCmd, dataDebugView, sourceTexture, scaleBias, destTexture, xyTarget);
             }
 
             // Disable obsolete warning for internal usage
@@ -287,7 +286,8 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderFunc((PassDataDebugView data, RasterGraphContext context) =>
                 {
                     data.material.enabledKeywords = null;
-                    ExecuteHDRDebugViewFinalPass(context.cmd, data, data.srcColor, data.dstColor, data.xyBuffer);
+                    Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(in context, in data.srcColor, in data.dstColor);
+                    ExecuteHDRDebugViewFinalPass(context.cmd, in data, data.srcColor, scaleBias, data.dstColor,  data.xyBuffer);
                 });
             }
         }

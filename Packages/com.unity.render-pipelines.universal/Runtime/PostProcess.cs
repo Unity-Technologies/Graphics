@@ -141,13 +141,12 @@ namespace UnityEngine.Rendering.Universal
             return m_UserLut != null ? renderGraph.ImportTexture(m_UserLut) : TextureHandle.nullHandle;
         }
 
-        static bool UpdateGlobalDebugHandlerPass(RenderGraph renderGraph, UniversalCameraData cameraData, bool isFinalPass)
+        static void UpdateGlobalDebugHandlerPass(RenderGraph renderGraph, UniversalCameraData cameraData, bool isFinalPass)
         {
             // NOTE: Debug handling injects a global state render pass.
             DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(cameraData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
             debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, isFinalPass && !resolveToDebugScreen);
-            return resolveToDebugScreen;
         }
 
         const string _CameraColorUpscaled = "_CameraColorUpscaled";
@@ -222,7 +221,7 @@ namespace UnityEngine.Rendering.Universal
                 TemporalAA.ValidateAndWarn(cameraData, isSTPRequested);
 
             // NOTE: Debug handling injects a global state render pass.
-            bool resolveToDebugScreen = UpdateGlobalDebugHandlerPass(renderGraph, cameraData, !hasFinalPass);
+            UpdateGlobalDebugHandlerPass(renderGraph, cameraData, !hasFinalPass);
 
             TextureHandle currentSource = activeCameraColorTexture;
 
@@ -397,7 +396,6 @@ namespace UnityEngine.Rendering.Universal
                 m_UberPass.isFinalPass = !hasFinalPass;
                 m_UberPass.requireSRGBConversionBlit = RequireSRGBConversionBlitToBackBuffer(cameraData, enableColorEncodingIfNeeded);
                 m_UberPass.useFastSRGBLinearConversion = useFastSRGBLinearConversion;
-                m_UberPass.resolveToDebugScreen = resolveToDebugScreen;
 
                 TextureHandle activeOverlayUITexture = TextureHandle.nullHandle;
                 bool requireHDROutput = PostProcessUtils.RequireHDROutput(cameraData);
@@ -443,7 +441,7 @@ namespace UnityEngine.Rendering.Universal
             var filmGrain = stack.GetComponent<FilmGrain>();
 
             // NOTE: Debug handling injects a global state render pass.
-            bool resolveToDebugScreen = UpdateGlobalDebugHandlerPass(renderGraph, cameraData, true);
+            UpdateGlobalDebugHandlerPass(renderGraph, cameraData, true);
 
             var srcDesc = renderGraph.GetTextureDesc(source);
 
@@ -563,7 +561,6 @@ namespace UnityEngine.Rendering.Universal
             m_FinalPostProcessPass.samplingOperation = samplingOperation;
             m_FinalPostProcessPass.applyFxaa = applyFxaa;
             m_FinalPostProcessPass.applySrgbEncoding = RequireSRGBConversionBlitToBackBuffer(cameraData, enableColorEncodingIfNeeded);
-            m_FinalPostProcessPass.resolveToDebugScreen = resolveToDebugScreen;
             m_FinalPostProcessPass.hdrOperations = hdrOperations;
 
             m_FinalPostProcessPass.sourceTexture = currentSource;

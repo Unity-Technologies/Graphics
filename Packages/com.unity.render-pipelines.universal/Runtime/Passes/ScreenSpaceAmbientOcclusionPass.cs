@@ -324,20 +324,21 @@ namespace UnityEngine.Rendering.Universal
             data.directLightingStrength = m_CurrentSettings.DirectLightingStrength;
         }
 
-        private static Vector4 ComputeScaleBias(UniversalCameraData cameraData, RTHandle source, RTHandle destination)
+        private static Vector4 ComputeScaleBias(in UnsafeGraphContext context, in TextureHandle source, in TextureHandle destination)
         {
+            RTHandle srcRTHandle = source;
             Vector2 viewportScale;
-            if (source.useScaling)
+            if (srcRTHandle is { useScaling: true })
             {
-                viewportScale.x = source.rtHandleProperties.rtHandleScale.x;
-                viewportScale.y = source.rtHandleProperties.rtHandleScale.y;
+                viewportScale.x = srcRTHandle.rtHandleProperties.rtHandleScale.x;
+                viewportScale.y = srcRTHandle.rtHandleProperties.rtHandleScale.y;
             }
             else
             {
                 viewportScale = Vector2.one;
             }
 
-            bool yFlip = cameraData.IsHandleYFlipped(source) != cameraData.IsHandleYFlipped(destination);
+            bool yFlip = context.GetTextureUVOrigin(in source) != context.GetTextureUVOrigin(in destination);
             if (yFlip)
                 return new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y);
             else
@@ -429,20 +430,20 @@ namespace UnityEngine.Rendering.Universal
                         case ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.High:
                             Blitter.BlitCameraTexture(cmd, data.AOTexture, data.blurTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, data.material, (int) ShaderPasses.BilateralBlurHorizontal);
                             Blitter.BlitCameraTexture(cmd, data.blurTexture, data.AOTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, data.material, (int) ShaderPasses.BilateralBlurVertical);
-                            viewScaleBias = ComputeScaleBias(data.cameraData, data.AOTexture, data.finalTexture);
+                            viewScaleBias = ComputeScaleBias(in rgContext, in data.AOTexture, in data.finalTexture);
                             Blitter.BlitCameraTexture(cmd, data.AOTexture, data.finalTexture, viewScaleBias, finalLoadAction, RenderBufferStoreAction.Store, data.material, (int) (data.afterOpaque ? ShaderPasses.BilateralAfterOpaque : ShaderPasses.BilateralBlurFinal));
                             break;
 
                         // Gaussian
                         case ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.Medium:
                             Blitter.BlitCameraTexture(cmd, data.AOTexture, data.blurTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, data.material, (int) ShaderPasses.GaussianBlurHorizontal);
-                            viewScaleBias = ComputeScaleBias(data.cameraData, data.blurTexture, data.finalTexture);
+                            viewScaleBias = ComputeScaleBias(in rgContext, in data.blurTexture, in data.finalTexture);
                             Blitter.BlitCameraTexture(cmd, data.blurTexture, data.finalTexture, viewScaleBias, finalLoadAction, RenderBufferStoreAction.Store, data.material, (int) (data.afterOpaque ? ShaderPasses.GaussianAfterOpaque : ShaderPasses.GaussianBlurVertical));
                             break;
 
                         // Kawase
                         case ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.Low:
-                            viewScaleBias = ComputeScaleBias(data.cameraData, data.AOTexture, data.finalTexture);
+                            viewScaleBias = ComputeScaleBias(in rgContext, in data.AOTexture, in data.finalTexture);
                             Blitter.BlitCameraTexture(cmd, data.AOTexture, data.finalTexture, viewScaleBias, finalLoadAction, RenderBufferStoreAction.Store, data.material, (int) (data.afterOpaque ? ShaderPasses.KawaseAfterOpaque : ShaderPasses.KawaseBlur));
                             break;
 

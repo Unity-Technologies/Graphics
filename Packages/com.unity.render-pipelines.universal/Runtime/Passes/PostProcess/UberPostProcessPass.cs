@@ -213,10 +213,10 @@ namespace UnityEngine.Rendering.Universal
                     // Done with Uber, blit it
 #if ENABLE_VR && ENABLE_XR_MODULE
                     if (cameraData.xr.enabled && cameraData.xr.hasValidVisibleMesh)
-                        PostProcessUtils.ScaleViewportAndDrawVisibilityMesh(cmd, sourceTextureHdl, data.destinationTexture, data.cameraData, material, data.isFinalPass);
+                        PostProcessUtils.ScaleViewportAndDrawVisibilityMesh(context, data.sourceTexture, data.destinationTexture, data.cameraData, material, data.isFinalPass);
                     else
 #endif
-                        PostProcessUtils.ScaleViewportAndBlit(cmd, sourceTextureHdl, data.destinationTexture, data.cameraData, material, data.isFinalPass);
+                        PostProcessUtils.ScaleViewportAndBlit(context, data.sourceTexture, data.destinationTexture, data.cameraData, material, data.isFinalPass);
 
                 });
 

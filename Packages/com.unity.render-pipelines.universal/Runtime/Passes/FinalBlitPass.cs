@@ -219,21 +219,21 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
 
                     CoreUtils.SetRenderTarget(renderingData.commandBuffer, cameraTargetHandle.nameID, loadAction, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
-                    ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_Source, cameraTargetHandle, cameraData);
+                    Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(m_Source, cameraTargetHandle, cameraData);
+                    ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_Source, cameraTargetHandle, cameraData, scaleBias);
                     cameraData.renderer.ConfigureCameraTarget(cameraTargetHandle, cameraTargetHandle);
-                }
+                }   
             }
         }
 #endif
 
-        private static void ExecutePass(RasterCommandBuffer cmd, PassData data, RTHandle source, RTHandle destination, UniversalCameraData cameraData)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData data, RTHandle source, RTHandle destination, UniversalCameraData cameraData, Vector4 scaleBias)
         {
             bool isRenderToBackBufferTarget = !cameraData.isSceneViewCamera;
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
                 isRenderToBackBufferTarget = new RenderTargetIdentifier(destination.nameID, 0, CubemapFace.Unknown, -1) == new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, -1);
-#endif
-            Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(source, destination, cameraData);
+#endif            
             if (isRenderToBackBufferTarget)
                 cmd.SetViewport(cameraData.pixelRect);
 
@@ -358,7 +358,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                         Blitter.BlitTexture(context.cmd, sourceTex, viewportScale, data.blitMaterialData.material, shaderPassIndex);
                     }
                     else
-                        ExecutePass(context.cmd, data, data.source, data.destination, data.cameraData);
+                    {
+                        Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(context, in data.source, in data.destination);
+                        ExecutePass(context.cmd, data, data.source, data.destination, data.cameraData, scaleBias);
+                    }
+                        
                 });
             }
         }
