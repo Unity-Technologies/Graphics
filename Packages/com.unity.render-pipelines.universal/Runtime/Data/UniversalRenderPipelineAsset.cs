@@ -366,6 +366,12 @@ namespace UnityEngine.Rendering.Universal
         FSR,
 
         /// <summary>
+        /// Unity uses the Snapdragon Game Super Resolution technique to perform upscaling.
+        /// </summary>
+        [InspectorName("Snapdragon Game Super Resolution")]
+        SGSR,
+
+        /// <summary>
         /// Unity uses the Spatial-Temporal Post-Processing technique to perform upscaling.
         /// </summary>
         [InspectorName("Spatial-Temporal Post-Processing"), Tooltip("If the target device does not support compute shaders or is running GLES, Unity falls back to the Automatic option.")]
