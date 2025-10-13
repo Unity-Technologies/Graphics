@@ -276,7 +276,7 @@ void VertexSetup (uint3 dispatchThreadID : SV_DispatchThreadID)
 {
     const uint i = dispatchThreadID.x;
 
-    if (i >= (uint)_VertexCount)
+    if ((_VertexOffset +i) >= (uint)_VertexCount)
         return;
 
     // Construct the input vertex.
