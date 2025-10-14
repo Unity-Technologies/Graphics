@@ -23,9 +23,6 @@ namespace UnityEditor.Rendering
         /// <summary>Indicates whether the header is expanded or not. Is true if the header is expanded, false otherwise.</summary>
         public readonly bool expanded;
         bool spaceAtEnd;
-#if !UNITY_2020_1_OR_NEWER
-        int oldIndentLevel;
-#endif
 
         /// <summary>
         /// Creates a material header scope to display the foldout in the material UI.
@@ -43,11 +40,6 @@ namespace UnityEditor.Rendering
                 throw new ArgumentNullException(nameof(title));
 
             bool beforeExpanded = materialEditor.IsAreaExpanded(bitExpanded, defaultExpandedState);
-
-#if !UNITY_2020_1_OR_NEWER
-            oldIndentLevel = EditorGUI.indentLevel;
-            EditorGUI.indentLevel = subHeader ? 1 : 0; //fix for preset in 2019.3 (preset are one more indentation depth in material)
-#endif
 
             this.spaceAtEnd = spaceAtEnd;
             if (!subHeader)
@@ -85,9 +77,6 @@ namespace UnityEditor.Rendering
             if (expanded && spaceAtEnd && (Event.current.type == EventType.Repaint || Event.current.type == EventType.Layout))
                 EditorGUILayout.Space();
 
-#if !UNITY_2020_1_OR_NEWER
-            EditorGUI.indentLevel = oldIndentLevel;
-#endif
             GUILayout.EndVertical();
         }
     }

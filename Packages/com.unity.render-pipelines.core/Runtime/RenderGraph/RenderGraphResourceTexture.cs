@@ -186,7 +186,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         Functor
     }
 
-#if UNITY_2020_2_OR_NEWER
     /// <summary>
     /// Subset of the texture desc containing information for fast memory allocation (when platform supports it)
     /// </summary>
@@ -199,7 +198,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         ///<summary>How much of the render target is to be switched into fast memory (between 0 and 1).</summary>
         public float residencyFraction;
     }
-#endif
 
     /// <summary>
     /// Descriptor used to create texture resources
@@ -267,10 +265,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         ///<summary>Texture name.</summary>
         public string name;
-#if UNITY_2020_2_OR_NEWER
         ///<summary>Descriptor to determine how the texture will be in fast memory on platform that supports it.</summary>
         public FastMemoryDesc fastMemoryDesc;
-#endif
         ///<summary>Determines whether the texture will fallback to a black texture if it is read without ever writing to it.</summary>
         public bool fallBackToBlackTexture;
         ///<summary>
@@ -492,9 +488,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             hashCode.Append(bindTextureMS);
             hashCode.Append(useDynamicScale);
             hashCode.Append((int) msaaSamples);
-#if UNITY_2020_2_OR_NEWER
             hashCode.Append(fastMemoryDesc.inFastMemory);
-#endif
             hashCode.Append(enableShadingRate);
             return hashCode.value;
         }

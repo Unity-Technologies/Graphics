@@ -852,7 +852,7 @@ namespace UnityEngine.Rendering
 
         static bool IsVolumeRenderedByCamera(Volume volume, Camera camera)
         {
-#if UNITY_2018_3_OR_NEWER && UNITY_EDITOR
+#if UNITY_EDITOR
             // GameObject for default global volume may not belong to any scene, following check prevents it from being culled
             if (!volume.cachedGameObject.scene.IsValid())
                 return true;

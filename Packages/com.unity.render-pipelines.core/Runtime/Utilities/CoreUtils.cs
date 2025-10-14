@@ -1369,7 +1369,7 @@ namespace UnityEngine.Rendering
         /// <returns>A list of types that inherit from the provided type.</returns>
         public static IEnumerable<Type> GetAllTypesDerivedFrom<T>()
         {
-#if UNITY_EDITOR && UNITY_2019_2_OR_NEWER
+#if UNITY_EDITOR
             return UnityEditor.TypeCache.GetTypesDerivedFrom<T>();
 #else
             var derivedTypes = new List<Type>();
@@ -1499,11 +1499,7 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++) // Using a foreach on an ArrayList generates garbage ...
                 {
                     var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
-#if UNITY_2020_2_OR_NEWER
                     if (sv.camera == camera && sv.sceneViewState.alwaysRefreshEnabled)
-#else
-                    if (sv.camera == camera && sv.sceneViewState.materialUpdateEnabled)
-#endif
                     {
                         animateMaterials = true;
                         break;
@@ -1950,7 +1946,7 @@ namespace UnityEngine.Rendering
             return DepthBits.Depth32;
 #endif
         }
-        
+
 #if UNITY_EDITOR
         /// <summary>
         /// Populates null fields or collection elements in a target object from a source object of the same type.
@@ -1965,12 +1961,12 @@ namespace UnityEngine.Rendering
         /// The target object to populate with values from the source object. This cannot be null.
         /// </param>
         /// <remarks>
-        /// This method copies non-null field values or collection elements from the source object to the target object. 
-        /// Both objects must be of the same type, and derived or base types are not allowed. Fields are updated only if they 
-        /// are null in the target. If a field is a collection implementing `IList`, the method attempts to copy elements that 
+        /// This method copies non-null field values or collection elements from the source object to the target object.
+        /// Both objects must be of the same type, and derived or base types are not allowed. Fields are updated only if they
+        /// are null in the target. If a field is a collection implementing `IList`, the method attempts to copy elements that
         /// are null in the target collection.
         ///
-        /// **Type restrictions**:  
+        /// **Type restrictions**:
         /// - `T` must be a reference type.
         /// - `source` and `target` must be of the exact same type, not derived or base types.
         /// - Collections must implement `IList` and have the same length in both source and target for element-by-element copying.
@@ -1983,7 +1979,7 @@ namespace UnityEngine.Rendering
 
             if (target == null)
                 throw new ArgumentNullException(nameof(target));
-            
+
             if (source.GetType() != typeof(T) || target.GetType() != typeof(T))
             {
                 throw new ArgumentException("Source and target must be of the exact same type. Derived or base types are not allowed.");
@@ -2006,14 +2002,14 @@ namespace UnityEngine.Rendering
                 else
                 {
                     // Handle individual field population
-                    if (targetValue == null) 
+                    if (targetValue == null)
                         field.SetValue(target, sourceValue); // Copy if target is null
                 }
             }
             // Generic method to populate arrays
             static void PopulateIListFields(ref object source, ref object target)
             {
-                if (source is not IList sourceCollection) 
+                if (source is not IList sourceCollection)
                     return;
 
                 if (target is not IList targetCollection)

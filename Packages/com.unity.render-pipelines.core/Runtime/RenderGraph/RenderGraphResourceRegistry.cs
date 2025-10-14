@@ -1060,13 +1060,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             var resource = res as TextureResource;
 
-#if UNITY_2020_2_OR_NEWER
             var fastMemDesc = resource.desc.fastMemoryDesc;
             if (fastMemDesc.inFastMemory)
             {
                 resource.graphicsResource.SwitchToFastMemory(rgContext.cmd, fastMemDesc.residencyFraction, fastMemDesc.flags);
             }
-#endif
 
             bool executedWork = false;
 
