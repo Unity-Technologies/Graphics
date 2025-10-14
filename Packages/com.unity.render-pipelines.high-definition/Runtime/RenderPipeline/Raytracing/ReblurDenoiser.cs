@@ -402,7 +402,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.ReBlurMipHistoryFix)))
                     {
                         // Mini GBuffer
-                        natCmd.SetComputeTextureParam(data.historyFixCS, data.historyFixKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
+                        natCmd.SetComputeTextureParam(data.historyFixCS, data.historyFixKernel, HDShaderIDs._DepthTexture, data.depthPyramidBuffer);
                         natCmd.SetComputeTextureParam(data.historyFixCS, data.historyFixKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
                         natCmd.SetComputeTextureParam(data.historyFixCS, data.historyFixKernel, _ReBlurMipChain, data.mipTexture);
 

@@ -33,9 +33,9 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracedShadowHistoryValidity,
         /// <summary>Ray traced shadow history distance buffer.</summary>
         RaytracedShadowDistanceValidity,
-        /// <summary>Ray traced reflections distance buffer.</summary>
-        RaytracedReflectionDistance,
-        /// <summary>Ray traced reflections distance buffer.</summary>
+        /// <summary>Ray traced reflections (xyz) and distance (w) buffer.</summary>
+        RaytracedReflectionLightingDistance,
+        /// <summary>Ray traced reflections accumulation buffer.</summary>
         RaytracedReflectionAccumulation,
         /// <summary>Ray traced reflections stabilization buffer.</summary>
         RaytracedReflectionStabilization,
@@ -85,6 +85,9 @@ namespace UnityEngine.Rendering.HighDefinition
         MotionVectorAOV = PathTracingMotionVector,
         /// <summary>Denoised path-traced frame history. It is recommended to use the PathTracingDenoised enum value instead.</summary>
         [Obsolete("#from(2023.3)")]
-        DenoiseHistory = PathTracingDenoised
+        DenoiseHistory = PathTracingDenoised,
+        /// <summary>Ray traced reflections (xyz) and distance (w) buffer. It is recommended to use RaytracedReflectionLightingDistance enum value instead.</summary>
+        [Obsolete("#from(6000.4)")]
+        RaytracedReflectionDistance = RaytracedReflectionLightingDistance
     }
 }

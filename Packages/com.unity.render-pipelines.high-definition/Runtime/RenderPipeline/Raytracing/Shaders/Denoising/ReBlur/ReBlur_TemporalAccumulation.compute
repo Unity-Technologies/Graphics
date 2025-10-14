@@ -83,7 +83,7 @@ void TemporalAccumulation(uint3 currentCoord : SV_DispatchThreadID,
 
     // Compute N dot V
     float NdotV = abs(dot(normalData.normalWS, viewWS));
-     
+
     // Surface motion history (the disocclusion code guarantees that the reprojected surface motion is inside the viewport and is an equivalent point)
     float2 historyUVUnscaled;
     float2 historySurfaceMotionCoord;
@@ -146,7 +146,7 @@ void TemporalAccumulation(uint3 currentCoord : SV_DispatchThreadID,
         float4 virtualLightingDistance;
         virtualLightingDistance.xyz = lerp(virtualHistory.xyz, lightingDistance.xyz, 1/(1 + Avirt));
         virtualLightingDistance.w = lerp(virtualHistory.w, lightingDistance.w, 1/(1 + Ahitdist));
-        
+
         // Mix surface and virtual motion-based combined specular
         // signals into the final result.
         float4 currentResult = lerp(surfaceLightingDistance, virtualLightingDistance, amount);
@@ -157,7 +157,6 @@ void TemporalAccumulation(uint3 currentCoord : SV_DispatchThreadID,
         float Acurr = 1.0 / a - 1.0;
     }
 
-    // Normalize the result
     _LightingDistanceTextureRW[COORD_TEXTURE2D_X(currentCoord.xy)] = surfaceLightingDistance;
     _AccumulationTextureRW[COORD_TEXTURE2D_X(currentCoord.xy)] = accumulationFactor;
 }

@@ -185,7 +185,7 @@ void PreBlur(uint3 dispatchThreadId : SV_DispatchThreadID,
     }
     else
     {
-        // If we are 
+        // If we are
         #if defined(HALF_RESOLUTION)
         float4 fallbackLighting = 0.0;
         float weightSum = 0.0;
@@ -227,7 +227,7 @@ void PreBlur(uint3 dispatchThreadId : SV_DispatchThreadID,
                 #else
                     fallbackLighting += float4(LOAD_TEXTURE2D_X(_LightingInputTexture, halfResCoord).xyz, LOAD_TEXTURE2D_X(_DistanceInputTexture, halfResCoord).x) * weight;
                 #endif
-                weightSum += weight; 
+                weightSum += weight;
             }
         }
 
