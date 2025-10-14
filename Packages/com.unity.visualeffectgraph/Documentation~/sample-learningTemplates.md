@@ -1,6 +1,6 @@
 # Learning Templates Sample Content
 
-<video src="Images/LearningSample_Banner_C.mp4" width="700" height="auto" autoplay="true" loop="true" controls></video>
+<video src="Images/LearningSample_Banner_C.mp4" title="A dynamic particle system that simulates a banner unfurling. Particles are emitted from a central point, gradually expanding outward to form the shape of a banner." width="700" height="auto" autoplay="true" loop="true" controls></video>
 
 The Learning Templates sample is a collection of VFX assets designed to help you learn about VFX Graph concepts and features. This collection will be updated based on community feedback and new features. This page provides instructions on how to install the sample, a brief overview of the content, and how to make the most of it.
 
@@ -23,13 +23,9 @@ To install this sample, first [install the Visual Effect Graph](https://docs.uni
 1. In the main window that displays the package's details, find the **Samples** section.
 1. To import the sample into your project, click **Import**. This creates a folder called `Samples` in your project, and imports the sample you selected into it. Unity imports any future samples into this folder.
 
-<img width="500" height="auto" src="Images/LearningSamplePackage.png" />
-
-
-
 ## VFX Learning Templates overview
 
-<video src="Images/LearningSample_FlameFlipbook_700.mp4" width="500" height="auto" autoplay="true" loop="true" controls></video>
+<video src="Images/LearningSample_FlameFlipbook_700.mp4" title="Left: A candle in flipbook mode whose flame flickers. Right: A candle in flipbook blend mode, whose flame is brighter and flickers more." width="500" height="auto" autoplay="true" loop="true" controls></video>
 
 
 To start exploring the content of this sample:
@@ -42,7 +38,7 @@ To start exploring the content of this sample:
 
 ### Scene overview
 
-<img width= "700" height="auto" src="Images/LearningSample_WindowPresentation.png" />
+![Left: The Orient Fixed Axis sample in Scene view. Right: The same sample in Game view.](Images/LearningSample_WindowPresentation.png)
 
 
 #### **Hierarchy**
@@ -50,14 +46,9 @@ To start exploring the content of this sample:
 
       The `Sample_Showcase` GameObject has a script called **Samples Showcase**, which contains a custom Inspector and a dedicated window. Select this GameObject to view information and useful links relative to each VFX in the [Inspector](https://docs.unity3d.com/2023.3/Documentation/Manual/UsingTheInspector.html).
 
-      <img width="500" height="auto" src="Images/LearningSample_ShowcaseInspector.png" />
-
-
    1. **VFX Prefabs**:
 
       - Each VFX instance is part of a prefab with a display mesh and some text information.
-
-      <img width="500" height="auto" src="Images/LearningSample_Hierarchy_VFX.png" />
 
    1. **Scene Main Camera**:
 
@@ -69,14 +60,14 @@ To start exploring the content of this sample:
 
          - You can use the Scene view to move around freely to find a VFX that interests you. Note that some visual effects require the Editor to be in Play mode.
 
-         <video src="Images/LearningSample_Lion_700.mp4" width="500" height="auto" autoplay="true" loop="true" controls></video>
+         <video src="Images/LearningSample_Lion_700.mp4" title="A blue lion is progressively fragmented and dispersed into glowing particles." width="500" height="auto" autoplay="true" loop="true" controls></video>
 
 
    4. **Game View**:
 
       - You can use the Game view to focus on each VFX separately, via the Sample Showcase actions that control the camera. If you prefer to explore freely, you can use the Main Camera.
 
-      <video src="Images/LearningSample_Blossom_700.mp4" width="500" height="auto" autoplay="true" loop="true" controls></video>
+      <video src="Images/LearningSample_Blossom_700.mp4" title="Three red flowers in a white flower pot losing their petals." width="500" height="auto" autoplay="true" loop="true" controls></video>
 
 #### **Inspector**
 
@@ -102,11 +93,6 @@ To open the Sample Showcase window:
 1. In the Hierarchy, select the **Sample Showcase** GameObject.
 1. In the Inspector, select **Open in window**.    
 <br/>
-
-<p align = "left">
-<img width="700" height="auto" src="Images/LearningSample_ShowcaseSample.png" />
-</p>
-
 
 Image key:
 1. Drop-down list and button to select which VFX to display in the Sample Showcase window.
@@ -148,14 +134,8 @@ To open a VFX asset, you can do one of the following:
    1. Use the drop-down menu or arrow button to select the desired VFX.
    1. Select **Open VFX**.    
 
-<img width="500" height="auto" src="Images/LearningSample_WindowTemplate.png" />
-
-
-
 ### Inside a VFX
 
 The best way to learn and understand how a VFX has been made is to look inside. Take a look at the different parts of the Graph and the embedded notes.
 
-<p align = "left">
-<img width="700" height="auto" src="Images/LearningSample_StickyNotes.png" />
-</p>
+![A Visual Effect Graph, where particles are spawned, initialized, updated with custom rotation angles, and rendered through one of three mesh outputs—each rotating around a different axis (X, Y, or Z).](Images/LearningSample_StickyNotes.png)

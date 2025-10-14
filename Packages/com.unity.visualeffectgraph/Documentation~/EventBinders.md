@@ -8,8 +8,6 @@ Event Binders refer to a set of **MonoBehaviour** Scripts that help you trigger 
 
 The Mouse Event Binder triggers an event in the target Visual Effect based on actions that you perform with the mouse (for example, clicking, hovering, or dragging).
 
-![](Images/EventBinders-Mouse.png)
-
 **Requires:** A Collider on the same GameObject as this component.
 
 **Properties:**
@@ -25,10 +23,6 @@ The Mouse Event Binder triggers an event in the target Visual Effect based on ac
 
 The Rigid Body Collision Event Binder triggers an Event in the target Visual Effect every time something collides with the Rigidbody attached to the same GameObject as this component. This binder also attaches the collision world position to the `position` EventAttribute, and the contact Normal to the `velocity ` EventAttribute.
 
-
-
-![](Images/EventBinders-RBCollision.png)
-
 **Requires:** A Rigidbody and a Collider on the same GameObject as this component.
 
 **Properties:**
@@ -41,8 +35,6 @@ The Rigid Body Collision Event Binder triggers an Event in the target Visual Eff
 ## Trigger Event Binder
 
 The Trigger Event Binder triggers an Event in the target Visual Effect every time a Collider from a list interacts with the attached trigger Collider. This binder also attaches the world position of the Collider instigator to the `position` EventAttribute.
-
-![](Images/EventBinders-Trigger.png)
 
 **Requires:** A Collider with **Is Trigger** set to ` true` on the same GameObject as this component.
 
@@ -58,8 +50,6 @@ The Trigger Event Binder triggers an Event in the target Visual Effect every tim
 ## Visibility Event Binder
 
 The Visibility Event Binder triggers an Event in the target Visual Effect every time the Renderer attached to this GameObject becomes visible or invisible.
-
-![](Images/EventBinders-Visibility.png)
 
 **Requires:** A Renderer on the same GameObject as this component.
 

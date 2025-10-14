@@ -39,7 +39,7 @@ This Context spawns particles within spawn loops. You can specify the number of 
 
 For a visualization of the looping and delay system, see the below illustration.
 
-![](Images/Context-SpawnVisualization.png)
+![A series of color-coded timelines illustrate different behaviors accompanied by a legend defining orange as Delay Before, green as Emission, and pink as Delay After.](Images/Context-SpawnVisualization.png)
 
 The lifecycle of the looping phases is split up into [states](https://docs.unity3d.com/ScriptReference/VFX.VFXSpawnerLoopState.html) that the Spawn Context handles internally. The lifecycle is as follows:
 
