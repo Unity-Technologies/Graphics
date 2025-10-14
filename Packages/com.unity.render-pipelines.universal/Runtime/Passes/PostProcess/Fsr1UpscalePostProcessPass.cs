@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
         public Fsr1UpscalePostProcessPass(Shader shader)
         {
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
-            this.profilingSampler = null;
+            this.profilingSampler = new ProfilingSampler("Blit FSR Upscaling");
 
             m_Material = PostProcessUtils.LoadShader(shader, passName);
             m_IsValid = m_Material != null;
@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.Universal
             var dstDesc = renderGraph.GetTextureDesc(destinationTexture);
 
             // FSR upscale
-            using (var builder = renderGraph.AddRasterRenderPass<PostProcessingFinalFSRScalePassData>("Postprocessing Final FSR Scale Pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_FinalFSRScale)))
+            using (var builder = renderGraph.AddRasterRenderPass<PostProcessingFinalFSRScalePassData>(passName, out var passData, profilingSampler))
             {
                 builder.AllowGlobalStateModification(true);
                 builder.SetRenderAttachment(destinationTexture, 0, AccessFlags.Write);

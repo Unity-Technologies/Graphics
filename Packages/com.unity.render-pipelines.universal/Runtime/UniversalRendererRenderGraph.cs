@@ -1393,17 +1393,16 @@ namespace UnityEngine.Rendering.Universal
             }
 
             if (applyPostProcessing)
-            { 
+            {
                 bool isTargetBackbuffer = cameraData.resolveFinalTarget && !applyFinalPostProcessing && !hasPassesAfterPostProcessing && !hasCaptureActions;
                 var isSingleCamera = cameraData.resolveFinalTarget && cameraData.renderType == CameraRenderType.Base;
 
-                //We will pass a nullHandle to the post processing if there is no persistent texture that needs to be the output. Then, post processing can create an RG managed texture and return it.
-                TextureHandle target = TextureHandle.nullHandle;
                 if (isTargetBackbuffer)
                 {
-                    target = resourceData.backBufferColor;
+                    //Switch target to backbuffer for post processing pass
+                    resourceData.SwitchActiveTexturesToBackbuffer();
                 }
-                else if (!isSingleCamera)
+                else if(!isSingleCamera)
                 {
                     //When part of a camera stack, we need to ensure the date ends up in the persistent A/B camera attachments to propagate the output to the cameras of the stack.
                     ImportResourceParams importColorParams = new ImportResourceParams();
@@ -1411,32 +1410,24 @@ namespace UnityEngine.Rendering.Universal
                     importColorParams.clearColor = Color.black;
                     importColorParams.discardOnLastUse = cameraData.resolveFinalTarget;  // check if last camera in the stack
 
-                    target = renderGraph.ImportTexture(nextRenderGraphCameraColorHandle, importColorParams);
+                    resourceData.destinationCameraColor = renderGraph.ImportTexture(nextRenderGraphCameraColorHandle, importColorParams);
                 }
 
                 bool doSRGBEncoding = isTargetBackbuffer && needsColorEncoding;
 
-                //If the target is the nullHandle, then the output/target is not a persistent texture, and postprocess can create an RG managed texture for the target. This is done inside the RenderPostProcessing
-                //such that all the upscaled target creation is isolated in the postprocessing and the calling code here does not need to be aware.
-                target = m_PostProcess.RenderPostProcessing(renderGraph, frameData, resourceData.cameraColor, resourceData.internalColorLut, resourceData.overlayUITexture, in target, applyFinalPostProcessing, doSRGBEncoding);
+                m_PostProcess.RenderPostProcessing(renderGraph, frameData, applyFinalPostProcessing, doSRGBEncoding);
 
                 // Handle any after-post rendering debugger overlays
                 if (cameraData.resolveFinalTarget)
                     SetupAfterPostRenderGraphFinalPassDebug(renderGraph, frameData);
-
-                if (isTargetBackbuffer)
-                {
-                    resourceData.SwitchActiveTexturesToBackbuffer();
-                }
-                else
-                {
-                    resourceData.cameraColor = target;
-                }
             }
 
             //We already checked the passes so we can skip here if there are none as a small optimization 
-            if(hasPassesAfterPostProcessing)
+            if (hasPassesAfterPostProcessing)
                 RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingPostProcessing);
+
+            //TODO we should check if the custom (users) passes swapped the camera color when the camera is part of a stack, because this will break camera stacking.
+            //We need to copy back to a persistent A/B texture if that is the case to ensure correctness.
 
             if (hasCaptureActions)
             {
@@ -1445,8 +1436,8 @@ namespace UnityEngine.Rendering.Universal
 
             if (applyFinalPostProcessing)
             {
-                m_PostProcess.RenderFinalPostProcessing(renderGraph, frameData, resourceData.cameraColor, resourceData.overlayUITexture, resourceData.backBufferColor, needsColorEncoding);
-                resourceData.SwitchActiveTexturesToBackbuffer();
+                //Will swap the active camera targets to backbuffer (resourceData.SwitchActiveTexturesToBackbuffer)
+                m_PostProcess.RenderFinalPostProcessing(renderGraph, frameData, needsColorEncoding);
             }
 
             //Keep in mind that also our users could have done the final blit / final post processing and called SwitchActiveTexturesToBackbuffer().
@@ -1455,8 +1446,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, !resolveToDebugScreen);
 
-                m_FinalBlitPass.Render(renderGraph, frameData, cameraData, resourceData.cameraColor, resourceData.backBufferColor, resourceData.overlayUITexture);
-                resourceData.SwitchActiveTexturesToBackbuffer();
+                //Will swap the active camera targets to backbuffer (resourceData.SwitchActiveTexturesToBackbuffer)
+                m_FinalBlitPass.RecordRenderGraph(renderGraph, frameData);                
             }
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRendering);

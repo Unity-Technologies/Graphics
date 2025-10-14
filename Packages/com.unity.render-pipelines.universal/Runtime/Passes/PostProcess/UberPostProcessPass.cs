@@ -7,7 +7,6 @@ namespace UnityEngine.Rendering.Universal
     internal sealed class UberPostProcessPass : ScriptableRenderPass, IDisposable
     {
         Material m_Material;
-        bool m_IsValid;
 
         Texture2D[] m_FilmGrainTextures;
 
@@ -27,28 +26,15 @@ namespace UnityEngine.Rendering.Universal
         public HDROutputUtils.Operation hdrOperations { get; set; }
         public bool requireSRGBConversionBlit { get; set; }
         public bool useFastSRGBLinearConversion { get; set; }
-        public bool resolveToDebugScreen { get; set; }
-
-        // Input
-        public TextureHandle sourceTexture { get; set; }
-        public TextureHandle internalLutTexture { get; set; }
-        public TextureHandle userLutTexture { get; set; }
-        public TextureHandle bloomTexture { get; set; }
-        public TextureHandle overlayUITexture { get; set; }
 
         public Texture ditherTexture { get; set; }
-
-        // Output
-        public TextureHandle destinationTexture { get; set; }
-
 
         public UberPostProcessPass(Shader shader, Texture2D[] filmGrainTextures)
         {
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
-            this.profilingSampler = null;   // Use default passName
+            this.profilingSampler = new ProfilingSampler("Blit Post Processing");
 
             m_Material = PostProcessUtils.LoadShader(shader, passName);
-            m_IsValid = m_Material != null;
 
             m_FilmGrainTextures = filmGrainTextures;
         }
@@ -56,12 +42,7 @@ namespace UnityEngine.Rendering.Universal
         public void Dispose()
         {
             CoreUtils.Destroy(m_Material);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsValid()
-        {
-            return m_IsValid;
+            m_UserLut?.Release();
         }
 
         private class UberPostPassData
@@ -90,19 +71,43 @@ namespace UnityEngine.Rendering.Universal
             internal bool requireSRGBConversionBlit;
         }
 
+        const string _CameraColorAfterPostProcessingName = "_CameraColorAfterPostProcessing";
+
         /// <inheritdoc />
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            Assertions.Assert.IsTrue(sourceTexture.IsValid(), $"Source texture must be set for UberPostProcessPass.");
-            Assertions.Assert.IsTrue(destinationTexture.IsValid(), $"Destination texture must be set for UberPostProcessPass.");
+            if (m_Material == null)
+                return;
 
             var cameraData = frameData.Get<UniversalCameraData>();
             var postProcessingData = frameData.Get<UniversalPostProcessingData>();
+            var resourceData = frameData.Get<UniversalResourceData>();
 
-            using (var builder = renderGraph.AddRasterRenderPass<UberPostPassData>("Blit Post Processing", out var passData, ProfilingSampler.Get(URPProfileId.RG_UberPost)))
+            var sourceTexture = resourceData.cameraColor;
+            var overlayUITexture = resourceData.overlayUITexture;
+            var internalColorLut = resourceData.internalColorLut;
+            var userColorLut = TryGetCachedUserLutTextureHandle(renderGraph, colorLookup);
+            var bloomTexture = resourceData.bloom;
+
+            TextureHandle destinationTexture;
+            if (resourceData.isActiveTargetBackBuffer)
             {
-                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+                destinationTexture = resourceData.backBufferColor;
+            }
+            else
+            {
+                //Due to camera stacking we could be rendering to a persistent texture that is not the backbuffer
+                destinationTexture = resourceData.destinationCameraColor.IsValid() ?
+                    resourceData.destinationCameraColor
+                    //TODO here we don't seem to apply PostProcessUtils.CreateCompatibleTexture. This seems completely out of sync with the other post process passes.
+                    //However, changing it, breaks some tests because rendering with the color and depth after this pass when MSAA is on leads to mismatch.
+                    //It seems completely arbitrary that we continue to write out color with MSAA if no other pp pass has been applied earlier. 
+                    : renderGraph.CreateTexture(sourceTexture, _CameraColorAfterPostProcessingName);  
+                resourceData.destinationCameraColor = TextureHandle.nullHandle;
+            }
 
+            using (var builder = renderGraph.AddRasterRenderPass<UberPostPassData>(passName, out var passData, profilingSampler))
+            {
                 var srcDesc = sourceTexture.GetDescriptor(renderGraph);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -124,11 +129,11 @@ namespace UnityEngine.Rendering.Universal
                 if(overlayUITexture.IsValid())
                     builder.UseTexture(overlayUITexture, AccessFlags.Read);
 
-                builder.UseTexture(internalLutTexture, AccessFlags.Read);
-                if (userLutTexture.IsValid())
-                    builder.UseTexture(userLutTexture, AccessFlags.Read);
+                builder.UseTexture(internalColorLut, AccessFlags.Read);
+                if(userColorLut.IsValid())
+                    builder.UseTexture(userColorLut, AccessFlags.Read);
 
-                if (bloomTexture.IsValid())
+                if(bloomTexture.IsValid())
                     builder.UseTexture(bloomTexture, AccessFlags.Read);
 
                 passData.material = m_Material;
@@ -141,7 +146,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.hdrOperations = hdrOperations;
                 passData.isHdrGrading = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
 
-                passData.lut.Setup(colorAdjustments, colorLookup, postProcessingData.lutSize, internalLutTexture, userLutTexture);
+                passData.lut.Setup(colorAdjustments, colorLookup, postProcessingData.lutSize, internalColorLut, userColorLut);
                 passData.bloom.Setup(bloom, in srcDesc, bloomTexture);
                 passData.lensDistortion.Setup(lensDistortion, cameraData.isSceneViewCamera);
                 passData.chromaticAberration.Setup(chromaticAberration);
@@ -219,12 +224,37 @@ namespace UnityEngine.Rendering.Universal
                         PostProcessUtils.ScaleViewportAndBlit(context, data.sourceTexture, data.destinationTexture, data.cameraData, material, data.isFinalPass);
 
                 });
+            }
 
-                return;
+            if (!resourceData.isActiveTargetBackBuffer)
+            {
+                resourceData.cameraColor = destinationTexture;
             }
         }
 
 #region ColorLut
+        RTHandle m_UserLut;
+        TextureHandle TryGetCachedUserLutTextureHandle(RenderGraph renderGraph, ColorLookup colorLookup)
+        {
+            if (colorLookup.texture.value == null)
+            {
+                if (m_UserLut != null)
+                {
+                    m_UserLut.Release();
+                    m_UserLut = null;
+                }
+            }
+            else
+            {
+                if (m_UserLut == null || m_UserLut.externalTexture != colorLookup.texture.value)
+                {
+                    m_UserLut?.Release();
+                    m_UserLut = RTHandles.Alloc(colorLookup.texture.value);
+                }
+            }
+            return m_UserLut != null ? renderGraph.ImportTexture(m_UserLut) : TextureHandle.nullHandle;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void CalcColorLutParams(ColorAdjustments colorAdjustments, ColorLookup colorLookup, int lutHeight, out Vector4 internalLutParams, out Vector4 userLutParams)
         {

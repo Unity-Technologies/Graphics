@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.Universal
         public ScalingSetupPostProcessPass(Shader shader)
         {
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
-            this.profilingSampler = null;
+            this.profilingSampler = new ProfilingSampler("Setup Final Post Processing");
 
             m_Material = PostProcessUtils.LoadShader(shader, passName);
             m_IsValid = m_Material != null;
@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.Universal
             Assertions.Assert.IsTrue(destinationTexture.IsValid(), $"Destination texture must be set for ScalingSetupPostProcessPass.");
 
             // Scaled FXAA
-            using (var builder = renderGraph.AddRasterRenderPass<PostProcessingFinalSetupPassData>("Postprocessing Final Setup Pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_FinalSetup)))
+            using (var builder = renderGraph.AddRasterRenderPass<PostProcessingFinalSetupPassData>(passName, out var passData, profilingSampler))
             {
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 

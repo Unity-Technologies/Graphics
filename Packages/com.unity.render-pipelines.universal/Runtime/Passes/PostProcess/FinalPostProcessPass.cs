@@ -7,7 +7,6 @@ namespace UnityEngine.Rendering.Universal
     internal sealed class FinalPostProcessPass : ScriptableRenderPass, IDisposable
     {
         Material m_Material;
-        bool m_IsValid;
 
         Texture2D[] m_FilmGrainTextures;
 
@@ -19,32 +18,19 @@ namespace UnityEngine.Rendering.Universal
             FsrSharpening
         }
 
-        // Settings
-        public Tonemapping tonemapping { get; set; }
-        public FilmGrain filmGrain { get; set; }
-
-        public SamplingOperation samplingOperation { get; set; }
-        public HDROutputUtils.Operation hdrOperations { get; set; }
-        public bool applySrgbEncoding { get; set; }
+        SamplingOperation m_SamplingOperation;
+        HDROutputUtils.Operation m_HdrOperations;
+        bool m_ApplySrgbEncoding;
         //NOTE: This is used to communicate if FXAA is already done in the previous pass.
-        public bool applyFxaa { get; set; }
-
-        // Input
-        public TextureHandle sourceTexture { get; set; }
-        public TextureHandle overlayUITexture { get; set; }
-
-        public Texture ditherTexture { get; set; }
-
-        // Output
-        public TextureHandle destinationTexture { get; set; }
+        bool m_ApplyFxaa;
+        Texture m_DitherTexture;
 
         public FinalPostProcessPass(Shader shader, Texture2D[] filmGrainTextures)
         {
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
-            this.profilingSampler = null;
+            this.profilingSampler = new ProfilingSampler("Blit Final Post Processing");
 
             m_Material = PostProcessUtils.LoadShader(shader, passName);
-            m_IsValid = m_Material != null;
 
             m_FilmGrainTextures = filmGrainTextures;
         }
@@ -54,10 +40,13 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_Material);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsValid()
+        public void Setup(SamplingOperation samplingOperation, HDROutputUtils.Operation hdrOperations, bool applySrgbEncoding, bool applyFxaa, Texture ditherTexture)
         {
-            return m_IsValid;
+            m_SamplingOperation = samplingOperation;
+            m_HdrOperations = hdrOperations;
+            m_ApplySrgbEncoding = applySrgbEncoding;
+            m_ApplyFxaa = applyFxaa;
+            m_DitherTexture = ditherTexture;
         }
 
         private class PostProcessingFinalBlitPassData
@@ -79,13 +68,22 @@ namespace UnityEngine.Rendering.Universal
         }
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            Assertions.Assert.IsTrue(sourceTexture.IsValid(), $"Source texture must be set for FinalPostProcessPass.");
-            Assertions.Assert.IsTrue(destinationTexture.IsValid(), $"Destination texture must be set for FinalPostProcessPass.");
+            if (m_Material == null)
+                return;
 
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            //TODO get stack from VolumeEffect class in later PR
+            Tonemapping tonemapping = VolumeManager.instance.stack.GetComponent<Tonemapping>();
+            FilmGrain filmGrain = VolumeManager.instance.stack.GetComponent<FilmGrain>();
+
+            var cameraData = frameData.Get<UniversalCameraData>();
+            var resourceData = frameData.Get<UniversalResourceData>();
+
+            var sourceTexture = resourceData.cameraColor;
+            var destinationTexture = resourceData.backBufferColor; //By definition this pass blits to the backbuffer
+            var overlayUITexture = resourceData.overlayUITexture;
 
             // Final blit pass
-            using (var builder = renderGraph.AddRasterRenderPass<PostProcessingFinalBlitPassData>("Postprocessing Final Blit Pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_FinalBlit)))
+            using (var builder = renderGraph.AddRasterRenderPass<PostProcessingFinalBlitPassData>(passName, out var passData, profilingSampler))
             {
                 // FSR and RCAS use global state constants.
                 builder.AllowGlobalStateModification(true);
@@ -101,14 +99,14 @@ namespace UnityEngine.Rendering.Universal
                 passData.cameraData = cameraData;
 
                 passData.tonemapping = tonemapping;
-                passData.samplingOperation = samplingOperation;
-                passData.hdrOperations = hdrOperations;
+                passData.samplingOperation = m_SamplingOperation;
+                passData.hdrOperations = m_HdrOperations;
 
                 passData.filmGrain.Setup(filmGrain, m_FilmGrainTextures, cameraData.pixelWidth, cameraData.pixelHeight);
-                passData.dithering.Setup(ditherTexture, cameraData.pixelWidth, cameraData.pixelHeight);
+                passData.dithering.Setup(m_DitherTexture, cameraData.pixelWidth, cameraData.pixelHeight);
 
-                passData.applySrgbEncoding = applySrgbEncoding;
-                passData.applyFxaa = applyFxaa;
+                passData.applySrgbEncoding = m_ApplySrgbEncoding;
+                passData.applyFxaa = m_ApplyFxaa;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
@@ -203,9 +201,9 @@ namespace UnityEngine.Rendering.Universal
 #endif
                         Blitter.BlitTexture(cmd, sourceTextureHdl, scaleBias, material, 0);
                 });
-
-                return;
             }
+
+            resourceData.SwitchActiveTexturesToBackbuffer();
         }
 
         // Precomputed shader ids to same some CPU cycles (mostly affects mobile)

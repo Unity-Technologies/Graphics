@@ -924,11 +924,10 @@ namespace UnityEngine.Rendering.Universal
             if (applyPostProcessing)
             {
                 bool isTargetBackbuffer = resolvePostProcessingToCameraTarget;
-                TextureHandle target;
                
                 if(isTargetBackbuffer)
                 {
-                    target = commonResourceData.backBufferColor;
+                    commonResourceData.SwitchActiveTexturesToBackbuffer();
                 }              
                 else
                 {
@@ -941,29 +940,15 @@ namespace UnityEngine.Rendering.Universal
                     importColorParams.clearColor = Color.black;
                     importColorParams.discardOnLastUse = cameraData.resolveFinalTarget;  // check if last camera in the stack
 
-                    target = renderGraph.ImportTexture(nextRenderGraphCameraColorHandle, importColorParams);
+                    commonResourceData.destinationCameraColor = renderGraph.ImportTexture(nextRenderGraphCameraColorHandle, importColorParams);
                 }
-
-                //We always pass a valid target because it's alway persistent. However, we still set target to the output to be correct when above code would change. So output handle is equal to input target now. See OnAfterRendering in UnversalRenderer for more context.
-                target = m_PostProcess.RenderPostProcessing(
+      
+                m_PostProcess.RenderPostProcessing(
                     renderGraph,
                     frameData,
-                    commonResourceData.cameraColor,
-                    commonResourceData.internalColorLut,
-                    commonResourceData.overlayUITexture,
-                    in target,
                     applyFinalPostProcessing,
                     doSRGBEncoding);
 
-                //Always make the switch after the pass has recorded the blit to the backbuffer, not before.
-                if (isTargetBackbuffer)
-                {
-                    commonResourceData.SwitchActiveTexturesToBackbuffer();
-                }
-                else
-                {
-                    commonResourceData.cameraColor = target;
-                }
             }
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent2D.AfterRenderingPostProcessing);                      
@@ -977,16 +962,14 @@ namespace UnityEngine.Rendering.Universal
 
             if (applyFinalPostProcessing)
             {
-                m_PostProcess.RenderFinalPostProcessing(renderGraph, frameData, commonResourceData.cameraColor, commonResourceData.overlayUITexture, commonResourceData.backBufferColor, needsColorEncoding);
-
-                commonResourceData.SwitchActiveTexturesToBackbuffer();
+                //Will swap the active camera targets to backbuffer (resourceData.SwitchActiveTexturesToBackbuffer)
+                m_PostProcess.RenderFinalPostProcessing(renderGraph, frameData, needsColorEncoding);
             }
 
             if (!commonResourceData.isActiveTargetBackBuffer && cameraData.resolveFinalTarget)
             {
-                m_FinalBlitPass.Render(renderGraph, frameData, cameraData, commonResourceData.cameraColor, commonResourceData.backBufferColor, commonResourceData.overlayUITexture);
-
-                commonResourceData.SwitchActiveTexturesToBackbuffer();
+                //Will swap the active camera targets to backbuffer (resourceData.SwitchActiveTexturesToBackbuffer)
+                m_FinalBlitPass.RecordRenderGraph(renderGraph, frameData);
             }
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent2D.AfterRendering);

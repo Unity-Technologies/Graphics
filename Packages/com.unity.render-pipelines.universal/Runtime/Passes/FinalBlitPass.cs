@@ -13,7 +13,6 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public partial class FinalBlitPass : ScriptableRenderPass
     {
-        static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
 
 #if URP_COMPATIBILITY_MODE
         RTHandle m_Source;
@@ -272,26 +271,26 @@ namespace UnityEngine.Rendering.Universal.Internal
             passData.blitMaterialData = m_BlitMaterialData[(int)blitType];
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, UniversalCameraData cameraData, in TextureHandle src, in TextureHandle dest, TextureHandle overlayUITexture)
+        /// <inheritdoc cref="IRenderGraphRecorder.RecordRenderGraph"/>
+        override public void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
+            var cameraData = frameData.Get<UniversalCameraData>();
+            var resourceData = frameData.Get<UniversalResourceData>();
+
+            var sourceTexture = resourceData.cameraColor;
+            var destinationTexture = resourceData.backBufferColor; //By definition this pass blits to the backbuffer
+            var overlayUITexture = resourceData.overlayUITexture;
+
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
-                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-
-                // Only the UniversalRenderer guarantees that global textures will be available at this point
-                bool isUniversalRenderer = (cameraData.renderer as UniversalRenderer) != null;
-
-                if (cameraData.requiresDepthTexture && isUniversalRenderer)
-                    builder.UseGlobalTexture(s_CameraDepthTextureID);
-
                 bool outputsToHDR = cameraData.isHDROutputActive;
                 bool outputsAlpha = cameraData.isAlphaOutputEnabled;
                 InitPassData(cameraData, ref passData, outputsToHDR ? BlitType.HDR : BlitType.Core, outputsAlpha);
 
                 passData.sourceID = ShaderPropertyId.sourceTex;
-                passData.source = src;
-                builder.UseTexture(src, AccessFlags.Read);
-                passData.destination = dest;
+                passData.source = sourceTexture;
+                builder.UseTexture(sourceTexture, AccessFlags.Read);
+                passData.destination = destinationTexture;
 
                 // Default flag for non-XR common case
                 AccessFlags targetAccessFlag = AccessFlags.Write;
@@ -307,7 +306,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (cameraData.xr.enabled && cameraData.isDefaultViewport && !outputsAlpha)
                     targetAccessFlag =  AccessFlags.WriteAll;
 #endif
-                builder.SetRenderAttachment(dest, 0, targetAccessFlag);
+                builder.SetRenderAttachment(passData.destination, 0, targetAccessFlag);
 
                 if (outputsToHDR && overlayUITexture.IsValid())
                 {
@@ -334,7 +333,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     DebugHandler debugHandler = GetActiveDebugHandler(data.cameraData);
                     bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(data.cameraData.resolveFinalTarget);
 
-                    // TODO RENDERGRAPH: this should ideally be shared in ExecutePass to avoid code duplication
+                    
                     if (data.hdrOutputLuminanceParams.w >= 0)
                     {
                         HDROutputUtils.Operation hdrOperation = HDROutputUtils.Operation.None;
@@ -365,6 +364,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                         
                 });
             }
+
+            resourceData.SwitchActiveTexturesToBackbuffer();
         }
     }
 }
