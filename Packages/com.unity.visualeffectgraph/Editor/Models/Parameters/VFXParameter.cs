@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
 using System.Collections.ObjectModel;
-using UnityEditor.VFX.UI;
+
+using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace UnityEditor.VFX
@@ -15,6 +15,7 @@ namespace UnityEditor.VFX
         Enum
     }
 
+    [VFXHelpURL("Properties")]
     [ExcludeFromPreset]
     class VFXParameter : VFXSlotContainerModel<VFXModel, VFXModel>
     {
