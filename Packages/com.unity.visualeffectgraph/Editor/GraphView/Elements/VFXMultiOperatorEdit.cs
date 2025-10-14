@@ -254,7 +254,7 @@ namespace UnityEditor.VFX.UI
             controller.model.AddOperand();
         }
 
-        public override bool CanRemove()
+        protected override bool CanRemove()
         {
             return controller.CanRemove();
         }
