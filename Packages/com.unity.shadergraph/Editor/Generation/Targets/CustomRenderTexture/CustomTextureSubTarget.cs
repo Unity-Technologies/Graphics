@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Legacy;
+using UnityEngine;
 
 namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
 {

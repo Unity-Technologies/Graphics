@@ -8,8 +8,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
     [Scripting.APIUpdating.MovedFrom(
         autoUpdateAPI: true,
         sourceNamespace: "UnityEngine.Rendering.UnifiedRayTracing",
-        sourceAssembly: "Unity.Rendering.LightTransport.Runtime",
-        sourceClassName: "RayTracingRenderPipelineResources"
+        sourceAssembly: "Unity.Rendering.LightTransport.Runtime"
     )]
     [Serializable]
     [SupportedOnRenderPipeline()]
