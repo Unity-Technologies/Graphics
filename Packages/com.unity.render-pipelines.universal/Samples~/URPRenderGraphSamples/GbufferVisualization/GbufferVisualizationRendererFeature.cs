@@ -22,28 +22,28 @@ public class GbufferVisualizationRendererFeature : ScriptableRendererFeature
         // private static readonly int GBufferRenderingLayersIndex = 5;
 
         // Components marked as optional are only present when the pipeline requests it.
-        // If for example there is no rendering layers texture, _GBuffer5 will contain the ShadowMask texture
+        // If for example there is no rendering layers texture, _GBuffer5 will contain the ShadowMask texture.
         private static readonly int[] s_GBufferShaderPropertyIDs = new int[]
         {
-            // Contains Albedo Texture
+            // Contains Albedo texture.
             Shader.PropertyToID("_GBuffer0"),
 
-            // Contains Specular Metallic Texture
+            // Contains Specular Metallic texture.
             Shader.PropertyToID("_GBuffer1"),
 
-            // Contains Normals and Smoothness, referenced as _CameraNormalsTexture in other shaders
+            // Contains Normals and Smoothness, referenced as _CameraNormalsTexture in other shaders.
             Shader.PropertyToID("_GBuffer2"),
 
-            // Contains Lighting texture
+            // Contains Lighting texture.
             Shader.PropertyToID("_GBuffer3"),
 
-            // Contains Depth texture, referenced as _CameraDepthTexture in other shaders (optional)
+            // Contains Depth texture, referenced as _CameraDepthTexture in other shaders (optional).
             Shader.PropertyToID("_GBuffer4"),
 
-            // Contains Rendering Layers Texture, referenced as _CameraRenderingLayersTexture in other shaders (optional)
+            // Contains Rendering Layers texture, referenced as _CameraRenderingLayersTexture in other shaders (optional).
             Shader.PropertyToID("_GBuffer5"),
 
-            // Contains ShadowMask texture (optional)
+            // Contains ShadowMask texture (optional).
             Shader.PropertyToID("_GBuffer6")
         };
 
@@ -59,7 +59,7 @@ public class GbufferVisualizationRendererFeature : ScriptableRendererFeature
             m_Material = material;
         }
 
-        // This method will draw the contents of the gBuffer component requested in the shader
+        // This method will draw the contents of the gBuffer component requested in the shader.
         static void ExecutePass(PassData data, RasterGraphContext context)
         {
             // Here, we read all the gBuffer components as an example even though the shader only needs one.
@@ -70,7 +70,7 @@ public class GbufferVisualizationRendererFeature : ScriptableRendererFeature
                 data.material.SetTexture(s_GBufferShaderPropertyIDs[i], data.gBuffer[i]);
             }
 
-            // Draw the gBuffer component requested by the shader over the geometry
+            // Draw the gBuffer component requested by the shader over the geometry.
             context.cmd.DrawProcedural(Matrix4x4.identity, data.material, 0, MeshTopology.Triangles, 3, 1);
         }
 
@@ -94,14 +94,14 @@ public class GbufferVisualizationRendererFeature : ScriptableRendererFeature
                 // For this pass, we want to write to the activeColorTexture, which is the gBuffer Lighting component (_GBuffer3) in the deferred path.
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
 
-                // We are reading the gBuffer components in our pass, so we need call UseTexture on them.
+                // We are reading the gBuffer components in our pass, so we need to call UseTexture on them.
                 // When they are global, they can be all read with builder.UseAllGlobalTexture(true), but
                 // in this pass they are not global.
                 for (int i = 0; i < resourceData.gBuffer.Length; i++)
                 {
                     if (i == GbufferLightingIndex)
                     {
-                        // We already specify we are writing to it above (SetRenderAttachment)
+                        // We already specify we are writing to it above (SetRenderAttachment).
                         continue;
                     }
 
@@ -112,7 +112,7 @@ public class GbufferVisualizationRendererFeature : ScriptableRendererFeature
                 passData.gBuffer = gBuffer;
 
                 // Assigns the ExecutePass function to the render pass delegate. This will be called by the render graph when executing the pass.
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) => ExecutePass(data, context));
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) => ExecutePass(data, context));
             }
         }
     }
@@ -132,7 +132,7 @@ public class GbufferVisualizationRendererFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        // The gBuffers are only used in the Deferred rendering path
+        // The gBuffers are only used in the Deferred rendering path.
         if (m_Material != null)
         {
             m_GBufferRenderPass.Setup(m_Material);

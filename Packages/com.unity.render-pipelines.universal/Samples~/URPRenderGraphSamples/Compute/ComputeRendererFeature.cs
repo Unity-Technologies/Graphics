@@ -16,38 +16,29 @@ public class ComputeRendererFeature : ScriptableRendererFeature
     class ComputePass : ScriptableRenderPass
     {
         // Compute shader.
-        ComputeShader cs;
+        ComputeShader m_ComputeShader;
 
-        // Compute buffers:
-        GraphicsBuffer inputBuffer;
-        GraphicsBuffer outputBuffer;
+        // Compute buffers.
+        BufferHandle m_InputBufferHandle;
+        BufferHandle m_OutputBufferHandle;
 
-        // Reflection of the data output. I use a preallocated list to avoid memory
-        // allocations each frame.
-        int[] outputData = new int[20];
+        // Input data for the compute shader.
+        private List<int> inputData = new List<int>();
 
-        // Constructor is used to initialize the compute buffers.
+        // Constructor is used to initialize the input data.
         public ComputePass()
         {
-            BufferDesc desc = new BufferDesc(20, sizeof(int));
-            inputBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 20, sizeof(int));
-            var list = new List<int>();
             for (int i = 0; i < 20; i++)
             {
-                list.Add(i);
+                inputData.Add(i);
             }
-            inputBuffer.SetData(list);
-            outputBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 20, sizeof(int));
-            // We don't need to initialize the output normaly with data but I read the
-            // buffer from the start when each frame is starting to look at last frames result.
-            outputBuffer.SetData(list);
         }
 
         // Setup function to transfer the compute shader from the renderer feature to
         // the render pass.
         public void Setup(ComputeShader cs)
         {
-            this.cs = cs;
+            m_ComputeShader = cs;
         }
 
         // PassData is used to pass data when recording to the execution of the pass.
@@ -55,37 +46,75 @@ public class ComputeRendererFeature : ScriptableRendererFeature
         {
             // Compute shader.
             public ComputeShader cs;
+            
             // Buffer handles for the compute buffers.
             public BufferHandle input;
             public BufferHandle output;
+            public List<int> bufferData;
+        }
+
+        // ReadbackPassData is used to read data asynchronously from the specified bufferHandle.
+        class ReadbackPassData
+        {
+            public BufferHandle bufferHandle;
         }
 
         // Records a render graph render pass which blits the BlitData's active texture back to the camera's color attachment.
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            // Last frame data should be done. Retrive the data if valid.
-            outputBuffer.GetData(outputData);
-            Debug.Log($"Output from compute shader: {string.Join(", ", outputData)}");
-
-            // We need to import buffers when they are created outside of the render graph.
-            BufferHandle inputHandle = renderGraph.ImportBuffer(inputBuffer);
-            BufferHandle outputHandle = renderGraph.ImportBuffer(outputBuffer);
+            // Create buffers
+            var bufferDesc = new BufferDesc()
+            {
+                name = "InputBuffer",
+                count = 20,
+                stride = sizeof(int),
+                target = GraphicsBuffer.Target.Structured
+            };
+            m_InputBufferHandle = renderGraph.CreateBuffer(bufferDesc);
+            
+            bufferDesc.name = "OutputBuffer";
+            m_OutputBufferHandle = renderGraph.CreateBuffer(bufferDesc);
 
             // Starts the recording of the render graph pass given the name of the pass
             // and outputting the data used to pass data to the execution of the render function.
             // Notice that we use "AddComputePass" when we are working with compute.
             using (var builder = renderGraph.AddComputePass("ComputePass", out PassData passData))
             {
-                // Set the pass data so the data can be transfered from the recording to the execution.
-                passData.cs = cs;
-                passData.input = inputHandle;
-                passData.output = outputHandle;
-
-                // UseBuffer is used to setup render graph dependencies together with read and write flags.
-                builder.UseBuffer(passData.input);
+                // Set the pass data so the data can be transferred from the recording to the execution.
+                passData.cs = m_ComputeShader;
+                passData.input = m_InputBufferHandle;
+                passData.output = m_OutputBufferHandle;
+                passData.bufferData = inputData;
+                
+                // Log input data in the console to show before and after
+                Debug.Log($"Input Data: {string.Join(",", inputData)}");
+                
+                // UseBuffer is used to set up render graph dependencies together with read and write flags.
+                builder.UseBuffer(passData.input, AccessFlags.Read);
                 builder.UseBuffer(passData.output, AccessFlags.Write);
-                // The execution function is also call SetRenderfunc for compute passes.
-                builder.SetRenderFunc((PassData data, ComputeGraphContext cgContext) => ExecutePass(data, cgContext));
+                
+                // The execution function is also called SetRenderFunc for compute passes.
+                builder.SetRenderFunc(static (PassData data, ComputeGraphContext cgContext) => ExecutePass(data, cgContext));
+            }
+
+            // Because our BufferHandles are managed by the render graph, we don't have access to the data when the
+            // RenderGraph is done executing. We need to add a pass to read from the output buffer if we want to
+            // use the output data from the compute shader.
+            using (var builder = renderGraph.AddUnsafePass("ReadbackPass", out ReadbackPassData passData))
+            {
+                builder.AllowPassCulling(false);
+
+                // Which buffer to read from
+                passData.bufferHandle = m_OutputBufferHandle;
+                builder.UseBuffer(passData.bufferHandle, AccessFlags.Read);
+                builder.SetRenderFunc(static (ReadbackPassData data, UnsafeGraphContext ctx) =>
+                {
+                    ctx.cmd.RequestAsyncReadback(data.bufferHandle, (AsyncGPUReadbackRequest request) =>
+                    {
+                        var result = request.GetData<int>();
+                        Debug.Log($"Output Data: {string.Join(",", result)}");
+                    });
+                });
             }
         }
 
@@ -95,17 +124,17 @@ public class ComputeRendererFeature : ScriptableRendererFeature
         static void ExecutePass(PassData data, ComputeGraphContext cgContext)
         {
             // Attaches the compute buffers.
+            cgContext.cmd.SetBufferData(data.input, data.bufferData);
             cgContext.cmd.SetComputeBufferParam(data.cs, data.cs.FindKernel("CSMain"), "inputData", data.input);
             cgContext.cmd.SetComputeBufferParam(data.cs, data.cs.FindKernel("CSMain"), "outputData", data.output);
-            // Dispaches the compute shader with a given kernel as entrypoint.
-            // The amount of thread groups determine how many groups to execute of the kernel.
+            // Dispatches the compute shader with a given kernel as entrypoint.
+            // The amount of thread groups determines how many groups to execute of the kernel.
             cgContext.cmd.DispatchCompute(data.cs, data.cs.FindKernel("CSMain"), 1, 1, 1);
         }
     }
 
     [SerializeField]
     ComputeShader computeShader;
-
     ComputePass m_ComputePass;
 
     /// <inheritdoc/>
@@ -121,7 +150,7 @@ public class ComputeRendererFeature : ScriptableRendererFeature
     // This method is called when setting up the renderer once per-camera.
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        // Check if the system support compute shaders, if not make an early exit.
+        // Check if the system supports compute shaders, if not make an early exit.
         if (!SystemInfo.supportsComputeShaders)
         {
             Debug.LogWarning("Device does not support compute shaders. The pass will be skipped.");
