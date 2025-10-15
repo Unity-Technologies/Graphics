@@ -23,4 +23,4 @@ You can use this node to access the texture assigned to a UI element, such as a 
 - [Default Solid node](xref:default-solid-node)
 - [Default Gradient node](xref:default-gradient-node)
 - [Default SDF Text node](xref:default-sdf-text-node)
-- [Default Bitmap Text node](xref:default-bitmap-text)
+- [Default Bitmap Text node](xref:default-bitmap-text-node)
