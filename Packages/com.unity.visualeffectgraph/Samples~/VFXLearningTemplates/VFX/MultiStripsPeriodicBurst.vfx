@@ -809,7 +809,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.AABox, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"center":{"x":0.6039242148399353,"y":0.0,"z":0.0},"size":{"x":1.0,"y":1.0,"z":1.0}}'
+      m_SerializableObject: '{"center":{"x":0.0,"y":2.0,"z":0.0},"size":{"x":5.0,"y":5.0,"z":3.0}}'
     m_Space: 0
   m_Property:
     name: bounds
@@ -1253,7 +1253,7 @@ MonoBehaviour:
   stripCapacity: 20
   particlePerStripCount: 50
   needsComputeBounds: 0
-  boundsMode: 0
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614893
 MonoBehaviour:
