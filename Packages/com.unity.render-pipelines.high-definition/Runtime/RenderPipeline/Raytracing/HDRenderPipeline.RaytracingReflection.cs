@@ -448,7 +448,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.raytracingCB._RayTracingRayMissUseAmbientProbeAsSky = 0;
             deferredParameters.raytracingCB._RayTracingLastBounceFallbackHierarchy = deferredParameters.lastBounceFallbackHierarchy;
             deferredParameters.raytracingCB._RayTracingAmbientProbeDimmer = settings.ambientProbeDimmer.value;
-            deferredParameters.raytracingCB._RaytracingAPVLayerMask = settings.adaptiveProbeVolumesLayerMask.value;           
+            deferredParameters.raytracingCB._RaytracingAPVLayerMask = settings.adaptiveProbeVolumesLayerMask.value;
 
             return deferredParameters;
         }
@@ -585,10 +585,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Output textures
                 passData.lightingTexture = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Ray Traced Reflections" });
+                { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Ray Traced Reflections (Lighting + Weight)" });
                 builder.UseTexture(passData.lightingTexture, AccessFlags.Write);
                 passData.distanceTexture = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Ray Traced Reflections" });
+                { format = GraphicsFormat.R16_SFloat, enableRandomWrite = true, name = "Ray Traced Reflections (Ray Distances)" });
                 builder.UseTexture(passData.distanceTexture, AccessFlags.Write);
 
                 passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
