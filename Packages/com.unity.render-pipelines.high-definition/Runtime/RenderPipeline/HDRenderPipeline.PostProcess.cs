@@ -3694,7 +3694,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         (LensFlareData data, RenderGraphContext ctx) =>
                         {
                             ctx.cmd.SetComputeTextureParam(data.parameters.lensFlareMergeOcclusion, data.parameters.mergeOcclusionKernel, HDShaderIDs._LensFlareOcclusion, LensFlareCommonSRP.occlusionRT);
-                            if (passData.hdCamera.xr.enabled && passData.hdCamera.xr.singlePassEnabled)
+                            if (data.hdCamera.xr.enabled && data.hdCamera.xr.singlePassEnabled)
                                 ctx.cmd.SetComputeIntParam(data.parameters.lensFlareMergeOcclusion, HDShaderIDs._MultipassID, -1);
                             else
                                 ctx.cmd.SetComputeIntParam(data.parameters.lensFlareMergeOcclusion, HDShaderIDs._MultipassID, data.hdCamera.xr.multipassId);
