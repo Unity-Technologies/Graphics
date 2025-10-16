@@ -524,7 +524,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             nativeCompiler?.Cleanup();
 
-            m_CompilationCache?.Clear();
+            m_CompilationCache?.Cleanup();
         }
 
         internal RenderGraphDebugParams debugParams => m_DebugParameters;
@@ -1119,7 +1119,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             [CallerLineNumber] int line = 0) where PassData : class, new()
 #endif
         {
-            var renderPass = m_RenderGraphPool.Get<RenderGraphPass<PassData>>();          
+            var renderPass = m_RenderGraphPool.Get<RenderGraphPass<PassData>>();
             renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, RenderGraphPassType.Legacy, sampler);
             renderPass.AllowGlobalState(true);// Old pass types allow global state by default as HDRP relies on it
 
