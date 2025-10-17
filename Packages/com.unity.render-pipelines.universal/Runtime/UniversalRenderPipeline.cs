@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public static float maxRenderScale
         {
-            get => 2.0f;
+            get => 3.0f;
         }
 
         /// <summary>
