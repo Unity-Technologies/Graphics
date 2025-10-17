@@ -16,14 +16,6 @@ namespace UnityEngine.Rendering.Universal
             internal RendererListHandle rendererList;
         }
 
-#if URP_COMPATIBILITY_MODE
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            throw new NotImplementedException();
-        }
-#endif
-
         private static void Execute(RasterCommandBuffer cmd, PassData passData)
         {
             cmd.DrawRendererList(passData.rendererList);

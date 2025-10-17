@@ -537,62 +537,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-#if URP_COMPATIBILITY_MODE
-        internal override bool SupportsNativeRenderPass()
-        {
-            return m_Technique == DecalTechnique.GBuffer || m_Technique == DecalTechnique.ScreenSpace;
-        }
-
-        /// <inheritdoc />
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete + " #from(6000.2)")]
-        public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
-        {
-            // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
-            if (renderer.cameraColorTargetHandle == null)
-                return;
-
-            if (m_Technique == DecalTechnique.DBuffer)
-            {
-                m_DBufferRenderPass.Setup(renderingData.cameraData);
-
-                var universalRenderer = renderer as UniversalRenderer;
-                if (universalRenderer.usesDeferredLighting)
-                {
-                    m_DBufferRenderPass.Setup(renderingData.cameraData, renderer.cameraDepthTargetHandle);
-
-                    m_CopyDepthPass.Setup(
-                        renderer.cameraDepthTargetHandle,
-                        universalRenderer.m_DepthTexture
-                    );
-                }
-                else
-                {
-                    m_DBufferRenderPass.Setup(renderingData.cameraData);
-
-                    m_CopyDepthPass.Setup(
-                        universalRenderer.m_DepthTexture,
-                        m_DBufferRenderPass.dBufferDepth
-                    );
-                    m_CopyDepthPass.CopyToDepth = true;
-                    m_CopyDepthPass.MsaaSamples = 1;
-                }
-            }
-            else if (m_Technique == DecalTechnique.GBuffer && m_DeferredLights.UseFramebufferFetch)
-            {
-                // Need to call Configure for both of these passes to setup input attachments as first frame otherwise will raise errors
-                m_GBufferRenderPass.Configure(null, renderingData.cameraData.cameraTargetDescriptor);
-            }
-        #pragma warning restore CS0618
-        }
-#endif
-
         /// <inheritdoc />
         protected override void Dispose(bool disposing)
         {
-#if URP_COMPATIBILITY_MODE
-            m_DBufferRenderPass?.Dispose();
-#endif
             m_CopyDepthPass?.Dispose();
 
             CoreUtils.Destroy(m_DBufferClearMaterial);

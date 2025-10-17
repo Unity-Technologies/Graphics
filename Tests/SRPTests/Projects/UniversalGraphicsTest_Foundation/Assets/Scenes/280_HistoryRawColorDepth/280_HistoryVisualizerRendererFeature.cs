@@ -49,28 +49,6 @@ public class HistoryVisualizer : ScriptableRendererFeature
             }
         }
 
-#if URP_COMPATIBILITY_MODE
-        // For the Execute path only.
-        [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
-        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        {
-            RequestHistory(renderingData.cameraData.historyManager);
-        }
-
-        [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            CommandBuffer cmd = CommandBufferPool.Get();
-
-            ExecutePass(cmd, ref renderingData);
-
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-
-            CommandBufferPool.Release(cmd);
-        }
-#endif
-
         RTHandle GetHistorySourceTexture(UniversalCameraHistory historyManager, int multipassId)
         {
             RTHandle historyTexture = null;
@@ -94,42 +72,7 @@ public class HistoryVisualizer : ScriptableRendererFeature
 
             return historyTexture;
         }
-
-#if URP_COMPATIBILITY_MODE
-        void ExecutePass(CommandBuffer cmd, ref RenderingData renderingData)
-        {
-            if (m_Material == null)
-                return;
-
-            var cameraData = renderingData.cameraData;
-            if(cameraData.historyManager == null)
-                return;
-
-            UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
-
-            #pragma warning disable CS0618 // Type or member is obsolete
-            ConfigureTarget(renderer?.cameraColorTargetHandle);
-            #pragma warning restore CS0618 // Type or member is obsolete
-
-            int multipassId = 0;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            multipassId = cameraData.xr.multipassId;
-#endif
-            RTHandle historyTexture = GetHistorySourceTexture(cameraData.historyManager, multipassId);
-
-            // TODO: add screen offset
-            // Visualizes the history buffer as 1/4th screen bottom-left overlay.
-            m_Material.SetTexture(kHistoryShaderName, historyTexture);
-            Camera cam = cameraData.camera;
-            Rect r = cam.pixelRect;
-            r.width /= 2;
-            r.height /= 2;
-            cmd.SetViewport(r);
-            cmd.DrawProcedural(Matrix4x4.identity, m_Material, 0, MeshTopology.Triangles, 3, 1);
-            cmd.SetViewport(cam.pixelRect);
-        }
-#endif
-
+        
         // Cleanup any allocated resources that were created during the execution of this render pass.
         public override void OnCameraCleanup(CommandBuffer cmd)
         {

@@ -33,47 +33,6 @@ public class DepthBlitDepthOnlyPass : ScriptableRenderPass
         m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
     }
 
-#if URP_COMPATIBILITY_MODE // Compatibility Mode is being removed
-#pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
-
-    // Unity calls the Configure method in the Compatibility mode (non-RenderGraph path)
-    public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-    {
-        // Create an RTHandle for storing the depth
-        RenderingUtils.ReAllocateHandleIfNeeded(ref depthRT, m_Desc, m_FilterMode, m_WrapMode, name: m_Name );
-        ConfigureTarget(depthRT);
-    }
-
-    // Unity calls the Execute method in the Compatibility mode
-    public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-    {
-        var cameraData = renderingData.cameraData;
-        if (cameraData.camera.cameraType != CameraType.Game)
-            return;
-
-        // Setup the RendererList for drawing objects with the shader tag "DepthOnly".
-        var sortFlags = cameraData.defaultOpaqueSortFlags;
-        var drawSettings = RenderingUtils.CreateDrawingSettings(k_ShaderTagId, ref renderingData, sortFlags);
-        drawSettings.perObjectData = PerObjectData.None;
-        RendererListParams param = new RendererListParams(renderingData.cullResults, drawSettings, m_FilteringSettings);
-        param.filteringSettings.batchLayerMask = uint.MaxValue;
-        RendererList rendererList = context.CreateRendererList(ref param);
-
-        CommandBuffer cmd = CommandBufferPool.Get();
-        using (new ProfilingScope(cmd, m_ProfilingSampler))
-        {
-            cmd.ClearRenderTarget(true,false, Color.black);
-            cmd.DrawRendererList(rendererList);
-        }
-        context.ExecuteCommandBuffer(cmd);
-        cmd.Clear();
-
-        CommandBufferPool.Release(cmd);
-    }
-
-#pragma warning restore 618, 672
-#endif
-
     // Unity calls the RecordRenderGraph method to add and configure one or more render passes in the render graph system.
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {

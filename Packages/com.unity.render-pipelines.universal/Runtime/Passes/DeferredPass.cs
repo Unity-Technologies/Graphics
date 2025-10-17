@@ -22,42 +22,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_DeferredLights = deferredLights;
         }
 
-#if URP_COMPATIBILITY_MODE
-        // ScriptableRenderPass
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
-        {
-            var lightingAttachment = m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferLightingIndex];
-            var depthAttachment = m_DeferredLights.DepthAttachmentHandle;
-
-            if (m_DeferredLights.UseFramebufferFetch)
-            {
-                // Disable obsolete warning for internal usage
-                #pragma warning disable CS0618
-                ConfigureInputAttachments(m_DeferredLights.DeferredInputAttachments, m_DeferredLights.DeferredInputIsTransient);
-                #pragma warning restore CS0618
-            }
-
-            // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
-            // TODO: Cannot currently bind depth texture as read-only!
-            ConfigureTarget(lightingAttachment, depthAttachment);
-            #pragma warning restore CS0618
-        }
-
-        // ScriptableRenderPass
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            ContextContainer frameData = renderingData.frameData;
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            UniversalLightData lightData = frameData.Get<UniversalLightData>();
-            UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
-
-            m_DeferredLights.ExecuteDeferredPass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), cameraData, lightData, shadowData);
-        }
-#endif
-
         private class PassData
         {
             internal UniversalCameraData cameraData;

@@ -21,14 +21,6 @@ namespace UnityEngine.Rendering.Universal
         private static readonly int k_HDREmulationScaleID = Shader.PropertyToID("_HDREmulationScale");
         private static readonly int k_RendererColorID = Shader.PropertyToID("_RendererColor");
 
-#if URP_COMPATIBILITY_MODE
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            throw new NotImplementedException();
-        }
-#endif
-
         private static void Execute(RasterGraphContext context, PassData passData)
         {
             var cmd = context.cmd;

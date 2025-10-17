@@ -49,52 +49,6 @@ public class DepthBlitCopyDepthPass : ScriptableRenderPass
         m_Keyword_OutputDepth = GlobalKeyword.Create(ShaderKeywordStrings._OUTPUT_DEPTH);
     }
 
-#if URP_COMPATIBILITY_MODE // Compatibility Mode is being removed
-#pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
-
-    // Set the RTHandle as the output target in the Compatibility mode.
-    public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-    {
-        // Create an RTHandle for storing the depth
-        RenderingUtils.ReAllocateHandleIfNeeded(ref depthRT, m_Desc, m_FilterMode, m_WrapMode, name: m_Name );
-        ConfigureTarget(depthRT);
-    }
-
-    // Unity calls the Execute method in the Compatibility mode
-    public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-    {
-        var cameraData = renderingData.cameraData;
-        if (cameraData.camera.cameraType != CameraType.Game)
-            return;
-
-        // Bind the depth buffer to material
-        RTHandle source = cameraData.renderer.cameraDepthTargetHandle;
-        m_CopyDepthMaterial.SetTexture(m_DepthBufferId, source);
-
-        CommandBuffer cmd = CommandBufferPool.Get();
-        using (new ProfilingScope(cmd, m_ProfilingSampler))
-        {
-            // Enable an MSAA shader keyword based on the source texture MSAA sample count.
-            int cameraSamples = source.rt.antiAliasing;
-            cmd.SetKeyword(m_Keyword_DepthMsaa2, cameraSamples == 2);
-            cmd.SetKeyword(m_Keyword_DepthMsaa4, cameraSamples == 4);
-            cmd.SetKeyword(m_Keyword_DepthMsaa8, cameraSamples == 8);
-
-            // This example does not copy the depth values back to the depth buffer, so we disable this keyword.
-            cmd.SetKeyword(m_Keyword_OutputDepth, false);
-
-            // Perform the blit operation
-            Blitter.BlitTexture(cmd, source, m_ScaleBias, m_CopyDepthMaterial, 0);
-        }
-        context.ExecuteCommandBuffer(cmd);
-        cmd.Clear();
-
-        CommandBufferPool.Release(cmd);
-    }
-
-#pragma warning restore 618, 672
-#endif
-
     // Unity calls the RecordRenderGraph method to add and configure one or more render passes in the render graph system.
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {

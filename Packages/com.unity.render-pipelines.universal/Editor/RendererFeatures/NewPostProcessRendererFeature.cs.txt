@@ -158,63 +158,6 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
 
         #region PASS_NON_RENDER_GRAPH_PATH
 
-#if URP_COMPATIBILITY_MODE
-        // Override the OnCameraSetup method to configure render targets and their clear states, and create temporary render target textures.
-        // Unity calls this method before executing the render pass.
-        // This method is used only in the Compatibility Mode path.
-        // Use ConfigureTarget or ConfigureClear in this method. Don't use CommandBuffer.SetRenderTarget.
-        [System.Obsolete("This rendering path works in Compatibility Mode only, which is deprecated. Use the render graph API instead.")]
-        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        {
-            // Reset the render target to default.
-            ResetTarget();
-
-            // Allocate a temporary texture, and reallocate it if there's a change to camera settings, for example resolution.
-            if (kSampleActiveColor)
-                RenderingUtils.ReAllocateHandleIfNeeded(ref m_CopiedColor, GetCopyPassTextureDescriptor(renderingData.cameraData.cameraTargetDescriptor), name: "_CustomPostPassCopyColor");
-        }
-
-        // Override the Execute method to implement the rendering logic. Use ScriptableRenderContext to issue drawing commands or execute command buffers.
-        // You don't need to call ScriptableRenderContext.Submit.
-        // This method is used only in the Compatibility Mode path.
-        [System.Obsolete("This rendering path works in Compatibility Mode only, which is deprecated. Use the render graph API instead.")]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-
-            // Get the camera data and command buffer.
-            ref var cameraData = ref renderingData.cameraData;
-            var cmd = CommandBufferPool.Get();
-
-            // Add a profiling sampler.
-            using (new ProfilingScope(cmd, profilingSampler))
-            {
-                // Create a command buffer to execute the render pass.
-                RasterCommandBuffer rasterCmd = CommandBufferHelpers.GetRasterCommandBuffer(cmd);
-                if (kSampleActiveColor)
-                {
-                    CoreUtils.SetRenderTarget(cmd, m_CopiedColor);
-                    ExecuteCopyColorPass(rasterCmd, cameraData.renderer.cameraColorTargetHandle);
-                }
-
-                // Set the render target based on the depth-stencil attachment.
-                if(kBindDepthStencilAttachment)
-                    CoreUtils.SetRenderTarget(cmd, cameraData.renderer.cameraColorTargetHandle, cameraData.renderer.cameraDepthTargetHandle);
-                else
-                    CoreUtils.SetRenderTarget(cmd, cameraData.renderer.cameraColorTargetHandle);
-
-                // Execute the main render pass.
-                ExecuteMainPass(rasterCmd, kSampleActiveColor ? m_CopiedColor : null, m_Material);
-            }
-
-            // Execute the command buffer.
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-
-            // Release the command buffer.
-            CommandBufferPool.Release(cmd);
-        }
-#endif
-
         // Free the resources the camera uses.
         // This method is used only in the Compatibility Mode path.
         public override void OnCameraCleanup(CommandBuffer cmd)

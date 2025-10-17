@@ -17,12 +17,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         readonly Material m_LutBuilderHdr;
         internal readonly GraphicsFormat m_HdrLutFormat;
         internal readonly GraphicsFormat m_LdrLutFormat;
-
-#if URP_COMPATIBILITY_MODE
-        RTHandle m_InternalLut;
-        PassData m_PassData;
-#endif
-
+        
         bool m_AllowColorGradingACESHDR = true;
 
         /// <summary>
@@ -36,9 +31,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             profilingSampler = new ProfilingSampler("Blit Color LUT");
             renderPassEvent = evt;
-#if URP_COMPATIBILITY_MODE
-            overrideCameraTarget = true;
-#endif
 
             m_LutBuilderLdr = PostProcessUtils.LoadShader(data.shaders.lutBuilderLdrPS, passName);
             m_LutBuilderHdr = PostProcessUtils.LoadShader(data.shaders.lutBuilderHdrPS, passName);
@@ -64,11 +56,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 && Graphics.minOpenGLESVersion <= OpenGLESVersion.OpenGLES30 && SystemInfo.graphicsDeviceName.StartsWith("Adreno (TM) 3"))
                 m_AllowColorGradingACESHDR = false;
-
-#if URP_COMPATIBILITY_MODE
-            base.useNativeRenderPass = false;
-            m_PassData = new PassData();
-#endif
         }
 
         /// <summary>
@@ -77,10 +64,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="internalLut">The RTHandle to use to render to.</param>
         /// <seealso cref="RTHandle"/>
         public void Setup(in RTHandle internalLut)
-        {
-#if URP_COMPATIBILITY_MODE
-            m_InternalLut = internalLut;
-#endif
+        { 
         }
 
         /// <summary>
@@ -111,33 +95,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             filterMode = FilterMode.Bilinear;
         }
-
-#if URP_COMPATIBILITY_MODE
-        /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            ContextContainer frameData = renderingData.frameData;
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
-
-            m_PassData.cameraData = cameraData;
-
-            m_PassData.lutBuilderLdr = m_LutBuilderLdr;
-            m_PassData.lutBuilderHdr = m_LutBuilderHdr;
-            m_PassData.allowColorGradingACESHDR = m_AllowColorGradingACESHDR;
-            m_PassData.lutSize    = postProcessingData.lutSize;
-            m_PassData.hdrGrading = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (renderingData.cameraData.xr.supportsFoveatedRendering)
-                renderingData.commandBuffer.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
-#endif
-
-            CoreUtils.SetRenderTarget(renderingData.commandBuffer, m_InternalLut, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
-            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_InternalLut);
-        }
-#endif
 
         private class PassData
         {

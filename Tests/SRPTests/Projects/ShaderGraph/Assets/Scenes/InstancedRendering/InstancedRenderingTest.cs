@@ -56,13 +56,11 @@ public class InstancedRenderingTest : MonoBehaviour
 
     private void OnEnable()
     {
-        AfterOpaqueCustomRendering.OnExecute += OnAfterOpaque;
         DoRender(null, true);
     }
 
     private void OnDisable()
     {
-        AfterOpaqueCustomRendering.OnExecute -= OnAfterOpaque;
 
         m_Matrices = null;
         if (m_ClonedMaterial != null)

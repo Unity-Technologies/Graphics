@@ -200,15 +200,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal VirtualTexturingSettingsSRP virtualTexturingSettings = new VirtualTexturingSettingsSRP();
 
-
-        [SerializeField] private bool m_UseRenderGraph = true;
-
-        internal bool useRenderGraph
-        {
-            get => m_UseRenderGraph;
-            set => m_UseRenderGraph = value;
-        }
-
         /// <inheritdoc/>
         public bool isImmediateModeSupported => false;
 

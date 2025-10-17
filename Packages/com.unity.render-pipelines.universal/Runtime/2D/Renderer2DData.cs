@@ -105,11 +105,6 @@ namespace UnityEngine.Rendering.Universal
         {
             UnityEngine.RenderAs2DUtil.DisposeCanRenderAs2D();
 
-#if URP_COMPATIBILITY_MODE
-            for (var i = 0; i < m_LightBlendStyles.Length; ++i)
-                m_LightBlendStyles[i].renderTargetHandle?.Release();
-#endif
-
             foreach(var mat in lightMaterials)
                 CoreUtils.Destroy(mat.Value);
 
@@ -129,14 +124,6 @@ namespace UnityEngine.Rendering.Universal
         protected override void OnEnable()
         {
             base.OnEnable();
-
-#if URP_COMPATIBILITY_MODE
-            for (var i = 0; i < m_LightBlendStyles.Length; ++i)
-            {
-                m_LightBlendStyles[i].renderTargetHandleId = Shader.PropertyToID($"_ShapeLightTexture{i}");
-                m_LightBlendStyles[i].renderTargetHandle = RTHandles.Alloc(m_LightBlendStyles[i].renderTargetHandleId, $"_ShapeLightTexture{i}");
-            }
-#endif
 
             geometrySelfShadowMaterial = null;
             geometryUnshadowMaterial = null;

@@ -14,10 +14,6 @@ namespace UnityEngine.Rendering.Universal
         public SortingLayerRange layerRange;
         public LightStats lightStats;
         public bool useNormals;
-#if URP_COMPATIBILITY_MODE
-        private int[] renderTargetIds = new int[4];
-        private bool[] renderTargetUsed = new bool[4];
-#endif
 
         public List<Light2D> lights;
         public List<int> shadowIndices;
@@ -27,14 +23,6 @@ namespace UnityEngine.Rendering.Universal
 
         public void InitRTIds(int index)
         {
-#if URP_COMPATIBILITY_MODE
-            for (var i = 0; i < 4; i++)
-            {
-                renderTargetUsed[i] = false;
-                renderTargetIds[i] = Shader.PropertyToID($"_LightTexture_{index}_{i}");
-            }
-#endif
-
             lights = new List<Light2D>();
             shadowIndices = new List<int>();
             shadowCasters = new List<ShadowCasterGroup2D>();
@@ -45,43 +33,11 @@ namespace UnityEngine.Rendering.Universal
         {
             return value >= layerRange.lowerBound && value <= layerRange.upperBound;
         }
-
-#if URP_COMPATIBILITY_MODE
-        public RenderTargetIdentifier GetRTId(CommandBuffer cmd, RenderTextureDescriptor desc, int index)
-        {
-            if (!renderTargetUsed[index])
-            {
-                cmd.GetTemporaryRT(renderTargetIds[index], desc, FilterMode.Bilinear);
-                renderTargetUsed[index] = true;
-            }
-            return new RenderTargetIdentifier(renderTargetIds[index]);
-        }
-
-        public void ReleaseRT(CommandBuffer cmd)
-        {
-            for (var i = 0; i < 4; i++)
-            {
-                if (!renderTargetUsed[i])
-                    continue;
-
-                cmd.ReleaseTemporaryRT(renderTargetIds[i]);
-                renderTargetUsed[i] = false;
-            }
-        }
-#endif
     }
 
     internal static class LayerUtility
     {
         private static LayerBatch[] s_LayerBatches;
-#if URP_COMPATIBILITY_MODE
-        public static uint maxTextureCount { get; private set; }
-
-        public static void InitializeBudget(uint maxTextureCount)
-        {
-            LayerUtility.maxTextureCount = math.max(4, maxTextureCount);
-        }
-#endif
 
         private static bool CanBatchLightsInLayer(int layerIndex1, int layerIndex2, SortingLayer[] sortingLayers, ILight2DCullResult lightCullResult)
         {

@@ -38,41 +38,6 @@ public class DistortTunnelPass_Tunnel : ScriptableRenderPass
         m_Slice = slice;
     }
 
-#if URP_COMPATIBILITY_MODE // Compatibility Mode is being removed
-#pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
-
-    // Unity calls the Configure method in the Compatibility mode (non-RenderGraph path)
-    public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
-    {
-        ConfigureTarget(m_OutputHandle);
-    }
-
-    // Unity calls the Execute method in the Compatibility mode
-    public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-    {
-        var cameraData = renderingData.cameraData;
-        if (cameraData.camera.cameraType != CameraType.Game)
-            return;
-
-        // Get the "Tunnel" renderer object from the scene (example-specific code)
-        SetTunnelObject();
-        if (!m_TunnelObject)
-            return;
-
-        CommandBuffer cmd = CommandBufferPool.Get();
-        using (new ProfilingScope(cmd, m_ProfilingSampler))
-        {
-            CoreUtils.SetRenderTarget(cmd, m_OutputHandle, depthSlice: m_Slice);
-            cmd.DrawRenderer(m_TunnelObject, m_TunnelObject.sharedMaterial,0,0);
-        }
-        context.ExecuteCommandBuffer(cmd);
-        cmd.Clear();
-        CommandBufferPool.Release(cmd);
-    }
-
-#pragma warning restore 618, 672
-#endif
-
     // Unity calls the RecordRenderGraph method to add and configure one or more render passes in the render graph system.
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {

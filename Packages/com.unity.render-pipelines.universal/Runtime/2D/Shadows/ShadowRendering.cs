@@ -45,36 +45,6 @@ namespace UnityEngine.Rendering.Universal
         private static readonly Color k_ShadowColorLookup = new Color(0, 0, 1, 0);
         private static readonly Color k_UnshadowColorLookup = new Color(0, 1, 0, 0);
 
-#if URP_COMPATIBILITY_MODE
-        private static RTHandle[] m_RenderTargets = null;
-        private static int[] m_RenderTargetIds = null;
-        private static RenderTargetIdentifier[] m_LightInputTextures = null;
-        private static readonly ProfilingSampler[] m_ProfilingSamplerShadowColorsLookup = new ProfilingSampler[4] { m_ProfilingSamplerShadowsA, m_ProfilingSamplerShadowsB, m_ProfilingSamplerShadowsG, m_ProfilingSamplerShadowsR };
-
-        public static uint maxTextureCount { get; private set; }
-        public static RenderTargetIdentifier[] lightInputTextures { get { return m_LightInputTextures; } }
-        internal static void InitializeBudget(uint maxTextureCount)
-        {
-            if (m_RenderTargets == null || m_RenderTargets.Length != maxTextureCount)
-            {
-                m_RenderTargets = new RTHandle[maxTextureCount];
-                m_RenderTargetIds = new int[maxTextureCount];
-                ShadowRendering.maxTextureCount = maxTextureCount;
-
-                for (int i = 0; i < maxTextureCount; i++)
-                {
-                    m_RenderTargetIds[i] = Shader.PropertyToID($"ShadowTex_{i}");
-                    m_RenderTargets[i] = RTHandles.Alloc(m_RenderTargetIds[i], $"ShadowTex_{i}");
-                }
-            }
-
-            if (m_LightInputTextures == null || m_LightInputTextures.Length != maxTextureCount)
-            {
-                m_LightInputTextures = new RenderTargetIdentifier[maxTextureCount];
-            }
-        }
-#endif
-
         private static Material CreateMaterial(Shader shader, int offset, int pass)
         {
             Material material = CoreUtils.CreateEngineMaterial(shader);
@@ -278,53 +248,6 @@ namespace UnityEngine.Rendering.Universal
             RenderShadows(cmdBuffer, rendererData, ref layer, light);
         }
 
-#if URP_COMPATIBILITY_MODE
-        private static void CreateShadowRenderTexture(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int shadowIndex)
-        {
-            CreateShadowRenderTexture(pass, m_RenderTargetIds[shadowIndex], renderingData, cmdBuffer);
-        }
-
-        internal static bool PrerenderShadows(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, ref LayerBatch layer, Light2D light, int shadowIndex, float shadowIntensity)
-        {
-            ShadowRendering.CreateShadowRenderTexture(pass, renderingData, cmdBuffer, shadowIndex);
-
-            bool hadShadowsToRender = layer.shadowCasters.Count != 0;
-
-            if (hadShadowsToRender)
-            {
-                cmdBuffer.SetRenderTarget(m_RenderTargets[shadowIndex].nameID, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-                cmdBuffer.ClearRenderTarget(RTClearFlags.All, Color.clear, 1, 0);
-                RenderShadows(CommandBufferHelpers.GetUnsafeCommandBuffer(cmdBuffer), pass.rendererData, ref layer, light);
-            }
-
-            m_LightInputTextures[shadowIndex] = m_RenderTargets[shadowIndex].nameID;
-
-            return hadShadowsToRender;
-        }
-
-        private static void CreateShadowRenderTexture(IRenderPass2D pass, int handleId, RenderingData renderingData, CommandBuffer cmdBuffer)
-        {
-            var renderTextureScale = Mathf.Clamp(pass.rendererData.lightRenderTextureScale, 0.01f, 1.0f);
-            var width = (int)(renderingData.cameraData.cameraTargetDescriptor.width * renderTextureScale);
-            var height = (int)(renderingData.cameraData.cameraTargetDescriptor.height * renderTextureScale);
-
-            var descriptor = new RenderTextureDescriptor(width, height);
-            descriptor.useMipMap = false;
-            descriptor.autoGenerateMips = false;
-            descriptor.depthStencilFormat = GraphicsFormatUtility.GetDepthStencilFormat(24);
-            descriptor.graphicsFormat = GraphicsFormat.B10G11R11_UFloatPack32;
-            descriptor.msaaSamples = 1;
-            descriptor.dimension = TextureDimension.Tex2D;
-
-            cmdBuffer.GetTemporaryRT(handleId, descriptor, FilterMode.Bilinear);
-        }
-
-        internal static void ReleaseShadowRenderTexture(CommandBuffer cmdBuffer, int shadowIndex)
-        {
-            cmdBuffer.ReleaseTemporaryRT(m_RenderTargetIds[shadowIndex]);
-        }
-#endif
-
         private static void SetShadowProjectionGlobals(UnsafeCommandBuffer cmdBuffer, ShadowCaster2D shadowCaster, Light2D light)
         {
             cmdBuffer.SetGlobalVector(k_ShadowModelScaleID, shadowCaster.m_CachedLossyScale);
@@ -338,17 +261,6 @@ namespace UnityEngine.Rendering.Universal
                 cmdBuffer.SetGlobalFloat(k_ShadowContractionDistanceID, 0f);
         }
 
-#if URP_COMPATIBILITY_MODE
-        internal static void SetGlobalShadowTexture(CommandBuffer cmdBuffer, Light2D light, int shadowIndex)
-        {
-            var textureIndex = shadowIndex;
-
-            cmdBuffer.SetGlobalTexture("_ShadowTex", m_LightInputTextures[textureIndex]);
-            cmdBuffer.SetGlobalColor(k_ShadowShadowColorID, k_ShadowColorLookup);
-            cmdBuffer.SetGlobalColor(k_ShadowUnshadowColorID, k_UnshadowColorLookup);
-        }
-#endif
-
         internal static void SetGlobalShadowProp(IRasterCommandBuffer cmdBuffer)
         {
             cmdBuffer.SetGlobalColor(k_ShadowShadowColorID, k_ShadowColorLookup);
@@ -358,9 +270,9 @@ namespace UnityEngine.Rendering.Universal
         static bool ShadowCasterIsVisible(ShadowCaster2D shadowCaster)
         {
 #if UNITY_EDITOR
-            return SceneVisibilityManager.instance == null ? true : !SceneVisibilityManager.instance.IsHidden(shadowCaster.gameObject);
+            return SceneVisibilityManager.instance == null || !SceneVisibilityManager.instance.IsHidden(shadowCaster.gameObject);
 #else
-                return true;
+            return true;
 #endif
         }
 

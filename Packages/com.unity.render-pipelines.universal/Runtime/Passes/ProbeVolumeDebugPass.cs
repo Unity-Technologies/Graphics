@@ -10,49 +10,15 @@ namespace UnityEngine.Rendering.Universal
     {
         ComputeShader m_ComputeShader;
 
-#if URP_COMPATIBILITY_MODE
-        RTHandle m_DepthTexture;
-        RTHandle m_NormalTexture;
-#endif
-
         /// <summary>
         /// Creates a new <c>ProbeVolumeDebugPass</c> instance.
         /// </summary>
         public ProbeVolumeDebugPass(RenderPassEvent evt, ComputeShader computeShader)
         {
-            base.profilingSampler = new ProfilingSampler("Dispatch APV Debug");
+            profilingSampler = new ProfilingSampler("Dispatch APV Debug");
             renderPassEvent = evt;
             m_ComputeShader = computeShader;
         }
-
-#if URP_COMPATIBILITY_MODE
-        public void Setup(RTHandle depthBuffer, RTHandle normalBuffer)
-        {
-            m_DepthTexture = depthBuffer;
-            m_NormalTexture = normalBuffer;
-        }
-
-        /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            if (!ProbeReferenceVolume.instance.isInitialized)
-                return;
-
-            ref CameraData cameraData = ref renderingData.cameraData;
-            if (ProbeReferenceVolume.instance.GetProbeSamplingDebugResources(cameraData.camera, out var resultBuffer, out Vector2 coords))
-            {
-                var cmd = renderingData.commandBuffer;
-                int kernel = m_ComputeShader.FindKernel("ComputePositionNormal");
-
-                cmd.SetComputeTextureParam(m_ComputeShader, kernel, "_CameraDepthTexture", m_DepthTexture);
-                cmd.SetComputeTextureParam(m_ComputeShader, kernel, "_NormalBufferTexture", m_NormalTexture);
-                cmd.SetComputeVectorParam(m_ComputeShader, "_positionSS", new Vector4(coords.x, coords.y, 0.0f, 0.0f));
-                cmd.SetComputeBufferParam(m_ComputeShader, kernel, "_ResultBuffer", resultBuffer);
-                cmd.DispatchCompute(m_ComputeShader, kernel, 1, 1, 1);
-            }
-        }
-#endif
 
         class WriteApvData
         {

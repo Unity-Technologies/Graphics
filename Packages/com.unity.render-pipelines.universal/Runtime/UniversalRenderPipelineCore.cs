@@ -103,21 +103,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal UniversalRenderingData universalRenderingData => frameData.Get<UniversalRenderingData>();
 
-#if URP_COMPATIBILITY_MODE
-        // Non-rendergraph path only. Do NOT use with rendergraph!
-        internal ref CommandBuffer commandBuffer
-        {
-            get
-            {
-                ref var cmd = ref frameData.Get<UniversalRenderingData>().m_CommandBuffer;
-                if (cmd == null)
-                    Debug.LogError("RenderingData.commandBuffer is null. RenderGraph does not support this property. Please use the command buffer provided by the RenderGraphContext.");
-
-                return ref cmd;
-            }
-        }
-#endif
-
         /// <summary>
         /// Returns culling results that exposes handles to visible objects, lights and probes.
         /// You can use this to draw objects with <c>ScriptableRenderContext.DrawRenderers</c>
@@ -295,34 +280,6 @@ namespace UnityEngine.Rendering.Universal
             return frameData.Get<UniversalCameraData>().GetProjectionMatrixNoJitter(viewIndex);
         }
 
-#if URP_COMPATIBILITY_MODE
-        /// <summary>
-        /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z. Includes camera jitter if required by active features.
-        /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture.
-        /// For more info on platform differences regarding camera projection check: https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
-        /// </summary>
-        /// <param name="viewIndex"> View index in case of stereo rendering. By default <c>viewIndex</c> is set to 0. </param>
-        /// <seealso cref="GL.GetGPUProjectionMatrix(Matrix4x4, bool)"/>
-        /// <returns></returns>
-        public Matrix4x4 GetGPUProjectionMatrix(int viewIndex = 0)
-        {
-            return frameData.Get<UniversalCameraData>().GetGPUProjectionMatrix(viewIndex);
-        }
-
-        /// <summary>
-        /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z. Does not include any camera jitter.
-        /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture.
-        /// For more info on platform differences regarding camera projection check: https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
-        /// </summary>
-        /// <param name="viewIndex"> View index in case of stereo rendering. By default <c>viewIndex</c> is set to 0. </param>
-        /// <seealso cref="GL.GetGPUProjectionMatrix(Matrix4x4, bool)"/>
-        /// <returns></returns>
-        public Matrix4x4 GetGPUProjectionMatrixNoJitter(int viewIndex = 0)
-        {
-            return frameData.Get<UniversalCameraData>().GetGPUProjectionMatrixNoJitter(viewIndex);
-        }
-#endif
-
         internal Matrix4x4 GetGPUProjectionMatrix(bool renderIntoTexture, int viewIndex = 0)
         {
             return frameData.Get<UniversalCameraData>().GetGPUProjectionMatrix(renderIntoTexture, viewIndex);
@@ -475,21 +432,6 @@ namespace UnityEngine.Rendering.Universal
         {
             return frameData.Get<UniversalCameraData>().IsHandleYFlipped(handle);
         }
-
-#if URP_COMPATIBILITY_MODE
-        /// <summary>
-        /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering
-        /// to a render texture in non OpenGL platforms. If you are doing a custom Blit pass to copy camera textures
-        /// (_CameraColorTexture, _CameraDepthAttachment) you need to check this flag to know if you should flip the
-        /// matrix when rendering with for cmd.Draw* and reading from camera textures.
-        /// </summary>
-        /// <returns> True if the camera device projection matrix is flipped. </returns>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public bool IsCameraProjectionMatrixFlipped()
-        {
-            return frameData.Get<UniversalCameraData>().IsCameraProjectionMatrixFlipped();
-        }
-#endif
 
         /// <summary>
         /// True if the render target's projection matrix is flipped. This happens when the pipeline is rendering

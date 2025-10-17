@@ -115,14 +115,6 @@ namespace Unity.Rendering.Universal.Tests
         {
             get
             {
-                if (RuntimeSettings.urpCompatibilityMode)
-                {
-                    yield return new TestFixtureData(
-                        RenderGraphContext.CompatibilityMode,
-                        GpuResidentDrawerContext.GRDDisabled
-                    );
-                }
-
                 yield return new TestFixtureData(
                     RenderGraphContext.RenderGraphMode,
                     GpuResidentDrawerContext.GRDDisabled
@@ -130,14 +122,6 @@ namespace Unity.Rendering.Universal.Tests
 
                 if (GraphicsTestPlatform.Current.IsEditorPlatform)
                 {
-                    if (RuntimeSettings.urpCompatibilityMode)
-                    {
-                        yield return new TestFixtureData(
-                            RenderGraphContext.CompatibilityMode,
-                            GpuResidentDrawerContext.GRDEnabled
-                        );
-                    }
-
                     yield return new TestFixtureData(
                         RenderGraphContext.RenderGraphMode,
                         GpuResidentDrawerContext.GRDEnabled

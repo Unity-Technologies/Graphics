@@ -141,10 +141,6 @@ namespace UnityEngine.Rendering.Universal
                 XRSystem.Initialize(XRPassUniversal.Create, xrResources.xrOcclusionMeshPS, xrResources.xrMirrorViewPS);
             }
 #endif
-
-#if URP_COMPATIBILITY_MODE
-            InitializeCompatibilityMode(data);
-#endif
         }
 
         private bool IsPixelPerfectCameraEnabled(UniversalCameraData cameraData)
@@ -1011,11 +1007,6 @@ namespace UnityEngine.Rendering.Universal
         protected override void Dispose(bool disposing)
         {
             CleanupRenderGraphResources();
-
-#if URP_COMPATIBILITY_MODE
-            CleanupCompatibilityModeResources();
-#endif
-
             base.Dispose(disposing);
         }
 
@@ -1058,7 +1049,5 @@ namespace UnityEngine.Rendering.Universal
         {
             get => !IsGLESDevice();
         }
-
-        internal override bool supportsNativeRenderPassRendergraphCompiler => true;
     }
 }

@@ -121,42 +121,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
             return m_ProjectionMatrix;
         }
-        
-#if URP_COMPATIBILITY_MODE
-        /// <summary>
-        /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z. Includes camera jitter if required by active features.
-        /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture.
-        /// For more info on platform differences regarding camera projection check: https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
-        /// </summary>
-        /// <param name="viewIndex"> View index in case of stereo rendering. By default <c>viewIndex</c> is set to 0. </param>
-        /// <seealso cref="GL.GetGPUProjectionMatrix(Matrix4x4, bool)"/>
-        /// <returns></returns>
-        public Matrix4x4 GetGPUProjectionMatrix(int viewIndex = 0)
-        {
-            // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
-            // GetGPUProjectionMatrix takes a projection matrix and returns a GfxAPI adjusted version, does not set or get any state.
-            return m_JitterMatrix * GL.GetGPUProjectionMatrix(GetProjectionMatrixNoJitter(viewIndex), IsCameraProjectionMatrixFlipped());
-            #pragma warning restore CS0618
-        }
-
-        /// <summary>
-        /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z. Does not include any camera jitter.
-        /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture.
-        /// For more info on platform differences regarding camera projection check: https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
-        /// </summary>
-        /// <param name="viewIndex"> View index in case of stereo rendering. By default <c>viewIndex</c> is set to 0. </param>
-        /// <seealso cref="GL.GetGPUProjectionMatrix(Matrix4x4, bool)"/>
-        /// <returns></returns>
-        public Matrix4x4 GetGPUProjectionMatrixNoJitter(int viewIndex = 0)
-        {
-            // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
-            // GetGPUProjectionMatrix takes a projection matrix and returns a GfxAPI adjusted version, does not set or get any state.
-            return GL.GetGPUProjectionMatrix(GetProjectionMatrixNoJitter(viewIndex), IsCameraProjectionMatrixFlipped());
-            #pragma warning restore CS0618
-        }
-#endif
 
         internal Matrix4x4 GetGPUProjectionMatrix(bool renderIntoTexture, int viewIndex = 0)
         {
@@ -421,33 +385,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
             return !isBackbuffer;
         }
-        
-#if URP_COMPATIBILITY_MODE
-        /// <summary>
-        /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering
-        /// to a render texture in non OpenGL platforms. If you are doing a custom Blit pass to copy camera textures
-        /// (_CameraColorTexture, _CameraDepthAttachment) you need to check this flag to know if you should flip the
-        /// matrix when rendering with for cmd.Draw* and reading from camera textures.
-        /// </summary>
-        /// <returns> True if the camera device projection matrix is flipped. </returns>
-        public bool IsCameraProjectionMatrixFlipped()
-        {
-            if (!SystemInfo.graphicsUVStartsAtTop)
-                return false;
-
-            // Users only have access to CameraData on URP rendering scope. The current renderer should never be null.
-            var renderer = ScriptableRenderer.current;
-            Debug.Assert(renderer != null, "IsCameraProjectionMatrixFlipped is being called outside camera rendering scope.");
-
-            // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
-            if (renderer != null)
-                return IsHandleYFlipped(renderer.cameraColorTargetHandle) || targetTexture != null;
-            #pragma warning restore CS0618
-
-            return true;
-        }
-#endif
 
         /// <summary>
         /// True if the render target's projection matrix is flipped. This happens when the pipeline is rendering

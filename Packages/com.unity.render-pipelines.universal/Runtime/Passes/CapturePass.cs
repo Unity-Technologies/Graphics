@@ -12,34 +12,11 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     internal class CapturePass : ScriptableRenderPass
     {
-#if URP_COMPATIBILITY_MODE
-        RTHandle m_CameraColorHandle;
-#endif
-
         public CapturePass(RenderPassEvent evt)
         {
-            base.profilingSampler = new ProfilingSampler("Capture Camera output");
+            profilingSampler = new ProfilingSampler("Capture Camera output");
             renderPassEvent = evt;
         }
-
-#if URP_COMPATIBILITY_MODE
-        /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            CommandBuffer cmdBuf = renderingData.commandBuffer;
-
-            m_CameraColorHandle = renderingData.cameraData.renderer.GetCameraColorBackBuffer(cmdBuf);
-
-            using (new ProfilingScope(cmdBuf, profilingSampler))
-            {
-                var colorAttachmentIdentifier = m_CameraColorHandle.nameID;
-                var captureActions = renderingData.cameraData.captureActions;
-                for (captureActions.Reset(); captureActions.MoveNext();)
-                    captureActions.Current(colorAttachmentIdentifier, renderingData.commandBuffer);
-            }
-        }
-#endif
 
         private class UnsafePassData
         {

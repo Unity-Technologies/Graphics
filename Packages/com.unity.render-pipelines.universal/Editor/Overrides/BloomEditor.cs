@@ -44,13 +44,7 @@ namespace UnityEditor.Rendering.Universal
             PropertyField(m_Tint);
             PropertyField(m_Clamp);
             PropertyField(m_HighQualityFiltering);
-
-#if URP_COMPATIBILITY_MODE
-            // Filter is RG only. Comp.Mode. will use Gaussian.
-            if(!GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode)
-#endif
-                PropertyField(m_Filter);
-
+            PropertyField(m_Filter);
             PropertyField(m_Downsample);
             PropertyField(m_MaxIterations);
             PropertyField(m_DirtTexture);

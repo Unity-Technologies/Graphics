@@ -9,7 +9,6 @@ public class URPGlobalSettingsStrippingTests
     // Runtime settings
     [TestCase(typeof(ShaderStrippingSetting), true)]
     [TestCase(typeof(URPDefaultVolumeProfileSettings), true)]
-    [TestCase(typeof(RenderGraphSettings), true)]
     [TestCase(typeof(UniversalRendererResources), true)]
     [TestCase(typeof(UniversalRenderPipelineRuntimeTextures), true)]
     [TestCase(typeof(UniversalRenderPipelineRuntimeShaders), true)]

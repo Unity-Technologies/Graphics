@@ -37,39 +37,6 @@ public class CaptureDepthFeature : ScriptableRendererFeature
             m_Material = material;
         }
 
-#if URP_COMPATIBILITY_MODE
-        [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
-        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        {
-            var desc = renderingData.cameraData.cameraTargetDescriptor;
-            desc.graphicsFormat = GraphicsFormat.R32_SFloat;
-            desc.depthStencilFormat = GraphicsFormat.None;
-            desc.msaaSamples = 1;
-
-            RenderingUtils.ReAllocateHandleIfNeeded(ref m_CapturedDepthRT, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_CapturedDepthTexture");
-
-            // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
-            ConfigureTarget(m_CapturedDepthRT);
-            ConfigureClear(ClearFlag.Color, Color.black);
-            #pragma warning restore CS0618
-        }
-
-
-        [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            CommandBuffer cmd = CommandBufferPool.Get();
-
-            Blitter.BlitTexture(cmd, Vector2.one, m_Material, 0);
-
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-
-            CommandBufferPool.Release(cmd);
-        }
-#endif
-
         class CaptureDepthPassData
         {
             public Material material;
@@ -115,21 +82,6 @@ public class CaptureDepthFeature : ScriptableRendererFeature
 
             renderPassEvent = RenderPassEvent.AfterRendering;
         }
-
-#if URP_COMPATIBILITY_MODE
-        [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            CommandBuffer cmd = CommandBufferPool.Get();
-
-            Blitter.BlitTexture(cmd, m_CapturePass.m_CapturedDepthRT, Vector2.one, 0, false);
-
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-
-            CommandBufferPool.Release(cmd);
-        }
-#endif
 
         class DrawDepthPassData
         {

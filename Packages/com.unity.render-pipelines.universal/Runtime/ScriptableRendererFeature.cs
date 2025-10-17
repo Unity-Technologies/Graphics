@@ -64,16 +64,6 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData">Rendering state. Use this to setup render passes.</param>
         public abstract void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData);
 
-#if URP_COMPATIBILITY_MODE
-        /// <summary>
-        /// Callback after render targets are initialized. This allows for accessing targets from renderer after they are created and ready.
-        /// </summary>
-        /// <param name="renderer">Renderer used for adding render passes.</param>
-        /// <param name="renderingData">Rendering state. Use this to setup render passes.</param>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete + " #from(6000.2)")]
-        public virtual void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData) { }
-#endif
-
         void OnEnable()
         {
             // UUM-44048: If the pipeline is not created, don't call Create() as it may allocate RTHandles or do other
@@ -89,16 +79,6 @@ namespace UnityEngine.Rendering.Universal
             if (RenderPipelineManager.currentPipeline is UniversalRenderPipeline)
                 Create();
         }
-
-#if URP_COMPATIBILITY_MODE
-        /// <summary>
-        /// Override this method and return true if the feature should use the Native RenderPass API
-        /// </summary>
-        internal virtual bool SupportsNativeRenderPass()
-        {
-            return false;
-        }
-#endif
 
         /// <summary>
         /// Override this method and return true that renderer would produce rendering layers texture.

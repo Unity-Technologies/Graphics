@@ -118,13 +118,5 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
         }
-
-#if URP_COMPATIBILITY_MODE
-        // Transient data
-        internal bool isDirty { get; set; }
-        internal bool hasRenderTarget { get; set; }
-        internal int renderTargetHandleId;
-        internal RTHandle renderTargetHandle;
-#endif
     }
 }

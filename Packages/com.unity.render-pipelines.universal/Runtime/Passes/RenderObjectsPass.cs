@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Scripting.APIUpdating;
 
@@ -100,7 +99,8 @@ namespace UnityEngine.Rendering.Universal
             Init(renderPassEvent, shaderTags, renderQueueType, layerMask, cameraSettings);
         }
 
-        internal RenderObjectsPass(URPProfileId profileId, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings)
+        internal RenderObjectsPass(URPProfileId profileId, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask,
+            RenderObjects.CustomCameraSettings cameraSettings)
         {
             profilingSampler = ProfilingSampler.Get(profileId);
             Init(renderPassEvent, shaderTags, renderQueueType, layerMask, cameraSettings);
@@ -136,27 +136,6 @@ namespace UnityEngine.Rendering.Universal
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             m_CameraSettings = cameraSettings;
         }
-
-#if URP_COMPATIBILITY_MODE
-        /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            UniversalRenderingData universalRenderingData = renderingData.frameData.Get<UniversalRenderingData>();
-            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
-            UniversalLightData lightData = renderingData.frameData.Get<UniversalLightData>();
-
-            var cmd = CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer);
-
-            using (new ProfilingScope(cmd, profilingSampler))
-            {
-                InitPassData(cameraData, ref m_PassData);
-                InitRendererLists(universalRenderingData, lightData, ref m_PassData, context, default(RenderGraph), false);
-
-                ExecutePass(m_PassData, cmd , m_PassData.rendererList, renderingData.cameraData.IsCameraProjectionMatrixFlipped());
-            }
-        }
-#endif
 
         private static void ExecutePass(PassData passData, RasterCommandBuffer cmd, RendererList rendererList, bool isYFlipped)
         {
@@ -225,7 +204,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         private void InitRendererLists(UniversalRenderingData renderingData, UniversalLightData lightData,
-            ref PassData passData, ScriptableRenderContext context, RenderGraph renderGraph, bool useRenderGraph)
+            ref PassData passData, RenderGraph renderGraph)
         {
             SortingCriteria sortingCriteria = (renderQueueType == RenderQueueType.Transparent)
                 ? SortingCriteria.CommonTransparent
@@ -238,30 +217,15 @@ namespace UnityEngine.Rendering.Universal
             drawingSettings.overrideShaderPassIndex = overrideShaderPassIndex;
 
             var activeDebugHandler = GetActiveDebugHandler(passData.cameraData);
-            var filterSettings = m_FilteringSettings;
-            if (useRenderGraph)
+            if (activeDebugHandler != null)
             {
-                if (activeDebugHandler != null)
-                {
-                    passData.debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(renderGraph,
-                        ref renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
-                }
-                else
-                {
-                    RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, ref renderingData.cullResults, drawingSettings,
-                        m_FilteringSettings, m_RenderStateBlock, ref passData.rendererListHdl);
-                }
+                passData.debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(renderGraph,
+                    ref renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
             }
             else
             {
-                if (activeDebugHandler != null)
-                {
-                    passData.debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(context, ref renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
-                }
-                else
-                {
-                    RenderingUtils.CreateRendererListWithRenderStateBlock(context, ref renderingData.cullResults, drawingSettings, m_FilteringSettings, m_RenderStateBlock, ref passData.rendererList);
-                }
+                RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, ref renderingData.cullResults, drawingSettings,
+                    m_FilteringSettings, m_RenderStateBlock, ref passData.rendererListHdl);
             }
         }
 
@@ -304,7 +268,7 @@ namespace UnityEngine.Rendering.Universal
                 if (ssaoTexture.IsValid())
                     builder.UseTexture(ssaoTexture, AccessFlags.Read);
 
-                InitRendererLists(renderingData, lightData, ref passData, default(ScriptableRenderContext), renderGraph, true);
+                InitRendererLists(renderingData, lightData, ref passData, renderGraph);
                 var activeDebugHandler = GetActiveDebugHandler(passData.cameraData);
                 if (activeDebugHandler != null)
                 {
