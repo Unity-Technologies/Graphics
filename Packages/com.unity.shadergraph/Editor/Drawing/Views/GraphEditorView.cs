@@ -1473,7 +1473,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         void UpdateSerializedWindowLayout()
         {
             m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, m_GraphView.layout);
-            m_FloatingWindowsLayout.previewLayout.ClampToParentWindow();
+            m_FloatingWindowsLayout.previewLayout.ClampToParentWindow(m_GraphView.layout);
 
             blackboardController.blackboard.ClampToParentLayout(m_GraphView.layout);
 

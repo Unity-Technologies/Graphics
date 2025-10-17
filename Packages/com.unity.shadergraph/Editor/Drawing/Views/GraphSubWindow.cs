@@ -291,7 +291,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         public void ClampToParentLayout(Rect parentLayout)
         {
             windowDockingLayout.CalculateDockingCornerAndOffset(layout, parentLayout);
-            windowDockingLayout.ClampToParentWindow();
+            windowDockingLayout.ClampToParentWindow(parentLayout);
 
             // If the parent shader graph window is being resized smaller than this window on either axis
             if (parentLayout.width < this.layout.width || parentLayout.height < this.layout.height)
@@ -361,7 +361,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         void OnMoveEnd(MouseUpEvent upEvent)
         {
             windowDockingLayout.CalculateDockingCornerAndOffset(layout, ParentView.layout);
-            windowDockingLayout.ClampToParentWindow();
+            windowDockingLayout.ClampToParentWindow(ParentView.layout);
 
             SerializeLayout();
         }

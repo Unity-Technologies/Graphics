@@ -82,10 +82,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Size = layout.size;
         }
 
-        public void ClampToParentWindow()
+        public void ClampToParentWindow(Rect parentLayout)
         {
-            m_HorizontalOffset = Mathf.Max(0f, m_HorizontalOffset);
-            m_VerticalOffset = Mathf.Max(0f, m_VerticalOffset);
+            m_HorizontalOffset = Mathf.Clamp(m_HorizontalOffset, 0, parentLayout.width - m_Size.x);
+            m_VerticalOffset = Mathf.Clamp(m_VerticalOffset, 0, parentLayout.height - m_Size.y);
         }
 
         public void ApplyPosition(VisualElement target)
