@@ -4,6 +4,7 @@ Explore the main user interface elements you need to know to create and configur
 
 | Topic | Description |
 | :--- | :--- |
+| [Shader Graph template browser](template-browser.md) | Browse the list of available templates to create your shader graphs from. |
 | [Shader Graph Window](Shader-Graph-Window.md) | Display and edit your shader graph assets in Unity, including the Blackboard, the Main Preview, and the Graph Inspector. |
 | [Create Node Menu](Create-Node-Menu.md) | Create nodes in your graph and create block nodes in the Master Stack. |
 | [Graph Settings Tab](Graph-Settings-Tab.md) | Change settings that affect your shader graph as a whole.  |
