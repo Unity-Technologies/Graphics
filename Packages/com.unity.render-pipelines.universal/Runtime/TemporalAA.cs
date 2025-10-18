@@ -496,7 +496,11 @@ namespace UnityEngine.Rendering.Universal
 
                 if (cameraData.xr.enabled)
                 {
-                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                    // Apply MultiviewRenderRegionsCompatible flag only for the first pass in multipass
+                    if (cameraData.xr.multipassId == 0)
+                    {
+                        builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                    }
                 }
 
                 passData.material = taaMaterial;
@@ -554,7 +558,11 @@ namespace UnityEngine.Rendering.Universal
 
                     if (cameraData.xr.enabled)
                     {
-                        builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                        // Apply MultiviewRenderRegionsCompatible flag only to the peripheral view in Quad Views
+                        if (cameraData.xr.multipassId == 0)
+                        {
+                            builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                        }
                     }
 
                     passData.material = taaMaterial;

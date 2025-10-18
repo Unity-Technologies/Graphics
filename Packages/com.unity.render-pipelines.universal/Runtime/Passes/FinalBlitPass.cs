@@ -168,7 +168,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // This is a screen-space pass, make sure foveated rendering is disabled for non-uniform renders
                 bool passSupportsFoveation = !XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster);
                 builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
-                builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                // Apply MultiviewRenderRegionsCompatible flag only to the peripheral view in Quad Views
+                if (cameraData.xr.multipassId == 0)
+                {
+                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                }
 
                 // Optimization: In XR, we don't have split screen use case.
                 // The access flag can be set to WriteAll if there is a full screen blit and no alpha blending,

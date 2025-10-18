@@ -927,7 +927,12 @@ namespace UnityEngine.Rendering.Universal
                 passData.cameraData = cameraData;
 
                 builder.AllowGlobalStateModification(true);
-                builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+
+                // Apply MultiviewRenderRegionsCompatible flag only for the first pass in multipass
+                if (cameraData.xr.multipassId == 0)
+                {
+                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                }
 
                 builder.SetRenderFunc((EndXRPassData data, RasterGraphContext context) =>
                 {
