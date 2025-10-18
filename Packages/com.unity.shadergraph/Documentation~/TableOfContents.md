@@ -8,6 +8,7 @@
     * [My first Shader Graph](First-Shader-Graph.md)
     * [Create a new shader graph from a template](create-shader-graph-template.md)
 * [Shader Graph UI reference](ui-reference.md)
+    * [Shader Graph template browser](template-browser.md)
     * [Shader Graph Window](Shader-Graph-Window.md)
         * [Blackboard](Blackboard.md)
         * [Main Preview](Main-Preview.md)
