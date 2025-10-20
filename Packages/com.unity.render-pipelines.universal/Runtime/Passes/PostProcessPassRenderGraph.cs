@@ -1429,14 +1429,20 @@ namespace UnityEngine.Rendering.Universal
             // Scaled FXAA
             using (var builder = renderGraph.AddRasterRenderPass<PostProcessingFinalSetupPassData>("Postprocessing Final Setup Pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_FinalSetup)))
             {
+
+                builder.AllowGlobalStateModification(true);
+                builder.AllowPassCulling(false);
+
                 Material material = m_Materials.scalingSetup;
                 material.shaderKeywords = null;
 
+                material.shaderKeywords = null;
+
                 if (settings.isFxaaEnabled)
-                    material.EnableKeyword(ShaderKeywordStrings.Fxaa);
+                    CoreUtils.SetKeyword(material, ShaderKeywordStrings.Fxaa, settings.isFxaaEnabled);
 
                 if (settings.isFsrEnabled)
-                    material.EnableKeyword(settings.hdrOperations.HasFlag(HDROutputUtils.Operation.ColorEncoding) ? ShaderKeywordStrings.Gamma20AndHDRInput : ShaderKeywordStrings.Gamma20);
+                    CoreUtils.SetKeyword(material, (settings.hdrOperations.HasFlag(HDROutputUtils.Operation.ColorEncoding) ? ShaderKeywordStrings.Gamma20AndHDRInput : ShaderKeywordStrings.Gamma20), true);
 
                 if (settings.hdrOperations.HasFlag(HDROutputUtils.Operation.ColorEncoding))
                     SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, material, settings.hdrOperations, cameraData.rendersOverlayUI);
@@ -1444,7 +1450,6 @@ namespace UnityEngine.Rendering.Universal
                 if (settings.isAlphaOutputEnabled)
                     CoreUtils.SetKeyword(material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, settings.isAlphaOutputEnabled);
 
-                builder.AllowGlobalStateModification(true);
                 passData.destinationTexture = destination;
                 builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
                 passData.sourceTexture = source;
@@ -1567,6 +1572,7 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddRasterRenderPass<PostProcessingFinalBlitPassData>("Postprocessing Final Blit Pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_FinalBlit)))
             {
                 builder.AllowGlobalStateModification(true);
+                builder.AllowPassCulling(false);
                 passData.destinationTexture = postProcessingTarget;
                 builder.SetRenderAttachment(postProcessingTarget, 0, AccessFlags.Write);
                 passData.sourceTexture = source;
@@ -1602,8 +1608,7 @@ namespace UnityEngine.Rendering.Universal
 
                     PostProcessUtils.SetSourceSize(cmd, data.sourceTexture);
 
-                    if (isFxaaEnabled)
-                        material.EnableKeyword(ShaderKeywordStrings.Fxaa);
+                    CoreUtils.SetKeyword(material, ShaderKeywordStrings.Fxaa, isFxaaEnabled);
 
                     if (isFsrEnabled)
                     {
@@ -1615,7 +1620,7 @@ namespace UnityEngine.Rendering.Universal
                         if (data.cameraData.fsrSharpness > 0.0f)
                         {
                             // RCAS is performed during the final post blit, but we set up the parameters here for better logical grouping.
-                            material.EnableKeyword(requireHDROutput ? ShaderKeywordStrings.EasuRcasAndHDRInput : ShaderKeywordStrings.Rcas);
+                            CoreUtils.SetKeyword(material, (requireHDROutput ? ShaderKeywordStrings.EasuRcasAndHDRInput : ShaderKeywordStrings.Rcas), true);
                             FSRUtils.SetRcasConstantsLinear(cmd, sharpness);
                         }
                     }
@@ -1623,7 +1628,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         // Reuse RCAS as a standalone sharpening filter for TAA.
                         // If FSR is enabled then it overrides the sharpening/TAA setting and we skip it.
-                        material.EnableKeyword(ShaderKeywordStrings.Rcas);
+                        CoreUtils.SetKeyword(material, ShaderKeywordStrings.Rcas, true);
                         FSRUtils.SetRcasConstantsLinear(cmd, data.cameraData.taaSettings.contrastAdaptiveSharpening);
                     }
 
@@ -1656,6 +1661,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void RenderFinalPassRenderGraph(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle source, in TextureHandle overlayUITexture, in TextureHandle postProcessingTarget, bool enableColorEncodingIfNeeded)
         {
+
             var stack = VolumeManager.instance.stack;
             m_Tonemapping = stack.GetComponent<Tonemapping>();
             m_FilmGrain = stack.GetComponent<FilmGrain>();
@@ -1699,7 +1705,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             if (RequireSRGBConversionBlitToBackBuffer(cameraData.requireSrgbConversion))
-                material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
+                CoreUtils.SetKeyword(material, ShaderKeywordStrings.LinearToSRGBConversion, true);
 
             settings.hdrOperations = HDROutputUtils.Operation.None;
             settings.requireHDROutput = RequireHDROutput(cameraData);
@@ -1927,14 +1933,14 @@ namespace UnityEngine.Rendering.Universal
 
                     if (data.isHdrGrading)
                     {
-                        material.EnableKeyword(ShaderKeywordStrings.HDRGrading);
+                        CoreUtils.SetKeyword(material, ShaderKeywordStrings.HDRGrading, true);
                     }
                     else
                     {
                         switch (data.toneMappingMode)
                         {
-                            case TonemappingMode.Neutral: material.EnableKeyword(ShaderKeywordStrings.TonemapNeutral); break;
-                            case TonemappingMode.ACES: material.EnableKeyword(ShaderKeywordStrings.TonemapACES); break;
+                            case TonemappingMode.Neutral: CoreUtils.SetKeyword(material, ShaderKeywordStrings.TonemapNeutral, true); break;
+                            case TonemappingMode.ACES: CoreUtils.SetKeyword(material, ShaderKeywordStrings.TonemapACES, true); break;
                             default: break; // None
                         }
                     }
@@ -2139,11 +2145,11 @@ namespace UnityEngine.Rendering.Universal
                 SetupDithering(cameraData, m_Materials.uber);
 
                 if (RequireSRGBConversionBlitToBackBuffer(cameraData.requireSrgbConversion))
-                    m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
+                    CoreUtils.SetKeyword(m_Materials.uber, ShaderKeywordStrings.LinearToSRGBConversion, true);
 
                 if (m_UseFastSRGBLinearConversion)
                 {
-                    m_Materials.uber.EnableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
+                    CoreUtils.SetKeyword(m_Materials.uber, ShaderKeywordStrings.UseFastSRGBLinearConversion, true);
                 }
 
                 bool requireHDROutput = RequireHDROutput(cameraData);

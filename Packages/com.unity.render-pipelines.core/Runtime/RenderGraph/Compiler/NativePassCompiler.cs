@@ -1420,7 +1420,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 if (pass.waitOnGraphicsFencePassId != -1)
                 {
                     var fence = contextData.fences[pass.waitOnGraphicsFencePassId];
-                    rgContext.cmd.WaitOnAsyncGraphicsFence(fence);
+                    rgContext.cmd.WaitOnAsyncGraphicsFence(fence, SynchronisationStageFlags.PixelProcessing);
                 }
 
                 var nrpBegan = false;

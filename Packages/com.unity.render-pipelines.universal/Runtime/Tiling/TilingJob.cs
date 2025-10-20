@@ -1,4 +1,3 @@
-using System;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -113,6 +112,8 @@ namespace UnityEngine.Rendering.Universal
             if (SpherePointIsValid(sphereBoundX0)) ExpandY(sphereBoundX0);
             if (SpherePointIsValid(sphereBoundX1)) ExpandY(sphereBoundX1);
 
+            m_TileYRange.Clamp(0, (short)(tileCount.y - 1));
+
             if (light.lightType == LightType.Spot)
             {
                 // Cone base
@@ -190,20 +191,28 @@ namespace UnityEngine.Rendering.Universal
                 // from the light position.
                 GetConeSideTangentPoints(lightPositionVS, lightDirectionVS, cosHalfAngle, baseRadius, coneHeight, range, coneU, coneV, out var l1, out var l2);
 
+                // Inside the above function there is a check:
+                // if (math.dot(math.normalize(-vertex), axis) >= cosHalfAngle)
+                //    return;
+                // So l1 and l2 can be zero vectors.
+
+                // Check for division by 0
+                if ((l1.x != 0.0f) && (l1.y != 0.0f) && (l1.z != 0.0f)) 
                 {
                     var planeNormal = math.float3(0, 1, viewPlaneBottoms[m_ViewIndex]);
                     var l1t = math.dot(-lightPositionVS, planeNormal) / math.dot(l1, planeNormal);
                     var l1x = lightPositionVS + l1 * l1t;
                     if (l1t >= 0 && l1t <= 1 && l1x.z >= near) ExpandY(l1x);
                 }
+
+                // Check for division by 0
+                if ((l2.x != 0.0f) && (l2.y != 0.0f) && (l2.z != 0.0f))
                 {
                     var planeNormal = math.float3(0, 1, viewPlaneTops[m_ViewIndex]);
                     var l1t = math.dot(-lightPositionVS, planeNormal) / math.dot(l1, planeNormal);
                     var l1x = lightPositionVS + l1 * l1t;
                     if (l1t >= 0 && l1t <= 1 && l1x.z >= near) ExpandY(l1x);
                 }
-
-                m_TileYRange.Clamp(0, (short)(tileCount.y - 1));
 
                 // Calculate tile plane ranges for cone.
                 for (var planeIndex = m_TileYRange.start + 1; planeIndex <= m_TileYRange.end; planeIndex++)
@@ -216,18 +225,25 @@ namespace UnityEngine.Rendering.Universal
                     var planeNormal = math.float3(0, 1, -planeY);
 
                     // Intersect lines with y-plane and clip if needed.
-                    var l1t = math.dot(-lightPositionVS, planeNormal) / math.dot(l1, planeNormal);
-                    var l1x = lightPositionVS + l1 * l1t;
-                    if (l1t >= 0 && l1t <= 1 && l1x.z >= near) planeRange.Expand((short)math.clamp(ViewToTileSpace(l1x).x, 0, tileCount.x - 1));
-
-                    var l2t = math.dot(-lightPositionVS, planeNormal) / math.dot(l2, planeNormal);
-                    var l2x = lightPositionVS + l2 * l2t;
-                    if (l2t >= 0 && l2t <= 1 && l2x.z >= near) planeRange.Expand((short)math.clamp(ViewToTileSpace(l2x).x, 0, tileCount.x - 1));
+                    // Check for division by 0
+                    if ((l1.x != 0.0f) && (l1.y != 0.0f) && (l1.z != 0.0f))
+                    { 
+                        var l1t = math.dot(-lightPositionVS, planeNormal) / math.dot(l1, planeNormal);
+                        var l1x = lightPositionVS + l1 * l1t;
+                        if (l1t >= 0 && l1t <= 1 && l1x.z >= near) planeRange.Expand((short)ViewToTileSpace(l1x).x);
+                    }
+                    // Check for division by 0
+                    if ((l2.x != 0.0f) && (l2.y != 0.0f) && (l2.z != 0.0f))
+                    {
+                        var l2t = math.dot(-lightPositionVS, planeNormal) / math.dot(l2, planeNormal);
+                        var l2x = lightPositionVS + l2 * l2t;
+                        if (l2t >= 0 && l2t <= 1 && l2x.z >= near) planeRange.Expand((short)ViewToTileSpace(l2x).x);
+                    }
 
                     if (IntersectCircleYPlane(planeY, baseCenter, lightDirectionVS, baseUY, baseVY, baseRadius, out var circleTile0, out var circleTile1))
                     {
-                        if (circleTile0.z >= near) planeRange.Expand((short)math.clamp(ViewToTileSpace(circleTile0).x, 0, tileCount.x - 1));
-                        if (circleTile1.z >= near) planeRange.Expand((short)math.clamp(ViewToTileSpace(circleTile1).x, 0, tileCount.x - 1));
+                        if (circleTile0.z >= near) planeRange.Expand((short)ViewToTileSpace(circleTile0).x);
+                        if (circleTile1.z >= near) planeRange.Expand((short)ViewToTileSpace(circleTile1).x);
                     }
 
                     if (coneIsClipping)
@@ -237,34 +253,53 @@ namespace UnityEngine.Rendering.Universal
                         var theta = FindNearConicYTheta(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, y);
                         var p0 = math.float3(EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, theta.x).x, y, near);
                         var p1 = math.float3(EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, theta.y).x, y, near);
-                        if (ConicPointIsValid(p0)) planeRange.Expand((short)math.clamp(ViewToTileSpace(p0).x, 0, tileCount.x - 1));
-                        if (ConicPointIsValid(p1)) planeRange.Expand((short)math.clamp(ViewToTileSpace(p1).x, 0, tileCount.x - 1));
+                        if (ConicPointIsValid(p0)) planeRange.Expand((short)ViewToTileSpace(p0).x);
+                        if (ConicPointIsValid(p1)) planeRange.Expand((short)ViewToTileSpace(p1).x);
                     }
 
-                    // Write to tile ranges above and below the plane. Note that at `m_Offset` we store Y-range.
-                    var tileIndex = m_Offset + 1 + planeIndex;
-                    tileRanges[tileIndex] = InclusiveRange.Merge(tileRanges[tileIndex], planeRange);
-                    tileRanges[tileIndex - 1] = InclusiveRange.Merge(tileRanges[tileIndex - 1], planeRange);
+                    // Do the sphere part of the spotlight
+                    planeY = math.lerp(viewPlaneBottoms[m_ViewIndex], viewPlaneTops[m_ViewIndex], planeIndex * tileScaleInv.y);
+                    GetSphereYPlaneHorizon(lightPositionVS, range, near, sphereClipRadius, planeY, out var sphereTile0, out var sphereTile1);
+                    if (SpherePointIsValid(sphereTile0)) planeRange.Expand((short)ViewToTileSpace(sphereTile0).x);
+                    if (SpherePointIsValid(sphereTile1)) planeRange.Expand((short)ViewToTileSpace(sphereTile1).x);
+
+                    // Only consider ranges that intersect the tiling extents.
+                    // The logic in the below 'if' statement is a simplification of:
+                    // !((planeRange.start < 0) && (planeRange.end < 0)) && !((planeRange.start > tileCount.x - 1) && (planeRange.end > tileCount.x - 1))
+                    if (((planeRange.start >= 0) || (planeRange.end >= 0)) && ((planeRange.start <= tileCount.x - 1) || (planeRange.end <= tileCount.x - 1)))
+                    {
+                        // Write to tile ranges above and below the plane. Note that at `m_Offset` we store Y-range.
+                        var tileIndex = m_Offset + 1 + planeIndex;
+                        planeRange.Clamp(0, (short)(tileCount.x - 1));
+                        tileRanges[tileIndex] = InclusiveRange.Merge(tileRanges[tileIndex], planeRange);
+                        tileRanges[tileIndex - 1] = InclusiveRange.Merge(tileRanges[tileIndex - 1], planeRange);
+                    }
                 }
             }
-
-            m_TileYRange.Clamp(0, (short)(tileCount.y - 1));
-
-            // Calculate tile plane ranges for sphere.
-            for (var planeIndex = m_TileYRange.start + 1; planeIndex <= m_TileYRange.end; planeIndex++)
+            else // Sphere
             {
-                var planeRange = InclusiveRange.empty;
+                // Calculate tile plane ranges for sphere.
+                for (var planeIndex = m_TileYRange.start + 1; planeIndex <= m_TileYRange.end; planeIndex++)
+                {
+                    var planeRange = InclusiveRange.empty;
 
-                var planeY = math.lerp(viewPlaneBottoms[m_ViewIndex], viewPlaneTops[m_ViewIndex], planeIndex * tileScaleInv.y);
-                GetSphereYPlaneHorizon(lightPositionVS, range, near, sphereClipRadius, planeY, out var sphereTile0, out var sphereTile1);
-                if (SpherePointIsValid(sphereTile0)) planeRange.Expand((short)math.clamp(ViewToTileSpace(sphereTile0).x, 0, tileCount.x - 1));
-                if (SpherePointIsValid(sphereTile1)) planeRange.Expand((short)math.clamp(ViewToTileSpace(sphereTile1).x, 0, tileCount.x - 1));
+                    var planeY = math.lerp(viewPlaneBottoms[m_ViewIndex], viewPlaneTops[m_ViewIndex], planeIndex * tileScaleInv.y);
+                    GetSphereYPlaneHorizon(lightPositionVS, range, near, sphereClipRadius, planeY, out var sphereTile0, out var sphereTile1);
+                    if (SpherePointIsValid(sphereTile0)) planeRange.Expand((short)ViewToTileSpace(sphereTile0).x);
+                    if (SpherePointIsValid(sphereTile1)) planeRange.Expand((short)ViewToTileSpace(sphereTile1).x);
 
-                var tileIndex = m_Offset + 1 + planeIndex;
-                tileRanges[tileIndex] = InclusiveRange.Merge(tileRanges[tileIndex], planeRange);
-                tileRanges[tileIndex - 1] = InclusiveRange.Merge(tileRanges[tileIndex - 1], planeRange);
+				    // Only consider ranges that intersect the tiling extents.
+                    // The logic in the below 'if' statement is a simplification of:
+                    // !((planeRange.start < 0) && (planeRange.end < 0)) && !((planeRange.start > tileCount.x - 1) && (planeRange.end > tileCount.x - 1))
+                    if (((planeRange.start >= 0) || (planeRange.end >= 0)) && ((planeRange.start <= tileCount.x - 1) || (planeRange.end <= tileCount.x - 1)))
+                    {
+                	    var tileIndex = m_Offset + 1 + planeIndex;
+					    planeRange.Clamp(0, (short)(tileCount.x - 1));
+                	    tileRanges[tileIndex] = InclusiveRange.Merge(tileRanges[tileIndex], planeRange);
+                	    tileRanges[tileIndex - 1] = InclusiveRange.Merge(tileRanges[tileIndex - 1], planeRange);
+				    }
+                }
             }
-
             tileRanges[m_Offset] = m_TileYRange;
         }
 
@@ -524,12 +559,19 @@ namespace UnityEngine.Rendering.Universal
 
                         var p = math.float3(x, planeY, 1);
                         var pTS = isOrthographic ? ViewToTileSpaceOrthographic(p) : ViewToTileSpace(p);
-                        planeRange.Expand((short)math.clamp(pTS.x, 0, tileCount.x - 1));
+                        planeRange.Expand((short)pTS.x);
                     }
 
-                    var tileIndex = m_Offset + 1 + planeIndex;
-                    tileRanges[tileIndex] = InclusiveRange.Merge(tileRanges[tileIndex], planeRange);
-                    tileRanges[tileIndex - 1] = InclusiveRange.Merge(tileRanges[tileIndex - 1], planeRange);
+                    // Only consider ranges that intersect the tiling extents.
+                    // The logic in the below 'if' statement is a simplification of:
+                    // !((planeRange.start < 0) && (planeRange.end < 0)) && !((planeRange.start > tileCount.x - 1) && (planeRange.end > tileCount.x - 1))
+                    if (((planeRange.start >= 0) || (planeRange.end >= 0)) && ((planeRange.start <= tileCount.x - 1) || (planeRange.end <= tileCount.x - 1)))
+                    {
+                        var tileIndex = m_Offset + 1 + planeIndex;
+                        planeRange.Clamp(0, (short)(tileCount.x - 1));
+                        tileRanges[tileIndex] = InclusiveRange.Merge(tileRanges[tileIndex], planeRange);
+                        tileRanges[tileIndex - 1] = InclusiveRange.Merge(tileRanges[tileIndex - 1], planeRange);
+                    }
                 }
 
                 tileRanges[m_Offset] = m_TileYRange;
