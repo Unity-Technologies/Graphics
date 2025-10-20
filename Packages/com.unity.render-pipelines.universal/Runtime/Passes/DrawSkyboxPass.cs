@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.material = skyboxMaterial;
                 builder.UseRendererList(skyRendererListHandle);
                 builder.SetRenderAttachment(colorTarget, 0, AccessFlags.Write);
-                builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.ReadWrite);
 
                 builder.AllowPassCulling(false);
                 if (cameraData.xr.enabled)

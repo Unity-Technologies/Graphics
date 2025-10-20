@@ -169,7 +169,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 builder.SetRenderAttachment(motionVectorColor, 0, AccessFlags.Write);
-                builder.SetRenderAttachmentDepth(motionVectorDepth, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(motionVectorDepth, AccessFlags.ReadWrite);
                 InitPassData(ref passData, cameraData);
                 passData.cameraDepth = cameraDepthTexture;
                 builder.UseTexture(cameraDepthTexture, AccessFlags.Read);

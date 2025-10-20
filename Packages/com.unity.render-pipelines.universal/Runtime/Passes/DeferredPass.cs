@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.shadowData = shadowData;
 
                 builder.SetRenderAttachment(color, 0, AccessFlags.Write);
-                builder.SetRenderAttachmentDepth(depth, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(depth, AccessFlags.ReadWrite);
                 passData.deferredLights = m_DeferredLights;
 
                 if (!m_DeferredLights.UseFramebufferFetch)
@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     {
                         if (i != m_DeferredLights.GBufferLightingIndex)
                         {
-                            builder.SetInputAttachment(gbuffer[i], idx, AccessFlags.Read);
+                            builder.SetInputAttachment(gbuffer[i], idx);
                             idx++;
                         }
                     }

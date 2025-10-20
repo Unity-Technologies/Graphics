@@ -155,7 +155,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
 
-            builder.SetRenderAttachmentDepth(cameraDepth, AccessFlags.Write);
+            builder.SetRenderAttachmentDepth(cameraDepth, AccessFlags.ReadWrite);
             passData.deferredLights = m_DeferredLights;
 
             InitRendererLists(ref passData, default, renderGraph, renderingData, cameraData, lightData);

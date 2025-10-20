@@ -102,9 +102,9 @@ namespace UnityEngine.Rendering.Universal
                 if (renderGraph.nativeRenderPassesEnabled)
                 {
                     if (resourceData.gBuffer[4].IsValid())
-                        builder.SetInputAttachment(resourceData.gBuffer[4], 0, AccessFlags.Read);
+                        builder.SetInputAttachment(resourceData.gBuffer[4], 0);
                     if (m_DecalLayers && resourceData.gBuffer[5].IsValid())
-                        builder.SetInputAttachment(resourceData.gBuffer[5], 1, AccessFlags.Read);
+                        builder.SetInputAttachment(resourceData.gBuffer[5], 1);
                 }
                 else
                 {

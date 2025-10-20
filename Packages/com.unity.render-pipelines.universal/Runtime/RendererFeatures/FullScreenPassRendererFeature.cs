@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.Universal
                     builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
 
                     if (m_BindDepthStencilAttachment)
-                        builder.SetRenderAttachmentDepth(resourcesData.activeDepthTexture, AccessFlags.Write);
+                        builder.SetRenderAttachmentDepth(resourcesData.activeDepthTexture, AccessFlags.ReadWrite);
 
                     builder.SetRenderFunc((MainPassData data, RasterGraphContext rgContext) =>
                     {

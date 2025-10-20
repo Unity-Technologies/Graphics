@@ -242,7 +242,7 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
                 // Bind the depth-stencil buffer.
                 // This is a demonstration. The code isn't used in the example.
                 if (kBindDepthStencilAttachment)
-                    builder.SetRenderAttachmentDepth(resourcesData.activeDepthTexture, AccessFlags.Write);
+                    builder.SetRenderAttachmentDepth(resourcesData.activeDepthTexture);
 
                 // Set the render method.
                 builder.SetRenderFunc((MainPassData data, RasterGraphContext context) => ExecuteMainPass(data, context));

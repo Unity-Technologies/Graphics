@@ -212,7 +212,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
                 passData.isMSAA = isMSAA;
                 passData.force2DForXR = isXRArrayTextureActive && (!isArrayTexture);
 
-                builder.SetInputAttachment(source, 0, AccessFlags.Read);
+                builder.SetInputAttachment(source, 0);
                 builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
                 builder.SetRenderFunc((CopyPassData data, RasterGraphContext context) => CopyRenderFunc(data, context));
 

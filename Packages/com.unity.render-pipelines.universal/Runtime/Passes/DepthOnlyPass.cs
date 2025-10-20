@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.rendererList = renderGraph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
 
-                builder.SetRenderAttachmentDepth(cameraDepthTexture, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(cameraDepthTexture, AccessFlags.ReadWrite);
 
                 if (setGlobalDepth)
                     builder.SetGlobalTextureAfterPass(cameraDepthTexture, s_CameraDepthTextureID);

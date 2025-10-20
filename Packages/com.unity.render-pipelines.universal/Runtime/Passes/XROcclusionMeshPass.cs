@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.xr = cameraData.xr;
                 passData.cameraColorAttachment = cameraColorAttachment;
                 builder.SetRenderAttachment(cameraColorAttachment, 0);
-                builder.SetRenderAttachmentDepth(cameraDepthAttachment, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(cameraDepthAttachment, AccessFlags.ReadWrite);
 
                 passData.isActiveTargetBackBuffer = resourceData.isActiveTargetBackBuffer;
 
