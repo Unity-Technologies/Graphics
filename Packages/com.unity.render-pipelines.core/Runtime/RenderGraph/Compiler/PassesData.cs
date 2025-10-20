@@ -5,6 +5,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 using Unity.Collections;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
@@ -1013,6 +1014,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 }
             }
 
+            // Determines if the pixel storage limit is reached after adding the new 'pass to merge' attachments to the current native render pass.
+            if (TotalAttachmentsSizeExceedPixelStorageLimit(contextData, ref nativePass, ref attachmentsToTryAdding))
+            {
+                return new PassBreakAudit(PassBreakReason.AttachmentLimitReached, passIdToMerge);
+            }
+
             // We check first if we are at risk of having too many subpasses,
             // only then we do the costlier subpass merging check, short circuiting it whenever possible
             bool canAddAnExtraSubpass = (nativePass.numGraphPasses < NativePassCompiler.k_MaxSubpass);
@@ -1023,6 +1030,34 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             // All is good! Pass can be merged into active native pass
             return new PassBreakAudit(PassBreakReason.Merged, passIdToMerge);
+        }
+
+        static bool TotalAttachmentsSizeExceedPixelStorageLimit(CompilerContextData contextData, ref NativePassData nativePass, ref FixedAttachmentArray<PassFragmentData> attachmentsToTryAdding)
+        {
+            // TODO: We are currently only checking for iOS GPU Family 1 to 3 since the storage size is much more restricted (16 bytes for Family 1 and 32 for Family 2 & 3).
+            // This is temporary. Later on, we should check all iOS GPU Families but also Android (Vulkan) to avoid the same potential restrictions.
+            if (Application.platform == RuntimePlatform.IPhonePlayer && SystemInfo.maxTiledPixelStorageSize <= 32)
+            {
+                int totalSize = 0;
+
+                // Iterate over current attachments
+                for (int i = 0; i < nativePass.fragments.size; ++i)
+                {
+                    ref readonly var unvResource = ref contextData.UnversionedResourceData(nativePass.fragments[i].resource);
+                    totalSize += SystemInfo.GetTiledRenderTargetStorageSize(unvResource.graphicsFormat, unvResource.msaaSamples);
+                }
+
+                // Iterate over new attachments to add
+                for (int i = 0; i < attachmentsToTryAdding.size; ++i)
+                {
+                    ref readonly var unvResource = ref contextData.UnversionedResourceData(attachmentsToTryAdding[i].resource);
+                    totalSize += SystemInfo.GetTiledRenderTargetStorageSize(unvResource.graphicsFormat, unvResource.msaaSamples);
+                }
+
+                return totalSize > SystemInfo.maxTiledPixelStorageSize;
+            }
+            
+            return false;
         }
 
         // This function follows the structure of TryMergeNativeSubPass but only tests if the new native subpass can be
