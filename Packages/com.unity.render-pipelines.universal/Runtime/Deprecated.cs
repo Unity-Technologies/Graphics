@@ -14,35 +14,6 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cmd">Use this CommandBuffer to cleanup any generated data. </param>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public virtual void FrameCleanup(CommandBuffer cmd) => OnCameraCleanup(cmd);
-        
-
-        /// <summary>
-        /// This method is obsolete.
-        /// </summary>
-        [Obsolete("This method is obsolete.")]
-        public virtual void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-        { }
-        
-        /// <summary>
-        /// This method is obsolete.
-        /// </summary>
-        [Obsolete("This method is obsolete.")]
-        public virtual void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        { }
-
-        /// <summary>
-        /// This method is obsolete.
-        /// </summary>
-        [Obsolete("This method is obsolete.")]
-        public virtual void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        { }
-
-        /// <summary>
-        /// This method is obsolete.
-        /// </summary>
-        [Obsolete("This method is obsolete.")]
-        public void ConfigureClear(ClearFlag clearFlag, Color clearColor)
-        { }
     }
 
     namespace Internal
