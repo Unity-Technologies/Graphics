@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering
             if (Is2D(texture))
             {
                 Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, BlitType.Padding);
-                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetInstanceID(), blitMips);
+                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetEntityId(), blitMips);
             }
         }
 
@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering
             if (Is2D(texture))
             {
                 Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, BlitType.PaddingMultiply);
-                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetInstanceID(), blitMips);
+                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetEntityId(), blitMips);
             }
         }
 
@@ -164,7 +164,7 @@ namespace UnityEngine.Rendering
             if (Is2D(texture))
             {
                 Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, BlitType.OctahedralPadding);
-                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetInstanceID(), blitMips);
+                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetEntityId(), blitMips);
             }
         }
 
@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering
             if (Is2D(texture))
             {
                 Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, BlitType.OctahedralPaddingMultiply);
-                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetInstanceID(), blitMips);
+                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetEntityId(), blitMips);
             }
         }
 

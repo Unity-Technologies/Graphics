@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var debugSettings = DebugHandler.DebugDisplaySettings.gpuResidentDrawerSettings;
 
-                    GPUResidentDrawer.RenderDebugOcclusionTestOverlay(renderGraph, debugSettings, cameraData.camera.GetInstanceID(), resourceData.activeColorTexture);
+                    GPUResidentDrawer.RenderDebugOcclusionTestOverlay(renderGraph, debugSettings, cameraData.camera.GetEntityId(), resourceData.activeColorTexture);
 
                     float screenWidth = (int)(cameraData.pixelHeight * cameraData.renderScale);
                     float screenHeight = (int)(cameraData.pixelHeight * cameraData.renderScale);

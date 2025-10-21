@@ -322,7 +322,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (time > m_ShutterBeginsClosing)
             {
                 float closingSlope = 1.0f / (1.0f - m_ShutterBeginsClosing);
-                // We are using max to prevent the weight from going negative due to numerical imprecision 
+                // We are using max to prevent the weight from going negative due to numerical imprecision
                 return Mathf.Max(0.0f, 1.0f - closingSlope * (time - m_ShutterBeginsClosing));
             }
             else
@@ -409,7 +409,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns><c>true</c> if the accumulation is completed, <c>false</c> otherwise.</returns>
         public bool IsFrameCompleted(HDCamera hdCamera)
         {
-            int camID = hdCamera.camera.GetInstanceID();
+            int camID = hdCamera.camera.GetEntityId();
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
             return camData.currentIteration >= m_SubFrameManager.subFrameCount;
         }
@@ -436,7 +436,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputTexture, TextureHandle outputTexture, List<Tuple<TextureHandle, HDCameraFrameHistoryType>> AOVs, bool needExposure)
         {
-            int camID = hdCamera.camera.GetInstanceID();
+            int camID = hdCamera.camera.GetEntityId();
             Vector4 frameWeights = m_SubFrameManager.ComputeFrameWeights(camID);
 
             if (AOVs != null)
@@ -506,7 +506,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             natCmd.DisableKeyword(accumulationShader, passData.outputKeyword);
 
                         // Get the per-camera data
-                        int camID = data.hdCamera.camera.GetInstanceID();
+                        int camID = data.hdCamera.camera.GetEntityId();
                         CameraData camData = data.subFrameManager.GetCameraData(camID);
 
                         // Accumulate the path tracing results

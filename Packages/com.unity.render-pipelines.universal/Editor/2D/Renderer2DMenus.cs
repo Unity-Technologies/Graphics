@@ -113,7 +113,7 @@ namespace UnityEditor.Rendering.Universal
             var parent = menuCommand.context as GameObject;
             Place(go, parent);
 
-            Analytics.LightDataAnalytic lightData = new Analytics.LightDataAnalytic(light2D.GetInstanceID(), true, light2D.lightType);
+            Analytics.LightDataAnalytic lightData = new Analytics.LightDataAnalytic(light2D.GetEntityId(), true, light2D.lightType);
             Analytics.Renderer2DAnalytics.instance.SendData(lightData);
 
             return light2D;
@@ -208,7 +208,7 @@ namespace UnityEditor.Rendering.Universal
         {
             Renderer2DMenus.Create2DRendererData((instance) =>
             {
-                Analytics.RenderAssetAnalytic modifiedData = new Analytics.RenderAssetAnalytic(instance.GetInstanceID(), true, 1, 2);
+                Analytics.RenderAssetAnalytic modifiedData = new Analytics.RenderAssetAnalytic(instance.GetEntityId(), true, 1, 2);
                 Analytics.Renderer2DAnalytics.instance.SendData(modifiedData);
             });
         }

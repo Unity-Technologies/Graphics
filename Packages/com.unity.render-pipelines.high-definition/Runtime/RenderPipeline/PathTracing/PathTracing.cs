@@ -335,7 +335,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="hdCamera">Camera for which the accumulation is reset.</param>
         public void ResetPathTracing(HDCamera hdCamera)
         {
-            int camID = hdCamera.camera.GetInstanceID();
+            int camID = hdCamera.camera.GetEntityId();
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
             ResetPathTracing(camID, camData);
         }
@@ -417,7 +417,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private void OnSceneGui(SceneView sv)
         {
             if (Event.current.type == EventType.MouseDrag)
-                m_SubFrameManager.Reset(sv.camera.GetInstanceID());
+                m_SubFrameManager.Reset(sv.camera.GetEntityId());
         }
 
 #endif // UNITY_EDITOR
@@ -831,7 +831,7 @@ namespace UnityEngine.Rendering.HighDefinition
             pathTracedAOVs.Clear();
 #endif
 
-            int camID = hdCamera.camera.GetInstanceID();
+            int camID = hdCamera.camera.GetEntityId();
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
 
             ImportPathTracingTargetsToRenderGraph();

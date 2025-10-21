@@ -1278,7 +1278,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var material = decalProjector.material;
 
             DecalSet decalSet = null;
-            int key = material != null ? material.GetInstanceID() : kNullMaterialIndex;
+            int key = material != null ? material.GetEntityId() : kNullMaterialIndex;
             if (!m_DecalSets.TryGetValue(key, out decalSet))
             {
 				SetupMipStreamingSettings(material, true);
@@ -1426,7 +1426,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (!Atlas.IsCached(out textureScaleBias.m_ScaleBias, textureScaleBias.texture))
                     {
-                        if (!Atlas.AllocateTextureWithoutBlit(textureScaleBias.texture.GetInstanceID(), textureScaleBias.width, textureScaleBias.height, ref textureScaleBias.m_ScaleBias))
+                        if (!Atlas.AllocateTextureWithoutBlit(textureScaleBias.texture.GetEntityId(), textureScaleBias.width, textureScaleBias.height, ref textureScaleBias.m_ScaleBias))
                         {
                             m_AllocationSuccess = false;
                         }

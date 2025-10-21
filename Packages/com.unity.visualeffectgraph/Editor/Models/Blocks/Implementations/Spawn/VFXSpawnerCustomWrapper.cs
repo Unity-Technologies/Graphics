@@ -86,7 +86,7 @@ namespace UnityEditor.VFX
             base.GetImportDependentAssets(dependencies);
             if (customBehavior != null)
             {
-                dependencies.Add(customBehavior.GetInstanceID());
+                dependencies.Add(customBehavior.GetEntityId());
             }
         }
 

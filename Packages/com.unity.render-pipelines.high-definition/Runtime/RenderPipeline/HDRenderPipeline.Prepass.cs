@@ -238,7 +238,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void UpdateInstanceOccluders(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture)
         {
             bool isSinglePassXR = hdCamera.xr.enabled && hdCamera.xr.singlePassEnabled;
-            var occluderParams = new OccluderParameters(hdCamera.camera.GetInstanceID())
+            var occluderParams = new OccluderParameters(hdCamera.camera.GetEntityId())
             {
                 subviewCount = isSinglePassXR ? 2 : 1,
                 depthTexture = depthTexture,
@@ -264,7 +264,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool isSinglePassXR = hdCamera.xr.enabled && hdCamera.xr.singlePassEnabled;
             int subviewCount = isSinglePassXR ? 2 : 1;
-            var settings = new OcclusionCullingSettings(hdCamera.camera.GetInstanceID(), occlusionTest)
+            var settings = new OcclusionCullingSettings(hdCamera.camera.GetEntityId(), occlusionTest)
             {
                 instanceMultiplier = (isSinglePassXR && !SystemInfo.supportsMultiview) ? 2 : 1,
             };
@@ -766,7 +766,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     name = "GBuffer2"
 #if UNITY_2020_2_OR_NEWER
                     , fastMemoryDesc = gbufferFastMemDesc
-#endif    
+#endif
                 });
             builder.SetRenderAttachment(prepassOutput.gbuffer.mrt[currentIndex], currentIndex++);
             prepassOutput.gbuffer.mrt[currentIndex] = renderGraph.CreateTexture(

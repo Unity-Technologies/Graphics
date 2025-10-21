@@ -778,7 +778,7 @@ namespace UnityEngine.Rendering.Universal
             int scaledWidth = (int)(cameraData.pixelWidth * cameraData.renderScale);
             int scaledHeight = (int)(cameraData.pixelHeight * cameraData.renderScale);
             bool isSinglePassXR = cameraData.xr.enabled && cameraData.xr.singlePassEnabled;
-            var occluderParams = new OccluderParameters(cameraData.camera.GetInstanceID())
+            var occluderParams = new OccluderParameters(cameraData.camera.GetEntityId())
             {
                 subviewCount = isSinglePassXR ? 2 : 1,
                 depthTexture = depthTexture,
@@ -806,7 +806,7 @@ namespace UnityEngine.Rendering.Universal
         {
             bool isSinglePassXR = cameraData.xr.enabled && cameraData.xr.singlePassEnabled;
             int subviewCount = isSinglePassXR ? 2 : 1;
-            var settings = new OcclusionCullingSettings(cameraData.camera.GetInstanceID(), occlusionTest)
+            var settings = new OcclusionCullingSettings(cameraData.camera.GetEntityId(), occlusionTest)
             {
                 instanceMultiplier = (isSinglePassXR && !SystemInfo.supportsMultiview) ? 2 : 1,
             };

@@ -313,7 +313,7 @@ namespace UnityEditor.Rendering.Universal
 
         internal void SendModifiedAnalytics(Analytics.Renderer2DAnalytics analytics, Light2D light)
         {
-            Analytics.LightDataAnalytic lightData = new Analytics.LightDataAnalytic(light.GetInstanceID(), false, light.lightType);
+            Analytics.LightDataAnalytic lightData = new Analytics.LightDataAnalytic(light.GetEntityId(), false, light.lightType);
             Analytics.Renderer2DAnalytics.instance.SendData(lightData);
         }
 

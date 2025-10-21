@@ -1076,7 +1076,7 @@ namespace UnityEngine.Rendering.HighDefinition
             io.previousPreUpscaleResolution = hdCamera.historyRTHandleProperties.previousViewportSize;
             io.postUpscaleResolution = new Vector2Int((int)hdCamera.finalViewport.width, (int)hdCamera.finalViewport.height);
             io.enableTexArray = TextureXR.useTexArray;
-            io.cameraInstanceID = hdCamera.camera.GetInstanceID();
+            io.cameraInstanceID = hdCamera.camera.GetEntityId();
             io.nearClipPlane = hdCamera.camera.nearClipPlane;
             io.farClipPlane = hdCamera.camera.farClipPlane;
             io.fieldOfViewDegrees = hdCamera.camera.fieldOfView;

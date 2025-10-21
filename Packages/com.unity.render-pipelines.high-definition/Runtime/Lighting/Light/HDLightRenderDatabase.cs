@@ -525,7 +525,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // If the entity is invalid, it returns InvalidDataIndex
         public int FindEntityDataIndex(in Light light)
         {
-            if (light != null && m_LightsToEntityItem.TryGetValue(light.GetInstanceID(), out var foundEntity))
+            if (light != null && m_LightsToEntityItem.TryGetValue(light.GetEntityId(), out var foundEntity))
                 return foundEntity.dataIndex;
 
             return -1;

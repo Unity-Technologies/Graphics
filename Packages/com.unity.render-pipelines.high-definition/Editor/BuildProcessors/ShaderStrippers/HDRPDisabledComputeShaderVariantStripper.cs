@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public bool CanRemoveVariant([DisallowNull] ComputeShader shader, string _, ShaderCompilerData __)
         {
-            var shaderInstanceID = shader.GetInstanceID();
+            var shaderInstanceID = shader.GetEntityId();
 
             if (HDRPBuildData.instance.computeShaderCache.ContainsKey(shaderInstanceID))
                 return true;

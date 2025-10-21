@@ -174,7 +174,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             m_OutputContexts[i].vfxSystemSortPriority = i;
         }
 
-        if (VFXViewWindow.GetAllWindows().All(x => x.graphView?.controller?.graph.visualEffectResource.GetInstanceID() != m_CurrentGraph.visualEffectResource.GetInstanceID() || !x.hasFocus))
+        if (VFXViewWindow.GetAllWindows().All(x => x.graphView?.controller?.graph.visualEffectResource.GetEntityId() != m_CurrentGraph.visualEffectResource.GetEntityId() || !x.hasFocus))
         {
             // Do we need a compileReporter here?
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(m_CurrentGraph.visualEffectResource));

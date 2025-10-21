@@ -512,7 +512,7 @@ namespace UnityEngine.Rendering
             bool newFrame = false;
             foreach (Camera camera in cameras)
             {
-                int instanceID = camera.GetInstanceID();
+                int instanceID = camera.GetEntityId();
                 if (m_FrameCameraIDs.Length == 0 || m_FrameCameraIDs.Contains(instanceID))
                 {
                     newFrame = true;
@@ -544,7 +544,7 @@ namespace UnityEngine.Rendering
             var rendererIDs = new NativeArray<EntityId>(renderers.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
             for (int i = 0; i < renderers.Length; ++i)
-                rendererIDs[i] = renderers[i] ? renderers[i].GetInstanceID() : 0;
+                rendererIDs[i] = renderers[i] ? renderers[i].GetEntityId() : 0;
 
             m_Batcher.UpdateSelectedRenderers(rendererIDs);
 

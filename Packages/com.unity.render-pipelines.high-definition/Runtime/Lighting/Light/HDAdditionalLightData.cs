@@ -2411,7 +2411,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var requestIndices = shadowRequestIndices;
             for (int index = 0; index < count; index++)
             {
-                requestIndices[index] = shadowManager.ReserveShadowResolutions(viewportSize, shadowMapType, GetInstanceID(), index, updateType);
+                requestIndices[index] = shadowManager.ReserveShadowResolutions(viewportSize, shadowMapType, GetEntityId(), index, updateType);
             }
         }
 
@@ -3522,7 +3522,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 HDLightRenderDatabase lightEntities = HDLightRenderDatabase.instance;
                 lightEntity = lightEntities.CreateEntity(autoDestroy);
-                lightEntities.AttachGameObjectData(lightEntity, legacyLight.GetInstanceID(), this, legacyLight.gameObject);
+                lightEntities.AttachGameObjectData(lightEntity, legacyLight.GetEntityId(), this, legacyLight.gameObject);
             }
 
             UpdateRenderEntity();

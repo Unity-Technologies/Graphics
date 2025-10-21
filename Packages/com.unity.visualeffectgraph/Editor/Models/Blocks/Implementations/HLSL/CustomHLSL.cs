@@ -235,7 +235,7 @@ namespace UnityEditor.VFX.Block
             base.GetImportDependentAssets(dependencies);
             if (!ReferenceEquals(m_ShaderFile, null))
             {
-                dependencies.Add(m_ShaderFile.GetInstanceID());
+                dependencies.Add(m_ShaderFile.GetEntityId());
             }
         }
 

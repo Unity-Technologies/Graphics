@@ -442,7 +442,7 @@ namespace UnityEngine.Rendering
         /// <returns>Returns True if Unity successfully adds the texture.</returns>
         public bool AddTexture(CommandBuffer cmd, out Vector4 scaleOffset, Texture texture)
         {
-            int key = texture.GetInstanceID();
+            int key = texture.GetEntityId();
             if (!m_AllocationCache.TryGetValue(key, out scaleOffset))
             {
                 int width = texture.width;

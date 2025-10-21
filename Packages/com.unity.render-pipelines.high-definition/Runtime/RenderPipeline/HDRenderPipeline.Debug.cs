@@ -1100,7 +1100,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GPUResidentDrawer.RenderDebugOcclusionTestOverlay(
                 renderGraph,
                 HDDebugDisplaySettings.Instance?.gpuResidentDrawerSettings ?? null,
-                hdCamera.camera.GetInstanceID(),
+                hdCamera.camera.GetEntityId(),
                 colorBuffer);
         }
 

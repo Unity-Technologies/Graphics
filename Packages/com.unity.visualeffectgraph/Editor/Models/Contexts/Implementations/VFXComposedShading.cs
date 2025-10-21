@@ -52,7 +52,7 @@ namespace UnityEditor.VFX
                         errors.Add(("DeprecatedOldShaderGraph", VFXErrorType.Error, ParticleShadingShaderGraph.kErrorOldSG));
 
                     currentShaderGraph = VFXResources.errorFallbackShaderGraph;
-                } 
+                }
                 else if (VFXLibrary.currentSRPBinder != null && !VFXLibrary.currentSRPBinder.IsShaderVFXCompatible(currentShaderGraph))
                 {
                     if (errors != null)
@@ -191,7 +191,7 @@ namespace UnityEditor.VFX
             base.GetImportDependentAssets(dependencies);
             if (!ReferenceEquals(shaderGraph, null))
             {
-                dependencies.Add(shaderGraph.GetInstanceID());
+                dependencies.Add(shaderGraph.GetEntityId());
             }
         }
 

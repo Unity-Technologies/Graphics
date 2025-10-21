@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.Universal
                 motionData = additionalCameraData.motionVectorsPersistentData;
                 Debug.Assert(motionData != null);
             }
-            io.cameraInstanceID = cameraData.camera.GetInstanceID();
+            io.cameraInstanceID = cameraData.camera.GetEntityId();
             io.nearClipPlane = cameraData.camera.nearClipPlane;
             io.farClipPlane = cameraData.camera.farClipPlane;
             io.fieldOfViewDegrees = cameraData.camera.fieldOfView;

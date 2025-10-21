@@ -207,7 +207,7 @@ namespace UnityEditor.ShaderGraph
                 var textureInfo = new PropertyCollector.TextureInfo
                 {
                     name = layerRefName,
-                    textureId = texture != null ? texture.GetInstanceID() : 0,
+                    textureId = texture != null ? texture.GetEntityId() : EntityId.None,
                     dimension = texture != null ? texture.dimension : UnityEngine.Rendering.TextureDimension.Any,
                     modifiable = true
                 };

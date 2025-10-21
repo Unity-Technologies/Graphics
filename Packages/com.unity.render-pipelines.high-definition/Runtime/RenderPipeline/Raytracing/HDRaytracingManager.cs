@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Check if the material has changed since last time we were here
                         if (!materialsDirty)
                         {
-                            materialsDirty |= UpdateMaterialCRC(currentMaterial.GetInstanceID(), currentMaterial.ComputeCRC());
+                            materialsDirty |= UpdateMaterialCRC(currentMaterial.GetEntityId(), currentMaterial.ComputeCRC());
                         }
                     }
                 }
@@ -369,7 +369,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Check if the material has changed since last time we were here
                         if (!materialsDirty)
                         {
-                            materialsDirty |= UpdateMaterialCRC(currentMaterial.GetInstanceID(), currentMaterial.ComputeCRC());
+                            materialsDirty |= UpdateMaterialCRC(currentMaterial.GetEntityId(), currentMaterial.ComputeCRC());
                         }
                     }
                 }
