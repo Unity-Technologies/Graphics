@@ -1669,9 +1669,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Combine volumetric clouds with prerefraction transparents
             m_VolumetricClouds.CombineVolumetricClouds(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, transparentPrepass, ref opticalFogTransmittance);
 
-            // Compose the lines if the user wants lines in the color pyramid (refraction), but after clouds.
-            ComposeLines(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.motionVectorsBuffer, (int)LineRendering.CompositionMode.BeforeColorPyramidAfterClouds);
-
             var preRefractionList = renderGraph.CreateRendererList(PrepareForwardTransparentRendererList(cullingResults, hdCamera, true));
             var refractionList = renderGraph.CreateRendererList(PrepareForwardTransparentRendererList(cullingResults, hdCamera, false));
 
@@ -1682,6 +1679,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If required, render the water debug view
             m_WaterSystem.RenderWaterDebug(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, transparentPrepass.waterGBuffer);
+
+            // Compose the lines if the user wants lines in the color pyramid (refraction), but after clouds.
+            ComposeLines(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.motionVectorsBuffer, (int)LineRendering.CompositionMode.BeforeColorPyramidAfterClouds);
 
             bool ssmsEnabled = Fog.IsMultipleScatteringEnabled(hdCamera, out float fogMultipleScatteringIntensity);
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) || hdCamera.IsSSREnabled() || hdCamera.IsSSREnabled(true) || hdCamera.IsSSGIEnabled() || ssmsEnabled)
