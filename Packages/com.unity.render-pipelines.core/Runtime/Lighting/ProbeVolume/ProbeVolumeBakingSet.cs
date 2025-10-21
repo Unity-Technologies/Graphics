@@ -26,6 +26,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// An Asset which holds a set of settings to use with a <see cref="Probe Reference Volume"/>.
     /// </summary>
+    [CoreRPHelpURL("probevolumes-usebakingsets", "com.unity.render-pipelines.high-definition")]
     public sealed partial class ProbeVolumeBakingSet : ScriptableObject, ISerializationCallbackReceiver
     {
         internal enum Version
