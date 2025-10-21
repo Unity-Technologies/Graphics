@@ -46,70 +46,6 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class EdgeDragInfo : VisualElement
-    {
-        VFXView m_View;
-        public EdgeDragInfo(VFXView view)
-        {
-            m_View = view;
-            var tpl = Resources.Load<VisualTreeAsset>("uxml/EdgeDragInfo");
-            tpl.CloneTree(this);
-
-            this.AddStyleSheetPath("EdgeDragInfo");
-
-            m_Text = this.Q<Label>("title");
-
-            pickingMode = PickingMode.Ignore;
-            m_Text.pickingMode = PickingMode.Ignore;
-        }
-
-        Label m_Text;
-
-        public void StartEdgeDragInfo(VFXDataAnchor draggedAnchor, VFXDataAnchor overAnchor)
-        {
-            string error = null;
-            if (draggedAnchor != overAnchor)
-            {
-                if (draggedAnchor.direction == overAnchor.direction)
-                {
-                    if (draggedAnchor.direction == Direction.Input)
-                        error = "You must link an input to an output";
-                    else
-                        error = "You must link an output to an input";
-                }
-                else if (draggedAnchor.controller.connections.Any(t => draggedAnchor.direction == Direction.Input ? t.output == overAnchor.controller : t.input == overAnchor.controller))
-                {
-                    error = "An edge with the same input and output already exists";
-                }
-                else if (!draggedAnchor.controller.model.CanLink(overAnchor.controller.model))
-                {
-                    error = "The input and output have incompatible types";
-                }
-                else
-                {
-                    bool can = draggedAnchor.controller.CanLink(overAnchor.controller);
-
-                    if (!can)
-                    {
-                        if (!draggedAnchor.controller.CanLinkToNode(overAnchor.controller.sourceNode, null))
-                            error = "The edge would create a loop in the operators";
-                        else
-                            error = "Link impossible for an unknown reason";
-                    }
-                }
-            }
-            if (error == null)
-                style.display = DisplayStyle.None;
-            else
-                m_Text.text = error;
-
-            var layout = overAnchor.connector.parent.ChangeCoordinatesTo(m_View, overAnchor.connector.layout);
-
-            style.top = layout.yMax + 16;
-            style.left = layout.xMax;
-        }
-    }
-
     struct VFXViewSettings
     {
         private bool m_IsAttachedLocked;
@@ -1799,7 +1735,8 @@ namespace UnityEditor.VFX.UI
             VisualEffectAssetEditorUtility.CreateTemplateAsset(assetPath, templatePath);
             var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
             var window = VFXViewWindow.GetWindow(vfxAsset, false);
-            window.LoadAsset(vfxAsset, null);
+            // The window can be null if we try to create a new asset from an editor window with another asset opened
+            window?.LoadAsset(vfxAsset, null);
         }
 
         public void CreateTemplateSystem(string path, Vector2 tPos, VFXGroupNode groupNode, bool centerInView)
@@ -3161,6 +3098,7 @@ namespace UnityEditor.VFX.UI
             if (visualEffectObject != null && visualEffectObject != controller.model.visualEffectObject)
             {
                 var isOperator = visualEffectObject is VisualEffectSubgraphOperator;
+                var isBlock = visualEffectObject is VisualEffectSubgraphBlock;
                 var graph = visualEffectObject.GetResource().GetOrCreateGraph();
                 graph.BuildSubgraphDependencies();
                 var draggedObjectDependencies = graph.subgraphDependencies;
@@ -3171,7 +3109,7 @@ namespace UnityEditor.VFX.UI
                     return DragAndDropVisualMode.Rejected;
                 }
 
-                var vfxIntoVfx = !isOperator && !controller.model.isSubgraph; // dropping a vfx into a vfx
+                var vfxIntoVfx = !isOperator && !isBlock && !controller.model.isSubgraph; // dropping a vfx into a vfx
 
                 return vfxIntoVfx || isOperator
                     ? DragAndDropVisualMode.Move
@@ -3298,13 +3236,12 @@ namespace UnityEditor.VFX.UI
                     {
                         VFXContextType contextKind = subgraphBlock.GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().First().compatibleContextType;
                         VFXModelDescriptor<VFXContext> contextType = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXBasicInitialize));
-                        var model = (VFXContext)contextType.CreateInstance();
                         if ((contextKind & VFXContextType.Update) == VFXContextType.Update)
                             contextType = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXBasicUpdate));
                         else if ((contextKind & VFXContextType.Spawner) == VFXContextType.Spawner)
                             contextType = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXBasicSpawner));
                         else if ((contextKind & VFXContextType.Output) == VFXContextType.Output)
-                            contextType = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXPlanarPrimitiveOutput) && model.taskType == VFXTaskType.ParticleQuadOutput);
+                            contextType = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXPlanarPrimitiveOutput) && t.model.taskType == VFXTaskType.ParticleQuadOutput);
 
                         UpdateSelectionWithNewNode();
                         VFXContext ctx = controller.AddVFXContext(mousePosition, contextType.variant);
@@ -3333,26 +3270,6 @@ namespace UnityEditor.VFX.UI
             {
                 item.AssetMoved();
             }
-        }
-
-        VFXEdgeDragInfo m_EdgeDragInfo;
-
-        public void StartEdgeDragInfo(VFXDataAnchor draggerAnchor, VFXDataAnchor overAnchor)
-        {
-            if (m_EdgeDragInfo == null)
-            {
-                m_EdgeDragInfo = new VFXEdgeDragInfo(this);
-                Add(m_EdgeDragInfo);
-                m_EdgeDragInfo.style.display = DisplayStyle.None;
-            }
-
-            m_EdgeDragInfo.StartEdgeDragInfo(draggerAnchor, overAnchor);
-        }
-
-        public void StopEdgeDragInfo()
-        {
-            if (m_EdgeDragInfo != null)
-                m_EdgeDragInfo.StopEdgeDragInfo();
         }
 
         public void DuplicateBlackboardFieldSelection()

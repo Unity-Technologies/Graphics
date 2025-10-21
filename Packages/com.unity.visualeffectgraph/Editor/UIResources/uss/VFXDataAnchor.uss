@@ -250,3 +250,11 @@ VFXEditableDataAnchor.activationslot.subgraphblock > BoolPropertyRM
 {
     margin-left: 12px;
 }
+
+VFXEditableDataAnchor .sliderField .unity-slider {
+    min-width: 50px;
+}
+
+VFXEditableDataAnchor .unity-gradient-field {
+    min-width: 100px;
+}

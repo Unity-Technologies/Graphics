@@ -1,5 +1,7 @@
 # Upgrade to version 10.0.x of Shader Graph
 
+Upgrade your project to make it compatible with Shader Graph 10.0 or later.
+
 ## Renamed Vector 1 property and Float precision
 
 Shader Graph has renamed the **Vector 1** property as **Float** in both the Vector 1 node and the exposed parameter list. The **Float** precision was also renamed as **Single**. Behavior is exactly the same, and only the names have changed.

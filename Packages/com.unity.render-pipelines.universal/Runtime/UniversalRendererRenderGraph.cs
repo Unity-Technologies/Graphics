@@ -1317,7 +1317,7 @@ namespace UnityEngine.Rendering.Universal
                                              (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f));
             bool hasCaptureActions = cameraData.captureActions != null && cameraData.resolveFinalTarget;
 
-            bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;
+            bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent >= RenderPassEvent.AfterRenderingPostProcessing && x.renderPassEvent < RenderPassEvent.AfterRendering) != null;
 
             bool resolvePostProcessingToCameraTarget = !hasCaptureActions && !hasPassesAfterPostProcessing && !applyFinalPostProcessing;
             bool needsColorEncoding = DebugHandler == null || !DebugHandler.HDRDebugViewIsActive(cameraData.resolveFinalTarget);
@@ -1588,6 +1588,8 @@ namespace UnityEngine.Rendering.Universal
 
             // We only do one depth prepass per camera. If the texture requires a prepass, and priming is on, then we do priming and a copy afterwards to the cameraDepthTexture.
             // However, some platforms don't support this copy (like GLES when MSAA is on). When a copy is not supported we turn off priming so the prepass will target the cameraDepthTexture, avoiding the copy.
+            // Note: From Unity 2021 to Unity 6.3, depth priming was disabled in renders for reflections probes as a brute-force bugfix for artefacts appearing in reflection probes when screen space shadows are enabled.
+            // Depth priming has now been restored in reflection probe renders. Please consider a more targeted fix if issues with screen space shadows resurface again. (See UUM-99152 and UUM-12397)
             if (requireDepthTexture && !CanCopyDepth(cameraData))
                 return false;
 
@@ -1610,12 +1612,10 @@ namespace UnityEngine.Rendering.Universal
             }
 
             bool isFirstCameraToWriteDepth = cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth;
-            // Enabled Depth priming when baking Reflection Probes causes artefacts (UUM-12397)
-            bool isNotReflectionCamera = cameraData.cameraType != CameraType.Reflection;
             // Depth is not rendered in a depth-only camera setup with depth priming (UUM-38158)
             bool isNotOffscreenDepthTexture = !IsOffscreenDepthTexture(cameraData);            
                        
-            return depthPrimingRequested && !usesDeferredLighting && isFirstCameraToWriteDepth && isNotReflectionCamera && isNotOffscreenDepthTexture && isNotWebGL && isNotMSAA;
+            return depthPrimingRequested && !usesDeferredLighting && isFirstCameraToWriteDepth && isNotOffscreenDepthTexture && isNotWebGL && isNotMSAA;
         }
 
         internal void SetRenderingLayersGlobalTextures(RenderGraph renderGraph)

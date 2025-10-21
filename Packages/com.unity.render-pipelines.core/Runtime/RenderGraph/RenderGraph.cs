@@ -591,7 +591,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             nativeCompiler?.Cleanup();
 
-            m_CompilationCache?.Clear();
+            m_CompilationCache?.Cleanup();
 
             DelegateHashCodeUtils.ClearCache();
         }

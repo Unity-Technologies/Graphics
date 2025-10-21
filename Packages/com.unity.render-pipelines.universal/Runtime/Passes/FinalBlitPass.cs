@@ -212,7 +212,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         loadAction = RenderBufferLoadAction.Load;
 #endif
 
-                    CoreUtils.SetRenderTarget(renderingData.commandBuffer, cameraTargetHandle, loadAction, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
+                    CoreUtils.SetRenderTarget(renderingData.commandBuffer, cameraTargetHandle.nameID, loadAction, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
                     ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_Source, cameraTargetHandle, cameraData);
                     cameraData.renderer.ConfigureCameraTarget(cameraTargetHandle, cameraTargetHandle);
                 }

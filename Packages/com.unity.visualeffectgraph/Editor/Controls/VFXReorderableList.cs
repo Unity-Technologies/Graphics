@@ -129,10 +129,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public virtual bool CanRemove()
-        {
-            return true;
-        }
+        protected virtual bool CanRemove() => itemCount > 1;
 
         public void Select(VisualElement item)
         {

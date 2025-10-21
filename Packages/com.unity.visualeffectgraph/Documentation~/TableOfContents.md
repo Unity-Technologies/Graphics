@@ -1,3 +1,4 @@
+
 * [Visual Effect Graph](index.md)
 * [Requirements](System-Requirements.md)
 * [What's new](whats-new.md)
@@ -55,6 +56,13 @@
   * [ExposedProperty Helper](ExposedPropertyHelper.md)
   * [Vector Fields](VectorFields.md)
   * [Spawner Callbacks](SpawnerCallbacks.md)
+  * [Realistic smoke lighting](six-way-lighting-landing.md)
+    * [Realistic smoke lighting with six-way lighting](six-way-lighting.md)
+    * [Use tools to generate six-way lightmap textures](use-tools-generate-six-way-lightmap-textures.md)
+    * [Import six-way lightmap textures into unity](import-six-way-lightmap-textures-unity.md)
+    * [Create and configure a six-way lit particle system](create-configure-six-way-lit-particle-system.md)
+    * [Customize free six-way lighting lightmap textures](create-effects-with-six-way-lighting.md)
+    * [Six-way smoke lit reference](six-way-lighting-reference.md)
 * [Node Library](node-library.md)
   * [Context](Context.md)
     * [Event](Context-Event.md)
