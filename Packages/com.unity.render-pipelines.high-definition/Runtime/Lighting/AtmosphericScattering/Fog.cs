@@ -157,6 +157,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("When enabled, HDRP only includes directional Lights when it evaluates volumetric fog.")]
         public BoolParameter directionalLightsOnly = new BoolParameter(false);
 
+        /// <summary>Indicates at which fog density the lighting should be ignored. Every voxel containing less fog density than this value will be ignored by the volumetric lighting.</summary>
+        [Tooltip("Improves performance by skipping the lighting evaluation in areas with low-density fog. When the value is above 0, HDRP skips calculating volumetric lighting in areas where the fog density is below this value.")]
+        public FloatParameter volumetricLightingDensityCutoff = new(0.0f);
+
         internal static bool IsFogEnabled(HDCamera hdCamera)
         {
             return hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) && hdCamera.volumeStack.GetComponent<Fog>().enabled.value;
@@ -177,7 +181,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static bool IsVolumetricReprojectionEnabled(HDCamera hdCamera)
         {
             var fog = hdCamera.volumeStack.GetComponent<Fog>();
- 
+
             return (fog.denoisingMode.value & FogDenoisingMode.Reprojection) != 0;
         }
 

@@ -62,7 +62,7 @@ CBUFFER_START(ShaderVariablesVolumetric)
     uint _VolumeCount;
     uint _IsObliqueProjectionMatrix;
     float _HalfVoxelArcLength;
-    uint _Padding2;
+    float _VolumetricLightingExtinctionCutoff;
 CBUFFER_END
 
 // Generated from UnityEngine.Rendering.HighDefinition.VolumetricMaterialDataCBuffer
