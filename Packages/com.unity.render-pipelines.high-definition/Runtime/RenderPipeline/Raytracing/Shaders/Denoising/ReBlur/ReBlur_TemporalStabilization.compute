@@ -168,7 +168,7 @@ void TemporalStabilization(uint3 dispatchThreadId : SV_DispatchThreadID, int gro
             // Compute the neighborhood index
             int nIndex = (x + 1) + (y + 1) * 3;
             nIndex = nIndex > 4 ? nIndex - 1 : nIndex;
-            
+
             // If this is a background pixel or one that doesn't have SSR or is Unlit we can't use it
             if (gs_cacheDepth[tapLDSIndex] == UNITY_RAW_FAR_CLIP_VALUE
                 || !gs_cacheValidity[tapLDSIndex]
@@ -187,6 +187,17 @@ void TemporalStabilization(uint3 dispatchThreadId : SV_DispatchThreadID, int gro
 
     // Clip the history
     prevSignal = GetClippedHistory(nbSamples.central, prevSignal, nbSamples.minNeighbour, nbSamples.maxNeighbour);
+
+    // Variance neighbourhood clipping works great when the associated "color box" is relatively small.
+    // However, this is not necessarily the case for perfect mirrors: Neighbouring pixels in screen space
+    // may differ by an arbitrary amount, even with many ray tracing samples. This means that the color box
+    // can be huge and thus neighbourhood clipping will do nothing, not even if the overall input signal
+    // changes (UUM-103701). Therefore, mirrors cannot rely _only_ on neighbourhood clipping.
+    // We fix this by using a bit of the input signal proportional to how smooth the pixel is.
+    // This is only an imperfect heuristic and can theoretically increase temporal noise in extreme cases,
+    // but it is preferable to no updates at all.
+    const float maxRoughness = 0.06f; // Empirically chosen.
+    prevSignal = lerp(nbSamples.central, prevSignal, smoothstep(0.0f, maxRoughness, normalData.perceptualRoughness));
 
     // Move back to the output space
     prevSignal.xyz = ConvertToOutputSpace(prevSignal.xyz);

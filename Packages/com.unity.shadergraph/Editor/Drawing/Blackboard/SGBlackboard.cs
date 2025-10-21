@@ -189,6 +189,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             isWindowScrollable = true;
             isWindowResizable = true;
             focusable = true;
+            scrollView.contentContainer.receivesHierarchyGeometryChangedEvents = false;
 
             m_DragIndicator = new VisualElement();
             m_DragIndicator.name = "categoryDragIndicator";

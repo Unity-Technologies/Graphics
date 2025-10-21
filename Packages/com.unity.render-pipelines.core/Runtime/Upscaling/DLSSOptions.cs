@@ -17,25 +17,22 @@ using UnityEditorInternal;
 [Serializable]
 public class DLSSOptions : UpscalerOptions
 {
-    [EnumOption(typeof(DLSSQuality), "DLSS Quality Mode")]
-    public int DLSSQualityMode = (int)DLSSQuality.MaximumQuality;
+    [Tooltip("Selects a performance quality setting for NVIDIA Deep Learning Super Sampling (DLSS).")]
+    public DLSSQuality DLSSQualityMode = DLSSQuality.MaximumQuality;
 
-    [BoolOption("Force Quality Mode")]
+    [Tooltip("Forces a fixed resolution scale derived from the selected quality mode, ignoring dynamic resolution.")]
     public bool FixedResolutionMode = false;
 
-    // TODO: fix available preset values, currently all values are displayed.
-    // every preset have their own list of available presets, that may differ from each other.
-    // need a way to represent the available subset of enum values for each preset to enforce the value requirements.
-    [EnumOption(typeof(DLSSPreset), "DLSS Preset for Quality")]
-    public int DLSSRenderPresetQuality;
-    [EnumOption(typeof(DLSSPreset), "DLSS Preset for Balanced")]
-    public int DLSSRenderPresetBalanced;
-    [EnumOption(typeof(DLSSPreset), "DLSS Preset for Performance")]
-    public int DLSSRenderPresetPerformance;
-    [EnumOption(typeof(DLSSPreset), "DLSS Preset for Ultra Performance")]
-    public int DLSSRenderPresetUltraPerformance;
-    [EnumOption(typeof(DLSSPreset), "DLSS Preset for DLAA")]
-    public int DLSSRenderPresetDLAA;
+    [Tooltip("DLSS will use the specified render preset for the Quality mode.")]
+    public DLSSPreset DLSSRenderPresetQuality;
+    [Tooltip("DLSS will use the specified render preset for the Balanced mode.")]
+    public DLSSPreset DLSSRenderPresetBalanced;
+    [Tooltip("DLSS will use the specified render preset for the Performance mode.")]
+    public DLSSPreset DLSSRenderPresetPerformance;
+    [Tooltip("DLSS will use the specified render preset for the Ultra Performance mode.")]
+    public DLSSPreset DLSSRenderPresetUltraPerformance;
+    [Tooltip("DLSS will use the specified render preset for the DLAA mode.")]
+    public DLSSPreset DLSSRenderPresetDLAA;
 }
 
 #endif // ENABLE_UPSCALER_FRAMEWORK && ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE

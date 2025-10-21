@@ -52,7 +52,8 @@ void RecordIntersection(Wave wave, bool intersects, uint2 coord, SegmentRecord s
 {
     const float depthVS = lerp(segment.depthVS0, segment.depthVS1, t);
 
-    const uint clusterDepth = floor(log10(depthVS) * gs_ClusteringCoefficients.x - gs_ClusteringCoefficients.y);
+    int clusterDepth = floor(log10(depthVS) * gs_ClusteringCoefficients.x - gs_ClusteringCoefficients.y);
+    clusterDepth = clamp(clusterDepth,0,(_ClusterDepth-1));
     const uint clusterIndex = (coord.y * (uint)_DimBin.x + coord.x) + ((uint)_DimBin.x * (uint)_DimBin.y * clusterDepth);
 
     const uint waveOffset = wave.PrefixCountBits(intersects);
@@ -73,20 +74,20 @@ void RecordIntersection(Wave wave, bool intersects, uint2 coord, SegmentRecord s
     // Normalize the cluster depth for more precision in the 10-bit encoded version
     const float segmentSortKey = NormalizeClusterDepth(depthVS, clusterDepth);
 
-    if (!intersects)
-        return;
-
-    uint clusterOffset;
-    _ClusterCountersBuffer.InterlockedAdd(clusterIndex << 2, intersects, clusterOffset);
-
-    // Write back the record.
-    ClusterRecord record;
+    if (intersects)
     {
-        record.segmentIndex  = PackFloatToUInt(segmentSortKey, 24, 8) | segmentIndex;
-        record.clusterIndex  = clusterIndex;
-        record.clusterOffset = clusterOffset;
+    	uint clusterOffset;
+        _ClusterCountersBuffer.InterlockedAdd(clusterIndex << 2, 1, clusterOffset);
+
+        // Write back the record.
+        ClusterRecord record;
+        {
+            record.segmentIndex  = PackFloatToUInt(segmentSortKey, 24, 8) | segmentIndex;
+            record.clusterIndex  = clusterIndex;
+            record.clusterOffset = clusterOffset;
+        }
+        _ClusterRecordBuffer[globalOffset+waveOffset] = record;
     }
-    _ClusterRecordBuffer[globalOffset + waveOffset] = record;
 }
 
 [numthreads(NUM_LANE_RASTER_BIN, 1, 1)]

@@ -18,6 +18,7 @@ namespace UnityEditor.VFX.UI
         public VFXBlackboardPropertyView()
         {
             RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+            pickingMode = PickingMode.Ignore; // This fixes an issue where this element intercepts up event but not down, potentially putting the treeview incorrectly into drag mode.
         }
 
         public VFXBlackboardRow owner { get; set; }

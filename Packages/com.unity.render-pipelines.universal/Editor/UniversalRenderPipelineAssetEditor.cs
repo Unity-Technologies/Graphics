@@ -1,5 +1,6 @@
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using Styles = UnityEditor.Rendering.Universal.UniversalRenderPipelineAssetUI.Styles;
 
@@ -19,6 +20,11 @@ namespace UnityEditor.Rendering.Universal
 
         private SerializedUniversalRenderPipelineAsset m_SerializedURPAsset;
 
+#if ENABLE_UPSCALER_FRAMEWORK
+        internal UpscalerOptionsEditorCache upscalerOptionsEditorCache => m_UpscalerOptionsEditorCache;
+        UpscalerOptionsEditorCache m_UpscalerOptionsEditorCache;
+#endif
+
         /// <inheritdoc/>
         public override void OnInspectorGUI()
         {
@@ -30,7 +36,19 @@ namespace UnityEditor.Rendering.Universal
         void OnEnable()
         {
             m_SerializedURPAsset = new SerializedUniversalRenderPipelineAsset(serializedObject);
+
+#if ENABLE_UPSCALER_FRAMEWORK
+            m_UpscalerOptionsEditorCache = new UpscalerOptionsEditorCache();
+#endif
+
             CreateRendererReorderableList();
+        }
+
+        private void OnDisable()
+        {
+#if ENABLE_UPSCALER_FRAMEWORK
+            m_UpscalerOptionsEditorCache?.Cleanup();
+#endif            
         }
 
         void CreateRendererReorderableList()

@@ -62,38 +62,40 @@ void OffscreenShadingFillFragInputs(uint2 positionViewport, inout FragInputs out
 
     if (sampleIndex == INVALID_SHADING_SAMPLE)
         discard;
-
-    const uint vertexID = _VertexOffset + sampleIndex;
-
-    const float4 positionCS   = asfloat(_Vertex0RecordBuffer.Load4(vertexID << 4));
-    const float4 encodedFrame = asfloat(_Vertex2RecordBuffer.Load4(vertexID << 4));
-
-    const float3 N = UnpackNormalOctQuadEncode(encodedFrame.xy);
-    const float3 T = UnpackNormalOctQuadEncode(encodedFrame.zw);
-
-    float4 texcoord;
-#ifdef FRAG_INPUTS_USE_TEXCOORD0
-    uint unnormalizedPackedID = _Vertex3RecordBuffer.Load2(8 * vertexID);
-
-    texcoord = float4
-    (
-        ((unnormalizedPackedID >>  0) & 0xFF) / 255.0,
-        ((unnormalizedPackedID >>  8) & 0xFF) / 255.0,
-        ((unnormalizedPackedID >> 16) & 0xFF) / 255.0,
-        ((unnormalizedPackedID >> 24) & 0xFF) / 255.0
-    );
-#endif
-
-    // Configure the fragment.
+    else
     {
-        output.tangentToWorld = BuildTangentToWorld(float4(T, 1), N);
-        output.positionRWS    = ComputeWorldSpacePosition(positionCS, UNITY_MATRIX_UNJITTERED_I_VP);
-        output.positionSS     = ClipSpaceToRasterSpacePosition(positionCS);
-        output.positionPixel  = output.positionSS.xy;
-        output.isFrontFace    = true;
-#ifdef FRAG_INPUTS_USE_TEXCOORD0
-        output.texCoord0      = texcoord;
-#endif
+        const uint vertexID = _VertexOffset + sampleIndex;
+
+        const float4 positionCS   = asfloat(_Vertex0RecordBuffer.Load4(vertexID << 4));
+        const float4 encodedFrame = asfloat(_Vertex2RecordBuffer.Load4(vertexID << 4));
+
+        const float3 N = UnpackNormalOctQuadEncode(encodedFrame.xy);
+        const float3 T = UnpackNormalOctQuadEncode(encodedFrame.zw);
+
+        float4 texcoord;
+    #ifdef FRAG_INPUTS_USE_TEXCOORD0
+        uint unnormalizedPackedID = _Vertex3RecordBuffer.Load2(8 * vertexID);
+
+        texcoord = float4
+        (
+            ((unnormalizedPackedID >>  0) & 0xFF) / 255.0,
+            ((unnormalizedPackedID >>  8) & 0xFF) / 255.0,
+            ((unnormalizedPackedID >> 16) & 0xFF) / 255.0,
+            ((unnormalizedPackedID >> 24) & 0xFF) / 255.0
+        );
+    #endif
+
+        // Configure the fragment.
+        {
+            output.tangentToWorld = BuildTangentToWorld(float4(T, 1), N);
+            output.positionRWS    = ComputeWorldSpacePosition(positionCS, UNITY_MATRIX_UNJITTERED_I_VP);
+            output.positionSS     = ClipSpaceToRasterSpacePosition(positionCS);
+            output.positionPixel  = output.positionSS.xy;
+            output.isFrontFace    = true;
+    #ifdef FRAG_INPUTS_USE_TEXCOORD0
+            output.texCoord0      = texcoord;
+    #endif
+        }
     }
 #endif
 }

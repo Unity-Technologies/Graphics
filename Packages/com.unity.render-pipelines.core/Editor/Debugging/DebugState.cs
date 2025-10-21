@@ -182,6 +182,35 @@ namespace UnityEditor.Rendering
     [Serializable, DebugState(typeof(DebugUI.ObjectPopupField), typeof(DebugUI.CameraSelector), typeof(DebugUI.ObjectField))]
     public sealed class DebugStateObject : DebugState<UnityEngine.Object>
     {
+        [SerializeField] string m_UserData;
+
+        /// <inheritdoc/>
+        public override void SetValue(object value, DebugUI.IValueField field)
+        {
+            // DebugStateObject is used to serialize the selected camera reference in DebugUI.CameraSelector. For SceneView Camera this doesn't work because
+            // the camera is never saved and always recreated. So we use a special string to identify this case and restore the reference later.
+            if (field is DebugUI.CameraSelector && SceneView.lastActiveSceneView != null && (Camera)value == SceneView.lastActiveSceneView.camera)
+            {
+                m_UserData = "SceneViewCamera";
+            }
+            else
+            {
+                m_UserData = null;
+            }
+            base.SetValue(value, field);
+        }
+
+        /// <inheritdoc/>
+        public override object GetValue()
+        {
+            if (value == null && m_UserData != null && m_UserData == "SceneViewCamera" && SceneView.lastActiveSceneView != null && SceneView.lastActiveSceneView.camera != null)
+            {
+                value = SceneView.lastActiveSceneView.camera;
+            }
+
+            return base.GetValue();
+        }
+
         /// <summary>
         /// Returns the hash code of the Debug Item.
         /// </summary>

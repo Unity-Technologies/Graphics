@@ -63,34 +63,21 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             if (!context.HasCustomEditorForRenderPipeline(universalRPType))
                 context.AddCustomEditorForRenderPipeline(typeof(ShaderGraphTerrainLitGUI).FullName, universalRPType);
 
-            context.AddSubShader(PostProcessSubShader(TerrainSubShaders.LitComputeDotsSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
-            context.AddSubShader(PostProcessSubShader(TerrainSubShaders.LitGLESSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
+            // terrain shaders are always opaque, so these values are hardcoded to not inherit from the Universal Target
+            var renderTypeOpaque = RenderType.Opaque.ToString();
+            var renderQueue = target.alphaClip?RenderQueue.AlphaTest.ToString():RenderQueue.Geometry.ToString();
 
-            context.AddSubShader(PostProcessSubShader(TerrainLitAddSubShaders.LitComputeDotsSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
-            context.AddSubShader(PostProcessSubShader(TerrainLitAddSubShaders.LitGLESSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
+            context.AddSubShader(PostProcessSubShader(TerrainSubShaders.LitComputeDotsSubShader(target, renderTypeOpaque, renderQueue, blendModePreserveSpecular)));
+            context.AddSubShader(PostProcessSubShader(TerrainSubShaders.LitGLESSubShader(target, renderTypeOpaque, renderQueue, blendModePreserveSpecular)));
 
-            context.AddSubShader(PostProcessSubShader(TerrainLitBaseMapGenSubShaders.GenerateBaseMap(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
+            context.AddSubShader(PostProcessSubShader(TerrainLitAddSubShaders.LitComputeDotsSubShader(target, renderTypeOpaque, renderQueue, blendModePreserveSpecular)));
+            context.AddSubShader(PostProcessSubShader(TerrainLitAddSubShaders.LitGLESSubShader(target, renderTypeOpaque, renderQueue, blendModePreserveSpecular)));
+
+            context.AddSubShader(PostProcessSubShader(TerrainLitBaseMapGenSubShaders.GenerateBaseMap(target, renderTypeOpaque, renderQueue, blendModePreserveSpecular)));
         }
 
         public override void ProcessPreviewMaterial(Material material)
         {
-            if (target.allowMaterialOverride)
-            {
-                // copy our target's default settings into the material
-                // (technically not necessary since we are always recreating the material from the shader each time,
-                // which will pull over the defaults from the shader definition)
-                // but if that ever changes, this will ensure the defaults are set
-                material.SetFloat(Property.SpecularWorkflowMode, 1.0f);
-                material.SetFloat(Property.CastShadows, target.castShadows ? 1.0f : 0.0f);
-                material.SetFloat(Property.ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
-                material.SetFloat(Property.SurfaceType, 0.0f);
-                material.SetFloat(Property.BlendMode, (float)target.alphaMode);
-                material.SetFloat(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
-                material.SetFloat(Property.CullMode, 2.0f);
-                material.SetFloat(Property.ZWriteControl, (float)target.zWriteControl);
-                material.SetFloat(Property.ZTest, (float)target.zTestMode);
-            }
-
             // We always need these properties regardless of whether the material is allowed to override
             // Queue control & offset enable correct automatic render queue behavior
             // Control == 0 is automatic, 1 is user-specified render queue
@@ -348,19 +335,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            var universalTarget = (target as UniversalTarget);
-            universalTarget.AddDefaultMaterialOverrideGUI(ref context, onChange, registerUndo);
-
-            context.AddProperty("Blending Mode", new EnumField(AlphaMode.Alpha) { value = target.alphaMode }, target.surfaceType == SurfaceType.Transparent, (evt) =>
-            {
-                if (Equals(target.alphaMode, evt.newValue))
-                    return;
-
-                registerUndo("Change Blend");
-                target.alphaMode = (AlphaMode)evt.newValue;
-                onChange();
-            });
-
             context.AddProperty("Depth Write", new EnumField(ZWriteControl.Auto) { value = target.zWriteControl }, (evt) =>
             {
                 if (Equals(target.zWriteControl, evt.newValue))
@@ -841,14 +815,33 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
         #endregion
 
+        private static RenderStateCollection GetTerrainRenderState(UniversalTarget target)
+        {
+            var result = new RenderStateCollection
+            {
+                RenderState.ZTest(target.zTestMode.ToString()),
+                RenderState.Cull(Cull.Back),
+                RenderState.Blend(Blend.One, Blend.Zero)
+            };
+            switch (target.zWriteControl)
+            {
+                case ZWriteControl.Auto:
+                case ZWriteControl.ForceEnabled:
+                    result.Add(RenderState.ZWrite(ZWrite.On));
+                    break;
+                default:
+                    result.Add(RenderState.ZWrite(ZWrite.Off));
+                    break;
+            }
+            return result;
+        }
+
         #region Passes
         internal static class TerrainLitPasses
         {
-            public static void AddReceiveShadowsControlToPass(ref PassDescriptor pass, UniversalTarget target, bool receiveShadows)
+            private static void AddReceiveShadowsControlToPass(ref PassDescriptor pass, UniversalTarget target, bool receiveShadows)
             {
-                if (target.allowMaterialOverride)
-                    pass.keywords.Add(TerrainLitKeywords.ReceiveShadowsOff);
-                else if (!receiveShadows)
+                if (!receiveShadows)
                     pass.defines.Add(TerrainLitKeywords.ReceiveShadowsOff, 1);
             }
 
@@ -876,7 +869,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
-                    renderStates = CoreRenderStates.UberSwitchedRenderState(target, blendModePreserveSpecular),
+                    renderStates = GetTerrainRenderState(target),
                     pragmas = pragmas ?? TerrainCorePragmas.Forward,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog, },
                     keywords = new KeywordCollection() { TerrainLitKeywords.Forward },
@@ -895,7 +888,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
                 result.defines.Add(TerrainDefines.TerrainAlphaClipEnable, target.alphaClip?1:0);
 
-                CorePasses.AddTargetSurfaceControlsToPass(ref result, target, blendModePreserveSpecular);
+                CorePasses.AddAlphaClipControlToPass(ref result, target);
                 AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
 
                 return result;
@@ -925,7 +918,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
-                    renderStates = CoreRenderStates.UberSwitchedRenderState(target, blendModePreserveSpecular),
+                    renderStates = GetTerrainRenderState(target),
                     pragmas = TerrainCorePragmas.DOTSGBuffer,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                     keywords = new KeywordCollection() { TerrainLitKeywords.GBuffer },
@@ -945,7 +938,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
                 result.defines.Add(TerrainDefines.TerrainAlphaClipEnable, target.alphaClip?1:0);
 
-                CorePasses.AddTargetSurfaceControlsToPass(ref result, target, blendModePreserveSpecular);
+                CorePasses.AddAlphaClipControlToPass(ref result, target);
                 AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
 
                 return result;
@@ -987,8 +980,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.defines.Add(TerrainDefines.TerrainEnabled, 1);
                 result.defines.Add(TerrainDefines.TerrainAlphaClipEnable, target.alphaClip?1:0);
 
-                // CorePasses.AddTargetSurfaceControlsToPass(ref result, target, blendModePreserveSpecular);
-                CorePasses.AddAlphaClipControlToPass(ref result, target);
+                if (target.alphaClip)
+                    result.defines.Add(CoreKeywordDescriptors.AlphaTestOn, 1);
 
                 return result;
             }
@@ -1030,7 +1023,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.defines.Add(TerrainDefines.TerrainEnabled, 1);
                 result.defines.Add(TerrainDefines.TerrainAlphaClipEnable, target.alphaClip?1:0);
 
-                CorePasses.AddAlphaClipControlToPass(ref result, target);
+                if (target.alphaClip)
+                    result.defines.Add(CoreKeywordDescriptors.AlphaTestOn, 1);
 
                 return result;
             }
@@ -1076,7 +1070,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.keywords.Add(TerrainDefines.TerrainNormalmap);
                 result.keywords.Add(TerrainDefines.TerrainInstancedPerPixelNormal);
 
-                CorePasses.AddAlphaClipControlToPass(ref result, target);
+                if (target.alphaClip)
+                    result.defines.Add(CoreKeywordDescriptors.AlphaTestOn, 1);
 
                 return result;
             }
@@ -1121,7 +1116,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
                 result.defines.Add(TerrainDefines.TerrainAlphaClipEnable, target.alphaClip?1:0);
 
-                CorePasses.AddAlphaClipControlToPass(ref result, target);
+                if (target.alphaClip)
+                    result.defines.Add(CoreKeywordDescriptors.AlphaTestOn, 1);
 
                 return result;
             }
@@ -1163,7 +1159,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.defines.Add(TerrainDefines.TerrainEnabled, 1);
                 result.defines.Add(TerrainDefines.TerrainAlphaClipEnable, target.alphaClip?1:0);
 
-                CorePasses.AddAlphaClipControlToPass(ref result, target);
+                if (target.alphaClip)
+                    result.defines.Add(CoreKeywordDescriptors.AlphaTestOn, 1);
 
                 return result;
             }
@@ -1205,7 +1202,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.defines.Add(TerrainDefines.TerrainEnabled, 1);
                 result.defines.Add(TerrainDefines.TerrainAlphaClipEnable, target.alphaClip?1:0);
 
-                CorePasses.AddAlphaClipControlToPass(ref result, target);
+                if (target.alphaClip)
+                    result.defines.Add(CoreKeywordDescriptors.AlphaTestOn, 1);
 
                 return result;
             }

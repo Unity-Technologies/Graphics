@@ -48,17 +48,18 @@ void WorkQueueBuild(uint3 dispatchThreadID : SV_DispatchThreadID, uint groupInde
 
     const uint i = dispatchThreadID.x;
 
-    if (i >= g_RecordCount)
-        return;
+    if (i < (g_RecordCount))
+    {
+        // Load the record for this index.
+        const ClusterRecord record = _ClusterRecordBuffer[i];
+        uint index = (record.clusterIndex<<2);
 
-    // Load the record for this index.
-    const ClusterRecord record = _ClusterRecordBuffer[i];
+        // Compute the new index into the work queue.
+        uint workQueueIndex = _BinOffsetsBuffer.Load(index) + record.clusterOffset;
 
-    // Compute the new index into the work queue.
-    uint workQueueIndex = _BinOffsetsBuffer.Load(record.clusterIndex << 2) + record.clusterOffset;
-
-    // Write the bin segment into the work queue at this index.
-    _WorkQueueBuffer.Store(workQueueIndex << 2, record.segmentIndex);
+        // Write the bin segment into the work queue at this index.
+        _WorkQueueBuffer.Store(workQueueIndex << 2, record.segmentIndex);
+    }
 }
 
 #define THREADING_BLOCK_SIZE 1024

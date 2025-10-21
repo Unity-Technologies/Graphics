@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering
 
             public override void Initialize(bool bakeProbeOcclusion, NativeArray<Vector3> probePositions)
             {
-                if (!InputExtraction.ExtractFromScene(out input))
+                if (!InputExtraction.ExtractFromScene(out input, true))
                 {
                     Debug.LogError("InputExtraction.ExtractFromScene failed.");
                     return;

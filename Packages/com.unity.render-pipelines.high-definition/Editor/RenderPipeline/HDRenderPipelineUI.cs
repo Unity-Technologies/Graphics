@@ -893,9 +893,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     ++EditorGUI.indentLevel;
 
                     bool optionsChanged = false;
+                    HDRenderPipelineEditor hdrpEditor = owner as HDRenderPipelineEditor;
 
                     // O(N^2) IUpscaler name comparison but typical use case is <6 entries w/ each entry around 20B of char data
-                    for(int i=0; i< serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.arraySize; ++i)
+                    for (int i = 0; i < serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.arraySize; ++i)
                     {
                         string advancedUpscalerName = serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.GetArrayElementAtIndex(i).stringValue;
 
@@ -910,31 +911,40 @@ namespace UnityEditor.Rendering.HighDefinition
                             EditorGUILayout.LabelField(upscalerOptions.UpscalerName, EditorStyles.boldLabel);
                             ++EditorGUI.indentLevel;
 
-                            // injection point selection (common to all IUpscalers)
-                            int injectionPointBefore = (int)upscalerOptions.InjectionPoint;
-                            int injectionPointSelection = EditorGUILayout.IntPopup(Styles.IUpscalerInjectionPoint, (int)upscalerOptions.InjectionPoint, Styles.UpscalerInjectionPointNames, Styles.UpscalerInjectionPointValues);
-                            bool injectionPointChanged = injectionPointBefore != injectionPointSelection;
-                            if (injectionPointChanged)
-                                upscalerOptions.InjectionPoint = (DynamicResolutionHandler.UpsamplerScheduleType)injectionPointSelection;
+                            Debug.Assert(hdrpEditor != null);
+                            Editor editor = hdrpEditor.upscalerOptionsEditorCache.GetOrCreateEditor(upscalerOptions);
+                            if (editor != null)
+                            {
+                                //------------------------------------------------------------------------------------------------------------------------
+                                // Edge Case: Manually draw the "InjectionPoint" property.
+                                //            It is hidden by default to serve URP requirements.
+                                //            When URP supports injection points, this snippet can be safely removed
+                                SerializedProperty injectionPointProp = editor.serializedObject.FindProperty("m_InjectionPoint");
+                                if (injectionPointProp != null)
+                                {
+                                    EditorGUILayout.PropertyField(injectionPointProp);
+                                    editor.serializedObject.ApplyModifiedProperties();
+                                }
+                                //------------------------------------------------------------------------------------------------------------------------
 
-                            // draw rest of the options
-                            bool optionsChangedOnThisUpscaler = upscalerOptions.DrawOptionsEditorGUI();
-
-                            optionsChanged = optionsChanged || injectionPointChanged || optionsChangedOnThisUpscaler;
+                                editor.OnInspectorGUI();
+                            }
 
                             --EditorGUI.indentLevel;
-                        }
-                    }
+
+                        } // foreach upscaler option
+                    } // foreach advanced upscaler name
 
                     --EditorGUI.indentLevel;
 
-                    if(optionsChanged)
+                    if (optionsChanged)
                     {
                         EditorUtility.SetDirty(HDRenderPipeline.currentAsset);
                     }
                 }
 #endif
                 #endregion
+
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType, Styles.dynResType);
                 bool isHwDrs = (serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType.intValue == (int)DynamicResolutionType.Hardware);
                 bool gfxDeviceSupportsHwDrs = HDUtils.IsHardwareDynamicResolutionSupportedByDevice(SystemInfo.graphicsDeviceType);

@@ -17,16 +17,17 @@ using UnityEditor;
 [Serializable]
 public class FSR2Options : UpscalerOptions
 {
-    [EnumOption(typeof(FSR2Quality), "FSR2 Quality Mode")]
-    public int FSR2QualityMode = (int)FSR2Quality.Quality;
+    [Tooltip("Selects a performance quality setting for AMD FidelityFX 2.0 Super Resolution (FSR2).")]
+    public FSR2Quality FSR2QualityMode = FSR2Quality.Quality;
 
-    [BoolOption("Fixed Resolution")]
+    [Tooltip("Forces a fixed resolution scale derived from the selected quality mode, ignoring dynamic resolution.")]
     public bool FixedResolutionMode = false;
 
-    [BoolOption("Enable Sharpening")]
+    [Tooltip("Enable an additional sharpening pass on FidelityFX 2.0 Super Resolution (FSR2).")]
     public bool EnableSharpening = false;
 
-    [FloatOption(0.0f, 1.0f, "Sharpness")]
+    [Tooltip("The sharpness value between 0 and 1, where 0 is no additional sharpness and 1 is maximum additional sharpness.")]
+    [Range(0.0f, 1.0f)]
     public float Sharpness = 0.92f;
 };
 

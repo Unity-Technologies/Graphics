@@ -1195,23 +1195,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 displayName = "XRMotionVectors",
                 referenceName = "SHADERPASS_XR_MOTION_VECTORS",
                 lightMode = "XRMotionVectors",
-                useInPreview = true,
+                useInPreview = false,
 
                 // Template
                 passTemplatePath = UniversalTarget.kUberTemplatePath,
                 sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
-                validVertexBlocks = new BlockFieldDescriptor[]{ },
-                validPixelBlocks = new BlockFieldDescriptor[] { },
+                validVertexBlocks = CoreBlockMasks.MotionVectorVertex,
+                validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
 
                 // Fields
-                structs = new StructCollection() {
-                    { Structs.SurfaceDescriptionInputs },
-                    { Structs.VertexDescriptionInputs },
-                },
+                structs = CoreStructCollections.Default,
                 requiredFields = new FieldCollection(),
-                fieldDependencies = new DependencyCollection() { },
+                fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
                 renderStates = CoreRenderStates.XRMotionVector(target),
@@ -1219,9 +1216,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 defines = new DefineCollection(),
                 keywords = new KeywordCollection(),
                 includes = CoreIncludes.XRMotionVectors,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
             };
 
             result.defines.Add(CoreKeywordDescriptors.XRMotionVectors, 1);
+
+            AddAlphaClipControlToPass(ref result, target);
+            AddLODCrossFadeControlToPass(ref result, target);
 
             return result;
         }
@@ -1706,8 +1709,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public static readonly PragmaCollection XRMotionVectors = new PragmaCollection
         {
-            { Pragma.MultiCompileLodCrossfade },
-            { Pragma.ShaderFeatureLocalVertex("_ADD_PRECOMPUTED_VELOCITY") },
+            { Pragma.Target(ShaderModel.Target35) },
+            { Pragma.MultiCompileInstancing },
+            { Pragma.Vertex("vert") },
+            { Pragma.Fragment("frag") },
         };
 
         public static readonly PragmaCollection Forward = new PragmaCollection
@@ -1768,7 +1773,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kFog = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl";
         const string kRenderingLayers = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl";
         const string kProbeVolumes = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl";
-        const string kObjectMotionVectors = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ObjectMotionVectors.hlsl";
 
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {
@@ -1801,11 +1805,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly IncludeCollection ProbeVolumePregraph = new IncludeCollection
         {
             { kProbeVolumes, IncludeLocation.Pregraph, true },
-        };
-
-        public static readonly IncludeCollection ObjectMotionVectors = new IncludeCollection
-        {
-            { kObjectMotionVectors, IncludeLocation.Pregraph, true },
         };
 
         public static readonly IncludeCollection ShaderGraphPregraph = new IncludeCollection
@@ -1860,9 +1859,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly IncludeCollection XRMotionVectors = new IncludeCollection
         {
             // Pre-graph
+            { DOTSPregraph },
             { CorePregraph },
             { ShaderGraphPregraph },
-            { ObjectMotionVectors },
+
+            //Post-graph
+            { CorePostgraph },
+            { kMotionVectorPass, IncludeLocation.Postgraph },
         };
 
         public static readonly IncludeCollection ShadowCaster = new IncludeCollection

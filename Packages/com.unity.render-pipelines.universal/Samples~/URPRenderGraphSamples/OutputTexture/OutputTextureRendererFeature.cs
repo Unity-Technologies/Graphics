@@ -6,11 +6,11 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering.RenderGraphModule.Util;
 
 // MERGING: This pass can be merged with Draw Objects Pass and Draw Skybox pass if you set the m_PassEvent in
-// the inspector to After Rendering Opagues and set the texture type to Normal.
-// Your can observe this merging in the Render Graph Visualizer. If set to After Rendering Post Processing we
-// can now see that the pass isn't merged with any thing.
+// the inspector to After Rendering Opaques and set the texture type to Normal.
+// You can observe this merging in the Render Graph Visualizer. If set to After Rendering Post Processing we
+// can now see that the pass isn't merged with anything.
 
-// This RenderFeature shows how to used RenderGraph to output a specific texture used in URP, how a texture
+// This RenderFeature shows how to use the RenderGraph to output a specific texture used in URP, how a texture
 // can be attached by name to a material and how two render passes can be merged if executed in the correct order.
 public class OutputTextureRendererFeature : ScriptableRendererFeature
 {
@@ -42,20 +42,20 @@ public class OutputTextureRendererFeature : ScriptableRendererFeature
         }
     }
 
-    // Pass which outputs a texture from rendering to inspect a texture 
+    // Pass which outputs a texture from rendering to inspect a texture.
     class OutputTexturePass : ScriptableRenderPass
     {
         // The texture name you wish to bind the texture handle to for a given material.
         string m_TextureName;
-        // The texture type you want to retrive from URP.
+        // The texture type you want to retrieve from URP.
         TextureType m_TextureType;
         // The material used for blitting to the color output.
         Material m_Material;
 
-        // Function set setup the ConfigureInput() and transfer the renderer feature settings to the render pass.
+        // Function to set up the ConfigureInput() and transfer the renderer feature settings to the render pass.
         public void Setup(string textureName, TextureType textureType, Material material)
         {
-            // Setup code to trigger each corrspoinding texture is ready for use one the pass is run.
+            // Setup code to trigger each corresponding texture is ready for use when the pass is run.
             if (textureType == TextureType.OpaqueColor)
                 ConfigureInput(ScriptableRenderPassInput.Color);
             else if (textureType == TextureType.Depth)
@@ -65,11 +65,11 @@ public class OutputTextureRendererFeature : ScriptableRendererFeature
             else if (textureType == TextureType.MotionVector)
                 ConfigureInput(ScriptableRenderPassInput.Motion);
 
-            // Setup the texture name, type and material used when blitting.
-            // In this example we will use a mateial using a custom name for the input texture name when blitting.
+            // Set up the texture name, type and material used when blitting.
+            // In this example we will use a material using a custom name for the input texture name when blitting.
             // This texture name has to match the material texture input you are using.
             m_TextureName = String.IsNullOrEmpty(textureName) ? "_BlitTexture" : textureName;
-            // Texture type selects which input we would like to retrive from the camera.
+            // Texture type selects which input we would like to retrieve from the camera.
             m_TextureType = textureType;
             // The material is used to blit the texture to the cameras color attachment.
             m_Material = material;
@@ -78,7 +78,7 @@ public class OutputTextureRendererFeature : ScriptableRendererFeature
         // Records a render graph render pass which blits the BlitData's active texture back to the camera's color attachment.
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            // Fetch UniversalResourceData from frameData to retrive the URP's texture handles.
+            // Fetch UniversalResourceData from frameData to retrieve the URP's texture handles.
             var resourceData = frameData.Get<UniversalResourceData>();
 
             // Sets the texture handle input using the helper function to fetch the correct handle from resourceData.
@@ -120,6 +120,12 @@ public class OutputTextureRendererFeature : ScriptableRendererFeature
     // This method is called when setting up the renderer once per-camera.
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
+        if (m_Material == null)
+        {
+            Debug.LogWarning("Skipping OutputTexturePass because the material is null.");
+            return;
+        }
+        
         // Setup the correct data for the render pass, and transfers the data from the renderer feature to the render pass.
         m_ScriptablePass.Setup(m_TextureName, m_TextureType, m_Material);
         renderer.EnqueuePass(m_ScriptablePass);

@@ -36,7 +36,7 @@ public class MrtRendererFeature : ScriptableRendererFeature
             m_texName = String.IsNullOrEmpty(texName) ? "_ColorTexture" : texName;
 
 
-            //Create RTHandles from the RenderTextures if they have changed.
+            // Create RTHandles from the RenderTextures if they have changed.
             for (int i = 0; i < 3; i++)
             {
                 if (m_RTs[i] == null || m_RTs[i].rt != renderTextures[i])
@@ -60,7 +60,7 @@ public class MrtRendererFeature : ScriptableRendererFeature
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             var handles = new TextureHandle[3];
-            // Imports the texture handles them in RenderGraph.
+            // Imports the texture handles in RenderGraph.
             for (int i = 0; i < 3; i++)
             {
                 handles[i] = renderGraph.ImportTexture(m_RTs[i], m_RTInfos[i]);
@@ -69,7 +69,7 @@ public class MrtRendererFeature : ScriptableRendererFeature
             // and outputting the data used to pass data to the execution of the render function.
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("MRT Pass", out var passData))
             {
-                // Fetch the universal resource data to exstract the camera's color attachment.
+                // Fetch the universal resource data to extract the camera's color attachment.
                 var resourceData = frameData.Get<UniversalResourceData>();
 
                 // Fill in the pass data using by the render function.
@@ -90,7 +90,7 @@ public class MrtRendererFeature : ScriptableRendererFeature
                 }
 
                 // Sets the render function.
-                builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) => ExecutePass(data, rgContext));
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext rgContext) => ExecutePass(data, rgContext));
             }
         }
 
@@ -115,7 +115,7 @@ public class MrtRendererFeature : ScriptableRendererFeature
 
     MrtPass m_MrtPass;
 
-    // Here you can create passes and do the initialization of them. This is called everytime serialization happens.
+    // Here you can create passes and do the initialization of them. This is called every time serialization happens.
     public override void Create()
     {
         m_MrtPass = new MrtPass();
@@ -133,7 +133,7 @@ public class MrtRendererFeature : ScriptableRendererFeature
         // Early exit if there are no materials.
         if (mrtMaterial == null || renderTextures.Length != 3)
         {
-            Debug.LogWarning("Skipping MRTPass because the material is null or render textures doesn't have a size of 3.");
+            Debug.LogWarning("Skipping MRTPass because the material is null or the renderTextures array doesn't have a size of 3.");
             return;
         }
 

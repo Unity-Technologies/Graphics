@@ -5,6 +5,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 using Unity.Collections;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
@@ -262,14 +263,17 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public readonly ReadOnlySpan<PassInputData> Inputs(CompilerContextData ctx)
             => ctx.inputData.MakeReadOnlySpan(firstInput, numInputs);
 
+        // RenderAttachments - MRT colors and depth
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<PassFragmentData> Fragments(CompilerContextData ctx)
             => ctx.fragmentData.MakeReadOnlySpan(firstFragment, numFragments);
 
+        // ShadingRateImageAttachment
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly PassFragmentData ShadingRateImage(CompilerContextData ctx)
             => ctx.fragmentData[shadingRateImageIndex];
 
+        // RenderInputAttachments
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<PassFragmentData> FragmentInputs(CompilerContextData ctx)
             => ctx.fragmentData.MakeReadOnlySpan(firstFragmentInput, numFragmentInputs);
@@ -441,6 +445,35 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
 
             return false;
+        }
+
+        internal void DisconnectFromResources(CompilerContextData ctx, Stack<ResourceHandle> unusedVersionedResourceIdCullingStack = null, int type = 0)
+        {
+            // If the culled pass was supposed to generate the latest version of a given resource,
+            // we need to decrement the latestVersionNumber of this resource
+            // because its last version will never be created due to its producer being culled
+            foreach (ref readonly var output in Outputs(ctx))
+            {
+                ref readonly var outputResource = ref output.resource;
+                bool isOutputLastVersion = (outputResource.version == ctx.UnversionedResourceData(outputResource).latestVersionNumber);
+
+                if (isOutputLastVersion)
+                    ctx.UnversionedResourceData(outputResource).latestVersionNumber--;
+            }
+
+            // Notifying the versioned resources that this pass is no longer reading them
+            foreach (ref readonly var input in Inputs(ctx))
+            {
+                ref readonly var inputResource = ref input.resource;
+                ref var inputVersionedDataResource = ref ctx.resources[inputResource];
+                inputVersionedDataResource.RemoveReadingPass(ctx, inputResource, passId);
+
+                // If a resource of the same type is not used anymore, adding it to the stack
+                if (unusedVersionedResourceIdCullingStack != null && inputResource.iType == type && inputVersionedDataResource.written && inputVersionedDataResource.numReaders == 0)
+                {
+                    unusedVersionedResourceIdCullingStack.Push(inputResource);
+                }
+            }
         }
     }
 
@@ -881,18 +914,21 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             foreach (ref readonly var input in passToMerge.Inputs(contextData))
             {
                 var inputResource = input.resource;
-                var writingPassId = contextData.resources[inputResource].writePassId;
-                // Is the writing pass enclosed in the current native renderpass
-                if (writingPassId >= nativePass.firstGraphPass && writingPassId < nativePass.lastGraphPass + 1)
+
+                ref readonly var inputDataVersioned = ref contextData.VersionedResourceData(inputResource);
+
+                bool isWrittenInCurrNativePass = inputDataVersioned.written && (inputDataVersioned.writePassId >= nativePass.firstGraphPass && inputDataVersioned.writePassId < nativePass.lastGraphPass + 1);
+
+                if (isWrittenInCurrNativePass)
                 {
-                    // If it's not used as a fragment, it's used as some sort of texture read of load so we need so sync it out
+                    // If it's not used as a fragment, it's used as some sort of texture read or load so we need to break the current native render pass
+                    // as we can't sample and write to it in the same native render pass
                     if (!passToMerge.IsUsedAsFragment(inputResource, contextData))
                     {
                         return new PassBreakAudit(PassBreakReason.NextPassReadsTexture, passIdToMerge);
                     }
                 }
             }
-
 
             // Gather which attachments to add to the current renderpass
             var attachmentsToTryAdding = new FixedAttachmentArray<PassFragmentData>();
@@ -929,7 +965,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     }
                 }
 
-                // Check if this fragment is already sampled in the native renderpass not as a fragment but as an input
+                // Check if this fragment is already sampled in the native renderpass as a standard texture
                 for (int i = nativePass.firstGraphPass; i <= nativePass.lastGraphPass; ++i)
                 {
                     ref var earlierPassData = ref contextData.passData.ElementAt(i);
@@ -947,7 +983,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     }
                 }
             }
-
 
             foreach (ref readonly var fragmentInput in passToMerge.FragmentInputs(contextData))
             {
@@ -979,6 +1014,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 }
             }
 
+            // Determines if the pixel storage limit is reached after adding the new 'pass to merge' attachments to the current native render pass.
+            if (TotalAttachmentsSizeExceedPixelStorageLimit(contextData, ref nativePass, ref attachmentsToTryAdding))
+            {
+                return new PassBreakAudit(PassBreakReason.AttachmentLimitReached, passIdToMerge);
+            }
+
             // We check first if we are at risk of having too many subpasses,
             // only then we do the costlier subpass merging check, short circuiting it whenever possible
             bool canAddAnExtraSubpass = (nativePass.numGraphPasses < NativePassCompiler.k_MaxSubpass);
@@ -989,6 +1030,34 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             // All is good! Pass can be merged into active native pass
             return new PassBreakAudit(PassBreakReason.Merged, passIdToMerge);
+        }
+
+        static bool TotalAttachmentsSizeExceedPixelStorageLimit(CompilerContextData contextData, ref NativePassData nativePass, ref FixedAttachmentArray<PassFragmentData> attachmentsToTryAdding)
+        {
+            // TODO: We are currently only checking for iOS GPU Family 1 to 3 since the storage size is much more restricted (16 bytes for Family 1 and 32 for Family 2 & 3).
+            // This is temporary. Later on, we should check all iOS GPU Families but also Android (Vulkan) to avoid the same potential restrictions.
+            if (Application.platform == RuntimePlatform.IPhonePlayer && SystemInfo.maxTiledPixelStorageSize <= 32)
+            {
+                int totalSize = 0;
+
+                // Iterate over current attachments
+                for (int i = 0; i < nativePass.fragments.size; ++i)
+                {
+                    ref readonly var unvResource = ref contextData.UnversionedResourceData(nativePass.fragments[i].resource);
+                    totalSize += SystemInfo.GetTiledRenderTargetStorageSize(unvResource.graphicsFormat, unvResource.msaaSamples);
+                }
+
+                // Iterate over new attachments to add
+                for (int i = 0; i < attachmentsToTryAdding.size; ++i)
+                {
+                    ref readonly var unvResource = ref contextData.UnversionedResourceData(attachmentsToTryAdding[i].resource);
+                    totalSize += SystemInfo.GetTiledRenderTargetStorageSize(unvResource.graphicsFormat, unvResource.msaaSamples);
+                }
+
+                return totalSize > SystemInfo.maxTiledPixelStorageSize;
+            }
+            
+            return false;
         }
 
         // This function follows the structure of TryMergeNativeSubPass but only tests if the new native subpass can be
@@ -1283,7 +1352,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 }
             }
 
-            // We also need to update the shading rate image index (VRS)
+            // We also need to update the shading rate image SRI index (used for VRS)
+            // This is unlikely to happen because the SRI is always added last, after color and input attachments
             if (hasShadingRateImage && shadingRateImageIndex == 0)
             {
                 shadingRateImageIndex = prevDepthIdx;

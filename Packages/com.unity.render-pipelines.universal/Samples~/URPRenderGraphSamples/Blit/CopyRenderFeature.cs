@@ -12,9 +12,10 @@ public class CopyRenderFeature : ScriptableRendererFeature
     {
         public CopyRenderPass()
         {
-            //The pass will read the current color texture. That needs to be an intermediate texture. It's not supported to use the BackBuffer as input texture. 
-            //By setting this property, URP will automatically create an intermediate texture. 
-            //It's good practice to set it here and not from the RenderFeature. This way, the pass is selfcontaining and you can use it to directly enqueue the pass from a monobehaviour without a RenderFeature.
+            // The pass will read the current color texture. That needs to be an intermediate texture. It's not supported to use the BackBuffer as input texture. 
+            // By setting this property, URP will automatically create an intermediate texture.
+            // It's good practice to set it here and not from the RenderFeature. This way, the pass is self-containing,
+            // and you can use it to directly enqueue the pass from a MonoBehaviour without a RenderFeature.
             requiresIntermediateTexture = true;
         }
 
@@ -22,8 +23,6 @@ public class CopyRenderFeature : ScriptableRendererFeature
         // Each ScriptableRenderPass can use the RenderGraph handle to add multiple render passes to the render graph
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            const string passName = "Copy To or From Temp Texture";
-
             // UniversalResourceData contains all the texture handles used by the renderer, including the active color and depth textures
             // The active color and depth textures are the main color and depth buffers that the camera renders into
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
@@ -41,10 +40,10 @@ public class CopyRenderFeature : ScriptableRendererFeature
             if (RenderGraphUtils.CanAddCopyPassMSAA())
             {
                 // This simple pass copies the active color texture to a new texture. 
-                renderGraph.AddCopyPass(resourceData.activeColorTexture, destination, passName: passName);
+                renderGraph.AddCopyPass(resourceData.activeColorTexture, destination, passName: "Copy Active Color Texture to Temp Texture");
 
-                //Need to copy back otherwise the pass gets culled since the result of the previous copy is not read. This is just for demonstration purposes.
-                renderGraph.AddCopyPass(destination, resourceData.activeColorTexture, passName: passName);
+                // Need to copy back - otherwise the pass gets culled since the result of the previous copy is not read. This is just for demonstration purposes.
+                renderGraph.AddCopyPass(destination, resourceData.activeColorTexture, passName: "Copy Temp Texture to Active Color Texture");
             }
             else
             {

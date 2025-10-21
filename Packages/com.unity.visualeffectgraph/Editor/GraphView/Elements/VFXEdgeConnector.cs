@@ -33,35 +33,6 @@ namespace UnityEditor.VFX.UI
 
             s_PickedList.Clear();
             view.panel.PickAll(e.mousePosition, s_PickedList);
-
-            VFXDataAnchor anchor = s_PickedList.OfType<VFXDataAnchor>().FirstOrDefault();
-
-            if (anchor != null)
-                view.StartEdgeDragInfo(this.edgeDragHelper.draggedPort as VFXDataAnchor, anchor);
-            else
-                view.StopEdgeDragInfo();
-        }
-
-        protected override void OnMouseUp(MouseUpEvent e)
-        {
-            base.OnMouseUp(e);
-
-            if (!e.isPropagationStopped)
-                return;
-
-            VFXView view = m_Anchor.GetFirstAncestorOfType<VFXView>();
-            if (view == null)
-                return;
-            view.StopEdgeDragInfo();
-        }
-
-        protected override void Abort()
-        {
-            base.Abort();
-            if (m_Anchor.GetFirstAncestorOfType<VFXView>() is { } view)
-            {
-                view.StopEdgeDragInfo();
-            }
         }
 
         static List<VisualElement> s_PickedList = new List<VisualElement>();

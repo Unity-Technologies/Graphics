@@ -43,8 +43,19 @@ namespace UnityEngine.Rendering.HighDefinition
                         c.parameters[i].SetValue(resourceComponent.parameters[i]);
                     }
                 }
-
             }
+
+            return profile;
+        }
+
+        internal static VolumeProfile CopyVolumeProfileFromResourcesToAssets(VolumeProfile profileInResourcesFolder, bool forcedOverrideValue = false)
+        {
+            var profile = CopyVolumeProfileFromResourcesToAssets(profileInResourcesFolder);
+
+            if (profile != null)
+                foreach (var component in profile.components)
+                    for (int i = 0; i < component.parameters.Count; i++)
+                        component.parameters[i].overrideState = forcedOverrideValue;
 
             return profile;
         }
