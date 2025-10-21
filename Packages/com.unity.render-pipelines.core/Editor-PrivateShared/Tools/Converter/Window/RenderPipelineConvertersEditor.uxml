@@ -1,4 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:HelpBox message-type="Warning" text="The Render Pipeline Converter is disabled during Playmode." name="disabledToolHelpBox" style="flex-grow: 1;" />
     <ui:VisualElement name="converterEditorMainVE" class="converter-editor-main">
         <ui:VisualElement name="topInformationVE" class="converter-top-info">
             <ui:TabView index="-1" name="conversionsTabView" class="converter-dropdown"/>    

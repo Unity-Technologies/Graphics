@@ -168,11 +168,40 @@ namespace UnityEditor.Rendering.Converter
         void OnEnable()
         {
             GraphicsToolLifetimeAnalytic.WindowOpened<RenderPipelineConvertersEditor>();
+
+            // Subscribe to play mode changes
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+
+            // If CreateGUI already ran, update UI state now
+            UpdateUiForPlayMode(EditorApplication.isPlaying);
         }
 
         private void OnDisable()
         {
             GraphicsToolLifetimeAnalytic.WindowClosed<RenderPipelineConvertersEditor>();
+
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+        }
+
+        private void OnPlayModeStateChanged(PlayModeStateChange state)
+        {
+            // Update visibility whenever state changes
+            UpdateUiForPlayMode(EditorApplication.isPlaying);
+        }
+
+        private void UpdateUiForPlayMode(bool isPlaying)
+        {
+            if (rootVisualElement == null)
+                return;
+
+            var disabledHelpBox = rootVisualElement.Q<HelpBox>("disabledToolHelpBox");
+            var convertersMainVE = rootVisualElement.Q<VisualElement>("converterEditorMainVE");
+
+            if (disabledHelpBox == null || convertersMainVE == null)
+                return;
+
+            disabledHelpBox.style.display = isPlaying ? DisplayStyle.Flex : DisplayStyle.None;
+            convertersMainVE.SetEnabled(!isPlaying);
         }
 
         public void CreateGUI()
@@ -255,6 +284,8 @@ namespace UnityEditor.Rendering.Converter
 
             HideUnhideConverters();
             EnableOrDisableConvertButton();
+
+            UpdateUiForPlayMode(EditorApplication.isPlaying);
         }
 
         private bool CanEnableConvert()
