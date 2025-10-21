@@ -406,14 +406,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the camera color target for this renderer.
-        /// It's only valid to call cameraColorTarget in the scope of <c>ScriptableRenderPass</c>.
-        /// <seealso cref="ScriptableRenderPass"/>.
-        /// </summary>
-        [Obsolete("Use cameraColorTargetHandle. #from(2022.1) #breakingFrom(2023.2)", true)]
-        public RenderTargetIdentifier cameraColorTarget => throw new NotSupportedException("cameraColorTarget has been deprecated. Use cameraColorTargetHandle instead");
-
-        /// <summary>
         /// Returns a list of renderer features added to this renderer.
         /// </summary>
         /// <seealso cref="ScriptableRendererFeature"/>
@@ -445,91 +437,17 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="GraphicsDeviceType"/>
         public GraphicsDeviceType[] unsupportedGraphicsDeviceTypes { get; set; } = new GraphicsDeviceType[0];
 
-        static class RenderPassBlock
-        {
-            // Executes render passes that are inputs to the main rendering
-            // but don't depend on camera state. They all render in monoscopic mode. f.ex, shadow maps.
-            public static readonly int BeforeRendering = 0;
-
-            // Main bulk of render pass execution. They required camera state to be properly set
-            // and when enabled they will render in stereo.
-            public static readonly int MainRenderingOpaque = 1;
-            public static readonly int MainRenderingTransparent = 2;
-
-            // Execute after Post-processing.
-            public static readonly int AfterRendering = 3;
-        }
-
-        private StoreActionsOptimization m_StoreActionsOptimizationSetting = StoreActionsOptimization.Auto;
-        private static bool m_UseOptimizedStoreActions = false;
-
-        const int k_RenderPassBlockCount = 4;
-
-        /// <summary>
-        /// An RTHandle wrapping the <c>BuiltinRenderTextureType.CameraTarget</c> render target. This is a helper
-        /// that avoids having to (re)allocate a new RTHandle every time the camera target is needed.
-        /// </summary>
-        protected static readonly RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
-
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
-
-        RTHandle m_CameraColorTarget;
-        RTHandle m_CameraDepthTarget;
-        RTHandle m_CameraResolveTarget;
-
-        bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
-        bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
 
         // The pipeline can only guarantee the camera target texture are valid when the pipeline is executing.
         // Trying to access the camera target before or after might be that the pipeline texture have already been disposed.
         bool m_IsPipelineExecuting = false;
 
         internal bool useRenderPassEnabled = false;
-        // Used to cache nameID of m_ActiveColorAttachments for CoreUtils without allocating arrays at each call
-        static RenderTargetIdentifier[] m_ActiveColorAttachmentIDs = new RenderTargetIdentifier[8];
-        static RTHandle[] m_ActiveColorAttachments = new RTHandle[8];
-        static RTHandle m_ActiveDepthAttachment;
 
         ContextContainer m_frameData = new();
         internal ContextContainer frameData => m_frameData;
-
-        private static RenderBufferStoreAction[] m_ActiveColorStoreActions = new RenderBufferStoreAction[]
-        {
-            RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store,
-            RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store
-        };
-
-        private static RenderBufferStoreAction m_ActiveDepthStoreAction = RenderBufferStoreAction.Store;
-
-        // CommandBuffer.SetRenderTarget(RenderTargetIdentifier[] colors, RenderTargetIdentifier depth, int mipLevel, CubemapFace cubemapFace, int depthSlice);
-        // called from CoreUtils.SetRenderTarget will issue a warning assert from native c++ side if "colors" array contains some invalid RTIDs.
-        // To avoid that warning assert we trim the RenderTargetIdentifier[] arrays we pass to CoreUtils.SetRenderTarget.
-        // To avoid re-allocating a new array every time we do that, we re-use one of these arrays for both RTHandles and RenderTargetIdentifiers:
-        static RenderTargetIdentifier[][] m_TrimmedColorAttachmentCopyIDs =
-        {
-            Array.Empty<RenderTargetIdentifier>(), // only used to make indexing code easier to read
-            new RenderTargetIdentifier[1],
-            new RenderTargetIdentifier[2],
-            new RenderTargetIdentifier[3],
-            new RenderTargetIdentifier[4],
-            new RenderTargetIdentifier[5],
-            new RenderTargetIdentifier[6],
-            new RenderTargetIdentifier[7],
-            new RenderTargetIdentifier[8],
-        };
-        static RTHandle[][] m_TrimmedColorAttachmentCopies =
-        {
-            Array.Empty<RTHandle>(), // only used to make indexing code easier to read
-            new RTHandle[1],
-            new RTHandle[2],
-            new RTHandle[3],
-            new RTHandle[4],
-            new RTHandle[5],
-            new RTHandle[6],
-            new RTHandle[7],
-            new RTHandle[8],
-        };
 
         private static Plane[] s_Planes = new Plane[6];
         private static Vector4[] s_VectorPlanes = new Vector4[6];
@@ -564,15 +482,7 @@ namespace UnityEngine.Rendering.Universal
                 m_RendererFeatures.Add(feature);
             }
             useRenderPassEnabled = data.useNativeRenderPass;
-            Clear(CameraRenderType.Base);
             m_ActiveRenderPassQueue.Clear();
-
-            if (UniversalRenderPipeline.asset)
-            {
-                m_StoreActionsOptimizationSetting = UniversalRenderPipeline.asset.storeActionsOptimization;
-            }
-
-            m_UseOptimizedStoreActions = m_StoreActionsOptimizationSetting != StoreActionsOptimization.Store;
         }
 
         /// <summary>
@@ -1203,10 +1113,6 @@ namespace UnityEngine.Rendering.Universal
                 if (activeRenderPassQueue[i] == null)
                     activeRenderPassQueue.RemoveAt(i);
             }
-
-            // if any pass was injected, the "automatic" store optimization policy will disable the optimized load actions
-            if (count > 0 && m_StoreActionsOptimizationSetting == StoreActionsOptimization.Auto)
-                m_UseOptimizedStoreActions = false;
         }
         
         static void ClearRenderingState(IBaseCommandBuffer cmd)
@@ -1234,23 +1140,6 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetKeyword(ShaderGlobalKeywords.LinearToSRGBConversion, false);
             cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, false);
             cmd.SetGlobalVector(ScreenSpaceAmbientOcclusionPass.s_AmbientOcclusionParamID, Vector4.zero);
-        }
-
-        internal void Clear(CameraRenderType cameraType)
-        {
-            m_ActiveColorAttachments[0] = k_CameraTarget;
-            for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
-                m_ActiveColorAttachments[i] = null;
-            for (int i = 0; i < m_ActiveColorAttachments.Length; ++i)
-                m_ActiveColorAttachmentIDs[i] = m_ActiveColorAttachments[i]?.nameID ?? 0;
-
-            m_ActiveDepthAttachment = k_CameraTarget;
-
-            m_FirstTimeCameraColorTargetIsBound = cameraType == CameraRenderType.Base;
-            m_FirstTimeCameraDepthTargetIsBound = true;
-
-            m_CameraColorTarget = null;
-            m_CameraDepthTarget = null;
         }
 
         // Scene filtering is enabled when in prefab editing mode

@@ -232,17 +232,7 @@ namespace UnityEngine.Rendering.Universal
 
     public abstract partial class ScriptableRenderer
     {
-        // Deprecated in 10.x
-        /// <summary>
-        /// The render target identifier for camera depth.
-        /// This is obsolete, cameraDepth has been renamed to cameraDepthTarget.
-        /// </summary>
-        [Obsolete("cameraDepth has been renamed to cameraDepthTarget. #from(2021.1) #breakingFrom(2023.1) (UnityUpgradable) -> cameraDepthTarget", true)]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public RenderTargetIdentifier cameraDepth
-        {
-            get => m_CameraDepthTarget.nameID;
-        }
+
     }
 
     public abstract partial class ScriptableRendererData
