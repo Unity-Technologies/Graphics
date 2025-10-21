@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _VolumeCount;
         public uint _IsObliqueProjectionMatrix;
         public float _HalfVoxelArcLength;
-        public uint _Padding2;
+        public float _VolumetricLightingExtinctionCutoff;
     }
 
     /// <summary>Falloff mode for the local volumetric fog blend distance.</summary>
@@ -997,6 +997,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Compute the arc length of a single froxel at 1m from the camera.
             // This value can be used to quickly compute the arc length of a single froxel
             cb._HalfVoxelArcLength = Mathf.Deg2Rad * hdCamera.camera.fieldOfView / currParams.viewportSize.y / 2.0f;
+            cb._VolumetricLightingExtinctionCutoff = fog.volumetricLightingDensityCutoff.value;
 
             if (updateVoxelizationFields)
             {

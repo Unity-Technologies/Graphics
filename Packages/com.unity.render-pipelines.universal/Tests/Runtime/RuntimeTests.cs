@@ -53,6 +53,7 @@ class RuntimeTests
     // When switching to Built-in it sets "" as global shader tag.
 #if UNITY_EDITOR // TODO This API call does not reset in player
     [UnityTest]
+    [Ignore("Unstable: https://jira.unity3d.com/browse/UUM-122594")]
     public IEnumerator PipelineSetsAndRestoreGlobalShaderTagCorrectly()
     {
         AssetCheck();

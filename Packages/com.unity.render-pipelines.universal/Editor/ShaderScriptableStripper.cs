@@ -42,7 +42,6 @@ namespace UnityEditor.Rendering.Universal
 
             public bool IsHDRDisplaySupportEnabled { get; set; }
             public bool IsHDRShaderVariantValid { get; set; }
-            public bool IsRenderCompatibilityMode { get; set; }
 
             public bool IsShaderFeatureEnabled(ShaderFeatures feature);
 
@@ -80,7 +79,6 @@ namespace UnityEditor.Rendering.Universal
             public PassIdentifier passIdentifier { get => passData.pass; set {} }
             public bool IsHDRDisplaySupportEnabled { get; set; }
             public bool IsHDRShaderVariantValid { get => HDROutputUtils.IsShaderVariantValid(variantData.shaderKeywordSet, PlayerSettings.allowHDRDisplaySupport); set { } }
-            public bool IsRenderCompatibilityMode { get; set; }
 
             public bool IsKeywordEnabled(LocalKeyword keyword)
             {
@@ -813,16 +811,12 @@ namespace UnityEditor.Rendering.Universal
                 if (strippingData.IsKeywordEnabled(m_Instancing) || strippingData.IsKeywordEnabled(m_DotsInstancing)|| strippingData.IsKeywordEnabled(m_ProceduralInstancing))
                     return false; // Currently we don't support stencil-based fade with GPU instancing.
 
-                // native render pass is not supported for now.
-                if (strippingData.IsRenderCompatibilityMode)
-                    return false;
-
                 // We can't strip the variations of the passes which may not have stencils.
                 // Stencil's availability in motion vector pass depends on platforms + graphics API.
-                return (strippingData.passType != PassType.ShadowCaster) && (strippingData.passType != PassType.MotionVectors);
+                return strippingData.passType != PassType.ShadowCaster && strippingData.passType != PassType.MotionVectors;
             }
-            else
-                return !strippingData.IsShaderFeatureEnabled(ShaderFeatures.LODCrossFade);
+
+            return !strippingData.IsShaderFeatureEnabled(ShaderFeatures.LODCrossFade);
         }
 
         internal bool StripUnusedFeatures(ref IShaderScriptableStrippingData strippingData)
@@ -1237,12 +1231,6 @@ namespace UnityEditor.Rendering.Universal
                 stripUnusedPostProcessingVariants = ShaderBuildPreprocessor.s_StripUnusedPostProcessingVariants,
                 stripUnusedXRVariants = ShaderBuildPreprocessor.s_StripXRVariants,
                 IsHDRDisplaySupportEnabled = PlayerSettings.allowHDRDisplaySupport,
-                IsRenderCompatibilityMode =
-#if URP_COMPATIBILITY_MODE
-                    GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var renderGraphSettings) && renderGraphSettings.enableRenderCompatibilityMode,
-#else
-                    false,
-#endif
                 shader = shader,
                 passData = passData,
                 variantData = variantData

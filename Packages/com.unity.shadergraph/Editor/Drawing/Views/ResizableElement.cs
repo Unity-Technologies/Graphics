@@ -9,7 +9,8 @@ namespace UnityEditor.ShaderGraph.Drawing
     class ResizableElementFactory : UxmlFactory<ResizableElement>
     { }
 
-    class ResizableElement : VisualElement
+    [UxmlElement]
+    partial class ResizableElement : VisualElement
     {
         Dictionary<Resizer, VisualElement> m_Resizers = new Dictionary<Resizer, VisualElement>();
 

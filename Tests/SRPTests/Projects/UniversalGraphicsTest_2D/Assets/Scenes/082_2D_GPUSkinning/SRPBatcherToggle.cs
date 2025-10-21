@@ -15,6 +15,7 @@ public class SRPBatcherToggle : MonoBehaviour
         Debug.LogFormat("OnEnable {0}", universalAsset.useSRPBatcher);
         useScriptableRenderPipelineBatching = universalAsset.useSRPBatcher;
         universalAsset.useSRPBatcher = useSRPBatcher;
+        GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
     }
 
     private void Update()
@@ -27,6 +28,7 @@ public class SRPBatcherToggle : MonoBehaviour
     {
         var universalAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
         universalAsset.useSRPBatcher = useScriptableRenderPipelineBatching;
+        GraphicsSettings.useScriptableRenderPipelineBatching = useScriptableRenderPipelineBatching;
         Debug.LogFormat("OnDisable {0}", universalAsset.useSRPBatcher);
     }
 }

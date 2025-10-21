@@ -1,4 +1,4 @@
-
+#pragma only_renderers d3d11 vulkan metal glcore
 #pragma multi_compile _ SPARSE_GRID
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

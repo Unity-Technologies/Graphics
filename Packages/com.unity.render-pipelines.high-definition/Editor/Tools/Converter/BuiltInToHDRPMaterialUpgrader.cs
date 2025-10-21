@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor.Rendering.Converter;
 using UnityEngine.Categorization;
@@ -5,6 +6,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    [Serializable]
     [PipelineConverter("Built-in", "High Definition Render Pipeline (HDRP)")]
     [ElementInfo(Name = "Material Shader Converter",
                  Order = 100,

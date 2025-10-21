@@ -25,45 +25,6 @@ public class BlitToRTHandlePass : ScriptableRenderPass
         m_Material = mat;
     }
 
-#if URP_COMPATIBILITY_MODE // Compatibility Mode is being removed
-#pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
-
-    // Unity calls the Configure method in the Compatibility mode (non-RenderGraph path)
-    public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-    {
-        // Configure the custom RTHandle
-        var desc = cameraTextureDescriptor;
-        desc.depthBufferBits = 0;
-        desc.msaaSamples = 1;
-        RenderingUtils.ReAllocateIfNeeded(ref m_OutputHandle, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: k_OutputName );
-
-        // Set the RTHandle as the output target in the Compatibility mode
-        ConfigureTarget(m_OutputHandle);
-    }
-
-    // Unity calls the Execute method in the Compatibility mode
-    public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-    {
-        // Set camera color as the input
-        m_InputHandle = renderingData.cameraData.renderer.cameraColorTargetHandle;
-
-        CommandBuffer cmd = CommandBufferPool.Get();
-        using (new ProfilingScope(cmd, m_ProfilingSampler))
-        {
-            // Blit the input RTHandle to the output one
-            Blitter.BlitCameraTexture(cmd, m_InputHandle, m_OutputHandle, m_Material, 0);
-
-            // Make the output texture available for the shaders in the scene
-            cmd.SetGlobalTexture(m_OutputId, m_OutputHandle.nameID);
-        }
-        context.ExecuteCommandBuffer(cmd);
-        cmd.Clear();
-        CommandBufferPool.Release(cmd);
-    }
-
-#pragma warning restore 618, 672
-#endif
-
     // Unity calls the RecordRenderGraph method to add and configure one or more render passes in the render graph system.
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {

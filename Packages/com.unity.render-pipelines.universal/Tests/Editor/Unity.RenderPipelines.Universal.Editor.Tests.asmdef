@@ -26,6 +26,12 @@
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.postprocessing",
+            "expression": "0.0.1",
+            "define": "PPV2_EXISTS"
+        }
+    ],
     "noEngineReferences": false
 }

@@ -128,6 +128,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent foamAtlasSizeContent = EditorGUIUtility.TrTextContent("Foam Atlas Size", "Specifies the size of the atlas used to store texture water foam.");
             public static readonly GUIContent supportWaterExclusionContent = EditorGUIUtility.TrTextContent("Exclusion", "When enabled, HDRP allocates a stencil bit to support water excluders.");
             public static readonly GUIContent supportWaterHorizontalDeformationContent = EditorGUIUtility.TrTextContent("Horizontal Deformation", "When enabled, HDRP allocates additional memory to support water horizontal deformation. Enabling this property limits compatibility with other water system features (like scripts interactions or underwater), refer to the documentation for more details.");
+            public static readonly GUIContent waterCausticsMeshResolutionContent = EditorGUIUtility.TrTextContent("Caustics Mesh Resolution", "Specifies the resolution of the mesh used to render the caustics texture. For better efficiency, this needs to be lower than the caustics resolution texture in your water surface. A higher resolution increases the number of vertices in the scene.");
 
             // High Quality Line Rendering
             public static readonly GUIContent highQualityLineRenderingSubTitle = EditorGUIUtility.TrTextContent("High Quality Line Rendering");

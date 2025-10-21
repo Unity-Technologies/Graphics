@@ -749,6 +749,7 @@ namespace UnityEditor.VFX.UI
         {
             var toggleAll = new Toggle();
             toggleAll.value = true;
+            toggleAll.tooltip = "Show/Hide all particle system curves";
             toggleAll.RegisterValueChangedCallback(ToggleAll);
 
             var SystemInfoName = new TextElement();
@@ -786,13 +787,14 @@ namespace UnityEditor.VFX.UI
             m_SystemInfosContainer.Add(statContainer);
 
             var toggle = new Toggle();
+            toggle.tooltip = "Show/Hide particle system curve";
             toggle.value = true;
 
             var name = new Button();
             name.name = "debug-system-stat-entry-name";
             name.text = systemName;
+            name.tooltip = "Click to frame on the particle system";
             name.style.color = color;
-            name.style.backgroundColor = new Color(0.16f, 0.16f, 0.16f);
             name.clickable.clicked += FocusParticleSystem(systemName);
 
             var alive = new TextElement();

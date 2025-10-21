@@ -1,0 +1,2 @@
+> [!NOTE]
+> Use this node only in shaders with **Material** set to **UI** for UI Toolkit. Using it elsewhere can lead to unexpected behavior or errors. For information on how to create shaders for UI Toolkit, refer to [UI Shader Graph](xref:uie-ui-shader-graph).

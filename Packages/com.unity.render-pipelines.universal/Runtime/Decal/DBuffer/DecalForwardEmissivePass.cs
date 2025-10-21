@@ -17,10 +17,6 @@ namespace UnityEngine.Rendering.Universal
         private List<ShaderTagId> m_ShaderTagIdList;
         private DecalDrawFowardEmissiveSystem m_DrawSystem;
 
-#if URP_COMPATIBILITY_MODE
-        private PassData m_PassData;
-#endif
-
         public DecalForwardEmissivePass(DecalDrawFowardEmissiveSystem drawSystem)
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
@@ -33,31 +29,7 @@ namespace UnityEngine.Rendering.Universal
             m_ShaderTagIdList = new List<ShaderTagId>();
             m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalMeshForwardEmissive));
             m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalProjectorForwardEmissive));
-
-#if URP_COMPATIBILITY_MODE
-            m_PassData = new PassData();
-#endif
         }
-
-#if URP_COMPATIBILITY_MODE
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            InitPassData(ref m_PassData);
-
-            UniversalRenderingData universalRenderingData = renderingData.frameData.Get<UniversalRenderingData>();
-            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
-            UniversalLightData lightData = renderingData.frameData.Get<UniversalLightData>();
-
-            var param = InitRendererListParams(universalRenderingData, cameraData, lightData);
-
-            var rendererList = context.CreateRendererList(ref param);
-            using (new ProfilingScope(universalRenderingData.commandBuffer, profilingSampler))
-            {
-                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(universalRenderingData.commandBuffer), m_PassData, rendererList);
-            }
-        }
-#endif
 
         private class PassData
         {

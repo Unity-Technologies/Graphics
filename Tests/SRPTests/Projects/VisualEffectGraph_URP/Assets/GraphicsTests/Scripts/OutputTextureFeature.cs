@@ -66,31 +66,6 @@ public class OutputTextureFeature : ScriptableRendererFeature
             ConfigureInput(inputRequirement);
         }
 
-#if URP_COMPATIBILITY_MODE
-        // Here you can implement the rendering logic.
-        // Use <c>ScriptableRenderContext</c> to issue drawing commands or execute command buffers
-        // https://docs.unity3d.com/ScriptReference/Rendering.ScriptableRenderContext.html
-        // You don't have to call ScriptableRenderContext.submit, the render pipeline will call it at specific points in the pipeline.
-        [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            CommandBuffer cmd = CommandBufferPool.Get();
-
-            // SetRenderTarget has logic to flip projection matrix when rendering to render texture. Flip the uv to account for that case.
-            bool yflip = renderingData.cameraData.IsCameraProjectionMatrixFlipped();
-
-            CoreUtils.SetRenderTarget(cmd, m_Renderer.cameraColorTargetHandle, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
-
-            m_PassData.profilingSampler = m_ProfilingSampler;
-            m_PassData.material = m_Material;
-
-            ExecutePass(m_PassData,CommandBufferHelpers.GetRasterCommandBuffer(cmd), yflip);
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-        }
-#endif
-
         internal class PassData
         {
             internal ProfilingSampler profilingSampler;

@@ -152,10 +152,6 @@ namespace UnityEditor.Rendering.Universal
                         EditorGUILayout.HelpBox(Styles.lightModeErrorMessage.text, MessageType.Warning, true);
                     if (staticBatchingWarning)
                         EditorGUILayout.HelpBox(Styles.staticBatchingInfoMessage.text, MessageType.Info, true);
-#if URP_COMPATIBILITY_MODE
-                    if (serialized.gpuResidentDrawerEnableOcclusionCullingInCameras.boolValue && GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode)
-                        EditorGUILayout.HelpBox(Styles.renderGraphNotEnabledErrorMessage.text, MessageType.Info, true);
-#endif
                 }
             }
         }
@@ -323,13 +319,6 @@ namespace UnityEditor.Rendering.Universal
 
                 case UpscalingFilterSelection.STP:
                 {
-#if URP_COMPATIBILITY_MODE
-                    // Warn users if they attempt to enable STP without render graph
-                    if (GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode)
-                    {
-                        EditorGUILayout.HelpBox(Styles.stpRequiresRenderGraph, MessageType.Warning, true);
-                    }
-#endif
                     // Warn users about performance expectations if they attempt to enable STP on a mobile platform
                     if (PlatformAutoDetect.isShaderAPIMobileDefined)
                     {

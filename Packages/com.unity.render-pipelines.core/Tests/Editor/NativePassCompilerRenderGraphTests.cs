@@ -1081,11 +1081,11 @@ namespace UnityEngine.Rendering.Tests
 
             // The resource with the biggest MaxReaders is buffer2:
             // 1 implicit read (TestPass0) + 1 explicit read (TestPass1) + 1 for the offset.
-            Assert.AreEqual(result.contextData.resources.MaxReaders, 3);
+            Assert.AreEqual(result.contextData.resources.MaxReaders[(int)RenderGraphResourceType.Buffer], 3);
 
             // The resource with the biggest MaxVersion is buffer2:
             // 1 explicit write (TestPass0) + 1 explicit readwrite (TestPass1) + 1 for the offset
-            Assert.AreEqual(result.contextData.resources.MaxVersions, 3);
+            Assert.AreEqual(result.contextData.resources.MaxVersions[(int)RenderGraphResourceType.Buffer], 3);
         }
 
         [Test]
@@ -1122,11 +1122,11 @@ namespace UnityEngine.Rendering.Tests
 
             // Resources with the biggest MaxReaders are extraTextures[0] and depthBuffer (both being equal):
             // 1 implicit read (TestPass0) + 2 explicit read (TestPass1 & TestPass2) + 1 for the offset
-            Assert.AreEqual(result.contextData.resources.MaxReaders, 4);
+            Assert.AreEqual(result.contextData.resources.MaxReaders[(int)RenderGraphResourceType.Texture], 4);
 
             // The resource with the biggest MaxVersion is extraTextures[0]:
             // 1 explicit write (TestPass0) + 1 explicit read-write (TestPass1) + 1 for the offset
-            Assert.AreEqual(result.contextData.resources.MaxVersions, 3);
+            Assert.AreEqual(result.contextData.resources.MaxVersions[(int)RenderGraphResourceType.Texture], 3);
         }
 
         [Test]
@@ -1164,11 +1164,88 @@ namespace UnityEngine.Rendering.Tests
 
             // The resource with the biggest MaxReaders is buffer2:
             // 5 implicit read (TestPass0-2-4-6-8) + 5 explicit read (TestPass1-3-5-7-9) + 1 for the offset.
-            Assert.AreEqual(result.contextData.resources.MaxReaders, 11);
+            Assert.AreEqual(result.contextData.resources.MaxReaders[(int)RenderGraphResourceType.Buffer], 11);
 
             // The resource with the biggest MaxVersion is buffer2:
             // 5 explicit write (TestPass0-2-4-6-8) + 5 explicit readwrite (TestPass1-3-5-7-9) + 1 for the offset
-            Assert.AreEqual(result.contextData.resources.MaxVersions, 11);
+            Assert.AreEqual(result.contextData.resources.MaxVersions[(int)RenderGraphResourceType.Buffer], 11);
+        }
+
+        [Test]
+        public void ResourcesData_MaxReadersAndVersionsPerResourceType()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            var desc = new BufferDesc(1024, 16);
+            var buffer = g.CreateBuffer(desc);
+
+            int indexName = 0;
+
+            // TEXTURE PASSES: Create 2 versions with different reader counts
+            // Texture Pass 0: Create version 1 of extraTextures[0] (ReadWrite = 1 write + 1 implicit read)
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPassTexture" + indexName++, out var passData))
+            {
+                builder.AllowPassCulling(false);
+                builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.ReadWrite);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+            // Texture Pass 1: Create version 2 of extraTextures[0] (ReadWrite = 1 write + 1 explicit read of version 1)
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPassTexture" + indexName++, out var passData))
+            {
+                builder.AllowPassCulling(false);
+                builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.ReadWrite);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            // BUFFER PASSES: Create many versions to test higher reader/version counts
+            indexName = 0;
+            for (int i = 0; i < 5; ++i)
+            {
+                // Buffer Pass (Write): Creates version N (1 write + 1 implicit read from previous version)
+                using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPassBuffer" + indexName++, out var passData))
+                {
+                    builder.AllowPassCulling(false);
+                    builder.UseBufferRandomAccess(buffer, 0, AccessFlags.Write);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                }
+                // Buffer Pass (ReadWrite): Creates version N+1 (1 write + 1 explicit read from version N)
+                using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPassBuffer" + indexName++, out var passData))
+                {
+                    builder.AllowPassCulling(false);
+                    builder.UseBufferRandomAccess(buffer, 0, AccessFlags.ReadWrite);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                }
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            // VERIFY: MaxReaders and MaxVersions are calculated PER RESOURCE TYPE
+            // TEXTURE TYPE:
+            // 2 readwrite operations = 2 versions + 1 offset = 3 versions/readers.
+            Assert.AreEqual(result.contextData.resources.MaxReaders[(int)RenderGraphResourceType.Texture], 3);
+            Assert.AreEqual(result.contextData.resources.MaxVersions[(int)RenderGraphResourceType.Texture], 3);
+
+            // BUFFER TYPE:
+            // 5 write operations + 5 readwrite operations = 10 versions + 1 offset = 11 versions/readers.
+            Assert.AreEqual(result.contextData.resources.MaxReaders[(int)RenderGraphResourceType.Buffer], 11);
+            Assert.AreEqual(result.contextData.resources.MaxVersions[(int)RenderGraphResourceType.Buffer], 11);
+
+            // VERIFY: Index calculations work correctly with per-type maximums
+            // Get the texture handle from the first native pass attachment
+            var textureHandle = passes[0].attachments[0].handle;
+            Assert.AreEqual(renderTargets.extraTextures[0].handle.index, passes[0].attachments[0].handle.index);
+
+            // Test Index() calculation uses correct MaxVersions for texture type
+            int indexExpected = textureHandle.index * result.contextData.resources.MaxVersions[(int)RenderGraphResourceType.Texture] + textureHandle.version;
+            Assert.AreEqual(result.contextData.resources.Index(textureHandle), indexExpected);
+            Assert.IsTrue(indexExpected < result.contextData.resources.versionedData[(int)RenderGraphResourceType.Texture].Capacity);
+
+            // Test IndexReader() calculation uses correct MaxReaders for texture type
+            int indexReaderExpected = indexExpected * result.contextData.resources.MaxReaders[(int)RenderGraphResourceType.Texture] + 0;
+            Assert.AreEqual(result.contextData.resources.IndexReader(textureHandle, 0), indexReaderExpected);
+            Assert.IsTrue(indexExpected < result.contextData.resources.readerData[(int)RenderGraphResourceType.Texture].Capacity);
         }
 
         [Test]

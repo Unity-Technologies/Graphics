@@ -95,7 +95,6 @@ namespace UnityEngine.Rendering.Universal
 
                     UpdateMotionBlurMatrices(data.material, data.camera, data.xr);
 
-                    //PostProcessUtils.SetGlobalShaderSourceSize(cmd, sourceTextureHdl);
                     var sourceSize = PostProcessUtils.CalcShaderSourceSize(sourceTextureHdl);
                     data.material.SetVector(ShaderConstants._SourceSize, sourceSize);
                     data.material.SetFloat(ShaderConstants._Intensity, data.intensity);

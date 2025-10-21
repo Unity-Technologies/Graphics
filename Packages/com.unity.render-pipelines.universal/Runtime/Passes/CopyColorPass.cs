@@ -19,12 +19,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         Downsampling m_DownsamplingMethod;
         Material m_CopyColorMaterial;
 
-#if URP_COMPATIBILITY_MODE
-        private RTHandle source { get; set; }
-        private RTHandle destination { get; set; }
-        private PassData m_PassData;
-#endif
-
         /// <summary>
         /// Creates a new <c>CopyColorPass</c> instance.
         /// </summary>
@@ -44,11 +38,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_SampleOffsetShaderHandle = Shader.PropertyToID("_SampleOffset");
             renderPassEvent = evt;
             m_DownsamplingMethod = Downsampling.None;
-
-#if URP_COMPATIBILITY_MODE
-            base.useNativeRenderPass = false;
-            m_PassData = new PassData();
-#endif
         }
 
         /// <summary>
@@ -115,48 +104,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="downsampling">The downsampling method to use.</param>
         public void Setup(RTHandle source, RTHandle destination, Downsampling downsampling)
         {
-#if URP_COMPATIBILITY_MODE
-            this.source = source;
-            this.destination = destination;
-#endif
             m_DownsamplingMethod = downsampling;
         }
-
-#if URP_COMPATIBILITY_MODE
-        /// <inheritdoc />
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        {
-            cmd.SetGlobalTexture(destination.name, destination.nameID);
-        }
-
-        /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            m_PassData.samplingMaterial = m_SamplingMaterial;
-            m_PassData.copyColorMaterial = m_CopyColorMaterial;
-            m_PassData.downsamplingMethod = m_DownsamplingMethod;
-            m_PassData.sampleOffsetShaderHandle = m_SampleOffsetShaderHandle;
-
-            var cmd = renderingData.commandBuffer;
-
-            if (source == renderingData.cameraData.renderer.GetCameraColorFrontBuffer(cmd))
-            {
-                source = renderingData.cameraData.renderer.cameraColorTargetHandle;
-            }
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (renderingData.cameraData.xr.supportsFoveatedRendering)
-                cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
-#endif
-            ScriptableRenderer.SetRenderTarget(cmd, destination, k_CameraTarget, clearFlag, clearColor);
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyColor)))
-            {
-                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, source, renderingData.cameraData.xr.enabled);
-            }
-        }
-#endif
 
         private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RTHandle source, bool useDrawProceduralBlit)
         {

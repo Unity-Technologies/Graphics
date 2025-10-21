@@ -11,10 +11,6 @@ namespace UnityEngine.Rendering.Universal
         private List<ShaderTagId> m_ShaderTagIdList;
         private ProfilingSampler m_ProfilingSampler;
 
-#if URP_COMPATIBILITY_MODE
-        private PassData m_PassData;
-#endif
-
         public DecalPreviewPass()
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
@@ -25,31 +21,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_ShaderTagIdList = new List<ShaderTagId>();
             m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalScreenSpaceMesh));
-
-#if URP_COMPATIBILITY_MODE
-            m_PassData = new PassData();
-#endif
         }
-
-#if URP_COMPATIBILITY_MODE
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            UniversalRenderingData universalRenderingData = renderingData.frameData.Get<UniversalRenderingData>();
-            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
-            UniversalLightData lightData = renderingData.frameData.Get<UniversalLightData>();
-
-
-            SortingCriteria sortingCriteria = cameraData.defaultOpaqueSortFlags;
-            DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, universalRenderingData, cameraData, lightData, sortingCriteria);
-            var param = new RendererListParams(universalRenderingData.cullResults, drawingSettings, m_FilteringSettings);
-            var rendererList = context.CreateRendererList(ref param);
-            using (new ProfilingScope(universalRenderingData.commandBuffer, m_ProfilingSampler))
-            {
-                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(universalRenderingData.commandBuffer), m_PassData, rendererList);
-            }
-        }
-#endif
 
         private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList)
         {

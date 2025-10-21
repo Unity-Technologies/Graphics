@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.Rendering.Converter;
 using UnityEngine;
 using UnityEngine.Categorization;
@@ -5,6 +6,7 @@ using static UnityEditor.AssetDatabase;
 
 namespace UnityEditor.Rendering.Universal
 {
+    [Serializable]
     [PipelineTools]
     [ElementInfo(Name = "Convert Built-in and URP ( Universal Renderer ) Materials to Mesh2D-Lit-Default",
                  Order = 300,

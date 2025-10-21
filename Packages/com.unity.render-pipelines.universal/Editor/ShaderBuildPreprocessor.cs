@@ -169,7 +169,6 @@ namespace UnityEditor.Rendering.Universal
         {
             private static PlatformBuildTimeDetect s_PlatformInfo;
             internal bool isStandaloneXR { get; private set; }
-            internal bool isHololens { get; private set; }
             internal bool isQuest { get; private set; }
             internal bool isSwitch { get; private set; }
             internal bool isSwitch2 { get; private set; }
@@ -185,7 +184,6 @@ namespace UnityEditor.Rendering.Universal
                 if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
                 {
                     isStandaloneXR = buildTargetGroup == BuildTargetGroup.Standalone;
-                    isHololens = buildTargetGroup == BuildTargetGroup.WSA;
                     isQuest = buildTargetGroup == BuildTargetGroup.Android;
                 }
 #endif
@@ -313,7 +311,7 @@ namespace UnityEditor.Rendering.Universal
                 if (platformBuildTimeDetect.isStandaloneXR)
                     s_StripDebugDisplayShaders = true;
 
-                if (platformBuildTimeDetect.isHololens || platformBuildTimeDetect.isQuest)
+                if (platformBuildTimeDetect.isQuest)
                 {
                     s_KeepOffVariantForAdditionalLights = true;
                     s_UseSoftShadowQualityLevelKeywords = true;

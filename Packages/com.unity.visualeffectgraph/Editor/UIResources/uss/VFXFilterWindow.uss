@@ -326,11 +326,12 @@ Label.category {
     border-width: 0;
     border-radius: 3px;
     background-color: rgba(0, 0, 0, 0);
-    background-image: resource("Icons/_Help@2x.png");
+    background-size: 16px 16px;
+    background-image: resource("Icons/_Help.png");
 }
 
 .dark #HelpButton {
-    background-image: resource("Icons/d__Help@2x.png");
+    background-image: resource("Icons/d__Help.png");
 }
 
 #HelpButton:hover {

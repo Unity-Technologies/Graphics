@@ -3,9 +3,7 @@
 // So in the meantime we use a Dictionary with a perf hit...
 //#define USE_UNSAFE
 
-#if UNITY_2020_1_OR_NEWER
 #define UNITY_USE_RECORDER
-#endif
 
 using System;
 using System.Linq;

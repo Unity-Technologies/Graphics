@@ -7,7 +7,7 @@
 
 // Accumulation loop is done on 32 frames
 #define MAX_ACCUM_FRAME_NUM 32.0
-#define MIP_LEVEL_COUNT 4.0
+#define MIP_LEVEL_COUNT 4
 #define MAX_FRAME_NUM_WITH_HISTORY_FIX 4.0
 
 float2 RotateVector(float4 rotator, float2 v)
@@ -73,7 +73,7 @@ float GetCombinedWeight(float2 geometryWeightParams, float3 Nv, float3 Xvs, floa
 #define SPECULAR_DOMINANT_DIRECTION_DEFAULT 2
 
 float GetSpecularDominantFactor(float NoV, float linearRoughness)
-{   
+{
     float a = 0.298475 * log( 39.4115 - 39.0029 * linearRoughness );
     float dominantFactor = pow(saturate(1.0 - NoV), 10.8649 ) * ( 1.0 - a ) + a;
     return saturate(dominantFactor);
@@ -105,7 +105,7 @@ float2x3 GetKernelBasis( float3 V, float3 N, float linearRoughness)
     float3 R = reflect( -V, N );
     float3 D = normalize( lerp( N, R, f ) );
     float NoD = abs( dot( N, D ) );
-    
+
     if( NoD < 0.999 && linearRoughness != 1.0 )
     {
         float3 Dreflected = reflect( -D, N );

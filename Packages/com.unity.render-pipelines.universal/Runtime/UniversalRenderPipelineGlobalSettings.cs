@@ -102,9 +102,6 @@ namespace UnityEngine.Rendering.Universal
             if (asset.m_AssetVersion < 6)
             {
                 MigrateToRenderPipelineGraphicsSettings(asset);
-#pragma warning disable 618 // Type or member is obsolete
-                asset.m_EnableRenderGraph = false;
-#pragma warning restore 618 // Type or member is obsolete
                 asset.m_AssetVersion = 6;
             }
 
@@ -185,7 +182,6 @@ namespace UnityEngine.Rendering.Universal
             MigrateToShaderStrippingSetting(data);
             MigrateToURPShaderStrippingSetting(data);
             MigrateDefaultVolumeProfile(data);
-            MigrateToRenderGraphSettings(data);
         }
 
         private static T GetOrCreateGraphicsSettings<T>(UniversalRenderPipelineGlobalSettings data)
@@ -214,15 +210,6 @@ namespace UnityEngine.Rendering.Universal
             shaderStrippingSetting.shaderVariantLogLevel    = data.m_ShaderStrippingSetting.shaderVariantLogLevel;
             shaderStrippingSetting.exportShaderVariants     = data.m_ShaderStrippingSetting.exportShaderVariants;
             shaderStrippingSetting.stripRuntimeDebugShaders = data.m_ShaderStrippingSetting.stripRuntimeDebugShaders;
-#pragma warning restore 618
-        }
-
-        static void MigrateToRenderGraphSettings(UniversalRenderPipelineGlobalSettings data)
-        {
-            var rgSettings = GetOrCreateGraphicsSettings<RenderGraphSettings>(data);
-
-#pragma warning disable 618 // Type or member is obsolete
-            rgSettings.SetCompatibilityModeFromUpgrade(!data.m_EnableRenderGraph);
 #pragma warning restore 618
         }
 

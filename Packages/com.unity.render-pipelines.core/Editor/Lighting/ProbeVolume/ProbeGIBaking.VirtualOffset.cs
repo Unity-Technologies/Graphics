@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering
                 batchResult = new Vector3[k_MaxProbeCountPerBatch];
 
                 var computeBufferTarget = GraphicsBuffer.Target.CopyDestination | GraphicsBuffer.Target.CopySource
-                    | GraphicsBuffer.Target.Structured | GraphicsBuffer.Target.Raw;
+                    | GraphicsBuffer.Target.Structured;
 
                 // Create acceletation structure
                 m_AccelerationStructure = BuildAccelerationStructure(voSettings.collisionMask);
@@ -138,6 +138,9 @@ namespace UnityEngine.Rendering
                         continue;
 
                     if (!s_TracingContext.TryGetMeshForAccelerationStructure(renderer.component, out var mesh))
+                        continue;
+
+                    if (renderer.component is SkinnedMeshRenderer)
                         continue;
 
                     int subMeshCount = mesh.subMeshCount;

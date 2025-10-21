@@ -300,6 +300,31 @@ Shader "Hidden/HDRP/Blit"
                 #pragma fragment FragOctahedralProjectBilinearRepeat
             ENDHLSL
         }
+
+        // 23: Nearest quad with padding (for OctahedralTexture)
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+            Name "NearestQuadPaddingOctahedral"
+
+            HLSLPROGRAM
+                #pragma vertex VertQuadPadding
+                #pragma fragment FragOctahedralNearestRepeat
+            ENDHLSL
+        }
+
+        // 24: Nearest quad with padding alpha blend (for OctahedralTexture) (23 with alpha blend)
+        Pass
+        {
+            ZWrite Off ZTest Always Blend DstColor Zero Cull Off
+            Name "NearestQuadPaddingAlphaBlendOctahedral"
+
+            HLSLPROGRAM
+                #pragma vertex VertQuadPadding
+                #pragma fragment FragOctahedralNearestRepeat
+                #define WITH_ALPHA_BLEND
+            ENDHLSL
+        }
     }
 
     Fallback Off

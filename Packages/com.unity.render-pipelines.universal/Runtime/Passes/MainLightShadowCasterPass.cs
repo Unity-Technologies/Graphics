@@ -33,13 +33,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static Vector4 s_EmptyShadowParams = new(0f, 0f, 1f, 0f);
         private static readonly Vector4 s_EmptyShadowmapSize = new(k_EmptyShadowMapDimensions, 1f / k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions);
 
-#if URP_COMPATIBILITY_MODE
-        private bool m_EmptyShadowmapNeedsClear;
-        private RTHandle m_EmptyMainLightShadowmapTexture;
-        private const string k_EmptyMainLightShadowMapTextureName = "_EmptyMainLightShadowmapTexture";
-        private PassData m_PassData;
-#endif
-
         // Classes
         private static class MainLightShadowConstantBuffer
         {
@@ -66,7 +59,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal UniversalShadowData shadowData;
             internal MainLightShadowCasterPass pass;
             internal TextureHandle shadowmapTexture;
-            internal readonly RendererList[] shadowRendererLists = new RendererList[k_MaxCascades];
             internal readonly RendererListHandle[] shadowRendererListsHandle = new RendererListHandle[k_MaxCascades];
         }
 
@@ -83,11 +75,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_MainLightShadowMatrices = new Matrix4x4[k_MaxCascades + 1];
             m_CascadeSlices = new ShadowSliceData[k_MaxCascades];
             m_CascadeSplitDistances = new Vector4[k_MaxCascades];
-
-#if URP_COMPATIBILITY_MODE
-            m_PassData = new PassData();
-            m_EmptyShadowmapNeedsClear = true;
-#endif
         }
 
         /// <summary>
@@ -96,10 +83,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Dispose()
         {
             m_MainLightShadowmapTexture?.Release();
-
-#if URP_COMPATIBILITY_MODE
-            m_EmptyMainLightShadowmapTexture?.Release();
-#endif
         }
 
         /// <summary>
@@ -202,11 +185,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_MaxShadowDistanceSq = cameraData.maxShadowDistance * cameraData.maxShadowDistance;
             m_CascadeBorder = shadowData.mainLightShadowCascadeBorder;
-            m_CreateEmptyShadowmap = false;
-#if URP_COMPATIBILITY_MODE
-            useNativeRenderPass = true;
-#endif
-
+            m_CreateEmptyShadowmap = false; 
             return true;
         }
 
@@ -227,10 +206,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return false;
 
             m_CreateEmptyShadowmap = true;
-#if URP_COMPATIBILITY_MODE
-            useNativeRenderPass = false;
-#endif
-
             m_SetKeywordForEmptyShadowmap = shadowsEnabled;
 
             // Even though there are not real-time shadows, the light might be using shadowmasks,
@@ -255,65 +230,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             return true;
         }
 
-#if URP_COMPATIBILITY_MODE
-        /// <inheritdoc />
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-        {
-            // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
-
-            if (m_CreateEmptyShadowmap)
-            {
-                // Required for scene view camera(URP renderer not initialized)
-                if (ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_EmptyMainLightShadowmapTexture, k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions, k_ShadowmapBufferBits, name: k_EmptyMainLightShadowMapTextureName))
-                    m_EmptyShadowmapNeedsClear = true;
-
-                if (!m_EmptyShadowmapNeedsClear)
-                    return;
-
-                ConfigureTarget(m_EmptyMainLightShadowmapTexture);
-                m_EmptyShadowmapNeedsClear = false;
-            }
-            else
-            {
-                ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_MainLightShadowmapTexture, m_RenderTargetWidth, m_RenderTargetHeight, k_ShadowmapBufferBits, name: k_MainLightShadowMapTextureName);
-                ConfigureTarget(m_MainLightShadowmapTexture);
-            }
-
-            ConfigureClear(ClearFlag.All, Color.black);
-
-            #pragma warning restore CS0618
-        }
-
-        /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            ContextContainer frameData = renderingData.frameData;
-            UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            UniversalLightData lightData = frameData.Get<UniversalLightData>();
-            UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
-
-            RasterCommandBuffer rasterCommandBuffer = CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer);
-            if (m_CreateEmptyShadowmap)
-            {
-                if (m_SetKeywordForEmptyShadowmap)
-                    rasterCommandBuffer.EnableKeyword(ShaderGlobalKeywords.MainLightShadows);
-                SetShadowParamsForEmptyShadowmap(rasterCommandBuffer);
-                universalRenderingData.commandBuffer.SetGlobalTexture(MainLightShadowConstantBuffer._MainLightShadowmapID, m_EmptyMainLightShadowmapTexture.nameID);
-                return;
-            }
-
-            InitPassData(ref m_PassData, universalRenderingData, cameraData, lightData, shadowData);
-            InitRendererLists(ref m_PassData, context, default(RenderGraph), false);
-
-            RenderMainLightCascadeShadowmap(rasterCommandBuffer, ref m_PassData, false);
-            universalRenderingData.commandBuffer.SetGlobalTexture(MainLightShadowConstantBuffer._MainLightShadowmapID, m_MainLightShadowmapTexture.nameID);
-        }
-#endif
-
         void Clear()
         {
             for (int i = 0; i < m_MainLightShadowMatrices.Length; ++i)
@@ -332,7 +248,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             rasterCommandBuffer.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams, s_EmptyShadowParams);
         }
 
-        void RenderMainLightCascadeShadowmap(RasterCommandBuffer cmd, ref PassData data, bool isRenderGraph)
+        void RenderMainLightCascadeShadowmap(RasterCommandBuffer cmd, ref PassData data)
         {
             var lightData = data.lightData;
 
@@ -347,17 +263,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Need to start by setting the Camera position and worldToCamera Matrix as that is not set for passes executed before normal rendering
                 ShadowUtils.SetCameraPosition(cmd, data.cameraData.worldSpaceCameraPos);
 
-                // For non-RG, need set the worldToCamera Matrix as that is not set for passes executed before normal rendering,
-                // otherwise shadows will behave incorrectly when Scene and Game windows are open at the same time (UUM-63267).
-                if (!isRenderGraph)
-                    ShadowUtils.SetWorldToCameraAndCameraToWorldMatrices(cmd, data.cameraData.GetViewMatrix());
-
                 for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
                 {
                     Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, shadowLightIndex, data.shadowData, m_CascadeSlices[cascadeIndex].projectionMatrix, m_CascadeSlices[cascadeIndex].resolution);
                     ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);
                     cmd.SetKeyword(ShaderGlobalKeywords.CastingPunctualLightShadow, false);
-                    RendererList shadowRendererList = isRenderGraph? data.shadowRendererListsHandle[cascadeIndex] : data.shadowRendererLists[cascadeIndex];
+                    RendererList shadowRendererList = data.shadowRendererListsHandle[cascadeIndex];
                     ShadowUtils.RenderShadowSlice(cmd, ref m_CascadeSlices[cascadeIndex], ref shadowRendererList, m_CascadeSlices[cascadeIndex].projectionMatrix, m_CascadeSlices[cascadeIndex].viewMatrix);
                 }
 
@@ -451,7 +362,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             passData.shadowData = shadowData;
         }
 
-        private void InitRendererLists(ref PassData passData, ScriptableRenderContext context, RenderGraph renderGraph, bool useRenderGraph)
+        private void InitRendererLists(ref PassData passData, RenderGraph renderGraph)
         {
             int shadowLightIndex = passData.lightData.mainLightIndex;
             if (!m_CreateEmptyShadowmap && shadowLightIndex != -1)
@@ -462,10 +373,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
                 {
-                    if (useRenderGraph)
                         passData.shadowRendererListsHandle[cascadeIndex] = renderGraph.CreateShadowRendererList(ref settings);
-                    else
-                        passData.shadowRendererLists[cascadeIndex] = context.CreateShadowRendererList(ref settings);
                 }
             }
         }
@@ -482,7 +390,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (var builder = graph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 InitPassData(ref passData, renderingData, cameraData, lightData, shadowData);
-                InitRendererLists(ref passData, default(ScriptableRenderContext), graph, true);
+                InitRendererLists(ref passData, graph);
 
                 if (!m_CreateEmptyShadowmap)
                 {
@@ -492,7 +400,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
 
                     shadowTexture = UniversalRenderer.CreateRenderGraphTexture(graph, m_MainLightShadowDescriptor, k_MainLightShadowMapTextureName, true, ShadowUtils.m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear);
-                    builder.SetRenderAttachmentDepth(shadowTexture, AccessFlags.Write);
+                    builder.SetRenderAttachmentDepth(shadowTexture, AccessFlags.ReadWrite);
                 }
                 else
                 {
@@ -509,7 +417,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     RasterCommandBuffer rasterCommandBuffer = context.cmd;
                     if (!data.emptyShadowmap)
                     {
-                        data.pass.RenderMainLightCascadeShadowmap(rasterCommandBuffer, ref data, true);
+                        data.pass.RenderMainLightCascadeShadowmap(rasterCommandBuffer, ref data);
                     }
                     else
                     {

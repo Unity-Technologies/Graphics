@@ -19,6 +19,7 @@ using URPRendering = UnityEngine.Rendering.Universal;
 namespace UnityEditor.Rendering.Universal
 {
     [URPHelpURL("features/rp-converter")]
+    [Serializable]
     [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
     [ElementInfo(Name = "Post-Processing Stack v2",
                  Order = int.MaxValue,
@@ -26,8 +27,8 @@ namespace UnityEditor.Rendering.Universal
 
     internal class PPv2Converter : AssetsConverter
     {
-        public override bool isEnabled => effectConverters?.Count() > 0;
-        public override string isDisabledMessage => "No converters specified.";
+        public override bool isEnabled => s_PostProcessTypesToSearch?.Count() > 0;
+        public override string isDisabledMessage => "Missing types to search";
 
         private IEnumerable<PostProcessEffectSettingsConverter> effectConverters = null;
 

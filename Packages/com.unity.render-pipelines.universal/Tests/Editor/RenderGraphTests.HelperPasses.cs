@@ -13,6 +13,13 @@ namespace UnityEngine.Rendering.Tests
 {
     internal partial class RenderGraphTests : RenderGraphTestsCore
     {
+        [OneTimeSetUp]
+        public void OneTimeSetup()
+        {
+            if (!(GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset))
+                Assert.Ignore("Current pipeline is not URP. Skipping tests...");
+        }
+        
         static GraphicsFormat[] depthBlitTestFormats =
         {
             GraphicsFormat.D32_SFloat,

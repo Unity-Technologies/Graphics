@@ -245,6 +245,7 @@ SortingGroup:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_SortAtRoot: 0
+  m_Sort3DAs2D: 1
 --- !u!1120581460 &114176919
 RenderAs2D:
   m_ObjectHideFlags: 3
@@ -293,7 +294,8 @@ RenderAs2D:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Owner: {fileID: 114176918}
+  m_OwningSortingGroup: {fileID: 114176918}
+  m_WasCreatedByOwner: 1
 --- !u!1 &140942888
 GameObject:
   m_ObjectHideFlags: 0
@@ -2672,6 +2674,7 @@ SortingGroup:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_SortAtRoot: 0
+  m_Sort3DAs2D: 1
 --- !u!1120581460 &1611659894
 RenderAs2D:
   m_ObjectHideFlags: 3
@@ -2720,7 +2723,8 @@ RenderAs2D:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Owner: {fileID: 1611659893}
+  m_OwningSortingGroup: {fileID: 1611659893}
+  m_WasCreatedByOwner: 1
 --- !u!1 &1711284038
 GameObject:
   m_ObjectHideFlags: 0
@@ -2833,6 +2837,7 @@ SortingGroup:
   m_SortingLayer: 0
   m_SortingOrder: -1
   m_SortAtRoot: 0
+  m_Sort3DAs2D: 1
 --- !u!1120581460 &1720578186
 RenderAs2D:
   m_ObjectHideFlags: 3
@@ -2881,7 +2886,8 @@ RenderAs2D:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Owner: {fileID: 1720578185}
+  m_OwningSortingGroup: {fileID: 1720578185}
+  m_WasCreatedByOwner: 1
 --- !u!1 &1805784941
 GameObject:
   m_ObjectHideFlags: 0
@@ -5320,6 +5326,7 @@ SortingGroup:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_SortAtRoot: 0
+  m_Sort3DAs2D: 1
 --- !u!1120581460 &6633563706952778051
 RenderAs2D:
   m_ObjectHideFlags: 3
@@ -5368,7 +5375,8 @@ RenderAs2D:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Owner: {fileID: 6633563706952778050}
+  m_OwningSortingGroup: {fileID: 6633563706952778050}
+  m_WasCreatedByOwner: 1
 --- !u!4 &6929055677307623865
 Transform:
   m_ObjectHideFlags: 0

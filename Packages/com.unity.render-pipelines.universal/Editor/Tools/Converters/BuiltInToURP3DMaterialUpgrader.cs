@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor.Rendering.Converter;
 using UnityEngine.Categorization;
@@ -5,6 +6,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
+    [Serializable]
     [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
     [ElementInfo(Name = "Material Shader Converter",
                  Order = 100,

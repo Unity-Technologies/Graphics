@@ -11,6 +11,7 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.Universal
 {
+    [Serializable]
     [URPHelpURL("features/rp-converter")]
     [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
     [ElementInfo(Name = "Animation Clip",

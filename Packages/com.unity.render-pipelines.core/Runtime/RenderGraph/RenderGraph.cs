@@ -664,23 +664,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
 #endif
         }
 
-        /// <summary>
-        /// Cleanup the Render Graph.
-        /// </summary>
-        /// <remarks>
-        /// This API cannot be called when Render Graph is active, please call it outside of RecordRenderGraph().
-        /// </remarks>
-        void CleanupResourcesAndGraph()
-        {
-            CheckNotUsedWhenActive();
-
-            ForceCleanup();
-        }
-
         // Internal, only for testing
         // Useful when we need to clean when calling
         // internal functions in tests even if Render Graph is active
-        internal void ForceCleanup()
+        // This API shouldn't be called when the render graph is active!
+        internal void CleanupResourcesAndGraph()
         {
             // Usually done at the end of Execute step
             // Also doing it here in case RG stopped before it
@@ -700,6 +688,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// </summary>
         public void Cleanup()
         {
+            CheckNotUsedWhenActive();
+
+            // Dispose of the compiled graphs left over in the cache
+            m_CompilationCache?.Cleanup();
+
             CleanupResourcesAndGraph();
             UnregisterGraph();
         }

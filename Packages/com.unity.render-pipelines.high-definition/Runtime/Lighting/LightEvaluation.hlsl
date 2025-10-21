@@ -331,7 +331,7 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
         }
 
         // See comment in EvaluateBSDF_Punctual
-        if (light.nonLightMappedOnly)
+        if (light.useShadowMask)
         {
             shadow = min(shadowMask, shadow);
         }
@@ -553,7 +553,7 @@ SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionI
         // The min handle the case of having only dynamic objects in the ShadowMap
         // The second case for blend with distance is handled with ShadowDimmer. ShadowDimmer is define manually and by shadowDistance by light.
         // With distance, ShadowDimmer become one and only the ShadowMask appear, we get the blend with distance behavior.
-        shadow = light.nonLightMappedOnly ? min(shadowMask, shadow) : shadow;
+        shadow = light.useShadowMask ? min(shadowMask, shadow) : shadow;
     #endif
 
         shadow = lerp(shadowMask, shadow, light.shadowDimmer);
@@ -626,7 +626,7 @@ SHADOW_TYPE EvaluateShadow_RectArea( LightLoopContext lightLoopContext, Position
 
 #ifdef SHADOWS_SHADOWMASK
         // See comment for punctual light shadow mask
-        shadow = light.nonLightMappedOnly ? min(shadowMask, shadow) : shadow;
+        shadow = light.useShadowMask ? min(shadowMask, shadow) : shadow;
 #endif
         shadow = lerp(shadowMask, shadow, light.shadowDimmer);
     }

@@ -22,17 +22,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static readonly int s_CameraNormalsTextureID = Shader.PropertyToID(k_CameraNormalsTextureName);
         private static readonly int s_CameraRenderingLayersTextureID = Shader.PropertyToID("_CameraRenderingLayersTexture");
 
-#if URP_COMPATIBILITY_MODE
-        private RTHandle depthHandle { get; set; }
-        private RTHandle normalHandle { get; set; }
-        private RTHandle renderingLayersHandle { get; set; }
-
-        private PassData m_PassData;
-
-        private static readonly RTHandle[] k_ColorAttachment1 = new RTHandle[1];
-        private static readonly RTHandle[] k_ColorAttachment2 = new RTHandle[2];
-#endif
-
         /// <summary>
         /// Creates a new <c>DepthNormalOnlyPass</c> instance.
         /// </summary>
@@ -47,12 +36,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             profilingSampler = ProfilingSampler.Get(URPProfileId.DrawDepthNormalPrepass);
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
-            this.shaderTagIds = k_DepthNormals;
-
-#if URP_COMPATIBILITY_MODE
-            useNativeRenderPass = false;
-            m_PassData = new PassData();
-#endif
+            shaderTagIds = k_DepthNormals;
         }
 
         /// <summary>
@@ -77,10 +61,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <seealso cref="RTHandle"/>
         public void Setup(RTHandle depthHandle, RTHandle normalHandle)
         {
-#if URP_COMPATIBILITY_MODE
-            this.depthHandle = depthHandle;
-            this.normalHandle = normalHandle;
-#endif
             enableRenderingLayers = false;
         }
 
@@ -93,41 +73,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Setup(RTHandle depthHandle, RTHandle normalHandle, RTHandle decalLayerHandle)
         {
             Setup(depthHandle, normalHandle);
-#if URP_COMPATIBILITY_MODE
-            renderingLayersHandle = decalLayerHandle;
-#endif
             enableRenderingLayers = true;
         }
-
-#if URP_COMPATIBILITY_MODE
-        /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        {
-            RTHandle[] colorHandles;
-            if (enableRenderingLayers)
-            {
-                k_ColorAttachment2[0] = normalHandle;
-                k_ColorAttachment2[1] = renderingLayersHandle;
-                colorHandles = k_ColorAttachment2;
-            }
-            else
-            {
-                k_ColorAttachment1[0] = normalHandle;
-                colorHandles = k_ColorAttachment1;
-            }
-
-            // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
-            if (renderingData.cameraData.renderer.useDepthPriming && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
-                ConfigureTarget(colorHandles, renderingData.cameraData.renderer.cameraDepthTargetHandle);
-            else
-                ConfigureTarget(colorHandles, depthHandle);
-
-            ConfigureClear(ClearFlag.All, Color.black);
-            #pragma warning restore CS0618
-        }
-#endif
 
         private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList)
         {
@@ -143,29 +90,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, false);
         }
 
-#if URP_COMPATIBILITY_MODE
-        /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            ContextContainer frameData = renderingData.frameData;
-            UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            UniversalLightData lightData = frameData.Get<UniversalLightData>();
-
-            m_PassData.enableRenderingLayers = enableRenderingLayers;
-            var param = InitRendererListParams(universalRenderingData, cameraData,lightData);
-            var rendererList = context.CreateRendererList(ref param);
-
-            var cmd = CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer);
-
-            using (new ProfilingScope(cmd, profilingSampler))
-            {
-                ExecutePass(cmd, m_PassData, rendererList);
-            }
-        }
-#endif
-
         /// <inheritdoc/>
         public override void OnCameraCleanup(CommandBuffer cmd)
         {
@@ -173,12 +97,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 throw new ArgumentNullException("cmd");
             }
-
-#if URP_COMPATIBILITY_MODE
-            normalHandle = null;
-            depthHandle = null;
-            renderingLayersHandle = null;
-#endif
 
             // This needs to be reset as the renderer might change this in runtime (UUM-36069)
             shaderTagIds = k_DepthNormals;
@@ -211,7 +129,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 builder.SetRenderAttachment(cameraNormalsTexture, 0, AccessFlags.Write);
-                builder.SetRenderAttachmentDepth(cameraDepthTexture, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(cameraDepthTexture, AccessFlags.ReadWrite);
 
                 passData.enableRenderingLayers = enableRenderingLayers;
 
@@ -228,7 +146,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (cameraData.xr.enabled)
                 {
                     builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && cameraData.xrUniversal.canFoveateIntermediatePasses);
-                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                    // Apply MultiviewRenderRegionsCompatible flag only to the peripheral view in Quad Views
+                    if (cameraData.xr.multipassId == 0)
+                    {
+                        builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                    }
                 }
 
                 if (setGlobalTextures)

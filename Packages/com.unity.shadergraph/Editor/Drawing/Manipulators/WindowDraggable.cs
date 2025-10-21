@@ -106,7 +106,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Recalculate which corner to dock to
             m_WindowDockingLayout.CalculateDockingCornerAndOffset(target.layout, target.parent.layout);
-            m_WindowDockingLayout.ClampToParentWindow();
+            m_WindowDockingLayout.ClampToParentWindow(target.parent.layout);
 
             // Use the docking results to figure which of left/right and top/bottom needs to be set.
             m_WindowDockingLayout.ApplyPosition(target);

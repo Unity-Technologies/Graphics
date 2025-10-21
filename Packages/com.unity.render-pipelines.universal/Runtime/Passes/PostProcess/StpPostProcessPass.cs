@@ -48,7 +48,6 @@ namespace UnityEngine.Rendering.Universal
 
             Debug.Assert(motionVectors.IsValid(), "MotionVectors are invalid. STP requires a motion vector texture.");
 
-            // TODO: should this be set externally? What if simulation is paused. FrameDebugger or the same frame is rendered multiple times?
             int frameIndex = Time.frameCount;
             var noiseTexture = m_BlueNoise16LTex[frameIndex & (m_BlueNoise16LTex.Length - 1)];
 

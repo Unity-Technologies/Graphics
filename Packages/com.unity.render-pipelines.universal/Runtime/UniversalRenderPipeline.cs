@@ -80,9 +80,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     const string k_Name = nameof(ScriptableRenderer);
                     public static readonly ProfilingSampler setupCullingParameters = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderer.SetupCullingParameters)}");
-#if URP_COMPATIBILITY_MODE
-                    public static readonly ProfilingSampler setup = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderer.Setup)}");
-#endif
                 };
 
                 public static class Context
@@ -114,7 +111,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public static float maxRenderScale
         {
-            get => 2.0f;
+            get => 3.0f;
         }
 
         /// <summary>
@@ -190,11 +187,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal static RenderGraph s_RenderGraph;
         internal static RTHandleResourcePool s_RTHandlePool;
-
-#if URP_COMPATIBILITY_MODE
-        // internal for tests
-        internal static bool useRenderGraph;
-#endif
 
         // Store locally the value on the instance due as the Render Pipeline Asset data might change before the disposal of the asset, making some APV Resources leak.
         internal bool apvIsEnabled = false;
@@ -275,14 +267,6 @@ namespace UnityEngine.Rendering.Universal
             DecalProjector.defaultMaterial = asset.decalMaterial;
 
             s_RenderGraph = new RenderGraph("URPRenderGraph");
-#if URP_COMPATIBILITY_MODE
-            useRenderGraph = !GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode;
-
-#if !UNITY_EDITOR
-            Debug.Log($"RenderGraph is now {(useRenderGraph ? "enabled" : "disabled")}.");
-#endif
-#endif
-
             s_RTHandlePool = new RTHandleResourcePool();
 
             DebugManager.instance.RefreshEditor();
@@ -868,28 +852,9 @@ namespace UnityEngine.Rendering.Universal
                 CreateShadowAtlasAndCullShadowCasters(lightData, shadowData, cameraData, ref data.cullResults, ref context);
 
                 renderer.AddRenderPasses(ref legacyRenderingData);
-
-#if URP_COMPATIBILITY_MODE
-                if (!useRenderGraph)
-                {
-                    // Disable obsolete warning for internal usage
-                    #pragma warning disable CS0618
-                    using (new ProfilingScope(Profiling.Pipeline.Renderer.setup))
-                    {
-                        renderer.Setup(context, ref legacyRenderingData);
-                    }
-
-                    // Timing scope inside
-                    renderer.Execute(context, ref legacyRenderingData);
-                    #pragma warning restore CS0618
-                }
-                else
-#endif
-                {
                     RenderTextureUVOriginStrategy uvOriginStrategy = UniversalRenderPipeline.renderTextureUVOriginStrategy;
                     RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera, uvOriginStrategy);
                     renderer.FinishRenderGraphRendering(cmd);
-                }
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
 
             context.ExecuteCommandBuffer(cmd); // Sends to ScriptableRenderContext all the commands enqueued since cmd.Clear, i.e the "EndSample" command
@@ -897,15 +862,6 @@ namespace UnityEngine.Rendering.Universal
 
             using (new ProfilingScope(Profiling.Pipeline.Context.submit))
             {
-#if URP_COMPATIBILITY_MODE
-                // Render Graph will do the validation by itself, so this is redundant in that case
-                if (!useRenderGraph && renderer.useRenderPassEnabled && !context.SubmitForRenderPassValidation())
-                {
-                    renderer.useRenderPassEnabled = false;
-                    cmd.SetKeyword(ShaderGlobalKeywords.RenderPassEnabled, false);
-                    Debug.LogWarning("Rendering command not supported inside a native RenderPass found. Falling back to non-RenderPass rendering path");
-                }
-#endif
                 context.Submit(); // Actually execute the commands that we previously sent to the ScriptableRenderContext context
             }
             ScriptableRenderer.current = null;
@@ -1487,13 +1443,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.renderScale = disableRenderScale ? 1.0f : settings.renderScale;
 
             // Convert the upscaling filter selection from the pipeline asset into an image upscaling filter
-            cameraData.upscalingFilter = ResolveUpscalingFilterSelection(new Vector2(cameraData.pixelWidth, cameraData.pixelHeight), cameraData.renderScale, settings.upscalingFilter,
-#if URP_COMPATIBILITY_MODE
-                GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var renderGraphSettings) && !renderGraphSettings.enableRenderCompatibilityMode
-#else
-                true
-#endif
-                );
+            cameraData.upscalingFilter = ResolveUpscalingFilterSelection(new Vector2(cameraData.pixelWidth, cameraData.pixelHeight), cameraData.renderScale, settings.upscalingFilter);
 
             bool upscalerSupportsTemporalAntiAliasing = cameraData.upscalingFilter == ImageUpscalingFilter.STP;
             bool upscalerSupportsSharpening = cameraData.upscalingFilter == ImageUpscalingFilter.FSR;
@@ -1703,15 +1653,6 @@ namespace UnityEngine.Rendering.Universal
             UniversalRenderingData data = frameData.Get<UniversalRenderingData>();
             data.supportsDynamicBatching = settings.supportsDynamicBatching;
             data.perObjectData = GetPerObjectLightFlags(universalLightData, settings, renderingMode);
-
-#if URP_COMPATIBILITY_MODE
-            // Render graph does not support RenderingData.commandBuffer as its execution timeline might break.
-            // RenderingData.commandBuffer is available only for the old non-RG execute code path.
-            if(useRenderGraph)
-                data.m_CommandBuffer = null;
-            else
-                data.m_CommandBuffer = cmd;
-#endif
 
             UniversalRenderer universalRenderer = renderer as UniversalRenderer;
             if (universalRenderer != null)
@@ -2236,14 +2177,14 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderScale">Scale being applied to the final image size</param>
         /// <param name="selection">Upscaling filter selected by the user</param>
         /// <returns>Either the original filter provided, or the best replacement available</returns>
-        static ImageUpscalingFilter ResolveUpscalingFilterSelection(Vector2 imageSize, float renderScale, UpscalingFilterSelection selection, bool enableRenderGraph)
+        static ImageUpscalingFilter ResolveUpscalingFilterSelection(Vector2 imageSize, float renderScale, UpscalingFilterSelection selection)
         {
             // By default we just use linear filtering since it's the most compatible choice
             ImageUpscalingFilter filter = ImageUpscalingFilter.Linear;
 
             // Fall back to the automatic filter if the selected filter isn't supported on the current platform or rendering environment
-            if (((selection == UpscalingFilterSelection.FSR) && (!FSRUtils.IsSupported()))
-                || ((selection == UpscalingFilterSelection.STP) && (!STP.IsSupported() || !enableRenderGraph))
+            if ((selection == UpscalingFilterSelection.FSR && !FSRUtils.IsSupported())
+                || (selection == UpscalingFilterSelection.STP && !STP.IsSupported())
             )
             {
                 selection = UpscalingFilterSelection.Auto;
@@ -2347,7 +2288,11 @@ namespace UnityEngine.Rendering.Universal
 
         // We only want to enable HDR Output for the game view once
         // since the game itself might want to control this
-        internal bool enableHDROnce = true;
+        internal bool enableHDROutputOnce = true;
+
+        // We only want to warn once when the render pipeline asset HDR rendering support changes
+        // and HDR output is active, which is incompatible at the render pipeline asset level.
+        internal bool warnedRuntimeSwitchHDROutputToSDROutput = false;
 
         /// <summary>
         /// Configures the render pipeline to render to HDR output or disables HDR output.
@@ -2359,20 +2304,34 @@ namespace UnityEngine.Rendering.Universal
 #endif
         {
             bool hdrOutputActive = HDROutputSettings.main.available && HDROutputSettings.main.active;
+            bool hdrOutputIncompatibleWithSDRRendering = hdrOutputActive && HDROutputSettings.main.displayColorGamut != ColorGamut.Rec709;
 
             // If the pipeline doesn't support HDR rendering, output to SDR.
-            bool supportsSwitchingHDR = SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.RuntimeSwitchable);
-            bool switchHDRToSDR = supportsSwitchingHDR && !asset.supportsHDR && hdrOutputActive;
-            if (switchHDRToSDR)
+            bool supportsSwitchingHDROutput = SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.RuntimeSwitchable);
+            bool switchHDROutputToSDROutput = !asset.supportsHDR && hdrOutputActive && hdrOutputIncompatibleWithSDRRendering;
+            if (switchHDROutputToSDROutput && !warnedRuntimeSwitchHDROutputToSDROutput)
             {
-                HDROutputSettings.main.RequestHDRModeChange(false);
+                if (supportsSwitchingHDROutput)
+                {
+                    Debug.Log("HDR output is being disabled because the current Render Pipeline Asset does not support HDR rendering.");
+                    HDROutputSettings.main.RequestHDRModeChange(false);
+                }
+                else
+                {
+                    Debug.LogWarning("HDR output is active and cannot be switched off at runtime, but the current Render Pipeline Asset does not support HDR rendering. Image may appear underexposed or oversaturated.");
+                }
+                warnedRuntimeSwitchHDROutputToSDROutput = true;
             }
+
+            // Reset the warning flag as soon as the RP asset supports HDR rendering
+            if (warnedRuntimeSwitchHDROutputToSDROutput && asset.supportsHDR)
+                warnedRuntimeSwitchHDROutputToSDROutput = false;
 
 #if UNITY_EDITOR
             bool requestedHDRModeChange = false;
 
             // Automatically switch to HDR in the editor if it's available
-            if (supportsSwitchingHDR && asset.supportsHDR && PlayerSettings.useHDRDisplay && HDROutputSettings.main.available)
+            if (supportsSwitchingHDROutput && asset.supportsHDR && PlayerSettings.useHDRDisplay && HDROutputSettings.main.available)
             {
 #if UNITY_2021_1_OR_NEWER
                 int cameraCount = cameras.Count;
@@ -2384,15 +2343,15 @@ namespace UnityEngine.Rendering.Universal
                     requestedHDRModeChange = hdrOutputActive;
                     HDROutputSettings.main.RequestHDRModeChange(false);
                 }
-                else if (enableHDROnce)
+                else if (enableHDROutputOnce)
                 {
                     requestedHDRModeChange = !hdrOutputActive;
                     HDROutputSettings.main.RequestHDRModeChange(true);
-                    enableHDROnce = false;
+                    enableHDROutputOnce = false;
                 }
             }
 
-            if (requestedHDRModeChange || switchHDRToSDR)
+            if (requestedHDRModeChange || switchHDROutputToSDROutput)
             {
                 // Repaint scene views and game views so the HDR mode request is applied
                 UnityEditorInternal.InternalEditorUtility.RepaintAllViews();

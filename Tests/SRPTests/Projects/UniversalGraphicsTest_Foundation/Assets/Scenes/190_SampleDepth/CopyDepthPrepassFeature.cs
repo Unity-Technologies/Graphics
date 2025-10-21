@@ -26,19 +26,8 @@ internal class ForceDepthPrepassFeature : ScriptableRendererFeature
             return;
         }
 
-        if (!GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode)
-            renderer.EnqueuePass(copyDepthPasses);
-        else
-            copyDepthPasses.EnqueuePasses(renderer);
+        renderer.EnqueuePass(copyDepthPasses);
     }
-
-#if URP_COMPATIBILITY_MODE
-    [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
-    public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
-    {
-        copyDepthPasses.SetupForNonRGPath(renderer, renderingData.cameraData.cameraTargetDescriptor);
-    }
-#endif
 
     public override void Create()
     {
@@ -84,29 +73,6 @@ internal class ThreeCopyDepths : ScriptableRenderPass
         m_CopyDepthPass2 = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthShader, copyToDepth: true, copyResolvedDepth: true, customPassName: "Second Copy");
         m_CopyDepthPass3 = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthShader, copyToDepth: true, copyResolvedDepth: true, customPassName: "Third Copy");
     }
-
-#if URP_COMPATIBILITY_MODE
-    public void SetupForNonRGPath(ScriptableRenderer renderer, RenderTextureDescriptor cameraTextureDescriptor)
-    {
-        var depthDesc = cameraTextureDescriptor;
-        depthDesc.graphicsFormat = GraphicsFormat.None; //Depth only rendering
-        depthDesc.depthStencilFormat = cameraTextureDescriptor.depthStencilFormat;
-        depthDesc.msaaSamples = 1;
-        RenderingUtils.ReAllocateHandleIfNeeded(ref m_Depth1, depthDesc, name: "CopiedDepth1");
-        RenderingUtils.ReAllocateHandleIfNeeded(ref m_Depth2, depthDesc, name: "CopiedDepth2");
-
-        #pragma warning disable CS0618 // Type or member is obsolete
-        m_CopyDepthPass1.Setup(renderer.cameraDepthTargetHandle, m_Depth1);
-        m_CopyDepthPass2.Setup(m_Depth1, m_Depth2);
-        m_CopyDepthPass3.Setup(m_Depth2, renderer.cameraDepthTargetHandle);
-        #pragma warning restore CS0618 // Type or member is obsolete
-    }
-
-    [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
-    public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-    {
-    }
-#endif
 
     internal void EnqueuePasses(ScriptableRenderer renderer)
     {

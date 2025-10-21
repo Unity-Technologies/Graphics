@@ -473,14 +473,23 @@ namespace UnityEditor.VFX.UI
 
             if (fieldId.Count > 0)
             {
-                foreach (var id in fieldId)
+                m_IsChangingSelection = true;
+                try
                 {
-                    m_Treeview.viewController.Move(id, arg.parentId, childIndex, true);
+                    foreach (var id in fieldId)
+                    {
+                        m_Treeview.viewController.Move(id, arg.parentId, childIndex, true);
+                    }
+
+                    UpdateLastCategoryItem(arg.parentId);
+                    m_Treeview.ClearSelection();
+
                 }
-
-                UpdateLastCategoryItem(arg.parentId);
-                m_Treeview.ClearSelection();
-
+                finally
+                {
+                    m_IsChangingSelection = false;
+                }
+                    
                 return DragVisualMode.Move;
             }
 
@@ -586,7 +595,19 @@ namespace UnityEditor.VFX.UI
             element.parent.parent.RemoveFromClassList("sub-graph");
             element.parent.parent.RemoveFromClassList("separator");
             element.ClearClassList();
-            element.Clear();
+
+
+            // work around to avoid losing selection with virtualized treeview
+            bool oldChangingSelection = m_IsChangingSelection;
+            m_IsChangingSelection = true;
+            try
+            {
+                element.Clear();
+            }
+            finally
+            {
+                m_IsChangingSelection = oldChangingSelection;
+            }
         }
 
         private void BindItem(VisualElement element, int index)

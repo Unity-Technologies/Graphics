@@ -29,7 +29,8 @@ public class ShaderGraphGraphicsTests
     [IgnoreGraphicsTest("ArtisticNodes", "Unstable - see https://jira.unity3d.com/browse/UUM-111610", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
     [IgnoreGraphicsTest("SamplerStateTests", "Unstable - see https://jira.unity3d.com/browse/UUM-111610", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
     [IgnoreGraphicsTest("TransformNode", "Test is unstable", colorSpaces: new ColorSpace[] { ColorSpace.Linear }, runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Android }, graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Vulkan })]
-
+    [IgnoreGraphicsTest("InstancedRendering", "Test requires conversion to Render Graph")]
+    
     [SceneGraphicsTest("Assets/Scenes")]
     [UnityTest, Category("ShaderGraph")]
     public IEnumerator Run(SceneGraphicsTestCase testCase)

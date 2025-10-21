@@ -1612,6 +1612,38 @@ namespace UnityEditor.VFX.Test
             window.Close();
             yield return null;
         }
+
+        [UnityTest, Description("Repro from UUM-113869")]
+        public IEnumerator Group_Selection_No_Delete_Empty_Groups()
+        {
+            //Prepare Asset
+            var vfxGraph = VFXTestCommon.CreateGraph_And_System();
+            var vfxPath = AssetDatabase.GetAssetPath(vfxGraph);
+
+            AssetDatabase.ImportAsset(vfxPath);
+            yield return null;
+
+            //Prepare Controller
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
+            Assert.IsNotNull(asset);
+            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
+
+            var window = VFXViewWindow.GetWindow(asset);
+            window.LoadAsset(asset, null);
+            var controller = window.graphView.controller;
+
+            controller.AddStickyNote(Vector2.one * 400, null);
+            controller.AddGroupNode(500 * Vector2.right);
+
+            for (int i = 0; i < 4; i++)
+                yield return null;
+
+            var stickyNoteController = controller.stickyNotes.Single(); // This will confirm there's only one sticky note
+            controller.GroupNodes(Array.Empty<VFXNodeController>(), new[] { stickyNoteController });
+            yield return null;
+
+            Assert.AreEqual(2, controller.groupNodes.Count);
+        }
     }
 }
 #endif

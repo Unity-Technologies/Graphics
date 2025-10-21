@@ -158,17 +158,17 @@ namespace UnityEditor.Rendering.LookDev
         public sealed override void OnInspectorGUI() { }
     }
 
-    class EnvironmentLibraryCreator : ProjectWindowCallback.EndNameEditAction
+    class EnvironmentLibraryCreator : ProjectWindowCallback.AssetCreationEndAction
     {
         ObjectField m_Field = null;
 
         public void SetField(ObjectField field)
             => m_Field = field;
 
-        public override void Cancelled(int instanceId, string pathName, string resourceFile)
+        public override void Cancelled(EntityId entityId, string pathName, string resourceFile)
             => m_Field = null;
 
-        public override void Action(int instanceId, string pathName, string resourceFile)
+        public override void Action(EntityId entityId, string pathName, string resourceFile)
         {
             var newAsset = CreateInstance<EnvironmentLibrary>();
             newAsset.name = Path.GetFileName(pathName);

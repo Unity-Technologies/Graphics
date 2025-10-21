@@ -23,56 +23,6 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = evt;
         }
 
-#if URP_COMPATIBILITY_MODE
-        /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
-            var activeDebugHandler = GetActiveDebugHandler(cameraData);
-            if (activeDebugHandler != null)
-            {
-                // TODO: The skybox needs to work the same as the other shaders, but until it does we'll not render it
-                // when certain debug modes are active (e.g. wireframe/overdraw modes)
-                if (activeDebugHandler.IsScreenClearNeeded)
-                {
-                    return;
-                }
-            }
-
-            var skyRendererList = CreateSkyboxRendererList(context, cameraData);
-            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), cameraData.xr, skyRendererList);
-        }
-
-        private RendererList CreateSkyboxRendererList(ScriptableRenderContext context, UniversalCameraData cameraData)
-        {
-            var skyRendererList = new RendererList();
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled)
-            {
-                // Setup Legacy XR buffer states
-                if (cameraData.xr.singlePassEnabled)
-                {
-                    skyRendererList = context.CreateSkyboxRendererList(cameraData.camera,
-                        cameraData.GetProjectionMatrix(0), cameraData.GetViewMatrix(0),
-                        cameraData.GetProjectionMatrix(1), cameraData.GetViewMatrix(1));
-                }
-                else
-                {
-                    skyRendererList = context.CreateSkyboxRendererList(cameraData.camera, cameraData.GetProjectionMatrix(0), cameraData.GetViewMatrix(0));
-                }
-            }
-            else
-#endif
-            {
-                skyRendererList = context.CreateSkyboxRendererList(cameraData.camera);
-            }
-
-            return skyRendererList;
-        }
-#endif
-
         private RendererListHandle CreateSkyBoxRendererList(RenderGraph renderGraph, UniversalCameraData cameraData)
         {
             var skyRendererListHandle = new RendererListHandle();
@@ -151,14 +101,18 @@ namespace UnityEngine.Rendering.Universal
                 passData.material = skyboxMaterial;
                 builder.UseRendererList(skyRendererListHandle);
                 builder.SetRenderAttachment(colorTarget, 0, AccessFlags.Write);
-                builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.ReadWrite);
 
                 builder.AllowPassCulling(false);
                 if (cameraData.xr.enabled)
                 {
                     bool passSupportsFoveation = cameraData.xrUniversal.canFoveateIntermediatePasses || resourceData.isActiveTargetBackBuffer;
                     builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
-                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                    // Apply MultiviewRenderRegionsCompatible flag only to the peripheral view in Quad Views
+                    if (cameraData.xr.multipassId == 0)
+                    {
+                        builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                    }
                 }
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>

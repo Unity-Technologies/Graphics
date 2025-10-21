@@ -201,10 +201,15 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("XR Motion Pass", out var passData, base.profilingSampler))
             {
                 builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering);
-                builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+
+                // Apply MultiviewRenderRegionsCompatible flag only to the peripheral view in Quad Views
+                if (cameraData.xr.multipassId == 0)
+                {
+                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                }
                 // Setup Color and Depth attachments
                 builder.SetRenderAttachment(xrMotionVectorColor, 0, AccessFlags.Write);
-                builder.SetRenderAttachmentDepth(xrMotionVectorDepth, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(xrMotionVectorDepth, AccessFlags.ReadWrite);
 
                 // Setup RendererList
                 InitObjectMotionRendererLists(ref passData, ref renderingData.cullResults, renderGraph, cameraData.camera);

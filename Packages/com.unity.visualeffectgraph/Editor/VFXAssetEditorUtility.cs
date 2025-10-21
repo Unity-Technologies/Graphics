@@ -118,7 +118,7 @@ VisualEffectResource:
                     var texture = EditorGUIUtility.FindTexture(typeof(VisualEffectAsset));
                     var action = ScriptableObject.CreateInstance<DoCreateNewVFX>();
                     action.templatePath = templateFilePath;
-                    ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, "New VFX.vfx", texture, null);
+                    ProjectWindowUtil.StartNameEditingIfProjectWindowExists(EntityId.None, action, "New VFX.vfx", texture, null);
                 }
             }
 
@@ -172,11 +172,11 @@ VisualEffectResource:
             AssetDatabase.ImportAsset(pathName);
         }
 
-        internal class DoCreateNewVFX : EndNameEditAction
+        internal class DoCreateNewVFX : AssetCreationEndAction
         {
             public string templatePath { get; set; }
 
-            public override void Action(int instanceId, string pathName, string resourceFile)
+            public override void Action(EntityId entityId, string pathName, string resourceFile)
             {
                 CreateTemplateAsset(pathName, templatePath);
                 var resource = VisualEffectResource.GetResourceAtPath(pathName);
@@ -184,27 +184,27 @@ VisualEffectResource:
             }
         }
 
-        internal class DoCreateNewSubgraphOperator : EndNameEditAction
+        internal class DoCreateNewSubgraphOperator : AssetCreationEndAction
         {
-            public override void Action(int instanceId, string pathName, string resourceFile)
+            public override void Action(EntityId entityId, string pathName, string resourceFile)
             {
                 var sg = CreateNew<VisualEffectSubgraphOperator>(pathName);
                 ProjectWindowUtil.FrameObjectInProjectWindow(sg.GetInstanceID());
             }
         }
 
-        internal class DoCreateNewSubgraphBlock : EndNameEditAction
+        internal class DoCreateNewSubgraphBlock : AssetCreationEndAction
         {
-            public override void Action(int instanceId, string pathName, string resourceFile)
+            public override void Action(EntityId entityId, string pathName, string resourceFile)
             {
                 var sg = CreateNew<VisualEffectSubgraphBlock>(pathName);
-                ProjectWindowUtil.FrameObjectInProjectWindow(sg.GetInstanceID());
+                ProjectWindowUtil.FrameObjectInProjectWindow(sg.GetEntityId());
             }
         }
 
-        internal class DoCreateHLSLFile : EndNameEditAction
+        internal class DoCreateHLSLFile : AssetCreationEndAction
         {
-            public override void Action(int instanceId, string pathName, string resourceFile)
+            public override void Action(EntityId entityId, string pathName, string resourceFile)
             {
                 File.Create(pathName).Close();
 
@@ -212,7 +212,7 @@ VisualEffectResource:
 
                 var asset = AssetDatabase.LoadAssetAtPath<TextAsset>(pathName);
 
-                ProjectWindowUtil.FrameObjectInProjectWindow(asset.GetInstanceID());
+                ProjectWindowUtil.FrameObjectInProjectWindow(asset.GetEntityId());
             }
         }
 
@@ -233,7 +233,7 @@ VisualEffectResource:
             CreateVisualEffectSubgraph<VisualEffectSubgraphBlock, DoCreateNewSubgraphBlock>(fileName, templateBlockSubgraphAssetName);
         }
 
-        public static void CreateVisualEffectSubgraph<T, U>(string fileName, string templateName) where U : EndNameEditAction
+        public static void CreateVisualEffectSubgraph<T, U>(string fileName, string templateName) where U : AssetCreationEndAction
         {
             string templateString = "";
 
@@ -249,7 +249,7 @@ VisualEffectResource:
                 Debug.LogError("Couldn't read template for new visual effect subgraph : " + e.Message);
                 var action = ScriptableObject.CreateInstance<U>();
 
-                ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, fileName, texture, null);
+                ProjectWindowUtil.StartNameEditingIfProjectWindowExists(EntityId.None, action, fileName, texture, null);
 
                 return;
             }

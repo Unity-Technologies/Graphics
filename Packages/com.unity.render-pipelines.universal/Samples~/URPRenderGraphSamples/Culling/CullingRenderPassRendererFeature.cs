@@ -8,7 +8,6 @@ public class CullingRenderPassRendererFeature : ScriptableRendererFeature
 {
     // Layer mask used to filter objects to put in the renderer list.
     public LayerMask m_LayerMask;
-
     private CullingRenderPass m_CullingRenderPass;
 
     public override void Create()
@@ -62,7 +61,7 @@ public class CullingRenderPass : ScriptableRenderPass
 
             var cameraData = frameData.Get<UniversalCameraData>();
 
-            // CullContextData contains the culling APIs. 
+            // CullContextData contains the culling APIs.
             var cullContextData = frameData.Get<CullContextData>();
 
             // Retrieve the culling parameters for the camera used.
@@ -71,10 +70,10 @@ public class CullingRenderPass : ScriptableRenderPass
             // Perform culling using the CullContextData API.
             var cullingResults = cullContextData.Cull(ref cullingParameters);
 
-            // Fill up the passData with the data needed by the pass
+            // Fill up the passData with the data needed by the pass.
             InitRendererLists(cullingResults, frameData, ref passData, renderGraph);
 
-            // Make sure the renderer list is valid
+            // Make sure the renderer list is valid.
             if (!passData.rendererListHandle.IsValid())
                   return;
 
@@ -86,7 +85,7 @@ public class CullingRenderPass : ScriptableRenderPass
             builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Write);
 
             // Assign the ExecutePass function to the render pass delegate, which will be called by the render graph when executing the pass.
-            builder.SetRenderFunc((PassData data, RasterGraphContext context) => ExecutePass(data, context));
+            builder.SetRenderFunc(static (PassData data, RasterGraphContext context) => ExecutePass(data, context));
         }
     }
 
@@ -101,7 +100,7 @@ public class CullingRenderPass : ScriptableRenderPass
     // Sample utility method that showcases how to create a renderer list via the RenderGraph API.
     private void InitRendererLists(CullingResults cullResults, ContextContainer frameData, ref PassData passData, RenderGraph renderGraph)
     {
-        // Access the relevant frame data from the Universal Render Pipeline
+        // Access the relevant frame data from the Universal Render Pipeline.
         var universalRenderingData = frameData.Get<UniversalRenderingData>();
         var cameraData = frameData.Get<UniversalCameraData>();
         var lightData = frameData.Get<UniversalLightData>();

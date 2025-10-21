@@ -108,13 +108,6 @@ namespace UnityEngine.Rendering.Universal
             renderer.EnqueuePass(m_FullScreenPass);
         }
 
-#if URP_COMPATIBILITY_MODE
-        /// <inheritdoc/>
-        protected override void Dispose(bool disposing)
-        {
-            m_FullScreenPass.Dispose();
-        }
-#endif
 
         internal class FullScreenRenderPass : ScriptableRenderPass
         {
@@ -124,10 +117,6 @@ namespace UnityEngine.Rendering.Universal
             private bool m_BindDepthStencilAttachment;
 
             private static MaterialPropertyBlock s_SharedPropertyBlock = new MaterialPropertyBlock();
-
-#if URP_COMPATIBILITY_MODE
-            private RTHandle m_CopiedColor;
-#endif
 
             public FullScreenRenderPass(string passName)
             {
@@ -142,37 +131,10 @@ namespace UnityEngine.Rendering.Universal
                 m_BindDepthStencilAttachment = bindDepthStencilAttachment;
             }
 
-#if URP_COMPATIBILITY_MODE
-            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-            public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-            {
-                // Disable obsolete warning for internal usage
-#pragma warning disable CS0618
-                // FullScreenPass manages its own RenderTarget.
-                // ResetTarget here so that ScriptableRenderer's active attachement can be invalidated when processing this ScriptableRenderPass.
-                ResetTarget();
-#pragma warning restore CS0618
-
-                if (m_FetchActiveColor)
-                    ReAllocate(renderingData.cameraData.cameraTargetDescriptor);
-            }
-#endif
-
             internal void ReAllocate(RenderTextureDescriptor desc)
             {
-#if URP_COMPATIBILITY_MODE
-                desc.msaaSamples = 1;
-                desc.depthStencilFormat = GraphicsFormat.None;
-                RenderingUtils.ReAllocateHandleIfNeeded(ref m_CopiedColor, desc, name: "_FullscreenPassColorCopy");
-#endif
-            }
 
-#if URP_COMPATIBILITY_MODE
-            public void Dispose()
-            {
-                m_CopiedColor?.Release();
             }
-#endif
 
             private static void ExecuteCopyColorPass(RasterCommandBuffer cmd, RTHandle sourceTexture)
             {
@@ -190,32 +152,6 @@ namespace UnityEngine.Rendering.Universal
 
                 cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Triangles, 3, 1, s_SharedPropertyBlock);
             }
-
-#if URP_COMPATIBILITY_MODE
-            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-            {
-                ref var cameraData = ref renderingData.cameraData;
-                var cmd = renderingData.commandBuffer;
-
-                using (new ProfilingScope(cmd, profilingSampler))
-                {
-                    RasterCommandBuffer rasterCmd = CommandBufferHelpers.GetRasterCommandBuffer(cmd);
-                    if (m_FetchActiveColor)
-                    {
-                        CoreUtils.SetRenderTarget(cmd, m_CopiedColor);
-                        ExecuteCopyColorPass(rasterCmd, cameraData.renderer.cameraColorTargetHandle);
-                    }
-
-                    if (m_BindDepthStencilAttachment)
-                        CoreUtils.SetRenderTarget(cmd, cameraData.renderer.cameraColorTargetHandle, cameraData.renderer.cameraDepthTargetHandle);
-                    else
-                        CoreUtils.SetRenderTarget(cmd, cameraData.renderer.cameraColorTargetHandle);
-
-                    ExecuteMainPass(rasterCmd, m_FetchActiveColor ? m_CopiedColor : null, m_Material, m_PassIndex);
-                }
-            }
-#endif
 
             public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
             {
@@ -313,7 +249,7 @@ namespace UnityEngine.Rendering.Universal
                     builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
 
                     if (m_BindDepthStencilAttachment)
-                        builder.SetRenderAttachmentDepth(resourcesData.activeDepthTexture, AccessFlags.Write);
+                        builder.SetRenderAttachmentDepth(resourcesData.activeDepthTexture, AccessFlags.ReadWrite);
 
                     builder.SetRenderFunc((MainPassData data, RasterGraphContext rgContext) =>
                     {

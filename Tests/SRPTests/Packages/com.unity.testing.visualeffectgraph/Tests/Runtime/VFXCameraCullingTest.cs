@@ -1,5 +1,6 @@
 using System.Collections;
 using NUnit.Framework;
+using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.TestTools;
@@ -12,23 +13,30 @@ namespace UnityEngine.VFX.Test
     {
         Recorder m_VFXSortRecorder;
         private const string kScenePath = "Packages/com.unity.testing.visualeffectgraph/Scenes/009_MultiCamera.unity";
-
         private const int kCameraVisibleCount = 4;
         //The camera command markers appear twice in the main thread
         //Once in the Render Pipeline preparation, once in the Render Context Submit.
         private const int kMarkerMultiplier = 2;
-
         private const int kWaitFrameCount = 32;
+        private int m_PreviousFrameRate;
+
         [OneTimeSetUp]
         public void Init()
         {
             m_VFXSortRecorder = Recorder.Get("VFX.SortBuffer");
             m_VFXSortRecorder.FilterToCurrentThread();
             m_VFXSortRecorder.enabled = false;
+            m_PreviousFrameRate = Application.targetFrameRate;
+            Application.targetFrameRate = 30;
+        }
+
+        [OneTimeTearDown]
+        public void Cleanup()
+        {
+            Application.targetFrameRate = m_PreviousFrameRate;
         }
 
         [UnityTest]
-        [Ignore("Unstable: https://jira.unity3d.com/browse/UUM-119807")]
         public IEnumerator Ensure_Camera_Commands_Are_Culled()
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene(kScenePath);
@@ -48,7 +56,7 @@ namespace UnityEngine.VFX.Test
             int totalSampleCount = 0;
             for (int i = 0; i < kWaitFrameCount; i++)
             {
-                totalSampleCount +=  m_VFXSortRecorder.sampleBlockCount;
+                totalSampleCount += m_VFXSortRecorder.sampleBlockCount;
                 yield return new WaitForEndOfFrame();
             }
 

@@ -9,6 +9,7 @@ using UnityEditor.Rendering.Converter;
 
 namespace UnityEditor.Rendering.Universal
 {
+    [Serializable]
     [PipelineTools]
     [ElementInfo(Name = "Parametric to Freeform Light Upgrade",
              Order = 100,

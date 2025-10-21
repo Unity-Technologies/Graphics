@@ -40,7 +40,11 @@ ByteAddressBuffer _BinCountersBuffer;
 ByteAddressBuffer _WorkQueueBuffer;
 ByteAddressBuffer _ClusterCountersBuffer;
 
+#if defined (SHADER_API_SWITCH) || defined (SHADER_API_SWITCH2)
+Texture2D<float4> _ShadingSamplesTexture;
+#else
 Texture2D<half4> _ShadingSamplesTexture;
+#endif
 
 // Outputs
 RW_TEXTURE2D_X(float4, _OutputTargetColor);
@@ -501,7 +505,10 @@ void Main(Group group)
                     break;
 
                 // Note: Not all of these segments are guaranteed to exist in memory if greater than cluster segment count.
-                gs_SegmentBatch[groupIndex] = GetSegment(segmentBatchOffset + groupIndex);
+                if ( (segmentBatchOffset + groupIndex ) <gs_CurrentCluster.segmentCount )
+                {
+                    gs_SegmentBatch[groupIndex] = GetSegment(segmentBatchOffset + groupIndex);
+                }
                 GroupMemoryBarrierWithGroupSync();
 
                 // Composite the masks. Is there a better way to do this?

@@ -28,17 +28,6 @@ namespace UnityEngine.Rendering.Universal
 
         private TextureHandle[] dbufferHandles;
 
-#if URP_COMPATIBILITY_MODE
-        private RTHandle m_DBufferDepth;
-        private Material m_DBufferClear;
-        private ProfilingSampler m_DBufferClearSampler;
-        private PassData m_PassData;
-
-        internal RTHandle[] dBufferColorHandles { get; private set; }
-        internal RTHandle depthHandle { get; private set; }
-        internal RTHandle dBufferDepth { get => m_DBufferDepth; }
-#endif
-
         public DBufferRenderPass(Material dBufferClear, DBufferSettings settings, DecalDrawDBufferSystem drawSystem, bool decalLayers)
         {
             renderPassEvent = RenderPassEvent.AfterRenderingPrePasses + 1;
@@ -58,132 +47,13 @@ namespace UnityEngine.Rendering.Universal
             m_ShaderTagIdList = new List<ShaderTagId>();
             m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DBufferMesh));
             m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DBufferProjectorVFX));
-
-#if URP_COMPATIBILITY_MODE
-            int dBufferCount = (int)settings.surfaceData + 1;
-            dBufferColorHandles = new RTHandle[dBufferCount];
-
-            m_DBufferClear = dBufferClear;
-            m_DBufferClearSampler = new ProfilingSampler("Clear");
-            m_PassData = new PassData();
-#endif
         }
-
-#if URP_COMPATIBILITY_MODE
-        public void Dispose()
-        {
-            m_DBufferDepth?.Release();
-            foreach (var handle in dBufferColorHandles)
-                handle?.Release();
-        }
-        public void Setup(in CameraData cameraData)
-        {
-            var depthDesc = cameraData.cameraTargetDescriptor;
-            depthDesc.graphicsFormat = GraphicsFormat.None; //Depth only rendering
-            depthDesc.depthStencilFormat = cameraData.cameraTargetDescriptor.depthStencilFormat;
-            depthDesc.msaaSamples = 1;
-
-            RenderingUtils.ReAllocateHandleIfNeeded(ref m_DBufferDepth, depthDesc, name: s_DBufferDepthName);
-
-            Setup(cameraData, m_DBufferDepth);
-        }
-
-        public void Setup(in CameraData cameraData, RTHandle depthTextureHandle)
-        {
-            // base
-            {
-                var desc = cameraData.cameraTargetDescriptor;
-                desc.graphicsFormat = QualitySettings.activeColorSpace == ColorSpace.Linear ? GraphicsFormat.R8G8B8A8_SRGB : GraphicsFormat.R8G8B8A8_UNorm;
-                desc.depthStencilFormat = GraphicsFormat.None;
-                desc.msaaSamples = 1;
-
-                RenderingUtils.ReAllocateHandleIfNeeded(ref dBufferColorHandles[0], desc, name: s_DBufferNames[0]);
-            }
-
-            if (m_Settings.surfaceData == DecalSurfaceData.AlbedoNormal || m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS)
-            {
-                var desc = cameraData.cameraTargetDescriptor;
-                desc.graphicsFormat = GraphicsFormat.R8G8B8A8_UNorm;
-                desc.depthStencilFormat = GraphicsFormat.None;
-                desc.msaaSamples = 1;
-
-                RenderingUtils.ReAllocateHandleIfNeeded(ref dBufferColorHandles[1], desc, name: s_DBufferNames[1]);
-            }
-
-            if (m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS)
-            {
-                var desc = cameraData.cameraTargetDescriptor;
-                desc.graphicsFormat = GraphicsFormat.R8G8B8A8_UNorm;
-                desc.depthStencilFormat = GraphicsFormat.None;
-                desc.msaaSamples = 1;
-
-                RenderingUtils.ReAllocateHandleIfNeeded(ref dBufferColorHandles[2], desc, name: s_DBufferNames[2]);
-            }
-
-            // depth
-            depthHandle = depthTextureHandle;
-        }
-
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        {
-            // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
-            ConfigureTarget(dBufferColorHandles, depthHandle);
-            #pragma warning restore CS0618
-        }
-
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            InitPassData(ref m_PassData);
-            var cmd = renderingData.commandBuffer;
-            var passData = m_PassData;
-            using (new ProfilingScope(cmd, profilingSampler))
-            {
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
-                SetGlobalTextures(renderingData.commandBuffer, m_PassData);
-                SetKeywords(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData);
-
-                // TODO: This should be replace with mrt clear once we support it
-                // Clear render targets
-                using (new ProfilingScope(cmd, m_DBufferClearSampler))
-                {
-                    // for alpha compositing, color is cleared to 0, alpha to 1
-                    // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-                    Blitter.BlitTexture(cmd, passData.dBufferColorHandles[0], new Vector4(1, 1, 0, 0), m_DBufferClear, 0);
-                }
-
-                UniversalRenderingData universalRenderingData = renderingData.frameData.Get<UniversalRenderingData>();
-                UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
-                UniversalLightData lightData = renderingData.frameData.Get<UniversalLightData>();
-
-                var param = InitRendererListParams(universalRenderingData, cameraData, lightData);
-                var rendererList = context.CreateRendererList(ref param);
-                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList, false);
-            }
-        }
-#endif
 
         private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList, bool renderGraph)
         {
             passData.drawSystem.Execute(cmd);
             cmd.DrawRendererList(rendererList);
         }
-
-#if URP_COMPATIBILITY_MODE
-        private static void SetGlobalTextures(CommandBuffer cmd, PassData passData)
-        {
-            var dBufferColorHandles = passData.dBufferColorHandles;
-            cmd.SetGlobalTexture(dBufferColorHandles[0].name, dBufferColorHandles[0].nameID);
-            if (passData.settings.surfaceData == DecalSurfaceData.AlbedoNormal || passData.settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS)
-                cmd.SetGlobalTexture(dBufferColorHandles[1].name, dBufferColorHandles[1].nameID);
-            if (passData.settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS)
-                cmd.SetGlobalTexture(dBufferColorHandles[2].name, dBufferColorHandles[2].nameID);
-        }
-#endif
 
         private static void SetKeywords(RasterCommandBuffer cmd, PassData passData)
         {
@@ -210,10 +80,6 @@ namespace UnityEngine.Rendering.Universal
             passData.drawSystem = m_DrawSystem;
             passData.settings = m_Settings;
             passData.decalLayers = m_DecalLayers;
-#if URP_COMPATIBILITY_MODE
-            passData.dBufferDepth = m_DBufferDepth;
-            passData.dBufferColorHandles = dBufferColorHandles;
-#endif
         }
 
         private RendererListParams InitRendererListParams(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData)

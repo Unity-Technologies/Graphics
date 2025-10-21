@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 // Check to see if the current renderer feature can be used with the current renderer. If the attribute isn't found then its compatible with everything.
 
-                if (!RendererFeatureSupported(type))
+                if (!RendererFeatureSupported(type) || type.IsAbstract)
                     continue;
 
                 if (data.DuplicateFeatureCheck(type))

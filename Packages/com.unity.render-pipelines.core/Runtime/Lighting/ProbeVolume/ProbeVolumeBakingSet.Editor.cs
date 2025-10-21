@@ -339,6 +339,7 @@ namespace UnityEngine.Rendering
             return sceneToBakingSet;
         }
 
+        internal static ProbeVolumeBakingSet GetBakingSetForScene(Dictionary<string, ProbeVolumeBakingSetWeakReference> mapping, string sceneGUID) { return mapping.GetValueOrDefault(sceneGUID, null)?.Get(); }
         internal static ProbeVolumeBakingSet GetBakingSetForScene(string sceneGUID) { return SceneToBakingSet.Instance.GetValueOrDefault(sceneGUID, null)?.Get(); }
         internal static ProbeVolumeBakingSet GetBakingSetForScene(Scene scene) => GetBakingSetForScene(scene.GetGUID());
 

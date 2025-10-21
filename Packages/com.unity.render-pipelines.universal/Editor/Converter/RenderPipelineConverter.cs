@@ -9,6 +9,7 @@ using UnityEngine.Categorization;
 namespace UnityEditor.Rendering.Universal
 {
     // Might need to change this name before making it public
+    [Serializable]
     internal abstract class RenderPipelineConverter : IRenderPipelineConverter
     {
         /// <summary>

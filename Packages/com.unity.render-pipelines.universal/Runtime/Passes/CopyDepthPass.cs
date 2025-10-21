@@ -28,14 +28,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal bool m_CopyResolvedDepth;
 
-#if URP_COMPATIBILITY_MODE
-        private RTHandle source { get; set; }
-        private RTHandle destination { get; set; }
-
-        internal bool m_ShouldClear;
-        private PassData m_PassData;
-#endif
-
         /// <summary>
         /// Shader resource ids used to communicate with the shader implementation
         /// </summary>
@@ -65,11 +57,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_CopyResolvedDepth = copyResolvedDepth;
             CopyToDepthXR = false;
             CopyToBackbuffer = false;
-
-#if URP_COMPATIBILITY_MODE
-            m_PassData = new PassData();
-            m_ShouldClear = shouldClear;
-#endif
         }
 
         /// <summary>
@@ -79,11 +66,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="destination">Destination Render Target</param>
         public void Setup(RTHandle source, RTHandle destination)
         {
-#if URP_COMPATIBILITY_MODE
-            this.source = source;
-            this.destination = destination;
-#endif
-            this.MsaaSamples = -1;
+            MsaaSamples = -1;
         }
 
         /// <summary>
@@ -94,40 +77,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             CoreUtils.Destroy(m_CopyDepthMaterial);
         }
 
-#if URP_COMPATIBILITY_MODE
-        /// <inheritdoc />
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        {
-#if UNITY_ANDROID
-            // Mali Valhall + SSAO compatibility: Override timing when accessing depth data
-            if (PlatformAutoDetect.isRunningOnMaliValhallGPU && renderingData.cameraData.postProcessEnabled)
-            {
-                renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
-            }
-#endif
-
-            // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
-#if UNITY_EDITOR
-            // This is a temporary workaround for Editor as not setting any depth here
-            // would lead to overwriting depth in certain scenarios (reproducable while running DX11 tests)
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11)
-                ConfigureTarget(destination, destination);
-            else
-#endif
-            ConfigureTarget(destination);
-
-            if (m_ShouldClear)
-                ConfigureClear(ClearFlag.All, Color.black);
-
-            #pragma warning restore CS0618
-        }
-#endif
-
         private class PassData
         {
             internal TextureHandle source;
+            internal TextureHandle destination;
             internal UniversalCameraData cameraData;
             internal Material copyDepthMaterial;
             internal int msaaSamples;
@@ -136,34 +89,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal bool isDstBackbuffer;
         }
 
-#if URP_COMPATIBILITY_MODE
-        /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            var cameraData = renderingData.frameData.Get<UniversalCameraData>();
-
-            m_PassData.copyDepthMaterial = m_CopyDepthMaterial;
-            m_PassData.msaaSamples = MsaaSamples;
-            m_PassData.copyResolvedDepth = m_CopyResolvedDepth;
-            m_PassData.copyToDepth = CopyToDepth || CopyToDepthXR;
-            m_PassData.isDstBackbuffer = CopyToBackbuffer || CopyToDepthXR;
-            m_PassData.cameraData = cameraData;
-            var cmd = renderingData.commandBuffer;
-            cmd.SetGlobalTexture(ShaderConstants._CameraDepthAttachment, source.nameID);
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (m_PassData.cameraData.xr.enabled)
-            {
-                if (m_PassData.cameraData.xr.supportsFoveatedRendering)
-                    cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
-            }
-#endif
-            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, this.source);
-        }
-#endif
-
-        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RTHandle source)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RTHandle source, bool yflip)
         {
             var copyDepthMaterial = passData.copyDepthMaterial;
             var msaaSamples = passData.msaaSamples;
@@ -223,9 +149,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetKeyword(ShaderGlobalKeywords._OUTPUT_DEPTH, copyToDepth);
 
-                // We must perform a yflip if we're rendering into the backbuffer and we have a flipped source texture.
-                bool yflip = passData.isDstBackbuffer && passData.cameraData.IsHandleYFlipped(source);
-
                 Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                 Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
 
@@ -237,20 +160,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 copyDepthMaterial.SetFloat(ShaderConstants._ZWriteShaderHandle, copyToDepth ? 1.0f : 0.0f);
                 Blitter.BlitTexture(cmd, source, scaleBias, copyDepthMaterial, 0);
             }
-        }
-        
-        /// <inheritdoc/>
-        public override void OnCameraCleanup(CommandBuffer cmd)
-        {
-#if URP_COMPATIBILITY_MODE
-            if (cmd == null)
-                throw new ArgumentNullException("cmd");
-
-            // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
-            destination = k_CameraTarget;
-            #pragma warning restore CS0618
-#endif
         }
 
         /// <summary>
@@ -296,7 +205,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (cameraData.xr.enabled)
                 {
-                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                    // Apply MultiviewRenderRegionsCompatible flag only to the peripheral view in Quad Views
+                    if (cameraData.xr.multipassId == 0)
+                    {
+                        builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                    }
                 }
 
                 if (CopyToDepth)
@@ -350,6 +263,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 passData.source = source;
+                passData.destination = destination;
                 builder.UseTexture(source, AccessFlags.Read);
 
                 if (bindAsCameraDepth && destination.IsValid())
@@ -359,7 +273,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    ExecutePass(context.cmd, data, data.source);
+                    bool yflip = context.GetTextureUVOrigin(in data.source) != context.GetTextureUVOrigin(in data.destination);
+                    ExecutePass(context.cmd, data, data.source, yflip);
                 });
             }
         }

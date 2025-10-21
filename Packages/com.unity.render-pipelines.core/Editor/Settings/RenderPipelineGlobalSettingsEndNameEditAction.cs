@@ -7,6 +7,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// <see cref="ProjectWindowCallback.EndNameEditAction"/> for <see cref="RenderPipelineGlobalSettings"/>
     /// </summary>
+    [Obsolete("RenderPipelineGlobalSettingsEndNameEditAction is no longer used and will be removed in a future release.")]
     public class RenderPipelineGlobalSettingsEndNameEditAction : ProjectWindowCallback.EndNameEditAction
     {
         private Type renderPipelineType { get; set; }

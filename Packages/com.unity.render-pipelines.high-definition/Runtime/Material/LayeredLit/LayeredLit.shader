@@ -1187,6 +1187,7 @@ Shader "HDRP/LayeredLit"
             HLSLPROGRAM
 
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #define SHADERPASS SHADERPASS_CONSTANT
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"

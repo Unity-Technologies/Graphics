@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.UI
         {
             m_DropDownButton = new DropdownField(label);
             m_DropDownButton.choices = values;
-            m_DropDownButton.value = values[0];
+            m_DropDownButton.value = values.Count > 0 ? values[0] : string.Empty;
             m_DropDownButton.RegisterCallback<ChangeEvent<string>>(OnValueChanged);
             Add(m_DropDownButton);
         }

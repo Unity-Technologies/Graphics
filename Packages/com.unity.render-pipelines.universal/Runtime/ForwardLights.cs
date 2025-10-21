@@ -223,6 +223,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             var localLights = lights.GetSubArray(firstLocalLightIdx, localLightCount);
 
             var reflectionProbeCount = math.min(probes.Length, UniversalRenderPipeline.maxVisibleReflectionProbes);
+            // Ensure reflection probes without textures aren't used.
+            for (var i = 0; i < probes.Length; i++)
+            {
+                if (!probes[i].texture)
+                    reflectionProbeCount--;
+            }
+
             var itemsPerTile = localLights.Length + reflectionProbeCount;
             wordsPerTile = (itemsPerTile + 31) / 32;
 
@@ -255,11 +262,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Should probe come after otherProbe?
             static bool IsProbeGreater(VisibleReflectionProbe probe, VisibleReflectionProbe otherProbe)
             {
-                return probe.importance < otherProbe.importance ||
-                    (probe.importance == otherProbe.importance && probe.bounds.extents.sqrMagnitude > otherProbe.bounds.extents.sqrMagnitude);
+                return otherProbe.texture != null && (probe.texture == null || probe.importance < otherProbe.importance ||
+                    (probe.importance == otherProbe.importance && probe.bounds.extents.sqrMagnitude > otherProbe.bounds.extents.sqrMagnitude));
             }
 
-            for (var i = 1; i < reflectionProbeCount; i++)
+            // Used probes.Length to check that we use the most relevant probes.
+            for (var i = 1; i < probes.Length; i++)
             {
                 var probe = probes[i];
                 var j = i - 1;
@@ -420,23 +428,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 JobHandle.ScheduleBatchedJobs();
             }
         }
-
-#if URP_COMPATIBILITY_MODE
-        /// <summary>
-        /// Sets up the keywords and data for forward lighting.
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="renderingData"></param>
-        public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            ContextContainer frameData = renderingData.frameData;
-            UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            UniversalLightData lightData = frameData.Get<UniversalLightData>();
-
-            SetupLights(CommandBufferHelpers.GetUnsafeCommandBuffer(renderingData.commandBuffer), universalRenderingData, cameraData, lightData);
-        }
-#endif
 
         static ProfilingSampler s_SetupForwardLights = new ProfilingSampler("Setup Forward Lights");
         private class SetupLightPassData

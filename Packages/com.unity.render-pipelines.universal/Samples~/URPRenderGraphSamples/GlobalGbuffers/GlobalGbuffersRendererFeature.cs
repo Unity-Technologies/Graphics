@@ -20,29 +20,29 @@ public class GlobalGbuffersRendererFeature : ScriptableRendererFeature
         private static readonly int GbufferLightingIndex = 3;
         private static readonly int GBufferRenderingLayersIndex = 5;
 
-        // The pipeline already sets the gBuffer depth component to be global in a few places, so uncomment this code as needed
+        // The pipeline already sets the gBuffer depth component to be global in a few places, so uncomment this code as needed.
         // private static readonly int GbufferDepthIndex = 4;
 
         // Components marked as optional are only present when the pipeline requests it.
-        // If for example there is no rendering layers texture, _GBuffer5 will contain the ShadowMask texture
+        // If for example there is no rendering layers texture, _GBuffer5 will contain the ShadowMask texture.
         private static readonly int[] s_GBufferShaderPropertyIDs = new int[]
         {
-            // Contains Albedo Texture
+            // Contains Albedo texture.
             Shader.PropertyToID("_GBuffer0"),
 
-            // Contains Specular Metallic Texture
+            // Contains Specular Metallic texture.
             Shader.PropertyToID("_GBuffer1"),
 
-            // Contains Normals and Smoothness, referenced as _CameraNormalsTexture in other shaders
+            // Contains Normals and Smoothness, referenced as _CameraNormalsTexture in other shaders.
             Shader.PropertyToID("_GBuffer2"),
 
-            // Contains Lighting texture
+            // Contains Lighting texture.
             Shader.PropertyToID("_GBuffer3"),
 
-            // Contains Depth texture, referenced as _CameraDepthTexture in other shaders (optional)
+            // Contains Depth texture, referenced as _CameraDepthTexture in other shaders (optional).
             Shader.PropertyToID("_GBuffer4"),
 
-            // Contains Rendering Layers Texture, referenced as _CameraRenderingLayersTexture in other shaders (optional)
+            // Contains Rendering Layers texture, referenced as _CameraRenderingLayersTexture in other shaders (optional).
             Shader.PropertyToID("_GBuffer5"),
 
             // Contains ShadowMask texture (optional)
@@ -55,11 +55,11 @@ public class GlobalGbuffersRendererFeature : ScriptableRendererFeature
 
         // This sets the gBuffer components as global after the current pass. After the pass, the gBuffers components made global
         // will be made accessible using 'builder.UseAllGlobalTextures(true)' instead of 'builder.UseTexture(gBuffer[i])
-        // Shaders that use global texture will be able to fetch them without the need to call 'material.SetTexture()'
+        // Shaders that use global textures will be able to fetch them without the need to call 'material.SetTexture()'
         // like we do in the ExecutePass function of this pass.
         private void SetGlobalGBufferTextures(IRasterRenderGraphBuilder builder, TextureHandle[] gBuffer)
         {
-            // This loop will make the gBuffers accessible by all shaders using _GBufferX texture shader IDs
+            // This loop will make the gBuffers accessible by all shaders using _GBufferX texture shader IDs.
             for (int i = 0; i < gBuffer.Length; i++)
             {
                 if (i != GbufferLightingIndex && gBuffer[i].IsValid())
@@ -70,12 +70,12 @@ public class GlobalGbuffersRendererFeature : ScriptableRendererFeature
             // need to set the ID to point to the corresponding gBuffer component.
             if (gBuffer[GBufferNormalSmoothnessIndex].IsValid())
             {
-                // After this pass, shaders that use the _CameraNormalsTexture will get the gBuffer's NormalsSmoothnessTexture component
+                // After this pass, shaders that use the _CameraNormalsTexture will get the gBuffer's NormalsSmoothnessTexture component.
                 builder.SetGlobalTextureAfterPass(gBuffer[GBufferNormalSmoothnessIndex],
                     Shader.PropertyToID("_CameraNormalsTexture"));
             }
             
-            // The pipeline already sets the gBuffer depth component to be global in a few places, so uncomment this code as needed
+            // The pipeline already sets the gBuffer depth component to be global in a few places, so uncomment this code as needed.
             // if (GbufferDepthIndex < gBuffer.Length && gBuffer[GbufferDepthIndex].IsValid())
             // {
             //     // After this pass, shaders that use the _CameraDepthTexture will get the gBuffer's Depth component (note that it is also set global by the copy depth pass)
@@ -85,7 +85,7 @@ public class GlobalGbuffersRendererFeature : ScriptableRendererFeature
 
             if (GBufferRenderingLayersIndex < gBuffer.Length && gBuffer[GBufferRenderingLayersIndex].IsValid())
             {
-                // After this pass, shaders that use the _CameraRenderingLayersTexture will get the gBuffer's RenderingLayersTexture component
+                // After this pass, shaders that use the _CameraRenderingLayersTexture will get the gBuffer's RenderingLayersTexture component.
                 builder.SetGlobalTextureAfterPass(gBuffer[GBufferRenderingLayersIndex],
                     Shader.PropertyToID("_CameraRenderingLayersTexture"));
             }
@@ -96,20 +96,20 @@ public class GlobalGbuffersRendererFeature : ScriptableRendererFeature
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
-            // The gBuffer components are only used in deferred mode
+            // The gBuffer components are only used in deferred mode.
             if (universalRenderingData.renderingMode != RenderingMode.Deferred)
                 return;
             
-            // Get the gBuffer texture handles are stored in the resourceData
+            // Get the gBuffer texture handles are stored in the resourceData.
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             TextureHandle[] gBuffer = resourceData.gBuffer;
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(m_PassName, out var passData))
             {
                 builder.AllowPassCulling(false);
-                // Set the gBuffers to be global after the pass
+                // Set the gBuffers to be global after the pass.
                 SetGlobalGBufferTextures(builder, gBuffer);
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) => { /* nothing to be rendered */ });
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) => { /* nothing to be rendered */ });
             }
         }
     }

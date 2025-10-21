@@ -3405,11 +3405,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cs = dofParameters.dofComputeSlowTilesCS;
                 kernel = dofParameters.dofComputeSlowTilesKernel;
-                float sampleCount = Mathf.Max(dofParameters.nearSampleCount, dofParameters.farSampleCount);
                 float anamorphism = dofParameters.physicalCameraAnamorphism / 4f;
 
                 float mipLevel = 1 + Mathf.Ceil(Mathf.Log(maxCoc, 2));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, maxCoc, anamorphism, 0.0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(dofParameters.nearSampleCount, dofParameters.farSampleCount, maxCoc, anamorphism));
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(dofParameters.adaptiveSamplingWeights.x, dofParameters.adaptiveSamplingWeights.y, (float)dofParameters.resolution, 1.0f/(float)dofParameters.resolution));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
@@ -3452,11 +3451,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cs = dofParameters.pbDoFGatherCS;
                 kernel = dofParameters.pbDoFGatherKernel;
-                float sampleCount = Mathf.Max(dofParameters.nearSampleCount, dofParameters.farSampleCount);
                 float anamorphism = dofParameters.physicalCameraAnamorphism / 4f;
 
                 float mipLevel = 1 + Mathf.Ceil(Mathf.Log(maxCoc, 2));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, maxCoc, anamorphism, 0.0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(dofParameters.nearSampleCount, dofParameters.farSampleCount, maxCoc, anamorphism));
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, 3, 1.0f / (float)dofParameters.resolution, (float)dofParameters.resolution));
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params3, new Vector4(dofParameters.adaptiveSamplingWeights.x, dofParameters.adaptiveSamplingWeights.y, 0.0f, 0.0f));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, sourcePyramid != null ? sourcePyramid : source);
@@ -3478,11 +3476,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cs = dofParameters.pbDoFCombineCS;
                 kernel = dofParameters.pbDoFCombineKernel;
-                float sampleCount = Mathf.Max(dofParameters.nearSampleCount, dofParameters.farSampleCount);
                 float anamorphism = dofParameters.physicalCameraAnamorphism / 4f;
 
                 float mipLevel = 1 + Mathf.Ceil(Mathf.Log(maxCoc, 2));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, maxCoc, anamorphism, 0.0f));
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(dofParameters.adaptiveSamplingWeights.x, dofParameters.adaptiveSamplingWeights.y, (float)dofParameters.resolution, 1.0f/(float)dofParameters.resolution));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
@@ -3559,6 +3555,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool cocHistoryValid = GrabCoCHistory(hdCamera, out var prevCoC, out var nextCoC, useMips: useHistoryMips);
                 var prevCoCHandle = renderGraph.ImportTexture(prevCoC);
                 var nextCoCHandle = renderGraph.ImportTexture(nextCoC);
+
+                TextureHandle debugCocTexture;
+                Vector2 debugCocTextureScales;
 
                 using (var builder = renderGraph.AddUnsafePass<DepthofFieldData>("Depth of Field", out var passData, ProfilingSampler.Get(HDProfileId.DepthOfField)))
                 {
@@ -3638,8 +3637,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         { format = k_CoCFormat, enableRandomWrite = true, name = "Full res CoC" });
                         builder.UseTexture(passData.fullresCoC, AccessFlags.ReadWrite);
 
-                        var debugCocTexture = passData.fullresCoC;
-                        var debugCocTextureScales = hdCamera.postProcessRTScales;
+                        debugCocTexture = passData.fullresCoC;
+                        debugCocTextureScales = hdCamera.postProcessRTScales;
                         if (passData.taaEnabled)
                         {
                             debugCocTexture = passData.nextCoC;
@@ -3696,15 +3695,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         source = passData.destination;
 
-                        PushFullScreenDebugTexture(renderGraph, debugCocTexture, debugCocTextureScales, FullScreenDebugMode.DepthOfFieldCoc);
                     }
                     else
                     {
                         passData.fullresCoC = GetPostprocessOutputHandle(renderGraph, "Full res CoC", k_CoCFormat, false);
                         builder.UseTexture(passData.fullresCoC, AccessFlags.ReadWrite);
 
-                        var debugCocTexture = passData.fullresCoC;
-                        var debugCocTextureScales = hdCamera.postProcessRTScales;
+                        debugCocTexture = passData.fullresCoC;
+                        debugCocTextureScales = hdCamera.postProcessRTScales;
                         if (passData.taaEnabled)
                         {
                             debugCocTexture = passData.nextCoC;
@@ -3738,8 +3736,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             });
 
                         source = passData.destination;
-                        PushFullScreenDebugTexture(renderGraph, debugCocTexture, debugCocTextureScales, FullScreenDebugMode.DepthOfFieldCoc);
-                        PushFullScreenDebugTexture(renderGraph, passData.destination, hdCamera.postProcessRTScales, FullScreenDebugMode.DepthOfFieldTileClassification);
                     }
                 }
 
@@ -3761,6 +3757,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     hdCamera.dofHistoryIsValid = false;
+                }
+                if (!m_DepthOfField.physicallyBased)
+                {
+
+                    PushFullScreenDebugTexture(renderGraph, debugCocTexture, debugCocTextureScales, FullScreenDebugMode.DepthOfFieldCoc);
+                }
+                else
+                {
+                    PushFullScreenDebugTexture(renderGraph, debugCocTexture, debugCocTextureScales, FullScreenDebugMode.DepthOfFieldCoc);
+                    PushFullScreenDebugTexture(renderGraph, source, hdCamera.postProcessRTScales, FullScreenDebugMode.DepthOfFieldTileClassification);
                 }
             }
 

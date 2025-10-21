@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             yield return new StandardsToHDLitMaterialUpgrader("Standard", "HDRP/Lit");
             yield return new StandardsToHDLitMaterialUpgrader("Standard (Specular setup)", "HDRP/Lit");
-            yield return new StandardsToHDLitMaterialUpgrader("Standard (Roughness setup)", "HDRP/Lit");
+            yield return new StandardsToHDLitMaterialUpgrader("Autodesk Interactive", "HDRP/Lit");
         }
     }
 

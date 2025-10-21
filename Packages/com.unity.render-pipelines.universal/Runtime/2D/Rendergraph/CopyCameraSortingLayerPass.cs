@@ -19,14 +19,6 @@ namespace UnityEngine.Rendering.Universal
             m_BlitMaterial = blitMaterial;
         }
 
-#if URP_COMPATIBILITY_MODE
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            throw new NotImplementedException();
-        }
-#endif
-
         public static void ConfigureDescriptor(Downsampling downsamplingMethod, ref RenderTextureDescriptor descriptor, out FilterMode filterMode)
         {
             descriptor.msaaSamples = 1;

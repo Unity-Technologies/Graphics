@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
 namespace UnityEditor.Rendering.Converter
 {
+    [Serializable]
     internal abstract class RenderPipelineConverterMaterialUpgrader : AssetsConverter
     {
         public override bool isEnabled => m_UpgradersCache.Count > 0;

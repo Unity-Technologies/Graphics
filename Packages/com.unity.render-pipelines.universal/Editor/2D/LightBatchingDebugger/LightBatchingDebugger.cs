@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.Universal
 
         // Variables used for refresh view
         private bool doRefresh;
-        private int cachedSceneHandle;
+        private SceneHandle cachedSceneHandle;
         private int totalLightCount;
         private int totalShadowCount;
         private Vector3 cachedCamPos;
@@ -440,7 +440,7 @@ namespace UnityEditor.Rendering.Universal
         private void RefreshView()
         {
             PopulateData();
-            batchListView.RefreshItems();
+            batchListView?.RefreshItems();
             OnSelectionChanged();
 
             ResetDirty();

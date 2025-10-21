@@ -7,20 +7,6 @@ namespace UnityEngine.Rendering.Universal
 {
     internal sealed class PostProcess : IDisposable
     {
-        // Builtin effects settings (VolumeComponents)
-        DepthOfField m_DepthOfField;
-        MotionBlur m_MotionBlur;
-        PaniniProjection m_PaniniProjection;
-        Bloom m_Bloom;
-        ScreenSpaceLensFlare m_LensFlareScreenSpace;
-        LensDistortion m_LensDistortion;
-        ChromaticAberration m_ChromaticAberration;
-        Vignette m_Vignette;
-        ColorLookup m_ColorLookup;
-        ColorAdjustments m_ColorAdjustments;
-        Tonemapping m_Tonemapping;
-        FilmGrain m_FilmGrain;
-
         // Passes
         StopNanPostProcessPass m_StopNanPostProcessPass;
         SmaaPostProcessPass m_SmaaPostProcessPass;
@@ -43,14 +29,7 @@ namespace UnityEngine.Rendering.Universal
 
         PostProcessData m_Resources;
 
-        RTHandle m_UserLut;
-        RTHandle m_InternalLut;
-
         int m_DitheringTextureIndex;    // 8-bit dithering
-
-        // If there's a final post process pass after this pass.
-        // If yes, Film Grain and Dithering are setup in the final pass, otherwise they are setup in this pass.
-        bool m_HasFinalPass;
 
         /// <summary>
         /// Creates a new <c>PostProcessPass</c> instance.
@@ -103,12 +82,11 @@ namespace UnityEngine.Rendering.Universal
             m_MotionBlurPass?.Dispose();
             m_TemporalAntiAliasingPass?.Dispose();
             m_StpPostProcessPass?.Dispose();
+            m_UpscalerPostProcessPass.Dispose();
             m_DepthOfFieldBokehPass?.Dispose();
             m_DepthOfFieldGaussianPass?.Dispose();
             m_SmaaPostProcessPass?.Dispose();
             m_StopNanPostProcessPass?.Dispose();
-
-            m_UserLut?.Release();
         }
 
         // Some Android devices do not support sRGB backbuffer
@@ -138,58 +116,36 @@ namespace UnityEngine.Rendering.Universal
             return m_Resources.textures.blueNoise16LTex[GetNextDitherIndex()];
         }
 
-        TextureHandle TryGetCachedUserLutTextureHandle(RenderGraph renderGraph)
-        {
-            if (m_ColorLookup.texture.value == null)
-            {
-                if (m_UserLut != null)
-                {
-                    m_UserLut.Release();
-                    m_UserLut = null;
-                }
-            }
-            else
-            {
-                if (m_UserLut == null || m_UserLut.externalTexture != m_ColorLookup.texture.value)
-                {
-                    m_UserLut?.Release();
-                    m_UserLut = RTHandles.Alloc(m_ColorLookup.texture.value);
-                }
-            }
-            return m_UserLut != null ? renderGraph.ImportTexture(m_UserLut) : TextureHandle.nullHandle;
-        }
-
-        static bool UpdateGlobalDebugHandlerPass(RenderGraph renderGraph, UniversalCameraData cameraData, bool isFinalPass)
+        static void UpdateGlobalDebugHandlerPass(RenderGraph renderGraph, UniversalCameraData cameraData, bool isFinalPass)
         {
             // NOTE: Debug handling injects a global state render pass.
             DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(cameraData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
             debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, isFinalPass && !resolveToDebugScreen);
-            return resolveToDebugScreen;
         }
 
+        const string _CameraColorUpscaled = "_CameraColorUpscaled";
 
-        public void RenderPostProcessing(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle activeCameraColorTexture, in TextureHandle internalColorLutTexture, in TextureHandle overlayUITexture, in TextureHandle postProcessingTarget, bool hasFinalPass, bool enableColorEncodingIfNeeded)
+        // If hasFinalPass == true, Film Grain and Dithering are setup in the final pass, otherwise they are setup in this pass.
+        public void RenderPostProcessing(RenderGraph renderGraph, ContextContainer frameData, bool hasFinalPass, bool enableColorEncodingIfNeeded)
         {
-            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
+            var resourceData = frameData.Get<UniversalResourceData>();
+            var cameraData = frameData.Get<UniversalCameraData>();
+            var postProcessingData = frameData.Get<UniversalPostProcessingData>();
 
             var stack = VolumeManager.instance.stack;
-            m_DepthOfField = stack.GetComponent<DepthOfField>();
-            m_MotionBlur = stack.GetComponent<MotionBlur>();
-            m_PaniniProjection = stack.GetComponent<PaniniProjection>();
-            m_Bloom = stack.GetComponent<Bloom>();
-            m_LensFlareScreenSpace = stack.GetComponent<ScreenSpaceLensFlare>();
-            m_LensDistortion = stack.GetComponent<LensDistortion>();
-            m_ChromaticAberration = stack.GetComponent<ChromaticAberration>();
-            m_Vignette = stack.GetComponent<Vignette>();
-            m_ColorLookup = stack.GetComponent<ColorLookup>();
-            m_ColorAdjustments = stack.GetComponent<ColorAdjustments>();
-            m_Tonemapping = stack.GetComponent<Tonemapping>();
-            m_FilmGrain = stack.GetComponent<FilmGrain>();
-
-            m_HasFinalPass = hasFinalPass;  // TODO: should this be external configuration property rather than a param?
+            var depthOfField = stack.GetComponent<DepthOfField>();
+            var motionBlur = stack.GetComponent<MotionBlur>();
+            var paniniProjection = stack.GetComponent<PaniniProjection>();
+            var bloom = stack.GetComponent<Bloom>();
+            var lensFlareScreenSpace = stack.GetComponent<ScreenSpaceLensFlare>();
+            var lensDistortion = stack.GetComponent<LensDistortion>();
+            var chromaticAberration = stack.GetComponent<ChromaticAberration>();
+            var vignette = stack.GetComponent<Vignette>();
+            var colorLookup = stack.GetComponent<ColorLookup>();
+            var colorAdjustments = stack.GetComponent<ColorAdjustments>();
+            var tonemapping = stack.GetComponent<Tonemapping>();
+            var filmGrain = stack.GetComponent<FilmGrain>();
 
             bool useFastSRGBLinearConversion = postProcessingData.useFastSRGBLinearConversion;
             bool supportDataDrivenLensFlare = postProcessingData.supportDataDrivenLensFlare;
@@ -200,17 +156,17 @@ namespace UnityEngine.Rendering.Universal
             //We blit back and forth without msaa untill the last blit.
             bool useStopNan = cameraData.isStopNaNEnabled && m_StopNanPostProcessPass.IsValid();
             bool useSubPixelMorpAA = (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing) && m_SmaaPostProcessPass.IsValid();
-            bool useDepthOfField = m_DepthOfField.IsActive() && !isSceneViewCamera && (m_DepthOfFieldGaussianPass.IsValid() || m_DepthOfFieldBokehPass.IsValid());
+            bool useDepthOfField = depthOfField.IsActive() && !isSceneViewCamera && (m_DepthOfFieldGaussianPass.IsValid() || m_DepthOfFieldBokehPass.IsValid());
             bool useLensFlare = !LensFlareCommonSRP.Instance.IsEmpty() && supportDataDrivenLensFlare;
-            bool useLensFlareScreenSpace = m_LensFlareScreenSpace.IsActive() && supportScreenSpaceLensFlare;
-            bool useMotionBlur = m_MotionBlur.IsActive() && !isSceneViewCamera && m_MotionBlurPass.IsValid();
-            bool usePaniniProjection = m_PaniniProjection.IsActive() && !isSceneViewCamera && m_PaniniProjectionPass.IsValid();
+            bool useLensFlareScreenSpace = lensFlareScreenSpace.IsActive() && supportScreenSpaceLensFlare;
+            bool useMotionBlur = motionBlur.IsActive() && !isSceneViewCamera && m_MotionBlurPass.IsValid();
+            bool usePaniniProjection = paniniProjection.IsActive() && !isSceneViewCamera && m_PaniniProjectionPass.IsValid();
 
             // Disable MotionBlur in EditMode, so that editing remains clear and readable.
             // NOTE: HDRP does the same via CoreUtils::AreAnimatedMaterialsEnabled().
             // Disable MotionBlurMode.CameraAndObjects on renderers that do not support motion vectors
             useMotionBlur = useMotionBlur && Application.isPlaying;
-            if (useMotionBlur && m_MotionBlur.mode.value == MotionBlurMode.CameraAndObjects)
+            if (useMotionBlur && motionBlur.mode.value == MotionBlurMode.CameraAndObjects)
             {
                 ScriptableRenderer renderer = cameraData.renderer;
                 useMotionBlur &= renderer.SupportsMotionVectors();
@@ -238,9 +194,9 @@ namespace UnityEngine.Rendering.Universal
                 TemporalAA.ValidateAndWarn(cameraData, isSTPRequested);
 
             // NOTE: Debug handling injects a global state render pass.
-            bool resolveToDebugScreen = UpdateGlobalDebugHandlerPass(renderGraph, cameraData, !m_HasFinalPass);
+            UpdateGlobalDebugHandlerPass(renderGraph, cameraData, !hasFinalPass);
 
-            TextureHandle currentSource = activeCameraColorTexture;
+            TextureHandle currentSource = resourceData.cameraColor;
 
             // Optional NaN killer before post-processing kicks in
             // stopNaN may be null on Adreno 3xx. It doesn't support full shader level 3.5, but SystemInfo.graphicsShaderLevel is 35.
@@ -270,16 +226,16 @@ namespace UnityEngine.Rendering.Universal
             if (useDepthOfField)
             {
                     var doFTarget = PostProcessUtils.CreateCompatibleTexture(renderGraph, currentSource, DepthOfFieldGaussianPostProcessPass.k_TargetName, true, FilterMode.Bilinear);
-                    if(m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian)
+                    if(depthOfField.mode.value == DepthOfFieldMode.Gaussian)
                     {
-                        m_DepthOfFieldGaussianPass.depthOfField = m_DepthOfField;
+                        m_DepthOfFieldGaussianPass.depthOfField = depthOfField;
                         m_DepthOfFieldGaussianPass.sourceTexture = currentSource;
                         m_DepthOfFieldGaussianPass.destinationTexture = doFTarget;
                         m_DepthOfFieldGaussianPass.RecordRenderGraph(renderGraph, frameData);
                     }
                     else
                     {
-                        m_DepthOfFieldBokehPass.depthOfField = m_DepthOfField;
+                        m_DepthOfFieldBokehPass.depthOfField = depthOfField;
                         m_DepthOfFieldBokehPass.useFastSRGBLinearConversion = useFastSRGBLinearConversion;
                         m_DepthOfFieldBokehPass.sourceTexture = currentSource;
                         m_DepthOfFieldBokehPass.destinationTexture = doFTarget;
@@ -328,7 +284,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 var motionTarget = PostProcessUtils.CreateCompatibleTexture(renderGraph, currentSource, MotionBlurPostProcessPass.k_TargetName, true, FilterMode.Bilinear);
 
-                m_MotionBlurPass.motionBlur = m_MotionBlur;
+                m_MotionBlurPass.motionBlur = motionBlur;
                 m_MotionBlurPass.sourceTexture = currentSource;
                 m_MotionBlurPass.destinationTexture = motionTarget;
                 m_MotionBlurPass.RecordRenderGraph(renderGraph, frameData);
@@ -339,7 +295,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 var paniniTarget = PostProcessUtils.CreateCompatibleTexture(renderGraph, currentSource, PaniniProjectionPostProcessPass.k_TargetName, true, FilterMode.Bilinear);
 
-                m_PaniniProjectionPass.paniniProjection = m_PaniniProjection;
+                m_PaniniProjectionPass.paniniProjection = paniniProjection;
                 m_PaniniProjectionPass.sourceTexture = currentSource;
                 m_PaniniProjectionPass.destinationTexture = paniniTarget;
                 m_PaniniProjectionPass.RecordRenderGraph(renderGraph, frameData);
@@ -352,12 +308,12 @@ namespace UnityEngine.Rendering.Universal
 
                 // Bloom goes first
                 TextureHandle bloomTexture = TextureHandle.nullHandle;
-                bool bloomActive = m_Bloom.IsActive() || useLensFlareScreenSpace;
+                bool bloomActive = bloom.IsActive() || useLensFlareScreenSpace;
                 //Even if bloom is not active we need the texture if the lensFlareScreenSpace pass is active.
                 if (bloomActive)
                 {
                     // NOTE: bloom destination texture is some texture in the bloom mip pyramid. It's not explicitly set beforehand.
-                    m_BloomPass.bloom = m_Bloom;
+                    m_BloomPass.bloom = bloom;
                     m_BloomPass.sourceTexture = currentSource;
                     m_BloomPass.RecordRenderGraph(renderGraph, frameData);
                     bloomTexture = m_BloomPass.destinationTexture;
@@ -368,8 +324,8 @@ namespace UnityEngine.Rendering.Universal
 
                         // We need to take into account how many valid mips the bloom pass produced.
                         int bloomMipCount = mipPyramid.mipCount;
-                        int maxBloomMip = Mathf.Clamp(bloomMipCount - 1, 0, m_Bloom.maxIterations.value / 2);
-                        int useBloomMip = Mathf.Clamp(m_LensFlareScreenSpace.bloomMip.value, 0, maxBloomMip);
+                        int maxBloomMip = Mathf.Clamp(bloomMipCount - 1, 0, bloom.maxIterations.value / 2);
+                        int useBloomMip = Mathf.Clamp(lensFlareScreenSpace.bloomMip.value, 0, maxBloomMip);
 
                         TextureHandle bloomMipFlareSource = mipPyramid.GetResultMip(useBloomMip);
                         // Flare source and Flare target is the same texture. BloomMip[0]
@@ -377,13 +333,13 @@ namespace UnityEngine.Rendering.Universal
 
                         // Kawase blur does not use the mip pyramid.
                         // It is safe to pass the same texture to both input/output.
-                        if (m_Bloom.filter.value == BloomFilterMode.Kawase)
+                        if (bloom.filter.value == BloomFilterMode.Kawase)
                         {
                             bloomMipFlareSource = bloomTexture;
                             sameBloomSrcDestTex = true;
                         }
 
-                        m_LensFlareScreenSpacePass.lensFlareScreenSpace = m_LensFlareScreenSpace;
+                        m_LensFlareScreenSpacePass.lensFlareScreenSpace = lensFlareScreenSpace;
                         m_LensFlareScreenSpacePass.sameSourceDestinationTexture = sameBloomSrcDestTex;
                         m_LensFlareScreenSpacePass.colorBufferTextureDesc = colorSrcDesc;
                         m_LensFlareScreenSpacePass.sourceTexture = bloomMipFlareSource;
@@ -395,69 +351,68 @@ namespace UnityEngine.Rendering.Universal
                 if (useLensFlare)
                 {
                     // Lens Flares are procedurally generated and blended to the destination texture.
-                    m_LensFlareDataDrivenPass.paniniProjection = m_PaniniProjection;
+                    m_LensFlareDataDrivenPass.paniniProjection = paniniProjection;
                     m_LensFlareDataDrivenPass.destinationTexture = currentSource;
                     m_LensFlareDataDrivenPass.RecordRenderGraph(renderGraph, frameData);
                 }
 
                 // Settings
-                m_UberPass.colorLookup = m_ColorLookup;
-                m_UberPass.colorAdjustments = m_ColorAdjustments;
-                m_UberPass.tonemapping = m_Tonemapping;
-                m_UberPass.bloom = m_Bloom;
-                m_UberPass.lensDistortion = m_LensDistortion;
-                m_UberPass.chromaticAberration = m_ChromaticAberration;
-                m_UberPass.vignette = m_Vignette;
-                m_UberPass.filmGrain = m_FilmGrain;
+                m_UberPass.colorLookup = colorLookup;
+                m_UberPass.colorAdjustments = colorAdjustments;
+                m_UberPass.tonemapping = tonemapping;
+                m_UberPass.bloom = bloom;
+                m_UberPass.lensDistortion = lensDistortion;
+                m_UberPass.chromaticAberration = chromaticAberration;
+                m_UberPass.vignette = vignette;
+                m_UberPass.filmGrain = filmGrain;
 
-                m_UberPass.isFinalPass = !m_HasFinalPass;
+                m_UberPass.isFinalPass = !hasFinalPass;
                 m_UberPass.requireSRGBConversionBlit = RequireSRGBConversionBlitToBackBuffer(cameraData, enableColorEncodingIfNeeded);
                 m_UberPass.useFastSRGBLinearConversion = useFastSRGBLinearConversion;
-                m_UberPass.resolveToDebugScreen = resolveToDebugScreen;
 
-                TextureHandle activeOverlayUITexture = TextureHandle.nullHandle;
+                //TODO remove once all passes are converted to use the resourceData with cameraColor swapping
+                resourceData.cameraColor = currentSource;
+
+                var activeOverlayUITextureUberPost = TextureHandle.nullHandle;
                 bool requireHDROutput = PostProcessUtils.RequireHDROutput(cameraData);
                 if (requireHDROutput)
                 {
                     // Color space conversion is already applied through color grading, do encoding if uber post is the last pass
                     // Otherwise encoding will happen in the final post process pass or the final blit pass
-                    m_UberPass.hdrOperations = !m_HasFinalPass && enableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
+                    m_UberPass.hdrOperations = !hasFinalPass && enableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
 
-                    if(enableColorEncodingIfNeeded && overlayUITexture.IsValid())
-                        activeOverlayUITexture = overlayUITexture;
+                    if(enableColorEncodingIfNeeded && resourceData.overlayUITexture.IsValid())
+                        activeOverlayUITextureUberPost = resourceData.overlayUITexture;
                 }
 
-                // Input
-                m_UberPass.sourceTexture = currentSource;
-                m_UberPass.internalLutTexture = internalColorLutTexture;
-                m_UberPass.userLutTexture = TryGetCachedUserLutTextureHandle(renderGraph);
-                m_UberPass.bloomTexture = bloomTexture;
-                m_UberPass.overlayUITexture = activeOverlayUITexture;
+                var overlayUITexture = resourceData.overlayUITexture;
+
+                resourceData.overlayUITexture = activeOverlayUITextureUberPost;
+                resourceData.bloom = bloomTexture;
+
                 m_UberPass.ditherTexture = cameraData.isDitheringEnabled ? GetNextDitherTexture() : null;
 
-                // Output
-                m_UberPass.destinationTexture = postProcessingTarget;
                 m_UberPass.RecordRenderGraph(renderGraph, frameData);
+
+                resourceData.overlayUITexture = overlayUITexture;
             }
         }
 
 #region FinalPass
-        public void RenderFinalPostProcessing(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle source, in TextureHandle overlayUITexture, in TextureHandle postProcessingTarget, bool enableColorEncodingIfNeeded)
+        public void RenderFinalPostProcessing(RenderGraph renderGraph, ContextContainer frameData, bool enableColorEncodingIfNeeded)
         {
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
             var stack = VolumeManager.instance.stack;
-            m_Tonemapping = stack.GetComponent<Tonemapping>();
-            m_FilmGrain = stack.GetComponent<FilmGrain>();
-
-            // TODO RENDERGRAPH: when we remove the old path we should review the naming of these variables...
-            // m_HasFinalPass is used to let FX passes know when they are not being called by the actual final pass, so they can skip any "final work"
-            m_HasFinalPass = false;
+            var tonemapping = stack.GetComponent<Tonemapping>();
+            var filmGrain = stack.GetComponent<FilmGrain>();
 
             // NOTE: Debug handling injects a global state render pass.
-            bool resolveToDebugScreen = UpdateGlobalDebugHandlerPass(renderGraph, cameraData, !m_HasFinalPass);
+            UpdateGlobalDebugHandlerPass(renderGraph, cameraData, true);
 
-            var srcDesc = renderGraph.GetTextureDesc(source);
+            var resourceData = frameData.Get<UniversalResourceData>();
+            var currentSource = resourceData.cameraColor;
+            var srcDesc = renderGraph.GetTextureDesc(currentSource);
 
             HDROutputUtils.Operation hdrOperations = HDROutputUtils.Operation.None;
             bool requireHDROutput = PostProcessUtils.RequireHDROutput(cameraData);
@@ -481,7 +436,6 @@ namespace UnityEngine.Rendering.Universal
 
             bool applyFxaa = PostProcessUtils.IsFxaaEnabled(cameraData);
 
-            var currentSource = source;
             if (cameraData.imageScalingMode != ImageScalingMode.None)
             {
                 // When FXAA is enabled in scaled renders, we execute it in a separate blit since it's not designed to be used in
@@ -506,7 +460,7 @@ namespace UnityEngine.Rendering.Universal
 
                     var scalingSetupTarget = PostProcessUtils.CreateCompatibleTexture(renderGraph, scalingSetupDesc, ScalingSetupPostProcessPass.k_TargetName, true, FilterMode.Point);
 
-                    m_ScalingSetupFinalPostProcessPass.tonemapping = m_Tonemapping;
+                    m_ScalingSetupFinalPostProcessPass.tonemapping = tonemapping;
                     m_ScalingSetupFinalPostProcessPass.hdrOperations = hdrOperations;
 
                     m_ScalingSetupFinalPostProcessPass.sourceTexture = currentSource;
@@ -567,24 +521,23 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            //TODO remove once all passes are converted to use the resourceData with cameraColor swapping
+            resourceData.cameraColor = currentSource; 
+
             bool renderOverlayUI = requireHDROutput && enableColorEncodingIfNeeded && cameraData.rendersOverlayUI;
+            var overlayUITexture = resourceData.overlayUITexture;
 
-            m_FinalPostProcessPass.tonemapping = m_Tonemapping;
-            m_FinalPostProcessPass.filmGrain = m_FilmGrain;
+            //We will swap the resourceData.overlayUITexture back after the pass
+            if (!renderOverlayUI)
+                resourceData.overlayUITexture = TextureHandle.nullHandle;
 
-            m_FinalPostProcessPass.samplingOperation = samplingOperation;
-            m_FinalPostProcessPass.applyFxaa = applyFxaa;
-            m_FinalPostProcessPass.applySrgbEncoding = RequireSRGBConversionBlitToBackBuffer(cameraData, enableColorEncodingIfNeeded);
-            m_FinalPostProcessPass.resolveToDebugScreen = resolveToDebugScreen;
-            m_FinalPostProcessPass.hdrOperations = hdrOperations;
+            bool applySrgbEncoding = RequireSRGBConversionBlitToBackBuffer(cameraData, enableColorEncodingIfNeeded);
+            var ditherTexture = cameraData.isDitheringEnabled ? GetNextDitherTexture() : null;
 
-            m_FinalPostProcessPass.sourceTexture = currentSource;
-            m_FinalPostProcessPass.overlayUITexture = renderOverlayUI ? overlayUITexture : TextureHandle.nullHandle;
-            m_FinalPostProcessPass.ditherTexture = cameraData.isDitheringEnabled ? GetNextDitherTexture() : null;
-
-            m_FinalPostProcessPass.destinationTexture = postProcessingTarget;
+            m_FinalPostProcessPass.Setup(samplingOperation, hdrOperations, applySrgbEncoding, applyFxaa, ditherTexture);
             m_FinalPostProcessPass.RecordRenderGraph(renderGraph,frameData);
-            currentSource = TextureHandle.nullHandle;
+
+            resourceData.overlayUITexture = overlayUITexture;
         }
 #endregion
     }

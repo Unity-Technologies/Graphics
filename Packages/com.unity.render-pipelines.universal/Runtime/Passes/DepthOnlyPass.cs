@@ -16,12 +16,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         FilteringSettings m_FilteringSettings;
 
-#if URP_COMPATIBILITY_MODE
-        private RTHandle destination { get; set; }
-        private GraphicsFormat depthStencilFormat;
-        private PassData m_PassData;
-#endif
-
         // Statics
         private static readonly ShaderTagId k_ShaderTagId = new ShaderTagId("DepthOnly");
         private static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
@@ -40,12 +34,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             profilingSampler = new ProfilingSampler("Draw Depth Only");
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
-            this.shaderTagId = k_ShaderTagId;
-
-#if URP_COMPATIBILITY_MODE
-            useNativeRenderPass = false;
-            m_PassData = new PassData();
-#endif
+            shaderTagId = k_ShaderTagId;
         }
 
         /// <summary>
@@ -60,40 +49,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTextureDescriptor baseDescriptor,
             RTHandle depthAttachmentHandle)
         {
-#if URP_COMPATIBILITY_MODE
-            this.destination = depthAttachmentHandle;
-            this.depthStencilFormat = baseDescriptor.depthStencilFormat;
-#endif
         }
-
-#if URP_COMPATIBILITY_MODE
-        /// <inheritdoc />
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        {
-            var desc = renderingData.cameraData.cameraTargetDescriptor;
-
-            // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
-
-            // When depth priming is in use the camera target should not be overridden so the Camera's MSAA depth attachment is used.
-            if (renderingData.cameraData.renderer.useDepthPriming && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
-            {
-                ConfigureTarget(renderingData.cameraData.renderer.cameraDepthTargetHandle);
-                // Only clear depth here so we don't clear any bound color target. It might be unused by this pass but that doesn't mean we can just clear it. (e.g. in case of overlay cameras + depth priming)
-                ConfigureClear(ClearFlag.Depth, Color.black);
-            }
-            // When not using depth priming the camera target should be set to our non MSAA depth target.
-            else
-            {
-                useNativeRenderPass = true;
-                ConfigureTarget(destination);
-                ConfigureClear(ClearFlag.All, Color.black);
-            }
-
-            #pragma warning restore CS0618
-        }
-#endif
 
         private static void ExecutePass(RasterCommandBuffer cmd, RendererList rendererList)
         {
@@ -102,23 +58,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.DrawRendererList(rendererList);
             }
         }
-
-#if URP_COMPATIBILITY_MODE
-        /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            ContextContainer frameData = renderingData.frameData;
-            UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            UniversalLightData lightData = frameData.Get<UniversalLightData>();
-
-            var param = InitRendererListParams(universalRenderingData, cameraData, lightData);
-            RendererList rendererList = context.CreateRendererList(ref param);
-
-            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), rendererList);
-        }
-#endif
 
         private class PassData
         {
@@ -147,7 +86,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.rendererList = renderGraph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
 
-                builder.SetRenderAttachmentDepth(cameraDepthTexture, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(cameraDepthTexture, AccessFlags.ReadWrite);
 
                 if (setGlobalDepth)
                     builder.SetGlobalTextureAfterPass(cameraDepthTexture, s_CameraDepthTextureID);
@@ -156,7 +95,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (cameraData.xr.enabled)
                 {
                     builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && cameraData.xrUniversal.canFoveateIntermediatePasses);
-                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                    // Apply MultiviewRenderRegionsCompatible flag only to the peripheral view in Quad Views
+                    if (cameraData.xr.multipassId == 0)
+                    {
+                        builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                    }
                 }
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>

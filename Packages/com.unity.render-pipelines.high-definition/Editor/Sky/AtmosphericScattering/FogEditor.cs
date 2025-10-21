@@ -23,6 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected SerializedDataParameter m_EnableVolumetricFog;
         protected SerializedDataParameter m_Anisotropy;
+        protected SerializedDataParameter m_VolumetricLightingDensityCutoff;
         protected SerializedDataParameter m_MultipleScatteringIntensity;
         protected SerializedDataParameter m_DepthExtent;
         protected SerializedDataParameter m_GlobalLightProbeDimmer;
@@ -63,6 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_BaseHeight = Unpack(o.Find(x => x.baseHeight));
             m_MaximumHeight = Unpack(o.Find(x => x.maximumHeight));
             m_Anisotropy = Unpack(o.Find(x => x.anisotropy));
+            m_VolumetricLightingDensityCutoff = Unpack(o.Find(x => x.volumetricLightingDensityCutoff));
             m_MultipleScatteringIntensity = Unpack(o.Find(x => x.multipleScatteringIntensity));
             m_GlobalLightProbeDimmer = Unpack(o.Find(x => x.globalLightProbeDimmer));
 
@@ -173,6 +175,15 @@ namespace UnityEditor.Rendering.HighDefinition
                         EndAdditionalPropertiesScope();
                     }
 
+                    PropertyField(m_VolumetricLightingDensityCutoff);
+                    if (m_VolumetricLightingDensityCutoff.value.floatValue > 0.0f)
+                    {
+                        using (new IndentLevelScope())
+                        {
+                            float currentMinExtinction = VolumeRenderingUtils.ExtinctionFromMeanFreePath(m_MeanFreePath.value.floatValue);
+                            EditorGUILayout.HelpBox($"The current minimum density for the fog is {currentMinExtinction:F3} (calculated from the Fog Distance).", MessageType.Info, wide: true);
+                        }
+                    }
                 }
             }
             PropertyField(m_MultipleScatteringIntensity);

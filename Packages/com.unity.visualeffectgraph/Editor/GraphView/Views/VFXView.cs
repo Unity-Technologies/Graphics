@@ -46,70 +46,6 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class EdgeDragInfo : VisualElement
-    {
-        VFXView m_View;
-        public EdgeDragInfo(VFXView view)
-        {
-            m_View = view;
-            var tpl = Resources.Load<VisualTreeAsset>("uxml/EdgeDragInfo");
-            tpl.CloneTree(this);
-
-            this.AddStyleSheetPath("EdgeDragInfo");
-
-            m_Text = this.Q<Label>("title");
-
-            pickingMode = PickingMode.Ignore;
-            m_Text.pickingMode = PickingMode.Ignore;
-        }
-
-        Label m_Text;
-
-        public void StartEdgeDragInfo(VFXDataAnchor draggedAnchor, VFXDataAnchor overAnchor)
-        {
-            string error = null;
-            if (draggedAnchor != overAnchor)
-            {
-                if (draggedAnchor.direction == overAnchor.direction)
-                {
-                    if (draggedAnchor.direction == Direction.Input)
-                        error = "You must link an input to an output";
-                    else
-                        error = "You must link an output to an input";
-                }
-                else if (draggedAnchor.controller.connections.Any(t => draggedAnchor.direction == Direction.Input ? t.output == overAnchor.controller : t.input == overAnchor.controller))
-                {
-                    error = "An edge with the same input and output already exists";
-                }
-                else if (!draggedAnchor.controller.model.CanLink(overAnchor.controller.model))
-                {
-                    error = "The input and output have incompatible types";
-                }
-                else
-                {
-                    bool can = draggedAnchor.controller.CanLink(overAnchor.controller);
-
-                    if (!can)
-                    {
-                        if (!draggedAnchor.controller.CanLinkToNode(overAnchor.controller.sourceNode, null))
-                            error = "The edge would create a loop in the operators";
-                        else
-                            error = "Link impossible for an unknown reason";
-                    }
-                }
-            }
-            if (error == null)
-                style.display = DisplayStyle.None;
-            else
-                m_Text.text = error;
-
-            var layout = overAnchor.connector.parent.ChangeCoordinatesTo(m_View, overAnchor.connector.layout);
-
-            style.top = layout.yMax + 16;
-            style.left = layout.xMax;
-        }
-    }
-
     struct VFXViewSettings
     {
         private bool m_IsAttachedLocked;
@@ -653,10 +589,10 @@ namespace UnityEditor.VFX.UI
             flexSpacer.style.flexGrow = 1f;
             m_Toolbar.Add(flexSpacer);
 
-            var toggleBlackboard = new ToolbarToggle { tooltip = "Blackboard" };
-            toggleBlackboard.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/variableswindow.png")) });
-            toggleBlackboard.RegisterCallback<ChangeEvent<bool>>(ToggleBlackboard);
-            m_Toolbar.Add(toggleBlackboard);
+            m_ToggleBlackboard = new ToolbarToggle { tooltip = "Blackboard" };
+            m_ToggleBlackboard.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/variableswindow.png")) });
+            m_ToggleBlackboard.RegisterCallback<ChangeEvent<bool>>(ToggleBlackboard);
+            m_Toolbar.Add(m_ToggleBlackboard);
 
             m_ToggleComponentBoard = new ToolbarToggle { tooltip = "Displays controls for the GameObject currently attached" };
             m_ToggleComponentBoard.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/controls.png")) });
@@ -689,11 +625,6 @@ namespace UnityEditor.VFX.UI
             m_LockedElement.Add(lockLabel);
 
             m_Blackboard = new VFXBlackboard(this);
-            bool blackboardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, true);
-            if (blackboardVisible)
-                Add(m_Blackboard);
-            toggleBlackboard.value = blackboardVisible;
-
             m_ComponentBoard = new VFXComponentBoard(this);
             m_ProfilingBoard = new VFXProfilingBoard(this);
 
@@ -719,6 +650,7 @@ namespace UnityEditor.VFX.UI
             canPasteSerializedData = VFXCanPaste;
 
             viewDataKey = "VFXView";
+            m_FirstResize = true;
             RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
 
@@ -1035,6 +967,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        readonly Toggle m_ToggleBlackboard;
         void ToggleBlackboard(ChangeEvent<bool> e)
         {
             ToggleBlackboard();
@@ -1085,48 +1018,49 @@ namespace UnityEditor.VFX.UI
 
         void OnFirstComponentBoardGeometryChanged(GeometryChangedEvent e)
         {
-            if (m_FirstResize)
-            {
-                m_ComponentBoard.ValidatePosition();
-                m_ComponentBoard.UnregisterCallback<GeometryChangedEvent>(OnFirstComponentBoardGeometryChanged);
-            }
+            m_ComponentBoard.ValidatePosition();
+            m_ComponentBoard.UnregisterCallback<GeometryChangedEvent>(OnFirstComponentBoardGeometryChanged);
         }
 
         void OnFirstProfilingBoardGeometryChanged(GeometryChangedEvent e)
         {
-            if (m_FirstResize)
-            {
-                m_ProfilingBoard.ValidatePosition();
-                m_ProfilingBoard.UnregisterCallback<GeometryChangedEvent>(OnFirstProfilingBoardGeometryChanged);
-            }
+            m_ProfilingBoard.ValidatePosition();
+            m_ProfilingBoard.UnregisterCallback<GeometryChangedEvent>(OnFirstProfilingBoardGeometryChanged);
         }
 
         void OnFirstBlackboardGeometryChanged(GeometryChangedEvent e)
         {
-            if (m_FirstResize)
-            {
-                m_Blackboard.ValidatePosition();
-                m_Blackboard.UnregisterCallback<GeometryChangedEvent>(OnFirstBlackboardGeometryChanged);
-            }
+            m_Blackboard.ValidatePosition();
+            m_Blackboard.UnregisterCallback<GeometryChangedEvent>(OnFirstBlackboardGeometryChanged);
         }
 
-        public bool m_FirstResize = false;
+        bool m_FirstResize;
 
         void OnGeometryChanged(GeometryChangedEvent e)
         {
-            m_FirstResize = true;
+            if (m_FirstResize)
+            {
+                if (BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, true))
+                    m_ToggleBlackboard.value = true;
+                if (BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.componentBoard, false))
+                    m_ToggleComponentBoard.value = true;
+                if (BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.profilingBoard, false))
+                    m_ToggleProfilingBoard.value = true;
+                m_FirstResize = false;
+            }
+
             m_ComponentBoard.ValidatePosition();
             m_ProfilingBoard.ValidatePosition();
             m_Blackboard.ValidatePosition();
         }
 
-        Toggle m_ToggleComponentBoard;
+        readonly Toggle m_ToggleComponentBoard;
         void ToggleComponentBoard(ChangeEvent<bool> e)
         {
             ToggleComponentBoard();
         }
 
-        Toggle m_ToggleProfilingBoard;
+        readonly Toggle m_ToggleProfilingBoard;
         void ToggleProfilingBoard(ChangeEvent<bool> e)
         {
             OnToggleProfilingBoard();
@@ -1835,7 +1769,7 @@ namespace UnityEditor.VFX.UI
             else
             {
                 VFXGraph.explicitCompile = true;
-                controller.graph.CompileAndUpdateAsset(controller.graph.GetResource().asset); 
+                controller.graph.CompileAndUpdateAsset(controller.graph.GetResource().asset);
                 VFXGraph.explicitCompile = false;
             }
             foreach (var model in m_ModelsWithHiddenBadges)
@@ -1854,14 +1788,20 @@ namespace UnityEditor.VFX.UI
 
         internal void SaveAs(string newPath)
         {
-            m_ComponentBoard?.DeactivateBoundsRecordingIfNeeded(); //Avoids saving the graph with unnecessary bounds computations
-
             var resource = controller.graph.visualEffectResource;
-
             var oldFilePath = AssetDatabase.GetAssetPath(resource);
-            if (!AssetDatabase.CopyAsset(oldFilePath, newPath))
+            if (string.Compare(newPath, oldFilePath, StringComparison.InvariantCultureIgnoreCase) == 0)
             {
-                Debug.Log($"Could not save VFX Graph at {newPath}");
+                this.OnSave();
+            }
+            else
+            {
+                m_ComponentBoard?.DeactivateBoundsRecordingIfNeeded(); //Avoids saving the graph with unnecessary bounds computations
+
+                if (!AssetDatabase.CopyAsset(oldFilePath, newPath))
+                {
+                    Debug.LogError($"Could not save VFX Graph at {newPath}");
+                }
             }
         }
 
@@ -3294,26 +3234,6 @@ namespace UnityEditor.VFX.UI
             {
                 item.AssetMoved();
             }
-        }
-
-        VFXEdgeDragInfo m_EdgeDragInfo;
-
-        public void StartEdgeDragInfo(VFXDataAnchor draggerAnchor, VFXDataAnchor overAnchor)
-        {
-            if (m_EdgeDragInfo == null)
-            {
-                m_EdgeDragInfo = new VFXEdgeDragInfo(this);
-                Add(m_EdgeDragInfo);
-                m_EdgeDragInfo.style.display = DisplayStyle.None;
-            }
-
-            m_EdgeDragInfo.StartEdgeDragInfo(draggerAnchor, overAnchor);
-        }
-
-        public void StopEdgeDragInfo()
-        {
-            if (m_EdgeDragInfo != null)
-                m_EdgeDragInfo.StopEdgeDragInfo();
         }
 
         public void DuplicateBlackboardFieldSelection()

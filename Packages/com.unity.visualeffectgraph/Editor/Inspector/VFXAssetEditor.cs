@@ -262,9 +262,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
         m_PreviewUtility.camera.farClipPlane = 10000.0f;
         m_PreviewUtility.camera.clearFlags = CameraClearFlags.SolidColor;
         m_PreviewUtility.ambientColor = new Color(.1f, .1f, .1f, 1.0f);
-        m_PreviewUtility.lights[0].intensity = 1.4f;
         m_PreviewUtility.lights[0].transform.rotation = Quaternion.Euler(40f, 40f, 0);
-        m_PreviewUtility.lights[1].intensity = 1.4f;
 
         m_VisualEffectGO = new GameObject("VisualEffect (Preview)");
 
@@ -462,6 +460,10 @@ class VisualEffectAssetEditor : UnityEditor.Editor
 
         if (needsRender)
         {
+            //Forcing fixed intensity in case of lazily addition of HDAdditionalLightData
+            m_PreviewUtility.lights[0].intensity = 1.4f;
+            m_PreviewUtility.lights[1].intensity = 1.4f;
+
             m_RemainingFramesToRender--;
             m_PreviewUtility.BeginPreview(m_LastArea, background);
 
@@ -538,6 +540,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
     SerializedProperty instancingDisabledReasonProperty;
 
     private static readonly float k_MinimalCommonDeltaTime = 1.0f / 800.0f;
+    private static readonly uint k_MaximumStepCount = 2400u; // 3 seconds at minimal delta time
 
     public static void DisplayPrewarmInspectorGUI(SerializedObject resourceObject, SerializedProperty prewarmDeltaTime, SerializedProperty prewarmStepCount)
     {
@@ -566,13 +569,9 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             if (EditorGUI.EndChangeCheck())
             {
                 bool hasPrewarm = currentTotalTime != 0.0f;
-                if (currentStepCount <= 0)
-                {
-                    currentStepCount = hasPrewarm ? 1 : 0;
-                }
-
+                currentStepCount = Math.Clamp(currentStepCount, hasPrewarm ? 1 : 0, (int)k_MaximumStepCount);
                 currentDeltaTime = hasPrewarm ? currentTotalTime / currentStepCount : 0.0f;
-                prewarmDeltaTime.floatValue = currentDeltaTime;
+                prewarmDeltaTime.floatValue = Math.Max(k_MinimalCommonDeltaTime, currentDeltaTime);
                 prewarmStepCount.uintValue = (uint)currentStepCount;
                 resourceObject.ApplyModifiedProperties();
             }
@@ -581,13 +580,10 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             currentDeltaTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."), currentDeltaTime);
             if (EditorGUI.EndChangeCheck())
             {
-                if (currentDeltaTime < k_MinimalCommonDeltaTime)
-                {
-                    currentDeltaTime = k_MinimalCommonDeltaTime;
-                }
+                currentDeltaTime = Math.Max(k_MinimalCommonDeltaTime, currentDeltaTime);
 
                 float totalTime = currentDeltaTime * currentStepCount;
-                if (totalTime > currentTotalTime)
+                if (totalTime > currentTotalTime || currentStepCount == k_MaximumStepCount)
                 {
                     currentTotalTime = totalTime;
                 }
@@ -607,6 +603,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
                     {
                         currentStepCount = candidateStepCount_B;
                     }
+                    currentStepCount = Math.Clamp(currentStepCount, 1, (int)k_MaximumStepCount);
 
                     prewarmStepCount.uintValue = (uint)currentStepCount;
                 }
@@ -618,14 +615,23 @@ class VisualEffectAssetEditor : UnityEditor.Editor
         {
             //Multi selection case, can't resolve total time easily
             EditorGUI.BeginChangeCheck();
+
+            // Total time disabled in this case
+            EditorGUI.BeginDisabled(true);
+            EditorGUI.showMixedValue = true;
+            EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Total Time", "Sets the time in seconds to advance the current effect to when it is initially played. "), 0);
+            EditorGUI.EndDisabled();
+
             EditorGUI.showMixedValue = prewarmStepCount.hasMultipleDifferentValues;
             EditorGUILayout.PropertyField(prewarmStepCount, EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to."));
+
             EditorGUI.showMixedValue = prewarmDeltaTime.hasMultipleDifferentValues;
             EditorGUILayout.PropertyField(prewarmDeltaTime, EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."));
+
             if (EditorGUI.EndChangeCheck())
             {
-                if (prewarmDeltaTime.floatValue < k_MinimalCommonDeltaTime)
-                    prewarmDeltaTime.floatValue = k_MinimalCommonDeltaTime;
+                prewarmStepCount.uintValue = Math.Clamp(prewarmStepCount.uintValue, 1u, k_MaximumStepCount);
+                prewarmDeltaTime.floatValue = Math.Max(prewarmDeltaTime.floatValue, k_MinimalCommonDeltaTime);
                 resourceObject.ApplyModifiedProperties();
             }
         }

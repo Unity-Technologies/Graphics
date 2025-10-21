@@ -40,7 +40,6 @@ EditorSettings:
   m_CacheServerNamespacePrefix: default
   m_CacheServerEnableDownload: 1
   m_CacheServerEnableUpload: 1
-  m_CacheServerEnableAuth: 0
   m_CacheServerEnableTls: 0
   m_CacheServerValidationMode: 2
   m_CacheServerDownloadBatchSize: 128

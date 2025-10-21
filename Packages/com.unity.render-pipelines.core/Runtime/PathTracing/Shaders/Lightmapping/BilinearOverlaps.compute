@@ -1,4 +1,4 @@
-#pragma exclude_renderers webgpu // No atomics
+#pragma only_renderers d3d11 vulkan metal glcore
 
 #pragma kernel MarkBilinearOverlaps
 

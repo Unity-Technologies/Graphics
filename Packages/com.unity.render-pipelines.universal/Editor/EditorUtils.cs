@@ -42,15 +42,21 @@ namespace UnityEditor.Rendering.Universal
             });
         }
 
+        static bool s_URPWindowHighlighting;
         internal static void QualitySettingsHelpBox(string message, MessageType type, UniversalRenderPipelineAssetUI.Expandable expandable, string propertyPath)
         {
             CoreEditorUtils.DrawFixMeBox(message, type, "Open", () =>
             {
+                if (s_URPWindowHighlighting)
+                    return;
+
+                // Set flag here to avoid closing the window for which we are waiting for highlighting to finish - delayed to ensure it is populated.
+                s_URPWindowHighlighting = true;
+
                 var currentPipeline = UniversalRenderPipeline.asset;
 
                 // Make sure we open a new window if the user has already selected Open
                 var windows = Resources.FindObjectsOfTypeAll<EditorWindow>();
-
                 if (windows.Length != 0)
                 {
                     foreach (var window in windows)
@@ -63,9 +69,13 @@ namespace UnityEditor.Rendering.Universal
                 EditorUtility.OpenPropertyEditor(currentPipeline);
                 UniversalRenderPipelineAssetUI.Expand(expandable, true);
 
+                // Delay to ensure the inspector is populated and ready before highlighting.
                 EditorApplication.delayCall += () =>
                     EditorApplication.delayCall += () =>
+                    {
                         CoreEditorUtils.Highlight(currentPipeline.name, propertyPath, HighlightSearchMode.Identifier);
+                        s_URPWindowHighlighting = false;
+                    };
             });
         }
     }

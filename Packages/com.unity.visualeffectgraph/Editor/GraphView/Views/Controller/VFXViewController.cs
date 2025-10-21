@@ -1919,7 +1919,7 @@ namespace UnityEditor.VFX.UI
             else
                 ui.groupInfos = new VFXUI.GroupInfo[] { newGroupInfo };
 
-            return ui.groupInfos.Last();
+            return newGroupInfo;
         }
 
         public void GroupNodes(VFXNodeController[] nodes) => GroupNodes(nodes, Array.Empty<VFXStickyNoteController>());
@@ -1929,13 +1929,14 @@ namespace UnityEditor.VFX.UI
             // If a node from the selection already belongs to a group, remove it from this group
             foreach (var g in groupNodes.ToArray())
             {
+                if (g.nodes.Count() == 0)
+                    continue;
                 g.RemoveNodes(nodes);
                 g.RemoveStickyNotes(stickyNoteControllers);
                 if (g.nodes.Count() == 0)
                 {
                     RemoveGroupNode(g);
                 }
-
             }
 
             // Use a node or a sticky note position when possible to avoid the group to go back to (0,0) when emptied

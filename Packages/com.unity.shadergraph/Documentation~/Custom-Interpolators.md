@@ -27,9 +27,10 @@ You can't limit the number of channels another user creates in a shader graph. H
 ## Add a custom interpolator block to the Master Stack
 
 1. Right-click in the **Vertex** context to create a block node.
-2. Select **Custom Interpolator**.
-3. In the **Node Settings** tab of the **Graph Inspector** window, select a data type, for example **Vector 4**.
-4. In the same tab, enter a name for the interpolator.
+1. Select **Custom Interpolator**.
+1. In the **Node Settings** tab of the **Graph Inspector** window, select a data type, for example **Vector 4**.
+1. Select an [interpolation method](Custom-Interpolators-reference.md).
+1. In the same tab, enter a name for the interpolator.
 
 ## Write data to the interpolator
 
@@ -51,3 +52,8 @@ The graph now writes Vertex ID values into the custom interpolator.
 ## Delete a custom interpolator
 
 If you delete a custom interpolator that's associated with nodes that are still in your graph, Unity displays an alert. If you want to keep using these nodes, you can create a new custom interpolator and associate the nodes with it. This prevents the alert from appearing.
+
+## Additional resources
+
+* [Built In Blocks](Built-In-Blocks.md)
+* [Custom Interpolator reference](Custom-Interpolators-reference.md)

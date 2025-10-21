@@ -14,7 +14,8 @@ using UnityEditor.SceneManagement;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBoundsRecorderField : VisualElement, ISelectable
+    [UxmlElement]
+    partial class VFXBoundsRecorderField : VisualElement, ISelectable
     {
         private Button m_Button;
         private VisualElement m_Divider;

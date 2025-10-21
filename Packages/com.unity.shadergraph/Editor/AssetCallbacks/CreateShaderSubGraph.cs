@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph
 {
-    class CreateShaderSubGraph : EndNameEditAction
+    class CreateShaderSubGraph : AssetCreationEndAction
     {
         [MenuItem("Assets/Create/Shader Graph/Sub Graph", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.assetsCreateShaderMenuPriority + 1)]
         public static void CreateMaterialSubGraph()
@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
                 string.Format("New Shader Sub Graph.{0}", ShaderSubGraphImporter.Extension), ShaderSubGraphImporter.GetIcon(), null);
         }
 
-        public override void Action(int instanceId, string pathName, string resourceFile)
+        public override void Action(EntityId entityId, string pathName, string resourceFile)
         {
             var graph = new GraphData { isSubGraph = true };
             var outputNode = new SubGraphOutputNode();

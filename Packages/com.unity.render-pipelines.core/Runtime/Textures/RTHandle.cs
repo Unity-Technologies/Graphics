@@ -275,7 +275,6 @@ namespace UnityEngine.Rendering
             }
         }
 
-#if UNITY_2020_2_OR_NEWER
         /// <summary>
         /// Switch the render target to fast memory on platform that have it.
         /// </summary>
@@ -317,7 +316,5 @@ namespace UnityEngine.Rendering
         {
             cmd.SwitchOutOfFastMemory(m_RT, copyContents);
         }
-
-#endif
     }
 }

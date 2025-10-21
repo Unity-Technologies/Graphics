@@ -4,6 +4,7 @@ using UnityEngine.Serialization;
 
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEngine;
 #endif
 
 namespace UnityEngine.Rendering

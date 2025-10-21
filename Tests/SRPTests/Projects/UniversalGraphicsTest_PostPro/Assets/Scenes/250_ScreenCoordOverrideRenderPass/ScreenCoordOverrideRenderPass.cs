@@ -17,27 +17,6 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
         m_Material = material;
     }
 
-#if URP_COMPATIBILITY_MODE
-    [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
-    public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-    {
-        var target = renderingData.cameraData.renderer.cameraColorTargetHandle;
-        var descriptor = renderingData.cameraData.cameraTargetDescriptor;
-        descriptor.depthBufferBits = 0;
-        RenderingUtils.ReAllocateHandleIfNeeded(ref m_TempTex, descriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_TempTex");
-
-        var cmd = CommandBufferPool.Get(k_CommandBufferName);
-
-        CoreUtils.SetRenderTarget(cmd, m_TempTex);
-        cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-        Blitter.BlitTexture(cmd, target, new Vector4(1, 1, 0, 0), m_Material, 0);
-        Blitter.BlitCameraTexture(cmd, m_TempTex, target);
-
-        context.ExecuteCommandBuffer(cmd);
-        CommandBufferPool.Release(cmd);
-    }
-#endif
-
     public void Cleanup()
     {
         m_TempTex?.Release();

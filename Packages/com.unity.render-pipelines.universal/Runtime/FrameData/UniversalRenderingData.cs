@@ -5,24 +5,6 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public class UniversalRenderingData : ContextItem
     {
-#if URP_COMPATIBILITY_MODE
-        // Non-rendergraph path only. Do NOT use with rendergraph! (RG execution timeline breaks.)
-        // NOTE: internal for a ref return in legacy RenderingData.commandBuffer.
-        internal CommandBuffer m_CommandBuffer;
-
-        // Non-rendergraph path only. Do NOT use with rendergraph! (RG execution timeline breaks.)
-        internal CommandBuffer commandBuffer
-        {
-            get
-            {
-                if (m_CommandBuffer == null)
-                    Debug.LogError("UniversalRenderingData.commandBuffer is null. RenderGraph does not support this property. Please use the command buffer provided by the RenderGraphContext.");
-
-                return m_CommandBuffer;
-            }
-        }
-#endif
-
         /// <summary>
         /// Returns culling results that exposes handles to visible objects, lights and probes.
         /// You can use this to draw objects with <c>ScriptableRenderContext.DrawRenderers</c>
@@ -73,9 +55,6 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Reset()
         {
-#if URP_COMPATIBILITY_MODE
-            m_CommandBuffer = default;
-#endif
             cullResults = default;
             supportsDynamicBatching = default;
             perObjectData = default;

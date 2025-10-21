@@ -25,16 +25,6 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
             m_TestRenderingLayersTextureHandle = renderingLayerTestTextureHandle;
         }
 
-#if !UNITY_6000_3_OR_NEWER || URP_COMPATIBILITY_MODE
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            m_PassData.viewportScale = m_TestRenderingLayersTextureHandle.useScaling ? new Vector2(m_TestRenderingLayersTextureHandle.rtHandleProperties.rtHandleScale.x, m_TestRenderingLayersTextureHandle.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-
-            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData);
-        }
-#endif
-
         private void ExecutePass(RasterCommandBuffer cmd, PassData data)
         {
             using (new ProfilingScope(cmd, m_ProfilingSampler))
@@ -97,22 +87,6 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
             for (int i = 0; i < 32; i++)
                 m_RenderingLayerColors[i] = Color.HSVToRGB(i / 32f, 1, 1);
         }
-
-#if !UNITY_6000_3_OR_NEWER || URP_COMPATIBILITY_MODE
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
-        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        {
-            ConfigureTarget(m_ColoredRenderingLayersTextureHandle);
-            ConfigureClear(ClearFlag.ColorStencil, Color.black);
-        }
-
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            RasterCommandBuffer cmd = CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer);
-            ExecutePass(cmd);
-        }
-#endif
 
         private void ExecutePass(RasterCommandBuffer cmd)
         {

@@ -532,6 +532,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             float newInnerSpotAngle = 360f / Mathf.PI * Mathf.Atan(newAspectRatio * Mathf.Tan(serialized.settings.spotAngle.floatValue * Mathf.PI / 360f));
                             serialized.settings.innerSpotAngle.floatValue = newInnerSpotAngle;
+                            serialized.settings.areaSizeX.floatValue = newAspectRatio;
                             needsReflectedIntensityRecalc = true;
                         }
 
@@ -1307,12 +1308,12 @@ namespace UnityEditor.Rendering.HighDefinition
                         enabled &= settings.mixedBakeMode == MixedLightingMode.Shadowmask;
                     using (new EditorGUI.DisabledScope(!enabled))
                     {
-                        Rect nonLightmappedOnlyRect = EditorGUILayout.GetControlRect();
-                        EditorGUI.BeginProperty(nonLightmappedOnlyRect, s_Styles.nonLightmappedOnly, serialized.nonLightmappedOnly);
+                        Rect rect = EditorGUILayout.GetControlRect();
+                        EditorGUI.BeginProperty(rect, s_Styles.shadowMaskMode, serialized.nonLightmappedOnly);
                         {
                             EditorGUI.BeginChangeCheck();
                             ShadowmaskMode shadowmask = serialized.nonLightmappedOnly.boolValue ? ShadowmaskMode.Shadowmask : ShadowmaskMode.DistanceShadowmask;
-                            shadowmask = (ShadowmaskMode)EditorGUI.EnumPopup(nonLightmappedOnlyRect, s_Styles.nonLightmappedOnly, shadowmask);
+                            shadowmask = (ShadowmaskMode)EditorGUI.EnumPopup(rect, s_Styles.shadowMaskMode, shadowmask);
                             fullShadowMask = shadowmask == ShadowmaskMode.Shadowmask;
 
                             if (EditorGUI.EndChangeCheck())
@@ -1320,7 +1321,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 Undo.RecordObjects(owner.targets, "Light Update Shadowmask Mode");
                                 serialized.nonLightmappedOnly.boolValue = fullShadowMask;
                                 foreach (Light target in owner.targets)
-                                    target.lightShadowCasterMode = shadowmask == ShadowmaskMode.Shadowmask ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
+                                    target.lightShadowCasterMode = shadowmask == ShadowmaskMode.Shadowmask ? LightShadowCasterMode.ShadowMask : LightShadowCasterMode.DistanceShadowMask;
                             }
                         }
                         EditorGUI.EndProperty();

@@ -100,7 +100,7 @@ namespace UnityEditor.Rendering.Universal
         {
             yield return new StandardSimpleLightingUpgrader("Mobile/Diffuse", SupportedUpgradeParams.diffuseOpaque);
             yield return new StandardSimpleLightingUpgrader("Mobile/Bumped Specular", SupportedUpgradeParams.specularOpaque);
-            yield return new StandardSimpleLightingUpgrader("Mobile/Bumped Specular (1 Directional Light)", SupportedUpgradeParams.specularOpaque);
+            yield return new StandardSimpleLightingUpgrader("Mobile/Bumped Specular (1 Directional Realtime Light)", SupportedUpgradeParams.specularOpaque);
             yield return new StandardSimpleLightingUpgrader("Mobile/Bumped Diffuse", SupportedUpgradeParams.diffuseOpaque);
             yield return new StandardSimpleLightingUpgrader("Mobile/Unlit (Supports Lightmap)", SupportedUpgradeParams.diffuseOpaque);
             yield return new StandardSimpleLightingUpgrader("Mobile/VertexLit", SupportedUpgradeParams.specularOpaque);
@@ -130,7 +130,7 @@ namespace UnityEditor.Rendering.Universal
             // Standard particle shaders
             yield return new ParticleUpgrader("Particles/Standard Surface");
             yield return new ParticleUpgrader("Particles/Standard Unlit");
-            yield return new ParticleUpgrader("Particles/VertexLit Blended");
+            yield return new ParticleUpgrader("Legacy Shaders/Particles/VertexLit Blended");
         }
     }
 

@@ -25,15 +25,6 @@ namespace UnityEngine.Rendering.Tests
             var lightsInScene = Object.FindObjectsByType<Light>(FindObjectsSortMode.None);
             Assert.IsTrue(cullingResults.visibleLights.Length == lightsInScene.Length);
         }
-
-#if URP_COMPATIBILITY_MODE
-        /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            // This path does not implement the CullContextData.
-        }
-#endif
     }
 
     class RenderGraphTestsCulling

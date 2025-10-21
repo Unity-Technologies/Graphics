@@ -1175,6 +1175,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.indentLevel--;
                 }
 
+                // Caustics Mesh Resolution
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.waterCausticsMeshResolution, Styles.waterCausticsMeshResolutionContent);
+
             }
             --EditorGUI.indentLevel;
         }

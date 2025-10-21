@@ -241,28 +241,12 @@ namespace UnityEngine.Rendering.Universal
         }
         private TextureHandle _internalColorLut;
 
-        /// <summary>
-        /// Color output of post-process passes (uberPost and finalPost) when HDR debug views are enabled. It replaces
-        /// the backbuffer color as standard output because the later cannot be sampled back (or may not be in HDR format).
-        /// If used, DebugHandler will perform the blit from DebugScreenTexture to BackBufferColor.
-        /// </summary>
-        internal TextureHandle debugScreenColor
+        internal TextureHandle bloom
         {
-            get => CheckAndGetTextureHandle(ref _debugScreenColor);
-            set => CheckAndSetTextureHandle(ref _debugScreenColor, value);
+            get => CheckAndGetTextureHandle(ref _bloom);
+            set => CheckAndSetTextureHandle(ref _bloom, value);
         }
-        internal TextureHandle _debugScreenColor;
-
-        /// <summary>
-        /// Depth output of post-process passes (uberPost and finalPost) when HDR debug views are enabled. It replaces
-        /// the backbuffer depth as standard output because the later cannot be sampled back.
-        /// </summary>
-        internal TextureHandle debugScreenDepth
-        {
-            get => CheckAndGetTextureHandle(ref _debugScreenDepth);
-            set => CheckAndSetTextureHandle(ref _debugScreenDepth, value);
-        }
-        internal TextureHandle _debugScreenDepth;
+        private TextureHandle _bloom;
 
         /// <summary>
         /// After Post Process Color is obsolete.
@@ -349,6 +333,17 @@ namespace UnityEngine.Rendering.Universal
         }
         private TextureHandle _stpDebugView;
 
+        //Due to camera stacking, we sometimes need to set a specific (persistent) target texture as destination.
+        //We cannot create an RG managed texture for the destination in that case as output/destination. 
+        //If we woulnd't have camera stacking, then the backbuffer would be the only other persistent destination.
+        //The usage of this destination is currently limited to the Uberpost processing pass.
+        internal TextureHandle destinationCameraColor
+        {
+            get => CheckAndGetTextureHandle(ref _destinationCameraColor);
+            set => CheckAndSetTextureHandle(ref _destinationCameraColor, value);
+        }
+        private TextureHandle _destinationCameraColor;
+
         /// <inheritdoc />
         public override void Reset()
         {
@@ -364,8 +359,7 @@ namespace UnityEngine.Rendering.Universal
             _motionVectorColor = TextureHandle.nullHandle;
             _motionVectorDepth = TextureHandle.nullHandle;
             _internalColorLut = TextureHandle.nullHandle;
-            _debugScreenColor = TextureHandle.nullHandle;
-            _debugScreenDepth = TextureHandle.nullHandle;
+            _bloom = TextureHandle.nullHandle;
             _afterPostProcessColor = TextureHandle.nullHandle;
             _overlayUITexture = TextureHandle.nullHandle;
             _renderingLayersTexture = TextureHandle.nullHandle;
@@ -373,6 +367,7 @@ namespace UnityEngine.Rendering.Universal
             _ssaoTexture = TextureHandle.nullHandle;
             _irradianceTexture = TextureHandle.nullHandle;
             _stpDebugView = TextureHandle.nullHandle;
+            _destinationCameraColor = TextureHandle.nullHandle;
 
             for (int i = 0; i < _gBuffer.Length; i++)
                 _gBuffer[i] = TextureHandle.nullHandle;

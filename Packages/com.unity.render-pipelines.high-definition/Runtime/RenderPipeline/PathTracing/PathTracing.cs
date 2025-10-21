@@ -711,6 +711,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // Override the exposure texture, as we need a neutral value for this render
             SetGlobalTexture(renderGraph, HDShaderIDs._ExposureTexture, m_EmptyExposureTexture);
 
+            // Parts of sky rendering may access shadowmap-related uniforms.
+            // In the full path tracing path, these uniforms won't actually be used,
+            // but they still need to be populated with neutral values,
+            // or we get errors about unpopulated uniforms.
+            HDShadowManager.BindDefaultShadowGlobalResources(renderGraph);
+
             m_SkyManager.RenderSky(renderGraph, hdCamera, skyBuffer, CreateDepthBuffer(renderGraph, true, MSAASamples.None), "Render Sky Background for Path Tracing");
 
             // Restore the regular exposure texture

@@ -248,27 +248,38 @@ namespace UnityEngine.Rendering.HighDefinition
                 var light = data.GetComponent<Light>();
                 if (light.type == LightType.Pyramid)
                 {
-                    light.innerSpotAngle = 360f / Mathf.PI * Mathf.Atan(data.m_AspectRatio * Mathf.Tan(light.spotAngle * Mathf.PI / 360f));
-                    data.m_AspectRatio = -1.0f;
+                    // If the asset is too old and m_AspectRatio isn't defined in HDAdditionalLightData, the value will be the default value -1.
+                    // In such case, we skip the migration. And innerSpotAngle will be the default value specified in Light class.
+                    if (data.m_AspectRatio != -1.0f)
+                    {
+                        light.innerSpotAngle = 360f / Mathf.PI * Mathf.Atan(data.m_AspectRatio * Mathf.Tan(light.spotAngle * Mathf.PI / 360f));
+                        data.m_AspectRatio = -1.0f;
+                    }
                 }
                 else
                 {
-                    light.innerSpotAngle = data.m_InnerSpotPercent * light.spotAngle / 100f;
-                    data.m_InnerSpotPercent = -1.0f;
+                    if (data.m_InnerSpotPercent != -1.0f)
+                    {
+                        light.innerSpotAngle = data.m_InnerSpotPercent * light.spotAngle / 100f;
+                        data.m_InnerSpotPercent = -1.0f;
+                    }
                 }
 
-                if (light.type == LightType.Directional)
+                if (data.m_ShapeWidth != -1.0f)
                 {
-                    light.cookieSize2D = new Vector2(data.m_ShapeWidth, data.m_ShapeHeight);
-                    data.m_ShapeWidth = data.m_ShapeHeight = -1.0f;
-                }
-                else if (light.type == LightType.Disc)
-                {
-                    // Disc lights already store their size in Light.areaSize. Don't overwrite it.
-                }
-                else
-                {
-                    light.areaSize = new Vector2(data.m_ShapeWidth, data.m_ShapeHeight);
+                    if (light.type == LightType.Directional)
+                    {
+                        light.cookieSize2D = new Vector2(data.m_ShapeWidth, data.m_ShapeHeight);
+                    }
+                    else
+                    {
+                        // Disc: Light.areaSize is filled on UI. Don't overwrite it.
+                        // Pyramid: Light.areaSize.x may have been set in the previous migration step.
+                        if (light.type == LightType.Rectangle || light.type == LightType.Box || light.type == LightType.Tube)
+                        {
+                            light.areaSize = new Vector2(data.m_ShapeWidth, data.m_ShapeHeight);
+                        }
+                    }
                     data.m_ShapeWidth = data.m_ShapeHeight = -1.0f;
                 }
             }),

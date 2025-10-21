@@ -12,7 +12,8 @@ namespace UnityEditor.VFX.UI
     class VFXContextBorderFactory : UxmlFactory<VFXContextBorder>
     { }
 
-    class VFXContextBorder : ImmediateModeElement, IDisposable
+    [UxmlElement]
+    partial class VFXContextBorder : ImmediateModeElement, IDisposable
     {
         Material m_Mat;
 

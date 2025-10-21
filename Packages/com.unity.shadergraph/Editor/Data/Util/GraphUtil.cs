@@ -99,7 +99,7 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    class NewGraphAction : EndNameEditAction
+    class NewGraphAction : AssetCreationEndAction
     {
         Target[] m_Targets;
         public Target[] targets
@@ -117,7 +117,7 @@ namespace UnityEditor.ShaderGraph
 
         public Action<string> callback { get; set; }
 
-        public override void Action(int instanceId, string pathName, string resourceFile)
+        public override void Action(EntityId entityId, string pathName, string resourceFile)
         {
             var graph = new GraphData();
             graph.AddContexts();
@@ -138,7 +138,7 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    class NewGraphFromTemplateAction : EndNameEditAction
+    class NewGraphFromTemplateAction : AssetCreationEndAction
     {
         string TemplatePath { get; set; }
 
@@ -155,7 +155,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             TemplatePath = templatePath;
-            EndNameEditAction endNameEditAction = this;
+            AssetCreationEndAction endNameEditAction = this;
 
             if (templatePath == string.Empty) // Template browser's "empty template" used
             {
@@ -168,7 +168,7 @@ namespace UnityEditor.ShaderGraph
             if (assetPath == null) // template window didn't not provide a target path
             {
                 ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
-                    0,
+                    EntityId.None,
                     endNameEditAction,
                     $"{Filename}.{ShaderGraphImporter.Extension}",
                     ShaderGraphImporter.GetIcon(),
@@ -181,7 +181,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override void Action(int instanceId, string pathName, string resourceFile)
+        public override void Action(EntityId entityId, string pathName, string resourceFile)
         {
             var templateFullPath = Path.GetFullPath(TemplatePath);
             if (File.Exists(templateFullPath))

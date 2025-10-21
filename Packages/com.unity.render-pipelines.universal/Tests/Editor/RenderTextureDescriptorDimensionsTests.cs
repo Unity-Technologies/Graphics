@@ -106,26 +106,5 @@ namespace UnityEditor.Rendering.Universal.Tests
             var desc = CreateRenderTextureDescriptor();
             CheckDimensions(desc, testCase);
         }
-
-#if URP_COMPATIBILITY_MODE
-        public class TestRTDimensionNativeRenderPass : ScriptableRenderPass {}
-
-        [TestCaseSource(nameof(TestCasesTextureDimension))]
-        public void TextureDescriptor_FromNativeRenderPass(RenderScaleTestCase testCase)
-        {
-            // Setup needed data for the test
-            m_CameraData.renderScale = testCase.renderScale;
-            m_Camera.targetTexture = (testCase.cameraTargetIsRenderTexture) ? m_RT : null;
-            
-            // Initialize scaledWidth and scaledHeight using the helper function
-            UniversalRenderPipeline.InitializeScaledDimensions(m_Camera, m_CameraData);
-
-            m_CameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor();
-
-            var nativeRenderPass = new TestRTDimensionNativeRenderPass();
-            ScriptableRenderer.GetRenderTextureDescriptor(m_CameraData, nativeRenderPass, out var desc);
-            CheckDimensions(desc, testCase);
-        }
-#endif
     }
 }

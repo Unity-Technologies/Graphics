@@ -21,11 +21,6 @@ namespace UnityEngine.Rendering.Universal
         private DeferredLights m_DeferredLights;
         private bool m_DecalLayers;
 
-#if URP_COMPATIBILITY_MODE
-        private RTHandle[] m_GbufferAttachments;
-        private PassData m_PassData;
-#endif
-
         public DecalGBufferRenderPass(DecalScreenSpaceSettings settings, DecalDrawGBufferSystem drawSystem, bool decalLayers)
         {
             renderPassEvent = RenderPassEvent.AfterRenderingGbuffer;
@@ -41,96 +36,12 @@ namespace UnityEngine.Rendering.Universal
                 m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalGBufferProjector));
             else
                 m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalGBufferMesh));
-
-#if URP_COMPATIBILITY_MODE
-            m_PassData = new PassData();
-            m_GbufferAttachments = new RTHandle[4];
-#endif
         }
 
         internal void Setup(DeferredLights deferredLights)
         {
             m_DeferredLights = deferredLights;
         }
-
-#if URP_COMPATIBILITY_MODE
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-        {
-            if (m_DeferredLights.UseFramebufferFetch)
-            {
-                m_GbufferAttachments[0] = m_DeferredLights.GbufferAttachments[0];
-                m_GbufferAttachments[1] = m_DeferredLights.GbufferAttachments[1];
-                m_GbufferAttachments[2] = m_DeferredLights.GbufferAttachments[2];
-                m_GbufferAttachments[3] = m_DeferredLights.GbufferAttachments[3];
-
-                if (m_DecalLayers)
-                {
-                    var deferredInputAttachments = new RTHandle[]
-                    {
-                        m_DeferredLights.GbufferAttachments[m_DeferredLights.GbufferDepthIndex],
-                        m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferRenderingLayers],
-                    };
-
-                    var deferredInputIsTransient = new bool[]
-                    {
-                        true, false, // TODO: Make rendering layers transient
-                    };
-
-                    // Disable obsolete warning for internal usage
-                    #pragma warning disable CS0618
-                    ConfigureInputAttachments(deferredInputAttachments, deferredInputIsTransient);
-                    #pragma warning restore CS0618
-                }
-                else
-                {
-                    var deferredInputAttachments = new RTHandle[]
-                    {
-                        m_DeferredLights.GbufferAttachments[m_DeferredLights.GbufferDepthIndex],
-                    };
-
-                    var deferredInputIsTransient = new bool[]
-                    {
-                        true,
-                    };
-
-                    // Disable obsolete warning for internal usage
-                    #pragma warning disable CS0618
-                    ConfigureInputAttachments(deferredInputAttachments, deferredInputIsTransient);
-                    #pragma warning restore CS0618
-                }
-            }
-            else
-            {
-                m_GbufferAttachments[0] = m_DeferredLights.GbufferAttachments[0];
-                m_GbufferAttachments[1] = m_DeferredLights.GbufferAttachments[1];
-                m_GbufferAttachments[2] = m_DeferredLights.GbufferAttachments[2];
-                m_GbufferAttachments[3] = m_DeferredLights.GbufferAttachments[3];
-            }
-
-            // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
-            ConfigureTarget(m_GbufferAttachments, m_DeferredLights.DepthAttachmentHandle);
-            #pragma warning restore CS0618
-        }
-
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
-
-            InitPassData(cameraData, ref m_PassData);
-
-            SortingCriteria sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags;
-            DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
-            var param = new RendererListParams(renderingData.cullResults, drawingSettings, m_FilteringSettings);
-            var rendererList = context.CreateRendererList(ref param);
-            using (new ProfilingScope(renderingData.commandBuffer, profilingSampler))
-            {
-                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList);
-            }
-        }
-#endif
 
         private class PassData
         {
@@ -191,9 +102,9 @@ namespace UnityEngine.Rendering.Universal
                 if (renderGraph.nativeRenderPassesEnabled)
                 {
                     if (resourceData.gBuffer[4].IsValid())
-                        builder.SetInputAttachment(resourceData.gBuffer[4], 0, AccessFlags.Read);
+                        builder.SetInputAttachment(resourceData.gBuffer[4], 0);
                     if (m_DecalLayers && resourceData.gBuffer[5].IsValid())
-                        builder.SetInputAttachment(resourceData.gBuffer[5], 1, AccessFlags.Read);
+                        builder.SetInputAttachment(resourceData.gBuffer[5], 1);
                 }
                 else
                 {

@@ -183,7 +183,7 @@ public class OnTilePostProcessPass : ScriptableRenderPass
             }
             else
             {
-                builder.SetInputAttachment(source, 0, AccessFlags.Read);
+                builder.SetInputAttachment(source, 0);
                 // MSAA shader resolve keywords require global state modification
                 builder.AllowGlobalStateModification(true);
             }

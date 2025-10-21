@@ -1,26 +1,20 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <ui:VisualElement name="singleConverterVE" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); display: none; padding-left: 19px; padding-right: 19px; padding-top: 20px; padding-bottom: 20px;">
-        <ui:VisualElement name="backButtonVE" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; height: 0; flex-shrink: 1; max-height: 22px; display: flex; min-height: 22px; margin-bottom: 10px;">
-            <ui:Button tabindex="-1" text="&lt; Back" display-tooltip-when-elided="true" name="backButton" style="width: 110px; margin-left: 3px; display: flex;" />
-        </ui:VisualElement>
-    </ui:VisualElement>
-    <ui:VisualElement name="converterEditorMainVE" style="max-width: 100%; min-width: 620px; flex-grow: 1; padding-left: 19px; padding-right: 19px; padding-top: 15px; width: auto; padding-bottom: 20px;">
-        <ui:VisualElement name="topInformationVE" style="flex-shrink:0;">
-            <ui:VisualElement style="flex-direction: row; padding-left: 2px;">
-                <ui:DropdownField index="-1" name="conversionsDropDown" style="flex-grow:1; display: flex; margin-left: 0;" />
-                <ui:DropdownField label="Source Pipeline" name="sourcePipelineDropDown" style="flex-grow:2; display: flex; margin-left: 6px;" />
-                <ui:DropdownField label="Target Pipeline" name="targetPipelineDropDown" style="flex-grow:2; width: 208px; display: flex; margin-left: 6px;" />
+    <ui:HelpBox message-type="Warning" text="The Render Pipeline Converter is disabled during Playmode." name="disabledToolHelpBox" style="flex-grow: 1;" />
+    <ui:VisualElement name="converterEditorMainVE" class="converter-editor-main">
+        <ui:VisualElement name="topInformationVE" class="converter-top-info">
+            <ui:TabView index="-1" name="conversionsTabView" class="converter-dropdown"/>    
+            <ui:VisualElement name="pipelineToolsVisualElements" class="converter-pipeline-tools">
+                <ui:VisualElement class="converter-pipeline-column">
+                    <ui:HelpBox message-type="Info" text="Select your source and target pipeline, choose the required converters, and then click Initialize Converters to begin the conversion process." class="render-pipeline-converter-helpbox"/>
+                    <ui:DropdownField label="Source Pipeline" name="sourcePipelineDropDown" class="converter-pipeline-label-dropdown"/>
+                    <ui:DropdownField label="Target Pipeline" name="targetPipelineDropDown" class="converter-pipeline-label-dropdown"/>
+                </ui:VisualElement>
             </ui:VisualElement>
-            <ui:HelpBox message-type="Info" text="Select your source and target pipeline, choose the required converters, and then click Initialize Converters to begin the conversion process." name="conversionInfo" style="flex-grow: 0;" />
         </ui:VisualElement>
         <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" name="convertersScrollView" horizontal-scroller-visibility="Hidden" vertical-scroller-visibility="Auto" style="flex-grow: 1; align-items: flex-start;" />
-        <ui:VisualElement name="bottomButtonVE" style="flex-direction: column; flex-shrink: 0; padding-left: 0; padding-right: 0; margin-top: 6px; width: auto; align-items: stretch; flex-grow: 0;">
-            <ui:HelpBox message-type="Error" text="This process makes irreversible changes to the project. Back up your project before proceeding." style="flex-grow: 1; padding-top: 2px; padding-bottom: 2px; margin-top: 1px; margin-bottom: 1px;" />
-            <ui:VisualElement style="flex-direction: row; flex-grow: 1; background-color: rgba(0, 0, 0, 0); min-width: auto; min-height: auto; flex-shrink: 0; width: auto; height: auto;">
-                <ui:Label style=" flex-grow: 1;" />
-                <ui:Button text="Initialize Converters" name="initializeButton" tooltip="Click to initialize all the selected converters." style="flex-direction: column; margin-bottom: 1px; min-width: auto; width: 130px;" />
-                <ui:Button text=" Convert Assets" name="convertButton" style="flex-direction: column; margin-bottom: 1px; width: 130px; min-width: auto;" />
-            </ui:VisualElement>
-        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="bottomButtonVE" class="converter-bottom-row">
+        <ui:Button text="Scan" name="initializeButton" tooltip="Executes a project scanning based on the selected converters" class="converter-button"/>
+        <ui:Button text=" Convert Assets" name="convertButton" class="converter-button" />
     </ui:VisualElement>
 </ui:UXML>

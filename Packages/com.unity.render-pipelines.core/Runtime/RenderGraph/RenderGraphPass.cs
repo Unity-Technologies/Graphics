@@ -119,6 +119,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
             shadingRateFragmentSize = ShadingRateFragmentSize.FragmentSize1x1;
             primitiveShadingRateCombiner = ShadingRateCombiner.Keep;
             fragmentShadingRateCombiner = ShadingRateCombiner.Keep;
+
+            // Invalidate ExtendedFeatureFlags
+            extendedFeatureFlags = ExtendedFeatureFlags.None;
         }
 
         // Check if the pass has any render targets set-up
@@ -453,6 +456,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             generator.Append(allowPassCulling);
             generator.Append(allowGlobalState);
             generator.Append(enableFoveatedRasterization);
+            generator.Append(extendedFeatureFlags);
 
             var depthHandle = depthAccess.textureHandle.handle;
             if (depthHandle.IsValid())

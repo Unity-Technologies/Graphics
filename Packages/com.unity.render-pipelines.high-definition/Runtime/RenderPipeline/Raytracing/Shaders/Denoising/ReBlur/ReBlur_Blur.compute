@@ -56,18 +56,19 @@ void Blur(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV
     // Evaluate the position and view vectors
     float3 viewWS = GetWorldSpaceNormalizeViewDir(center.position);
 
-    // Convert both directions to view space
-    float NdotV = abs(dot(center.normal, viewWS));
-
     // Get the dominant direction
     float4 dominantWS = GetSpecularDominantDirection(center.normal, viewWS, center.roughness);
 
     // Evaluate the blur radius
     float distanceToCamera = length(center.position);
     float blurRadius = ComputeBlurRadius(center.roughness, BLUR_MAX_RADIUS) * _ReBlurDenoiserRadius;
-    blurRadius *= (1.0 - saturate(accumulationFactor / MAX_ACCUM_FRAME_NUM));
+    blurRadius *= lerp(1.0f, 0.1f, accumulationFactor / MAX_ACCUM_FRAME_NUM);
     blurRadius *= HitDistanceAttenuation(center.roughness, distanceToCamera, centerSignal.w);
-    blurRadius *= lerp(saturate((distanceToCamera - MIN_BLUR_DISTANCE) / BLUR_OUT_RANGE), 0.0, 1.0); 
+
+    // As the camera nears an object it becomes increasingly likely that the disc sample points
+    // land outside the view frustum, so we shrink radius accordingly to reduce the likelihood
+    // of this happening.
+    blurRadius *= saturate((distanceToCamera - MIN_BLUR_DISTANCE) / BLUR_OUT_RANGE);
 
     // Evalute the local basis
     float2x3 TvBv = GetKernelBasis(dominantWS.xyz, center.normal, center.roughness);

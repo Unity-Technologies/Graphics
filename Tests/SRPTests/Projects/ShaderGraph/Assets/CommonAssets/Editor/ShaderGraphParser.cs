@@ -7,6 +7,7 @@ using System.Linq;
 using System.IO;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Assemblies;
 using UnityEditor;
 using UnityEditor.ShaderGraph;
 using UnityEditor.Graphing;
@@ -109,6 +110,7 @@ public class ShaderGraphParser
 
     private static Dictionary<string, int> CreateNodeDictionary()
     {
+        // CORECLR_FIXME - Replace Assembly.LoadFile below with CurrentAssemblies.LoadFromPath once method is public (SCP-1544)
         // Non-asmdef way
         Assembly sga = Assembly.LoadFile(UnityEngine.Application.dataPath + "/../Library/ScriptAssemblies/Unity.ShaderGraph.Editor.dll");
         Type abstractMatNode = sga.GetType("UnityEditor.ShaderGraph.AbstractMaterialNode");

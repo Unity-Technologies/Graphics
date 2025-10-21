@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
   m_Name: UniversalRPAsset
   m_EditorClassIdentifier: 
-  k_AssetVersion: 12
-  k_AssetPreviousVersion: 12
+  k_AssetVersion: 13
+  k_AssetPreviousVersion: 13
   m_RendererType: 1
   m_RendererData: {fileID: 0}
   m_RendererDataList:
@@ -27,6 +27,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ab4527fe9ad5ef949bffe9447fabcfa2, type: 2}
   - {fileID: 11400000, guid: 3fbfbd331642d98488a7faad256688e5, type: 2}
   - {fileID: 11400000, guid: 01e79ba8f42c808448b7542939affccb, type: 2}
+  - {fileID: 11400000, guid: 9b5b99c05ab3ae148b6d8faf2da44518, type: 2}
   m_DefaultRendererIndex: 2
   m_RequireDepthTexture: 0
   m_RequireOpaqueTexture: 0
@@ -34,6 +35,7 @@ MonoBehaviour:
   m_SupportsTerrainHoles: 1
   m_SupportsHDR: 1
   m_HDRColorBufferPrecision: 0
+  m_IntermediateTextureMode: 1
   m_MSAA: 4
   m_RenderScale: 1
   m_UpscalingFilter: 0
@@ -62,7 +64,7 @@ MonoBehaviour:
   m_AdditionalLightsShadowResolutionTierHigh: 512
   m_ReflectionProbeBlending: 0
   m_ReflectionProbeBoxProjection: 0
-  m_ReflectionProbeAtlas: 1
+  m_ReflectionProbeAtlas: 0
   m_ShadowDistance: 56
   m_ShadowCascadeCount: 4
   m_Cascade2Split: 0.25
@@ -137,9 +139,14 @@ MonoBehaviour:
   m_PrefilterSoftShadowsQualityHigh: 0
   m_PrefilterSoftShadows: 0
   m_PrefilterScreenCoord: 0
+  m_PrefilterScreenSpaceIrradiance: 0
   m_PrefilterNativeRenderPass: 0
   m_PrefilterUseLegacyLightmaps: 0
   m_PrefilterBicubicLightmapSampling: 0
+  m_PrefilterReflectionProbeRotation: 0
+  m_PrefilterReflectionProbeBlending: 0
+  m_PrefilterReflectionProbeBoxProjection: 0
+  m_PrefilterReflectionProbeAtlas: 0
   m_ShaderVariantLogLevel: 0
   m_ShadowCascades: 3
   m_Textures:

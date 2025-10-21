@@ -131,7 +131,11 @@ void MainPrefixSumOnGroupCommon(int3 dispatchThreadID, int groupThreadIndex, boo
     GroupMemoryBarrierWithGroupSync();
 
     int threadID = dispatchThreadID.x;
-    uint inputVal = (uint)threadID >= gs_CurrentLevelOffsets.count ? 0u : _InputBuffer.Load(threadID << 2);
+    uint inputVal = 0;
+    if ( (uint)threadID < gs_CurrentLevelOffsets.count )
+    {
+        inputVal = _InputBuffer.Load(threadID << 2);
+    }
     gs_prefixCache[groupThreadIndex] = inputVal;
 
     GroupMemoryBarrierWithGroupSync();
@@ -189,7 +193,9 @@ void MainPrefixSumResolveParentCommon(int3 dispatchThreadID, int groupThreadInde
     if (groupThreadIndex == 0)
     {
         gs_CurrentLevelOffsets = _LevelsOffsetsBuffer[_CurrentLevel];
-        gs_ParentSum = groupID.x == 0 ? 0 : _OutputBuffer.Load((gs_CurrentLevelOffsets.offset + groupID.x - 1) << 2);
+        gs_ParentSum = 0;
+        if (groupID.x>0)
+            gs_ParentSum = _OutputBuffer.Load((gs_CurrentLevelOffsets.offset + groupID.x - 1) << 2);
     }
 
     GroupMemoryBarrierWithGroupSync();

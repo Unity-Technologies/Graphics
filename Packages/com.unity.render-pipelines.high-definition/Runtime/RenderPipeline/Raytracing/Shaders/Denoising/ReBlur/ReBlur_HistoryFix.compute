@@ -36,7 +36,7 @@ void HistoryFix(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadI
     uint2 currentCoord = dispatchThreadId.xy;
 
     // Fetch the full resolution depth
-    float depthFR = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+    float depthFR = LOAD_TEXTURE2D_X(_DepthTexture, _DepthPyramidMipLevelOffsets[0] + currentCoord).x;
 
     // IF this is a background pixel, we have nothing to do here
     if (depthFR == UNITY_RAW_FAR_CLIP_VALUE)
@@ -63,10 +63,8 @@ void HistoryFix(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadI
     NormalData normalData;
     DecodeFromNormalBuffer(currentCoord.xy, normalData);
 
-    // Grab the signal of the current frame
-    int mipLevel = (int)(MIP_LEVEL_COUNT * (1.0 - normAcc) * normalData.perceptualRoughness);
+    const int mipLevel = min(MIP_LEVEL_COUNT - 1, (1.0 - normAcc) * normalData.perceptualRoughness * MIP_LEVEL_COUNT);
 
-    // Now we need to loop through the LODs (going from the lowest to the highest until we have enough representative samples)
     float4 signalSum = 0.0;
     float weightSum = 0.0;
     int2 mipOffset = _DepthPyramidMipLevelOffsets[mipLevel];
@@ -75,7 +73,7 @@ void HistoryFix(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadI
         for (int x = -1; x <= 1; ++x)
         {
             // Evaluate the tap coordinate
-            int2 tapCoord = (currentCoord << mipLevel) + int2(x, y);
+            int2 tapCoord = (currentCoord >> mipLevel) + int2(x, y);
 
             // Read and linearize the depth
             float tapDepth = Linear01Depth(LOAD_TEXTURE2D_X(_DepthTexture, mipOffset + tapCoord).x, _ZBufferParams);
@@ -83,7 +81,7 @@ void HistoryFix(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadI
             // Is the depth compatible with the full resolution depth
             float4 lightDistance = LOAD_TEXTURE2D_X_LOD(_ReBlurMipChain, tapCoord, mipLevel);
             if ((abs(tapDepth - linearDepth) < linearDepth * 0.1) && lightDistance.w >= 0.0)
-            {   
+            {
                 float weight = Gaussian(length(int2(x, y)), 1.0);
                 signalSum += lightDistance * weight;
                 weightSum += weight;

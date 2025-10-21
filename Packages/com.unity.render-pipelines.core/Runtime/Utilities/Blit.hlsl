@@ -128,6 +128,13 @@ float4 FragOctahedralBilinearRepeat(Varyings input) : SV_Target
     return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, _BlitMipLevel);
 }
 
+float4 FragOctahedralNearestRepeat(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+    float2 uv = RepeatOctahedralUV(input.texcoord.x, input.texcoord.y);
+    return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_PointRepeat, uv, _BlitMipLevel);
+}
+
 float4 FragOctahedralProject(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);

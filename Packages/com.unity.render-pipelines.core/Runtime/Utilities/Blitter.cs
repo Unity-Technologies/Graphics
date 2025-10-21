@@ -91,6 +91,8 @@ namespace UnityEngine.Rendering
             BilinearQuadRed = 20,
             NearestCubeToOctahedralPadding = 21,
             BilinearCubeToOctahedralPadding = 22,
+            NearestQuadPaddingOctahedral = 23,
+            NearestQuadPaddingAlphaBlendOctahedral = 24
         }
 
         enum BlitColorAndDepthPassNames
@@ -1470,7 +1472,7 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitTextureSize, textureSize);
             s_PropertyBlock.SetInt(BlitShaderIDs._BlitPaddingSize, paddingInPixels);
-            DrawQuad(cmd, GetBlitMaterial(source.dimension), s_BlitShaderPassIndicesMap[8]);
+            DrawQuad(cmd, GetBlitMaterial(source.dimension), s_BlitShaderPassIndicesMap[bilinear ? 8 : 23]);
         }
 
         /// <summary>
@@ -1526,7 +1528,7 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitTextureSize, textureSize);
             s_PropertyBlock.SetInt(BlitShaderIDs._BlitPaddingSize, paddingInPixels);
-            DrawQuad(cmd, GetBlitMaterial(source.dimension), s_BlitShaderPassIndicesMap[13]);
+            DrawQuad(cmd, GetBlitMaterial(source.dimension), s_BlitShaderPassIndicesMap[bilinear ? 13 : 24]);
         }
 
         /// <summary>

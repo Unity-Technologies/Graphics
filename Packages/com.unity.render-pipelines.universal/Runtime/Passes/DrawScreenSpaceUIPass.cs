@@ -15,10 +15,6 @@ namespace UnityEngine.Rendering.Universal
         // Whether to render on an offscreen render texture or on the current active render target
         bool m_RenderOffscreen;
 
-#if URP_COMPATIBILITY_MODE
-        PassData m_PassData;
-#endif
-
         /// <summary>
         /// Creates a new <c>DrawScreenSpaceUIPass</c> instance.
         /// </summary>
@@ -29,11 +25,6 @@ namespace UnityEngine.Rendering.Universal
             profilingSampler = ProfilingSampler.Get(URPProfileId.DrawScreenSpaceUI);
             renderPassEvent = evt;
             m_RenderOffscreen = renderOffscreen;
-
-#if URP_COMPATIBILITY_MODE
-            useNativeRenderPass = false;
-            m_PassData = new PassData();
-#endif
         }
 
         /// <summary>
@@ -103,61 +94,7 @@ namespace UnityEngine.Rendering.Universal
                 RenderingUtils.ReAllocateHandleIfNeeded(ref m_DepthTarget, depthDescriptor, name: "_OverlayUITexture_Depth");
             }
         }
-
-#if URP_COMPATIBILITY_MODE
-        /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        {
-            if(m_RenderOffscreen)
-            {
-                // Disable obsolete warning for internal usage
-                #pragma warning disable CS0618
-                ConfigureTarget(m_ColorTarget, m_DepthTarget);
-                ConfigureClear(ClearFlag.Color, Color.clear);
-                #pragma warning restore CS0618
-                cmd?.SetGlobalTexture(ShaderPropertyId.overlayUITexture, m_ColorTarget);
-            }
-            else
-            {
-                UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
-                DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
-                bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
-
-                if (resolveToDebugScreen)
-                {
-                    // Disable obsolete warning for internal usage
-                    #pragma warning disable CS0618
-                    ConfigureTarget(debugHandler.DebugScreenColorHandle, debugHandler.DebugScreenDepthHandle);
-                    #pragma warning restore CS0618
-                }
-                else
-                {
-                    // Get RTHandle alias to use RTHandle apis
-                    var cameraTarget = RenderingUtils.GetCameraTargetIdentifier(ref renderingData);
-                    RTHandleStaticHelpers.SetRTHandleStaticWrapper(cameraTarget);
-                    var colorTargetHandle = RTHandleStaticHelpers.s_RTHandleWrapper;
-
-                    // Disable obsolete warning for internal usage
-                    #pragma warning disable CS0618
-                    ConfigureTarget(colorTargetHandle);
-                    #pragma warning restore CS0618
-                }
-            }
-        }
-
-        /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            using (new ProfilingScope(renderingData.commandBuffer, profilingSampler))
-            {
-                RendererList rendererList = context.CreateUIOverlayRendererList(renderingData.cameraData.camera);
-                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList);
-            }
-        }
-#endif
-
+        
         //RenderGraph path
         private class PassData
         {

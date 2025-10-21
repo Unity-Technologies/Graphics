@@ -178,6 +178,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 waterScriptInteractionsMode = WaterScriptInteractionsMode.GPUReadback,
                 waterFullCPUSimulation = false,
+                waterCausticsMeshResolution = WaterCausticsMeshResolution.Medium256,
 
                 supportScreenSpaceLensFlare = true,
                 supportDataDrivenLensFlare = true,
@@ -305,6 +306,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Defines if the CPU simulation should be evaluated at full resolution or half resolution.</summary>
         [Tooltip("Defines if the CPU simulation should be evaluated at full resolution or half resolution.")]
         public bool waterFullCPUSimulation;
+        /// <summary>Specifies the resolution of the mesh used to render the caustics texture. For better efficiency, this needs to be lower than the caustics resolution texture in your water surface. A higher resolution increases the number of vertices in the scene.</summary>
+        [Tooltip("Specifies the resolution of the mesh used to render the caustics texture. For better efficiency, this needs to be lower than the caustics resolution texture in your water surface. A higher resolution increases the number of vertices in the scene. .")]
+        public WaterCausticsMeshResolution waterCausticsMeshResolution;
 
         // Compute Thickness
         /// <summary>Sample Compute Thickness algorithm.</summary>

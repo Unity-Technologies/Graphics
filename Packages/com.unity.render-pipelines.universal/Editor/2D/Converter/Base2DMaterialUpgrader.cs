@@ -8,6 +8,7 @@ using static UnityEditor.AssetDatabase;
 namespace UnityEditor.Rendering.Universal
 {
     [URPHelpURL("features/rp-converter")]
+    [Serializable]
     internal abstract class Base2DMaterialUpgrader : RenderPipelineConverter
     {
         public const string k_PackageMaterialsPath = "Packages/com.unity.render-pipelines.universal/Runtime/Materials/";

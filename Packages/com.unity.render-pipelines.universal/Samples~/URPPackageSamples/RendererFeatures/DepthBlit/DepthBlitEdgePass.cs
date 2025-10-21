@@ -22,35 +22,6 @@ public class DepthBlitEdgePass : ScriptableRenderPass
         m_DepthHandle = depthHandle;
     }
 
-#if URP_COMPATIBILITY_MODE // Compatibility Mode is being removed
-#pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
-
-    // Unity calls the Execute method in the Compatibility mode
-    public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-    {
-        var cameraData = renderingData.cameraData;
-        if (cameraData.camera.cameraType != CameraType.Game)
-            return;
-
-        if (m_DepthHandle == null)
-            return;
-
-        RTHandle destination = cameraData.renderer.cameraColorTargetHandle;
-
-        CommandBuffer cmd = CommandBufferPool.Get();
-        using (new ProfilingScope(cmd, m_ProfilingSampler))
-        {
-            Blitter.BlitCameraTexture(cmd, m_DepthHandle, destination, m_Material, 0);
-        }
-        context.ExecuteCommandBuffer(cmd);
-        cmd.Clear();
-
-        CommandBufferPool.Release(cmd);
-    }
-
-#pragma warning restore 618, 672
-#endif
-
     // Unity calls the RecordRenderGraph method to add and configure one or more render passes in the render graph system.
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {

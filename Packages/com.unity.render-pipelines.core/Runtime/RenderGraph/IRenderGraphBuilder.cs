@@ -141,137 +141,160 @@ namespace UnityEngine.Rendering.RenderGraphModule
     public interface IRenderAttachmentRenderGraphBuilder : IBaseRenderGraphBuilder
     {
         /// <summary>
-        /// Use the texture as an rendertarget attachment.
-        ///
-        /// Writing:
-        /// Indicate this pass will write a texture through rendertarget rasterization writes.
-        /// The graph will automatically bind the texture as an MRT output on the indicated index slot.
-        /// Write in shader as  float4 out : SV_Target{index} = value; This texture always needs to be written as an
-        /// render target (SV_Targetx) writing using other methods (like `operator[] =` ) may not work even if
-        /// using the current fragment+sampleIdx pos. When using operator[] please use the UseTexture function instead.
-        /// Reading:
-        /// Indicates this pass will read a texture on the current fragment position but not unnecessarily modify it. Although not explicitly visible in shader code
-        /// Reading may happen depending on the rasterization state, e.g. Blending (read and write) or Z-Testing (read only) may read the buffer.
-        ///
-        /// Note: The rendergraph does not know what content will be rendered in the bound texture. By default it assumes only partial data
-        /// is written (e.g. a small rectangle is drawn on the screen) so it will preserve the existing rendertarget content (e.g. behind/around the triangle)
-        /// if you know you will write the full screen the AccessFlags.WriteAll should be used instead as it will give better performance.
+        /// Binds the texture as a color render target (MRT attachment) for this pass.
         /// </summary>
-        /// <param name="tex">Texture to use during this pass.</param>
-        /// <param name="index">Index the shader will use to access this texture.</param>
-        /// <param name="flags">How this pass will access the texture. Default value is set to AccessFlag.Write </param>
+        /// <param name="tex">The texture to bind as a render target for this pass.</param>
+        /// <param name="index">The MRT slot the shader writes to. This maps to `SV_Target` in the shader, for example, a value of `1` maps to `SV_Target1`.</param>
+        /// <param name="flags">The access mode for the texture. The default value is `AccessFlags.Write`.</param>
+        /// <remarks>
+        /// Potential access flags:
+        /// - Write: This pass outputs to the texture using render target rasterization. The render graph binds
+        ///   the texture to the specified MRT slot (index). In HLSL, write to the slot using
+        ///   `float4 outColor : SV_Target{index} = value;`.
+        ///   To use random-access writes, use `SetRandomAccessAttachment` (UAV).
+        ///   Don't write to this target with UAV-style indexed access (`operator[]`). 
+        /// - Read: This pass might read the current contents of the render target implicitly, depending
+        ///   on rasterization state (for example, blending operations that read before writing).
+        ///   
+        /// The render graph can't determine how much of the target you overwrite. By default, it
+        /// assumes partial updates and preserves existing content. If you fully overwrite the target
+        /// (for example, in a fullscreen pass), use `AccessFlags.WriteAll` for better performance.
+        /// </remarks>
         void SetRenderAttachment(TextureHandle tex, int index, AccessFlags flags = AccessFlags.Write)
         {
             SetRenderAttachment(tex, index, flags, 0, -1);
         }
 
         /// <summary>
-        /// Use the texture as an rendertarget attachment.
-        ///
-        /// Writing:
-        /// Indicate this pass will write a texture through rendertarget rasterization writes.
-        /// The graph will automatically bind the texture as an MRT output on the indicated index slot.
-        /// Write in shader as  float4 out : SV_Target{index} = value; This texture always needs to be written as an
-        /// render target (SV_Targetx) writing using other methods (like `operator[] =` ) may not work even if
-        /// using the current fragment+sampleIdx pos. When using operator[] please use the UseTexture function instead.
-        /// Reading:
-        /// Indicates this pass will read a texture on the current fragment position but not unnecessarily modify it. Although not explicitly visible in shader code
-        /// Reading may happen depending on the rasterization state, e.g. Blending (read and write) or Z-Testing (read only) may read the buffer.
-        ///
+        /// Binds the texture as a color render target (MRT attachment) for this pass.
         /// </summary>
-        /// <param name="tex">Texture to use during this pass.</param>
-        /// <param name="index">Index the shader will use to access this texture.</param>
-        /// <param name="flags">How this pass will access the texture. </param>
-        /// <param name="mipLevel">Selects which mip map to used.</param>
-        /// <param name="depthSlice">Used to index into a texture array. Use -1 to use bind all slices.</param>
-        ///
+        /// <param name="tex">The texture to bind as a render target for this pass.</param>
+        /// <param name="index">The MRT slot the shader writes to (corresponds to `SV_Target{index}`).</param>
+        /// <param name="flags">How this pass accesses the texture. Defaults to `AccessFlags.Write`.</param>
+        /// <param name="mipLevel">The mip level to bind.</param>
+        /// <param name="depthSlice">The array slice to bind. Use -1 to bind all slices.</param>
         /// <remarks>
-        /// Note: The rendergraph does not know what content will be rendered in the bound texture. By default it assumes only partial data
-        /// is written (e.g. a small rectangle is drawn on the screen) so it will preserve the existing rendertarget content (e.g. behind/around the triangle)
-        /// if you know you will write the full screen the AccessFlags.WriteAll should be used instead as it will give better performance.
+        /// Potential access flags:
+        /// - Write: This pass outputs to the texture using render target rasterization. The render graph binds
+        ///   the texture to the specified MRT slot (index). In HLSL, write to the slot using
+        ///   `float4 outColor : SV_Target{index} = value;`.
+        ///   To use random-access writes, use `SetRandomAccessAttachment` (UAV).
+        ///   Don't write to this target with UAV-style indexed access (`operator[]`). 
+        /// - Read: This pass might read the current contents of the render target implicitly, depending
+        ///   on rasterization state (for example, blending operations that read before writing).
+        ///   
+        /// The render graph can't determine how much of the target you overwrite. By default, it
+        /// assumes partial updates and preserves existing content. If you fully overwrite the target
+        /// (for example, in a fullscreen pass), use `AccessFlags.WriteAll` for better performance.
         ///
-        /// Note: Using same texture handle with different depth slices at different rendertarget indices is not supported.
+        /// Using the same texture handle with different depth slices at different render target indices is not supported.
         /// </remarks>
         void SetRenderAttachment(TextureHandle tex, int index, AccessFlags flags, int mipLevel, int depthSlice);
 
         /// <summary>
-        /// Use the texture as a depth buffer for the Z-Buffer hardware.  Note you can only test-against and write-to a single depth texture in a pass.
-        /// If you want to write depth to more than one texture you will need to register the second texture as SetRenderAttachment and manually calculate
-        /// and write the depth value in the shader.
-        /// Calling SetRenderAttachmentDepth twice on the same builder is an error.
-        /// Write:
-        /// Indicate a texture will be written with the current fragment depth by the ROPs (but not for depth reading (i.e. z-test == always)).
-        /// Read:
-        /// Indicate a texture will be used as an input for the depth testing unit.
+        /// Binds the texture as the depth buffer for this pass.
         /// </summary>
-        /// <param name="tex">Texture to use during this pass.</param>
-        /// <param name="flags">How this pass will access the texture. Default value is set to AccessFlag.Write </param>
-        void SetRenderAttachmentDepth(TextureHandle tex, AccessFlags flags = AccessFlags.Write)
+        /// <param name="tex">The texture to use as the depth buffer for this pass.</param>
+        /// <param name="flags">Access mode for the texture in this pass. Defaults to `AccessFlag.ReadWrite`.
+        /// </param>
+        /// <remarks>
+        /// Potential access flags:
+        /// - Write: The pass writes fragment depth to the bound depth buffer (required if `ZWrite` is enabled in shader code).
+        /// - Read: The pass reads from the bound depth buffer for depth testing (required if `ZTest` is set to an operation other than `Disabled`, `Never`, or `Always` in shader code).
+        /// 
+        /// Only one depth buffer can be tested against or written to in a single pass.
+        /// To output depth to multiple textures, register the additional texture as a color
+        /// attachment using `SetRenderAttachment()`, then compute and write the depth value in the shader.
+        /// If you call `SetRenderAttachmentDepth()` more than once on the same builder, it results in an error.
+        /// </remarks>
+        void SetRenderAttachmentDepth(TextureHandle tex, AccessFlags flags = AccessFlags.ReadWrite)
         {
             SetRenderAttachmentDepth(tex, flags, 0, -1);
         }
 
         /// <summary>
-        /// Use the texture as a depth buffer for the Z-Buffer hardware.  Note you can only test-against and write-to a single depth texture in a pass.
-        /// If you want to write depth to more than one texture you will need to register the second texture as SetRenderAttachment and manually calculate
-        /// and write the depth value in the shader.
-        /// Calling SetRenderAttachmentDepth twice on the same builder is an error.
-        /// Write:
-        /// Indicate a texture will be written with the current fragment depth by the ROPs (but not for depth reading (i.e. z-test == always)).
-        /// Read:
-        /// Indicate a texture will be used as an input for the depth testing unit.
+        /// Binds the texture as the depth buffer for this pass.
         /// </summary>
-        /// <param name="tex">Texture to use during this pass.</param>
-        /// <param name="flags">How this pass will access the texture.</param>
-        /// <param name="mipLevel">Selects which mip map to used.</param>
-        /// <param name="depthSlice">Used to index into a texture array. Use -1 to use bind all slices.</param>
-        ///
+        /// <param name="tex">The texture to use as the depth buffer for this pass.</param>
+        /// <param name="flags">How this pass will access the depth texture (for example, `AccessFlags.Read`, `AccessFlags.Write`, `AccessFlags.ReadWrite`).</param>
+        /// <param name="mipLevel">The mip level to bind.</param>
+        /// <param name="depthSlice">The array slice to bind. Use -1 to bind all slices.</param>
         /// <remarks>
-        /// Using same texture handle with different depth slices at different rendertarget indices is not supported.
+        /// Potential access flags:
+        /// - Write: The pass writes fragment depth to the bound depth buffer (required if `ZWrite` is enabled in shader code).
+	/// - Read: The pass reads from the bound depth buffer for depth testing (required if `ZTest` is set to an operation other than `Disabled`, `Never`, or `Always` in shader code).
+        /// 
+        /// Only one depth texture can be read from or written to in a single pass.
+        /// To output depth to multiple textures, register the additional texture as a color
+        /// attachment using `SetRenderAttachment()`, then compute and write the depth value in the shader.
+        /// If you call `SetRenderAttachmentDepth()` more than once on the same builder, it results in an error.
+        /// 
+        /// Using the same texture handle with different depth slices at different render target indices is not supported.
         /// </remarks>
         void SetRenderAttachmentDepth(TextureHandle tex, AccessFlags flags, int mipLevel, int depthSlice);
 
         /// <summary>
-        /// Use the texture as an random access attachment. This is called "Unordered Access View" in DX12 and "Storage Image" in Vulkan.
-        ///
-        /// This informs the graph that any shaders in the pass will access the texture as a random access attachment through RWTexture2d&lt;T&gt;, RWTexture3d&lt;T&gt;,...
-        /// The texture can then be read/written by regular HLSL commands (including atomics, etc.).
-        ///
-        /// As in other parts of the Unity graphics APIs random access textures share the index-based slots with render targets and input attachments (if any). See CommandBuffer.SetRandomWriteTarget for details.
+        /// Binds the texture as a random-access attachment for this pass
+        /// (DX12: Unordered Access View, Vulkan: Storage Image).
         /// </summary>
-        /// <param name="tex">Texture to use during this pass.</param>
-        /// <param name="index">Index the shader will use to access this texture. This is set in the shader through the `register(ux)`  keyword.</param>
-        /// <param name="flags">How this pass will access the texture. Default value is set to AccessFlag.ReadWrite.</param>
-        /// <returns>The value passed to 'input'. You should not use the returned value it will be removed in the future.</returns>
+        /// <param name="tex">The texture to expose as a UAV in this pass.</param>
+        /// <param name="index">The binding slot the shader uses to access this UAV (HLSL: `register(u[index])`).</param>
+        /// <param name="flags">Access mode for this texture in the pass. Defaults to `AccessFlags.ReadWrite`.</param>
+        /// <returns>
+        /// This declares that shaders in the pass will access the texture via
+        /// `RWTexture2D`, `RWTexture3D`, etc., enabling read/write operations,
+        /// atomics, and other UAV-style operations using standard HLSL.
+        ///
+        /// The value passed to the `tex` parameter. The return value is deprecated.
+        /// </returns>
+        /// <remarks>
+        /// Random-access (UAV) textures share index-based binding slots with
+        /// render targets and input attachments. Refer to `CommandBuffer.SetRandomWriteTarget`
+        /// for platform-specific details and constraints.
+        /// </remarks>
         TextureHandle SetRandomAccessAttachment(TextureHandle tex, int index, AccessFlags flags = AccessFlags.ReadWrite);
 
         /// <summary>
-        /// Use the buffer as an random access attachment. This is called "Unordered Access View" in DX12 and "Storage Buffer" in Vulkan.
-        ///
-        /// This informs the graph that any shaders in the pass will access the buffer as a random access attachment through RWStructuredBuffer, RWByteAddressBuffer,...
-        /// The buffer can then be read/written by regular HLSL commands (including atomics, etc.).
-        ///
-        /// As in other parts of the Unity graphics APIs random access buffers share the index-based slots with render targets and input attachments (if any). See CommandBuffer.SetRandomWriteTarget for details.
+        /// Binds the buffer as a random-access attachment for this pass
+        /// (DX12: Unordered Access View, Vulkan: Storage Buffer).
         /// </summary>
-        /// <param name="tex">Buffer to use during this pass.</param>
-        /// <param name="index">Index the shader will use to access this texture. This is set in the shader through the `register(ux)`  keyword.</param>
-        /// <param name="flags">How this pass will access the buffer. Default value is set to AccessFlag.Read.</param>
-        /// <returns>The value passed to 'input'. You should not use the returned value it will be removed in the future.</returns>
+        /// <param name="tex">The buffer to expose as a UAV in this pass.</param>
+        /// <param name="index">The binding slot the shader uses to access this UAV (HLSL: `register(u[index])`).</param>
+        /// <param name="flags">Access mode for this buffer in the pass. Defaults to `AccessFlags.Read`.</param>
+        /// <returns>
+        /// The value passed to the `buffer` parameter. The return value is deprecated.
+        /// </returns>
+        /// <remarks>
+        /// This declares that shaders in the pass will access the buffer via
+        /// `RWStructuredBuffer`, `RWByteAddressBuffer`, etc., enabling read/write,
+        /// atomics, and other UAV-style operations using standard HLSL.
+        /// 
+        /// Random-access (UAV) buffers share index-based binding slots with
+        /// render targets and input attachments. Refer to `CommandBuffer.SetRandomWriteTarget`
+        /// for platform-specific details and constraints.
+        /// </remarks>
         BufferHandle UseBufferRandomAccess(BufferHandle tex, int index, AccessFlags flags = AccessFlags.Read);
 
         /// <summary>
-        /// Use the buffer as an random access attachment. This is called "Unordered Access View" in DX12 and "Storage Buffer" in Vulkan.
-        ///
-        /// This informs the graph that any shaders in the pass will access the buffer as a random access attachment through RWStructuredBuffer, RWByteAddressBuffer,...
-        /// The buffer can then be read/written by regular HLSL commands (including atomics, etc.).
-        ///
-        /// As in other parts of the Unity graphics APIs random access buffers share the index-based slots with render targets and input attachments (if any). See CommandBuffer.SetRandomWriteTarget for details.
+        /// Binds the buffer as a random-access attachment for this pass
+        /// (DX12: Unordered Access View, Vulkan: Storage Buffer).
         /// </summary>
-        /// <param name="tex">Buffer to use during this pass.</param>
-        /// <param name="index">Index the shader will use to access this texture. This is set in the shader through the `register(ux)`  keyword.</param>
-        /// <param name="preserveCounterValue">Whether to leave the append/consume counter value unchanged. The default is to preserve the value.</param>
-        /// <param name="flags">How this pass will access the buffer. Default value is set to AccessFlag.Read.</param>
-        /// <returns>The value passed to 'input'. You should not use the returned value it will be removed in the future.</returns>
+        /// <param name="tex">The buffer to expose as a UAV in this pass.</param>
+        /// <param name="index">The binding slot the shader uses to access this UAV (HLSL: `register(u[index])`).</param>
+        /// <param name="preserveCounterValue">Whether to keep the current append/consume counter unchanged for this UAV buffer. Defaults to preserving the existing counter value.</param>
+        /// <param name="flags">Access mode for this buffer in the pass. Defaults to `AccessFlags.Read`.</param>
+        /// <returns>
+        /// The value passed to the `buffer` parameter. The return value is deprecated.
+        /// </returns>
+        /// <remarks>
+        /// This declares that shaders in the pass will access the buffer via
+        /// `RWStructuredBuffer`, `RWByteAddressBuffer`, etc., enabling read/write,
+        /// atomics, and other UAV-style operations using standard HLSL.
+        /// 
+        /// Random-access (UAV) buffers share index-based binding slots with
+        /// render targets and input attachments. Refer to `CommandBuffer.SetRandomWriteTarget`
+        /// for platform-specific details and constraints.
+        /// </remarks>
         BufferHandle UseBufferRandomAccess(BufferHandle tex, int index, bool preserveCounterValue, AccessFlags flags = AccessFlags.Read);
     }
 
@@ -317,42 +340,42 @@ namespace UnityEngine.Rendering.RenderGraphModule
     public interface IRasterRenderGraphBuilder : IRenderAttachmentRenderGraphBuilder
     {
         /// <summary>
-        /// Use the texture as an input attachment.
-        ///
-        /// This informs the graph that any shaders in pass will only read from this texture at the current fragment position using the
-        /// LOAD_FRAMEBUFFER_INPUT(idx)/LOAD_FRAMEBUFFER_INPUT_MS(idx,sampleIdx) macros. The index passed to LOAD_FRAMEBUFFER_INPUT needs
-        /// to match the index passed to SetInputAttachment for this texture.
-        ///
+        /// Binds the texture as an input attachment for this pass.
+        /// 
+        /// Shaders might read this texture at the current fragment using
+        /// `LOAD_FRAMEBUFFER_INPUT(idx)` or `LOAD_FRAMEBUFFER_INPUT_MS(idx, sampleIdx)`.
+        /// The `idx` used in the shader must match the `index` provided to `SetInputAttachment`.
         /// </summary>
         /// <remarks>
-        /// This API is not universally supported across all platforms. In particular, using input attachments in combination with MSAA may be unsupported on certain targets.
-        /// To ensure compatibility, use `RenderGraphUtils.IsFramebufferFetchSupportedOnCurrentPlatform` to verify support at runtime, as platform capabilities may vary.
+        /// Platform support varies. Input attachments, especially with MSAA, might be unsupported on
+        /// some targets. Use `RenderGraphUtils.IsFramebufferFetchSupportedOnCurrentPlatform` at
+        /// runtime to check compatibility.
         /// </remarks>
-        /// <param name="tex">Texture to use during this pass.</param>
-        /// <param name="index">Index the shader will use to access this texture.</param>
-        /// <param name="flags">How this pass will access the texture. Default value is set to AccessFlag.Read. Writing is currently not supported on any platform. </param>
+        /// <param name="tex">The texture to expose as an input attachment.</param>
+        /// <param name="index">The binding index used by the shader macros (`idx`).</param>
+        /// <param name="flags">The access mode for this texture. Defaults to `AccessFlags.Read`. Writing is currently not supported on any platform.</param>
         void SetInputAttachment(TextureHandle tex, int index, AccessFlags flags = AccessFlags.Read)
         {
             SetInputAttachment(tex, index, flags, 0, -1);
         }
 
         /// <summary>
-        /// Use the texture as an input attachment.
-        ///
-        /// This informs the graph that any shaders in pass will only read from this texture at the current fragment position using the
-        /// LOAD_FRAMEBUFFER_INPUT(idx)/LOAD_FRAMEBUFFER_INPUT_MS(idx,sampleIdx) macros. The index passed to LOAD_FRAMEBUFFER_INPUT needs
-        /// to match the index passed to SetInputAttachment for this texture.
-        ///
+        /// Binds the texture as an input attachment for this pass.
+        /// 
+        /// Shaders might read this texture at the current fragment using
+        /// `LOAD_FRAMEBUFFER_INPUT(idx)` or `LOAD_FRAMEBUFFER_INPUT_MS(idx, sampleIdx)`.
+        /// The `idx` used in the shader must match the `index` provided in `SetInputAttachment`.
         /// </summary>
-        /// <param name="tex">Texture to use during this pass.</param>
-        /// <param name="index">Index the shader will use to access this texture.</param>
-        /// <param name="flags">How this pass will access the texture. Writing is currently not supported on any platform. </param>
-        /// <param name="mipLevel">Selects which mip map to used.</param>
-        /// <param name="depthSlice">Used to index into a texture array. Use -1 to use bind all slices.</param>
-        ///
         /// <remarks>
-        /// Using same texture handle with different depth slices at different rendertarget indices is not supported.
+        /// Platform support varies. Input attachments, especially with MSAA, might be unsupported on
+        /// some targets. Use `RenderGraphUtils.IsFramebufferFetchSupportedOnCurrentPlatform` at
+        /// runtime to check compatibility.
         /// </remarks>
+        /// <param name="tex">The texture to expose as an input attachment.</param>
+        /// <param name="index">The binding index used by the shader macros (`idx`).</param>
+        /// <param name="flags">The access mode for the texture. Defaults to `AccessFlags.Read`. Writing is currently not supported on any platform.</param>
+        /// <param name="mipLevel">The mip level to bind.</param>
+        /// <param name="depthSlice">The array slice to bind. Use -1 to bind all slices.</param>
         void SetInputAttachment(TextureHandle tex, int index, AccessFlags flags, int mipLevel, int depthSlice);
 
         /// <summary>

@@ -104,7 +104,7 @@ struct DirectionalLightData
     float3 shadowTint;
     float shadowDimmer;
     float volumetricShadowDimmer;
-    int nonLightMappedOnly;
+    int useShadowMask;
     real minRoughness;
     int screenSpaceShadowIndex;
     real4 shadowMaskSelector;
@@ -189,7 +189,7 @@ struct LightData
     float3 shadowTint;
     float shadowDimmer;
     float volumetricShadowDimmer;
-    int nonLightMappedOnly;
+    int useShadowMask;
     real minRoughness;
     int screenSpaceShadowIndex;
     real4 shadowMaskSelector;

@@ -34,7 +34,7 @@ VertexDescription BuildVertexDescription(Attributes input)
 #endif
 #endif
 
-#if (SHADERPASS == SHADERPASS_MOTION_VECTORS)
+#if (SHADERPASS == SHADERPASS_MOTION_VECTORS || SHADERPASS == SHADERPASS_XR_MOTION_VECTORS)
 // We want to gather some internal data from the BuildVaryings call to
 // avoid rereading and recalculating these values again in the ShaderGraph motion vector pass
 struct MotionVectorPassOutput
@@ -55,7 +55,7 @@ struct MotionVectorPassOutput
 
 #if defined(HAVE_VFX_MODIFICATION)
 bool PrepareVFXModification(inout Attributes input, inout Varyings output, inout AttributesElement element
-    #if (SHADERPASS == SHADERPASS_MOTION_VECTORS)
+    #if (SHADERPASS == SHADERPASS_MOTION_VECTORS || SHADERPASS == SHADERPASS_XR_MOTION_VECTORS)
     , inout MotionVectorPassOutput motionVectorOutput
     #endif
 )
@@ -72,7 +72,7 @@ bool PrepareVFXModification(inout Attributes input, inout Varyings output, inout
 
     SetupVFXMatrices(element, output);
 
-#if (SHADERPASS == SHADERPASS_MOTION_VECTORS)
+#if (SHADERPASS == SHADERPASS_MOTION_VECTORS || SHADERPASS == SHADERPASS_XR_MOTION_VECTORS)
     motionVectorOutput.vfxParticlePositionOS = input.positionOS;
 #endif
 
@@ -81,7 +81,7 @@ bool PrepareVFXModification(inout Attributes input, inout Varyings output, inout
 #endif
 
 Varyings BuildVaryings(Attributes input
-#if (SHADERPASS == SHADERPASS_MOTION_VECTORS)
+#if (SHADERPASS == SHADERPASS_MOTION_VECTORS || SHADERPASS == SHADERPASS_XR_MOTION_VECTORS)
     , inout MotionVectorPassOutput motionVectorOutput
 #endif
 )
@@ -98,7 +98,7 @@ Varyings BuildVaryings(Attributes input
     AttributesElement element;
     ZERO_INITIALIZE(AttributesElement, element);
 
-    #if (SHADERPASS == SHADERPASS_MOTION_VECTORS)
+    #if (SHADERPASS == SHADERPASS_MOTION_VECTORS || SHADERPASS == SHADERPASS_XR_MOTION_VECTORS)
     isCulledOrDead = PrepareVFXModification(input, output, element, motionVectorOutput);
     #else
     isCulledOrDead = PrepareVFXModification(input, output, element);
@@ -141,7 +141,7 @@ Varyings BuildVaryings(Attributes input
         // Returns the camera relative position (if enabled)
         float3 positionWS = vertexInput.positionWS;
 
-    #if (SHADERPASS == SHADERPASS_MOTION_VECTORS)
+    #if (SHADERPASS == SHADERPASS_MOTION_VECTORS || SHADERPASS == SHADERPASS_XR_MOTION_VECTORS)
         motionVectorOutput.positionOS = input.positionOS;
         motionVectorOutput.positionWS = positionWS;
         #if defined(FEATURES_GRAPH_VERTEX_MOTION_VECTOR_OUTPUT)

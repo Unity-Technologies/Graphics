@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public float oldSpotAngle;
         public Color oldLightColor;
+        public float oldLightIntensity;
         public Vector3 oldLossyScale;
         public bool oldDisplayAreaLightEmissiveMesh;
         public float oldLightColorTemperature;
@@ -306,7 +307,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_NonLightmappedOnly = value;
-                legacyLight.lightShadowCasterMode = value ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
+                legacyLight.lightShadowCasterMode = value ? LightShadowCasterMode.ShadowMask : LightShadowCasterMode.DistanceShadowMask;
                 // We need to update the ray traced shadow flag as we don't want ray traced shadows with shadow mask.
                 if (lightEntity.valid)
                     HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).useRayTracedShadows = m_UseRayTracedShadows && !m_NonLightmappedOnly;
@@ -2732,12 +2733,14 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
                 if (lightData.legacyLight.color != lightData.timelineWorkaround.oldLightColor
+                    || lightData.legacyLight.intensity != lightData.timelineWorkaround.oldLightIntensity
                     || lightData.timelineWorkaround.oldLossyScale != lightData.transform.lossyScale
                     || lightData.displayAreaLightEmissiveMesh != lightData.timelineWorkaround.oldDisplayAreaLightEmissiveMesh
                     || lightData.legacyLight.colorTemperature != lightData.timelineWorkaround.oldLightColorTemperature)
                 {
                     lightData.UpdateAreaLightEmissiveMesh();
                     lightData.timelineWorkaround.oldLightColor = lightData.legacyLight.color;
+                    lightData.timelineWorkaround.oldLightIntensity = lightData.legacyLight.intensity;
                     lightData.timelineWorkaround.oldLossyScale = lightData.transform.lossyScale;
                     lightData.timelineWorkaround.oldDisplayAreaLightEmissiveMesh = lightData.displayAreaLightEmissiveMesh;
                     lightData.timelineWorkaround.oldLightColorTemperature = lightData.legacyLight.colorTemperature;
@@ -2906,7 +2909,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // We don't use the global settings of shadow mask by default
-            light.lightShadowCasterMode = LightShadowCasterMode.Everything;
+            light.lightShadowCasterMode = LightShadowCasterMode.DistanceShadowMask;
 
             lightData.normalBias = 0.75f;
             lightData.slopeBias = 0.5f;
