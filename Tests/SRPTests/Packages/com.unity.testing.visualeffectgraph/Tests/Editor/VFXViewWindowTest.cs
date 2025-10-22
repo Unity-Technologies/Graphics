@@ -8,6 +8,7 @@ using NUnit.Framework;
 using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.UIElements;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Test
@@ -207,6 +208,35 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(EditorUtility.IsDirty(vfxGraph));
             AssetDatabase.SaveAssets();
             Assert.IsFalse(EditorUtility.IsDirty(vfxGraph));
+        }
+
+        [UnityTest, Description("Repro UUM-114261")]
+        public IEnumerator Switch_SG_And_Name_Updated_In_VFX_Controller()
+        {
+            var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_114261.unitypackage";
+            var vfxPath = VFXTestCommon.tempBasePath + "/VFX_114261.vfx";
+            var sgUnlitPath = VFXTestCommon.tempBasePath + "/SG_114261_Unlit.shadergraph";
+            var sgLitPath = VFXTestCommon.tempBasePath + "/SG_114261_Lit.shadergraph";
+
+            AssetDatabase.ImportPackageImmediately(packagePath);
+
+            var resource = VisualEffectResource.GetResourceAtPath(vfxPath);
+            var window = VFXViewWindow.GetWindow(resource, true, true);
+            window.LoadResource(resource, null);
+            yield return null;
+
+            var vfxContextUI = window.graphView.GetAllContexts().Single(o => o.controller.model is VFXAbstractComposedParticleOutput);
+            var subtitle = vfxContextUI.Q<Label>("subtitle");
+            Assert.IsNotNull(subtitle);
+            Assert.AreEqual("Quad - Unlit", subtitle.text);
+
+            File.WriteAllText(sgUnlitPath, File.ReadAllText(sgLitPath));
+            AssetDatabase.Refresh();
+            yield return null;
+
+            Assert.AreEqual("Quad - Lit", subtitle.text);
+            window.Close();
+            yield return null;
         }
     }
 }
