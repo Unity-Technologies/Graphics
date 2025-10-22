@@ -1162,6 +1162,21 @@ namespace UnityEngine.Rendering
             }
         }
 
+        // Required by native side.
+        [Scripting.Preserve]
+        static bool CurrentSceneHasBakedData()
+        {
+            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
+                return false;
+
+            string sceneGUID = SceneManager.GetActiveScene().GetGUID();
+            ProbeReferenceVolume.instance.TryGetPerSceneData(sceneGUID, out var sceneData);
+            if (sceneData == null || sceneData.bakingSet == null)
+                return false;
+
+            return sceneData.bakingSet.HasBeenBaked();
+        }
+
         static void FinalizeBake(bool cleanup = true)
         {
             using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.FinalizingBake))
