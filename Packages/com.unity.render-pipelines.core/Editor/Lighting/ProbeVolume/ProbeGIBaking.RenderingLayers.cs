@@ -116,6 +116,9 @@ namespace UnityEngine.Rendering
                     if (mesh == null)
                         continue;
 
+                    if (renderer.component is SkinnedMeshRenderer)
+                        continue;
+
                     int subMeshCount = mesh.subMeshCount;
                     var matIndices = new uint[subMeshCount];
                     Array.Fill(matIndices, renderer.component.renderingLayerMask); // repurpose the material id as we don't need it here
