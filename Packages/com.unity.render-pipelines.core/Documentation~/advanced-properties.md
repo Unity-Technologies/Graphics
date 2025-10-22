@@ -12,7 +12,7 @@ There is a global state per user that stores if Unity displays **advanced proper
 ## Exposing advanced properties within the inspector
 
 Not every component or Volume Override includes advanced properties.
-If one does, it has a contextual menu to the right of each property section header that includes additional properties. To expose advanced properties for that section, open the contextual menu and click **Advanced Properties**.
+If one does, it has a contextual menu to the right of each property section header that includes additional properties. To expose advanced properties for that section, open the contextual menu and click **Show All Advanced Properties**.
 
 For an example, refer to the **Water Surface** component in [High Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/settings-and-properties-related-to-the-water-system.html).
 
@@ -20,7 +20,7 @@ By default only standard properties are shown.
 
 ![](Images/Preferences/HDRP_WaterSurface_General.png)
 
-When you select **Advanced Properties**:
+When you select **Show All Advanced Properties**:
 
 ![](Images/Preferences/PopUpAdvanced.png)
 
@@ -28,13 +28,13 @@ When you select **Advanced Properties**:
 
 ![](Images/Preferences/HDRP_WaterSurface_General_Visible.png)
 
-For Volume Overrides, the already existing contextual menu has a **Advanced Properties** toggle as well.
+For Volume Overrides, the already existing contextual menu has a **Show All Advanced Properties** toggle as well.
 
 ## Exposing advanced properties on preferences
 
 You can also access to this global preference by:
 
-1. Open the **Graphics** tab in the **Preferences** window (menu: **Edit > Preferences > Graphics**).
-2. Under **Properties**. Set **Advanced Properties** to **All Visible**.
+1. Open the **Graphics** tab in the **Preferences** window (menu: **Edit > Preferences**, macOS: **Unity > Settings**).
+2. Under **Graphics**, select **Properties**. Set **Advanced Properties** to **All Visible**.
 
 ![](Images/Preferences/AdvancedProperties_Settings.png)
