@@ -276,8 +276,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 debugPass.scriptInfo = graphPass.debugScriptInfo;
 #endif
 
-                debugPass.syncFromPassIndex = -1; // TODO async compute support
-                debugPass.syncToPassIndex = -1; // TODO async compute support
+                debugPass.syncFromPassIndex = passData.awaitingMyGraphicsFencePassId;
+                debugPass.syncToPassIndex = passData.waitOnGraphicsFencePassId;
 
                 debugPass.nrpInfo = new RenderGraph.DebugData.PassData.NRPInfo();
 
