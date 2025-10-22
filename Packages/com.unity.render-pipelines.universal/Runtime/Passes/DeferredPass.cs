@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     data.deferredLights.ExecuteDeferredPass(context.cmd, data.cameraData, data.lightData, data.shadowData);
                 });

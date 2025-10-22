@@ -231,7 +231,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.normalBuffer, AccessFlags.Read);
 
                 builder.SetRenderFunc(
-                    (RenderAOPassData data, ComputeGraphContext ctx) =>
+                    static (RenderAOPassData data, ComputeGraphContext ctx) =>
                     {
                         ConstantBuffer.Push(ctx.cmd, data.parameters.cb, data.gtaoCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
                         ctx.cmd.SetComputeTextureParam(data.gtaoCS, data.gtaoKernel, HDShaderIDs._AOPackedData, data.packedData);
@@ -290,7 +290,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.denoiseOutput, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (SpatialDenoiseAOPassData data, ComputeGraphContext ctx) =>
+                    static (SpatialDenoiseAOPassData data, ComputeGraphContext ctx) =>
                     {
                         const int groupSizeX = 8;
                         const int groupSizeY = 8;
@@ -365,7 +365,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.denoiseOutput, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (TemporalDenoiseAOPassData data, ComputeGraphContext ctx) =>
+                    static (TemporalDenoiseAOPassData data, ComputeGraphContext ctx) =>
                     {
                         const int groupSizeX = 8;
                         const int groupSizeY = 8;
@@ -430,7 +430,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.output, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (UpsampleAOPassData data, ComputeGraphContext ctx) =>
+                    static (UpsampleAOPassData data, ComputeGraphContext ctx) =>
                     {
                         ConstantBuffer.Set<ShaderVariablesAmbientOcclusion>(ctx.cmd, data.upsampleAndBlurAOCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
 

@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Request the output textures
                 builder.SetRenderFunc(
-                    (WaterRenderingMaskData data, UnsafeGraphContext ctx) =>
+                    static (WaterRenderingMaskData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         natCmd.SetGlobalTexture(HDShaderIDs._WaterSectorData, data.sectorDataBuffer);

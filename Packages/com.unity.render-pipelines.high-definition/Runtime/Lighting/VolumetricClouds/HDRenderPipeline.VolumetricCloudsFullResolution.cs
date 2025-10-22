@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 CreateOutputTextures(renderGraph, builder, settings, out passData.cloudsLighting, out passData.cloudsDepth);
 
                 builder.SetRenderFunc(
-                    (VolumetricCloudsFullResolutionData data, UnsafeGraphContext ctx) =>
+                    static (VolumetricCloudsFullResolutionData data, UnsafeGraphContext ctx) =>
                     {
                         TraceVolumetricClouds_FullResolution(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd), data.parameters,
                             data.ambientProbeBuffer, data.colorBuffer, data.depthPyramid,

@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.Universal
                 if (output.IsValid())
                     builder.SetGlobalTextureAfterPass(output, ShaderPropertyId.overlayUITexture);
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     ExecutePass(context.cmd, data, data.rendererList);
                 });
@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.rendererList = renderGraph.CreateUIOverlayRendererList(cameraData.camera, UISubset.LowLevel);
                 builder.UseRendererList(passData.rendererList);
 
-                builder.SetRenderFunc((UnsafePassData data, UnsafeGraphContext context) =>
+                builder.SetRenderFunc(static (UnsafePassData data, UnsafeGraphContext context) =>
                 {
                     context.cmd.SetRenderTarget(data.colorTarget);
                     ExecutePass(context.cmd, data, data.rendererList);
@@ -177,7 +177,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.rendererList = renderGraph.CreateUIOverlayRendererList(cameraData.camera, UISubset.UIToolkit_UGUI);
                 builder.UseRendererList(passData.rendererList);
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     ExecutePass(context.cmd, data, data.rendererList);
                 });
@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.rendererList = renderGraph.CreateUIOverlayRendererList(cameraData.camera, UISubset.LowLevel);
                 builder.UseRendererList(passData.rendererList);
 
-                builder.SetRenderFunc((UnsafePassData data, UnsafeGraphContext context) =>
+                builder.SetRenderFunc(static (UnsafePassData data, UnsafeGraphContext context) =>
                 {
                     context.cmd.SetRenderTarget(data.colorTarget);
                     ExecutePass(context.cmd, data, data.rendererList);

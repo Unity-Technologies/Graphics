@@ -299,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
 
                 builder.SetRenderFunc(
-                    (DeferredLightingRTRPassData data, UnsafeGraphContext ctx) =>
+                    static (DeferredLightingRTRPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Compute the input texture dimension

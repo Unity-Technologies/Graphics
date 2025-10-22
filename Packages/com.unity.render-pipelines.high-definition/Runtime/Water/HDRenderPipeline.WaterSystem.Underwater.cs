@@ -267,7 +267,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.reductionSize = m_ReductionSize;
 
                 builder.SetRenderFunc(
-                    (WaterLineRenderingData data, UnsafeGraphContext ctx) =>
+                    static (WaterLineRenderingData data, UnsafeGraphContext ctx) =>
                     {
                         // Clear water line buffer
                         ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.clearKernel, HDShaderIDs._WaterLineBufferRW, data.waterLine);

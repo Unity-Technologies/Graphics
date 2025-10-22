@@ -584,7 +584,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.UseTexture(passData.dilatedMaxZBuffer, AccessFlags.ReadWrite);
 
                     builder.SetRenderFunc(
-                        (GenerateMaxZMaskPassData data, UnsafeGraphContext ctx) =>
+                        static (GenerateMaxZMaskPassData data, UnsafeGraphContext ctx) =>
                         {
                             // Downsample 8x8 with max operator
 
@@ -1107,7 +1107,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.EnableAsyncCompute(hdCamera.frameSettings.VolumeVoxelizationRunsAsync() && !passData.water);
 
                     builder.SetRenderFunc(
-                        (HeightFogVoxelizationPassData data, ComputeGraphContext ctx) =>
+                        static (HeightFogVoxelizationPassData data, ComputeGraphContext ctx) =>
                         {
                             ctx.cmd.SetComputeTextureParam(data.voxelizationCS, data.voxelizationKernel, HDShaderIDs._VBufferDensity, data.densityBuffer);
                             ctx.cmd.SetComputeBufferParam(data.voxelizationCS, data.voxelizationKernel, HDShaderIDs._VolumeAmbientProbeBuffer, data.volumetricAmbientProbeBuffer);
@@ -1222,7 +1222,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.visibleVolumeGlobalIndices = m_VisibleVolumeGlobalIndices;
 
                     builder.SetRenderFunc(
-                        (VolumetricFogVoxelizationPassData data, UnsafeGraphContext ctx) =>
+                        static (VolumetricFogVoxelizationPassData data, UnsafeGraphContext ctx) =>
                         {
                             var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
 
@@ -1438,7 +1438,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDShadowManager.ReadShadowResult(shadowResult, builder);
 
                     builder.SetRenderFunc(
-                        (VolumetricLightingPassData data, UnsafeGraphContext ctx) =>
+                        static (VolumetricLightingPassData data, UnsafeGraphContext ctx) =>
                         {
                             if (data.tiledLighting)
                                 ctx.cmd.SetComputeBufferParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs.g_vBigTileLightList, data.bigTileVolumetricLightListBuffer);

@@ -345,7 +345,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputShadowTexture, AccessFlags.ReadWrite);
 
                 builder.SetRenderFunc(
-                    (RTShadowAreaPassData data, UnsafeGraphContext ctx) =>
+                    static (RTShadowAreaPassData data, UnsafeGraphContext ctx) =>
                     {
                         ExecuteSSSAreaRayTrace(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd), data);
                     });

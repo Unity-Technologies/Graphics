@@ -275,7 +275,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderAttachment(destination, 0);
 
                 builder.AllowPassCulling(false);
-                builder.SetRenderFunc((CopyToDebugTexturePassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (CopyToDebugTexturePassData data, RasterGraphContext context) =>
                 {
                     Blitter.BlitTexture(context.cmd, data.src, new Vector4(1,1,0,0), 0, false);
                 });

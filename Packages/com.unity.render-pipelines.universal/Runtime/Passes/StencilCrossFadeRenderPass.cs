@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.stencilDitherMaskSeedMaterials = m_StencilDitherMaskSeedMaterials;
                 passData.depthTarget = depthTarget;
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     ExecutePass(context.cmd, data.depthTarget, data.stencilDitherMaskSeedMaterials);
                 });

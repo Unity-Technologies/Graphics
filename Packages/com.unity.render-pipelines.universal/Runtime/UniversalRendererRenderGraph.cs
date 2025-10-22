@@ -1993,7 +1993,7 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetGlobalTextureAfterPass(handle, nameId);
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                 });
             }
@@ -2047,7 +2047,7 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     context.cmd.ClearRenderTarget(data.clearFlags, data.clearColor, 1, 0);
                 });

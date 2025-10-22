@@ -485,7 +485,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 builder.SetRenderFunc(
-                    (RenderAccumulationPassData data, UnsafeGraphContext ctx) =>
+                    static (RenderAccumulationPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         ComputeShader accumulationShader = data.accumulationCS;
@@ -496,14 +496,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         accumulationShader.shaderKeywords = null;
                         if (data.useInputTexture)
-                            natCmd.EnableKeyword(accumulationShader, passData.inputKeyword);
+                            natCmd.EnableKeyword(accumulationShader, data.inputKeyword);
                         else
-                            natCmd.DisableKeyword(accumulationShader, passData.inputKeyword);
+                            natCmd.DisableKeyword(accumulationShader, data.inputKeyword);
 
                         if (data.useOutputTexture)
-                            natCmd.EnableKeyword(accumulationShader, passData.outputKeyword);
+                            natCmd.EnableKeyword(accumulationShader, data.outputKeyword);
                         else
-                            natCmd.DisableKeyword(accumulationShader, passData.outputKeyword);
+                            natCmd.DisableKeyword(accumulationShader, data.outputKeyword);
 
                         // Get the per-camera data
                         int camID = data.hdCamera.camera.GetEntityId();

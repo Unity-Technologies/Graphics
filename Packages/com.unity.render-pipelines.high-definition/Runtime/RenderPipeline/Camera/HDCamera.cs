@@ -1834,7 +1834,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc(
-                    (ExecuteCaptureActionsPassData data, UnsafeGraphContext ctx) =>
+                    static (ExecuteCaptureActionsPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();

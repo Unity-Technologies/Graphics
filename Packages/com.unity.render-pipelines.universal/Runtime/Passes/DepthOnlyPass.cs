@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
                 }
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     ExecutePass(context.cmd, data.rendererList);
                 });

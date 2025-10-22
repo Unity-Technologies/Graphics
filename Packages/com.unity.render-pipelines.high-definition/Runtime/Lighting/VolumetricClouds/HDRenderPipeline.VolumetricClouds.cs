@@ -620,7 +620,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 builder.SetRenderFunc(
-                    (VolumetricCloudsCombineOpaqueData data, UnsafeGraphContext ctx) =>
+                    static (VolumetricCloudsCombineOpaqueData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         data.cloudsCombineMaterial.SetTexture(HDShaderIDs._VolumetricCloudsLightingTexture, data.volumetricCloudsLightingTexture);

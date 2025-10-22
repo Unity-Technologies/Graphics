@@ -251,7 +251,7 @@ namespace UnityEngine.Rendering.Universal
                     if (m_BindDepthStencilAttachment)
                         builder.SetRenderAttachmentDepth(resourcesData.activeDepthTexture, AccessFlags.ReadWrite);
 
-                    builder.SetRenderFunc((MainPassData data, RasterGraphContext rgContext) =>
+                    builder.SetRenderFunc(static (MainPassData data, RasterGraphContext rgContext) =>
                     {
                         ExecuteMainPass(rgContext.cmd, data.inputTexture, data.material, data.passIndex);
                     });
@@ -267,7 +267,7 @@ namespace UnityEngine.Rendering.Universal
 
                     builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
 
-                    builder.SetRenderFunc((CopyPassData data, RasterGraphContext rgContext) =>
+                    builder.SetRenderFunc(static (CopyPassData data, RasterGraphContext rgContext) =>
                     {
                         ExecuteCopyColorPass(rgContext.cmd, data.inputTexture);
                     });

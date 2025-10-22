@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.destination, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (RenderLightVolumesPassData data, UnsafeGraphContext ctx) =>
+                    static (RenderLightVolumesPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (data.lightOverlapEnabled)
                         {
                             // We only need the accumulation buffer, not the color (we only display the outline of the light shape in this mode).
-                            CoreUtils.SetRenderTarget(natCmd, mrt[0], depthBuffer);
+                            CoreUtils.SetRenderTarget(natCmd, mrt[0], data.depthBuffer);
 
                             // The cull result doesn't contains overlapping lights so we use a custom list
                             foreach (var overlappingHDLight in HDAdditionalLightData.s_overlappingHDLights)
@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                         {
                             // Set the render target array
-                            CoreUtils.SetRenderTarget(natCmd, mrt, depthBuffer);
+                            CoreUtils.SetRenderTarget(natCmd, mrt, data.depthBuffer);
 
                             // First of all let's do the regions for the light sources (we only support Punctual and Area)
                             int numLights = data.cullResults.visibleLights.Length;
@@ -190,7 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         natCmd.DispatchCompute(data.debugLightVolumeCS, data.debugLightVolumeKernel, numTilesX, numTilesY, data.hdCamera.viewCount);
 
                         // Blit this into the camera target
-                        CoreUtils.SetRenderTarget(natCmd, destination);
+                        CoreUtils.SetRenderTarget(natCmd, data.destination);
                         mpb.SetTexture(HDShaderIDs._BlitTexture, data.debugLightVolumesTexture);
                         natCmd.DrawProcedural(Matrix4x4.identity, data.debugLightVolumeMaterial, 1, MeshTopology.Triangles, 3, 1, mpb);
                     });

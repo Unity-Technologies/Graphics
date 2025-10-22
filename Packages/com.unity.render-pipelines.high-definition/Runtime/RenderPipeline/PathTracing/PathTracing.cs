@@ -636,7 +636,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
 
                 builder.SetRenderFunc(
-                    (RenderPathTracingData data, UnsafeGraphContext ctx) =>
+                    static (RenderPathTracingData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Define the shader pass to use for the path tracing pass
@@ -751,7 +751,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputMarginal, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (RenderSkySamplingPassData data, UnsafeGraphContext ctx) =>
+                    static (RenderSkySamplingPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         natCmd.SetComputeIntParam(data.shader, HDShaderIDs._PathTracingSkyTextureWidth, data.size * 2);

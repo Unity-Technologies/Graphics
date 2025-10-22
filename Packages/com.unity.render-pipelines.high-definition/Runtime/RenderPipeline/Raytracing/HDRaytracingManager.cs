@@ -770,7 +770,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputTexture, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (RTASDebugPassData data, UnsafeGraphContext ctx) =>
+                    static (RTASDebugPassData data, UnsafeGraphContext ctx) =>
                     {
                         // Define the shader pass to use for the reflection pass
                         ctx.cmd.SetRayTracingShaderPass(data.debugRTASRT, "DebugDXR");

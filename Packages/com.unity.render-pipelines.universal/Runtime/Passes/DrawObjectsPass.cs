@@ -302,7 +302,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
                 }
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     // Currently we only need to call this additional pass when the user
                     // doesn't want transparent objects to receive shadows
@@ -421,7 +421,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
                 }
 
-                builder.SetRenderFunc((RenderingLayersPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (RenderingLayersPassData data, RasterGraphContext context) =>
                 {
                     // Enable Rendering Layers
                     context.cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, true);

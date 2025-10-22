@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.texture, AccessFlags.ReadWrite);
 
                 builder.SetRenderFunc(
-                    (GenerateMipmapsPassData data, UnsafeGraphContext ctx) =>
+                    static (GenerateMipmapsPassData data, UnsafeGraphContext ctx) =>
                     {
                         RTHandle tex = data.texture;
                         Debug.Assert(tex.rt.autoGenerateMips == false);
@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.texture = texture;
 
                 builder.SetRenderFunc(
-                    (SetGlobalTexturePassData data, UnsafeGraphContext ctx) =>
+                    static (SetGlobalTexturePassData data, UnsafeGraphContext ctx) =>
                     {
                         ctx.cmd.SetGlobalTexture(data.shaderID, data.texture);
                     });
@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.buffer = buffer;
 
                 builder.SetRenderFunc(
-                    (SetGlobalBufferPassData data, UnsafeGraphContext ctx) =>
+                    static (SetGlobalBufferPassData data, UnsafeGraphContext ctx) =>
                     {
                         ctx.cmd.SetGlobalBuffer(data.shaderID, data.buffer);
                     });
@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.AllowPassCulling(false);
 
                     builder.SetRenderFunc(
-                        (XRRenderingPassData data, UnsafeGraphContext ctx) =>
+                        static (XRRenderingPassData data, UnsafeGraphContext ctx) =>
                         {
                             data.xr.StartSinglePass(ctx.cmd);
                         });
@@ -184,7 +184,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.AllowPassCulling(false);
 
                     builder.SetRenderFunc(
-                        (XRRenderingPassData data, UnsafeGraphContext ctx) =>
+                        static (XRRenderingPassData data, UnsafeGraphContext ctx) =>
                         {
                             data.xr.StopSinglePass(ctx.cmd);
                         });
@@ -216,7 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.AllowPassCulling(false);
 
                     builder.SetRenderFunc(
-                        (RenderOcclusionMeshesPassData data, UnsafeGraphContext ctx) =>
+                        static (RenderOcclusionMeshesPassData data, UnsafeGraphContext ctx) =>
                         {
                             var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
 
@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.mipLevel = mipLevel;
                 passData.bilinear = bilinear;
                 builder.SetRenderFunc(
-                    (BlitCameraTextureData data, UnsafeGraphContext ctx) =>
+                    static (BlitCameraTextureData data, UnsafeGraphContext ctx) =>
                     {
                         Blitter.BlitCameraTexture(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd), data.source, data.destination, data.mipLevel, data.bilinear);
                     });

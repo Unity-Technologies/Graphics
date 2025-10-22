@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((PassData data, UnsafeGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, UnsafeGraphContext context) =>
                 {
                     for (int i = 0; i < data.layerBatch.shadowIndices.Count; ++i)
                     {

@@ -582,7 +582,7 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((PassData data, UnsafeGraphContext rgContext) =>
+                builder.SetRenderFunc(static (PassData data, UnsafeGraphContext rgContext) =>
                 {
                     UnsafeCommandBuffer cmd = rgContext.cmd;
 #if UNITY_EDITOR
@@ -626,7 +626,7 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((VFXProcessCameraPassData data, UnsafeGraphContext context) =>
+                builder.SetRenderFunc(static (VFXProcessCameraPassData data, UnsafeGraphContext context) =>
                 {
                     if (data.xrPass != null)
                         data.xrPass.StartSinglePass(context.cmd);
@@ -653,7 +653,7 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     bool yFlipped = SystemInfo.graphicsUVStartsAtTop && RenderingUtils.IsHandleYFlipped(context, in data.target);
 
@@ -729,7 +729,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseRendererList(passData.gizmoRenderList);
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((DrawGizmosPassData data, UnsafeGraphContext rgContext) =>
+                builder.SetRenderFunc(static (DrawGizmosPassData data, UnsafeGraphContext rgContext) =>
                 {
                     using (new ProfilingScope(rgContext.cmd, Profiling.drawGizmos))
                     {
@@ -874,7 +874,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((DummyData data, UnsafeGraphContext context) =>
+                builder.SetRenderFunc(static (DummyData data, UnsafeGraphContext context) =>
                 {
                     context.cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
                         RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, // color

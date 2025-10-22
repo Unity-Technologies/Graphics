@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Required here because of RenderingLayerUtils.SetupProperties
                 builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     RenderingLayerUtils.SetupProperties(context.cmd, data.maskSize);
                     ExecutePass(context.cmd, data, data.rendererList);

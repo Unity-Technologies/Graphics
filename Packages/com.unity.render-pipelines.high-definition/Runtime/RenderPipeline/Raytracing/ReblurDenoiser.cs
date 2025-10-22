@@ -333,7 +333,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.stabilizationHistory = renderGraph.ImportTexture(stabilizationHistory);
                 builder.UseTexture(passData.stabilizationHistory, AccessFlags.ReadWrite);
 
-                builder.SetRenderFunc((ReblurIndirectSpecularPassData data, UnsafeGraphContext ctx) =>
+                builder.SetRenderFunc(static (ReblurIndirectSpecularPassData data, UnsafeGraphContext ctx) =>
                 {
                     var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
 

@@ -1544,7 +1544,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 updatePassData.shaderGraphVertexCount = m_ShaderGraphVertexCount;
 
-                builder.SetRenderFunc((UpdateShaderGraphTexturePassData data, UnsafeGraphContext ctx) =>
+                builder.SetRenderFunc(static (UpdateShaderGraphTexturePassData data, UnsafeGraphContext ctx) =>
                 {
                     ctx.cmd.SetRenderTarget(data.atlasTexture);
 
@@ -1568,7 +1568,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.atlasTexture = renderGraph.ImportTexture(Atlas.AtlasTexture);
                     builder.UseTexture(passData.atlasTexture, AccessFlags.Write);
 
-                    builder.SetRenderFunc((UpdateAtlasMipmapsPassData data, UnsafeGraphContext ctx) =>
+                    builder.SetRenderFunc(static (UpdateAtlasMipmapsPassData data, UnsafeGraphContext ctx) =>
                     {
                         CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd).GenerateMips(data.atlasTexture);
                     });

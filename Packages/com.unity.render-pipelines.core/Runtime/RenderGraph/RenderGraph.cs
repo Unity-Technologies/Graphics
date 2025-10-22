@@ -1772,7 +1772,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 passData.sampler = sampler;
                 builder.AllowPassCulling(false);
                 builder.GenerateDebugData(false);
-                builder.SetRenderFunc((ProfilingScopePassData data, UnsafeGraphContext ctx) =>
+                builder.SetRenderFunc(static (ProfilingScopePassData data, UnsafeGraphContext ctx) =>
                 {
                     data.sampler.Begin(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd));
                 });
@@ -1797,7 +1797,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 passData.sampler = sampler;
                 builder.AllowPassCulling(false);
                 builder.GenerateDebugData(false);
-                builder.SetRenderFunc((ProfilingScopePassData data, UnsafeGraphContext ctx) =>
+                builder.SetRenderFunc(static (ProfilingScopePassData data, UnsafeGraphContext ctx) =>
                 {
                     data.sampler.End(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd));
                 });

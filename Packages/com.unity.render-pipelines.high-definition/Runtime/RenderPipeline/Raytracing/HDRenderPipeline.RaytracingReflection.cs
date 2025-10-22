@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (DirGenRTRPassData data, UnsafeGraphContext ctx) =>
+                    static (DirGenRTRPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // TODO: check if this is required, i do not think so
@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputTexture, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (AdjustWeightRTRPassData data, UnsafeGraphContext ctx) =>
+                    static (AdjustWeightRTRPassData data, UnsafeGraphContext ctx) =>
                     {
                         // Bind all the required scalars to the CB
                         data.shaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = data.minSmoothness;
@@ -334,7 +334,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputTexture, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (UpscaleRTRPassData data, UnsafeGraphContext ctx) =>
+                    static (UpscaleRTRPassData data, UnsafeGraphContext ctx) =>
                     {
                         // Input textures
                         ctx.cmd.SetComputeTextureParam(data.reflectionFilterCS, data.upscaleKernel, HDShaderIDs._DepthTexture, data.depthStencilBuffer);
@@ -594,7 +594,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
 
                 builder.SetRenderFunc(
-                    (TraceQualityRTRPassData data, UnsafeGraphContext ctx) =>
+                    static (TraceQualityRTRPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Define the shader pass to use for the reflection pass

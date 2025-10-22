@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.velocityBuffer, AccessFlags.ReadWrite);
 
                 builder.SetRenderFunc(
-                    (TraceRTAOPassData data, UnsafeGraphContext ctx) =>
+                    static (TraceRTAOPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
 
@@ -241,7 +241,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputTexture, AccessFlags.ReadWrite);
 
                 builder.SetRenderFunc(
-                    (ComposeRTAOPassData data, UnsafeGraphContext ctx) =>
+                    static (ComposeRTAOPassData data, UnsafeGraphContext ctx) =>
                     {
                         ctx.cmd.SetComputeFloatParam(data.aoShaderCS, HDShaderIDs._RaytracingAOIntensity, data.intensity);
                         ctx.cmd.SetComputeTextureParam(data.aoShaderCS, data.intensityKernel, HDShaderIDs._AmbientOcclusionTextureRW, data.outputTexture);
@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.UseTexture(passData.aoTexture, AccessFlags.ReadWrite);
 
                     builder.SetRenderFunc(
-                        (ClearRTAOHistoryData data, UnsafeGraphContext ctx) =>
+                        static (ClearRTAOHistoryData data, UnsafeGraphContext ctx) =>
                         {
                             CoreUtils.SetRenderTarget(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd), data.aoTexture, clearFlag: ClearFlag.Color, Color.black);
                         });

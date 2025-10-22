@@ -182,7 +182,7 @@ namespace UnityEngine.Rendering.Universal
                 if (motionVectorDepth.IsValid())
                     builder.SetGlobalTextureAfterPass(motionVectorDepth, Shader.PropertyToID(k_MotionVectorDepthTextureName));
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     if (data.cameraMaterial != null)
                         data.cameraMaterial.SetTexture(s_CameraDepthTextureID, data.cameraDepth);

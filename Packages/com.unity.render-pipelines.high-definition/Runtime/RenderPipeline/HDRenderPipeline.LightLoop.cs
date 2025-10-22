@@ -678,7 +678,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 PrepareBuildGPULightListPassData(renderGraph, builder, hdCamera, tileAndClusterData, ref constantBuffer, totalLightCount, depthStencilBuffer, stencilBufferCopy, gBuffer, passData);
 
                 builder.SetRenderFunc(
-                    (BuildGPULightListPassData data, ComputeGraphContext context) =>
+                    static (BuildGPULightListPassData data, ComputeGraphContext context) =>
                     {
                         bool tileFlagsWritten = false;
 
@@ -711,7 +711,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.xrCB = m_ShaderVariablesXRCB;
 
                 builder.SetRenderFunc(
-                    (PushGlobalCameraParamPassData data, UnsafeGraphContext ctx) =>
+                    static (PushGlobalCameraParamPassData data, UnsafeGraphContext ctx) =>
                     {
                         ConstantBuffer.PushGlobal(ctx.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
                         ConstantBuffer.PushGlobal(ctx.cmd, data.xrCB, HDShaderIDs._ShaderVariablesXR);
@@ -958,7 +958,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 output.colorBuffer = passData.colorBuffer;
 
                 builder.SetRenderFunc(
-                    (DeferredLightingPassData data, UnsafeGraphContext ctx) =>
+                    static (DeferredLightingPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         var colorBuffers = ctx.renderGraphPool.GetTempArray<RenderTargetIdentifier>(2);
@@ -1266,7 +1266,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.AllowGlobalStateModification(true);
 
                     builder.SetRenderFunc(
-                        (RenderSSRPassData data, ComputeGraphContext ctx) =>
+                        static (RenderSSRPassData data, ComputeGraphContext ctx) =>
                         {
                             var cs = data.ssrCS;
                             ConstantBuffer.Push(ctx.cmd, data.cb, cs, HDShaderIDs._ShaderVariablesScreenSpaceReflection);
@@ -1537,7 +1537,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 result = passData.contactShadowsTexture;
 
                 builder.SetRenderFunc(
-                    (RenderContactShadowPassData data, ComputeGraphContext ctx) =>
+                    static (RenderContactShadowPassData data, ComputeGraphContext ctx) =>
                     {
                         ctx.cmd.SetComputeVectorParam(data.contactShadowsCS, HDShaderIDs._ContactShadowParamsParameters, data.params1);
                         ctx.cmd.SetComputeVectorParam(data.contactShadowsCS, HDShaderIDs._ContactShadowParamsParameters2, data.params2);

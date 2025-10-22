@@ -259,6 +259,7 @@ namespace UnityEngine.Rendering
         private class OcclusionTestOverlayPassData
         {
             public BufferHandle debugPyramid;
+            public Material debugOcclusionTestMaterial;
         }
 
         public void RenderDebugOcclusionTestOverlay(RenderGraph renderGraph, DebugDisplayGPUResidentDrawer debugSettings, int viewInstanceID, TextureHandle colorBuffer)
@@ -279,7 +280,7 @@ namespace UnityEngine.Rendering
                 passData.cb = debugOutput.cb;
 
                 builder.SetRenderFunc(
-                    (OcclusionTestOverlaySetupPassData data, ComputeGraphContext ctx) =>
+                    static (OcclusionTestOverlaySetupPassData data, ComputeGraphContext ctx) =>
                     {
                         var occ = GPUResidentDrawer.instance.batcher.occlusionCullingCommon;
 
@@ -299,15 +300,16 @@ namespace UnityEngine.Rendering
                 builder.AllowGlobalStateModification(true);
 
                 passData.debugPyramid = renderGraph.ImportBuffer(debugOutput.occlusionDebugOverlay);
+                passData.debugOcclusionTestMaterial = m_DebugOcclusionTestMaterial;
 
                 builder.SetRenderAttachment(colorBuffer, 0);
                 builder.UseBuffer(passData.debugPyramid);
 
-                builder.SetRenderFunc(
-                    (OcclusionTestOverlayPassData data, RasterGraphContext ctx) =>
+                builder.SetRenderFunc( 
+                    static (OcclusionTestOverlayPassData data, RasterGraphContext ctx) =>
                     {
                         ctx.cmd.SetGlobalBuffer(ShaderIDs._OcclusionDebugOverlay, data.debugPyramid);
-                        CoreUtils.DrawFullScreen(ctx.cmd, m_DebugOcclusionTestMaterial);
+                        CoreUtils.DrawFullScreen(ctx.cmd, data.debugOcclusionTestMaterial);
                     });
             }
         }
@@ -362,7 +364,7 @@ namespace UnityEngine.Rendering
                 passData.passIndex = passIndex;
                 passData.validRange = debugSettings.occluderDebugViewRange;
 
-                builder.SetRenderFunc(
+                builder.SetRenderFunc(static 
                     (OccluderOverlayPassData data, RasterGraphContext ctx) =>
                     {
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
@@ -468,7 +470,7 @@ namespace UnityEngine.Rendering
                 passData.occluderHandles.UseForOccluderUpdate(builder);
 
                 builder.SetRenderFunc(
-                    (UpdateOccludersPassData data, ComputeGraphContext context) =>
+                    static (UpdateOccludersPassData data, ComputeGraphContext context) =>
                     {
                         Span<OccluderSubviewUpdate> occluderSubviewUpdates = stackalloc OccluderSubviewUpdate[data.occluderSubviewUpdates.Count];
                         int subviewMask = 0;

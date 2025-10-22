@@ -199,7 +199,7 @@ public class OnTilePostProcessPass : ScriptableRenderPass
             }
 
             builder.SetRenderAttachment(destination, 0, AccessFlags.WriteAll);
-            builder.SetRenderFunc((PassData data, RasterGraphContext context) => ExecuteFBFetchPass(data, context));
+            builder.SetRenderFunc(static (PassData data, RasterGraphContext context) => ExecuteFBFetchPass(data, context));
 
             passData.useXRVisibilityMesh = false;
             passData.msaaSamples = (int)srcDesc.msaaSamples;

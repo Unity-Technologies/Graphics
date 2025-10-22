@@ -320,7 +320,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((SetupLightPassData data, UnsafeGraphContext rgContext) =>
+                builder.SetRenderFunc(static (SetupLightPassData data, UnsafeGraphContext rgContext) =>
                 {
                     data.deferredLights.SetupLights(CommandBufferHelpers.GetNativeCommandBuffer(rgContext.cmd), data.cameraData, data.cameraTargetSizeCopy, data.lightData, true);
                 });

@@ -209,7 +209,7 @@ namespace UnityEngine.Rendering.Universal
 
                         passData.lightTextureIndex = i;
 
-                        builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                        builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                         {
                             Execute(context.cmd, data, data.layerBatch, data.lightTextureIndex);
                         });
@@ -232,7 +232,7 @@ namespace UnityEngine.Rendering.Universal
                     for (var i = 0; i < lightTextures.Length; i++)
                         builder.SetRenderAttachment(lightTextures[i], i);
                    
-                    builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                    builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                     {
                         for (var i = 0; i < data.layerBatch.activeBlendStylesIndices.Length; ++i)
                             Execute(context.cmd, data, data.layerBatch, i);

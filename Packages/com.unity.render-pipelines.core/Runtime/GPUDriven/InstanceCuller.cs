@@ -2335,7 +2335,7 @@ namespace UnityEngine.Rendering
                 passData.bufferHandles.UseForOcclusionTest(builder);
                 passData.occluderHandles.UseForOcclusionTest(builder);
 
-                builder.SetRenderFunc((InstanceOcclusionTestPassData data, ComputeGraphContext context) =>
+                builder.SetRenderFunc(static (InstanceOcclusionTestPassData data, ComputeGraphContext context) =>
                 {
                     var batcher = GPUResidentDrawer.instance.batcher;
                     batcher.instanceCullingBatcher.culler.AddOcclusionCullingDispatch(

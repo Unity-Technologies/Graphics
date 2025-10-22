@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     PrepareEvaluateRayCountPassData(builder, passData, hdCamera, colorBuffer, depthBuffer, rayCountTexture);
 
                     builder.SetRenderFunc(
-                        (EvaluateRayCountPassData data, UnsafeGraphContext ctx) =>
+                        static (EvaluateRayCountPassData data, UnsafeGraphContext ctx) =>
                         {
                             // Get the size of the viewport to process
                             int currentWidth = data.width;

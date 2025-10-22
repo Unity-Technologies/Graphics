@@ -387,7 +387,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         new BufferDesc(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(CelestialBodyData))));
 
                     builder.SetRenderFunc(
-                    (SetGlobalSkyDataPassData data, UnsafeGraphContext ctx) =>
+                    static (SetGlobalSkyDataPassData data, UnsafeGraphContext ctx) =>
                     {
                         data.builtinParameters.commandBuffer = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         data.skyRenderer.SetGlobalSkyData(data.builtinParameters.commandBuffer, data.builtinParameters);
@@ -799,7 +799,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.output, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (RenderSkyToCubemapPassData data, UnsafeGraphContext ctx) =>
+                    static (RenderSkyToCubemapPassData data, UnsafeGraphContext ctx) =>
                     {
                         data.builtinParameters.commandBuffer = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
 
@@ -866,7 +866,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.callback = callback;
 
                 builder.SetRenderFunc(
-                (UpdateAmbientProbePassData data, UnsafeGraphContext ctx) =>
+                static (UpdateAmbientProbePassData data, UnsafeGraphContext ctx) =>
                 {
                     if (data.ambientProbeResult != null)
                         ctx.cmd.SetComputeBufferParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, s_AmbientProbeOutputBufferParam, data.ambientProbeResult);
@@ -933,7 +933,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 { format = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Cube, useMipMap = true, autoGenerateMips = false, filterMode = FilterMode.Trilinear, name = "SkyboxBSDFIntermediate" });
 
                 builder.SetRenderFunc(
-                (SkyEnvironmentConvolutionPassData data, UnsafeGraphContext ctx) =>
+                static (SkyEnvironmentConvolutionPassData data, UnsafeGraphContext ctx) =>
                 {
                     var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
 
@@ -1361,7 +1361,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_CurrentDebugDisplaySettings);
 
                     builder.SetRenderFunc(
-                        (RenderSkyPassData data, UnsafeGraphContext ctx) =>
+                        static (RenderSkyPassData data, UnsafeGraphContext ctx) =>
                         {
                             data.builtinParameters.colorBuffer = data.colorBuffer;
                             data.builtinParameters.depthBuffer = data.depthBuffer;
@@ -1422,7 +1422,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_CurrentDebugDisplaySettings);
 
                     builder.SetRenderFunc(
-                        (RenderSkyPassData data, UnsafeGraphContext ctx) =>
+                        static (RenderSkyPassData data, UnsafeGraphContext ctx) =>
                         {
                             data.builtinParameters.colorBuffer = data.colorBuffer;
                             data.builtinParameters.depthBuffer = data.depthBuffer;
@@ -1478,7 +1478,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.builtinParameters.cloudAmbientProbe = cachedContext.renderingContext.cloudAmbientProbeBuffer;
 
                 builder.SetRenderFunc(
-                    (RenderSkyPassData data, UnsafeGraphContext ctx) =>
+                    static (RenderSkyPassData data, UnsafeGraphContext ctx) =>
                     {
                         data.builtinParameters.colorBuffer = data.colorBuffer;
                         data.builtinParameters.depthBuffer = data.depthBuffer;
@@ -1598,7 +1598,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 builder.SetRenderFunc(
-                    (OpaqueAtmosphericScatteringPassData data, UnsafeGraphContext ctx) =>
+                    static (OpaqueAtmosphericScatteringPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();

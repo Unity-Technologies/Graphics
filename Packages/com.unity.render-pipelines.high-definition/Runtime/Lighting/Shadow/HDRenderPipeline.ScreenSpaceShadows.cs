@@ -338,7 +338,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (ScreenSpaceShadowDebugPassData data, UnsafeGraphContext ctx) =>
+                    static (ScreenSpaceShadowDebugPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Evaluate the dispatch parameters
@@ -427,7 +427,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputShadowArrayBuffer, AccessFlags.ReadWrite);
 
                 builder.SetRenderFunc(
-                    (WriteScreenSpaceShadowPassData data, UnsafeGraphContext ctx) =>
+                    static (WriteScreenSpaceShadowPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Evaluate the dispatch parameters

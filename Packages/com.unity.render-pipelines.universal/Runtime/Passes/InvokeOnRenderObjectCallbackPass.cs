@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(colorTarget, AccessFlags.Write);
                 builder.UseTexture(depthTarget, AccessFlags.Write);
                 builder.AllowPassCulling(false);
-                builder.SetRenderFunc((PassData data, UnsafeGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, UnsafeGraphContext context) =>
                 {
                     context.cmd.SetRenderTarget(data.colorTarget, data.depthTarget);
                     context.cmd.InvokeOnRenderObjectCallbacks();
