@@ -156,6 +156,21 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         /// <summary>
+        /// Used by the render pipeline to retrieve the applied renderViewportScale value from the XR display.
+        /// One use case for retriving this value is that render pipeline can properly sync some SRP owned textures to scale accordingly
+        /// </summary>
+        /// <returns> Returns current appliedViewportScale value from the XRDisplaySubsystem. </returns>
+        public static float GetRenderViewportScale()
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+
+            return s_Display.appliedViewportScale;
+#else
+            return 1.0f;
+#endif
+        }
+
+        /// <summary>
         /// Used by the render pipeline to initiate a new rendering frame through a XR layout.
         /// </summary>
         /// <returns></returns>
