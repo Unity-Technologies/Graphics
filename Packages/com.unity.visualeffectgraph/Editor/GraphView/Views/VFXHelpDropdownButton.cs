@@ -53,21 +53,27 @@ namespace UnityEditor.VFX.UI
 
         void InstallSample(string sampleName)
         {
-            var sample = Sample.FindByPackage(VisualEffectGraphPackageInfo.name, null).SingleOrDefault(x => x.displayName == sampleName);
+            var searchResult = Sample.FindByPackage(VisualEffectGraphPackageInfo.name, null);
+            var sample = searchResult.SingleOrDefault(x => x.displayName == sampleName);
             if (!string.IsNullOrEmpty(sample.displayName))
             {
-                if (!sample.isImported)
-                {
-                    sample.Import();
-                }
-                else
+                var importMode = Sample.ImportOptions.None;
+                if (sample.isImported)
                 {
                     var reinstall = EditorUtility.DisplayDialog("Warning", "This sample package is already installed.\nDo you want to reinstall it?", "Yes", "No");
                     if (reinstall)
                     {
-                        sample.Import(Sample.ImportOptions.OverridePreviousImports);
+                        importMode = Sample.ImportOptions.OverridePreviousImports;
+                    }
+                    else
+                    {
+                        return;
                     }
                 }
+
+                var packageInfo = PackageManager.PackageInfo.FindForAssetPath(VisualEffectGraphPackageInfo.assetPackagePath);
+                VFXTemplateHelperInternal.ImportSampleDependencies(packageInfo, sample);
+                sample.Import(importMode);
             }
             else
             {
