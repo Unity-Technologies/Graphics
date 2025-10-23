@@ -610,7 +610,7 @@ namespace UnityEngine.Rendering.Universal
             bool requirePrepass = requirePrepassForTextures || useDepthPriming;
 
             // Only use a depth format when we do a prepass directly the cameraDepthTexture. If we do depth priming (ie, prepass to the activeCameraDepth), we don't do a prepass to the texture. Instead, we do a copy from the primed attachment.
-            bool prepassToCameraDepthTexture = requirePrepass && !useDepthPriming;
+            bool prepassToCameraDepthTexture = requirePrepassForTextures && !usesDeferredLighting;
             bool depthTextureIsDepthFormat = prepassToCameraDepthTexture;
             bool requireCopyFromDepth = requireDepthTexture && !prepassToCameraDepthTexture;
 
@@ -847,7 +847,7 @@ namespace UnityEngine.Rendering.Universal
         private static bool AllowPartialDepthNormalsPrepass(bool isDeferred, RenderPassEvent requiresDepthNormalEvent, bool useDepthPriming)
         {
             return isDeferred && ((RenderPassEvent.AfterRenderingGbuffer <= requiresDepthNormalEvent) &&
-                                  (requiresDepthNormalEvent <= RenderPassEvent.BeforeRenderingOpaques)) && useDepthPriming;
+                                  (requiresDepthNormalEvent <= RenderPassEvent.BeforeRenderingOpaques)) && !useDepthPriming;
         }
 
         // Enumeration of possible positions within the frame where the depth copy can occur
@@ -935,7 +935,7 @@ namespace UnityEngine.Rendering.Universal
             internal ColorCopySchedule color;
         }
 
-        private TextureCopySchedules CalculateTextureCopySchedules(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs, bool requiresDepthPrepass, bool hasFullPrepass, bool requireDepthTexture)
+        private TextureCopySchedules CalculateTextureCopySchedules(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs, bool isDeferred, bool requiresDepthPrepass, bool hasFullPrepass, bool requireDepthTexture)
         {
             // Assume the depth texture is unused and no copy is needed until we determine otherwise
             DepthCopySchedule depth = DepthCopySchedule.None;
@@ -944,7 +944,7 @@ namespace UnityEngine.Rendering.Universal
             if (requireDepthTexture)
             {
                 //The prepass will render directly to the depthTexture when not using depth priming. Therefore we don't need a copy in that case.
-                bool depthTextureRequiresCopy = (!requiresDepthPrepass || useDepthPriming);
+                bool depthTextureRequiresCopy = isDeferred || (!requiresDepthPrepass || useDepthPriming);
 
                 depth = depthTextureRequiresCopy ? CalculateDepthCopySchedule(renderPassInputs.requiresDepthTextureEarliestEvent, hasFullPrepass)
                                                  : DepthCopySchedule.DuringPrepass;
@@ -1011,7 +1011,7 @@ namespace UnityEngine.Rendering.Universal
             // - Have a depth normals prepass that does not allow the partial prepass optimization
             bool hasFullPrepass = isDepthOnlyPrepass || (isDepthNormalPrepass && !AllowPartialDepthNormalsPrepass(usesDeferredLighting, renderPassInputs.requiresDepthNormalAtEvent, useDepthPriming));
 
-            TextureCopySchedules copySchedules = CalculateTextureCopySchedules(cameraData, renderPassInputs, requiresPrepass, hasFullPrepass, requireDepthTexture);
+            TextureCopySchedules copySchedules = CalculateTextureCopySchedules(cameraData, renderPassInputs, usesDeferredLighting, requiresPrepass, hasFullPrepass, requireDepthTexture);
 
             // Decide if & when to use GPU Occlusion Culling.
             // In deferred, do it during gbuffer laydown unless we are forced to do a *full* prepass by a render pass.
@@ -1047,10 +1047,13 @@ namespace UnityEngine.Rendering.Universal
 
             if (requiresPrepass)
             {
-                TextureHandle depthTarget = useDepthPriming ? resourceData.activeDepthTexture : resourceData.cameraDepthTexture;
+                // If we're in deferred mode, prepasses always render directly to the depth attachment rather than the camera depth texture.
+                // In non-deferred mode, we only render to the depth attachment directly when depth priming is enabled and we're starting with an empty depth buffer.
+                bool renderToAttachment = (usesDeferredLighting || useDepthPriming);
+                TextureHandle depthTarget = renderToAttachment ? resourceData.activeDepthTexture : resourceData.cameraDepthTexture;
 
                 // Prepare stencil buffer for stencil-based cross-fade lod in depth normal prepass. Depth prepass doesn't use stencil test (same as shadow).
-                if (renderingData.stencilLodCrossFadeEnabled && isDepthNormalPrepass && !useDepthPriming)
+                if (renderingData.stencilLodCrossFadeEnabled && isDepthNormalPrepass && !renderToAttachment)
                     m_StencilCrossFadeRenderPass.Render(renderGraph, context, resourceData.cameraDepthTexture);
 
                 bool needsOccluderUpdate = occluderPass == OccluderPass.DepthPrepass;
@@ -1073,7 +1076,7 @@ namespace UnityEngine.Rendering.Universal
 
                     // When we render to the depth attachment, a copy must happen later to populate the camera depth texture and the copy will handle setting globals.
                     // If we're rendering to the camera depth texture, we can set the globals immediately.
-                    bool setGlobalDepth = isLastPass && !useDepthPriming;
+                    bool setGlobalDepth = isLastPass && !renderToAttachment;
 
                     // There's no special copy logic for the camera normals texture, so we can set the global as long as we're not performing a partial prepass.
                     // In the case of a partial prepass, the global will be set later by the gbuffer pass once it completes the data in the texture.
@@ -1088,7 +1091,7 @@ namespace UnityEngine.Rendering.Universal
                         {
                             SetupRenderGraphCameraProperties(renderGraph, depthTarget);
                         }
-                        DepthNormalPrepassRender(renderGraph, renderPassInputs, depthTarget, batchLayerMask, setGlobalDepth, setGlobalTextures);
+                        DepthNormalPrepassRender(renderGraph, renderPassInputs, depthTarget, batchLayerMask, setGlobalDepth, setGlobalTextures, !hasFullPrepass);
                         // Restore camera properties for the rest of the render graph execution.
                         if (resourceData.isActiveTargetBackBuffer)
                         {
@@ -1096,7 +1099,7 @@ namespace UnityEngine.Rendering.Universal
                         }
                     }
                     else
-                        m_DepthPrepass.Render(renderGraph, frameData, ref depthTarget, batchLayerMask, setGlobalDepth);
+                        m_DepthPrepass.Render(renderGraph, frameData, in depthTarget, batchLayerMask, setGlobalDepth);
 
                     if (needsOccluderUpdate)
                     {
@@ -1530,11 +1533,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// When true the pipeline needs to add a prepass that renders depth to the currentCameraDepth.
+        /// When true the pipeline needs to add a full prepass that renders depth to the currentCameraDepth.
         /// Depth priming is an optimization (on certain devices/platforms). Features that want to leverage this as an optimization
         /// need to check UniversalRender.useDepthPriming (which equal to the result of this function)
         /// to ensure that the pipeline will actually do depth priming.
-        /// When this is true then we are sure that after RenderPassEvent.AfterRenderingPrePasses the currentCameraDepth has been primed.
+        /// When this is true then we are sure that after RenderPassEvent.AfterRenderingPrePasses the currentCameraDepth has been primed with the full depth.
         /// </summary>
         static bool IsDepthPrimingEnabledRenderGraph(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs, DepthPrimingMode depthPrimingMode, bool requireDepthTexture, bool requirePrepassForTextures, bool usesDeferredLighting)
         {
@@ -1573,19 +1576,6 @@ namespace UnityEngine.Rendering.Universal
             bool isNotWebGL = !IsWebGL();
             bool depthPrimingRequested = (depthPrimingRecommended && depthPrimingMode == DepthPrimingMode.Auto) || depthPrimingMode == DepthPrimingMode.Forced;
             bool isNotMSAA = cameraData.cameraTargetDescriptor.msaaSamples == 1;
-
-            {
-                //TODO this need to be further investigated. This moved here from the MainRendering to consolidate all the depth priming logic in one place. The PR that landed this aimed to refactor without unnecessarily changing behavior.
-                //The prepass and gbuffer logic should have an alternative path that can handle depth priming off. This way, we can respect the user setting Never and Forced.
-                //Priming is bad for performance when using deferred so we don't allow it. However, when a prepass for textures is required, the gbuffer pass currently
-                //relies on the prepass writing the same (activeCameraDepth) depth resource.
-                bool needsPrimingForDeferredWithPartialPrepass = usesDeferredLighting
-                                                                        && ((RenderPassEvent.AfterRenderingGbuffer <= renderPassInputs.requiresDepthNormalAtEvent) &&
-                                                                            (renderPassInputs.requiresDepthNormalAtEvent <= RenderPassEvent.BeforeRenderingOpaques))
-                                                                            && requirePrepassForTextures;
-                if (needsPrimingForDeferredWithPartialPrepass)
-                    return true;
-            }
 
             bool isFirstCameraToWriteDepth = cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth;
             // Depth is not rendered in a depth-only camera setup with depth priming (UUM-38158)
@@ -1921,7 +1911,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void DepthNormalPrepassRender(RenderGraph renderGraph, RenderPassInputSummary renderPassInputs, TextureHandle depthTarget, uint batchLayerMask, bool setGlobalDepth, bool setGlobalTextures)
+        void DepthNormalPrepassRender(RenderGraph renderGraph, RenderPassInputSummary renderPassInputs, in TextureHandle depthTarget, uint batchLayerMask, bool setGlobalDepth, bool setGlobalTextures, bool partialPass)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
@@ -1935,20 +1925,7 @@ namespace UnityEngine.Rendering.Universal
                 m_DepthNormalPrepass.enableRenderingLayers = false;
             }
 
-            if (usesDeferredLighting)
-            {
-                // Only render forward-only geometry, as standard geometry will be rendered as normal into the gbuffer.
-                if (AllowPartialDepthNormalsPrepass(usesDeferredLighting, renderPassInputs.requiresDepthNormalAtEvent, useDepthPriming))
-                    m_DepthNormalPrepass.shaderTagIds = k_DepthNormalsOnly;
-
-                // TODO RENDERGRAPH: commented this out since would be equivalent to the current behaviour? Double check
-                //if (!m_RenderingLayerProvidesByDepthNormalPass)
-                // renderingLayersTexture = resourceData.gbuffer[m_DeferredLights.GBufferRenderingLayers]; // GBUffer texture here
-            }
-
-            TextureHandle normalsTexture = resourceData.cameraNormalsTexture;
-            TextureHandle renderingLayersTexture = resourceData.renderingLayersTexture;
-            m_DepthNormalPrepass.Render(renderGraph, frameData, normalsTexture, depthTarget, renderingLayersTexture, batchLayerMask, setGlobalDepth, setGlobalTextures);
+            m_DepthNormalPrepass.Render(renderGraph, frameData, resourceData.cameraNormalsTexture, in depthTarget, resourceData.renderingLayersTexture, batchLayerMask, setGlobalDepth, setGlobalTextures, partialPass);
 
             if (m_RequiresRenderingLayer)
                 SetRenderingLayersGlobalTextures(renderGraph);
