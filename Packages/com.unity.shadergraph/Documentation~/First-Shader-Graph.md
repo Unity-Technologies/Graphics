@@ -1,111 +1,121 @@
-# My first Shader Graph
+# Create a shader graph and use it with a material
 
-Before you begin, make sure that your project is set up properly, and the graphs are loading correctly. See [Getting started with Shader Graph](Getting-Started.md) for more information.
+This example shows you how to do the following:
+* Create a simple Lit shader graph with the Universal Render Pipeline (URP).
+* Create and manage a material that uses this shader graph in a scene.
 
-## Create a New Graph
-Use the Project Browser to create a new [Shader Graph Asset](Shader-Graph-Asset.md) in your project. The **Create > Shader Graph** will display the various creation options.
+For more options to get started with Shader Graph, refer to:
+* [Create a shader graph asset](create-shader-graph.md)
+* [Add and connect nodes in a shader graph](Create-Node-Menu.md)
 
-A **Blank Shader Graph** will create a Shader Graph with no selected active targets or [block nodes](Block-Node.md). You will need to select a target via the [Graph Settings Menu](Graph-Settings-Tab.md) to continue.
+## Create a new shader graph
 
-Certain integrations, like Render Pipelines, can also provide pre-configured options for Shader Graphs. For this example, a **Universal > Lit** Shader Graph has been created and opened.
+Before you can build a new shader graph, you have to create a shader graph asset to contain it. Follow these steps:
+
+1. In the **Project** window, right-click and select **Create** > **Shader Graph** > **URP** > **Lit**.
+
+1. Name the created shader graph asset and press Enter.
+
+The [Shader Graph window](Shader-Graph-Window.md) opens, which allows you to edit the shader graph in the created asset. If the window doesn't open, double-click on the created asset.
 
 ## Create a new node
 
-Use the **Create Node** menu to create new nodes. There are two ways to open the menu:
+For this example, you need to create a Color node. Follow these steps:
 
-1. Right click, and select **Create Node** from the context menu.
-2. Press the spacebar.
+1. Select the Shader Graph window's workspace and press the **Spacebar**.
+   
+   The **Create Node** menu opens, with the list of all available nodes.
 
-In the menu, you can type in the search bar to look for specific nodes, or browse all nodes in the library. In this example, we'll create a Color node. First, type "color" in the **Create Node** menu's search bar. Then, click **Color**, or highlight **Color** and press Enter to create a Color node.
+1. In the **Create Node** menu's search bar, type `color`.
 
-![](images/MyFirstShaderGraph_01.png)
+1. In the **Input** > **Basic** category, double-click on **Color**.
 
-## Connect nodes
+A new **Color** node appears in the workspace.
 
-To build a graph, you need to connect nodes together. To do so, click the **Output Slot** of a node, and drag that connection into the **Input Slot** of another node.
+## Connect the node to the master stack
 
-Start by connecting the Color node to the **Base Color** block of our Fragment Stack.
+To use the Color node property as an input for the shader, you need to connect the node to the master stack. Follow these steps:
 
-![](images/MyFirstShaderGraph_02.png)
+1. Select the **Out(4)** port of the **Color** node.
 
-## Change node output
+1. Drag it to the **Base Color** block port of the **Fragment** section of the [master stack](Master-Stack.md).
 
-Notice that the connection updated the main preview, and the 3D Object in the **Main Preview** is now black, which is the color specified in the Color node. You can click on the color bar in that node, and use the color picker to change the color. Any changes you make on the node updates the object in the **Main Preview** in real time.
+This connection updates the appearance of the 3D object in the **Main Preview**, which is now black, according to the Color node's default value.
 
-For example, if you pick red, the 3D Object immediately reflects this change.
+## Change the shader color
 
-![](images/MyFirstShaderGraph_03.png)
+You can change the output color of the Color node to view how it affects the final shader. Follow these steps:
 
-## Save the graph
+1. In the **Color** node, click on the color bar.
 
-Currently, Shader Graphs do not automatically save. There are two ways to save your changes:
+1. Use the color picker to change the color.
 
-1. Click the **Save Asset** button in the top left corner of the window.
-3. Close the graph. If Unity detects any unsaved changes, a pop-up window appears, and asks if you want to save those changes.
+The color of the 3D object in the **Main Preview** changes to the selected color in real time.
 
-![](images/MyFirstShaderGraph_04.png)
+## Save your shader graph
 
-## Create a Material
+You need to save your shader graph to use it with a material. To save your shader graph, do one of the following:
 
-After saving your graph, use the shader to create a new Material. The process of [creating a new Material](https://docs.unity3d.com/Manual/Materials.html) and assigning it a Shader Graph shader is the same as that for regular shaders. In either the main menu or the Project View context menu, select **Assets > Create > Material**. Select the Material you just created. In its Inspector window, select the **Shader** drop-down menu, click **Shader Graphs**, and choose the Shader Graph shader you wish to apply to the Material.
+* Click the **Save Asset** button in the top left corner of the window.
 
-You can also right-click the Shader Graph shader, and select **Create > Material**. This method automatically assigns that Shader Graph shader to the newly created Material.
+* Close the graph. If Unity detects any unsaved changes, a dialog appears, and asks if you want to save those changes.
 
-![](images/MyFirstShaderGraph_05.png)
+## Create a material from your shader graph
 
-A Material is also automatically generated as a subasset of the Shader Graph. You can assign it directly to an object in your scene. Modifying a property from the Blackboard on the Shader Graph will update this material in real time, which allows for quick visualization in the scene.
+After you've saved your shader graph, you can use it to create a new material.
 
-## Put the Material in the Scene
+The process of [creating a new Material](https://docs.unity3d.com/Manual/Materials.html) and assigning it a Shader Graph shader is the same as that for regular shaders.
 
-Now that you have assigned your shader to a Material, you can apply it to objects in the Scene. Drag and drop the Material onto an object in the Scene. Alternatively, in the object's Inspector window, locate **Mesh Renderer > Materials**, and apply the Material to the **Element**.
+To create a new material from your shader graph, follow these steps:
 
-![](images/MyFirstShaderGraph_06.png)
+1. In the Project window, right-click the shader graph asset you created.
 
-## Use properties to edit the graph
+1. Select **Create > Material**.
 
-You can also use properties to alter your shader's appearance. Properties are options that are visible from the Material's Inspector, which lets others change settings in your shader without the need to open the Shader Graph.
+Unity automatically assigns the shader graph asset to the newly created material. You can view the shader graph name selected in the material's Inspector in the **Shader** property. 
 
-To create a new property, use the **Add (+)** button on the top right corner of the Blackboard, and select the type of property to create. In this example, we'll select **Color**.
+## Use the material in the scene
 
-![](images/MyFirstShaderGraph_07.png)
+Now that you have assigned your shader to a material, you can apply this material to GameObjects in the scene through one of the following:
 
-This adds a new property in the Blackboard with the following options in the **Node Settings** tab of the [Graph Inspector](Internal-Inspector.md) when the property is selected.
+* Drag the material onto a GameObject in the scene.
 
-![](images/MyFirstShaderGraph_08.png)
+* In the GameObject's Inspector, go to **Mesh Renderer > Materials**, and set the **Element** property to your material.
 
-| **Option**          | **Description**                                              |
-| ------------------- | ------------------------------------------------------------ |
-| **Property button** | To change the name of the property, right-click the button in the Blackboard, select **Rename**, then enter a new property name. To delete the property, right-click the button, and select **Delete**. |
-| **Exposed**         | Enable this checkbox to make the property visible from the Material's Inspector. |
-| **Reference**       | The property's name that appears in C# scripts. To change the **Reference** name, enter a new string. |
-| **Default**         | The default value of the property.                           |
-| **Mode**            | The mode of the property. Each property has different modes. For **Color**, you can select either **Default** or **HDR**. |
-| **Precision**       | The default [precision](Precision-Modes.md) of the property. |
-| **Hybrid Instanced**| An experimental feature that enables this property to be instanced when using the Hybrid DOTS renderer. |
+## Control the color from the material's Inspector
 
+You can use a property in the shader graph to alter your shader's appearance directly from the material's Inspector, without the need to edit the shader graph.
 
-There are two ways to reference a property in your graph:
+To use a Color property instead of a Color node in your shader graph, follow these steps:
 
-1. Drag the property from the Blackboard onto the graph.
-2. Right-click and select **Create Node**. The property is listed in the **Properties** category.
+1. Open the shader graph you created earlier in the [Shader Graph window](Shader-Graph-Window.md).
 
-![](images/MyFirstShaderGraph_09.png)
+1. In the [Blackboard](Blackboard.md), select **Add (+)**, and then select **Color**.
+   
+   The Blackboard now displays a [property of Color type](Property-Types.md#color).
 
-Try connecting the property to the **Base Color** block. The object immediately changes to black.
+1. Select the property.
+1. In the [Graph Inspector](Internal-Inspector.md), in the **Node Settings** tab:
+   
+   * Change the **Name** according to the name you want to identify the property within the material's Inspector.
+   * Make sure to activate the **Show In Inspector** option.
 
-![](images/MyFirstShaderGraph_10.png)
+1. Drag the property from the Blackboard onto the Shader Graph window's workspace.
 
-Save your graph, and return to the Material's Inspector. The property now appears in the Inspector. Any changes you make to the property in the Inspector affects all objects that use this Material.
+1. Connect the property's node to the **Base Color** block port of the **Fragment** section of the [master stack](Master-Stack.md), instead of the Color node you were using previously.
+   
+   This connection updates the appearance of the 3D object in the **Main Preview**, which is now black, according to the property's default value.
 
-![](images/MyFirstShaderGraph_11.png)
+1. Save your graph, and return to the material's Inspector.
+   
+   The property you added in the graph now appears in the material's Inspector. Any changes you make to the property from the Inspector affects all objects that use this material.
 
-## More Tutorials
+## Additional resources
 
-Older tutorials use an outdated format of Shader Graph with master nodes. When looking at older tutorials, reference the [Upgrade Guide](Upgrade-Guide-10-0-x.md) for tips on how to convert the master node to a [Master Stack](Master-Stack.md).
+* [Art That Moves: Creating Animated Materials with Shader Graph](https://unity.com/blog/engine-platform/creating-animated-materials-with-shader-graph)
+* [Custom Lighting in Shader Graph: Expanding Your Graphs in 2019](https://unity.com/blog/engine-platform/custom-lighting-in-shader-graph-expanding-your-graphs-in-2019)
+* [Shader Graph video tutorials](https://www.youtube.com/user/Unity3D/search?query=shader+graph) (on Unity YouTube Channel)
+* [Shader Graph forum](https://discussions.unity.com/tags/c/unity-engine/52/shader-graph)
 
-To keep exploring how to use Shader Graph to author shaders, check out these blog posts:
-
-- [Art That Moves: Creating Animated Materials with Shader Graph](https://unity.com/blog/engine-platform/creating-animated-materials-with-shader-graph)
-- [Custom Lighting in Shader Graph: Expanding Your Graphs in 2019](https://unity.com/blog/engine-platform/custom-lighting-in-shader-graph-expanding-your-graphs-in-2019)
-
-You can also visit the [Unity YouTube Channel](https://www.youtube.com/channel/UCG08EqOAXJk_YXPDsAvReSg) and look for [video tutorials on Shader Graph](https://www.youtube.com/user/Unity3D/search?query=shader+graph), or head to our [user forum](https://discussions.unity.com/tags/c/unity-engine/52/shader-graph) to find the latest information and conversations about Shader Graph.
+> [!NOTE]
+> Older tutorials use a former version of Shader Graph with master nodes. To know the differences between the former master node and the [Master Stack](Master-Stack.md), refer to the [Upgrade Guide](Upgrade-Guide-10-0-x.md).
