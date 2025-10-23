@@ -191,6 +191,7 @@ namespace UnityEditor.VFX
             if (m_ShowParticleOptions)
                 DoDefaultContextEditorGUI();
 
+            ApplyAndInvalidate();
             DisplayWarnings();
             DisplaySummary();
         }
