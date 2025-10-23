@@ -19,10 +19,9 @@ namespace UnityEditor.VFX.Test
         private static readonly string kSampleExpectedPath = "Assets/Samples";
 
         [SerializeField]
-        private static string m_CurrentMatch;
+        private string m_CurrentMatch;
 
         [UnityTest, Timeout(10 * 60 * 1000)]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })] // Unstable: https://jira.unity3d.com/browse/UUM-117433
         public IEnumerator Check_Additional_Doesnt_Generate_Any_Errors([ValueSource(nameof(kAdditionalSampleMatches))] string expectedMatch)
         {
             m_CurrentMatch = expectedMatch;
@@ -79,11 +78,11 @@ namespace UnityEditor.VFX.Test
                     {
                         var dataParticle = initialize.GetData() as VFXDataParticle;
                         Assert.IsNotNull(dataParticle);
-                        Assert.AreEqual(BoundsSettingMode.Manual, dataParticle.boundsMode);
+                        Assert.AreEqual(BoundsSettingMode.Manual, dataParticle.boundsMode, "Failure at " + path);
                     }
 
-                    Assert.IsTrue(graph.children.OfType<VFXAbstractRenderedOutput>().Any());
-                    Assert.IsTrue(graph.UIInfos.stickyNoteInfos.Length > 0);
+                    Assert.IsTrue(graph.children.OfType<VFXAbstractRenderedOutput>().Any(), "Failure at " + path);
+                    Assert.IsTrue(graph.UIInfos.stickyNoteInfos.Length > 0, "Failure at " + path);
                 }
             }
             m_CurrentMatch = null;
