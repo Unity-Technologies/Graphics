@@ -59,8 +59,6 @@ namespace UnityEngine.Rendering.Universal
         const int k_FinalBlitPassQueueOffset = 1;
         const int k_AfterFinalBlitPassQueueOffset = k_FinalBlitPassQueueOffset + 1;
 
-        static readonly List<ShaderTagId> k_DepthNormalsOnly = new List<ShaderTagId> { new ShaderTagId("DepthNormalsOnly") };
-
         /// <inheritdoc/>
         public override int SupportedCameraStackingTypes()
         {
