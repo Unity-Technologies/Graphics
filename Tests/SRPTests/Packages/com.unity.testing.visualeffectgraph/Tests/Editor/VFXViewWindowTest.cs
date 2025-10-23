@@ -98,6 +98,49 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(3, previewAssets.OfType<ComputeShader>().Count());
         }
 
+        [SerializeField] private string m_Domain_Reload_Open_Same_Window_Twice_Path;
+
+        [UnityTest, Description("Cover UUM-113965")]
+        public IEnumerator Domain_Reload_Open_Same_Window_Twice()
+        {
+            while (EditorWindow.HasOpenInstances<VFXViewWindow>())
+                EditorWindow.GetWindow<VFXViewWindow>().Close();
+            while (EditorWindow.HasOpenInstances<SceneView>())
+                EditorWindow.GetWindow<SceneView>().Close();
+
+            Assert.AreEqual(0, VFXViewWindow.GetAllWindows().Count);
+            var graph = VFXTestCommon.MakeTemporarySubGraphBlock();
+
+            m_Domain_Reload_Open_Same_Window_Twice_Path = AssetDatabase.GetAssetPath(graph);
+            Assert.IsFalse(string.IsNullOrEmpty(m_Domain_Reload_Open_Same_Window_Twice_Path));
+
+            var resource = graph.GetResource();
+            var window = VFXViewWindow.GetWindow(resource, true, true);
+            window.LoadResource(resource, null);
+
+            var vfxDockArea = window.m_Parent as DockArea;
+            Assert.IsNotNull(vfxDockArea);
+            vfxDockArea.AddTab(SceneView.GetWindow(typeof(SceneView)));
+
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count);
+
+            EditorUtility.RequestScriptReload();
+            yield return new WaitForDomainReload();
+
+            resource = VisualEffectResource.GetResourceAtPath(m_Domain_Reload_Open_Same_Window_Twice_Path);
+            Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count);
+            yield return null;
+
+            window = VFXViewWindow.GetWindow(resource, true, true);
+            window.LoadResource(resource, null);
+
+            Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count);
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator Check_Tab_Attachment_Behavior()
         {
