@@ -2084,11 +2084,5 @@ namespace UnityEngine.Rendering.Universal
         }
 
         internal static bool isRunningOnPowerVRGPU = SystemInfo.graphicsDeviceName.Contains("PowerVR");
-
-        // Mali Valhall architecture GPUs (G76, G77, G78, etc.) have issues with separate depth textures when SSAO is enabled
-        // This affects depth texture sampling patterns in SSAO passes
-        internal static bool isRunningOnMaliValhallGPU = SystemInfo.graphicsDeviceName.StartsWith("Mali-G5") ||
-                                                         SystemInfo.graphicsDeviceName.StartsWith("Mali-G6") ||
-                                                         SystemInfo.graphicsDeviceName.StartsWith("Mali-G7");
     }
 }
