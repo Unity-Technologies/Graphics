@@ -5,18 +5,16 @@
 
 ---
 
-graphics_repo_nightly_trunk:
-    name: Graphics repo nightly on trunk on trunk
+graphics_repo_nightly_6000.4:
+    name: Graphics repo nightly on 6000.4
     variables:
-        CUSTOM_REVISION: 'trunk'
+        CUSTOM_REVISION: '6000.4/staging'
         TEST_FILTER: .*
         UTR_VERSION: "current"
     triggers:
         recurring:
           -  branch: master
-             frequency: 23 ? * 7 # At 11pm every Saturday
+             frequency: weekly
     dependencies:
-      -  path: .yamato/_templates.yml#all_template_ci_trunk
-         rerun: always
-      -  path: .yamato/all-postprocessing.yml#PostProcessing_trunk
+      -  path: .yamato/_templates.yml#all_template_ci_6000.4
          rerun: always
