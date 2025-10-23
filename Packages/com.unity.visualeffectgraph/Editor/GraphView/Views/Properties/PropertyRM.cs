@@ -355,7 +355,7 @@ namespace UnityEditor.VFX.UI
             {typeof(string), typeof(StringPropertyRM)}
         };
 
-        static Type GetPropertyType(IPropertyRMProvider controller)
+        protected static Type GetPropertyType(IPropertyRMProvider controller)
         {
             Type propertyType = null;
             Type type = controller.portType;

@@ -6,6 +6,8 @@ namespace UnityEditor.VFX.UI
         {
         }
 
+        public override bool IsCompatible(IPropertyRMProvider provider) => GetPropertyType(provider) == typeof(UintPropertyRM);
+
         protected override StringPropertyRM CreateField(IPropertyRMProvider provider)
         {
             return new StringPropertyRM(provider, 18);
