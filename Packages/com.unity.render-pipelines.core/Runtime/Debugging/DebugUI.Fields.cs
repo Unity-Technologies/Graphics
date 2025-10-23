@@ -574,9 +574,7 @@ namespace UnityEngine.Rendering
 
                         if (camera.cameraType != CameraType.Preview && camera.cameraType != CameraType.Reflection)
                         {
-                            if (!camera.TryGetComponent<IAdditionalData>(out var additionalData))
-                                Debug.LogWarning($"Camera {camera.name} does not contain an additional camera data component. Open the Game Object in the inspector to add additional camera data.");
-                            else
+                            if (camera.TryGetComponent<IAdditionalData>(out _))
                                 m_Cameras.Add(camera);
                         }
                     }
