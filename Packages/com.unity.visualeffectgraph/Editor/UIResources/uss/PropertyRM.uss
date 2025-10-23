@@ -10,36 +10,20 @@
     padding: 1px 0;
 }
 
-.propertyrm.expandable
-{
+.propertyrm.expandable {
     padding-left: 10px;
     background-size: 12px 12px;
     background-position-x: left;
-    background-image:resource("Builtin Skins/DarkSkin/Images/IN foldout.png");
+    -unity-background-image-tint-color: #888888;
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/IN foldout@2x.png");
 }
 
-.propertyrm.expandable:hover
-{
-    background-image:resource("Builtin Skins/DarkSkin/Images/IN foldout focus.png");
+.propertyrm.expandable:hover {
+    -unity-background-image-tint-color: var(--unity-colors-default-text-hover);
 }
 
-.propertyrm.expandable:hover:active
-{
-    background-image:resource("Builtin Skins/DarkSkin/Images/IN foldout act.png");
-}
-
-.propertyrm.expandable.icon-expanded
-{
-    background-image:resource("IN foldout on.png");
-}
-
-.propertyrm.expandable.icon-expanded:hover
-{
-    background-image:resource("IN foldout focus on.png");
-}
-.propertyrm.expandable.icon-expanded:active
-{
-    background-image:resource("IN foldout act on.png");
+.propertyrm.expandable.icon-expanded {
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/IN foldout on@2x.png");
 }
 
 .propertyrm.hasDepth {
@@ -77,6 +61,10 @@
 
 .propertyrm.expandable > Label {
     margin-left: 4px;
+}
+
+.propertyrm.expandable:hover > Label {
+    color: var(--unity-colors-default-text-hover);
 }
 
 .propertyrm > VFXEnumField.fieldContainer .unity-enum-field__input

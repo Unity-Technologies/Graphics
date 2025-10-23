@@ -434,24 +434,6 @@ namespace UnityEditor.VFX.UI
 
         void OnExpand(EventBase evt)
         {
-            // Allow expand/collapse on when clicking over the arrow icon (which can be embedded in the label's background)
-            if (evt is PointerUpEvent pointerUpEvent)
-            {
-                var label = this.Q<Label>();
-                if (label != null)
-                {
-                    if (provider.depth > 0)
-                    {
-                        if (pointerUpEvent.localPosition.x > label.layout.x + 20)
-                            return;
-                    }
-                    else if (pointerUpEvent.localPosition.x > 20)
-                    {
-                        return;
-                    }
-                }
-            }
-
             if (m_Provider.expanded)
             {
                 m_Provider.RetractPath();
