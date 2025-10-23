@@ -1059,7 +1059,6 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
             UnityEditor.SceneManagement.EditorSceneManager.sceneSaving += ProbeVolumeBakingSet.OnSceneSaving;
-            ProbeVolumeBakingSet.SyncBakingSets();
 #endif
             m_EnabledBySRP = true;
 
