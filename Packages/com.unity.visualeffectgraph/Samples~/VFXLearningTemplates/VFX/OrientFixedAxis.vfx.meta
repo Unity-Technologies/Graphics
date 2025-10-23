@@ -9,7 +9,7 @@ VisualEffectImporter:
     description: This VFX is an example to demonstrate the use of the Orient Block 
       and to align particles in a specific direction while still facing the camera
       plane. This mode is often used for rendering particles of grass.
-    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    icon: {fileID: 2800000, guid: ce3ba62f9452ddd4fbadb663ac249d93, type: 3}
     thumbnail: {fileID: 2800000, guid: 04febbab5a711e04aa699f6fd56723c8, type: 3}
   userData: 
   assetBundleName: 

@@ -9,7 +9,7 @@ VisualEffectImporter:
     description: 'This VFX gives an example of how to manipulate the pivot of your
       particle to get interesting motion. This example also demonstrates the ShaderGraph
       integration and how you can control ShaderGraph through VFX Graph. '
-    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    icon: {fileID: 2800000, guid: ce3ba62f9452ddd4fbadb663ac249d93, type: 3}
     thumbnail: {fileID: 2800000, guid: 29251384520d95f4fa010437bf43287e, type: 3}
   userData: 
   assetBundleName: 

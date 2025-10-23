@@ -11,7 +11,7 @@ VisualEffectImporter:
       to draw a quad between each particle. This example demonstrates a straightforward
       Strip setup. It explains the various strip properties and attributes that control
       its visual appearance and behavior.
-    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    icon: {fileID: 2800000, guid: ce3ba62f9452ddd4fbadb663ac249d93, type: 3}
     thumbnail: {fileID: 2800000, guid: 4dbffa047362c514b908a7a03ae268c0, type: 3}
   userData: 
   assetBundleName: 
