@@ -1230,7 +1230,7 @@ namespace UnityEditor.VFX.UI
 
         void OnAddCategory()
         {
-            AddCategory("new category");
+            AddCategory("New Category");
         }
 
         public VFXBlackboardRow GetRowFromController(VFXParameterController parameterController)
