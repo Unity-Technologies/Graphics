@@ -1557,6 +1557,9 @@ namespace UnityEditor.VFX.UI
             Clear();
             ModelChanged(model);
             GraphChanged();
+
+            var window = VFXViewWindow.GetWindow(this.graph, false, false);
+            window?.graphView?.blackboard.Update(true);
         }
 
         bool m_Syncing;
