@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 {
     class BuiltInCanvasSubTarget : CanvasSubTarget<BuiltInTarget>, IRequiresData<CanvasData>, IHasMetadata
     {
-        static readonly GUID kSourceCodeGuid = new GUID("5a0372ef872c4103b70866297bd45e38"); // BuiltInCanvasSubTarget.cs
+        static readonly UnityEngine.GUID kSourceCodeGuid = new UnityEngine.GUID("5a0372ef872c4103b70866297bd45e38"); // BuiltInCanvasSubTarget.cs
 
         static readonly string kCanvasPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/BuiltInCanvasPass.hlsl";
 
