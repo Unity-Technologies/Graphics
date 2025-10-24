@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.Universal
             if (!hasCompatibleDepth)
             {
                 //Here we assume that when using depth priming, there is no prepass to the cameraDepthTexture but a copy, so that the texture is a color format. 
-                var source = (useDepthPriming) ? resourceData.cameraDepth : resourceData.cameraDepthTexture;
+                var source = (useDepthPriming || universalRenderer.usesDeferredLighting) ? resourceData.cameraDepth : resourceData.cameraDepthTexture;
 
                 Debug.Assert(source.IsValid(), "DBufferCopyDepthPass needs a valid cameraDepth or cameraDepth texture to copy from. You might be using depth priming, with MSAA and direct to backbuffer rendering, which is not supported.");
                 Debug.Assert(GraphicsFormatUtility.IsDepthFormat(source.GetDescriptor(renderGraph).format), "DBufferCopyDepthPass assumes source has a depth format.");

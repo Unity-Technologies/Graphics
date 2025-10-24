@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return new RendererListParams(renderingData.cullResults, drawSettings, m_FilteringSettings);
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, ref TextureHandle cameraDepthTexture, uint batchLayerMask, bool setGlobalDepth)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle depthTexture, uint batchLayerMask, bool setGlobalDepth)
         {
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
@@ -147,10 +147,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.rendererList = renderGraph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
 
-                builder.SetRenderAttachmentDepth(cameraDepthTexture, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(depthTexture, AccessFlags.ReadWrite);
 
                 if (setGlobalDepth)
-                    builder.SetGlobalTextureAfterPass(cameraDepthTexture, s_CameraDepthTextureID);
+                    builder.SetGlobalTextureAfterPass(depthTexture, s_CameraDepthTextureID);
 
                 builder.AllowGlobalStateModification(true);
                 if (cameraData.xr.enabled)

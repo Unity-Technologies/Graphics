@@ -59,9 +59,9 @@ namespace UnityEngine.Rendering.Universal
         const int k_FinalBlitPassQueueOffset = 1;
         const int k_AfterFinalBlitPassQueueOffset = k_FinalBlitPassQueueOffset + 1;
 
-        static readonly List<ShaderTagId> k_DepthNormalsOnly = new List<ShaderTagId> { new ShaderTagId("DepthNormalsOnly") };
-
 #if URP_COMPATIBILITY_MODE
+        static readonly List<ShaderTagId> k_DepthNormalsOnly = new List<ShaderTagId> { new ShaderTagId("DepthNormalsOnly") };
+    
         static class ProfilingCompatibilityMode
         {
             private const string k_Name = nameof(UniversalRenderer);
