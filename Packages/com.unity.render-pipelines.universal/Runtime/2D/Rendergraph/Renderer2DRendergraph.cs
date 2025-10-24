@@ -251,6 +251,12 @@ namespace UnityEngine.Rendering.Universal
 
             bool isBuiltInTexture = cameraData.targetTexture == null;
 
+            bool useActualBackbufferOrienation = !cameraData.isSceneViewCamera && !cameraData.isPreviewCamera && cameraData.targetTexture == null;
+            TextureUVOrigin backbufferTextureUVOrigin = useActualBackbufferOrienation ? (SystemInfo.graphicsUVStartsAtTop ? TextureUVOrigin.TopLeft : TextureUVOrigin.BottomLeft) : TextureUVOrigin.BottomLeft;
+
+            output.backBufferColorParams.textureUVOrigin = backbufferTextureUVOrigin;
+            output.backBufferDepthParams.textureUVOrigin = backbufferTextureUVOrigin;
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
@@ -682,7 +688,7 @@ namespace UnityEngine.Rendering.Universal
 
             DebugHandler?.Setup(renderGraph, cameraData.isPreviewCamera);
 
-            SetupRenderGraphCameraProperties(renderGraph, commonResourceData.isActiveTargetBackBuffer, commonResourceData.activeColorTexture);
+            SetupRenderGraphCameraProperties(renderGraph, commonResourceData.activeColorTexture);
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             ProcessVFXCameraCommand(renderGraph);

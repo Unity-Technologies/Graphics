@@ -611,7 +611,7 @@ namespace UnityEngine.Rendering.Universal
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRendering);
 
-            SetupRenderGraphCameraProperties(renderGraph, resourceData.isActiveTargetBackBuffer, resourceData.activeColorTexture.IsValid() ? resourceData.activeColorTexture : resourceData.activeDepthTexture);
+            SetupRenderGraphCameraProperties(renderGraph, resourceData.activeColorTexture.IsValid() ? resourceData.activeColorTexture : resourceData.activeDepthTexture);
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             ProcessVFXCameraCommand(renderGraph);
@@ -739,7 +739,7 @@ namespace UnityEngine.Rendering.Universal
             // The camera need to be setup again after the shadows since those passes override some settings
             // TODO RENDERGRAPH: move the setup code into the shadow passes
             if (renderShadows)
-                SetupRenderGraphCameraProperties(renderGraph, resourceData.isActiveTargetBackBuffer, resourceData.activeColorTexture.IsValid()  ? resourceData.activeColorTexture : resourceData.activeDepthTexture);
+                SetupRenderGraphCameraProperties(renderGraph, resourceData.activeColorTexture.IsValid()  ? resourceData.activeColorTexture : resourceData.activeDepthTexture);
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingShadows);
 
@@ -1076,13 +1076,13 @@ namespace UnityEngine.Rendering.Universal
                         // Therefore we need to set the camera properties for the DepthNormal to be consistent with rendering to an intermediate render target.
                         if (resourceData.isActiveTargetBackBuffer)
                         {
-                            SetupRenderGraphCameraProperties(renderGraph, false, depthTarget);
+                            SetupRenderGraphCameraProperties(renderGraph, depthTarget);
                         }
                         DepthNormalPrepassRender(renderGraph, renderPassInputs, depthTarget, batchLayerMask, setGlobalDepth, setGlobalTextures, !hasFullPrepass);
                         // Restore camera properties for the rest of the render graph execution.
                         if (resourceData.isActiveTargetBackBuffer)
                         {
-                            SetupRenderGraphCameraProperties(renderGraph, true, resourceData.activeColorTexture.IsValid() ? resourceData.activeColorTexture : resourceData.activeDepthTexture);
+                            SetupRenderGraphCameraProperties(renderGraph, resourceData.activeColorTexture.IsValid() ? resourceData.activeColorTexture : resourceData.activeDepthTexture);
                         }
                     }
                     else
