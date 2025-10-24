@@ -195,22 +195,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             runtimePlatforms: new[] { RuntimePlatform.LinuxEditor }
         )]
         [IgnoreGraphicsTest(
-            "4088_DRS-DLSS-Hardware$",
-            "Instability https://jira.unity3d.com/browse/UUM-75549",
-            graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12 }
-        )]
-        [IgnoreGraphicsTest(
-            "4088_DRS-DLSS-Hardware$",
-            "Instability https://jira.unity3d.com/browse/UUM-75549",
-            graphicsDeviceTypes: new[] { GraphicsDeviceType.Vulkan },
-            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor },
-            architectures: new[] { Architecture.X64 }
-        )]
-        [IgnoreGraphicsTest(
-            "4089_DRS-DLSS-Software$",
-            "Instability https://jira.unity3d.com/browse/UUM-109632"
-        )]
-        [IgnoreGraphicsTest(
             "4096_DRS-TAAU-Hardware$",
             "Very small fringing across edges. Maybe a sampling artifact?",
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }
@@ -219,10 +203,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "4101_FP16Alpha$",
             "Outdated ref-image.",
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }
-        )]
-        [IgnoreGraphicsTest(
-            "4103_DRS-DLSS-AfterPost$",
-            "Big difference in rendering results between DX and everything else. Needs further investigation."
         )]
         [IgnoreGraphicsTest(
             "4105_LensFlareScreenSpace$",
