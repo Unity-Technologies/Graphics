@@ -672,51 +672,53 @@ namespace UnityEditor.VFX.UI
 
         static float RangeToFloat(object value)
         {
-            if (value != null)
-            {
-                if (value.GetType() == typeof(float))
-                {
-                    return (float)value;
-                }
-                else if (value.GetType() == typeof(int))
-                {
-                    return (float)(int)value;
-                }
-                else if (value.GetType() == typeof(uint))
-                {
-                    return (float)(uint)value;
-                }
-            }
-            return 0.0f;
+            if (value is float f)
+                return f;
+            if (value is int i)
+                return i;
+            if (value is uint u)
+                return u;
+            return 0f;
         }
 
         public object minValue
         {
-            get { return model.min; }
+            get => model.min;
             set
             {
                 if (value != null)
                 {
-                    model.min = value;
-                    if (RangeToFloat(this.value) < RangeToFloat(value))
+                    var floatValue = RangeToFloat(value);
+                    var maxFloatValue = RangeToFloat(maxValue);
+                    if (floatValue < maxFloatValue || this.model.min == null)
                     {
-                        this.value = value;
+                        model.min = value;
+                        if (RangeToFloat(this.value) < floatValue)
+                        {
+                            this.value = value;
+                        }
                     }
+
                     model.Invalidate(VFXModel.InvalidationCause.kParamChanged);
                 }
             }
         }
         public object maxValue
         {
-            get { return model.max; }
+            get => model.max;
             set
             {
                 if (value != null)
                 {
-                    model.max = value;
-                    if (RangeToFloat(this.value) > RangeToFloat(value))
+                    var floatValue = RangeToFloat(value);
+                    var minFloatValue = RangeToFloat(minValue);
+                    if (floatValue > minFloatValue)
                     {
-                        this.value = value;
+                        model.max = value;
+                        if (RangeToFloat(this.value) > floatValue || this.model.max == null)
+                        {
+                            this.value = value;
+                        }
                     }
 
                     model.Invalidate(VFXModel.InvalidationCause.kParamChanged);
@@ -740,11 +742,12 @@ namespace UnityEditor.VFX.UI
 
                 if (valueFilter == VFXValueFilter.Range)
                 {
-                    if (RangeToFloat(value) < RangeToFloat(minValue))
+                    var floatValue = RangeToFloat(value);
+                    if (floatValue < RangeToFloat(minValue))
                     {
                         value = minValue;
                     }
-                    if (RangeToFloat(value) > RangeToFloat(maxValue))
+                    if (floatValue > RangeToFloat(maxValue))
                     {
                         value = maxValue;
                     }
