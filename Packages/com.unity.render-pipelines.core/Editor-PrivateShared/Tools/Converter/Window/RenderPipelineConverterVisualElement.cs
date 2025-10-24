@@ -245,15 +245,15 @@ namespace UnityEditor.Rendering.Converter
             }
         }
 
-        public void Convert(string progressTitle)
+        public void Convert(string progressTitle, StringBuilder sb)
         {
             if (state.pending == 0)
             {
-                Debug.Log($"Skipping conversion, {displayName} has no pending items to convert.");
+                sb.AppendLine($"[{displayName}] Skipping conversion.");
                 return;
             }
 
-            var sb = new StringBuilder($"Conversion results for item: {displayName}:{Environment.NewLine}");
+            sb.AppendLine($"[{displayName}]");
 
             converter.BeforeConvert();
             int itemIndex = 0;
@@ -276,11 +276,11 @@ namespace UnityEditor.Rendering.Converter
                                 throw new InvalidOperationException("Converter returned a pending status when converting. This is not supported.");
                             case Status.Error:
                             case Status.Warning:
-                                sb.AppendLine($"- {itemState.item.name} ({status}) ({message})");
+                                sb.AppendLine($"\t- {itemState.item.name} ({status}) ({message})");
                                 break;
                             case Status.Success:
                             {
-                                sb.AppendLine($"- {itemState.item.name} ({status})");
+                                sb.AppendLine($"\t- {itemState.item.name} ({status})");
                                 message = "Conversion successful!";
                             }
                                 break;
@@ -302,7 +302,6 @@ namespace UnityEditor.Rendering.Converter
             Refresh();
 
             sb.AppendLine(state.ToString());
-            Debug.Log(sb);
         }
     }
 }

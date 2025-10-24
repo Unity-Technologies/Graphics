@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using UnityEditor.Categorization;
 using UnityEditor.Rendering.Analytics;
 using UnityEditor.SceneManagement;
@@ -165,8 +166,11 @@ namespace UnityEditor.Rendering.Converter
             dontSaveToLayoutField.SetValue(parentContainerWindowValue, true);
         }
 
+        private bool m_WindowAlive = true;
+
         void OnEnable()
         {
+            m_WindowAlive = true;
             GraphicsToolLifetimeAnalytic.WindowOpened<RenderPipelineConvertersEditor>();
 
             // Subscribe to play mode changes
@@ -178,6 +182,7 @@ namespace UnityEditor.Rendering.Converter
 
         private void OnDisable()
         {
+            m_WindowAlive = false;
             GraphicsToolLifetimeAnalytic.WindowClosed<RenderPipelineConvertersEditor>();
 
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
@@ -356,15 +361,18 @@ namespace UnityEditor.Rendering.Converter
             void InitializationFinish()
             {
                 EditorUtility.ClearProgressBar();
-                EditorUtility.SetDirty(this);
-                AssetDatabase.SaveAssets();
-                RefreshUI();
+
+                if (m_WindowAlive)
+                {
+                    EditorUtility.SetDirty(this);
+                    RefreshUI();
+                }
             }
 
             void ProcessNextConverter()
             {
                 // Check if all the converters did finish
-                if (iConverterIndex >= count)
+                if (!m_WindowAlive || iConverterIndex >= count)
                 {
                     InitializationFinish();
                     return;
@@ -373,7 +381,7 @@ namespace UnityEditor.Rendering.Converter
                 var current = selectedConverters[iConverterIndex];
                 var converter = current.converter;
 
-                if (EditorUtility.DisplayCancelableProgressBar("Initializing converters",
+                if (!m_WindowAlive || EditorUtility.DisplayCancelableProgressBar("Initializing converters",
                     $"({iConverterIndex} of {count}) {current.displayName}", (float)iConverterIndex / (float)count))
                 {
                     InitializationFinish();
@@ -438,6 +446,8 @@ namespace UnityEditor.Rendering.Converter
 
             string currentScenePath = SceneManager.GetActiveScene().path;
 
+            StringBuilder sb = new StringBuilder("=== Render Pipeline Converters Report ===\n");
+
             List<RenderPipelineConverterVisualElement> activeConverterStates = new ();
 
             // Getting all the active converters to use in the cancelable progressbar
@@ -459,7 +469,7 @@ namespace UnityEditor.Rendering.Converter
             int activeConvertersCount = activeConverterStates.Count;
             foreach (var activeConverter in activeConverterStates)
             {
-                activeConverter.Convert($"({converterCount} of {activeConvertersCount}) {activeConverter.displayName}");
+                activeConverter.Convert($"({converterCount} of {activeConvertersCount}) {activeConverter.displayName}", sb);
                 converterCount++;
 
                 // Add this converter to the analytics
@@ -469,7 +479,6 @@ namespace UnityEditor.Rendering.Converter
                     items_count = 0
                 });
 
-                AssetDatabase.SaveAssets();
                 EditorUtility.ClearProgressBar();
             }
 
@@ -479,9 +488,13 @@ namespace UnityEditor.Rendering.Converter
                 EditorSceneManager.OpenScene(currentScenePath);
             }
 
+            AssetDatabase.SaveAssets();
+
             RefreshUI();
 
             GraphicsToolUsageAnalytic.ActionPerformed<RenderPipelineConvertersEditor>(nameof(Convert), contextInfo.ToNestedColumn());
+
+            Debug.Log(sb);
         }
 
         public void AddItemsToMenu(GenericMenu menu)
