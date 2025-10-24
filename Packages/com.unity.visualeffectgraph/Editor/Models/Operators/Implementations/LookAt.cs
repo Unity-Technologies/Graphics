@@ -32,8 +32,8 @@ namespace UnityEditor.VFX.Operator
 
             VFXExpression viewVector = to - from;
 
-            VFXExpression z = VFXOperatorUtility.Normalize(viewVector);
-            VFXExpression x = VFXOperatorUtility.Normalize(VFXOperatorUtility.Cross(up, z));
+            VFXExpression z = VFXOperatorUtility.SafeNormalize(viewVector);
+            VFXExpression x = VFXOperatorUtility.SafeNormalize(VFXOperatorUtility.Cross(up, z));
             VFXExpression y = VFXOperatorUtility.Cross(z, x);
 
             VFXExpression matrix = new VFXExpressionAxisToMatrix(x, y, z, from);
