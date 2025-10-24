@@ -242,7 +242,7 @@ VisualEffectResource:
             {
                 templateString = System.IO.File.ReadAllText(templatePath + templateName);
 
-                ProjectWindowUtil.CreateAssetWithContent(fileName, templateString, texture);
+                ProjectWindowUtil.CreateAssetWithTextContent(fileName, templateString, texture);
             }
             catch (System.Exception e)
             {
