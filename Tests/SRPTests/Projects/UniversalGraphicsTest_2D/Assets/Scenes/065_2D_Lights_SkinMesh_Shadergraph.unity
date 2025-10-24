@@ -285,7 +285,7 @@ MonoBehaviour:
     ActiveImageTests: 1
     ActivePixelTests: 7
   WaitFrames: 0
-  XRCompatible: 0
+  XRCompatible: 1
   gpuDrivenCompatible: 1
   CheckMemoryAllocation: 1
   renderBackendCompatibility: 2
@@ -298,11 +298,36 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 458180813252086991, guid: 9b40ed50f44de45b19eb4780897e047c,
+        type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 435a2f546d47bd348876e1cc4c677120, type: 2}
+    - target: {fileID: 1398665126493047632, guid: 9b40ed50f44de45b19eb4780897e047c,
+        type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 435a2f546d47bd348876e1cc4c677120, type: 2}
+    - target: {fileID: 1632170264282057549, guid: 9b40ed50f44de45b19eb4780897e047c,
+        type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 435a2f546d47bd348876e1cc4c677120, type: 2}
+    - target: {fileID: 2737911938454885460, guid: 9b40ed50f44de45b19eb4780897e047c,
+        type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 435a2f546d47bd348876e1cc4c677120, type: 2}
     - target: {fileID: 3676411556188011445, guid: 9b40ed50f44de45b19eb4780897e047c,
         type: 3}
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 3844793788667601060, guid: 9b40ed50f44de45b19eb4780897e047c,
+        type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 435a2f546d47bd348876e1cc4c677120, type: 2}
     - target: {fileID: 4089589904225066195, guid: 9b40ed50f44de45b19eb4780897e047c,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -368,11 +393,46 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4119827975184519139, guid: 9b40ed50f44de45b19eb4780897e047c,
+        type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 3a9336001693c9d498c4f6b0dd63cf16, type: 2}
+    - target: {fileID: 4793552231630281593, guid: 9b40ed50f44de45b19eb4780897e047c,
+        type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 435a2f546d47bd348876e1cc4c677120, type: 2}
+    - target: {fileID: 5130528909240275021, guid: 9b40ed50f44de45b19eb4780897e047c,
+        type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 3a9336001693c9d498c4f6b0dd63cf16, type: 2}
+    - target: {fileID: 6098476769238461331, guid: 9b40ed50f44de45b19eb4780897e047c,
+        type: 3}
+      propertyPath: m_Avatar
+      value: 
+      objectReference: {fileID: 9000000, guid: 44c140d2f39da44cf99ca658382e0a55, type: 3}
     - target: {fileID: 6098476769238461331, guid: 9b40ed50f44de45b19eb4780897e047c,
         type: 3}
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 6415978003458686069, guid: 9b40ed50f44de45b19eb4780897e047c,
+        type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 3a9336001693c9d498c4f6b0dd63cf16, type: 2}
+    - target: {fileID: 8796635485950567628, guid: 9b40ed50f44de45b19eb4780897e047c,
+        type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 3a9336001693c9d498c4f6b0dd63cf16, type: 2}
+    - target: {fileID: 9079113487404157822, guid: 9b40ed50f44de45b19eb4780897e047c,
+        type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 3a9336001693c9d498c4f6b0dd63cf16, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
