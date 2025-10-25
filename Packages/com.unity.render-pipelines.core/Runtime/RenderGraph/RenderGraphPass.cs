@@ -371,7 +371,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             {
                 var res = resources.GetTextureResource(handle);
                 var graphicsResource = res.graphicsResource;
-                ref var desc = ref res.desc;
+                ref readonly var desc = ref res.desc;
 
                 var externalTexture = graphicsResource.externalTexture;
                 if (externalTexture != null) // External texture
@@ -416,7 +416,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
             else
             {
-                var desc = resources.GetTextureResourceDesc(handle);
+                ref readonly var desc = ref resources.GetTextureResourceDesc(handle);
                 generator.Append((int) desc.format);
                 generator.Append((int) desc.dimension);
                 generator.Append((int) desc.msaaSamples);

@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// </summary>
     [DebuggerDisplay("RayTracingAccelerationStructure ({handle.index})")]
     [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
-    public struct RayTracingAccelerationStructureHandle
+    public readonly struct RayTracingAccelerationStructureHandle
     {
         private static RayTracingAccelerationStructureHandle s_NullHandle = new RayTracingAccelerationStructureHandle();
 
@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <value>A null ray tracing acceleration structure handle.</value>
         public static RayTracingAccelerationStructureHandle nullHandle { get { return s_NullHandle; } }
 
-        internal ResourceHandle handle;
+        internal readonly ResourceHandle handle;
 
         internal RayTracingAccelerationStructureHandle(int handle) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.AccelerationStructure, false); }
 

@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
     {
         public readonly ResourceHandle resource;
 
-        public PassInputData(ResourceHandle resource)
+        public PassInputData(in ResourceHandle resource)
         {
             this.resource = resource;
         }
@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
     {
         public readonly ResourceHandle resource;
 
-        public PassOutputData(ResourceHandle resource)
+        public PassOutputData(in ResourceHandle resource)
         {
             this.resource = resource;
         }
@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public readonly int mipLevel;
         public readonly int depthSlice;
 
-        public PassFragmentData(ResourceHandle handle, AccessFlags flags, int mipLevel, int depthSlice)
+        public PassFragmentData(in ResourceHandle handle, AccessFlags flags, int mipLevel, int depthSlice)
         {
             resource = handle;
             accessFlags = flags;
@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public readonly int index;
         public readonly bool preserveCounterValue;
 
-        public PassRandomWriteData(ResourceHandle resource, int index, bool preserveCounterValue)
+        public PassRandomWriteData(in ResourceHandle resource, int index, bool preserveCounterValue)
         {
             this.resource = resource;
             this.index = index;
@@ -491,7 +491,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public readonly int mipLevel;
         public readonly int depthSlice;
 
-        public NativePassAttachment(ResourceHandle handle, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction, bool memoryless, int mipLevel, int depthSlice)
+        public NativePassAttachment(in ResourceHandle handle, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction, bool memoryless, int mipLevel, int depthSlice)
         {
             this.handle = handle;
             this.loadAction = loadAction;

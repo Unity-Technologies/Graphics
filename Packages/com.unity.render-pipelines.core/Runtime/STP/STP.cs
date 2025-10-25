@@ -1047,7 +1047,7 @@ namespace UnityEngine.Rendering
         }
 
         // Internal helper function used to streamline usage of the render graph API
-        static TextureHandle UseTexture(IBaseRenderGraphBuilder builder, TextureHandle texture, AccessFlags flags = AccessFlags.Read)
+        static TextureHandle UseTexture(IBaseRenderGraphBuilder builder, in TextureHandle texture, AccessFlags flags = AccessFlags.Read)
         {
             builder.UseTexture(texture, flags);
             return texture;
