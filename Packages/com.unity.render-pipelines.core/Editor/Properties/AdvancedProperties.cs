@@ -75,14 +75,14 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
-        /// Adds an entry to toggle Advanced Properties
+        /// Adds an entry to toggle Advanced Properties global option.
         /// </summary>
         /// <param name="menu">The menu where to add the Advanced Properties entry.</param>
         /// <param name="hasMoreOptions">If the option is checked</param>
         /// <param name="toggleMoreOptions">The toggle action</param>
         public static void AddAdvancedPropertiesBoolMenuItem(this GenericMenu menu, Func<bool> hasMoreOptions, Action toggleMoreOptions)
         {
-            menu.AddItem(EditorGUIUtility.TrTextContent("Advanced Properties"), hasMoreOptions.Invoke(), () => toggleMoreOptions.Invoke());
+            menu.AddItem(EditorGUIUtility.TrTextContent("Show All Advanced Properties"), hasMoreOptions.Invoke(), () => toggleMoreOptions.Invoke());
         }
 
         /// <summary>
