@@ -459,58 +459,59 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     return;
 
                 // Must come first
-                // TODO make another subfunction CullRenderGraphPassesWithNoSideEffect() for this first step of the culling stage
-                var ctx = contextData;
+                CullRenderGraphPassesWithNoSideEffect();
 
-                // Cull all passes first
-                ctx.CullAllPasses(true);
+                // Second step of the algorithm that comes later
+                CullRenderGraphPassesWritingOnlyUnusedResources();
+            }
+        }
 
-                // Flood fill downstream algorithm using BFS,
-                // starting from the passes with side effects (writting to imported texture, not allowed to be culled, globals modification...)
-                // to all their dependencies
-                while (m_HasSideEffectPassIdCullingStack.Count != 0)
+        void CullRenderGraphPassesWithNoSideEffect()
+        {
+            var ctx = contextData;
+
+            // Cull all passes first
+            ctx.CullAllPasses(true);
+
+            // Flood fill downstream algorithm using BFS,
+            // starting from the passes with side effects (writting to imported texture, not allowed to be culled, globals modification...)
+            // to all their dependencies
+            while (m_HasSideEffectPassIdCullingStack.Count != 0)
+            {
+                int passId = m_HasSideEffectPassIdCullingStack.Pop();
+
+                ref var passData = ref ctx.passData.ElementAt(passId);
+
+                // We already found this node through another dependency chain
+                if (!passData.culled) continue;
+
+                // Flow upstream from this node
+                foreach (ref readonly var input in passData.Inputs(ctx))
                 {
-                    int passId = m_HasSideEffectPassIdCullingStack.Pop();
+                    ref var inputVersionedDataRes = ref ctx.resources[input.resource];
 
-                    ref var passData = ref ctx.passData.ElementAt(passId);
-
-                    // We already found this node through another dependency chain
-                    if (!passData.culled) continue;
-
-                    // Flow upstream from this node
-                    foreach (ref readonly var input in passData.Inputs(ctx))
+                    if (inputVersionedDataRes.written)
                     {
-                        ref var inputVersionedDataRes = ref ctx.resources[input.resource];
-
-                        if (inputVersionedDataRes.written)
-                        {
-                            m_HasSideEffectPassIdCullingStack.Push(inputVersionedDataRes.writePassId);
-                        }
-                    }
-
-                    // We need this node, don't cull it
-                    passData.culled = false;
-                }
-
-                // Update graph based on freshly culled nodes, remove any connection to them
-                // We start from the latest passes to the first ones as we might need to decrement the version number of unwritten resources
-                var numPasses = ctx.passData.Length;
-                for (int passIndex = numPasses - 1; passIndex >= 0; passIndex--)
-                {
-                    ref readonly var pass = ref ctx.passData.ElementAt(passIndex);
-
-                    // Remove the connections from the list so they won't be visited again
-                    if (pass.culled)
-                    {
-                        pass.DisconnectFromResources(ctx);
+                        m_HasSideEffectPassIdCullingStack.Push(inputVersionedDataRes.writePassId);
                     }
                 }
 
-                // Second step of the algorithm, must come after
-                // TODO: The resources culling step is currently disabled due to an issue: https://jira.unity3d.com/projects/SRP/issues/SRP-897
-                // Renabled the resource culling step after addressing the depth attachment problem above.
-                // Renabled the relevent tests
-                // CullRenderGraphPassesWritingOnlyUnusedResources();
+                // We need this node, don't cull it
+                passData.culled = false;
+            }
+
+            // Update graph based on freshly culled nodes, remove any connection to them
+            // We start from the latest passes to the first ones as we might need to decrement the version number of unwritten resources
+            var numPasses = ctx.passData.Length;
+            for (int passIndex = numPasses - 1; passIndex >= 0; passIndex--)
+            {
+                ref readonly var pass = ref ctx.passData.ElementAt(passIndex);
+
+                // Remove the connections from the list so they won't be visited again
+                if (pass.culled)
+                {
+                    pass.DisconnectFromResources(ctx);
+                }
             }
         }
 
@@ -565,24 +566,25 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         producerData.culled = true;
                         producerData.DisconnectFromResources(ctx, unusedVersionedResourceIdCullingStack, type);
                     }
-                    else // Producer is (still) necessary, but we might need to remove the read of the previous version coming implicitly with the write of the current version
+                    else 
                     {
+                        // Producer is still necessary for now, but if the previous version is only implicitly read by it to write the unused resource
+                        // then we can consider this version useless as well and add it to the stack.
+                        // We purposefully keep the connection between the producer and this resource nevertheless to ensure proper lifetime handling and attachment setup.
+                        // A more optimal approach memory-wise would be to cut the dependency, decrease the latestVersionNumber of the resource and release it earlier
+                        // but we then need to create a transient resource with the right attachment properties and attach it to the non-culled producer or the native render pass setup will be incorrect.
+
                         // We always add written resource to the stack so versionedIndex > 0
                         var prevVersionedRes = new ResourceHandle(unusedResource, unusedResource.version - 1);
 
-                        // If no explicit read is requested by the user (AccessFlag.Write only), we need to remove the implicit read
-                        // so that we cut cleanly the connection between previous version of the resource and current producer
                         bool isImplicitRead = graph.m_RenderPasses[producerData.passId].implicitReadsList.Contains(prevVersionedRes);
 
                         if (isImplicitRead)
                         {
                             ref var prevVersionedDataRes = ref ctx.resources[prevVersionedRes];
 
-                            // Notify the previous version of this resource that it is not read anymore by this pass
-                            prevVersionedDataRes.RemoveReadingPass(ctx, prevVersionedRes, producerData.passId);
-
-                            // We also need to add the previous version of the resource to the stack IF no other pass than current producer needed it
-                            if (prevVersionedDataRes.written && prevVersionedDataRes.numReaders == 0)
+                            // We add the previous version of the resource to the stack IF no other pass than current producer needs it
+                            if (prevVersionedDataRes.written && prevVersionedDataRes.numReaders == 1)
                             {
                                 unusedVersionedResourceIdCullingStack.Push(prevVersionedRes);
                             }
