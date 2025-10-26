@@ -320,7 +320,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (AreDegenerateVertices(vertices) || indices == null || indices.Length == 0)
             {
-                m_Mesh.Clear();
+                m_Mesh?.Clear();
                 return;
             }
 
