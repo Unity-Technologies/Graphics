@@ -2225,7 +2225,11 @@ namespace UnityEngine.Rendering.Universal
 
         // We only want to enable HDR Output for the game view once
         // since the game itself might want to control this
-        internal bool enableHDROnce = true;
+        internal bool enableHDROutputOnce = true;
+
+        // We only want to warn once when the render pipeline asset HDR rendering support changes
+        // and HDR output is active, which is incompatible at the render pipeline asset level.
+        internal bool warnedRuntimeSwitchHDROutputToSDROutput = false;
 
         /// <summary>
         /// Configures the render pipeline to render to HDR output or disables HDR output.
@@ -2237,20 +2241,34 @@ namespace UnityEngine.Rendering.Universal
 #endif
         {
             bool hdrOutputActive = HDROutputSettings.main.available && HDROutputSettings.main.active;
+            bool hdrOutputIncompatibleWithSDRRendering = hdrOutputActive && HDROutputSettings.main.displayColorGamut != ColorGamut.Rec709;
 
             // If the pipeline doesn't support HDR rendering, output to SDR.
-            bool supportsSwitchingHDR = SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.RuntimeSwitchable);
-            bool switchHDRToSDR = supportsSwitchingHDR && !asset.supportsHDR && hdrOutputActive;
-            if (switchHDRToSDR)
+            bool supportsSwitchingHDROutput = SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.RuntimeSwitchable);
+            bool switchHDROutputToSDROutput = !asset.supportsHDR && hdrOutputActive && hdrOutputIncompatibleWithSDRRendering;
+            if (switchHDROutputToSDROutput && !warnedRuntimeSwitchHDROutputToSDROutput)
             {
-                HDROutputSettings.main.RequestHDRModeChange(false);
+                if (supportsSwitchingHDROutput)
+                {
+                    Debug.Log("HDR output is being disabled because the current Render Pipeline Asset does not support HDR rendering.");
+                    HDROutputSettings.main.RequestHDRModeChange(false);
+                }
+                else
+                {
+                    Debug.LogWarning("HDR output is active and cannot be switched off at runtime, but the current Render Pipeline Asset does not support HDR rendering. Image may appear underexposed or oversaturated.");
+                }
+                warnedRuntimeSwitchHDROutputToSDROutput = true;
             }
+
+            // Reset the warning flag as soon as the RP asset supports HDR rendering
+            if (warnedRuntimeSwitchHDROutputToSDROutput && asset.supportsHDR)
+                warnedRuntimeSwitchHDROutputToSDROutput = false;
 
 #if UNITY_EDITOR
             bool requestedHDRModeChange = false;
 
             // Automatically switch to HDR in the editor if it's available
-            if (supportsSwitchingHDR && asset.supportsHDR && PlayerSettings.useHDRDisplay && HDROutputSettings.main.available)
+            if (supportsSwitchingHDROutput && asset.supportsHDR && PlayerSettings.useHDRDisplay && HDROutputSettings.main.available)
             {
 #if UNITY_2021_1_OR_NEWER
                 int cameraCount = cameras.Count;
@@ -2262,15 +2280,15 @@ namespace UnityEngine.Rendering.Universal
                     requestedHDRModeChange = hdrOutputActive;
                     HDROutputSettings.main.RequestHDRModeChange(false);
                 }
-                else if (enableHDROnce)
+                else if (enableHDROutputOnce)
                 {
                     requestedHDRModeChange = !hdrOutputActive;
                     HDROutputSettings.main.RequestHDRModeChange(true);
-                    enableHDROnce = false;
+                    enableHDROutputOnce = false;
                 }
             }
 
-            if (requestedHDRModeChange || switchHDRToSDR)
+            if (requestedHDRModeChange || switchHDROutputToSDROutput)
             {
                 // Repaint scene views and game views so the HDR mode request is applied
                 UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
