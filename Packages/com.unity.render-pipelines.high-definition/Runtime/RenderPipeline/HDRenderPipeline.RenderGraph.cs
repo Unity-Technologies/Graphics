@@ -2237,17 +2237,15 @@ namespace UnityEngine.Rendering.HighDefinition
             dummyImportInfo.width = dummyImportInfo.height = dummyImportInfo.volumeDepth = dummyImportInfo.msaaSamples = 1;
             dummyImportInfo.format = CoreUtils.GetDefaultDepthStencilFormat();
 
-            return m_RenderGraph.ImportTexture(m_CurrentDepthBackBuffer, dummyImportInfo);  
+            return m_RenderGraph.ImportTexture(m_CurrentDepthBackBuffer, dummyImportInfo);
         }
 
         TextureHandle CreateColorBuffer(RenderGraph renderGraph, HDCamera hdCamera, bool msaa, bool fallbackToBlack = false)
         {
-#if UNITY_2020_2_OR_NEWER
             FastMemoryDesc colorFastMemDesc;
             colorFastMemDesc.inFastMemory = true;
             colorFastMemDesc.residencyFraction = 1.0f;
             colorFastMemDesc.flags = FastMemoryFlags.SpillTop;
-#endif
 
             return renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true)
@@ -2259,10 +2257,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     clearBuffer = NeedClearColorBuffer(hdCamera),
                     clearColor = GetColorBufferClearColor(hdCamera),
                     name = msaa ? "CameraColorMSAA" : "CameraColor",
-                    fallBackToBlackTexture = fallbackToBlack
-#if UNITY_2020_2_OR_NEWER
-                    , fastMemoryDesc = colorFastMemDesc
-#endif
+                    fallBackToBlackTexture = fallbackToBlack,
+                    fastMemoryDesc = colorFastMemDesc
                 });
         }
 

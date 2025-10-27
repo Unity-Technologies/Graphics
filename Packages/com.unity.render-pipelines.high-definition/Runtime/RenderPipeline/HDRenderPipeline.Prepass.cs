@@ -123,12 +123,10 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool clear, MSAASamples msaaSamples, string name = null, bool disableFallback = true)
         {
             bool msaa = msaaSamples != MSAASamples.None;
-#if UNITY_2020_2_OR_NEWER
             FastMemoryDesc fastMemDesc;
             fastMemDesc.inFastMemory = true;
             fastMemDesc.residencyFraction = 1.0f;
             fastMemDesc.flags = FastMemoryFlags.SpillTop;
-#endif
 
             TextureDesc depthDesc = new TextureDesc(Vector2.one, true, true)
             {
@@ -139,9 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 name = name ?? (msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil"),
                 disableFallBackToImportedTexture = disableFallback,
                 fallBackToBlackTexture = true,
-#if UNITY_2020_2_OR_NEWER
                 fastMemoryDesc = fastMemDesc,
-#endif
             };
 
             return renderGraph.CreateTexture(depthDesc);
@@ -150,12 +146,10 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle CreateNormalBuffer(RenderGraph renderGraph, HDCamera hdCamera, MSAASamples msaaSamples)
         {
             bool msaa = msaaSamples != MSAASamples.None;
-#if UNITY_2020_2_OR_NEWER
             FastMemoryDesc fastMemDesc;
             fastMemDesc.inFastMemory = true;
             fastMemDesc.residencyFraction = 1.0f;
             fastMemDesc.flags = FastMemoryFlags.SpillTop;
-#endif
 
             TextureDesc normalDesc = new TextureDesc(Vector2.one, true, true)
             {
@@ -167,9 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableRandomWrite = !msaa,
                 name = msaa ? "NormalBufferMSAA" : "NormalBuffer",
                 fallBackToBlackTexture = true,
-#if UNITY_2020_2_OR_NEWER
                 fastMemoryDesc = fastMemDesc,
-#endif
             };
             return renderGraph.CreateTexture(normalDesc);
         }
@@ -748,12 +740,10 @@ namespace UnityEngine.Rendering.HighDefinition
             prepassOutput.gbuffer.mrt[currentIndex] = prepassOutput.normalBuffer;
             builder.SetRenderAttachment(prepassOutput.normalBuffer, currentIndex++);
 
-#if UNITY_2020_2_OR_NEWER
             FastMemoryDesc gbufferFastMemDesc;
             gbufferFastMemDesc.inFastMemory = true;
             gbufferFastMemDesc.residencyFraction = 1.0f;
             gbufferFastMemDesc.flags = FastMemoryFlags.SpillTop;
-#endif
 
             // If we are in deferred mode and the SSR is enabled, we need to make sure that the second gbuffer is cleared given that we are using that information for clear coat selection
             bool clearGBuffer2 = clearGBuffer || hdCamera.IsSSREnabled();
@@ -763,10 +753,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     format = GraphicsFormat.R8G8B8A8_UNorm,
                     clearBuffer = clearGBuffer2,
                     clearColor = Color.clear,
-                    name = "GBuffer2"
-#if UNITY_2020_2_OR_NEWER
-                    , fastMemoryDesc = gbufferFastMemDesc
-#endif
+                    name = "GBuffer2",
+                    fastMemoryDesc = gbufferFastMemDesc
                 });
             builder.SetRenderAttachment(prepassOutput.gbuffer.mrt[currentIndex], currentIndex++);
             prepassOutput.gbuffer.mrt[currentIndex] = renderGraph.CreateTexture(
@@ -775,10 +763,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     format = Builtin.GetLightingBufferFormat(),
                     clearBuffer = clearGBuffer,
                     clearColor = Color.clear,
-                    name = "GBuffer3"
-#if UNITY_2020_2_OR_NEWER
-                    , fastMemoryDesc = gbufferFastMemDesc
-#endif
+                    name = "GBuffer3",
+                    fastMemoryDesc = gbufferFastMemDesc
                 });
             builder.SetRenderAttachment(prepassOutput.gbuffer.mrt[currentIndex], currentIndex++);
 

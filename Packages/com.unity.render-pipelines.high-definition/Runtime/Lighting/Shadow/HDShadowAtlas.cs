@@ -377,12 +377,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 return commonState;
 
             commonState.mixedInDynamicAtlas = false;
-#if UNITY_2021_1_OR_NEWER
             if (shadowRequest.isMixedCached)
             {
                 commonState.mixedInDynamicAtlas = !data.isRenderingOnACache;
             }
-#endif
 
             cmd.SetGlobalDepthBias(1.0f, shadowRequest.slopeBias);
             cmd.SetViewport(data.isRenderingOnACache ? shadowRequest.cachedAtlasViewport : shadowRequest.dynamicAtlasViewport);
@@ -467,7 +465,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             if (commonState.shouldSkipRequest)
                                 continue;
 
-    #if UNITY_2021_1_OR_NEWER
                             if (shadowRequest.isMixedCached)
                             {
                                 commonState.mixedInDynamicAtlas = !data.isRenderingOnACache;
@@ -477,7 +474,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 data.shadowDrawSettings.objectsFilter = ShadowObjectsFilter.AllObjects;
                             }
-    #endif
 
                             if (!commonState.mixedInDynamicAtlas)
                                 CoreUtils.DrawFullScreen(natCmd, data.clearMaterial, null, 0);

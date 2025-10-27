@@ -90,9 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_PreviousLightsUseColorTemperature;
         bool m_PreviousSRPBatcher;
 
-#if UNITY_2020_2_OR_NEWER
         uint m_PreviousDefaultRenderingLayerMask;
-#endif
         Camera.GateFitMode m_PreviousDefaultGateFitMode;
         ShadowmaskMode m_PreviousShadowMaskMode;
 
@@ -2158,11 +2156,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 #endif
 
-#if UNITY_2021_1_OR_NEWER
             int cameraCount = cameras.Count;
-#else
-            int cameraCount = cameras.Length;
-#endif
             // For XR, HDR and no camera cases, UI Overlay ownership must be enforced
             AdjustUIOverlayOwnership(cameraCount);
 
@@ -3114,9 +3108,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview)
             {
-#if UNITY_2020_2_OR_NEWER
                 ScriptableRenderContext.EmitGeometryForCamera(camera);
-#endif
             }
 #if UNITY_EDITOR
             // emit scene view UI
@@ -3138,13 +3130,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var initialMaximumLODLevel = QualitySettings.maximumLODLevel;
             try
             {
-#if UNITY_2021_1_OR_NEWER
                 // Modifying the variables this way does not set the dirty flag, which avoids repainting all views
                 QualitySettings.SetLODSettings(hdCamera.frameSettings.GetResolvedLODBias(hdrp), hdCamera.frameSettings.GetResolvedMaximumLODLevel(hdrp), false);
-#else
-                QualitySettings.lodBias = hdCamera.frameSettings.GetResolvedLODBias(hdrp);
-                QualitySettings.maximumLODLevel = hdCamera.frameSettings.GetResolvedMaximumLODLevel(hdrp);
-#endif
 
                 if (xrPass.isFirstCameraPass)
                 {
@@ -3210,12 +3197,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             finally
             {
-#if UNITY_2021_1_OR_NEWER
                 QualitySettings.SetLODSettings(initialLODBias, initialMaximumLODLevel, false);
-#else
-                QualitySettings.lodBias = initialLODBias;
-                QualitySettings.maximumLODLevel = initialMaximumLODLevel;
-#endif
             }
         }
 

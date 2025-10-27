@@ -211,10 +211,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly GUIContent cookieSizeContent = EditorGUIUtility.TrTextContent("Cookie Size", "Specifies the maximum size for the individual 2D cookies that HDRP uses for Directional and Spot Lights.");
             public static readonly GUIContent cookieTextureArraySizeContent = EditorGUIUtility.TrTextContent("Texture Array Size", "Sets the maximum Texture Array size for the 2D cookies HDRP uses for Directional and Spot Lights. Higher values allow HDRP to use more cookies concurrently on screen.");
-#if UNITY_2020_1_OR_NEWER
-#else
-            public static readonly GUIContent pointCoockieSizeContent = EditorGUIUtility.TrTextContent("Point Cookie Size", "Specifies the maximum size for the Cube cookies HDRP uses for Point Lights.");
-#endif
             public static readonly GUIContent pointCookieTextureArraySizeContent = EditorGUIUtility.TrTextContent("Cubemap Array Size", "Sets the maximum Texture Array size for the Cube cookies HDRP uses for Directional and Spot Lights. Higher values allow HDRP to use more cookies concurrently on screen.");
             public static readonly GUIContent cookieAtlasSizeContent = EditorGUIUtility.TrTextContent("2D Atlas Size", "Specifies the size of the atlas used for 2D cookies (Directional, Spot and Rectangle Lights).");
             public static readonly GUIContent cookieAtlasFormatContent = EditorGUIUtility.TrTextContent("Format", "Specifies the HDR format of the atlas used for 2D cookies. R16G16B16A16 can be use for EXR cookies (it provides more precision than R11G11B10)");
@@ -283,7 +279,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent DLSSUseOptimalSettingsContent = EditorGUIUtility.TrTextContent("DLSS Use Optimal Settings", "Sets the scale automatically for NVIDIA Deep Learning Super Sampling, depending on the values of quality settings. When DLSS Optimal Settings is on, the percentage settings for Dynamic Resolution Scaling are ignored.");
             public static readonly GUIContent DLSSRenderPresetsContent = EditorGUIUtility.TrTextContent("DLSS Render Presets", "DLSS will use the specified render preset for each quality value.");
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
-            public static readonly string[] DLSSPerfQualityLabels = 
+            public static readonly string[] DLSSPerfQualityLabels =
             {   // should follow enum value ordering in DLSSQuality enum
                 UnityEngine.NVIDIA.DLSSQuality.MaximumPerformance.ToString(),
                 UnityEngine.NVIDIA.DLSSQuality.Balanced.ToString(),

@@ -122,51 +122,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unchecked
             {
-#if UNITY_2019_3 // In 2019.3, when we call GetHashCode on a VolumeParameter it generate garbage (due to the boxing of the generic parameter)
-                hash = hdriSky.value != null ? hash * 23 + hdriSky.value.GetHashCode() : hash;
-                hash = flowmap.value != null ? hash * 23 + flowmap.value.GetHashCode() : hash;
-                hash = hash * 23 + enableDistortion.value.GetHashCode();
-                hash = hash * 23 + procedural.value.GetHashCode();
-                hash = hash * 23 + upperHemisphereOnly.value.GetHashCode();
-                hash = hash * 23 + scrollDirection.value.GetHashCode();
-                hash = hash * 23 + scrollSpeed.value.GetHashCode();
-
-                hash = hash * 23 + enableBackplate.value.GetHashCode();
-                hash = hash * 23 + backplateType.value.GetHashCode();
-                hash = hash * 23 + groundLevel.value.GetHashCode();
-                hash = hash * 23 + scale.value.GetHashCode();
-                hash = hash * 23 + projectionDistance.value.GetHashCode();
-                hash = hash * 23 + plateRotation.value.GetHashCode();
-                hash = hash * 23 + plateTexRotation.value.GetHashCode();
-                hash = hash * 23 + plateTexOffset.value.GetHashCode();
-                hash = hash * 23 + blendAmount.value.GetHashCode();
-                hash = hash * 23 + shadowTint.value.GetHashCode();
-                hash = hash * 23 + pointLightShadow.value.GetHashCode();
-                hash = hash * 23 + dirLightShadow.value.GetHashCode();
-                hash = hash * 23 + rectLightShadow.value.GetHashCode();
-
-                hash = hdriSky.value != null ? hash * 23 + hdriSky.overrideState.GetHashCode() : hash;
-                hash = flowmap.value != null ? hash * 23 + flowmap.overrideState.GetHashCode() : hash;
-                hash = hash * 23 + enableDistortion.overrideState.GetHashCode();
-                hash = hash * 23 + procedural.overrideState.GetHashCode();
-                hash = hash * 23 + upperHemisphereOnly.overrideState.GetHashCode();
-                hash = hash * 23 + scrollDirection.overrideState.GetHashCode();
-                hash = hash * 23 + scrollSpeed.overrideState.GetHashCode();
-
-                hash = hash * 23 + enableBackplate.overrideState.GetHashCode();
-                hash = hash * 23 + backplateType.overrideState.GetHashCode();
-                hash = hash * 23 + groundLevel.overrideState.GetHashCode();
-                hash = hash * 23 + scale.overrideState.GetHashCode();
-                hash = hash * 23 + projectionDistance.overrideState.GetHashCode();
-                hash = hash * 23 + plateRotation.overrideState.GetHashCode();
-                hash = hash * 23 + plateTexRotation.overrideState.GetHashCode();
-                hash = hash * 23 + plateTexOffset.overrideState.GetHashCode();
-                hash = hash * 23 + blendAmount.overrideState.GetHashCode();
-                hash = hash * 23 + shadowTint.overrideState.GetHashCode();
-                hash = hash * 23 + pointLightShadow.overrideState.GetHashCode();
-                hash = hash * 23 + dirLightShadow.overrideState.GetHashCode();
-                hash = hash * 23 + rectLightShadow.overrideState.GetHashCode();
-#else
                 hash = hash * 23 + hdriSky.GetHashCode();
                 hash = hash * 23 + flowmap.GetHashCode();
                 hash = hash * 23 + distortionMode.GetHashCode();
@@ -187,7 +142,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + pointLightShadow.GetHashCode();
                 hash = hash * 23 + dirLightShadow.GetHashCode();
                 hash = hash * 23 + rectLightShadow.GetHashCode();
-#endif
             }
 
             return hash;

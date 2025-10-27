@@ -2346,13 +2346,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 taaJitter = Vector4.zero;
                 return origProj;
             }
-#if UNITY_2021_2_OR_NEWER
             if (UnityEngine.FrameDebugger.enabled)
             {
                 taaJitter = Vector4.zero;
                 return origProj;
             }
-#endif
 
             float jitterX;
             float jitterY;

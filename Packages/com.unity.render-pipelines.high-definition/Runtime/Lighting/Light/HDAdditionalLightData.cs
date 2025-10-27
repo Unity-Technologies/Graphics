@@ -2279,7 +2279,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static ShadowMapUpdateType GetShadowUpdateType(LightType lightType, ShadowUpdateMode shadowUpdateMode, bool alwaysDrawDynamicShadows, bool directionalHasCachedAtlas)
         {
             if (shadowUpdateMode == ShadowUpdateMode.EveryFrame) return ShadowMapUpdateType.Dynamic;
-#if UNITY_2021_1_OR_NEWER
             if (alwaysDrawDynamicShadows)
             {
                 if (lightType == LightType.Directional)
@@ -2291,7 +2290,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return ShadowMapUpdateType.Mixed;
                 }
             }
-#endif
+
             return ShadowMapUpdateType.Cached;
         }
 

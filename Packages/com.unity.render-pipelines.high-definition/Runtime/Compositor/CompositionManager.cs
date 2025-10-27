@@ -784,9 +784,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                         // Emit geometry manually for this camera (Unity will not do it for us because we call the internal render)
                         ScriptableRenderContext.EmitGeometryForCamera(layer.camera);
                         cameras.Add(layer.camera);
-#if UNITY_2021_1_OR_NEWER
                         renderPipeline.InternalRender(cntx, cameras);
-#endif
                     }
                 }
             }

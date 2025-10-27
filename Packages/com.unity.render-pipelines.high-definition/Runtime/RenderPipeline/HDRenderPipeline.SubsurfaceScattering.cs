@@ -174,12 +174,10 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle CreateSSSBuffer(RenderGraph renderGraph, HDCamera hdCamera, MSAASamples msaaSamples)
         {
             bool msaa = msaaSamples != MSAASamples.None;
-#if UNITY_2020_2_OR_NEWER
             FastMemoryDesc fastMemDesc;
             fastMemDesc.inFastMemory = true;
             fastMemDesc.residencyFraction = 1.0f;
             fastMemDesc.flags = FastMemoryFlags.SpillTop;
-#endif
 
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             {
@@ -189,10 +187,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 msaaSamples = msaaSamples,
                 clearBuffer = NeedClearGBuffer(hdCamera),
                 clearColor = Color.clear,
-                name = msaa ? "SSSBufferMSAA" : "SSSBuffer"
-#if UNITY_2020_2_OR_NEWER
-                , fastMemoryDesc = fastMemDesc
-#endif
+                name = msaa ? "SSSBufferMSAA" : "SSSBuffer",
+                fastMemoryDesc = fastMemDesc
             });
         }
 
