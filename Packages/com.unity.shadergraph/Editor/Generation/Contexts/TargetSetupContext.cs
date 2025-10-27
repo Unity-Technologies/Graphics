@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph
             kernels.Add(kernel);
         }
 
-        public void AddAssetDependency(UnityEngine.GUID guid, AssetCollection.Flags flags)
+        public void AddAssetDependency(GUID guid, AssetCollection.Flags flags)
         {
             assetCollection?.AddAssetDependency(guid, flags);
         }

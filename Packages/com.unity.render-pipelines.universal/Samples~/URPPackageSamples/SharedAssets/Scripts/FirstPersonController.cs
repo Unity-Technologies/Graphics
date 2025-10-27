@@ -1,96 +1,84 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
+using Cursor = UnityEngine.Cursor;
 
 [RequireComponent(typeof(CharacterController))]
-[RequireComponent(typeof(PlayerInput))]
 public class FirstPersonController : MonoBehaviour
 {
-    [Header("Movement Settings")]
-    public float moveSpeed = 5f;
-    public float gravity = -9.81f;
+    [SerializeField]
+    private float m_MouseSensitivity = 100f;
+    [SerializeField]
+    private float m_MovementSpeed = 5f;
+    [SerializeField]
+    private Transform m_PlayerCamera = null;
+    [SerializeField]
+    private bool m_MoveWithMouse = true;
 
-    [Header("Look Settings")]
-    public float lookSensitivity = 0.5f;
+    private CharacterController m_CharacterController;
+    private float m_XRotation = 0f;
+    [SerializeField]
+    private byte m_ButtonMovementFlags;
 
-    [Header("Camera Reference")]
-    public Camera baseCamera;
-
-    private CharacterController controller;
-    private PlayerInput playerInput;
-    private InputAction moveAction;
-    private InputAction lookAction;
-    
-    private Vector2 moveInput;
-    private Vector2 lookInput;
-    private float verticalVelocity;
-    private float cameraPitch;
-
-    private void Awake()
+    void Start()
     {
-        controller = GetComponent<CharacterController>();
-        playerInput = GetComponent<PlayerInput>();
-
-        // Hide cursor
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-    }
-
-    private void OnEnable()
-    {
-        var actions = playerInput.actions;
-
-        moveAction = actions["Move"];
-        lookAction = actions["Look"];
-        
-        moveAction.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-        moveAction.canceled += ctx => moveInput = Vector2.zero;
-
-        lookAction.performed += ctx => lookInput = ctx.ReadValue<Vector2>();
-        lookAction.canceled += ctx => lookInput = Vector2.zero;
-
-        actions.Enable();
-    }
-
-    private void OnDisable()
-    {
-        if (moveAction != null)
+#if ENABLE_INPUT_SYSTEM
+        Debug.Log("The FirstPersonController uses the legacy input system. Please set it in Project Settings");
+        m_MoveWithMouse = false;
+#endif
+        if (m_MoveWithMouse)
         {
-            moveAction.performed -= ctx => moveInput = ctx.ReadValue<Vector2>();
-            moveAction.canceled -= ctx => moveInput = Vector2.zero;
+            Cursor.lockState = CursorLockMode.Locked;
         }
-        if (lookAction != null)
+        m_CharacterController = GetComponent<CharacterController>();
+    }
+
+    void Update()
+    {
+        Look();
+        Move();
+    }
+
+    private void Look()
+    {
+        Vector2 lookInput = GetLookInput();
+
+        m_XRotation -= lookInput.y;
+        m_XRotation = Mathf.Clamp(m_XRotation, -90f, 90f);
+
+        m_PlayerCamera.localRotation = Quaternion.Euler(m_XRotation, 0, 0);
+        transform.Rotate(Vector3.up * lookInput.x, Space.World);
+    }
+
+    private void Move()
+    {
+        Vector3 movementInput = GetMovementInput();
+
+        Vector3 move = transform.right * movementInput.x + transform.forward * movementInput.z;
+
+        m_CharacterController.Move(move * m_MovementSpeed * Time.deltaTime);
+    }
+
+    private Vector2 GetLookInput()
+    {
+        float mouseX = 0;
+        float mouseY = 0;
+        if (m_MoveWithMouse)
         {
-            lookAction.performed -= ctx => lookInput = ctx.ReadValue<Vector2>();
-            lookAction.canceled -= ctx => lookInput = Vector2.zero;
+            mouseX = Input.GetAxis("Mouse X") * m_MouseSensitivity * Time.deltaTime;
+            mouseY = Input.GetAxis("Mouse Y") * m_MouseSensitivity * Time.deltaTime;
         }
+        return new Vector2(mouseX, mouseY);
     }
 
-    private void Update()
+    private Vector3 GetMovementInput()
     {
-        HandleMovement();
-        HandleLook();
-    }
+        float x = 0;
+        float z = 0;
+        if (m_MoveWithMouse)
+        {
+            x = Input.GetAxis("Horizontal");
+            z = Input.GetAxis("Vertical");
+        }
 
-    private void HandleMovement()
-    {
-        Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.y;
-
-        if (controller.isGrounded && verticalVelocity < 0)
-            verticalVelocity = -2f;
-
-        verticalVelocity += gravity * Time.deltaTime;
-        move.y = verticalVelocity;
-
-        controller.Move(move * moveSpeed * Time.deltaTime);
-    }
-
-    private void HandleLook()
-    {
-        transform.Rotate(Vector3.up * lookInput.x * lookSensitivity);
-
-        cameraPitch -= lookInput.y * lookSensitivity;
-        cameraPitch = Mathf.Clamp(cameraPitch, -80f, 80f);
-
-        baseCamera.transform.localEulerAngles = Vector3.right * cameraPitch;
+        return new Vector3(x, 0, z);
     }
 }

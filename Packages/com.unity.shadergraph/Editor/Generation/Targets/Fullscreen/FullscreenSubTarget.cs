@@ -6,7 +6,7 @@ using System.Linq;
 using BlendMode = UnityEngine.Rendering.BlendMode;
 using BlendOp = UnityEditor.ShaderGraph.BlendOp;
 using UnityEngine.UIElements;
-
+using UnityEditor.UIElements;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Fullscreen.ShaderGraph

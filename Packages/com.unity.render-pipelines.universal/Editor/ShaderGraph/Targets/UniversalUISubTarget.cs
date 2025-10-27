@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     class UniversalUISubTarget: UISubTarget<UniversalTarget>
     {
-        static readonly UnityEngine.GUID kSourceCodeGuid = new UnityEngine.GUID("b1197b10aa62577498d67cffe1d3bd43");  // UniversalUISubTarget.cs
+        static readonly GUID kSourceCodeGuid = new GUID("b1197b10aa62577498d67cffe1d3bd43");  // UniversalUISubTarget.cs
 
         static readonly string kUITKPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UITKPass.hlsl";
         public override void Setup(ref TargetSetupContext context)

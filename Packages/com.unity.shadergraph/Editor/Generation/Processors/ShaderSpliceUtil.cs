@@ -93,7 +93,7 @@ namespace UnityEditor.ShaderGraph
 
                     if (assetCollection != null)
                     {
-                        UnityEngine.GUID guid = AssetDatabase.GUIDFromAssetPath(filePath);
+                        GUID guid = AssetDatabase.GUIDFromAssetPath(filePath);
                         if (!guid.Empty())
                             assetCollection.AddAssetDependency(guid, AssetCollection.Flags.SourceDependency);
                     }
