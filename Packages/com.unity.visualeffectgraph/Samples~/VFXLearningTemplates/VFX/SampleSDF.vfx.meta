@@ -8,7 +8,7 @@ VisualEffectImporter:
     category: Learning Templates
     description: 'This VFX demonstrates how to sample an SDF to have particles crawling
       on the surface of a mesh. '
-    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    icon: {fileID: 2800000, guid: ce3ba62f9452ddd4fbadb663ac249d93, type: 3}
     thumbnail: {fileID: 2800000, guid: a3c11027cf8e8584b96716d5079df100, type: 3}
   userData: 
   assetBundleName: 

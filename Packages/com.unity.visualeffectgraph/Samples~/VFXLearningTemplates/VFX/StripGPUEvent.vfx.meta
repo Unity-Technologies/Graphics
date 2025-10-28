@@ -12,7 +12,7 @@ VisualEffectImporter:
       strips. This example shows an example of a growing mushroom's VFX, with the
       mushroom\u2019s hat being particle meshes and the mushroom\u2019s foot made
       with particle strips."
-    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    icon: {fileID: 2800000, guid: ce3ba62f9452ddd4fbadb663ac249d93, type: 3}
     thumbnail: {fileID: 2800000, guid: 9ffdc5aacc959004da707eadc155e7ef, type: 3}
   userData: 
   assetBundleName: 

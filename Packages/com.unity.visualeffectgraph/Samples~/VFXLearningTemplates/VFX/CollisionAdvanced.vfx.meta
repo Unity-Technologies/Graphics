@@ -8,7 +8,7 @@ VisualEffectImporter:
     category: Learning Templates
     description: This VFX explains how to use a Signed Distance Field Collider, which
       can be very useful when you want particles to collide with complex shapes.
-    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    icon: {fileID: 2800000, guid: ce3ba62f9452ddd4fbadb663ac249d93, type: 3}
     thumbnail: {fileID: 2800000, guid: 009b7316c3ad821499a08d63c2b179e4, type: 3}
   userData: 
   assetBundleName: 

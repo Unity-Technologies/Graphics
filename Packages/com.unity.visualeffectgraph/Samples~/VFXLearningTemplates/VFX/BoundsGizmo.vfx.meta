@@ -9,7 +9,7 @@ VisualEffectImporter:
     description: The Bounds are used to cull the VFX when it's not in the camera
       frustum. This VFX explains the importance of Bounds and how to properly set
       them.
-    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    icon: {fileID: 2800000, guid: ce3ba62f9452ddd4fbadb663ac249d93, type: 3}
     thumbnail: {fileID: 2800000, guid: ebac51e649dc3cd418ec7486775452ad, type: 3}
   userData: 
   assetBundleName: 
