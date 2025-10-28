@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool enableDecals;
         }
 
-        TextureHandle RaytracingRecursiveRender(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle flagMask, TextureHandle rayCountTexture)
+        TextureHandle RaytracingRecursiveRender(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle colorBuffer, in TextureHandle depthPyramid, in TextureHandle flagMask, in TextureHandle rayCountTexture)
         {
             // If ray tracing is disabled in the frame settings or the effect is not enabled
             RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();

@@ -90,7 +90,7 @@ namespace  UnityEngine.Rendering.HighDefinition
             public TextureHandle lowres;
         }
 
-        public void Resolve(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle input)
+        public void Resolve(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle input)
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.VirtualTexturing))
             {

@@ -508,7 +508,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool isRenderingOnACache;
         }
 
-        unsafe TextureHandle EVSMBlurMoments(RenderGraph renderGraph, TextureHandle inputAtlas)
+        unsafe TextureHandle EVSMBlurMoments(RenderGraph renderGraph, in TextureHandle inputAtlas)
         {
             using (var builder = renderGraph.AddUnsafePass<EVSMBlurMomentsPassData>("EVSM Blur Moments", out var passData, ProfilingSampler.Get(HDProfileId.RenderEVSMShadowMaps)))
             {
@@ -636,7 +636,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool isRenderingOnACache;
         }
 
-        unsafe TextureHandle IMBlurMoment(RenderGraph renderGraph, TextureHandle atlasTexture)
+        unsafe TextureHandle IMBlurMoment(RenderGraph renderGraph, in TextureHandle atlasTexture)
         {
             using (var builder = renderGraph.AddUnsafePass<IMBlurMomentPassData>("EVSM Blur Moments", out var passData, ProfilingSampler.Get(HDProfileId.RenderMomentShadowMaps)))
             {

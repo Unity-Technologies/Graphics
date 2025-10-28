@@ -434,7 +434,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public LocalKeyword outputKeyword;
         }
 
-        void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputTexture, TextureHandle outputTexture, List<Tuple<TextureHandle, HDCameraFrameHistoryType>> AOVs, bool needExposure)
+        void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle inputTexture, in TextureHandle outputTexture, List<Tuple<TextureHandle, HDCameraFrameHistoryType>> AOVs, bool needExposure)
         {
             int camID = hdCamera.camera.GetEntityId();
             Vector4 frameWeights = m_SubFrameManager.ComputeFrameWeights(camID);
@@ -454,7 +454,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderAccumulation(renderGraph, hdCamera, inputTexture, outputTexture, HDCameraFrameHistoryType.PathTracingOutput, frameWeights, needExposure);
         }
 
-        void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputTexture, TextureHandle outputTexture, HDCameraFrameHistoryType historyType, Vector4 frameWeights, bool needExposure)
+        void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle inputTexture, in TextureHandle outputTexture, HDCameraFrameHistoryType historyType, Vector4 frameWeights, bool needExposure)
         {
             using (var builder = renderGraph.AddUnsafePass<RenderAccumulationPassData>("Render Accumulation", out var passData))
             {

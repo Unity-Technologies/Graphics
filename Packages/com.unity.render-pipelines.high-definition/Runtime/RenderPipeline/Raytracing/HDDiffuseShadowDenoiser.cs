@@ -86,8 +86,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public TextureHandle DenoiseBufferDirectional(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle depthBuffer, TextureHandle normalBuffer,
-            TextureHandle noisyBuffer, TextureHandle distanceBuffer,
+            TextureHandle depthBuffer, in TextureHandle normalBuffer,
+            TextureHandle noisyBuffer, in TextureHandle distanceBuffer,
             int kernelSize, float angularDiameter, bool singleChannel = true)
         {
             using (var builder = renderGraph.AddUnsafePass<DiffuseShadowDenoiserDirectionalPassData>("TemporalDenoiser", out var passData, ProfilingSampler.Get(HDProfileId.DiffuseFilter)))
@@ -206,8 +206,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public TextureHandle DenoiseBufferSphere(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle depthBuffer, TextureHandle normalBuffer,
-            TextureHandle noisyBuffer, TextureHandle distanceBuffer,
+            TextureHandle depthBuffer, in TextureHandle normalBuffer,
+            TextureHandle noisyBuffer, in TextureHandle distanceBuffer,
             PunctualShadowProperties properties)
         {
             using (var builder = renderGraph.AddUnsafePass<DiffuseShadowDenoiserSpherePassData>("DiffuseDenoiser", out var passData, ProfilingSampler.Get(HDProfileId.DiffuseFilter)))

@@ -1451,7 +1451,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        static void BindAtlasTexture(UnsafeGraphContext ctx, TextureHandle texture, int shaderId)
+        static void BindAtlasTexture(UnsafeGraphContext ctx, in TextureHandle texture, int shaderId)
         {
             if (texture.IsValid())
                 ctx.cmd.SetGlobalTexture(shaderId, texture);

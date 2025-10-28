@@ -234,7 +234,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
-        public unsafe void BlitCachedIntoAtlas(RenderGraph renderGraph, TextureHandle cachedAtlasTexture, Vector2Int cachedAtlasSize, Material blitMaterial, string passName, HDProfileId profileID)
+        public unsafe void BlitCachedIntoAtlas(RenderGraph renderGraph, in TextureHandle cachedAtlasTexture, Vector2Int cachedAtlasSize, Material blitMaterial, string passName, HDProfileId profileID)
         {
             if (m_MixedRequestsPendingBlits.Length > 0)
             {

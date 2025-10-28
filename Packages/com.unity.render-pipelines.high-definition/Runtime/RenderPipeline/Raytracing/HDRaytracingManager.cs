@@ -984,7 +984,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return Mathf.Atan(GetPixelSpreadTangent(fov, width, height));
         }
 
-        internal TextureHandle EvaluateHistoryValidationBuffer(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer)
+        internal TextureHandle EvaluateHistoryValidationBuffer(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthBuffer, in TextureHandle normalBuffer, in TextureHandle motionVectorsBuffer)
         {
             // Grab the temporal filter
             HDTemporalFilter temporalFilter = GetTemporalFilter();

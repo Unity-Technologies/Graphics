@@ -235,9 +235,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public TextureHandle DenoiseIndirectSpecular(RenderGraph renderGraph, HDCamera hdCamera, bool fullResolution, float historyValidity, float denoiserRadius, float antiFlickeringStrength,
-            in HDRenderPipeline.PrepassOutput prepassOutput, TextureHandle clearCoatTexture,
+            in HDRenderPipeline.PrepassOutput prepassOutput, in TextureHandle clearCoatTexture,
             TextureHandle historyValidation,
-            TextureHandle lightingTexture, TextureHandle distanceTexture,
+            TextureHandle lightingTexture, in TextureHandle distanceTexture,
             RTHandle mainHistory, RTHandle accumulationHistory, RTHandle stabilizationHistory)
         {
             using (var builder = renderGraph.AddUnsafePass<ReblurIndirectSpecularPassData>("ReBlur Indirect Specular", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionFilter)))

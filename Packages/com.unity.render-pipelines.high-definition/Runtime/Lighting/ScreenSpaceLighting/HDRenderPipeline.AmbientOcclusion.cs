@@ -144,8 +144,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return renderGraph.CreateTexture(new TextureDesc(Vector2.one * 0.5f, true, true) { enableRandomWrite = true, format = GraphicsFormat.R32_SFloat, name = "Final Half Res AO Packed" });
         }
 
-        TextureHandle RenderAmbientOcclusion(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle historyValidityBuffer,
-            in HDUtils.PackedMipChainInfo depthMipInfo, ShaderVariablesRaytracing shaderVariablesRaytracing, TextureHandle rayCountTexture)
+        TextureHandle RenderAmbientOcclusion(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthBuffer, in TextureHandle depthPyramid, in TextureHandle normalBuffer, in TextureHandle motionVectors, in TextureHandle historyValidityBuffer,
+            in HDUtils.PackedMipChainInfo depthMipInfo, ShaderVariablesRaytracing shaderVariablesRaytracing, in TextureHandle rayCountTexture)
         {
             var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceAmbientOcclusion>();
 
@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle normalBuffer;
         }
 
-        TextureHandle RenderAO(RenderGraph renderGraph, in RenderAOParameters parameters, TextureHandle depthPyramid, TextureHandle normalBuffer)
+        TextureHandle RenderAO(RenderGraph renderGraph, in RenderAOParameters parameters, in TextureHandle depthPyramid, in TextureHandle normalBuffer)
         {
             using (var builder = renderGraph.AddComputePass<RenderAOPassData>("GTAO Horizon search and integration", out var passData, ProfilingSampler.Get(HDProfileId.HorizonSSAO)))
             {
@@ -260,7 +260,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle denoiseOutput;
         }
 
-        TextureHandle SpatialDenoiseAO(RenderGraph renderGraph, in RenderAOParameters parameters, TextureHandle aoPackedData)
+        TextureHandle SpatialDenoiseAO(RenderGraph renderGraph, in RenderAOParameters parameters, in TextureHandle aoPackedData)
         {
             using (var builder = renderGraph.AddComputePass<SpatialDenoiseAOPassData>("Spatial Denoise GTAO", out var passData))
             {
@@ -407,7 +407,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle output;
         }
 
-        TextureHandle UpsampleAO(RenderGraph renderGraph, in RenderAOParameters parameters, TextureHandle input, TextureHandle depthTexture)
+        TextureHandle UpsampleAO(RenderGraph renderGraph, in RenderAOParameters parameters, in TextureHandle input, in TextureHandle depthTexture)
         {
             if (parameters.fullResolution)
                 return input;

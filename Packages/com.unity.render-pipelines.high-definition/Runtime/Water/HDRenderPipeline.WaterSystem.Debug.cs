@@ -14,13 +14,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesWaterDebug[] waterDebugCBs;
         }
 
-        internal void RenderWaterDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, WaterGBuffer waterGBuffer)
+        internal void RenderWaterDebug(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle colorBuffer, in TextureHandle depthBuffer, WaterGBuffer waterGBuffer)
         {
             if (waterGBuffer.debugRequired)
                 RenderWaterDebug(renderGraph, hdCamera, colorBuffer, depthBuffer);
         }
 
-        internal void RenderWaterDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer)
+        internal void RenderWaterDebug(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle colorBuffer, in TextureHandle depthBuffer)
         {
             if (!ShouldRenderWater(hdCamera))
                 return;

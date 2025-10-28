@@ -1809,7 +1809,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Rect viewportSize;
         }
 
-        internal void ExecuteCaptureActions(RenderGraph renderGraph, TextureHandle input)
+        internal void ExecuteCaptureActions(RenderGraph renderGraph, in TextureHandle input)
         {
             if (m_RecorderCaptureActions == null || !m_RecorderCaptureActions.MoveNext())
                 return;
@@ -2587,7 +2587,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if ENABLE_VIRTUALTEXTURES
-        internal void ResolveVirtualTextureFeedback(RenderGraph renderGraph, TextureHandle vtFeedbackBuffer)
+        internal void ResolveVirtualTextureFeedback(RenderGraph renderGraph, in TextureHandle vtFeedbackBuffer)
         {
             virtualTextureFeedback.Resolve(renderGraph, this, vtFeedbackBuffer);
         }

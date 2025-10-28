@@ -272,7 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal void RenderVolumetricClouds_Sky(RenderGraph renderGraph, HDCamera hdCamera, Matrix4x4[] pixelCoordToViewDir, VolumetricClouds settings, SkyRenderer skyRenderer,
-            int width, int height, GraphicsBuffer probeBuffer, TextureHandle skyboxCubemap)
+            int width, int height, GraphicsBuffer probeBuffer, in TextureHandle skyboxCubemap)
         {
             // If the current volume does not enable the feature, quit right away.
             if (!HasVolumetricClouds(hdCamera, in settings))

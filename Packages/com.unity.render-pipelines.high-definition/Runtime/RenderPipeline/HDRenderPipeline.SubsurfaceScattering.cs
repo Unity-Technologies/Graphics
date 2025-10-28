@@ -221,7 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public BufferHandle  coarseStencilBuffer;
         }
 
-        TextureHandle RenderSubsurfaceScatteringScreenSpace(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, in LightingBuffers lightingBuffers, ref PrepassOutput prepassOutput)
+        TextureHandle RenderSubsurfaceScatteringScreenSpace(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle colorBuffer, in LightingBuffers lightingBuffers, ref PrepassOutput prepassOutput)
         {
             BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: false, ref prepassOutput);
 
@@ -368,7 +368,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle historyValidationTexture, ref LightingBuffers lightingBuffers, ref PrepassOutput prepassOutput)
+        void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle colorBuffer, in TextureHandle historyValidationTexture, ref LightingBuffers lightingBuffers, ref PrepassOutput prepassOutput)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;

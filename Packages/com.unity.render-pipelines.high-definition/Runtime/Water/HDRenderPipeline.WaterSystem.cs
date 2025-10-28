@@ -841,7 +841,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthPyramid;
         }
 
-        void PrepareWaterGBufferData(IUnsafeRenderGraphBuilder builder, HDCamera hdCamera, TextureHandle normalBuffer, TextureHandle depthPyramid,
+        void PrepareWaterGBufferData(IUnsafeRenderGraphBuilder builder, HDCamera hdCamera, in TextureHandle normalBuffer, in TextureHandle depthPyramid,
             in HDRenderPipeline.BuildGPULightListOutput lightLists, ref WaterGBuffer gbuffer, WaterGBufferData passData)
         {
             WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
@@ -1009,8 +1009,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal WaterGBuffer RenderWaterGBuffer(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera,
-                                        TextureHandle depthBuffer, TextureHandle normalBuffer,
-                                        TextureHandle colorPyramid, TextureHandle depthPyramid,
+                                        TextureHandle depthBuffer, in TextureHandle normalBuffer,
+                                        TextureHandle colorPyramid, in TextureHandle depthPyramid,
                                         in HDRenderPipeline.BuildGPULightListOutput lightLists)
         {
             // Tile sizes
@@ -1160,7 +1160,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public BufferHandle tileBuffer;
         }
 
-        void PrepareWaterLighting(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, in HDRenderPipeline.BuildGPULightListOutput lightLists, ref WaterGBuffer gbuffer)
+        void PrepareWaterLighting(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthBuffer, in TextureHandle normalBuffer, in HDRenderPipeline.BuildGPULightListOutput lightLists, ref WaterGBuffer gbuffer)
         {
             using (var builder = renderGraph.AddUnsafePass<WaterPrepareLightingData>("Prepare water for lighting", out var passData, ProfilingSampler.Get(HDProfileId.WaterPrepareLighting)))
             {
@@ -1290,8 +1290,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal void RenderWaterLighting(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle depthPyramid,
-            TextureHandle volumetricLightingTexture, TextureHandle ssrLighting,
+            TextureHandle colorBuffer, in TextureHandle depthBuffer, in TextureHandle depthPyramid,
+            TextureHandle volumetricLightingTexture, in TextureHandle ssrLighting,
             in HDRenderPipeline.TransparentPrepassOutput prepassOutput, in HDRenderPipeline.BuildGPULightListOutput lightLists, ref TextureHandle opticalFogTransmittance)
         {
             // We do not render the deferred lighting if:
@@ -1413,7 +1413,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public RendererListHandle opaqueRendererList;
         }
 
-        void WaterRejectionTag(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, TextureHandle depthBuffer)
+        void WaterRejectionTag(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, in TextureHandle depthBuffer)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.WaterExclusion))
                 return;

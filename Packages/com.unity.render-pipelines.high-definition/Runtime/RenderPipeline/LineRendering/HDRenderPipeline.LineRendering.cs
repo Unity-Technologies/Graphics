@@ -154,7 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        void RenderLines(RenderGraph renderGraph, TextureHandle depthPrepassTexture, HDCamera hdCamera, BuildGPULightListOutput lightLists)
+        void RenderLines(RenderGraph renderGraph, in TextureHandle depthPrepassTexture, HDCamera hdCamera, BuildGPULightListOutput lightLists)
         {
             if (!LineRenderingIsEnabled(hdCamera, out var settings))
                 return;
@@ -241,7 +241,7 @@ namespace UnityEngine.Rendering.HighDefinition
             PushFullScreenDebugTexture(renderGraph, m_LineColorBuffer, FullScreenDebugMode.HighQualityLines);
         }
 
-        void ComposeLines(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle motionVectorBuffer, int compositionMode)
+        void ComposeLines(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle colorBuffer, in TextureHandle depthBuffer, in TextureHandle motionVectorBuffer, int compositionMode)
         {
             if (!LineRenderingIsEnabled(hdCamera, out var settings))
                 return;

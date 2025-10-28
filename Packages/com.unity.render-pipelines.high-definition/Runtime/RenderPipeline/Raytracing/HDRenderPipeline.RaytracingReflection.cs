@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputBuffer;
         }
 
-        TextureHandle DirGenRTR(RenderGraph renderGraph, HDCamera hdCamera, ScreenSpaceReflection settings, TextureHandle depthBuffer, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle clearCoatTexture, bool fullResolution, bool transparent)
+        TextureHandle DirGenRTR(RenderGraph renderGraph, HDCamera hdCamera, ScreenSpaceReflection settings, in TextureHandle depthBuffer, in TextureHandle stencilBuffer, in TextureHandle normalBuffer, in TextureHandle clearCoatTexture, bool fullResolution, bool transparent)
         {
             using (var builder = renderGraph.AddUnsafePass<DirGenRTRPassData>("Generating the rays for RTR", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionDirectionGeneration)))
             {
@@ -235,7 +235,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle AdjustWeightRTR(RenderGraph renderGraph, HDCamera hdCamera, ScreenSpaceReflection settings,
-            TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle clearCoatTexture,
+            TextureHandle depthPyramid, in TextureHandle normalBuffer, in TextureHandle clearCoatTexture,
             TextureHandle lightingTexture)
         {
             using (var builder = renderGraph.AddUnsafePass<AdjustWeightRTRPassData>("Adjust Weight RTR", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionAdjustWeight)))
@@ -315,7 +315,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputTexture;
         }
 
-        TextureHandle UpscaleRTR(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle lightingTexture)
+        TextureHandle UpscaleRTR(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthBuffer, in TextureHandle lightingTexture)
         {
             using (var builder = renderGraph.AddUnsafePass<UpscaleRTRPassData>("Upscale RTR", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionUpscale)))
             {
@@ -454,7 +454,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderReflectionsPerformance(RenderGraph renderGraph, HDCamera hdCamera,
-            in PrepassOutput prepassOutput, TextureHandle rayCountTexture, TextureHandle historyValidation, TextureHandle clearCoatTexture, Texture skyTexture,
+            in PrepassOutput prepassOutput, in TextureHandle rayCountTexture, in TextureHandle historyValidation, in TextureHandle clearCoatTexture, Texture skyTexture,
             ShaderVariablesRaytracing shaderVariablesRaytracing, bool transparent)
         {
             // Fetch all the settings
@@ -539,7 +539,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         RayTracingReflectionsQualityOutput QualityRTR(RenderGraph renderGraph, HDCamera hdCamera, ScreenSpaceReflection settings,
-            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle clearCoatTexture, TextureHandle rayCountTexture, bool transparent)
+            TextureHandle depthPyramid, in TextureHandle stencilBuffer, in TextureHandle normalBuffer, in TextureHandle clearCoatTexture, in TextureHandle rayCountTexture, bool transparent)
         {
             using (var builder = renderGraph.AddUnsafePass<TraceQualityRTRPassData>("Quality RT Reflections", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionEvaluation)))
             {
@@ -673,7 +673,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderReflectionsQuality(RenderGraph renderGraph, HDCamera hdCamera,
-            in PrepassOutput prepassOutput, TextureHandle rayCountTexture, TextureHandle historyValidation, TextureHandle clearCoatTexture, Texture skyTexture,
+            in PrepassOutput prepassOutput, in TextureHandle rayCountTexture, in TextureHandle historyValidation, in TextureHandle clearCoatTexture, Texture skyTexture,
             ShaderVariablesRaytracing shaderVariablesRaytracing, bool transparent)
         {
             TextureHandle rtrResult;
@@ -735,8 +735,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle DenoiseReflection(RenderGraph renderGraph, HDCamera hdCamera, bool fullResolution, float denoiserRadius, float antiFlickering,
-            TextureHandle lightingBuffer, TextureHandle distanceBuffer,
-            in PrepassOutput prepassOutput, TextureHandle clearCoatTexture, TextureHandle historyValidation)
+            TextureHandle lightingBuffer, in TextureHandle distanceBuffer,
+            in PrepassOutput prepassOutput, in TextureHandle clearCoatTexture, in TextureHandle historyValidation)
         {
             // Evaluate if the history is usable
             float historyValidity = EvaluateRayTracingHistoryValidity(hdCamera, fullResolution, true);
@@ -762,7 +762,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderRayTracedReflections(RenderGraph renderGraph, HDCamera hdCamera,
-            in PrepassOutput prepassOutput, TextureHandle clearCoatTexture, Texture skyTexture, TextureHandle rayCountTexture, TextureHandle historyValidation,
+            in PrepassOutput prepassOutput, in TextureHandle clearCoatTexture, Texture skyTexture, in TextureHandle rayCountTexture, in TextureHandle historyValidation,
             ShaderVariablesRaytracing shaderVariablesRaytracing, bool transparent)
         {
             ScreenSpaceReflection reflectionSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();

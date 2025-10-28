@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return OccluderPass.GBuffer;
         }
 
-        void UpdateInstanceOccluders(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture)
+        void UpdateInstanceOccluders(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthTexture)
         {
             bool isSinglePassXR = hdCamera.xr.enabled && hdCamera.xr.singlePassEnabled;
             var occluderParams = new OccluderParameters(hdCamera.camera.GetEntityId())
@@ -437,7 +437,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public RendererListHandle transparentRenderList;
         }
 
-        void RenderRayTracingDepthPrepass(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, TextureHandle depthBuffer)
+        void RenderRayTracingDepthPrepass(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, in TextureHandle depthBuffer)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 return;
@@ -718,7 +718,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int shadowMaskTextureIndex;
         }
 
-        void SetupGBufferTargets(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle sssBuffer, TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, FrameSettings frameSettings, IUnsafeRenderGraphBuilder builder)
+        void SetupGBufferTargets(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle sssBuffer, in TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, FrameSettings frameSettings, IUnsafeRenderGraphBuilder builder)
         {
             builder.SetRenderAttachmentDepth(prepassOutput.depthBuffer, AccessFlags.ReadWrite);
 
@@ -824,7 +824,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // RenderGBuffer do the gbuffer pass. This is only called with deferred. If we use a depth prepass, then the depth prepass will perform the alpha testing for opaque alpha tested and we don't need to do it anymore
         // during Gbuffer pass. This is handled in the shader and the depth test (equal and no depth write) is done here.
-        void RenderGBuffer(RenderGraph renderGraph, TextureHandle sssBuffer, TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, CullingResults cull, uint batchLayerMask, HDCamera hdCamera)
+        void RenderGBuffer(RenderGraph renderGraph, in TextureHandle sssBuffer, in TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, CullingResults cull, uint batchLayerMask, HDCamera hdCamera)
         {
             if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred ||
                 !hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
@@ -955,7 +955,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return thicknessTexture;
         }
 
-        void RenderThickness(RenderGraph renderGraph, CullingResults cullingResults, TextureHandle thicknessTexture, TextureHandle depthBuffer, HDCamera hdCamera, RenderQueueRange renderQueue, bool readDepthBuffer)
+        void RenderThickness(RenderGraph renderGraph, CullingResults cullingResults, in TextureHandle thicknessTexture, in TextureHandle depthBuffer, HDCamera hdCamera, RenderQueueRange renderQueue, bool readDepthBuffer)
         {
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
             FrameSettings frameSettings = hdCamera.frameSettings;
@@ -1648,7 +1648,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthBuffer;
         }
 
-        void RenderCameraMotionVectors(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectorsBuffer)
+        void RenderCameraMotionVectors(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthBuffer, in TextureHandle motionVectorsBuffer)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
                 return;

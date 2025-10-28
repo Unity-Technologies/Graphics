@@ -530,7 +530,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle dilatedMaxZBuffer;
         }
 
-        TextureHandle GenerateMaxZPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, HDUtils.PackedMipChainInfo depthMipInfo)
+        TextureHandle GenerateMaxZPass(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthTexture, HDUtils.PackedMipChainInfo depthMipInfo)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -1060,7 +1060,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer visibleVolumeBoundsBuffer;
         }
 
-        unsafe TextureHandle ClearAndHeightFogVoxelizationPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, in TransparentPrepassOutput transparentPrepass)
+        unsafe TextureHandle ClearAndHeightFogVoxelizationPass(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthBuffer, in TransparentPrepassOutput transparentPrepass)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -1138,7 +1138,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         unsafe TextureHandle FogVolumeAndVFXVoxelizationPass(RenderGraph renderGraph,
             HDCamera hdCamera,
-            TextureHandle densityBuffer,
+            in TextureHandle densityBuffer,
             ComputeBuffer visibleVolumeBoundsBuffer,
             CullingResults cullingResults)
         {
@@ -1334,8 +1334,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public RenderTargetIdentifier causticsBuffer;
         }
 
-        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle densityBuffer,
-            TextureHandle maxZBuffer, in TransparentPrepassOutput transparentPrepass, TextureHandle depthBuffer, BufferHandle bigTileVolumetricLightListBuffer, ShadowResult shadowResult)
+        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthTexture, in TextureHandle densityBuffer,
+            in TextureHandle maxZBuffer, in TransparentPrepassOutput transparentPrepass, in TextureHandle depthBuffer, in BufferHandle bigTileVolumetricLightListBuffer, ShadowResult shadowResult)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {

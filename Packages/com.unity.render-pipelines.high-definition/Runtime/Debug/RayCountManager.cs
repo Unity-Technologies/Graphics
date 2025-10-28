@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Queue<AsyncGPUReadbackRequest> rayCountReadbacks;
         }
 
-        void PrepareEvaluateRayCountPassData(in IUnsafeRenderGraphBuilder builder, EvaluateRayCountPassData data, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle rayCountTexture)
+        void PrepareEvaluateRayCountPassData(in IUnsafeRenderGraphBuilder builder, EvaluateRayCountPassData data, HDCamera hdCamera, in TextureHandle colorBuffer, in TextureHandle depthBuffer, in TextureHandle rayCountTexture)
         {
             data.colorBuffer = colorBuffer;
             builder.SetRenderAttachment(colorBuffer, 0);
@@ -142,7 +142,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.rayCountReadbacks = m_RayCountReadbacks;
         }
 
-        public void EvaluateRayCount(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle rayCountTexture)
+        public void EvaluateRayCount(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle colorBuffer, in TextureHandle depthBuffer, in TextureHandle rayCountTexture)
         {
             if (m_IsActive)
             {

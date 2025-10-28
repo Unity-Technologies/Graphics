@@ -36,8 +36,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle DenoisePunctualScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera,
             HDAdditionalLightData additionalLightData, in LightData lightData, PunctualShadowProperties properties,
-            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVetorsBuffer, TextureHandle historyValidityBuffer,
-            TextureHandle noisyBuffer, TextureHandle velocityBuffer, TextureHandle distanceBufferI)
+            in TextureHandle depthBuffer, in TextureHandle normalBuffer, in TextureHandle motionVetorsBuffer, in TextureHandle historyValidityBuffer,
+            in TextureHandle noisyBuffer, in TextureHandle velocityBuffer, in TextureHandle distanceBufferI)
         {
             // Is the history still valid?
             float historyValidity = EvaluateHistoryValidityPointShadow(hdCamera, lightData, additionalLightData);
@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderPunctualScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera
             , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex,
-            PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle historyValidityBuffer, TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
+            PrepassOutput prepassOutput, in TextureHandle depthBuffer, in TextureHandle normalBuffer, in TextureHandle motionVectorsBuffer, in TextureHandle historyValidityBuffer, in TextureHandle rayCountTexture, in TextureHandle screenSpaceShadowArray)
         {
             TextureHandle pointShadowBuffer;
             TextureHandle velocityBuffer;

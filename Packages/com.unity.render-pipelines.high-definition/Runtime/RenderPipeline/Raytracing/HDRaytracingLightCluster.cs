@@ -226,7 +226,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputBuffer;
         }
 
-        public void EvaluateClusterDebugView(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthStencilBuffer, TextureHandle depthPyramid)
+        public void EvaluateClusterDebugView(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthStencilBuffer, in TextureHandle depthPyramid)
         {
             // TODO: Investigate why this behavior causes a leak in player mode only.
             if (FullScreenDebugMode.LightCluster != m_RenderPipeline.m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)

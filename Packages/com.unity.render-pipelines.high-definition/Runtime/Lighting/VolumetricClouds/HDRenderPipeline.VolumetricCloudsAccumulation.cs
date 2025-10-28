@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle cloudsDepth;
         }
 
-        VolumetricCloudsOutput RenderVolumetricClouds_Accumulation(RenderGraph renderGraph, HDCamera hdCamera, TVolumetricCloudsCameraType cameraType, TextureHandle colorBuffer, TextureHandle depthPyramid)
+        VolumetricCloudsOutput RenderVolumetricClouds_Accumulation(RenderGraph renderGraph, HDCamera hdCamera, TVolumetricCloudsCameraType cameraType, in TextureHandle colorBuffer, in TextureHandle depthPyramid)
         {
             using (var builder = renderGraph.AddUnsafePass<VolumetricCloudsAccumulationData>("Volumetric Clouds", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricClouds)))
             {

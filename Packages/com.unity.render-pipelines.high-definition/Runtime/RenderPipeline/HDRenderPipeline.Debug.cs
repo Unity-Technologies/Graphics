@@ -302,7 +302,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int                 vectorscopeClearKernel;
         }
 
-        void RenderMonitorsOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, HDCamera hdCamera)
+        void RenderMonitorsOverlay(RenderGraph renderGraph, in TextureHandle colorBuffer, HDCamera hdCamera)
         {
             MonitorsDebugSettings settings = m_CurrentDebugDisplaySettings.data.monitorsDebugSettings;
 
@@ -475,7 +475,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public RendererListHandle transparencyLowResRL;
         }
 
-        void RenderTransparencyOverdraw(RenderGraph renderGraph, TextureHandle depthBuffer, CullingResults cull, HDCamera hdCamera)
+        void RenderTransparencyOverdraw(RenderGraph renderGraph, in TextureHandle depthBuffer, CullingResults cull, HDCamera hdCamera)
         {
             if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.TransparencyOverdraw)
             {
@@ -547,7 +547,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int viewCount;
         }
 
-        void RenderFullScreenDebug(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, CullingResults cull, HDCamera hdCamera)
+        void RenderFullScreenDebug(RenderGraph renderGraph, in TextureHandle colorBuffer, in TextureHandle depthBuffer, CullingResults cull, HDCamera hdCamera)
         {
             using (var builder = renderGraph.AddUnsafePass<FullScreenDebugPassData>("FullScreen Debug", out var passData))
             {
@@ -601,7 +601,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public BufferHandle fullscreenBuffer;
         }
 
-        TextureHandle ResolveFullScreenDebug(RenderGraph renderGraph, TextureHandle inputFullScreenDebug, TextureHandle depthPyramid, HDCamera hdCamera, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat)
+        TextureHandle ResolveFullScreenDebug(RenderGraph renderGraph, in TextureHandle inputFullScreenDebug, in TextureHandle depthPyramid, HDCamera hdCamera, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat)
         {
             using (var builder = renderGraph.AddUnsafePass<ResolveFullScreenDebugPassData>("ResolveFullScreenDebug", out var passData))
             {
@@ -695,7 +695,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle input;
         }
 
-        TextureHandle ResolveColorPickerDebug(RenderGraph renderGraph, TextureHandle inputColorPickerDebug, HDCamera hdCamera, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat)
+        TextureHandle ResolveColorPickerDebug(RenderGraph renderGraph, in TextureHandle inputColorPickerDebug, HDCamera hdCamera, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat)
         {
             using (var builder = renderGraph.AddUnsafePass<ResolveColorPickerDebugPassData>("ResolveColorPickerDebug", out var passData))
             {
@@ -752,7 +752,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture skyReflectionTexture;
         }
 
-        void RenderSkyReflectionOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, HDCamera hdCamera)
+        void RenderSkyReflectionOverlay(RenderGraph renderGraph, in TextureHandle colorBuffer, in TextureHandle depthBuffer, HDCamera hdCamera)
         {
             if (!m_CurrentDebugDisplaySettings.data.lightingDebugSettings.displaySkyReflection)
                 return;
@@ -783,7 +783,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderRayCountOverlay(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle rayCountTexture)
+        void RenderRayCountOverlay(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle colorBuffer, in TextureHandle depthBuffer, in TextureHandle rayCountTexture)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 return;
@@ -801,7 +801,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int slice;
         }
 
-        void RenderAtlasDebugOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, Texture atlas, int slice, int mipLevel, bool applyExposure, string passName, HDProfileId profileID)
+        void RenderAtlasDebugOverlay(RenderGraph renderGraph, in TextureHandle colorBuffer, in TextureHandle depthBuffer, Texture atlas, int slice, int mipLevel, bool applyExposure, string passName, HDProfileId profileID)
         {
             using (var builder = renderGraph.AddUnsafePass<RenderAtlasDebugOverlayPassData>(passName, out var passData, ProfilingSampler.Get(profileID)))
             {
@@ -860,7 +860,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 lightingViewportSize;
         }
 
-        void RenderTileClusterDebugOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, in BuildGPULightListOutput lightLists, TextureHandle depthPyramidTexture, HDCamera hdCamera)
+        void RenderTileClusterDebugOverlay(RenderGraph renderGraph, in TextureHandle colorBuffer, in TextureHandle depthBuffer, in BuildGPULightListOutput lightLists, in TextureHandle depthPyramidTexture, HDCamera hdCamera)
         {
             // Depending on the debug mode enabled we may not be building the light lists so the buffers would not be valid in this case.
             if (!lightLists.tileList.IsValid())
@@ -986,7 +986,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material debugShadowMapMaterial;
         }
 
-        void RenderShadowsDebugOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, in ShadowResult shadowResult)
+        void RenderShadowsDebugOverlay(RenderGraph renderGraph, in TextureHandle colorBuffer, in TextureHandle depthBuffer, in ShadowResult shadowResult)
         {
             if (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxShadowRequests == 0
                 || m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.None)
@@ -1076,7 +1076,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public HDCamera hdCamera;
         }
 
-        void RenderDecalOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, HDCamera hdCamera)
+        void RenderDecalOverlay(RenderGraph renderGraph, in TextureHandle colorBuffer, in TextureHandle depthBuffer, HDCamera hdCamera)
         {
             if (!HDDebugDisplaySettings.Instance.decalSettings.displayAtlas)
                 return;
@@ -1099,7 +1099,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderOcclusionOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, HDCamera hdCamera)
+        void RenderOcclusionOverlay(RenderGraph renderGraph, in TextureHandle colorBuffer, HDCamera hdCamera)
         {
             GPUResidentDrawer.RenderDebugOcclusionTestOverlay(
                 renderGraph,
@@ -1108,7 +1108,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 colorBuffer);
         }
 
-        void RenderOccluderDebugOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, HDCamera hdCamera)
+        void RenderOccluderDebugOverlay(RenderGraph renderGraph, in TextureHandle colorBuffer, HDCamera hdCamera)
         {
             var debugSettings = HDDebugDisplaySettings.Instance?.gpuResidentDrawerSettings ?? null;
             if (debugSettings != null && debugSettings.occluderDebugViewEnable)
@@ -1158,7 +1158,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderOccluderDebugOverlay(renderGraph, colorBuffer, hdCamera);
         }
 
-        void RenderLightVolumes(RenderGraph renderGraph, TextureHandle destination, TextureHandle depthBuffer, CullingResults cullResults, HDCamera hdCamera)
+        void RenderLightVolumes(RenderGraph renderGraph, in TextureHandle destination, in TextureHandle depthBuffer, CullingResults cullResults, HDCamera hdCamera)
         {
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.displayLightVolumes)
             {
@@ -1178,7 +1178,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle source;
         }
 
-        void GenerateDebugImageHistogram(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
+        void GenerateDebugImageHistogram(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle source)
         {
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode != ExposureDebugMode.FinalImageHistogramView)
                 return;
@@ -1285,7 +1285,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle output;
         }
 
-        TextureHandle RenderHDRDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle xyBuff)
+        TextureHandle RenderHDRDebug(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle colorBuffer, in TextureHandle xyBuff)
         {
             using (var builder = renderGraph.AddUnsafePass<DebugHDRData>("Debug HDR", out var passData))
             {
@@ -1351,7 +1351,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer histogramBuffer;
         }
 
-        TextureHandle RenderExposureDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
+        TextureHandle RenderExposureDebug(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle colorBuffer)
         {
             using (var builder = renderGraph.AddUnsafePass<DebugExposureData>("Debug Exposure", out var passData))
             {
@@ -1513,7 +1513,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return output;
         }
 
-        void RenderProbeVolumeDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramidBuffer, TextureHandle normalBuffer)
+        void RenderProbeVolumeDebug(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthPyramidBuffer, in TextureHandle normalBuffer)
         {
             if (apvIsEnabled && ProbeReferenceVolume.instance.GetProbeSamplingDebugResources(hdCamera.camera, out var resultBuffer, out Vector2 coords))
                 WriteApvPositionNormalDebugBuffer(renderGraph, resultBuffer, coords, depthPyramidBuffer, normalBuffer);
@@ -1529,7 +1529,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Compute worldspace position and normal at given screenspace clickCoordinates, and write it into given ResultBuffer.
-        void WriteApvPositionNormalDebugBuffer(RenderGraph renderGraph, GraphicsBuffer resultBuffer, Vector2 clickCoordinates, TextureHandle depthBuffer, TextureHandle normalBuffer)
+        void WriteApvPositionNormalDebugBuffer(RenderGraph renderGraph, GraphicsBuffer resultBuffer, Vector2 clickCoordinates, in TextureHandle depthBuffer, in TextureHandle normalBuffer)
         {
             using (var builder = renderGraph.AddUnsafePass<WriteApvData>("APV Debug Sampling", out var passData, ProfilingSampler.Get(HDProfileId.APVSamplingDebug)))
             {
@@ -1579,7 +1579,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool clearDepth;
         }
 
-        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, BuildGPULightListOutput lightLists, DBufferOutput dbuffer, GBufferOutput gbuffer, TextureHandle depthBuffer, TextureHandle vtFeedbackBuffer)
+        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, BuildGPULightListOutput lightLists, DBufferOutput dbuffer, GBufferOutput gbuffer, in TextureHandle depthBuffer, in TextureHandle vtFeedbackBuffer)
         {
             bool msaa = hdCamera.msaaEnabled;
 
@@ -1726,7 +1726,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 customScaleBias;
         }
 
-        void PushFullScreenLightingDebugTexture(RenderGraph renderGraph, TextureHandle input, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat)
+        void PushFullScreenLightingDebugTexture(RenderGraph renderGraph, in TextureHandle input, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat)
         {
             // In practice, this is only useful for the SingleShadow debug view.
             // TODO: See how we can make this nicer than a specific functions just for one case.
@@ -1736,7 +1736,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, FullScreenDebugMode debugMode, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat, bool xrTexture = true)
+        internal void PushFullScreenDebugTexture(RenderGraph renderGraph, in TextureHandle input, FullScreenDebugMode debugMode, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat, bool xrTexture = true)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
             {
@@ -1744,7 +1744,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, Vector2 scales, FullScreenDebugMode debugMode, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat, bool xrTexture = true)
+        internal void PushFullScreenDebugTexture(RenderGraph renderGraph, in TextureHandle input, Vector2 scales, FullScreenDebugMode debugMode, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat, bool xrTexture = true)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
             {
@@ -1752,7 +1752,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void PushFullScreenDebugTextureMip(RenderGraph renderGraph, TextureHandle input, int lodCount, Vector4 scaleBias, FullScreenDebugMode debugMode, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat)
+        void PushFullScreenDebugTextureMip(RenderGraph renderGraph, in TextureHandle input, int lodCount, Vector4 scaleBias, FullScreenDebugMode debugMode, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
             {
@@ -1762,17 +1762,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void PushFullScreenHistoryBuffer(RenderGraph renderGraph, TextureHandle input, HDCameraFrameHistoryType historyType, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat)
+        void PushFullScreenHistoryBuffer(RenderGraph renderGraph, in TextureHandle input, HDCameraFrameHistoryType historyType, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat)
         {
             PushFullScreenDebugTexture(renderGraph, input, colorFormat);
         }
 
-        void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat, int mipIndex = -1, bool xrTexture = true)
+        void PushFullScreenDebugTexture(RenderGraph renderGraph, in TextureHandle input, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat, int mipIndex = -1, bool xrTexture = true)
         {
             PushFullScreenDebugTexture(renderGraph, input, false, new Vector2(1.0f, 1.0f), rtFormat, mipIndex, xrTexture);
         }
 
-        void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, bool useCustomScaleBias, Vector2 customScales, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat, int mipIndex = -1, bool xrTexture = true)
+        void PushFullScreenDebugTexture(RenderGraph renderGraph, in TextureHandle input, bool useCustomScaleBias, Vector2 customScales, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat, int mipIndex = -1, bool xrTexture = true)
         {
             using (var builder = renderGraph.AddUnsafePass<PushFullScreenDebugPassData>("Push Full Screen Debug", out var passData))
             {
@@ -1839,7 +1839,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FullScreenDebugPushed = true;
         }
 
-        void PushFullScreenExposureDebugTexture(RenderGraph renderGraph, TextureHandle input, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat)
+        void PushFullScreenExposureDebugTexture(RenderGraph renderGraph, in TextureHandle input, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat)
         {
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode != ExposureDebugMode.None)
             {
@@ -1847,7 +1847,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void PushFullScreenHDRDebugTexture(RenderGraph renderGraph, TextureHandle input, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat)
+        void PushFullScreenHDRDebugTexture(RenderGraph renderGraph, in TextureHandle input, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat)
         {
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.hdrDebugMode != HDRDebugMode.None)
             {
@@ -1864,7 +1864,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool             msaa;
         }
 
-        void PushFullScreenVTFeedbackDebugTexture(RenderGraph renderGraph, TextureHandle input, bool msaa)
+        void PushFullScreenVTFeedbackDebugTexture(RenderGraph renderGraph, in TextureHandle input, bool msaa)
         {
             if (FullScreenDebugMode.RequestedVirtualTextureTiles == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
             {
@@ -1895,7 +1895,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
-        TextureHandle PushColorPickerDebugTexture(RenderGraph renderGraph, TextureHandle input)
+        TextureHandle PushColorPickerDebugTexture(RenderGraph renderGraph, in TextureHandle input)
         {
             using (var builder = renderGraph.AddUnsafePass<PushFullScreenDebugPassData>("Push To Color Picker", out var passData))
             {

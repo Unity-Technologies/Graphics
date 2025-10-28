@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public TextureHandle DenoiseRTR(RenderGraph renderGraph, HDCamera hdCamera, float historyValidity, int maxKernelSize, bool fullResolution, bool singleReflectionBounce, bool affectSmoothSurfaces,
-            TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle clearCoatTexture, TextureHandle lightingTexture, RTHandle historyBuffer)
+            TextureHandle depthPyramid, in TextureHandle normalBuffer, in TextureHandle motionVectorBuffer, in TextureHandle clearCoatTexture, in TextureHandle lightingTexture, RTHandle historyBuffer)
         {
             using (var builder = renderGraph.AddUnsafePass<ReflectionDenoiserPassData>("Denoise ray traced reflections", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionFilter)))
             {

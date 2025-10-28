@@ -569,7 +569,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        void RenderPathTracingFrame(RenderGraph renderGraph, HDCamera hdCamera, in CameraData cameraData, TextureHandle pathTracingBuffer, TextureHandle albedo, TextureHandle normal, TextureHandle motionVector, TextureHandle volumetricScattering)
+        void RenderPathTracingFrame(RenderGraph renderGraph, HDCamera hdCamera, in CameraData cameraData, in TextureHandle pathTracingBuffer, in TextureHandle albedo, in TextureHandle normal, in TextureHandle motionVector, in TextureHandle volumetricScattering)
         {
             using (var builder = renderGraph.AddUnsafePass<RenderPathTracingData>("Render Path Tracing Frame", out var passData))
             {
@@ -703,7 +703,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Simpler variant used by path tracing, without depth buffer or volumetric computations
-        void RenderSkyBackground(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle skyBuffer)
+        void RenderSkyBackground(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle skyBuffer)
         {
             if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
                 return;
@@ -768,7 +768,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // This is the method to call from the main render loop
-        TextureHandle RenderPathTracing(RenderGraph renderGraph, ScriptableRenderContext renderContext, HDCamera hdCamera, TextureHandle colorBuffer)
+        TextureHandle RenderPathTracing(RenderGraph renderGraph, ScriptableRenderContext renderContext, HDCamera hdCamera, in TextureHandle colorBuffer)
         {
 #if UNITY_EDITOR
             if (m_PathTracingSettings == null)

@@ -245,7 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderAreaScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera
             , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex,
-            PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
+            PrepassOutput prepassOutput, in TextureHandle depthBuffer, in TextureHandle normalBuffer, in TextureHandle motionVectorsBuffer, in TextureHandle rayCountTexture, in TextureHandle screenSpaceShadowArray)
         {
             // Grab the history buffers for shadows
             RTHandle shadowHistoryArray = RequestShadowHistoryBuffer(hdCamera);

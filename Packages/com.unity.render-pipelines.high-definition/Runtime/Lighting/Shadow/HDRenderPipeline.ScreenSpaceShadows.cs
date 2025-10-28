@@ -310,7 +310,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputBuffer;
         }
 
-        TextureHandle EvaluateShadowDebugView(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle screenSpaceShadowArray)
+        TextureHandle EvaluateShadowDebugView(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle screenSpaceShadowArray)
         {
             // If this is the right debug mode and the index we are asking for is in the range
             if (!rayTracingSupported || (m_ScreenSpaceShadowChannelSlot <= m_CurrentDebugDisplaySettings.data.screenSpaceShadowIndex))
@@ -379,7 +379,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputShadowArrayBuffer;
         }
 
-        void WriteScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle shadowTexture, TextureHandle screenSpaceShadowArray, int shadowIndex, ScreenSpaceShadowType shadowType)
+        void WriteScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle shadowTexture, in TextureHandle screenSpaceShadowArray, int shadowIndex, ScreenSpaceShadowType shadowType)
         {
             // Write the result texture to the screen space shadow buffer
             using (var builder = renderGraph.AddUnsafePass<WriteScreenSpaceShadowPassData>("Write Screen Space Shadows", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingWriteShadow)))
@@ -452,8 +452,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         bool RenderLightScreenSpaceShadows(RenderGraph renderGraph, HDCamera hdCamera,
-            PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle historyValidityBuffer,
-            TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
+            PrepassOutput prepassOutput, in TextureHandle depthBuffer, in TextureHandle normalBuffer, in TextureHandle motionVectorsBuffer, in TextureHandle historyValidityBuffer,
+            in TextureHandle rayCountTexture, in TextureHandle screenSpaceShadowArray)
         {
             // Loop through all the potential screen space light shadows
             for (int lightIdx = 0; lightIdx < m_ScreenSpaceShadowIndex; ++lightIdx)
@@ -510,7 +510,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderScreenSpaceShadows(RenderGraph renderGraph, HDCamera hdCamera,
-            PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle historyValidityBuffer, TextureHandle rayCountTexture)
+            PrepassOutput prepassOutput, in TextureHandle depthBuffer, in TextureHandle normalBuffer, in TextureHandle motionVectorsBuffer, in TextureHandle historyValidityBuffer, in TextureHandle rayCountTexture)
         {
             // If screen space shadows are not supported for this camera, we are done
             bool validConditions = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows) && RequestedScreenSpaceShadows();

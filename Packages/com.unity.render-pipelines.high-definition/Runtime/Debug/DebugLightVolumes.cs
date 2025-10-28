@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle destination;
         }
 
-        public void RenderLightVolumes(RenderGraph renderGraph, LightingDebugSettings lightingDebugSettings, TextureHandle destination, TextureHandle depthBuffer, CullingResults cullResults, HDCamera hdCamera)
+        public void RenderLightVolumes(RenderGraph renderGraph, LightingDebugSettings lightingDebugSettings, in TextureHandle destination, in TextureHandle depthBuffer, CullingResults cullResults, HDCamera hdCamera)
         {
             using (var builder = renderGraph.AddUnsafePass<RenderLightVolumesPassData>("LightVolumes", out var passData))
             {

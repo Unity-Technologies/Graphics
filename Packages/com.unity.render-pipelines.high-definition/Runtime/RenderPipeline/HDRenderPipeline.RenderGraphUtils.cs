@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle texture;
         }
 
-        internal static void GenerateMipmaps(RenderGraph renderGraph, TextureHandle texture)
+        internal static void GenerateMipmaps(RenderGraph renderGraph, in TextureHandle texture)
         {
             using (var builder = renderGraph.AddUnsafePass<GenerateMipmapsPassData>("Generate Mipmaps", out var passData))
             {
@@ -200,7 +200,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Color clearColor;
         }
 
-        void RenderXROcclusionMeshes(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer)
+        void RenderXROcclusionMeshes(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle colorBuffer, in TextureHandle depthBuffer)
         {
             if (hdCamera.xr.hasValidOcclusionMesh && m_Asset.currentPlatformRenderPipelineSettings.xrSettings.occlusionMesh)
             {
@@ -238,7 +238,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool bilinear;
         }
 
-        static internal void BlitCameraTexture(RenderGraph renderGraph, TextureHandle source, TextureHandle destination, float mipLevel = 0.0f, bool bilinear = false)
+        static internal void BlitCameraTexture(RenderGraph renderGraph, in TextureHandle source, in TextureHandle destination, float mipLevel = 0.0f, bool bilinear = false)
         {
             using (var builder = renderGraph.AddUnsafePass<BlitCameraTextureData>("Blit Camera Texture", out var passData))
             {

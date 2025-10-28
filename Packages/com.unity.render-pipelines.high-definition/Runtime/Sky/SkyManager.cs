@@ -781,7 +781,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle output;
         }
 
-        void RenderSkyToCubemap(RenderGraph renderGraph, SkyUpdateContext skyContext, HDCamera hdCamera, TextureHandle cubemap, Matrix4x4[] pixelCoordToViewDir, bool renderBackgroundClouds, HDProfileId profileId)
+        void RenderSkyToCubemap(RenderGraph renderGraph, SkyUpdateContext skyContext, HDCamera hdCamera, in TextureHandle cubemap, Matrix4x4[] pixelCoordToViewDir, bool renderBackgroundClouds, HDProfileId profileId)
         {
             using (var builder = renderGraph.AddUnsafePass<RenderSkyToCubemapPassData>("RenderSkyToCubemap", out var passData, ProfilingSampler.Get(profileId)))
             {
@@ -844,7 +844,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Action<AsyncGPUReadbackRequest> callback;
         }
 
-        internal void UpdateAmbientProbe(RenderGraph renderGraph, TextureHandle skyCubemap, bool outputForClouds, GraphicsBuffer ambientProbeResult, GraphicsBuffer diffuseAmbientProbeResult, GraphicsBuffer volumetricAmbientProbeResult, Vector4 fogParameters, Action<AsyncGPUReadbackRequest> callback)
+        internal void UpdateAmbientProbe(RenderGraph renderGraph, in TextureHandle skyCubemap, bool outputForClouds, GraphicsBuffer ambientProbeResult, GraphicsBuffer diffuseAmbientProbeResult, GraphicsBuffer volumetricAmbientProbeResult, Vector4 fogParameters, Action<AsyncGPUReadbackRequest> callback)
         {
             using (var builder = renderGraph.AddUnsafePass<UpdateAmbientProbePassData>("UpdateAmbientProbe", out var passData, ProfilingSampler.Get(HDProfileId.UpdateSkyAmbientProbe)))
             {
@@ -919,7 +919,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public IBLFilterBSDF[] bsdfs;
         }
 
-        void RenderCubemapGGXConvolution(RenderGraph renderGraph, TextureHandle input, CubemapArray output)
+        void RenderCubemapGGXConvolution(RenderGraph renderGraph, in TextureHandle input, CubemapArray output)
         {
             using (var builder = renderGraph.AddUnsafePass<SkyEnvironmentConvolutionPassData>("UpdateSkyEnvironmentConvolution", out var passData, ProfilingSampler.Get(HDProfileId.UpdateSkyEnvironmentConvolution)))
             {

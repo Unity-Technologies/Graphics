@@ -1057,7 +1057,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool motionVectorFromHit;
         }
 
-        static void ClearColorBuffer2D(RenderSSRPassData data, ComputeCommandBuffer cmd, TextureHandle rt, Color clearColor, bool async)
+        static void ClearColorBuffer2D(RenderSSRPassData data, ComputeCommandBuffer cmd, in TextureHandle rt, Color clearColor, bool async)
         {
             if (!async)
             {
@@ -1474,7 +1474,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public BufferHandle lightList;
         }
 
-        TextureHandle RenderContactShadows(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, in BuildGPULightListOutput lightLists, int firstMipOffsetY)
+        TextureHandle RenderContactShadows(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthTexture, in BuildGPULightListOutput lightLists, int firstMipOffsetY)
         {
             if (!WillRenderContactShadow())
                 return renderGraph.defaultResources.blackUIntTextureXR;
