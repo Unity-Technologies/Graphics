@@ -209,7 +209,8 @@ namespace UnityEditor.ShaderGraph
                     name = layerRefName,
                     textureId = texture != null ? texture.GetEntityId() : EntityId.None,
                     dimension = texture != null ? texture.dimension : UnityEngine.Rendering.TextureDimension.Any,
-                    modifiable = true
+                    modifiable = true,
+                    generatePropertyBlock = generatePropertyBlock
                 };
                 infos.Add(textureInfo);
             }

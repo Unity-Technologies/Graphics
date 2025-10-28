@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph
             public EntityId textureId;
             public TextureDimension dimension;
             public bool modifiable;
+            public bool generatePropertyBlock;
         }
 
         bool m_ReadOnly;
@@ -268,7 +269,8 @@ namespace UnityEditor.ShaderGraph
                         name = prop.referenceName,
                         textureId = prop.value.texture != null ? prop.value.texture.GetEntityId() : EntityId.None,
                         dimension = TextureDimension.Tex2D,
-                        modifiable = prop.modifiable
+                        modifiable = prop.modifiable,
+                        generatePropertyBlock = prop.generatePropertyBlock
                     };
                     result.Add(textureInfo);
                 }
@@ -283,7 +285,8 @@ namespace UnityEditor.ShaderGraph
                         name = prop.referenceName,
                         textureId = prop.value.textureArray != null ? prop.value.textureArray.GetEntityId() : EntityId.None,
                         dimension = TextureDimension.Tex2DArray,
-                        modifiable = prop.modifiable
+                        modifiable = prop.modifiable,
+                        generatePropertyBlock = prop.generatePropertyBlock
                     };
                     result.Add(textureInfo);
                 }
@@ -298,7 +301,8 @@ namespace UnityEditor.ShaderGraph
                         name = prop.referenceName,
                         textureId = prop.value.texture != null ? prop.value.texture.GetEntityId() : EntityId.None,
                         dimension = TextureDimension.Tex3D,
-                        modifiable = prop.modifiable
+                        modifiable = prop.modifiable,
+                        generatePropertyBlock = prop.generatePropertyBlock
                     };
                     result.Add(textureInfo);
                 }
@@ -313,7 +317,8 @@ namespace UnityEditor.ShaderGraph
                         name = prop.referenceName,
                         textureId = prop.value.cubemap != null ? prop.value.cubemap.GetEntityId() : EntityId.None,
                         dimension = TextureDimension.Cube,
-                        modifiable = prop.modifiable
+                        modifiable = prop.modifiable,
+                        generatePropertyBlock = prop.generatePropertyBlock
                     };
                     result.Add(textureInfo);
                 }
