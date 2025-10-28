@@ -9,7 +9,7 @@ VisualEffectImporter:
     description: This VFX is intended to provide an overview and basic understanding
       of how data flow is articulated in VFX Graph. It also presents an overview
       of the most frequently used Context Blocks.
-    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    icon: {fileID: 2800000, guid: ce3ba62f9452ddd4fbadb663ac249d93, type: 3}
     thumbnail: {fileID: 2800000, guid: 7fe3e7cbc6de1f9479895e82ad729e23, type: 3}
   userData: 
   assetBundleName: 
