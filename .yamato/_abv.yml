@@ -13,8 +13,8 @@ graphics_repo_nightly_trunk:
         UTR_VERSION: "current"
     triggers:
         recurring:
-          -  branch: master
-             frequency: 23 ? * 7 # At 11pm every Saturday
+          -  branch: 6000.4/staging
+             frequency: weekly
     dependencies:
       -  path: .yamato/_templates.yml#all_template_ci_trunk
          rerun: always
