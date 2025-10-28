@@ -11,10 +11,6 @@ graphics_repo_nightly_2021.3:
         CUSTOM_REVISION: '2021.3'
         TEST_FILTER: .*
         UTR_VERSION: "current"
-    triggers:
-        recurring:
-          -  branch: 2021.3/staging
-             frequency: 23 ? * 7 # At 11pm every Saturday
     dependencies:
       -  path: .yamato/_templates.yml#all_template_ci_2021.3
          rerun: always
