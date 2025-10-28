@@ -4,30 +4,19 @@ using System.Runtime.CompilerServices; // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal sealed class UberPostProcessPass : ScriptableRenderPass, IDisposable
+    internal sealed class UberPostProcessPass : PostProcessPass
     {
         Material m_Material;
-
         Texture2D[] m_FilmGrainTextures;
 
-        // Settings
-        public ColorLookup colorLookup { get; set; }
-        public ColorAdjustments colorAdjustments { get; set; }
-        public Tonemapping tonemapping { get; set; }
-        public Bloom bloom { get; set; }
-
-        public LensDistortion lensDistortion { get; set; }
-        public ChromaticAberration chromaticAberration { get; set; }
-        public Vignette vignette { get; set; }
-        public FilmGrain filmGrain { get; set; }
-
-
-        public bool isFinalPass { get; set; }
-        public HDROutputUtils.Operation hdrOperations { get; set; }
-        public bool requireSRGBConversionBlit { get; set; }
-        public bool useFastSRGBLinearConversion { get; set; }
-
-        public Texture ditherTexture { get; set; }
+        Texture m_DitherTexture;
+        RTHandle m_UserLut;
+        HDROutputUtils.Operation m_HdrOperations;
+        bool m_IsValid;
+        bool m_IsFinalPass;
+        bool m_RequireSRGBConversionBlit;
+        bool m_UseFastSRGBLinearConversion;
+        bool m_RenderOverlayUI;
 
         public UberPostProcessPass(Shader shader, Texture2D[] filmGrainTextures)
         {
@@ -35,14 +24,30 @@ namespace UnityEngine.Rendering.Universal
             this.profilingSampler = new ProfilingSampler("Blit Post Processing");
 
             m_Material = PostProcessUtils.LoadShader(shader, passName);
-
+            m_IsValid = m_Material != null;
             m_FilmGrainTextures = filmGrainTextures;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
-            CoreUtils.Destroy(m_Material);
             m_UserLut?.Release();
+            CoreUtils.Destroy(m_Material);
+            m_IsValid = false;
+        }
+
+        public void Setup(Texture ditherTexture,
+            HDROutputUtils.Operation hdrOperations,
+            bool requireSRGBConversionBlit,
+            bool useFastSRGBLinearConversion,
+            bool isFinalPass,
+            bool renderOverlayUI)
+        {
+            m_DitherTexture = ditherTexture;
+            m_HdrOperations = hdrOperations;
+            m_RequireSRGBConversionBlit = requireSRGBConversionBlit;
+            m_UseFastSRGBLinearConversion = useFastSRGBLinearConversion;
+            m_IsFinalPass = isFinalPass;
+            m_RenderOverlayUI = renderOverlayUI;
         }
 
         private class UberPostPassData
@@ -76,8 +81,17 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if (m_Material == null)
+            if(!m_IsValid)
                 return;
+
+            var colorLookup = volumeStack.GetComponent<ColorLookup>();
+            var colorAdjustments = volumeStack.GetComponent<ColorAdjustments>();
+            var tonemapping = volumeStack.GetComponent<Tonemapping>();
+            var bloom = volumeStack.GetComponent<Bloom>();
+            var lensDistortion = volumeStack.GetComponent<LensDistortion>();
+            var chromaticAberration = volumeStack.GetComponent<ChromaticAberration>();
+            var vignette = volumeStack.GetComponent<Vignette>();
+            var filmGrain = volumeStack.GetComponent<FilmGrain>();
 
             var cameraData = frameData.Get<UniversalCameraData>();
             var postProcessingData = frameData.Get<UniversalPostProcessingData>();
@@ -101,8 +115,8 @@ namespace UnityEngine.Rendering.Universal
                     resourceData.destinationCameraColor
                     //TODO here we don't seem to apply PostProcessUtils.CreateCompatibleTexture. This seems completely out of sync with the other post process passes.
                     //However, changing it, breaks some tests because rendering with the color and depth after this pass when MSAA is on leads to mismatch.
-                    //It seems completely arbitrary that we continue to write out color with MSAA if no other pp pass has been applied earlier. 
-                    : renderGraph.CreateTexture(sourceTexture, _CameraColorAfterPostProcessingName);  
+                    //It seems completely arbitrary that we continue to write out color with MSAA if no other pp pass has been applied earlier.
+                    : renderGraph.CreateTexture(sourceTexture, _CameraColorAfterPostProcessingName);
                 resourceData.destinationCameraColor = TextureHandle.nullHandle;
             }
 
@@ -131,7 +145,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.sourceTexture = sourceTexture;
                 builder.UseTexture(sourceTexture, AccessFlags.Read);
 
-                if(overlayUITexture.IsValid())
+                if(m_RenderOverlayUI)
                     builder.UseTexture(overlayUITexture, AccessFlags.Read);
 
                 builder.UseTexture(internalColorLut, AccessFlags.Read);
@@ -143,12 +157,12 @@ namespace UnityEngine.Rendering.Universal
 
                 passData.material = m_Material;
                 passData.cameraData = cameraData;
-                passData.useFastSRGBLinearConversion = useFastSRGBLinearConversion;
-                passData.requireSRGBConversionBlit = requireSRGBConversionBlit;
+                passData.useFastSRGBLinearConversion = m_UseFastSRGBLinearConversion;
+                passData.requireSRGBConversionBlit = m_RequireSRGBConversionBlit;
 
                 // HDR
                 passData.tonemapping = tonemapping;
-                passData.hdrOperations = hdrOperations;
+                passData.hdrOperations = m_HdrOperations;
                 passData.isHdrGrading = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
 
                 passData.lut.Setup(colorAdjustments, colorLookup, postProcessingData.lutSize, internalColorLut, userColorLut);
@@ -158,12 +172,12 @@ namespace UnityEngine.Rendering.Universal
                 passData.vignette.Setup(vignette, srcDesc.width, srcDesc.height, cameraData.xr);
 
                 // Final pass effects
-                if (isFinalPass)
+                if (m_IsFinalPass)
                 {
                     passData.filmGrain.Setup(filmGrain, m_FilmGrainTextures, cameraData.pixelWidth, cameraData.pixelHeight);
-                    passData.dither.Setup(ditherTexture, cameraData.pixelWidth, cameraData.pixelHeight);
+                    passData.dither.Setup(m_DitherTexture, cameraData.pixelWidth, cameraData.pixelHeight);
                 }
-                passData.isFinalPass = isFinalPass;
+                passData.isFinalPass = m_IsFinalPass;
 
                 builder.SetRenderFunc(static (UberPostPassData data, RasterGraphContext context) =>
                 {
@@ -238,7 +252,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #region ColorLut
-        RTHandle m_UserLut;
         TextureHandle TryGetCachedUserLutTextureHandle(RenderGraph renderGraph, ColorLookup colorLookup)
         {
             if (colorLookup.texture.value == null)

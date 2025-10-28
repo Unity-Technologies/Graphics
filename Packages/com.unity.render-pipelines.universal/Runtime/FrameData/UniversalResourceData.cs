@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Switch the active color and depth texture to the backbuffer. Once switched, isActiveTargetBackBuffer will return true.
         /// The activeColorTexture and activeDepthTexture will then return the backbuffer. This should be called after a render pass
-        /// that blits/copies the cameraColor to the backbuffer is recorded in the render graph. The following passes will then 
+        /// that blits/copies the cameraColor to the backbuffer is recorded in the render graph. The following passes will then
         /// automatically use the backbuffer as active color and depth. URP will not add the final blit pass if this method is called before
         /// that render pass.
         /// </summary>
@@ -241,6 +241,10 @@ namespace UnityEngine.Rendering.Universal
         }
         private TextureHandle _internalColorLut;
 
+        /// <summary>
+        /// Bloom. A glow for very bright highlights. Written to by the Bloom pass. Additively composited in the Uber pass.
+        /// It does not contain bloom specific alpha information and can be considered as a premultiplied alpha texture for advanced compositing.
+        /// </summary>
         internal TextureHandle bloom
         {
             get => CheckAndGetTextureHandle(ref _bloom);
@@ -334,7 +338,7 @@ namespace UnityEngine.Rendering.Universal
         private TextureHandle _stpDebugView;
 
         //Due to camera stacking, we sometimes need to set a specific (persistent) target texture as destination.
-        //We cannot create an RG managed texture for the destination in that case as output/destination. 
+        //We cannot create an RG managed texture for the destination in that case as output/destination.
         //If we woulnd't have camera stacking, then the backbuffer would be the only other persistent destination.
         //The usage of this destination is currently limited to the Uberpost processing pass.
         internal TextureHandle destinationCameraColor

@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices; // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal sealed class BloomPostProcessPass : ScriptableRenderPass, IDisposable
+    internal sealed class BloomPostProcessPass : PostProcessPass
     {
         public const int k_MaxPyramidSize = 16;
 
@@ -17,15 +17,6 @@ namespace UnityEngine.Rendering.Universal
         BloomMipPyramid m_MipPyramid;
 
         bool m_IsValid;
-
-        // Settings
-        public Bloom bloom { get; set; }
-
-        // Input
-        public TextureHandle sourceTexture {get; set;}
-
-        // Output
-        public TextureHandle destinationTexture { get; private set; }   // Bloom destination is a mip pyramid, hard to set the exact destination texture without an extra blit.
 
         public BloomMipPyramid mipPyramid => m_MipPyramid;
 
@@ -50,17 +41,11 @@ namespace UnityEngine.Rendering.Universal
             m_MipPyramid = new BloomMipPyramid(k_MaxPyramidSize);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             CoreUtils.Destroy(m_Material);
             for(int i = 0; i < k_MaxPyramidSize; i++)
                 CoreUtils.Destroy(m_MaterialPyramid[i]);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsValid()
-        {
-            return m_IsValid;
         }
 
         private class BloomPassData
@@ -75,11 +60,16 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            Assertions.Assert.IsTrue(sourceTexture.IsValid(), $"Source texture must be set for BloomPostProcessPass.");
+            if (!m_IsValid)
+                return;
 
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
-            var srcDesc = sourceTexture.GetDescriptor(renderGraph);
+            var sourceTexture = resourceData.cameraColor;
+            var sourceDesc = sourceTexture.GetDescriptor(renderGraph);
+
+            var bloom = volumeStack.GetComponent<Bloom>();
 
             // Setup
             // Materials are set up beforehand.
@@ -87,7 +77,7 @@ namespace UnityEngine.Rendering.Universal
             // They should remain unchanged between graph build and execution.
             using(new ProfilingScope(ProfilingSampler.Get(URPProfileId.RG_BloomSetup)))
             {
-                m_MipPyramid.Update(renderGraph, bloom, in srcDesc);
+                m_MipPyramid.Update(renderGraph, bloom, in sourceDesc);
                 int mipCount = m_MipPyramid.mipCount;
 
                 // Pre-filtering parameters
@@ -144,14 +134,14 @@ namespace UnityEngine.Rendering.Universal
             switch (bloom.filter.value)
             {
                 case BloomFilterMode.Dual:
-                    destinationTexture = BloomDual(renderGraph, sourceTexture);
+                    resourceData.bloom = BloomDual(renderGraph, sourceTexture);
                 break;
                 case BloomFilterMode.Kawase:
-                    destinationTexture = BloomKawase(renderGraph, sourceTexture);
+                    resourceData.bloom = BloomKawase(renderGraph, sourceTexture);
                 break;
                 case BloomFilterMode.Gaussian: goto default;
                 default:
-                    destinationTexture = BloomGaussian(renderGraph, sourceTexture);
+                    resourceData.bloom = BloomGaussian(renderGraph, sourceTexture);
                 break;
             }
         }

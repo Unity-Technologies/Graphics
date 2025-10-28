@@ -4,15 +4,14 @@ using System.Runtime.CompilerServices; // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal sealed class Fsr1UpscalePostProcessPass : ScriptableRenderPass, IDisposable
+    internal sealed class Fsr1UpscalePostProcessPass : PostProcessPass
     {
+        public const string k_TargetName = "CameraColorUpscaled";
+
         Material m_Material;
         bool m_IsValid;
 
-        // Input
-        public TextureHandle sourceTexture { get; set; }
-        // Output
-        public TextureHandle destinationTexture { get; set; }
+        TextureDesc m_UpscaledDesc;
 
         public Fsr1UpscalePostProcessPass(Shader shader)
         {
@@ -23,34 +22,39 @@ namespace UnityEngine.Rendering.Universal
             m_IsValid = m_Material != null;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             CoreUtils.Destroy(m_Material);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsValid()
-        {
-            return m_IsValid;
+            m_IsValid = false;
         }
 
         private class PostProcessingFinalFSRScalePassData
         {
-            internal TextureHandle sourceTexture;
             internal Material material;
+            internal TextureHandle sourceTexture;
             internal Vector2 fsrInputSize;
             internal Vector2 fsrOutputSize;
             internal bool enableAlphaOutput;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Setup(TextureDesc upscaledDesc)
+        {
+            m_UpscaledDesc = upscaledDesc;
+        }
+
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            Assertions.Assert.IsTrue(sourceTexture.IsValid(), $"Source texture must be set for Fsr1UpscalePostProcessPass.");
-            Assertions.Assert.IsTrue(destinationTexture.IsValid(), $"Destination texture must be set for Fsr1UpscalePostProcessPass.");
+            if (!m_IsValid)
+                return;
 
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            var cameraData = frameData.Get<UniversalCameraData>();
+            var resourceData = frameData.Get<UniversalResourceData>();
 
+            var sourceTexture = resourceData.cameraColor;
             var srcDesc = renderGraph.GetTextureDesc(sourceTexture);
+
+            var destinationTexture = PostProcessUtils.CreateCompatibleTexture(renderGraph, m_UpscaledDesc, k_TargetName, true, FilterMode.Point);
             var dstDesc = renderGraph.GetTextureDesc(destinationTexture);
 
             // FSR upscale
@@ -79,8 +83,9 @@ namespace UnityEngine.Rendering.Universal
                     Vector2 viewportScale = sourceHdl.useScaling ? new Vector2(sourceHdl.rtHandleProperties.rtHandleScale.x, sourceHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                     Blitter.BlitTexture(context.cmd, data.sourceTexture, viewportScale, material, 0);
                 });
-                return;
             }
+
+            resourceData.cameraColor = destinationTexture;
         }
 
 

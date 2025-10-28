@@ -5,24 +5,16 @@ using System.Runtime.CompilerServices; // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal sealed class DepthOfFieldGaussianPostProcessPass : ScriptableRenderPass, IDisposable
+    internal sealed class DepthOfFieldGaussianPostProcessPass : PostProcessPass
     {
         public const string k_TargetName = "_DoFTarget";
+        const int k_DownSample = 2;
 
         Material m_Material;
         Material m_MaterialCoc;
         bool m_IsValid;
 
         Experimental.Rendering.GraphicsFormat m_CoCFormat;
-
-        // Settings
-        public DepthOfField depthOfField { get; set; }
-
-        // Input
-        public TextureHandle sourceTexture { get; set; }
-
-        // Output
-        public TextureHandle destinationTexture { get; set; }
 
         public DepthOfFieldGaussianPostProcessPass(Shader shader)
         {
@@ -46,16 +38,11 @@ namespace UnityEngine.Rendering.Universal
                 m_CoCFormat = Experimental.Rendering.GraphicsFormat.R8_UNorm;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             CoreUtils.Destroy(m_Material);
             CoreUtils.Destroy(m_MaterialCoc);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsValid()
-        {
-            return m_IsValid;
+            m_IsValid = false;
         }
 
         private class DoFGaussianPassData
@@ -81,18 +68,22 @@ namespace UnityEngine.Rendering.Universal
         };
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            Assertions.Assert.IsTrue(sourceTexture.IsValid(), $"Source texture must be set for DepthOfFieldGaussianPostProcessPass.");
-            Assertions.Assert.IsTrue(destinationTexture.IsValid(), $"Destination texture must be set for DepthOfFieldGaussianPostProcessPass.");
+            if (!m_IsValid)
+                return;
 
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
+            var depthOfField = volumeStack.GetComponent<DepthOfField>();
+
+            var sourceTexture = resourceData.cameraColor;
+            var destinationTexture = PostProcessUtils.CreateCompatibleTexture(renderGraph, sourceTexture, k_TargetName, true, FilterMode.Bilinear);
+
             var srcDesc = sourceTexture.GetDescriptor(renderGraph);
             var colorFormat = srcDesc.colorFormat;
 
-            int downSample = 2;
-            int wh = srcDesc.width / downSample;
-            int hh = srcDesc.height / downSample;
+            int wh = srcDesc.width / k_DownSample;
+            int hh = srcDesc.height / k_DownSample;
 
             // Pass Textures
             var fullCoCTextureDesc = PostProcessUtils.GetCompatibleDescriptor(srcDesc, srcDesc.width, srcDesc.height, m_CoCFormat);
@@ -116,7 +107,7 @@ namespace UnityEngine.Rendering.Universal
                 float maxRadius = depthOfField.gaussianMaxRadius.value * (wh / 1080f);
                 maxRadius = Mathf.Min(maxRadius, 2f);
 
-                passData.downsample = downSample;
+                passData.downsample = k_DownSample;
                 passData.cocParams = new Vector3(farStart, farEnd, maxRadius);
                 passData.highQualitySamplingValue = depthOfField.highQualitySampling.value;
                 passData.enableAlphaOutput = cameraData.isAlphaOutputEnabled;
@@ -221,6 +212,8 @@ namespace UnityEngine.Rendering.Universal
                     }
                 });
             }
+
+            resourceData.cameraColor = destinationTexture;
         }
 
         // Precomputed shader ids to same some CPU cycles (mostly affects mobile)
