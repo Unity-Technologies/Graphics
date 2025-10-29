@@ -2308,8 +2308,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if ((hdCam != null) && cameraRequestedDynamicRes)
                     {
-                        // TODO: Expose the graphics caps info on whether the platform supports hw dynamic resolution or not.
-                        bool isHwDrsSupported = camera.allowDynamicResolution;
+                        bool isHwDrsSupported = SystemInfo.supportsDynamicResolution;
 
                         // We are in a case where the platform does not support hw dynamic resolution, so we force the software fallback.
                         if (drsSettings.dynResType == DynamicResolutionType.Hardware && !isHwDrsSupported)
