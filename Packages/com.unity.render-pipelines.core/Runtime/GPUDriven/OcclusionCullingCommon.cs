@@ -262,7 +262,7 @@ namespace UnityEngine.Rendering
             public Material debugOcclusionTestMaterial;
         }
 
-        public void RenderDebugOcclusionTestOverlay(RenderGraph renderGraph, DebugDisplayGPUResidentDrawer debugSettings, int viewInstanceID, TextureHandle colorBuffer)
+        public void RenderDebugOcclusionTestOverlay(RenderGraph renderGraph, DebugDisplayGPUResidentDrawer debugSettings, int viewInstanceID, in TextureHandle colorBuffer)
         {
             if (debugSettings == null)
                 return;
@@ -330,7 +330,7 @@ namespace UnityEngine.Rendering
             public Vector2 validRange;
         }
 
-        public void RenderDebugOccluderOverlay(RenderGraph renderGraph, DebugDisplayGPUResidentDrawer debugSettings, Vector2 screenPos, float maxHeight, TextureHandle colorBuffer)
+        public void RenderDebugOccluderOverlay(RenderGraph renderGraph, DebugDisplayGPUResidentDrawer debugSettings, Vector2 screenPos, float maxHeight, in TextureHandle colorBuffer)
         {
             if (debugSettings == null)
                 return;

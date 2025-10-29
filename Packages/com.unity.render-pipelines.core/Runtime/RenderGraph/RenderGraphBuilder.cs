@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <returns>A new transient TextureHandle.</returns>
         public TextureHandle CreateTransientTexture(in TextureHandle texture)
         {
-            var desc = m_Resources.GetTextureResourceDesc(texture.handle);
+            ref readonly var desc = ref m_Resources.GetTextureResourceDesc(texture.handle);
             var result = m_Resources.CreateTexture(desc, m_RenderPass.index);
             m_RenderPass.AddTransientResource(result.handle);
             return result;
@@ -221,7 +221,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <returns>A new transient GraphicsBufferHandle.</returns>
         public BufferHandle CreateTransientBuffer(in BufferHandle graphicsbuffer)
         {
-            var desc = m_Resources.GetBufferResourceDesc(graphicsbuffer.handle);
+            ref readonly var desc = ref m_Resources.GetBufferResourceDesc(graphicsbuffer.handle);
             var result = m_Resources.CreateBuffer(desc, m_RenderPass.index);
             m_RenderPass.AddTransientResource(result.handle);
             return result;

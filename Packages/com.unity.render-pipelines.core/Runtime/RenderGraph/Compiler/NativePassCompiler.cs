@@ -1034,7 +1034,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
         }
 
-        static bool IsGlobalTextureInPass(RenderGraphPass pass, ResourceHandle handle)
+        static bool IsGlobalTextureInPass(RenderGraphPass pass, in ResourceHandle handle)
         {
             foreach (var g in pass.setGlobalsList)
             {
@@ -1705,7 +1705,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         currBeginAttachment.clearColor = Color.red;
                         currBeginAttachment.clearDepth = 1.0f;
                         currBeginAttachment.clearStencil = 0;
-                        var desc = resources.GetTextureResourceDesc(currAttachmentHandle, true);
+                        ref readonly var desc = ref resources.GetTextureResourceDesc(currAttachmentHandle, true);
                         if (i == 0 && nativePass.hasDepth)
                         {
                             // TODO: There seems to be no clear depth specified ?!?!
@@ -1897,7 +1897,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
         }
 
-        internal unsafe void ExecuteSetRandomWriteTarget(in CommandBuffer cmd, RenderGraphResourceRegistry resources, int index, ResourceHandle resource, bool preserveCounterValue = true)
+        internal unsafe void ExecuteSetRandomWriteTarget(in CommandBuffer cmd, RenderGraphResourceRegistry resources, int index, in ResourceHandle resource, bool preserveCounterValue = true)
         {
             if (resource.type == RenderGraphResourceType.Texture)
             {
