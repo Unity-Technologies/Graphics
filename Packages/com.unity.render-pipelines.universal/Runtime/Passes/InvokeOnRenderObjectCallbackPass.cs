@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle depthTarget;
         }
 
-        internal void Render(RenderGraph renderGraph, TextureHandle colorTarget, TextureHandle depthTarget)
+        internal void Render(RenderGraph renderGraph, in TextureHandle colorTarget, in TextureHandle depthTarget)
         {
             using (var builder = renderGraph.AddUnsafePass<PassData>(passName, out var passData, profilingSampler))
             {

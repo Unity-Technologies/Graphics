@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal DeferredLights deferredLights;
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle color, TextureHandle depth, TextureHandle[] gbuffer)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle color, in TextureHandle depth, in TextureHandle[] gbuffer)
         {
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();

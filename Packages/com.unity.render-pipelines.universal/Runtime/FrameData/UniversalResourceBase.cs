@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="handle">Handle to update.</param>
         /// <param name="newHandle">Handle of the new data.</param>
-        protected void CheckAndSetTextureHandle(ref TextureHandle handle, TextureHandle newHandle)
+        protected void CheckAndSetTextureHandle(ref TextureHandle handle, in TextureHandle newHandle)
         {
             if (!CheckAndWarnAboutAccessibility())
                 return;
@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="handle">Handles to update.</param>
         /// <param name="newHandle">Handles of the new data.</param>
-        protected void CheckAndSetTextureHandle(ref TextureHandle[] handle, TextureHandle[] newHandle)
+        protected void CheckAndSetTextureHandle(ref TextureHandle[] handle, in TextureHandle[] newHandle)
         {
             if (!CheckAndWarnAboutAccessibility())
                 return;

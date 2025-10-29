@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="frameData"></param>
         /// <param name="depthPyramidBuffer"></param>
         /// <param name="normalBuffer"></param>
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle depthPyramidBuffer, TextureHandle normalBuffer)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle depthPyramidBuffer, in TextureHandle normalBuffer)
         {
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 

@@ -140,8 +140,8 @@ namespace UnityEngine.Rendering.Universal
             DebugHandler.ConfigureColorDescriptorForDebugScreen(ref descriptor, cameraData.pixelWidth, cameraData.pixelHeight);
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_PassthroughRT, descriptor, name: "_HDRDebugDummyRT");
         }
-        
-        internal void RenderHDRDebug(RenderGraph renderGraph, UniversalCameraData cameraData, TextureHandle srcColor, TextureHandle overlayUITexture, TextureHandle dstColor, HDRDebugMode hdrDebugMode)
+
+        internal void RenderHDRDebug(RenderGraph renderGraph, UniversalCameraData cameraData, in TextureHandle srcColor, in TextureHandle overlayUITexture, in TextureHandle dstColor, HDRDebugMode hdrDebugMode)
         {
             bool requiresCIExyData = hdrDebugMode != HDRDebugMode.ValuesAbovePaperWhite;
             Vector4 luminanceParameters = GetLuminanceParameters(cameraData);

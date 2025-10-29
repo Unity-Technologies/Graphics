@@ -242,7 +242,7 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle dest;
         }
 
-        private void BlitToDebugTexture(RenderGraph renderGraph, TextureHandle source, TextureHandle destination, bool isSourceTextureColor = false)
+        private void BlitToDebugTexture(RenderGraph renderGraph, in TextureHandle source, in TextureHandle destination, bool isSourceTextureColor = false)
         {
             if (source.IsValid())
             {
@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private void BlitEmptyTexture(RenderGraph renderGraph, TextureHandle destination, string passName = "Copy To Debug Texture")
+        private void BlitEmptyTexture(RenderGraph renderGraph, in TextureHandle destination, string passName = "Copy To Debug Texture")
         {
             using (var builder = renderGraph.AddRasterRenderPass<CopyToDebugTexturePassData>(passName, out var passData))
             {

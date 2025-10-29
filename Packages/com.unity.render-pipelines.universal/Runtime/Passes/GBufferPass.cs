@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             stateBlocks.Dispose();
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle cameraColor, TextureHandle cameraDepth, bool setGlobalTextures, uint batchLayerMask = uint.MaxValue)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle cameraColor, in TextureHandle cameraDepth, bool setGlobalTextures, uint batchLayerMask = uint.MaxValue)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();

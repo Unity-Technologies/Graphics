@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Set render graph pass
         /// </summary>
-        public void Render(RenderGraph renderGraph, ScriptableRenderContext context, TextureHandle depthTarget)
+        public void Render(RenderGraph renderGraph, ScriptableRenderContext context, in TextureHandle depthTarget)
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Prepare Cross Fade Stencil", out var passData, m_ProfilingSampler))
             {

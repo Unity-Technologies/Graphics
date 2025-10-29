@@ -198,7 +198,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            private void AddFullscreenRenderPassInputPass(RenderGraph renderGraph, UniversalResourceData resourcesData, UniversalCameraData cameraData, TextureHandle source, TextureHandle destination)
+            private void AddFullscreenRenderPassInputPass(RenderGraph renderGraph, UniversalResourceData resourcesData, UniversalCameraData cameraData, in TextureHandle source, in TextureHandle destination)
             {
                 using (var builder = renderGraph.AddRasterRenderPass<MainPassData>(passName, out var passData, profilingSampler))
                 {
@@ -258,7 +258,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            private void AddCopyPassRenderPassFullscreen(RenderGraph renderGraph, TextureHandle source, TextureHandle destination)
+            private void AddCopyPassRenderPassFullscreen(RenderGraph renderGraph, in TextureHandle source, in TextureHandle destination)
             {
                 using (var builder = renderGraph.AddRasterRenderPass<CopyPassData>("Copy Color Full Screen", out var passData, profilingSampler))
                 {
