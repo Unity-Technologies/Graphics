@@ -31,15 +31,15 @@ namespace UnityEngine.PathTracing.Core
 
         public void ComputeCDFBuffers(CommandBuffer cmd, Texture cubemap)
         {
-            cmd.SetComputeIntParam(_shader, "_PathTracingSkyConditionalResolution", _environmentCDF.ConditionalResolution);
-            cmd.SetComputeIntParam(_shader, "_PathTracingSkyMarginalResolution", _environmentCDF.MarginalResolution);
+            cmd.SetComputeIntParam(_shader, "_ConditionalResolution", _environmentCDF.ConditionalResolution);
+            cmd.SetComputeIntParam(_shader, "_MarginalResolution", _environmentCDF.MarginalResolution);
 
-            cmd.SetComputeTextureParam(_shader, _computeConditionalKernel, "_PathTracingSkybox", cubemap);
-            cmd.SetComputeBufferParam(_shader, _computeConditionalKernel, "_PathTracingSkyConditionalBuffer", _environmentCDF.ConditionalBuffer);
-            cmd.SetComputeBufferParam(_shader, _computeConditionalKernel, "_PathTracingSkyMarginalBuffer", _environmentCDF.MarginalBuffer);
+            cmd.SetComputeTextureParam(_shader, _computeConditionalKernel, "_EnvCubemap", cubemap);
+            cmd.SetComputeBufferParam(_shader, _computeConditionalKernel, "_ConditionalBuffer", _environmentCDF.ConditionalBuffer);
+            cmd.SetComputeBufferParam(_shader, _computeConditionalKernel, "_MarginalBuffer", _environmentCDF.MarginalBuffer);
             cmd.DispatchCompute(_shader, _computeConditionalKernel, 1, _environmentCDF.MarginalResolution, 1);
 
-            cmd.SetComputeBufferParam(_shader, _computeMarginalKernel, "_PathTracingSkyMarginalBuffer", _environmentCDF.MarginalBuffer);
+            cmd.SetComputeBufferParam(_shader, _computeMarginalKernel, "_MarginalBuffer", _environmentCDF.MarginalBuffer);
             cmd.DispatchCompute(_shader, _computeMarginalKernel, 1, 1, 1);
         }
 

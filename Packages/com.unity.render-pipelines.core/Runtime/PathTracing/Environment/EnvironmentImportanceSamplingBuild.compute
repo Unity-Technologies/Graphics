@@ -1,25 +1,22 @@
 // This implementation is adapted from BuildProbabilityTables.compute
 #pragma only_renderers d3d11 vulkan metal glcore
-#define COMPUTE_PATH_TRACING_SKY_SAMPLING_DATA
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
-#include "PathTracingSkySampling.hlsl"
+#include "EnvironmentImportanceSampling.hlsl"
 
 #define KERNEL_WIDTH 64
 
-// Make sky data access a little less verbose
-#define CONDITIONAL _PathTracingSkyConditionalBuffer
-#define MARGINAL _PathTracingSkyMarginalBuffer
-#define CONDITIONAL_RESOLUTION _PathTracingSkyConditionalResolution
-#define MARGINAL_RESOLUTION _PathTracingSkyMarginalResolution
-TextureCube<float4>  _PathTracingSkybox;
-SamplerState         sampler_PathTracingSkybox;
+uint _ConditionalResolution;
+uint _MarginalResolution;
+RWStructuredBuffer<float> _ConditionalBuffer;
+RWStructuredBuffer<float> _MarginalBuffer;
+TextureCube<float4> _EnvCubemap;
+SamplerState sampler_EnvCubemap;
 
 float3 SampleSkyTexture(float3 dir, float lod, int sliceIndex)
 {
-    return _PathTracingSkybox.SampleLevel(sampler_PathTracingSkybox, dir, lod).xyz;
+    return _EnvCubemap.SampleLevel(sampler_EnvCubemap, dir, lod).xyz;
 }
 
 // Performs a block-level parallel scan.
@@ -92,38 +89,38 @@ void ComputeConditional(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     const uint i = dispatchThreadId.x;
     const uint j = dispatchThreadId.y;
-    const uint iterCount = CONDITIONAL_RESOLUTION / KERNEL_WIDTH;
-    const uint conditionalBufferOffset = j * CONDITIONAL_RESOLUTION;
+    const uint iterCount = _ConditionalResolution / KERNEL_WIDTH;
+    const uint conditionalBufferOffset = j * _ConditionalResolution;
 
     uint iter;
 
-    float v = (j + 0.5) / MARGINAL_RESOLUTION;
+    float v = (j + 0.5) / _MarginalResolution;
     //float sinTheta = sin(v * PI);
 
     for (iter = 0; iter < iterCount; iter++)
     {
         uint idx = i + iter * KERNEL_WIDTH;
-        float u = (idx + 0.5) / CONDITIONAL_RESOLUTION;
+        float u = (idx + 0.5) / _ConditionalResolution;
 
         // No need for a sinTheta term in the PDF when using equiareal mapping
-        float3 dir = MapUVToSkyDirection(u, v);
-        CONDITIONAL[conditionalBufferOffset + idx] = Luminance(SampleSkyTexture(dir, 0.0, 0).rgb); // * sinTheta;
+        float3 dir = MapUVToSkyDirection(float2(u, v));
+        _ConditionalBuffer[conditionalBufferOffset + idx] = Luminance(SampleSkyTexture(dir, 0.0, 0).rgb); // * sinTheta;
     }
 
     float rowValSum = 0.0f;
 
-    ParallelScan(i, CONDITIONAL_RESOLUTION, iterCount, CONDITIONAL, conditionalBufferOffset, rowValSum);
+    ParallelScan(i, _ConditionalResolution, iterCount, _ConditionalBuffer, conditionalBufferOffset, rowValSum);
 
     for (iter = 0; iter < iterCount; iter++)
     {
         uint idx = i + iter * KERNEL_WIDTH;
-        CONDITIONAL[conditionalBufferOffset + idx] /= rowValSum;
+        _ConditionalBuffer[conditionalBufferOffset + idx] /= rowValSum;
     }
 
     if (i == 0)
     {
-        float rowIntegralValue = rowValSum / CONDITIONAL_RESOLUTION;
-        MARGINAL[j] = rowIntegralValue;
+        float rowIntegralValue = rowValSum / _ConditionalResolution;
+        _MarginalBuffer[j] = rowIntegralValue;
     }
 }
 
@@ -133,22 +130,22 @@ void ComputeConditional(uint3 dispatchThreadId : SV_DispatchThreadID)
 void ComputeMarginal(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     const uint i = dispatchThreadId.x;
-    const uint iterCount = MARGINAL_RESOLUTION / KERNEL_WIDTH;
+    const uint iterCount = _MarginalResolution / KERNEL_WIDTH;
 
     float rowValSum = 0.0f;
 
-    ParallelScan(i, MARGINAL_RESOLUTION, iterCount, MARGINAL, 0, rowValSum);
+    ParallelScan(i, _MarginalResolution, iterCount, _MarginalBuffer, 0, rowValSum);
 
     for (uint iter = 0; iter < iterCount; iter++)
     {
         uint idx = i + iter * KERNEL_WIDTH;
-        MARGINAL[idx] /= rowValSum;
+        _MarginalBuffer[idx] /= rowValSum;
     }
 
     if (i == 0)
     {
-        float imgIntegralValue = rowValSum / MARGINAL_RESOLUTION;
+        float imgIntegralValue = rowValSum / _MarginalResolution;
         float pdfNormalization = imgIntegralValue > 0.0 ? rcp(imgIntegralValue) * 0.25 * INV_PI : 0.0;
-        MARGINAL[0] = pdfNormalization;
+        _MarginalBuffer[0] = pdfNormalization;
     }
 }
