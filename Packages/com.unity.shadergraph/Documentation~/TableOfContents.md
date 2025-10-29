@@ -45,7 +45,9 @@
     * [Port Bindings](Port-Bindings.md)
     * [Shader Stage](Shader-Stage.md)
     * [Surface options](surface-options.md)
-    * [Custom Interpolators](Custom-Interpolators.md)
+    * [Using Custom Interpolators](Custom-Interpolators-landing.md)
+        * [Custom Interpolators](Custom-Interpolators.md)
+        * [Custom Interpolator reference](Custom-Interpolators-reference.md)
 * [Node Library](Node-Library.md)
     * [Artistic](Artistic-Nodes.md)
         * Adjustment
