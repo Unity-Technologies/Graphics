@@ -41,7 +41,8 @@ QualitySettings:
     asyncUploadPersistentBuffer: 1
     resolutionScalingFixedDPIFactor: 1
     customRenderPipeline: {fileID: 11400000, guid: a31e9f9f9c9d4b9429ed0d1234e22103, type: 2}
-    excludedTargetPlatforms: []
+    excludedTargetPlatforms:
+    - Nintendo Switch
   - serializedVersion: 2
     name: Medium
     pixelLightCount: 1
@@ -113,15 +114,17 @@ QualitySettings:
     asyncUploadPersistentBuffer: 1
     resolutionScalingFixedDPIFactor: 1
     customRenderPipeline: {fileID: 11400000, guid: 19ba41d7c0026c3459d37c2fe90c55a0, type: 2}
-    excludedTargetPlatforms: []
+    excludedTargetPlatforms:
+    - Nintendo Switch
   m_PerPlatformDefaultQuality:
     Android: 1
-    Lumin: 2
     GameCoreScarlett: 2
     GameCoreXboxOne: 2
-    Nintendo Switch: 2
+    Lumin: 2
+    Nintendo Switch: 1
     PS4: 2
     PS5: 2
+    Server: 0
     Stadia: 2
     Standalone: 2
     WebGL: 1
