@@ -1,4 +1,5 @@
 using System;
+using static UnityEngine.Rendering.DebugUI;
 
 namespace UnityEngine.Rendering
 {
@@ -135,6 +136,25 @@ namespace UnityEngine.Rendering
             /// <param name="other">Panel to compare to.</param>
             /// <returns>True if the panels share the same group index.</returns>
             int IComparable<Panel>.CompareTo(Panel other) => other == null ? 1 : groupIndex.CompareTo(other.groupIndex);
+
+            internal bool TryFindChild<T>(string childDisplayName, out T foundChild)
+                where T : DebugUI.Widget
+            {
+                foundChild = null;
+                if (!string.IsNullOrEmpty(childDisplayName))
+                {
+                    foreach (var child in children)
+                    {
+                        if (child.displayName.Equals(childDisplayName) && child is T castedChild)
+                        {
+                            foundChild = castedChild;
+                            break;
+                        }
+                    }
+                }
+
+                return foundChild != null;
+            }
         }
     }
 }

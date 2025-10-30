@@ -42,14 +42,14 @@ namespace UnityEditor.Rendering
                         {
                             background = m_TransparentTexture,
                             scaledBackgrounds = null,
-                            textColor = Color.grey
+                            textColor = EditorGUIUtility.isProSkin ? Color.grey : Color.darkGray
                         }
                     };
                     var activeState = new GUIStyleState
                     {
                         background = m_TransparentTexture,
                         scaledBackgrounds = null,
-                        textColor = Color.white
+                        textColor = EditorGUIUtility.isProSkin ? Color.white : Color.black
                     };
                     m_MiniLabelButton.active = activeState;
                     m_MiniLabelButton.onNormal = activeState;

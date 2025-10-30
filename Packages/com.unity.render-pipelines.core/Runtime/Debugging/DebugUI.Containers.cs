@@ -301,6 +301,16 @@ namespace UnityEngine.Rendering
             /// </summary>
             /// <param name="value">Input value.</param>
             public void SetValue(bool value) => opened = value;
+
+            void IValueField.SetValue(object value)
+            {
+                SetValue((bool)ValidateValue(value));
+            }
+
+            object IValueField.ValidateValue(object value)
+            {
+                return (bool)value;
+            }
         }
 
         /// <summary>

@@ -369,9 +369,7 @@ namespace UnityEditor.Rendering
                     {
                         if (GUILayout.Button(EditorGUIUtility.TrTextContent("Add Override"), EditorStyles.miniButton))
                         {
-                            var r = hscope.rect;
-                            var pos = new Vector2(r.x + r.width / 2f, r.yMax + 18f);
-                            FilterWindow.Show(pos, new VolumeComponentProvider(asset, this));
+                            FilterWindow.Show(hscope.rect, new VolumeComponentProvider(asset, this));
                         }
                     }
                 }
@@ -432,7 +430,7 @@ namespace UnityEditor.Rendering
             var targetComponent = targetEditor.volumeComponent;
             var menu = new GenericMenu();
 
-            if (!m_IsDefaultVolumeProfile)
+            if (!m_IsDefaultVolumeProfile && m_Editors.Count > 1)
             {
                 menu.AddItem(EditorGUIUtility.TrTextContent("Move to Top"), false, () => MoveComponent(id, Move.Top));
                 menu.AddItem(EditorGUIUtility.TrTextContent("Move Up"), false, () => MoveComponent(id, Move.Up));
@@ -462,7 +460,7 @@ namespace UnityEditor.Rendering
 
             menu.AddSeparator(string.Empty);
             menu.AddItem(EditorGUIUtility.TrTextContent("Open In Rendering Debugger"), false,
-                DebugDisplaySettingsVolume.OpenInRenderingDebugger);
+                () => DebugDisplaySettingsVolume.OpenInRenderingDebugger(targetComponent));
 
             menu.AddSeparator(string.Empty);
             menu.AddItem(EditorGUIUtility.TrTextContent("Copy Settings"), false, () =>

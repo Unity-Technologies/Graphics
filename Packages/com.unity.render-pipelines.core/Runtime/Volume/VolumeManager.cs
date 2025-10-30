@@ -86,6 +86,53 @@ namespace UnityEngine.Rendering
             return supportedVolumeComponents;
         }
 
+        internal bool TryGetVolumePathAndType(Type type, out (string path, Type t) result)
+        {
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+
+            string path = string.Empty;
+            bool skipComponent = false;
+
+            // Look for the attributes of this volume component and decide how is added and if it needs to be skipped
+            var attrs = type.GetCustomAttributes(false);
+            foreach (var attr in attrs)
+            {
+                switch (attr)
+                {
+                    case VolumeComponentMenu attrMenu:
+                    {
+                        path = attrMenu.menu;
+                        break;
+                    }
+                    case HideInInspector:
+                    case ObsoleteAttribute:
+                        skipComponent = true;
+                        break;
+                }
+            }
+
+            if (skipComponent)
+            {
+                result = (string.Empty, type);
+                return false;
+            }
+
+            // If no attribute or in case something went wrong when grabbing it, fallback to a
+            // beautified class name
+            if (string.IsNullOrEmpty(path))
+            {
+#if UNITY_EDITOR
+                path = ObjectNames.NicifyVariableName(type.Name);
+#else
+                path = type.Name;
+#endif
+            }
+
+            result = (path, type);
+            return true;
+        }
+
         List<(string, Type)> BuildVolumeComponentDisplayList(Type[] types)
         {
             if (types == null)
@@ -94,43 +141,8 @@ namespace UnityEngine.Rendering
             var volumes = new List<(string, Type)>();
             foreach (var t in types)
             {
-                string path = string.Empty;
-                bool skipComponent = false;
-
-                // Look for the attributes of this volume component and decide how is added and if it needs to be skipped
-                var attrs = t.GetCustomAttributes(false);
-                foreach (var attr in attrs)
-                {
-                    switch (attr)
-                    {
-                        case VolumeComponentMenu attrMenu:
-                        {
-                            path = attrMenu.menu;
-                            break;
-                        }
-                        case HideInInspector:
-                        case ObsoleteAttribute:
-                            skipComponent = true;
-                            break;
-                    }
-                }
-
-                if (skipComponent)
-                    continue;
-
-                // If no attribute or in case something went wrong when grabbing it, fallback to a
-                // beautified class name
-                if (string.IsNullOrEmpty(path))
-                {
-#if UNITY_EDITOR
-                    path = ObjectNames.NicifyVariableName(t.Name);
-#else
-                    path = t.Name;
-#endif
-                }
-
-
-                volumes.Add((path, t));
+                if (TryGetVolumePathAndType(t, out var result))
+                    volumes.Add(result);
             }
 
             return volumes

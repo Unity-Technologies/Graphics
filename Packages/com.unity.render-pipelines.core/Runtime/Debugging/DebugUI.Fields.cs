@@ -15,6 +15,9 @@ namespace UnityEngine.Rendering
         /// <typeparam name="T">The type of data managed by the field.</typeparam>
         public abstract class Field<T> : Widget, IValueField
         {
+            /// <inheritdoc/>
+            public bool syncState { get; set; }
+
             /// <summary>
             /// Getter for this field.
             /// </summary>
@@ -433,8 +436,10 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// A dropdown that contains the values from an enum.
         /// </summary>
-        public class EnumField : EnumField<int>
+        public class EnumField : EnumField<int>, ISyncUIState
         {
+            bool ISyncUIState.syncState { get; set; }
+
             internal int[] quickSeparators;
 
             private int[] m_Indexes;

@@ -31,6 +31,10 @@ namespace UnityEditor.Rendering.Universal
                 tooltip = defaultVolumeProfileAssetLabel.tooltip,
                 objectType = typeof(VolumeProfile),
                 value = m_VolumeProfileSerializedProperty.objectReferenceValue as VolumeProfile,
+                style =
+                {
+                    flexShrink = 1,
+                }
             };
             field.AddToClassList("unity-base-field__aligned"); //Align with other BaseField<T>
             field.Q<Label>().RegisterCallback<ClickEvent>(evt => toggle.value ^= true);
