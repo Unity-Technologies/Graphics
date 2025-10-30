@@ -1,0 +1,82 @@
+PostProcessing_Win_DX11_playmode_mono_Linear_trunk:
+    name: PostProcessing on Win_DX11_playmode_mono_Linear on version trunk
+    agent:
+        type: Unity::VM::GPU
+        image: automation-tooling/win10-21H1:v2.2309361
+        flavor: b1.large
+    variables:
+        CUSTOM_REVISION: 'trunk'
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
+    commands:
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+         rerun: always
+PostProcessing_Win_DX11_Standalone_mono_Linear_trunk:
+    name: PostProcessing on Win_DX11_Standalone_mono_Linear on version trunk
+    agent:
+        type: Unity::VM::GPU
+        image: automation-tooling/win10-21H1:v2.2309361
+        flavor: b1.large
+    variables:
+        CUSTOM_REVISION: 'trunk'
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
+    commands:
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+         rerun: always
+      -  path: .yamato/postprocessing-win-dx11.yml#Build_PostProcessing_Win_DX11_Standalone_mono_Linear_trunk
+         rerun: always
+Build_PostProcessing_Win_DX11_Standalone_mono_Linear_trunk:
+    name: Build PostProcessing on Win_DX11_mono_Linear_Standalone_build_Player on version trunk
+    agent:
+        type: Unity::VM
+        image: automation-tooling/win10-21H1:v2.2309361
+        flavor: b1.xlarge
+    variables:
+        CUSTOM_REVISION: 'trunk'
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
+    commands:
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --timeout=1200
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+         rerun: always
