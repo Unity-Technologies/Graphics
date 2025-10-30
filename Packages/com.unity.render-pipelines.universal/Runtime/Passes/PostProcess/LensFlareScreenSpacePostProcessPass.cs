@@ -4,26 +4,15 @@ using System.Runtime.CompilerServices; // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal sealed class LensFlareScreenSpacePostProcessPass : ScriptableRenderPass, IDisposable
+    internal sealed class LensFlareScreenSpacePostProcessPass : PostProcessPass
     {
         Material m_Material;
         bool m_IsValid;
 
-        // Settings
-        public ScreenSpaceLensFlare lensFlareScreenSpace { get; set; }
-
-        public bool sameSourceDestinationTexture { get; set; } = false;
-
-        // Input
-
         // Post-processing main color-buffer texture desc. Can be different from downsampled bloom/flare textures.
-        public TextureDesc colorBufferTextureDesc { get; set; }
-
-        // Flare streaks are generated from this texture. Typically, a lower resolution downsampled bloom (mipN) texture.
-        public TextureHandle sourceTexture { get; set; }
-
-        // Flare is blended to the destination. Typically, the bloom (mip0) texture. Bloom can be at different resolution compared to the main color source.
-        public TextureHandle destinationTexture { get; set; }
+        int m_ColorBufferWidth;
+        int m_ColorBufferHeight;
+        int m_FlareSourceBloomMipIndex;
 
         public LensFlareScreenSpacePostProcessPass(Shader shader)
         {
@@ -34,19 +23,25 @@ namespace UnityEngine.Rendering.Universal
             m_IsValid = m_Material != null;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             CoreUtils.Destroy(m_Material);
+            m_IsValid = false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsValid()
+        public void Setup(int colorBufferWidth, int colorBufferHeight, int flareSourceBloomMipIndex)
         {
-            return m_IsValid;
+            m_ColorBufferWidth = colorBufferWidth;
+            m_ColorBufferHeight = colorBufferHeight;
+            m_FlareSourceBloomMipIndex = flareSourceBloomMipIndex;
         }
 
         private class LensFlareScreenSpacePassData
         {
+            internal Material material;
+            internal ScreenSpaceLensFlare lensFlareScreenSpace;
+            internal Camera camera;
             internal TextureHandle streakTmpTexture;
             internal TextureHandle streakTmpTexture2;
             internal TextureHandle flareResultTmp;
@@ -54,26 +49,38 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle flareSourceBloomMipTexture;
             internal int actualColorWidth;
             internal int actualColorHeight;
-            internal Camera camera;
-            internal Material material;
-            internal ScreenSpaceLensFlare lensFlareScreenSpace;
             internal int downsample;
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            Assertions.Assert.IsTrue(sourceTexture.IsValid(), $"Source texture must be set for LensFlareScreenSpacePostProcessPass.");
-            Assertions.Assert.IsTrue(destinationTexture.IsValid(), $"Destination texture must be set for LensFlareScreenSpacePostProcessPass.");
+            if (!m_IsValid)
+                return;
 
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            Camera camera = cameraData.camera;
+            var lensFlareScreenSpace = volumeStack.GetComponent<ScreenSpaceLensFlare>();
+            var bloom = volumeStack.GetComponent<Bloom>();
+
+            // Check if Flare source and Flare target is the same texture. In practice BloomMip[0]
+            // TODO: Check src/dst handle equality in the future.
+            // Kawase blur does not use the mip pyramid.
+            // It is safe to pass the same texture to both input/output.
+            bool useDestinationAsSource = m_FlareSourceBloomMipIndex == 0 || bloom.filter.value == BloomFilterMode.Kawase;
+
+            var resourceData = frameData.Get<UniversalResourceData>();
+            var cameraData = frameData.Get<UniversalCameraData>();
+
+            // Flare streaks are generated from this texture. Typically, a lower resolution downsampled bloom (mipN) texture.
+            var sourceTexture = resourceData.cameraColor;
+            // Flare is blended to the destination. Typically, the bloom (mip0) texture. Bloom can be at different resolution compared to the main color source.
+            var destinationTexture = resourceData.bloom;
 
             var downsample = (int) lensFlareScreenSpace.resolution.value;
 
-            int flareRenderWidth = Math.Max( colorBufferTextureDesc.width / downsample, 1);
-            int flareRenderHeight = Math.Max( colorBufferTextureDesc.height / downsample, 1);
+            int flareRenderWidth = Math.Max( m_ColorBufferWidth / downsample, 1);
+            int flareRenderHeight = Math.Max( m_ColorBufferHeight / downsample, 1);
 
-            var streakTextureDesc = PostProcessUtils.GetCompatibleDescriptor(colorBufferTextureDesc, flareRenderWidth, flareRenderHeight, colorBufferTextureDesc.colorFormat);
+            var streakDesc = renderGraph.GetTextureDesc(resourceData.cameraColor);
+            var streakTextureDesc = PostProcessUtils.GetCompatibleDescriptor(streakDesc, flareRenderWidth, flareRenderHeight, streakDesc.colorFormat);
             var streakTmpTexture = PostProcessUtils.CreateCompatibleTexture(renderGraph, streakTextureDesc, "_StreakTmpTexture", true, FilterMode.Bilinear);
             var streakTmpTexture2 = PostProcessUtils.CreateCompatibleTexture(renderGraph, streakTextureDesc, "_StreakTmpTexture2", true, FilterMode.Bilinear);
 
@@ -92,11 +99,11 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(sourceTexture, AccessFlags.ReadWrite);
                 passData.flareDestinationBloomTexture = destinationTexture;
                 // Input/Output can be the same texture. There's a temp texture in between. Avoid RG double write error.
-                if(!sameSourceDestinationTexture)
+                if(!useDestinationAsSource)
                     builder.UseTexture(destinationTexture, AccessFlags.ReadWrite);
-                passData.actualColorWidth = colorBufferTextureDesc.width;
-                passData.actualColorHeight = colorBufferTextureDesc.height;
-                passData.camera = camera;
+                passData.actualColorWidth = m_ColorBufferWidth;
+                passData.actualColorHeight = m_ColorBufferHeight;
+                passData.camera = cameraData.camera;
                 passData.material = m_Material;
                 passData.lensFlareScreenSpace = lensFlareScreenSpace; // NOTE: reference, assumed constant until executed.
                 passData.downsample = downsample;

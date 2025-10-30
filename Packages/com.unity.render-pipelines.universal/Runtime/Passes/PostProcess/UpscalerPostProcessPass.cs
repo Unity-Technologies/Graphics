@@ -4,19 +4,11 @@ using System.Runtime.CompilerServices; // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal sealed class UpscalerPostProcessPass : ScriptableRenderPass, IDisposable
+    internal sealed class UpscalerPostProcessPass : PostProcessPass
     {
         public const string k_UpscaledColorTargetName = "_CameraColorUpscaled";
         Texture2D[] m_BlueNoise16LTex;
         bool m_IsValid;
-
-        // Settings
-
-        // Input
-        public TextureHandle sourceTexture { get; set; }
-
-        // Output
-        public TextureHandle destinationTexture { get; private set; }
 
         public UpscalerPostProcessPass(Texture2D[] blueNoise16LTex)
         {
@@ -27,28 +19,22 @@ namespace UnityEngine.Rendering.Universal
             m_IsValid = m_BlueNoise16LTex != null && m_BlueNoise16LTex.Length > 0;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsValid()
-        {
-            return m_IsValid;
+            m_IsValid = false;
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
 #if ENABLE_UPSCALER_FRAMEWORK
-            Assertions.Assert.IsTrue(sourceTexture.IsValid(), $"Source texture must be set for StpPostProcessPass.");
-
-            // TODO: User should be able to set the destination texture externally. This allows the user to decide where the upscaled texture should be stored.
-            //Assertions.Assert.IsTrue(destinationTexture.IsValid(), $"Destination texture must be set for StpPostProcessPass.");
+            if (!m_IsValid)
+                return;
 
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
 
+            var sourceTexture = resourceData.cameraColor;
             var srcDesc = sourceTexture.GetDescriptor(renderGraph);
 
             // Create a context item containing upscaling inputs
@@ -129,7 +115,7 @@ namespace UnityEngine.Rendering.Universal
             UpdateCameraResolution(renderGraph, cameraData, new Vector2Int(dstDesc.width, dstDesc.height));
 
             // Use the output texture of upscaling
-            destinationTexture = io.cameraColor;
+            resourceData.cameraColor = io.cameraColor;
 #endif
         }
 
