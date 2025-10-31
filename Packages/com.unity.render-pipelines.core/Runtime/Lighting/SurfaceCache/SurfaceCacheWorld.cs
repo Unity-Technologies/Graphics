@@ -177,6 +177,7 @@ namespace UnityEngine.Rendering
             Span<uint> masks,
             in Matrix4x4 localToWorldMatrix)
         {
+            Debug.Assert(mesh.vertexCount > 0);
             Debug.Assert(mesh.subMeshCount == materials.Length);
             Debug.Assert(mesh.subMeshCount == masks.Length);
 

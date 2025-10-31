@@ -331,6 +331,13 @@ namespace UnityEngine.Rendering.LiveGI
             };
         }
 
+        static private bool ShouldIncludeLight(Light light, bool filterBakedLights)
+        {
+            return light.enabled &&
+                   light.gameObject.activeInHierarchy &&
+                   !(filterBakedLights && light.bakingOutput.isBaked);
+        }
+
         private void FindLightChanges(bool filterBakedLights)
         {
             // Handle changed lights
@@ -352,30 +359,20 @@ namespace UnityEngine.Rendering.LiveGI
                 if (!m_Lights[key].light)
                     continue;
 
-                bool isBakedLight = m_Lights[key].light.bakingOutput.isBaked;
-                if (m_Lights[key].light.enabled && m_Lights[key].light.gameObject.activeInHierarchy && !(filterBakedLights && isBakedLight))
-                {
+                if (ShouldIncludeLight(m_Lights[key].light, filterBakedLights))
                     m_Lights[key].timestamp.lastVisit = m_Timestamp;
-                }
                 else
-                {
                     m_Changes.removedLights.Add(key);
-                }
             }
 
             foreach (var key in m_Changes.removedLights)
                 m_Lights.Remove(key);
 
-
             foreach (var item in changedLights)
             {
                 var light = item.Value.objectReference;
-
-                bool isBakedLight = light.bakingOutput.lightmapBakeType == LightmapBakeType.Baked;
-                if (!light.enabled || !light.gameObject.activeInHierarchy || (filterBakedLights && isBakedLight))
-                {
+                if (!ShouldIncludeLight(light, filterBakedLights))
                     continue;
-                }
 
                 var newData = CreateLightData(m_Timestamp, light);
 

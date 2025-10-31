@@ -353,6 +353,7 @@ namespace UnityEngine.Rendering.Universal
                 uint lookupSampleCount,
                 float upsamplingKernelSize,
                 uint upsamplingSampleCount,
+                uint defragCount,
                 SurfaceCacheGridParameterSet gridParams,
                 SurfaceCacheEstimationParameterSet estimationParams,
                 SurfaceCachePatchFilteringParameterSet patchFilteringParams,
@@ -392,7 +393,7 @@ namespace UnityEngine.Rendering.Universal
                 _upsamplingSampleCount = upsamplingSampleCount;
                 _lookupSampleCount = lookupSampleCount;
 
-                _cache = new SurfaceCache(resourceSet, gridParams, estimationParams, patchFilteringParams);
+                _cache = new SurfaceCache(resourceSet, defragCount, gridParams, estimationParams, patchFilteringParams);
                 _sceneTracker = new SceneUpdatesTracker();
 
                 _world = new SurfaceCacheWorld();
@@ -974,9 +975,11 @@ namespace UnityEngine.Rendering.Universal
             {
                 foreach (var meshRendererEntityID in removedInstances)
                 {
-                    Debug.Assert(entityIDToInstanceHandle.ContainsKey(meshRendererEntityID));
-                    world.RemoveInstance(entityIDToInstanceHandle[meshRendererEntityID]);
-                    entityIDToInstanceHandle.Remove(meshRendererEntityID);
+                    if (entityIDToInstanceHandle.TryGetValue(meshRendererEntityID, out var instanceHandle))
+                    {
+                        world.RemoveInstance(instanceHandle);
+                        entityIDToInstanceHandle.Remove(meshRendererEntityID);
+                    }
                 }
 
                 foreach (var meshRenderer in addedInstances)
@@ -984,6 +987,10 @@ namespace UnityEngine.Rendering.Universal
                     Debug.Assert(!meshRenderer.isPartOfStaticBatch);
 
                     var mesh = meshRenderer.GetComponent<MeshFilter>().sharedMesh;
+
+                    if (mesh.vertexCount == 0)
+                        continue;
+
                     var localToWorldMatrix = meshRenderer.transform.localToWorldMatrix;
 
                     var materials = Util.GetMaterials(meshRenderer);
@@ -1056,7 +1063,7 @@ namespace UnityEngine.Rendering.Universal
                     Light light = lights[i];
                     ref SurfaceCacheWorld.LightDescriptor descriptor = ref descriptors[i];
                     descriptor.Type = light.type;
-                    descriptor.LinearLightColor = Util.GetLinearLightColor(light);
+                    descriptor.LinearLightColor = Util.GetLinearLightColor(light) * light.bounceIntensity;
                     if (multiplyPunctualLightIntensityByPI && Util.IsPunctualLightType(light.type))
                         descriptor.LinearLightColor *= Mathf.PI;
                     descriptor.Transform = light.transform.localToWorldMatrix;
@@ -1114,12 +1121,18 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [Serializable]
-        class GridParameterSet
+        class VolumeParameterSet
         {
-            public uint GridSize = 32;
-            public float VoxelMinSize = 1.0f;
+            public uint Resolution = 32;
+            public float Size = 128.0f;
             public uint CascadeCount = 4;
-            public bool CascadeMovement = true;
+            public bool Movement = true;
+        }
+
+        [Serializable]
+        class AdvancedParameterSet
+        {
+            public uint DefragCount = 2;
         }
 
         [Serializable]
@@ -1133,7 +1146,8 @@ namespace UnityEngine.Rendering.Universal
             [SerializeField] public RisEstimationParameterSet RisEstimationParams = new RisEstimationParameterSet();
             public PatchFilteringParameterSet PatchFilteringParams = new PatchFilteringParameterSet();
             [SerializeField] public ScreenFilteringParameterSet ScreenFilteringParams = new ScreenFilteringParameterSet();
-            [SerializeField] public GridParameterSet GridParams = new GridParameterSet();
+            [SerializeField] public VolumeParameterSet VolumeParams = new VolumeParameterSet();
+            [SerializeField] public AdvancedParameterSet AdvancedParams = new AdvancedParameterSet();
 
             public bool DebugEnabled = false;
             public DebugViewMode_ DebugViewMode = DebugViewMode_.CellIndex;
@@ -1177,11 +1191,14 @@ namespace UnityEngine.Rendering.Universal
                 var coreResourceLoadResult = coreResources.LoadFromRenderPipelineResources(_rtContext);
                 Debug.Assert(coreResourceLoadResult);
 
+                float volSize = _parameterSet.VolumeParams.Size;
+                uint volRes = _parameterSet.VolumeParams.Resolution;
+                uint volCascCount = _parameterSet.VolumeParams.CascadeCount;
                 var gridParams = new SurfaceCacheGridParameterSet
                 {
-                    GridSize = _parameterSet.GridParams.GridSize,
-                    VoxelMinSize = _parameterSet.GridParams.VoxelMinSize,
-                    CascadeCount = _parameterSet.GridParams.CascadeCount,
+                    GridSize = volRes,
+                    VoxelMinSize = volSize / (volRes * (float)(1u << (int)(volCascCount - 1u))),
+                    CascadeCount = volCascCount
                 };
 
                 var estimationParams = new SurfaceCacheEstimationParameterSet
@@ -1222,10 +1239,11 @@ namespace UnityEngine.Rendering.Universal
                     _parameterSet.ScreenFilteringParams.LookupSampleCount,
                     _parameterSet.ScreenFilteringParams.UpsamplingKernelSize,
                     _parameterSet.ScreenFilteringParams.UpsamplingSampleCount,
+                    _parameterSet.AdvancedParams.DefragCount,
                     gridParams,
                     estimationParams,
                     patchFilteringParams,
-                    _parameterSet.GridParams.CascadeMovement);
+                    _parameterSet.VolumeParams.Movement);
 
                 _pass.renderPassEvent = RenderPassEvent.AfterRenderingPrePasses + 1;
             }
