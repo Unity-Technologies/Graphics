@@ -1710,6 +1710,7 @@ namespace UnityEditor.VFX
         [SerializeField]
         private int m_ResourceVersion;
 
+        [NonSerialized]
         private bool m_GraphSanitized = false;
         private bool m_ExpressionGraphDirty = true;
         private bool m_ExpressionValuesDirty = true;
