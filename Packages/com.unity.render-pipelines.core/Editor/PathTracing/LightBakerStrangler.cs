@@ -372,7 +372,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 // Read BakeInput and requests from LightBaker
                 if (!BakeInputSerialization.Deserialize(bakeInputPath, out BakeInput bakeInput))
                     return false;
-            if (!BakeInputSerialization.Deserialize(lightmapRequestsPath, out LightmapRequestData lightmapRequestData))
+                if (!BakeInputSerialization.Deserialize(lightmapRequestsPath, out LightmapRequestData lightmapRequestData))
                     return false;
                 if (!BakeInputSerialization.Deserialize(lightProbeRequestsPath, out ProbeRequestData probeRequestData))
                     return false;
@@ -400,33 +400,33 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 using UnityComputeWorld world = new();
                 world.Init(rayTracingContext, worldResources);
 
-            using var samplingResources = new UnityEngine.Rendering.Sampling.SamplingResources();
-            samplingResources.Load((uint)UnityEngine.Rendering.Sampling.SamplingResources.ResourceType.All);
+                using var samplingResources = new UnityEngine.Rendering.Sampling.SamplingResources();
+                samplingResources.Load((uint)UnityEngine.Rendering.Sampling.SamplingResources.ResourceType.All);
 
-            // Deserialize BakeInput, inject data into world
-            const bool useLegacyBakingBehavior = true;
-            const bool autoEstimateLUTRange = true;
-            BakeInputToWorldConversion.InjectBakeInputData(world.PathTracingWorld, autoEstimateLUTRange, in bakeInput,
+                // Deserialize BakeInput, inject data into world
+                const bool useLegacyBakingBehavior = true;
+                const bool autoEstimateLUTRange = true;
+                BakeInputToWorldConversion.InjectBakeInputData(world.PathTracingWorld, autoEstimateLUTRange, in bakeInput,
                     out Bounds sceneBounds, out world.Meshes, out FatInstance[] fatInstances, out world.LightHandles,
                     world.TemporaryObjects, UnityComputeWorld.RenderingObjectLayer);
 
                 // Add instances to world
-            WorldHelpers.AddContributingInstancesToWorld(world.PathTracingWorld, in fatInstances, out var lodInstances, out var lodgroupToContributorInstances);
+                WorldHelpers.AddContributingInstancesToWorld(world.PathTracingWorld, in fatInstances, out var lodInstances, out var lodgroupToContributorInstances);
 
-            // Build world with extracted data
-            const bool emissiveSampling = true;
-            world.PathTracingWorld.Build(sceneBounds, deviceContext.GetCommandBuffer(), ref world.ScratchBuffer, samplingResources, emissiveSampling);
+                // Build world with extracted data
+                const bool emissiveSampling = true;
+                world.PathTracingWorld.Build(sceneBounds, deviceContext.GetCommandBuffer(), ref world.ScratchBuffer, samplingResources, emissiveSampling);
 
                 LightmapBakeSettings lightmapBakeSettings = GetLightmapBakeSettings(bakeInput);
                 // Build array of lightmap descriptors based on the atlassing data and instances.
-            LightmapDesc[] lightmapDescriptors = PopulateLightmapDescsFromAtlassing(in lightmapRequestData.atlassing, in fatInstances);
+                LightmapDesc[] lightmapDescriptors = PopulateLightmapDescsFromAtlassing(in lightmapRequestData.atlassing, in fatInstances);
                 SortInstancesByMeshAndResolution(lightmapDescriptors);
 
                 ulong probeWorkSteps = CalculateWorkStepsForProbeRequests(in bakeInput, in probeRequestData);
-            ulong lightmapWorkSteps = CalculateWorkStepsForLightmapRequests(in lightmapRequestData, lightmapDescriptors, lightmapBakeSettings);
+                ulong lightmapWorkSteps = CalculateWorkStepsForLightmapRequests(in lightmapRequestData, lightmapDescriptors, lightmapBakeSettings);
                 progressState.SetTotalWorkSteps(probeWorkSteps + lightmapWorkSteps);
 
-            if (!ExecuteProbeRequests(in bakeInput, in probeRequestData, deviceContext, useLegacyBakingBehavior, world, bakeInput.lightingSettings.maxBounces, progressState, samplingResources))
+                if (!ExecuteProbeRequests(in bakeInput, in probeRequestData, deviceContext, useLegacyBakingBehavior, world, bakeInput.lightingSettings.maxBounces, progressState, samplingResources))
                     return false;
 
                 if (lightmapRequestData.requests.Length <= 0)
@@ -436,7 +436,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 LightmapResourceLibrary resources = new();
                 resources.Load(world.RayTracingContext);
 
-            if (ExecuteLightmapRequests(in lightmapRequestData, deviceContext, world, in fatInstances, in lodInstances, in lodgroupToContributorInstances, integrationSettings, useLegacyBakingBehavior, resources, progressState, lightmapDescriptors, lightmapBakeSettings, samplingResources) != Result.Success)
+                if (ExecuteLightmapRequests(in lightmapRequestData, deviceContext, world, in fatInstances, in lodInstances, in lodgroupToContributorInstances, integrationSettings, useLegacyBakingBehavior, resources, progressState, lightmapDescriptors, lightmapBakeSettings, samplingResources) != Result.Success)
                     return false;
 
                 CoreUtils.Destroy(resources.UVFallbackBufferGenerationMaterial);
