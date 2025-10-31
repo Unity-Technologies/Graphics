@@ -33,6 +33,8 @@ namespace PerformanceTests.Runtime
 
         int m_NumPasses;
 
+        readonly ProfilingSampler k_RecordRenderGraphSampler = new ProfilingSampler("RecordRenderGraph");
+
         public RenderGraphPerformanceTests(Compiler compiler)
         {
             m_Compiler = compiler;
@@ -86,6 +88,8 @@ namespace PerformanceTests.Runtime
 
         IEnumerable<ProfilingSampler> GetAllMarkers()
         {
+            yield return k_RecordRenderGraphSampler;
+            
             // High level profiling markers for Render Graph
             foreach (var val in Enum.GetValues(typeof(RenderGraphProfileId)))
                 yield return ProfilingSampler.Get((RenderGraphProfileId)val);
@@ -148,10 +152,10 @@ namespace PerformanceTests.Runtime
             switch (testCase)
             {
                 case TestCase.SimplePass:
-                    AddSimplePasses();
+                    RecordSimplePasses();
                     break;
                 case TestCase.ComplexPass:
-                    AddComplexPasses();
+                    RecordComplexPasses();
                     break;
                 default:
                     throw new NotImplementedException();
@@ -164,32 +168,35 @@ namespace PerformanceTests.Runtime
         {
         }
 
-        void AddSimplePasses()
+        void RecordSimplePasses()
         {
-            var colorTarget = m_RenderGraph.CreateTexture(new TextureDesc(1920, 1080)
+            using (new ProfilingScope(k_RecordRenderGraphSampler))
             {
-                colorFormat = GraphicsFormat.R8G8B8A8_UNorm
-            });
-            var depthTarget = m_RenderGraph.CreateTexture(new TextureDesc(1920, 1080)
-            {
-                colorFormat = GraphicsFormat.None,
-                depthBufferBits = DepthBits.Depth32
-            });
-
-            void AddSimplePass()
-            {
-                using (var builder = m_RenderGraph.AddRasterRenderPass<SimplePassData>("Simple Pass", out var passData))
+                var colorTarget = m_RenderGraph.CreateTexture(new TextureDesc(1920, 1080)
                 {
-                    builder.SetRenderAttachment(colorTarget, 0, AccessFlags.Write);
-                    builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
-                    builder.AllowPassCulling(false);
-                    builder.SetRenderFunc((SimplePassData data, RasterGraphContext context) => { });
-                }
-            }
+                    colorFormat = GraphicsFormat.R8G8B8A8_UNorm
+                });
+                var depthTarget = m_RenderGraph.CreateTexture(new TextureDesc(1920, 1080)
+                {
+                    colorFormat = GraphicsFormat.None,
+                    depthBufferBits = DepthBits.Depth32
+                });
 
-            for (int i = 0; i < m_NumPasses; i++)
-            {
-                AddSimplePass();
+                void AddSimplePass()
+                {
+                    using (var builder = m_RenderGraph.AddRasterRenderPass<SimplePassData>("Simple Pass", out var passData))
+                    {
+                        builder.SetRenderAttachment(colorTarget, 0, AccessFlags.Write);
+                        builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
+                        builder.AllowPassCulling(false);
+                        builder.SetRenderFunc((SimplePassData data, RasterGraphContext context) => { });
+                    }
+                }
+
+                for (int i = 0; i < m_NumPasses; ++i)
+                {
+                    AddSimplePass();
+                }
             }
         }
 
@@ -207,124 +214,127 @@ namespace PerformanceTests.Runtime
             public TextureHandle[] colorMaps2 = new TextureHandle[2];
         };
 
-        void AddComplexPasses()
+        void RecordComplexPasses()
         {
-            // Create textures, import them, then create render graph intermediates.
-            // Create some dependencies between passes.
-
-            TestRenderTargets ImportAndCreateRenderTargets(RenderGraph g)
+            using (new ProfilingScope(k_RecordRenderGraphSampler))
             {
-                TestRenderTargets result = new TestRenderTargets();
-                var backBuffer = BuiltinRenderTextureType.CameraTarget;
-                var backBufferHandle = RTHandles.Alloc(backBuffer, "Backbuffer Color");
-                var depthBuffer = BuiltinRenderTextureType.Depth;
-                var depthBufferHandle = RTHandles.Alloc(depthBuffer, "Backbuffer Depth");
+                // Create textures, import them, then create render graph intermediates.
+                // Create some dependencies between passes.
 
-                ImportResourceParams importParams = new ImportResourceParams();
-                importParams.textureUVOrigin = TextureUVOrigin.TopLeft;
-
-                RenderTargetInfo importInfo = new RenderTargetInfo();
-                RenderTargetInfo importInfoDepth = new RenderTargetInfo();
-                importInfo.width = 1920;
-                importInfo.height = 1080;
-                importInfo.volumeDepth = 1;
-                importInfo.msaaSamples = 1;
-                importInfo.format = GraphicsFormat.R16G16B16A16_SFloat;
-                result.backBuffer = g.ImportTexture(backBufferHandle, importInfo, importParams);
-
-                importInfoDepth = importInfo;
-                importInfoDepth.format = GraphicsFormat.D32_SFloat_S8_UInt;
-                result.depthBuffer = g.ImportTexture(depthBufferHandle, importInfoDepth, importParams);
-
-                importInfoDepth.format = GraphicsFormat.D24_UNorm;
-                importInfoDepth.width = 1024;
-                importInfoDepth.height = 1024;
-                for (int i = 0; i < result.shadowMaps.Length; ++i)
+                TestRenderTargets ImportAndCreateRenderTargets(RenderGraph g)
                 {
-                    result.shadowMaps[i] = m_RenderGraph.CreateTexture(new TextureDesc(1024, 1024)
-                    {
-                        colorFormat = GraphicsFormat.D32_SFloat,
-                        name = $"ShadowMap {i}"
-                    });
-                }
+                    TestRenderTargets result = new TestRenderTargets();
+                    var backBuffer = BuiltinRenderTextureType.CameraTarget;
+                    var backBufferHandle = RTHandles.Alloc(backBuffer, "Backbuffer Color");
+                    var depthBuffer = BuiltinRenderTextureType.Depth;
+                    var depthBufferHandle = RTHandles.Alloc(depthBuffer, "Backbuffer Depth");
 
-                for (int i = 0; i < result.colorMaps.Length; ++i)
-                {
-                    result.colorMaps[i] = m_RenderGraph.CreateTexture(new TextureDesc(1920, 1080)
-                    {
-                        colorFormat = GraphicsFormat.R8G8B8A8_UNorm,
-                        name = $"ColorMap {i}"
-                    });
-                }
-                for (int i = 0; i < result.colorMaps1.Length; ++i)
-                {
-                    result.colorMaps1[i] = m_RenderGraph.CreateTexture(new TextureDesc(1920, 1080)
-                    {
-                        colorFormat = GraphicsFormat.R8G8B8A8_UNorm,
-                        name = $"ColorMap1 {i}"
-                    });
-                }
-                for (int i = 0; i < result.colorMaps2.Length; ++i)
-                {
-                    result.colorMaps2[i] = m_RenderGraph.CreateTexture(new TextureDesc(1920, 1080)
-                    {
-                        colorFormat = GraphicsFormat.R8G8B8A8_UNorm,
-                        name = $"ColorMap2 {i}"
-                    });
-                }
-                return result;
-            }
+                    ImportResourceParams importParams = new ImportResourceParams();
+                    importParams.textureUVOrigin = TextureUVOrigin.TopLeft;
 
-            TestRenderTargets targets = ImportAndCreateRenderTargets(m_RenderGraph);
+                    RenderTargetInfo importInfo = new RenderTargetInfo();
+                    RenderTargetInfo importInfoDepth = new RenderTargetInfo();
+                    importInfo.width = 1920;
+                    importInfo.height = 1080;
+                    importInfo.volumeDepth = 1;
+                    importInfo.msaaSamples = 1;
+                    importInfo.format = GraphicsFormat.R16G16B16A16_SFloat;
+                    result.backBuffer = g.ImportTexture(backBufferHandle, importInfo, importParams);
 
-            void AddComplexPass(TestRenderTargets targets, int index, int input, int output)
-            {
-                using (var builder = m_RenderGraph.AddRasterRenderPass<ComplexPassData>($"Complex Pass {index}", out var passData))
-                {
-                    if (output < 0)
+                    importInfoDepth = importInfo;
+                    importInfoDepth.format = GraphicsFormat.D32_SFloat_S8_UInt;
+                    result.depthBuffer = g.ImportTexture(depthBufferHandle, importInfoDepth, importParams);
+
+                    importInfoDepth.format = GraphicsFormat.D24_UNorm;
+                    importInfoDepth.width = 1024;
+                    importInfoDepth.height = 1024;
+                    for (int i = 0; i < result.shadowMaps.Length; ++i)
                     {
-                        builder.SetRenderAttachment(targets.backBuffer, 0, AccessFlags.Write);
+                        result.shadowMaps[i] = m_RenderGraph.CreateTexture(new TextureDesc(1024, 1024)
+                        {
+                            colorFormat = GraphicsFormat.D32_SFloat,
+                            name = $"ShadowMap {i}"
+                        });
                     }
-                    else
-                    {
-                        builder.SetRenderAttachment(targets.colorMaps[output], 0, AccessFlags.Write);
-                        builder.SetRenderAttachment(targets.colorMaps1[output], 1, AccessFlags.Write);
-                        builder.SetRenderAttachment(targets.colorMaps2[output], 2, AccessFlags.Write);
-                    }
-                    builder.SetRenderAttachmentDepth(targets.depthBuffer, AccessFlags.Write);
-                    if (input >= 0)
-                    {
-                        builder.SetInputAttachment(targets.colorMaps[input], 0, AccessFlags.Read);
-                        builder.SetInputAttachment(targets.colorMaps1[input], 1, AccessFlags.Read);
-                        builder.SetInputAttachment(targets.colorMaps2[input], 2, AccessFlags.Read);
-                    }
-                    for (int i = 0; i < targets.shadowMaps.Length; ++i)
-                    {
-                        builder.UseTexture(targets.shadowMaps[i], AccessFlags.Read);
-                    }
-                    builder.AllowPassCulling(false);
-                    builder.SetRenderFunc((ComplexPassData data, RasterGraphContext context) => { });
-                }
-            }
 
-            // Add some shadow passes.
-            for (int i = 0; i < targets.shadowMaps.Length; ++i)
-            {
-                using (var builder = m_RenderGraph.AddRasterRenderPass<ComplexPassData>("Shadow Pass", out var passData))
+                    for (int i = 0; i < result.colorMaps.Length; ++i)
+                    {
+                        result.colorMaps[i] = m_RenderGraph.CreateTexture(new TextureDesc(1920, 1080)
+                        {
+                            colorFormat = GraphicsFormat.R8G8B8A8_UNorm,
+                            name = $"ColorMap {i}"
+                        });
+                    }
+                    for (int i = 0; i < result.colorMaps1.Length; ++i)
+                    {
+                        result.colorMaps1[i] = m_RenderGraph.CreateTexture(new TextureDesc(1920, 1080)
+                        {
+                            colorFormat = GraphicsFormat.R8G8B8A8_UNorm,
+                            name = $"ColorMap1 {i}"
+                        });
+                    }
+                    for (int i = 0; i < result.colorMaps2.Length; ++i)
+                    {
+                        result.colorMaps2[i] = m_RenderGraph.CreateTexture(new TextureDesc(1920, 1080)
+                        {
+                            colorFormat = GraphicsFormat.R8G8B8A8_UNorm,
+                            name = $"ColorMap2 {i}"
+                        });
+                    }
+                    return result;
+                }
+
+                TestRenderTargets targets = ImportAndCreateRenderTargets(m_RenderGraph);
+
+                void AddComplexPass(TestRenderTargets targets, int index, int input, int output)
                 {
-                    builder.SetRenderAttachmentDepth(targets.shadowMaps[i], AccessFlags.Write);
-                    builder.AllowPassCulling(false);
-                    builder.SetRenderFunc((ComplexPassData data, RasterGraphContext context) => { });
+                    using (var builder = m_RenderGraph.AddRasterRenderPass<ComplexPassData>($"Complex Pass {index}", out var passData))
+                    {
+                        if (output < 0)
+                        {
+                            builder.SetRenderAttachment(targets.backBuffer, 0, AccessFlags.Write);
+                        }
+                        else
+                        {
+                            builder.SetRenderAttachment(targets.colorMaps[output], 0, AccessFlags.Write);
+                            builder.SetRenderAttachment(targets.colorMaps1[output], 1, AccessFlags.Write);
+                            builder.SetRenderAttachment(targets.colorMaps2[output], 2, AccessFlags.Write);
+                        }
+                        builder.SetRenderAttachmentDepth(targets.depthBuffer, AccessFlags.Write);
+                        if (input >= 0)
+                        {
+                            builder.SetInputAttachment(targets.colorMaps[input], 0, AccessFlags.Read);
+                            builder.SetInputAttachment(targets.colorMaps1[input], 1, AccessFlags.Read);
+                            builder.SetInputAttachment(targets.colorMaps2[input], 2, AccessFlags.Read);
+                        }
+                        for (int i = 0; i < targets.shadowMaps.Length; ++i)
+                        {
+                            builder.UseTexture(targets.shadowMaps[i], AccessFlags.Read);
+                        }
+                        builder.AllowPassCulling(false);
+                        builder.SetRenderFunc(static (ComplexPassData data, RasterGraphContext context) => { });
+                    }
                 }
-            }
 
-            AddComplexPass(targets, -1, -1, 1);
+                // Add some shadow passes.
+                for (int i = 0; i < targets.shadowMaps.Length; ++i)
+                {
+                    using (var builder = m_RenderGraph.AddRasterRenderPass<ComplexPassData>("Shadow Pass", out var passData))
+                    {
+                        builder.SetRenderAttachmentDepth(targets.shadowMaps[i], AccessFlags.Write);
+                        builder.AllowPassCulling(false);
+                        builder.SetRenderFunc(static (ComplexPassData data, RasterGraphContext context) => { });
+                    }
+                }
 
-            for (int i = 0; i < m_NumPasses; i++)
-            {
-                AddComplexPass(targets, i, (i+1) & 1, i & 1);
+                AddComplexPass(targets, -1, -1, 1);
+
+                for (int i = 0; i < m_NumPasses; i++)
+                {
+                    AddComplexPass(targets, i, (i + 1) & 1, i & 1);
+                }
+                AddComplexPass(targets, m_NumPasses, m_NumPasses & 1, -1);
             }
-            AddComplexPass(targets, m_NumPasses, m_NumPasses & 1, -1);
         }
     }
 }
