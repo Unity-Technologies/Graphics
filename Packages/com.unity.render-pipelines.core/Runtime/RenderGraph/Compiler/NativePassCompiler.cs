@@ -1,6 +1,6 @@
 using System;
-using System.Diagnostics;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
@@ -446,6 +446,22 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                             ctxPass.numOutputs++;
                         }
+
+                        // For raster passes, we do an extra step to monitor textures sampled in the pass
+                        // It can be a breaking change reason later on when building a native render pass
+                        if (type == (int)RenderGraphResourceType.Texture && ctxPass.type == RenderGraphPassType.Raster)
+                        {
+                            ctxPass.firstSampledOnlyRaster = ctx.sampledData.Length;
+                            foreach (ref readonly var input in ctxPass.Inputs(ctx))
+                            {
+                                // Check if this input is the shading rate image
+                                if (!ctxPass.IsUsedAsFragment(input.resource, ctx))
+                                {
+                                    ctx.sampledData.Add(input.resource);
+                                    ctxPass.numSampledOnlyRaster++;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -870,7 +886,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 for (int passIndex = 0; passIndex < ctx.passData.Length; passIndex++)
                 {
                     ref var pass = ref ctx.passData.ElementAt(passIndex);
-                    
+
                     if (pass.culled)
                         continue;
 
@@ -915,7 +931,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         ref var pointToVer = ref ctx.VersionedResourceData(outputResource);
                         var last = pointTo.latestVersionNumber;
                         if (last == outputResource.version && pointToVer.numReaders == 0)
-                        { 
+                        {
                             if (isAsync)
                             {
                                 // If no fence found, we fallback to the last non culled pass of the graph, not ideal but safe
