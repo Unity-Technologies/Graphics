@@ -69,7 +69,7 @@ namespace UnityEditor.VFX.Block
             }
 
             outSource += @"
-float rNorm = pow(volumeFactor + (1 - volumeFactor) * RAND, 1.0f / 3.0f);
+float rNorm = pow(abs(volumeFactor + (1 - volumeFactor) * RAND), 1.0f / 3.0f);
 float2 sincosTheta;
 sincos(theta, sincosTheta.x, sincosTheta.y);
 float sinPhi = sqrt(1.0f - cosPhi * cosPhi);
