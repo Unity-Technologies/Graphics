@@ -48,9 +48,9 @@ namespace UnityEditor.Rendering.LookDev
     {
         static partial class Style
         {
-            internal const string k_IconFolder = @"Packages/com.unity.render-pipelines.core/Editor/LookDev/Icons/";
-            internal const string k_uss = @"Packages/com.unity.render-pipelines.core/Editor/LookDev/DisplayWindow.uss";
-            internal const string k_uss_personal_overload = @"Packages/com.unity.render-pipelines.core/Editor/LookDev/DisplayWindow-PersonalSkin.uss";
+            internal const string k_IconFolder = @"Packages/com.unity.render-pipelines.high-definition/Editor/Tools/LookDev/Icons/";
+            internal const string k_uss = @"Packages/com.unity.render-pipelines.high-definition/Editor/Tools/LookDev/DisplayWindow.uss";
+            internal const string k_uss_personal_overload = @"Packages/com.unity.render-pipelines.high-definition/Editor/Tools/LookDev/DisplayWindow-PersonalSkin.uss";
 
             internal static readonly GUIContent k_WindowTitleAndIcon = EditorGUIUtility.TrTextContentWithIcon("Look Dev", CoreEditorUtils.LoadIcon(k_IconFolder, "LookDev", forceLowRes: true));
 

@@ -4,6 +4,8 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Rendering.LookDev;
+using System.Reflection;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.LookDev
 {
@@ -189,6 +191,21 @@ namespace UnityEditor.Rendering.LookDev
             }
         }
 
+        static void UpdateVolumeLayers(GameObject go)
+        {
+            // Get the type that contains the method
+            Type type = typeof(UnityEngine.Rendering.Volume);
+
+            // Get the method using BindingFlags to access internal methods
+            MethodInfo method = type.GetMethod("UpdateLayer", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            var volumes = go.GetComponents<UnityEngine.Rendering.Volume>();
+            foreach (var volume in volumes)
+            {
+                method?.Invoke(volume, null);
+            }
+        }
+
         static void InitAddedObjectsRecursively(GameObject go)
         {
             go.hideFlags = HideFlags.HideAndDontSave;
@@ -203,9 +220,7 @@ namespace UnityEditor.Rendering.LookDev
             if (go.TryGetComponent<LineRenderer>(out var lineRenderer))
                 lineRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
 
-            var volumes = go.GetComponents<UnityEngine.Rendering.Volume>();
-            foreach (var volume in volumes)
-                volume.UpdateLayer(); //force update of layer now as the Update can be called after we unregister volume from manager
+            UpdateVolumeLayers(go);
 
             foreach (Transform child in go.transform)
                 InitAddedObjectsRecursively(child.gameObject);
@@ -247,13 +262,13 @@ namespace UnityEditor.Rendering.LookDev
             }
         }
 
-        public void OnBeginRendering(IDataProvider dataProvider)
+        public void OnBeginRendering(HDRenderPipeline dataProvider)
         {
             SetGameObjectVisible(true);
             dataProvider.OnBeginRendering(runtimeInterface);
         }
 
-        public void OnEndRendering(IDataProvider dataProvider)
+        public void OnEndRendering(HDRenderPipeline dataProvider)
         {
             SetGameObjectVisible(false);
             dataProvider.OnEndRendering(runtimeInterface);
@@ -290,14 +305,14 @@ namespace UnityEditor.Rendering.LookDev
         const string secondStageName = "LookDevSecondView";
 
         Stage[] m_Stages;
-        IDataProvider m_CurrentDataProvider;
+        HDRenderPipeline m_CurrentDataProvider;
 
         public Stage this[ViewIndex index]
             => m_Stages[(int)index];
 
         public bool initialized { get; private set; }
 
-        public StageCache(IDataProvider dataProvider)
+        public StageCache(HDRenderPipeline dataProvider)
         {
             m_Stages = new Stage[2]
             {
@@ -307,7 +322,7 @@ namespace UnityEditor.Rendering.LookDev
             initialized = true;
         }
 
-        Stage InitStage(ViewIndex index, IDataProvider dataProvider)
+        Stage InitStage(ViewIndex index, HDRenderPipeline dataProvider)
         {
             Stage stage;
             switch (index)
@@ -348,7 +363,7 @@ namespace UnityEditor.Rendering.LookDev
                 viewContent.viewedInstanceInPreview = stage.InstantiateIntoStage(viewContent.viewedObjectReference);
         }
 
-        public void UpdateSceneLighting(ViewIndex index, IDataProvider provider)
+        public void UpdateSceneLighting(ViewIndex index, HDRenderPipeline provider)
         {
             Stage stage = this[index];
             Environment environment = LookDev.currentContext.GetViewContent(index).environment;

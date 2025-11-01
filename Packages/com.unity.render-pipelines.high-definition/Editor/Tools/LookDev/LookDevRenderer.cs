@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
-using UnityEngine.Rendering.LookDev;
-using IDataProvider = UnityEngine.Rendering.LookDev.IDataProvider;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.LookDev
 {
@@ -50,7 +49,7 @@ namespace UnityEditor.Rendering.LookDev
 
         /// <summary>Init for rendering</summary>
         /// <param name="data">The data to use</param>
-        public void BeginRendering(RenderingData data, IDataProvider dataProvider)
+        public void BeginRendering(RenderingData data, HDRenderPipeline dataProvider)
         {
             data.stage.OnBeginRendering(dataProvider);
             data.updater?.UpdateCamera(data.stage.camera);
@@ -59,7 +58,7 @@ namespace UnityEditor.Rendering.LookDev
 
         /// <summary>Finish to render</summary>
         /// <param name="data">The data to use</param>
-        public void EndRendering(RenderingData data, IDataProvider dataProvider)
+        public void EndRendering(RenderingData data, HDRenderPipeline dataProvider)
         {
             data.stage.camera.enabled = false;
             data.stage.OnEndRendering(dataProvider);

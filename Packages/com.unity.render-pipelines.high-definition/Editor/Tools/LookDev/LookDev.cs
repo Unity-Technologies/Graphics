@@ -3,6 +3,7 @@ using UnityEngine.Rendering.LookDev;
 using UnityEditorInternal;
 using UnityEngine;
 using System.Linq;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.LookDev
 {
@@ -20,8 +21,8 @@ namespace UnityEditor.Rendering.LookDev
         static StageCache s_Stages;
         static Context s_CurrentContext;
 
-        internal static IDataProvider dataProvider
-            => RenderPipelineManager.currentPipeline as IDataProvider;
+        internal static HDRenderPipeline dataProvider
+            => RenderPipelineManager.currentPipeline as HDRenderPipeline;
 
         /// <summary>
         /// Get all the data used in LookDev currently (views, layout, debug... )

@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 using IDataProvider = UnityEngine.Rendering.LookDev.IDataProvider;
 
 namespace UnityEditor.Rendering.LookDev
@@ -150,7 +151,7 @@ namespace UnityEditor.Rendering.LookDev
 
         public Compositer(
             IViewDisplayer displayer,
-            IDataProvider dataProvider,
+            HDRenderPipeline dataProvider,
             StageCache stages)
         {
             m_Displayer = displayer;
