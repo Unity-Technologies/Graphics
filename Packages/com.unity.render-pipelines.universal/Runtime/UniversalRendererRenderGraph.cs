@@ -306,8 +306,10 @@ namespace UnityEngine.Rendering.Universal
             requireColorTexture |= HasPassesRequiringIntermediateTexture(activeRenderPassQueue);
             requireColorTexture |= RequiresIntermediateColorTexture(cameraData, in renderPassInputs, usesDeferredLighting, applyPostProcessing);
 
+            bool requestedDepthHistory = (cameraData.historyManager == null) ? false : cameraData.historyManager.IsAccessRequested<RawDepthHistory>();
+
             // Intermediate texture has different yflip state than backbuffer. In case we use intermediate texture, we must use both color and depth together.
-            return (requireColorTexture || requireCopyFromDepth);
+            return requireColorTexture || requireCopyFromDepth || requestedDepthHistory;
         }
 
         // Gather history render requests and manage camera history texture life-time.
@@ -539,25 +541,27 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                if (history.IsAccessRequested<RawDepthHistory>() && resourceData.cameraDepth.IsValid())
+                if (history.IsAccessRequested<RawDepthHistory>() && resourceData.cameraDepth.IsValid() && CanCopyDepth(cameraData))
                 {
                     var depthHistory = history.GetHistoryForWrite<RawDepthHistory>();
                     if (depthHistory != null)
                     {
-                        if (m_HistoryRawDepthCopyPass.CopyToDepth == false)
+                        var tempColorDepthDesc = cameraData.cameraTargetDescriptor;
+
+                        //On GLES we don't support sampling the MSAA targets, so if auto depth resolve is not available, the only thing that works is rendering to a color target.
+                        //This has been the behavior from at least 6.0. However, it results in the format mostly being color on the different graphics APIs, even when
+                        //it could be a depth format if MSAA sampling for depht is allowed. 
+                        if (RenderingUtils.MultisampleDepthResolveSupported())
                         {
-                            // Fall back to R32_Float if depth copy is disabled.
-                            var tempColorDepthDesc = cameraData.cameraTargetDescriptor;
-                            tempColorDepthDesc.graphicsFormat = GraphicsFormat.R32_SFloat;
-                            tempColorDepthDesc.depthStencilFormat = GraphicsFormat.None;
-                            depthHistory.Update(ref tempColorDepthDesc, xrMultipassEnabled);
+                            tempColorDepthDesc.graphicsFormat = GraphicsFormat.None;
                         }
                         else
                         {
-                            var tempColorDepthDesc = cameraData.cameraTargetDescriptor;
-                            tempColorDepthDesc.graphicsFormat = GraphicsFormat.None;
-                            depthHistory.Update(ref tempColorDepthDesc, xrMultipassEnabled);
+                            tempColorDepthDesc.graphicsFormat = GraphicsFormat.R32_SFloat;
+                            tempColorDepthDesc.depthStencilFormat = GraphicsFormat.None;
                         }
+
+                        depthHistory.Update(ref tempColorDepthDesc, xrMultipassEnabled);                        
 
                         if (depthHistory.GetCurrentTexture(multipassId) != null)
                         {
@@ -1469,7 +1473,6 @@ namespace UnityEngine.Rendering.Universal
                 if (!xrDepthTargetResolved && cameraData.xr.copyDepth)
                 {
                     m_XRCopyDepthPass.CopyToDepthXR = true;
-                    m_XRCopyDepthPass.MsaaSamples = 1;
                     m_XRCopyDepthPass.Render(renderGraph, frameData, resourceData.backBufferDepth, resourceData.cameraDepth, bindAsCameraDepth: false, "XR Depth Copy");
                 }
             }
@@ -1495,8 +1498,6 @@ namespace UnityEngine.Rendering.Universal
                 bool backbufferDepthRequired = (cameraData.isSceneViewCamera || cameraData.isPreviewCamera || UnityEditor.Handles.ShouldRenderGizmos());
                 if (s_RequiresIntermediateAttachments && backbufferDepthRequired)
                 {
-                    m_FinalDepthCopyPass.MsaaSamples = 0;
-                    m_FinalDepthCopyPass.CopyToBackbuffer = cameraData.isGameCamera;
                     m_FinalDepthCopyPass.Render(renderGraph, frameData, resourceData.backBufferDepth, resourceData.cameraDepth, false, "Final Depth Copy");
                 }
 #endif
@@ -1776,15 +1777,9 @@ namespace UnityEngine.Rendering.Universal
             desc.autoGenerateMips = false;
 
             bool hasMSAA = desc.msaaSamples != MSAASamples.None;
-            bool resolveDepth = RenderingUtils.MultisampleDepthResolveSupported() && renderGraph.nativeRenderPassesEnabled;
 
             // If we aren't using hardware depth resolves and we have MSAA, we need to resolve depth manually by binding as an MSAA texture.
-            desc.bindTextureMS = !resolveDepth && hasMSAA;
-
-            // binding MS surfaces is not supported by the GLES backend, and it won't be fixed after investigating
-            // the high performance impact of potential fixes, which would make it more expensive than depth prepass (fogbugz 1339401 for more info)
-            if (IsGLESDevice())
-                desc.bindTextureMS = false;
+            desc.bindTextureMS = hasMSAA && RenderingUtils.ShouldDepthAttachmentBindMS();
 
             desc.format = cameraDepthAttachmentFormat;
             desc.filterMode = FilterMode.Point;
@@ -1818,17 +1813,6 @@ namespace UnityEngine.Rendering.Universal
             }
 
             resourceData.activeDepthID = UniversalResourceData.ActiveID.Camera;
-
-            // Configure the copy depth pass based on the allocated depth texture
-            m_CopyDepthPass.MsaaSamples = (int) desc.msaaSamples;
-            m_CopyDepthPass.CopyToDepth = depthTextureIsDepthFormat;
-
-            var copyResolvedDepth = !desc.bindTextureMS;
-            m_CopyDepthPass.m_CopyResolvedDepth = copyResolvedDepth;
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            m_XRCopyDepthPass.m_CopyResolvedDepth = copyResolvedDepth;
-#endif
         }
 
         void CreateCameraDepthCopyTexture(RenderGraph renderGraph, TextureDesc descriptor, bool isDepthTexture, Color clearColor)

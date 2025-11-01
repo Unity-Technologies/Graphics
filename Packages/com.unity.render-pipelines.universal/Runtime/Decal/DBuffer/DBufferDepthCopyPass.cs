@@ -10,8 +10,8 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     internal class DBufferCopyDepthPass : CopyDepthPass
     {
-        public DBufferCopyDepthPass(RenderPassEvent evt, Shader copyDepthShader, bool shouldClear = false, bool copyToDepth = false, bool copyResolvedDepth = false)
-            : base(evt, copyDepthShader, shouldClear, copyToDepth, copyResolvedDepth)
+        public DBufferCopyDepthPass(RenderPassEvent evt, Shader copyDepthShader, bool shouldClear = false)
+            : base(evt, copyDepthShader, shouldClear)
         {
         }
 
@@ -46,9 +46,6 @@ namespace UnityEngine.Rendering.Universal
                 depthDesc.depthStencilFormat = cameraData.cameraTargetDescriptor.depthStencilFormat;
                 depthDesc.msaaSamples = 1;
                 resourceData.dBufferDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, DBufferRenderPass.s_DBufferDepthName, true);
-
-                //The code shared with Compatibility Mode has some logic based on the deferred path. Here, we need it to always copy to depth, ignoring any other setting.
-                CopyToDepth = true;
 
                 // Copy the depth texture (filled by a prepass) into the new attachment so it can be used for depth testing
                 Render(renderGraph, resourceData.dBufferDepth, source, resourceData, cameraData, false, "Copy DBuffer Depth");

@@ -277,6 +277,22 @@ namespace UnityEngine.Rendering.Universal
             return SystemInfo.supportsMultisampleResolveDepth && SystemInfo.supportsMultisampleResolveStencil;
         }
 
+        internal static bool ShouldDepthAttachmentBindMS()
+        {
+            bool canResolveDepth = RenderingUtils.MultisampleDepthResolveSupported();
+            var canSampleMSAADepth = SystemInfo.supportsMultisampledTextures != 0;
+
+            // If we aren't using hardware depth resolves and we have MSAA, we need to resolve depth manually by binding as an MSAA texture.
+            bool bindMS = !canResolveDepth && canSampleMSAADepth;
+
+            // binding MS surfaces is not supported by the GLES backend, and it won't be fixed after investigating
+            // the high performance impact of potential fixes, which would make it more expensive than depth prepass (fogbugz 1339401 for more info)
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+                bindMS = false;
+
+            return bindMS; 
+        }
+
         /// <summary>
         /// Return true if handle does not match descriptor
         /// </summary>

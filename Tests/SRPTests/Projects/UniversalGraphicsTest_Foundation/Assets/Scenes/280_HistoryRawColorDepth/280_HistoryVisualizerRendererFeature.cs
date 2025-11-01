@@ -1,8 +1,8 @@
-using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Experimental.Rendering;
 
 public class HistoryVisualizer : ScriptableRendererFeature
 {
@@ -105,6 +105,15 @@ public class HistoryVisualizer : ScriptableRendererFeature
 
             RequestHistory(cameraData.historyManager);
 
+            int multipassId = 0;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            multipassId = cameraData.xr.multipassId;
+#endif
+            RTHandle historyTexture = GetHistorySourceTexture(cameraData.historyManager, multipassId);
+
+            if (historyTexture == null)
+                return;
+
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Test History visualizer.", out var passData))
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
@@ -112,18 +121,12 @@ public class HistoryVisualizer : ScriptableRendererFeature
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
                 passData.material = m_Material;
 
-                int multipassId = 0;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            multipassId = cameraData.xr.multipassId;
-#endif
-
                 Rect r = cameraData.camera.pixelRect;
                 passData.cameraViewport = r;
                 r.width /= 2;
                 r.height /= 2;
                 passData.renderViewport = r;
 
-                RTHandle historyTexture = GetHistorySourceTexture(cameraData.historyManager, multipassId);
                 passData.historyTexture = renderGraph.ImportTexture(historyTexture);
 
                 builder.UseTexture(passData.historyTexture);
