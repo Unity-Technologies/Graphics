@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Dispose()
         {
-            m_DeferredLights?.ReleaseGbufferResources();
+            
         }
         
         static void ExecutePass(RasterCommandBuffer cmd, PassData data, RendererList rendererList, RendererList errorRendererList)
@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             stateBlocks.Dispose();
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle cameraColor, in TextureHandle cameraDepth, bool setGlobalTextures, uint batchLayerMask = uint.MaxValue)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, bool setGlobalTextures, uint batchLayerMask = uint.MaxValue)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
@@ -139,8 +139,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             using var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler);
             bool useCameraRenderingLayersTexture = m_DeferredLights.UseRenderingLayers && !m_DeferredLights.UseLightLayers;
 
-            var gbuffer = m_DeferredLights.GbufferTextureHandles;
-            for (int i = 0; i < m_DeferredLights.GBufferSliceCount; i++)
+            var cameraColor = resourceData.activeColorTexture;
+            var cameraDepth = resourceData.activeDepthTexture;
+            var gbuffer = resourceData.gBuffer;
+
+            for (int i = 0; i < gbuffer.Length; i++)
             {
                 Debug.Assert(gbuffer[i].IsValid());
                 builder.SetRenderAttachment(gbuffer[i], i, AccessFlags.Write);

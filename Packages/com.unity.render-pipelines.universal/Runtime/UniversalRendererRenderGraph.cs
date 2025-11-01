@@ -1133,13 +1133,11 @@ namespace UnityEngine.Rendering.Universal
 
                 // We need to be sure there are no custom passes in between GBuffer/Deferred passes, if there are - we disable fb fetch just to be safe`
                 m_DeferredLights.UseFramebufferFetch = renderGraph.nativeRenderPassesEnabled;
-                m_DeferredLights.HasNormalPrepass = isDepthNormalPrepass;
-                m_DeferredLights.HasDepthPrepass = requiresPrepass;
+
                 m_DeferredLights.ResolveMixedLightingMode(lightData);
                 // Once the mixed lighting mode has been discovered, we know how many MRTs we need for the gbuffer.
                 // Subtractive mixed lighting requires shadowMask output, which is actually used to store unity_ProbesOcclusion values.
-                m_DeferredLights.CreateGbufferResourcesRenderGraph(renderGraph, resourceData);
-                resourceData.gBuffer = m_DeferredLights.GbufferTextureHandles;
+                m_DeferredLights.CreateGbufferTextures(renderGraph, resourceData, isDepthNormalPrepass);
 
 
                 RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingGbuffer);
@@ -1161,7 +1159,7 @@ namespace UnityEngine.Rendering.Universal
 	                // When we have a partial depth normals prepass, we must wait until the gbuffer pass to set global textures.
 	                // In this case, the incoming global texture data is incomplete and the gbuffer pass is required to complete it.
 	                bool setGlobalTextures = isDepthNormalPrepass && !hasFullPrepass;
-                    m_GBufferPass.Render(renderGraph, frameData, resourceData.activeColorTexture, resourceData.activeDepthTexture, setGlobalTextures, batchLayerMask);
+                    m_GBufferPass.Render(renderGraph, frameData, setGlobalTextures, batchLayerMask);
 
                     if (needsOccluderUpdate)
                     {
@@ -1183,7 +1181,7 @@ namespace UnityEngine.Rendering.Universal
 
                 RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingGbuffer, RenderPassEvent.BeforeRenderingDeferredLights);
 
-                m_DeferredPass.Render(renderGraph, frameData, resourceData.activeColorTexture, resourceData.activeDepthTexture, resourceData.gBuffer);
+                m_DeferredPass.RecordRenderGraph(renderGraph, frameData);
 
                 RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingDeferredLights, RenderPassEvent.BeforeRenderingOpaques);
 
