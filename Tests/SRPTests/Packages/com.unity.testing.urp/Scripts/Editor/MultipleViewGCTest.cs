@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.TestTools;
 
 [TestFixture]
 public class MultipleViewGCTest : MonoBehaviour
@@ -58,6 +59,9 @@ public class MultipleViewGCTest : MonoBehaviour
     }
 
     [Test]
+    [UnityPlatform(exclude = new RuntimePlatform[] {
+        RuntimePlatform.WindowsEditor // Disabled for Instability https://jira.unity3d.com/browse/UUM-125567
+    })]
     public void RenderSceneAndGameView()
     {
         Profiler.BeginSample("GC_Alloc_URP_MultipleViews");
