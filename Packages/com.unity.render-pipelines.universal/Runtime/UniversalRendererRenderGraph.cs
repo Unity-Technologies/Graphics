@@ -372,7 +372,7 @@ namespace UnityEngine.Rendering.Universal
             cameraDescriptor.useMipMap = false;
             cameraDescriptor.autoGenerateMips = false;
             cameraDescriptor.mipMapBias = 0;
-            cameraDescriptor.anisoLevel = 0;
+            cameraDescriptor.anisoLevel = 1;
 
             if (requireIntermediateAttachments)
             {
