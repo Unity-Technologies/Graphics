@@ -4,12 +4,13 @@ using System.Runtime.InteropServices;
 using Unity.Collections;
 using System.Collections.Generic;
 using UnityEngine.U2D;
-using UnityEngine.Rendering.Universal.UTess;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using Unity.Burst;
 
-
+#if USING_2DCOMMON
+using UnityEngine.U2D.Common;
+#endif
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -326,9 +327,11 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<int2> tessOutEdges = new NativeArray<int2>(tessInEdges.Length * 4, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             int tessOutVertexCount = 0;
             int tessOutIndexCount = 0;
-            int tessOutEdgeCount = 0;
 
-            UTess.ModuleHandle.Tessellate(Allocator.Persistent, tessInVertices, tessInEdges, ref tessOutVertices, ref tessOutVertexCount, ref tessOutIndices, ref tessOutIndexCount, ref tessOutEdges, ref tessOutEdgeCount);
+#if USING_2DCOMMON
+            int tessOutEdgeCount = 0;
+            U2D.Common.UTess.ModuleHandle.Tessellate(Allocator.Temp, tessInVertices, tessInEdges, ref tessOutVertices, out tessOutVertexCount, ref tessOutIndices, out tessOutIndexCount, ref tessOutEdges, out tessOutEdgeCount, false);
+#endif
 
             int indexOffset = inIndices.Length;
             int vertexOffset = inVertices.Length;

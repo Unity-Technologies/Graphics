@@ -62,7 +62,12 @@
             "name": "com.unity.inputsystem",
             "expression": "0.0.0",
             "define": "ENABLE_INPUT_SYSTEM_PACKAGE"
-        }
+        },
+        {
+            "name": "com.unity.2d.common",
+            "expression": "13.0.0",
+            "define": "USING_2DCOMMON"
+        }        
     ],
     "noEngineReferences": false
 }
