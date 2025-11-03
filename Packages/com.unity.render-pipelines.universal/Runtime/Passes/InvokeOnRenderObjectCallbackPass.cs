@@ -25,7 +25,9 @@ namespace UnityEngine.Rendering.Universal
         {
             using (var builder = renderGraph.AddUnsafePass<PassData>(passName, out var passData, profilingSampler))
             {
+                passData.colorTarget = colorTarget;
                 builder.UseTexture(colorTarget, AccessFlags.Write);
+                passData.depthTarget = depthTarget;
                 builder.UseTexture(depthTarget, AccessFlags.Write);
                 builder.AllowPassCulling(false);
                 builder.SetRenderFunc(static (PassData data, UnsafeGraphContext context) =>
