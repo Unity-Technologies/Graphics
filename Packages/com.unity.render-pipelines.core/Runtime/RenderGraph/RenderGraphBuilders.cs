@@ -84,26 +84,26 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public BufferHandle CreateTransientBuffer(in BufferDesc desc)
         {
             var result = m_Resources.CreateBuffer(desc, m_RenderPass.index);
-            UseResource(result.handle, AccessFlags.Write | AccessFlags.Read, isTransient: true);
+            UseTransientResource(result.handle);
             return result;
         }
 
         public BufferHandle CreateTransientBuffer(in BufferHandle computebuffer)
         {
-            var desc = m_Resources.GetBufferResourceDesc(computebuffer.handle);
+            ref readonly var desc = ref m_Resources.GetBufferResourceDesc(computebuffer.handle);
             return CreateTransientBuffer(desc);
         }
 
         public TextureHandle CreateTransientTexture(in TextureDesc desc)
         {
             var result = m_Resources.CreateTexture(desc, m_RenderPass.index);
-            UseResource(result.handle, AccessFlags.Write | AccessFlags.Read, isTransient: true);
+            UseTransientResource(result.handle);
             return result;
         }
 
         public TextureHandle CreateTransientTexture(in TextureHandle texture)
         {
-            var desc = m_Resources.GetTextureResourceDesc(texture.handle);
+            ref readonly var desc = ref m_Resources.GetTextureResourceDesc(texture.handle);
             return CreateTransientTexture(desc);
         }
 
@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        private void ValidateWriteTo(in ResourceHandle handle)
+        private void CheckWriteTo(in ResourceHandle handle)
         {
             if (RenderGraph.enableValidityChecks)
             {
@@ -201,57 +201,63 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
-        private ResourceHandle UseResource(in ResourceHandle handle, AccessFlags flags, bool isTransient = false)
+        // Lifetime of a transient resource is one render graph pass
+        private ResourceHandle UseTransientResource(in ResourceHandle inputHandle)
         {
-            CheckResource(handle);
+            CheckResource(inputHandle);
 
-            // If we are not discarding the resource, add a "read" dependency on the current version
-            // this "Read" is a bit of a misnomer it really means more like "Preserve existing content or read"
-            if ((flags & AccessFlags.Discard) == 0)
+            ResourceHandle versionedHandle = inputHandle.IsVersioned ? inputHandle : m_Resources.GetLatestVersionHandle(inputHandle);
+
+            // Transient resources are always considered written and read in the render graph pass where they are used
+            // Compiler will take it into account later, no need to add them to read and write lists
+            m_RenderPass.AddTransientResource(versionedHandle);
+
+            return versionedHandle;
+        }
+
+        private ResourceHandle UseResource(in ResourceHandle inputHandle, AccessFlags flags)
+        {
+            CheckResource(inputHandle);
+
+            bool discard = (flags & AccessFlags.Discard) != 0;
+            bool read = (flags & AccessFlags.Read) != 0;
+            bool write = (flags & AccessFlags.Write) != 0;
+
+            ResourceHandle versionedHandle = inputHandle.IsVersioned ? inputHandle : m_Resources.GetLatestVersionHandle(inputHandle);
+
+            // If we are not discarding the current version and its data, add a "read" dependency on it
+            // this is a bit of a misnomer it really means more like "Preserve existing content or read"
+            if (!discard)
             {
-                ResourceHandle versioned;
-                if (!handle.IsVersioned)
-                {
-                    versioned = m_Resources.GetLatestVersionHandle(handle);
-                }
-                else
-                {
-                    versioned = handle;
-                }
+                m_Resources.IncrementReadCount(versionedHandle);
+                m_RenderPass.AddResourceRead(versionedHandle);
 
-                if (isTransient)
+                // Implicit read - not user-specified
+                if (!read)
                 {
-                    m_RenderPass.AddTransientResource(versioned);
-                    return GetLatestVersionHandle(handle);
-                }
-
-                m_RenderPass.AddResourceRead(versioned);
-                m_Resources.IncrementReadCount(handle);
-
-                if ((flags & AccessFlags.Read) == 0)
-                {
-                    // Flag the resource as being an "implicit read" so that we can distinguish it from a user-specified read
-                    m_RenderPass.implicitReadsList.Add(versioned);
+                    m_RenderPass.implicitReadsList.Add(versionedHandle);
                 }
             }
             else
             {
                 // We are discarding it but we still read it, so we add a dependency on version "0" of this resource
-                if ((flags & AccessFlags.Read) != 0)
+                if (read)
                 {
-                    m_RenderPass.AddResourceRead(m_Resources.GetZeroVersionedHandle(handle));
-                    m_Resources.IncrementReadCount(handle);
+                    var zeroVersionHandle = m_Resources.GetZeroVersionHandle(versionedHandle);
+                    m_Resources.IncrementReadCount(zeroVersionHandle);
+                    m_RenderPass.AddResourceRead(zeroVersionHandle);
                 }
             }
 
-            if ((flags & AccessFlags.Write) != 0)
+            if (write)
             {
-                ValidateWriteTo(handle);
-                m_RenderPass.AddResourceWrite(m_Resources.GetNewVersionedHandle(handle));
-                m_Resources.IncrementWriteCount(handle);
+                CheckWriteTo(inputHandle);
+                // New versioned written by this render graph pass
+                versionedHandle = m_Resources.IncrementWriteCount(inputHandle);
+                m_RenderPass.AddResourceWrite(versionedHandle);
             }
 
-            return GetLatestVersionHandle(handle);
+            return versionedHandle;
         }
 
         public BufferHandle UseBuffer(in BufferHandle input, AccessFlags flags)
@@ -266,12 +272,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
         // for ample UseTexture(myTexV1, read) UseFragment(myTexV2, ReadWrite) as they are different versions
         // but for now we don't allow any of that.
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        private void CheckNotUseFragment(TextureHandle tex)
+        private void CheckNotUseFragment(in TextureHandle tex)
         {
-            if(RenderGraph.enableValidityChecks)
+            if (RenderGraph.enableValidityChecks)
             {
-                bool usedAsFragment = false;
-                usedAsFragment = (m_RenderPass.depthAccess.textureHandle.IsValid() && m_RenderPass.depthAccess.textureHandle.handle.index == tex.handle.index);
+                bool usedAsFragment = (m_RenderPass.depthAccess.textureHandle.IsValid() && m_RenderPass.depthAccess.textureHandle.handle.index == tex.handle.index);
                 if (!usedAsFragment)
                 {
                     for (int i = 0; i <= m_RenderPass.colorBufferMaxIndex; i++)
@@ -293,7 +298,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        private void CheckTextureUVOriginIsValid(ResourceHandle handle, TextureResource texRes)
+        private void CheckTextureUVOriginIsValid(in ResourceHandle handle, TextureResource texRes)
         {
             if (texRes.textureUVOrigin == TextureUVOriginSelection.TopLeft)
             {
@@ -345,9 +350,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         // Shared validation between SetRenderAttachment/SetRenderAttachmentDepth
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        private void CheckUseFragment(TextureHandle tex, bool isDepth)
+        private void CheckUseFragment(in TextureHandle tex, bool isDepth)
         {
-            if(RenderGraph.enableValidityChecks)
+            if (RenderGraph.enableValidityChecks)
             {
                 // We ignore the version as we don't allow mixing UseTexture/UseFragment between different versions
                 // even though it should theoretically work (and we might do so in the future) for now we're overly strict.
@@ -533,22 +538,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             m_RenderPass.UseRendererList(input);
         }
-
-        private ResourceHandle GetLatestVersionHandle(in ResourceHandle handle)
-        {
-            // Transient resources can't be used outside the pass so can never be versioned
-            if (m_Resources.GetRenderGraphResourceTransientIndex(handle) >= 0)
-            {
-                return handle;
-            }
-
-            return m_Resources.GetLatestVersionHandle(handle);
-        }
-
+        
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void CheckResource(in ResourceHandle res, bool checkTransientReadWrite = false)
         {
-            if(RenderGraph.enableValidityChecks)
+            if (RenderGraph.enableValidityChecks)
             {
                 if (res.IsValid())
                 {

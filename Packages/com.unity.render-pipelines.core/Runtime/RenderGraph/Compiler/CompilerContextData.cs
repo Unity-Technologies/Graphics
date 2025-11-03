@@ -101,20 +101,20 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public ResourcesData resources;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref ResourceUnversionedData UnversionedResourceData(ResourceHandle h)
+        public ref ResourceUnversionedData UnversionedResourceData(in ResourceHandle h)
         {
             return ref resources.unversionedData[h.iType].ElementAt(h.index);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref ResourceVersionedData VersionedResourceData(ResourceHandle h)
+        public ref ResourceVersionedData VersionedResourceData(in ResourceHandle h)
         {
             return ref resources[h];
         }
 
         // Iterate over all the readers of a particular resource
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<ResourceReaderData> Readers(ResourceHandle h)
+        public ReadOnlySpan<ResourceReaderData> Readers(in ResourceHandle h)
         {
             int firstReader = resources.IndexReader(h, 0);
             int numReaders = resources[h].numReaders;
@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         // Get the i'th reader of a resource
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref ResourceReaderData ResourceReader(ResourceHandle h, int i)
+        public ref ResourceReaderData ResourceReader(in ResourceHandle h, int i)
         {
             int numReaders = resources[h].numReaders;
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public NativeList<SubPassDescriptor> nativeSubPassData; //Tighty packed list of per nrp subpasses
 
         // resources can be added as fragment both as input and output so make sure not to add them twice (return true upon new addition)
-        public bool TryAddToFragmentList(TextureAccess access, int listFirstIndex, int numItems, out string errorMessage)
+        public bool TryAddToFragmentList(in TextureAccess access, int listFirstIndex, int numItems, out string errorMessage)
         {
             errorMessage = null;
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
@@ -200,13 +200,13 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public string GetPassName(int passId) => passNames[passId].name;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public string GetResourceName(ResourceHandle h) => resources.resourceNames[h.iType][h.index].name;
+        public string GetResourceName(in ResourceHandle h) => resources.resourceNames[h.iType][h.index].name;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public string GetResourceVersionedName(ResourceHandle h) => GetResourceName(h) + " V" + h.version;
+        public string GetResourceVersionedName(in ResourceHandle h) => GetResourceName(h) + " V" + h.version;
 
         // resources can be added as fragment both as input and output so make sure not to add them twice (return true upon new addition)
-        public bool TryAddToRandomAccessResourceList(ResourceHandle h, int randomWriteSlotIndex, bool preserveCounterValue, int listFirstIndex, int numItems, out string errorMessage)
+        public bool TryAddToRandomAccessResourceList(in ResourceHandle h, int randomWriteSlotIndex, bool preserveCounterValue, int listFirstIndex, int numItems, out string errorMessage)
         {
             errorMessage = null;
             for (var i = listFirstIndex; i < listFirstIndex + numItems; ++i)

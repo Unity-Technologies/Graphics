@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             return msg;
         }
 
-        internal static string MakePassMergeMessage(CompilerContextData ctx, in PassData pass, in PassData prevPass, PassBreakAudit mergeResult)
+        internal static string MakePassMergeMessage(CompilerContextData ctx, in PassData pass, in PassData prevPass, in PassBreakAudit mergeResult)
         {
             string message = mergeResult.reason == PassBreakReason.Merged ?
                 "The passes are <b>compatible</b> to be merged.\n\n" :
