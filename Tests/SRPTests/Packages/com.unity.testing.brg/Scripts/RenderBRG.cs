@@ -117,7 +117,6 @@ public unsafe class RenderBRG : MonoBehaviour
 
     private BatchRendererGroup m_BatchRendererGroup;
     private GraphicsBuffer m_GPUPersistentInstanceData;
-    private GraphicsBuffer m_Globals;
 
     private bool m_initialized;
 
@@ -813,12 +812,6 @@ public unsafe class RenderBRG : MonoBehaviour
         m_drawBatches = new NativeList<DrawBatch>(Allocator.Persistent);
         m_drawRanges = new NativeList<DrawRange>(Allocator.Persistent);
 
-        // Fill global data (shared between all batches)
-        m_Globals = new GraphicsBuffer(GraphicsBuffer.Target.Constant,
-            1,
-            UnsafeUtility.SizeOf<BatchRendererGroupGlobals>());
-        m_Globals.SetData(new [] { BatchRendererGroupGlobals.Default });
-
         m_brgBufferTarget = BatchRendererGroup.BufferTarget;
         m_instances = new NativeList<DrawInstance>(1024, Allocator.Persistent);
 
@@ -1167,10 +1160,6 @@ public unsafe class RenderBRG : MonoBehaviour
 
     void Update()
     {
-        // TODO: Implement delta update for transforms
-        // https://docs.unity3d.com/ScriptReference/Transform-hasChanged.html
-        // https://docs.unity3d.com/ScriptReference/Jobs.TransformAccess.html
-        Shader.SetGlobalConstantBuffer(BatchRendererGroupGlobals.kGlobalsPropertyId, m_Globals, 0, m_Globals.stride);
     }
 
     private void OnDisable()
@@ -1182,7 +1171,6 @@ public unsafe class RenderBRG : MonoBehaviour
         if (m_initialized)
         {
             m_GPUPersistentInstanceData.Dispose();
-            m_Globals.Dispose();
 
             m_renderers.Dispose();
             m_pickingIDs.Dispose();
