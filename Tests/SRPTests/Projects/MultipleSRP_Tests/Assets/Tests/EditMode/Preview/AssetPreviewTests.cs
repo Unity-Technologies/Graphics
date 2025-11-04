@@ -94,9 +94,10 @@ namespace Preview
 
         Texture2D LoadIcon(string name)
         {
-            var testedIconPath = $"Assets/ReferenceImages/{TestUtils.GetCurrentTestResultsFolderPath()}/{name}.png";
-            var loadIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(testedIconPath);
-            return loadIcon;
+            var testCase = new GraphicsTestCase(name);
+            var image = testCase.ReferenceImage.Image;
+            Assert.IsTrue(image != null, $"Reference image not found");
+            return image;
         }
 
         Object ProduceNewObject(AssetFactory objectFactory, Type renderPipelineType, out string path)
