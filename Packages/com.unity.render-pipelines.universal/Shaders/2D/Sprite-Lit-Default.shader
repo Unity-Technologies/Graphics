@@ -36,7 +36,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             // GPU Instancing
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DEBUG_DISPLAY SKINNED_SPRITE
+            #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile _ SKINNED_SPRITE
 
             struct Attributes
             {
