@@ -1788,14 +1788,20 @@ namespace UnityEditor.VFX.UI
 
         internal void SaveAs(string newPath)
         {
-            m_ComponentBoard?.DeactivateBoundsRecordingIfNeeded(); //Avoids saving the graph with unnecessary bounds computations
-
             var resource = controller.graph.visualEffectResource;
-
             var oldFilePath = AssetDatabase.GetAssetPath(resource);
-            if (!AssetDatabase.CopyAsset(oldFilePath, newPath))
+            if (string.Compare(newPath, oldFilePath, StringComparison.InvariantCultureIgnoreCase) == 0)
             {
-                Debug.Log($"Could not save VFX Graph at {newPath}");
+                this.OnSave();
+            }
+            else
+            {
+                m_ComponentBoard?.DeactivateBoundsRecordingIfNeeded(); //Avoids saving the graph with unnecessary bounds computations
+
+                if (!AssetDatabase.CopyAsset(oldFilePath, newPath))
+                {
+                    Debug.LogError($"Could not save VFX Graph at {newPath}");
+                }
             }
         }
 
