@@ -1644,6 +1644,29 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(2, controller.groupNodes.Count);
         }
+
+        [Test]
+        public void CheckMinMaxRangeParameter()
+        {
+            // Arrange
+            var rangeParameter = m_ViewController.AddVFXParameter(Vector2.zero, VFXLibrary.GetParameters().First(t => t.modelType == typeof(uint)).variant);
+            m_ViewController.LightApplyChanges();
+            var rangeParameterController = m_ViewController.GetParameterController(rangeParameter);
+            rangeParameterController.valueFilter = VFXValueFilter.Range;
+
+            rangeParameterController.minValue = 0u;
+            rangeParameterController.maxValue = 100u;
+            rangeParameterController.value = 1u;
+            m_ViewController.LightApplyChanges();
+
+            // Act
+            rangeParameterController.minValue = 200u;
+
+            // Assert
+            Assert.AreEqual(0, rangeParameterController.minValue);
+            Assert.AreEqual(1, rangeParameterController.value);
+            Assert.AreEqual(100, rangeParameterController.maxValue);
+        }
     }
 }
 #endif
