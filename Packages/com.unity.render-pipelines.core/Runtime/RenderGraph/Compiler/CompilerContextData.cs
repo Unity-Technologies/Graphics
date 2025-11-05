@@ -61,6 +61,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 inputData = new NativeList<PassInputData>(estimatedNumPasses * 2, AllocatorManager.Persistent);
                 outputData = new NativeList<PassOutputData>(estimatedNumPasses * 2, AllocatorManager.Persistent);
                 fragmentData = new NativeList<PassFragmentData>(estimatedNumPasses * 4, AllocatorManager.Persistent);
+                sampledData = new NativeList<ResourceHandle>(estimatedNumPasses * 2, AllocatorManager.Persistent);
                 randomAccessResourceData = new NativeList<PassRandomWriteData>(4, AllocatorManager.Persistent); // We assume not a lot of passes use random write
                 nativePassData = new NativeList<NativePassData>(estimatedNumPasses, AllocatorManager.Persistent);// assume nothing gets merged
                 nativeSubPassData = new NativeList<SubPassDescriptor>(estimatedNumPasses, AllocatorManager.Persistent);// there should "never" be more subpasses than graph passes
@@ -90,6 +91,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 inputData.Clear();
                 outputData.Clear();
                 fragmentData.Clear();
+                sampledData.Clear();
                 randomAccessResourceData.Clear();
                 nativePassData.Clear();
                 nativeSubPassData.Clear();
@@ -144,6 +146,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public NativeList<PassInputData> inputData;
         public NativeList<PassOutputData> outputData;
         public NativeList<PassFragmentData> fragmentData;
+        public NativeList<ResourceHandle> sampledData;
         public NativeList<ResourceHandle> createData;
         public NativeList<ResourceHandle> destroyData;
         public NativeList<PassRandomWriteData> randomAccessResourceData;
@@ -369,6 +372,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 inputData.Dispose();
                 outputData.Dispose();
                 fragmentData.Dispose();
+                sampledData.Dispose();
                 createData.Dispose();
                 destroyData.Dispose();
                 randomAccessResourceData.Dispose();
