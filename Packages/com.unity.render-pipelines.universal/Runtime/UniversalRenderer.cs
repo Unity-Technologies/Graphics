@@ -594,53 +594,79 @@ namespace UnityEngine.Rendering.Universal
         struct RenderPassInputSummary
         {
             internal bool requiresDepthTexture;
-            internal bool requiresDepthPrepass;
             internal bool requiresNormalsTexture;
             internal bool requiresColorTexture;
             internal bool requiresMotionVectors;
-            internal RenderPassEvent requiresDepthNormalAtEvent;
+            internal RenderPassEvent requiresNormalTextureEarliestEvent;
             internal RenderPassEvent requiresDepthTextureEarliestEvent;
         }
 
-        static RenderPassInputSummary GetRenderPassInputs(bool isTemporalAAEnabled, bool postProcessingEnabled, bool isSceneViewCamera, bool renderingLayerProvidesByDepthNormalPass, List<ScriptableRenderPass> activeRenderPassQueue, MotionVectorRenderPass motionVectorPass)
+        static RenderPassInputSummary GetRenderPassInputs(List<ScriptableRenderPass> activeRenderPassQueue)
         {
-            RenderPassInputSummary inputSummary = new RenderPassInputSummary();
-            inputSummary.requiresDepthNormalAtEvent = RenderPassEvent.BeforeRenderingOpaques;
-            inputSummary.requiresDepthTextureEarliestEvent = RenderPassEvent.BeforeRenderingPostProcessing;
+            RenderPassInputSummary inputSummary = new RenderPassInputSummary
+            {
+                requiresNormalTextureEarliestEvent = RenderPassEvent.AfterRenderingPostProcessing,
+                requiresDepthTextureEarliestEvent = RenderPassEvent.AfterRenderingPostProcessing
+            };
             for (int i = 0; i < activeRenderPassQueue.Count; ++i)
             {
                 ScriptableRenderPass pass = activeRenderPassQueue[i];
-                bool needsDepth = (pass.input & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None;
-                bool needsNormals = (pass.input & ScriptableRenderPassInput.Normal) != ScriptableRenderPassInput.None;
-                bool needsColor = (pass.input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
-                bool needsMotion = (pass.input & ScriptableRenderPassInput.Motion) != ScriptableRenderPassInput.None;
-                bool eventBeforeRenderingOpaques = pass.renderPassEvent < RenderPassEvent.AfterRenderingOpaques;
+                bool needsDepth     = (pass.input & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None;
+                bool needsNormals   = (pass.input & ScriptableRenderPassInput.Normal) != ScriptableRenderPassInput.None;
+                bool needsColor     = (pass.input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
+                bool needsMotion    = (pass.input & ScriptableRenderPassInput.Motion) != ScriptableRenderPassInput.None;
 
-                inputSummary.requiresDepthTexture |= needsDepth;
-
-                // A depth prepass is always required when normals are needed because URP's forward passes don't support rendering into the normals texture
-                // If depth is needed without normals, we only need a prepass when the event consuming depth occurs before opaque rendering is completed.
-                inputSummary.requiresDepthPrepass |= needsNormals || (needsDepth && eventBeforeRenderingOpaques);
-
+                inputSummary.requiresDepthTexture   |= needsDepth;
                 inputSummary.requiresNormalsTexture |= needsNormals;
-                inputSummary.requiresColorTexture |= needsColor;
-                inputSummary.requiresMotionVectors |= needsMotion;
+                inputSummary.requiresColorTexture   |= needsColor;
+                inputSummary.requiresMotionVectors  |= needsMotion;
+
                 if (needsDepth)
                     inputSummary.requiresDepthTextureEarliestEvent = (RenderPassEvent)Mathf.Min((int)pass.renderPassEvent, (int)inputSummary.requiresDepthTextureEarliestEvent);
-                if (needsNormals || needsDepth)
-                    inputSummary.requiresDepthNormalAtEvent = (RenderPassEvent)Mathf.Min((int)pass.renderPassEvent, (int)inputSummary.requiresDepthNormalAtEvent);
+                if (needsNormals)
+                    inputSummary.requiresNormalTextureEarliestEvent = (RenderPassEvent)Mathf.Min((int)pass.renderPassEvent, (int)inputSummary.requiresNormalTextureEarliestEvent);
+            }
+            return inputSummary;
+        }
+
+        void AddRequirementsOfInternalFeatures(ref RenderPassInputSummary inputSummary, UniversalCameraData cameraData, bool postProcessingEnabled, bool renderingLayerProvidesByDepthNormalPass, MotionVectorRenderPass motionVectorPass, CopyDepthMode copyDepthMode)
+        {
+            // TAA in postprocess requires it to function.
+            if (cameraData.IsTemporalAAEnabled() )
+                inputSummary.requiresMotionVectors = true;
+
+            if(cameraData.requiresDepthTexture)
+            {
+                inputSummary.requiresDepthTexture = true;
+
+                RenderPassEvent earliestDepth = RenderPassEvent.AfterRenderingTransparents;
+                switch (copyDepthMode){
+                    case CopyDepthMode.ForcePrepass:
+                        earliestDepth = RenderPassEvent.AfterRenderingPrePasses;
+                        break;
+                    case CopyDepthMode.AfterOpaques:
+                        earliestDepth = RenderPassEvent.AfterRenderingOpaques;
+                        break;                    
+                }
+
+                inputSummary.requiresDepthTextureEarliestEvent = (RenderPassEvent)Mathf.Min((int)earliestDepth, (int)inputSummary.requiresDepthTextureEarliestEvent);
             }
 
-            // TAA in postprocess requires it to function.
-            if (isTemporalAAEnabled)
-                inputSummary.requiresMotionVectors = true;
+            inputSummary.requiresColorTexture |= cameraData.requiresOpaqueTexture;
 
             // Object motion blur requires motion vectors.
             if (postProcessingEnabled)
             {
                 var motionBlur = VolumeManager.instance.stack.GetComponent<MotionBlur>();
-                if(motionBlur != null && motionBlur.IsActive() && motionBlur.mode.value == MotionBlurMode.CameraAndObjects)
+                if (motionBlur != null && motionBlur.IsActive() && motionBlur.mode.value == MotionBlurMode.CameraAndObjects)
                     inputSummary.requiresMotionVectors = true;
+
+                if (cameraData.postProcessingRequiresDepthTexture)
+                {
+                    inputSummary.requiresDepthTexture = true;
+                    inputSummary.requiresDepthTextureEarliestEvent = (RenderPassEvent)Mathf.Min( (int)RenderPassEvent.BeforeRenderingPostProcessing, (int)inputSummary.requiresDepthTextureEarliestEvent);
+                }
+                    
             }
 
             // Motion vectors imply depth
@@ -651,14 +677,12 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if UNITY_EDITOR
-            if (ProbeReferenceVolume.instance.IsProbeSamplingDebugEnabled() && isSceneViewCamera)
+            if (ProbeReferenceVolume.instance.IsProbeSamplingDebugEnabled() && cameraData.isSceneViewCamera)
                 inputSummary.requiresNormalsTexture = true;
 #endif
 
             if (renderingLayerProvidesByDepthNormalPass)
                 inputSummary.requiresNormalsTexture = true;
-
-            return inputSummary;
         }
         
         internal static bool PlatformRequiresExplicitMsaaResolve()
@@ -716,11 +740,11 @@ namespace UnityEngine.Rendering.Universal
                 isCompatibleBackbufferTextureDimension = cameraData.xr.renderTargetDesc.dimension == cameraTargetDescriptor.dimension;
             }
 #endif
-            bool requiresOpaqueTexture = cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
 
             bool requestedColorHistory = (cameraData.historyManager ==null)? false : cameraData.historyManager.IsAccessRequested<RawColorHistory>();
 
-            bool requiresBlitForOffscreenCamera = applyPostProcessing || requiresOpaqueTexture || requiresExplicitMsaaResolve || !cameraData.isDefaultViewport || requestedColorHistory;
+            bool requiresBlitForOffscreenCamera = applyPostProcessing || renderPassInputs.requiresColorTexture || requiresExplicitMsaaResolve || !cameraData.isDefaultViewport || requestedColorHistory;
+
             if (isOffscreenRender)
                 return requiresBlitForOffscreenCamera;
 

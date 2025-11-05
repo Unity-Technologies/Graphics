@@ -57,7 +57,6 @@ namespace UnityEditor.Rendering.Universal.Tests
             HDRColorBufferPrecision requestHDRColorBufferPrecision = HDRColorBufferPrecision._64Bits;
             int msaaSamples = 1;
             bool needsAlpha = false;
-            bool requiresOpaqueTexture = false;
 
             return UniversalRenderPipeline.CreateRenderTextureDescriptor(
                 m_Camera,
@@ -65,8 +64,7 @@ namespace UnityEditor.Rendering.Universal.Tests
                 isHdrEnabled,
                 requestHDRColorBufferPrecision,
                 msaaSamples,
-                needsAlpha,
-                requiresOpaqueTexture);
+                needsAlpha);
         }
 
         public void CheckDimensions(RenderTextureDescriptor desc, RenderScaleTestCase testCase)
