@@ -66,6 +66,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 foreach (var hdLightData in m_AdditionalLightDatas)
                     if (hdLightData != null)
                     {
+                        if (hdLightData.lightIdxForCachedShadows >= 0) // If it is within the cached system we need to evict it.
+                            HDShadowManager.cachedShadowManager.EvictLight(hdLightData, hdLightData.legacyLight.type);
+
                         hdLightData.UpdateAreaLightEmissiveMesh();
                         hdLightData.UpdateRenderEntity();
                     }
