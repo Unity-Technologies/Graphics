@@ -352,7 +352,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return false;
             }
 
-            if (!shadowData.supportsAdditionalLightShadows)
+            if (!shadowData.supportsAdditionalLightShadows || (cameraData.camera.targetTexture != null && cameraData.camera.targetTexture.format == RenderTextureFormat.Depth))
                 return SetupForEmptyRendering(cameraData.renderer.stripShadowsOffVariants, shadowsEnabled, lightData, shadowData);
 
             Clear();
