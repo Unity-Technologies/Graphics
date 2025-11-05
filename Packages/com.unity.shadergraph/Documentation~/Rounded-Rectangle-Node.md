@@ -1,20 +1,23 @@
-# Rounded Rectangle Node
+# Rounded Rectangle node
 
-## Description
+The Rounded Rectangle node generates a filled rounded rectangle shape with a border around it. The output is 1 for the rectangle and 0 for the border.
 
-Generates a rounded rectangle shape based on input **UV** at the size specified by inputs **Width** and **Height**. The radius of each corner is defined by input **Radius**. The generated shape can be offset or tiled by connecting a [Tiling And Offset Node](Tiling-And-Offset-Node.md). Note that in order to preserve the ability to offset the shape within the UV space the shape will not automatically repeat if tiled. To achieve a repeating rounded rectangle effect first connect your input through a [Fraction Node](Fraction-Node.md).
+To move the rectangle within the space, do the following:
 
-NOTE: This [Node](Node.md) can only be used in the **Fragment** [Shader Stage](Shader-Stage.md).
+- To offset the shape, input a [Tiling And Offset node](Tiling-And-Offset-Node.md) and adjust the **Offset** property. 
+- To tile the shape, input a [Tiling and Offset node](Fraction-Node.md) into a [Fraction node](Tiling-And-Offset-Node.md), then input the Fraction node into the Rounded Rectangle node.
+
+You can only output this node into the Fragment Context.
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| UV      | Input | Vector 2 | UV | Input UV value |
-| Width      | Input | Float    | None | Rounded Rectangle width |
-| Height      | Input | Float    | None | Rounded Rectangle height |
-| Radius      | Input | Float    | None | Corner radius |
-| Out | Output      |    Float    | None | Output value |
+| Name | Direction | Type | Binding | Description |
+|-|-|-|-|-|
+| **UV** | Input | Vector 2 | UV | Sets the UV coordinates to use to sample the rounded rectangle shape and the border. |
+| **Width** | Input | Float | None | Sets how much horizontal space the rectangle fills, where 1 is a full-width rectangle without a border on the left and right. |
+| **Height** | Input | Float | None | Sets how much vertical space the rectangle fills, where 1 is a full height rectangle without a border above and below. |
+| **Radius** | Input | Float | None | Sets the roundness of the corners of the rectangle. The range is 0 to 1, where 0 is right-angled corners. |
+| **Out** | Output | Float | None | The rounded rectangle and the border, where 1 is the rectangle and 0 is the border. |
 
 ## Generated Code Example
 
