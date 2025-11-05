@@ -1,5 +1,5 @@
 using System;
-using System.Text.RegularExpressions;
+using System.Collections.Generic;
 using UnityEditor.Rendering.Converter;
 using UnityEngine;
 using UnityEngine.Categorization;
@@ -10,49 +10,75 @@ using ShadowQuality = UnityEngine.ShadowQuality;
 namespace UnityEditor.Rendering.Universal
 {
     [Serializable]
+    internal class RenderSettingsConverterItem : IRenderPipelineConverterItem
+    {
+        public int qualityLevelIndex { get; set; }
+
+        public string name { get; set; }
+
+        public string info { get; set; }
+
+        public bool isEnabled { get; set; }
+        public string isDisabledMessage { get; set; }
+
+        public Texture2D icon => CoreUtils.GetIconForType<UniversalRenderPipelineAsset>();
+
+        public void OnClicked()
+        {
+            SettingsService.OpenProjectSettings("Project/Quality");
+        }
+    }
+    [Serializable]
     [URPHelpURL("features/rp-converter")]
     [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
     [ElementInfo(Name = "Rendering Settings",
                  Order = int.MinValue,
                  Description = "This converter creates Universal Render Pipeline (URP) assets and corresponding Renderer assets, configuring their settings to match the equivalent settings from the Built-in Render Pipeline.")]
-    internal class RenderSettingsConverter : RenderPipelineConverter
+    class RenderSettingsConverter : IRenderPipelineConverter
     {
-        public override Type container => typeof(BuiltInToURPConverterContainer);
-
-        public override void OnInitialize(InitializeConverterContext context, Action callback)
+        public void Scan(Action<List<IRenderPipelineConverterItem>> onScanFinish)
         {
+            List<IRenderPipelineConverterItem> renderPipelineConverterItems = new ();
             QualitySettings.ForEach((index, name) =>
             {
+                var item = new RenderSettingsConverterItem
+                {
+                    qualityLevelIndex = index,
+                    name = name
+                };
+
                 if (QualitySettings.renderPipeline is not UniversalRenderPipelineAsset)
                 {
-                    context.AddAssetToConvert(new ConverterItemDescriptor
-                        { name = $"[{index}] {name}", info = "Quality Level must reference a Universal Render Pipeline Asset" });
+                    item.isEnabled = true;
+                    item.info = $"Create a Universal Render Pipeline Asset for Quality Level {index} ({name})";
                 }
+                else
+                {
+                    item.info = "Quality Level already references a Universal Render Pipeline Asset.";
+                    item.isEnabled = false;
+                    item.isDisabledMessage = item.info;
+                }
+                renderPipelineConverterItems.Add(item);
             });
 
-            callback?.Invoke();
+            onScanFinish?.Invoke(renderPipelineConverterItems);
         }
 
-        Regex s_Regex = new Regex(@"^\[(\d+)\]", RegexOptions.Compiled);
+        public bool isEnabled => true;
 
-        public override void OnRun(ref RunItemContext context)
+        public string isDisabledMessage => string.Empty;
+
+        public Status Convert(IRenderPipelineConverterItem item, out string message)
         {
-            var item = context.item;
-            Match match = s_Regex.Match(item.descriptor.name);
-            if (match.Success)
+            message = string.Empty;
+
+            if (item is RenderSettingsConverterItem qualityLevelItem)
             {
-                int index = int.Parse(match.Groups[1].Value);
-                if (!CreateURPAssetForQualityLevel(index, out var message))
-                {
-                    context.didFail = true;
-                    context.info = L10n.Tr(message);
-                }
+                if (CreateURPAssetForQualityLevel(qualityLevelItem.qualityLevelIndex, out message))                
+                    return Status.Success;
             }
-            else
-            {
-                context.didFail = true;
-                context.info = L10n.Tr($"Unable to retrieve index from {item.descriptor.name}. Expected : [index] name format.");
-            }
+
+            return Status.Error;
         }
 
         private bool CreateURPAssetForQualityLevel(int qualityIndex, out string message)

@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace UnityEditor.Rendering.Converter
 {
     /// <summary>
@@ -24,6 +26,8 @@ namespace UnityEditor.Rendering.Converter
         /// Gets or sets the reason message shown when the converter item is disabled.
         /// </summary>
         string isDisabledMessage { get; set; }
+
+        Texture2D icon => null;
 
         /// <summary>
         /// Invoked when the converter item is clicked or activated.

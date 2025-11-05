@@ -1,6 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements"
          xmlns:uie="UnityEditor.UIElements"
          xmlns:uir="UnityEditor.Rendering"
+         xmlns:uirc="UnityEditor.Rendering.Converter"
          editor-extension-mode="False">
     <uir:HeaderFoldout name="conveterFoldout">
     <ui:VisualElement name="informationVE" class="render-pipeline-converter-information">
@@ -16,17 +17,19 @@
             <ui:VisualElement class="render-pipeline-converter-items-header-flexrow">
                 <ui:Image name="converterStateInfoIcon" class="render-pipeline-converter-header-image" />
                 <ui:Label tabindex="-1" display-tooltip-when-elided="true" class="render-pipeline-converter-header-label" />
-                <ui:Label name="pendingLabel" class="render-pipeline-converter-header-label-upper-center" />
-                <ui:Image name="pendingImage" class="render-pipeline-converter-header-image render-pipeline-converter-header-image-margin" />
-                <ui:Label name="warningLabel" class="render-pipeline-converter-header-label-upper-center" />
-                <ui:Image name="warningImage" class="render-pipeline-converter-header-image render-pipeline-converter-header-image-margin" />
-                <ui:Label name="errorLabel" class="render-pipeline-converter-header-label-upper-center" />
-                <ui:Image name="errorImage" class="render-pipeline-converter-header-image render-pipeline-converter-header-image-margin" />
-                <ui:Label name="successLabel" class="render-pipeline-converter-header-label-nogrow" />
-                <ui:Image name="successImage" class="render-pipeline-converter-header-image" />
+                <uirc:RenderPipelineConverterVisualElementListFilter name="listViewFilter"/>
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
-    <ui:ListView focusable="true" name="converterItems" show-alternating-row-backgrounds="All" text="Info" class="render-pipeline-converter-list-view" />
+    <ui:MultiColumnTreeView name="converterItemsTreeView" class="render-pipeline-converter-list-view" show-alternating-row-backgrounds="All">
+        <!-- Columns and Column aren't Visual Elements or controls; they are considered attributes of MultiColumnListView. -->
+        <ui:Columns reorderable="false">
+            <ui:Column name="selected" width="40" resizable="false" />
+            <ui:Column name="icon" width="30" resizable="false"/>
+            <ui:Column name="name" title="Name" width="200" min-width="100" sortable="true"/>
+            <ui:Column name="info" title="Info" />
+            <ui:Column name="state" />
+        </ui:Columns>
+    </ui:MultiColumnTreeView>
     </uir:HeaderFoldout>
 </ui:UXML>

@@ -11,21 +11,21 @@ namespace UnityEditor.Rendering.Converter
         /// <summary>
         /// The item is waiting to be processed.
         /// </summary>
-        Pending,
+        Pending = 0,
 
         /// <summary>
         /// The item has a potential issue that may require attention.
         /// </summary>
-        Warning,
+        Warning = 1,
 
         /// <summary>
         /// The item encountered an error during processing.
         /// </summary>
-        Error,
+        Error = 2,
 
         /// <summary>
         /// The item was successfully processed without issues.
         /// </summary>
-        Success,
+        Success = 3,
     }
 }

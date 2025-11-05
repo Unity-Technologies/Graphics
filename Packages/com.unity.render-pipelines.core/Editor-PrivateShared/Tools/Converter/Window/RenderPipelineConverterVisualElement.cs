@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Mono.Cecil;
 using UnityEditor.Categorization;
-using UnityEditor.Rendering.Converter;
+using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -27,17 +28,13 @@ namespace UnityEditor.Rendering.Converter
         public bool isSelectedAndEnabled => converter.isEnabled && state.isSelected;
 
         VisualElement m_RootVisualElement;
-        ListView m_ItemsList;
         HeaderFoldout m_HeaderFoldout;
         VisualElement m_ListViewHeader;
         HelpBox m_NoItemsFound;
         HelpBox m_PressScan;
-        Label m_PendingLabel;
-        Label m_WarningLabel;
-        Label m_ErrorLabel;
-        Label m_SuccessLabel;
+        RenderPipelineConverterVisualElementListFilter m_Filter;
+        MultiColumnTreeView m_TreeView;
 
-        public Action showMoreInfo; // TODO Remove with the UX rework
         public Action converterSelected;
 
         public RenderPipelineConverterVisualElement(Node<ConverterInfo> converterInfo)
@@ -82,44 +79,138 @@ namespace UnityEditor.Rendering.Converter
             });
 
             m_ListViewHeader = m_RootVisualElement.Q("listViewHeader");
-            m_ItemsList = m_RootVisualElement.Q<ListView>("converterItems");
-            m_ItemsList.showBoundCollectionSize = false;
-            m_ItemsList.makeItem = () =>
-            {
-                var item = new RenderPipelineConverterItemVisualElement();
-                item.itemSelectionChanged += UpdateInfo;
-                return item;
-            };
-            m_ItemsList.bindItem = (element, index) =>
-            {
-                var item = element as RenderPipelineConverterItemVisualElement;
-                item.Bind(state.items[index]);
-            };
-            m_ItemsList.selectionChanged += obj =>
-            {
-                state.items[m_ItemsList.selectedIndex].item.OnClicked();
-            };
-
-            // setup the images
-            m_RootVisualElement.Q<Image>("pendingImage").image = CoreEditorStyles.iconPending;
-            m_RootVisualElement.Q<Image>("pendingImage").tooltip = "Pending";
-            m_RootVisualElement.Q<Image>("warningImage").image = CoreEditorStyles.iconWarn;
-            m_RootVisualElement.Q<Image>("warningImage").tooltip = "Warnings";
-            m_RootVisualElement.Q<Image>("errorImage").image = CoreEditorStyles.iconFail;
-            m_RootVisualElement.Q<Image>("errorImage").tooltip = "Failed";
-            m_RootVisualElement.Q<Image>("successImage").image = CoreEditorStyles.iconComplete;
-            m_RootVisualElement.Q<Image>("successImage").tooltip = "Success";
-
-            // Store labels to easy update afterwards
-            m_PendingLabel = m_RootVisualElement.Q<Label>("pendingLabel");
-            m_WarningLabel = m_RootVisualElement.Q<Label>("warningLabel");
-            m_ErrorLabel = m_RootVisualElement.Q<Label>("errorLabel");
-            m_SuccessLabel = m_RootVisualElement.Q<Label>("successLabel");
 
             m_NoItemsFound = m_RootVisualElement.Q<HelpBox>("noItemsFoundHelpBox");
             m_NoItemsFound.style.display = DisplayStyle.None;
 
             m_PressScan = m_RootVisualElement.Q<HelpBox>("pressScanHelpBox");
+
+            m_TreeView = m_RootVisualElement.Q<MultiColumnTreeView>("converterItemsTreeView");
+            m_TreeView.SetRootItems<ConverterItemState>(state.filteredItems);
+
+            m_Filter = m_RootVisualElement.Q<RenderPipelineConverterVisualElementListFilter>("listViewFilter");
+            m_Filter.Bind(state);
+            m_Filter.onFilterChanged += () =>
+            {
+                state.ApplyFilter();
+                m_TreeView.SetRootItems<ConverterItemState>(state.filteredItems);
+                m_TreeView.RefreshItems();
+            };
+
+            var isSelectedColumn = m_TreeView.columns["selected"];
+            isSelectedColumn.makeCell = () =>
+            {
+                var toggle = new Toggle();
+                toggle.AddToClassList("render-pipeline-converter-items-toggle");
+                return toggle;
+            };
+            isSelectedColumn.bindCell = (VisualElement element, int index) =>
+            {
+                ConverterItemState itemState = m_TreeView.GetItemDataForIndex<ConverterItemState>(index);
+                var toggle = (element as Toggle);
+
+                if (toggle.userData is ConverterItemState previousBindItem)
+                {
+                    toggle.UnregisterCallback<ClickEvent>(previousBindItem.OnSelectionChanged);
+                    previousBindItem.onIsSelectedChanged -= OnSelectionChanged;
+                }  
+
+                toggle.userData = itemState;
+                if (itemState.item.isEnabled)
+                {
+                    toggle.SetEnabled(true);
+                    toggle.tooltip = "Select/Deselect this item for conversion";
+                    toggle.SetValueWithoutNotify(itemState.isSelected);
+                }
+                else
+                {
+                    toggle.SetEnabled(false);
+                    toggle.tooltip = itemState.item.isDisabledMessage;
+                    toggle.SetValueWithoutNotify(false);
+                }
+                toggle.RegisterCallback<ClickEvent>(itemState.OnSelectionChanged);
+                itemState.onIsSelectedChanged += OnSelectionChanged;
+                
+            };
+
+            var iconColumn = m_TreeView.columns["icon"];
+            iconColumn.makeCell = () =>
+            {
+                var icon = new Image();
+                icon.AddToClassList("render-pipeline-converter-items-icon");
+                return icon;
+            };
+            iconColumn.bindCell = (VisualElement element, int index) =>
+            {
+                var item = m_TreeView.GetItemDataForIndex<ConverterItemState>(index).item;
+                var icon = item.icon;
+                if (icon != null)
+                    (element as Image).image = icon;
+            };
+
+            var nameColumn = m_TreeView.columns["name"];
+            nameColumn.makeCell = () =>
+            {
+                var label = new Label();
+                label.AddToClassList("render-pipeline-converter-items-name-label");
+                return label;
+            };
+            nameColumn.bindCell = (VisualElement element, int index) =>
+            {
+                ConverterItemState itemState = m_TreeView.GetItemDataForIndex<ConverterItemState>(index);
+                var label = (element as Label);
+
+                if (label.userData is ConverterItemState previousBindItem)
+                {
+                    label.UnregisterCallback<ClickEvent>(previousBindItem.OnClicked);
+                }
+
+                label.text = itemState.item.name;
+                label.userData = itemState;
+                label.RegisterCallback<ClickEvent>(itemState.OnClicked);
+            };
+
+            var infoColumn = m_TreeView.columns["info"];
+            infoColumn.stretchable = true;
+            infoColumn.makeCell = () =>
+            {
+                var label = new Label();
+                label.AddToClassList("render-pipeline-converter-items-name-label");
+                return label;
+            };
+            infoColumn.bindCell = (VisualElement element, int index) =>
+            {
+                (element as Label).text = m_TreeView.GetItemDataForIndex<ConverterItemState>(index).item.info;
+            };
+            
+            var stateColumn = m_TreeView.columns["state"];
+            stateColumn.makeCell = () => new Image();
+            stateColumn.bindCell = (VisualElement element, int index) =>
+            {
+                (Status Status, string Message) conversionResult = m_TreeView.GetItemDataForIndex<ConverterItemState>(index).conversionResult;
+
+                Texture2D icon = null;
+                Status status = conversionResult.Status;
+                switch (status)
+                {
+                    case Status.Pending:
+                        icon = CoreEditorStyles.iconPending;
+                        break;
+                    case Status.Error:
+                        icon = CoreEditorStyles.iconFail;
+                        break;
+                    case Status.Warning:
+                        icon = CoreEditorStyles.iconWarn;
+                        break;
+                    case Status.Success:
+                        icon = CoreEditorStyles.iconComplete;
+                        break;
+                }
+
+                var image = (element as Image);
+                image.image = icon;
+                image.tooltip = conversionResult.Message;
+            };
 
             Add(m_RootVisualElement);
             Refresh();
@@ -128,12 +219,21 @@ namespace UnityEditor.Rendering.Converter
         private void SetItemsActive(bool value)
         {
             foreach (var itemState in state.items)
-                itemState.isSelected = value;
+            {
+                if (itemState.item.isEnabled)
+                    itemState.isSelected = value;
+            }
         }
 
         public void UpdateInfo()
         {
             UpdateConversionInfo();
+            UpdateSelectedConverterItemsLabel();
+            UpdateAllNoneLabels();
+        }
+
+        public void OnSelectionChanged(bool isSelected)
+        {
             UpdateSelectedConverterItemsLabel();
             UpdateAllNoneLabels();
         }
@@ -179,21 +279,17 @@ namespace UnityEditor.Rendering.Converter
                 m_PressScan.style.display = DisplayStyle.None;
                 if (state.items.Count > 0)
                 {
+                    state.ApplyFilter();
                     m_NoItemsFound.style.display = DisplayStyle.None;
                     m_ListViewHeader.style.display = DisplayStyle.Flex;
-                    m_ItemsList.style.display = DisplayStyle.Flex;
-                    m_ItemsList.itemsSource = state.items;
-
-                    m_PendingLabel.text = $"{state.pending}";
-                    m_WarningLabel.text = $"{state.warnings}";
-                    m_ErrorLabel.text = $"{state.errors}";
-                    m_SuccessLabel.text = $"{state.success}";
+                    m_TreeView.style.display = DisplayStyle.Flex;
+                    m_Filter.Update(state);
                 }
                 else
                 {
                     m_NoItemsFound.style.display = DisplayStyle.Flex;
                     m_ListViewHeader.style.display = DisplayStyle.None;
-                    m_ItemsList.style.display = DisplayStyle.None;
+                    m_TreeView.style.display = DisplayStyle.None;
                 }
             }
             else
@@ -202,13 +298,13 @@ namespace UnityEditor.Rendering.Converter
 
                 m_NoItemsFound.style.display = DisplayStyle.None;
                 m_ListViewHeader.style.display = DisplayStyle.None;
-                m_ItemsList.style.display = DisplayStyle.None;
+                m_TreeView.style.display = DisplayStyle.None;
             }
         }
 
         public void Refresh()
         {
-            m_ItemsList.Rebuild();
+            m_TreeView.RefreshItems();
             UpdateInfo();
             m_HeaderFoldout.SetEnabled(converter.isEnabled);
         }
@@ -221,24 +317,22 @@ namespace UnityEditor.Rendering.Converter
 
             void OnConverterCompleteDataCollection(List<IRenderPipelineConverterItem> items)
             {
-                // Set the item infos list to to the right index
-                state.items = new List<ConverterItemState>(items.Count);
-
                 foreach(var item in items)
                 {
                     var converterItemState = new ConverterItemState()
                     {
                         item = item,
-                        isSelected = true, // Default all the entries to true
+                        isSelected = item.isEnabled,
                     };
 
-                    state.items.Add(converterItemState);
+                    state.AddItem(converterItemState);
                 }
 
                 state.isLoading = false;
                 state.isInitialized = true;
                 m_HeaderFoldout.value = true; // Expand the foldout when we perform a search
-                m_ItemsList.itemsSource = state.items;
+
+                m_TreeView.SetRootItems<ConverterItemState>(state.filteredItems);
 
                 Refresh();
                 onScanFinish?.Invoke();

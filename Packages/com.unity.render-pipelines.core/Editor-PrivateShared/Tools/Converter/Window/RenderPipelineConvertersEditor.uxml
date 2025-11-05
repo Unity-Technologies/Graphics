@@ -1,20 +1,24 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <ui:HelpBox message-type="Warning" text="The Render Pipeline Converter is disabled during Playmode." name="disabledToolHelpBox" style="flex-grow: 1;" />
+    
     <ui:VisualElement name="converterEditorMainVE" class="converter-editor-main">
         <ui:VisualElement name="topInformationVE" class="converter-top-info">
-            <ui:TabView index="-1" name="conversionsTabView" class="converter-dropdown"/>    
+            <ui:TabView index="-1" name="conversionsTabView" class="converter-dropdown"/>
+            
             <ui:VisualElement name="pipelineToolsVisualElements" class="converter-pipeline-tools">
                 <ui:VisualElement class="converter-pipeline-column">
-                    <ui:HelpBox message-type="Info" text="Select your source and target pipeline, choose the required converters, and then click Initialize Converters to begin the conversion process." class="render-pipeline-converter-helpbox"/>
+                    <ui:HelpBox message-type="Info" text="Select your source and target pipeline, choose the required converters, and then click Scan to begin the conversion process." class="render-pipeline-converter-helpbox"/>
                     <ui:DropdownField label="Source Pipeline" name="sourcePipelineDropDown" class="converter-pipeline-label-dropdown"/>
                     <ui:DropdownField label="Target Pipeline" name="targetPipelineDropDown" class="converter-pipeline-label-dropdown"/>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" name="convertersScrollView" horizontal-scroller-visibility="Hidden" vertical-scroller-visibility="Auto" style="flex-grow: 1; align-items: flex-start;" />
-    </ui:VisualElement>
-    <ui:VisualElement name="bottomButtonVE" class="converter-bottom-row">
-        <ui:Button text="Scan" name="initializeButton" tooltip="Executes a project scanning based on the selected converters" class="converter-button"/>
-        <ui:Button text=" Convert Assets" name="convertButton" class="converter-button" />
+        
+        <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" name="convertersScrollView" horizontal-scroller-visibility="Hidden" vertical-scroller-visibility="Auto" class="converter-scroll-view" />
+        
+        <ui:VisualElement name="bottomButtonVE" class="converter-bottom-row">
+            <ui:Button text="Scan" name="initializeButton" tooltip="Executes a project scanning based on the selected converters" class="converter-button"/>
+            <ui:Button text=" Convert Assets" name="convertButton" class="converter-button" />
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

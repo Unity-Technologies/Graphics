@@ -12,12 +12,31 @@ namespace UnityEditor.Rendering.Converter
         public string assetPath { get; }
         public List<string> variantsPaths { get; }
 
-        public string name => assetPath;
+        public string name { get; }
 
-        public string info { get; }
+        public string info => assetPath;
 
-        public bool isEnabled { get; set; }
-        public string isDisabledMessage { get; set; }
+        public bool isEnabled { get; set; } = true;
+        public string isDisabledMessage { get; set; } = string.Empty;
+
+        public Texture2D icon
+        {
+            get
+            {
+                var obj = material;
+                if (obj == null)
+                    return null;
+
+                // Try the object's thumbnail/icon
+                var icon = AssetPreview.GetMiniThumbnail(obj);
+                if (icon != null) return icon;
+
+                // Fallback to type icon
+                var type = obj.GetType();
+                icon = EditorGUIUtility.ObjectContent(null, type).image as Texture2D;
+                return icon;
+            }
+        }
 
         public RenderPipelineConverterMaterialUpgraderItem(string shaderPath, string materialPath, List<string> variantsPaths)
         {
@@ -26,7 +45,11 @@ namespace UnityEditor.Rendering.Converter
 
             assetPath = materialPath;
             this.variantsPaths = variantsPaths;
-            info = shaderPath;
+
+            if (material == null)
+                throw new ArgumentException($"Unable to load material at path {materialPath}");
+
+            name = material.name + " - " + shaderPath;
         }
 
         public Material material => AssetDatabase.LoadAssetAtPath<Material>(assetPath);

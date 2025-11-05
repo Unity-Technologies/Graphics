@@ -1,0 +1,55 @@
+.toggle-button-left {
+    padding-left: 4px;
+    border-width: 1px 1px 1px 1px;
+    border-radius: 4px 0 0 4px;
+    border-color: var(--unity-colors-app_toolbar_button-border);
+    background-color: var(--unity-colors-button-background);
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-right:0px;
+}
+
+.toggle-button-middle {
+    border-radius: 0;
+    margin-left:0px;
+    margin-right:0px;
+    border-color: var(--unity-colors-app_toolbar_button-border);
+    background-color: var(--unity-colors-button-background);
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    border-width: 1px 1px 1px 0px;
+}
+
+.toggle-button-right {
+    margin-left:0px;
+    padding-right: 4px;
+    border-width: 1px 1px 1px 0px;
+    border-radius: 0 4px 4px 0;
+    border-color: var(--unity-colors-app_toolbar_button-border);
+    background-color: var(--unity-colors-button-background);
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-button-checked {
+    background-color: var(--unity-colors-button-background-pressed);
+}
+
+.toggle-content {
+    flex-direction: row;
+    align-items: center;
+}
+
+.toggle-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+}
+
+.toggle-label {
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
