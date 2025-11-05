@@ -1749,6 +1749,15 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        private void ReorderParameters()
+        {
+            var index = 0;
+            foreach (var parameter in m_ParameterControllers.OrderBy(x => x.Value.order))
+            {
+                parameter.Value.order = index++;
+            }
+        }
+
         private void AddControllersFromModel(VFXModel model)
         {
             List<VFXNodeController> newControllers = new List<VFXNodeController>();
@@ -1815,7 +1824,8 @@ namespace UnityEditor.VFX.UI
 
                 parameter.ValidateNodes();
 
-                m_ParameterControllers[parameter] = new VFXParameterController(parameter, this);
+                var newParameterController = new VFXParameterController(parameter, this) { order = m_ParameterControllers.Count };
+                m_ParameterControllers[parameter] = newParameterController;
 
                 m_SyncedModels[model] = new List<VFXNodeController>();
             }
@@ -1856,10 +1866,11 @@ namespace UnityEditor.VFX.UI
                 }
                 m_SyncedModels.Remove(model);
             }
-            if (model is VFXParameter)
+            if (model is VFXParameter parameter)
             {
-                m_ParameterControllers[model as VFXParameter].OnDisable();
-                m_ParameterControllers.Remove(model as VFXParameter);
+                m_ParameterControllers[parameter].OnDisable();
+                m_ParameterControllers.Remove(parameter);
+                ReorderParameters();
             }
         }
 

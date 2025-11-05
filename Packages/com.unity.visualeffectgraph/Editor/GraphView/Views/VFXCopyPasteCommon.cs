@@ -135,6 +135,7 @@ namespace UnityEditor.VFX.UI
             public int originalInstanceID;
             public string name;
             public string category;
+            public int order;
             public VFXSerializableObject value;
             public bool exposed;
             public VFXValueFilter valueFilter;
