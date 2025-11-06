@@ -19,6 +19,11 @@ To use a full-screen Custom Pass, you need to create a material for your Custom 
 - [Create a Material from a full-screen shader graph](#material-from-fullscreen-shadergraph).
 - [Create a Material from a full-screen Custom Pass shader](#material-from-fullscreen-custompass).
 
+You can also create the material and its shader directly from the **FullScreen Material** property in the [Custom Pass Volume](custom-pass-reference.md) Inspector by using the **New** dropdown with the following options:
+
+- **ShaderGraph**: Creates a new material or material variant from a new shader graph asset based on the **Fullscreen Basic HDRP** shader graph template. This is ideal for building fullscreen effects visually without writing shader code.  
+- **Handwritten Shader**: Creates a new handwritten shader using the HDRP fullscreen Custom Pass template. This is ideal if you prefer writing HLSL code for maximum control.
+
 <a name="material-from-fullscreen-shadergraph"></a>
 
 ### Create a Material from a full-screen Shader graph

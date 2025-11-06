@@ -8,6 +8,10 @@ The High Definition Render Pipeline (HDRP) includes the following ways to create
 
 To use these methods, you need to create a decal Material. A decal Material is a Material that uses the [Decal Shader](Decal-Shader.md) or [Decal Master Stack](master-stack-decal.md). You can then place or project your decal Material into a Scene.
 
+You can also create the decal Material and its shader directly from the **Material** field in the [Decal Projector](decal-projector-reference.md) Inspector by using the **New** dropdown with the following options:
+- **HDRP Decal**: Creates a new decal Material that uses the default HDRP Decal Shader.
+- **ShaderGraph Decal**: Creates a new material or material variant from a new shader graph asset based on the **Decal Simple** shader graph template, which uses the default [**HDRP Decal** material type](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/decal-master-stack-reference.html). This is ideal for building custom decals visually without writing shader code.
+
 ![Decal shader.](Images/HDRPFeatures-DecalShader.png)
 
 ## Decal Layers
