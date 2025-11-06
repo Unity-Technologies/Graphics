@@ -260,4 +260,6 @@ Shader "Hidden/Universal/HDRDebugView"
             ENDHLSL
         }
     }
+
+    Fallback "Hidden/Core/FallbackError"
 }

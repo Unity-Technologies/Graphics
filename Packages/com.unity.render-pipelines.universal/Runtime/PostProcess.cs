@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Final post processing.
             m_ScalingSetupFinalPostProcessPass = new ScalingSetupPostProcessPass(m_Resources.shaders.scalingSetupPS);
-            m_Fsr1UpscaleFinalPostProcessPass  = new Fsr1UpscalePostProcessPass(m_Resources.shaders.easuPS);
+            m_Fsr1UpscaleFinalPostProcessPass = new Fsr1UpscalePostProcessPass(m_Resources.shaders.easuPS);
             m_FinalPostProcessPass             = new FinalPostProcessPass(m_Resources.shaders.finalPostPassPS, m_Resources.textures.filmGrainTex);
         }
 
