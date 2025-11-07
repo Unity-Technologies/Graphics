@@ -129,188 +129,89 @@ namespace UnityEngine.Rendering.Universal
         {
             var resourceData = frameData.Get<UniversalResourceData>();
             var cameraData = frameData.Get<UniversalCameraData>();
-            var postProcessingData = frameData.Get<UniversalPostProcessingData>();
-
-            var stack = VolumeManager.instance.stack;
-            var depthOfField = stack.GetComponent<DepthOfField>();
-            var motionBlur = stack.GetComponent<MotionBlur>();
-            var paniniProjection = stack.GetComponent<PaniniProjection>();
-            var bloom = stack.GetComponent<Bloom>();
-            var lensFlareScreenSpace = stack.GetComponent<ScreenSpaceLensFlare>();
-
-            bool useFastSRGBLinearConversion = postProcessingData.useFastSRGBLinearConversion;
-            bool supportDataDrivenLensFlare = postProcessingData.supportDataDrivenLensFlare;
-            bool supportScreenSpaceLensFlare = postProcessingData.supportScreenSpaceLensFlare;
-
-            bool isSceneViewCamera = cameraData.isSceneViewCamera;
-
-            //We blit back and forth without msaa untill the last blit.
-            bool useStopNan = cameraData.isStopNaNEnabled;
-            bool useSubPixelMorpAA = (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing);
-            bool useDepthOfField = depthOfField.IsActive() && !isSceneViewCamera;
-            bool useLensFlare = !LensFlareCommonSRP.Instance.IsEmpty() && supportDataDrivenLensFlare;
-            bool useLensFlareScreenSpace = lensFlareScreenSpace.IsActive() && supportScreenSpaceLensFlare;
-            bool useMotionBlur = motionBlur.IsActive() && !isSceneViewCamera;
-            bool usePaniniProjection = paniniProjection.IsActive() && !isSceneViewCamera;
-
-            // Disable MotionBlur in EditMode, so that editing remains clear and readable.
-            // NOTE: HDRP does the same via CoreUtils::AreAnimatedMaterialsEnabled().
-            // Disable MotionBlurMode.CameraAndObjects on renderers that do not support motion vectors
-            useMotionBlur = useMotionBlur && Application.isPlaying;
-            if (useMotionBlur && motionBlur.mode.value == MotionBlurMode.CameraAndObjects)
-            {
-                ScriptableRenderer renderer = cameraData.renderer;
-                useMotionBlur &= renderer.SupportsMotionVectors();
-                if (!useMotionBlur)
-                {
-                    var warning = "Disabling Motion Blur for Camera And Objects because the renderer does not implement motion vectors.";
-                    const int warningThrottleFrames = 60 * 1; // 60 FPS * 1 sec
-                    if (Time.frameCount % warningThrottleFrames == 0)
-                        Debug.LogWarning(warning);
-                }
-            }
-
-            // Note that enabling jitters uses the same CameraData::IsTemporalAAEnabled(). So if we add any other kind of overrides (like
-            // disable useTemporalAA if another feature is disabled) then we need to put it in CameraData::IsTemporalAAEnabled() as opposed
-            // to tweaking the value here.
-            bool useTemporalAA = cameraData.IsTemporalAAEnabled() && m_TemporalAntiAliasingPass.IsValid();
-
-            // STP is only enabled when TAA is enabled and all of its runtime requirements are met.
-            // Using IsSTPRequested() vs IsSTPEnabled() for perf reason here, as we already know TAA status
-            bool isSTPRequested = cameraData.IsSTPRequested();
-            bool useSTP = useTemporalAA && isSTPRequested;
-
-            // Warn users if TAA and STP are disabled despite being requested
-            if (!useTemporalAA && cameraData.IsTemporalAARequested())
-                TemporalAA.ValidateAndWarn(cameraData, isSTPRequested);
 
             // NOTE: Debug handling injects a global state render pass.
             UpdateGlobalDebugHandlerPass(renderGraph, cameraData, !hasFinalPass);
 
+            // We blit back and forth without msaa until the last blit.
+            // `resourceData.cameraColor` is the current post-process input for each pass.
             var colorSourceDesc = resourceData.cameraColor.GetDescriptor(renderGraph);
 
             // Optional NaN killer before post-processing kicks in
             // stopNaN may be null on Adreno 3xx. It doesn't support full shader level 3.5, but SystemInfo.graphicsShaderLevel is 35.
-            if (useStopNan)
-            {
-                m_StopNanPostProcessPass.RecordRenderGraph(renderGraph, frameData);
-            }
+            m_StopNanPostProcessPass.RecordRenderGraph(renderGraph, frameData);
 
-            if(useSubPixelMorpAA)
-            {
-                m_SmaaPostProcessPass.Setup(cameraData.antialiasingQuality);
-                m_SmaaPostProcessPass.RecordRenderGraph(renderGraph, frameData);
-            }
+            // Subpixel Morphological Anti Aliasing
+            m_SmaaPostProcessPass.RecordRenderGraph(renderGraph, frameData);
 
             // Depth of Field
             // Adreno 3xx SystemInfo.graphicsShaderLevel is 35, but instancing support is disabled due to buggy drivers.
             // DOF shader uses #pragma target 3.5 which adds requirement for instancing support, thus marking the shader unsupported on those devices.
-            if (useDepthOfField)
-            {
-                if(depthOfField.mode.value == DepthOfFieldMode.Gaussian)
-                {
-                    m_DepthOfFieldGaussianPass.RecordRenderGraph(renderGraph, frameData);
-                }
-                else
-                {
-                    m_DepthOfFieldBokehPass.Setup(useFastSRGBLinearConversion);
-                    m_DepthOfFieldBokehPass.RecordRenderGraph(renderGraph, frameData);
-                }
-            }
+            m_DepthOfFieldGaussianPass.RecordRenderGraph(renderGraph, frameData);
+            m_DepthOfFieldBokehPass.RecordRenderGraph(renderGraph, frameData);
 
             // Temporal Anti Aliasing / Upscaling
-
-            if (useTemporalAA)
-            {
 #if ENABLE_UPSCALER_FRAMEWORK
-                if (postProcessingData.activeUpscaler != null)
-                {
-                    m_UpscalerPostProcessPass.RecordRenderGraph(renderGraph, frameData);
-                }
-                else
+            m_UpscalerPostProcessPass.RecordRenderGraph(renderGraph, frameData);
 #endif
-                if (useSTP)
-                {
-                    m_StpPostProcessPass.RecordRenderGraph(renderGraph, frameData);
-                }
-                else
-                {
-                    m_TemporalAntiAliasingPass.RecordRenderGraph(renderGraph, frameData);
-                }
+            m_StpPostProcessPass.RecordRenderGraph(renderGraph, frameData);
+            m_TemporalAntiAliasingPass.RecordRenderGraph(renderGraph, frameData);
 
-            }
+            m_MotionBlurPass.RecordRenderGraph(renderGraph, frameData);
+            m_PaniniProjectionPass.RecordRenderGraph(renderGraph, frameData);
 
-            if(useMotionBlur)
+            // Bloom & Screen Space Lens Flares
             {
-                m_MotionBlurPass.RecordRenderGraph(renderGraph, frameData);
+                var volumeStack = VolumeManager.instance.stack;
+                var bloom = volumeStack.GetComponent<Bloom>();
+                var lensFlareScreenSpace = volumeStack.GetComponent<ScreenSpaceLensFlare>();
+
+                // NOTE: Even if bloom is not active we might need to run it for the texture if the lensFlareScreenSpace pass is active.
+                if (!bloom.IsActive() && LensFlareScreenSpacePostProcessPass.IsActive(volumeStack, frameData))
+                    bloom.intensity = lensFlareScreenSpace.intensity;   // Set Bloom Active to true.
+
+                m_BloomPass.RecordRenderGraph(renderGraph, frameData);
+
+                // We need to take into account how many valid mips the bloom pass produced.
+                var mipPyramid = m_BloomPass.mipPyramid;
+                int bloomMipCount = mipPyramid.mipCount;
+                int bloomMipMax = Mathf.Clamp(bloomMipCount - 1, 0, bloom.maxIterations.value / 2);
+                int bloomMipIndex = Mathf.Clamp(lensFlareScreenSpace.bloomMip.value, 0, bloomMipMax);
+
+                var prevCameraColor = resourceData.cameraColor;
+                resourceData.cameraColor = mipPyramid.GetResultMip(bloomMipIndex);;
+
+                m_LensFlareScreenSpacePass.Setup(colorSourceDesc.width, colorSourceDesc.height, bloomMipIndex);
+                m_LensFlareScreenSpacePass.RecordRenderGraph(renderGraph, frameData);
+
+                resourceData.cameraColor = prevCameraColor;
             }
 
-            if(usePaniniProjection)
+            // Lens Flares are procedurally generated and blended to the destination texture.
+            m_LensFlareDataDrivenPass.RecordRenderGraph(renderGraph, frameData);
+
+            // Uber post
+            var ditherTexture = cameraData.isDitheringEnabled ? GetNextDitherTexture() : null;
+            var hdrOperations = HDROutputUtils.Operation.None;
+            var applySrgbEncoding = RequireSRGBConversionBlitToBackBuffer(cameraData, enableColorEncodingIfNeeded);
+
+            bool requireHDROutput = PostProcessUtils.RequireHDROutput(cameraData);
+            if (requireHDROutput)
             {
-                m_PaniniProjectionPass.RecordRenderGraph(renderGraph, frameData);
+                // Color space conversion is already applied through color grading, do encoding if uber post is the last pass
+                // Otherwise encoding will happen in the final post process pass or the final blit pass
+                hdrOperations = !hasFinalPass && enableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
             }
 
-            // Uberpost
-            {
-                // Bloom goes first
-                bool bloomActive = bloom.IsActive() || useLensFlareScreenSpace;
-
-                //Even if bloom is not active we need the texture if the lensFlareScreenSpace pass is active.
-                if (bloomActive)
-                {
-                    // NOTE: bloom destination texture is some texture in the bloom mip pyramid. It's not explicitly set beforehand.
-                    m_BloomPass.RecordRenderGraph(renderGraph, frameData);
-
-                    if (useLensFlareScreenSpace)
-                    {
-                        var mipPyramid = m_BloomPass.mipPyramid;
-
-                        // TODO: Bloom pass could compute the flare source resource.
-                        // We need to take into account how many valid mips the bloom pass produced.
-                        int bloomMipCount = mipPyramid.mipCount;
-                        int bloomMipMax = Mathf.Clamp(bloomMipCount - 1, 0, bloom.maxIterations.value / 2);
-                        int bloomMipIndex = Mathf.Clamp(lensFlareScreenSpace.bloomMip.value, 0, bloomMipMax);
-
-                        var prevCameraColor = resourceData.cameraColor;
-                        resourceData.cameraColor = mipPyramid.GetResultMip(bloomMipIndex);;
-
-                        m_LensFlareScreenSpacePass.Setup(colorSourceDesc.width, colorSourceDesc.height, bloomMipIndex);
-                        m_LensFlareScreenSpacePass.RecordRenderGraph(renderGraph, frameData);
-
-                        resourceData.cameraColor = prevCameraColor;
-                    }
-                }
-
-                if (useLensFlare)
-                {
-                    // Lens Flares are procedurally generated and blended to the destination texture.
-                    m_LensFlareDataDrivenPass.RecordRenderGraph(renderGraph, frameData);
-                }
-
-                var ditherTexture = cameraData.isDitheringEnabled ? GetNextDitherTexture() : null;
-                var hdrOperations = HDROutputUtils.Operation.None;
-                var applySrgbEncoding = RequireSRGBConversionBlitToBackBuffer(cameraData, enableColorEncodingIfNeeded);
-
-                bool requireHDROutput = PostProcessUtils.RequireHDROutput(cameraData);
-                if (requireHDROutput)
-                {
-                    // Color space conversion is already applied through color grading, do encoding if uber post is the last pass
-                    // Otherwise encoding will happen in the final post process pass or the final blit pass
-                    hdrOperations = !hasFinalPass && enableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
-                }
-
-                bool renderOverlayUI = requireHDROutput && enableColorEncodingIfNeeded && resourceData.overlayUITexture.IsValid();
-                m_UberPass.Setup(ditherTexture, hdrOperations, applySrgbEncoding, useFastSRGBLinearConversion, !hasFinalPass, renderOverlayUI);
-                m_UberPass.RecordRenderGraph(renderGraph, frameData);
-            }
+            bool renderOverlayUI = requireHDROutput && enableColorEncodingIfNeeded;
+            m_UberPass.Setup(ditherTexture, hdrOperations, applySrgbEncoding, !hasFinalPass, renderOverlayUI);
+            m_UberPass.RecordRenderGraph(renderGraph, frameData);
         }
 
 #region FinalPass
         public void RenderFinalPostProcessing(RenderGraph renderGraph, ContextContainer frameData, bool enableColorEncodingIfNeeded)
         {
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-
-            var stack = VolumeManager.instance.stack;
 
             // NOTE: Debug handling injects a global state render pass.
             UpdateGlobalDebugHandlerPass(renderGraph, cameraData, true);

@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
 {
     internal sealed class UpscalerPostProcessPass : PostProcessPass
     {
-        public const string k_UpscaledColorTargetName = "_CameraColorUpscaled";
+        public const string k_UpscaledColorTargetName = "CameraColorUpscaled";
         Texture2D[] m_BlueNoise16LTex;
         bool m_IsValid;
 
@@ -30,9 +30,12 @@ namespace UnityEngine.Rendering.Universal
             if (!m_IsValid)
                 return;
 
+            UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
+            if (postProcessingData.activeUpscaler == null)
+                return;
+
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-            UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
 
             var sourceTexture = resourceData.cameraColor;
             var srcDesc = sourceTexture.GetDescriptor(renderGraph);

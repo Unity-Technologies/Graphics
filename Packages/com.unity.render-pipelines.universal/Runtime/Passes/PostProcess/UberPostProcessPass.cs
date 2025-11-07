@@ -15,7 +15,6 @@ namespace UnityEngine.Rendering.Universal
         bool m_IsValid;
         bool m_IsFinalPass;
         bool m_RequireSRGBConversionBlit;
-        bool m_UseFastSRGBLinearConversion;
         bool m_RenderOverlayUI;
 
         public UberPostProcessPass(Shader shader, Texture2D[] filmGrainTextures)
@@ -26,6 +25,13 @@ namespace UnityEngine.Rendering.Universal
             m_Material = PostProcessUtils.LoadShader(shader, passName);
             m_IsValid = m_Material != null;
             m_FilmGrainTextures = filmGrainTextures;
+
+            // Defaults
+            m_DitherTexture = null; // Dither disabled.
+            m_HdrOperations = HDROutputUtils.Operation.None;    // HDR disabled.
+            m_RequireSRGBConversionBlit = false; // sRGB conversion is typically automatic based on format.
+            m_IsFinalPass = false;  // Assume other passes.
+            m_RenderOverlayUI = false;  // HDR disabled. HDR only.
         }
 
         public override void Dispose()
@@ -38,14 +44,12 @@ namespace UnityEngine.Rendering.Universal
         public void Setup(Texture ditherTexture,
             HDROutputUtils.Operation hdrOperations,
             bool requireSRGBConversionBlit,
-            bool useFastSRGBLinearConversion,
             bool isFinalPass,
             bool renderOverlayUI)
         {
             m_DitherTexture = ditherTexture;
             m_HdrOperations = hdrOperations;
             m_RequireSRGBConversionBlit = requireSRGBConversionBlit;
-            m_UseFastSRGBLinearConversion = useFastSRGBLinearConversion;
             m_IsFinalPass = isFinalPass;
             m_RenderOverlayUI = renderOverlayUI;
         }
@@ -145,7 +149,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.sourceTexture = sourceTexture;
                 builder.UseTexture(sourceTexture, AccessFlags.Read);
 
-                if(m_RenderOverlayUI)
+                if(m_RenderOverlayUI && overlayUITexture.IsValid())
                     builder.UseTexture(overlayUITexture, AccessFlags.Read);
 
                 builder.UseTexture(internalColorLut, AccessFlags.Read);
@@ -157,7 +161,7 @@ namespace UnityEngine.Rendering.Universal
 
                 passData.material = m_Material;
                 passData.cameraData = cameraData;
-                passData.useFastSRGBLinearConversion = m_UseFastSRGBLinearConversion;
+                passData.useFastSRGBLinearConversion = postProcessingData.useFastSRGBLinearConversion;
                 passData.requireSRGBConversionBlit = m_RequireSRGBConversionBlit;
 
                 // HDR
@@ -181,10 +185,8 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderFunc(static (UberPostPassData data, RasterGraphContext context) =>
                 {
-                    var cmd = context.cmd;
                     var cameraData = data.cameraData;
                     var material = data.material;
-                    RTHandle sourceTextureHdl = data.sourceTexture;
 
                     // Reset keywords
                     material.shaderKeywords = null;
@@ -241,7 +243,6 @@ namespace UnityEngine.Rendering.Universal
                     else
 #endif
                         PostProcessUtils.ScaleViewportAndBlit(context, data.sourceTexture, data.destinationTexture, data.cameraData, material, data.isFinalPass);
-
                 });
             }
 
@@ -273,26 +274,7 @@ namespace UnityEngine.Rendering.Universal
             return m_UserLut != null ? renderGraph.ImportTexture(m_UserLut) : TextureHandle.nullHandle;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void CalcColorLutParams(ColorAdjustments colorAdjustments, ColorLookup colorLookup, int lutHeight, out Vector4 internalLutParams, out Vector4 userLutParams)
-        {
-            Assertions.Assert.IsNotNull(colorAdjustments, "SetupColorLut colorAdjustments cannot be null.");
-            Assertions.Assert.IsNotNull(colorLookup, "SetupColorLut colorLookup cannot be null.");
-
-            int lutWidth = lutHeight * lutHeight;
-
-            float postExposureLinear = Mathf.Pow(2f, colorAdjustments.postExposure.value);
-            internalLutParams = new Vector4(1f / lutWidth, 1f / lutHeight, lutHeight - 1f, postExposureLinear);
-
-            userLutParams = !colorLookup.IsActive()
-                ? Vector4.zero
-                : new Vector4(1f / colorLookup.texture.value.width,
-                    1f / colorLookup.texture.value.height,
-                    colorLookup.texture.value.height - 1f,
-                    colorLookup.contribution.value);
-        }
-
-        public struct LutParams
+        internal struct LutParams
         {
             public TextureHandle internalLutTexture;
             public TextureHandle activeUserLutTexture;
@@ -316,46 +298,29 @@ namespace UnityEngine.Rendering.Universal
                 material.SetVector(ShaderConstants._UserLut_Params, userLutParams);
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static void CalcColorLutParams(ColorAdjustments colorAdjustments, ColorLookup colorLookup, int lutHeight, out Vector4 internalLutParams, out Vector4 userLutParams)
+            {
+                Assertions.Assert.IsNotNull(colorAdjustments, "SetupColorLut colorAdjustments cannot be null.");
+                Assertions.Assert.IsNotNull(colorLookup, "SetupColorLut colorLookup cannot be null.");
+
+                int lutWidth = lutHeight * lutHeight;
+
+                float postExposureLinear = Mathf.Pow(2f, colorAdjustments.postExposure.value);
+                internalLutParams = new Vector4(1f / lutWidth, 1f / lutHeight, lutHeight - 1f, postExposureLinear);
+
+                userLutParams = !colorLookup.IsActive()
+                    ? Vector4.zero
+                    : new Vector4(1f / colorLookup.texture.value.width,
+                        1f / colorLookup.texture.value.height,
+                        colorLookup.texture.value.height - 1f,
+                        colorLookup.contribution.value);
+            }
         }
 #endregion
 
 #region Bloom
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void CalcBloomParams(Bloom bloom, in TextureDesc srcDesc, out Vector4 bloomParams, out bool highQualityFiltering, out Texture dirtTexture, out Vector4 dirtScaleOffset, out float dirtIntensity)
-        {
-            using (new ProfilingScope(ProfilingSampler.Get(URPProfileId.RG_UberPostSetupBloomPass)))
-            {
-                // Setup bloom on uber
-                var tint = bloom.tint.value.linear;
-                var luma = ColorUtils.Luminance(tint);
-                tint = luma > 0f ? tint * (1f / luma) : Color.white;
-                bloomParams = new Vector4(bloom.intensity.value, tint.r, tint.g, tint.b);
-
-                highQualityFiltering = bloom.highQualityFiltering.value;
-
-                // Setup lens dirtiness on uber
-                // Keep the aspect ratio correct & center the dirt texture, we don't want it to be
-                // stretched or squashed
-                dirtTexture = bloom.dirtTexture.value == null ? Texture2D.blackTexture : bloom.dirtTexture.value;
-                float dirtRatio = dirtTexture.width / (float)dirtTexture.height;
-                float screenRatio = srcDesc.width / (float)srcDesc.height;
-                dirtScaleOffset = new Vector4(1f, 1f, 0f, 0f);
-                dirtIntensity = bloom.dirtIntensity.value;
-
-                if (dirtRatio > screenRatio)
-                {
-                    dirtScaleOffset.x = screenRatio / dirtRatio;
-                    dirtScaleOffset.z = (1f - dirtScaleOffset.x) * 0.5f;
-                }
-                else if (screenRatio > dirtRatio)
-                {
-                    dirtScaleOffset.y = dirtRatio / screenRatio;
-                    dirtScaleOffset.w = (1f - dirtScaleOffset.y) * 0.5f;
-                }
-            }
-        }
-
-        public struct BloomParams
+        internal struct BloomParams
         {
             public TextureHandle activeBloomTexture;
             public Vector4 bloomParams;
@@ -393,32 +358,46 @@ namespace UnityEngine.Rendering.Universal
                 else
                     material.EnableKeyword(dirtIntensity > 0f ? ShaderKeywordStrings.BloomLQDirt : ShaderKeywordStrings.BloomLQ);
             }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static void CalcBloomParams(Bloom bloom, in TextureDesc srcDesc, out Vector4 bloomParams, out bool highQualityFiltering, out Texture dirtTexture, out Vector4 dirtScaleOffset, out float dirtIntensity)
+            {
+                using (new ProfilingScope(ProfilingSampler.Get(URPProfileId.RG_UberPostSetupBloomPass)))
+                {
+                    // Setup bloom on uber
+                    var tint = bloom.tint.value.linear;
+                    var luma = ColorUtils.Luminance(tint);
+                    tint = luma > 0f ? tint * (1f / luma) : Color.white;
+                    bloomParams = new Vector4(bloom.intensity.value, tint.r, tint.g, tint.b);
+
+                    highQualityFiltering = bloom.highQualityFiltering.value;
+
+                    // Setup lens dirtiness on uber
+                    // Keep the aspect ratio correct & center the dirt texture, we don't want it to be
+                    // stretched or squashed
+                    dirtTexture = bloom.dirtTexture.value == null ? Texture2D.blackTexture : bloom.dirtTexture.value;
+                    float dirtRatio = dirtTexture.width / (float)dirtTexture.height;
+                    float screenRatio = srcDesc.width / (float)srcDesc.height;
+                    dirtScaleOffset = new Vector4(1f, 1f, 0f, 0f);
+                    dirtIntensity = bloom.dirtIntensity.value;
+
+                    if (dirtRatio > screenRatio)
+                    {
+                        dirtScaleOffset.x = screenRatio / dirtRatio;
+                        dirtScaleOffset.z = (1f - dirtScaleOffset.x) * 0.5f;
+                    }
+                    else if (screenRatio > dirtRatio)
+                    {
+                        dirtScaleOffset.y = dirtRatio / screenRatio;
+                        dirtScaleOffset.w = (1f - dirtScaleOffset.y) * 0.5f;
+                    }
+                }
+            }
         }
 #endregion
 
 #region Lens Distortion
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static public void CalcLensDistortionParams(LensDistortion lensDistortion, out Vector4 lensDistortionParams1, out Vector4 lensDistortionParams2)
-        {
-            float amount = 1.6f * Mathf.Max(Mathf.Abs(lensDistortion.intensity.value * 100f), 1f);
-            float theta = Mathf.Deg2Rad * Mathf.Min(160f, amount);
-            float sigma = 2f * Mathf.Tan(theta * 0.5f);
-            var center = lensDistortion.center.value * 2f - Vector2.one;
-            lensDistortionParams1 = new Vector4(
-                center.x,
-                center.y,
-                Mathf.Max(lensDistortion.xMultiplier.value, 1e-4f),
-                Mathf.Max(lensDistortion.yMultiplier.value, 1e-4f)
-            );
-            lensDistortionParams2 = new Vector4(
-                lensDistortion.intensity.value >= 0f ? theta : 1f / theta,
-                sigma,
-                1f / lensDistortion.scale.value,
-                lensDistortion.intensity.value * 100f
-            );
-        }
-
-        public struct LensDistortionParams
+        internal struct LensDistortionParams
         {
             public Vector4 lensDistortionParams1;
             public Vector4 lensDistortionParams2;
@@ -445,12 +424,33 @@ namespace UnityEngine.Rendering.Universal
 
                 material.EnableKeyword(ShaderKeywordStrings.Distortion);
             }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            static public void CalcLensDistortionParams(LensDistortion lensDistortion, out Vector4 lensDistortionParams1, out Vector4 lensDistortionParams2)
+            {
+                float amount = 1.6f * Mathf.Max(Mathf.Abs(lensDistortion.intensity.value * 100f), 1f);
+                float theta = Mathf.Deg2Rad * Mathf.Min(160f, amount);
+                float sigma = 2f * Mathf.Tan(theta * 0.5f);
+                var center = lensDistortion.center.value * 2f - Vector2.one;
+                lensDistortionParams1 = new Vector4(
+                    center.x,
+                    center.y,
+                    Mathf.Max(lensDistortion.xMultiplier.value, 1e-4f),
+                    Mathf.Max(lensDistortion.yMultiplier.value, 1e-4f)
+                );
+                lensDistortionParams2 = new Vector4(
+                    lensDistortion.intensity.value >= 0f ? theta : 1f / theta,
+                    sigma,
+                    1f / lensDistortion.scale.value,
+                    lensDistortion.intensity.value * 100f
+                );
+            }
         }
 #endregion
 
 #region Chromatic Aberration
 
-        public struct ChromaticAberrationParams
+        internal struct ChromaticAberrationParams
         {
             public float chromaticAberrationIntensity;
             public bool chromaticAberrationActive;
@@ -479,34 +479,8 @@ namespace UnityEngine.Rendering.Universal
 #endregion
 
 #region Vignette
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static public void CalcVignetteParams(Vignette vignette, int width, int height, Experimental.Rendering.XRPass xrPass, out Vector4 vignetteParams1, out Vector4 vignetteParams2)
-        {
-            var color = vignette.color.value;
-            var center = vignette.center.value;
-            var aspectRatio = width / (float)height;
 
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (xrPass != null && xrPass.enabled && !xrPass.singlePassEnabled)
-            {
-                // In multi-pass mode we need to modify the eye center with the values from .xy of the corrected
-                // center since the version of the shader that is not single-pass will use the value in _Vignette_Params2
-                center = xrPass.ApplyXRViewCenterOffset(center);
-            }
-#endif
-
-            vignetteParams1 = new Vector4(
-                color.r, color.g, color.b,
-                vignette.rounded.value ? aspectRatio : 1f
-            );
-            vignetteParams2 = new Vector4(
-                center.x, center.y,
-                vignette.intensity.value * 3f,
-                vignette.smoothness.value * 5f
-            );
-        }
-
-        public struct VignetteParams
+        internal struct VignetteParams
         {
             public Vector4 vignetteParams1;
             public Vector4 vignetteParams2;
@@ -531,20 +505,38 @@ namespace UnityEngine.Rendering.Universal
                 }
 #endif
             }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            static public void CalcVignetteParams(Vignette vignette, int width, int height, Experimental.Rendering.XRPass xrPass, out Vector4 vignetteParams1, out Vector4 vignetteParams2)
+            {
+                var color = vignette.color.value;
+                var center = vignette.center.value;
+                var aspectRatio = width / (float)height;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (xrPass != null && xrPass.enabled && !xrPass.singlePassEnabled)
+                {
+                    // In multi-pass mode we need to modify the eye center with the values from .xy of the corrected
+                    // center since the version of the shader that is not single-pass will use the value in _Vignette_Params2
+                    center = xrPass.ApplyXRViewCenterOffset(center);
+                }
+#endif
+
+                vignetteParams1 = new Vector4(
+                    color.r, color.g, color.b,
+                    vignette.rounded.value ? aspectRatio : 1f
+                );
+                vignetteParams2 = new Vector4(
+                    center.x, center.y,
+                    vignette.intensity.value * 3f,
+                    vignette.smoothness.value * 5f
+                );
+            }
         }
 #endregion
 
 #region Film Grain
-        // NOTE: Procedural FilmGrain can be done using the custom texture with RenderTexture. No need to import it into the RenderGraph.
-        const float k_FilmGrainIntensityScale = 4f;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static public void CalcFilmGrainParams(FilmGrain filmGrain, Texture2D[] filmGrainTextures, out Texture grainTexture, out Vector2 grainParams)
-        {
-            grainTexture = (filmGrain.type.value == FilmGrainLookup.Custom) ? filmGrain.texture.value : filmGrainTextures[(int)filmGrain.type.value];
-            grainParams = new Vector2(filmGrain.intensity.value * k_FilmGrainIntensityScale, filmGrain.response.value);
-        }
-
-        public struct FilmGrainParams
+        internal struct FilmGrainParams
         {
             public Texture activeGrainTexture;
             public Vector4 tilingParams;
@@ -573,12 +565,21 @@ namespace UnityEngine.Rendering.Universal
                 PostProcessUtils.ConfigureFilmGrainMaterial(material, activeGrainTexture, grainParams, tilingParams);
                 material.EnableKeyword(ShaderKeywordStrings.FilmGrain);
             }
+
+            // NOTE: Procedural FilmGrain can be done using the custom texture with RenderTexture. No need to import it into the RenderGraph.
+            const float k_FilmGrainIntensityScale = 4f;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            static public void CalcFilmGrainParams(FilmGrain filmGrain, Texture2D[] filmGrainTextures, out Texture grainTexture, out Vector2 grainParams)
+            {
+                grainTexture = (filmGrain.type.value == FilmGrainLookup.Custom) ? filmGrain.texture.value : filmGrainTextures[(int)filmGrain.type.value];
+                grainParams = new Vector2(filmGrain.intensity.value * k_FilmGrainIntensityScale, filmGrain.response.value);
+            }
         }
 #endregion
 
 #region 8-bit Dithering
 
-        public struct DitheringParams
+        internal struct DitheringParams
         {
             public Texture activeDitherTexture;
             public Vector4 tilingParams;

@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
 {
     internal sealed class PaniniProjectionPostProcessPass : PostProcessPass
     {
-        public const string k_TargetName = "_PaniniProjectionTarget";
+        public const string k_TargetName = "CameraColorPaniniProjection";
 
         Material m_Material;
         bool m_IsValid;
@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
         public PaniniProjectionPostProcessPass(Shader shader)
         {
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
-            this.profilingSampler = null;
+            this.profilingSampler = new ProfilingSampler("Blit Panini Projection");
 
             m_Material = PostProcessUtils.LoadShader(shader, passName);
             m_IsValid = m_Material != null;
@@ -40,11 +40,17 @@ namespace UnityEngine.Rendering.Universal
 
             var paniniProjection = volumeStack.GetComponent<PaniniProjection>();
 
+            if(!paniniProjection.IsActive())
+                return;
+
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            if (cameraData.isSceneViewCamera)
+                return;
+
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             var sourceTexture = resourceData.cameraColor;
             var destinationTexture = PostProcessUtils.CreateCompatibleTexture(renderGraph, sourceTexture, k_TargetName, true, FilterMode.Bilinear);
 
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             Camera camera = cameraData.camera;
 
             // Use source width/height for aspect ratio which can be different from camera aspect. (e.g. viewport)
@@ -60,7 +66,7 @@ namespace UnityEngine.Rendering.Universal
             float paniniD = distance;
             float paniniS = Mathf.Lerp(1f, Mathf.Clamp01(scaleF), paniniProjection.cropToFit.value);
 
-            using (var builder = renderGraph.AddRasterRenderPass<PaniniProjectionPassData>("Panini Projection", out var passData, ProfilingSampler.Get(URPProfileId.PaniniProjection)))
+            using (var builder = renderGraph.AddRasterRenderPass<PaniniProjectionPassData>(passName, out var passData, profilingSampler))
             {
                 builder.AllowGlobalStateModification(true);
                 builder.SetRenderAttachment(destinationTexture, 0, AccessFlags.Write);

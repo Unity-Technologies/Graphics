@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
 {
     internal sealed class DepthOfFieldGaussianPostProcessPass : PostProcessPass
     {
-        public const string k_TargetName = "_DoFTarget";
+        public const string k_TargetName = "CameraColorDepthOfFieldGaussian";
         const int k_DownSample = 2;
 
         Material m_Material;
@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.Universal
         public DepthOfFieldGaussianPostProcessPass(Shader shader)
         {
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
-            this.profilingSampler = null;
+            this.profilingSampler = new ProfilingSampler("Blit Depth of Field (Gaussian)");
 
             m_Material = PostProcessUtils.LoadShader(shader, passName);
             m_MaterialCoc = PostProcessUtils.LoadShader(shader, passName);
@@ -47,16 +47,11 @@ namespace UnityEngine.Rendering.Universal
 
         private class DoFGaussianPassData
         {
-            // Setup
-            internal int downsample;
-            internal Vector3 cocParams;
-            internal bool highQualitySamplingValue;
-            internal bool enableAlphaOutput;
             // Inputs
-            internal TextureHandle sourceTexture;
-            internal TextureHandle depthTexture;
             internal Material material;
             internal Material materialCoC;
+            internal TextureHandle sourceTexture;
+            internal TextureHandle depthTexture;
             // Pass textures
             internal TextureHandle halfCoCTexture;
             internal TextureHandle fullCoCTexture;
@@ -65,16 +60,26 @@ namespace UnityEngine.Rendering.Universal
             internal RenderTargetIdentifier[] multipleRenderTargets = new RenderTargetIdentifier[2];
             // Output textures
             internal TextureHandle destination;
+            // Setup
+            internal Vector3 cocParams;
+            internal int downsample;
+            internal bool highQualitySamplingValue;
+            internal bool enableAlphaOutput;
         };
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             if (!m_IsValid)
                 return;
 
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-
             var depthOfField = volumeStack.GetComponent<DepthOfField>();
+            if (!depthOfField.IsActive() || depthOfField.mode.value != DepthOfFieldMode.Gaussian)
+                return;
+
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            if (cameraData.isSceneViewCamera)
+                return;
+
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
             var sourceTexture = resourceData.cameraColor;
             var destinationTexture = PostProcessUtils.CreateCompatibleTexture(renderGraph, sourceTexture, k_TargetName, true, FilterMode.Bilinear);
@@ -95,7 +100,7 @@ namespace UnityEngine.Rendering.Universal
             var pongTextureDesc = PostProcessUtils.GetCompatibleDescriptor(srcDesc, wh, hh, colorFormat);
             var pongTexture = PostProcessUtils.CreateCompatibleTexture(renderGraph, pongTextureDesc, "_PongTexture", true, FilterMode.Bilinear);
 
-            using (var builder = renderGraph.AddUnsafePass<DoFGaussianPassData>("Depth of Field - Gaussian", out var passData))
+            using (var builder = renderGraph.AddUnsafePass<DoFGaussianPassData>(passName, out var passData, profilingSampler))
             {
                 // Setup
                 float farStart = depthOfField.gaussianStart.value;

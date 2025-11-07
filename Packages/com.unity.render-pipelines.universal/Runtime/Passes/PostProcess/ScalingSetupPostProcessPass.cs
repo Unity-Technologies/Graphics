@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
 {
     internal sealed class ScalingSetupPostProcessPass : PostProcessPass
     {
-        public const string k_TargetName = "_ScalingSetupTarget";
+        public const string k_TargetName = "SetupUpscaling";
 
         Material m_Material;
         bool m_IsValid;
@@ -20,6 +20,9 @@ namespace UnityEngine.Rendering.Universal
 
             m_Material = PostProcessUtils.LoadShader(shader, passName);
             m_IsValid = m_Material != null;
+
+            // Defaults
+            m_HdrOperations = HDROutputUtils.Operation.None; // HDR disabled.
         }
 
         public override void Dispose()

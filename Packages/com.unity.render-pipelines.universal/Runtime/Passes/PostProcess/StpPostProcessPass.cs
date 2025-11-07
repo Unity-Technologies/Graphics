@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
 {
     internal sealed class StpPostProcessPass : PostProcessPass
     {
-        public const string k_UpscaledColorTargetName = "_CameraColorUpscaledSTP";
+        public const string k_UpscaledColorTargetName = "CameraColorUpscaledSTP";
         Texture2D[] m_BlueNoise16LTex;
         bool m_IsValid;
 
@@ -29,7 +29,30 @@ namespace UnityEngine.Rendering.Universal
             if (!m_IsValid)
                 return;
 
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+#if ENABLE_UPSCALER_FRAMEWORK
+            var postProcessingData = frameData.Get<UniversalPostProcessingData>();
+            if (postProcessingData.activeUpscaler != null)
+                return;
+#endif
+
+            // Note that enabling jitters uses the same CameraData::IsTemporalAAEnabled(). So if we add any other kind of overrides (like
+            // disable useTemporalAA if another feature is disabled) then we need to put it in CameraData::IsTemporalAAEnabled() as opposed
+            // to tweaking the value here.
+            var cameraData = frameData.Get<UniversalCameraData>();
+            bool useTemporalAA = cameraData.IsTemporalAAEnabled();
+
+            // STP is only enabled when TAA is enabled and all of its runtime requirements are met.
+            // Using IsSTPRequested() vs IsSTPEnabled() for perf reason here, as we already know TAA status
+            bool isSTPRequested = cameraData.IsSTPRequested();
+            bool useSTP = useTemporalAA && isSTPRequested;
+            if (!useSTP)
+            {
+                // Warn users if TAA and STP are disabled despite being requested
+                if (cameraData.IsTemporalAARequested())
+                    TemporalAA.ValidateAndWarn(cameraData, isSTPRequested);
+                return;
+            }
+
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
             var sourceTexture = resourceData.cameraColor;

@@ -20,6 +20,12 @@ namespace UnityEngine.Rendering.Universal
 
             m_Material = PostProcessUtils.LoadShader(shader, passName);
             m_IsValid = m_Material != null;
+
+            // Default
+            PostProcessUtils.MakeCompatible(ref m_UpscaledDesc);
+            m_UpscaledDesc.width = 1;   // Unknown at pipe/pass construction time. Safe default. Avoid division by zero.
+            m_UpscaledDesc.height = 1;
+            m_UpscaledDesc.format = Experimental.Rendering.GraphicsFormat.B10G11R11_UFloatPack32;  // URP default.
         }
 
         public override void Dispose()

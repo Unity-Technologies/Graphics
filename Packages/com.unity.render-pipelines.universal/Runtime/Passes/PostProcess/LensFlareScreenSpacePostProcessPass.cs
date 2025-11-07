@@ -17,10 +17,15 @@ namespace UnityEngine.Rendering.Universal
         public LensFlareScreenSpacePostProcessPass(Shader shader)
         {
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
-            this.profilingSampler = null;
+            this.profilingSampler = new ProfilingSampler("Blit Lens Flares (Screen Space)");
 
             m_Material = PostProcessUtils.LoadShader(shader, passName);
             m_IsValid = m_Material != null;
+
+            // Default values
+            m_ColorBufferWidth = 1; // Unknown at pipe/pass construction time. Safe default. Avoid division by zero.
+            m_ColorBufferHeight = 1;
+            m_FlareSourceBloomMipIndex = 0; // Safe. Mip pyramid might not exist.
         }
 
         public override void Dispose()
@@ -57,6 +62,9 @@ namespace UnityEngine.Rendering.Universal
             if (!m_IsValid)
                 return;
 
+            if (!IsActive(volumeStack, frameData))
+                return;
+
             var lensFlareScreenSpace = volumeStack.GetComponent<ScreenSpaceLensFlare>();
             var bloom = volumeStack.GetComponent<Bloom>();
 
@@ -87,7 +95,7 @@ namespace UnityEngine.Rendering.Universal
             // NOTE: Result texture is the result of the flares/streaks only. Not the final output which is "bloom + flares".
             var resultTmpTexture = PostProcessUtils.CreateCompatibleTexture(renderGraph, streakTextureDesc, "_LensFlareScreenSpace", true, FilterMode.Bilinear);
 
-            using (var builder = renderGraph.AddUnsafePass<LensFlareScreenSpacePassData>("Blit Lens Flare Screen Space", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareScreenSpace)))
+            using (var builder = renderGraph.AddUnsafePass<LensFlareScreenSpacePassData>(passName, out var passData, profilingSampler))
             {
                 // Use WriteTexture here because DoLensFlareScreenSpaceCommon will call SetRenderTarget internally.
                 // TODO RENDERGRAPH: convert SRP core lensflare to be rendergraph friendly
@@ -157,6 +165,16 @@ namespace UnityEngine.Rendering.Universal
                         false);
                 });
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static internal bool IsActive(VolumeStack volumeStack, ContextContainer frameData)
+        {
+            var lensFlareScreenSpace = volumeStack.GetComponent<ScreenSpaceLensFlare>();
+            if (!lensFlareScreenSpace.IsActive())
+                return false;
+
+            return frameData.Get<UniversalPostProcessingData>().supportScreenSpaceLensFlare;
         }
     }
 }

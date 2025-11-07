@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
 {
     internal sealed class TemporalAntiAliasingPostProcessPass : PostProcessPass
     {
-        public const string k_TargetName = "_TemporalAATarget";
+        public const string k_TargetName = "CameraColorTemporalAA";
 
         Material m_Material;
         bool m_IsValid;
@@ -26,18 +26,33 @@ namespace UnityEngine.Rendering.Universal
             m_IsValid = false;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsValid()
-        {
-            return m_IsValid;
-        }
-
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             if (!m_IsValid)
                 return;
 
+#if ENABLE_UPSCALER_FRAMEWORK
+            var postProcessingData = frameData.Get<UniversalPostProcessingData>();
+            if (postProcessingData.activeUpscaler != null)
+                return;
+#endif
+
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            // We are actually running STP which reuses TAA Jitter. Skip TAA pass.
+            if (cameraData.IsSTPRequested())
+                return;
+
+            // Note that enabling camera jitter uses the same CameraData::IsTemporalAAEnabled(). So if we add any other kind of overrides
+            // then we need to put it in CameraData::IsTemporalAAEnabled() as opposed
+            // to tweaking it locally here.
+            if (!cameraData.IsTemporalAAEnabled())
+            {
+                // Warn users if TAA is disabled despite being requested
+                if (cameraData.IsTemporalAARequested())
+                    TemporalAA.ValidateAndWarn(cameraData, false);
+                return;
+            }
+
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
             var sourceTexture = resourceData.cameraColor;

@@ -20,10 +20,17 @@ namespace UnityEngine.Rendering.Universal
 
         public BloomMipPyramid mipPyramid => m_MipPyramid;
 
+        const string k_PassNameKawase = "Blit Bloom Mipmaps (Kawase)";
+        const string k_PassNameDual = "Blit Bloom Mipmaps (Dual)";
+        ProfilingSampler m_ProfilingSamplerKawase;
+        ProfilingSampler m_ProfilingSamplerDual;
+
         public BloomPostProcessPass(Shader shader)
         {
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
-            this.profilingSampler = null;
+            this.profilingSampler = new ProfilingSampler("Blit Bloom Mipmaps");
+            m_ProfilingSamplerKawase = new ProfilingSampler(k_PassNameKawase);
+            m_ProfilingSamplerDual = new ProfilingSampler(k_PassNameDual);
 
             m_Material = PostProcessUtils.LoadShader(shader, passName);
 
@@ -63,13 +70,15 @@ namespace UnityEngine.Rendering.Universal
             if (!m_IsValid)
                 return;
 
+            var bloom = volumeStack.GetComponent<Bloom>();
+            if (!bloom.IsActive())
+                return;
+
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
             var sourceTexture = resourceData.cameraColor;
             var sourceDesc = sourceTexture.GetDescriptor(renderGraph);
-
-            var bloom = volumeStack.GetComponent<Bloom>();
 
             // Setup
             // Materials are set up beforehand.
@@ -183,7 +192,7 @@ namespace UnityEngine.Rendering.Universal
 
         TextureHandle BloomGaussian(RenderGraph renderGraph, in TextureHandle source)
         {
-            using (var builder = renderGraph.AddUnsafePass<BloomPassData>("Blit Bloom Mipmaps", out var passData, ProfilingSampler.Get(URPProfileId.Bloom)))
+            using (var builder = renderGraph.AddUnsafePass<BloomPassData>(passName, out var passData, profilingSampler))
             {
                 passData.sourceTexture = source;
                 passData.material = m_Material;
@@ -267,7 +276,7 @@ namespace UnityEngine.Rendering.Universal
 
         TextureHandle BloomKawase(RenderGraph renderGraph, in TextureHandle source)
         {
-            using (var builder = renderGraph.AddUnsafePass<BloomPassData>("Blit Bloom Mipmaps (Kawase)", out var passData, ProfilingSampler.Get(URPProfileId.Bloom)))
+            using (var builder = renderGraph.AddUnsafePass<BloomPassData>(k_PassNameKawase, out var passData, m_ProfilingSamplerKawase))
             {
                 passData.sourceTexture = source;
                 passData.material = m_Material;
@@ -321,7 +330,7 @@ namespace UnityEngine.Rendering.Universal
         //  Dual Filter, Bandwidth-Efficient Rendering, siggraph2015
         TextureHandle BloomDual(RenderGraph renderGraph, in TextureHandle source)
         {
-            using (var builder = renderGraph.AddUnsafePass<BloomPassData>("Blit Bloom Mipmaps (Dual)", out var passData, ProfilingSampler.Get(URPProfileId.Bloom)))
+            using (var builder = renderGraph.AddUnsafePass<BloomPassData>(k_PassNameDual, out var passData, m_ProfilingSamplerDual))
             {
                 passData.sourceTexture = source;
                 passData.material = m_Material;
@@ -412,7 +421,7 @@ namespace UnityEngine.Rendering.Universal
                 if (mipCount == 1)
                     return mipDownTextures[0];  // Prefilter only.
 
-                int i = Mathf.Clamp(index, 0, mipCount - 1);
+                int i = Mathf.Max(Mathf.Min(index, mipCount - 1), 0);
                 return mipUpTextures[i];    // Upsampled results.
             }
 

@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
 {
     internal sealed class DepthOfFieldBokehPostProcessPass : PostProcessPass
     {
-        public const string k_TargetName = "_DoFTarget";
+        public const string k_TargetName = "CameraColorDepthOfFieldBokeh";
         const int k_DownSample = 2;
 
         Material m_Material;
@@ -19,12 +19,10 @@ namespace UnityEngine.Rendering.Universal
         float m_BokehMaxRadius;
         float m_BokehRcpAspect;
 
-        bool m_UseFastSRGBLinearConversion;
-
         public DepthOfFieldBokehPostProcessPass(Shader shader)
         {
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
-            this.profilingSampler = null;
+            this.profilingSampler = new ProfilingSampler("Blit Depth of Field (Bokeh)");
 
             m_Material = PostProcessUtils.LoadShader(shader, passName);
             m_IsValid = m_Material != null;
@@ -36,23 +34,10 @@ namespace UnityEngine.Rendering.Universal
             m_IsValid = false;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Setup(bool useFastSRGBLinearConversion)
-        {
-            m_UseFastSRGBLinearConversion = useFastSRGBLinearConversion;
-        }
-
         private class DoFBokehPassData
         {
             internal Material material;
 
-            // Setup
-            internal Vector4[] bokehKernel;
-            internal int downSample;
-            internal float uvMargin;
-            internal Vector4 cocParams;
-            internal bool useFastSRGBLinearConversion;
-            internal bool enableAlphaOutput;
             // Inputs
             internal TextureHandle sourceTexture;
             internal TextureHandle depthTexture;
@@ -63,6 +48,13 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle pongTexture;
             // Output texture
             internal TextureHandle destinationTexture;
+            // Setup
+            internal Vector4[] bokehKernel;
+            internal Vector4 cocParams;
+            internal int downSample;
+            internal float uvMargin;
+            internal bool useFastSRGBLinearConversion;
+            internal bool enableAlphaOutput;
         };
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
@@ -70,10 +62,16 @@ namespace UnityEngine.Rendering.Universal
             if (!m_IsValid)
                 return;
 
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-
             var depthOfField = volumeStack.GetComponent<DepthOfField>();
+            if (!depthOfField.IsActive() || depthOfField.mode.value != DepthOfFieldMode.Bokeh)
+                return;
+
+            var cameraData = frameData.Get<UniversalCameraData>();
+            if (cameraData.isSceneViewCamera)
+                return;
+
+            var postProcessingData = frameData.Get<UniversalPostProcessingData>();
+            var resourceData = frameData.Get<UniversalResourceData>();
 
             var sourceTexture = resourceData.cameraColor;
             var destinationTexture = PostProcessUtils.CreateCompatibleTexture(renderGraph, sourceTexture, k_TargetName, true, FilterMode.Bilinear);
@@ -90,7 +88,7 @@ namespace UnityEngine.Rendering.Universal
             var pongTextureDesc = PostProcessUtils.GetCompatibleDescriptor(srcDesc, wh, hh, Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat);
             var pongTexture = PostProcessUtils.CreateCompatibleTexture(renderGraph, pongTextureDesc, "_PongTexture", true, FilterMode.Bilinear);
 
-            using (var builder = renderGraph.AddUnsafePass<DoFBokehPassData>("Depth of Field - Bokeh", out var passData))
+            using (var builder = renderGraph.AddUnsafePass<DoFBokehPassData>(passName, out var passData, profilingSampler))
             {
                 // Setup
                 // "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
@@ -120,7 +118,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.downSample = k_DownSample;
                 passData.uvMargin = uvMargin;
                 passData.cocParams = new Vector4(P, maxCoC, maxRadius, rcpAspect);
-                passData.useFastSRGBLinearConversion = m_UseFastSRGBLinearConversion;
+                passData.useFastSRGBLinearConversion = postProcessingData.useFastSRGBLinearConversion;
                 passData.enableAlphaOutput = cameraData.isAlphaOutputEnabled;
 
                 // Inputs

@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
 {
     internal sealed class StopNanPostProcessPass : PostProcessPass
     {
-        public const string k_TargetName = "_StopNaNsTarget";
+        public const string k_TargetName = "CameraColorStopNaNs";
 
         Material m_Material;
         bool m_IsValid;
@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
         public StopNanPostProcessPass(Shader shader)
         {
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
-            this.profilingSampler = null;
+            this.profilingSampler = new ProfilingSampler("Stop NaNs");
 
             m_Material = PostProcessUtils.LoadShader(shader, passName);
             m_IsValid = m_Material != null;
@@ -36,12 +36,16 @@ namespace UnityEngine.Rendering.Universal
             if (!m_IsValid)
                 return;
 
+            var cameraData = frameData.Get<UniversalCameraData>();
+            if (!cameraData.isStopNaNEnabled)
+                return;
+
             var resourceData = frameData.Get<UniversalResourceData>();
             var sourceTexture = resourceData.cameraColor;
             var destinationTexture = PostProcessUtils.CreateCompatibleTexture(renderGraph, sourceTexture, k_TargetName, true, FilterMode.Bilinear);
 
-            using (var builder = renderGraph.AddRasterRenderPass<StopNaNsPassData>("Stop NaNs", out var passData,
-                       ProfilingSampler.Get(URPProfileId.RG_StopNaNs)))
+            using (var builder = renderGraph.AddRasterRenderPass<StopNaNsPassData>(passName, out var passData,
+                       profilingSampler))
             {
                 builder.SetRenderAttachment(destinationTexture, 0, AccessFlags.ReadWrite);
                 passData.sourceTexture = sourceTexture;
