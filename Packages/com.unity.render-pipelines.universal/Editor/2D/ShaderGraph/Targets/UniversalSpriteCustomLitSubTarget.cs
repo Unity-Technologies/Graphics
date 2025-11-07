@@ -152,6 +152,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.Default,
                     pragmas = CorePragmas._2DDefault,
                     defines = new DefineCollection(),
+                    keywords = SpriteLitKeywords.Normal,
                     includes = SpriteLitIncludes.Normal,
 
                     // Custom Interpolator Support
@@ -273,6 +274,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static KeywordCollection Lit = new KeywordCollection
             {
                 { CoreKeywordDescriptors.DebugDisplay },
+                { CoreKeywordDescriptors.UseSkinnedSprite },
+            };
+
+            public static KeywordCollection Normal = new KeywordCollection
+            {
                 { CoreKeywordDescriptors.UseSkinnedSprite },
             };
 
