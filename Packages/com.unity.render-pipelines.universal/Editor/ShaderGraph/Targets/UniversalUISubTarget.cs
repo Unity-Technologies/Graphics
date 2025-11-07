@@ -84,10 +84,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     result.Add(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
                     break;
                 case AlphaMode.Additive:
-                    result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One));
+                    result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.OneMinusSrcAlpha));
                     break;
                 case AlphaMode.Multiply:
-                    result.Add(RenderState.Blend(Blend.DstColor, Blend.OneMinusSrcAlpha, Blend.Zero, Blend.One));
+                    result.Add(RenderState.Blend(Blend.DstColor, Blend.Zero, Blend.Zero, Blend.One));
                     break;
             }
 
