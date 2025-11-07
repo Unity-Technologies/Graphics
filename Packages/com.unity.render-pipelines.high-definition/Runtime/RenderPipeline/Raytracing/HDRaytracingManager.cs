@@ -667,7 +667,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int i = 0; i < cullingResults.materialsCRC.Length; i++)
                     {
                         RayTracingInstanceMaterialCRC matCRC = cullingResults.materialsCRC[i];
-                        m_RTASManager.materialsDirty |= UpdateMaterialCRC(matCRC.instanceID, matCRC.crc);
+                        m_RTASManager.materialsDirty |= UpdateMaterialCRC(matCRC.entityId, matCRC.crc);
                     }
                 }
 
