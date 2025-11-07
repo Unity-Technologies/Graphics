@@ -47,13 +47,9 @@ To access components in a script, add an underscore before the component name. F
 
 ### Spaceable Properties
 
-Spaceable Properties are Property Types that carry **Space information** (Local/World) with its value. This information is used by the graph to perform automatic space transformations when required.
+Spaceable Properties are Property Types that carry **Space information** (Local/World) with their values. The VFX Graph uses this information to perform automatic space transformations when required.
 
-Click on the Space Modifier to the left of the Property Field to change it.
-
-For Example, a Position type carries a Vector3 value and a Spaceable Property. If you set the Spaceable Property to Local [0,1,0], this tells the graph that we refer to the 0,1,0 value in local space.
-
-Depending on the [System Simulation Space](Systems.md#system-spaces), the value will be automatically transformed to the simulation space if required.
+Depending on the [System Simulation Space](Systems.md#system-spaces), the value is automatically transformed to the simulation space if required.
 
 > [!TIP]
 > You can use the Change Space Operator to manually change a Property Space.
