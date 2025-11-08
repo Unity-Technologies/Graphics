@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public EyeSubTarget() => displayName = "Eye";
 
-        static readonly GUID kSubTargetSourceCodeGuid = new GUID("864e4e09d6293cf4d98457f740bb3301");  // EyeSubTarget.cs
+        static readonly UnityEngine.GUID kSubTargetSourceCodeGuid = new UnityEngine.GUID("864e4e09d6293cf4d98457f740bb3301");  // EyeSubTarget.cs
 
         static string[] passTemplateMaterialDirectories = new string[]
         {
@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
-        protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
+        protected override UnityEngine.GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override ShaderID shaderID => ShaderID.SG_Eye;
         protected override string subShaderInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/Eye.hlsl";
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Eye SubShader", "");
