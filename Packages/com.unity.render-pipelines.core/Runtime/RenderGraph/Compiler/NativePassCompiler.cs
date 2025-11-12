@@ -656,7 +656,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 foreach (ref readonly var nativePass in contextData.NativePasses)
                 {
                     // Loop over all created resources by this nrp
-                    var graphPasses = nativePass.GraphPasses(contextData);
+                    var graphPasses = nativePass.GraphPasses(contextData, out var actualPasses);
                     foreach (ref readonly var subPass in graphPasses)
                     {
                         foreach (ref readonly var createdRes in subPass.FirstUsedResources(contextData))
@@ -698,6 +698,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             }
                         }
                     }
+                    if (actualPasses.IsCreated)
+                        actualPasses.Dispose();
                 }
             }
         }
@@ -742,7 +744,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     if (pass.mergeState == PassMergeState.Begin || pass.mergeState == PassMergeState.None)
                     {
                         ref var nativePass = ref contextData.nativePassData.ElementAt(pass.nativePassIndex);
-                        foreach (ref readonly var subPass in nativePass.GraphPasses(contextData))
+                        var graphPasses = nativePass.GraphPasses(contextData, out var actualPasses);
+                        foreach (ref readonly var subPass in graphPasses)
                         {
                             foreach (ref readonly var res in subPass.FirstUsedResources(contextData))
                             {
@@ -770,6 +773,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 }
                             }
                         }
+                        if (actualPasses.IsCreated)
+                            actualPasses.Dispose();
                     }
                 }
                 // Other passes just create them at the beginning of the individual pass
@@ -1290,7 +1295,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     if (pass.mergeState == PassMergeState.End || pass.mergeState == PassMergeState.None)
                     {
                         ref var nativePass = ref contextData.nativePassData.ElementAt(pass.nativePassIndex);
-                        foreach (ref readonly var subPass in nativePass.GraphPasses(contextData))
+                        var graphPasses = nativePass.GraphPasses(contextData, out var actualPasses);
+                        foreach (ref readonly var subPass in graphPasses)
                         {
                             foreach (ref readonly var res in subPass.LastUsedResources(contextData))
                             {
@@ -1301,6 +1307,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 }
                             }
                         }
+                        if (actualPasses.IsCreated)
+                            actualPasses.Dispose();
                     }
                 }
                 else

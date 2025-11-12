@@ -615,15 +615,16 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<PassData> GraphPasses(CompilerContextData ctx)
+        public readonly ReadOnlySpan<PassData> GraphPasses(CompilerContextData ctx, out NativeArray<PassData> actualPasses)
         {
             // When there's no pass being culled, we can directly return a Span of the Native List
             if (lastGraphPass - firstGraphPass + 1 == numGraphPasses)
             {
+                actualPasses = default;
                 return ctx.passData.MakeReadOnlySpan(firstGraphPass, numGraphPasses);
             }
 
-            var actualPasses =
+            actualPasses =
                 new NativeArray<PassData>(numGraphPasses, Allocator.Temp,
                     NativeArrayOptions.UninitializedMemory);
 
@@ -642,10 +643,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void GetGraphPassNames(CompilerContextData ctx, DynamicArray<Name> dest)
         {
-            foreach (ref readonly var pass in GraphPasses(ctx))
+            var span = GraphPasses(ctx, out var actualPasses);
+            foreach (ref readonly var pass in span)
             {
                 dest.Add(pass.GetName(ctx));
             }
+
+            if (actualPasses.IsCreated)
+                actualPasses.Dispose();
         }
 
         // This function does not modify the current render graph state, it only evaluates and returns the correct PassBreakAudit
