@@ -2614,6 +2614,7 @@ namespace UnityEngine.Rendering
 
         public void UpdateFrame(int cameraCount)
         {
+            DisposeSceneViewHiddenBits();
             DisposeCompactVisibilityMasks();
             if (cameraCount > m_LODParamsToCameraID.Capacity)
                 m_LODParamsToCameraID.Capacity = cameraCount;

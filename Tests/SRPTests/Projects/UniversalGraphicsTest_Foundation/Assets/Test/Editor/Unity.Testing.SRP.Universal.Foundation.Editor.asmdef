@@ -1,5 +1,5 @@
 {
-    "name": "UniversalFoundationEditorTests",
+    "name": "Unity.Testing.SRP.Universal.Foundation.Editor",
     "rootNamespace": "",
     "references": [
         "GUID:e18141520846dcc44b725b2f74e91229",
@@ -13,7 +13,9 @@
         "GUID:36d514892e55d4340b470c29fcab8b44",
         "GUID:55aba1c6f9cf8e949aa77aaeccd46083",
         "GUID:adf6f42bac617413dbcd97c993ab7077",
-        "GUID:df380645f10b7bc4b97d4f5eb6303d95"
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+        "GUID:4fd6538c1c56b409fb53fdf0183170ec",
+        "GUID:5d43e37b0ccc5b643bfc49b4bfa316d2"
     ],
     "includePlatforms": [
         "Editor"
