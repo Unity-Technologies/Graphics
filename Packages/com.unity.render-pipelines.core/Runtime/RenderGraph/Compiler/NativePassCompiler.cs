@@ -35,6 +35,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         NativeList<AttachmentDescriptor> m_BeginRenderPassAttachments;
 
+        // Contains the index of the non culled passes for native render passes that has at least one pass culled.
+        NativeList<int> m_NonCulledPassIndicesForRasterPasses;
+
         internal static bool s_ForceGenerateAuditsForTests = false;
 
         public NativePassCompiler(RenderGraphCompilationCache cache)
@@ -75,6 +78,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             if (m_BeginRenderPassAttachments.IsCreated)
             {
                 m_BeginRenderPassAttachments.Dispose();
+            }
+
+            if (m_NonCulledPassIndicesForRasterPasses.IsCreated)
+            {
+                m_NonCulledPassIndicesForRasterPasses.Dispose();
             }
         }
 
@@ -155,6 +163,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             if (graph.renderTextureUVOriginStrategy == RenderTextureUVOriginStrategy.PropagateAttachmentOrientation)
                 PropagateTextureUVOrigin();
+
+            CompactNonCulledPassesForRasterPasses();
         }
 
         public void Clear(bool clearContextData)
@@ -632,6 +642,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 bool generatePassBreakAudits = RenderGraphDebugSession.hasActiveDebugSession || s_ForceGenerateAuditsForTests;
 #endif
+                int indexSinceLastCulledPass = 0;
+                bool passWasCulled = false;
+                bool nonCulledPassIndicesListWasCleared = false;
 
                 for (var passIdx = 0; passIdx < ctx.passData.Length; ++passIdx)
                 {
@@ -640,6 +653,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     // If the pass has been culled, just ignore it
                     if (passToAdd.culled)
                     {
+                        passWasCulled = true;
                         continue;
                     }
 
@@ -653,6 +667,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             ctx.nativePassData.Add(new NativePassData(ref passToAdd, ctx));
                             passToAdd.nativePassIndex = ctx.nativePassData.LastIndex();
                             activeNativePassId = passToAdd.nativePassIndex;
+
+                            indexSinceLastCulledPass = passIdx;
+                            passWasCulled = false;
                         }
                     }
                     // There is an native pass currently open, try to add the current graph pass to it
@@ -684,8 +701,23 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 passToAdd.nativePassIndex = ctx.nativePassData.LastIndex();
                                 activeNativePassId = passToAdd.nativePassIndex;
                             }
+
+                            if (passWasCulled)
+                            {
+                                CollectNonCulledPassIndicesForRasterPasses(passIdx, indexSinceLastCulledPass, mergeTestResult.reason != PassBreakReason.NonRasterPass, !nonCulledPassIndicesListWasCleared);
+                                passWasCulled = false;
+                                nonCulledPassIndicesListWasCleared = true;
+                            }
+
+                            indexSinceLastCulledPass = passIdx;
                         }
                     }
+                }
+
+                // Handle the last native pass
+                if (passWasCulled)
+                {
+                    CollectNonCulledPassIndicesForRasterPasses(ctx.passData.Length, indexSinceLastCulledPass, clearList: !nonCulledPassIndicesListWasCleared);
                 }
 
                 if (activeNativePassId >= 0)
@@ -700,6 +732,66 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     }
 #endif
                 }
+            }
+        }
+
+        void CollectNonCulledPassIndicesForRasterPasses(int currentPassIdx, int indexSinceLastCulledPass, bool usePreviousNativePass = false, bool clearList = false)
+        {
+            var ctx = contextData;
+
+            // In some cases, we create a new native render pass (we allocate a new stand-alone native renderpass based on the current pass)
+            // but we need to update the data of the previous native pass and not the newly one created.
+            var indexLastNativePassData = (usePreviousNativePass) ? ctx.nativePassData.LastIndex() - 1 : ctx.nativePassData.LastIndex();
+
+            // In case we have a graph without any render pass.
+            if (indexLastNativePassData == -1)
+                return;
+
+            // Filling the attachments array to be sent to the rendering command buffer
+            if (!m_NonCulledPassIndicesForRasterPasses.IsCreated)
+            {
+                m_NonCulledPassIndicesForRasterPasses = new NativeList<int>(ctx.passData.Length, Allocator.Persistent);
+            }
+            else if (clearList)
+            {
+                m_NonCulledPassIndicesForRasterPasses.Clear();
+                m_NonCulledPassIndicesForRasterPasses.SetCapacity(ctx.passData.Length);
+            }
+
+            ref var lastNativePassData = ref ctx.nativePassData.ElementAt(indexLastNativePassData);
+            lastNativePassData.firstCompactedNonCulledRasterPass = m_NonCulledPassIndicesForRasterPasses.Length;
+
+            // The native pass has at least one pass culled, so we iterate over each pass to retrieve
+            // the index of the non culled pass, so they can be copied later on in a new NativeList that
+            // will be contiguous in memory.
+            for (var nonCulledPassIdx = 0; nonCulledPassIdx < currentPassIdx - indexSinceLastCulledPass; ++nonCulledPassIdx)
+            {
+                ref var passToCopy = ref ctx.passData.ElementAt(indexSinceLastCulledPass + nonCulledPassIdx);
+
+                if (!passToCopy.culled)
+                {
+                    m_NonCulledPassIndicesForRasterPasses.Add(indexSinceLastCulledPass + nonCulledPassIdx);
+                }
+            }
+
+            lastNativePassData.lastCompactedNonCulledRasterPass = m_NonCulledPassIndicesForRasterPasses.Length - 1;
+        }
+
+        // Must be called at the end of the compilation, when PassData is not modified anymore.
+        void CompactNonCulledPassesForRasterPasses()
+        {
+            if (!m_NonCulledPassIndicesForRasterPasses.IsCreated || m_NonCulledPassIndicesForRasterPasses.Length == 0)
+                return;
+
+            var ctx = contextData;
+            ctx.compactedNonCulledRasterPasses.ResizeUninitialized(m_NonCulledPassIndicesForRasterPasses.Length);
+
+            // Copy and cache only the PassData that were not contiguous in memory because of culling.
+            // They are copied in a new NativeArray that is contiguous in memory so we avoid further copies
+            // later at many places (Initialize, Destroy, etc.) by using directly a ReadOnlySpan of this array.
+            for (int i = 0; i < m_NonCulledPassIndicesForRasterPasses.Length; ++i)
+            {
+                ctx.compactedNonCulledRasterPasses[i] = ctx.passData.ElementAt(m_NonCulledPassIndicesForRasterPasses[i]);
             }
         }
 

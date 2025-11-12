@@ -668,6 +668,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public int lastGraphPass;
         public int numGraphPasses;
 
+        public int firstCompactedNonCulledRasterPass;
+        public int lastCompactedNonCulledRasterPass;
+
         public int firstNativeSubPass; // Offset+count in context subpass array
         public int numNativeSubPasses;
         public int width;
@@ -693,6 +696,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             numGraphPasses = 1;
             firstNativeSubPass = -1; // Set up during compile
             numNativeSubPasses = 0;
+            firstCompactedNonCulledRasterPass = -1;
+            lastCompactedNonCulledRasterPass = -1;
 
             fragments = new FixedAttachmentArray<PassFragmentData>();
             attachments = new FixedAttachmentArray<NativePassAttachment>();
@@ -768,6 +773,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         {
             firstGraphPass = 0;
             numGraphPasses = 0;
+            firstCompactedNonCulledRasterPass = -1;
+            lastCompactedNonCulledRasterPass = -1;
             attachments.Clear();
             fragments.Clear();
             loadAudit.Clear();
@@ -780,6 +787,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             return numGraphPasses > 0;
         }
 
+        // This method cannot be called during the Compile step.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<PassData> GraphPasses(CompilerContextData ctx)
         {
@@ -789,20 +797,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 return ctx.passData.MakeReadOnlySpan(firstGraphPass, numGraphPasses);
             }
 
-            var actualPasses =
-                new NativeArray<PassData>(numGraphPasses, Allocator.Temp,
-                    NativeArrayOptions.UninitializedMemory);
+            Debug.Assert(!ctx.compactedNonCulledRasterPasses.IsEmpty);
 
-            for (int i = firstGraphPass, index = 0; i < lastGraphPass + 1; ++i)
-            {
-                var pass = ctx.passData[i];
-                if (!pass.culled)
-                {
-                    actualPasses[index++] = pass;
-                }
-            }
-
-            return actualPasses;
+            return ctx.compactedNonCulledRasterPasses.MakeReadOnlySpan(firstCompactedNonCulledRasterPass, lastCompactedNonCulledRasterPass - firstCompactedNonCulledRasterPass + 1);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -953,9 +950,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 // Temporary cache of sampled textures in current Native Render Pass for conflict detection against fragments
                 using (HashSetPool<int>.Get(out var tempSampledTextures))
                 {
-                    var graphPasses = nativePass.GraphPasses(contextData);
-                    foreach (ref readonly var graphPass in graphPasses)
+                    for (int i = nativePass.firstGraphPass; i < nativePass.lastGraphPass + 1; ++i)
                     {
+                        ref var graphPass = ref contextData.passData.ElementAt(i);
+                        if (graphPass.culled)
+                            continue;
+
                         if (graphPass.numSampledOnlyRaster > 0) // Skip passes with no sampled textures
                         {
                             foreach (ref readonly var earlierInput in graphPass.SampledTexturesIfRaster(contextData))

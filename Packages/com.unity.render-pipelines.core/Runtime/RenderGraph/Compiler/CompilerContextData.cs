@@ -58,6 +58,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 // These are risky heuristics that only work because we purposely estimate a very high number of passes
                 // We need to fix this with a proper size computation
                 passData = new NativeList<PassData>(estimatedNumPasses, AllocatorManager.Persistent);
+                compactedNonCulledRasterPasses = new NativeList<PassData>(0, AllocatorManager.Persistent); // Will be resized during the compilation
                 inputData = new NativeList<PassInputData>(estimatedNumPasses * 2, AllocatorManager.Persistent);
                 outputData = new NativeList<PassOutputData>(estimatedNumPasses * 2, AllocatorManager.Persistent);
                 fragmentData = new NativeList<PassFragmentData>(estimatedNumPasses * 4, AllocatorManager.Persistent);
@@ -87,6 +88,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             if (m_AreNativeListsAllocated)
             {
                 passData.Clear();
+                compactedNonCulledRasterPasses.Clear();
                 fences.Clear();
                 inputData.Clear();
                 outputData.Clear();
@@ -139,6 +141,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         // Data per graph level renderpass
         public NativeList<PassData> passData;
+        public NativeList<PassData> compactedNonCulledRasterPasses;
         public Dictionary<int, GraphicsFence> fences;
         public DynamicArray<Name> passNames;
 
@@ -369,6 +372,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             if (m_AreNativeListsAllocated)
             {
                 passData.Dispose();
+                compactedNonCulledRasterPasses.Dispose();
                 inputData.Dispose();
                 outputData.Dispose();
                 fragmentData.Dispose();
