@@ -1955,7 +1955,7 @@ namespace UnityEngine.Rendering.Universal
         internal static void Initialize()
         {
             bool isRunningMobile = false;
-            #if ENABLE_VR && ENABLE_VR_MODULE
+            #if ENABLE_VR && ENABLE_XR_MODULE
                 #if PLATFORM_WINRT || PLATFORM_ANDROID
                     isRunningMobile = IsRunningXRMobile();
                 #endif
@@ -1967,7 +1967,7 @@ namespace UnityEngine.Rendering.Universal
             isSwitch2 = Application.platform == RuntimePlatform.Switch2;
         }
 
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
     #if PLATFORM_WINRT || PLATFORM_ANDROID
         // XR mobile platforms are not treated as dedicated mobile platforms in Core. Handle them specially here. (Quest and HL).
         private static List<XR.XRDisplaySubsystem> displaySubsystemList = new List<XR.XRDisplaySubsystem>();

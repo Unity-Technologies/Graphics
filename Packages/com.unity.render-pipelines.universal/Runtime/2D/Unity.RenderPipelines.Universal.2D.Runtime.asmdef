@@ -46,11 +46,6 @@
             "define": "USING_2DANIMATION_13_0_1_OR_ABOVE"
         },
         {
-            "name": "com.unity.modules.vr",
-            "expression": "1.0.0",
-            "define": "ENABLE_VR_MODULE"
-        },
-        {
             "name": "com.unity.modules.xr",
             "expression": "1.0.0",
             "define": "ENABLE_XR_MODULE"

@@ -192,7 +192,7 @@ namespace UnityEngine.Rendering.Universal
         Material m_CameraMotionVecMaterial = null;
 
         internal bool isPostProcessActive { get => m_PostProcess != null; }
-        
+
         internal DeferredLights deferredLights { get => m_DeferredLights; }
         internal LayerMask prepassLayerMask { get; set; }
         internal LayerMask opaqueLayerMask { get; set; }
@@ -267,7 +267,7 @@ namespace UnityEngine.Rendering.Universal
 
             this.stripShadowsOffVariants = data.stripShadowsOffVariants;
             this.stripAdditionalLightOffVariants = data.stripAdditionalLightOffVariants;
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
 #if PLATFORM_WINRT || PLATFORM_ANDROID
             // AdditionalLightOff variant is available on HL&Quest platform due to performance consideration.
             this.stripAdditionalLightOffVariants = !PlatformAutoDetect.isXRMobile;
@@ -362,7 +362,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_DrawOffscreenUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.BeforeRenderingPostProcessing, true);
             m_DrawOverlayUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, false); // after m_FinalBlitPass
-            
+
             //No postProcessData means that post processes are disabled
             if (data.postProcessData != null)
             {
@@ -444,7 +444,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_DeferredLights != null && !m_DeferredLights.UseFramebufferFetch)
                 m_GBufferPass?.Dispose();
-            
+
             m_MainLightShadowCasterPass?.Dispose();
             m_AdditionalLightsShadowCasterPass?.Dispose();
         }
@@ -684,7 +684,7 @@ namespace UnityEngine.Rendering.Universal
             if (renderingLayerProvidesByDepthNormalPass)
                 inputSummary.requiresNormalsTexture = true;
         }
-        
+
         internal static bool PlatformRequiresExplicitMsaaResolve()
         {
 #if UNITY_EDITOR
