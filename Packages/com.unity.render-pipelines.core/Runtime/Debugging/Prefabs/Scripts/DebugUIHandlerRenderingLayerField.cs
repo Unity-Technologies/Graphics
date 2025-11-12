@@ -1,3 +1,8 @@
+#if ENABLE_UGUI_PACKAGE && (UNITY_EDITOR || DEVELOPMENT_BUILD)
+#define ENABLE_RENDERING_DEBUGGER_UI
+#endif
+#if ENABLE_RENDERING_DEBUGGER_UI
+
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.UI;
@@ -150,3 +155,5 @@ namespace UnityEngine.Rendering.UI
         }
     }
 }
+
+#endif

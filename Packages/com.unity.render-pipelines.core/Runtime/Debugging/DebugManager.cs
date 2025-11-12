@@ -1,10 +1,17 @@
+#if ENABLE_UGUI_PACKAGE && (UNITY_EDITOR || DEVELOPMENT_BUILD)
+#define ENABLE_RENDERING_DEBUGGER_UI
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using UnityEngine.Assertions;
+
+#if ENABLE_RENDERING_DEBUGGER_UI
 using UnityEngine.Rendering.UI;
+#endif
 
 namespace UnityEngine.Rendering
 {
@@ -123,11 +130,13 @@ namespace UnityEngine.Rendering
 
         int? m_RequestedPanelIndex;
 
+#if ENABLE_RENDERING_DEBUGGER_UI
         GameObject m_Root;
         DebugUIHandlerCanvas m_RootUICanvas;
 
         GameObject m_PersistentRoot;
         DebugUIHandlerPersistentCanvas m_RootUIPersistentCanvas;
+#endif
 
         /// <summary>
         /// Is any debug window or UI currently active.
@@ -175,8 +184,10 @@ namespace UnityEngine.Rendering
         /// </summary>
         public void ReDrawOnScreenDebug()
         {
+#if ENABLE_RENDERING_DEBUGGER_UI
             if (displayRuntimeUI)
                 m_RootUICanvas?.RequestHierarchyReset();
+#endif
         }
 
         /// <summary>
@@ -205,6 +216,7 @@ namespace UnityEngine.Rendering
             return hash;
         }
 
+#if ENABLE_RENDERING_DEBUGGER_UI
         internal void RegisterRootCanvas(DebugUIHandlerCanvas root)
         {
             Assert.IsNotNull(root);
@@ -273,6 +285,7 @@ namespace UnityEngine.Rendering
                     break;
             }
         }
+#endif
 
         void OnPanelDirty(DebugUI.Panel panel)
         {

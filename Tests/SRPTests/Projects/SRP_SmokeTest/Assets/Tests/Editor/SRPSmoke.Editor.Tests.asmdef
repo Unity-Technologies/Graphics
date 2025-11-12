@@ -13,7 +13,8 @@
         "Unity.RenderPipelines.HighDefinition.Runtime",
         "Unity.RenderPipelines.Core.Editor.Tests",
         "Unity.RenderPipelines.Core.Runtime.Tests",
-        "UnityEngine.TestTools.Graphics"
+        "UnityEngine.TestTools.Graphics",
+        "Unity.Graphics.Testing.Common.Editor"
     ],
     "includePlatforms": [
         "Editor"

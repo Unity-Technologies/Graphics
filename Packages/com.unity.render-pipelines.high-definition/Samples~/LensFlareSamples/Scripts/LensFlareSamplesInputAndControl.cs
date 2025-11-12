@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
-using UnityEngine.UI;
 
 [ExecuteInEditMode]
 public class LensFlareSamplesInputAndControl : MonoBehaviour

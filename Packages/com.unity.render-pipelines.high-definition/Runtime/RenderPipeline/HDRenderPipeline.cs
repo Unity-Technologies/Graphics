@@ -7,7 +7,6 @@ using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RendererUtils;
-using UnityEngine.UI;
 
 #if UNITY_EDITOR
 using System.Reflection;

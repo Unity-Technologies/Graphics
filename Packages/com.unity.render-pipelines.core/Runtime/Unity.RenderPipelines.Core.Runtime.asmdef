@@ -49,6 +49,11 @@
             "name": "com.unity.modules.physics",
             "expression": "1.0.0",
             "define": "ENABLE_PHYSICS_MODULE"
+        },
+        {
+          "name": "com.unity.ugui",
+          "expression": "1.0.0",
+          "define": "ENABLE_UGUI_PACKAGE"
         }
     ],
     "noEngineReferences": false
