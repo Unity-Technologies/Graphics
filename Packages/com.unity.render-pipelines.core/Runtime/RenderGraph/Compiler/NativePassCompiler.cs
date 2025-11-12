@@ -1783,28 +1783,24 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     currBeginAttachment = new AttachmentDescriptor(renderTargetInfo.format);
 
                     // Set up the RT pointers
-                    if (attachments[i].memoryless == false)
+                    var rtHandle = resources.GetTexture(currAttachmentHandle.index);
+
+                    //HACK: Always set the loadstore target even if StoreAction == DontCare or Resolve
+                    //and LoadAction == Clear or DontCare
+                    //in these cases you could argue setting the loadStoreTarget to NULL and only set the resolveTarget
+                    //but this confuses the backend (on vulkan) and in general is not how the lower level APIs tend to work.
+                    //because of the RenderTexture duality where we always bundle store+resolve targets as one RTex
+                    //it does become impossible to have a memoryless loadStore texture with a memoryfull resolve
+                    //but that is why we mark this as a hack and future work to fix.
+                    //The proper (and planned) solution would be to move away from the render texture duality.
+                    RenderTargetIdentifier rtidAllSlices = rtHandle;
+                    currBeginAttachment.loadStoreTarget = new RenderTargetIdentifier(rtidAllSlices, attachments[i].mipLevel, CubemapFace.Unknown, attachments[i].depthSlice);
+
+                    if (attachments[i].storeAction == RenderBufferStoreAction.Resolve ||
+                        attachments[i].storeAction == RenderBufferStoreAction.StoreAndResolve)
                     {
-                        var rtHandle = resources.GetTexture(currAttachmentHandle.index);
-
-                        //HACK: Always set the loadstore target even if StoreAction == DontCare or Resolve
-                        //and LoadAction == Clear or DontCare
-                        //in these cases you could argue setting the loadStoreTarget to NULL and only set the resolveTarget
-                        //but this confuses the backend (on vulkan) and in general is not how the lower level APIs tend to work.
-                        //because of the RenderTexture duality where we always bundle store+resolve targets as one RTex
-                        //it does become impossible to have a memoryless loadStore texture with a memoryfull resolve
-                        //but that is why we mark this as a hack and future work to fix.
-                        //The proper (and planned) solution would be to move away from the render texture duality.
-                        RenderTargetIdentifier rtidAllSlices = rtHandle;
-                        currBeginAttachment.loadStoreTarget = new RenderTargetIdentifier(rtidAllSlices, attachments[i].mipLevel, CubemapFace.Unknown, attachments[i].depthSlice);
-
-                        if (attachments[i].storeAction == RenderBufferStoreAction.Resolve ||
-                            attachments[i].storeAction == RenderBufferStoreAction.StoreAndResolve)
-                        {
-                            currBeginAttachment.resolveTarget = rtHandle;
-                        }
+                        currBeginAttachment.resolveTarget = rtHandle;
                     }
-                    // In the memoryless case it's valid to not set both loadStoreTarget/and resolveTarget as the backend will allocate a transient one
 
                     currBeginAttachment.loadAction = attachments[i].loadAction;
                     currBeginAttachment.storeAction = attachments[i].storeAction;
