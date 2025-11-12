@@ -6,6 +6,7 @@ public class UniversalGraphicsTestSettings : GraphicsTestSettings
     public bool XRCompatible = true;
     public bool gpuDrivenCompatible = true;
     public bool CheckMemoryAllocation = true;
+    public bool Ignored;
 
     [System.Serializable]
     public enum RenderBackendCompatibility

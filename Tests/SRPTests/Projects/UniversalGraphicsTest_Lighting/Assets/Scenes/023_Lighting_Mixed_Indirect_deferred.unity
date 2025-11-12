@@ -396,6 +396,7 @@ MonoBehaviour:
   WaitFrames: 0
   XRCompatible: 1
   CheckMemoryAllocation: 1
+  Ignored: 1
 --- !u!20 &1865670500
 Camera:
   m_ObjectHideFlags: 0

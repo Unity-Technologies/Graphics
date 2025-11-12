@@ -81,6 +81,9 @@ public class UniversalGraphicsTests
         if (!settings.gpuDrivenCompatible && GPUResidentDrawerRequested())
             Assert.Ignore("Test scene is not compatible with GPU Driven and and will be skipped.");
 
+        if (settings.Ignored)
+            Assert.Ignore("The test scene has been permanently ignored.");
+
         // Check for RenderGraph compatibility and skip test if needed.
         bool isUsingRenderGraph = RenderGraphGraphicsAutomatedTests.enabled ||
             (!GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>()?.enableRenderCompatibilityMode ?? false);
