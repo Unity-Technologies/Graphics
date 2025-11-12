@@ -68,11 +68,7 @@ namespace UnityEditor.Rendering
             rootVisualElement.RegisterCallback<GeometryChangedEvent>(_ =>
             {
                 SaveSplitViewFixedPaneHeight(); // Window resized - save the current pane height
-
-                // TwoPaneSplitView also updates draglineanchor offset using the same event, conflicting with what we
-                // do here. Deferring our panel height update to next frame solves a bug with dragline "jumping" when
-                // window is resized down vertically and the lower panel is already at minimum height.
-                rootVisualElement.schedule.Execute(UpdatePanelHeights);
+                UpdatePanelHeights();
             });
 
             var contentSplitView = rootVisualElement.Q<TwoPaneSplitView>(Names.kContentContainer);

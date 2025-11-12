@@ -312,7 +312,6 @@ namespace UnityEditor.Rendering
             public readonly List<ResourceRWBlock> resourceBlocks = new();
 
             public VisualElement leftGridLine;
-            public VisualElement rightGridLine;
 
             public bool hasPassCompatibilityTooltip;
             public bool isPassCompatibleToMerge;
@@ -1190,7 +1189,7 @@ namespace UnityEditor.Rendering
 
             if (!m_ResourceFilterEnabled)
                 return true;
-            
+
             if (resource.imported && !m_ResourceFilter.HasFlag(ResourceFilter.ImportedResources))
                 return false;
             if (type == RenderGraphResourceType.Texture && !m_ResourceFilter.HasFlag(ResourceFilter.Textures))

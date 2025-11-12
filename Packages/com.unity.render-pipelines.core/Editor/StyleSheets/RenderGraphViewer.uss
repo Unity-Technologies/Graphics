@@ -45,6 +45,10 @@
     background-color: var(--side-panel-background-color);
 }
 
+#panel-container #unity-dragline-anchor {
+    opacity: 0;
+}
+
 /* Header */
 #header-container {
     flex-direction: row;
@@ -65,10 +69,17 @@
     justify-content: flex-end;
     flex-grow: 1;
     background-color: var(--unity-colors-toolbar-background);
+    overflow: hidden;
 }
 
 #search-field {
     max-width: 200px;
+    margin-left: 6px;
+    height: 17px;
+    width: 200px;
+    min-width: 50px;
+    flex-shrink: 1;
+    align-self: center;
 }
 
 #header-container .unity-base-popup-field__label {
@@ -112,16 +123,19 @@
 #pass-filter-field {
     height: var(--header-container-height);
     min-width: 86px;
+    flex-shrink: 0;
 }
 
 #view-options-field {
     height: var(--header-container-height);
     min-width: 111px;
+    flex-shrink: 0;
 }
 
 #resource-filter-field {
     height: var(--header-container-height);
     min-width: 111px;
+    flex-shrink: 0;
 }
 
 #header-container DropdownField .unity-base-popup-field__text {
@@ -560,14 +574,6 @@ ScrollView TextElement {
     margin-top: 2px;
     flex-grow: 0;
     flex-shrink: 0;
-}
-
-.panel-search-field {
-    margin-left: 6px;
-    height: 16px;
-    max-width: 350px;
-    min-width: 200px;
-    align-self: center;
 }
 
 /* Resource List panel only */
