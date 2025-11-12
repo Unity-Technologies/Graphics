@@ -56,12 +56,12 @@ namespace UnityEditor.ShaderGraph
         static string Unity_SceneDepthDifference_Linear01(
             [Slot(0, Binding.None, ShaderStageCapability.Fragment)] out Vector1 Out,
             [Slot(1, Binding.ScreenPosition)] Vector2 SceneUV,
-            [Slot(2, Binding.WorldSpacePosition)] Vector2 PositionWS)
+            [Slot(2, Binding.ViewSpacePosition)] Vector2 PositionVS)
         {
             return
 @"
 {
-    $precision dist = Remap01(length(PositionWS), _ProjectionParams.y, _ProjectionParams.z);
+    $precision dist = Remap01(length(PositionVS), _ProjectionParams.y, _ProjectionParams.z);
 #if defined(UNITY_REVERSED_Z)
     Out = Linear01Depth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams) - dist;
 #else
@@ -74,12 +74,12 @@ namespace UnityEditor.ShaderGraph
         static string Unity_SceneDepthDifference_Raw(
             [Slot(0, Binding.None, ShaderStageCapability.Fragment)] out Vector1 Out,
             [Slot(1, Binding.ScreenPosition)] Vector2 SceneUV,
-            [Slot(2, Binding.WorldSpacePosition)] Vector3 PositionWS)
+            [Slot(2, Binding.ViewSpacePosition)] Vector3 PositionVS)
         {
             return
 @"
 {
-    $precision deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(PositionWS, GetWorldToHClipMatrix()).z;
+    $precision deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(PositionVS, GetWorldToHClipMatrix()).z;
 #if defined(UNITY_REVERSED_Z)
     Out = deviceDepth - SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy);
 #else
@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph
         static string Unity_SceneDepthDifference_Eye(
             [Slot(0, Binding.None, ShaderStageCapability.Fragment)] out Vector1 Out,
             [Slot(1, Binding.ScreenPosition)] Vector2 SceneUV,
-            [Slot(2, Binding.WorldSpacePosition)] Vector3 PositionWS)
+            [Slot(2, Binding.ViewSpacePosition)] Vector3 PositionVS)
         {
             return
 @"
@@ -100,17 +100,17 @@ namespace UnityEditor.ShaderGraph
     if (IsPerspectiveProjection())
     {
 #if defined(UNITY_REVERSED_Z)
-        Out = LinearEyeDepth(ComputeWorldSpacePosition(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V) - length(PositionWS);
+        Out = LinearEyeDepth(ComputeWorldSpacePosition(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V) - length(PositionVS);
 #else
-        Out = length(PositionWS) - LinearEyeDepth(ComputeWorldSpacePosition(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V);
+        Out = length(PositionVS) - LinearEyeDepth(ComputeWorldSpacePosition(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V);
 #endif
     }
     else
     {
 #if defined(UNITY_REVERSED_Z)
-        Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams) - length(PositionWS);
+        Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams) - length(PositionVS);
 #else
-        Out = length(PositionWS) - LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams);
+        Out = length(PositionVS) - LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams);
 #endif
     }
 }
@@ -129,7 +129,7 @@ namespace UnityEditor.ShaderGraph
 
         NeededCoordinateSpace IMayRequirePosition.RequiresPosition(ShaderStageCapability stageCapability)
         {
-            return NeededCoordinateSpace.World;
+            return NeededCoordinateSpace.View;
         }
     }
 }
