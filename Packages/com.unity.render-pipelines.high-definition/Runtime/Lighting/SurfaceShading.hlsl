@@ -87,10 +87,9 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
         // Apply the volumetric cloud shadow if relevant
         // We evaluate them here instead of inside EvaluateLight_Directional to be able to apply it on objects
         // with transmission and still benefit from shadow dimmer and colored shadows
-        if (light.shadowIndex >= 0 && _VolumetricCloudsShadowOriginToggle.w == 1.0)
+        if (_VolumetricCloudsShadowOriginToggle.w == 1.0)
         {
             cloudShadow = EvaluateVolumetricCloudsShadows(light, posInput.positionWS);
-            lightLoopContext.shadowValue *= cloudShadow;
         }
 #endif
 
@@ -105,6 +104,7 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
 #endif
         {
             SHADOW_TYPE shadow = EvaluateShadow_Directional(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData));
+            shadow *= cloudShadow;
             float NdotL  = dot(bsdfData.normalWS, L); // No microshadowing when facing away from light (use for thin transmission as well)
             shadow *= NdotL >= 0.0 ? ComputeMicroShadowing(GetAmbientOcclusionForMicroShadowing(bsdfData), NdotL, _MicroShadowOpacity) : 1.0;
 
