@@ -440,7 +440,7 @@ namespace UnityEditor.Rendering.Universal
         private void RefreshView()
         {
             PopulateData();
-            batchListView.RefreshItems();
+            batchListView?.RefreshItems();
             OnSelectionChanged();
 
             ResetDirty();
