@@ -2279,7 +2279,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static ShadowMapUpdateType GetShadowUpdateType(LightType lightType, ShadowUpdateMode shadowUpdateMode, bool alwaysDrawDynamicShadows, bool directionalHasCachedAtlas)
         {
             if (shadowUpdateMode == ShadowUpdateMode.EveryFrame) return ShadowMapUpdateType.Dynamic;
-#if UNITY_2021_1_OR_NEWER
             if (alwaysDrawDynamicShadows)
             {
                 if (lightType == LightType.Directional)
@@ -2291,7 +2290,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return ShadowMapUpdateType.Mixed;
                 }
             }
-#endif
+
             return ShadowMapUpdateType.Cached;
         }
 
@@ -2411,7 +2410,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var requestIndices = shadowRequestIndices;
             for (int index = 0; index < count; index++)
             {
-                requestIndices[index] = shadowManager.ReserveShadowResolutions(viewportSize, shadowMapType, GetInstanceID(), index, updateType);
+                requestIndices[index] = shadowManager.ReserveShadowResolutions(viewportSize, shadowMapType, GetEntityId(), index, updateType);
             }
         }
 
@@ -3522,7 +3521,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 HDLightRenderDatabase lightEntities = HDLightRenderDatabase.instance;
                 lightEntity = lightEntities.CreateEntity(autoDestroy);
-                lightEntities.AttachGameObjectData(lightEntity, legacyLight.GetInstanceID(), this, legacyLight.gameObject);
+                lightEntities.AttachGameObjectData(lightEntity, legacyLight.GetEntityId(), this, legacyLight.gameObject);
             }
 
             UpdateRenderEntity();

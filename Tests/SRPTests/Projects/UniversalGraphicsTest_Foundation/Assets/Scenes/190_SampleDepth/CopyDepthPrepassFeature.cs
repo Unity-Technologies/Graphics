@@ -69,9 +69,9 @@ internal class ThreeCopyDepths : ScriptableRenderPass
 
     public ThreeCopyDepths(ref Shader copyDepthShader)
     {
-        m_CopyDepthPass1 = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthShader, copyToDepth: true, customPassName: "First Copy");
-        m_CopyDepthPass2 = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthShader, copyToDepth: true, copyResolvedDepth: true, customPassName: "Second Copy");
-        m_CopyDepthPass3 = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthShader, copyToDepth: true, copyResolvedDepth: true, customPassName: "Third Copy");
+        m_CopyDepthPass1 = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthShader, customPassName: "First Copy");
+        m_CopyDepthPass2 = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthShader, customPassName: "Second Copy");
+        m_CopyDepthPass3 = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthShader, customPassName: "Third Copy");
     }
 
     internal void EnqueuePasses(ScriptableRenderer renderer)

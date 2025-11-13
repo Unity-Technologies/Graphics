@@ -1,13 +1,24 @@
+#if ENABLE_UGUI_PACKAGE && (UNITY_EDITOR || DEVELOPMENT_BUILD)
+#define ENABLE_RENDERING_DEBUGGER_UI
+#endif
+
 #if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
 #define USE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.UI;
 using UnityEngine.InputSystem.EnhancedTouch;
 #endif
 using System;
 using System.Collections;
 using System.Diagnostics;
+using UnityEngine;
+
+#if USE_INPUT_SYSTEM && ENABLE_RENDERING_DEBUGGER_UI
+using UnityEngine.InputSystem.UI;
+#endif
+
+#if ENABLE_RENDERING_DEBUGGER_UI
 using UnityEngine.EventSystems;
+#endif
 
 namespace UnityEngine.Rendering
 {
@@ -80,6 +91,7 @@ namespace UnityEngine.Rendering
 
         void EnsureExactlyOneEventSystem()
         {
+#if ENABLE_RENDERING_DEBUGGER_UI
             var eventSystems = FindObjectsByType<EventSystem>(FindObjectsSortMode.None);
             var debugEventSystem = GetComponent<EventSystem>();
 
@@ -97,6 +109,7 @@ namespace UnityEngine.Rendering
             {
                 StartCoroutine(DoAfterInputModuleUpdated(CheckInputModuleExists));
             }
+#endif
         }
 
         IEnumerator DoAfterInputModuleUpdated(Action action)
@@ -111,13 +124,15 @@ namespace UnityEngine.Rendering
 
         void CheckInputModuleExists()
         {
+#if ENABLE_RENDERING_DEBUGGER_UI
             if (EventSystem.current != null && EventSystem.current.currentInputModule == null)
             {
                 Debug.LogWarning("Found a game object with EventSystem component but no corresponding BaseInputModule component - Debug UI input might not work correctly.");
             }
+#endif
         }
 
-#if USE_INPUT_SYSTEM
+#if USE_INPUT_SYSTEM && ENABLE_RENDERING_DEBUGGER_UI
         void AssignDefaultActions()
         {
             if (EventSystem.current != null && EventSystem.current.currentInputModule is InputSystemUIInputModule inputSystemModule)
@@ -143,6 +158,7 @@ namespace UnityEngine.Rendering
 
         void CreateDebugEventSystem()
         {
+#if ENABLE_RENDERING_DEBUGGER_UI
             gameObject.AddComponent<EventSystem>();
 #if USE_INPUT_SYSTEM
             gameObject.AddComponent<InputSystemUIInputModule>();
@@ -150,10 +166,12 @@ namespace UnityEngine.Rendering
 #else
             gameObject.AddComponent<StandaloneInputModule>();
 #endif
+#endif
         }
 
         void DestroyDebugEventSystem()
         {
+#if ENABLE_RENDERING_DEBUGGER_UI
             var eventSystem = GetComponent<EventSystem>();
 #if USE_INPUT_SYSTEM
             var inputModule = GetComponent<InputSystemUIInputModule>();
@@ -167,6 +185,7 @@ namespace UnityEngine.Rendering
             CoreUtils.Destroy(GetComponent<BaseInput>());
 #endif
             CoreUtils.Destroy(eventSystem);
+#endif
         }
 
         void Update()
@@ -187,6 +206,7 @@ namespace UnityEngine.Rendering
                 debugManager.displayRuntimeUI = !debugManager.displayRuntimeUI;
             }
 
+#if ENABLE_RENDERING_DEBUGGER_UI
             if (debugManager.displayRuntimeUI)
             {
                 if (debugManager.GetAction(DebugAction.ResetAll) != 0.0f)
@@ -203,6 +223,7 @@ namespace UnityEngine.Rendering
             }
 
             m_RuntimeUiWasVisibleLastFrame = debugManager.displayRuntimeUI;
+#endif
         }
 
         static IEnumerator RefreshRuntimeUINextFrame()

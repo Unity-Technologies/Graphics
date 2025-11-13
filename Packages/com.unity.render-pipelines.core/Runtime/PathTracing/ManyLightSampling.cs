@@ -22,7 +22,7 @@ namespace UnityEngine.PathTracing.Core
 
     internal static class LightGridUtils
     {
-        public static Vector3Int ComputeLightGridDims(float3 sceneBounds, int maxLightGridCellCount, GridSizingStrategy lightGridSizingStrategy)
+        public static Vector3Int ComputeLightGridDims(Vector3 sceneBounds, int maxLightGridCellCount, GridSizingStrategy lightGridSizingStrategy)
         {
             if (lightGridSizingStrategy == GridSizingStrategy.Uniform)
             {
@@ -131,12 +131,12 @@ namespace UnityEngine.PathTracing.Core
             _sceneBounds = sceneBounds;
 
             _lightGridDims = LightGridUtils.ComputeLightGridDims(sceneBounds.size, LightGridCellCount, LightGridSizingStrategy);
-            float3 div = new float3(1.0f / _lightGridDims.x, 1.0f / _lightGridDims.y, 1.0f / _lightGridDims.z);
-            Vector3 cellSize = sceneBounds.size * div;
+            Vector3 div = new Vector3(1.0f / _lightGridDims.x, 1.0f / _lightGridDims.y, 1.0f / _lightGridDims.z);
+            Vector3 cellSize = Vector3.Scale(sceneBounds.size, div);
             _cellSize = cellSize;
             // The length of the diagonal
             _cellSize.w = Mathf.Sqrt(cellSize.x * cellSize.x + cellSize.y * cellSize.y + cellSize.z * cellSize.z);
-            _invCellSize = new float4(1.0f) / _cellSize;
+            _invCellSize = new Vector4(1.0f / _cellSize.x, 1.0f / _cellSize.y, 1.0f / _cellSize.z, 1.0f / _cellSize.w);
 
             BindComputeResources(cmd, lightState, sceneBounds, samplingResources);
 
@@ -274,12 +274,12 @@ namespace UnityEngine.PathTracing.Core
             int activeCandidates = NumCandidates == -1 ? lightState.LightCount : Mathf.Min(NumCandidates, lightState.LightCount);
 
             _lightGridDims = LightGridUtils.ComputeLightGridDims(sceneBounds.size, LightGridCellCount, LightGridSizingStrategy);
-            float3 div = new float3(1.0f / _lightGridDims.x, 1.0f / _lightGridDims.y, 1.0f / _lightGridDims.z);
-            Vector3 cellSize = sceneBounds.size * div;
+            Vector3 div = new Vector3(1.0f / _lightGridDims.x, 1.0f / _lightGridDims.y, 1.0f / _lightGridDims.z);
+            Vector3 cellSize = Vector3.Scale(sceneBounds.size, div);
             _cellSize = cellSize;
             // The length of the diagonal
             _cellSize.w = Mathf.Sqrt(cellSize.x * cellSize.x + cellSize.y * cellSize.y + cellSize.z * cellSize.z);
-            _invCellSize = new float4(1.0f) / _cellSize;
+            _invCellSize = new Vector4(1.0f / _cellSize.x, 1.0f / _cellSize.y, 1.0f / _cellSize.z, 1.0f / _cellSize.w);
 
             SamplingResources.Bind(cmd, samplingResources);
 

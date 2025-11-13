@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.UI;
 
 #if USE_INPUT_SYSTEM
 using UnityEngine.InputSystem;

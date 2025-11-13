@@ -291,7 +291,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext rgContext) =>
                 {
                     var isYFlipped = RenderingUtils.IsHandleYFlipped(rgContext, in data.color);
                     ExecutePass(data, rgContext.cmd, data.rendererListHdl, isYFlipped);

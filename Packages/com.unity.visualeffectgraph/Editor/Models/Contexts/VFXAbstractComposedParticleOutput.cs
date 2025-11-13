@@ -421,11 +421,17 @@ namespace UnityEditor.VFX
         {
             if (m_Topology != null && m_Shading != null)
             {
+                var currentName = name;
                 MarkCacheAsDirty();
                 base.CheckGraphBeforeImport();
                 if (!VFXGraph.explicitCompile)
                 {
-                    ResyncSlots(true);
+                    bool slotChanged = ResyncSlots(true);
+                    if (!slotChanged && currentName != name)
+                    {
+                        //`Invalidate(this, InvalidationCause.kUIChangedTransient)` won't trigger Modified/onModified
+                        Invalidate(InvalidationCause.kUIChangedTransient);
+                    }
                 }
             }
         }

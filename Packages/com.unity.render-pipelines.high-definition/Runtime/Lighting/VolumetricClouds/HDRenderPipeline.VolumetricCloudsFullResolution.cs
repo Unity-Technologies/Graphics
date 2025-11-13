@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle cloudsDepth;
         }
 
-        VolumetricCloudsOutput RenderVolumetricClouds_FullResolution(RenderGraph renderGraph, HDCamera hdCamera, TVolumetricCloudsCameraType cameraType, TextureHandle colorBuffer, TextureHandle depthPyramid)
+        VolumetricCloudsOutput RenderVolumetricClouds_FullResolution(RenderGraph renderGraph, HDCamera hdCamera, TVolumetricCloudsCameraType cameraType, in TextureHandle colorBuffer, in TextureHandle depthPyramid)
         {
             using (var builder = renderGraph.AddUnsafePass<VolumetricCloudsFullResolutionData>("Volumetric Clouds Full Resolution", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricClouds)))
             {
@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 CreateOutputTextures(renderGraph, builder, settings, out passData.cloudsLighting, out passData.cloudsDepth);
 
                 builder.SetRenderFunc(
-                    (VolumetricCloudsFullResolutionData data, UnsafeGraphContext ctx) =>
+                    static (VolumetricCloudsFullResolutionData data, UnsafeGraphContext ctx) =>
                     {
                         TraceVolumetricClouds_FullResolution(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd), data.parameters,
                             data.ambientProbeBuffer, data.colorBuffer, data.depthPyramid,

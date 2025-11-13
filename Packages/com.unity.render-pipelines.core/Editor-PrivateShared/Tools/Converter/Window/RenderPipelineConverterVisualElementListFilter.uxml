@@ -1,0 +1,31 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement style="flex-direction: row;">
+        <ui:Button name="pendingToggle" class="toggle-button-left" tooltip="Pending">
+            <ui:VisualElement class="toggle-content" style="flex-direction: row; align-items: center;">
+                <ui:Image name="icon" class="toggle-icon" />
+                <ui:Label name="label" text="Pending" class="toggle-label" />
+            </ui:VisualElement>
+        </ui:Button>
+
+        <ui:Button name="warningToggle" class="toggle-button-middle" tooltip="Warnings">
+            <ui:VisualElement class="toggle-content" style="flex-direction: row; align-items: center;">
+                <ui:Image name="icon" class="toggle-icon" />
+                <ui:Label name="label" class="toggle-label" />
+            </ui:VisualElement>
+        </ui:Button>
+
+        <ui:Button name="errorToggle" class="toggle-button-middle" tooltip="Errors">
+            <ui:VisualElement class="toggle-content" style="flex-direction: row; align-items: center;">
+                <ui:Image name="icon" class="toggle-icon" />
+                <ui:Label name="label" class="toggle-label" />
+            </ui:VisualElement>
+        </ui:Button>
+
+        <ui:Button name="successToggle" class="toggle-button-right" tooltip="Success">
+            <ui:VisualElement class="toggle-content" style="flex-direction: row; align-items: center;">
+                <ui:Image name="icon" class="toggle-icon" />
+                <ui:Label name="label" class="toggle-label" />  
+            </ui:VisualElement>
+        </ui:Button>
+    </ui:VisualElement>
+</ui:UXML>

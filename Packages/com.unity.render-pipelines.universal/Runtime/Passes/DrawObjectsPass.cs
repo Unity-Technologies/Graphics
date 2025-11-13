@@ -225,7 +225,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return cameraData.renderer.useDepthPriming && isOpaque && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth);
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle colorTarget, TextureHandle depthTarget, TextureHandle mainShadowsTexture, TextureHandle additionalShadowsTexture, uint batchLayerMask = uint.MaxValue, bool isMainOpaquePass = false)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle colorTarget, in TextureHandle depthTarget, in TextureHandle mainShadowsTexture, in TextureHandle additionalShadowsTexture, uint batchLayerMask = uint.MaxValue, bool isMainOpaquePass = false)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
@@ -302,7 +302,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
                 }
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     // Currently we only need to call this additional pass when the user
                     // doesn't want transparent objects to receive shadows
@@ -356,8 +356,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle colorTarget, TextureHandle renderingLayersTexture, TextureHandle depthTarget,
-            TextureHandle mainShadowsTexture, TextureHandle additionalShadowsTexture, RenderingLayerUtils.MaskSize maskSize, uint batchLayerMask = uint.MaxValue)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle colorTarget, in TextureHandle renderingLayersTexture, in TextureHandle depthTarget,
+            in TextureHandle mainShadowsTexture, in TextureHandle additionalShadowsTexture, RenderingLayerUtils.MaskSize maskSize, uint batchLayerMask = uint.MaxValue)
         {
             using (var builder = renderGraph.AddRasterRenderPass<RenderingLayersPassData>(passName, out var passData, profilingSampler))
             {
@@ -421,7 +421,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
                 }
 
-                builder.SetRenderFunc((RenderingLayersPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (RenderingLayersPassData data, RasterGraphContext context) =>
                 {
                     // Enable Rendering Layers
                     context.cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, true);

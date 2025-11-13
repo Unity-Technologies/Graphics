@@ -140,8 +140,8 @@ namespace UnityEngine.Rendering.Universal
             DebugHandler.ConfigureColorDescriptorForDebugScreen(ref descriptor, cameraData.pixelWidth, cameraData.pixelHeight);
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_PassthroughRT, descriptor, name: "_HDRDebugDummyRT");
         }
-        
-        internal void RenderHDRDebug(RenderGraph renderGraph, UniversalCameraData cameraData, TextureHandle srcColor, TextureHandle overlayUITexture, TextureHandle dstColor, HDRDebugMode hdrDebugMode)
+
+        internal void RenderHDRDebug(RenderGraph renderGraph, UniversalCameraData cameraData, in TextureHandle srcColor, in TextureHandle overlayUITexture, in TextureHandle dstColor, HDRDebugMode hdrDebugMode)
         {
             bool requiresCIExyData = hdrDebugMode != HDRDebugMode.ValuesAbovePaperWhite;
             Vector4 luminanceParameters = GetLuminanceParameters(cameraData);
@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering.Universal
                     passData.passThrough = intermediateRT;
                     builder.UseTexture(intermediateRT, AccessFlags.Write);
 
-                    builder.SetRenderFunc((PassDataCIExy data, UnsafeGraphContext context) =>
+                    builder.SetRenderFunc(static (PassDataCIExy data, UnsafeGraphContext context) =>
                     {
                         ExecuteCIExyPrepass(CommandBufferHelpers.GetNativeCommandBuffer(context.cmd), data, data.srcColor, data.xyBuffer, data.passThrough);
                     });
@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.Universal
                     builder.UseTexture(overlayUITexture);
                 }
 
-                builder.SetRenderFunc((PassDataDebugView data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassDataDebugView data, RasterGraphContext context) =>
                 {
                     data.material.enabledKeywords = null;
                     Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(in context, in data.srcColor, in data.dstColor);

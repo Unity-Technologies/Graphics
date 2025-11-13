@@ -186,6 +186,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// but also in unit testing.
         /// </summary>
         internal static JobHandle ScheduleClusteringJobs(
+            bool hasMainLight,
+            bool supportsAdditionalLights,
             NativeArray<VisibleLight> lights,
             NativeArray<VisibleReflectionProbe> probes,
             NativeArray<uint> zBins,
@@ -207,7 +209,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             out int wordsPerTile
         )
         {
-            localLightCount = lights.Length;
+            localLightCount = supportsAdditionalLights ? lights.Length: 0;
             // The lights array first has directional lights, and then local lights. We traverse the list to find the
             // index of the first local light.
             var firstLocalLightIdx = 0;
@@ -217,8 +219,18 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             localLightCount -= firstLocalLightIdx;
 
-            // If there's 1 or more directional lights, one of them must be the main light
-            directionalLightCount = firstLocalLightIdx > 0 ? firstLocalLightIdx - 1 : 0;
+            // If there's 1 or more directional lights, one of them could be the main light
+            if (firstLocalLightIdx > 0)
+            {
+
+                directionalLightCount = firstLocalLightIdx;
+                if (hasMainLight)
+                    directionalLightCount -= 1;
+            }
+            else
+            {
+                directionalLightCount = 0;
+            }
 
             var localLights = lights.GetSubArray(firstLocalLightIdx, localLightCount);
 
@@ -404,6 +416,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var viewToClips = new Fixed2<float4x4>(cameraData.GetProjectionMatrix(0), cameraData.GetProjectionMatrix(math.min(1, viewCount - 1)));
 
                 m_CullingHandle = ScheduleClusteringJobs(
+                    lightData.mainLightIndex != -1,
+                    lightData.supportsAdditionalLights,
                     lightData.visibleLights,
                     renderingData.cullResults.visibleReflectionProbes,
                     m_ZBins,
@@ -452,7 +466,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((SetupLightPassData data, UnsafeGraphContext rgContext) =>
+                builder.SetRenderFunc(static (SetupLightPassData data, UnsafeGraphContext rgContext) =>
                 {
                     data.forwardLights.SetupLights(rgContext.cmd, data.renderingData, data.cameraData, data.lightData);
                 });
@@ -649,12 +663,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             int additionalLightsCount = SetupPerObjectLightIndices(cullResults, lightData);
             if (additionalLightsCount > 0)
             {
+                int mainLight = lightData.mainLightIndex;
                 if (m_UseStructuredBuffer)
                 {
                     NativeArray<ShaderInput.LightData> additionalLightsData = new NativeArray<ShaderInput.LightData>(additionalLightsCount, Allocator.Temp);
                     for (int i = 0, lightIter = 0; i < lights.Length && lightIter < maxAdditionalLightsCount; ++i)
                     {
-                        if (lightData.mainLightIndex != i)
+                        if (mainLight != i)
                         {
                             ShaderInput.LightData data;
                             InitializeLightConstants(lights, i, supportsLightLayers,
@@ -681,7 +696,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     for (int i = 0, lightIter = 0; i < lights.Length && lightIter < maxAdditionalLightsCount; ++i)
                     {
-                        if (lightData.mainLightIndex != i)
+                        if (mainLight != i)
                         {
                             InitializeLightConstants(
                                 lights,

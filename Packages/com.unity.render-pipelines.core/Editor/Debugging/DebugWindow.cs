@@ -11,6 +11,7 @@ using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
+using static UnityEngine.Rendering.DebugUI;
 
 namespace UnityEditor.Rendering
 {
@@ -30,7 +31,7 @@ namespace UnityEditor.Rendering
             get => Mathf.Max(0, DebugManager.instance.PanelIndex(selectedPanelDisplayName));
             set
             {
-                var displayName = DebugManager.instance.PanelDiplayName(value);
+                var displayName = DebugManager.instance.PanelDisplayName(value);
                 if (!string.IsNullOrEmpty(displayName))
                     selectedPanelDisplayName = displayName;
             }
@@ -263,7 +264,7 @@ namespace UnityEditor.Rendering
                 UpdateWidgetStates(panel);
         }
 
-        DebugState GetOrCreateDebugStateForValueField(DebugUI.Widget widget)
+        internal DebugState GetOrCreateDebugStateForValueField(DebugUI.Widget widget)
         {
             // Skip runtime & readonly only items
             if (widget.isInactiveInEditor)
@@ -284,6 +285,12 @@ namespace UnityEditor.Rendering
                     state.SetValue(valueField.GetValue(), valueField);
                     m_WidgetStates[queryPath] = state;
                 }
+            }
+
+            if (valueField is ISyncUIState sync && sync.syncState)
+            {
+                state.SetValue(valueField.GetValue(), valueField);
+                sync.syncState = false;
             }
 
             return state;

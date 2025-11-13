@@ -325,7 +325,7 @@ namespace UnityEngine.Rendering
         private SurfaceCachePatchFilteringParameterSet _patchFilteringParams;
 
         private float _shortHysteresis;
-        readonly private uint _defragCount = 2;
+        readonly private uint _defragCount;
         readonly private uint _environmentCubemapResolution = 32;
         readonly private float _albedoBoost = 1.0f;
 
@@ -592,6 +592,7 @@ namespace UnityEngine.Rendering
 
         public SurfaceCache(
             SurfaceCacheResourceSet resources,
+            uint defragCount,
             SurfaceCacheGridParameterSet gridParams,
             SurfaceCacheEstimationParameterSet estimationParams,
             SurfaceCachePatchFilteringParameterSet patchFilteringParams)
@@ -614,6 +615,8 @@ namespace UnityEngine.Rendering
 
             Debug.Assert(0.0f <= patchFilteringParams.TemporalSmoothing && patchFilteringParams.TemporalSmoothing <= 1.0f);
             _shortHysteresis = Mathf.Lerp(0.75f, 0.95f, patchFilteringParams.TemporalSmoothing);
+
+            _defragCount = defragCount;
         }
 
         public void RecordPreparation(RenderGraph renderGraph, uint frameIdx)

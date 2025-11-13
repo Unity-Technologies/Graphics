@@ -10,21 +10,16 @@ namespace  UnityEngine.Rendering.HighDefinition
         public static TextureHandle CreateVTFeedbackBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
         {
             bool msaa = msaaSamples != MSAASamples.None;
-#if UNITY_2020_2_OR_NEWER
             FastMemoryDesc colorFastMemDesc;
             colorFastMemDesc.inFastMemory = true;
             colorFastMemDesc.residencyFraction = 1.0f;
             colorFastMemDesc.flags = FastMemoryFlags.SpillTop;
-#endif
 
             return renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true)
                 {
-                    colorFormat = GetFeedbackBufferFormat(), enableRandomWrite = !msaa, bindTextureMS = msaa, msaaSamples = msaa ? msaaSamples : MSAASamples.None, clearBuffer = true, clearColor = Color.white, name = msaa ? "VTFeedbackMSAA" : "VTFeedback", fallBackToBlackTexture = true
-#if UNITY_2020_2_OR_NEWER
-                    ,
+                    colorFormat = GetFeedbackBufferFormat(), enableRandomWrite = !msaa, bindTextureMS = msaa, msaaSamples = msaa ? msaaSamples : MSAASamples.None, clearBuffer = true, clearColor = Color.white, name = msaa ? "VTFeedbackMSAA" : "VTFeedback", fallBackToBlackTexture = true,
                     fastMemoryDesc = colorFastMemDesc
-#endif
                 });
         }
 
@@ -95,7 +90,7 @@ namespace  UnityEngine.Rendering.HighDefinition
             public TextureHandle lowres;
         }
 
-        public void Resolve(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle input)
+        public void Resolve(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle input)
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.VirtualTexturing))
             {

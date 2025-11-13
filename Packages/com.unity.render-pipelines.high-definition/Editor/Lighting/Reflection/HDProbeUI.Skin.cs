@@ -26,11 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static readonly GUIContent k_CustomTextureContent = EditorGUIUtility.TrTextContent("Texture");
 
         const string IconReflectionProbeGizmoId =
-#if UNITY_2019_3_OR_NEWER
             "PreMatSphere"
-#else
-            "ReflectionProbe Gizmo"
-#endif
         ;
     }
 }

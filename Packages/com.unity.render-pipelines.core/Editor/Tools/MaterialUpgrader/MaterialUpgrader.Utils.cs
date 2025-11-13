@@ -120,7 +120,7 @@ namespace UnityEditor.Rendering
             }
         }
 
-        static MaterialUpgrader GetUpgrader(List<MaterialUpgrader> upgraders, Material material)
+        internal static MaterialUpgrader GetUpgrader(List<MaterialUpgrader> upgraders, Material material)
         {
             if (material == null || material.shader == null)
                 return null;

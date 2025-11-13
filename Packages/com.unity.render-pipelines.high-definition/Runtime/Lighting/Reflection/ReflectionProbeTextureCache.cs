@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             textureSize = GetTextureSizeInAtlas(probe);
 
-            int textureID = probe.texture.GetInstanceID();
+            int textureID = probe.texture.GetEntityId();
 
             // Include texture size in ID using simple hash
             const int kPrime = 31;

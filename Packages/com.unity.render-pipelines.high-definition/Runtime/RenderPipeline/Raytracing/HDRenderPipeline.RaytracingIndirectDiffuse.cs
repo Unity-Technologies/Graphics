@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputBuffer;
         }
 
-        TextureHandle DirGenRTGI(RenderGraph renderGraph, HDCamera hdCamera, GlobalIllumination settings, TextureHandle depthStencilbuffer, TextureHandle normalBuffer, bool fullResolution)
+        TextureHandle DirGenRTGI(RenderGraph renderGraph, HDCamera hdCamera, GlobalIllumination settings, in TextureHandle depthStencilbuffer, in TextureHandle normalBuffer, bool fullResolution)
         {
             using (var builder = renderGraph.AddUnsafePass<DirGenRTGIPassData>("Generating the rays for RTGI", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseDirectionGeneration)))
             {
@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (DirGenRTGIPassData data, UnsafeGraphContext ctx) =>
+                    static (DirGenRTGIPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Inject the ray-tracing sampling data
@@ -207,7 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle UpscaleRTGI(RenderGraph renderGraph, HDCamera hdCamera, GlobalIllumination settings,
-            TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle indirectDiffuseBuffer, TextureHandle directionBuffer, bool fullResolution)
+            TextureHandle depthPyramid, in TextureHandle normalBuffer, in TextureHandle indirectDiffuseBuffer, in TextureHandle directionBuffer, bool fullResolution)
         {
             using (var builder = renderGraph.AddUnsafePass<UpscaleRTGIPassData>("Upscale the RTGI result", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseUpscale)))
             {
@@ -237,7 +237,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (UpscaleRTGIPassData data, UnsafeGraphContext ctx) =>
+                    static (UpscaleRTGIPassData data, UnsafeGraphContext ctx) =>
                     {
                         // Inject all the parameters for the compute
                         ctx.cmd.SetComputeTextureParam(data.upscaleCS, data.upscaleKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
@@ -275,7 +275,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderIndirectDiffusePerformance(RenderGraph renderGraph, HDCamera hdCamera,
-            in PrepassOutput prepassOutput, TextureHandle historyValidationTexture,
+            in PrepassOutput prepassOutput, in TextureHandle historyValidationTexture,
             TextureHandle rayCountTexture, Texture skyTexture,
             ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
@@ -337,7 +337,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool enableDecals;
         }
 
-        TextureHandle QualityRTGI(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthStencilBuffer, TextureHandle normalBuffer, TextureHandle rayCountTexture)
+        TextureHandle QualityRTGI(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthStencilBuffer, in TextureHandle normalBuffer, in TextureHandle rayCountTexture)
         {
             using (var builder = renderGraph.AddUnsafePass<TraceQualityRTGIPassData>("Quality RT Indirect Diffuse", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseEvaluation)))
             {
@@ -398,7 +398,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
 
                 builder.SetRenderFunc(
-                    (TraceQualityRTGIPassData data, UnsafeGraphContext ctx) =>
+                    static (TraceQualityRTGIPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Define the shader pass to use for the indirect diffuse pass
@@ -462,7 +462,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderIndirectDiffuseQuality(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle depthStencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle historyValidationTexture,
+            TextureHandle depthStencilBuffer, in TextureHandle normalBuffer, in TextureHandle motionVectors, in TextureHandle historyValidationTexture,
             TextureHandle rayCountTexture, Texture skyTexture,
             ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
@@ -489,7 +489,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 IndirectDiffuseHistoryBufferAllocatorFunction, 1);
         }
 
-        TextureHandle DenoiseRTGI(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle rtGIBuffer, TextureHandle depthStencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle historyValidationTexture, bool fullResolution)
+        TextureHandle DenoiseRTGI(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle rtGIBuffer, in TextureHandle depthStencilBuffer, in TextureHandle normalBuffer, in TextureHandle motionVectorBuffer, in TextureHandle historyValidationTexture, bool fullResolution)
         {
             var giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
             if (giSettings.denoise)
@@ -562,8 +562,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderRayTracedIndirectDiffuse(RenderGraph renderGraph, HDCamera hdCamera,
-            in PrepassOutput prepassOutput, TextureHandle historyValidationTexture,
-            Texture skyTexture, TextureHandle rayCountTexture,
+            in PrepassOutput prepassOutput, in TextureHandle historyValidationTexture,
+            Texture skyTexture, in TextureHandle rayCountTexture,
             ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();

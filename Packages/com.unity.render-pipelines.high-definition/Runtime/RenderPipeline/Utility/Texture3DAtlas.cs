@@ -178,7 +178,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
                 hash = 23 * hash + texture.imageContentsHash.GetHashCode();
 #endif
-                hash = 23 * hash + texture.GetInstanceID().GetHashCode();
+                hash = 23 * hash + texture.GetEntityId().GetHashCode();
                 hash = 23 * hash + texture.graphicsFormat.GetHashCode();
                 hash = 23 * hash + texture.width.GetHashCode();
                 hash = 23 * hash + texture.height.GetHashCode();

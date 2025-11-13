@@ -559,7 +559,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public LocalKeyword outputFogTransmittanceKeyword;
         }
 
-        internal void CombineVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle resolvedDepthBuffer, in HDRenderPipeline.TransparentPrepassOutput transparentPrepass, ref TextureHandle opticalFogTransmittance)
+        internal void CombineVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle colorBuffer, in TextureHandle resolvedDepthBuffer, in HDRenderPipeline.TransparentPrepassOutput transparentPrepass, ref TextureHandle opticalFogTransmittance)
         {
             if (!transparentPrepass.clouds.valid)
                 return;
@@ -620,7 +620,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 builder.SetRenderFunc(
-                    (VolumetricCloudsCombineOpaqueData data, UnsafeGraphContext ctx) =>
+                    static (VolumetricCloudsCombineOpaqueData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         data.cloudsCombineMaterial.SetTexture(HDShaderIDs._VolumetricCloudsLightingTexture, data.volumetricCloudsLightingTexture);
@@ -651,7 +651,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool valid;
         }
 
-        internal void RenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid,
+        internal void RenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle colorBuffer, in TextureHandle depthPyramid,
             ref HDRenderPipeline.TransparentPrepassOutput transparentPrepass, ref TextureHandle opticalFogTransmittance)
         {
             // If the current volume does not enable the feature, quit right away.

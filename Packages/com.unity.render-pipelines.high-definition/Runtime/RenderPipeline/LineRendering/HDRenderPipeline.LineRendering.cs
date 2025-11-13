@@ -126,6 +126,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle lineTargetMV;
 
             public float writeDepthAndMovecAlphaTreshold;
+            public int lineCompositePassColorIndex;
+            public int lineCompositePassDepthMovecIndex;
+            public int lineCompositePassAllIndex;
         }
 
         internal static bool LineRenderingIsEnabled(HDCamera hdCamera, out HighQualityLineRenderingVolumeComponent settings)
@@ -151,7 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        void RenderLines(RenderGraph renderGraph, TextureHandle depthPrepassTexture, HDCamera hdCamera, BuildGPULightListOutput lightLists)
+        void RenderLines(RenderGraph renderGraph, in TextureHandle depthPrepassTexture, HDCamera hdCamera, BuildGPULightListOutput lightLists)
         {
             if (!LineRenderingIsEnabled(hdCamera, out var settings))
                 return;
@@ -175,7 +178,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.targetMV    = m_LineMVBuffer;
                 builder.UseTexture(passData.targetMV, AccessFlags.Write);
 
-                builder.SetRenderFunc((LineRendererSetupData data, UnsafeGraphContext ctx) =>
+                builder.SetRenderFunc(static (LineRendererSetupData data, UnsafeGraphContext ctx) =>
                 {
                     var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
 
@@ -238,7 +241,7 @@ namespace UnityEngine.Rendering.HighDefinition
             PushFullScreenDebugTexture(renderGraph, m_LineColorBuffer, FullScreenDebugMode.HighQualityLines);
         }
 
-        void ComposeLines(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle motionVectorBuffer, int compositionMode)
+        void ComposeLines(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle colorBuffer, in TextureHandle depthBuffer, in TextureHandle motionVectorBuffer, int compositionMode)
         {
             if (!LineRenderingIsEnabled(hdCamera, out var settings))
                 return;
@@ -273,8 +276,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lineTargetMV    = m_LineMVBuffer;
                 builder.UseTexture(passData.lineTargetMV, AccessFlags.Read);
                 passData.writeDepthAndMovecAlphaTreshold = settings.writeDepthAlphaThreshold.value;
+                passData.lineCompositePassColorIndex = m_LineCompositePassColorIndex;
+                passData.lineCompositePassDepthMovecIndex = m_LineCompositePassDepthMovecIndex;
+                passData.lineCompositePassAllIndex = m_LineCompositePassAllIndex;
 
-                builder.SetRenderFunc((LineRendererCompositeData passData, UnsafeGraphContext ctx) =>
+                builder.SetRenderFunc(static (LineRendererCompositeData passData, UnsafeGraphContext ctx) =>
                 {
                     var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                     passData.compositePass.SetTexture(HDShaderIDs._LineColorTexture,  passData.lineTargetColor);
@@ -283,12 +289,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.compositePass.SetFloat(HDShaderIDs._LineAlphaDepthWriteThreshold, passData.writeDepthAndMovecAlphaTreshold );
                     if (passData.writeDepthAndMovecAlphaTreshold > 0)
                     {
-                        HDUtils.DrawFullScreen(natCmd, passData.compositePass, new RenderTargetIdentifier[] { passData.mainTargetColor}, passData.mainTargetDepth, null, m_LineCompositePassColorIndex); //color composite
-                        HDUtils.DrawFullScreen(natCmd, passData.compositePass, new RenderTargetIdentifier[] { passData.mainTargetMV }, passData.mainTargetDepth, null, m_LineCompositePassDepthMovecIndex); //depth & movec composite
+                        HDUtils.DrawFullScreen(natCmd, passData.compositePass, new RenderTargetIdentifier[] { passData.mainTargetColor}, passData.mainTargetDepth, null, passData.lineCompositePassColorIndex); //color composite
+                        HDUtils.DrawFullScreen(natCmd, passData.compositePass, new RenderTargetIdentifier[] { passData.mainTargetMV }, passData.mainTargetDepth, null, passData.lineCompositePassDepthMovecIndex); //depth & movec composite
                     }
                     else
                     {
-                        HDUtils.DrawFullScreen(natCmd, passData.compositePass, new RenderTargetIdentifier[] { passData.mainTargetColor, passData.mainTargetMV }, passData.mainTargetDepth, null, m_LineCompositePassAllIndex); //composite all
+                        HDUtils.DrawFullScreen(natCmd, passData.compositePass, new RenderTargetIdentifier[] { passData.mainTargetColor, passData.mainTargetMV }, passData.mainTargetDepth, null, passData.lineCompositePassAllIndex); //composite all
                     }
                 });
             }

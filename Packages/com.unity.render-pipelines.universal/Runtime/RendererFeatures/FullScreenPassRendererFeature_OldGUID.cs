@@ -31,7 +31,7 @@ class FullScreenPassRendererFeature_OldGUID : UnityEngine.Rendering.Universal.Fu
         var serializedObject = new SerializedObject(this);
         var scriptProperty = serializedObject.FindProperty("m_Script");
         MonoScript currentScript = scriptProperty.objectReferenceValue as MonoScript;
-        AssetDatabase.TryGetGUIDAndLocalFileIdentifier(currentScript.GetInstanceID(), out var currentGUID, out var _);
+        AssetDatabase.TryGetGUIDAndLocalFileIdentifier(currentScript.GetEntityId(), out var currentGUID, out var _);
         if (currentGUID != oldGUID)
             return;
 

@@ -10,12 +10,42 @@ namespace UnityEditor.Rendering.Converter
         public string assetPath { get; }
         public string guid { get; }
 
-        public string name => assetPath;
+        public string name
+        {
+            get
+            {
+                var obj = LoadObject();
+                if (obj != null)
+                    return obj.name;
 
-        public string info => guid;
+                // Fallback to asset path name
+                return System.IO.Path.GetFileNameWithoutExtension(assetPath);
+            }
+        }
 
-        public bool isEnabled { get; set; }
-        public string isDisabledMessage { get; set; }
+        public string info => assetPath;
+
+        public bool isEnabled { get; set; } = true;
+        public string isDisabledMessage { get; set; } = string.Empty;
+
+        public Texture2D icon
+        {
+            get
+            {
+                var obj = LoadObject();
+                if (obj == null)
+                    return null;
+
+                // Try the object's thumbnail/icon
+                var icon = AssetPreview.GetMiniThumbnail(obj);
+                if (icon != null) return icon;
+
+                // Fallback to type icon
+                var type = obj.GetType();
+                icon = EditorGUIUtility.ObjectContent(null, type).image as Texture2D;
+                return icon;
+            }
+        }
 
         public RenderPipelineConverterAssetItem(string id)
         {
@@ -79,7 +109,9 @@ namespace UnityEditor.Rendering.Converter
 
         public void OnClicked()
         {
-            EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath));
+            var obj = LoadObject();
+            if (obj != null)
+                EditorGUIUtility.PingObject(obj);
         }
     }
 }

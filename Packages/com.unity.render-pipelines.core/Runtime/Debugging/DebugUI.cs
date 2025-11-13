@@ -248,6 +248,15 @@ namespace UnityEngine.Rendering
             string queryPath { get; }
         }
 
+        internal interface ISyncUIState
+        {
+            /// <summary>
+            /// If the state on the editor ui needs to be sync
+            /// </summary>
+            /// <returns>true if needs to be sync</returns>
+            bool syncState { get; set; }
+        }
+
         /// <summary>
         /// Any widget that implements this will be considered for serialization (only if the setter is set and thus is not read-only)
         /// </summary>

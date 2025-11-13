@@ -33,8 +33,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDitherMaskSeed"
             }
 
             HLSLPROGRAM
-            #pragma target 4.5
-
             // -------------------------------------
             // Shader Stages
             #pragma vertex Vert

@@ -81,7 +81,7 @@ namespace UnityEditor.Rendering
                 return;
 
             GraphicsSettings.GetRenderPipelineSettings<GPUResidentDrawerResources>()
-                .ForEachFieldOfType<ComputeShader>(computeShader => computeShaderCache.Add(computeShader.GetInstanceID(), computeShader));
+                .ForEachFieldOfType<ComputeShader>(computeShader => computeShaderCache.Add(computeShader.GetEntityId(), computeShader));
         }
 
         /// <summary>

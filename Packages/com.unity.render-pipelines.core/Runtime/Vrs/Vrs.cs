@@ -182,7 +182,7 @@ namespace UnityEngine.Rendering
 
                 builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((ConversionPassData innerPassData, ComputeGraphContext context) =>
+                builder.SetRenderFunc(static (ConversionPassData innerPassData, ComputeGraphContext context) =>
                 {
                     ConversionDispatch(context.cmd, innerPassData);
                 });
@@ -235,7 +235,7 @@ namespace UnityEngine.Rendering
 
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((VisualizationPassData innerPassData, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (VisualizationPassData innerPassData, RasterGraphContext context) =>
                 {
                     // must setup blitter source via the material: it's a typed texture (uint)
                     innerPassData.material.SetTexture(VrsShaders.s_ShadingRateImage, innerPassData.source);

@@ -32,11 +32,16 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal DeferredLights deferredLights;
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle color, TextureHandle depth, TextureHandle[] gbuffer)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            UniversalLightData lightData = frameData.Get<UniversalLightData>();
-            UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
+            var cameraData = frameData.Get<UniversalCameraData>();
+            var resourceData = frameData.Get<UniversalResourceData>();
+            var lightData = frameData.Get<UniversalLightData>();
+            var shadowData = frameData.Get<UniversalShadowData>();
+
+            var color = resourceData.activeColorTexture;
+            var depth = resourceData.activeDepthTexture;
+            var gbuffer = resourceData.gBuffer;
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
@@ -71,9 +76,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
-                    data.deferredLights.ExecuteDeferredPass(context.cmd, data.cameraData, data.lightData, data.shadowData);
+                    data.deferredLights.ExecuteDeferredPass(context.cmd, data.cameraData, data.lightData, data.shadowData, data.gbuffer);
                 });
             }
         }

@@ -10,8 +10,8 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     internal class DBufferCopyDepthPass : CopyDepthPass
     {
-        public DBufferCopyDepthPass(RenderPassEvent evt, Shader copyDepthShader, bool shouldClear = false, bool copyToDepth = false, bool copyResolvedDepth = false)
-            : base(evt, copyDepthShader, shouldClear, copyToDepth, copyResolvedDepth)
+        public DBufferCopyDepthPass(RenderPassEvent evt, Shader copyDepthShader, bool shouldClear = false)
+            : base(evt, copyDepthShader, shouldClear)
         {
         }
 
@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.Universal
             if (!hasCompatibleDepth)
             {
                 //Here we assume that when using depth priming, there is no prepass to the cameraDepthTexture but a copy, so that the texture is a color format. 
-                var source = (useDepthPriming) ? resourceData.cameraDepth : resourceData.cameraDepthTexture;
+                var source = (useDepthPriming || universalRenderer.usesDeferredLighting) ? resourceData.cameraDepth : resourceData.cameraDepthTexture;
 
                 Debug.Assert(source.IsValid(), "DBufferCopyDepthPass needs a valid cameraDepth or cameraDepth texture to copy from. You might be using depth priming, with MSAA and direct to backbuffer rendering, which is not supported.");
                 Debug.Assert(GraphicsFormatUtility.IsDepthFormat(source.GetDescriptor(renderGraph).format), "DBufferCopyDepthPass assumes source has a depth format.");
@@ -46,9 +46,6 @@ namespace UnityEngine.Rendering.Universal
                 depthDesc.depthStencilFormat = cameraData.cameraTargetDescriptor.depthStencilFormat;
                 depthDesc.msaaSamples = 1;
                 resourceData.dBufferDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, DBufferRenderPass.s_DBufferDepthName, true);
-
-                //The code shared with Compatibility Mode has some logic based on the deferred path. Here, we need it to always copy to depth, ignoring any other setting.
-                CopyToDepth = true;
 
                 // Copy the depth texture (filled by a prepass) into the new attachment so it can be used for depth testing
                 Render(renderGraph, resourceData.dBufferDepth, source, resourceData, cameraData, false, "Copy DBuffer Depth");

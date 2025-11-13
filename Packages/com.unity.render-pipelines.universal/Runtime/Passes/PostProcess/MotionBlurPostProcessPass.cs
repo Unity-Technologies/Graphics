@@ -4,68 +4,84 @@ using System.Runtime.CompilerServices; // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal sealed class MotionBlurPostProcessPass : ScriptableRenderPass, IDisposable
+    internal sealed class MotionBlurPostProcessPass : PostProcessPass
     {
-        public const string k_TargetName = "_MotionBlurTarget";
+        public const string k_TargetName = "CameraColorMotionBlur";
 
         Material m_Material;
         bool m_IsValid;
 
-        // Settings
-        public MotionBlur motionBlur { get; set; }
-
-        // Input
-        public TextureHandle sourceTexture { get; set; }
-        // Output
-        public TextureHandle destinationTexture { get; set; } 
-
         public MotionBlurPostProcessPass(Shader shader)
         {
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
-            this.profilingSampler = null;
+            this.profilingSampler = new ProfilingSampler("Blit Motion Blur");
 
             m_Material = PostProcessUtils.LoadShader(shader, passName);
             m_IsValid = m_Material != null;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             CoreUtils.Destroy(m_Material);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsValid()
-        {
-            return m_IsValid;
+            m_IsValid = false;
         }
 
         private class MotionBlurPassData
         {
-            internal TextureHandle sourceTexture;
             internal Material material;
-            internal int passIndex;
             internal Camera camera;
-            internal Experimental.Rendering.XRPass xr;
+            internal TextureHandle sourceTexture;
+            internal int passIndex;
             internal float intensity;
             internal float clamp;
             internal bool enableAlphaOutput;
+            internal Experimental.Rendering.XRPass xr;
         }
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            Assertions.Assert.IsTrue(sourceTexture.IsValid(), $"Source texture must be set for MotionBlurPostProcessPass.");
-            Assertions.Assert.IsTrue(destinationTexture.IsValid(), $"Destination texture must be set for MotionBlurPostProcessPass.");
+            if(!m_IsValid)
+                return;
+
+            // Disable MotionBlur in EditMode, so that editing remains clear and readable.
+            // NOTE: HDRP does the same via CoreUtils::AreAnimatedMaterialsEnabled().
+            // Disable MotionBlurMode.CameraAndObjects on renderers that do not support motion vectors
+            if(!Application.isPlaying)
+                return;
+
+            var motionBlur = volumeStack.GetComponent<MotionBlur>();
+            if (!motionBlur.IsActive())
+                return;
 
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            if (cameraData.isSceneViewCamera)
+                return;
 
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             TextureHandle motionVectorColor = resourceData.motionVectorColor;
+
+            if (motionBlur.mode.value == MotionBlurMode.CameraAndObjects)
+            {
+                if(!motionVectorColor.IsValid())
+                {
+                    var warning = "Disabling Motion Blur for Camera And Objects because of missing motion vectors. The renderer might not support rendering motion vectors.";
+                    const int warningThrottleFrames = 60 * 1; // 60 FPS * 1 sec
+                    if (Time.frameCount % warningThrottleFrames == 0)
+                        Debug.LogWarning(warning);
+
+                    return;
+                }
+            }
+
+            var sourceTexture = resourceData.cameraColor;
+            var destinationTexture = PostProcessUtils.CreateCompatibleTexture(renderGraph, sourceTexture, k_TargetName, true, FilterMode.Bilinear);
+
             TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
 
             var mode = motionBlur.mode.value;
             int passIndex = (int)motionBlur.quality.value;
             passIndex += (mode == MotionBlurMode.CameraAndObjects) ? ShaderPass.k_CameraAndObjectMotionBlurLow : ShaderPass.k_CameraMotionBlurLow;
 
-            using (var builder = renderGraph.AddRasterRenderPass<MotionBlurPassData>("Motion Blur", out var passData, ProfilingSampler.Get(URPProfileId.RG_MotionBlur)))
+            using (var builder = renderGraph.AddRasterRenderPass<MotionBlurPassData>(passName, out var passData, profilingSampler))
             {
                 builder.SetRenderAttachment(destinationTexture, 0, AccessFlags.Write);
                 passData.sourceTexture = sourceTexture;
@@ -84,10 +100,10 @@ namespace UnityEngine.Rendering.Universal
                 passData.material = m_Material;
                 passData.passIndex = passIndex;
                 passData.camera = cameraData.camera;
-                passData.xr = cameraData.xr;
                 passData.enableAlphaOutput = cameraData.isAlphaOutputEnabled;
                 passData.intensity = motionBlur.intensity.value;
                 passData.clamp = motionBlur.clamp.value;
+                passData.xr = cameraData.xr;
                 builder.SetRenderFunc(static (MotionBlurPassData data, RasterGraphContext context) =>
                 {
                     var cmd = context.cmd;
@@ -104,9 +120,9 @@ namespace UnityEngine.Rendering.Universal
                     Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                     Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, data.material, data.passIndex);
                 });
-
-                return;
             }
+
+            resourceData.cameraColor = destinationTexture;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

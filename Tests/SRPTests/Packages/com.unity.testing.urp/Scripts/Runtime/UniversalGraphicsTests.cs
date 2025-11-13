@@ -23,31 +23,6 @@ namespace Unity.Rendering.Universal.Tests
     static bool wasFirstSceneRan = false;
     const int firstSceneAdditionalFrames = 3;
 #endif
-
-        private static bool GPUResidentDrawerRequested()
-        {
-            bool forcedOn = false;
-            foreach (var arg in Environment.GetCommandLineArgs())
-            {
-                if (
-                    arg.Equals(
-                        "-force-gpuresidentdrawer",
-                        StringComparison.InvariantCultureIgnoreCase
-                    )
-                )
-                {
-                    forcedOn = true;
-                    break;
-                }
-            }
-
-            var renderPipelineAsset = GraphicsSettings.currentRenderPipeline;
-            if (renderPipelineAsset is IGPUResidentRenderPipeline mbAsset)
-                return forcedOn || mbAsset.gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled;
-
-            return false;
-        }
-
         public static IEnumerator RunGraphicsTest(SceneGraphicsTestCase testCase)
         {
             Watermark.showDeveloperWatermark = false;
@@ -79,20 +54,6 @@ namespace Unity.Rendering.Universal.Tests
 
             XRDevice.DisableAutoXRCameraTracking(Camera.main, true);
 #endif
-
-            if (!settings.gpuDrivenCompatible && GPUResidentDrawerRequested())
-                Assert.Ignore("Test scene is not compatible with GPU Driven and and will be skipped.");
-
-            // Check for RenderGraph compatibility and skip test if needed.
-            bool isUsingRenderGraph = RenderGraphGlobalContext.IsRenderGraphActive();
-
-            if (isUsingRenderGraph && settings.renderBackendCompatibility ==
-                UniversalGraphicsTestSettings.RenderBackendCompatibility.NonRenderGraph)
-                Assert.Ignore("Test scene is not compatible with Render Graph and will be skipped.");
-            else if (!isUsingRenderGraph && settings.renderBackendCompatibility ==
-                     UniversalGraphicsTestSettings.RenderBackendCompatibility.RenderGraph)
-                Assert.Ignore("Test scene is not compatible with non-Render Graph and will be skipped.");
-
             int waitFrames = 1;
 
             // for OCULUS_SDK or OPENXR_SDK, this ensures we wait for a reliable image rendering before screen capture and image comparison

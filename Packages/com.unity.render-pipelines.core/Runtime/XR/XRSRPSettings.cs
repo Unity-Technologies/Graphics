@@ -2,7 +2,7 @@ using System;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
 using UnityEngine.XR;
 #endif
 
@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
                 return XRSettings.enabled;
 #else
                 return false;
@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
                 if (enabled)
                     return XRSettings.isDeviceActive;
 #endif
@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
                 if (enabled)
                     return XRSettings.loadedDeviceName;
 #endif
@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
                 if (enabled)
                     return XRSettings.supportedDevices;
 #endif
@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
                 if (enabled)
                     return XRSettings.eyeTextureDesc;
 #endif
@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
                 if (enabled)
                     return XRSettings.eyeTextureWidth;
 #endif
@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
                 if (enabled)
                     return XRSettings.eyeTextureHeight;
 #endif
@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
                 if (enabled)
                     return XRSystem.GetOcclusionMeshScale();
 #endif
@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering
             }
             set
             {
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
                 if (enabled)
                     XRSystem.SetOcclusionMeshScale(value);
 #endif
@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
                 if (enabled)
                     return XRSystem.GetUseVisibilityMesh();
 #endif
@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering
             }
             set
             {
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
                 if (enabled)
                     XRSystem.SetUseVisibilityMesh(value);
 #endif
@@ -184,7 +184,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
                 if (enabled)
                     return XRSystem.GetMirrorViewMode();
 #endif
@@ -192,7 +192,7 @@ namespace UnityEngine.Rendering
             }
             set
             {
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
                 if (enabled)
                     XRSystem.SetMirrorViewMode(value);
 #endif

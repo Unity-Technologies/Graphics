@@ -313,7 +313,7 @@ namespace UnityEditor.Rendering
 
             menu.AddSeparator(string.Empty);
 
-            menu.AddItem(Styles.openInRenderingDebugger, false, DebugDisplaySettingsVolume.OpenInRenderingDebugger);
+            menu.AddItem(Styles.openInRenderingDebugger, false, () => DebugDisplaySettingsVolume.OpenInRenderingDebugger());
 
             if (volumeProfile != null)
             {
@@ -399,7 +399,7 @@ namespace UnityEditor.Rendering
 
             menu.AddSeparator(string.Empty);
 
-            menu.AddItem(Styles.openInRenderingDebugger, false, DebugDisplaySettingsVolume.OpenInRenderingDebugger);
+            menu.AddItem(Styles.openInRenderingDebugger, false, () => DebugDisplaySettingsVolume.OpenInRenderingDebugger());
 
             if (volumeProfile != null)
             {

@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.Universal
                 // Setup up the builder
                 builder.AllowPassCulling(false);
                 builder.UseTexture(resourceData.cameraColor);
-                builder.SetRenderFunc((UnsafePassData data, UnsafeGraphContext unsafeContext) =>
+                builder.SetRenderFunc(static (UnsafePassData data, UnsafeGraphContext unsafeContext) =>
                 {
                     var nativeCommandBuffer = CommandBufferHelpers.GetNativeCommandBuffer(unsafeContext.cmd);
                     var captureActions = data.captureActions;

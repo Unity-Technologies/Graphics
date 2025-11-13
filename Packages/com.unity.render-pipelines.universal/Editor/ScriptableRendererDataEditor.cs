@@ -102,9 +102,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (GUILayout.Button("Add Renderer Feature", EditorStyles.miniButton))
                 {
-                    var r = hscope.rect;
-                    var pos = new Vector2(r.x + r.width / 2f, r.yMax + 18f);
-                    FilterWindow.Show(pos, new ScriptableRendererFeatureProvider(this));
+                    FilterWindow.Show(hscope.rect, new ScriptableRendererFeatureProvider(this));
                 }
             }
         }

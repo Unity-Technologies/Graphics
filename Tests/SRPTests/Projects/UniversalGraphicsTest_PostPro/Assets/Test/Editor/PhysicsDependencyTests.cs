@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using NUnit.Framework;
-using UnityEditor.PackageManager;
-using UnityEditor.PackageManager.Requests;
 using UnityEditor.SceneManagement;
 using UnityEngine.TestTools;
+using Unity.Graphics.Tests;
 
 namespace UnityEngine.Rendering.Tests
 {
-    // In order to teste whether URP correctly handles the absence of the Physics module, we need to remove the
+    // In order to test whether URP correctly handles the absence of the Physics module, we need to remove the
     // XR testing package that depends on it.
     //
     // We are testing this with two fixtures:
@@ -23,19 +21,22 @@ namespace UnityEngine.Rendering.Tests
     // BUG: There is a bug where domain reload doesn't not work correctly with UnityOneTimeSetup/UnityOneTimeTearDown. Therefore
     // we cannot use them and need to use UnitySetup/UnityTearDown instead. As a consequence, instead of running tests separately,
     // we run all test code inside a single test body to avoid doing the costly recompilation operation multiple times.
+    // https://jira.unity3d.com/browse/UUM-114078
 
 #if !(ENABLE_VR && ENABLE_XR_MODULE) // When testing XR, we cannot disable Physics as it's required by the XR testing package.
     [TestFixture]
     public class PhysicsDependencyTests_WithoutPhysics : PhysicsDependencyTests
     {
-        public PhysicsDependencyTests_WithoutPhysics() : base(false) { }
+        const string k_XrTestingPackageName = "com.unity.testing.xr";
+
+        public PhysicsDependencyTests_WithoutPhysics() : base(physicsModuleInstalled: false) { }
 
         // BUG: This should be UnityOneTimeSetup
         [UnitySetUp]
         public IEnumerator UnitySetUp()
         {
             // In order to test without Physics module installed, we need to remove any packages that depend on it.
-            yield return PhysicsDependencyTestsHelper.RemovePhysicsPackage();
+            yield return PackageDependencyTestHelper.RemovePackages(k_XrTestingPackageName);
             yield return new WaitForDomainReload();
         }
 
@@ -44,8 +45,8 @@ namespace UnityEngine.Rendering.Tests
         [UnityTearDown]
         public IEnumerator UnityTearDown()
         {
-            // Restore the removed packages afterwards.
-            yield return PhysicsDependencyTestsHelper.AddPhysicsPackage();
+            // Restore the removed packages afterwards. Note: use relative path
+            yield return PackageDependencyTestHelper.AddPackagesRelativePath(k_XrTestingPackageName);
             yield return new WaitForDomainReload();
         }
     }
@@ -54,11 +55,13 @@ namespace UnityEngine.Rendering.Tests
     [TestFixture]
     public class PhysicsDependencyTests_WithPhysics : PhysicsDependencyTests
     {
-        public PhysicsDependencyTests_WithPhysics() : base(true) { }
+        public PhysicsDependencyTests_WithPhysics() : base(physicsModuleInstalled: true) { }
     }
 
     public abstract class PhysicsDependencyTests
     {
+        public const string k_PhysicsModuleName = "com.unity.modules.physics";
+
         readonly bool m_PhysicsModuleInstalled;
 
         public PhysicsDependencyTests(bool physicsModuleInstalled)
@@ -81,7 +84,7 @@ namespace UnityEngine.Rendering.Tests
         public IEnumerator PhysicsModulePresence()
         {
             bool isPhysicsInstalled = false;
-            yield return PhysicsDependencyTestsHelper.IsPhysicsModuleInstalled(result => isPhysicsInstalled = result);
+            yield return PackageDependencyTestHelper.IsPackageInstalled(k_PhysicsModuleName, result => isPhysicsInstalled = result);
 
             if (m_PhysicsModuleInstalled)
                 Assert.True(isPhysicsInstalled, "Test is expecting Physics module to be installed.");
@@ -118,57 +121,5 @@ namespace UnityEngine.Rendering.Tests
         }
     }
 
-    static class PhysicsDependencyTestsHelper
-    {
-        static readonly string k_PhysicsModuleName = "com.unity.modules.physics";
-        static readonly string[] k_PackagesToRemove = { "com.unity.testing.xr" };
-        static readonly string k_RelativePath = "file:../../../Packages/";
 
-        public static IEnumerator RemovePhysicsPackage()
-        {
-            var request = Client.AddAndRemove(null, k_PackagesToRemove);
-            yield return CompleteRequest(request);
-            Client.Resolve();
-        }
-
-        public static IEnumerator AddPhysicsPackage()
-        {
-            // Assuming the packages are all using the same relative path
-            string[] packagePathsToAdd = Array.ConvertAll(k_PackagesToRemove, pkg => k_RelativePath + pkg);
-
-            var request = Client.AddAndRemove(packagePathsToAdd, null);
-            yield return CompleteRequest(request);
-            Client.Resolve();
-        }
-
-        public static IEnumerator IsPhysicsModuleInstalled(System.Action<bool> result)
-        {
-            var request = Client.List(true, true);
-            yield return CompleteRequest(request);
-            bool isInstalled = false;
-            foreach (var pkg in request.Result)
-            {
-                if (pkg.name == k_PhysicsModuleName)
-                {
-                    isInstalled = true;
-                    break;
-                }
-            }
-
-            result?.Invoke(isInstalled);
-        }
-
-        static IEnumerator CompleteRequest(Request request)
-        {
-            while (!request.IsCompleted)
-                yield return null;
-
-            if (request.Status == StatusCode.Success)
-                Debug.Log($"Package request ({request.GetType()}) completed successfully");
-            else if (request.Status >= StatusCode.Failure)
-                Debug.LogError($"Package request ({request.GetType()}) failed: {request.Error.message}");
-
-            yield return request;
-        }
-    }
 }

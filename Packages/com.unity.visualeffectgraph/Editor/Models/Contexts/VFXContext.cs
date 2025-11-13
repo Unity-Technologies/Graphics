@@ -449,6 +449,8 @@ namespace UnityEditor.VFX
                 }
             }
 
+            BreakCyclesVertical(from, to, notify);
+
             if (VFXData.CanConvert(from.ownedType, to.ownedType) && from.ownedType.HasFlag(VFXDataType.Particle))
                 to.InnerSetData(from.GetData(), false);
 
@@ -475,6 +477,95 @@ namespace UnityEditor.VFX
                 from.Invalidate(InvalidationCause.kConnectionChanged);
                 to.Invalidate(InvalidationCause.kConnectionChanged);
             }
+        }
+
+        private static readonly string k_BreakCycleWarning = "The newly connected edge created a cycle in the graph, disconnecting another edge.";
+        public static bool BreakCyclesVertical(VFXContext from, VFXContext to, bool notify) => BreakCyclesVertical(from, to, notify, new HashSet<VFXContext>());
+
+        private static bool BreakCyclesVertical(VFXContext from, VFXContext to, bool notify, HashSet<VFXContext> contexts, bool first = true)
+        {
+            bool found = false;
+            if (from == to)
+            {
+                found = true;
+            }
+            else if (!contexts.Contains(from))
+            {
+                contexts.Add(from);
+                if (from is VFXBasicGPUEvent gpuEvent)
+                {
+                    Debug.Assert(gpuEvent.inputSlots.Count == 1);
+                    var fromSlot = from.inputSlots[0];
+                    foreach (var toSlot in fromSlot.LinkedSlots.ToArray()) // TODO: Remove copy
+                    {
+                        var block = toSlot.owner as VFXBlock;
+                        if (BreakCyclesVertical(block.GetParent(), to, notify, contexts, false))
+                        {
+                            // Try to break horizontal links that cause a cycle
+                            if (first)
+                            {
+                                Debug.LogWarning(k_BreakCycleWarning);
+                                fromSlot.Unlink(toSlot, notify);
+                            }
+                            found |= true;
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var inputSlot in from.inputFlowSlot)
+                    {
+                        foreach (var link in inputSlot.link)
+                        {
+                            found |= BreakCyclesVertical(link.context, to, notify, contexts, first);
+                        }
+                    }
+                }
+            }
+            return found;
+        }
+
+        public static bool BreakCyclesHorizontal(VFXContext from, VFXContext to, bool notify) => BreakCyclesHorizontal(from, to, notify, new HashSet<VFXContext>());
+
+        private static bool BreakCyclesHorizontal(VFXContext from, VFXContext to, bool notify, HashSet<VFXContext> contexts)
+        {
+            bool found = false;
+            if (!contexts.Contains(from))
+            {
+                contexts.Add(from);
+                if (from is VFXBasicGPUEvent gpuEvent)
+                {
+                    Debug.Assert(gpuEvent.inputSlots.Count == 1);
+                    var fromSlot = from.inputSlots[0];
+                    foreach (var toSlot in fromSlot.LinkedSlots)
+                    {
+                        var block = toSlot.owner as VFXBlock;
+                        found |= BreakCyclesHorizontal(block.GetParent(), to, notify, contexts);
+                    }
+                }
+                else
+                {
+                    for (int slotIndex = 0; slotIndex < from.inputFlowSlot.Length; ++slotIndex)
+                    {
+                        var inputSlot = from.inputFlowSlot[slotIndex];
+                        foreach (var link in inputSlot.link.ToArray())
+                        {
+                            // Try to break vertical links that cause a cycle
+                            if (link.context == to)
+                            {
+                                Debug.LogWarning(k_BreakCycleWarning);
+                                InnerUnlink(link.context, from, link.slotIndex, slotIndex, notify);
+                                found = true;
+                            }
+                            else
+                            {
+                                found |= BreakCyclesHorizontal(link.context, to, notify, contexts);
+                            }
+                        }
+                    }
+                }
+            }
+            return found;
         }
 
         public VFXContextSlot[] inputFlowSlot { get { return m_InputFlowSlot == null ? new VFXContextSlot[] { } : m_InputFlowSlot; } }

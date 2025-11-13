@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering.Universal
             RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, ref cullResults, drawingSettings, m_FilteringSettings, renderStateBlock, ref passData.rendererListHdl);
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle cameraDepthTexture, TextureHandle motionVectorColor, TextureHandle motionVectorDepth)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle cameraDepthTexture, in TextureHandle motionVectorColor, in TextureHandle motionVectorDepth)
         {
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
@@ -182,7 +182,7 @@ namespace UnityEngine.Rendering.Universal
                 if (motionVectorDepth.IsValid())
                     builder.SetGlobalTextureAfterPass(motionVectorDepth, Shader.PropertyToID(k_MotionVectorDepthTextureName));
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     if (data.cameraMaterial != null)
                         data.cameraMaterial.SetTexture(s_CameraDepthTextureID, data.cameraDepth);

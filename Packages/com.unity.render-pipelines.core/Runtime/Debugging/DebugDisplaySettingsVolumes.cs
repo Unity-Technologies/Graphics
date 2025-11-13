@@ -4,6 +4,7 @@ using System.Reflection;
 
 #if UNITY_EDITOR
 using UnityEditor;
+using static UnityEngine.Rendering.DebugUI;
 #endif
 
 namespace UnityEngine.Rendering
@@ -283,12 +284,42 @@ namespace UnityEngine.Rendering
         const string k_PanelTitle = "Volume";
 
 #if UNITY_EDITOR
-        internal static void OpenInRenderingDebugger()
+        internal static void OpenInRenderingDebugger(VolumeComponent volumeComponent = null)
         {
             EditorApplication.ExecuteMenuItem("Window/Analysis/Rendering Debugger");
+            var panel = DebugManager.instance.GetPanel(k_PanelTitle);
+            if (panel == null)
+                return;
+
             var idx = DebugManager.instance.FindPanelIndex(k_PanelTitle);
             if (idx != -1)
+            {
                 DebugManager.instance.RequestEditorWindowPanelIndex(idx);
+            }
+
+            // Try to select the given volume component in the component selector drop down
+            if (volumeComponent != null &&
+                VolumeManager.instance.TryGetVolumePathAndType(volumeComponent.GetType(), out var result) &&
+                panel.TryFindChild<DebugUI.EnumField>(Strings.component, out var componentSelector))
+            {
+                int selectedIndex = -1;
+                for (int i = 0; i < componentSelector.enumNames.Length; ++i)
+                {
+                    var current = componentSelector.enumNames[i];
+                    if (current.text.Equals(result.path))
+                    {
+                        selectedIndex = i;
+                        break;
+                    }
+                }
+
+                if (selectedIndex > -1)
+                    EditorApplication.delayCall = () =>
+                    {
+                        componentSelector.SetValue(selectedIndex);
+                        (componentSelector as ISyncUIState).syncState = true;
+                    };
+            }
         }
 #endif
 

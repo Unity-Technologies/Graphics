@@ -4,23 +4,14 @@ using System.Runtime.CompilerServices; // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal sealed class ScalingSetupPostProcessPass : ScriptableRenderPass, IDisposable
+    internal sealed class ScalingSetupPostProcessPass : PostProcessPass
     {
-        public const string k_TargetName = "_ScalingSetupTarget";
+        public const string k_TargetName = "SetupUpscaling";
 
         Material m_Material;
         bool m_IsValid;
 
-        // Settings
-        public Tonemapping tonemapping { get; set; }
-
-        public HDROutputUtils.Operation hdrOperations { get; set; }
-
-        // Input
-        public TextureHandle sourceTexture { get; set; }
-        // Output
-        public TextureHandle destinationTexture { get; set; }
-
+        HDROutputUtils.Operation m_HdrOperations;
 
         public ScalingSetupPostProcessPass(Shader shader)
         {
@@ -29,17 +20,21 @@ namespace UnityEngine.Rendering.Universal
 
             m_Material = PostProcessUtils.LoadShader(shader, passName);
             m_IsValid = m_Material != null;
+
+            // Defaults
+            m_HdrOperations = HDROutputUtils.Operation.None; // HDR disabled.
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             CoreUtils.Destroy(m_Material);
+            m_IsValid = false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsValid()
+        public void Setup(HDROutputUtils.Operation hdrOperations)
         {
-            return m_IsValid;
+            m_HdrOperations = hdrOperations;
         }
 
         private class PostProcessingFinalSetupPassData
@@ -54,14 +49,30 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            Assertions.Assert.IsTrue(sourceTexture.IsValid(), $"Source texture must be set for ScalingSetupPostProcessPass.");
-            Assertions.Assert.IsTrue(destinationTexture.IsValid(), $"Destination texture must be set for ScalingSetupPostProcessPass.");
+            if (!m_IsValid)
+                return;
+
+            var tonemapping = volumeStack.GetComponent<Tonemapping>();
+
+            var cameraData = frameData.Get<UniversalCameraData>();
+            var resourceData = frameData.Get<UniversalResourceData>();
+
+            var sourceTexture = resourceData.cameraColor;
+
+            var scalingSetupDesc = renderGraph.GetTextureDesc(sourceTexture);
+            bool requireHDROutput = PostProcessUtils.RequireHDROutput(cameraData);
+            if (!requireHDROutput)
+            {
+                // Select a UNORM format since we've already performed tonemapping. (Values are in 0-1 range)
+                // This improves precision and is required if we want to avoid excessive banding when FSR is in use.
+                scalingSetupDesc.format = UniversalRenderPipeline.MakeUnormRenderTextureGraphicsFormat();
+            }
+
+            var destinationTexture = PostProcessUtils.CreateCompatibleTexture(renderGraph, scalingSetupDesc, k_TargetName, true, FilterMode.Point);
 
             // Scaled FXAA
             using (var builder = renderGraph.AddRasterRenderPass<PostProcessingFinalSetupPassData>(passName, out var passData, profilingSampler))
             {
-                UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-
                 passData.destinationTexture = destinationTexture;
                 builder.SetRenderAttachment(destinationTexture, 0, AccessFlags.Write);
                 passData.sourceTexture = sourceTexture;
@@ -70,7 +81,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.material = m_Material;
                 passData.cameraData = cameraData;
                 passData.tonemapping = tonemapping;
-                passData.hdrOperations = hdrOperations;
+                passData.hdrOperations = m_HdrOperations;
 
                 builder.SetRenderFunc(static (PostProcessingFinalSetupPassData data, RasterGraphContext context) =>
                 {
@@ -100,6 +111,8 @@ namespace UnityEngine.Rendering.Universal
                     PostProcessUtils.ScaleViewportAndBlit(context, data.sourceTexture, data.destinationTexture, data.cameraData, data.material, isFinalPass);
                 });
             }
+
+            resourceData.cameraColor = destinationTexture;
         }
 
 

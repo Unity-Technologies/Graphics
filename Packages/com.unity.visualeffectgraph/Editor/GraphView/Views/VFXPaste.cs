@@ -824,7 +824,7 @@ namespace UnityEditor.VFX.UI
                 foreach (var parameter in serializableGraph.parameterNodes)
                 {
                     // if we have a parameter with the same name use it else create it with the copied data
-                    VFXParameter p = viewController.graph.children.OfType<VFXParameter>().FirstOrDefault(t => t.GetInstanceID() == parameter.originalInstanceID);
+                    VFXParameter p = viewController.graph.children.OfType<VFXParameter>().FirstOrDefault(t => t.GetEntityId() == parameter.originalInstanceID);
                     if (p == null)
                     {
                         Type type = parameter.value.type;
@@ -891,6 +891,9 @@ namespace UnityEditor.VFX.UI
                     var groupChanged = false;
                     viewController.SyncControllerFromModel(ref groupChanged);
 
+                    var newVfxParameterController = viewController.GetParameterController(newVfxParameter);
+                    var sourceVFXParameterController = viewController.parameterControllers.Single(x => string.Compare(x.exposedName, parameter.name, StringComparison.InvariantCultureIgnoreCase) == 0);
+                    viewController.SetParametersOrder(newVfxParameterController, sourceVFXParameterController.order + 1);
                     newBlackboardItems.Add(newVfxParameter.exposedName);
                 }
             }

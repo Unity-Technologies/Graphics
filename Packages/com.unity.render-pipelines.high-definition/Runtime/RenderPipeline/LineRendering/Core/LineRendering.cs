@@ -216,7 +216,7 @@ namespace UnityEngine.Rendering
                     countVertexMaxPerRenderer = renderDatas.Max(o => o.mesh.vertexCount),
                 });
 
-                builder.SetRenderFunc((GeometryPassData data, UnsafeGraphContext ctx) =>
+                builder.SetRenderFunc(static (GeometryPassData data, UnsafeGraphContext ctx) =>
                 {
                     var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
 
@@ -280,7 +280,7 @@ namespace UnityEngine.Rendering
                     countWorkQUeue  = ComputeWorkQueueCapacity(args.settings.memoryBudget)
                 });
 
-                builder.SetRenderFunc((RasterizationPassData data, ComputeGraphContext ctx) =>
+                builder.SetRenderFunc(static (RasterizationPassData data, ComputeGraphContext ctx) =>
                 {
                     ExecuteRasterizationPass(ctx.cmd, data);
                 });

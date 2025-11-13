@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public TextureHandle Denoise(RenderGraph renderGraph, HDCamera hdCamera, DiffuseDenoiserParameters denoiserParams,
-            TextureHandle noisyBuffer, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle outputBuffer)
+            TextureHandle noisyBuffer, in TextureHandle depthBuffer, in TextureHandle normalBuffer, in TextureHandle outputBuffer)
         {
             using (var builder = renderGraph.AddUnsafePass<DiffuseDenoiserPassData>("DiffuseDenoiser", out var passData, ProfilingSampler.Get(HDProfileId.DiffuseFilter)))
             {
@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (DiffuseDenoiserPassData data, UnsafeGraphContext ctx) =>
+                    static (DiffuseDenoiserPassData data, UnsafeGraphContext ctx) =>
                     {
                         // Generate the point distribution if needed (this is only ran once)
                         if (data.needInit)

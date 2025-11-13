@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
                 builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Read);
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext rgContext) =>
                 {
                     ExecutePass(rgContext.cmd, data, data.rendererList);
                 });

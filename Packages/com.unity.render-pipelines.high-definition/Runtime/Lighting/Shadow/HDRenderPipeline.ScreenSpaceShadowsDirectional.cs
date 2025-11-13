@@ -19,8 +19,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle DenoiseDirectionalScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVetorsBuffer, TextureHandle historyValidityBuffer,
-            TextureHandle noisyBuffer, TextureHandle velocityBuffer, TextureHandle distanceBuffer)
+            in TextureHandle depthBuffer, in TextureHandle normalBuffer, in TextureHandle motionVetorsBuffer, in TextureHandle historyValidityBuffer,
+            in TextureHandle noisyBuffer, in TextureHandle velocityBuffer, in TextureHandle distanceBuffer)
         {
             // Is the history still valid?
             int dirShadowIndex = m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex & (int)LightDefinitions.s_ScreenSpaceShadowIndexMask;
@@ -92,8 +92,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void RenderRayTracedDirectionalScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVetorsBuffer, TextureHandle historyValidityBuffer,
-            TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
+            in TextureHandle depthBuffer, in TextureHandle normalBuffer, in TextureHandle motionVetorsBuffer, in TextureHandle historyValidityBuffer,
+            in TextureHandle rayCountTexture, in TextureHandle screenSpaceShadowArray)
         {
             TextureHandle directionalShadow;
             TextureHandle velocityBuffer;
@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputShadowBuffer, AccessFlags.ReadWrite);
 
                 builder.SetRenderFunc(
-                    (RTSDirectionalTracePassData data, UnsafeGraphContext ctx) =>
+                    static (RTSDirectionalTracePassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Inject the ray-tracing sampling data
@@ -256,8 +256,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void RenderDirectionalLightScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle historyValidityBuffer,
-            TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
+            in TextureHandle depthBuffer, in TextureHandle normalBuffer, in TextureHandle motionVectorsBuffer, in TextureHandle historyValidityBuffer,
+            in TextureHandle rayCountTexture, in TextureHandle screenSpaceShadowArray)
         {
             // Should we be executing anything really?
             bool screenSpaceShadowRequired = m_CurrentSunLightAdditionalLightData != null && (m_CurrentSunShadowMapFlags & HDProcessedVisibleLightsBuilder.ShadowMapFlags.WillRenderScreenSpaceShadow) != 0;
@@ -280,7 +280,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         builder.UseTexture(passData.screenSpaceShadowArray, AccessFlags.ReadWrite);
 
                         builder.SetRenderFunc(
-                            (SSSDirectionalTracePassData data, UnsafeGraphContext ctx) =>
+                            static (SSSDirectionalTracePassData data, UnsafeGraphContext ctx) =>
                             {
                                 var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                                 // If it is screen space but not ray traced, then we can rely on the shadow map

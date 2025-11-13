@@ -27,10 +27,10 @@ namespace UnityEngine.PathTracing.Core
             public static readonly int EmissionTextures = Shader.PropertyToID("g_EmissionTextures");
             public static readonly int TransmissionTextures = Shader.PropertyToID("g_TransmissionTextures");
             public static readonly int AtlasTexelSize = Shader.PropertyToID("g_AtlasTexelSize");
-            public static readonly int PathTracingSkyConditionalResolution = Shader.PropertyToID("_PathTracingSkyConditionalResolution");
-            public static readonly int PathTracingSkyMarginalResolution = Shader.PropertyToID("_PathTracingSkyMarginalResolution");
-            public static readonly int PathTracingSkyConditionalBuffer = Shader.PropertyToID("_PathTracingSkyConditionalBuffer");
-            public static readonly int PathTracingSkyMarginalBuffer = Shader.PropertyToID("_PathTracingSkyMarginalBuffer");
+            public static readonly int EnvironmentCdfConditionalResolution = Shader.PropertyToID("_EnvironmentCdfConditionalResolution");
+            public static readonly int EnvironmentCdfMarginalResolution = Shader.PropertyToID("_EnvironmentCdfMarginalResolution");
+            public static readonly int EnvironmentCdfConditionalBuffer = Shader.PropertyToID("_EnvironmentCdfConditionalBuffer");
+            public static readonly int EnvironmentCdfMarginalBuffer = Shader.PropertyToID("_EnvironmentCdfMarginalBuffer");
             public static readonly int SceneAccelStruct = Shader.PropertyToID("g_SceneAccelStruct");
             public static readonly int EnvTex = Shader.PropertyToID("g_EnvTex");
             public static readonly int LightEvaluations = Shader.PropertyToID("g_LightEvaluations");
@@ -103,10 +103,10 @@ namespace UnityEngine.PathTracing.Core
         // Helper function to set the skybox CDF resources
         internal static void SetEnvSamplingShaderParams(CommandBuffer cmd, IRayTracingShader shader, EnvironmentCDF envCDF)
         {
-            shader.SetIntParam(cmd, ShaderProperties.PathTracingSkyConditionalResolution, envCDF.ConditionalResolution);
-            shader.SetIntParam(cmd, ShaderProperties.PathTracingSkyMarginalResolution, envCDF.MarginalResolution);
-            shader.SetBufferParam(cmd, ShaderProperties.PathTracingSkyConditionalBuffer, envCDF.ConditionalBuffer);
-            shader.SetBufferParam(cmd, ShaderProperties.PathTracingSkyMarginalBuffer, envCDF.MarginalBuffer);
+            shader.SetIntParam(cmd, ShaderProperties.EnvironmentCdfConditionalResolution, envCDF.ConditionalResolution);
+            shader.SetIntParam(cmd, ShaderProperties.EnvironmentCdfMarginalResolution, envCDF.MarginalResolution);
+            shader.SetBufferParam(cmd, ShaderProperties.EnvironmentCdfConditionalBuffer, envCDF.ConditionalBuffer);
+            shader.SetBufferParam(cmd, ShaderProperties.EnvironmentCdfMarginalBuffer, envCDF.MarginalBuffer);
         }
 
         internal static void BindAccelerationStructure(CommandBuffer cmd, IRayTracingShader shader, AccelStructAdapter accel)

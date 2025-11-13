@@ -176,7 +176,7 @@ namespace UnityEngine.Rendering.Universal
         internal static TextureDesc CreateTextureDesc(RenderTextureDescriptor desc,
             TextureSizeMode textureSizeMode = TextureSizeMode.Explicit, int anisoLevel = 1, float mipMapBias = 0,
             FilterMode filterMode = FilterMode.Point, TextureWrapMode wrapMode = TextureWrapMode.Clamp, string name = "")
-        {            
+        {
             var format = (desc.depthStencilFormat != GraphicsFormat.None) ? desc.depthStencilFormat : desc.graphicsFormat;
 
             TextureDesc rgDesc = new TextureDesc(desc.width, desc.height);

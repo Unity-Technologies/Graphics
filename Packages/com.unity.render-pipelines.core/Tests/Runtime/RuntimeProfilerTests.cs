@@ -1,11 +1,5 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.TestTools;
-using UnityEngine.Rendering;
-using UnityEngine.SceneManagement;
 using NUnit.Framework;
 
 namespace UnityEngine.Rendering.Tests
@@ -31,8 +25,8 @@ namespace UnityEngine.Rendering.Tests
             var objects = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.InstanceID);
             foreach (var o in objects)
             {
-                // HACK #2 - must not destroy DebugUpdater, which happens to have an EventSystem.
-                if (o.GetComponent<EventSystem>() == null)
+                // HACK #2 - must not destroy DebugUpdater
+                if (o.GetComponent<DebugUpdater>() == null)
                     CoreUtils.Destroy(o);
             }
 

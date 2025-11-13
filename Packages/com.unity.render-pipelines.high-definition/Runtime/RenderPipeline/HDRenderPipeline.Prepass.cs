@@ -123,12 +123,10 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool clear, MSAASamples msaaSamples, string name = null, bool disableFallback = true)
         {
             bool msaa = msaaSamples != MSAASamples.None;
-#if UNITY_2020_2_OR_NEWER
             FastMemoryDesc fastMemDesc;
             fastMemDesc.inFastMemory = true;
             fastMemDesc.residencyFraction = 1.0f;
             fastMemDesc.flags = FastMemoryFlags.SpillTop;
-#endif
 
             TextureDesc depthDesc = new TextureDesc(Vector2.one, true, true)
             {
@@ -139,9 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 name = name ?? (msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil"),
                 disableFallBackToImportedTexture = disableFallback,
                 fallBackToBlackTexture = true,
-#if UNITY_2020_2_OR_NEWER
                 fastMemoryDesc = fastMemDesc,
-#endif
             };
 
             return renderGraph.CreateTexture(depthDesc);
@@ -150,12 +146,10 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle CreateNormalBuffer(RenderGraph renderGraph, HDCamera hdCamera, MSAASamples msaaSamples)
         {
             bool msaa = msaaSamples != MSAASamples.None;
-#if UNITY_2020_2_OR_NEWER
             FastMemoryDesc fastMemDesc;
             fastMemDesc.inFastMemory = true;
             fastMemDesc.residencyFraction = 1.0f;
             fastMemDesc.flags = FastMemoryFlags.SpillTop;
-#endif
 
             TextureDesc normalDesc = new TextureDesc(Vector2.one, true, true)
             {
@@ -167,9 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableRandomWrite = !msaa,
                 name = msaa ? "NormalBufferMSAA" : "NormalBuffer",
                 fallBackToBlackTexture = true,
-#if UNITY_2020_2_OR_NEWER
                 fastMemoryDesc = fastMemDesc,
-#endif
             };
             return renderGraph.CreateTexture(normalDesc);
         }
@@ -235,10 +227,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return OccluderPass.GBuffer;
         }
 
-        void UpdateInstanceOccluders(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture)
+        void UpdateInstanceOccluders(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthTexture)
         {
             bool isSinglePassXR = hdCamera.xr.enabled && hdCamera.xr.singlePassEnabled;
-            var occluderParams = new OccluderParameters(hdCamera.camera.GetInstanceID())
+            var occluderParams = new OccluderParameters(hdCamera.camera.GetEntityId())
             {
                 subviewCount = isSinglePassXR ? 2 : 1,
                 depthTexture = depthTexture,
@@ -264,7 +256,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool isSinglePassXR = hdCamera.xr.enabled && hdCamera.xr.singlePassEnabled;
             int subviewCount = isSinglePassXR ? 2 : 1;
-            var settings = new OcclusionCullingSettings(hdCamera.camera.GetInstanceID(), occlusionTest)
+            var settings = new OcclusionCullingSettings(hdCamera.camera.GetEntityId(), occlusionTest)
             {
                 instanceMultiplier = (isSinglePassXR && !SystemInfo.supportsMultiview) ? 2 : 1,
             };
@@ -445,7 +437,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public RendererListHandle transparentRenderList;
         }
 
-        void RenderRayTracingDepthPrepass(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, TextureHandle depthBuffer)
+        void RenderRayTracingDepthPrepass(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, in TextureHandle depthBuffer)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 return;
@@ -470,7 +462,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseRendererList(passData.transparentRenderList);
 
                 builder.SetRenderFunc(
-                    (RayTracingDepthPrepassData data, UnsafeGraphContext ctx) =>
+                    static (RayTracingDepthPrepassData data, UnsafeGraphContext ctx) =>
                     {
                         DrawOpaqueRendererList(ctx, data.frameSettings, data.opaqueRenderList);
                         DrawTransparentRendererList(ctx, data.frameSettings, data.transparentRenderList);
@@ -601,7 +593,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         builder.SetRenderAttachment(output.renderingLayersBuffer, 0);
 
                     builder.SetRenderFunc(
-                        (DrawRendererListPassData data, UnsafeGraphContext ctx) =>
+                        static (DrawRendererListPassData data, UnsafeGraphContext ctx) =>
                         {
                             DrawOpaqueRendererList(ctx, data.frameSettings, data.rendererList);
                         });
@@ -644,7 +636,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 builder.SetRenderFunc(
-                    (DrawRendererListPassData data, UnsafeGraphContext ctx) =>
+                    static (DrawRendererListPassData data, UnsafeGraphContext ctx) =>
                     {
                         DrawOpaqueRendererList(ctx, data.frameSettings, data.rendererList);
                     });
@@ -704,7 +696,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseRendererList(passData.rendererList);
 
                 builder.SetRenderFunc(
-                    (DrawRendererListPassData data, UnsafeGraphContext ctx) =>
+                    static (DrawRendererListPassData data, UnsafeGraphContext ctx) =>
                     {
                         DrawOpaqueRendererList(ctx, data.frameSettings, data.rendererList);
                     });
@@ -726,7 +718,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int shadowMaskTextureIndex;
         }
 
-        void SetupGBufferTargets(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle sssBuffer, TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, FrameSettings frameSettings, IUnsafeRenderGraphBuilder builder)
+        void SetupGBufferTargets(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle sssBuffer, in TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, FrameSettings frameSettings, IUnsafeRenderGraphBuilder builder)
         {
             builder.SetRenderAttachmentDepth(prepassOutput.depthBuffer, AccessFlags.ReadWrite);
 
@@ -748,12 +740,10 @@ namespace UnityEngine.Rendering.HighDefinition
             prepassOutput.gbuffer.mrt[currentIndex] = prepassOutput.normalBuffer;
             builder.SetRenderAttachment(prepassOutput.normalBuffer, currentIndex++);
 
-#if UNITY_2020_2_OR_NEWER
             FastMemoryDesc gbufferFastMemDesc;
             gbufferFastMemDesc.inFastMemory = true;
             gbufferFastMemDesc.residencyFraction = 1.0f;
             gbufferFastMemDesc.flags = FastMemoryFlags.SpillTop;
-#endif
 
             // If we are in deferred mode and the SSR is enabled, we need to make sure that the second gbuffer is cleared given that we are using that information for clear coat selection
             bool clearGBuffer2 = clearGBuffer || hdCamera.IsSSREnabled();
@@ -763,10 +753,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     format = GraphicsFormat.R8G8B8A8_UNorm,
                     clearBuffer = clearGBuffer2,
                     clearColor = Color.clear,
-                    name = "GBuffer2"
-#if UNITY_2020_2_OR_NEWER
-                    , fastMemoryDesc = gbufferFastMemDesc
-#endif    
+                    name = "GBuffer2",
+                    fastMemoryDesc = gbufferFastMemDesc
                 });
             builder.SetRenderAttachment(prepassOutput.gbuffer.mrt[currentIndex], currentIndex++);
             prepassOutput.gbuffer.mrt[currentIndex] = renderGraph.CreateTexture(
@@ -775,10 +763,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     format = Builtin.GetLightingBufferFormat(),
                     clearBuffer = clearGBuffer,
                     clearColor = Color.clear,
-                    name = "GBuffer3"
-#if UNITY_2020_2_OR_NEWER
-                    , fastMemoryDesc = gbufferFastMemDesc
-#endif
+                    name = "GBuffer3",
+                    fastMemoryDesc = gbufferFastMemDesc
                 });
             builder.SetRenderAttachment(prepassOutput.gbuffer.mrt[currentIndex], currentIndex++);
 
@@ -838,7 +824,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // RenderGBuffer do the gbuffer pass. This is only called with deferred. If we use a depth prepass, then the depth prepass will perform the alpha testing for opaque alpha tested and we don't need to do it anymore
         // during Gbuffer pass. This is handled in the shader and the depth test (equal and no depth write) is done here.
-        void RenderGBuffer(RenderGraph renderGraph, TextureHandle sssBuffer, TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, CullingResults cull, uint batchLayerMask, HDCamera hdCamera)
+        void RenderGBuffer(RenderGraph renderGraph, in TextureHandle sssBuffer, in TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, CullingResults cull, uint batchLayerMask, HDCamera hdCamera)
         {
             if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred ||
                 !hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
@@ -860,7 +846,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.dBuffer = ReadDBuffer(prepassOutput.dbuffer, builder);
 
                 builder.SetRenderFunc(
-                    (GBufferPassData data, UnsafeGraphContext ctx) =>
+                    static (GBufferPassData data, UnsafeGraphContext ctx) =>
                     {
                         BindDBufferGlobalData(data.dBuffer, ctx);
                         DrawOpaqueRendererList(ctx, data.frameSettings, data.rendererList);
@@ -969,7 +955,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return thicknessTexture;
         }
 
-        void RenderThickness(RenderGraph renderGraph, CullingResults cullingResults, TextureHandle thicknessTexture, TextureHandle depthBuffer, HDCamera hdCamera, RenderQueueRange renderQueue, bool readDepthBuffer)
+        void RenderThickness(RenderGraph renderGraph, CullingResults cullingResults, in TextureHandle thicknessTexture, in TextureHandle depthBuffer, HDCamera hdCamera, RenderQueueRange renderQueue, bool readDepthBuffer)
         {
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
             FrameSettings frameSettings = hdCamera.frameSettings;
@@ -1049,7 +1035,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 builder.SetRenderFunc(
-                    (ThicknessPassData data, UnsafeGraphContext ctx) =>
+                    static (ThicknessPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         int idx = 0;
@@ -1156,7 +1142,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 builder.SetRenderFunc(
-                    (ResolvePrepassData data, UnsafeGraphContext ctx) =>
+                    static (ResolvePrepassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         data.depthResolveMaterial.SetTexture(HDShaderIDs._NormalTextureMS, data.normalBufferMSAA);
@@ -1216,7 +1202,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     output.depthPyramidTexture = passData.outputDepth;
 
                     builder.SetRenderFunc(
-                        (CopyDepthPassData data, UnsafeGraphContext ctx) =>
+                        static (CopyDepthPassData data, UnsafeGraphContext ctx) =>
                         {
                             // TODO: maybe we don't actually need the top MIP level?
                             // That way we could avoid making the copy, and build the MIP hierarchy directly.
@@ -1273,7 +1259,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.resolvedStencil = output.stencilBuffer;
 
                 builder.SetRenderFunc(
-                    (ResolveStencilPassData data, UnsafeGraphContext ctx) =>
+                    static (ResolveStencilPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         if (data.resolveOnly && !data.resolveIsNecessary)
@@ -1445,7 +1431,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.AllowGlobalStateModification(true);
 
                 builder.SetRenderFunc(
-                    (RenderDBufferPassData data, UnsafeGraphContext ctx) =>
+                    static (RenderDBufferPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         natCmd.SetGlobalTexture(HDShaderIDs._DecalPrepassTexture, data.decalBuffer);
@@ -1511,7 +1497,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderAttachmentDepth(passData.depthStencilBuffer, AccessFlags.ReadWrite);
 
                     builder.SetRenderFunc(
-                        (DBufferNormalPatchData data, UnsafeGraphContext ctx) =>
+                        static (DBufferNormalPatchData data, UnsafeGraphContext ctx) =>
                         {
                             data.decalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilReadMask, data.stencilMask);
                             data.decalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilRef, data.stencilRef);
@@ -1588,7 +1574,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderAttachmentDepth(passData.downsampledDepthBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (DownsampleDepthForLowResPassData data, UnsafeGraphContext ctx) =>
+                    static (DownsampleDepthForLowResPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         Vector4 scaleBias = Vector4.zero;
@@ -1641,7 +1627,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.mipGenerator = m_MipGenerator;
 
                 builder.SetRenderFunc(
-                    (GenerateDepthPyramidPassData data, UnsafeGraphContext ctx) =>
+                    static (GenerateDepthPyramidPassData data, UnsafeGraphContext ctx) =>
                     {
                         data.mipGenerator.RenderMinDepthPyramid(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd), data.depthTexture, data.mipInfo);
                     });
@@ -1662,7 +1648,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthBuffer;
         }
 
-        void RenderCameraMotionVectors(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectorsBuffer)
+        void RenderCameraMotionVectors(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthBuffer, in TextureHandle motionVectorsBuffer)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
                 return;
@@ -1680,7 +1666,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderAttachment(passData.motionVectorsBuffer, 0);
 
                 builder.SetRenderFunc(
-                    (CameraMotionVectorsPassData data, UnsafeGraphContext ctx) =>
+                    static (CameraMotionVectorsPassData data, UnsafeGraphContext ctx) =>
                     {
                         data.cameraMotionVectorsMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ObjectMotionVector);
                         data.cameraMotionVectorsMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ObjectMotionVector);

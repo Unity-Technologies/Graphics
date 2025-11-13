@@ -194,7 +194,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public bool SkipShader([DisallowNull] ComputeShader shader, string shaderVariant)
         {
             // Discard any compute shader use for raytracing if none of the RP asset required it
-            if (!HDRPBuildData.instance.playerNeedRaytracing && HDRPBuildData.instance.rayTracingComputeShaderCache.ContainsKey(shader.GetInstanceID()))
+            if (!HDRPBuildData.instance.playerNeedRaytracing && HDRPBuildData.instance.rayTracingComputeShaderCache.ContainsKey(shader.GetEntityId()))
                 return true;
 
             return false;

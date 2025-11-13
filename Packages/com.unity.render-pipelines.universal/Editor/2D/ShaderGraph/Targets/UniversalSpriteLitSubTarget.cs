@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     sealed class UniversalSpriteLitSubTarget : UniversalSubTarget, ILegacyTarget
     {
-        static readonly GUID kSourceCodeGuid = new GUID("ea1514729d7120344b27dcd67fbf34de"); // UniversalSpriteLitSubTarget.cs
+        static readonly UnityEngine.GUID kSourceCodeGuid = new UnityEngine.GUID("ea1514729d7120344b27dcd67fbf34de"); // UniversalSpriteLitSubTarget.cs
 
         public UniversalSpriteLitSubTarget()
         {
@@ -182,6 +182,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = target.sort3DAs2DCompatible ? Universal2DSubTargetDescriptors.RenderStateCollections.Sort3DAs2DCompatible : CoreRenderStates.Default,
                     pragmas = CorePragmas._2DDefault,
                     defines = new DefineCollection(),
+                    keywords = SpriteLitKeywords.Normal,
                     includes = target.sort3DAs2DCompatible ? UniversalMeshLitInfo.Includes.Normal : SpriteLitIncludes.Normal,
 
                     // Custom Interpolator Support
@@ -300,6 +301,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShapeLightType2 },
                 { CoreKeywordDescriptors.ShapeLightType3 },
                 { CoreKeywordDescriptors.DebugDisplay },
+                { CoreKeywordDescriptors.UseSkinnedSprite },
+            };
+
+            public static KeywordCollection Normal = new KeywordCollection
+            {
                 { CoreKeywordDescriptors.UseSkinnedSprite },
             };
 

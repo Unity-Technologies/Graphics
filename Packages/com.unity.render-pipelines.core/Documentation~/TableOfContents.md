@@ -36,6 +36,7 @@
   * [Customize the UI of a setting](customize-ui-for-a-setting.md)
   * [Get custom graphics settings](get-custom-graphics-settings.md)
   * [Include or exclude a setting in your build](choose-whether-unity-includes-a-graphics-setting-in-your-build.md)
+  * [Advanced Properties](advanced-properties.md)
 * [Shaders](shaders.md)
   * [Use shader methods from the SRP Core shader library](built-in-shader-methods.md)
   * [Synchronizing shader code and C#](generating-shader-includes.md)

@@ -61,10 +61,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Force the legacy system to not update the probe
             cubeProbe.mode = ReflectionProbeMode.Custom;
             cubeProbe.refreshMode = ReflectionProbeRefreshMode.ViaScripting;
-#if UNITY_2020_2_OR_NEWER
             if (m_ProbeSettings.mode == ProbeSettings.Mode.Realtime)
                 cubeProbe.renderDynamicObjects = true;
-#endif
 
             // Also update the importance
             cubeProbe.importance = importance;

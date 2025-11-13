@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(passData.source);
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     Execute(context.cmd, data.source);
                 });

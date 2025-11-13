@@ -41,7 +41,7 @@ public class FrameBufferFetchRenderFeature : ScriptableRendererFeature
             context.cmd.DrawProcedural(Matrix4x4.identity, data.material, data.useMSAA? 1 : 0, MeshTopology.Triangles, 3, 1, null);
         }
         
-        private void FBFetchPass(RenderGraph renderGraph, ContextContainer frameData, TextureHandle source, TextureHandle destination, bool useMSAA)
+        private void FBFetchPass(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle source, in TextureHandle destination, bool useMSAA)
         {
             string passName = "FrameBufferFetchPass";
             

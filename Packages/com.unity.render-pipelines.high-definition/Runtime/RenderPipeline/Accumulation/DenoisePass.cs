@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int slices;
         }
 
-        void RenderDenoisePass(RenderGraph renderGraph, ScriptableRenderContext renderContext, HDCamera hdCamera, TextureHandle outputTexture)
+        void RenderDenoisePass(RenderGraph renderGraph, ScriptableRenderContext renderContext, HDCamera hdCamera, in TextureHandle outputTexture)
         {
 #if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
             // Early exit if there is no denoising
@@ -67,7 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // copy camera params
-                passData.camID = hdCamera.camera.GetInstanceID();
+                passData.camID = hdCamera.camera.GetEntityId();
                 passData.width = hdCamera.actualWidth;
                 passData.height = hdCamera.actualHeight;
                 passData.slices = hdCamera.viewCount;

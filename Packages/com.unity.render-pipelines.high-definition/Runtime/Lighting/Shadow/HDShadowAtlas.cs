@@ -377,12 +377,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 return commonState;
 
             commonState.mixedInDynamicAtlas = false;
-#if UNITY_2021_1_OR_NEWER
             if (shadowRequest.isMixedCached)
             {
                 commonState.mixedInDynamicAtlas = !data.isRenderingOnACache;
             }
-#endif
 
             cmd.SetGlobalDepthBias(1.0f, shadowRequest.slopeBias);
             cmd.SetViewport(data.isRenderingOnACache ? shadowRequest.cachedAtlasViewport : shadowRequest.dynamicAtlasViewport);
@@ -444,7 +442,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.renderContext = renderContext;
 
                 builder.SetRenderFunc(
-                    (RenderShadowMapsPassData data, UnsafeGraphContext ctx) =>
+                    static (RenderShadowMapsPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         natCmd.SetRenderTarget(data.atlasTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
@@ -467,7 +465,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             if (commonState.shouldSkipRequest)
                                 continue;
 
-    #if UNITY_2021_1_OR_NEWER
                             if (shadowRequest.isMixedCached)
                             {
                                 commonState.mixedInDynamicAtlas = !data.isRenderingOnACache;
@@ -477,7 +474,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 data.shadowDrawSettings.objectsFilter = ShadowObjectsFilter.AllObjects;
                             }
-    #endif
 
                             if (!commonState.mixedInDynamicAtlas)
                                 CoreUtils.DrawFullScreen(natCmd, data.clearMaterial, null, 0);
@@ -512,7 +508,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool isRenderingOnACache;
         }
 
-        unsafe TextureHandle EVSMBlurMoments(RenderGraph renderGraph, TextureHandle inputAtlas)
+        unsafe TextureHandle EVSMBlurMoments(RenderGraph renderGraph, in TextureHandle inputAtlas)
         {
             using (var builder = renderGraph.AddUnsafePass<EVSMBlurMomentsPassData>("EVSM Blur Moments", out var passData, ProfilingSampler.Get(HDProfileId.RenderEVSMShadowMaps)))
             {
@@ -527,7 +523,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.momentAtlasTexture2, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (EVSMBlurMomentsPassData data, UnsafeGraphContext ctx) =>
+                    static (EVSMBlurMomentsPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         ComputeShader shadowBlurMomentsCS = data.evsmShadowBlurMomentsCS;
@@ -640,7 +636,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool isRenderingOnACache;
         }
 
-        unsafe TextureHandle IMBlurMoment(RenderGraph renderGraph, TextureHandle atlasTexture)
+        unsafe TextureHandle IMBlurMoment(RenderGraph renderGraph, in TextureHandle atlasTexture)
         {
             using (var builder = renderGraph.AddUnsafePass<IMBlurMomentPassData>("EVSM Blur Moments", out var passData, ProfilingSampler.Get(HDProfileId.RenderMomentShadowMaps)))
             {
@@ -659,7 +655,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.summedAreaTexture, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (IMBlurMomentPassData data, UnsafeGraphContext ctx) =>
+                    static (IMBlurMomentPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // If the target kernel is not available

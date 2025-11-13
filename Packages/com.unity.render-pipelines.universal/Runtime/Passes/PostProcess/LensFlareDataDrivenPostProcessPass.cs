@@ -4,36 +4,28 @@ using System.Runtime.CompilerServices; // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal sealed class LensFlareDataDrivenPostProcessPass : ScriptableRenderPass, IDisposable
+    internal sealed class LensFlareDataDrivenPostProcessPass : PostProcessPass
     {
         Material m_Material;
         bool m_IsValid;
 
-        // Settings
-        public PaniniProjection paniniProjection { get; set; }  // Note: dependency to another pass
-
-        // Input
-
-        // Output
-        public TextureHandle destinationTexture { get; set; }
+        const string k_passNameOcclusion = "Blit Lens Flare Occlusion";
+        ProfilingSampler m_ProfilingSamplerOcclusion;
 
         public LensFlareDataDrivenPostProcessPass(Shader shader)
         {
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
-            this.profilingSampler = null;
+            this.profilingSampler = new ProfilingSampler("Blit Lens Flares (Data Driven)");
+            m_ProfilingSamplerOcclusion = new ProfilingSampler(k_passNameOcclusion);
 
             m_Material = PostProcessUtils.LoadShader(shader, passName);
             m_IsValid = m_Material != null;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             CoreUtils.Destroy(m_Material);
-        }
-
-        public bool IsValid()
-        {
-            return m_IsValid;
+            m_IsValid = false;
         }
 
         private class LensFlarePassData
@@ -51,25 +43,35 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            Assertions.Assert.IsTrue(destinationTexture.IsValid(), $"Destination texture must be set for LensFlareDataDrivenPostProcessPass.");
+            if (!m_IsValid)
+                return;
+
+            var postProcessingData = frameData.Get<UniversalPostProcessingData>();
+            if (LensFlareCommonSRP.Instance.IsEmpty() || !postProcessingData.supportDataDrivenLensFlare)
+                return;
 
             var cameraData = frameData.Get<UniversalCameraData>();
             var resourceData = frameData.Get<UniversalResourceData>();
+
+            // No "sourceTexture". Source is procedurally generated.
+            var destinationTexture = resourceData.cameraColor;
 
             // Reset keywords
             m_Material.shaderKeywords = null;
 
             var desc = destinationTexture.GetDescriptor(renderGraph);
 
-            if (LensFlareCommonSRP.IsOcclusionRTCompatible())
-                LensFlareDataDrivenComputeOcclusion(renderGraph, resourceData, cameraData, in desc);
+            var paniniProjection = volumeStack.GetComponent<PaniniProjection>();
 
-            RenderLensFlareDataDriven(renderGraph, resourceData, cameraData, destinationTexture, in desc);
+            if (LensFlareCommonSRP.IsOcclusionRTCompatible())
+                LensFlareDataDrivenComputeOcclusion(renderGraph, resourceData, cameraData, in desc, paniniProjection);
+
+            RenderLensFlareDataDriven(renderGraph, resourceData, cameraData, destinationTexture, in desc, paniniProjection);
         }
 
-        void LensFlareDataDrivenComputeOcclusion(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, in TextureDesc dstDesc)
+        void LensFlareDataDrivenComputeOcclusion(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, in TextureDesc dstDesc, PaniniProjection paniniProjection)
         {
-            using (var builder = renderGraph.AddUnsafePass<LensFlarePassData>("Lens Flare Compute Occlusion", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDrivenComputeOcclusion)))
+            using (var builder = renderGraph.AddUnsafePass<LensFlarePassData>(k_passNameOcclusion, out var passData, m_ProfilingSamplerOcclusion))
             {
                 TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
                 passData.destinationTexture = occlusionHandle;
@@ -162,9 +164,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void RenderLensFlareDataDriven(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, in TextureHandle destination, in TextureDesc srcDesc)
+        void RenderLensFlareDataDriven(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, in TextureHandle destination, in TextureDesc srcDesc, PaniniProjection paniniProjection)
         {
-            using (var builder = renderGraph.AddUnsafePass<LensFlarePassData>("Lens Flare Data Driven Pass", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
+            using (var builder = renderGraph.AddUnsafePass<LensFlarePassData>(passName, out var passData, profilingSampler))
             {
                 // Use WriteTexture here because DoLensFlareDataDrivenCommon will call SetRenderTarget internally.
                 // TODO RENDERGRAPH: convert SRP core lens flare to be rendergraph friendly

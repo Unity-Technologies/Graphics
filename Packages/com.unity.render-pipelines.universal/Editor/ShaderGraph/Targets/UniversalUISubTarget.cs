@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     class UniversalUISubTarget: UISubTarget<UniversalTarget>
     {
-        static readonly GUID kSourceCodeGuid = new GUID("b1197b10aa62577498d67cffe1d3bd43");  // UniversalUISubTarget.cs
+        static readonly UnityEngine.GUID kSourceCodeGuid = new UnityEngine.GUID("b1197b10aa62577498d67cffe1d3bd43");  // UniversalUISubTarget.cs
 
         static readonly string kUITKPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UITKPass.hlsl";
         public override void Setup(ref TargetSetupContext context)
@@ -84,10 +84,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     result.Add(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
                     break;
                 case AlphaMode.Additive:
-                    result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One));
+                    result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.OneMinusSrcAlpha));
                     break;
                 case AlphaMode.Multiply:
-                    result.Add(RenderState.Blend(Blend.DstColor, Blend.OneMinusSrcAlpha, Blend.Zero, Blend.One));
+                    result.Add(RenderState.Blend(Blend.DstColor, Blend.Zero, Blend.Zero, Blend.One));
                     break;
             }
 

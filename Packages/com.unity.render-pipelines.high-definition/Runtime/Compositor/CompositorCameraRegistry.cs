@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             for (int i = s_CompositorManagedCameras.Count - 1; i >= 0; i--)
             {
-                var id = s_CompositorManagedCameras[i] ? s_CompositorManagedCameras[i].GetInstanceID() : 0;
+                var id = s_CompositorManagedCameras[i] ? s_CompositorManagedCameras[i].GetEntityId() : EntityId.None;
             }
         }
     }

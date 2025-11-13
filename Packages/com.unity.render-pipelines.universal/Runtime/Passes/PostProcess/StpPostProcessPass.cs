@@ -4,17 +4,11 @@ using System.Runtime.CompilerServices; // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal sealed class StpPostProcessPass : ScriptableRenderPass, IDisposable
+    internal sealed class StpPostProcessPass : PostProcessPass
     {
-        public const string k_UpscaledColorTargetName = "_CameraColorUpscaledSTP";
+        public const string k_UpscaledColorTargetName = "CameraColorUpscaledSTP";
         Texture2D[] m_BlueNoise16LTex;
         bool m_IsValid;
-
-        // Input
-        public TextureHandle sourceTexture { get; set; }
-
-        // Output
-        public TextureHandle destinationTexture { get; set; }
 
         public StpPostProcessPass(Texture2D[] blueNoise16LTex)
         {
@@ -25,23 +19,47 @@ namespace UnityEngine.Rendering.Universal
             m_IsValid = m_BlueNoise16LTex != null && m_BlueNoise16LTex.Length > 0;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsValid()
-        {
-            return m_IsValid;
+            m_IsValid = false;
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            Assertions.Assert.IsTrue(sourceTexture.IsValid(), $"Source texture must be set for StpPostProcessPass.");
-            Assertions.Assert.IsTrue(destinationTexture.IsValid(), $"Destination texture must be set for StpPostProcessPass.");
+            if (!m_IsValid)
+                return;
 
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+#if ENABLE_UPSCALER_FRAMEWORK
+            var postProcessingData = frameData.Get<UniversalPostProcessingData>();
+            if (postProcessingData.activeUpscaler != null)
+                return;
+#endif
+
+            // Note that enabling jitters uses the same CameraData::IsTemporalAAEnabled(). So if we add any other kind of overrides (like
+            // disable useTemporalAA if another feature is disabled) then we need to put it in CameraData::IsTemporalAAEnabled() as opposed
+            // to tweaking the value here.
+            var cameraData = frameData.Get<UniversalCameraData>();
+            bool useTemporalAA = cameraData.IsTemporalAAEnabled();
+
+            // STP is only enabled when TAA is enabled and all of its runtime requirements are met.
+            // Using IsSTPRequested() vs IsSTPEnabled() for perf reason here, as we already know TAA status
+            bool isSTPRequested = cameraData.IsSTPRequested();
+            bool useSTP = useTemporalAA && isSTPRequested;
+            if (!useSTP)
+            {
+                // Warn users if TAA and STP are disabled despite being requested
+                if (cameraData.IsTemporalAARequested())
+                    TemporalAA.ValidateAndWarn(cameraData, isSTPRequested);
+                return;
+            }
+
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+
+            var sourceTexture = resourceData.cameraColor;
+
+            var srcDesc = renderGraph.GetTextureDesc(sourceTexture);
+            var dstDesc = StpPostProcessPass.GetStpTargetDesc(srcDesc, cameraData);
+            var destinationTexture =  PostProcessUtils.CreateCompatibleTexture(renderGraph, dstDesc, k_UpscaledColorTargetName, false, FilterMode.Bilinear);
 
             TextureHandle cameraDepth = resourceData.cameraDepthTexture;
             TextureHandle motionVectors = resourceData.motionVectorColor;
@@ -56,6 +74,8 @@ namespace UnityEngine.Rendering.Universal
             // Update the camera resolution to reflect the upscaled size
             var destDesc = destinationTexture.GetDescriptor(renderGraph);
             UpscalerPostProcessPass.UpdateCameraResolution(renderGraph, cameraData, new Vector2Int(destDesc.width, destDesc.height));
+
+            resourceData.cameraColor = destinationTexture;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

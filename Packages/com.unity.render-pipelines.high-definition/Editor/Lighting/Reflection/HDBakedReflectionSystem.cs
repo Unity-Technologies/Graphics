@@ -437,7 +437,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 activeProbes.Add(probe);
-                probeInstanceIDs.Add(probe.GetInstanceID());
+                probeInstanceIDs.Add(probe.GetEntityId());
             }
 
             // APV Normalization (Execute baking)
@@ -816,7 +816,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var i = 0;
             foreach (var probe in probes)
             {
-                states[i].entityId = probe.GetInstanceID();
+                states[i].entityId = probe.GetEntityId();
                 ++i;
             }
         }

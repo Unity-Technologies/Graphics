@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="frameData"></param>
         /// <param name="depthPyramidBuffer"></param>
         /// <param name="normalBuffer"></param>
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle depthPyramidBuffer, TextureHandle normalBuffer)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle depthPyramidBuffer, in TextureHandle normalBuffer)
         {
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.Universal
                     builder.UseTexture(passData.depthBuffer, AccessFlags.Read);
                     builder.UseTexture(passData.normalBuffer, AccessFlags.Read);
 
-                    builder.SetRenderFunc((WriteApvData data, ComputeGraphContext ctx) =>
+                    builder.SetRenderFunc(static (WriteApvData data, ComputeGraphContext ctx) =>
                     {
                         int kernel = data.computeShader.FindKernel("ComputePositionNormal");
 

@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.Universal
             return handle;
         }
 
-        void CheckAndSetTextureHandle(ref TextureHandle[][] handle, TextureHandle[][] newHandle)
+        void CheckAndSetTextureHandle(ref TextureHandle[][] handle, in TextureHandle[][] newHandle)
         {
             if (!CheckAndWarnAboutAccessibility())
                 return;

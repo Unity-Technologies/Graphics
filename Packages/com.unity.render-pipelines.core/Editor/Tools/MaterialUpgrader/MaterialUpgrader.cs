@@ -103,25 +103,37 @@ namespace UnityEditor.Rendering
         /// <param name="flags">Upgrade flag</param>
         public void Upgrade(Material material, UpgradeFlags flags)
         {
+            if (material == null)
+                throw new ArgumentNullException(nameof(material));
+
+            var shader = Shader.Find(m_NewShader);
+            if (shader == null)
+            {
+                Debug.LogError($"Unable to find destination shader {m_NewShader} when trying to upgrade {material.name}");
+                return;
+            }
+            
             Material newMaterial;
             if ((flags & UpgradeFlags.CleanupNonUpgradedProperties) != 0)
             {
-                newMaterial = new Material(Shader.Find(m_NewShader));
+                newMaterial = new Material(shader);
             }
             else
             {
                 newMaterial = UnityEngine.Object.Instantiate(material) as Material;
-                newMaterial.shader = Shader.Find(m_NewShader);
+                newMaterial.shader = shader;
             }
 
             Convert(material, newMaterial);
 
-            material.shader = Shader.Find(m_NewShader);
+            // Material Variants will not change the shader as is a parent only thing
+            if (material.parent == null)
+                material.shader = shader;
+
             material.CopyPropertiesFromMaterial(newMaterial);
             UnityEngine.Object.DestroyImmediate(newMaterial);
 
-            if (m_Finalizer != null)
-                m_Finalizer(material);
+            m_Finalizer?.Invoke(material);
         }
 
         // Overridable function to implement custom material upgrading functionality

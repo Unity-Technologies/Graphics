@@ -848,7 +848,7 @@ namespace UnityEngine.Rendering
                     allocInfo.drawCount = outIndirectCommandIndex;
                     allocInfo.instanceCount = outIndirectVisibleInstanceIndex;
 
-                    int drawAllocCount = allocInfo.drawCount + IndirectBufferContextStorage.kExtraDrawAllocationCount;
+                    int drawAllocCount = allocInfo.drawCount;
                     int drawAllocEnd = Interlocked.Add(ref UnsafeUtility.AsRef<int>(allocCounters + (int)IndirectAllocator.NextDrawIndex), drawAllocCount);
                     allocInfo.drawAllocIndex = drawAllocEnd - drawAllocCount;
 
@@ -1758,6 +1758,7 @@ namespace UnityEngine.Rendering
             public static readonly int InstanceOcclusionCullerShaderVariables = Shader.PropertyToID("InstanceOcclusionCullerShaderVariables");
             public static readonly int _DrawInfo = Shader.PropertyToID("_DrawInfo");
             public static readonly int _InstanceInfo = Shader.PropertyToID("_InstanceInfo");
+            public static readonly int _DispatchArgs = Shader.PropertyToID("_DispatchArgs");
             public static readonly int _DrawArgs = Shader.PropertyToID("_DrawArgs");
             public static readonly int _InstanceIndices = Shader.PropertyToID("_InstanceIndices");
             public static readonly int _InstanceDataBuffer = Shader.PropertyToID("_InstanceDataBuffer");
@@ -2091,7 +2092,7 @@ namespace UnityEngine.Rendering
                     cullingOutput = cullingOutput.drawCommands,
                     indirectBufferLimits = indirectBufferLimits,
                     visibleInstancesBufferHandle = m_IndirectStorage.visibleInstanceBufferHandle,
-                    indirectArgsBufferHandle = m_IndirectStorage.indirectArgsBufferHandle,
+                    indirectArgsBufferHandle = m_IndirectStorage.indirectDrawArgsBufferHandle,
                     indirectBufferAllocInfo = indirectBufferAllocInfo,
                     indirectInstanceInfoGlobalArray = m_IndirectStorage.instanceInfoGlobalArray,
                     indirectDrawInfoGlobalArray = m_IndirectStorage.drawInfoGlobalArray,
@@ -2335,7 +2336,7 @@ namespace UnityEngine.Rendering
                 passData.bufferHandles.UseForOcclusionTest(builder);
                 passData.occluderHandles.UseForOcclusionTest(builder);
 
-                builder.SetRenderFunc((InstanceOcclusionTestPassData data, ComputeGraphContext context) =>
+                builder.SetRenderFunc(static (InstanceOcclusionTestPassData data, ComputeGraphContext context) =>
                 {
                     var batcher = GPUResidentDrawer.instance.batcher;
                     batcher.instanceCullingBatcher.culler.AddOcclusionCullingDispatch(
@@ -2386,7 +2387,7 @@ namespace UnityEngine.Rendering
                     int kernel = m_CopyInstancesKernel;
                     cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawInfo, m_IndirectStorage.drawInfoBuffer);
                     cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._InstanceInfo, m_IndirectStorage.instanceInfoBuffer);
-                    cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawArgs, m_IndirectStorage.argsBuffer);
+                    cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawArgs, m_IndirectStorage.drawArgsBuffer);
                     cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._InstanceIndices, m_IndirectStorage.instanceBuffer);
 
                     cmd.DispatchCompute(cs, kernel, (allocInfo.instanceCount + 63) / 64, 1, 1);
@@ -2539,10 +2540,10 @@ namespace UnityEngine.Rendering
                         if (doCopyInstances)
                         {
                             int kernel = m_CopyInstancesKernel;
-                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawInfo, m_IndirectStorage.drawInfoBuffer);
-                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._InstanceInfo, m_IndirectStorage.instanceInfoBuffer);
-                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawArgs, m_IndirectStorage.argsBuffer);
-                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._InstanceIndices, m_IndirectStorage.instanceBuffer);
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawInfo, bufferHandles.drawInfoBuffer);
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._InstanceInfo, bufferHandles.instanceInfoBuffer);
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawArgs, bufferHandles.drawArgsBuffer);
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._InstanceIndices, bufferHandles.instanceBuffer);
 
                             cmd.DispatchCompute(cs, kernel, (allocInfo.instanceCount + 63) / 64, 1, 1);
                         }
@@ -2551,7 +2552,10 @@ namespace UnityEngine.Rendering
                         {
                             int kernel = m_ResetDrawArgsKernel;
                             cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawInfo, bufferHandles.drawInfoBuffer);
-                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawArgs, bufferHandles.argsBuffer);
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawArgs, bufferHandles.drawArgsBuffer);
+                            if (isSecondPass)
+                                cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DispatchArgs, bufferHandles.dispatchArgsBuffer);
+
                             cmd.DispatchCompute(cs, kernel, (allocInfo.drawCount + 63) / 64, 1, 1);
                         }
 
@@ -2560,7 +2564,7 @@ namespace UnityEngine.Rendering
                             int kernel = m_CullInstancesKernel;
                             cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawInfo, bufferHandles.drawInfoBuffer);
                             cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._InstanceInfo, bufferHandles.instanceInfoBuffer);
-                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawArgs, bufferHandles.argsBuffer);
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawArgs, bufferHandles.drawArgsBuffer);
                             cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._InstanceIndices, bufferHandles.instanceBuffer);
                             cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._InstanceDataBuffer, batchersContext.gpuInstanceDataBuffer);
                             cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._OcclusionDebugCounters, m_OcclusionEventDebugArray.CounterBuffer);
@@ -2572,7 +2576,7 @@ namespace UnityEngine.Rendering
                                 OcclusionCullingCommon.SetDebugPyramid(cmd, m_OcclusionTestShader, kernel, occluderHandles);
 
                             if (isSecondPass)
-                                cmd.DispatchCompute(cs, kernel, bufferHandles.argsBuffer, (uint)(GraphicsBuffer.IndirectDrawIndexedArgs.size * allocInfo.GetExtraDrawInfoSlotIndex()));
+                                cmd.DispatchCompute(cs, kernel, bufferHandles.dispatchArgsBuffer, 0);
                             else
                                 cmd.DispatchCompute(cs, kernel, (allocInfo.instanceCount + 63) / 64, 1, 1);
                         }
@@ -2610,6 +2614,7 @@ namespace UnityEngine.Rendering
 
         public void UpdateFrame(int cameraCount)
         {
+            DisposeSceneViewHiddenBits();
             DisposeCompactVisibilityMasks();
             if (cameraCount > m_LODParamsToCameraID.Capacity)
                 m_LODParamsToCameraID.Capacity = cameraCount;

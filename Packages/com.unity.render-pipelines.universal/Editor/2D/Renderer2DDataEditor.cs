@@ -79,7 +79,7 @@ namespace UnityEditor.Rendering.Universal
         {
             if (m_WasModified)
             {
-                Analytics.RenderAssetAnalytic modifiedData = new Analytics.RenderAssetAnalytic(m_Renderer2DData.GetInstanceID(), false, 0, 0);
+                Analytics.RenderAssetAnalytic modifiedData = new Analytics.RenderAssetAnalytic(m_Renderer2DData.GetEntityId(), false, 0, 0);
                 analytics.SendData(modifiedData);
             }
         }

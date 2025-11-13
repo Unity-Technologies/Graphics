@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering.Universal
                 var probe = probes[probeIndex];
 
                 var texture = probe.texture;
-                var id = probe.reflectionProbe.GetInstanceID();
+                var id = probe.reflectionProbe.GetEntityId();
                 var wasCached = m_Cache.TryGetValue(id, out var cachedProbe);
 
                 if (!texture)
@@ -263,7 +263,7 @@ namespace UnityEngine.Rendering.Universal
             for (var probeIndex = 0; probeIndex < probeCount; probeIndex++)
             {
                 var probe = probes[probeIndex];
-                var id = probe.reflectionProbe.GetInstanceID();
+                var id = probe.reflectionProbe.GetEntityId();
                 var dataIndex = probeIndex - skipCount;
                 if (!m_Cache.TryGetValue(id, out var cachedProbe) || !probe.texture)
                 {

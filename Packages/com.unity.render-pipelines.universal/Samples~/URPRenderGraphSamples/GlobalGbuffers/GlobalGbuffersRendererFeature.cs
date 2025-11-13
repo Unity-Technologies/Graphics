@@ -57,7 +57,7 @@ public class GlobalGbuffersRendererFeature : ScriptableRendererFeature
         // will be made accessible using 'builder.UseAllGlobalTextures(true)' instead of 'builder.UseTexture(gBuffer[i])
         // Shaders that use global textures will be able to fetch them without the need to call 'material.SetTexture()'
         // like we do in the ExecutePass function of this pass.
-        private void SetGlobalGBufferTextures(IRasterRenderGraphBuilder builder, TextureHandle[] gBuffer)
+        private void SetGlobalGBufferTextures(IRasterRenderGraphBuilder builder, in TextureHandle[] gBuffer)
         {
             // This loop will make the gBuffers accessible by all shaders using _GBufferX texture shader IDs.
             for (int i = 0; i < gBuffer.Length; i++)

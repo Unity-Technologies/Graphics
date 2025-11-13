@@ -4,9 +4,9 @@ using System.Runtime.CompilerServices; // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal sealed class SmaaPostProcessPass : ScriptableRenderPass, IDisposable
+    internal sealed class SmaaPostProcessPass : PostProcessPass
     {
-        public const string k_TargetName = "_SMAATarget";
+        public const string k_TargetName = "CameraColorSMAA";
 
         Material m_Material;
         bool m_IsValid;
@@ -17,19 +17,18 @@ namespace UnityEngine.Rendering.Universal
 
         Experimental.Rendering.GraphicsFormat m_SMAAEdgeFormat;
 
-        // Settings
-        public AntialiasingQuality antialiasingQuality { get; set; }
-
-        // Input
-        public TextureHandle sourceTexture { get; set; }
-
-        // Output
-        public TextureHandle destinationTexture { get; set; }
+        const string k_passNameEdgeDetection = "Blit SMAA Edge Detection";
+        const string k_passNameBlendWeights = "Blit SMAA Blend Weights";
+        ProfilingSampler m_ProfilingSamplerEdgeDetection;
+        ProfilingSampler m_ProfilingSamplerBlendWeights;
 
         public SmaaPostProcessPass(Shader shader, Texture2D smaaAreaTexture, Texture2D smaaSearchTexture)
         {
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
-            this.profilingSampler = null;
+            this.profilingSampler = new ProfilingSampler("Blit SMAA Neighborhood Blending");
+
+            m_ProfilingSamplerEdgeDetection = new ProfilingSampler(k_passNameEdgeDetection);
+            m_ProfilingSamplerBlendWeights = new ProfilingSampler(k_passNameBlendWeights);
 
             m_Material = PostProcessUtils.LoadShader(shader, passName);
             m_IsValid = m_Material != null;
@@ -45,15 +44,10 @@ namespace UnityEngine.Rendering.Universal
                 m_SMAAEdgeFormat = Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             CoreUtils.Destroy(m_Material);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsValid()
-        {
-            return m_IsValid;
+            m_IsValid = false;
         }
 
         private class SMAASetupPassData
@@ -77,12 +71,18 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            Assertions.Assert.IsTrue(sourceTexture.IsValid(), "Source texture must be set for SmaaPostProcessPass.");
-            Assertions.Assert.IsTrue(destinationTexture.IsValid(), "Destination texture must be set for SmaaPostProcessPass.");
+            if (!m_IsValid)
+                return;
 
-            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            var cameraData = frameData.Get<UniversalCameraData>();
+            if (cameraData.antialiasing != AntialiasingMode.SubpixelMorphologicalAntiAliasing)
+                return;
 
+            var resourceData = frameData.Get<UniversalResourceData>();
+
+            var sourceTexture = resourceData.cameraColor;
             var destDesc = renderGraph.GetTextureDesc(sourceTexture);
+            var destinationTexture = PostProcessUtils.CreateCompatibleTexture(renderGraph, destDesc, k_TargetName, true, FilterMode.Bilinear);
 
             destDesc.clearColor = Color.black;
             destDesc.clearColor.a = 0.0f;
@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.Universal
             blendTextureDesc.format = Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm;
             var blendTexture = PostProcessUtils.CreateCompatibleTexture(renderGraph, blendTextureDesc, "_BlendTexture", true, FilterMode.Point);
 
-            using (var builder = renderGraph.AddRasterRenderPass<SMAASetupPassData>("SMAA Edge Detection", out var passData, ProfilingSampler.Get(URPProfileId.RG_SMAAEdgeDetection)))
+            using (var builder = renderGraph.AddRasterRenderPass<SMAASetupPassData>(k_passNameEdgeDetection, out var passData, m_ProfilingSamplerEdgeDetection))
             {
                 // Material setup
                 const int kStencilBit = 64;
@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.stencilRef = (float)kStencilBit;
                 passData.stencilMask = (float)kStencilBit;
 
-                passData.antialiasingQuality = antialiasingQuality;
+                passData.antialiasingQuality = cameraData.antialiasingQuality;
                 passData.material = m_Material;
 
                 builder.SetRenderAttachment(edgeTexture, 0, AccessFlags.Write);
@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.Universal
                 });
             }
 
-            using (var builder = renderGraph.AddRasterRenderPass<SMAAPassData>("SMAA Blend weights", out var passData, ProfilingSampler.Get(URPProfileId.RG_SMAABlendWeight)))
+            using (var builder = renderGraph.AddRasterRenderPass<SMAAPassData>(k_passNameBlendWeights, out var passData, m_ProfilingSamplerBlendWeights))
             {
                 builder.SetRenderAttachment(blendTexture, 0, AccessFlags.Write);
                 builder.SetRenderAttachmentDepth(edgeTextureStencil, AccessFlags.Read);
@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering.Universal
                 });
             }
 
-            using (var builder = renderGraph.AddRasterRenderPass<SMAAPassData>("SMAA Neighborhood blending", out var passData, ProfilingSampler.Get(URPProfileId.RG_SMAANeighborhoodBlend)))
+            using (var builder = renderGraph.AddRasterRenderPass<SMAAPassData>(passName, out var passData, profilingSampler))
             {
                 builder.SetRenderAttachment(destinationTexture, 0, AccessFlags.Write);
                 passData.sourceTexture = sourceTexture;
@@ -177,6 +177,8 @@ namespace UnityEngine.Rendering.Universal
                     Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, SMAAMaterial, ShaderPass.k_NeighborhoodBlending);
                 });
             }
+
+            resourceData.cameraColor = destinationTexture;
         }
 
         static void SetupMaterial(SMAASetupPassData data)

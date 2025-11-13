@@ -8,7 +8,7 @@ VisualEffectImporter:
     category: Learning Templates
     description: This example shows how to leverage the Decal Output to stick and
       project animated decals onto an animated skinned mesh renderer.
-    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    icon: {fileID: 2800000, guid: ce3ba62f9452ddd4fbadb663ac249d93, type: 3}
     thumbnail: {fileID: 2800000, guid: 79996b38f37551f40bad61027b8f1e0b, type: 3}
   userData: 
   assetBundleName: 

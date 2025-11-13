@@ -1,13 +1,17 @@
+#if ENABLE_UGUI_PACKAGE && (UNITY_EDITOR || DEVELOPMENT_BUILD)
+#define ENABLE_RENDERING_DEBUGGER_UI
+#endif
+
 using System;
 using System.Diagnostics;
-using UnityEngine.Rendering.UI;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-#if UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_SWITCH || UNITY_SWITCH2
+#if ENABLE_RENDERING_DEBUGGER_UI
 using UnityEngine.UI;
+using UnityEngine.Rendering.UI;
 #endif
 
 namespace UnityEngine.Rendering
@@ -94,6 +98,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public bool displayRuntimeUI
         {
+#if ENABLE_RENDERING_DEBUGGER_UI
             get => m_Root != null && m_Root.activeInHierarchy;
             set
             {
@@ -123,6 +128,10 @@ namespace UnityEngine.Rendering
 
                 runtimeUIState.open = m_Root != null && m_Root.activeInHierarchy;
             }
+#else
+            get => false;
+            set => throw new NotSupportedException("Rendering Debugger Runtime UI requires the ugui package.");
+#endif
         }
 
         /// <summary>
@@ -130,6 +139,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public bool displayPersistentRuntimeUI
         {
+#if ENABLE_RENDERING_DEBUGGER_UI
             get => m_RootUIPersistentCanvas != null && m_PersistentRoot.activeInHierarchy;
             set
             {
@@ -144,6 +154,10 @@ namespace UnityEngine.Rendering
                     m_RootUIPersistentCanvas = null;
                 }
             }
+#else
+            get => false;
+            set => throw new NotSupportedException("Rendering Debugger Runtime UI requires the ugui package.");
+#endif
         }
     }
 }

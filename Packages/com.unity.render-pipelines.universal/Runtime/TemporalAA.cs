@@ -380,66 +380,6 @@ namespace UnityEngine.Rendering.Universal
             return reasonWarning;
         }
 
-        internal static void ExecutePass(CommandBuffer cmd, Material taaMaterial, ref CameraData cameraData, RTHandle source, RTHandle destination, RenderTexture motionVectors)
-        {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.TemporalAA)))
-            {
-                int multipassId = 0;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                multipassId = cameraData.xr.multipassId;
-#endif
-                bool isNewFrame = cameraData.taaHistory.GetAccumulationVersion(multipassId) != Time.frameCount;
-
-                RTHandle taaHistoryAccumulationTex = cameraData.taaHistory.GetAccumulationTexture(multipassId);
-                taaMaterial.SetTexture(ShaderConstants._TaaAccumulationTex, taaHistoryAccumulationTex);
-
-                // On frame rerender or pause, stop all motion using a black motion texture.
-                // This is done to avoid blurring the Taa resolve due to motion and Taa history mismatch.
-                //
-                // Taa history copy is in sync with motion vectors and Time.frameCount, but we updated the TAA history
-                // for the next frame, as we did not know that we're going render this frame again.
-                // We would need history double buffering to solve this properly, but at the cost of memory.
-                //
-                // Frame #1: MotionVectors.Update: #1 Prev: #-1, Taa.Execute: #1 Prev: #-1, Taa.CopyHistory: #1 Prev: #-1
-                // Frame #2: MotionVectors.Update: #2 Prev: #1, Taa.Execute: #2 Prev #1, Taa.CopyHistory: #2
-                // <pause or render frame #2 again>
-                // Frame #2: MotionVectors.Update: #2, Taa.Execute: #2 prev #2   (Ooops! Incorrect history for frame #2!)
-                taaMaterial.SetTexture(ShaderConstants._TaaMotionVectorTex, isNewFrame ? motionVectors : Texture2D.blackTexture);
-
-                ref var taa = ref cameraData.taaSettings;
-                float taaInfluence = taa.resetHistoryFrames == 0 ? taa.m_FrameInfluence : 1.0f;
-                taaMaterial.SetFloat(ShaderConstants._TaaFrameInfluence, taaInfluence);
-                taaMaterial.SetFloat(ShaderConstants._TaaVarianceClampScale, taa.varianceClampScale);
-
-                if (taa.quality == TemporalAAQuality.VeryHigh)
-                    taaMaterial.SetFloatArray(ShaderConstants._TaaFilterWeights, CalculateFilterWeights(ref taa));
-
-                switch (taaHistoryAccumulationTex.rt.graphicsFormat)
-                {
-                    // Avoid precision issues with YCoCg and low bit color formats.
-                    case GraphicsFormat.B10G11R11_UFloatPack32:
-                    case GraphicsFormat.R8G8B8A8_UNorm:
-                    case GraphicsFormat.B8G8R8A8_UNorm:
-                        taaMaterial.EnableKeyword(ShaderKeywords.TAA_LOW_PRECISION_SOURCE);
-                        break;
-                    default:
-                        taaMaterial.DisableKeyword(ShaderKeywords.TAA_LOW_PRECISION_SOURCE);
-                        break;
-                }
-
-                CoreUtils.SetKeyword(taaMaterial, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, cameraData.isAlphaOutputEnabled);
-
-                Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, taaMaterial, (int)taa.quality);
-
-                if (isNewFrame)
-                {
-                    int kHistoryCopyPass = taaMaterial.shader.passCount - 1;
-                    Blitter.BlitCameraTexture(cmd, destination, taaHistoryAccumulationTex, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, taaMaterial, kHistoryCopyPass);
-                    cameraData.taaHistory.SetAccumulationVersion(multipassId, Time.frameCount);
-                }
-            }
-        }
-
         private class TaaPassData
         {
             internal TextureHandle dstTex;
@@ -476,9 +416,17 @@ namespace UnityEngine.Rendering.Universal
 
             // On frame rerender or pause, stop all motion using a black motion texture.
             // This is done to avoid blurring the Taa resolve due to motion and Taa history mismatch.
+            // Taa history copy is in sync with motion vectors and Time.frameCount.
+            //
             // The TAA history was updated for the next frame, as we did not know yet that we're going render this frame again.
             // We would need to keep the both the current and previous history (double buffering) in order to resolve
             // either this frame (again) or the next frame correctly, but it would cost more memory.
+            //
+            // For example:
+            // Frame #1: MotionVectors.Update: #1 Prev: #-1, Taa.Execute: #1 Prev: #-1, Taa.CopyHistory: #1 Prev: #-1
+            // Frame #2: MotionVectors.Update: #2 Prev: #1, Taa.Execute: #2 Prev #1, Taa.CopyHistory: #2
+            // <pause or render frame #2 again>
+            // Frame #2: MotionVectors.Update: #2, Taa.Execute: #2 prev #2   (Ooops! Incorrect history for frame #2!)
             TextureHandle activeMotionVectors = isNewFrame ? srcMotionVectors : renderGraph.defaultResources.blackTexture;
 
             using (var builder = renderGraph.AddRasterRenderPass<TaaPassData>("Temporal Anti-aliasing", out var passData, ProfilingSampler.Get(URPProfileId.RG_TAA)))
@@ -568,7 +516,7 @@ namespace UnityEngine.Rendering.Universal
                     passData.material = taaMaterial;
                     passData.passIndex = kHistoryCopyPass;
 
-                    builder.SetRenderFunc((TaaPassData data, RasterGraphContext context) => { Blitter.BlitTexture(context.cmd, data.srcColorTex, Vector2.one, data.material, data.passIndex); });
+                    builder.SetRenderFunc(static (TaaPassData data, RasterGraphContext context) => { Blitter.BlitTexture(context.cmd, data.srcColorTex, Vector2.one, data.material, data.passIndex); });
                 }
 
                 cameraData.taaHistory.SetAccumulationVersion(multipassId, Time.frameCount);

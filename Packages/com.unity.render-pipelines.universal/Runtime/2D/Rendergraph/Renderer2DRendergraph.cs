@@ -105,8 +105,7 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyDepthPass = new CopyDepthPass(
                     RenderPassEvent.AfterRenderingTransparents,
                     renderer2DResources.copyDepthPS,
-                    shouldClear: true,
-                    copyResolvedDepth: RenderingUtils.MultisampleDepthResolveSupported());
+                    shouldClear: true);
             }
 
             m_UpscalePass = new UpscalePass(RenderPassEvent.AfterRenderingPostProcessing, m_BlitMaterial);
@@ -459,20 +458,8 @@ namespace UnityEngine.Rendering.Universal
                     depthDescriptor.useMipMap = false;
                     depthDescriptor.autoGenerateMips = false;
 
-                    bool hasMSAA = depthDescriptor.msaaSamples > 1 && (SystemInfo.supportsMultisampledTextures != 0);
-                    bool resolveDepth = RenderingUtils.MultisampleDepthResolveSupported() && renderGraph.nativeRenderPassesEnabled;
-
-                    depthDescriptor.bindMS = !resolveDepth && hasMSAA;
-
-                    // binding MS surfaces is not supported by the GLES backend
-                    if (IsGLESDevice())
-                        depthDescriptor.bindMS = false;
-
-                    if (m_CopyDepthPass != null)
-                    {
-                        m_CopyDepthPass.MsaaSamples = depthDescriptor.msaaSamples;
-                        m_CopyDepthPass.m_CopyResolvedDepth = !depthDescriptor.bindMS;
-                    }
+                    bool hasMSAA = depthDescriptor.msaaSamples > 1;
+                    depthDescriptor.bindMS = hasMSAA && RenderingUtils.ShouldDepthAttachmentBindMS();
 
                     depthDescriptor.graphicsFormat = GraphicsFormat.None;
                     depthDescriptor.depthStencilFormat = CoreUtils.GetDefaultDepthStencilFormat();

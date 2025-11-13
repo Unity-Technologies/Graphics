@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var debugSettings = DebugHandler.DebugDisplaySettings.gpuResidentDrawerSettings;
 
-                    GPUResidentDrawer.RenderDebugOcclusionTestOverlay(renderGraph, debugSettings, cameraData.camera.GetInstanceID(), resourceData.activeColorTexture);
+                    GPUResidentDrawer.RenderDebugOcclusionTestOverlay(renderGraph, debugSettings, cameraData.camera.GetEntityId(), resourceData.activeColorTexture);
 
                     float screenWidth = (int)(cameraData.pixelHeight * cameraData.renderScale);
                     float screenHeight = (int)(cameraData.pixelHeight * cameraData.renderScale);
@@ -242,7 +242,7 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle dest;
         }
 
-        private void BlitToDebugTexture(RenderGraph renderGraph, TextureHandle source, TextureHandle destination, bool isSourceTextureColor = false)
+        private void BlitToDebugTexture(RenderGraph renderGraph, in TextureHandle source, in TextureHandle destination, bool isSourceTextureColor = false)
         {
             if (source.IsValid())
             {
@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private void BlitEmptyTexture(RenderGraph renderGraph, TextureHandle destination, string passName = "Copy To Debug Texture")
+        private void BlitEmptyTexture(RenderGraph renderGraph, in TextureHandle destination, string passName = "Copy To Debug Texture")
         {
             using (var builder = renderGraph.AddRasterRenderPass<CopyToDebugTexturePassData>(passName, out var passData))
             {
@@ -275,7 +275,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderAttachment(destination, 0);
 
                 builder.AllowPassCulling(false);
-                builder.SetRenderFunc((CopyToDebugTexturePassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (CopyToDebugTexturePassData data, RasterGraphContext context) =>
                 {
                     Blitter.BlitTexture(context.cmd, data.src, new Vector4(1,1,0,0), 0, false);
                 });

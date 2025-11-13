@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public TextureHandle DenoiseRTR(RenderGraph renderGraph, HDCamera hdCamera, float historyValidity, int maxKernelSize, bool fullResolution, bool singleReflectionBounce, bool affectSmoothSurfaces,
-            TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle clearCoatTexture, TextureHandle lightingTexture, RTHandle historyBuffer)
+            TextureHandle depthPyramid, in TextureHandle normalBuffer, in TextureHandle motionVectorBuffer, in TextureHandle clearCoatTexture, in TextureHandle lightingTexture, RTHandle historyBuffer)
         {
             using (var builder = renderGraph.AddUnsafePass<ReflectionDenoiserPassData>("Denoise ray traced reflections", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionFilter)))
             {
@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.noisyToOutputSignal = lightingTexture;
                 builder.UseTexture(passData.noisyToOutputSignal, AccessFlags.ReadWrite);
 
-                builder.SetRenderFunc((ReflectionDenoiserPassData data, UnsafeGraphContext ctx) =>
+                builder.SetRenderFunc(static (ReflectionDenoiserPassData data, UnsafeGraphContext ctx) =>
                 {
                     // Evaluate the dispatch parameters
                     int tileSize = 8;

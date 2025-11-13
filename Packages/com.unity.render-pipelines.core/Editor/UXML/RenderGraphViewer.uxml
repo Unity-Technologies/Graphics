@@ -11,7 +11,7 @@
             <r:ToggleDropdown name="view-options-field" />
         </ui:VisualElement>
         <ui:VisualElement name="header-container-right">
-            <uie:ToolbarSearchField name="search-field" class="panel-search-field"/>
+            <uie:ToolbarSearchField name="search-field"/>
         </ui:VisualElement>
     </ui:VisualElement>
     <ui:TwoPaneSplitView name="content-container" orientation="Horizontal">

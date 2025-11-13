@@ -9,6 +9,7 @@
         "GUID:41524c21c95e5fe4dbc5b48bd21995a4",
         "GUID:caccfbdb442cdc64fa722b4c5585521f",
         "GUID:2665a8d13d1b3f18800f46e256720795",
+        "GUID:c3352a8bbbe14fb4ab52ae7bfff927ea",
         "RenderAs2DModule"
     ],
     "includePlatforms": [],
@@ -45,14 +46,14 @@
             "define": "USING_2DANIMATION_13_0_1_OR_ABOVE"
         },
         {
-            "name": "com.unity.modules.vr",
-            "expression": "1.0.0",
-            "define": "ENABLE_VR_MODULE"
-        },
-        {
             "name": "com.unity.modules.xr",
             "expression": "1.0.0",
             "define": "ENABLE_XR_MODULE"
+        },
+        {
+          "name": "com.unity.2d.common",
+          "expression": "13.0.0",
+          "define": "USING_2DCOMMON"
         }
     ],
     "noEngineReferences": false

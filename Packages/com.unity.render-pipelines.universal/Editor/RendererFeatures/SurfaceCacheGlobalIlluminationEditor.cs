@@ -28,13 +28,14 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty _lookupSampleCount;
         private SerializedProperty _upsamplingKernelSize;
         private SerializedProperty _upsamplingSampleCount;
-        private SerializedProperty _gridSize;
-        private SerializedProperty _voxelMinSize;
-        private SerializedProperty _cascadeCount;
-        private SerializedProperty _cascadeMovement;
+        private SerializedProperty _volumeSize;
+        private SerializedProperty _volumeResolution;
+        private SerializedProperty _volumeCascadeCount;
+        private SerializedProperty _volumeMovement;
         private SerializedProperty _debugEnabled;
         private SerializedProperty _debugViewMode;
         private SerializedProperty _debugShowSamplePosition;
+        private SerializedProperty _defragCount;
 
         private struct TextContent
         {
@@ -58,10 +59,12 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent UpsamplingKernelSize = EditorGUIUtility.TrTextContent("Upsampling Kernel Size", "");
             public static GUIContent UpsamplingSampleCount = EditorGUIUtility.TrTextContent("Upsampling Sample Count", "");
 
-            public static GUIContent GridSize = EditorGUIUtility.TrTextContent("Grid Size", "");
-            public static GUIContent VoxelMinSize = EditorGUIUtility.TrTextContent("Voxel Min Size", "");
-            public static GUIContent CascadeCount = EditorGUIUtility.TrTextContent("Cascade Count", "");
-            public static GUIContent CascadeMovement = EditorGUIUtility.TrTextContent("Cascade Movement", "");
+            public static GUIContent VolumeSize = EditorGUIUtility.TrTextContent("Size", "");
+            public static GUIContent VolumeResolution = EditorGUIUtility.TrTextContent("Resolution", "");
+            public static GUIContent VolumeCascadeCount = EditorGUIUtility.TrTextContent("Cascade Count", "");
+            public static GUIContent VolumeMovement = EditorGUIUtility.TrTextContent("Movement", "");
+
+            public static GUIContent DefragCount = EditorGUIUtility.TrTextContent("Defragmentation Count", "");
 
             public static GUIContent DebugEnabled = EditorGUIUtility.TrTextContent("Debug Enabled", "");
             public static GUIContent DebugViewMode = EditorGUIUtility.TrTextContent("Debug View Mode", "");
@@ -78,6 +81,8 @@ namespace UnityEditor.Rendering.Universal
             SerializedProperty patchFilteringParamSet = paramSet.FindPropertyRelative("PatchFilteringParams");
             SerializedProperty screenFilteringParamSet = paramSet.FindPropertyRelative("ScreenFilteringParams");
             SerializedProperty gridParamSet = paramSet.FindPropertyRelative("GridParams");
+            SerializedProperty volumeParamSet = paramSet.FindPropertyRelative("VolumeParams");
+            SerializedProperty advancedParamSet = paramSet.FindPropertyRelative("AdvancedParams");
 
             _multiBounce = paramSet.FindPropertyRelative("MultiBounce");
             _estimationMethod = paramSet.FindPropertyRelative("EstimationMethod");
@@ -100,14 +105,16 @@ namespace UnityEditor.Rendering.Universal
             _upsamplingKernelSize = screenFilteringParamSet.FindPropertyRelative("UpsamplingKernelSize");
             _upsamplingSampleCount = screenFilteringParamSet.FindPropertyRelative("UpsamplingSampleCount");
 
-            _gridSize = gridParamSet.FindPropertyRelative("GridSize");
-            _voxelMinSize = gridParamSet.FindPropertyRelative("VoxelMinSize");
-            _cascadeCount = gridParamSet.FindPropertyRelative("CascadeCount");
-            _cascadeMovement = gridParamSet.FindPropertyRelative("CascadeMovement");
+            _volumeSize = volumeParamSet.FindPropertyRelative("Size");
+            _volumeResolution = volumeParamSet.FindPropertyRelative("Resolution");
+            _volumeCascadeCount = volumeParamSet.FindPropertyRelative("CascadeCount");
+            _volumeMovement = volumeParamSet.FindPropertyRelative("Movement");
 
             _debugEnabled = paramSet.FindPropertyRelative("DebugEnabled");
             _debugViewMode = paramSet.FindPropertyRelative("DebugViewMode");
             _debugShowSamplePosition = paramSet.FindPropertyRelative("DebugShowSamplePosition");
+
+            _defragCount = advancedParamSet.FindPropertyRelative("DefragCount");
         }
 
         public override void OnInspectorGUI()
@@ -161,11 +168,15 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.IntSlider(_upsamplingSampleCount, 1, 16, TextContent.UpsamplingSampleCount);
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Grid", EditorStyles.boldLabel);
-            EditorGUILayout.IntSlider(_gridSize, 16, 64, TextContent.GridSize);
-            EditorGUILayout.Slider(_voxelMinSize, 0.1f, 2.0f, TextContent.VoxelMinSize);
-            EditorGUILayout.IntSlider(_cascadeCount, 1, (int)SurfaceCache.CascadeMax, TextContent.CascadeCount);
-            EditorGUILayout.PropertyField(_cascadeMovement, TextContent.CascadeMovement);
+            EditorGUILayout.LabelField("Volume", EditorStyles.boldLabel);
+            _volumeSize.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(TextContent.VolumeSize, _volumeSize.floatValue));
+            EditorGUILayout.IntSlider(_volumeResolution, 16, 64, TextContent.VolumeResolution);
+            EditorGUILayout.IntSlider(_volumeCascadeCount, 1, (int)SurfaceCache.CascadeMax, TextContent.VolumeCascadeCount);
+            EditorGUILayout.PropertyField(_volumeMovement, TextContent.VolumeMovement);
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Advanced", EditorStyles.boldLabel);
+            EditorGUILayout.IntSlider(_defragCount, 1, 32, TextContent.DefragCount);
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Debugging", EditorStyles.boldLabel);

@@ -21,6 +21,8 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class GraphViewTemplateWindowTest
     {
+        static readonly string kSampleExpectedPath = "Assets/Samples";
+
         private class MockSaveFileDialogHelper : GraphViewTemplateWindow.ISaveFileDialogHelper
         {
             private readonly string m_ReturnPath;
@@ -428,12 +430,57 @@ namespace UnityEditor.VFX.Test
                 Assert.NotNull(installButton);
                 Assert.True(installButton.enabledSelf);
 
-                // Check the failing extension package has been called otherwise the test does nothing useful
-                throwingExtensionMock.Verify(x => x.OnPackageSelectionChange(It.IsAny<PackageManager.PackageInfo>()), Times.Once);
+                //Behavior changed since UUM-121936, we aren't relying on OnPackageSelectionChange anymore
+                throwingExtensionMock.Verify(x => x.OnPackageSelectionChange(It.IsAny<PackageManager.PackageInfo>()), Times.Never);
             }
             finally
             {
                 PackageManagerExtensions.Extensions.Remove(throwingExtensionMock.Object);
+            }
+        }
+
+        [UnityTest, Description("Covers UUM-121936")]
+        public IEnumerator Check_Install_Dependencies_Learning_Sample_Button()
+        {
+            //The responsability of covering learning template behavior is Check_Additional_Doesnt_Generate_Any_Errors
+            //Using this package because it's lighter than actual learning template and doesn't contain cs which would trigger domain reload
+            //There are two names tested because of incoming rename de8e00f4fbe7ffa7baca025721db706b4f8d352c
+            var fakeLearningTemplates = new[] { "VisualEffectGraph Additions", "Visual Effect Graph Additions" };
+            
+            var templateHelper = new Mock<ITemplateHelper>();
+            templateHelper.Setup(x => x.packageInfoName).Returns(VisualEffectGraphPackageInfo.name);
+            templateHelper.Setup(x => x.emptyTemplateName).Returns("MockEmpty");
+            templateHelper.Setup(x => x.builtInCategory).Returns("MockCategory");
+            templateHelper.Setup(x => x.createNewAssetTitle).Returns("MockNewAssetTitle");
+            templateHelper.Setup(x => x.RaiseImportSampleDependencies(It.IsAny<PackageManager.PackageInfo>(), It.IsAny<Sample>()))
+                .Callback((PackageManager.PackageInfo info, Sample sample) => { VFXTemplateHelperInternal.ImportSampleDependencies(info, sample); });
+
+            foreach (var fakeLearningTemplate in fakeLearningTemplates)
+            {
+                templateHelper.Setup(x => x.learningSampleName).Returns(fakeLearningTemplate);
+
+                GraphViewTemplateWindow.ShowCreateFromTemplate(templateHelper.Object, (_, _) => { });
+                Assert.True(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>());
+                var templateWindow = EditorWindow.GetWindow<GraphViewTemplateWindow>();
+                var installButton = templateWindow.rootVisualElement.Q<Button>("InstallButton");
+                Assert.NotNull(installButton);
+
+                templateHelper.Verify(x => x.RaiseImportSampleDependencies(It.IsAny<PackageManager.PackageInfo>(), It.IsAny<Sample>()), Times.Never);
+                Assert.IsFalse(Directory.Exists(kSampleExpectedPath));
+                yield return ClickButton(templateWindow.rootVisualElement, "InstallButton");
+
+                if (!Directory.Exists(kSampleExpectedPath))
+                {
+                    //Retry with other Additions template name candidate
+                    Debug.Log($"Fail to find: {fakeLearningTemplate}");
+                    templateWindow.Close();
+                    yield return null;
+                    continue;
+                }
+
+                Assert.True(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>()); //Install template doesn't trigger Close
+                templateHelper.Verify(x => x.RaiseImportSampleDependencies(It.IsAny<PackageManager.PackageInfo>(), It.IsAny<Sample>()), Times.Once);
+                break;
             }
         }
 
@@ -545,6 +592,9 @@ namespace UnityEditor.VFX.Test
             }
             VFXTestCommon.DeleteAllTemporaryGraph();
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+
+            if (Directory.Exists(kSampleExpectedPath))
+                AssetDatabase.DeleteAsset(kSampleExpectedPath);
         }
     }
 }

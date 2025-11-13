@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering
             CoreUtils.EnsureFolderTreeInAssetFilePath(fullPath);
 
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
-                assetCreator.GetInstanceID(),
+                assetCreator.GetEntityId(),
                 assetCreator,
                 fullPath,
                 CoreUtils.GetIconForType<VolumeProfile>(),

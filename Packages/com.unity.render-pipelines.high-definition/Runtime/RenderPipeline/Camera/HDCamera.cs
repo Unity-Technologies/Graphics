@@ -902,14 +902,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool ValidShadowHistory(HDAdditionalLightData lightData, int screenSpaceShadowIndex, GPULightType lightType)
         {
-            return shadowHistoryUsage[screenSpaceShadowIndex].lightInstanceID == lightData.GetInstanceID()
+            return shadowHistoryUsage[screenSpaceShadowIndex].lightInstanceID == lightData.GetEntityId()
                 && (shadowHistoryUsage[screenSpaceShadowIndex].frameCount == (cameraFrameCount - 1))
                 && (shadowHistoryUsage[screenSpaceShadowIndex].lightType == lightType);
         }
 
         internal void PropagateShadowHistory(HDAdditionalLightData lightData, int screenSpaceShadowIndex, GPULightType lightType)
         {
-            shadowHistoryUsage[screenSpaceShadowIndex].lightInstanceID = lightData.GetInstanceID();
+            shadowHistoryUsage[screenSpaceShadowIndex].lightInstanceID = lightData.GetEntityId();
             shadowHistoryUsage[screenSpaceShadowIndex].frameCount = cameraFrameCount;
             shadowHistoryUsage[screenSpaceShadowIndex].lightType = lightType;
             shadowHistoryUsage[screenSpaceShadowIndex].transform = lightData.transform.localToWorldMatrix;
@@ -1809,7 +1809,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Rect viewportSize;
         }
 
-        internal void ExecuteCaptureActions(RenderGraph renderGraph, TextureHandle input)
+        internal void ExecuteCaptureActions(RenderGraph renderGraph, in TextureHandle input)
         {
             if (m_RecorderCaptureActions == null || !m_RecorderCaptureActions.MoveNext())
                 return;
@@ -1834,7 +1834,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc(
-                    (ExecuteCaptureActionsPassData data, UnsafeGraphContext ctx) =>
+                    static (ExecuteCaptureActionsPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
@@ -2346,13 +2346,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 taaJitter = Vector4.zero;
                 return origProj;
             }
-#if UNITY_2021_2_OR_NEWER
             if (UnityEngine.FrameDebugger.enabled)
             {
                 taaJitter = Vector4.zero;
                 return origProj;
             }
-#endif
 
             float jitterX;
             float jitterY;
@@ -2589,7 +2587,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if ENABLE_VIRTUALTEXTURES
-        internal void ResolveVirtualTextureFeedback(RenderGraph renderGraph, TextureHandle vtFeedbackBuffer)
+        internal void ResolveVirtualTextureFeedback(RenderGraph renderGraph, in TextureHandle vtFeedbackBuffer)
         {
             virtualTextureFeedback.Resolve(renderGraph, this, vtFeedbackBuffer);
         }

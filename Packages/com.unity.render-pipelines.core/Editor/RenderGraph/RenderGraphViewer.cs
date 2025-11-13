@@ -312,7 +312,6 @@ namespace UnityEditor.Rendering
             public readonly List<ResourceRWBlock> resourceBlocks = new();
 
             public VisualElement leftGridLine;
-            public VisualElement rightGridLine;
 
             public bool hasPassCompatibilityTooltip;
             public bool isPassCompatibleToMerge;
@@ -1190,7 +1189,7 @@ namespace UnityEditor.Rendering
 
             if (!m_ResourceFilterEnabled)
                 return true;
-            
+
             if (resource.imported && !m_ResourceFilter.HasFlag(ResourceFilter.ImportedResources))
                 return false;
             if (type == RenderGraphResourceType.Texture && !m_ResourceFilter.HasFlag(ResourceFilter.Textures))
@@ -2087,7 +2086,7 @@ namespace UnityEditor.Rendering
 
         void CreateGUI()
         {
-            s_EditorWindowInstanceId = GetInstanceID();
+            s_EditorWindowInstanceId = GetEntityId();
 
             if (EditorPrefs.HasKey(kPassFilterLegacyEditorPrefsKey))
                 m_PassFilterLegacy = (PassFilterLegacy)EditorPrefs.GetInt(kPassFilterLegacyEditorPrefsKey);
@@ -2143,7 +2142,7 @@ namespace UnityEditor.Rendering
             // maximized, seemingly nothing happens. When it gets unmaximized, both OnEnable() and OnDisable() get called
             // on a new EditorWindow instance, which I guess was the maximized one? Anyway we need to ignore this event
             // because the DebugSession is static and we don't want to unsubscribe because the window is still open.
-            if (s_EditorWindowInstanceId != GetInstanceID())
+            if (s_EditorWindowInstanceId != GetEntityId())
                 return;
 
             m_CurrentDebugData?.Clear();

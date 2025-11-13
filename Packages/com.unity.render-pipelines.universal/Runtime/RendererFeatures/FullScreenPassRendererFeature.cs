@@ -198,7 +198,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            private void AddFullscreenRenderPassInputPass(RenderGraph renderGraph, UniversalResourceData resourcesData, UniversalCameraData cameraData, TextureHandle source, TextureHandle destination)
+            private void AddFullscreenRenderPassInputPass(RenderGraph renderGraph, UniversalResourceData resourcesData, UniversalCameraData cameraData, in TextureHandle source, in TextureHandle destination)
             {
                 using (var builder = renderGraph.AddRasterRenderPass<MainPassData>(passName, out var passData, profilingSampler))
                 {
@@ -251,14 +251,14 @@ namespace UnityEngine.Rendering.Universal
                     if (m_BindDepthStencilAttachment)
                         builder.SetRenderAttachmentDepth(resourcesData.activeDepthTexture, AccessFlags.ReadWrite);
 
-                    builder.SetRenderFunc((MainPassData data, RasterGraphContext rgContext) =>
+                    builder.SetRenderFunc(static (MainPassData data, RasterGraphContext rgContext) =>
                     {
                         ExecuteMainPass(rgContext.cmd, data.inputTexture, data.material, data.passIndex);
                     });
                 }
             }
 
-            private void AddCopyPassRenderPassFullscreen(RenderGraph renderGraph, TextureHandle source, TextureHandle destination)
+            private void AddCopyPassRenderPassFullscreen(RenderGraph renderGraph, in TextureHandle source, in TextureHandle destination)
             {
                 using (var builder = renderGraph.AddRasterRenderPass<CopyPassData>("Copy Color Full Screen", out var passData, profilingSampler))
                 {
@@ -267,7 +267,7 @@ namespace UnityEngine.Rendering.Universal
 
                     builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
 
-                    builder.SetRenderFunc((CopyPassData data, RasterGraphContext rgContext) =>
+                    builder.SetRenderFunc(static (CopyPassData data, RasterGraphContext rgContext) =>
                     {
                         ExecuteCopyColorPass(rgContext.cmd, data.inputTexture);
                     });

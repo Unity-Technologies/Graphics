@@ -61,6 +61,8 @@ namespace UnityEngine.Rendering.Universal.Tests
             float farPlane = 1000f;
 
             JobHandle handle = ForwardLights.ScheduleClusteringJobs(
+                false,
+                true,
                 lights,
                 probes,
                 zBins,

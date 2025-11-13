@@ -182,7 +182,7 @@ namespace UnityEngine.Rendering.Universal
         int m_BatchSlotIndex = 0;
         internal int batchSlotIndex { get { return m_BatchSlotIndex; } set {  m_BatchSlotIndex = value; } }
 
-        private int lightCookieSpriteInstanceID => lightCookieSprite?.GetInstanceID() ?? 0;
+        private int lightCookieSpriteInstanceID => lightCookieSprite?.GetEntityId() ?? EntityId.None;
 
         internal bool useCookieSprite => (lightType == LightType.Point || lightType == LightType.Sprite) && (lightCookieSprite != null && lightCookieSprite.texture != null);
 

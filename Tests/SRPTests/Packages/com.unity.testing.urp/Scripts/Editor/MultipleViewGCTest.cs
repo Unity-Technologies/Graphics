@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.TestTools;
 
 [TestFixture]
 public class MultipleViewGCTest : MonoBehaviour
@@ -46,9 +47,15 @@ public class MultipleViewGCTest : MonoBehaviour
 
         m_RenderRequest = new UniversalRenderPipeline.SingleCameraRequest { destination = m_RenderTexture };
 
-        // Render first frame where gc is ok
-        m_sceneView.Repaint();
-        RenderPipeline.SubmitRenderRequest(Camera.main, m_RenderRequest);
+        // Render a couple of frames to absorb any transitory GC allocations
+        // See https://unity.slack.com/archives/C02LJ5VSV97/p1761922938875599
+        const int numFramesToWarmup = 3;
+
+        for (int i = 0; i < numFramesToWarmup; i++)
+        {
+            m_sceneView.Repaint();
+            RenderPipeline.SubmitRenderRequest(Camera.main, m_RenderRequest);
+        }
     }
 
     [OneTimeTearDown]
@@ -58,6 +65,9 @@ public class MultipleViewGCTest : MonoBehaviour
     }
 
     [Test]
+    [UnityPlatform(exclude = new RuntimePlatform[] {
+        RuntimePlatform.WindowsEditor // Disabled for Instability https://jira.unity3d.com/browse/UUM-125567
+    })]
     public void RenderSceneAndGameView()
     {
         Profiler.BeginSample("GC_Alloc_URP_MultipleViews");

@@ -37,9 +37,10 @@ namespace UnityEditor.ShaderAnalysis
         readonly HashSet<string> m_ShaderKeywords;
 
         // Outputs
-#if UNITY_2018_1_OR_NEWER
+        /// <summary>
+        /// Gets the processed shader data generated after analysis or build.
+        /// </summary>
         public ShaderData shaderData { get; private set; }
-#endif
 
         static readonly Dictionary<ShaderProfile, Regex> k_ProfileToDeclaration = new()
         {
@@ -69,16 +70,11 @@ namespace UnityEditor.ShaderAnalysis
 
         public void FetchShaderData()
         {
-#if UNITY_2018_1_OR_NEWER
             shaderData = ShaderUtil.GetShaderData(m_Shader);
-#else
-            throw new Exception("Missing Unity ShaderData feature, It requires Unity 2018.1 or newer.");
-#endif
         }
 
         public void BuildPassesData()
         {
-#if UNITY_2018_1_OR_NEWER
             Assert.IsNotNull(shaderData);
             passes.Clear();
 
@@ -103,7 +99,6 @@ namespace UnityEditor.ShaderAnalysis
                 };
                 passes.Add(pass);
             }
-#endif
         }
 
         public IEnumerator ExportPassSourceFiles()
@@ -220,13 +215,11 @@ namespace UnityEditor.ShaderAnalysis
         {
             m_Report = new ShaderBuildReport();
 
-#if UNITY_2018_1_OR_NEWER
             foreach (var skippedPassIndex in m_SkippedPassesFromFilter)
             {
                 var pass = shaderData.ActiveSubshader.GetPass(skippedPassIndex);
                 m_Report.AddSkippedPass(skippedPassIndex, pass.Name);
             }
-#endif
 
             var c = passes.Count;
             for (var i = 0; i < c; i++)

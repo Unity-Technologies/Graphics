@@ -373,7 +373,7 @@ namespace UnityEngine.Rendering.Universal
                     builder.SetGlobalTextureAfterPass(finalTexture, s_SSAOFinalTextureID);
                 }
 
-                builder.SetRenderFunc((SSAOPassData data, UnsafeGraphContext rgContext) =>
+                builder.SetRenderFunc(static (SSAOPassData data, UnsafeGraphContext rgContext) =>
                 {
                     CommandBuffer cmd = CommandBufferHelpers.GetNativeCommandBuffer(rgContext.cmd);
                     RenderBufferLoadAction finalLoadAction = data.afterOpaque ? RenderBufferLoadAction.Load : RenderBufferLoadAction.DontCare;

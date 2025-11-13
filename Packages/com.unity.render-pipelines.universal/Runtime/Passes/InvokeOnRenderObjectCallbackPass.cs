@@ -21,14 +21,16 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle depthTarget;
         }
 
-        internal void Render(RenderGraph renderGraph, TextureHandle colorTarget, TextureHandle depthTarget)
+        internal void Render(RenderGraph renderGraph, in TextureHandle colorTarget, in TextureHandle depthTarget)
         {
             using (var builder = renderGraph.AddUnsafePass<PassData>(passName, out var passData, profilingSampler))
             {
+                passData.colorTarget = colorTarget;
                 builder.UseTexture(colorTarget, AccessFlags.Write);
+                passData.depthTarget = depthTarget;
                 builder.UseTexture(depthTarget, AccessFlags.Write);
                 builder.AllowPassCulling(false);
-                builder.SetRenderFunc((PassData data, UnsafeGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, UnsafeGraphContext context) =>
                 {
                     context.cmd.SetRenderTarget(data.colorTarget, data.depthTarget);
                     context.cmd.InvokeOnRenderObjectCallbacks();

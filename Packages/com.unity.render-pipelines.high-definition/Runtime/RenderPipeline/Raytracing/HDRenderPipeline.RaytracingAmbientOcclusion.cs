@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderRTAO(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle historyValidationBuffer,
+            TextureHandle depthBuffer, in TextureHandle normalBuffer, in TextureHandle motionVectors, in TextureHandle historyValidationBuffer,
             TextureHandle rayCountTexture, in ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
             // Trace the signal
@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle velocityBuffer;
         }
 
-        TraceAmbientOcclusionResult TraceAO(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle rayCountTexture, in ShaderVariablesRaytracing shaderVariablesRaytracing)
+        TraceAmbientOcclusionResult TraceAO(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthBuffer, in TextureHandle normalBuffer, in TextureHandle rayCountTexture, in ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
             using (var builder = renderGraph.AddUnsafePass<TraceRTAOPassData>("Tracing the rays for RTAO", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingAmbientOcclusion)))
             {
@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.velocityBuffer, AccessFlags.ReadWrite);
 
                 builder.SetRenderFunc(
-                    (TraceRTAOPassData data, UnsafeGraphContext ctx) =>
+                    static (TraceRTAOPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
 
@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle DenoiseAO(RenderGraph renderGraph, HDCamera hdCamera, TraceAmbientOcclusionResult traceAOResult, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle historyValidationBuffer)
+        TextureHandle DenoiseAO(RenderGraph renderGraph, HDCamera hdCamera, TraceAmbientOcclusionResult traceAOResult, in TextureHandle depthBuffer, in TextureHandle normalBuffer, in TextureHandle motionVectorBuffer, in TextureHandle historyValidationBuffer)
         {
             var aoSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceAmbientOcclusion>();
             if (aoSettings.denoise)
@@ -225,7 +225,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputTexture;
         }
 
-        TextureHandle ComposeAO(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle aoTexture)
+        TextureHandle ComposeAO(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle aoTexture)
         {
             using (var builder = renderGraph.AddUnsafePass<ComposeRTAOPassData>("Composing the result of RTAO", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingComposeAmbientOcclusion)))
             {
@@ -241,7 +241,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputTexture, AccessFlags.ReadWrite);
 
                 builder.SetRenderFunc(
-                    (ComposeRTAOPassData data, UnsafeGraphContext ctx) =>
+                    static (ComposeRTAOPassData data, UnsafeGraphContext ctx) =>
                     {
                         ctx.cmd.SetComputeFloatParam(data.aoShaderCS, HDShaderIDs._RaytracingAOIntensity, data.intensity);
                         ctx.cmd.SetComputeTextureParam(data.aoShaderCS, data.intensityKernel, HDShaderIDs._AmbientOcclusionTextureRW, data.outputTexture);
@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.UseTexture(passData.aoTexture, AccessFlags.ReadWrite);
 
                     builder.SetRenderFunc(
-                        (ClearRTAOHistoryData data, UnsafeGraphContext ctx) =>
+                        static (ClearRTAOHistoryData data, UnsafeGraphContext ctx) =>
                         {
                             CoreUtils.SetRenderTarget(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd), data.aoTexture, clearFlag: ClearFlag.Color, Color.black);
                         });

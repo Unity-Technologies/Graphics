@@ -247,9 +247,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // We register only if not already pending placement and if enabled.
             if (!m_RegisteredLightDataPendingPlacement.ContainsKey(lightData.lightIdxForCachedShadows) && lightData.isActiveAndEnabled)
             {
-#if UNITY_2020_2_OR_NEWER
                 lightData.legacyLight.useViewFrustumForShadowCasterCull = false;
-#endif
                 lightData.lightIdxForCachedShadows = GetNextLightIdentifier();
                 RegisterTransformCacheSlot(lightData);
                 m_RegisteredLightDataPendingPlacement.Add(lightData.lightIdxForCachedShadows, lightData.lightEntity);
@@ -282,9 +280,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (valueFound)
                 {
-#if UNITY_2020_2_OR_NEWER
                     lightData.legacyLight.useViewFrustumForShadowCasterCull = true;
-#endif
                     m_PlacedShadows.Remove(shadowIdx);
                     m_ShadowsPendingRendering.Remove(shadowIdx);
                     m_ShadowsWithValidData.Remove(shadowIdx);

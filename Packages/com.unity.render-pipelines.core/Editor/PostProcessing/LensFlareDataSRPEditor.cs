@@ -2,14 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Xml.Linq;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.UIElements;
-using static Unity.Burst.Intrinsics.X86.Avx;
-using static UnityEditor.Rendering.FilterWindow;
-using static UnityEngine.Rendering.DebugUI.MessageBox;
 
 namespace UnityEditor.Rendering
 {
@@ -765,7 +760,7 @@ namespace UnityEditor.Rendering
             {
                 SerializedProperty lensFlareDataSRP = element.FindPropertyRelative("lensFlareDataSRP");
                 fieldRect.MoveNext();
-                EditorGUI.PropertyField(fieldRect.Current, lensFlareDataSRP, Styles.lensFlareDataSRP);
+                DrawLensFlareDataSRPFieldWithCycleDetection(fieldRect.Current, lensFlareDataSRP, Styles.lensFlareDataSRP);
                 EditorGUIUtility.labelWidth = oldLabelWidth;
                 return;
             }
@@ -923,7 +918,7 @@ namespace UnityEditor.Rendering
                     {
                         SerializedProperty lensFlareDataSRP = element.FindPropertyRelative("lensFlareDataSRP");
                         fieldRect.MoveNext();
-                        EditorGUI.PropertyField(fieldRect.Current, lensFlareDataSRP, Styles.lensFlareDataSRP);
+                        DrawLensFlareDataSRPFieldWithCycleDetection(fieldRect.Current, lensFlareDataSRP, Styles.lensFlareDataSRP);
                     }
                 break;
             }
@@ -1252,6 +1247,67 @@ namespace UnityEditor.Rendering
 
         void SetEnum<T>(SerializedProperty property, T value)
             => property.intValue = (int)(object)value;
+
+        void DrawLensFlareDataSRPFieldWithCycleDetection(Rect rect, SerializedProperty lensFlareDataSRPProperty, GUIContent label)
+        {
+            LensFlareDataSRP currentAsset = target as LensFlareDataSRP;
+
+            EditorGUI.BeginChangeCheck();
+            LensFlareDataSRP newValue = EditorGUI.ObjectField(rect, label, lensFlareDataSRPProperty.objectReferenceValue, typeof(LensFlareDataSRP), false) as LensFlareDataSRP;
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                // Check for cycles before setting the value
+                bool wouldCreateCycle = false;
+
+                if (newValue != null && currentAsset != null)
+                {
+                    // Direct self-reference check
+                    if (currentAsset == newValue)
+                    {
+                        wouldCreateCycle = true;
+                    }
+                    else
+                    {
+                        // Multi-level cycle check - see if newValue already references currentAsset
+                        HashSet<LensFlareDataSRP> visited = new HashSet<LensFlareDataSRP>();
+
+                        // Recursive function to check if targetAsset is found in asset's dependency chain
+                        bool CheckCycle(LensFlareDataSRP asset, LensFlareDataSRP targetAsset)
+                        {
+                            if (asset == null || visited.Contains(asset))
+                                return false;
+
+                            visited.Add(asset);
+
+                            foreach (var element in asset.elements)
+                            {
+                                if (element.flareType == SRPLensFlareType.LensFlareDataSRP && element.lensFlareDataSRP != null)
+                                {
+                                    if (element.lensFlareDataSRP == targetAsset || CheckCycle(element.lensFlareDataSRP, targetAsset))
+                                        return true;
+                                }
+                            }
+                            return false;
+                        }
+
+                        wouldCreateCycle = CheckCycle(newValue, currentAsset);
+                    }
+                }
+
+                if (wouldCreateCycle)
+                {
+                    // Cycle detected - set to null and show a warning
+                    lensFlareDataSRPProperty.objectReferenceValue = null;
+                    Debug.LogWarning($"Cannot assign lens flare asset '{newValue.name}' because it would create a cyclic dependency. Setting to null to prevent infinite loop.");
+                }
+                else
+                {
+                    lensFlareDataSRPProperty.objectReferenceValue = newValue;
+                }
+            }
+        }
+
         #endregion
     }
 }

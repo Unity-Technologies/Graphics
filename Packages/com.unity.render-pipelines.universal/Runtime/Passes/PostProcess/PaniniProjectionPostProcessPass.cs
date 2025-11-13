@@ -4,40 +4,26 @@ using System.Runtime.CompilerServices; // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal sealed class PaniniProjectionPostProcessPass : ScriptableRenderPass, IDisposable
+    internal sealed class PaniniProjectionPostProcessPass : PostProcessPass
     {
-        public const string k_TargetName = "_PaniniProjectionTarget";
+        public const string k_TargetName = "CameraColorPaniniProjection";
 
         Material m_Material;
         bool m_IsValid;
 
-        // Settings
-        public PaniniProjection paniniProjection { get; set; }
-
-        // Input
-        public TextureHandle sourceTexture { get; set; }
-
-        // Output
-        public TextureHandle destinationTexture { get; set; }
-
         public PaniniProjectionPostProcessPass(Shader shader)
         {
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
-            this.profilingSampler = null;
+            this.profilingSampler = new ProfilingSampler("Blit Panini Projection");
 
             m_Material = PostProcessUtils.LoadShader(shader, passName);
             m_IsValid = m_Material != null;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             CoreUtils.Destroy(m_Material);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsValid()
-        {
-            return m_IsValid;
+            m_IsValid = false;
         }
 
         private class PaniniProjectionPassData
@@ -49,10 +35,22 @@ namespace UnityEngine.Rendering.Universal
         }
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            Assertions.Assert.IsTrue(sourceTexture.IsValid(), $"Source texture must be set for PaniniProjectionPostProcessPass.");
-            Assertions.Assert.IsTrue(destinationTexture.IsValid(), $"Destination texture must be set for PaniniProjectionPostProcessPass.");
+            if(!m_IsValid)
+                return;
+
+            var paniniProjection = volumeStack.GetComponent<PaniniProjection>();
+
+            if(!paniniProjection.IsActive())
+                return;
 
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            if (cameraData.isSceneViewCamera)
+                return;
+
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            var sourceTexture = resourceData.cameraColor;
+            var destinationTexture = PostProcessUtils.CreateCompatibleTexture(renderGraph, sourceTexture, k_TargetName, true, FilterMode.Bilinear);
+
             Camera camera = cameraData.camera;
 
             // Use source width/height for aspect ratio which can be different from camera aspect. (e.g. viewport)
@@ -68,7 +66,7 @@ namespace UnityEngine.Rendering.Universal
             float paniniD = distance;
             float paniniS = Mathf.Lerp(1f, Mathf.Clamp01(scaleF), paniniProjection.cropToFit.value);
 
-            using (var builder = renderGraph.AddRasterRenderPass<PaniniProjectionPassData>("Panini Projection", out var passData, ProfilingSampler.Get(URPProfileId.PaniniProjection)))
+            using (var builder = renderGraph.AddRasterRenderPass<PaniniProjectionPassData>(passName, out var passData, profilingSampler))
             {
                 builder.AllowGlobalStateModification(true);
                 builder.SetRenderAttachment(destinationTexture, 0, AccessFlags.Write);
@@ -89,9 +87,9 @@ namespace UnityEngine.Rendering.Universal
                     Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                     Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, data.material, 0);
                 });
-
-                return;
             }
+
+            resourceData.cameraColor = destinationTexture;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

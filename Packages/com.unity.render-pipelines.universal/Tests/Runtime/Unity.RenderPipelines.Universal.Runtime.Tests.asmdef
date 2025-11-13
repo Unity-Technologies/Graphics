@@ -7,7 +7,8 @@
         "GUID:0acc523941302664db1f4e527237feb3",
         "GUID:516a5277b8c3b4f4c8cc86b77b1591ff",
         "GUID:d8b63aba1907145bea998dd612889d6b",
-        "GUID:df380645f10b7bc4b97d4f5eb6303d95"
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+        "GUID:41524c21c95e5fe4dbc5b48bd21995a4"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -20,6 +21,12 @@
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.2d.animation",
+            "expression": "1.0.0",
+            "define": "U2D_ANIMATION_INSTALLED"
+        }
+    ],
     "noEngineReferences": false
 }

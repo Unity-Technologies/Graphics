@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public object data;
             public UInt64 lastFrameId { set; get; }
 
-            public static int GetKey(Camera camera) => camera.GetInstanceID();
+            public static int GetKey(Camera camera) => camera.GetEntityId();
 
             public void Init(Camera camera)
             {

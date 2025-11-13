@@ -238,7 +238,7 @@ namespace UnityEditor.Rendering
                 menu.AddAdvancedPropertiesBoolMenuItem(() => targetEditor.showAdditionalProperties, () => targetEditor.showAdditionalProperties ^= true);
 
             menu.AddSeparator(string.Empty);
-            menu.AddItem(VolumeProfileUtils.Styles.openInRenderingDebugger, false, DebugDisplaySettingsVolume.OpenInRenderingDebugger);
+            menu.AddItem(VolumeProfileUtils.Styles.openInRenderingDebugger, false, () => DebugDisplaySettingsVolume.OpenInRenderingDebugger(targetComponent));
 
             menu.AddSeparator(string.Empty);
             menu.AddItem(VolumeProfileUtils.Styles.copySettings, false, () => VolumeComponentCopyPaste.CopySettings(targetComponent));

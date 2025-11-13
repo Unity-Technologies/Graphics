@@ -221,6 +221,28 @@ namespace UnityEditor.VFX.UI
 
         public virtual void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput, bool revertTypeConstraint = false)
         {
+            CheckWillCreateCycle(myInput, otherOutput);
+        }
+
+        private void CheckWillCreateCycle(VFXSlot input, VFXSlot output)
+        {
+            // Break cycles only for GPU events
+            VFXBasicGPUEvent gpuEvent = null;
+            VFXBlock triggerBlock = null;
+            if (output.owner is VFXBasicGPUEvent)
+            {
+                gpuEvent = input.owner as VFXBasicGPUEvent;
+                triggerBlock = input.owner as VFXBlock;
+            }
+            else if (input.owner is VFXBasicGPUEvent)
+            {
+                gpuEvent = input.owner as VFXBasicGPUEvent;
+                triggerBlock = output.owner as VFXBlock;
+            }
+            if (gpuEvent != null && triggerBlock != null)
+            {
+                VFXContext.BreakCyclesHorizontal(triggerBlock.GetParent(), gpuEvent, true); // always notify
+            }
         }
 
         protected virtual bool UpdateSlots(List<VFXDataAnchorController> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)

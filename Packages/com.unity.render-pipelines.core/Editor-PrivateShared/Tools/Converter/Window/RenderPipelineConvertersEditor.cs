@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using UnityEditor.Categorization;
 using UnityEditor.Rendering.Analytics;
 using UnityEditor.SceneManagement;
@@ -12,75 +13,6 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.Converter
 {
-    // This is the serialized class that stores the state of each item in the list of items to convert
-    [Serializable]
-    class ConverterItemState
-    {
-        public bool isSelected;
-        public IRenderPipelineConverterItem item;
-        public (Status Status, string Message) conversionResult = (Status.Pending, string.Empty);
-        internal bool hasConverted => conversionResult.Status != Status.Pending;
-    }
-
-    // Each converter uses the active bool
-    // Each converter has a list of active items/assets
-    // We do this so that we can use the binding system of the UI Elements
-    [Serializable]
-    class ConverterState
-    {
-        public bool isExpanded;
-        public bool isSelected;
-        public bool isLoading; // to name
-        public bool isInitialized;
-        public List<ConverterItemState> items = new List<ConverterItemState>();
-        [SerializeReference]
-        public IRenderPipelineConverter converter;
-
-        private int CountItemWithFlag(Status status)
-        {
-            int count = 0;
-            foreach (ConverterItemState itemState in items)
-            {
-                if (itemState.conversionResult.Status == status)
-                {
-                    count++;
-                }
-            }
-            return count;
-        }
-        public int pending => CountItemWithFlag(Status.Pending);
-        public int warnings => CountItemWithFlag(Status.Warning);
-        public int errors => CountItemWithFlag(Status.Error);
-        public int success => CountItemWithFlag(Status.Success);
-
-        public override string ToString()
-        {
-            return $"Warnings: {warnings} - Errors: {errors} - Ok: {success} - Total: {items?.Count ?? 0}";
-        }
-
-        public void Clear()
-        {
-            isInitialized = false;
-            items.Clear();
-        }
-
-        public int selectedItemsCount
-        {
-            get
-            {
-                int count = 0;
-                foreach (ConverterItemState itemState in items)
-                {
-                    if (itemState.isSelected)
-                    {
-                        count++;
-                    }
-                }
-                return count;
-            }
-        }
-    }
-
     class ConverterInfo : ICategorizable
     {
         public IRenderPipelineConverter converter;
@@ -165,8 +97,11 @@ namespace UnityEditor.Rendering.Converter
             dontSaveToLayoutField.SetValue(parentContainerWindowValue, true);
         }
 
+        private bool m_WindowAlive = true;
+
         void OnEnable()
         {
+            m_WindowAlive = true;
             GraphicsToolLifetimeAnalytic.WindowOpened<RenderPipelineConvertersEditor>();
 
             // Subscribe to play mode changes
@@ -178,6 +113,7 @@ namespace UnityEditor.Rendering.Converter
 
         private void OnDisable()
         {
+            m_WindowAlive = false;
             GraphicsToolLifetimeAnalytic.WindowClosed<RenderPipelineConvertersEditor>();
 
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
@@ -333,47 +269,69 @@ namespace UnityEditor.Rendering.Converter
             }
         }
 
+        IEnumerable<RenderPipelineConverterVisualElement> selectedConverters
+        {
+            get
+            {
+                bool pipelineConverterSelected = currentContainer.name == "Pipeline Converter";
+
+                foreach (var kvp in m_ConvertersVisualElements)
+                {
+                    if (kvp.Key.parent != currentContainer)
+                        continue;
+
+                    var data = kvp.Key.data;
+                    bool isVisible = !pipelineConverterSelected || (
+                       m_SourcePipelineDropDown.text == data.sourcePipeline &&
+                       m_DestinationPipelineDropDown.text == data.destinationPipeline
+                    );
+
+                    if (!isVisible)
+                        continue;
+
+                    var converterVE = kvp.Value;
+                    if (converterVE.isSelectedAndEnabled)
+                        yield return converterVE;
+                }
+            }
+        }
+
         void InitializeAllActiveConverters(ClickEvent evt)
         {
             if (!SaveCurrentSceneAndContinue())
                 return;
 
             // Gather all the converters that are selected
-            var selectedConverters = new List<RenderPipelineConverterVisualElement>();
-            foreach (var kvp in m_ConvertersVisualElements)
-            {
-                if (kvp.Key.parent != currentContainer)
-                    continue;
+            var convertersToInitialize = new List<RenderPipelineConverterVisualElement>();
+            convertersToInitialize.AddRange(selectedConverters);
 
-                var converterVE = kvp.Value;
-                if (converterVE.isSelectedAndEnabled)
-                    selectedConverters.Add(converterVE);
-            }
-
-            int count = selectedConverters.Count;
+            int count = convertersToInitialize.Count;
             int iConverterIndex = 0;
 
             void InitializationFinish()
             {
                 EditorUtility.ClearProgressBar();
-                EditorUtility.SetDirty(this);
-                AssetDatabase.SaveAssets();
-                RefreshUI();
+
+                if (m_WindowAlive)
+                {
+                    EditorUtility.SetDirty(this);
+                    RefreshUI();
+                }
             }
 
             void ProcessNextConverter()
             {
                 // Check if all the converters did finish
-                if (iConverterIndex >= count)
+                if (!m_WindowAlive || iConverterIndex >= count)
                 {
                     InitializationFinish();
                     return;
                 }
 
-                var current = selectedConverters[iConverterIndex];
+                var current = convertersToInitialize[iConverterIndex];
                 var converter = current.converter;
 
-                if (EditorUtility.DisplayCancelableProgressBar("Initializing converters",
+                if (!m_WindowAlive || EditorUtility.DisplayCancelableProgressBar("Initializing converters",
                     $"({iConverterIndex} of {count}) {current.displayName}", (float)iConverterIndex / (float)count))
                 {
                     InitializationFinish();
@@ -387,7 +345,15 @@ namespace UnityEditor.Rendering.Converter
                     ProcessNextConverter();
                 }
 
-                current.Scan(OnConverterScanFinished);
+                try
+                {
+                    current.Scan(OnConverterScanFinished);
+                }
+                catch(Exception ex)
+                {
+                    Debug.LogError($"An exception occurred while initializing converter {current.displayName}. See console for more details.");
+                    Debug.LogException(ex);
+                }
             }
 
             ProcessNextConverter();
@@ -438,28 +404,35 @@ namespace UnityEditor.Rendering.Converter
 
             string currentScenePath = SceneManager.GetActiveScene().path;
 
-            List<RenderPipelineConverterVisualElement> activeConverterStates = new ();
+            StringBuilder sb = new StringBuilder("=== Render Pipeline Converters Report ===\n");
+
+            List<RenderPipelineConverterVisualElement> convertersToPerformConversion = new ();
 
             // Getting all the active converters to use in the cancelable progressbar
-            foreach (var kvp in m_ConvertersVisualElements)
+            foreach (var converterVE in selectedConverters)
             {
-                if (kvp.Key.parent != currentContainer)
-                    continue;
-
-                var ve = kvp.Value;
-                if (ve.isSelectedAndEnabled && ve.state.isInitialized)
+                if (converterVE.state.isInitialized)
                 {
-                    activeConverterStates.Add(ve);
+                    convertersToPerformConversion.Add(converterVE);
                 }
             }
 
             List<AnalyticContextInfo> contextInfo = new ();
 
             int converterCount = 1;
-            int activeConvertersCount = activeConverterStates.Count;
-            foreach (var activeConverter in activeConverterStates)
+            int activeConvertersCount = convertersToPerformConversion.Count;
+            foreach (var activeConverter in convertersToPerformConversion)
             {
-                activeConverter.Convert($"({converterCount} of {activeConvertersCount}) {activeConverter.displayName}");
+                try
+                {
+                    activeConverter.Convert($"({converterCount} of {activeConvertersCount}) {activeConverter.displayName}", sb);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"An exception occurred while executing converter {activeConverter.displayName}. See console for more details.");
+                    Debug.LogException(ex);
+                }
+
                 converterCount++;
 
                 // Add this converter to the analytics
@@ -469,7 +442,6 @@ namespace UnityEditor.Rendering.Converter
                     items_count = 0
                 });
 
-                AssetDatabase.SaveAssets();
                 EditorUtility.ClearProgressBar();
             }
 
@@ -479,9 +451,13 @@ namespace UnityEditor.Rendering.Converter
                 EditorSceneManager.OpenScene(currentScenePath);
             }
 
+            AssetDatabase.SaveAssets();
+
             RefreshUI();
 
             GraphicsToolUsageAnalytic.ActionPerformed<RenderPipelineConvertersEditor>(nameof(Convert), contextInfo.ToNestedColumn());
+
+            Debug.Log(sb);
         }
 
         public void AddItemsToMenu(GenericMenu menu)

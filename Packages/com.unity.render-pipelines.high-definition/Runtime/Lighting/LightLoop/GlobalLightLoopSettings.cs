@@ -221,11 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public CookieAtlasResolution cookieAtlasSize;
         /// <summary>Cookie atlas graphics format.</summary>
         public CookieAtlasGraphicsFormat cookieFormat;
-#if UNITY_2020_1_OR_NEWER
-#else
-        /// <summary>Cookie atlas resolution for point lights.</summary>
-        public CubeCookieResolution pointCookieSize;
-#endif
+
         /// <summary>Last valid mip for cookie atlas.</summary>
         public int cookieAtlasLastValidMip;
 

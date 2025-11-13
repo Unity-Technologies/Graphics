@@ -1020,7 +1020,9 @@ namespace UnityEditor.VFX.UI
                     matchHighlight = text;
                     foreach (var match in s_PatternMatches)
                     {
-                        matchHighlight = matchHighlight.Replace(match, $"#@{match}#", StringComparison.OrdinalIgnoreCase);
+                        int index = matchHighlight.IndexOf(match, StringComparison.InvariantCultureIgnoreCase);
+                        matchHighlight = matchHighlight.Insert(index, "#@");
+                        matchHighlight = matchHighlight.Insert(index + 2 + match.Length, "#");
                     }
 
                     return score / text.Length;

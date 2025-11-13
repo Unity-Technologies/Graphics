@@ -131,14 +131,14 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         void AddTrees(TerrainDesc terrainDesc, ref List<InstanceIDs> instanceHandles)
         {
             TerrainData terrainData = terrainDesc.terrain.terrainData;
-            float4x4 terrainLocalToWorld = terrainDesc.localToWorldMatrix;
-            float3 positionScale = new float3((float)terrainData.heightmapResolution, 1.0f, (float)terrainData.heightmapResolution) * terrainData.heightmapScale;
-            float3 positionOffset = new float3(terrainLocalToWorld[3].x, terrainLocalToWorld[3].y, terrainLocalToWorld[3].z);
+            Matrix4x4 terrainLocalToWorld = terrainDesc.localToWorldMatrix;
+            Vector3 positionScale = Vector3.Scale(new Vector3(terrainData.heightmapResolution, 1.0f, terrainData.heightmapResolution), terrainData.heightmapScale);
+            Vector3 positionOffset = terrainLocalToWorld.GetPosition();
 
             foreach (var treeInstance in terrainData.treeInstances)
             {
                 var localToWorld = Matrix4x4.TRS(
-                    positionOffset + new float3(treeInstance.position) * positionScale,
+                    positionOffset + Vector3.Scale(treeInstance.position, positionScale),
                     Quaternion.AngleAxis(treeInstance.rotation, Vector3.up),
                     new Vector3(treeInstance.widthScale, treeInstance.heightScale, treeInstance.widthScale));
 

@@ -3,7 +3,7 @@ using UnityEngine.Rendering.LookDev;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDRenderPipeline : IDataProvider
+    public partial class HDRenderPipeline
     {
         struct LookDevDataForHDRP
         {
@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
-        bool UpdateVolumeProfile(Volume volume, out VisualEnvironment visualEnvironment, out HDRISky sky, ref int volumeProfileHash)
+        internal bool UpdateVolumeProfile(Volume volume, out VisualEnvironment visualEnvironment, out HDRISky sky, ref int volumeProfileHash)
         {
             var lookDevVolumeSettings = GraphicsSettings.GetRenderPipelineSettings<LookDevVolumeProfileSettings>();
             if (lookDevVolumeSettings.volumeProfile == null)
@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// This hook allows HDRP to init the scene when creating the view
         /// </summary>
         /// <param name="SRI">The StageRuntimeInterface allowing to communicate with the LookDev</param>
-        void IDataProvider.FirstInitScene(StageRuntimeInterface SRI)
+        internal void FirstInitScene(StageRuntimeInterface SRI)
         {
             Camera camera = SRI.camera;
             camera.allowHDR = true;
@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="camera">The Camera rendering in the LookDev</param>
         /// <param name="sky">The requested Sky to use</param>
         /// <param name="SRI">The StageRuntimeInterface allowing to communicate with the LookDev</param>
-        void IDataProvider.UpdateSky(Camera camera, Sky sky, StageRuntimeInterface SRI)
+        internal void UpdateSky(Camera camera, Sky sky, StageRuntimeInterface SRI)
         {
             LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;
             if (sky.cubemap == null)
@@ -175,7 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Should mainly be used for view isolation.
         /// </summary>
         /// <param name="SRI">The StageRuntimeInterface allowing to communicate with the LookDev</param>
-        void IDataProvider.OnBeginRendering(StageRuntimeInterface SRI)
+        internal void OnBeginRendering(StageRuntimeInterface SRI)
         {
             LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;
 #if UNITY_EDITOR
@@ -197,7 +197,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Should mainly be used for view isolation.
         /// </summary>
         /// <param name="SRI">The StageRuntimeInterface allowing to communicate with the LookDev</param>
-        void IDataProvider.OnEndRendering(StageRuntimeInterface SRI)
+        internal void OnEndRendering(StageRuntimeInterface SRI)
         {
             LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;
             data.volume.enabled = false;
@@ -206,23 +206,23 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// This hook allows HDRP to give to LookDev what debug mode it can support.
         /// </summary>
-        IEnumerable<string> IDataProvider.supportedDebugModes
+        internal IEnumerable<string> supportedDebugModes
             => new[]
-        {
-            "Albedo",
-            "Normal",
-            "Smoothness",
-            "AmbientOcclusion",
-            "Metal",
-            "Specular",
-            "Alpha"
-        };
+            {
+                "Albedo",
+                "Normal",
+                "Smoothness",
+                "AmbientOcclusion",
+                "Metal",
+                "Specular",
+                "Alpha"
+            };
 
         /// <summary>
         /// This hook allows HDRP to update the debug mode used while requested in the LookDev.
         /// </summary>
         /// <param name="debugIndex">The index corresponding to the debug view, -1 = none, other have same index than iven by IDataProvider.supportedDebugModes</param>
-        void IDataProvider.UpdateDebugMode(int debugIndex)
+        internal void UpdateDebugMode(int debugIndex)
             => debugDisplaySettings.SetDebugViewCommonMaterialProperty((Attributes.MaterialSharedProperty)(debugIndex + 1));
 
         /// <summary>
@@ -230,7 +230,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="output">The created shadow mask</param>
         /// <param name="SRI">The StageRuntimeInterface allowing to communicate with the LookDev</param>
-        void IDataProvider.GetShadowMask(ref RenderTexture output, StageRuntimeInterface SRI)
+        internal void GetShadowMask(ref RenderTexture output, StageRuntimeInterface SRI)
         {
             LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;
             Color oldBackgroundColor = data.additionalCameraData.backgroundColorHDR;
@@ -251,7 +251,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// The HDRP implementation for the callback that the look dev raises to process any necessary cleanup.
         /// </summary>
         /// <param name="SRI">Access element of the LookDev's scene</param>
-        void IDataProvider.Cleanup(StageRuntimeInterface SRI)
+        internal void Cleanup(StageRuntimeInterface SRI)
         {
             LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;
             CoreUtils.Destroy(data.volume.sharedProfile);

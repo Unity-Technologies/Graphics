@@ -52,7 +52,7 @@ void Upsample(uint2 targetPixelPos : SV_DispatchThreadID)
     {
         const float goldenAngle = 2.39996323f;
         const float kernelExponent = 0.5f;
-        const float angle = rng.GetFloat(0) + goldenAngle * sampleIdx;
+        const float angle = TWO_PI * rng.GetFloat(0) + goldenAngle * sampleIdx;
         const float radius = pow(float(sampleIdx + 1) * reciprocalSampleCount, kernelExponent) * _FilterRadius;
 
         float2 sinCos;

@@ -42,7 +42,8 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure the stencil state for the opaque and transparent render passes.");
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
             public static readonly GUIContent invalidStencilOverride = EditorGUIUtility.TrTextContent("Error: When using the deferred rendering path, the Renderer requires the control over the 4 highest bits of the stencil buffer to store Material types. The current combination of the stencil override options prevents the Renderer from controlling the required bits. Try changing one of the options to Replace.");
-            public static readonly GUIContent intermediateTextureMode = EditorGUIUtility.TrTextContent("Intermediate Texture", "Controls when URP renders via an intermediate texture.");
+            public static readonly GUIContent intermediateTextureMode = EditorGUIUtility.TrTextContent("Intermediate Texture (Obsolete)", "Should be set to Auto. Controls when URP renders via an intermediate texture.");
+            public static readonly GUIContent warningIntermediateTextureMode = EditorGUIUtility.TrTextContent("'Always' is Obsolete. Change it to Auto. This can improve performance. The setting will disappear once it is corrected to 'Auto'.");
             public static readonly GUIContent deferredPlusIncompatibleWarning = EditorGUIUtility.TrTextContent("Deferred+ is only available with Render Graph. In compatibility mode, Deferred+ falls back to Forward+.");
         }
 
@@ -263,13 +264,18 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
-            EditorGUILayout.LabelField("Compatibility", EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
+            //Hide the obsolete setting if the value is Auto. This is the only valid setting from now. Users that still have it at Always can still see it and change it to Auto.
+            if( m_IntermediateTextureMode.enumValueIndex != 0)
             {
-                EditorGUILayout.PropertyField(m_IntermediateTextureMode, Styles.intermediateTextureMode);
+                EditorGUILayout.LabelField("Compatibility", EditorStyles.boldLabel);
+                EditorGUI.indentLevel++;
+                {
+                    EditorGUILayout.PropertyField(m_IntermediateTextureMode, Styles.intermediateTextureMode);
+                    EditorGUILayout.HelpBox(Styles.warningIntermediateTextureMode.text, MessageType.Warning);
+                }
+                EditorGUI.indentLevel--;
+                EditorGUILayout.Space();
             }
-            EditorGUI.indentLevel--;
-            EditorGUILayout.Space();
 
             serializedObject.ApplyModifiedProperties();
 

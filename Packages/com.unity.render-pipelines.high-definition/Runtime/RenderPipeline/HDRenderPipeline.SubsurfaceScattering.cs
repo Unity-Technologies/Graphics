@@ -174,12 +174,10 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle CreateSSSBuffer(RenderGraph renderGraph, HDCamera hdCamera, MSAASamples msaaSamples)
         {
             bool msaa = msaaSamples != MSAASamples.None;
-#if UNITY_2020_2_OR_NEWER
             FastMemoryDesc fastMemDesc;
             fastMemDesc.inFastMemory = true;
             fastMemDesc.residencyFraction = 1.0f;
             fastMemDesc.flags = FastMemoryFlags.SpillTop;
-#endif
 
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             {
@@ -189,10 +187,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 msaaSamples = msaaSamples,
                 clearBuffer = NeedClearGBuffer(hdCamera),
                 clearColor = Color.clear,
-                name = msaa ? "SSSBufferMSAA" : "SSSBuffer"
-#if UNITY_2020_2_OR_NEWER
-                , fastMemoryDesc = fastMemDesc
-#endif
+                name = msaa ? "SSSBufferMSAA" : "SSSBuffer",
+                fastMemoryDesc = fastMemDesc
             });
         }
 
@@ -225,7 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public BufferHandle  coarseStencilBuffer;
         }
 
-        TextureHandle RenderSubsurfaceScatteringScreenSpace(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, in LightingBuffers lightingBuffers, ref PrepassOutput prepassOutput)
+        TextureHandle RenderSubsurfaceScatteringScreenSpace(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle colorBuffer, in LightingBuffers lightingBuffers, ref PrepassOutput prepassOutput)
         {
             BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: false, ref prepassOutput);
 
@@ -301,7 +297,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 builder.SetRenderFunc(
-                    (SubsurfaceScaterringPassData data, UnsafeGraphContext ctx) =>
+                    static (SubsurfaceScaterringPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         CoreUtils.SetKeyword(natCmd, "USE_DOWNSAMPLE", data.downsampleSteps > 0);
@@ -372,7 +368,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle historyValidationTexture, ref LightingBuffers lightingBuffers, ref PrepassOutput prepassOutput)
+        void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle colorBuffer, in TextureHandle historyValidationTexture, ref LightingBuffers lightingBuffers, ref PrepassOutput prepassOutput)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;

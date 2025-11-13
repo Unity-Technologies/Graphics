@@ -220,7 +220,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int reductionSize;
         }
 
-        internal void RenderWaterLine(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, ref HDRenderPipeline.TransparentPrepassOutput refractionOutput)
+        internal void RenderWaterLine(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthBuffer, ref HDRenderPipeline.TransparentPrepassOutput refractionOutput)
         {
             // Are we in the volume of any surface at all?
             if (m_UnderWaterSurfaceIndex == -1
@@ -267,7 +267,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.reductionSize = m_ReductionSize;
 
                 builder.SetRenderFunc(
-                    (WaterLineRenderingData data, UnsafeGraphContext ctx) =>
+                    static (WaterLineRenderingData data, UnsafeGraphContext ctx) =>
                     {
                         // Clear water line buffer
                         ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.clearKernel, HDShaderIDs._WaterLineBufferRW, data.waterLine);

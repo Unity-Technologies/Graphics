@@ -5,6 +5,7 @@ namespace UnityEngine.Rendering.LookDev
     /// <summary>
     /// Interface that Scriptable Render Pipelines should implement to be able to use LookDev window
     /// </summary>
+    [System.Obsolete("IDataProvider is deprecated", false)]
     public interface IDataProvider
     {
         /// <summary>Additional configuration required by this SRP on LookDev's scene creation</summary>

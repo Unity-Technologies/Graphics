@@ -43,9 +43,17 @@ Blocks are essentially Nodes that have a different workflow logic. Blocks are al
 
 ## Configuring Blocks
 
-To change the way that the Block looks and behaves, adjust the Block's [Settings](GraphLogicAndPhilosophy.md#settings) in the Node UI or the Inspector.
+To change how the Block looks and behaves, adjust the Block's [Settings](GraphLogicAndPhilosophy.md#settings) in the Node UI or the Inspector.
 
 For example, if, in the Inspector, you change the Composition Settings of a **Set Velocity** Block from **Overwrite** to **Blend**, this changes the title of the Node to **Blend Velocity** and adds a **Blend** property to the Node UI.
+
+Some Block inputs, such as **Transform**, **Vector**, **Direction**, and **Position**, are [Spaceable Properties](Properties.md#spaceable-properties). Use the dropdown to select the coordinate space in which VFX Graph interprets the values of the Block inputs. VFX Graph automatically converts the value from the selected space to the System's space. If you select **None**, or if both spaces are the same, VFX Graph doesn't perform any conversion.
+
+![Spaceable Properties dropdown icon: globe (world space), 3D cube (local space), and circle with minus sign (system space)](images/spaceable-properties-dropdown-icon.png)
+
+**Spaceable Properties dropdown icon**
+
+For example, a Position type has a Vector3 value and a Spaceable Property. If you set the Spaceable Property to Local [0,1,0], you're referring to the 0,1,0 value in local space.
 
 ## Activation port
 

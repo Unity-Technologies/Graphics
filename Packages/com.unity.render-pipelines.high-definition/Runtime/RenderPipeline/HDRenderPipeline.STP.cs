@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
-        void PopulateStpConfig(HDCamera hdCamera, TextureHandle inputColor, TextureHandle inputDepth, TextureHandle inputMotion, TextureHandle inputStencil, int debugViewIndex, TextureHandle debugView, TextureHandle destination, out STP.Config config)
+        void PopulateStpConfig(HDCamera hdCamera, in TextureHandle inputColor, in TextureHandle inputDepth, in TextureHandle inputMotion, in TextureHandle inputStencil, int debugViewIndex, in TextureHandle debugView, in TextureHandle destination, out STP.Config config)
         {
             hdCamera.RequestStpHistory(out var useHwDrs, out var hasValidHistory, out var history);
 
@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
             config.perViewConfigs = STP.perViewConfigs;
         }
 
-        TextureHandle DoStpPasses(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputColor, TextureHandle inputDepth, TextureHandle inputMotion, TextureHandle inputStencil)
+        TextureHandle DoStpPasses(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle inputColor, in TextureHandle inputDepth, in TextureHandle inputMotion, in TextureHandle inputStencil)
         {
             bool debugEnabled = (m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.STP);
             int debugViewIndex = debugDisplaySettings.data.stpDebugViewIndex;

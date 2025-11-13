@@ -7,7 +7,6 @@ using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RendererUtils;
-using UnityEngine.UI;
 
 #if UNITY_EDITOR
 using System.Reflection;
@@ -90,9 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_PreviousLightsUseColorTemperature;
         bool m_PreviousSRPBatcher;
 
-#if UNITY_2020_2_OR_NEWER
         uint m_PreviousDefaultRenderingLayerMask;
-#endif
         Camera.GateFitMode m_PreviousDefaultGateFitMode;
         ShadowmaskMode m_PreviousShadowMaskMode;
 
@@ -706,8 +703,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DepthPyramidMipLevelOffsetsBuffer = new ComputeBuffer(15, sizeof(int) * 2);
 
-            m_CustomPassColorBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetCustomBufferFormat(), enableRandomWrite: true, useDynamicScale: true, name: "CustomPassColorBuffer"));
-            m_CustomPassDepthBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.None, useDynamicScale: true, name: "CustomPassDepthBuffer", depthBufferBits: CoreUtils.GetDefaultDepthBufferBits()));
+            AllocateCustomPassBuffers();
 
             // For debugging
             MousePositionDebug.instance.Build();
@@ -2158,11 +2154,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 #endif
 
-#if UNITY_2021_1_OR_NEWER
             int cameraCount = cameras.Count;
-#else
-            int cameraCount = cameras.Length;
-#endif
             // For XR, HDR and no camera cases, UI Overlay ownership must be enforced
             AdjustUIOverlayOwnership(cameraCount);
 
@@ -2265,6 +2257,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 // so will present rendering at native resolution. This will only pay a small cost of memory on the texture aliasing that the runtime has to keep track of.
                 RTHandles.SetHardwareDynamicResolutionState(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.dynResType == DynamicResolutionType.Hardware);
 
+                // This is to ensure that custom pass buffers have the adequate depth/number of slices when switching from XR enabled/disabled
+                if (m_CustomPassColorBuffer.Value.rt.volumeDepth != TextureXR.slices)
+                {
+                    RTHandles.Release(m_CustomPassColorBuffer.Value);
+                    RTHandles.Release(m_CustomPassDepthBuffer.Value);
+                    AllocateCustomPassBuffers();
+                }
+
                 // Culling loop
                 foreach ((Camera camera, XRPass xrPass) in xrLayout.GetActivePasses())
                 {
@@ -2322,8 +2322,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if ((hdCam != null) && cameraRequestedDynamicRes)
                     {
-                        // TODO: Expose the graphics caps info on whether the platform supports hw dynamic resolution or not.
-                        bool isHwDrsSupported = camera.allowDynamicResolution;
+                        bool isHwDrsSupported = SystemInfo.supportsDynamicResolution;
 
                         // We are in a case where the platform does not support hw dynamic resolution, so we force the software fallback.
                         if (drsSettings.dynResType == DynamicResolutionType.Hardware && !isHwDrsSupported)
@@ -3114,9 +3113,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview)
             {
-#if UNITY_2020_2_OR_NEWER
                 ScriptableRenderContext.EmitGeometryForCamera(camera);
-#endif
             }
 #if UNITY_EDITOR
             // emit scene view UI
@@ -3138,13 +3135,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var initialMaximumLODLevel = QualitySettings.maximumLODLevel;
             try
             {
-#if UNITY_2021_1_OR_NEWER
                 // Modifying the variables this way does not set the dirty flag, which avoids repainting all views
                 QualitySettings.SetLODSettings(hdCamera.frameSettings.GetResolvedLODBias(hdrp), hdCamera.frameSettings.GetResolvedMaximumLODLevel(hdrp), false);
-#else
-                QualitySettings.lodBias = hdCamera.frameSettings.GetResolvedLODBias(hdrp);
-                QualitySettings.maximumLODLevel = hdCamera.frameSettings.GetResolvedMaximumLODLevel(hdrp);
-#endif
 
                 if (xrPass.isFirstCameraPass)
                 {
@@ -3210,12 +3202,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             finally
             {
-#if UNITY_2021_1_OR_NEWER
                 QualitySettings.SetLODSettings(initialLODBias, initialMaximumLODLevel, false);
-#else
-                QualitySettings.lodBias = initialLODBias;
-                QualitySettings.maximumLODLevel = initialMaximumLODLevel;
-#endif
             }
         }
 
@@ -3441,6 +3428,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Otherwise we enforce SS UI overlay rendering in HDRP
                 SupportedRenderingFeatures.active.rendersUIOverlay = true;
             }
+        }
+
+        void AllocateCustomPassBuffers()
+        {
+            m_CustomPassColorBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetCustomBufferFormat(), enableRandomWrite: true, useDynamicScale: true, name: "CustomPassColorBuffer"));
+            m_CustomPassDepthBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.None, useDynamicScale: true, name: "CustomPassDepthBuffer", depthBufferBits: CoreUtils.GetDefaultDepthBufferBits()));
         }
     }
 }

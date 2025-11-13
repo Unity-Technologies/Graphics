@@ -549,7 +549,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal void Render(RenderGraph renderGraph, UniversalCameraData cameraData, TextureHandle srcColor, TextureHandle overlayTexture, TextureHandle dstColor)
+        internal void Render(RenderGraph renderGraph, UniversalCameraData cameraData, in TextureHandle srcColor, in TextureHandle overlayTexture, in TextureHandle dstColor)
         {
             if (IsActiveForCamera(cameraData.isPreviewCamera) && HDRDebugViewIsActive(cameraData.resolveFinalTarget))
             {

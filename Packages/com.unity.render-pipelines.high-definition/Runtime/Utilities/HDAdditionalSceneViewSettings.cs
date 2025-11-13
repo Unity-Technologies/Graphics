@@ -13,11 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly GUIContent StopNaNs = EditorGUIUtility.TrTextContent("Camera Stop NaNs", "When enabled, any NaNs in the color buffer of the scene view camera will be suppressed.");
             public static readonly GUIContent OverrideExposure = EditorGUIUtility.TrTextContent("Override Exposure", "When enabled, the scene exposure is overridden with the selected value.");
             public static readonly GUIContent OverriddenExposure = EditorGUIUtility.TrTextContent("Scene Exposure", "The value for the overridden exposure.");
-#if UNITY_2020_2_OR_NEWER
             public static readonly string HelpBox = "Temporal Anti - aliasing in the Scene View is only supported when Always Refresh is enabled.";
-#else
-            public static readonly string HelpBox = "Temporal Anti - aliasing in the Scene View is only supported when Animated Materials are enabled.";
-#endif
         }
 
         // Helper class to manage editor preferences with local caching.

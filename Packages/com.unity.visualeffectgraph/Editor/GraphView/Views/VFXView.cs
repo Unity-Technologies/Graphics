@@ -2752,6 +2752,7 @@ namespace UnityEditor.VFX.UI
         public void AddStickyNote(Vector2 position)
         {
             var group = selection.OfType<VFXGroupNode>().FirstOrDefault();
+            group ??= GetPickedGroupNode(position);
             position = contentViewContainer.WorldToLocal(position);
             controller.AddStickyNote(position, group?.controller);
         }

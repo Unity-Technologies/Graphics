@@ -31,7 +31,7 @@ To analyze the results of the GPU Resident Drawer, you can use the following:
 
 - [Frame Debugger](https://docs.unity3d.com/Manual/FrameDebugger.html). If the GPU Resident Drawer groups GameObjects, the Frame Debugger displays draw calls called **Hybrid Batch Group**.
 - [Rendering Debugger](rendering-debugger-window-reference.md)
-- [Rendering Statistics](https://docs.unity3d.com/Manual/RenderingStatistics.html) to check if the number of frames per second has increased, and the CPU processing time and SetPass calls have decreased.
+- [Rendering Statistics](https://docs.unity3d.com/Manual/RenderingStatistics.html) to check if the number of frames per second has increased, and the CPU processing time and Set Pass calls have decreased.
 - [Unity Profiler](https://docs.unity3d.com/Manual/Profiler.html)
 
 ## Optimize the GPU Resident Drawer

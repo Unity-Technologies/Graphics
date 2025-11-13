@@ -148,11 +148,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected virtual UnityEngine.Object[] GetHDLights()
         {
-#if UNITY_2020_1_OR_NEWER
             var lights = Resources.FindObjectsOfTypeAll<Light>();
-#else
-            var lights = UnityEngine.Object.FindObjectsOfType<Light>();
-#endif
 
             foreach (Light light in lights)
             {
@@ -170,11 +166,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected virtual UnityEngine.Object[] GetHDReflectionProbes()
         {
-#if UNITY_2020_1_OR_NEWER
             var reflectionProbes = Resources.FindObjectsOfTypeAll<ReflectionProbe>();
-#else
-            var reflectionProbes = UnityEngine.Object.FindObjectsOfType<ReflectionProbe>();
-#endif
 
             foreach (ReflectionProbe probe in reflectionProbes)
             {
@@ -186,20 +178,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected virtual UnityEngine.Object[] GetPlanarReflections()
         {
-#if UNITY_2020_1_OR_NEWER
             return Resources.FindObjectsOfTypeAll<PlanarReflectionProbe>();
-#else
-            return UnityEngine.Object.FindObjectsOfType<PlanarReflectionProbe>();
-#endif
         }
 
         protected virtual UnityEngine.Object[] GetVolumes()
         {
-#if UNITY_2020_1_OR_NEWER
             var volumes = Resources.FindObjectsOfTypeAll<Volume>();
-#else
-            var volumes = UnityEngine.Object.FindObjectsOfType<Volume>();
-#endif
 
             foreach (var volume in volumes)
             {

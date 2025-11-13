@@ -169,7 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector2(hdCamera.lowResScaleForScreenSpaceLighting, hdCamera.historyLowResScaleForScreenSpaceLighting);
         }
 
-        TextureHandle TraceSSGI(RenderGraph renderGraph, HDCamera hdCamera, GlobalIllumination giSettings, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle stencilBuffer, TextureHandle motionVectorsBuffer, BufferHandle lightList)
+        TextureHandle TraceSSGI(RenderGraph renderGraph, HDCamera hdCamera, GlobalIllumination giSettings, in TextureHandle depthPyramid, in TextureHandle normalBuffer, in TextureHandle stencilBuffer, in TextureHandle motionVectorsBuffer, in BufferHandle lightList)
         {
             using (var builder = renderGraph.AddUnsafePass<TraceSSGIPassData>("Trace SSGI", out var passData, ProfilingSampler.Get(HDProfileId.SSGITrace)))
             {
@@ -248,7 +248,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (TraceSSGIPassData data, UnsafeGraphContext ctx) =>
+                    static (TraceSSGIPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         int ssgiTileSize = 8;
@@ -331,7 +331,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputBuffer;
         }
 
-        TextureHandle UpscaleSSGI(RenderGraph renderGraph, HDCamera hdCamera, GlobalIllumination giSettings, HDUtils.PackedMipChainInfo info, TextureHandle depthPyramid, TextureHandle inputBuffer)
+        TextureHandle UpscaleSSGI(RenderGraph renderGraph, HDCamera hdCamera, GlobalIllumination giSettings, HDUtils.PackedMipChainInfo info, in TextureHandle depthPyramid, in TextureHandle inputBuffer)
         {
             using (var builder = renderGraph.AddUnsafePass<UpscaleSSGIPassData>("Upscale SSGI", out var passData, ProfilingSampler.Get(HDProfileId.SSGIUpscale)))
             {
@@ -370,7 +370,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (UpscaleSSGIPassData data, UnsafeGraphContext ctx) =>
+                    static (UpscaleSSGIPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Re-evaluate the dispatch parameters (we are evaluating the upsample in full resolution)
@@ -397,7 +397,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle DenoiseSSGI(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle rtGIBuffer, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle historyValidationTexture, bool fullResolution)
+        TextureHandle DenoiseSSGI(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle rtGIBuffer, in TextureHandle depthPyramid, in TextureHandle normalBuffer, in TextureHandle motionVectorBuffer, in TextureHandle historyValidationTexture, bool fullResolution)
         {
             var giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
             if (giSettings.denoiseSS)
@@ -468,8 +468,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderSSGI(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle depthPyramid, TextureHandle depthStencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle historyValidationTexture,
-            ShaderVariablesRaytracing shaderVariablesRayTracingCB, HDUtils.PackedMipChainInfo info, BufferHandle lightList)
+            in TextureHandle depthPyramid, in TextureHandle depthStencilBuffer, in TextureHandle normalBuffer, in TextureHandle motionVectorsBuffer, in TextureHandle historyValidationTexture,
+            ShaderVariablesRaytracing shaderVariablesRayTracingCB, HDUtils.PackedMipChainInfo info, in BufferHandle lightList)
         {
             // Grab the global illumination volume component
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
@@ -491,7 +491,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle RenderScreenSpaceIndirectDiffuse(HDCamera hdCamera, in PrepassOutput prepassOutput, TextureHandle rayCountTexture, TextureHandle historyValidationTexture, BufferHandle lightList)
+        TextureHandle RenderScreenSpaceIndirectDiffuse(HDCamera hdCamera, in PrepassOutput prepassOutput, in TextureHandle rayCountTexture, in TextureHandle historyValidationTexture, in BufferHandle lightList)
         {
             TextureHandle result;
             switch (GetIndirectDiffuseMode(hdCamera))

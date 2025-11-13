@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Function that evaluates the history validation Buffer
         public TextureHandle HistoryValidity(RenderGraph renderGraph, HDCamera hdCamera, float historyValidity,
-            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorBuffer)
+            TextureHandle depthBuffer, in TextureHandle normalBuffer, in TextureHandle motionVectorBuffer)
         {
             using (var builder = renderGraph.AddUnsafePass<HistoryValidityPassData>("History Validity Evaluation", out var passData, ProfilingSampler.Get(HDProfileId.HistoryValidity)))
             {
@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.validationBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (HistoryValidityPassData data, UnsafeGraphContext ctx) =>
+                    static (HistoryValidityPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         RTHandle historyDepthTexture = data.historyDepthTexture;
@@ -221,9 +221,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Denoiser variant for non history array
         internal TextureHandle Denoise(RenderGraph renderGraph, HDCamera hdCamera, TemporalFilterParameters filterParams,
-            TextureHandle noisyBuffer, TextureHandle velocityBuffer,
+            TextureHandle noisyBuffer, in TextureHandle velocityBuffer,
             TextureHandle historyBuffer,
-            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle historyValidationBuffer)
+            TextureHandle depthBuffer, in TextureHandle normalBuffer, in TextureHandle motionVectorBuffer, in TextureHandle historyValidationBuffer)
         {
             using (var builder = renderGraph.AddUnsafePass<TemporalFilterPassData>("TemporalDenoiser", out var passData, ProfilingSampler.Get(HDProfileId.TemporalFilter)))
             {
@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputBuffer, AccessFlags.ReadWrite);
 
                 builder.SetRenderFunc(
-                    (TemporalFilterPassData data, UnsafeGraphContext ctx) =>
+                    static (TemporalFilterPassData data, UnsafeGraphContext ctx) =>
                     {
                         // Evaluate the dispatch parameters
                         int areaTileSize = 8;
@@ -369,7 +369,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public TemporalDenoiserArrayOutputData DenoiseBuffer(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle historyValidationBuffer,
+            TextureHandle depthBuffer, in TextureHandle normalBuffer, in TextureHandle motionVectorBuffer, in TextureHandle historyValidationBuffer,
             TextureHandle noisyBuffer, RTHandle historyBuffer,
             TextureHandle distanceBuffer, RTHandle distanceHistorySignal,
             TextureHandle velocityBuffer,
@@ -458,7 +458,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.outputDistanceSignal = new TextureHandle();
 
                 builder.SetRenderFunc(
-                    (TemporalFilterArrayPassData data, UnsafeGraphContext ctx) =>
+                    static (TemporalFilterArrayPassData data, UnsafeGraphContext ctx) =>
                     {
                         // Evaluate the dispatch parameters
                         int tfTileSize = 8;

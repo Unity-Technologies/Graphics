@@ -289,6 +289,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
+                TryUnregisterSubproperties(false);
                 m_Property = null;
                 m_ExposedProperty = null;
                 m_SubProperties = null;
@@ -313,15 +314,7 @@ namespace UnityEditor.VFX.UI
 
         private void RecreateSubproperties(ref int insertIndex)
         {
-            if (m_SubProperties != null)
-            {
-                foreach (var subProperty in m_SubProperties)
-                {
-                    (subProperty.provider as Controller).UnregisterHandler(this);
-                    subProperty.RemoveFromHierarchy();
-                }
-            }
-            else
+            if (!TryUnregisterSubproperties(true))
             {
                 m_SubProperties = new List<PropertyRM>();
             }
@@ -331,6 +324,23 @@ namespace UnityEditor.VFX.UI
             {
                 CreateSubProperties(ref insertIndex, fieldpath);
             }
+        }
+
+        bool TryUnregisterSubproperties(bool removeFromHierarchy)
+        {
+            if (m_SubProperties != null)
+            {
+                foreach (var subProperty in m_SubProperties)
+                {
+                    (subProperty.provider as Controller).UnregisterHandler(this);
+                    if (removeFromHierarchy)
+                        subProperty.RemoveFromHierarchy();
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         void OnAttachToPanel(AttachToPanelEvent e)

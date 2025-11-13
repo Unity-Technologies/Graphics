@@ -11,7 +11,7 @@ namespace UnityEditor.LightBaking.Tests
             if (go == null)
                 return new uint?();
 
-            int instanceID = go.GetInstanceID();
+            int instanceID = go.GetEntityId();
             int instanceIndex = map.GetInstanceIndex(instanceID);
 
             if (instanceIndex == -1)

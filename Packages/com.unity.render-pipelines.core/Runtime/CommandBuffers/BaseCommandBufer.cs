@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering
         /// Throws an exception if the texture handle is not properly registered for the pass or being used incorrectly.
         /// </exception>
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        protected internal void ValidateTextureHandle(TextureHandle h)
+        protected internal void ValidateTextureHandle(in TextureHandle h)
         {
             if(RenderGraph.enableValidityChecks)
             {
@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering
         /// Throws an exception if the texture handle is either not registered as a readable resource or misused as both an attachment and a regular texture.
         /// </exception>
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        protected internal void ValidateTextureHandleRead(TextureHandle h)
+        protected internal void ValidateTextureHandleRead(in TextureHandle h)
         {
             if (RenderGraph.enableValidityChecks)
             {
@@ -118,7 +118,7 @@ namespace UnityEngine.Rendering
         /// Throws an exception if the texture handle is not registered for writing, attempts to write to a built-in texture, or is misused as both a writeable resource and a render target attachment.
         /// </exception>
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        protected internal void ValidateTextureHandleWrite(TextureHandle h)
+        protected internal void ValidateTextureHandleWrite(in TextureHandle h)
         {
             if(RenderGraph.enableValidityChecks)
             {
