@@ -2,6 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
@@ -29,6 +30,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public readonly int height;
         public readonly int volumeDepth;
         public readonly int msaaSamples;
+        public readonly GraphicsFormat graphicsFormat;
 
         public int latestVersionNumber; // mostly readonly, can be decremented only if all passes using the last version are culled
 
@@ -59,6 +61,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             clear = desc.clearBuffer;
             discard = desc.discardBuffer;
             bindMS = info.bindMS;
+            graphicsFormat = desc.format;
         }
 
         public ResourceUnversionedData(IRenderGraphResource rll, ref BufferDesc _, bool isResourceShared)
@@ -83,6 +86,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             clear = false;
             discard = false;
             bindMS = false;
+            graphicsFormat = GraphicsFormat.None;
         }
 
         public ResourceUnversionedData(IRenderGraphResource rll, ref RayTracingAccelerationStructureDesc _, bool isResourceShared)
@@ -107,6 +111,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             clear = false;
             discard = false;
             bindMS = false;
+            graphicsFormat = GraphicsFormat.None;
         }
 
         public void InitializeNullResource()

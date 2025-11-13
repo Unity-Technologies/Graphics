@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
-using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -114,8 +112,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
+            bool disableZWrite = CanDisableZWrite(cameraData, m_IsOpaque);
+
             InitPassData(cameraData, ref m_PassData, uint.MaxValue, m_IsActiveTargetBackBuffer);
-            InitRendererLists(universalRenderingData, cameraData, lightData, ref m_PassData, context, default(RenderGraph), false);
+            InitRendererLists(universalRenderingData, cameraData, lightData, ref m_PassData, context, default(RenderGraph), false, disableZWrite);
 
             using (new ProfilingScope(renderingData.commandBuffer, profilingSampler))
             {
@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             passData.isActiveTargetBackBuffer = isActiveTargetBackBuffer;
         }
 
-        internal void InitRendererLists(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData, ref PassData passData, ScriptableRenderContext context, RenderGraph renderGraph, bool useRenderGraph)
+        internal void InitRendererLists(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData, ref PassData passData, ScriptableRenderContext context, RenderGraph renderGraph, bool useRenderGraph, bool zWriteOff)
         {
             ref Camera camera = ref cameraData.camera;
             var sortFlags = (m_IsOpaque) ? cameraData.defaultOpaqueSortFlags : SortingCriteria.CommonTransparent;
@@ -216,15 +216,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 #endif
             DrawingSettings drawSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, renderingData, cameraData, lightData, sortFlags);
-            if (cameraData.renderer.useDepthPriming && m_IsOpaque && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth))
+
+            if (zWriteOff)
             {
                 m_RenderStateBlock.depthState = new DepthState(false, CompareFunction.Equal);
                 m_RenderStateBlock.mask |= RenderStateMask.Depth;
             }
-            else if (m_RenderStateBlock.depthState.compareFunction == CompareFunction.Equal)
+            else 
             {
-                m_RenderStateBlock.depthState = new DepthState(true, CompareFunction.LessEqual);
-                m_RenderStateBlock.mask |= RenderStateMask.Depth;
+                m_RenderStateBlock.depthState = DepthState.defaultValue;
+                m_RenderStateBlock.mask &= ~RenderStateMask.Depth;
             }
 
             var activeDebugHandler = GetActiveDebugHandler(cameraData);
@@ -254,12 +255,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        internal static bool CanDisableZWrite(UniversalCameraData cameraData, bool isOpaque)
+        {
+            return cameraData.renderer.useDepthPriming && isOpaque && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth);
+        }
+
         internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle colorTarget, TextureHandle depthTarget, TextureHandle mainShadowsTexture, TextureHandle additionalShadowsTexture, uint batchLayerMask = uint.MaxValue)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
+
+            bool disableZWrite = CanDisableZWrite(cameraData, m_IsOpaque);
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
@@ -275,8 +283,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (depthTarget.IsValid())
                 {
+                    var depthAccessFlags = (disableZWrite) ? AccessFlags.Read : AccessFlags.ReadWrite;
                     passData.depthHdl = depthTarget;
-                    builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
+                    builder.SetRenderAttachmentDepth(depthTarget, depthAccessFlags);
                 }
 
                 if (mainShadowsTexture.IsValid())
@@ -289,7 +298,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     builder.UseTexture(ssaoTexture, AccessFlags.Read);
                 RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
 
-                InitRendererLists(renderingData, cameraData, lightData, ref passData, default(ScriptableRenderContext), renderGraph, true);
+                InitRendererLists(renderingData, cameraData, lightData, ref passData, default(ScriptableRenderContext), renderGraph, true, disableZWrite);
+
                 var activeDebugHandler = GetActiveDebugHandler(cameraData);
                 if (activeDebugHandler != null)
                 {
@@ -409,21 +419,25 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle colorTarget, TextureHandle renderingLayersTexture, TextureHandle depthTarget, TextureHandle mainShadowsTexture, TextureHandle additionalShadowsTexture, RenderingLayerUtils.MaskSize maskSize, uint batchLayerMask = uint.MaxValue)
         {
             using (var builder = renderGraph.AddRasterRenderPass<RenderingLayersPassData>(passName, out var passData, profilingSampler))
-
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
                 UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-                UniversalLightData lightData = frameData.Get<UniversalLightData>();
+                UniversalLightData lightData = frameData.Get<UniversalLightData>();                
 
                 InitPassData(cameraData, ref passData.basePassData, batchLayerMask);
+
                 passData.maskSize = maskSize;
 
                 passData.basePassData.albedoHdl = colorTarget;
                 builder.SetRenderAttachment(colorTarget, 0, AccessFlags.Write);
                 builder.SetRenderAttachment(renderingLayersTexture, 1, AccessFlags.Write);
+
+                bool disableZWrite = CanDisableZWrite(cameraData, passData.basePassData.isOpaque);
+                var depthAccessFlags = (disableZWrite) ? AccessFlags.Read : AccessFlags.ReadWrite;
                 passData.basePassData.depthHdl = depthTarget;
-                builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(depthTarget, depthAccessFlags);
+
                 if (mainShadowsTexture.IsValid())
                     builder.UseTexture(mainShadowsTexture, AccessFlags.Read);
                 if (additionalShadowsTexture.IsValid())
@@ -439,7 +453,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
                 }
 
-                InitRendererLists(renderingData, cameraData, lightData, ref passData.basePassData, default(ScriptableRenderContext), renderGraph, true);
+                InitRendererLists(renderingData, cameraData, lightData, ref passData.basePassData, default(ScriptableRenderContext), renderGraph, true, disableZWrite);
+
                 var activeDebugHandler = GetActiveDebugHandler(cameraData);
                 if (activeDebugHandler != null)
                 {

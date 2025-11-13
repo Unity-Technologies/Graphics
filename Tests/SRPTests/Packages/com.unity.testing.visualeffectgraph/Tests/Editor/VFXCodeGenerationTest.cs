@@ -254,6 +254,34 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void CheckContextLetterInShaderName()
+        {
+            var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/DualOutput_ContextLetters.unitypackage";
+            var vfxPath = VFXTestCommon.tempBasePath + "/DualOutput.vfx";
+
+            AssetDatabase.ImportPackageImmediately(packagePath);
+            AssetDatabase.SaveAssets(); //ease potential debug while looking at final data
+
+            var allAssets = AssetDatabase.LoadAllAssetsAtPath(vfxPath);
+            var resource = allAssets.OfType<VisualEffectAsset>().Single().GetOrCreateResource();
+
+            int shaderAndMaterialCount = 0;
+            foreach (var subAsset in allAssets)
+            {
+                if (subAsset is VisualEffectAsset)
+                    continue;
+                var shaderIndex = resource.GetShaderIndex(subAsset);
+                Assert.IsTrue(shaderIndex >= 0);
+                var shaderPath = resource.GetShaderSourceName(shaderIndex);
+                if (shaderPath.Contains("Render Quad"))
+                {
+                    shaderAndMaterialCount++;
+                    Assert.IsTrue(shaderPath.Contains("A ") || shaderPath.Contains("B "));
+                }
+            }
+            Assert.AreEqual(8, shaderAndMaterialCount);
+        }
+        [Test]
         public void Constant_Folding_With_ShaderKeyword([ValueSource("allCompilationMode")] string compilationModeName)
         {
             VFXCompilationMode compilationMode;

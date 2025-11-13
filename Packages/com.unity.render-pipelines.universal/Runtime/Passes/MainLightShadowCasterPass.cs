@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             Clear();
             int shadowLightIndex = lightData.mainLightIndex;
-            if (shadowLightIndex == -1)
+            if (shadowLightIndex == -1 || (cameraData.camera.targetTexture != null && cameraData.camera.targetTexture.format == RenderTextureFormat.Depth))
             {
                 if (shadowsEnabled)
                     return SetupForEmptyRendering(stripShadowsOffVariants, shadowsEnabled, null, cameraData, shadowData);

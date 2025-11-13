@@ -59,15 +59,28 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private bool IsPixelPerfectCameraEnabled(UniversalCameraData cameraData)
+        internal static bool IsDepthUsageAllowed(ContextContainer frameData, Renderer2DData rendererData)
         {
-            PixelPerfectCamera ppc = null;
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
+            bool allowDepth = rendererData.useDepthStencilBuffer;
+
+            // 3D Render Textures with depth/stencil buffer are not supported
+            if (cameraData.targetTexture != null)
+                allowDepth &= cameraData.targetTexture.dimension != TextureDimension.Tex3D;
+
+            return allowDepth;
+        }
+
+        private bool IsPixelPerfectCameraEnabled(UniversalCameraData cameraData, out PixelPerfectCamera ppc)
+        {
+            ppc = null;
 
             // Pixel Perfect Camera doesn't support camera stacking.
             if (cameraData.renderType == CameraRenderType.Base && cameraData.resolveFinalTarget)
                 cameraData.camera.TryGetComponent(out ppc);
 
-            return ppc != null && ppc.enabled && ppc.cropFrame != PixelPerfectCamera.CropFrame.None;
+            return ppc != null && ppc.enabled;
         }
 
         ImportResourceSummary GetImportResourceSummary(RenderGraph renderGraph, UniversalCameraData cameraData)
@@ -79,7 +92,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Clear back buffer color if pixel perfect crop frame is used
             // Non-base cameras the back buffer should never be cleared
-            bool ppcEnabled = IsPixelPerfectCameraEnabled(cameraData);
+            bool ppcEnabled = IsPixelPerfectCameraEnabled(cameraData, out var ppc) && ppc.cropFrame != PixelPerfectCamera.CropFrame.None;
             bool clearColorBackbufferOnFirstUse = (cameraData.renderType == CameraRenderType.Base) && (!m_CreateColorTexture || ppcEnabled);
             bool clearDepthBackbufferOnFirstUse = (cameraData.renderType == CameraRenderType.Base) && !m_CreateColorTexture;
 
@@ -416,7 +429,7 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < resourceData.normalsTexture.Length; ++i)
                 resourceData.normalsTexture[i] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_NormalMap", true, RendererLighting.k_NormalClearColor);
 
-            if (m_Renderer2DData.useDepthStencilBuffer)
+            if (IsDepthUsageAllowed(frameData, m_Renderer2DData))
             {
                 // Normals pass can reuse active depth if same dimensions, if not create a new depth texture
 #if !(ENABLE_VR && ENABLE_XR_MODULE)
@@ -707,8 +720,7 @@ namespace UnityEngine.Rendering.Universal
             bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
             bool anyPostProcessing = postProcessingData.isEnabled && m_PostProcessPasses.isCreated;
 
-            cameraData.camera.TryGetComponent<PixelPerfectCamera>(out var ppc);
-            bool requirePixelPerfectUpscale = IsPixelPerfectCameraEnabled(cameraData) && ppc.requiresUpscalePass;
+            bool requirePixelPerfectUpscale = IsPixelPerfectCameraEnabled(cameraData, out var ppc) && ppc.requiresUpscalePass;
 
             // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
             // and only upscale the low-res RT to fullscreen when blitting it to camera target. Also, final post processing pass is not run in this case,

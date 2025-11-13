@@ -55,6 +55,7 @@ namespace UnityEditor.VFX
             desc.taskType = VFXTaskType.ParticleMeshOutput;
             desc.supportMotionVectorPerVertex = false;
             desc.motionVectorPerVertexCount = 0;
+            desc.hiddenSettings.Add("enableRayTracing");
 
             if (parent.HasStrips(true))
                 actualMeshCount = 1;
