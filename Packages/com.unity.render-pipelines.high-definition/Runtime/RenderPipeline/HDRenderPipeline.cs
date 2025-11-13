@@ -706,8 +706,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DepthPyramidMipLevelOffsetsBuffer = new ComputeBuffer(15, sizeof(int) * 2);
 
-            m_CustomPassColorBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetCustomBufferFormat(), enableRandomWrite: true, useDynamicScale: true, name: "CustomPassColorBuffer"));
-            m_CustomPassDepthBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.None, useDynamicScale: true, name: "CustomPassDepthBuffer", depthBufferBits: CoreUtils.GetDefaultDepthBufferBits()));
+            AllocateCustomPassBuffers();
 
             // For debugging
             MousePositionDebug.instance.Build();
@@ -2265,6 +2264,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 // so will present rendering at native resolution. This will only pay a small cost of memory on the texture aliasing that the runtime has to keep track of.
                 RTHandles.SetHardwareDynamicResolutionState(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.dynResType == DynamicResolutionType.Hardware);
 
+                // This is to ensure that custom pass buffers have the adequate depth/number of slices when switching from XR enabled/disabled
+                if (m_CustomPassColorBuffer.Value.rt.volumeDepth != TextureXR.slices)
+                {
+                    RTHandles.Release(m_CustomPassColorBuffer.Value);
+                    RTHandles.Release(m_CustomPassDepthBuffer.Value);
+                    AllocateCustomPassBuffers();
+                }
+
                 // Culling loop
                 foreach ((Camera camera, XRPass xrPass) in xrLayout.GetActivePasses())
                 {
@@ -3440,6 +3447,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Otherwise we enforce SS UI overlay rendering in HDRP
                 SupportedRenderingFeatures.active.rendersUIOverlay = true;
             }
+        }
+
+        void AllocateCustomPassBuffers()
+        {
+            m_CustomPassColorBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetCustomBufferFormat(), enableRandomWrite: true, useDynamicScale: true, name: "CustomPassColorBuffer"));
+            m_CustomPassDepthBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.None, useDynamicScale: true, name: "CustomPassDepthBuffer", depthBufferBits: CoreUtils.GetDefaultDepthBufferBits()));
         }
     }
 }
