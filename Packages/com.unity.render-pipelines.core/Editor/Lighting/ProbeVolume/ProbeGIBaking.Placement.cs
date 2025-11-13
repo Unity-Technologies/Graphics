@@ -164,7 +164,7 @@ namespace UnityEngine.Rendering
                 return GetBricksFromLoaded();
 
             var ctx = PrepareProbeSubdivisionContext();
-            return BakeBricks(ctx, m_BakingBatch.contributors, ref canceledByUser);
+            return BakeBricks(ctx, m_BakingBatch.contributors, showProgress: true, ref canceledByUser);
         }
 
         static NativeList<Vector3> ApplySubdivisionResults(ProbeSubdivisionResult results, ref bool canceledByUser)
@@ -303,7 +303,7 @@ namespace UnityEngine.Rendering
             return ctx;
         }
 
-        static internal ProbeSubdivisionResult BakeBricks(ProbeSubdivisionContext ctx, in GIContributors contributors, ref bool canceledByUser)
+        static internal ProbeSubdivisionResult BakeBricks(ProbeSubdivisionContext ctx, in GIContributors contributors, bool showProgress, ref bool canceledByUser)
         {
             var result = new ProbeSubdivisionResult();
 
@@ -318,7 +318,7 @@ namespace UnityEngine.Rendering
                 // subdivide all the cells and generate brick positions
                 foreach (var cell in ctx.cells)
                 {
-                    if (cellIdx++ % freq == 0)  // Don't refresh progress bar at every iteration because it's slow
+                    if (showProgress && cellIdx++ % freq == 0)  // Don't refresh progress bar at every iteration because it's slow
                     {
                         if (EditorUtility.DisplayCancelableProgressBar("Generating Probe Volume Bricks", $"Processing cell {cellIdx} out of {ctx.cells.Count}", Mathf.Lerp(progress0, progress1, cellIdx / (float)ctx.cells.Count)))
                         {
