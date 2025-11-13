@@ -1,9 +1,36 @@
-# Shader Graph Asset
+# Shader Graph Asset reference
 
-## Description
+A Shader Graph asset is a file that contains a graph you create and edit in the [**Shader Graph** window](Shader-Graph-Window.md). It is also a shader that you can select from a material's shader dropdown, as any other shader.
 
-The **Shader Graph Asset** is the new **Asset** type introduced with the shader graph. You can create a **Shader Graph Asset** from the [Project Window](https://docs.unity3d.com/Manual/ProjectView.html) from the **Create** menu.
+To access the properties of a Shader Graph asset in the **Inspector** window, select the asset in your project.
 
-For convenience there is a **Create** menu entry for **Blank Shader Graph** and [Sub-graph](Sub-graph.md). They can be found in the **Shader** sub-menu. Additional options may be provided by render pipelines. These options will create a new Shader Graph with required settings and [Block]() nodes in the [Master Stack]() for the selected shading model.
+## Action buttons
 
-You can open the [Shader Graph Window](Shader-Graph-Window.md) by double clicking a **Shader Graph Asset** or by clicking **Open Shader Editor** in the [Inspector](https://docs.unity3d.com/Manual/UsingTheInspector.html) when the **Shader Graph Asset** is selected.
+Manage Shader Graph assets code.
+
+| Property                  | Description                                                                                                                                                                  |
+|---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Open Shader Editor**    | Opens the selected asset in the [Shader Graph window](Shader-Graph-Window.md) so you can edit the graph. |
+| **View Generated Shader** | Opens the shader code that the shader graph generates in a text editor or an IDE, such as Visual Studio. The code includes all possible passes and targets.                  |
+| **Regenerate**            | Updates the code you edited in your text editor or IDE. This button appears only when you select **View Generated Shader**.                                                 |
+| **Copy Shader**           | Copies the shader code to the clipboard.                                                                                                                                     |
+
+## Properties
+
+Manage Shader Graph assets templates.
+
+| Property                  | Description                                                                                                                                                                  |
+|---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Use As Template**       | Marks the selected Shader Graph asset as a template. When enabled, the asset appears in the [Shader Graph template browser](template-browser.md), but is no longer listed in any material's **Shader** dropdown by default. |
+| **Expose As Shader**      | Keeps the asset listed in a material's **Shader** dropdown so you can still use it as a shader when you also use it as a template. This is available only when **Use As Template** is enabled. |
+| **Name**                  | Sets the name of the template in the Shader Graph template browser.                                                                                                            |
+| **Category**              | Sets the category of the template in the Shader Graph template browser.                                                                                                      |
+| **Description**           | Sets the description of the template in the Shader Graph template browser.                                                                                                     |
+| **Icon**                  | Sets the icon that represents the template in the Shader Graph template browser.                                                                                               |
+| **Thumbnail**             | Sets the image that represents the template in the Shader Graph template browser.                                                                                              |
+
+## Additional resources
+
+* [Creating a new shader graph asset](Create-Shader-Graph.md)
+* [Shader Graph Window](Shader-Graph-Window.md)
+* [Shader Graph template browser](template-browser.md)

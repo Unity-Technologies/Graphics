@@ -8,7 +8,7 @@ VisualEffectImporter:
     category: Learning Templates
     description: This example shows how to use the Advanced mode of the orient block,
       which allows you to control how a particle is being oriented.
-    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    icon: {fileID: 2800000, guid: ce3ba62f9452ddd4fbadb663ac249d93, type: 3}
     thumbnail: {fileID: 2800000, guid: fa359bb45eebf334abfc735206cd5e80, type: 3}
   userData: 
   assetBundleName: 

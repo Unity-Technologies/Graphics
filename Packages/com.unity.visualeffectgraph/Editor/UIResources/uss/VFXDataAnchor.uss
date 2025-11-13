@@ -117,31 +117,16 @@ VFXContextUI #output .VFXDataAnchor.port #connector
     padding-left: 16px;
     background-size: 12px 12px;
     background-position-x: left;
-    background-image:resource("Builtin Skins/DarkSkin/Images/IN foldout.png");
+    -unity-background-image-tint-color: #888888;
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/IN foldout@2x.png");
 }
 
-.VFXDataAnchor.Output.expandable #type:hover
-{
-    background-image:resource("Builtin Skins/DarkSkin/Images/IN foldout focus.png");
+.VFXDataAnchor.Output.expandable #type:hover {
+    -unity-background-image-tint-color: var(--unity-colors-default-text-hover);
 }
 
-.VFXDataAnchor.Output.expandable #type:hover:active
-{
-    background-image:resource("Builtin Skins/DarkSkin/Images/IN foldout act.png");
-}
-
-.VFXDataAnchor.Output.expandable.icon-expanded #type
-{
-    background-image:resource("IN foldout on.png");
-}
-
-.VFXDataAnchor.Output.expandable.icon-expanded #type:hover
-{
-    background-image:resource("IN foldout focus on.png");
-}
-.VFXDataAnchor.Output.expandable.icon-expanded #type:active
-{
-    background-image:resource("IN foldout act on.png");
+.VFXDataAnchor.Output.expandable.icon-expanded #type {
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/IN foldout on@2x.png");
 }
 
 VFXDataAnchor.Output #type

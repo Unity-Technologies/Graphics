@@ -1557,6 +1557,9 @@ namespace UnityEditor.VFX.UI
             Clear();
             ModelChanged(model);
             GraphChanged();
+
+            var window = VFXViewWindow.GetWindow(this.graph, false, false);
+            window?.graphView?.blackboard.Update(true);
         }
 
         bool m_Syncing;
@@ -1749,6 +1752,15 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        private void ReorderParameters()
+        {
+            var index = 0;
+            foreach (var parameter in m_ParameterControllers.OrderBy(x => x.Value.order))
+            {
+                parameter.Value.order = index++;
+            }
+        }
+
         private void AddControllersFromModel(VFXModel model)
         {
             List<VFXNodeController> newControllers = new List<VFXNodeController>();
@@ -1815,7 +1827,8 @@ namespace UnityEditor.VFX.UI
 
                 parameter.ValidateNodes();
 
-                m_ParameterControllers[parameter] = new VFXParameterController(parameter, this);
+                var newParameterController = new VFXParameterController(parameter, this) { order = m_ParameterControllers.Count };
+                m_ParameterControllers[parameter] = newParameterController;
 
                 m_SyncedModels[model] = new List<VFXNodeController>();
             }
@@ -1856,10 +1869,11 @@ namespace UnityEditor.VFX.UI
                 }
                 m_SyncedModels.Remove(model);
             }
-            if (model is VFXParameter)
+            if (model is VFXParameter parameter)
             {
-                m_ParameterControllers[model as VFXParameter].OnDisable();
-                m_ParameterControllers.Remove(model as VFXParameter);
+                m_ParameterControllers[parameter].OnDisable();
+                m_ParameterControllers.Remove(parameter);
+                ReorderParameters();
             }
         }
 
@@ -1919,7 +1933,7 @@ namespace UnityEditor.VFX.UI
             else
                 ui.groupInfos = new VFXUI.GroupInfo[] { newGroupInfo };
 
-            return ui.groupInfos.Last();
+            return newGroupInfo;
         }
 
         public void GroupNodes(VFXNodeController[] nodes) => GroupNodes(nodes, Array.Empty<VFXStickyNoteController>());
@@ -1929,13 +1943,14 @@ namespace UnityEditor.VFX.UI
             // If a node from the selection already belongs to a group, remove it from this group
             foreach (var g in groupNodes.ToArray())
             {
+                if (g.nodes.Count() == 0)
+                    continue;
                 g.RemoveNodes(nodes);
                 g.RemoveStickyNotes(stickyNoteControllers);
                 if (g.nodes.Count() == 0)
                 {
                     RemoveGroupNode(g);
                 }
-
             }
 
             // Use a node or a sticky note position when possible to avoid the group to go back to (0,0) when emptied
@@ -2042,41 +2057,11 @@ namespace UnityEditor.VFX.UI
                     systemController.OnDisable();
                 }
 
+                graph.SyncContextLetters();
                 for (int i = 0; i < systems.Count(); ++i)
                 {
                     var contextToController = systems[i].Keys.Select(t => new KeyValuePair<VFXContextController, VFXContext>((VFXContextController)GetNodeController(t, 0), t)).Where(t => t.Key != null).ToDictionary(t => t.Value, t => t.Key);
                     m_Systems[i].contexts = contextToController.Values.ToArray();
-                    VFXContextType type = VFXContextType.None;
-                    VFXContext prevContext = null;
-                    var orderedContexts = contextToController.Keys.OrderBy(t => t.contextType).ThenBy(t => systems[i][t]).ThenBy(t => t.position.x).ThenBy(t => t.position.y).ToArray();
-
-                    char letter = 'A';
-                    foreach (var context in orderedContexts)
-                    {
-                        if (context.contextType == type)
-                        {
-                            if (prevContext != null)
-                            {
-                                letter = 'A';
-                                prevContext.letter = letter;
-                                prevContext = null;
-                            }
-
-                            if (letter == 'Z') // loop back to A in the unlikely event that there are more than 26 contexts
-                                letter = 'a';
-                            else if (letter == 'z')
-                                letter = 'α';
-                            else if (letter == 'ω')
-                                letter = 'A';
-                            context.letter = ++letter;
-                        }
-                        else
-                        {
-                            context.letter = '\0';
-                            prevContext = context;
-                        }
-                        type = context.contextType;
-                    }
                 }
             }
             catch (Exception e)

@@ -18,17 +18,22 @@
 #define OCCLUSION_ANY_PASS
 #endif
 
-#define DRAW_ARGS_INDEX(N)                      (5*(_DrawInfoAllocIndex + (N)))
-#define DRAW_ARGS_INDEX_INDIRECT_DISPATCH       DRAW_ARGS_INDEX(_DrawInfoCount)
-#define DRAW_ARGS_INDEX_INSTANCE_COUNTER        (DRAW_ARGS_INDEX_INDIRECT_DISPATCH + 3)
+#define DRAW_ARGS_PARAMETER_COUNT                   5
+#define DRAW_ARGS_INSTANCE_COUNT_PARAMETER_OFFSET   1
+#define DRAW_ARGS_INDEX(N)                          (DRAW_ARGS_PARAMETER_COUNT*(_DrawInfoAllocIndex + (N)))
+#define DRAW_ARGS_INDEX_INDIRECT_DISPATCH           DRAW_ARGS_INDEX(_DrawInfoCount)
+#define DRAW_ARGS_INDEX_INSTANCE_COUNTER            (DRAW_ARGS_INDEX_INDIRECT_DISPATCH + 3)
 
 #define INSTANCE_INFO_OFFSET_SECOND_PASS(N)     (_InstanceInfoCount + (N))
 
 // buffers allocate 2 sets of instance info per instance (for the second pass)
 #define INSTANCE_ALLOC_INDEX                    (_InstanceInfoAllocIndex/2)
 
+#define THREAD_GROUP_SIZE 64
+
 StructuredBuffer<IndirectDrawInfo> _DrawInfo;
 RWStructuredBuffer<IndirectInstanceInfo> _InstanceInfo;
+RWStructuredBuffer<uint> _DispatchArgs;
 RWStructuredBuffer<uint> _DrawArgs;
 RWByteAddressBuffer _InstanceIndices;
 ByteAddressBuffer _InstanceDataBuffer;
@@ -66,7 +71,7 @@ SphereBound LoadInstanceBoundingSphere(uint instanceID)
     return b;
 }
 
-[numthreads(64,1,1)]
+[numthreads(THREAD_GROUP_SIZE, 1, 1)]
 void ResetDrawArgs(uint drawInfoOffset : SV_DispatchThreadID)
 {
     if (drawInfoOffset < _DrawInfoCount)
@@ -84,11 +89,11 @@ void ResetDrawArgs(uint drawInfoOffset : SV_DispatchThreadID)
     if (drawInfoOffset == 0)
     {
 #ifdef OCCLUSION_SECOND_PASS
-        // convert to dispatch args
-        uint argsBase = DRAW_ARGS_INDEX_INDIRECT_DISPATCH;
-        _DrawArgs[argsBase + 0] = (_DrawArgs[DRAW_ARGS_INDEX_INSTANCE_COUNTER] + 63)/64;
-        _DrawArgs[argsBase + 1] = 1;
-        _DrawArgs[argsBase + 2] = 1;
+        // convert to compute dispatch args
+        uint argsBase = 0;
+        _DispatchArgs[argsBase + 0] = (_DrawArgs[DRAW_ARGS_INDEX_INSTANCE_COUNTER] + (THREAD_GROUP_SIZE-1)) / THREAD_GROUP_SIZE;
+        _DispatchArgs[argsBase + 1] = 1;
+        _DispatchArgs[argsBase + 2] = 1;
 #else
         // zero the instance count
         _DrawArgs[DRAW_ARGS_INDEX_INSTANCE_COUNTER] = 0;
@@ -96,7 +101,7 @@ void ResetDrawArgs(uint drawInfoOffset : SV_DispatchThreadID)
     }
 }
 
-[numthreads(64, 1, 1)]
+[numthreads(THREAD_GROUP_SIZE, 1, 1)]
 void CopyInstances(uint dispatchIdx : SV_DispatchThreadID)
 {
     if (dispatchIdx < _DrawInfoCount)
@@ -133,7 +138,7 @@ uint GetPrimitiveCount(uint indexCount, uint topology, bool nativeQuads)
     }
 }
 
-[numthreads(64,1,1)]
+[numthreads(THREAD_GROUP_SIZE, 1, 1)]
 void CullInstances(uint instanceInfoOffset : SV_DispatchThreadID)
 {
     uint instanceInfoCount = GetInstanceInfoCount();
@@ -202,7 +207,7 @@ void CullInstances(uint instanceInfoOffset : SV_DispatchThreadID)
         {
             uint argsBase = DRAW_ARGS_INDEX(drawOffset);
             uint offsetWithinDraw = 0;
-            InterlockedAdd(_DrawArgs[argsBase + 1], 1 << _InstanceMultiplierShift, offsetWithinDraw);   // IndirectDrawIndexedArgs.instanceCount
+            InterlockedAdd(_DrawArgs[argsBase + DRAW_ARGS_INSTANCE_COUNT_PARAMETER_OFFSET], 1 << _InstanceMultiplierShift, offsetWithinDraw);   // IndirectDrawIndexedArgs.instanceCount
             offsetWithinDraw = offsetWithinDraw >> _InstanceMultiplierShift;
 
             IndirectDrawInfo drawInfo = LoadDrawInfo(drawOffset);

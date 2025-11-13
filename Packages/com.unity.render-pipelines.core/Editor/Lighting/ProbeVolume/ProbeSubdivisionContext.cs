@@ -77,11 +77,24 @@ namespace UnityEngine.Rendering
                         var ctx = AdaptiveProbeVolumes.PrepareProbeSubdivisionContext(perSceneDataList, true);
                         var contributors = GIContributors.Find(GIContributors.ContributorFilter.All);
 
-                        // Cull all the cells that are not visible (we don't need them for realtime debug)
-                        ctx.cells.RemoveAll(c =>
+                        var cullCtx = new ProbeVolume.CellCullingContext
                         {
-                            return probeVolume.ShouldCullCell(c.position);
-                        });
+                            ActiveCamera = null,
+                            FrustumPlanes = stackalloc Plane[6]
+                        };
+                        ProbeVolume.PrepareCellCulling(ref cullCtx);
+
+                        var sceneToBakingSetMap = ProbeVolumeBakingSet.SceneToBakingSet.Instance;
+                        var probeRefVol = ProbeReferenceVolume.instance;
+
+                        // Cull all the cells that are not visible (we don't need them for realtime debug)
+                        for (int i = ctx.cells.Count - 1; i >= 0; i--)
+                        {
+                            var cell = ctx.cells[i];
+                            bool shouldRemove = probeVolume.ShouldCullCell(cullCtx, sceneToBakingSetMap, probeRefVol, cell.position);
+                            if (shouldRemove)
+                                ctx.cells.RemoveAt(i);
+                        }
 
                         Camera activeCamera = Camera.current ?? SceneView.lastActiveSceneView.camera;
 

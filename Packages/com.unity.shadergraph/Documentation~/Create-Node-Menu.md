@@ -1,22 +1,69 @@
-# Create Node Menu
+# Add and connect nodes in a shader graph
 
-## Description
+You can add and connect nodes in a shader graph in different ways depending on your current task.
 
-Use the **Create Node Menu** to create [nodes](Node.md) in Shader Graph. To open the **Create Node Menu**, either right-click on the workspace in the [Shader Graph Window](Shader-Graph-Window.md) and select **Create Node**, or press the spacebar.
+> [!NOTE]
+> To add and connect nodes in a shader graph, you need to [create a shader graph asset](create-shader-graph.md) first and open the asset in the [Shader Graph window](Shader-Graph-Window.md).
 
-At the top of the **Create Node Menu** is a search bar. To search for a node, type any part of its name in the search field. The search box gives you autocomplete options, and you can press Tab to accept the predictive text. It highlights matching text in yellow.
+## Add a node
 
-The **Create Node Menu** lists all nodes that are available in Shader Graph, categorized by their function. User-created [Sub Graphs](Sub-graph.md) are also available in the **Create Node Menu** under **Sub Graph Assets**, or in a custom category that you define in the Sub Graph Asset.
+To add a [node](Node.md) to your shader graph, follow these steps:
 
-To add a node to the workspace, double-click it in the **Create Node Menu**.
+1. Open the **Create Node** menu through either of the following:
+   
+   * Select the [Shader Graph window](Shader-Graph-Window.md)'s workspace and press the **Spacebar**.
+   * Right-click in the Shader Graph Window's workspace and select **Create Node**.
 
-### Contextual Create Node Menu
+1. In the **Create Node** menu, browse or search for the desired node.
+   
+   The **Create Node** menu lists all nodes that are available in Shader Graph, categorized by their function. User-created [sub graphs](Sub-graph.md) are also available in the **Create Node** menu under **Sub Graph Assets**, or in a custom category that you define in the Sub Graph Asset.
 
-A contextual **Create Node Menu** filters the available nodes, and only shows those that use the [Data Type](Data-Types.md) of a selected edge. It lists every available [Port](Port.md) on nodes that match that Data Type.
+1. Double-click on a node's name to add the corresponding node in the graph.
 
-To open a contextual **Create Node Menu**, click and drag an [Edge](Edge.md) from a Port, and then release it in an empty area of the workspace.
+> [!NOTE]
+> Use the **Create Node** menu search box to filter the listed nodes by name parts and synonyms based on industry terms. It provides autocomplete options and highlights matching text in yellow. You can press **Tab** to accept the predictive text.
 
-### Master Stack Create Node Menu
-To add a new [Block Node]() to the [Master Stack](), either right click and select **Create Node** or press spacebar with the stack selected.
+## Connect node ports
 
-The **Create Node Menu** will display all available blocks for the master stack based on the render pipelines in your project. Any block can be added to the master stack via the **Create Node Menu**. If the block added is not compatible with the current Graph settings, the block will be disabled until the settings are configured to support it.
+To connect [ports](Port.md) between two existing [nodes](Node.md) or with the [master stack](Master-Stack.md), select and drag the desired port to the target.
+
+The line resulting from that connection is called an [edge](Edge.md).
+
+You can only connect an output port to a input port, or vice-versa, and you can't connect two ports of the same node together.
+
+## Add and connect a node from an existing port
+
+To connect a [port](Port.md) to a [node](Node.md) that doesn't exist yet and create that targeted node in the process, follow these steps:
+
+1. Select and drag the desired port and release it in an empty area of the workspace.
+
+1. In the **Create Node** menu, browse or search for the node you need to connect to the port you dragged out.
+   
+   The **Create Node** menu displays every node port available according to the [data types](Data-Types.md) compatible with the port you dragged out.
+
+1. Double-click on a node port's name to add the corresponding node in the graph, with the two expected ports already connected­.
+
+## Add a block node in the Master Stack
+
+To add a new [block node](Block-Node.md) to the [master stack](Master-Stack.md), follow these steps:
+
+1. Open the **Create Node** menu for the Master Stack context through either of the following:
+   * Select the Master Stack's targeted context (**Vertex** or **Fragment**) and press the **Spacebar**.
+   * Right-click in the Master Stack's targeted context area and select **Create Node**.
+
+1. In the **Create Node** menu, browse or search for the desired block node.
+   
+   The **Create Node** menu displays all available blocks for the master stack based on the render pipelines in your project.
+   
+1. Double-click on a block node's name to add the corresponding block node in the Master Stack.
+
+> [!NOTE]
+> If the block that you add is not compatible with the current [graph settings](Graph-Settings-Tab.md), the block is deactivated until you configure the settings to support it.
+
+## Additional resources
+
+* [Nodes](Node.md)
+* [Ports](Port.md)
+* [Edges](Edge.md)
+* [Master Stack](Master-Stack.md)
+* [Block nodes](Block-Node.md)

@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public readonly int depthSlice;
         public readonly AccessFlags flags;
 
-        public TextureAccess(TextureHandle handle, AccessFlags flags, int mipLevel, int depthSlice)
+        public TextureAccess(in TextureHandle handle, AccessFlags flags, int mipLevel, int depthSlice)
         {
             this.textureHandle = handle;
             this.flags = flags;
@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             this.depthSlice = depthSlice;
         }
 
-        public TextureAccess(TextureAccess access, TextureHandle handle)
+        public TextureAccess(in TextureAccess access, in TextureHandle handle)
         {
             this.textureHandle = handle;
             this.flags = access.flags;
@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// </summary>
     [DebuggerDisplay("Texture ({handle.index})")]
     [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
-    public struct TextureHandle
+    public readonly struct TextureHandle
     {
         private static TextureHandle s_NullHandle = new TextureHandle();
 
@@ -107,9 +107,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <value>A null texture handle.</value>
         public static TextureHandle nullHandle { get { return s_NullHandle; } }
 
-        internal ResourceHandle handle;
+        internal readonly ResourceHandle handle;
 
-        private bool builtin;
+        private readonly bool builtin;
 
         internal TextureHandle(in ResourceHandle h)
         {
@@ -514,7 +514,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 TextureSizeMode.Functor => RTHandles.CalculateDimensions(func),
                 _ => throw new ArgumentOutOfRangeException()
             };
-
         }
     }
 

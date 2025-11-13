@@ -8,7 +8,7 @@ Returns the cosine of the value of input **In**.
 
 | Name        | Direction           | Type  | Description |
 |:------------ |:-------------|:-----|:---|
-| In      | Input | Dynamic Vector | Input value |
+| In      | Input | Dynamic Vector | Input value in radians |
 | Out | Output      |    Dynamic Vector | Output value |
 
 ## Generated Code Example

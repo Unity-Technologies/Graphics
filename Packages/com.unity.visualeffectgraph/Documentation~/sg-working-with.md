@@ -94,7 +94,7 @@ Shader Graph does not support some features in specific Targets.
   - [Fog Volume Shader Graph](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/fog-volume-master-stack-reference.html)
   - [Motion vectors](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/Motion-Vectors.html) for vertex animation.
 - The URP does not support the following:
-  - [Decal Shader Graph](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest?subfolder=/manual/decal-shader.html.
+  - [Decal Shader Graph](https://docs.unity3d.com/Documentation/Manual/urp/prebuilt-shader-graphs-urp-decal.html)
 - The Visual Effect Target (deprecated) does not support:
   - HDRP or Universal material types.
   - Access to the shader's Vertex stage.

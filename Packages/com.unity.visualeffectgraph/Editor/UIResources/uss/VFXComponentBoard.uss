@@ -177,6 +177,10 @@ VFXComponentBoard.graphElement > .mainContainer
     width: 25%;
 }
 
+#debug-system-stat-entry-container > Button {
+    white-space: normal;
+}
+
 #debug-system-stat-entry-container > Toggle {
     width: auto;
 }

@@ -8,7 +8,7 @@ VisualEffectImporter:
     category: Learning Templates
     description: This VFX Graph shows how you can add several outputs to render each
       particle multiple times.
-    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    icon: {fileID: 2800000, guid: ce3ba62f9452ddd4fbadb663ac249d93, type: 3}
     thumbnail: {fileID: 2800000, guid: 1ac2a2a6763112b4ea3929fb00f980ba, type: 3}
   userData: 
   assetBundleName: 

@@ -6,7 +6,6 @@ PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
     output = BuildVaryings(input);
-    output.normalWS = TransformObjectToWorldDir(input.normalOS);
     PackedVaryings packedOutput = PackVaryings(output);
     return packedOutput;
 }

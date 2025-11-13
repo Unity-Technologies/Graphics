@@ -589,10 +589,10 @@ namespace UnityEditor.VFX.UI
             flexSpacer.style.flexGrow = 1f;
             m_Toolbar.Add(flexSpacer);
 
-            var toggleBlackboard = new ToolbarToggle { tooltip = "Blackboard" };
-            toggleBlackboard.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/variableswindow.png")) });
-            toggleBlackboard.RegisterCallback<ChangeEvent<bool>>(ToggleBlackboard);
-            m_Toolbar.Add(toggleBlackboard);
+            m_ToggleBlackboard = new ToolbarToggle { tooltip = "Blackboard" };
+            m_ToggleBlackboard.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/variableswindow.png")) });
+            m_ToggleBlackboard.RegisterCallback<ChangeEvent<bool>>(ToggleBlackboard);
+            m_Toolbar.Add(m_ToggleBlackboard);
 
             m_ToggleComponentBoard = new ToolbarToggle { tooltip = "Displays controls for the GameObject currently attached" };
             m_ToggleComponentBoard.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/controls.png")) });
@@ -625,11 +625,6 @@ namespace UnityEditor.VFX.UI
             m_LockedElement.Add(lockLabel);
 
             m_Blackboard = new VFXBlackboard(this);
-            bool blackboardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, true);
-            if (blackboardVisible)
-                Add(m_Blackboard);
-            toggleBlackboard.value = blackboardVisible;
-
             m_ComponentBoard = new VFXComponentBoard(this);
             m_ProfilingBoard = new VFXProfilingBoard(this);
 
@@ -655,6 +650,7 @@ namespace UnityEditor.VFX.UI
             canPasteSerializedData = VFXCanPaste;
 
             viewDataKey = "VFXView";
+            m_FirstResize = true;
             RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
 
@@ -971,6 +967,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        readonly Toggle m_ToggleBlackboard;
         void ToggleBlackboard(ChangeEvent<bool> e)
         {
             ToggleBlackboard();
@@ -1021,48 +1018,49 @@ namespace UnityEditor.VFX.UI
 
         void OnFirstComponentBoardGeometryChanged(GeometryChangedEvent e)
         {
-            if (m_FirstResize)
-            {
-                m_ComponentBoard.ValidatePosition();
-                m_ComponentBoard.UnregisterCallback<GeometryChangedEvent>(OnFirstComponentBoardGeometryChanged);
-            }
+            m_ComponentBoard.ValidatePosition();
+            m_ComponentBoard.UnregisterCallback<GeometryChangedEvent>(OnFirstComponentBoardGeometryChanged);
         }
 
         void OnFirstProfilingBoardGeometryChanged(GeometryChangedEvent e)
         {
-            if (m_FirstResize)
-            {
-                m_ProfilingBoard.ValidatePosition();
-                m_ProfilingBoard.UnregisterCallback<GeometryChangedEvent>(OnFirstProfilingBoardGeometryChanged);
-            }
+            m_ProfilingBoard.ValidatePosition();
+            m_ProfilingBoard.UnregisterCallback<GeometryChangedEvent>(OnFirstProfilingBoardGeometryChanged);
         }
 
         void OnFirstBlackboardGeometryChanged(GeometryChangedEvent e)
         {
-            if (m_FirstResize)
-            {
-                m_Blackboard.ValidatePosition();
-                m_Blackboard.UnregisterCallback<GeometryChangedEvent>(OnFirstBlackboardGeometryChanged);
-            }
+            m_Blackboard.ValidatePosition();
+            m_Blackboard.UnregisterCallback<GeometryChangedEvent>(OnFirstBlackboardGeometryChanged);
         }
 
-        public bool m_FirstResize = false;
+        bool m_FirstResize;
 
         void OnGeometryChanged(GeometryChangedEvent e)
         {
-            m_FirstResize = true;
+            if (m_FirstResize)
+            {
+                if (BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, true))
+                    m_ToggleBlackboard.value = true;
+                if (BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.componentBoard, false))
+                    m_ToggleComponentBoard.value = true;
+                if (BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.profilingBoard, false))
+                    m_ToggleProfilingBoard.value = true;
+                m_FirstResize = false;
+            }
+
             m_ComponentBoard.ValidatePosition();
             m_ProfilingBoard.ValidatePosition();
             m_Blackboard.ValidatePosition();
         }
 
-        Toggle m_ToggleComponentBoard;
+        readonly Toggle m_ToggleComponentBoard;
         void ToggleComponentBoard(ChangeEvent<bool> e)
         {
             ToggleComponentBoard();
         }
 
-        Toggle m_ToggleProfilingBoard;
+        readonly Toggle m_ToggleProfilingBoard;
         void ToggleProfilingBoard(ChangeEvent<bool> e)
         {
             OnToggleProfilingBoard();
@@ -1790,14 +1788,20 @@ namespace UnityEditor.VFX.UI
 
         internal void SaveAs(string newPath)
         {
-            m_ComponentBoard?.DeactivateBoundsRecordingIfNeeded(); //Avoids saving the graph with unnecessary bounds computations
-
             var resource = controller.graph.visualEffectResource;
-
             var oldFilePath = AssetDatabase.GetAssetPath(resource);
-            if (!AssetDatabase.CopyAsset(oldFilePath, newPath))
+            if (string.Compare(newPath, oldFilePath, StringComparison.InvariantCultureIgnoreCase) == 0)
             {
-                Debug.Log($"Could not save VFX Graph at {newPath}");
+                this.OnSave();
+            }
+            else
+            {
+                m_ComponentBoard?.DeactivateBoundsRecordingIfNeeded(); //Avoids saving the graph with unnecessary bounds computations
+
+                if (!AssetDatabase.CopyAsset(oldFilePath, newPath))
+                {
+                    Debug.LogError($"Could not save VFX Graph at {newPath}");
+                }
             }
         }
 
@@ -2748,6 +2752,7 @@ namespace UnityEditor.VFX.UI
         public void AddStickyNote(Vector2 position)
         {
             var group = selection.OfType<VFXGroupNode>().FirstOrDefault();
+            group ??= GetPickedGroupNode(position);
             position = contentViewContainer.WorldToLocal(position);
             controller.AddStickyNote(position, group?.controller);
         }

@@ -8,7 +8,7 @@ VisualEffectImporter:
     category: Learning Templates
     description: This VFX shows how to set the output settings to use a flipbook
       and their relationship with the texIndex attribute.
-    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    icon: {fileID: 2800000, guid: ce3ba62f9452ddd4fbadb663ac249d93, type: 3}
     thumbnail: {fileID: 2800000, guid: ec5b3fc4b1b065c48aa4944f0496294a, type: 3}
   userData: 
   assetBundleName: 

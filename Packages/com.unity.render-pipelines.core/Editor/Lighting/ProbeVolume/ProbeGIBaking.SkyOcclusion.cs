@@ -213,6 +213,9 @@ namespace UnityEngine.Rendering
                     if (!s_TracingContext.TryGetMeshForAccelerationStructure(renderer.component, out var mesh))
                         continue;
 
+                    if (renderer.component is SkinnedMeshRenderer)
+                        continue;
+
                     int subMeshCount = mesh.subMeshCount;
                     var matIndices = GetMaterialIndices(renderer.component);
                     var perSubMeshMask = new uint[subMeshCount];

@@ -17,6 +17,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // Statics
         private static readonly List<ShaderTagId> k_DepthNormals = new List<ShaderTagId> { new ShaderTagId("DepthNormals"), new ShaderTagId("DepthNormalsOnly") };
+        private static readonly List<ShaderTagId> k_DepthNormalsOnly = new List<ShaderTagId> { new ShaderTagId("DepthNormalsOnly") };
+
         internal static readonly string k_CameraNormalsTextureName = "_CameraNormalsTexture";
         private static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
         private static readonly int s_CameraNormalsTextureID = Shader.PropertyToID(k_CameraNormalsTextureName);
@@ -202,8 +204,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             return new RendererListParams(renderingData.cullResults, drawSettings, m_FilteringSettings);
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle cameraNormalsTexture, TextureHandle cameraDepthTexture, TextureHandle renderingLayersTexture, uint batchLayerMask, bool setGlobalDepth, bool setGlobalTextures)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle cameraNormalsTexture, in TextureHandle depthTexture, in TextureHandle renderingLayersTexture, uint batchLayerMask, bool setGlobalDepth, bool setGlobalNormalAndRenderingLayers, bool allowPartialPass)
         {
+            if (allowPartialPass)
+            {
+                this.shaderTagIds = k_DepthNormalsOnly;
+            }
+            else
+            {
+                this.shaderTagIds = k_DepthNormals;
+            }
+
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
@@ -211,7 +222,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 builder.SetRenderAttachment(cameraNormalsTexture, 0, AccessFlags.Write);
-                builder.SetRenderAttachmentDepth(cameraDepthTexture, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(depthTexture, AccessFlags.ReadWrite);
 
                 passData.enableRenderingLayers = enableRenderingLayers;
 
@@ -231,7 +242,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
                 }
 
-                if (setGlobalTextures)
+                if (setGlobalNormalAndRenderingLayers)
                 {
                     builder.SetGlobalTextureAfterPass(cameraNormalsTexture, s_CameraNormalsTextureID);
 
@@ -240,7 +251,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 if (setGlobalDepth)
-                    builder.SetGlobalTextureAfterPass(cameraDepthTexture, s_CameraDepthTextureID);
+                    builder.SetGlobalTextureAfterPass(depthTexture, s_CameraDepthTextureID);
 
                 // Required here because of RenderingLayerUtils.SetupProperties
                 builder.AllowGlobalStateModification(true);

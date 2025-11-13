@@ -9,7 +9,7 @@ VisualEffectImporter:
     description: This VFX Graph, shows the use of a standard Collider Block and how
       the different Collision Properties like Bounce, Friction and/or Roughness can
       influence the collision response of the particles.
-    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    icon: {fileID: 2800000, guid: ce3ba62f9452ddd4fbadb663ac249d93, type: 3}
     thumbnail: {fileID: 2800000, guid: c95ee797abda9044db03398c3f647520, type: 3}
   userData: 
   assetBundleName: 

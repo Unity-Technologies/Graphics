@@ -401,11 +401,6 @@ namespace UnityEditor.VFX.Operator
                     m_InputProperties = new List<VFXPropertyWithValue>();
                     m_OutputProperties = new List<VFXPropertyWithValue>();
 
-                    if (m_Function.returnType != typeof(void) && m_Function.returnType != null)
-                    {
-                        m_OutputProperties.Add(new VFXPropertyWithValue(new VFXProperty(m_Function.returnType, m_Function.returnName)));
-                    }
-
                     foreach (var input in m_InputParameters)
                     {
                         if (input.type != null)
@@ -419,6 +414,10 @@ namespace UnityEditor.VFX.Operator
                                 m_OutputProperties.Add(CreateProperty(input));
                             }
                         }
+                    }
+                    if (m_Function.returnType != typeof(void) && m_Function.returnType != null)
+                    {
+                        m_OutputProperties.Add(new VFXPropertyWithValue(new VFXProperty(m_Function.returnType, m_Function.returnName)));
                     }
                 }
                 else

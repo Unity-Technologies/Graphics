@@ -20,9 +20,24 @@ namespace UnityEngine.Rendering
             public Bounds bounds = new();
         }
 
+        internal class SceneToBakingSet
+        {
+            static Dictionary<string, ProbeVolumeBakingSetWeakReference> sceneToBakingSet = null;
+
+            internal static Dictionary<string, ProbeVolumeBakingSetWeakReference> Instance
+            {
+                get
+                {
+                    if (sceneToBakingSet == null)
+                        sceneToBakingSet = ProbeVolumeBakingSet.SyncBakingSets();
+
+                    return sceneToBakingSet;
+                }
+            }
+        }
+
         [SerializeField]
         SerializedDictionary<string, SceneBakeData> m_SceneBakeData = new();
-        internal static Dictionary<string, ProbeVolumeBakingSetWeakReference> sceneToBakingSet = new Dictionary<string, ProbeVolumeBakingSetWeakReference>();
 
         /// <summary>
         /// Tries to add a scene to the baking set.
@@ -42,7 +57,8 @@ namespace UnityEngine.Rendering
         {
             m_SceneGUIDs.Add(guid);
             m_SceneBakeData.Add(guid, bakeData != null ? bakeData : new SceneBakeData());
-            sceneToBakingSet[guid] = new ProbeVolumeBakingSetWeakReference(this);
+
+            SceneToBakingSet.Instance[guid] = new ProbeVolumeBakingSetWeakReference(this);
 
             EditorUtility.SetDirty(this);
         }
@@ -55,7 +71,8 @@ namespace UnityEngine.Rendering
         {
             m_SceneGUIDs.Remove(guid);
             m_SceneBakeData.Remove(guid);
-            sceneToBakingSet.Remove(guid);
+
+            SceneToBakingSet.Instance.Remove(guid);
 
             EditorUtility.SetDirty(this);
         }
@@ -64,8 +81,10 @@ namespace UnityEngine.Rendering
         {
             var previousSceneGUID = m_SceneGUIDs[index];
             m_SceneGUIDs[index] = guid;
-            sceneToBakingSet.Remove(previousSceneGUID);
-            sceneToBakingSet[guid] = new ProbeVolumeBakingSetWeakReference(this);
+
+            SceneToBakingSet.Instance.Remove(previousSceneGUID);
+            SceneToBakingSet.Instance[guid] = new ProbeVolumeBakingSetWeakReference(this);
+
             m_SceneBakeData.Add(guid, bakeData != null ? bakeData : new SceneBakeData());
 
             EditorUtility.SetDirty(this);
@@ -289,9 +308,9 @@ namespace UnityEngine.Rendering
             return newName;
         }
 
-        internal static void SyncBakingSets()
+        internal static Dictionary<string, ProbeVolumeBakingSetWeakReference> SyncBakingSets()
         {
-            sceneToBakingSet = new Dictionary<string, ProbeVolumeBakingSetWeakReference>();
+            Dictionary<string, ProbeVolumeBakingSetWeakReference> sceneToBakingSet = new Dictionary<string, ProbeVolumeBakingSetWeakReference>();
 
             var setGUIDs = AssetDatabase.FindAssets("t:" + nameof(ProbeVolumeBakingSet));
 
@@ -316,9 +335,12 @@ namespace UnityEngine.Rendering
                         reference.Unload();
                 }
             }
+
+            return sceneToBakingSet;
         }
 
-        internal static ProbeVolumeBakingSet GetBakingSetForScene(string sceneGUID) => sceneToBakingSet.GetValueOrDefault(sceneGUID, null)?.Get();
+        internal static ProbeVolumeBakingSet GetBakingSetForScene(Dictionary<string, ProbeVolumeBakingSetWeakReference> mapping, string sceneGUID) { return mapping.GetValueOrDefault(sceneGUID, null)?.Get(); }
+        internal static ProbeVolumeBakingSet GetBakingSetForScene(string sceneGUID) { return SceneToBakingSet.Instance.GetValueOrDefault(sceneGUID, null)?.Get(); }
         internal static ProbeVolumeBakingSet GetBakingSetForScene(Scene scene) => GetBakingSetForScene(scene.GetGUID());
 
         internal void SetDefaults()

@@ -99,14 +99,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-#if UNITY_ANDROID
-            // Mali Valhall + SSAO compatibility: Override timing when accessing depth data
-            if (PlatformAutoDetect.isRunningOnMaliValhallGPU && renderingData.cameraData.postProcessEnabled)
-            {
-                renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
-            }
-#endif
-
             // Disable obsolete warning for internal usage
             #pragma warning disable CS0618
 #if UNITY_EDITOR
@@ -128,6 +120,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private class PassData
         {
             internal TextureHandle source;
+            internal TextureHandle destination;
             internal UniversalCameraData cameraData;
             internal Material copyDepthMaterial;
             internal int msaaSamples;
@@ -159,11 +152,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
             }
 #endif
-            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, this.source);
+
+            // We must perform a yflip if we're rendering into the backbuffer and we have a flipped source texture.
+            bool yflip = m_PassData.isDstBackbuffer && cameraData.IsHandleYFlipped(source);
+            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, this.source, yflip);
         }
 #endif
 
-        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RTHandle source)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RTHandle source, bool yflip)
         {
             var copyDepthMaterial = passData.copyDepthMaterial;
             var msaaSamples = passData.msaaSamples;
@@ -222,9 +218,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 cmd.SetKeyword(ShaderGlobalKeywords._OUTPUT_DEPTH, copyToDepth);
-
-                // We must perform a yflip if we're rendering into the backbuffer and we have a flipped source texture.
-                bool yflip = passData.isDstBackbuffer && passData.cameraData.IsHandleYFlipped(source);
 
                 Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                 Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
@@ -350,6 +343,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 passData.source = source;
+                passData.destination = destination;
                 builder.UseTexture(source, AccessFlags.Read);
 
                 if (bindAsCameraDepth && destination.IsValid())
@@ -359,7 +353,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    ExecutePass(context.cmd, data, data.source);
+                    bool yflip = context.GetTextureUVOrigin(in data.source) != context.GetTextureUVOrigin(in data.destination);
+                    ExecutePass(context.cmd, data, data.source, yflip);
                 });
             }
         }

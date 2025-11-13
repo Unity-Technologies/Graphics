@@ -980,6 +980,24 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(Selection.objects?.Length == 1);
         }
 
+        [UnityTest, Description("Covers: UUM-121821")]
+        public IEnumerator Check_SaveAs_On_Same_File_Do_Not_Close_Editor()
+        {
+            // Prepare
+            var window = CreateSimpleVFXGraph();
+            yield return null;
+            var assetPath = AssetDatabase.GetAssetPath(window.displayedResource.asset);
+
+            // Act
+            window.graphView.SaveAs(assetPath);
+
+            for (var i = 0; i < 10; i++)
+                yield return null;
+
+            // Assert
+            Assert.IsNotNull(window.displayedResource, "The displayedResource is null, which mean the No Asset window is displayed");
+        }
+
         private void CheckNumericPropertyRM<T,U>(Func<IPropertyRMProvider, NumericPropertyRM<T, U>> creator, UnityEngine.PropertyAttribute attribute, T initialValue, List<(T, T)> testCases)
         {
             // Arrange

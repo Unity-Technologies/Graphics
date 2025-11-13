@@ -955,6 +955,62 @@ namespace UnityEditor.VFX
             UpdateSubAssets(); //Force remove no more referenced object from the asset & *important* register as persistent new dependencies
         }
 
+        internal void SyncContextLetters()
+        {
+            Dictionary<VFXData, List<VFXContext>> systems = new Dictionary<VFXData, List<VFXContext>>();
+
+            var models = new HashSet<ScriptableObject>();
+            CollectDependencies(models, false);
+            var allContexts = models.OfType<VFXContext>();
+            foreach (var context in allContexts)
+            {
+                var data = context.GetData();
+                if (data != null)
+                {
+                    if (systems.TryGetValue(data, out var systemContexts))
+                    {
+                        systemContexts.Add(context);
+                    }
+                    else
+                    {
+                        systems[data] = new List<VFXContext>() { context };
+                    }
+                }
+            }
+            foreach (var system in systems)
+            {
+                VFXContextType type = VFXContextType.None;
+                VFXContext prevContext = null;
+                char letter = 'A';
+                foreach (var context in system.Value.OrderBy(t => t.contextType))
+                {
+                    if (context.contextType == type)
+                    {
+                        if (prevContext != null)
+                        {
+                            letter = 'A';
+                            prevContext.letter = letter;
+                            prevContext = null;
+                        }
+
+                        if (letter == 'Z') // loop back to A in the unlikely event that there are more than 26 contexts
+                            letter = 'a';
+                        else if (letter == 'z')
+                            letter = 'α';
+                        else if (letter == 'ω')
+                            letter = 'A';
+                        context.letter = ++letter;
+                    }
+                    else
+                    {
+                        context.letter = '\0';
+                        prevContext = context;
+                    }
+                    type = context.contextType;
+                }
+            }
+        }
+
         private IEnumerable<VFXModel> GetCustomAttributeUsage(string attributeName)
         {
             bool IsAttributeUsed(IVFXAttributeUsage attributeUsage, string attrName)
@@ -1541,6 +1597,8 @@ namespace UnityEditor.VFX
                 // Graph must have been sanitized at this point by the VFXGraphPreprocessor.OnPreprocess
                 BuildSubgraphDependencies();
                 PrepareSubgraphs();
+                //Need to sync the context letters after PrepareSubgraphs because it recreates the subgraph's contexts
+                SyncContextLetters();
 
                 var compilationOutput = Compile();
 
@@ -1652,6 +1710,7 @@ namespace UnityEditor.VFX
         [SerializeField]
         private int m_ResourceVersion;
 
+        [NonSerialized]
         private bool m_GraphSanitized = false;
         private bool m_ExpressionGraphDirty = true;
         private bool m_ExpressionValuesDirty = true;

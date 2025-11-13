@@ -136,7 +136,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public int cachedHash;
         public int transientPassIndex;
         public int sharedResourceLastFrameUsed;
-        public int version;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual void Reset(IRenderGraphResourcePool _ = null)
@@ -150,7 +149,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
             requestFallBack = false;
             writeCount = 0;
             readCount = 0;
-            version = 0;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -166,9 +164,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void IncrementWriteCount()
+        public virtual uint IncrementWriteCount()
         {
             writeCount++;
+            return writeCount;
         }
 
         // readCount is currently not used in the HDRP Compiler.
@@ -176,13 +175,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public virtual void IncrementReadCount()
         {
             readCount++;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual int NewVersion()
-        {
-            version++;
-            return version;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             return msg;
         }
 
-        internal static string MakePassMergeMessage(CompilerContextData ctx, in PassData pass, in PassData prevPass, PassBreakAudit mergeResult)
+        internal static string MakePassMergeMessage(CompilerContextData ctx, in PassData pass, in PassData prevPass, in PassBreakAudit mergeResult)
         {
             string message = mergeResult.reason == PassBreakReason.Merged ?
                 "The passes are <b>compatible</b> to be merged.\n\n" :
@@ -276,8 +276,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 debugPass.scriptInfo = graphPass.debugScriptInfo;
 #endif
 
-                debugPass.syncFromPassIndex = -1; // TODO async compute support
-                debugPass.syncToPassIndex = -1; // TODO async compute support
+                debugPass.syncFromPassIndex = passData.awaitingMyGraphicsFencePassId;
+                debugPass.syncToPassIndex = passData.waitOnGraphicsFencePassId;
 
                 debugPass.nrpInfo = new RenderGraph.DebugData.PassData.NRPInfo();
 

@@ -1171,10 +1171,6 @@ namespace UnityEditor.VFX
                                                 else
                                                 {
                                                     otherSourceProperty.FindPropertyRelative("m_Overridden").boolValue = !wasOverriden;
-                                                    if (!wasOverriden)
-                                                    {
-                                                        SetObjectValue(otherSourceProperty.FindPropertyRelative("m_Value"), GetObjectValue(actualDisplayedPropertyValue));
-                                                    }
                                                     PropertyOverrideChanged();
                                                 }
                                                 otherObject.ApplyModifiedProperties();

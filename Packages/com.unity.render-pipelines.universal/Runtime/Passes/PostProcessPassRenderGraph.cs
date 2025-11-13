@@ -2027,25 +2027,25 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static private void ScaleViewportAndBlit(RasterCommandBuffer cmd, RTHandle sourceTextureHdl, RTHandle dest, UniversalCameraData cameraData, Material material, bool hasFinalPass)
+        static private void ScaleViewportAndBlit(in RasterGraphContext context, in TextureHandle source, in TextureHandle destination, UniversalCameraData cameraData, Material material, bool hasFinalPass)
         {
-            Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(sourceTextureHdl, dest, cameraData);
-            ScaleViewport(cmd, sourceTextureHdl, dest, cameraData, hasFinalPass);
+            Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(in context, in source, in destination);
+            ScaleViewport(context.cmd, source, destination, cameraData, hasFinalPass);
 
-            Blitter.BlitTexture(cmd, sourceTextureHdl, scaleBias, material, 0);
+            Blitter.BlitTexture(context.cmd, source, scaleBias, material, 0);
         }
 
-        static private void ScaleViewportAndDrawVisibilityMesh(RasterCommandBuffer cmd, RTHandle sourceTextureHdl, RTHandle dest, UniversalCameraData cameraData, Material material, bool hasFinalPass)
+        static private void ScaleViewportAndDrawVisibilityMesh(in RasterGraphContext context, in TextureHandle source, in TextureHandle destination, UniversalCameraData cameraData, Material material, bool hasFinalPass)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(sourceTextureHdl, dest, cameraData);
-            ScaleViewport(cmd, sourceTextureHdl, dest, cameraData, hasFinalPass);
+            Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(in context, in source, in destination);
+            ScaleViewport(context.cmd, source, destination, cameraData, hasFinalPass);
 
             // Set property block for blit shader
             MaterialPropertyBlock xrPropertyBlock = XRSystemUniversal.GetMaterialPropertyBlock();
             xrPropertyBlock.SetVector(Shader.PropertyToID("_BlitScaleBias"), scaleBias);
-            xrPropertyBlock.SetTexture(Shader.PropertyToID("_BlitTexture"), sourceTextureHdl);
-            cameraData.xr.RenderVisibleMeshCustomMaterial(cmd, cameraData.xr.occlusionMeshScale, material, xrPropertyBlock, 1, cameraData.IsRenderTargetProjectionMatrixFlipped(dest));
+            xrPropertyBlock.SetTexture(Shader.PropertyToID("_BlitTexture"), source);
+            cameraData.xr.RenderVisibleMeshCustomMaterial(context.cmd, cameraData.xr.occlusionMeshScale, material, xrPropertyBlock, 1, context.GetTextureUVOrigin(destination) == TextureUVOrigin.BottomLeft);
 #endif
         }
 
@@ -2093,13 +2093,12 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderFunc(static (PostProcessingFinalSetupPassData data, RasterGraphContext context) =>
                 {
-                    var cmd = context.cmd;
                     RTHandle sourceTextureHdl = data.sourceTexture;
 
-                    PostProcessUtils.SetSourceSize(cmd, sourceTextureHdl);
+                    PostProcessUtils.SetSourceSize(context.cmd, sourceTextureHdl);
 
                     bool hasFinalPass = true; // This is a pass just before final pass. Viewport must match intermediate target.
-                    ScaleViewportAndBlit(context.cmd, sourceTextureHdl, data.destinationTexture, data.cameraData, data.material, hasFinalPass);
+                    ScaleViewportAndBlit(in context, in data.sourceTexture, in data.destinationTexture, data.cameraData, data.material, hasFinalPass);
                 });
                 return;
             }
@@ -2172,8 +2171,6 @@ namespace UnityEngine.Rendering.Universal
             /// <summary>True if final blit requires HDR output.</summary>
             public bool requireHDROutput;
             /// <summary>True if final blit needs to resolve to debug screen.</summary>
-            public bool resolveToDebugScreen;
-            /// <summary>True if final blit needs to output alpha channel.</summary>
             public bool isAlphaOutputEnabled;
 
             /// <summary>HDR Operations</summary>
@@ -2190,7 +2187,6 @@ namespace UnityEngine.Rendering.Universal
                 s.isFsrEnabled = false;
                 s.isTaaSharpeningEnabled = false;
                 s.requireHDROutput = false;
-                s.resolveToDebugScreen = false;
                 s.isAlphaOutputEnabled = false;
 
                 s.hdrOperations = HDROutputUtils.Operation.None;
@@ -2234,7 +2230,6 @@ namespace UnityEngine.Rendering.Universal
                     var isFsrEnabled = data.settings.isFsrEnabled;
                     var isRcasEnabled = data.settings.isTaaSharpeningEnabled;
                     var requireHDROutput = data.settings.requireHDROutput;
-                    var resolveToDebugScreen = data.settings.resolveToDebugScreen;
                     var isAlphaOutputEnabled = data.settings.isAlphaOutputEnabled;
                     RTHandle sourceTextureHdl = data.sourceTexture;
                     RTHandle destinationTextureHdl = data.destinationTexture;
@@ -2268,21 +2263,7 @@ namespace UnityEngine.Rendering.Universal
                     if (isAlphaOutputEnabled)
                         CoreUtils.SetKeyword(material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, isAlphaOutputEnabled);
 
-                    bool isRenderToBackBufferTarget = !data.cameraData.isSceneViewCamera;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                    if (data.cameraData.xr.enabled)
-                        isRenderToBackBufferTarget = destinationTextureHdl == data.cameraData.xr.renderTarget;
-#endif
-                    // HDR debug views force-renders to DebugScreenTexture.
-                    isRenderToBackBufferTarget &= !resolveToDebugScreen;
-
-                    Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-
-                    // We y-flip if
-                    // 1) we are blitting from render texture to back buffer(UV starts at bottom) and
-                    // 2) renderTexture starts UV at top
-                    bool yflip = isRenderToBackBufferTarget && data.cameraData.targetTexture == null && SystemInfo.graphicsUVStartsAtTop;
-                    Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
+                    Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(context, data.sourceTexture, data.destinationTexture);
 
                     cmd.SetViewport(data.cameraData.pixelRect);
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -2292,7 +2273,7 @@ namespace UnityEngine.Rendering.Universal
                         xrPropertyBlock.SetVector(Shader.PropertyToID("_BlitScaleBias"), scaleBias);
                         xrPropertyBlock.SetTexture(Shader.PropertyToID("_BlitTexture"), sourceTextureHdl);
 
-                        data.cameraData.xr.RenderVisibleMeshCustomMaterial(cmd, data.cameraData.xr.occlusionMeshScale, material, xrPropertyBlock, 1, !yflip);
+                        data.cameraData.xr.RenderVisibleMeshCustomMaterial(cmd, data.cameraData.xr.occlusionMeshScale, material, xrPropertyBlock, 1, context.GetTextureUVOrigin(in data.sourceTexture) == context.GetTextureUVOrigin(in data.destinationTexture));
                     }
                     else
 #endif
@@ -2370,7 +2351,6 @@ namespace UnityEngine.Rendering.Universal
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
             debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
-            settings.resolveToDebugScreen = resolveToDebugScreen;
             settings.isAlphaOutputEnabled = cameraData.isAlphaOutputEnabled;
             settings.isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
             settings.isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
@@ -2379,7 +2359,7 @@ namespace UnityEngine.Rendering.Universal
             // This avoids the cost of EASU and is available for other upscaling options.
             // If FSR is enabled then FSR settings override the TAA settings and we perform RCAS only once.
             // If STP is enabled, then TAA sharpening has already been performed inside STP.
-            settings.isTaaSharpeningEnabled = (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f) && !settings.isFsrEnabled && !cameraData.IsSTPEnabled() && 
+            settings.isTaaSharpeningEnabled = (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f) && !settings.isFsrEnabled && !cameraData.IsSTPEnabled() &&
 #if ENABLE_UPSCALER_FRAMEWORK
                 cameraData.upscalingFilter != ImageUpscalingFilter.IUpscaler
 #else
@@ -2509,7 +2489,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void RenderUberPost(RenderGraph renderGraph, ContextContainer frameData, UniversalCameraData cameraData, UniversalPostProcessingData postProcessingData,
             in TextureHandle sourceTexture, in TextureHandle destTexture, in TextureHandle lutTexture, in TextureHandle bloomTexture, in TextureHandle overlayUITexture,
-            bool requireHDROutput, bool enableAlphaOutput, bool resolveToDebugScreen, bool hasFinalPass)
+            bool requireHDROutput, bool enableAlphaOutput, bool hasFinalPass)
         {
             var material = m_Materials.uber;
             bool hdrGrading = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
@@ -2577,7 +2557,6 @@ namespace UnityEngine.Rendering.Universal
                     var cmd = context.cmd;
                     var camera = data.cameraData.camera;
                     var material = data.material;
-                    RTHandle sourceTextureHdl = data.sourceTexture;
 
                     material.SetTexture(ShaderConstants._InternalLut, data.lutTexture);
                     material.SetVector(ShaderConstants._Lut_Params, data.lutParams);
@@ -2608,10 +2587,10 @@ namespace UnityEngine.Rendering.Universal
                     // Done with Uber, blit it
 #if ENABLE_VR && ENABLE_XR_MODULE
                     if (data.cameraData.xr.enabled && data.cameraData.xr.hasValidVisibleMesh)
-                        ScaleViewportAndDrawVisibilityMesh(cmd, sourceTextureHdl, data.destinationTexture, data.cameraData, material, data.hasFinalPass);
+                        ScaleViewportAndDrawVisibilityMesh(in context, in data.sourceTexture, in data.destinationTexture, data.cameraData, material, data.hasFinalPass);
                     else
 #endif
-                        ScaleViewportAndBlit(cmd, sourceTextureHdl, data.destinationTexture, data.cameraData, material, data.hasFinalPass);
+                        ScaleViewportAndBlit(in context, in data.sourceTexture, in data.destinationTexture, data.cameraData, material, data.hasFinalPass);
 
                 });
 
@@ -2870,7 +2849,7 @@ namespace UnityEngine.Rendering.Universal
                                 bloomMipFlareSource = _BloomMipDown[0];
 
                             // Flare source and Flare target is the same texture. BloomMip[0]
-                            sameBloomInputOutputTex = true; 
+                            sameBloomInputOutputTex = true;
                         }
 
                         // Kawase blur does not use the mip pyramid.
@@ -2924,7 +2903,7 @@ namespace UnityEngine.Rendering.Universal
                 DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(cameraData);
                 debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
-                RenderUberPost(renderGraph, frameData, cameraData, postProcessingData, in currentSource, in postProcessingTarget, in lutTexture, in bloomTexture, in overlayUITexture, requireHDROutput, enableAlphaOutput, resolveToDebugScreen, hasFinalPass);
+                RenderUberPost(renderGraph, frameData, cameraData, postProcessingData, in currentSource, in postProcessingTarget, in lutTexture, in bloomTexture, in overlayUITexture, requireHDROutput, enableAlphaOutput, hasFinalPass);
             }
         }
 
