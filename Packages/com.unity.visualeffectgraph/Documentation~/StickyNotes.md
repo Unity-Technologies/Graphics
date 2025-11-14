@@ -29,18 +29,18 @@ You can also resize Sticky Notes. You can resize the Sticky Note manually or the
 
 #### Duplicating
 
-You can also cut, copy, paste, and duplicate Sticky Notes. For information on how to perform these actions, see [duplicating elements](VisualEffectGraphWindow.md#copy-cut-and-paste-and-duplicate-elements).
+You can cut, copy, paste, and duplicate Sticky Notes. For information on how to perform these actions, refer to [Duplicating elements](VisualEffectGraphWindow.md#copy-cut-and-paste-and-duplicate-elements).
 
-#### Context menu
+#### Grouping
 
-To open the context menu for the Sticky Note, right-click anywhere on the Sticky Note. The options in the context menu are as follows.
+You can group Sticky Notes with Nodes and other Sticky Notes within the graph. For more information about Group management, refer to [Groups](GraphLogicAndPhilosophy.md#groups).
 
-| **Option**                 | **Description**                                              |
-| -------------------------- | ------------------------------------------------------------ |
-| **Dark Theme/Light Theme** | Toggles the color theme of the Sticky Note between light theme and dark theme. |
-| **Text Size**              | Resizes the font in the text areas to the following values:  |
-| Small                      | Title: 20<br/>Body: 11                                       |
-| Medium                     | Title: 40<br/>Body: 24                                       |
-| Large                      | Title: 60<br/>Body: 36                                       |
-| Huge                       | Title: 80<br/>Body: 56                                       |
-| **Fit To Text**            | Resizes the Sticky Note so that it precisely fits the text areas.<br/>**Note**: If your title spreads over more than a single line, this horizontally resizes the Sticky Note to the smallest size where the title text fits on a single line. |
+#### Option menu
+
+When you select a Sticky Note, a menu appears above it, with the following options:
+
+| **Option** | **Description** |
+| :--- | :--- |
+| **Colors** | Changes the color theme of the Sticky Note: yellow (default), blue, or red. |
+| **Font Size** | Resizes the text of the Sticky Note's title and body. The options are:<ul><li>**Small**: Sets the title to 20pt and the body to 11pt.</li><li>**Medium**: Sets the title to 40pt and the body to 24pt.</li><li>**Large**: Sets the title to 60pt and the body to 36pt.</li><li>**Huge**: Sets the title to 80pt and the body to 56pt.</li></ul> |
+| **Adjust to the note's content** | Resizes the Sticky Note so that it precisely fits the text areas.<br/>**Note**: If your title spreads over more than a single line, this horizontally resizes the Sticky Note to the minimum size needed to fit the title text onto a single line. |
