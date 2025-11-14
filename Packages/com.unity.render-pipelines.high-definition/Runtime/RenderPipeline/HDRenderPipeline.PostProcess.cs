@@ -1125,6 +1125,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool IsExposureFixed(HDCamera camera) => m_Exposure.mode.value == ExposureMode.Fixed || m_Exposure.mode.value == ExposureMode.UsePhysicalCamera
 #if UNITY_EDITOR
         || (camera.camera.cameraType == CameraType.SceneView && HDAdditionalSceneViewSettings.sceneExposureOverriden)
+        || (UnityEditor.SceneView.lastActiveSceneView != null && UnityEditor.SceneView.lastActiveSceneView.isUsingSceneFiltering)
 #endif
         ;
 
