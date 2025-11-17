@@ -90,14 +90,14 @@ void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, inout TerrainLitSur
     #define SampleNormal(i) float3(0, 0, 0)
 #endif
 
-#define DefaultMask(i) float4(_Metallic##i, _MaskMapRemapOffset##i.y + _MaskMapRemapScale##i.y, _MaskMapRemapOffset##i.z + 0.5 * _MaskMapRemapScale##i.z, albedo[i].a * _Smoothness##i)
+#define DefaultMask(i, currentSmoothness) float4(_Metallic##i, _MaskMapRemapOffset##i.y + _MaskMapRemapScale##i.y, _MaskMapRemapOffset##i.z + 0.5 * _MaskMapRemapScale##i.z, currentSmoothness)
 
 #ifdef _MASKMAP
     #define MaskModeMasks(i, blendMask) RemapMasks(SAMPLE_TEXTURE2D_GRAD(_Mask##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv), blendMask, _MaskMapRemapOffset##i, _MaskMapRemapScale##i)
-#define SampleMasks(i, blendMask) lerp(DefaultMask(i), MaskModeMasks(i, blendMask), _LayerHasMask##i)
+#define SampleMasks(i, blendMask, currentSmoothness) lerp(DefaultMask(i, currentSmoothness), MaskModeMasks(i, blendMask), _LayerHasMask##i)
     #define NullMask(i)               float4(0, 1, _MaskMapRemapOffset##i.z, 0) // only height matters when weight is zero.
 #else
-    #define SampleMasks(i, blendMask) DefaultMask(i)
+    #define SampleMasks(i, blendMask, currentSmoothness) DefaultMask(i, currentSmoothness)
     #define NullMask(i)               float4(0, 1, 0, 0)
 #endif
 
@@ -110,7 +110,20 @@ void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, inout TerrainLitSur
         albedo[i] = SAMPLE_TEXTURE2D_GRAD(_Splat##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv);            \
         albedo[i].rgb *= _DiffuseRemapScale##i.xyz;                                                             \
         normal[i] = SampleNormal(i);                                                                            \
-        masks[i] = SampleMasks(i, mask);                                                                        \
+        float currentSmoothness = 0;                                                                            \
+        if (_SmoothnessSource##i < 0.5) /* TerrainLayerSmoothnessSource.ConstantMultipliedByDiffuseAlpha (0) */ \
+        {                                                                                                       \
+            currentSmoothness = albedo[i].a * _Smoothness##i;                                                   \
+        }                                                                                                       \
+        else if (_SmoothnessSource##i < 1.5) /* TerrainLayerSmoothnessSource.DiffuseAlphaChannel (1) */         \
+        {                                                                                                       \
+            currentSmoothness = albedo[i].a;                                                                    \
+        }                                                                                                       \
+        else /* TerrainLayerSmoothnessSource.ConstantOnly (2) */                                                \
+        {                                                                                                       \
+            currentSmoothness = _Smoothness##i;                                                                 \
+        }                                                                                                       \
+        masks[i] = SampleMasks(i, mask, currentSmoothness);                                                     \
     }                                                                                                           \
     else                                                                                                        \
     {                                                                                                           \
