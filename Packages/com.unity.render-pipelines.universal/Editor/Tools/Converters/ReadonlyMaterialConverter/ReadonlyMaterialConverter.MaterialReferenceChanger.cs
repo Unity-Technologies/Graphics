@@ -206,7 +206,6 @@ namespace UnityEditor.Rendering.Universal
             {
                 // Make sure the changes get saved
                 EditorUtility.SetDirty(obj);
-                EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
             }
             else
                 errors.AppendLine($"Could not reassign materials of {obj} with {obj.GetType()} type.");
