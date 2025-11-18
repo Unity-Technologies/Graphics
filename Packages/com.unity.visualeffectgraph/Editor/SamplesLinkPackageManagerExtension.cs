@@ -19,6 +19,7 @@ class SamplesLinkPackageManagerExtension : IPackageManagerExtension
     {
         samplesButton = new Button();
         samplesButton.text = SAMPLEBUTTON_TEXT;
+        samplesButton.style.whiteSpace = WhiteSpace.Normal; // Allow wrapping
         samplesButton.clickable.clicked += () => Application.OpenURL(GITHUB_URL);
         return samplesButton;
     }
