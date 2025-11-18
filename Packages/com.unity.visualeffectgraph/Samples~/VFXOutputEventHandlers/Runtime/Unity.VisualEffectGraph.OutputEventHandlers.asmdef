@@ -3,6 +3,7 @@
     "rootNamespace": "",
     "references": [
         "Unity.VisualEffectGraph.Runtime",
+        "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.HighDefinition.Runtime",
         "Cinemachine",
         "Unity.Cinemachine"
