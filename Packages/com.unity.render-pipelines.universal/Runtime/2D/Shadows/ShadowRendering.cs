@@ -221,18 +221,14 @@ namespace UnityEngine.Rendering.Universal
             Vector3 maxCorner = new Vector3(float.MinValue, float.MinValue, float.MinValue);
             for (int i = 0; i < k_Corners; i++)
             {
-                maxCorner = Vector3.Max(maxCorner, nearCorners[i]);
-                maxCorner = Vector3.Max(maxCorner, farCorners[i]);
-                minCorner = Vector3.Min(minCorner, nearCorners[i]);
-                minCorner = Vector3.Min(minCorner, farCorners[i]);
+                maxCorner = Vector3.Max(maxCorner, camera.transform.TransformPoint(nearCorners[i]));
+                maxCorner = Vector3.Max(maxCorner, camera.transform.TransformPoint(farCorners[i]));
+                minCorner = Vector3.Min(minCorner, camera.transform.TransformPoint(nearCorners[i]));
+                minCorner = Vector3.Min(minCorner, camera.transform.TransformPoint(farCorners[i]));
             }
 
             nearCorners.Dispose();
             farCorners.Dispose();
-
-            // Transform the point from camera space to world space
-            maxCorner = camera.transform.TransformPoint(maxCorner);
-            minCorner = camera.transform.TransformPoint(minCorner);
 
             // TODO: Iterate through the lights
             for (int i = 0; i < cullResult.visibleLights.Count; i++)
