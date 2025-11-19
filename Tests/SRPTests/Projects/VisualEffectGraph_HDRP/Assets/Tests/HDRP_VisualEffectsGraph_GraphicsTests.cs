@@ -36,6 +36,7 @@ namespace UnityEngine.VFX.Test
         [IgnoreGraphicsTest("StressTestRuntime_GPUEvent", "No reference images provided")]
         [IgnoreGraphicsTest("Timeline_FirstFrame", "No reference images provided")]
         [IgnoreGraphicsTest("NamedObject_ExposedProperties", "No reference images provided")]
+        [IgnoreGraphicsTest("PrewarmCompute", "No reference images provided")]
 
         [MockHmdSetup(99)]
         [AssetBundleSetup]
