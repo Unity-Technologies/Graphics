@@ -428,7 +428,7 @@ namespace UnityEditor.Rendering.LookDev
         void OnFocus()
         {
             //OnFocus is called before OnEnable that open backend if not already opened, so only sync if backend is open
-            if (LookDev.open)
+            if (LookDev.open && LookDev.currentContext != null)
             {
                 //If EnvironmentLibrary asset as been edited by the user (deletion),
                 //update all view to use null environment if it was not temporary ones
