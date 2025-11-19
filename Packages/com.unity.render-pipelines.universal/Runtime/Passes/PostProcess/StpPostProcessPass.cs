@@ -4,17 +4,11 @@ using System.Runtime.CompilerServices; // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal sealed class StpPostProcessPass : ScriptableRenderPass, IDisposable
+    internal sealed class StpPostProcessPass : PostProcessPass
     {
         public const string k_UpscaledColorTargetName = "_CameraColorUpscaledSTP";
         Texture2D[] m_BlueNoise16LTex;
         bool m_IsValid;
-
-        // Input
-        public TextureHandle sourceTexture { get; set; }
-
-        // Output
-        public TextureHandle destinationTexture { get; set; }
 
         public StpPostProcessPass(Texture2D[] blueNoise16LTex)
         {
@@ -25,23 +19,24 @@ namespace UnityEngine.Rendering.Universal
             m_IsValid = m_BlueNoise16LTex != null && m_BlueNoise16LTex.Length > 0;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsValid()
-        {
-            return m_IsValid;
+            m_IsValid = false;
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            Assertions.Assert.IsTrue(sourceTexture.IsValid(), $"Source texture must be set for StpPostProcessPass.");
-            Assertions.Assert.IsTrue(destinationTexture.IsValid(), $"Destination texture must be set for StpPostProcessPass.");
+            if (!m_IsValid)
+                return;
 
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+
+            var sourceTexture = resourceData.cameraColor;
+
+            var srcDesc = renderGraph.GetTextureDesc(sourceTexture);
+            var dstDesc = StpPostProcessPass.GetStpTargetDesc(srcDesc, cameraData);
+            var destinationTexture =  PostProcessUtils.CreateCompatibleTexture(renderGraph, dstDesc, k_UpscaledColorTargetName, false, FilterMode.Bilinear);
 
             TextureHandle cameraDepth = resourceData.cameraDepthTexture;
             TextureHandle motionVectors = resourceData.motionVectorColor;
@@ -56,6 +51,8 @@ namespace UnityEngine.Rendering.Universal
             // Update the camera resolution to reflect the upscaled size
             var destDesc = destinationTexture.GetDescriptor(renderGraph);
             UpscalerPostProcessPass.UpdateCameraResolution(renderGraph, cameraData, new Vector2Int(destDesc.width, destDesc.height));
+
+            resourceData.cameraColor = destinationTexture;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

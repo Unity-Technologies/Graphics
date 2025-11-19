@@ -180,7 +180,7 @@ VisualEffectResource:
             {
                 CreateTemplateAsset(pathName, templatePath);
                 var resource = VisualEffectResource.GetResourceAtPath(pathName);
-                ProjectWindowUtil.FrameObjectInProjectWindow(resource.asset.GetInstanceID());
+                ProjectWindowUtil.FrameObjectInProjectWindow(resource.asset.GetEntityId());
             }
         }
 
@@ -189,7 +189,7 @@ VisualEffectResource:
             public override void Action(EntityId entityId, string pathName, string resourceFile)
             {
                 var sg = CreateNew<VisualEffectSubgraphOperator>(pathName);
-                ProjectWindowUtil.FrameObjectInProjectWindow(sg.GetInstanceID());
+                ProjectWindowUtil.FrameObjectInProjectWindow(sg.GetEntityId());
             }
         }
 
@@ -242,7 +242,7 @@ VisualEffectResource:
             {
                 templateString = System.IO.File.ReadAllText(templatePath + templateName);
 
-                ProjectWindowUtil.CreateAssetWithContent(fileName, templateString, texture);
+                ProjectWindowUtil.CreateAssetWithTextContent(fileName, templateString, texture);
             }
             catch (System.Exception e)
             {

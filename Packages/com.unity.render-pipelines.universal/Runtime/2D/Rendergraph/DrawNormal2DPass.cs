@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.rendererList = graph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     Execute(context.cmd, data);
                 });

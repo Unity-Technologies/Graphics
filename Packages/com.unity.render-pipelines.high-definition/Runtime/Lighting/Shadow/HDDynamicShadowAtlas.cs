@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.UseTexture(passData.atlasTexture, AccessFlags.Write);
 
                     builder.SetRenderFunc(
-                        (BlitCachedShadowPassData data, UnsafeGraphContext ctx) =>
+                        static (BlitCachedShadowPassData data, UnsafeGraphContext ctx) =>
                         {
                             var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                             NativeList<HDShadowRequest> requestStorage = HDShadowRequestDatabase.instance.hdShadowRequestStorage;

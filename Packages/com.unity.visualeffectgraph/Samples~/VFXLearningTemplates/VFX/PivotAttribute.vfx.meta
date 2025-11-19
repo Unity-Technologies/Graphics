@@ -8,7 +8,7 @@ VisualEffectImporter:
     category: Learning Templates
     description: The VFX is a basic example to help understand what the particle
       pivot attribute is and how to manipulate it.
-    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    icon: {fileID: 2800000, guid: ce3ba62f9452ddd4fbadb663ac249d93, type: 3}
     thumbnail: {fileID: 2800000, guid: f297419265452a34ab1ce86a44ca54f4, type: 3}
   userData: 
   assetBundleName: 

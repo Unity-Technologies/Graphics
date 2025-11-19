@@ -192,7 +192,7 @@ namespace UnityEditor.VFX
         {
             if (value == null)
                 return null;
-            if (value is UnityObject obj && obj == null && obj.GetInstanceID() != 0)
+            if (value is UnityObject obj && obj == null && obj.GetEntityId() != EntityId.None)
                 return obj;
             if (type == typeof(GraphicsBuffer))
                 return null;

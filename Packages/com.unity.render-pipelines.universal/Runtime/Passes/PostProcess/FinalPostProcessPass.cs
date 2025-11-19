@@ -4,13 +4,13 @@ using System.Runtime.CompilerServices; // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal sealed class FinalPostProcessPass : ScriptableRenderPass, IDisposable
+    internal sealed class FinalPostProcessPass : PostProcessPass
     {
         Material m_Material;
-
         Texture2D[] m_FilmGrainTextures;
+        bool m_IsValid;
 
-        public enum SamplingOperation
+        public enum FilteringOperation
         {
             Linear,
             Point,
@@ -18,12 +18,12 @@ namespace UnityEngine.Rendering.Universal
             FsrSharpening
         }
 
-        SamplingOperation m_SamplingOperation;
+        Texture m_DitherTexture;
+        FilteringOperation m_FilteringOperation;
         HDROutputUtils.Operation m_HdrOperations;
         bool m_ApplySrgbEncoding;
-        //NOTE: This is used to communicate if FXAA is already done in the previous pass.
-        bool m_ApplyFxaa;
-        Texture m_DitherTexture;
+        bool m_ApplyFxaa;   // NOTE: This is used to communicate if FXAA is already done in the previous pass.
+        bool m_RenderOverlayUI;
 
         public FinalPostProcessPass(Shader shader, Texture2D[] filmGrainTextures)
         {
@@ -31,22 +31,25 @@ namespace UnityEngine.Rendering.Universal
             this.profilingSampler = new ProfilingSampler("Blit Final Post Processing");
 
             m_Material = PostProcessUtils.LoadShader(shader, passName);
-
+            m_IsValid = m_Material != null;
             m_FilmGrainTextures = filmGrainTextures;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             CoreUtils.Destroy(m_Material);
+            m_IsValid = false;
         }
 
-        public void Setup(SamplingOperation samplingOperation, HDROutputUtils.Operation hdrOperations, bool applySrgbEncoding, bool applyFxaa, Texture ditherTexture)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Setup(Texture ditherTexture, FilteringOperation filteringOperation, HDROutputUtils.Operation hdrOperations, bool applySrgbEncoding, bool applyFxaa, bool renderOverlayUI)
         {
-            m_SamplingOperation = samplingOperation;
+            m_DitherTexture = ditherTexture;
+            m_FilteringOperation = filteringOperation;
             m_HdrOperations = hdrOperations;
             m_ApplySrgbEncoding = applySrgbEncoding;
             m_ApplyFxaa = applyFxaa;
-            m_DitherTexture = ditherTexture;
+            m_RenderOverlayUI = renderOverlayUI;
         }
 
         private class PostProcessingFinalBlitPassData
@@ -57,7 +60,7 @@ namespace UnityEngine.Rendering.Universal
             internal UniversalCameraData cameraData;
 
             internal Tonemapping tonemapping;
-            internal SamplingOperation samplingOperation;
+            internal FilteringOperation filteringOperation;
             internal HDROutputUtils.Operation hdrOperations;
 
             internal UberPostProcessPass.FilmGrainParams filmGrain;
@@ -68,19 +71,17 @@ namespace UnityEngine.Rendering.Universal
         }
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if (m_Material == null)
+            if (!m_IsValid)
                 return;
 
-            //TODO get stack from VolumeEffect class in later PR
-            Tonemapping tonemapping = VolumeManager.instance.stack.GetComponent<Tonemapping>();
-            FilmGrain filmGrain = VolumeManager.instance.stack.GetComponent<FilmGrain>();
+            var tonemapping = volumeStack.GetComponent<Tonemapping>();
+            var filmGrain = volumeStack.GetComponent<FilmGrain>();
 
             var cameraData = frameData.Get<UniversalCameraData>();
             var resourceData = frameData.Get<UniversalResourceData>();
 
             var sourceTexture = resourceData.cameraColor;
             var destinationTexture = resourceData.backBufferColor; //By definition this pass blits to the backbuffer
-            var overlayUITexture = resourceData.overlayUITexture;
 
             // Final blit pass
             using (var builder = renderGraph.AddRasterRenderPass<PostProcessingFinalBlitPassData>(passName, out var passData, profilingSampler))
@@ -92,14 +93,15 @@ namespace UnityEngine.Rendering.Universal
                 passData.sourceTexture = sourceTexture;
                 builder.UseTexture(sourceTexture, AccessFlags.Read);
 
-                if (overlayUITexture.IsValid())
-                    builder.UseTexture(overlayUITexture, AccessFlags.Read);
+                // NOTE: Global texture. 'overlayUITexture' is bound by the DrawOffscreenUIPass pass if needed. Not in FinalPostProcessPass.
+                if (m_RenderOverlayUI)
+                    builder.UseTexture(resourceData.overlayUITexture, AccessFlags.Read);
 
                 passData.material = m_Material;
                 passData.cameraData = cameraData;
 
                 passData.tonemapping = tonemapping;
-                passData.samplingOperation = m_SamplingOperation;
+                passData.filteringOperation = m_FilteringOperation;
                 passData.hdrOperations = m_HdrOperations;
 
                 passData.filmGrain.Setup(filmGrain, m_FilmGrainTextures, cameraData.pixelWidth, cameraData.pixelHeight);
@@ -128,31 +130,30 @@ namespace UnityEngine.Rendering.Universal
                     var cmd = context.cmd;
                     var material = data.material;
                     var cameraData = data.cameraData;
-                    var samplingOperation = data.samplingOperation;
+                    var filteringOperation = data.filteringOperation;
                     var requireHDROutput = PostProcessUtils.RequireHDROutput(cameraData);
                     var isAlphaOutputEnabled = cameraData.isAlphaOutputEnabled;
                     var applyFxaa = data.applyFxaa;
                     var hdrColorEncoding = data.hdrOperations.HasFlag(HDROutputUtils.Operation.ColorEncoding);
                     var applySrgbEncoding = data.applySrgbEncoding;
                     RTHandle sourceTextureHdl = data.sourceTexture;
-                    RTHandle destinationTextureHdl = data.destinationTexture;
 
                     // Clear shader keywords state
                     material.shaderKeywords = null;
 
-                    switch (samplingOperation)
+                    switch (filteringOperation)
                     {
 
-                        case SamplingOperation.Point:
+                        case FilteringOperation.Point:
                             material.EnableKeyword(ShaderKeywordStrings.PointSampling);
                         break;
-                        case SamplingOperation.TaaSharpening:
+                        case FilteringOperation.TaaSharpening:
                             // Reuse RCAS as a standalone sharpening filter for TAA.
                             // If FSR is enabled then it overrides the sharpening/TAA setting and we skip it.
                             material.EnableKeyword(ShaderKeywordStrings.Rcas);
                             FSRUtils.SetRcasConstantsLinear(cmd, data.cameraData.taaSettings.contrastAdaptiveSharpening); // TODO: Global state constants.
                         break;
-                        case SamplingOperation.FsrSharpening:
+                        case FilteringOperation.FsrSharpening:
                             // RCAS
                             // Use the override value if it's available, otherwise use the default.
                             float sharpness = data.cameraData.fsrOverrideSharpness ? data.cameraData.fsrSharpness : FSRUtils.kDefaultSharpnessLinear;
@@ -165,7 +166,7 @@ namespace UnityEngine.Rendering.Universal
                                 FSRUtils.SetRcasConstantsLinear(cmd, sharpness);    // TODO: Global state constants.
                             }
                         break;
-                        case SamplingOperation.Linear: goto default;
+                        case FilteringOperation.Linear: goto default;
                         default:
                         break;
                     }

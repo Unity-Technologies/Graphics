@@ -253,7 +253,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.clusterLightCategory = m_RenderPipeline.m_CurrentDebugDisplaySettings.data.lightClusterCategoryDebug;
 
                 builder.SetRenderFunc(
-                    (LightClusterDebugPassData data, UnsafeGraphContext ctx) =>
+                    static (LightClusterDebugPassData data, UnsafeGraphContext ctx) =>
                     {
                         var debugMaterialProperties = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
 

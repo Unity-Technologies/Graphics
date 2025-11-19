@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.shadowTexture, AccessFlags.ReadWrite);
 
                 // Evaluate the shadow
-                builder.SetRenderFunc((VolumetricCloudsShadowsData data, UnsafeGraphContext ctx) =>
+                builder.SetRenderFunc(static (VolumetricCloudsShadowsData data, UnsafeGraphContext ctx) =>
                 {
                     var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
 

@@ -64,7 +64,7 @@ namespace UnityEditor.VFX
             var wasShaderGraphMissing = m_IsShaderGraphMissing;
             var meshShader = ((VFXDataMesh)GetData()).shader;
             //This is the only place where shader property is updated or read
-            if (meshShader == null && !object.ReferenceEquals(meshShader, null) && meshShader.GetInstanceID() != 0)
+            if (meshShader == null && !object.ReferenceEquals(meshShader, null) && meshShader.GetEntityId() != EntityId.None)
             {
                 var assetPath = AssetDatabase.GetAssetPath(meshShader.GetEntityId());
 
@@ -109,7 +109,7 @@ namespace UnityEditor.VFX
             base.GetImportDependentAssets(dependencies);
             if (!object.ReferenceEquals(shader, null))
             {
-                dependencies.Add(shader.GetInstanceID());
+                dependencies.Add(shader.GetEntityId());
             }
         }
 

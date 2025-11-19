@@ -1047,7 +1047,7 @@ namespace UnityEngine.Rendering
         }
 
         // Internal helper function used to streamline usage of the render graph API
-        static TextureHandle UseTexture(IBaseRenderGraphBuilder builder, TextureHandle texture, AccessFlags flags = AccessFlags.Read)
+        static TextureHandle UseTexture(IBaseRenderGraphBuilder builder, in TextureHandle texture, AccessFlags flags = AccessFlags.Read)
         {
             builder.UseTexture(texture, flags);
             return texture;
@@ -1170,7 +1170,7 @@ namespace UnityEngine.Rendering
                 passData.priorConvergence = UseTexture(builder, renderGraph.ImportTexture(priorConvergence));
 
                 builder.SetRenderFunc(
-                    (SetupData data, ComputeGraphContext ctx) =>
+                    static (SetupData data, ComputeGraphContext ctx) =>
                     {
                         // Update the constant buffer data on the GPU
                         // TODO: Fix usage of m_WrappedCommandBuffer here once NRP support is added to ConstantBuffer.cs
@@ -1248,7 +1248,7 @@ namespace UnityEngine.Rendering
                 passData.convergence = UseTexture(builder, renderGraph.ImportTexture(convergence), AccessFlags.WriteAll);
 
                 builder.SetRenderFunc(
-                    (PreTaaData data, ComputeGraphContext ctx) =>
+                    static (PreTaaData data, ComputeGraphContext ctx) =>
                     {
                         ConstantBuffer.Set<StpConstantBufferData>(data.cs, ShaderResources._StpConstantBufferData);
 
@@ -1310,7 +1310,7 @@ namespace UnityEngine.Rendering
                 passData.output = UseTexture(builder, config.destination, AccessFlags.WriteAll);
 
                 builder.SetRenderFunc(
-                    (TaaData data, ComputeGraphContext ctx) =>
+                    static (TaaData data, ComputeGraphContext ctx) =>
                     {
                         ConstantBuffer.Set<StpConstantBufferData>(data.cs, ShaderResources._StpConstantBufferData);
 

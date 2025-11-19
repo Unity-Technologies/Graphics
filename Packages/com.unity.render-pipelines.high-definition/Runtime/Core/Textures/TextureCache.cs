@@ -17,13 +17,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // Counter of input texture that have been fed to this structure
         private int m_NumTextures;
         // Array that maps input textureIDs into the slices indexes
-        Dictionary<uint, int> m_LocatorInSliceDictionnary;
+        Dictionary<EntityId, int> m_LocatorInSliceDictionnary;
 
         // This structure defines the mapping between an input texture and the internal structure
         private struct SliceEntry
         {
             // ID of the internal structure
-            public uint texId;
+            public EntityId texId;
             // This counter tracks the number of frames since this slice was requested. The mechanic behind this is due to the fact that the number storage of the cache is limited
             public uint countLRU;
             // Hash that tracks the version of the input texture (allows us to know if it needs an update)
@@ -40,7 +40,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Constant values
         private static uint g_MaxFrameCount = unchecked((uint)(-1));
-        private static uint g_InvalidTexID = (uint)0;
 
         protected const int k_FP16SizeInByte = 2;
         protected const int k_NbChannel = 4;
@@ -77,13 +76,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_SliceArray = new SliceEntry[numTextures];
                 m_SortedIdxArray = new int[numTextures];
-                m_LocatorInSliceDictionnary = new Dictionary<uint, int>();
+                m_LocatorInSliceDictionnary = new Dictionary<EntityId, int>();
 
                 m_NumTextures = numTextures / m_SliceSize;
                 for (int i = 0; i < m_NumTextures; i++)
                 {
                     m_SliceArray[i].countLRU = g_MaxFrameCount;         // never used before
-                    m_SliceArray[i].texId = g_InvalidTexID;
+                    m_SliceArray[i].texId = EntityId.None;
                     m_SortedIdxArray[i] = i;
                 }
             }
@@ -102,8 +101,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Check the validity of the input texture
             if (texture == null)
                 return -1;
-            var texId = (uint)texture.GetInstanceID();
-            if (texId == g_InvalidTexID)
+            var texId = texture.GetEntityId();
+            if (texId == EntityId.None)
                 return -1;
 
             // Search for existing copy in the texId to slice index dictionary
@@ -134,7 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     needUpdate = true;
                     // if we are replacing an existing entry delete it from m_locatorInSliceArray.
-                    if (m_SliceArray[idx].texId != g_InvalidTexID)
+                    if (m_SliceArray[idx].texId != EntityId.None)
                     {
                         m_LocatorInSliceDictionnary.Remove(m_SliceArray[idx].texId);
                     }
@@ -246,10 +245,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // should not really be used in general. Assuming lights are culled properly entries will automatically be replaced efficiently.
         public void RemoveEntryFromSlice(Texture texture)
         {
-            var texId = (uint)texture.GetInstanceID();
+            var texId = texture.GetEntityId();
 
             //assert(TexID!=g_InvalidTexID);
-            if (texId == g_InvalidTexID) return;
+            if (texId == EntityId.None) return;
 
             // search for existing copy
             if (!m_LocatorInSliceDictionnary.ContainsKey(texId))
@@ -281,7 +280,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // delete from m_locatorInSliceArray and m_pSliceArray.
             m_LocatorInSliceDictionnary.Remove(texId);
             m_SliceArray[sliceIndex].countLRU = g_MaxFrameCount;            // never used before
-            m_SliceArray[sliceIndex].texId = g_InvalidTexID;
+            m_SliceArray[sliceIndex].texId = EntityId.None;
         }
 
         protected int GetNumMips(int width, int height)

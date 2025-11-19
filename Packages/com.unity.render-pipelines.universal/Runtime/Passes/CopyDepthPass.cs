@@ -271,7 +271,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     bool yflip = context.GetTextureUVOrigin(in data.source) != context.GetTextureUVOrigin(in data.destination);
                     ExecutePass(context.cmd, data, data.source, yflip);

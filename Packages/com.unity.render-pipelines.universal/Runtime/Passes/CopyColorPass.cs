@@ -216,7 +216,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetGlobalTextureAfterPass(destination, Shader.PropertyToID("_CameraOpaqueTexture"));
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     ExecutePass(context.cmd, data, data.source, data.useProceduralBlit);
                 });

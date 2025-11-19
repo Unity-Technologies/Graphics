@@ -10,7 +10,7 @@ VisualEffectImporter:
       strips, this can have some implications for how you need to set up your VFX.
       This example shows you how to make a single trail out of a continuous spawn
       rate of particles. '
-    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    icon: {fileID: 2800000, guid: ce3ba62f9452ddd4fbadb663ac249d93, type: 3}
     thumbnail: {fileID: 2800000, guid: 2d93269a4dab963498f57d6e5b488bb1, type: 3}
   userData: 
   assetBundleName: 

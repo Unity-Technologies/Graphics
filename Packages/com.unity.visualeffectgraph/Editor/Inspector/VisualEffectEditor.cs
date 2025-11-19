@@ -670,34 +670,83 @@ namespace UnityEditor.VFX
         {
         }
 
-        public static bool ShowHeader(GUIContent nameContent, bool displayFoldout, bool foldoutState, string preferenceName = null)
+        private class HeaderScope : IDisposable
         {
-            float height = Styles.categoryHeader.CalcHeight(nameContent, 4000) + 3;
-
-            Rect rect = GUILayoutUtility.GetRect(1, height - 1);
-
-            rect.width += rect.x;
-            rect.x = 0;
-
-            if (Event.current.type == EventType.Repaint)
-                Styles.categoryHeader.Draw(rect, nameContent, false, true, true, false);
-
-            bool result = false;
-            if (displayFoldout)
+            public enum HeaderType
             {
-                rect.x += 14;
-                rect.width -= 2;
-                result = EditorGUI.Toggle(rect, foldoutState, Styles.foldoutStyle);
+                AssetHeader,
+                ComponentHeader,
+                SubHeader,
             }
 
-            EditorGUI.indentLevel = result ? 1 : 0;
+            readonly HeaderType m_HeaderType;
 
-            if (preferenceName != null && result != foldoutState)
+            public bool ShowContent { get; }
+
+            public HeaderScope(HeaderType headerType, bool foldoutState, GUIContent nameContent, string preferenceName = null)
             {
-                EditorPrefs.SetBool(preferenceName, result);
+                m_HeaderType = headerType;
+                switch (m_HeaderType)
+                {
+                    case HeaderType.AssetHeader:
+                        var toggleState = false;
+                        ShowContent = EditorGUILayout.ToggleTitlebar(foldoutState, nameContent, ref toggleState, true);
+                        break;
+                    case HeaderType.ComponentHeader:
+                        ShowContent = EditorGUILayout.BeginFoldoutHeaderGroup(foldoutState, nameContent);
+                        break;
+                    case HeaderType.SubHeader:
+                        EditorGUI.indentLevel += 1;
+                        ShowContent = EditorGUILayout.Foldout(foldoutState, nameContent, true);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+                if (!string.IsNullOrEmpty(preferenceName))
+                {
+                    EditorPrefs.SetBool(preferenceName, ShowContent);
+                }
             }
 
-            return result;
+            public void Dispose()
+            {
+                switch (m_HeaderType)
+                {
+                    case HeaderType.AssetHeader:
+                        break;
+                    case HeaderType.ComponentHeader:
+                        EditorGUILayout.EndFoldoutHeaderGroup();
+                        break;
+                    case HeaderType.SubHeader:
+                        EditorGUI.indentLevel -= 1;
+                        EditorGUILayout.Space();
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
+
+        public static IDisposable ShowSubHeader(GUIContent nameContent, bool foldoutState, out bool showContent, string preferenceName = null)
+        {
+            return ShowHeader(HeaderScope.HeaderType.SubHeader, nameContent, foldoutState, out showContent, preferenceName);
+        }
+
+        public static IDisposable ShowAssetHeader(GUIContent nameContent, bool foldoutState, out bool showContent, string preferenceName = null)
+        {
+            return ShowHeader(HeaderScope.HeaderType.AssetHeader, nameContent, foldoutState, out showContent, preferenceName);
+        }
+
+        public static IDisposable ShowComponentHeader(GUIContent nameContent, bool foldoutState, out bool showContent, string preferenceName = null)
+        {
+            return ShowHeader(HeaderScope.HeaderType.ComponentHeader, nameContent, foldoutState, out showContent, preferenceName);
+        }
+
+        private static IDisposable ShowHeader(HeaderScope.HeaderType headerType, GUIContent nameContent, bool foldoutState, out bool showContent, string preferenceName = null)
+        {
+            var indentScope = new HeaderScope(headerType, foldoutState, nameContent, preferenceName);
+            showContent = indentScope.ShowContent;
+            return indentScope;
         }
 
         protected virtual void AssetField(VisualEffectResource resource)
@@ -740,6 +789,7 @@ namespace UnityEditor.VFX
             using (new GUILayout.HorizontalScope())
             {
                 var rect = EditorGUILayout.GetControlRect(false, GUI.skin.textField.CalcHeight(exampleGUIContent, 10000));
+                rect.xMin += 16f;
                 var toggleRect = rect;
                 toggleRect.yMin += 2.0f;
                 toggleRect.width = Styles.overrideWidth;
@@ -811,7 +861,7 @@ namespace UnityEditor.VFX
         public override void OnInspectorGUI()
         {
             GUILayout.Space(6);
-            showGeneralCategory = ShowHeader(Contents.headerGeneral, true, showGeneralCategory, kGeneralFoldoutStatePreferenceName);
+            using (ShowComponentHeader(Contents.headerGeneral, showGeneralCategory, out showGeneralCategory, kGeneralFoldoutStatePreferenceName)) {}
 
             m_SingleSerializedObject.Update();
             if (m_OtherSerializedObjects != null) // copy the set value to all multi selection by hand, because it might not be at the same array index or already present in the property sheet
@@ -848,7 +898,7 @@ namespace UnityEditor.VFX
                 DrawInstancingProperties();
                 DrawParameters(resource);
             }
-            EditorGUI.indentLevel = 0;
+
             if (serializedObject.ApplyModifiedProperties())
             {
                 foreach (var window in VFXViewWindow.GetAllWindows())
@@ -867,11 +917,11 @@ namespace UnityEditor.VFX
             if (resource != null)
                 graph = resource.GetOrCreateGraph();
 
-
             if (graph == null)
             {
-                ShowHeader(Contents.headerProperties, true, showPropertyCategory);
-                EditorGUILayout.HelpBox(Contents.graphInBundle.text.ToString(), MessageType.Info, true);
+                using var headerScope = ShowComponentHeader(Contents.headerProperties, showPropertyCategory, out showPropertyCategory, kPropertyFoldoutStatePreferenceName);
+                if (showPropertyCategory)
+                    EditorGUILayout.HelpBox(Contents.graphInBundle.text.ToString(), MessageType.Info, true);
             }
             else
             {
@@ -900,152 +950,121 @@ namespace UnityEditor.VFX
 
                 if (graph.m_ParameterInfo != null)
                 {
-                    showPropertyCategory = ShowHeader(Contents.headerProperties, true, showPropertyCategory, kPropertyFoldoutStatePreferenceName);
-
-                    if (showPropertyCategory)
+                    using (ShowComponentHeader(Contents.headerProperties, showPropertyCategory, out showPropertyCategory, kPropertyFoldoutStatePreferenceName))
                     {
-                        var stack = new List<int>();
-                        int currentCount = graph.m_ParameterInfo.Length;
-                        if (currentCount == 0)
+                        if (showPropertyCategory)
                         {
-                            GUILayout.Label("No Property exposed in the Visual Effect Graph");
-                        }
-                        else
-                        {
-                            EditorModeInspectorButton();
-                        }
-
-                        bool ignoreUntilNextCat = false;
-
-                        foreach (var param in graph.m_ParameterInfo)
-                        {
-                            EditorGUI.indentLevel = stack.Count;
-                            --currentCount;
-
-                            var parameter = param;
-                            if (parameter.descendantCount > 0)
+                            EditorGUI.indentLevel++;
+                            var stack = new List<int>();
+                            int currentCount = graph.m_ParameterInfo.Length;
+                            if (currentCount == 0)
                             {
-                                stack.Add(currentCount);
-                                currentCount = parameter.descendantCount;
+                                GUILayout.Label("No Property exposed in the Visual Effect Graph");
+                            }
+                            else
+                            {
+                                EditorModeInspectorButton();
                             }
 
-                            if (currentCount == 0 && stack.Count > 0)
+                            bool ignoreUntilNextCat = false;
+
+                            foreach (var param in graph.m_ParameterInfo)
                             {
-                                do
+                                EditorGUI.indentLevel = stack.Count;
+                                --currentCount;
+
+                                var parameter = param;
+                                if (parameter.descendantCount > 0)
                                 {
-                                    currentCount = stack.Last();
-                                    stack.RemoveAt(stack.Count - 1);
+                                    stack.Add(currentCount);
+                                    currentCount = parameter.descendantCount;
                                 }
-                                while (currentCount == 0);
-                            }
 
-                            if (string.IsNullOrEmpty(parameter.sheetType))
-                            {
-                                if (!string.IsNullOrEmpty(parameter.name))
+                                if (currentCount == 0 && stack.Count > 0)
                                 {
-                                    if (string.IsNullOrEmpty(parameter.realType)) // This is a category
+                                    do
                                     {
-                                        bool wasIgnored = ignoreUntilNextCat;
-                                        ignoreUntilNextCat = false;
-                                        var nameContent = GetGUIContent(parameter.name);
+                                        currentCount = stack.Last();
+                                        stack.RemoveAt(stack.Count - 1);
+                                    } while (currentCount == 0);
+                                }
 
-                                        bool prevState = EditorPrefs.GetBool("VFX-category-" + parameter.name, true);
-                                        bool currentState = ShowCategory(nameContent, prevState);
-
-                                        if (currentState != prevState)
+                                if (string.IsNullOrEmpty(parameter.sheetType))
+                                {
+                                    if (!string.IsNullOrEmpty(parameter.name))
+                                    {
+                                        if (string.IsNullOrEmpty(parameter.realType)) // This is a category
                                         {
-                                            EditorPrefs.SetBool("VFX-category-" + parameter.name, currentState);
+                                            bool wasIgnored = ignoreUntilNextCat;
+                                            ignoreUntilNextCat = false;
+                                            var nameContent = GetGUIContent(parameter.name);
+
+                                            bool prevState = EditorPrefs.GetBool("VFX-category-" + parameter.name, true);
+                                            bool currentState = ShowCategory(nameContent, prevState);
+
+                                            if (currentState != prevState)
+                                            {
+                                                EditorPrefs.SetBool("VFX-category-" + parameter.name, currentState);
+                                            }
+
+                                            if (!currentState)
+                                                ignoreUntilNextCat = true;
                                         }
-
-                                        if (!currentState)
-                                            ignoreUntilNextCat = true;
+                                        else if (!ignoreUntilNextCat)
+                                            EmptyLineControl(parameter.name, parameter.tooltip, parameter.spaceable ? parameter.space : (VFXSpace?)null, stack.Count, resource);
                                     }
-                                    else if (!ignoreUntilNextCat)
-                                        EmptyLineControl(parameter.name, parameter.tooltip, parameter.spaceable ? parameter.space : (VFXSpace?)null, stack.Count, resource);
                                 }
-                            }
-                            else if (!ignoreUntilNextCat)
-                            {
-                                SerializedProperty sourceProperty = null;
-
-                                m_PropertyToProp[parameter.sheetType].TryGetValue(parameter.path, out sourceProperty);
-
-                                //< Prepare potential indirection
-                                bool wasNewProperty = false;
-                                bool wasNotOverriddenProperty = false;
-
-                                SerializedProperty actualDisplayedPropertyValue = null;
-                                SerializedProperty actualDisplayedPropertyOverridden = null;
-                                if (sourceProperty == null)
+                                else if (!ignoreUntilNextCat)
                                 {
-                                    s_FakeObjectSerializedCache.Update();
-                                    var fakeField = s_FakeObjectSerializedCache.FindProperty("m_PropertySheet." + parameter.sheetType + ".m_Array");
-                                    fakeField.InsertArrayElementAtIndex(fakeField.arraySize);
-                                    var newFakeEntry = fakeField.GetArrayElementAtIndex(fakeField.arraySize - 1);
-                                    newFakeEntry.FindPropertyRelative("m_Name").stringValue = param.path;
-                                    newFakeEntry.FindPropertyRelative("m_Overridden").boolValue = false;
+                                    SerializedProperty sourceProperty = null;
 
-                                    actualDisplayedPropertyOverridden = newFakeEntry.FindPropertyRelative("m_Overridden");
-                                    actualDisplayedPropertyValue = newFakeEntry.FindPropertyRelative("m_Value");
-                                    SetObjectValue(actualDisplayedPropertyValue, parameter.defaultValue.Get());
+                                    m_PropertyToProp[parameter.sheetType].TryGetValue(parameter.path, out sourceProperty);
 
-                                    wasNewProperty = true;
-                                }
-                                else
-                                {
-                                    actualDisplayedPropertyOverridden = sourceProperty.FindPropertyRelative("m_Overridden");
-                                    actualDisplayedPropertyValue = sourceProperty.FindPropertyRelative("m_Value");
-                                    if (!actualDisplayedPropertyOverridden.boolValue)
+                                    //< Prepare potential indirection
+                                    bool wasNewProperty = false;
+                                    bool wasNotOverriddenProperty = false;
+
+                                    SerializedProperty actualDisplayedPropertyValue = null;
+                                    SerializedProperty actualDisplayedPropertyOverridden = null;
+                                    if (sourceProperty == null)
                                     {
                                         s_FakeObjectSerializedCache.Update();
+                                        var fakeField = s_FakeObjectSerializedCache.FindProperty("m_PropertySheet." + parameter.sheetType + ".m_Array");
+                                        fakeField.InsertArrayElementAtIndex(fakeField.arraySize);
+                                        var newFakeEntry = fakeField.GetArrayElementAtIndex(fakeField.arraySize - 1);
+                                        newFakeEntry.FindPropertyRelative("m_Name").stringValue = param.path;
+                                        newFakeEntry.FindPropertyRelative("m_Overridden").boolValue = false;
 
-                                        actualDisplayedPropertyOverridden = s_FakeObjectSerializedCache.FindProperty(actualDisplayedPropertyOverridden.propertyPath);
-                                        actualDisplayedPropertyValue = s_FakeObjectSerializedCache.FindProperty(actualDisplayedPropertyValue.propertyPath);
+                                        actualDisplayedPropertyOverridden = newFakeEntry.FindPropertyRelative("m_Overridden");
+                                        actualDisplayedPropertyValue = newFakeEntry.FindPropertyRelative("m_Value");
                                         SetObjectValue(actualDisplayedPropertyValue, parameter.defaultValue.Get());
 
-                                        wasNotOverriddenProperty = true;
+                                        wasNewProperty = true;
                                     }
-                                }
-
-                                //< Actual display
-                                GUIContent nameContent = GetGUIContent(parameter.name, parameter.tooltip);
-
-                                bool wasOverriden = actualDisplayedPropertyOverridden.boolValue;
-
-                                bool overrideMixed = false;
-                                bool valueMixed = false;
-                                if (m_OtherSerializedObjects != null) // copy the set value to all multi selection by hand, because it might not be at the same array index or already present in the property sheet
-                                {
-                                    foreach (var otherObject in m_OtherSerializedObjects)
-                                    {
-                                        var otherSourceVfxField = otherObject.FindProperty("m_PropertySheet." + parameter.sheetType + ".m_Array");
-                                        SerializedProperty otherSourceProperty = null;
-                                        for (int i = 0; i < otherSourceVfxField.arraySize; ++i)
-                                        {
-                                            otherSourceProperty = otherSourceVfxField.GetArrayElementAtIndex(i);
-                                            var nameProperty = otherSourceProperty.FindPropertyRelative("m_Name").stringValue;
-                                            if (nameProperty == parameter.path)
-                                            {
-                                                break;
-                                            }
-                                            otherSourceProperty = null;
-                                        }
-
-                                        if (otherSourceProperty != null)
-                                        {
-                                            overrideMixed = overrideMixed || (wasOverriden != otherSourceProperty.FindPropertyRelative("m_Overridden").boolValue);
-                                        }
-                                        else
-                                        {
-                                            overrideMixed = overrideMixed || wasOverriden;
-                                        }
-                                        if (overrideMixed)
-                                            break;
-                                    }
-
-                                    if (overrideMixed)
-                                        valueMixed = true;
                                     else
+                                    {
+                                        actualDisplayedPropertyOverridden = sourceProperty.FindPropertyRelative("m_Overridden");
+                                        actualDisplayedPropertyValue = sourceProperty.FindPropertyRelative("m_Value");
+                                        if (!actualDisplayedPropertyOverridden.boolValue)
+                                        {
+                                            s_FakeObjectSerializedCache.Update();
+
+                                            actualDisplayedPropertyOverridden = s_FakeObjectSerializedCache.FindProperty(actualDisplayedPropertyOverridden.propertyPath);
+                                            actualDisplayedPropertyValue = s_FakeObjectSerializedCache.FindProperty(actualDisplayedPropertyValue.propertyPath);
+                                            SetObjectValue(actualDisplayedPropertyValue, parameter.defaultValue.Get());
+
+                                            wasNotOverriddenProperty = true;
+                                        }
+                                    }
+
+                                    //< Actual display
+                                    GUIContent nameContent = GetGUIContent(parameter.name, parameter.tooltip);
+
+                                    bool wasOverriden = actualDisplayedPropertyOverridden.boolValue;
+
+                                    bool overrideMixed = false;
+                                    bool valueMixed = false;
+                                    if (m_OtherSerializedObjects != null) // copy the set value to all multi selection by hand, because it might not be at the same array index or already present in the property sheet
                                     {
                                         foreach (var otherObject in m_OtherSerializedObjects)
                                         {
@@ -1056,90 +1075,29 @@ namespace UnityEditor.VFX
                                                 otherSourceProperty = otherSourceVfxField.GetArrayElementAtIndex(i);
                                                 var nameProperty = otherSourceProperty.FindPropertyRelative("m_Name").stringValue;
                                                 if (nameProperty == parameter.path)
+                                                {
                                                     break;
+                                                }
+
                                                 otherSourceProperty = null;
                                             }
 
                                             if (otherSourceProperty != null)
                                             {
-                                                var otherValue = GetObjectValue(otherSourceProperty.FindPropertyRelative("m_Value"));
-                                                if (otherValue == null)
-                                                    valueMixed = valueMixed || GetObjectValue(actualDisplayedPropertyValue) != null;
-                                                else
-                                                    valueMixed = valueMixed || !otherValue.Equals(GetObjectValue(actualDisplayedPropertyValue));
+                                                overrideMixed = overrideMixed || (wasOverriden != otherSourceProperty.FindPropertyRelative("m_Overridden").boolValue);
+                                            }
+                                            else
+                                            {
+                                                overrideMixed = overrideMixed || wasOverriden;
                                             }
 
-                                            if (valueMixed)
+                                            if (overrideMixed)
                                                 break;
                                         }
-                                    }
-                                }
-                                bool overridenChanged = false;
-                                if (DisplayProperty(ref parameter, nameContent, actualDisplayedPropertyOverridden, actualDisplayedPropertyValue, overrideMixed, valueMixed, out overridenChanged) || overridenChanged)
-                                {
-                                    if (!overridenChanged)  // the value has changed
-                                    {
-                                        if (m_OtherSerializedObjects != null) // copy the set value to all multi selection by hand, because it might not be at the same array index or already present in the property sheet
-                                        {
-                                            foreach (var otherObject in m_OtherSerializedObjects)
-                                            {
-                                                var singleSourceVfxField = otherObject.FindProperty("m_PropertySheet." + parameter.sheetType + ".m_Array");
-                                                SerializedProperty singleSourceProperty = null;
-                                                for (int i = 0; i < singleSourceVfxField.arraySize; ++i)
-                                                {
-                                                    singleSourceProperty = singleSourceVfxField.GetArrayElementAtIndex(i);
-                                                    var nameProperty = singleSourceProperty.FindPropertyRelative("m_Name").stringValue;
-                                                    if (nameProperty == parameter.path)
-                                                    {
-                                                        break;
-                                                    }
-                                                    singleSourceProperty = null;
-                                                }
-                                                if (singleSourceProperty == null)
-                                                {
-                                                    singleSourceVfxField.InsertArrayElementAtIndex(singleSourceVfxField.arraySize);
-                                                    var newEntry = singleSourceVfxField.GetArrayElementAtIndex(singleSourceVfxField.arraySize - 1);
 
-                                                    newEntry.FindPropertyRelative("m_Overridden").boolValue = true;
-                                                    SetObjectValue(newEntry.FindPropertyRelative("m_Value"), GetObjectValue(actualDisplayedPropertyValue));
-                                                    newEntry.FindPropertyRelative("m_Name").stringValue = param.path;
-                                                    PropertyOverrideChanged();
-                                                }
-                                                else
-                                                {
-                                                    singleSourceProperty.FindPropertyRelative("m_Overridden").boolValue = true;
-                                                    SetObjectValue(singleSourceProperty.FindPropertyRelative("m_Value"), GetObjectValue(actualDisplayedPropertyValue));
-                                                }
-                                                otherObject.ApplyModifiedProperties();
-                                            }
-                                        }
-                                    }
-                                    if (wasNewProperty)
-                                    {
-                                        var sourceVfxField = m_VFXPropertySheet.FindPropertyRelative(parameter.sheetType + ".m_Array");
-                                        //We start editing a new exposed value which wasn't stored in this Visual Effect Component
-                                        sourceVfxField.InsertArrayElementAtIndex(sourceVfxField.arraySize);
-                                        var newEntry = sourceVfxField.GetArrayElementAtIndex(sourceVfxField.arraySize - 1);
-
-                                        newEntry.FindPropertyRelative("m_Overridden").boolValue = true;
-                                        SetObjectValue(newEntry.FindPropertyRelative("m_Value"), GetObjectValue(actualDisplayedPropertyValue));
-                                        newEntry.FindPropertyRelative("m_Name").stringValue = param.path;
-                                        PropertyOverrideChanged();
-                                    }
-                                    else if (wasNotOverriddenProperty && !overridenChanged)
-                                    {
-                                        if (!actualDisplayedPropertyOverridden.boolValue)
-                                        {
-                                            //The value has been directly changed, change overridden state and recopy new value
-                                            SetObjectValue(sourceProperty.FindPropertyRelative("m_Value"), GetObjectValue(actualDisplayedPropertyValue));
-                                        }
-                                        sourceProperty.FindPropertyRelative("m_Overridden").boolValue = true;
-                                        PropertyOverrideChanged();
-                                    }
-                                    else if (wasOverriden != actualDisplayedPropertyOverridden.boolValue)
-                                    {
-                                        sourceProperty.FindPropertyRelative("m_Overridden").boolValue = actualDisplayedPropertyOverridden.boolValue;
-                                        if (m_OtherSerializedObjects != null) // copy the set value to all multi selection by hand, because it might not be at the same array index or already present in the property sheet
+                                        if (overrideMixed)
+                                            valueMixed = true;
+                                        else
                                         {
                                             foreach (var otherObject in m_OtherSerializedObjects)
                                             {
@@ -1150,36 +1108,141 @@ namespace UnityEditor.VFX
                                                     otherSourceProperty = otherSourceVfxField.GetArrayElementAtIndex(i);
                                                     var nameProperty = otherSourceProperty.FindPropertyRelative("m_Name").stringValue;
                                                     if (nameProperty == parameter.path)
-                                                    {
                                                         break;
-                                                    }
                                                     otherSourceProperty = null;
                                                 }
-                                                if (otherSourceProperty == null)
+
+                                                if (otherSourceProperty != null)
                                                 {
-                                                    if (!wasOverriden)
+                                                    var otherValue = GetObjectValue(otherSourceProperty.FindPropertyRelative("m_Value"));
+                                                    if (otherValue == null)
+                                                        valueMixed = valueMixed || GetObjectValue(actualDisplayedPropertyValue) != null;
+                                                    else
+                                                        valueMixed = valueMixed || !otherValue.Equals(GetObjectValue(actualDisplayedPropertyValue));
+                                                }
+
+                                                if (valueMixed)
+                                                    break;
+                                            }
+                                        }
+                                    }
+
+                                    bool overridenChanged = false;
+                                    if (DisplayProperty(ref parameter, nameContent, actualDisplayedPropertyOverridden, actualDisplayedPropertyValue, overrideMixed, valueMixed, out overridenChanged) || overridenChanged)
+                                    {
+                                        if (!overridenChanged) // the value has changed
+                                        {
+                                            if (m_OtherSerializedObjects != null) // copy the set value to all multi selection by hand, because it might not be at the same array index or already present in the property sheet
+                                            {
+                                                foreach (var otherObject in m_OtherSerializedObjects)
+                                                {
+                                                    var singleSourceVfxField = otherObject.FindProperty("m_PropertySheet." + parameter.sheetType + ".m_Array");
+                                                    SerializedProperty singleSourceProperty = null;
+                                                    for (int i = 0; i < singleSourceVfxField.arraySize; ++i)
                                                     {
-                                                        otherSourceVfxField.InsertArrayElementAtIndex(otherSourceVfxField.arraySize);
-                                                        var newEntry = otherSourceVfxField.GetArrayElementAtIndex(otherSourceVfxField.arraySize - 1);
+                                                        singleSourceProperty = singleSourceVfxField.GetArrayElementAtIndex(i);
+                                                        var nameProperty = singleSourceProperty.FindPropertyRelative("m_Name").stringValue;
+                                                        if (nameProperty == parameter.path)
+                                                        {
+                                                            break;
+                                                        }
+
+                                                        singleSourceProperty = null;
+                                                    }
+
+                                                    if (singleSourceProperty == null)
+                                                    {
+                                                        singleSourceVfxField.InsertArrayElementAtIndex(singleSourceVfxField.arraySize);
+                                                        var newEntry = singleSourceVfxField.GetArrayElementAtIndex(singleSourceVfxField.arraySize - 1);
 
                                                         newEntry.FindPropertyRelative("m_Overridden").boolValue = true;
                                                         SetObjectValue(newEntry.FindPropertyRelative("m_Value"), GetObjectValue(actualDisplayedPropertyValue));
                                                         newEntry.FindPropertyRelative("m_Name").stringValue = param.path;
                                                         PropertyOverrideChanged();
                                                     }
+                                                    else
+                                                    {
+                                                        singleSourceProperty.FindPropertyRelative("m_Overridden").boolValue = true;
+                                                        SetObjectValue(singleSourceProperty.FindPropertyRelative("m_Value"), GetObjectValue(actualDisplayedPropertyValue));
+                                                    }
+
+                                                    otherObject.ApplyModifiedProperties();
                                                 }
-                                                else
-                                                {
-                                                    otherSourceProperty.FindPropertyRelative("m_Overridden").boolValue = !wasOverriden;
-                                                    PropertyOverrideChanged();
-                                                }
-                                                otherObject.ApplyModifiedProperties();
                                             }
                                         }
 
-                                        PropertyOverrideChanged();
+                                        if (wasNewProperty)
+                                        {
+                                            var sourceVfxField = m_VFXPropertySheet.FindPropertyRelative(parameter.sheetType + ".m_Array");
+                                            //We start editing a new exposed value which wasn't stored in this Visual Effect Component
+                                            sourceVfxField.InsertArrayElementAtIndex(sourceVfxField.arraySize);
+                                            var newEntry = sourceVfxField.GetArrayElementAtIndex(sourceVfxField.arraySize - 1);
+
+                                            newEntry.FindPropertyRelative("m_Overridden").boolValue = true;
+                                            SetObjectValue(newEntry.FindPropertyRelative("m_Value"), GetObjectValue(actualDisplayedPropertyValue));
+                                            newEntry.FindPropertyRelative("m_Name").stringValue = param.path;
+                                            PropertyOverrideChanged();
+                                        }
+                                        else if (wasNotOverriddenProperty && !overridenChanged)
+                                        {
+                                            if (!actualDisplayedPropertyOverridden.boolValue)
+                                            {
+                                                //The value has been directly changed, change overridden state and recopy new value
+                                                SetObjectValue(sourceProperty.FindPropertyRelative("m_Value"), GetObjectValue(actualDisplayedPropertyValue));
+                                            }
+
+                                            sourceProperty.FindPropertyRelative("m_Overridden").boolValue = true;
+                                            PropertyOverrideChanged();
+                                        }
+                                        else if (wasOverriden != actualDisplayedPropertyOverridden.boolValue)
+                                        {
+                                            sourceProperty.FindPropertyRelative("m_Overridden").boolValue = actualDisplayedPropertyOverridden.boolValue;
+                                            if (m_OtherSerializedObjects != null) // copy the set value to all multi selection by hand, because it might not be at the same array index or already present in the property sheet
+                                            {
+                                                foreach (var otherObject in m_OtherSerializedObjects)
+                                                {
+                                                    var otherSourceVfxField = otherObject.FindProperty("m_PropertySheet." + parameter.sheetType + ".m_Array");
+                                                    SerializedProperty otherSourceProperty = null;
+                                                    for (int i = 0; i < otherSourceVfxField.arraySize; ++i)
+                                                    {
+                                                        otherSourceProperty = otherSourceVfxField.GetArrayElementAtIndex(i);
+                                                        var nameProperty = otherSourceProperty.FindPropertyRelative("m_Name").stringValue;
+                                                        if (nameProperty == parameter.path)
+                                                        {
+                                                            break;
+                                                        }
+
+                                                        otherSourceProperty = null;
+                                                    }
+
+                                                    if (otherSourceProperty == null)
+                                                    {
+                                                        if (!wasOverriden)
+                                                        {
+                                                            otherSourceVfxField.InsertArrayElementAtIndex(otherSourceVfxField.arraySize);
+                                                            var newEntry = otherSourceVfxField.GetArrayElementAtIndex(otherSourceVfxField.arraySize - 1);
+
+                                                            newEntry.FindPropertyRelative("m_Overridden").boolValue = true;
+                                                            SetObjectValue(newEntry.FindPropertyRelative("m_Value"), GetObjectValue(actualDisplayedPropertyValue));
+                                                            newEntry.FindPropertyRelative("m_Name").stringValue = param.path;
+                                                            PropertyOverrideChanged();
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        otherSourceProperty.FindPropertyRelative("m_Overridden").boolValue = !wasOverriden;
+                                                        PropertyOverrideChanged();
+                                                    }
+
+                                                    otherObject.ApplyModifiedProperties();
+                                                }
+                                            }
+
+                                            PropertyOverrideChanged();
+                                        }
+
+                                        m_SingleSerializedObject.ApplyModifiedProperties();
                                     }
-                                    m_SingleSerializedObject.ApplyModifiedProperties();
                                 }
                             }
                         }
@@ -1193,27 +1256,29 @@ namespace UnityEditor.VFX
 
         private void DrawRendererProperties()
         {
-            showRendererCategory = ShowHeader(Contents.headerRenderer, true, showRendererCategory, kRendererFoldoutStatePreferenceName);
-
-            if (showRendererCategory)
-                m_RendererEditor.OnInspectorGUI();
+            using (ShowComponentHeader(Contents.headerRenderer, showRendererCategory, out showRendererCategory, kRendererFoldoutStatePreferenceName))
+            {
+                if (showRendererCategory)
+                    m_RendererEditor.OnInspectorGUI();
+            }
         }
 
         private void DrawInstancingProperties()
         {
-            showInstancingCategory = ShowHeader(Contents.headerInstancing, true, showInstancingCategory, kInstancingFoldoutStatePreferenceName);
-
-            if (showInstancingCategory)
+            using (ShowComponentHeader(Contents.headerInstancing, showInstancingCategory, out showInstancingCategory, kInstancingFoldoutStatePreferenceName))
             {
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(m_AllowInstancing, Contents.allowInstancing);
-                if (EditorGUI.EndChangeCheck())
+                if (showInstancingCategory)
                 {
-                    serializedObject.ApplyModifiedProperties();
-
-                    foreach (var visualEffect in targets.OfType<VisualEffect>())
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.PropertyField(m_AllowInstancing, Contents.allowInstancing);
+                    if (EditorGUI.EndChangeCheck())
                     {
-                        visualEffect.RecreateData();
+                        serializedObject.ApplyModifiedProperties();
+
+                        foreach (var visualEffect in targets.OfType<VisualEffect>())
+                        {
+                            visualEffect.RecreateData();
+                        }
                     }
                 }
             }
@@ -1300,111 +1365,95 @@ namespace UnityEditor.VFX
             {
                 m_SerializedRenderers.Update();
 
-                EditorGUI.indentLevel += 1;
-                // Ugly hack to indent the header group because "indentLevel" is not taken into account
-                var x = EditorStyles.inspectorDefaultMargins.padding.left;
-                EditorStyles.inspectorDefaultMargins.padding.left -= 24;
-                bool showProbesCategory = EditorGUILayout.BeginFoldoutHeaderGroup(m_ShowProbesCategory, Contents.probeSettings);
-                if (showProbesCategory != m_ShowProbesCategory)
+                using (ShowSubHeader(Contents.probeSettings, m_ShowProbesCategory, out m_ShowProbesCategory, kRendererProbesFoldoutStatePreferenceName))
                 {
-                    m_ShowProbesCategory = showProbesCategory;
-                    EditorPrefs.SetBool(kRendererProbesFoldoutStatePreferenceName, m_ShowProbesCategory);
-                }
-
-                if (m_ShowProbesCategory)
-                {
-                    bool showReflectionProbeUsage = m_ReflectionProbeUsage != null && SupportedRenderingFeatures.active.reflectionProbes;
-
-                    var srpAssetType = GraphicsSettings.currentRenderPipelineAssetType;
-                    if (srpAssetType is not null && srpAssetType.ToString().Contains("UniversalRenderPipeline"))
+                    if (m_ShowProbesCategory)
                     {
-                        //Reflection Probe Usage option has been removed in URP but the VFXRenderer uses ReflectionProbeUsage.Off by default
-                        //We are temporarily letting this option reachable until the C++ doesn't change the default value
-                        showReflectionProbeUsage = m_ReflectionProbeUsage != null;
-                    }
+                        bool showReflectionProbeUsage = m_ReflectionProbeUsage != null && SupportedRenderingFeatures.active.reflectionProbes;
 
-                    if (showReflectionProbeUsage)
-                    {
-                        Rect r = EditorGUILayout.GetControlRect(true, EditorGUI.kSingleLineHeight, EditorStyles.popup);
-                        EditorGUI.BeginProperty(r, Contents.reflectionProbeUsageStyle, m_ReflectionProbeUsage);
-                        EditorGUI.BeginChangeCheck();
-                        var newValue = EditorGUI.EnumPopup(r, Contents.reflectionProbeUsageStyle, (ReflectionProbeUsage)m_ReflectionProbeUsage.intValue);
-                        if (EditorGUI.EndChangeCheck())
-                            m_ReflectionProbeUsage.intValue = (int)(ReflectionProbeUsage)newValue;
-                        EditorGUI.EndProperty();
-                    }
-
-                    if (m_LightProbeUsage != null)
-                    {
-                        Rect r = EditorGUILayout.GetControlRect(true, EditorGUI.kSingleLineHeight, EditorStyles.popup);
-                        EditorGUI.BeginProperty(r, Contents.lightProbeUsageStyle, m_LightProbeUsage);
-                        EditorGUI.BeginChangeCheck();
-                        var newValue = EditorGUI.EnumPopup(r, Contents.lightProbeUsageStyle, (LightProbeUsage)m_LightProbeUsage.intValue);
-                        if (EditorGUI.EndChangeCheck())
-                            m_LightProbeUsage.intValue = (int)(LightProbeUsage)newValue;
-                        EditorGUI.EndProperty();
-
-                        if (!m_LightProbeUsage.hasMultipleDifferentValues && m_LightProbeUsage.intValue == (int)LightProbeUsage.UseProxyVolume)
+                        var srpAssetType = GraphicsSettings.currentRenderPipelineAssetType;
+                        if (srpAssetType is not null && srpAssetType.ToString().Contains("UniversalRenderPipeline"))
                         {
-                            if (!LightProbeProxyVolume.isFeatureSupported || !SupportedRenderingFeatures.active.lightProbeProxyVolumes)
-                                EditorGUILayout.HelpBox(Contents.lightProbeVolumeUnsupportedNote.text, MessageType.Warning);
-                            EditorGUILayout.PropertyField(m_LightProbeVolumeOverride, Contents.lightProbeVolumeOverrideStyle);
+                            //Reflection Probe Usage option has been removed in URP but the VFXRenderer uses ReflectionProbeUsage.Off by default
+                            //We are temporarily letting this option reachable until the C++ doesn't change the default value
+                            showReflectionProbeUsage = m_ReflectionProbeUsage != null;
                         }
-                    }
 
-                    bool useReflectionProbes = m_ReflectionProbeUsage != null && !m_ReflectionProbeUsage.hasMultipleDifferentValues && (ReflectionProbeUsage)m_ReflectionProbeUsage.intValue != ReflectionProbeUsage.Off;
-                    bool lightProbesEnabled = m_LightProbeUsage != null && !m_LightProbeUsage.hasMultipleDifferentValues && (LightProbeUsage)m_LightProbeUsage.intValue != LightProbeUsage.Off;
-                    bool needsProbeAnchor = useReflectionProbes || lightProbesEnabled;
-
-                    if (needsProbeAnchor)
-                        EditorGUILayout.PropertyField(m_ProbeAnchor, Contents.lightProbeAnchorStyle);
-                }
-                EditorGUILayout.EndFoldoutHeaderGroup();
-
-                var showAdditionnalCategory = EditorGUILayout.BeginFoldoutHeaderGroup(m_ShowAdditionnalCategory, Contents.otherSettings);
-                if (showAdditionnalCategory != m_ShowAdditionnalCategory)
-                {
-                    m_ShowAdditionnalCategory = showAdditionnalCategory;
-                    EditorPrefs.SetBool(kRendererAdditionnalSettingsFoldoutStatePreferenceName, m_ShowAdditionnalCategory);
-                }
-
-                if (showAdditionnalCategory)
-                {
-                    if (m_RenderingLayerMask != null && GraphicsSettings.isScriptableRenderPipelineEnabled)
-                    {
-                        var mask = m_Renderers[0].renderingLayerMask;
-
-                        EditorGUI.BeginChangeCheck();
-                        mask = EditorGUILayout.RenderingLayerMaskField(Contents.renderingLayerMaskStyle, mask);
-                        if (EditorGUI.EndChangeCheck())
+                        if (showReflectionProbeUsage)
                         {
-                            Undo.RecordObjects(m_SerializedRenderers.targetObjects, "Set rendering layer mask");
-                            for (var i = 0; i < m_SerializedRenderers.targetObjects.Length; i++)
+                            Rect r = EditorGUILayout.GetControlRect(true, EditorGUI.kSingleLineHeight, EditorStyles.popup);
+                            EditorGUI.BeginProperty(r, Contents.reflectionProbeUsageStyle, m_ReflectionProbeUsage);
+                            EditorGUI.BeginChangeCheck();
+                            var newValue = EditorGUI.EnumPopup(r, Contents.reflectionProbeUsageStyle, (ReflectionProbeUsage)m_ReflectionProbeUsage.intValue);
+                            if (EditorGUI.EndChangeCheck())
+                                m_ReflectionProbeUsage.intValue = (int)(ReflectionProbeUsage)newValue;
+                            EditorGUI.EndProperty();
+                        }
+
+                        if (m_LightProbeUsage != null)
+                        {
+                            Rect r = EditorGUILayout.GetControlRect(true, EditorGUI.kSingleLineHeight, EditorStyles.popup);
+                            EditorGUI.BeginProperty(r, Contents.lightProbeUsageStyle, m_LightProbeUsage);
+                            EditorGUI.BeginChangeCheck();
+                            var newValue = EditorGUI.EnumPopup(r, Contents.lightProbeUsageStyle, (LightProbeUsage)m_LightProbeUsage.intValue);
+                            if (EditorGUI.EndChangeCheck())
+                                m_LightProbeUsage.intValue = (int)(LightProbeUsage)newValue;
+                            EditorGUI.EndProperty();
+
+                            if (!m_LightProbeUsage.hasMultipleDifferentValues && m_LightProbeUsage.intValue == (int)LightProbeUsage.UseProxyVolume)
                             {
-                                var r = m_SerializedRenderers.targetObjects[i] as VFXRenderer;
-                                if (r == null)
-                                    continue;
-                                r.renderingLayerMask = mask;
-                                EditorUtility.SetDirty(r);
+                                if (!LightProbeProxyVolume.isFeatureSupported || !SupportedRenderingFeatures.active.lightProbeProxyVolumes)
+                                    EditorGUILayout.HelpBox(Contents.lightProbeVolumeUnsupportedNote.text, MessageType.Warning);
+                                EditorGUILayout.PropertyField(m_LightProbeVolumeOverride, Contents.lightProbeVolumeOverrideStyle);
                             }
                         }
-                    }
 
-                    if (m_RendererPriority != null && SupportedRenderingFeatures.active.rendererPriority)
-                    {
-                        EditorGUILayout.PropertyField(m_RendererPriority, Contents.rendererPriorityStyle);
-                    }
+                        bool useReflectionProbes = m_ReflectionProbeUsage != null && !m_ReflectionProbeUsage.hasMultipleDifferentValues && (ReflectionProbeUsage)m_ReflectionProbeUsage.intValue != ReflectionProbeUsage.Off;
+                        bool lightProbesEnabled = m_LightProbeUsage != null && !m_LightProbeUsage.hasMultipleDifferentValues && (LightProbeUsage)m_LightProbeUsage.intValue != LightProbeUsage.Off;
+                        bool needsProbeAnchor = useReflectionProbes || lightProbesEnabled;
 
-                    if (m_SortingOrder != null && m_SortingLayerID != null)
-                    {
-                        var hasPrefabOverride = HasPrefabOverride(m_SortingLayerID);
-                        SortingLayerField(Contents.sortingLayerStyle, m_SortingLayerID, hasPrefabOverride ? Contents.boldPopupStyle : EditorStyles.popup, hasPrefabOverride ? EditorStyles.boldLabel : EditorStyles.label);
-                        EditorGUILayout.PropertyField(m_SortingOrder, Contents.sortingOrderStyle);
+                        if (needsProbeAnchor)
+                            EditorGUILayout.PropertyField(m_ProbeAnchor, Contents.lightProbeAnchorStyle);
                     }
                 }
-                EditorGUILayout.EndFoldoutHeaderGroup();
-                EditorStyles.inspectorDefaultMargins.padding.left = x;
-                EditorGUI.indentLevel -= 1;
+
+                using (ShowSubHeader(Contents.otherSettings, m_ShowAdditionnalCategory, out m_ShowAdditionnalCategory, kRendererAdditionnalSettingsFoldoutStatePreferenceName))
+                {
+                    if (m_ShowAdditionnalCategory)
+                    {
+                        if (m_RenderingLayerMask != null && GraphicsSettings.isScriptableRenderPipelineEnabled)
+                        {
+                            var mask = m_Renderers[0].renderingLayerMask;
+
+                            EditorGUI.BeginChangeCheck();
+                            mask = EditorGUILayout.RenderingLayerMaskField(Contents.renderingLayerMaskStyle, mask);
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                Undo.RecordObjects(m_SerializedRenderers.targetObjects, "Set rendering layer mask");
+                                for (var i = 0; i < m_SerializedRenderers.targetObjects.Length; i++)
+                                {
+                                    var r = m_SerializedRenderers.targetObjects[i] as VFXRenderer;
+                                    if (r == null)
+                                        continue;
+                                    r.renderingLayerMask = mask;
+                                    EditorUtility.SetDirty(r);
+                                }
+                            }
+                        }
+
+                        if (m_RendererPriority != null && SupportedRenderingFeatures.active.rendererPriority)
+                        {
+                            EditorGUILayout.PropertyField(m_RendererPriority, Contents.rendererPriorityStyle);
+                        }
+
+                        if (m_SortingOrder != null && m_SortingLayerID != null)
+                        {
+                            var hasPrefabOverride = HasPrefabOverride(m_SortingLayerID);
+                            SortingLayerField(Contents.sortingLayerStyle, m_SortingLayerID, hasPrefabOverride ? Contents.boldPopupStyle : EditorStyles.popup, hasPrefabOverride ? EditorStyles.boldLabel : EditorStyles.label);
+                            EditorGUILayout.PropertyField(m_SortingOrder, Contents.sortingOrderStyle);
+                        }
+                    }
+                }
 
                 m_SerializedRenderers.ApplyModifiedProperties();
             }
@@ -1505,30 +1554,16 @@ namespace UnityEditor.VFX
             public static readonly GUIStyle toggleStyle;
             public static readonly GUIStyle toggleMixedStyle;
 
-            public static readonly GUIStyle categoryHeader;
-
             public static readonly GUILayoutOption MiniButtonWidth = GUILayout.Width(56);
-            public static readonly GUILayoutOption PlayControlsHeight = GUILayout.Height(24);
             public const float overrideWidth = 16;
 
             static Styles()
             {
                 var builtInSkin = GetCurrentSkin();
                 foldoutStyle = new GUIStyle(EditorStyles.foldout);
-                foldoutStyle.fontStyle = FontStyle.Bold;
-
                 toggleStyle = new GUIStyle(builtInSkin.GetStyle("ShurikenToggle"));
 
                 toggleMixedStyle = new GUIStyle(builtInSkin.GetStyle("ShurikenCheckMarkMixed"));
-                categoryHeader = new GUIStyle(builtInSkin.label);
-                categoryHeader.fontStyle = FontStyle.Bold;
-                categoryHeader.border.left = 2;
-                categoryHeader.padding.left = 32;
-                categoryHeader.padding.top = 2;
-                categoryHeader.border.right = 2;
-
-                //TODO change to editor resources calls
-                categoryHeader.normal.background = (Texture2D)AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectAssetEditorUtility.editorResourcesPath + (EditorGUIUtility.isProSkin ? "/VFX/cat-background-dark.png" : "/VFX/cat-background-light.png"));
             }
         }
     }

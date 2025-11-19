@@ -265,7 +265,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Matrix4x4[] pixelCoordToViewDir;
         }
 
-        unsafe internal void UpdatePixelCoordToViewDir(ref ShaderVariablesClouds cb, in Matrix4x4 pixelCoordToViewDir)
+        internal static unsafe void UpdatePixelCoordToViewDir(ref ShaderVariablesClouds cb, in Matrix4x4 pixelCoordToViewDir)
         {
             for (int j = 0; j < 16; ++j)
                 cb._CloudsPixelCoordToViewDirWS[j] = pixelCoordToViewDir[j];
@@ -285,7 +285,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     PrepareVolumetricCloudsSkyHighPassData(renderGraph, builder, hdCamera, width, height, pixelCoordToViewDir, CubemapFace.Unknown, settings, probeBuffer, skyboxCubemap, passData);
 
                     builder.SetRenderFunc(
-                    (VolumetricCloudsSkyHighPassData data, UnsafeGraphContext ctx) =>
+                        static (VolumetricCloudsSkyHighPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         for (int faceIdx = 0; faceIdx < 6; ++faceIdx)
@@ -309,7 +309,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     PrepareVolumetricCloudsSkyLowPassData(renderGraph, builder, hdCamera, width, height, pixelCoordToViewDir, CubemapFace.Unknown, settings, probeBuffer, passData);
 
                     builder.SetRenderFunc(
-                    (VolumetricCloudsSkyLowPassData data, UnsafeGraphContext ctx) =>
+                        static (VolumetricCloudsSkyLowPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         for (int faceIdx = 0; faceIdx < 6; ++faceIdx)
@@ -336,7 +336,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.UseTexture(passData.output, AccessFlags.Write);
 
                     builder.SetRenderFunc(
-                    (VolumetricCloudsPreUpscalePassData data, UnsafeGraphContext ctx) =>
+                        static (VolumetricCloudsPreUpscalePassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         for (int faceIdx = 0; faceIdx < 6; ++faceIdx)
@@ -373,7 +373,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     builder.SetRenderFunc(
-                    (VolumetricCloudsUpscalePassData data, UnsafeGraphContext ctx) =>
+                        static (VolumetricCloudsUpscalePassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         for (int faceIdx = 0; faceIdx < 6; ++faceIdx)

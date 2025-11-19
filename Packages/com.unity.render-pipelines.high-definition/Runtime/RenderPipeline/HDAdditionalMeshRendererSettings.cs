@@ -620,7 +620,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lodMode         = m_RendererLODMode,
                 lod             = strandLOD,
                 shadingFraction = m_ShadingSampleFraction,
-                hash            = GetInstanceID()
+                hash            = GetEntityId().GetHashCode()
             };
         }
     }

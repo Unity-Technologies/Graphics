@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // We can't move the asset
             }
             // If the asset is not in the list, we regenerate it's hash using the GUID (which leads to the same result every time)
-            else if (!diffusionProfileHashes.ContainsKey(profile.GetInstanceID()))
+            else if (!diffusionProfileHashes.ContainsKey(profile.GetEntityId()))
             {
                 uint newHash = GenerateUniqueHash(profile);
                 if (newHash != profile.profile.hash)
@@ -92,7 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
             else // otherwise, no issue, we don't change the hash and we keep it to check for collisions
-                diffusionProfileHashes.Add(profile.GetInstanceID(), profile.profile.hash);
+                diffusionProfileHashes.Add(profile.GetEntityId(), profile.profile.hash);
         }
     }
 }

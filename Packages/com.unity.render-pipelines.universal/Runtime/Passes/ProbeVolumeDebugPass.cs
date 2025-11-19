@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.Universal
                     builder.UseTexture(passData.depthBuffer, AccessFlags.Read);
                     builder.UseTexture(passData.normalBuffer, AccessFlags.Read);
 
-                    builder.SetRenderFunc((WriteApvData data, ComputeGraphContext ctx) =>
+                    builder.SetRenderFunc(static (WriteApvData data, ComputeGraphContext ctx) =>
                     {
                         int kernel = data.computeShader.FindKernel("ComputePositionNormal");
 

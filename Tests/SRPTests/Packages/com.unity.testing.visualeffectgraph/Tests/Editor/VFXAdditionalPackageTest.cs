@@ -18,6 +18,16 @@ namespace UnityEditor.VFX.Test
 
         private static readonly string kSampleExpectedPath = "Assets/Samples";
 
+        [Test]
+        public void ImportSampleDependencies_Reflection_Still_Valid()
+        {
+            var packageInfo = PackageManager.PackageInfo.FindForAssetPath(VisualEffectGraphPackageInfo.assetPackagePath);
+            var sample = Sample.FindByPackage(VisualEffectGraphPackageInfo.name, null).FirstOrDefault();
+            Assert.IsNotNull(packageInfo);
+            Assert.IsNotNull(sample);
+            VFXTemplateHelperInternal.ImportSampleDependencies(packageInfo, sample);
+        }
+
         [SerializeField]
         private string m_CurrentMatch;
 
@@ -55,7 +65,7 @@ namespace UnityEditor.VFX.Test
             //Workaround for UUM-63664
             var current = matching[0];
             {
-                SampleDependencyImporter.instance.ImportSampleDependencies(searchRequest.Result[0], current);
+                VFXTemplateHelperInternal.ImportSampleDependencies(searchRequest.Result[0], current);
             }
 
             var result = current.Import(Sample.ImportOptions.HideImportWindow | Sample.ImportOptions.OverridePreviousImports);

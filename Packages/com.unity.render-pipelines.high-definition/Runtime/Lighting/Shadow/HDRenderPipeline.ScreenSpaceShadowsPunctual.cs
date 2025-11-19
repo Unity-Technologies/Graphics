@@ -237,7 +237,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputShadowBuffer, AccessFlags.ReadWrite);
 
                 builder.SetRenderFunc(
-                    (RTSPunctualTracePassData data, UnsafeGraphContext ctx) =>
+                    static (RTSPunctualTracePassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Inject the ray-tracing sampling data

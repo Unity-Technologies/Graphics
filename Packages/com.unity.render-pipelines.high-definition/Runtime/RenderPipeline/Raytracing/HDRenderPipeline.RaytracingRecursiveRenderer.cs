@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
 
                 builder.SetRenderFunc(
-                    (RecursiveRenderingPassData data, UnsafeGraphContext ctx) =>
+                    static (RecursiveRenderingPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Define the shader pass to use for the reflection pass

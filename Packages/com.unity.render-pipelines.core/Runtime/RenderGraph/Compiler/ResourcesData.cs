@@ -7,10 +7,16 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
     // Data per usage of a resource(version)
-    internal struct ResourceReaderData
+    internal readonly struct ResourceReaderData
     {
-        public int passId; // Pass using this
-        public int inputSlot; // Nth input of the pass using this resource
+        public readonly int passId; // Pass using this
+        public readonly int inputSlot; // Nth input of the pass using this resource
+
+        public ResourceReaderData(int _passId, int _inputSlot)
+        {
+            passId = _passId;
+            inputSlot = _inputSlot;
+        }
     }
 
     // Part of the data that remains the same for all versions of the resource
@@ -41,7 +47,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public TextureUVOriginSelection textureUVOrigin;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public string GetName(CompilerContextData ctx, ResourceHandle h) => ctx.GetResourceName(h);
+        public string GetName(CompilerContextData ctx, in ResourceHandle h) => ctx.GetResourceName(h);
 
         public ResourceUnversionedData(TextureResource rll, ref RenderTargetInfo info, ref TextureDesc desc, bool isResourceShared)
         {
@@ -58,7 +64,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             volumeDepth = info.volumeDepth;
             msaaSamples = info.msaaSamples;
 
-            latestVersionNumber = rll.version;
+            latestVersionNumber = (int)rll.writeCount;
 
             clear = desc.clearBuffer;
             discard = desc.discardBuffer;
@@ -84,7 +90,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             volumeDepth = -1;
             msaaSamples = -1;
 
-            latestVersionNumber = rll.version;
+            latestVersionNumber = (int)rll.writeCount;
 
             clear = false;
             discard = false;
@@ -110,7 +116,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             volumeDepth = -1;
             msaaSamples = -1;
 
-            latestVersionNumber = rll.version;
+            latestVersionNumber = (int)rll.writeCount;
 
             clear = false;
             discard = false;
@@ -137,7 +143,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         // Register the pass writing this resource version. A version can only be written by a single pass as every write should introduce a new distinct version.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetWritingPass(CompilerContextData ctx, ResourceHandle h, int passId)
+        public void SetWritingPass(CompilerContextData ctx, in ResourceHandle h, int passId)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (written)
@@ -154,7 +160,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         // Add an extra reader for this resource version. Resource versions can be read many times
         // The same pass can even read a resource twice (if it is passed to two separate input slots)
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void RegisterReadingPass(CompilerContextData ctx, ResourceHandle h, int passId, int index)
+        public void RegisterReadingPass(CompilerContextData ctx, in ResourceHandle h, int passId, int index)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (numReaders >= ctx.resources.MaxReaders[h.iType])
@@ -164,17 +170,13 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 throw new Exception($"Maximum '{ctx.resources.MaxReaders}' passes can use a single graph output as input. Pass {passName} is trying to read {resourceName}.");
             }
 #endif
-            ctx.resources.readerData[h.iType][ctx.resources.IndexReader(h, numReaders)] = new ResourceReaderData
-            {
-                passId = passId,
-                inputSlot = index
-            };
+            ctx.resources.readerData[h.iType][ctx.resources.IndexReader(h, numReaders)] = new ResourceReaderData(passId, index);
             numReaders++;
         }
 
         // Remove all the reads for the given pass of this resource version
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void RemoveReadingPass(CompilerContextData ctx, ResourceHandle h, int passId)
+        public void RemoveReadingPass(CompilerContextData ctx, in ResourceHandle h, int passId)
         {
             for (int r = 0; r < numReaders;)
             {
@@ -333,7 +335,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         // Flatten array index
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Index(ResourceHandle h)
+        public int Index(in ResourceHandle h)
         {
 #if UNITY_EDITOR // Hot path
             if (h.version < 0 || h.version >= MaxVersions[h.iType])
@@ -344,7 +346,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         // Flatten array index
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexReader(ResourceHandle h, int readerID)
+        public int IndexReader(in ResourceHandle h, int readerID)
         {
 #if UNITY_EDITOR // Hot path
             if (h.version < 0 || h.version >= MaxVersions[h.iType])

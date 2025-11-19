@@ -444,7 +444,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.renderContext = renderContext;
 
                 builder.SetRenderFunc(
-                    (RenderShadowMapsPassData data, UnsafeGraphContext ctx) =>
+                    static (RenderShadowMapsPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         natCmd.SetRenderTarget(data.atlasTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
@@ -527,7 +527,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.momentAtlasTexture2, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (EVSMBlurMomentsPassData data, UnsafeGraphContext ctx) =>
+                    static (EVSMBlurMomentsPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         ComputeShader shadowBlurMomentsCS = data.evsmShadowBlurMomentsCS;
@@ -659,7 +659,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.summedAreaTexture, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (IMBlurMomentPassData data, UnsafeGraphContext ctx) =>
+                    static (IMBlurMomentPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // If the target kernel is not available

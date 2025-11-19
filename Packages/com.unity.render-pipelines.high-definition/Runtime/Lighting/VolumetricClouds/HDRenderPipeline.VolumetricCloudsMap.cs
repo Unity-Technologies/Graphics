@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.cloudMapTexture, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (VolumetricCloudsMapData data, UnsafeGraphContext ctx) =>
+                    static (VolumetricCloudsMapData data, UnsafeGraphContext ctx) =>
                     {
                         EvaluateVolumetricCloudMap(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd), data.parameters, data.cloudMapTexture);
                     });

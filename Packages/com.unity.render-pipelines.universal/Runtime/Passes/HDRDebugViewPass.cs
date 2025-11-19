@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering.Universal
                     passData.passThrough = intermediateRT;
                     builder.UseTexture(intermediateRT, AccessFlags.Write);
 
-                    builder.SetRenderFunc((PassDataCIExy data, UnsafeGraphContext context) =>
+                    builder.SetRenderFunc(static (PassDataCIExy data, UnsafeGraphContext context) =>
                     {
                         ExecuteCIExyPrepass(CommandBufferHelpers.GetNativeCommandBuffer(context.cmd), data, data.srcColor, data.xyBuffer, data.passThrough);
                     });
@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.Universal
                     builder.UseTexture(overlayUITexture);
                 }
 
-                builder.SetRenderFunc((PassDataDebugView data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassDataDebugView data, RasterGraphContext context) =>
                 {
                     data.material.enabledKeywords = null;
                     Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(in context, in data.srcColor, in data.dstColor);

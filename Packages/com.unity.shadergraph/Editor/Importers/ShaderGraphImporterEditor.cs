@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
                 ShowGraphEditWindow(importer.assetPath);
             }
 
-            using (var horizontalScope = new GUILayout.HorizontalScope("box"))
+            using (var horizontalScope = new GUILayout.HorizontalScope())
             {
                 AssetImporter importer = target as AssetImporter;
                 string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);

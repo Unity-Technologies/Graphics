@@ -118,7 +118,7 @@ namespace UnityEngine.Rendering.Tests
             foreach (var obj in objList)
             {
                 obj.material = dotsMaterial;
-                objIDs.Add(obj.GetInstanceID());
+                objIDs.Add(obj.GetEntityId());
             }
 
             var instances = new NativeArray<InstanceHandle>(objList.Count, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
@@ -173,7 +173,7 @@ namespace UnityEngine.Rendering.Tests
             foreach (var obj in objList)
             {
                 obj.material = simpleDotsMat;
-                objIDs.Add(obj.GetInstanceID());
+                objIDs.Add(obj.GetEntityId());
             }
 
             var instances = new NativeArray<InstanceHandle>(objList.Count, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
@@ -265,7 +265,7 @@ namespace UnityEngine.Rendering.Tests
 
             var objIDs = new NativeArray<EntityId>(1, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
             var instances = new NativeArray<InstanceHandle>(1, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            objIDs[0] = renderer.GetInstanceID();
+            objIDs[0] = renderer.GetEntityId();
             instances[0] = InstanceHandle.Invalid;
 
             var gpuDrivenProcessor = new GPUDrivenProcessor();
@@ -345,7 +345,7 @@ namespace UnityEngine.Rendering.Tests
                 obj.receiveGI = ReceiveGI.LightProbes;
                 obj.lightProbeUsage = LightProbeUsage.BlendProbes;
                 obj.material = simpleDotsMat;
-                objIDs.Add(obj.GetInstanceID());
+                objIDs.Add(obj.GetEntityId());
             }
             objList[2].lightProbeUsage = LightProbeUsage.Off;
 
@@ -1011,9 +1011,9 @@ namespace UnityEngine.Rendering.Tests
 
                 Assert.IsTrue(instanceSystem.InternalSanityCheckStates());
 
-                renderersID[0] = gameObjects[3].GetComponent<MeshRenderer>().GetInstanceID();
-                renderersID[1] = gameObjects[4].GetComponent<MeshRenderer>().GetInstanceID();
-                renderersID[2] = gameObjects[5].GetComponent<MeshRenderer>().GetInstanceID();
+                renderersID[0] = gameObjects[3].GetComponent<MeshRenderer>().GetEntityId();
+                renderersID[1] = gameObjects[4].GetComponent<MeshRenderer>().GetEntityId();
+                renderersID[2] = gameObjects[5].GetComponent<MeshRenderer>().GetEntityId();
 
                 gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(renderersID, (in GPUDrivenRendererGroupData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
                 {
@@ -1037,7 +1037,7 @@ namespace UnityEngine.Rendering.Tests
                 renderersID.Dispose();
 
                 renderersID = new NativeArray<EntityId>(1, Allocator.TempJob);
-                renderersID[0] = gameObjects[6].GetComponent<MeshRenderer>().GetInstanceID();
+                renderersID[0] = gameObjects[6].GetComponent<MeshRenderer>().GetEntityId();
 
                 gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(renderersID, (in GPUDrivenRendererGroupData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
                 {
@@ -1197,9 +1197,9 @@ namespace UnityEngine.Rendering.Tests
             gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(rendererIDs, (in GPUDrivenRendererGroupData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
             {
                 Assert.IsTrue(rendererData.rendererGroupID.Length == 1);
-                Assert.IsTrue(rendererData.rendererGroupID[0] == renderer1.GetInstanceID());
+                Assert.IsTrue(rendererData.rendererGroupID[0] == renderer1.GetEntityId());
                 Assert.IsTrue(rendererData.invalidRendererGroupID.Length == 1);
-                Assert.IsTrue(rendererData.invalidRendererGroupID[0] == renderer0.GetInstanceID());
+                Assert.IsTrue(rendererData.invalidRendererGroupID[0] == renderer0.GetEntityId());
                 dispatched = true;
             }, true);
 
@@ -1370,7 +1370,7 @@ namespace UnityEngine.Rendering.Tests
                 renderer.receiveGI = ReceiveGI.LightProbes;
                 renderer.lightProbeUsage = LightProbeUsage.BlendProbes;
                 renderer.material = simpleSpeedTreeDotsMat;
-                rendererIDs.Add(renderer.GetInstanceID());
+                rendererIDs.Add(renderer.GetEntityId());
             }
 
             var instances = new NativeArray<InstanceHandle>(renderers.Count, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);

@@ -3,6 +3,9 @@
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
+    UNITY_SETUP_INSTANCE_ID(input);
+
+    SetUpSpriteInstanceProperties();
     input.positionOS = UnityFlipSprite(input.positionOS, unity_SpriteProps.xy);
     output = BuildVaryings(input);
     output.color *= unity_SpriteColor;

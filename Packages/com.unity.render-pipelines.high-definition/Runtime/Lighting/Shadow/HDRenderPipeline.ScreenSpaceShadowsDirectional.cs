@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputShadowBuffer, AccessFlags.ReadWrite);
 
                 builder.SetRenderFunc(
-                    (RTSDirectionalTracePassData data, UnsafeGraphContext ctx) =>
+                    static (RTSDirectionalTracePassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Inject the ray-tracing sampling data
@@ -280,7 +280,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         builder.UseTexture(passData.screenSpaceShadowArray, AccessFlags.ReadWrite);
 
                         builder.SetRenderFunc(
-                            (SSSDirectionalTracePassData data, UnsafeGraphContext ctx) =>
+                            static (SSSDirectionalTracePassData data, UnsafeGraphContext ctx) =>
                             {
                                 var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                                 // If it is screen space but not ray traced, then we can rely on the shadow map

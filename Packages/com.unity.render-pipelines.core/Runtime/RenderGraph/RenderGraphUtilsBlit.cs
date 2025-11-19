@@ -214,7 +214,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
 
                 builder.SetInputAttachment(source, 0);
                 builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
-                builder.SetRenderFunc((CopyPassData data, RasterGraphContext context) => CopyRenderFunc(data, context));
+                builder.SetRenderFunc(static (CopyPassData data, RasterGraphContext context) => CopyRenderFunc(data, context));
 
                 if (passData.force2DForXR)
                     builder.AllowGlobalStateModification(true);// So we can set the keywords
@@ -451,7 +451,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
                 passData.isDepth = destinationIsDepth;
                 builder.UseTexture(source, AccessFlags.Read);
                 builder.UseTexture(destination, AccessFlags.Write);
-                builder.SetRenderFunc((BlitPassData data, UnsafeGraphContext context) => BlitRenderFunc(data, context));
+                builder.SetRenderFunc(static (BlitPassData data, UnsafeGraphContext context) => BlitRenderFunc(data, context));
             }
             catch
             {
@@ -1026,7 +1026,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
                     builder.UseTexture(blitParameters.source);
                 }
                 builder.UseTexture(blitParameters.destination, AccessFlags.Write);
-                builder.SetRenderFunc((BlitMaterialPassData data, UnsafeGraphContext context) => BlitMaterialRenderFunc(data, context));
+                builder.SetRenderFunc(static (BlitMaterialPassData data, UnsafeGraphContext context) => BlitMaterialRenderFunc(data, context));
             }
             catch
             {

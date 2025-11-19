@@ -4,21 +4,12 @@ using System.Runtime.CompilerServices; // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal sealed class PaniniProjectionPostProcessPass : ScriptableRenderPass, IDisposable
+    internal sealed class PaniniProjectionPostProcessPass : PostProcessPass
     {
         public const string k_TargetName = "_PaniniProjectionTarget";
 
         Material m_Material;
         bool m_IsValid;
-
-        // Settings
-        public PaniniProjection paniniProjection { get; set; }
-
-        // Input
-        public TextureHandle sourceTexture { get; set; }
-
-        // Output
-        public TextureHandle destinationTexture { get; set; }
 
         public PaniniProjectionPostProcessPass(Shader shader)
         {
@@ -29,15 +20,10 @@ namespace UnityEngine.Rendering.Universal
             m_IsValid = m_Material != null;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             CoreUtils.Destroy(m_Material);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsValid()
-        {
-            return m_IsValid;
+            m_IsValid = false;
         }
 
         private class PaniniProjectionPassData
@@ -49,8 +35,14 @@ namespace UnityEngine.Rendering.Universal
         }
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            Assertions.Assert.IsTrue(sourceTexture.IsValid(), $"Source texture must be set for PaniniProjectionPostProcessPass.");
-            Assertions.Assert.IsTrue(destinationTexture.IsValid(), $"Destination texture must be set for PaniniProjectionPostProcessPass.");
+            if(!m_IsValid)
+                return;
+
+            var paniniProjection = volumeStack.GetComponent<PaniniProjection>();
+
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            var sourceTexture = resourceData.cameraColor;
+            var destinationTexture = PostProcessUtils.CreateCompatibleTexture(renderGraph, sourceTexture, k_TargetName, true, FilterMode.Bilinear);
 
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             Camera camera = cameraData.camera;
@@ -89,9 +81,9 @@ namespace UnityEngine.Rendering.Universal
                     Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                     Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, data.material, 0);
                 });
-
-                return;
             }
+
+            resourceData.cameraColor = destinationTexture;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

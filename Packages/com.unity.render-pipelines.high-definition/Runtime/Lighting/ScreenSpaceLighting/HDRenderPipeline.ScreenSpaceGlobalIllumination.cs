@@ -248,7 +248,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (TraceSSGIPassData data, UnsafeGraphContext ctx) =>
+                    static (TraceSSGIPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         int ssgiTileSize = 8;
@@ -370,7 +370,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (UpscaleSSGIPassData data, UnsafeGraphContext ctx) =>
+                    static (UpscaleSSGIPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Re-evaluate the dispatch parameters (we are evaluating the upsample in full resolution)

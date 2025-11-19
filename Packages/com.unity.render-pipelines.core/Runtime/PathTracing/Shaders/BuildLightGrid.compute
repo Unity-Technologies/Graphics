@@ -8,9 +8,17 @@
 #include "PathTracingRandom.hlsl"
 #include "PathTracingLightGrid.hlsl"
 
+#if defined(SHADER_API_MOBILE) && defined(SHADER_API_METAL)
+// On pre A9 (iPhone 6S and earlier) devices, the max groupshared size is 16352. So to avoid exceeding that limit, we reduce the group size.
+#define GROUP_SIZE_X 4
+#define GROUP_SIZE_Y 4
+#define GROUP_SIZE_Z 2
+#else
 #define GROUP_SIZE_X 4
 #define GROUP_SIZE_Y 4
 #define GROUP_SIZE_Z 4
+#endif
+
 #define MAX_RESERVOIRS_PER_VOXEL 64
 
 groupshared float s_SampleCount[GROUP_SIZE_X * GROUP_SIZE_Y * GROUP_SIZE_Z * MAX_RESERVOIRS_PER_VOXEL];

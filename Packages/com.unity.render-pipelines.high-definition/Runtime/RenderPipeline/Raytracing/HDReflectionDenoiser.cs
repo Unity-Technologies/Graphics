@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.noisyToOutputSignal = lightingTexture;
                 builder.UseTexture(passData.noisyToOutputSignal, AccessFlags.ReadWrite);
 
-                builder.SetRenderFunc((ReflectionDenoiserPassData data, UnsafeGraphContext ctx) =>
+                builder.SetRenderFunc(static (ReflectionDenoiserPassData data, UnsafeGraphContext ctx) =>
                 {
                     // Evaluate the dispatch parameters
                     int tileSize = 8;

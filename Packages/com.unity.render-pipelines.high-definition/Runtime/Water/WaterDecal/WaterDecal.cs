@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int GetMaterialAtlasingId()
         {
             // If material has a property block, we can't reuse the atlas slot
-            return HasPropertyBlock() ? GetInstanceID(): material.GetInstanceID();
+            return HasPropertyBlock() ? GetEntityId(): material.GetEntityId();
         }
         #endregion
 

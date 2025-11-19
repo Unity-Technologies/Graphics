@@ -17,13 +17,13 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             var sameCamera = cache.GetOrCreate(0, 0);
             Assert.IsNotNull(sameCamera);
             Assert.True(ReferenceEquals(camera, sameCamera));
-            Assert.AreEqual(camera.GetInstanceID(), sameCamera.GetInstanceID());
+            Assert.AreEqual(camera.GetEntityId(), sameCamera.GetEntityId());
 
             // Get another camera
             var otherCamera = cache.GetOrCreate(1, 0);
             Assert.IsNotNull(otherCamera);
             Assert.False(ReferenceEquals(camera, otherCamera));
-            Assert.AreNotEqual(camera.GetInstanceID(), otherCamera.GetInstanceID());
+            Assert.AreNotEqual(camera.GetEntityId(), otherCamera.GetEntityId());
 
             // Clear the cameras
             cache.Dispose();

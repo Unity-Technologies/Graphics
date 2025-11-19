@@ -568,7 +568,7 @@ namespace UnityEngine.Rendering.Universal
                     passData.material = taaMaterial;
                     passData.passIndex = kHistoryCopyPass;
 
-                    builder.SetRenderFunc((TaaPassData data, RasterGraphContext context) => { Blitter.BlitTexture(context.cmd, data.srcColorTex, Vector2.one, data.material, data.passIndex); });
+                    builder.SetRenderFunc(static (TaaPassData data, RasterGraphContext context) => { Blitter.BlitTexture(context.cmd, data.srcColorTex, Vector2.one, data.material, data.passIndex); });
                 }
 
                 cameraData.taaHistory.SetAccumulationVersion(multipassId, Time.frameCount);

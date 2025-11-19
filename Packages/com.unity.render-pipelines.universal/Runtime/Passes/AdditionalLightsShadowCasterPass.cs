@@ -943,7 +943,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (shadowTexture.IsValid())
                     builder.SetGlobalTextureAfterPass(shadowTexture, AdditionalShadowsConstantBuffer._AdditionalLightsShadowmapID);
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     RasterCommandBuffer rasterCommandBuffer = context.cmd;
                     if (!data.emptyShadowmap)

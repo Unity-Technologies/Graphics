@@ -902,14 +902,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool ValidShadowHistory(HDAdditionalLightData lightData, int screenSpaceShadowIndex, GPULightType lightType)
         {
-            return shadowHistoryUsage[screenSpaceShadowIndex].lightInstanceID == lightData.GetInstanceID()
+            return shadowHistoryUsage[screenSpaceShadowIndex].lightInstanceID == lightData.GetEntityId()
                 && (shadowHistoryUsage[screenSpaceShadowIndex].frameCount == (cameraFrameCount - 1))
                 && (shadowHistoryUsage[screenSpaceShadowIndex].lightType == lightType);
         }
 
         internal void PropagateShadowHistory(HDAdditionalLightData lightData, int screenSpaceShadowIndex, GPULightType lightType)
         {
-            shadowHistoryUsage[screenSpaceShadowIndex].lightInstanceID = lightData.GetInstanceID();
+            shadowHistoryUsage[screenSpaceShadowIndex].lightInstanceID = lightData.GetEntityId();
             shadowHistoryUsage[screenSpaceShadowIndex].frameCount = cameraFrameCount;
             shadowHistoryUsage[screenSpaceShadowIndex].lightType = lightType;
             shadowHistoryUsage[screenSpaceShadowIndex].transform = lightData.transform.localToWorldMatrix;
@@ -1834,7 +1834,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc(
-                    (ExecuteCaptureActionsPassData data, UnsafeGraphContext ctx) =>
+                    static (ExecuteCaptureActionsPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();

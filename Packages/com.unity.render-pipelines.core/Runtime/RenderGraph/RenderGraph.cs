@@ -969,7 +969,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             CheckNotUsedWhenExecuting();
 
-            return m_Resources.CreateTexture(m_Resources.GetTextureResourceDesc(texture.handle));
+            return m_Resources.CreateTexture(in m_Resources.GetTextureResourceDesc(texture.handle));
         }
 
         /// <summary>
@@ -1241,7 +1241,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             CheckNotUsedWhenExecuting();
 
-            return m_Resources.CreateBuffer(m_Resources.GetBufferResourceDesc(graphicsBuffer.handle));
+            return m_Resources.CreateBuffer(in m_Resources.GetBufferResourceDesc(graphicsBuffer.handle));
         }
 
         /// <summary>
@@ -1772,7 +1772,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 passData.sampler = sampler;
                 builder.AllowPassCulling(false);
                 builder.GenerateDebugData(false);
-                builder.SetRenderFunc((ProfilingScopePassData data, UnsafeGraphContext ctx) =>
+                builder.SetRenderFunc(static (ProfilingScopePassData data, UnsafeGraphContext ctx) =>
                 {
                     data.sampler.Begin(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd));
                 });
@@ -1797,7 +1797,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 passData.sampler = sampler;
                 builder.AllowPassCulling(false);
                 builder.GenerateDebugData(false);
-                builder.SetRenderFunc((ProfilingScopePassData data, UnsafeGraphContext ctx) =>
+                builder.SetRenderFunc(static (ProfilingScopePassData data, UnsafeGraphContext ctx) =>
                 {
                     data.sampler.End(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd));
                 });
@@ -3036,7 +3036,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                         }
                         else if (resourceType == RenderGraphResourceType.Buffer)
                         {
-                            var bufferDesc = m_Resources.GetBufferResourceDesc(handle, true);
+                            ref readonly var bufferDesc = ref m_Resources.GetBufferResourceDesc(handle, true);
 
                             var bufferData = new DebugData.BufferResourceData();
                             bufferData.count = bufferDesc.count;
@@ -3120,7 +3120,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         Dictionary<int, TextureHandle> registeredGlobals = new Dictionary<int, TextureHandle>();
 
-        internal void SetGlobal(TextureHandle h, int globalPropertyId)
+        internal void SetGlobal(in TextureHandle h, int globalPropertyId)
         {
             if (!h.IsValid())
                 throw new ArgumentException("Attempting to register an invalid texture handle as a global");

@@ -4,18 +4,12 @@ using System.Runtime.CompilerServices; // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal sealed class TemporalAntiAliasingPostProcessPass : ScriptableRenderPass, IDisposable
+    internal sealed class TemporalAntiAliasingPostProcessPass : PostProcessPass
     {
         public const string k_TargetName = "_TemporalAATarget";
 
         Material m_Material;
         bool m_IsValid;
-
-        // Input
-        public TextureHandle sourceTexture { get; set; }
-
-        // Output
-        public TextureHandle destinationTexture { get; set; }
 
         public TemporalAntiAliasingPostProcessPass(Shader shader)
         {
@@ -26,9 +20,10 @@ namespace UnityEngine.Rendering.Universal
             m_IsValid = m_Material != null;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             CoreUtils.Destroy(m_Material);
+            m_IsValid = false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -39,11 +34,14 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            Assertions.Assert.IsTrue(sourceTexture.IsValid(), $"Source texture must be set for TemporalAntiAliasingPostProcessPass.");
-            Assertions.Assert.IsTrue(destinationTexture.IsValid(), $"Destination texture must be set for TemporalAntiAliasingPostProcessPass.");
+            if (!m_IsValid)
+                return;
 
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+
+            var sourceTexture = resourceData.cameraColor;
+            var destinationTexture = PostProcessUtils.CreateCompatibleTexture(renderGraph, sourceTexture, k_TargetName, false, FilterMode.Bilinear);
 
             TextureHandle cameraDepth = resourceData.cameraDepth;
             TextureHandle motionVectors = resourceData.motionVectorColor;
@@ -51,6 +49,8 @@ namespace UnityEngine.Rendering.Universal
             Debug.Assert(motionVectors.IsValid(), "MotionVectors are invalid. TAA requires a motion vector texture.");
 
             TemporalAA.Render(renderGraph, m_Material, cameraData, sourceTexture, in cameraDepth, in motionVectors, destinationTexture);
+
+            resourceData.cameraColor = destinationTexture;
         }
 
 

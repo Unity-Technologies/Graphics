@@ -839,7 +839,7 @@ namespace UnityEngine.Rendering
                 passData.chunkCount = passData.debugFragmentationData.count;
 
                 builder.SetRenderFunc(
-                    (RenderFragmentationOverlayPassData data, UnsafeGraphContext ctx) =>
+                    static (RenderFragmentationOverlayPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
 

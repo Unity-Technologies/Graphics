@@ -435,7 +435,7 @@ namespace UnityEditor.Rendering.LookDev
 
             bool fromHierarchy = viewedObject.scene.IsValid();
             if (fromHierarchy)
-                viewedObjecHierarchytEntityId = viewedObject.GetInstanceID();
+                viewedObjecHierarchytEntityId = viewedObject.GetEntityId();
             else
                 viewedObjectAssetGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(viewedObject));
             viewedObjectReference = viewedObject;

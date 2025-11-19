@@ -99,7 +99,7 @@ namespace UnityEditor.VFX
             base.GetImportDependentAssets(dependencies);
             if (!object.ReferenceEquals(shaderGraph, null))
             {
-                dependencies.Add(shaderGraph.GetInstanceID());
+                dependencies.Add(shaderGraph.GetEntityId());
             }
         }
 

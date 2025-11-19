@@ -1466,7 +1466,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.shadowResult = ReadShadowResult(shadowResult, builder);
                 builder.AllowGlobalStateModification(true);
                 builder.SetRenderFunc(
-                    (BindShadowGlobalResourcesPassData data, UnsafeGraphContext ctx) =>
+                    static (BindShadowGlobalResourcesPassData data, UnsafeGraphContext ctx) =>
                     {
                         BindAtlasTexture(ctx, data.shadowResult.punctualShadowResult, HDShaderIDs._ShadowmapAtlas);
                         BindAtlasTexture(ctx, data.shadowResult.directionalShadowResult, HDShaderIDs._ShadowmapCascadeAtlas);
@@ -1483,7 +1483,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.AllowGlobalStateModification(true);
                 builder.SetRenderFunc(
-                    (BindShadowGlobalResourcesPassData data, UnsafeGraphContext ctx) =>
+                    static (BindShadowGlobalResourcesPassData data, UnsafeGraphContext ctx) =>
                     {
                         BindAtlasTexture(ctx, ctx.defaultResources.defaultShadowTexture, HDShaderIDs._ShadowmapAtlas);
                         BindAtlasTexture(ctx, ctx.defaultResources.defaultShadowTexture, HDShaderIDs._ShadowmapCascadeAtlas);

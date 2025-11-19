@@ -191,7 +191,7 @@ namespace UnityEditor.VFX
             base.GetImportDependentAssets(dependencies);
             if (!object.ReferenceEquals(m_Subgraph, null))
             {
-                dependencies.Add(m_Subgraph.GetInstanceID());
+                dependencies.Add(m_Subgraph.GetEntityId());
             }
         }
 

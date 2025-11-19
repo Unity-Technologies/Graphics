@@ -19,7 +19,11 @@ Input **A** channels take priority over input **B** to combine up to a maximum o
 
 ## Example graph usage
 
-In the following example, an **Append** node combines a **Vector 2** and a **Float**. The resulting output vector has 3 channels: the **X** and **Y** from the **Vector 2**, and the **X** from the **Float**.
+In the following example, an **Append** node combines a **Vector 2** and a **Float**. The resulting output vector has the following 3 channels:
+
+- The first channel is the **X** from the **Vector 2**.
+- The second channel is the **Y** from the **Vector 2**.
+- The third channel is the **X** from the **Float**.
 
 Notice that with an Append node, you don't need to use a Split node to break up the Vector 2 into individual channels, then a Combine node to combine the 3 separate channels.
 

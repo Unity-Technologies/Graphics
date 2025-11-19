@@ -1054,7 +1054,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
 
                 builder.SetRenderFunc(
-                    (WaterGBufferData data, UnsafeGraphContext ctx) =>
+                    static (WaterGBufferData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         if (data.decalsEnabled)
@@ -1200,7 +1200,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseBuffer(passData.tileBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (WaterPrepareLightingData data, UnsafeGraphContext ctx) =>
+                    static (WaterPrepareLightingData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Clear indirect args
@@ -1354,7 +1354,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Run the deferred lighting
                 builder.SetRenderFunc(
-                    (WaterRenderingDeferredData data, UnsafeGraphContext ctx) =>
+                    static (WaterRenderingDeferredData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         for (int variantIdx = 0; variantIdx < data.parameters.numVariants; ++variantIdx)
@@ -1434,7 +1434,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseRendererList(passData.opaqueRendererList);
 
                 builder.SetRenderFunc(
-                    (WaterExclusionPassData data, UnsafeGraphContext ctx) =>
+                    static (WaterExclusionPassData data, UnsafeGraphContext ctx) =>
                     {
                         ctx.cmd.SetGlobalInteger(HDShaderIDs._StencilWriteMaskStencilTag, (int)StencilUsage.WaterExclusion);
                         ctx.cmd.SetGlobalInteger(HDShaderIDs._StencilRefMaskStencilTag, (int)StencilUsage.WaterExclusion);

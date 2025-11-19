@@ -335,7 +335,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="hdCamera">Camera for which the accumulation is reset.</param>
         public void ResetPathTracing(HDCamera hdCamera)
         {
-            int camID = hdCamera.camera.GetInstanceID();
+            int camID = hdCamera.camera.GetEntityId();
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
             ResetPathTracing(camID, camData);
         }
@@ -417,7 +417,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private void OnSceneGui(SceneView sv)
         {
             if (Event.current.type == EventType.MouseDrag)
-                m_SubFrameManager.Reset(sv.camera.GetInstanceID());
+                m_SubFrameManager.Reset(sv.camera.GetEntityId());
         }
 
 #endif // UNITY_EDITOR
@@ -636,7 +636,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
 
                 builder.SetRenderFunc(
-                    (RenderPathTracingData data, UnsafeGraphContext ctx) =>
+                    static (RenderPathTracingData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Define the shader pass to use for the path tracing pass
@@ -751,7 +751,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputMarginal, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (RenderSkySamplingPassData data, UnsafeGraphContext ctx) =>
+                    static (RenderSkySamplingPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         natCmd.SetComputeIntParam(data.shader, HDShaderIDs._PathTracingSkyTextureWidth, data.size * 2);
@@ -831,7 +831,7 @@ namespace UnityEngine.Rendering.HighDefinition
             pathTracedAOVs.Clear();
 #endif
 
-            int camID = hdCamera.camera.GetInstanceID();
+            int camID = hdCamera.camera.GetEntityId();
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
 
             ImportPathTracingTargetsToRenderGraph();

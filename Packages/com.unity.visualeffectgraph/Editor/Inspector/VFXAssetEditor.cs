@@ -166,6 +166,11 @@ class VisualEffectAssetEditor : UnityEditor.Editor
     ReorderableList m_ReorderableList;
     List<IVFXSubRenderer> m_OutputContexts = new List<IVFXSubRenderer>();
     VFXGraph m_CurrentGraph;
+    bool showUpdateModeCategory = true;
+    bool showInitialStateCategory = true;
+    bool showInstancingCategory = true;
+    bool showShadersCategory = true;
+    bool showOutputOrderCategory = true;
 
     void OnReorder(ReorderableList list)
     {
@@ -174,7 +179,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             m_OutputContexts[i].vfxSystemSortPriority = i;
         }
 
-        if (VFXViewWindow.GetAllWindows().All(x => x.graphView?.controller?.graph.visualEffectResource.GetInstanceID() != m_CurrentGraph.visualEffectResource.GetInstanceID() || !x.hasFocus))
+        if (VFXViewWindow.GetAllWindows().All(x => x.graphView?.controller?.graph.visualEffectResource.GetEntityId() != m_CurrentGraph.visualEffectResource.GetEntityId() || !x.hasFocus))
         {
             // Do we need a compileReporter here?
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(m_CurrentGraph.visualEffectResource));
@@ -192,11 +197,6 @@ class VisualEffectAssetEditor : UnityEditor.Editor
         var fullName = string.Format("{0}{1}/{2}", systemName, contextLetter != '\0' ? "/" + contextLetter : string.Empty, contextName.Replace('\n', ' '));
 
         EditorGUI.LabelField(rect, EditorGUIUtility.TempContent(fullName));
-    }
-
-    private void DrawHeader(Rect rect)
-    {
-        EditorGUI.LabelField(rect, EditorGUIUtility.TrTextContent("Output Render Order"));
     }
 
     static Mesh s_CubeWireFrame;
@@ -221,12 +221,9 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             };
         }
 
-        m_ReorderableList = new ReorderableList(m_OutputContexts, typeof(IVFXSubRenderer));
-        m_ReorderableList.displayRemove = false;
-        m_ReorderableList.displayAdd = false;
+        m_ReorderableList = new ReorderableList(m_OutputContexts, typeof(IVFXSubRenderer), true, false, false, false);
+        m_ReorderableList.showDefaultBackground = false;
         m_ReorderableList.onReorderCallback = OnReorder;
-        m_ReorderableList.drawHeaderCallback = DrawHeader;
-
         m_ReorderableList.drawElementCallback = DrawOutputContextItem;
 
         var targetResources = targets.Cast<VisualEffectAsset>().Select(t => t.GetResource()).Where(t => t != null).ToArray();
@@ -658,8 +655,9 @@ class VisualEffectAssetEditor : UnityEditor.Editor
         if (importers.Count > 0)
         {
             root.styleSheets.Add(VFXView.LoadStyleSheet("VisualEffectAssetEditor"));
-            var header = new Label("Template");
+            var header = new Foldout { text = "Template Info" };
             header.AddToClassList("inspector-header");
+            header.focusable = false;
             root.Add(header);
 
             var allImportersSerializedObject = new SerializedObject(importers.ToArray());
@@ -684,10 +682,10 @@ class VisualEffectAssetEditor : UnityEditor.Editor
                         }
                     }
                 });
-            root.Add(useAsTemplateCheckbox);
+            header.Add(useAsTemplateCheckbox);
 
             var expander = new Foldout { text = "Template", style = { marginLeft = 15f } };
-            root.Add(expander);
+            header.Add(expander);
 
             // Name field
             var nameTooltip = targets.Length == 1
@@ -773,121 +771,127 @@ class VisualEffectAssetEditor : UnityEditor.Editor
         var processEveryFrameContent = EditorGUIUtility.TrTextContent("Exact Fixed Time", "Only relevant when using Fixed Delta Time. When enabled, several updates can be processed per frame (e.g.: if a frame is 10ms and the fixed frame rate is set to 5 ms, the effect will update twice with a 5ms deltaTime instead of once with a 10ms deltaTime). This method is expensive and should only be used for high-end scenarios.");
         var ignoreTimeScaleContent = EditorGUIUtility.TrTextContent("Ignore Time Scale", "When enabled, the computed visual effect delta time ignores the game Time Scale value (Play Rate is still applied).");
 
-        EditorGUI.BeginChangeCheck();
-
-        VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Update mode"), false, false);
-        bool newFixedDeltaTime = EditorGUILayout.Toggle(deltaTimeContent, initialFixedDeltaTime ?? false);
-        bool newExactFixedTimeStep = false;
-        EditorGUI.showMixedValue = !initialProcessEveryFrame.HasValue;
-        EditorGUI.BeginDisabledGroup((!initialFixedDeltaTime.HasValue || !initialFixedDeltaTime.Value) && !resourceUpdateModeProperty.hasMultipleDifferentValues);
-        newExactFixedTimeStep = EditorGUILayout.Toggle(processEveryFrameContent, initialProcessEveryFrame ?? false);
-        EditorGUI.EndDisabledGroup();
-        EditorGUI.showMixedValue = !initialIgnoreGameTimeScale.HasValue;
-        bool newIgnoreTimeScale = EditorGUILayout.Toggle(ignoreTimeScaleContent, initialIgnoreGameTimeScale ?? false);
-
-        if (EditorGUI.EndChangeCheck())
-        {
-            if (!resourceUpdateModeProperty.hasMultipleDifferentValues)
-            {
-                var newUpdateMode = (VFXUpdateMode)0;
-                if (!newFixedDeltaTime)
-                    newUpdateMode = newUpdateMode | VFXUpdateMode.DeltaTime;
-                if (newExactFixedTimeStep)
-                    newUpdateMode = newUpdateMode | VFXUpdateMode.ExactFixedTimeStep;
-                if (newIgnoreTimeScale)
-                    newUpdateMode = newUpdateMode | VFXUpdateMode.IgnoreTimeScale;
-
-                resourceUpdateModeProperty.intValue = (int)newUpdateMode;
-                resourceObject.ApplyModifiedProperties();
-            }
-            else
-            {
-                var resourceUpdateModeProperties = resourceUpdateModeProperty.serializedObject.targetObjects.Select(o => new SerializedObject(o).FindProperty(resourceUpdateModeProperty.propertyPath));
-                foreach (var property in resourceUpdateModeProperties)
-                {
-                    var updateMode = (VFXUpdateMode)property.intValue;
-
-                    if (initialFixedDeltaTime.HasValue)
-                    {
-                        if (!newFixedDeltaTime)
-                            updateMode = updateMode | VFXUpdateMode.DeltaTime;
-                        else
-                            updateMode = updateMode & ~VFXUpdateMode.DeltaTime;
-                    }
-                    else
-                    {
-                        if (newFixedDeltaTime)
-                            updateMode = updateMode & ~VFXUpdateMode.DeltaTime;
-                    }
-
-                    if (newExactFixedTimeStep)
-                        updateMode = updateMode | VFXUpdateMode.ExactFixedTimeStep;
-                    else if (initialProcessEveryFrame.HasValue)
-                        updateMode = updateMode & ~VFXUpdateMode.ExactFixedTimeStep;
-
-                    if (newIgnoreTimeScale)
-                        updateMode = updateMode | VFXUpdateMode.IgnoreTimeScale;
-                    else if (initialIgnoreGameTimeScale.HasValue)
-                        updateMode = updateMode & ~VFXUpdateMode.IgnoreTimeScale;
-
-                    property.intValue = (int)updateMode;
-                    property.serializedObject.ApplyModifiedProperties();
-                }
-            }
-        }
         VisualEffectAsset asset = (VisualEffectAsset)target;
         VisualEffectResource resource = asset.GetResource();
 
-        //The following should be working, and works for newly created systems, but fails for old systems,
-        //due probably to incorrectly pasting the VFXData when creating them.
-        // bool hasAutomaticBoundsSystems = resource.GetOrCreateGraph().children
-        //     .OfType<VFXDataParticle>().Any(d => d.boundsMode == BoundsSettingMode.Automatic);
-
-        bool hasAutomaticBoundsSystems = resource.GetOrCreateGraph().children
-            .OfType<VFXBasicInitialize>()
-            .Select(x => x.GetData())
-            .OfType<VFXDataParticle>()
-            .Any(x => x.boundsMode == BoundsSettingMode.Automatic);
-
-        using (new EditorGUI.DisabledScope(hasAutomaticBoundsSystems))
+        using (VisualEffectEditor.ShowAssetHeader(EditorGUIUtility.TrTextContent("Update mode"), showUpdateModeCategory, out showUpdateModeCategory))
         {
-            EditorGUILayout.BeginHorizontal();
-            EditorGUI.showMixedValue = cullingFlagsProperty.hasMultipleDifferentValues;
-            string forceSimulateTooltip = hasAutomaticBoundsSystems
-                ? " When using systems with Bounds Mode set to Automatic, this has to be set to Always recompute bounds and simulate."
-                : "";
-            EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags", "Specifies how the system recomputes its bounds and simulates when off-screen." + forceSimulateTooltip));
-            EditorGUI.BeginChangeCheck();
-
-            int newOption =
-                EditorGUILayout.Popup(
-                    Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue),
-                    k_CullingOptionsContents);
-            if (EditorGUI.EndChangeCheck())
+            if (showUpdateModeCategory)
             {
-                cullingFlagsProperty.intValue = (int)k_CullingOptionsValue[newOption];
-                resourceObject.ApplyModifiedProperties();
+                EditorGUI.BeginChangeCheck();
+
+                bool newFixedDeltaTime = EditorGUILayout.Toggle(deltaTimeContent, initialFixedDeltaTime ?? false);
+                bool newExactFixedTimeStep = false;
+                EditorGUI.showMixedValue = !initialProcessEveryFrame.HasValue;
+                EditorGUI.BeginDisabledGroup((!initialFixedDeltaTime.HasValue || !initialFixedDeltaTime.Value) && !resourceUpdateModeProperty.hasMultipleDifferentValues);
+                newExactFixedTimeStep = EditorGUILayout.Toggle(processEveryFrameContent, initialProcessEveryFrame ?? false);
+                EditorGUI.EndDisabledGroup();
+                EditorGUI.showMixedValue = !initialIgnoreGameTimeScale.HasValue;
+                bool newIgnoreTimeScale = EditorGUILayout.Toggle(ignoreTimeScaleContent, initialIgnoreGameTimeScale ?? false);
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (!resourceUpdateModeProperty.hasMultipleDifferentValues)
+                    {
+                        var newUpdateMode = (VFXUpdateMode)0;
+                        if (!newFixedDeltaTime)
+                            newUpdateMode = newUpdateMode | VFXUpdateMode.DeltaTime;
+                        if (newExactFixedTimeStep)
+                            newUpdateMode = newUpdateMode | VFXUpdateMode.ExactFixedTimeStep;
+                        if (newIgnoreTimeScale)
+                            newUpdateMode = newUpdateMode | VFXUpdateMode.IgnoreTimeScale;
+
+                        resourceUpdateModeProperty.intValue = (int)newUpdateMode;
+                        resourceObject.ApplyModifiedProperties();
+                    }
+                    else
+                    {
+                        var resourceUpdateModeProperties = resourceUpdateModeProperty.serializedObject.targetObjects.Select(o => new SerializedObject(o).FindProperty(resourceUpdateModeProperty.propertyPath));
+                        foreach (var property in resourceUpdateModeProperties)
+                        {
+                            var updateMode = (VFXUpdateMode)property.intValue;
+
+                            if (initialFixedDeltaTime.HasValue)
+                            {
+                                if (!newFixedDeltaTime)
+                                    updateMode = updateMode | VFXUpdateMode.DeltaTime;
+                                else
+                                    updateMode = updateMode & ~VFXUpdateMode.DeltaTime;
+                            }
+                            else
+                            {
+                                if (newFixedDeltaTime)
+                                    updateMode = updateMode & ~VFXUpdateMode.DeltaTime;
+                            }
+
+                            if (newExactFixedTimeStep)
+                                updateMode = updateMode | VFXUpdateMode.ExactFixedTimeStep;
+                            else if (initialProcessEveryFrame.HasValue)
+                                updateMode = updateMode & ~VFXUpdateMode.ExactFixedTimeStep;
+
+                            if (newIgnoreTimeScale)
+                                updateMode = updateMode | VFXUpdateMode.IgnoreTimeScale;
+                            else if (initialIgnoreGameTimeScale.HasValue)
+                                updateMode = updateMode & ~VFXUpdateMode.IgnoreTimeScale;
+
+                            property.intValue = (int)updateMode;
+                            property.serializedObject.ApplyModifiedProperties();
+                        }
+                    }
+                }
+
+                //The following should be working, and works for newly created systems, but fails for old systems,
+                //due probably to incorrectly pasting the VFXData when creating them.
+                // bool hasAutomaticBoundsSystems = resource.GetOrCreateGraph().children
+                //     .OfType<VFXDataParticle>().Any(d => d.boundsMode == BoundsSettingMode.Automatic);
+
+                bool hasAutomaticBoundsSystems = resource.GetOrCreateGraph().children
+                    .OfType<VFXBasicInitialize>()
+                    .Select(x => x.GetData())
+                    .OfType<VFXDataParticle>()
+                    .Any(x => x.boundsMode == BoundsSettingMode.Automatic);
+
+                using (new EditorGUI.DisabledScope(hasAutomaticBoundsSystems))
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUI.showMixedValue = cullingFlagsProperty.hasMultipleDifferentValues;
+                    string forceSimulateTooltip = hasAutomaticBoundsSystems
+                        ? " When using systems with Bounds Mode set to Automatic, this has to be set to Always recompute bounds and simulate."
+                        : "";
+                    EditorGUI.BeginChangeCheck();
+                    int newOption = EditorGUILayout.Popup(
+                        EditorGUIUtility.TrTextContent("Culling Flags", "Specifies how the system recomputes its bounds and simulates when off-screen." + forceSimulateTooltip),
+                            Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue),
+                            k_CullingOptionsContents);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        cullingFlagsProperty.intValue = (int)k_CullingOptionsValue[newOption];
+                        resourceObject.ApplyModifiedProperties();
+                    }
+                }
+
+                EditorGUILayout.EndHorizontal();
             }
         }
 
-        EditorGUILayout.EndHorizontal();
-
         DrawInstancingGUI();
 
-        VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Initial state"), false, false);
-        if (prewarmDeltaTime != null && prewarmStepCount != null)
+        using (VisualEffectEditor.ShowAssetHeader(EditorGUIUtility.TrTextContent("Initial state"), showInitialStateCategory, out showInitialStateCategory))
         {
-            DisplayPrewarmInspectorGUI(resourceObject, prewarmDeltaTime, prewarmStepCount);
-        }
-
-        if (initialEventName != null)
-        {
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = initialEventName.hasMultipleDifferentValues;
-            EditorGUILayout.PropertyField(initialEventName, new GUIContent("Initial Event Name", "Sets the name of the event which triggers once the system is activated. Default: ‘OnPlay’."));
-            if (EditorGUI.EndChangeCheck())
+            if (showInitialStateCategory && prewarmDeltaTime != null && prewarmStepCount != null)
             {
-                resourceObject.ApplyModifiedProperties();
+                DisplayPrewarmInspectorGUI(resourceObject, prewarmDeltaTime, prewarmStepCount);
+            }
+
+            if (showInitialStateCategory && initialEventName != null)
+            {
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = initialEventName.hasMultipleDifferentValues;
+                EditorGUILayout.PropertyField(initialEventName, new GUIContent("Initial Event Name", "Sets the name of the event which triggers once the system is activated. Default: ‘OnPlay’."));
+                if (EditorGUI.EndChangeCheck())
+                {
+                    resourceObject.ApplyModifiedProperties();
+                }
             }
         }
 
@@ -899,79 +903,72 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             m_OutputContexts.Clear();
             m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.vfxSystemSortPriority));
 
-            m_ReorderableList.DoLayoutList();
-
-            VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"), false, false);
-
-            string assetPath = AssetDatabase.GetAssetPath(asset);
-            UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(assetPath);
-            string directory = Path.GetDirectoryName(assetPath) + "/" + VFXExternalShaderProcessor.k_ShaderDirectory + "/" + asset.name + "/";
-
-            foreach (var obj in objects)
+            using (VisualEffectEditor.ShowAssetHeader(EditorGUIUtility.TrTextContent("Output Render Order"), showOutputOrderCategory, out showOutputOrderCategory))
             {
-                if (obj is ComputeShader || obj is Shader)
+                if (showOutputOrderCategory)
                 {
-                    GUILayout.BeginHorizontal();
-                    Rect r = GUILayoutUtility.GetRect(0, 18, GUILayout.ExpandWidth(true));
+                    m_ReorderableList.DoLayoutList();
+                }
+            }
 
-                    int buttonsWidth = VFXExternalShaderProcessor.allowExternalization ? 240 : 160;
+            using (VisualEffectEditor.ShowAssetHeader(EditorGUIUtility.TrTextContent("Shaders"), showShadersCategory, out showShadersCategory))
+            {
+                if (showShadersCategory)
+                {
+                    string assetPath = AssetDatabase.GetAssetPath(asset);
+                    UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+                    string directory = Path.GetDirectoryName(assetPath) + "/" + VFXExternalShaderProcessor.k_ShaderDirectory + "/" + asset.name + "/";
 
-                    int index = resource.GetShaderIndex(obj);
-                    var shader = obj;
-
-                    Rect labelR = r;
-                    labelR.width -= buttonsWidth;
-                    GUI.Label(labelR, shader.name.Replace('\n', ' '));
-
-                    if (index >= 0)
+                    foreach (var shader in objects)
                     {
-                        if (VFXExternalShaderProcessor.allowExternalization && index < resource.GetShaderSourceCount())
+                        if (shader is ComputeShader or Shader)
                         {
-                            string shaderSourceName = resource.GetShaderSourceName(index);
-                            string externalPath = directory + shaderSourceName;
+                            GUILayout.BeginHorizontal();
 
-                            externalPath = directory + shaderSourceName.Replace('/', '_') + VFXExternalShaderProcessor.k_ShaderExt;
+                            int index = resource.GetShaderIndex(shader);
+                            EditorGUILayout.LabelField(shader.name.Replace('\n', ' '));
 
-                            Rect buttonRect = r;
-                            buttonRect.xMin = labelR.xMax;
-                            buttonRect.width = 80;
-                            labelR.width += 80;
-                            if (System.IO.File.Exists(externalPath))
+                            if (index >= 0)
                             {
-                                if (GUI.Button(buttonRect, "Reveal External"))
+                                if (VFXExternalShaderProcessor.allowExternalization && index < resource.GetShaderSourceCount())
                                 {
-                                    EditorUtility.RevealInFinder(externalPath);
+                                    string shaderSourceName = resource.GetShaderSourceName(index);
+                                    string externalPath = directory + shaderSourceName;
+
+                                    externalPath = directory + shaderSourceName.Replace('/', '_') + VFXExternalShaderProcessor.k_ShaderExt;
+
+                                    if (System.IO.File.Exists(externalPath))
+                                    {
+                                        if (GUILayout.Button("Reveal External", GUILayout.Width(80)))
+                                        {
+                                            EditorUtility.RevealInFinder(externalPath);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (GUILayout.Button("Externalize", GUILayout.Width(80)))
+                                        {
+                                            Directory.CreateDirectory(directory);
+
+                                            File.WriteAllText(externalPath, "//" + shaderSourceName + "," + index.ToString() + "\n//Don't delete the previous line or this one\n" + resource.GetShaderSource(index));
+                                        }
+                                    }
+                                }
+
+                                if (GUILayout.Button("Show Generated", GUILayout.Width(110)))
+                                {
+                                    resource.ShowGeneratedShaderFile(index);
                                 }
                             }
-                            else
+
+                            if (GUILayout.Button("Select", GUILayout.Width(50)))
                             {
-                                if (GUI.Button(buttonRect, "Externalize"))
-                                {
-                                    Directory.CreateDirectory(directory);
-
-                                    File.WriteAllText(externalPath, "//" + shaderSourceName + "," + index.ToString() + "\n//Don't delete the previous line or this one\n" + resource.GetShaderSource(index));
-                                }
+                                Selection.activeObject = shader;
                             }
-                        }
 
-                        Rect buttonR = r;
-                        buttonR.xMin = labelR.xMax;
-                        buttonR.width = 110;
-                        labelR.width += 110;
-                        if (GUI.Button(buttonR, "Show Generated"))
-                        {
-                            resource.ShowGeneratedShaderFile(index);
+                            GUILayout.EndHorizontal();
                         }
                     }
-
-                    Rect selectButtonR = r;
-                    selectButtonR.xMin = labelR.xMax;
-                    selectButtonR.width = 50;
-                    if (GUI.Button(selectButtonR, "Select"))
-                    {
-                        Selection.activeObject = shader;
-                    }
-                    GUILayout.EndHorizontal();
                 }
             }
         }
@@ -981,35 +978,39 @@ class VisualEffectAssetEditor : UnityEditor.Editor
 
     private void DrawInstancingGUI()
     {
-        VisualEffectEditor.ShowHeader(k_InstancingContent, false, false);
-
-        EditorGUI.BeginChangeCheck();
-
-        VFXInstancingDisabledReason disabledReason = (VFXInstancingDisabledReason)instancingDisabledReasonProperty.intValue;
-        bool forceDisabled = disabledReason != VFXInstancingDisabledReason.None;
-        if (forceDisabled)
+        using (VisualEffectEditor.ShowAssetHeader(k_InstancingContent, showInstancingCategory, out showInstancingCategory))
         {
-            System.Text.StringBuilder reasonString = new System.Text.StringBuilder("Instancing not available:");
-            GetInstancingDisabledReasons(reasonString, disabledReason);
-            EditorGUILayout.HelpBox(reasonString.ToString(), MessageType.Info);
-        }
+            if (showInstancingCategory)
+            {
+                EditorGUI.BeginChangeCheck();
 
-        VFXInstancingMode instancingMode = forceDisabled ? VFXInstancingMode.Disabled : (VFXInstancingMode)instancingModeProperty.intValue;
-        EditorGUI.BeginDisabled(forceDisabled);
-        instancingMode = (VFXInstancingMode)EditorGUILayout.EnumPopup(k_InstancingModeContent, instancingMode);
-        EditorGUI.EndDisabled();
+                VFXInstancingDisabledReason disabledReason = (VFXInstancingDisabledReason)instancingDisabledReasonProperty.intValue;
+                bool forceDisabled = disabledReason != VFXInstancingDisabledReason.None;
+                if (forceDisabled)
+                {
+                    System.Text.StringBuilder reasonString = new System.Text.StringBuilder("Instancing not available:");
+                    GetInstancingDisabledReasons(reasonString, disabledReason);
+                    EditorGUILayout.HelpBox(reasonString.ToString(), MessageType.Info);
+                }
 
-        int instancingCapacity = instancingCapacityProperty.intValue;
-        if (instancingMode == VFXInstancingMode.Custom)
-        {
-            instancingCapacity = EditorGUILayout.DelayedIntField(k_InstancingCapacityContent, instancingCapacity);
-        }
+                VFXInstancingMode instancingMode = forceDisabled ? VFXInstancingMode.Disabled : (VFXInstancingMode)instancingModeProperty.intValue;
+                EditorGUI.BeginDisabled(forceDisabled);
+                instancingMode = (VFXInstancingMode)EditorGUILayout.EnumPopup(k_InstancingModeContent, instancingMode);
+                EditorGUI.EndDisabled();
 
-        if (EditorGUI.EndChangeCheck())
-        {
-            instancingModeProperty.intValue = (int)instancingMode;
-            instancingCapacityProperty.intValue = System.Math.Max(instancingCapacity, 1);
-            resourceObject.ApplyModifiedProperties();
+                int instancingCapacity = instancingCapacityProperty.intValue;
+                if (instancingMode == VFXInstancingMode.Custom)
+                {
+                    instancingCapacity = EditorGUILayout.DelayedIntField(k_InstancingCapacityContent, instancingCapacity);
+                }
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    instancingModeProperty.intValue = (int)instancingMode;
+                    instancingCapacityProperty.intValue = System.Math.Max(instancingCapacity, 1);
+                    resourceObject.ApplyModifiedProperties();
+                }
+            }
         }
     }
 

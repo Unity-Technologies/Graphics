@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (TraceRTSSSPassData data, UnsafeGraphContext ctx) =>
+                    static (TraceRTSSSPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Evaluate the dispatch parameters
@@ -278,7 +278,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.colorBuffer, AccessFlags.ReadWrite);
 
                 builder.SetRenderFunc(
-                    (ComposeRTSSSPassData data, UnsafeGraphContext ctx) =>
+                    static (ComposeRTSSSPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Evaluate the dispatch parameters

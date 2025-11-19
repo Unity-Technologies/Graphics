@@ -1,12 +1,25 @@
 .inspector-header {
-    -unity-font-style: bold;
-    margin: 4px 0;
-    height: 19px;
-    padding-left: 32px;
+    margin: 0 -4px 4px 0;
+    padding: 0 4px 0 15px;
     -unity-text-align: middle-left;
+}
+
+.inspector-header > .unity-foldout__toggle {
+    margin: 0 0px 4px -15px;
+    padding-left: 4px;
+    height: 21px;
     border-width: 1px 0 0 0;
     border-color: var(--unity-colors-default-border);
-    background-color: var(--unity-colors-tab-background);
+    background-color: var(--unity-colors-inspector_titlebar-background);
+}
+
+.inspector-header > .unity-foldout__toggle:hover {
+    background-color: var(--unity-colors-inspector_titlebar-background-hover);
+}
+
+.inspector-header > .unity-foldout__toggle Label {
+    margin-left: 16px;
+    -unity-font-style: bold;
 }
 
 .unity-base-text-field__input--multiline {
@@ -14,3 +27,4 @@
     max-height: 128px;
     white-space: normal;
 }
+

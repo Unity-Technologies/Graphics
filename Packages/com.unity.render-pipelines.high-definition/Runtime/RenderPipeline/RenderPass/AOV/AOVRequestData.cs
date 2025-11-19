@@ -226,7 +226,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc(
-                    (PushCameraTexturePassData data, UnsafeGraphContext ctx) =>
+                    static (PushCameraTexturePassData data, UnsafeGraphContext ctx) =>
                     {
                         Blitter.BlitCameraTexture(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd), data.source, data.target);
                     });
@@ -284,7 +284,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc(
-                    (PushCustomPassTexturePassData data, UnsafeGraphContext ctx) =>
+                    static (PushCustomPassTexturePassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         if (data.customPassSource != null)

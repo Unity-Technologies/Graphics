@@ -1,6 +1,6 @@
 using System;
-using System.Diagnostics;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
@@ -446,6 +446,22 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                             ctxPass.numOutputs++;
                         }
+
+                        // For raster passes, we do an extra step to monitor textures sampled in the pass
+                        // It can be a breaking change reason later on when building a native render pass
+                        if (type == (int)RenderGraphResourceType.Texture && ctxPass.type == RenderGraphPassType.Raster)
+                        {
+                            ctxPass.firstSampledOnlyRaster = ctx.sampledData.Length;
+                            foreach (ref readonly var input in ctxPass.Inputs(ctx))
+                            {
+                                // Check if this input is the shading rate image
+                                if (!ctxPass.IsUsedAsFragment(input.resource, ctx))
+                                {
+                                    ctx.sampledData.Add(input.resource);
+                                    ctxPass.numSampledOnlyRaster++;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -868,7 +884,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 for (int passIndex = 0; passIndex < ctx.passData.Length; passIndex++)
                 {
                     ref var pass = ref ctx.passData.ElementAt(passIndex);
-                    
+
                     if (pass.culled)
                         continue;
 
@@ -913,7 +929,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         ref var pointToVer = ref ctx.VersionedResourceData(outputResource);
                         var last = pointTo.latestVersionNumber;
                         if (last == outputResource.version && pointToVer.numReaders == 0)
-                        { 
+                        {
                             if (isAsync)
                             {
                                 // If no fence found, we fallback to the last non culled pass of the graph, not ideal but safe
@@ -1034,7 +1050,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
         }
 
-        static bool IsGlobalTextureInPass(RenderGraphPass pass, ResourceHandle handle)
+        static bool IsGlobalTextureInPass(RenderGraphPass pass, in ResourceHandle handle)
         {
             foreach (var g in pass.setGlobalsList)
             {
@@ -1673,28 +1689,24 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     currBeginAttachment = new AttachmentDescriptor(renderTargetInfo.format);
 
                     // Set up the RT pointers
-                    if (attachments[i].memoryless == false)
+                    var rtHandle = resources.GetTexture(currAttachmentHandle.index);
+
+                    //HACK: Always set the loadstore target even if StoreAction == DontCare or Resolve
+                    //and LoadAction == Clear or DontCare
+                    //in these cases you could argue setting the loadStoreTarget to NULL and only set the resolveTarget
+                    //but this confuses the backend (on vulkan) and in general is not how the lower level APIs tend to work.
+                    //because of the RenderTexture duality where we always bundle store+resolve targets as one RTex
+                    //it does become impossible to have a memoryless loadStore texture with a memoryfull resolve
+                    //but that is why we mark this as a hack and future work to fix.
+                    //The proper (and planned) solution would be to move away from the render texture duality.
+                    RenderTargetIdentifier rtidAllSlices = rtHandle;
+                    currBeginAttachment.loadStoreTarget = new RenderTargetIdentifier(rtidAllSlices, attachments[i].mipLevel, CubemapFace.Unknown, attachments[i].depthSlice);
+
+                    if (attachments[i].storeAction == RenderBufferStoreAction.Resolve ||
+                        attachments[i].storeAction == RenderBufferStoreAction.StoreAndResolve)
                     {
-                        var rtHandle = resources.GetTexture(currAttachmentHandle.index);
-
-                        //HACK: Always set the loadstore target even if StoreAction == DontCare or Resolve
-                        //and LoadAction == Clear or DontCare
-                        //in these cases you could argue setting the loadStoreTarget to NULL and only set the resolveTarget
-                        //but this confuses the backend (on vulkan) and in general is not how the lower level APIs tend to work.
-                        //because of the RenderTexture duality where we always bundle store+resolve targets as one RTex
-                        //it does become impossible to have a memoryless loadStore texture with a memoryfull resolve
-                        //but that is why we mark this as a hack and future work to fix.
-                        //The proper (and planned) solution would be to move away from the render texture duality.
-                        RenderTargetIdentifier rtidAllSlices = rtHandle;
-                        currBeginAttachment.loadStoreTarget = new RenderTargetIdentifier(rtidAllSlices, attachments[i].mipLevel, CubemapFace.Unknown, attachments[i].depthSlice);
-
-                        if (attachments[i].storeAction == RenderBufferStoreAction.Resolve ||
-                            attachments[i].storeAction == RenderBufferStoreAction.StoreAndResolve)
-                        {
-                            currBeginAttachment.resolveTarget = rtHandle;
-                        }
+                        currBeginAttachment.resolveTarget = rtHandle;
                     }
-                    // In the memoryless case it's valid to not set both loadStoreTarget/and resolveTarget as the backend will allocate a transient one
 
                     currBeginAttachment.loadAction = attachments[i].loadAction;
                     currBeginAttachment.storeAction = attachments[i].storeAction;
@@ -1705,7 +1717,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         currBeginAttachment.clearColor = Color.red;
                         currBeginAttachment.clearDepth = 1.0f;
                         currBeginAttachment.clearStencil = 0;
-                        var desc = resources.GetTextureResourceDesc(currAttachmentHandle, true);
+                        ref readonly var desc = ref resources.GetTextureResourceDesc(currAttachmentHandle, true);
                         if (i == 0 && nativePass.hasDepth)
                         {
                             // TODO: There seems to be no clear depth specified ?!?!
@@ -1897,7 +1909,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
         }
 
-        internal unsafe void ExecuteSetRandomWriteTarget(in CommandBuffer cmd, RenderGraphResourceRegistry resources, int index, ResourceHandle resource, bool preserveCounterValue = true)
+        internal unsafe void ExecuteSetRandomWriteTarget(in CommandBuffer cmd, RenderGraphResourceRegistry resources, int index, in ResourceHandle resource, bool preserveCounterValue = true)
         {
             if (resource.type == RenderGraphResourceType.Texture)
             {

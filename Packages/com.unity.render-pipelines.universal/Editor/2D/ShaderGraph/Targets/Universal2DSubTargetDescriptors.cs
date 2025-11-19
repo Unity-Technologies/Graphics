@@ -27,6 +27,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { RenderState.Cull(Cull.Back) },
                 { RenderState.Stencil(new StencilDescriptor() {
                     Ref  = "128",
+                    ReadMask = "127",
+                    WriteMask = "128",
                     Comp = "Always",
                     Pass = "Replace",
                 })},

@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.Universal
 
                     builder.AllowGlobalStateModification(true);
 
-                    builder.SetRenderFunc((SetGlobalPassData data, RasterGraphContext context) =>
+                    builder.SetRenderFunc(static (SetGlobalPassData data, RasterGraphContext context) =>
                     {
                     });
                 }
@@ -187,7 +187,7 @@ namespace UnityEngine.Rendering.Universal
                 if (nextBatch < universal2DResourceData.lightTextures.Length)
                     SetGlobalLightTextures(graph, builder, frameData, nextBatch, isLitView);
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     Execute(context, data);
                 });

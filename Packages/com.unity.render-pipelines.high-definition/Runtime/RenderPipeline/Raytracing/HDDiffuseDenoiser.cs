@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (DiffuseDenoiserPassData data, UnsafeGraphContext ctx) =>
+                    static (DiffuseDenoiserPassData data, UnsafeGraphContext ctx) =>
                     {
                         // Generate the point distribution if needed (this is only ran once)
                         if (data.needInit)

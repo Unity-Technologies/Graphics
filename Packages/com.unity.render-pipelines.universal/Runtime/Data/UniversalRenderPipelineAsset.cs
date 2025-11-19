@@ -300,8 +300,9 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
-    /// Defines if Unity discards or stores the render targets of the DrawObjects Passes. Selecting the Store option significantly increases the memory bandwidth on mobile and tile-based GPUs.
+    /// Obsolete from 6000.3.
     /// </summary>
+    [Obsolete("#from(6000.0) #breakingFrom(6000.4)", true)]
     public enum StoreActionsOptimization
     {
         /// <summary>Unity uses the Discard option by default, and falls back to the Store option if it detects any injected Passes.</summary>
@@ -575,8 +576,8 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.LightLayers)]
 #endif
         [SerializeField] bool m_SupportsLightLayers = false;
-        [SerializeField] [Obsolete("#from(2022.1) #breakingFrom(2023.1)", true)] PipelineDebugLevel m_DebugLevel;
-        [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
+        [SerializeField][Obsolete("#from(2022.1) #breakingFrom(2023.1)", true)] PipelineDebugLevel m_DebugLevel;
+        [SerializeField][Obsolete("#from(6000.0) #breakingFrom(6000.4)", true)] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
 
         // Adaptive performance settings
         [SerializeField] bool m_UseAdaptivePerformance = true;
@@ -1052,9 +1053,10 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsTerrainHoles => m_SupportsTerrainHoles;
 
         /// <summary>
-        /// Returns the active store action optimization value.
+        /// Obsolete from 6000.0.
         /// </summary>
         /// <returns>Returns the active store action optimization value.</returns>
+        [Obsolete("#from(6000.0) #breakingFrom(6000.4)", true)]
         public StoreActionsOptimization storeActionsOptimization
         {
             get => m_StoreActionsOptimization;

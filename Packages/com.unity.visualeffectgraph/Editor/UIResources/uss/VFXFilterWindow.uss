@@ -112,6 +112,7 @@ Label {
     padding: 0;
     flex-grow: 0;
     color: var(--unity-colors-default-text);
+    white-space: pre;
 }
 
 .nodes-label-spacer {

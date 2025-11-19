@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Check if the material has changed since last time we were here
                         if (!materialsDirty)
                         {
-                            materialsDirty |= UpdateMaterialCRC(currentMaterial.GetInstanceID(), currentMaterial.ComputeCRC());
+                            materialsDirty |= UpdateMaterialCRC(currentMaterial.GetEntityId(), currentMaterial.ComputeCRC());
                         }
                     }
                 }
@@ -369,7 +369,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Check if the material has changed since last time we were here
                         if (!materialsDirty)
                         {
-                            materialsDirty |= UpdateMaterialCRC(currentMaterial.GetInstanceID(), currentMaterial.ComputeCRC());
+                            materialsDirty |= UpdateMaterialCRC(currentMaterial.GetEntityId(), currentMaterial.ComputeCRC());
                         }
                     }
                 }
@@ -667,7 +667,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int i = 0; i < cullingResults.materialsCRC.Length; i++)
                     {
                         RayTracingInstanceMaterialCRC matCRC = cullingResults.materialsCRC[i];
-                        m_RTASManager.materialsDirty |= UpdateMaterialCRC(matCRC.instanceID, matCRC.crc);
+                        m_RTASManager.materialsDirty |= UpdateMaterialCRC(matCRC.entityId, matCRC.crc);
                     }
                 }
 
@@ -770,7 +770,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputTexture, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (RTASDebugPassData data, UnsafeGraphContext ctx) =>
+                    static (RTASDebugPassData data, UnsafeGraphContext ctx) =>
                     {
                         // Define the shader pass to use for the reflection pass
                         ctx.cmd.SetRayTracingShaderPass(data.debugRTASRT, "DebugDXR");

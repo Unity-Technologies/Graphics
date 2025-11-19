@@ -191,7 +191,7 @@ namespace UnityEditor.Rendering.LookDev
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             var assetCreator = ScriptableObject.CreateInstance<EnvironmentLibraryCreator>();
             assetCreator.SetField(field);
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, "New EnvironmentLibrary.asset", icon, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetEntityId(), assetCreator, "New EnvironmentLibrary.asset", icon, null);
         }
     }
 

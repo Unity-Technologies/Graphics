@@ -123,7 +123,7 @@ namespace UnityEditor.VFX
                     return;
                 }
 
-                var instanceId = view.controller.model.asset.GetInstanceID();
+                var instanceId = view.controller.model.asset.GetEntityId();
                 var graphInfo = openedGraphInfo.SingleOrDefault(x => x.graph_id == instanceId);
                 if (graphInfo.graph_id > 0)
                 {

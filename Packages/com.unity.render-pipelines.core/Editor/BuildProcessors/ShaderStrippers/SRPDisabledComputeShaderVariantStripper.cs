@@ -8,6 +8,6 @@ namespace UnityEditor.Rendering
         public bool active => !CoreBuildData.instance.buildingPlayerForRenderPipeline;
 
         public bool CanRemoveVariant([DisallowNull] ComputeShader shader, string _, ShaderCompilerData __)
-            => CoreBuildData.instance.computeShaderCache.ContainsKey(shader.GetInstanceID());
+            => CoreBuildData.instance.computeShaderCache.ContainsKey(shader.GetEntityId());
     }
 }

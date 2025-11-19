@@ -301,7 +301,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 builder.SetRenderFunc(
-                    (SubsurfaceScaterringPassData data, UnsafeGraphContext ctx) =>
+                    static (SubsurfaceScaterringPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         CoreUtils.SetKeyword(natCmd, "USE_DOWNSAMPLE", data.downsampleSteps > 0);

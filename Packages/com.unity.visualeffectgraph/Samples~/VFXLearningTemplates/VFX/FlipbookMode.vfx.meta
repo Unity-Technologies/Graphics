@@ -9,7 +9,7 @@ VisualEffectImporter:
     description: 'This VFX shows how to set up the output settings to use a Sprite
       sheet. It also shows the differences between Flipbook Uvs and Flipbook Blend
       Uvs and the basic usage of the Flipbook Player Block to animate the texture. '
-    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    icon: {fileID: 2800000, guid: ce3ba62f9452ddd4fbadb663ac249d93, type: 3}
     thumbnail: {fileID: 2800000, guid: 519de46f323653c4ba92a6e1c1ac56df, type: 3}
   userData: 
   assetBundleName: 

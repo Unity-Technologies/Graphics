@@ -177,7 +177,7 @@ namespace UnityEngine.Rendering.Universal
                     if (color.IsValid())
                         builder.SetGlobalTextureAfterPass(color, m_ScreenSpaceShadowmapTextureID);
 
-                    builder.SetRenderFunc((PassData data, UnsafeGraphContext rgContext) =>
+                    builder.SetRenderFunc(static (PassData data, UnsafeGraphContext rgContext) =>
                     {
                         ExecutePass(rgContext.cmd, data, data.target);
                     });
@@ -232,7 +232,7 @@ namespace UnityEngine.Rendering.Universal
 
                     builder.AllowGlobalStateModification(true);
 
-                    builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
+                    builder.SetRenderFunc(static (PassData data, RasterGraphContext rgContext) =>
                     {
                         ExecutePass(rgContext.cmd, data.shadowData);
                     });

@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.validationBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (HistoryValidityPassData data, UnsafeGraphContext ctx) =>
+                    static (HistoryValidityPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         RTHandle historyDepthTexture = data.historyDepthTexture;
@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputBuffer, AccessFlags.ReadWrite);
 
                 builder.SetRenderFunc(
-                    (TemporalFilterPassData data, UnsafeGraphContext ctx) =>
+                    static (TemporalFilterPassData data, UnsafeGraphContext ctx) =>
                     {
                         // Evaluate the dispatch parameters
                         int areaTileSize = 8;
@@ -458,7 +458,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.outputDistanceSignal = new TextureHandle();
 
                 builder.SetRenderFunc(
-                    (TemporalFilterArrayPassData data, UnsafeGraphContext ctx) =>
+                    static (TemporalFilterArrayPassData data, UnsafeGraphContext ctx) =>
                     {
                         // Evaluate the dispatch parameters
                         int tfTileSize = 8;

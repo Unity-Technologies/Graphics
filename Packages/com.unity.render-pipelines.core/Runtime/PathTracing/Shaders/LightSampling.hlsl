@@ -7,7 +7,8 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
-#include "PathTracingSkySampling.hlsl"
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Environment/EnvironmentImportanceSampling.hlsl"
 
 #define SOLID_ANGLE_SAMPLING
 #define RESAMPLED_IMPORTANCE_SAMPLING
@@ -47,6 +48,10 @@ float g_IndirectScale;
 float g_ExposureScale;
 int g_MaxIntensity;
 
+uint _EnvironmentCdfConditionalResolution;
+uint _EnvironmentCdfMarginalResolution;
+StructuredBuffer<float> _EnvironmentCdfConditionalBuffer;
+StructuredBuffer<float> _EnvironmentCdfMarginalBuffer;
 
 struct LightShapeSample
 {
@@ -452,18 +457,16 @@ bool SamplePunctualLight(float3 P, PTLight light, out LightShapeSample lightSamp
 
 bool SampleEnvironmentLight(inout PathTracingSampler rngState, uint dimsOffset, out uint dimsUsed, float3 P, PTLight light, out LightShapeSample lightSample)
 {
-
     lightSample = (LightShapeSample)0;
-    float r1 = rngState.GetFloatSample(dimsOffset);
-    float r2 = rngState.GetFloatSample(dimsOffset+1);
+    const float2 rand = float2(rngState.GetFloatSample(dimsOffset), rngState.GetFloatSample(dimsOffset + 1));
     dimsUsed = 2;
 
 #ifdef UNIFORM_ENVSAMPLING
     // Sample the environment with a random direction. Should only be used for reference / ground truth.
-    lightSample.lightVector = SampleSphereUniform(r1, r2);
+    lightSample.lightVector = SampleSphereUniform(rand.x, rand.y);
     lightSample.weight = 4 * PI;
 #else
-    float normalizationFactor = GetSkyPDFNormalizationFactor();
+    float normalizationFactor = GetSkyPDFNormalizationFactor(_EnvironmentCdfMarginalBuffer);
 
     // A normalization factor of zero means that the environment cubemap was zero, and in this case
     // its PDF isn't well-defined. It is safe to bail in this case, because the environment wouldn't
@@ -471,8 +474,12 @@ bool SampleEnvironmentLight(inout PathTracingSampler rngState, uint dimsOffset, 
     if (normalizationFactor == 0.0f)
         return false;
 
-    // Sample the environment CDF
-    float2 u = SampleSky(r1, r2);
+    const float2 u = SampleSky(
+        rand,
+        _EnvironmentCdfMarginalResolution,
+        _EnvironmentCdfMarginalBuffer,
+        _EnvironmentCdfConditionalResolution,
+        _EnvironmentCdfConditionalBuffer);
     lightSample.lightVector = MapUVToSkyDirection(u);
 
     float3 envValue = g_EnvTex.SampleLevel(sampler_g_EnvTex, lightSample.lightVector, 0).xyz;
@@ -751,7 +758,7 @@ bool GetEnvironmentLightEmissionAndDensity(float3 direction, out float3 emission
         #ifdef UNIFORM_ENVSAMPLING
         density = rcp(4 * PI);
         #else
-        density = GetSkyPDFFromValue(emission);
+        density = GetSkyPDFFromValue(emission, _EnvironmentCdfMarginalBuffer);
         #endif
         return true;
     }

@@ -861,11 +861,8 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    [System.Obsolete("VFXComponentBoardBoundsSystemUIFactory is deprecated and will be removed. Use UxmlElementAttribute instead.", false)]
-    class VFXComponentBoardBoundsSystemUIFactory : UxmlFactory<VFXComponentBoardBoundsSystemUI>
-    { }
-
-    class VFXComponentBoardBoundsSystemUI : VisualElement
+    [UxmlElement]
+    partial class VFXComponentBoardBoundsSystemUI : VisualElement
     {
         public void Setup(VFXView vfxView, string systemName, VFXBoundsRecorder boundsRecorder)
         {

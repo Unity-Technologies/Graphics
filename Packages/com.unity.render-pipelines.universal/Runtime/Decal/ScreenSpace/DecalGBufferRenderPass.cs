@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext rgContext) =>
                 {
                     ExecutePass(rgContext.cmd, data, data.rendererList);
                 });

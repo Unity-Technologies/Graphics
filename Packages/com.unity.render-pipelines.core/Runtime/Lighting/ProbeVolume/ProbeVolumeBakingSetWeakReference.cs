@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering
 
     internal class ProbeVolumeBakingSetWeakReference
     {
-        public int m_InstanceID;
+        public EntityId m_EntityId;
 
         public ProbeVolumeBakingSetWeakReference(ProbeVolumeBakingSet bakingSet)
         {
@@ -21,28 +21,28 @@ namespace UnityEngine.Rendering
 
         public ProbeVolumeBakingSetWeakReference()
         {
-            m_InstanceID = 0;
+            m_EntityId = EntityId.None;
         }
 
         // Change which baking set the references points to.
         public void Set(ProbeVolumeBakingSet bakingSet)
         {
             if (bakingSet == null)
-                m_InstanceID = 0;
+                m_EntityId = EntityId.None;
             else
-                m_InstanceID = bakingSet.GetInstanceID();
+                m_EntityId = bakingSet.GetEntityId();
         }
 
         // Get the referenced baking set, loading it into memory if necessary.
         public ProbeVolumeBakingSet Get()
         {
-            return Resources.EntityIdToObject(m_InstanceID) as ProbeVolumeBakingSet;
+            return Resources.EntityIdToObject(m_EntityId) as ProbeVolumeBakingSet;
         }
 
         // Is the referenced baking set in memory?
         public bool IsLoaded()
         {
-            return Resources.EntityIdIsValid(m_InstanceID);
+            return Resources.EntityIdIsValid(m_EntityId);
         }
 
         // Force the referenced baking set to be unloaded from memory.

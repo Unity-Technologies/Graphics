@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering
             else
             {
                 var instanceInGraphics = GraphicsSettings.GetSettingsForRenderPipeline<DummyRenderPipeline>();
-                Assert.AreEqual(instanceInGraphics.GetInstanceID(), instanceEnsured.GetInstanceID());
+                Assert.AreEqual(instanceInGraphics.GetEntityId(), instanceEnsured.GetEntityId());
                 Assert.IsTrue(expectedPath.Equals(AssetDatabase.GetAssetPath(instanceEnsured), StringComparison.InvariantCultureIgnoreCase));
             }
         }
@@ -87,13 +87,13 @@ namespace UnityEditor.Rendering
             Assert.IsNotNull(instanceEnsured);
             Assert.IsTrue(path.Equals(AssetDatabase.GetAssetPath(instanceEnsured), StringComparison.InvariantCultureIgnoreCase));
 
-            var instanceIDExpected = instanceEnsured.GetInstanceID();
+            var instanceIDExpected = instanceEnsured.GetEntityId();
             var ensureResult = RenderPipelineGlobalSettingsUtils.
                 TryEnsure<DummyRenderPipelineGlobalSettings, DummyRenderPipeline>(ref instanceEnsured, DummyRenderPipelineGlobalSettings.defaultPath, true, out _);
 
             Assert.IsTrue(ensureResult);
             Assert.IsNotNull(instanceEnsured);
-            Assert.AreEqual(instanceIDExpected, instanceEnsured.GetInstanceID());
+            Assert.AreEqual(instanceIDExpected, instanceEnsured.GetEntityId());
         }
     }
 }

@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
                 builder.SetRenderFunc(
-                    (DiffuseShadowDenoiserDirectionalPassData data, UnsafeGraphContext ctx) =>
+                    static (DiffuseShadowDenoiserDirectionalPassData data, UnsafeGraphContext ctx) =>
                     {
                         // Raise the distance based denoiser keyword
                         CoreUtils.SetKeyword(ctx.cmd, "DISTANCE_BASED_DENOISER", true);
@@ -283,7 +283,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
                 builder.SetRenderFunc(
-                    (DiffuseShadowDenoiserSpherePassData data, UnsafeGraphContext ctx) =>
+                    static (DiffuseShadowDenoiserSpherePassData data, UnsafeGraphContext ctx) =>
                     {
                         // Evaluate the dispatch parameters
                         int shadowTileSize = 8;
@@ -295,7 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Bind input uniforms for both dispatches
                         ctx.cmd.SetComputeIntParam(data.diffuseShadowDenoiserCS, HDShaderIDs._RaytracingTargetLight, data.properties.lightIndex);
-                        switch(properties.lightType)
+                        switch(data.properties.lightType)
                         {
                             case GPULightType.Spot:
                             {

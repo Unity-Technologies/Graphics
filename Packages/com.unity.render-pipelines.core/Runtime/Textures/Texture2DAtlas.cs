@@ -490,7 +490,7 @@ namespace UnityEngine.Rendering
         /// <param name="scaleOffset">Allocated scale (.xy) and offset (.zw).</param>
         /// <returns>True on success, false otherwise.</returns>
         public bool AllocateTextureWithoutBlit(Texture texture, int width, int height, ref Vector4 scaleOffset)
-            => AllocateTextureWithoutBlit(texture.GetInstanceID(), width, height, ref scaleOffset);
+            => AllocateTextureWithoutBlit(texture.GetEntityId(), width, height, ref scaleOffset);
 
         /// <summary>
         /// Allocate space from the atlas for a texture.
@@ -537,7 +537,7 @@ namespace UnityEngine.Rendering
         /// <returns>Texture instance ID.</returns>
         public int GetTextureID(Texture texture)
         {
-            return texture.GetInstanceID();
+            return texture.GetEntityId();
         }
 
         /// <summary>

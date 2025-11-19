@@ -548,7 +548,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 builder.SetRenderFunc(
-                    (FinalBlitPassData data, UnsafeGraphContext ctx) =>
+                    static (FinalBlitPassData data, UnsafeGraphContext ctx) =>
                     {
                         var propertyBlock = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
                         RTHandle sourceTexture = data.source;
@@ -619,7 +619,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc(
-                    (UpdateParentExposureData data, UnsafeGraphContext ctx) =>
+                    static (UpdateParentExposureData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         if (data.textures.useFetchedExposure)
@@ -690,7 +690,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 builder.SetRenderFunc(
-                    (SetFinalTargetPassData data, UnsafeGraphContext ctx) =>
+                    static (SetFinalTargetPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // We need to make sure the viewport is correctly set for the editor rendering. It might have been changed by debug overlay rendering just before.
@@ -743,7 +743,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.flipY = copyForXR;
 
                 builder.SetRenderFunc(
-                    (CopyXRDepthPassData data, UnsafeGraphContext ctx) =>
+                    static (CopyXRDepthPassData data, UnsafeGraphContext ctx) =>
                     {
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
 
@@ -980,7 +980,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.UseTexture(prepassOutput.renderingLayersBuffer, AccessFlags.Read);
 
                 builder.SetRenderFunc(
-                    (ForwardOpaquePassData data, UnsafeGraphContext ctx) =>
+                    static (ForwardOpaquePassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         BindGlobalLightListBuffers(data, ctx);
@@ -1021,7 +1021,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseRendererList(passData.rendererList);
 
                 builder.SetRenderFunc(
-                    (ForwardPassData data, UnsafeGraphContext ctx) =>
+                    static (ForwardPassData data, UnsafeGraphContext ctx) =>
                     {
                         ctx.cmd.DrawRendererList(data.rendererList);
                     });
@@ -1064,12 +1064,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.UseRendererList(passData.rendererList);
                     passData.viewport = new Rect(0.0f, 0.0f, hdCamera.finalViewport.width, hdCamera.finalViewport.height);
 
-                    builder.SetRenderFunc((RenderOffscreenUIData data, UnsafeGraphContext ctx) =>
+                    builder.SetRenderFunc(static (RenderOffscreenUIData data, UnsafeGraphContext ctx) =>
                     {
                         ctx.cmd.SetViewport(data.viewport);
                         ctx.cmd.ClearRenderTarget(false, true, Color.clear);
                         if (data.camera.targetTexture == null)
-                            ctx.cmd.DrawRendererList(passData.rendererList);
+                            ctx.cmd.DrawRendererList(data.rendererList);
                     });
                 }
             }
@@ -1123,7 +1123,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderAttachmentDepth(prepassOutput.resolvedDepthBuffer, AccessFlags.ReadWrite);
 
                 builder.SetRenderFunc(
-                    (AfterPostProcessPassData data, UnsafeGraphContext ctx) =>
+                    static (AfterPostProcessPassData data, UnsafeGraphContext ctx) =>
                     {
                         // Disable camera jitter. See coment in RestoreNonjitteredMatrices
                         if (data.hdCamera.RequiresCameraJitter())
@@ -1292,7 +1292,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.normalBuffer, AccessFlags.Read);
 
                 builder.SetRenderFunc(
-                    (ForwardTransparentPassData data, UnsafeGraphContext ctx) =>
+                    static (ForwardTransparentPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Bind all global data/parameters for transparent forward pass
@@ -1349,7 +1349,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 builder.SetRenderFunc(
-                    (ForwardPassData data, UnsafeGraphContext ctx) =>
+                    static (ForwardPassData data, UnsafeGraphContext ctx) =>
                     {
                         DrawTransparentRendererList(ctx, data.frameSettings, data.rendererList);
                     });
@@ -1370,7 +1370,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseRendererList(passData.rendererList);
 
                 builder.SetRenderFunc(
-                    (ForwardPassData data, UnsafeGraphContext ctx) =>
+                    static (ForwardPassData data, UnsafeGraphContext ctx) =>
                     {
                         DrawTransparentRendererList(ctx, data.frameSettings, data.rendererList);
                     });
@@ -1404,7 +1404,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderAttachment(output, 0);
 
                 builder.SetRenderFunc(
-                    (RenderLowResTransparentPassData data, UnsafeGraphContext ctx) =>
+                    static (RenderLowResTransparentPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         UpdateOffscreenRenderingConstants(ref data.globalCB, true, 1.0f / data.lowResScale);
@@ -1460,7 +1460,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderAttachment(colorBuffer, 0);
 
                 builder.SetRenderFunc(
-                    (CombineTransparentPassData data, UnsafeGraphContext ctx) =>
+                    static (CombineTransparentPassData data, UnsafeGraphContext ctx) =>
                     {
                         data.upsampleMaterial.SetTexture(HDShaderIDs._BeforeRefraction, data.beforeRefraction);
                         data.upsampleMaterial.SetTexture(HDShaderIDs._BeforeRefractionAlpha, data.beforeRefractionAlpha);
@@ -1514,7 +1514,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 builder.SetRenderFunc(
-                    (CombineTransparentPassData data, UnsafeGraphContext ctx) =>
+                    static (CombineTransparentPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         data.upsampleMaterial.SetVector(HDShaderIDs._Params, data.shaderParams);
@@ -1542,7 +1542,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.colorBuffer = colorBuffer;
                 builder.AllowGlobalStateModification(true);
                 builder.UseTexture(passData.colorBuffer, AccessFlags.Read);
-                builder.SetRenderFunc((SetGlobalColorPassData data, UnsafeGraphContext ctx) =>
+                builder.SetRenderFunc(static (SetGlobalColorPassData data, UnsafeGraphContext ctx) =>
                 {
                     RTHandle colorPyramid = data.colorBuffer;
                     if (colorPyramid != null)
@@ -1588,7 +1588,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseRendererList(passData.transparentRenderList);
 
                 builder.SetRenderFunc(
-                    (RayTracingFlagMaskPassData data, UnsafeGraphContext ctx) =>
+                    static (RayTracingFlagMaskPassData data, UnsafeGraphContext ctx) =>
                     {
                         DrawOpaqueRendererList(ctx, data.frameSettings, data.opaqueRenderList);
                         DrawTransparentRendererList(ctx, data.frameSettings, data.transparentRenderList);
@@ -1690,7 +1690,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderAttachmentDepth(output.resolvedDepthBufferPreRefraction , AccessFlags.Write);
 
                     builder.SetRenderFunc(
-                        (ResolvePrepassData data, UnsafeGraphContext ctx) =>
+                        static (ResolvePrepassData data, UnsafeGraphContext ctx) =>
                         {
                             CoreUtils.SetKeyword(ctx.cmd, "_HAS_MOTION_VECTORS", false);
                             data.depthResolveMaterial.SetTexture(HDShaderIDs._DepthTextureMS, data.depthAsColorBufferMSAA);
@@ -1885,7 +1885,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.depthBuffer, AccessFlags.Read);
 
                 builder.SetRenderFunc(
-                    (SendGeometryBuffersPassData data, UnsafeGraphContext ctx) =>
+                    static (SendGeometryBuffersPassData data, UnsafeGraphContext ctx) =>
                     {
                         var hdCamera = data.parameters.hdCamera;
 
@@ -1967,7 +1967,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.hdCamera = hdCamera;
 
                 builder.SetRenderFunc(
-                    (SendColorGraphicsBufferPassData data, UnsafeGraphContext ctx) =>
+                    static (SendColorGraphicsBufferPassData data, UnsafeGraphContext ctx) =>
                     {
                         // Figure out which client systems need which buffers
                         VFXCameraBufferTypes neededVFXBuffers = VFXManager.IsCameraBufferNeeded(data.hdCamera.camera);
@@ -2000,7 +2000,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.depthBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (ClearStencilPassData data, UnsafeGraphContext ctx) =>
+                    static (ClearStencilPassData data, UnsafeGraphContext ctx) =>
                     {
                         data.clearStencilMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.HDRPReservedBits);
                         HDUtils.DrawFullScreen(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd), data.clearStencilMaterial, data.depthBuffer);
@@ -2078,7 +2078,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.mipGenerator = m_MipGenerator;
 
                 builder.SetRenderFunc(
-                    (GenerateColorPyramidData data, UnsafeGraphContext ctx) =>
+                    static (GenerateColorPyramidData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         Vector2Int pyramidSize = new Vector2Int(data.hdCamera.actualWidth, data.hdCamera.actualHeight);
@@ -2121,7 +2121,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.distortionRendererList = distortionRendererList;
 
                 builder.SetRenderFunc(
-                    (AccumulateDistortionPassData data, UnsafeGraphContext ctx) =>
+                    static (AccumulateDistortionPassData data, UnsafeGraphContext ctx) =>
                     {
                         DrawTransparentRendererList(ctx, data.frameSettings, data.distortionRendererList);
                     });
@@ -2176,7 +2176,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.size = new Vector4(hdCamera.actualWidth, hdCamera.actualHeight, 1f / hdCamera.actualWidth, 1f / hdCamera.actualHeight);
 
                 builder.SetRenderFunc(
-                    (RenderDistortionPassData data, UnsafeGraphContext ctx) =>
+                    static (RenderDistortionPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         if (!data.roughDistortion)
@@ -2310,7 +2310,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.passIndex = SampleCountToPassIndex(hdCamera.msaaSamples);
 
                     builder.SetRenderFunc(
-                        (ResolveColorData data, UnsafeGraphContext ctx) =>
+                        static (ResolveColorData data, UnsafeGraphContext ctx) =>
                         {
                             var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
                             mpb.SetTexture(HDShaderIDs._ColorTextureMS, data.input);
@@ -2348,7 +2348,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.passIndex = SampleCountToPassIndex(hdCamera.msaaSamples);
 
                     builder.SetRenderFunc(
-                        (ResolveMotionVectorData data, UnsafeGraphContext ctx) =>
+                        static (ResolveMotionVectorData data, UnsafeGraphContext ctx) =>
                         {
                             var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
                             mpb.SetTexture(HDShaderIDs._MotionVectorTextureMS, data.input);
@@ -2394,7 +2394,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.AllowPassCulling(false);
 
                     builder.SetRenderFunc(
-                        (RenderGizmosPassData data, UnsafeGraphContext ctx) =>
+                        static (RenderGizmosPassData data, UnsafeGraphContext ctx) =>
                         {
                             Gizmos.exposure = data.exposureTexture;
                             ctx.cmd.DrawRendererList(data.gizmoRendererList);
@@ -2468,7 +2468,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.postProcessHeight = postProcessHeight;
 
                 builder.SetRenderFunc(
-                    (UpdatePostProcessScreenSizePassData data, UnsafeGraphContext ctx) =>
+                    static (UpdatePostProcessScreenSizePassData data, UnsafeGraphContext ctx) =>
                     {
                         data.hdCamera.SetPostProcessScreenSize(data.postProcessWidth, data.postProcessHeight);
                         data.hdCamera.UpdateScalesAndScreenSizesCB(ref data.shaderVariablesGlobal);
@@ -2494,7 +2494,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.AllowPassCulling(false);
 
                     builder.SetRenderFunc(
-                        (ResetCameraSizeForAfterPostProcessPassData data, UnsafeGraphContext ctx) =>
+                        static (ResetCameraSizeForAfterPostProcessPassData data, UnsafeGraphContext ctx) =>
                         {
                             var screenSize = new Vector4(data.hdCamera.finalViewport.width, data.hdCamera.finalViewport.height, 1.0f / data.hdCamera.finalViewport.width, 1.0f / data.hdCamera.finalViewport.height);
                             data.shaderVariablesGlobal._ScreenSize = screenSize;
@@ -2527,7 +2527,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.UseRendererList(passData.wireOverlayRendererList);
 
                     builder.SetRenderFunc(
-                        (RenderWireOverlayPassData data, UnsafeGraphContext ctx) =>
+                        static (RenderWireOverlayPassData data, UnsafeGraphContext ctx) =>
                         {
                             ctx.cmd.DrawRendererList(data.wireOverlayRendererList);
                         });
@@ -2553,7 +2553,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.UseRendererList(passData.rendererList);
 
                     builder.SetRenderFunc(
-                        (RenderScreenSpaceOverlayData data, UnsafeGraphContext ctx) =>
+                        static (RenderScreenSpaceOverlayData data, UnsafeGraphContext ctx) =>
                         {
                             ctx.cmd.DrawRendererList(data.rendererList);
                         });
@@ -2593,7 +2593,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float finalIntensity = intensity * Mathf.Clamp01(hdCamera.actualHeight / 1080f);
                 passData.intensity = finalIntensity;
                 builder.SetRenderFunc(
-                    (ScreenSpaceFogMultipleScatteringData data, UnsafeGraphContext ctx) =>
+                    static (ScreenSpaceFogMultipleScatteringData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // lerp the color buffer and color pyramid using fog opacity factor

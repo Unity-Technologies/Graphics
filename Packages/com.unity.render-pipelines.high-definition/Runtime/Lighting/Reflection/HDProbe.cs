@@ -913,7 +913,7 @@ namespace UnityEngine.Rendering.HighDefinition
             SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 7, Vector3.zero);
             SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 8, Vector3.zero);
 
-            AdditionalGIBakeRequestsManager.instance.DequeueRequest(GetInstanceID());
+            AdditionalGIBakeRequestsManager.instance.DequeueRequest(GetEntityId());
 
             QueueSHBaking();
         }
@@ -994,7 +994,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector3 capturePositionWS = ComputeCapturePositionWS();
             // If already enqueued this will just change the position, otherwise it'll enqueue the request.
-            AdditionalGIBakeRequestsManager.instance.UpdatePositionForRequest(GetInstanceID(), capturePositionWS);
+            AdditionalGIBakeRequestsManager.instance.UpdatePositionForRequest(GetEntityId(), capturePositionWS);
 
             ValidateSHNormalizationSourcePosition(transform.position);
             ValidateSHNormalizationCapturePosition(capturePositionWS);
@@ -1050,7 +1050,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void DequeueSHRequest()
         {
 #if UNITY_EDITOR
-            AdditionalGIBakeRequestsManager.instance.DequeueRequest(GetInstanceID());
+            AdditionalGIBakeRequestsManager.instance.DequeueRequest(GetEntityId());
 #endif
         }
 

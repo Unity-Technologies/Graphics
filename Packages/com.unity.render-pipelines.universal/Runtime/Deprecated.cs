@@ -14,35 +14,6 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cmd">Use this CommandBuffer to cleanup any generated data. </param>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public virtual void FrameCleanup(CommandBuffer cmd) => OnCameraCleanup(cmd);
-        
-
-        /// <summary>
-        /// This method is obsolete.
-        /// </summary>
-        [Obsolete("This method is obsolete.")]
-        public virtual void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-        { }
-        
-        /// <summary>
-        /// This method is obsolete.
-        /// </summary>
-        [Obsolete("This method is obsolete.")]
-        public virtual void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        { }
-
-        /// <summary>
-        /// This method is obsolete.
-        /// </summary>
-        [Obsolete("This method is obsolete.")]
-        public virtual void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        { }
-
-        /// <summary>
-        /// This method is obsolete.
-        /// </summary>
-        [Obsolete("This method is obsolete.")]
-        public void ConfigureClear(ClearFlag clearFlag, Color clearColor)
-        { }
     }
 
     namespace Internal
@@ -232,17 +203,7 @@ namespace UnityEngine.Rendering.Universal
 
     public abstract partial class ScriptableRenderer
     {
-        // Deprecated in 10.x
-        /// <summary>
-        /// The render target identifier for camera depth.
-        /// This is obsolete, cameraDepth has been renamed to cameraDepthTarget.
-        /// </summary>
-        [Obsolete("cameraDepth has been renamed to cameraDepthTarget. #from(2021.1) #breakingFrom(2023.1) (UnityUpgradable) -> cameraDepthTarget", true)]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public RenderTargetIdentifier cameraDepth
-        {
-            get => m_CameraDepthTarget.nameID;
-        }
+
     }
 
     public abstract partial class ScriptableRendererData

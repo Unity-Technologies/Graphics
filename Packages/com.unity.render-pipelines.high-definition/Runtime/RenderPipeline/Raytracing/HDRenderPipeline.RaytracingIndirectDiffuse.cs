@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (DirGenRTGIPassData data, UnsafeGraphContext ctx) =>
+                    static (DirGenRTGIPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Inject the ray-tracing sampling data
@@ -237,7 +237,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.outputBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (UpscaleRTGIPassData data, UnsafeGraphContext ctx) =>
+                    static (UpscaleRTGIPassData data, UnsafeGraphContext ctx) =>
                     {
                         // Inject all the parameters for the compute
                         ctx.cmd.SetComputeTextureParam(data.upscaleCS, data.upscaleKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
@@ -398,7 +398,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
 
                 builder.SetRenderFunc(
-                    (TraceQualityRTGIPassData data, UnsafeGraphContext ctx) =>
+                    static (TraceQualityRTGIPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Define the shader pass to use for the indirect diffuse pass

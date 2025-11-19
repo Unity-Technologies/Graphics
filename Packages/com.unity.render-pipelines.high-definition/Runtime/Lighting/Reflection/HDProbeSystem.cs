@@ -343,7 +343,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (probes[i] == null || probes[i].Equals(null))
                         continue;
 
-                    var instanceID = probes[i].GetInstanceID();
+                    var instanceID = probes[i].GetEntityId();
                     HashUtilities.ComputeHash128(ref instanceID, ref h);
                     HashUtilities.AppendHash(ref h, ref result);
                 }

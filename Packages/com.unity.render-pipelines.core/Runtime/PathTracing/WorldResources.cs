@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -28,8 +29,8 @@ namespace UnityEngine.PathTracing.Core
         [SerializeField, ResourcePath("Runtime/PathTracing/Shaders/SetAlphaChannel.compute")]
         ComputeShader _setAlphaChannelShader;
 
-        [SerializeField, ResourcePath("Runtime/PathTracing/Shaders/PathTracingSkySamplingData.compute")]
-        ComputeShader _pathTracingSkySamplingDataShader;
+        [SerializeField, ResourcePath("Runtime/PathTracing/Environment/EnvironmentImportanceSamplingBuild.compute"), FormerlySerializedAs("_pathTracingSkySamplingDataShader")]
+        ComputeShader _environmentImportanceSamplingBuild;
 
         [SerializeField, ResourcePath("Runtime/PathTracing/Meshes/SkyBoxMesh.mesh")]
         Mesh _skyBoxMesh;
@@ -59,10 +60,10 @@ namespace UnityEngine.PathTracing.Core
             set => this.SetValueAndNotify(ref _setAlphaChannelShader, value, nameof(_setAlphaChannelShader));
         }
 
-        public ComputeShader PathTracingSkySamplingDataShader
+        public ComputeShader EnvironmentImportanceSamplingBuild
         {
-            get => _pathTracingSkySamplingDataShader;
-            set => this.SetValueAndNotify(ref _pathTracingSkySamplingDataShader, value, nameof(_pathTracingSkySamplingDataShader));
+            get => _environmentImportanceSamplingBuild;
+            set => this.SetValueAndNotify(ref _environmentImportanceSamplingBuild, value, nameof(_environmentImportanceSamplingBuild));
         }
 
         public Mesh SkyBoxMesh
@@ -89,7 +90,7 @@ namespace UnityEngine.PathTracing.Core
         public ComputeShader BlitCubemap;
         public ComputeShader BlitGrayScaleCookie;
         public ComputeShader SetAlphaChannelShader;
-        public ComputeShader PathTracingSkySamplingDataShader;
+        public ComputeShader EnvironmentImportanceSamplingBuild;
         public Mesh SkyBoxMesh;
         public Mesh SixFaceSkyBoxMesh;
         public ComputeShader BuildLightGridShader;
@@ -102,7 +103,7 @@ namespace UnityEngine.PathTracing.Core
             BlitCubemap = AssetDatabase.LoadAssetAtPath<ComputeShader>(packageFolder + "Shaders/BlitCubemap.compute");
             BlitGrayScaleCookie = AssetDatabase.LoadAssetAtPath<ComputeShader>(packageFolder + "Shaders/BlitCookie.compute");
             SetAlphaChannelShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(packageFolder + "Shaders/SetAlphaChannel.compute");
-            PathTracingSkySamplingDataShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(packageFolder + "Shaders/PathTracingSkySamplingData.compute");
+            EnvironmentImportanceSamplingBuild = AssetDatabase.LoadAssetAtPath<ComputeShader>(packageFolder + "Environment/EnvironmentImportanceSamplingBuild.compute");
             SkyBoxMesh = AssetDatabase.LoadAssetAtPath<Mesh>(packageFolder + "Meshes/SkyboxMesh.mesh");
             SixFaceSkyBoxMesh = AssetDatabase.LoadAssetAtPath<Mesh>(packageFolder + "Meshes/6FaceSkyboxMesh.mesh");
             BuildLightGridShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(packageFolder + "Shaders/BuildLightGrid.compute");
@@ -116,7 +117,7 @@ namespace UnityEngine.PathTracing.Core
                 Debug.Assert(rpResources.BlitCubemap != null);
                 Debug.Assert(rpResources.BlitGrayScaleCookie != null);
                 Debug.Assert(rpResources.SetAlphaChannelShader != null);
-                Debug.Assert(rpResources.PathTracingSkySamplingDataShader != null);
+                Debug.Assert(rpResources.EnvironmentImportanceSamplingBuild != null);
                 Debug.Assert(rpResources.SkyBoxMesh != null);
                 Debug.Assert(rpResources.SixFaceSkyBoxMesh != null);
                 Debug.Assert(rpResources.BuildLightGridShader != null);
@@ -124,7 +125,7 @@ namespace UnityEngine.PathTracing.Core
                 BlitCubemap = rpResources.BlitCubemap;
                 BlitGrayScaleCookie = rpResources.BlitGrayScaleCookie;
                 SetAlphaChannelShader = rpResources.SetAlphaChannelShader;
-                PathTracingSkySamplingDataShader = rpResources.PathTracingSkySamplingDataShader;
+                EnvironmentImportanceSamplingBuild = rpResources.EnvironmentImportanceSamplingBuild;
                 SkyBoxMesh = rpResources.SkyBoxMesh;
                 SixFaceSkyBoxMesh = rpResources.SixFaceSkyBoxMesh;
                 BuildLightGridShader = rpResources.BuildLightGridShader;

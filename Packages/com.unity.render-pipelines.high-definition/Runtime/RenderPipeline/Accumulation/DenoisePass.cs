@@ -67,7 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // copy camera params
-                passData.camID = hdCamera.camera.GetInstanceID();
+                passData.camID = hdCamera.camera.GetEntityId();
                 passData.width = hdCamera.actualWidth;
                 passData.height = hdCamera.actualHeight;
                 passData.slices = hdCamera.viewCount;

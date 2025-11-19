@@ -4,19 +4,12 @@ using System.Runtime.CompilerServices; // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal sealed class StopNanPostProcessPass : ScriptableRenderPass, IDisposable
+    internal sealed class StopNanPostProcessPass : PostProcessPass
     {
         public const string k_TargetName = "_StopNaNsTarget";
 
         Material m_Material;
         bool m_IsValid;
-
-        // Input
-        public TextureHandle sourceTexture { get; set; }
-
-        // Output
-        public TextureHandle destinationTexture { get; set; }
-
 
         public StopNanPostProcessPass(Shader shader)
         {
@@ -27,15 +20,10 @@ namespace UnityEngine.Rendering.Universal
             m_IsValid = m_Material != null;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             CoreUtils.Destroy(m_Material);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsValid()
-        {
-            return m_IsValid;
+            m_IsValid = false;
         }
 
         private class StopNaNsPassData
@@ -45,8 +33,12 @@ namespace UnityEngine.Rendering.Universal
         }
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            Assertions.Assert.IsTrue(sourceTexture.IsValid(), $"Source texture must be set for StopNanPostProcessPass.");
-            Assertions.Assert.IsTrue(destinationTexture.IsValid(), $"Destination texture must be set for StopNanPostProcessPass.");
+            if (!m_IsValid)
+                return;
+
+            var resourceData = frameData.Get<UniversalResourceData>();
+            var sourceTexture = resourceData.cameraColor;
+            var destinationTexture = PostProcessUtils.CreateCompatibleTexture(renderGraph, sourceTexture, k_TargetName, true, FilterMode.Bilinear);
 
             using (var builder = renderGraph.AddRasterRenderPass<StopNaNsPassData>("Stop NaNs", out var passData,
                        ProfilingSampler.Get(URPProfileId.RG_StopNaNs)))
@@ -63,6 +55,8 @@ namespace UnityEngine.Rendering.Universal
                     Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, data.stopNaN, 0);
                 });
             }
+
+            resourceData.cameraColor = destinationTexture;
         }
 
 

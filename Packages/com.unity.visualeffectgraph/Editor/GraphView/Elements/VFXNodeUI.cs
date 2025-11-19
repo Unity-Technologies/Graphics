@@ -85,7 +85,7 @@ namespace UnityEditor.VFX.UI
         protected virtual void OnNewController()
         {
             if (controller != null)
-                viewDataKey = $"NodeID-{controller.model.GetInstanceID()}";
+                viewDataKey = $"NodeID-{controller.model.GetEntityId()}";
         }
 
         public void OnSelectionMouseDown(MouseDownEvent e)

@@ -750,8 +750,6 @@ namespace UnityEngine.Rendering.Universal
             var cameraMetadata = CameraMetadataCache.GetCached(camera);
             using (new ProfilingScope(cmdScope, cameraMetadata.sampler)) // Enqueues a "BeginSample" command into the CommandBuffer cmd
             {
-                renderer.Clear(cameraData.renderType);
-
                 using (new ProfilingScope(Profiling.Pipeline.Renderer.setupCullingParameters))
                 {
                     var legacyCameraData = new CameraData(frameData);
@@ -1886,18 +1884,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 lightData.additionalLightsCount = 0;
                 lightData.maxPerObjectAdditionalLightsCount = 0;
-            }
-
-            if (settings.mainLightRenderingMode == LightRenderingMode.Disabled)
-            {
-                var mainLightIndex = GetBrightestDirectionalLightIndex(settings, visibleLights);
-                if (mainLightIndex != -1)
-                {
-                    // a visible main light was disabled, since it is still in the visible lights array we need to maintain
-                    // the mainLightIndex otherwise indexing in the lightloop goes wrong
-                    lightData.additionalLightsCount--;
-                    lightData.mainLightIndex = mainLightIndex;
-                }
             }
 
             lightData.supportsAdditionalLights = settings.additionalLightsRenderingMode != LightRenderingMode.Disabled;
