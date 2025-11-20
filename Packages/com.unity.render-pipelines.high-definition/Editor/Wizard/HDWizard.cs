@@ -196,10 +196,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: L10n.Tr($"Visual Effects Ray Tracing are disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render visual effects. To enable this feature, go to Project Settings > Graphics > HDRP > Frame Settings (Default Values) > Camera > Lighting and enable Ray Tracing VFX. This configuration depends on {dxrVfx.label}. This means, before you fix this, you must fix {dxrVfx.label} first."),
                 messageType: MessageType.Info);
 
-            public static readonly string hdrpAssetDisplayDialogTitle = L10n.Tr("Create or Load HDRenderPipelineAsset");
-            public static readonly string hdrpAssetDisplayDialogContent = L10n.Tr("Do you want to create a fresh HDRenderPipelineAsset in the default resource folder and automatically assign it?");
-            public static readonly string displayDialogCreate = L10n.Tr("Create One");
-            public static readonly string displayDialogLoad = L10n.Tr("Load One");
+            public static readonly string hdrpAssetDisplayDialogTitle = L10n.Tr("HDRP Pipeline Configuration");
+            public static readonly string hdrpAssetDisplayDialogContent = L10n.Tr("HDRP assets detected in project. Select an option:\n\nCreate New: Initialize with default HDRP settings\nLoad Existing: Continue with current project configuration");
+            public static readonly string displayDialogCreate = L10n.Tr("Create New");
+            public static readonly string displayDialogLoad = L10n.Tr("Load Existing");
             public static readonly string displayDialogCancel = L10n.Tr("Cancel");
         }
 

@@ -444,9 +444,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void FixHdrpAssetGraphicsUsed(bool fromAsync)
         {
-            if (ObjectSelector.opened)
-                return;
-            CreateOrLoad<HDRenderPipelineAsset>(fromAsync
+            CreateOrLoad(fromAsync
                 ? () => m_Fixer.Stop()
                 : (Action)null,
                 asset => GraphicsSettings.defaultRenderPipeline = asset);
@@ -572,14 +570,17 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpGlobalSettingsUsedCorrect())
                 FixHdrpGlobalSettingsUsed(fromAsync: false);
 
-            var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
-            var defaultValuesAsset = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().defaultVolumeProfile;
-            var volumeProfileCopy = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(defaultValuesAsset);
-            defaultVolumeProfileSettings.volumeProfile = volumeProfileCopy;
-            EditorUtility.SetDirty(HDRenderPipelineGlobalSettings.instance);
+            if (GraphicsSettings.TryGetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>(out var defaultVolumeProfileSettings)
+                && GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineEditorAssets>(out var editorAssets))
+            {
+                var defaultValuesAsset = editorAssets.defaultVolumeProfile;
+                var volumeProfileCopy = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(defaultValuesAsset);
+                defaultVolumeProfileSettings.volumeProfile = volumeProfileCopy;
+                EditorUtility.SetDirty(HDRenderPipelineGlobalSettings.instance);
 
-            if (VolumeManager.instance.isInitialized)
-                VolumeManager.instance.SetGlobalDefaultProfile(volumeProfileCopy);
+                if (VolumeManager.instance.isInitialized)
+                    VolumeManager.instance.SetGlobalDefaultProfile(volumeProfileCopy);
+            }
         }
 
         IEnumerable<IMigratableAsset> migratableAssets
