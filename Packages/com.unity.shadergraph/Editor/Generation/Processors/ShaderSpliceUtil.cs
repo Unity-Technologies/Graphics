@@ -238,7 +238,7 @@ namespace UnityEditor.ShaderGraph
                             string templatePath = templatePaths[i];
                             includeLocation = Path.Combine(templatePath, param.GetString());
                             bool cacheHit = includeCache.ContainsKey(includeLocation);
-                            if (cacheHit ||  File.Exists(includeLocation))                            {
+                            if (cacheHit ||  File.Exists(FileUtilities.PathToAbsolutePath(includeLocation)))                            {
                                 found = true;
                                 break;
                             }

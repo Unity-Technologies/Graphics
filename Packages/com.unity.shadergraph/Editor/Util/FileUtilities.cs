@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph
             {
                 try
                 {
-                    File.WriteAllText(path, text);
+                    File.WriteAllText(PathToAbsolutePath(path), text);
                 }
                 catch (Exception e)
                 {
@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph
             string result = null;
             try
             {
-                result = File.ReadAllText(assetPath, Encoding.UTF8);
+                result = File.ReadAllText(PathToAbsolutePath(assetPath), Encoding.UTF8);
             }
             catch
             {
@@ -83,11 +83,20 @@ namespace UnityEditor.ShaderGraph
             return result;
         }
 
+        public static string PathToAbsolutePath(string path)
+        {
+#if UNITY_6000_5_OR_NEWER
+            return FileUtil.PathToAbsolutePath(path);
+#else
+            return Path.GetFullPath(path);
+#endif
+        }
+        
         internal static bool TryReadGraphDataFromDisk(string path, out GraphData graph)
         {
             try
             {
-                var textGraph = File.ReadAllText(path, Encoding.UTF8);
+                var textGraph = File.ReadAllText(PathToAbsolutePath(path), Encoding.UTF8);
                 graph = new GraphData
                 {
                     messageManager = new Graphing.Util.MessageManager(),

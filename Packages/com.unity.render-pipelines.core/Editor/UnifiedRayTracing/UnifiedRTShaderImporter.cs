@@ -8,7 +8,11 @@ namespace UnityEditor.Rendering.UnifiedRayTracing
     {
         public override void OnImportAsset(AssetImportContext ctx)
         {
+#if UNITY_6000_5_OR_NEWER
+            string source = File.ReadAllText(FileUtil.PathToAbsolutePath(ctx.assetPath));
+#else
             string source = File.ReadAllText(ctx.assetPath);
+#endif
 
             var com = ShaderUtil.CreateComputeShaderAsset(ctx, computeShaderTemplate.Replace("SHADERCODE", source));
             var rt = ShaderUtil.CreateRayTracingShaderAsset(ctx,
