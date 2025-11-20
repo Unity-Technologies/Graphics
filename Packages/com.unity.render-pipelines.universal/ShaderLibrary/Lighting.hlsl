@@ -320,6 +320,14 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     half4 shadowMask = CalculateShadowMask(inputData);
     AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surfaceData);
     uint meshRenderingLayers = GetMeshRenderingLayer();
+
+#if (UNITY_PLATFORM_META_QUEST)
+    if (dot(GetMainLight().direction, inputData.normalWS) <= 0.0)
+    {
+        inputData.shadowCoord.z = -1; // Force outside of shadowmap
+    }
+#endif
+    
     Light mainLight = GetMainLight(inputData, shadowMask, aoFactor);
 
     // NOTE: We don't apply AO to the GI here because it's done in the lighting calculation below...
