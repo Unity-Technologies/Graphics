@@ -412,8 +412,9 @@ namespace UnityEditor.Rendering.Universal
                     // Update the Prefiltering settings for this URP asset
                     urpAsset.UpdateShaderKeywordPrefiltering(ref spd);
 
-                    // Mark the asset dirty so it can be serialized once the build is finished
+                    // Save the asset before build
                     EditorUtility.SetDirty(urpAsset);
+                    AssetDatabase.SaveAssetIfDirty(urpAsset);
                 }
             }
         }
@@ -471,8 +472,9 @@ namespace UnityEditor.Rendering.Universal
                 // Update the Prefiltering settings for this URP asset
                 urpAsset.UpdateShaderKeywordPrefiltering(ref spd);
 
-                // Mark the asset dirty so it can be serialized once the build is finished
+                // Save the asset before build
                 EditorUtility.SetDirty(urpAsset);
+                AssetDatabase.SaveAssetIfDirty(urpAsset);
 
                 // Clean up
                 ssaoRendererFeatures.Clear();
