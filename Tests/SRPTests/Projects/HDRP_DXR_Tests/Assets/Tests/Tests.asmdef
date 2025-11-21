@@ -9,6 +9,8 @@
         "Unity.Testing.XR.Runtime",
         "Unity.RenderPipelines.Core.Runtime",
         "HDRP_TestRunner",
+        "UnityEngine.TestTools.Graphics.Contexts",
+        "UnityEngine.Graphics.Testing.Common.Runtime",
         "Unity.Testing.XR.Editor"
     ],
     "includePlatforms": [],
