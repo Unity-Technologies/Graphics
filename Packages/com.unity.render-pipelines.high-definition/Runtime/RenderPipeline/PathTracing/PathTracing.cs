@@ -239,7 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif // UNITY_EDITOR
         uint m_CacheLightCount = 0;
-        int m_CameraID = 0;
+        EntityId m_CameraID = EntityId.None;
         int m_SkyHash = -1;
         int m_DebugMaterialOverrideHash = -1;
         bool m_RenderSky = true;
@@ -335,12 +335,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="hdCamera">Camera for which the accumulation is reset.</param>
         public void ResetPathTracing(HDCamera hdCamera)
         {
-            int camID = hdCamera.camera.GetEntityId();
+            EntityId camID = hdCamera.camera.GetEntityId();
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
             ResetPathTracing(camID, camData);
         }
 
-        internal CameraData ResetPathTracing(int camID, CameraData camData)
+        internal CameraData ResetPathTracing(EntityId camID, CameraData camData)
         {
             m_RenderSky = true;
             camData.ResetIteration();
@@ -433,7 +433,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return accelSize;
         }
 
-        private CameraData CheckDirtiness(HDCamera hdCamera, int camID, CameraData camData)
+        private CameraData CheckDirtiness(HDCamera hdCamera, EntityId camID, CameraData camData)
         {
             bool isCameraDirty = false;
             // Check resolution dirtiness
@@ -831,7 +831,7 @@ namespace UnityEngine.Rendering.HighDefinition
             pathTracedAOVs.Clear();
 #endif
 
-            int camID = hdCamera.camera.GetEntityId();
+            EntityId camID = hdCamera.camera.GetEntityId();
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
 
             ImportPathTracingTargetsToRenderGraph();

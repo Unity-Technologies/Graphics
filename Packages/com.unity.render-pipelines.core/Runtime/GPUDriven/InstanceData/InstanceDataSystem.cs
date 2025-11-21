@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering
         private CPUPerCameraInstanceData m_PerCameraInstanceData;
 
         //@ We may want something a bit faster instead of multi hash map. Remove and search performance for multiple instances per renderer group is not great.
-        private NativeParallelMultiHashMap<int, InstanceHandle> m_RendererGroupInstanceMultiHash;
+        private NativeParallelMultiHashMap<EntityId, InstanceHandle> m_RendererGroupInstanceMultiHash;
 
         private ComputeShader m_TransformUpdateCS;
         private ComputeShader m_WindDataUpdateCS;
@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering
             m_PerCameraInstanceData.Initialize(maxInstances);
             Assert.IsTrue(m_PerCameraInstanceData.instancesCapacity == m_InstanceData.instancesCapacity);
 
-            m_RendererGroupInstanceMultiHash = new NativeParallelMultiHashMap<int, InstanceHandle>(maxInstances, Allocator.Persistent);
+            m_RendererGroupInstanceMultiHash = new NativeParallelMultiHashMap<EntityId, InstanceHandle>(maxInstances, Allocator.Persistent);
 
             m_TransformUpdateCS = resources.transformUpdaterKernels;
             m_WindDataUpdateCS = resources.windDataUpdaterKernels;
@@ -501,7 +501,7 @@ namespace UnityEngine.Rendering
                 ref m_SharedInstanceData, ref m_RendererGroupInstanceMultiHash);
         }
 
-        public JobHandle ScheduleUpdateInstanceDataJob(NativeArray<InstanceHandle> instances, in GPUDrivenRendererGroupData rendererData, NativeParallelHashMap<int, GPUInstanceIndex> lodGroupDataMap)
+        public JobHandle ScheduleUpdateInstanceDataJob(NativeArray<InstanceHandle> instances, in GPUDrivenRendererGroupData rendererData, NativeParallelHashMap<EntityId, GPUInstanceIndex> lodGroupDataMap)
         {
             bool implicitInstanceIndices = rendererData.instancesCount.Length == 0;
 
@@ -712,7 +712,7 @@ namespace UnityEngine.Rendering
             return true;
         }
 
-        public unsafe void GetVisibleTreeInstances(in ParallelBitArray compactedVisibilityMasks, in ParallelBitArray processedBits, NativeList<int> visibeTreeRendererIDs,
+        public unsafe void GetVisibleTreeInstances(in ParallelBitArray compactedVisibilityMasks, in ParallelBitArray processedBits, NativeList<EntityId> visibeTreeRendererIDs,
             NativeList<InstanceHandle> visibeTreeInstances, bool becomeVisibleOnly, out int becomeVisibeTreeInstancesCount)
         {
             Assert.AreEqual(visibeTreeRendererIDs.Length, 0);

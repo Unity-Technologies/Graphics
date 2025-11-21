@@ -437,7 +437,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 activeProbes.Add(probe);
+#pragma warning disable 618 // Todo(@daniel.andersen): Potentially use GetRawData or sometin'
                 probeInstanceIDs.Add(probe.GetEntityId());
+#pragma warning restore 618
             }
 
             // APV Normalization (Execute baking)

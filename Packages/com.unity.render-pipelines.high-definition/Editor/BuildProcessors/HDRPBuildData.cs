@@ -19,8 +19,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public bool stripDebugVariants { get; private set; } = true;
         public bool dynamicLightmapsUsed { get; private set; }
         public bool waterDecalMaskAndCurrent { get; private set; }
-        public Dictionary<int, ComputeShader> rayTracingComputeShaderCache { get; private set; } = new();
-        public Dictionary<int, ComputeShader> computeShaderCache { get; private set; } = new();
+        public Dictionary<EntityId, ComputeShader> rayTracingComputeShaderCache { get; private set; } = new();
+        public Dictionary<EntityId, ComputeShader> computeShaderCache { get; private set; } = new();
 
         public HDRenderPipelineRuntimeShaders runtimeShaders { get; private set; }
         public HDRenderPipelineRuntimeMaterials materialResources { get; private set; }

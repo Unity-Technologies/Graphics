@@ -116,9 +116,9 @@ namespace UnityEngine.Rendering.HighDefinition
         float m_OriginalTimeScale = 0;
 
         // Per-camera data cache
-        Dictionary<int, CameraData> m_CameraCache = new Dictionary<int, CameraData>();
+        Dictionary<EntityId, CameraData> m_CameraCache = new Dictionary<EntityId, CameraData>();
 
-        internal CameraData GetCameraData(int camID)
+        internal CameraData GetCameraData(EntityId camID)
         {
             CameraData camData;
             if (!m_CameraCache.TryGetValue(camID, out camData))
@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return camData;
         }
 
-        internal void SetCameraData(int camID, CameraData camData)
+        internal void SetCameraData(EntityId camID, CameraData camData)
         {
             m_CameraCache[camID] = camData;
         }
@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float shutterInterval { get => m_ShutterInterval; }
 
         // Resets the sub-frame sequence
-        internal void Reset(int camID)
+        internal void Reset(EntityId camID)
         {
             CameraData camData = GetCameraData(camID);
             camData.ResetIteration();
@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void Reset()
         {
-            foreach (int camID in m_CameraCache.Keys.ToList())
+            foreach (EntityId camID in m_CameraCache.Keys.ToList())
                 Reset(camID);
         }
 
@@ -176,7 +176,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void SelectiveReset(uint maxSamples)
         {
-            foreach (int camID in m_CameraCache.Keys.ToList())
+            foreach (EntityId camID in m_CameraCache.Keys.ToList())
             {
                 CameraData camData = GetCameraData(camID);
                 if (camData.currentIteration >= maxSamples)
@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void PrepareNewSubFrame()
         {
             uint maxIteration = 0;
-            foreach (int camID in m_CameraCache.Keys.ToList())
+            foreach (EntityId camID in m_CameraCache.Keys.ToList())
                 maxIteration = Math.Max(maxIteration, GetCameraData(camID).currentIteration);
 
             if (m_ShutterInterval == 0)
@@ -336,7 +336,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // y: sum of weights until now, without the current frame
         // z: one over the sum of weights until now, including the current frame
         // w: unused
-        internal Vector4 ComputeFrameWeights(int camID)
+        internal Vector4 ComputeFrameWeights(EntityId camID)
         {
             CameraData camData = GetCameraData(camID);
 
@@ -409,7 +409,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns><c>true</c> if the accumulation is completed, <c>false</c> otherwise.</returns>
         public bool IsFrameCompleted(HDCamera hdCamera)
         {
-            int camID = hdCamera.camera.GetEntityId();
+            EntityId camID = hdCamera.camera.GetEntityId();
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
             return camData.currentIteration >= m_SubFrameManager.subFrameCount;
         }
@@ -436,7 +436,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle inputTexture, in TextureHandle outputTexture, List<Tuple<TextureHandle, HDCameraFrameHistoryType>> AOVs, bool needExposure)
         {
-            int camID = hdCamera.camera.GetEntityId();
+            EntityId camID = hdCamera.camera.GetEntityId();
             Vector4 frameWeights = m_SubFrameManager.ComputeFrameWeights(camID);
 
             if (AOVs != null)
@@ -506,7 +506,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             natCmd.DisableKeyword(accumulationShader, data.outputKeyword);
 
                         // Get the per-camera data
-                        int camID = data.hdCamera.camera.GetEntityId();
+                        EntityId camID = data.hdCamera.camera.GetEntityId();
                         CameraData camData = data.subFrameManager.GetCameraData(camID);
 
                         // Accumulate the path tracing results

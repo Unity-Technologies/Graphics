@@ -113,7 +113,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             textureSize = GetTextureSizeInAtlas(probe);
 
+#pragma warning disable 618 // Todo(@daniel.andersen): Potentially use GetRawData or sometin'
             int textureID = probe.texture.GetEntityId();
+#pragma warning restore 618
 
             // Include texture size in ID using simple hash
             const int kPrime = 31;

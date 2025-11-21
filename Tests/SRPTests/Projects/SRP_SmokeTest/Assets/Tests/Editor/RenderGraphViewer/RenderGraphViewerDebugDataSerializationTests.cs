@@ -156,7 +156,9 @@ namespace UnityEditor.Rendering.Tests
             {
                 version = DebugMessageHandler.k_Version,
                 graphName = "TestGraph",
+#pragma warning disable 618 // todo @emilie.thaulow replace with unique id
                 executionId = 123,
+#pragma warning restore 618
                 debugData = CreateTestDebugData()
             };
 
@@ -193,7 +195,10 @@ namespace UnityEditor.Rendering.Tests
             Assert.AreEqual(DebugMessageHandler.MessageType.DebugData, deserializedMessageType);
             Assert.True(deserializedPayload.isCompatible);
             Assert.AreEqual(DebugMessageHandler.k_Version, deserializedPayload.version);
+
+#pragma warning disable 618 // todo @emilie.thaulow replace with unique id
             Assert.AreEqual(123, (int)deserializedDebugDataPayload.executionId);
+#pragma warning restore 618
             Assert.AreEqual("TestGraph", deserializedDebugDataPayload.graphName);
             Assert.NotNull(deserializedDebugDataPayload.debugData);
         }
@@ -205,7 +210,9 @@ namespace UnityEditor.Rendering.Tests
             {
                 version = DebugMessageHandler.k_Version,
                 graphName = "TestGraph",
+#pragma warning disable 618 // todo @emilie.thaulow replace with unique id
                 executionId = 123,
+#pragma warning restore 618
                 debugData = CreateTestDebugData()
             };
 

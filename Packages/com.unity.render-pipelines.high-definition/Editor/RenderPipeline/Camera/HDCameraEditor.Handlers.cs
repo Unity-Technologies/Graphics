@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!CameraEditorUtils.IsViewPortRectValidToRender(c.rect))
                 return;
 
-            UnityEditor.CameraEditorUtils.HandleFrustum(c, c.GetEntityId());
+            UnityEditor.CameraEditorUtils.HandleFrustum(c, c.GetEntityId().GetHashCode());
         }
     }
 }

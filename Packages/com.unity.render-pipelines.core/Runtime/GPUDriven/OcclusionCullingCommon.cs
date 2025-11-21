@@ -40,11 +40,11 @@ namespace UnityEngine.Rendering
         private struct Slot
         {
             public bool isActive;
-            public int viewInstanceID;
+            public EntityId viewInstanceID;
             public int planeCount;  // planeIndex = slotIndex * kMaxSilhouettePlanes
             public int lastUsedFrameIndex;
 
-            public Slot(int viewInstanceID, int planeCount, int frameIndex)
+            public Slot(EntityId viewInstanceID, int planeCount, int frameIndex)
             {
                 this.isActive = true;
                 this.viewInstanceID = viewInstanceID;
@@ -55,14 +55,14 @@ namespace UnityEngine.Rendering
 
         private const int kMaxSilhouettePlanes = (int)OcclusionCullingCommonConfig.MaxOccluderSilhouettePlanes;
 
-        private NativeParallelHashMap<int, int> m_SubviewIDToIndexMap;
+        private NativeParallelHashMap<EntityId, int> m_SubviewIDToIndexMap;
         private NativeList<int> m_SlotFreeList;
         private NativeList<Slot> m_Slots;
         private NativeList<Plane> m_PlaneStorage;
 
         public void Init()
         {
-            m_SubviewIDToIndexMap = new NativeParallelHashMap<int, int>(16, Allocator.Persistent);
+            m_SubviewIDToIndexMap = new NativeParallelHashMap<EntityId, int>(16, Allocator.Persistent);
             m_SlotFreeList = new NativeList<int>(16, Allocator.Persistent);
             m_Slots = new NativeList<Slot>(16, Allocator.Persistent);
             m_PlaneStorage = new NativeList<Plane>(16 * kMaxSilhouettePlanes, Allocator.Persistent);
@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering
             m_PlaneStorage.Dispose();
         }
 
-        public void Update(int viewInstanceID, NativeArray<Plane> planes, int frameIndex)
+        public void Update(EntityId viewInstanceID, NativeArray<Plane> planes, int frameIndex)
         {
             int planeCount = Math.Min(planes.Length, kMaxSilhouettePlanes);
 
@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public NativeArray<Plane> GetSubArray(int viewInstanceID)
+        public NativeArray<Plane> GetSubArray(EntityId viewInstanceID)
         {
             int planeOffset = 0;
             int planeCount = 0;
@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering
         {
             public bool valid;
             public int lastUsedFrameIndex;
-            public int viewInstanceID;
+            public EntityId viewInstanceID;
         }
 
         private static readonly int s_MaxContextGCFrame = 8; // Allow a few frames for alternate frame shadow updates before cleanup
@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering
 
         private SilhouettePlaneCache m_SilhouettePlaneCache;
 
-        private NativeParallelHashMap<int, int> m_ViewIDToIndexMap;
+        private NativeParallelHashMap<EntityId, int> m_ViewIDToIndexMap;
         private List<OccluderContext> m_OccluderContextData;
         private NativeList<OccluderContextSlot> m_OccluderContextSlots;
         private NativeList<int> m_FreeOccluderContexts;
@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering
 
             m_SilhouettePlaneCache.Init();
 
-            m_ViewIDToIndexMap = new NativeParallelHashMap<int, int>(64, Allocator.Persistent);
+            m_ViewIDToIndexMap = new NativeParallelHashMap<EntityId, int>(64, Allocator.Persistent);
             m_OccluderContextData = new List<OccluderContext>();
             m_OccluderContextSlots = new NativeList<OccluderContextSlot>(64, Allocator.Persistent);
             m_FreeOccluderContexts = new NativeList<int>(64, Allocator.Persistent);
@@ -262,7 +262,7 @@ namespace UnityEngine.Rendering
             public Material debugOcclusionTestMaterial;
         }
 
-        public void RenderDebugOcclusionTestOverlay(RenderGraph renderGraph, DebugDisplayGPUResidentDrawer debugSettings, int viewInstanceID, in TextureHandle colorBuffer)
+        public void RenderDebugOcclusionTestOverlay(RenderGraph renderGraph, DebugDisplayGPUResidentDrawer debugSettings, EntityId viewInstanceID, in TextureHandle colorBuffer)
         {
             if (debugSettings == null)
                 return;
@@ -305,7 +305,7 @@ namespace UnityEngine.Rendering
                 builder.SetRenderAttachment(colorBuffer, 0);
                 builder.UseBuffer(passData.debugPyramid);
 
-                builder.SetRenderFunc( 
+                builder.SetRenderFunc(
                     static (OcclusionTestOverlayPassData data, RasterGraphContext ctx) =>
                     {
                         ctx.cmd.SetGlobalBuffer(ShaderIDs._OcclusionDebugOverlay, data.debugPyramid);
@@ -364,7 +364,7 @@ namespace UnityEngine.Rendering
                 passData.passIndex = passIndex;
                 passData.validRange = debugSettings.occluderDebugViewRange;
 
-                builder.SetRenderFunc(static 
+                builder.SetRenderFunc(static
                     (OccluderOverlayPassData data, RasterGraphContext ctx) =>
                     {
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
@@ -378,7 +378,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private void DispatchDebugClear(ComputeCommandBuffer cmd, int viewInstanceID)
+        private void DispatchDebugClear(ComputeCommandBuffer cmd, EntityId viewInstanceID)
         {
             if (!m_ViewIDToIndexMap.TryGetValue(viewInstanceID, out var contextIndex))
                 return;
@@ -489,12 +489,12 @@ namespace UnityEngine.Rendering
             return true;
         }
 
-        internal void UpdateSilhouettePlanes(int viewInstanceID, NativeArray<Plane> planes)
+        internal void UpdateSilhouettePlanes(EntityId viewInstanceID, NativeArray<Plane> planes)
         {
             m_SilhouettePlaneCache.Update(viewInstanceID, planes, m_FrameIndex);
         }
 
-        internal OcclusionCullingDebugOutput GetOcclusionTestDebugOutput(int viewInstanceID)
+        internal OcclusionCullingDebugOutput GetOcclusionTestDebugOutput(EntityId viewInstanceID)
         {
             if (m_ViewIDToIndexMap.TryGetValue(viewInstanceID, out var contextIndex) && m_OccluderContextSlots[contextIndex].valid)
                 return m_OccluderContextData[contextIndex].GetDebugOutput();
@@ -518,12 +518,12 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal bool HasOccluderContext(int viewInstanceID)
+        internal bool HasOccluderContext(EntityId viewInstanceID)
         {
             return m_ViewIDToIndexMap.ContainsKey(viewInstanceID);
         }
 
-        internal bool GetOccluderContext(int viewInstanceID, out OccluderContext occluderContext)
+        internal bool GetOccluderContext(EntityId viewInstanceID, out OccluderContext occluderContext)
         {
             if (m_ViewIDToIndexMap.TryGetValue(viewInstanceID, out var contextIndex) && m_OccluderContextSlots[contextIndex].valid)
             {
@@ -536,9 +536,9 @@ namespace UnityEngine.Rendering
         }
 
         internal void UpdateFrame()
-        {            
+        {
             for (int i = 0; i < m_OccluderContextData.Count; ++i)
-            {   
+            {
                 if (!m_OccluderContextSlots[i].valid)
                     continue;
 
@@ -558,7 +558,7 @@ namespace UnityEngine.Rendering
             ++m_FrameIndex;
         }
 
-        private int NewContext(int viewInstanceID)
+        private int NewContext(EntityId viewInstanceID)
         {
             int newSlot = -1;
             var newCtxSlot = new OccluderContextSlot { valid = true, viewInstanceID = viewInstanceID, lastUsedFrameIndex = m_FrameIndex };
@@ -581,7 +581,7 @@ namespace UnityEngine.Rendering
             return newSlot;
         }
 
-        private void DeleteContext(int viewInstanceID)
+        private void DeleteContext(EntityId viewInstanceID)
         {
             if (!m_ViewIDToIndexMap.TryGetValue(viewInstanceID, out var contextIndex) || !m_OccluderContextSlots[contextIndex].valid)
                 return;

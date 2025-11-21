@@ -370,7 +370,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void CleanupCameraStates()
         {
-            Dictionary<int, UpscalerCameras.State> cameras = m_CameraStates.cameras;
+            Dictionary<EntityId, UpscalerCameras.State> cameras = m_CameraStates.cameras;
             m_CommandBuffer.Clear();
             foreach (var kv in cameras)
             {

@@ -229,7 +229,9 @@ namespace UnityEngine.Rendering
                 foreach (var terrain in contributors.terrains)
                 {
                     uint mask = GetInstanceMask(terrain.component.shadowCastingMode);
+#pragma warning disable 618 // Todo(@daniel.andersen): Remove deprecated API usage
                     accelStruct.AddInstance(terrain.component.GetEntityId(), terrain.component, new uint[1] { mask }, new uint[1] { 0 }, new bool[1] { true }, 1);
+#pragma warning restore 618
                 }
 
                 return accelStruct;

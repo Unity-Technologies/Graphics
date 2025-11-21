@@ -1649,7 +1649,9 @@ namespace UnityEngine.Rendering
             List<Vector3> positions = new List<Vector3>();
             foreach (var probeInstanceID in probeInstanceIDs)
             {
+#pragma warning disable 618 // Todo(@daniel.andersen): Remove deprecated API usage
                 if (AdditionalGIBakeRequestsManager.GetPositionForRequest(probeInstanceID, out var position))
+#pragma warning restore 618
                 {
                     validProbeInstanceIDs.Add(probeInstanceID);
                     positions.Add(position);
@@ -1667,7 +1669,9 @@ namespace UnityEngine.Rendering
 
                 for (int probeIndex = 0; probeIndex < numValidProbes; ++probeIndex)
                 {
+#pragma warning disable 618 // Todo(@daniel.andersen): Remove deprecated API usage
                     AdditionalGIBakeRequestsManager.SetSHCoefficients(validProbeInstanceIDs[probeIndex], sh[probeIndex], validity[probeIndex]);
+#pragma warning restore 618
                 }
             }
         }

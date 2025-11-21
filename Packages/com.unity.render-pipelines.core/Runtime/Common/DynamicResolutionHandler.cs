@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering
         public DynamicResUpscaleFilter filter { get; private set; }
 
         // Used to detect the filters set via user API
-        static Dictionary<int, DynamicResUpscaleFilter> s_CameraUpscaleFilters = new Dictionary<int, DynamicResUpscaleFilter>();
+        static Dictionary<EntityId, DynamicResUpscaleFilter> s_CameraUpscaleFilters = new Dictionary<EntityId, DynamicResUpscaleFilter>();
 
         /// <summary>
         /// The viewport of the final buffer. This is likely the resolution the dynamic resolution starts from before any scaling. Note this is NOT the target resolution the rendering will happen in
@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering
 
         private const int CameraDictionaryMaxcCapacity = 32;
         private WeakReference m_OwnerCameraWeakRef = null;
-        private static Dictionary<int, DynamicResolutionHandler> s_CameraInstances = new Dictionary<int, DynamicResolutionHandler>(CameraDictionaryMaxcCapacity);
+        private static Dictionary<EntityId, DynamicResolutionHandler> s_CameraInstances = new Dictionary<EntityId, DynamicResolutionHandler>(CameraDictionaryMaxcCapacity);
         private static DynamicResolutionHandler s_DefaultInstance = new DynamicResolutionHandler();
 
         private static EntityId s_ActiveCameraId = EntityId.None;
@@ -169,7 +169,7 @@ namespace UnityEngine.Rendering
                 //first and foremost, if we exceed the dictionary capacity, lets try and recycle an object that is dead.
                 if (s_CameraInstances.Count >= CameraDictionaryMaxcCapacity)
                 {
-                    int recycledInstanceKey = 0;
+                    EntityId recycledInstanceKey = EntityId.None;
                     DynamicResolutionHandler recycledInstance = null;
                     foreach (var kv in s_CameraInstances)
                     {
@@ -412,7 +412,7 @@ namespace UnityEngine.Rendering
             if (camera == null)
             {
                 s_ActiveInstance = s_DefaultInstance;
-                newCameraId = 0;
+                newCameraId = EntityId.None;
             }
             else
             {

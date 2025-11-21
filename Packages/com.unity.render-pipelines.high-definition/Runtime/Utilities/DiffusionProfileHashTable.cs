@@ -82,7 +82,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 // We can't move the asset
             }
             // If the asset is not in the list, we regenerate it's hash using the GUID (which leads to the same result every time)
+#pragma warning disable 618 // Todo(@daniel.andersen): Potentially use GetRawData or sometin'
             else if (!diffusionProfileHashes.ContainsKey(profile.GetEntityId()))
+#pragma warning restore 618
             {
                 uint newHash = GenerateUniqueHash(profile);
                 if (newHash != profile.profile.hash)
@@ -92,7 +94,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
             else // otherwise, no issue, we don't change the hash and we keep it to check for collisions
+#pragma warning disable 618 // Todo(@daniel.andersen): Potentially use GetRawData or sometin'
                 diffusionProfileHashes.Add(profile.GetEntityId(), profile.profile.hash);
+#pragma warning restore 618
         }
     }
 }

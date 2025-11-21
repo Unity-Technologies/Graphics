@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.Universal
         {
             Texture2D icon = EditorGUIUtility.IconContent("cs Script Icon").image as Texture2D;
 
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0,
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(EntityId.None,
                 ScriptableObject.CreateInstance<CreateCombinedScriptTemplateAssetsAction>(), "NewPostProcessEffect.cs", icon, k_FeatureTemplatePath);
         }
     }

@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
 
         public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
-            return new VFXTexture2DValue(0, mode);
+            return new VFXTexture2DValue(EntityId.None, mode);
         }
     }
 }

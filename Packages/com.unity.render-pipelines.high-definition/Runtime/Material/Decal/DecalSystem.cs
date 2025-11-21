@@ -1278,7 +1278,9 @@ namespace UnityEngine.Rendering.HighDefinition
             var material = decalProjector.material;
 
             DecalSet decalSet = null;
+#pragma warning disable 618 // Todo(@daniel.andersen): Potentially use GetRawData or sometin'
             int key = material != null ? material.GetEntityId() : kNullMaterialIndex;
+#pragma warning restore 618
             if (!m_DecalSets.TryGetValue(key, out decalSet))
             {
 				SetupMipStreamingSettings(material, true);
@@ -1426,7 +1428,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (!Atlas.IsCached(out textureScaleBias.m_ScaleBias, textureScaleBias.texture))
                     {
+#pragma warning disable 618 // Todo(@daniel.andersen): Potentially use GetRawData or sometin'
                         if (!Atlas.AllocateTextureWithoutBlit(textureScaleBias.texture.GetEntityId(), textureScaleBias.width, textureScaleBias.height, ref textureScaleBias.m_ScaleBias))
+#pragma warning restore 618
                         {
                             m_AllocationSuccess = false;
                         }

@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.Universal
         {
             var instance = ScriptableObject.CreateInstance<Create2DRendererDataAsset>();
             instance.onCreated += onCreatedCallback;
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, instance, "New 2D Renderer Data.asset", CoreUtils.GetIconForType<ScriptableRendererData>(), null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(EntityId.None, instance, "New 2D Renderer Data.asset", CoreUtils.GetIconForType<ScriptableRendererData>(), null);
         }
 
         class Create2DRendererDataAsset : AssetCreationEndAction
