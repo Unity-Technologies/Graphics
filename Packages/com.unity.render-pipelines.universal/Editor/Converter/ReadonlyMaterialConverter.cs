@@ -45,35 +45,94 @@ namespace UnityEditor.Rendering.Universal
 
         List<string> guids = new List<string>();
 
+        public Material[] GetBuiltInMaterials()
+        {
+            using (UnityEngine.Pool.ListPool<Material>.Get(out var tmp))
+            {
+                foreach (var materialName in ReadonlyMaterialMap.Map.Keys)
+                {
+                    var name = materialName + ".mat";
+
+                    Material mat = null;
+                    foreach (var material in AssetDatabaseHelper.FindAssets<Material>())
+                    {
+                        if (material.name == materialName)
+                        {
+                            mat = material;
+                            break;
+                        }
+                    }
+
+                    if (mat == null)
+                    {
+                        mat = AssetDatabase.GetBuiltinExtraResource<Material>(name);
+                        if (mat == null)
+                        {
+                            mat = Resources.GetBuiltinResource<Material>(name);
+                            if (mat == null)
+                            {
+                                mat = Resources.Load<Material>(name);
+                            }
+                        }
+                    }
+
+                    if (mat == null)
+                    {
+                        Debug.LogError($"Material '{materialName}' not found in built-in resources or project assets.");
+                        continue;
+                    }
+
+                    tmp.Add(mat);
+                }
+                return tmp.ToArray();
+            }
+        }
+
+        private string BuildQuery()
+        {
+            using (UnityEngine.Pool.ListPool<string>.Get(out var tmp))
+            {
+                var materials = GetBuiltInMaterials();
+                foreach (var mat in materials)
+                {
+                    string formattedId = $"<$object:{GlobalObjectId.GetGlobalObjectIdSlow(mat)},UnityEngine.Object$>";
+                    tmp.Add($"ref={formattedId}");
+                }
+
+                return string.Join(" or ", tmp) + " -t:RenderPipelineGlobalSettings";
+            }
+        }
+
         public override void OnInitialize(InitializeConverterContext ctx, Action callback)
         {
+            var query = BuildQuery();
             Search.SearchService.Request
             (
-                Search.SearchService.CreateContext("asset", "urp=convert-readonly a=URPConverterIndex"),
+                Search.SearchService.CreateContext(new[] { "asset", "scene" }, query),
                 (searchContext, items) =>
                 {
-                    // we're going to do this step twice in order to get them ordered, but it should be fast
-                    var orderedRequest = items.OrderBy(req =>
+                    foreach (var r in items)
                     {
-                        GlobalObjectId.TryParse(req.id, out var gid);
-                        return gid.assetGUID;
-                    });
-
-                    foreach (var r in orderedRequest)
-                    {
-                        if (string.IsNullOrEmpty(r?.id) ||
-                            !GlobalObjectId.TryParse(r.id, out var gid))
-                        {
+                        if (r == null || r.id == null)
                             continue;
-                        }
+
+                        // Direct conversion - works for both assets and scene objects
+                        var unityObject = r.ToObject();
+
+                        if (unityObject == null)
+                            continue;
 
                         var label = r.provider.fetchLabel(r, r.context);
                         var description = r.provider.fetchDescription(r, r.context);
 
+                        var gid = GlobalObjectId.GetGlobalObjectIdSlow(unityObject);
+                        int type = gid.identifierType; // 1=Asset, 2=SceneObject
+
+                        var go = unityObject as GameObject;
                         var item = new ConverterItemDescriptor()
                         {
-                            name = description.Split('/').Last().Split('.').First(),
-                            info = $"{label}",
+                            name =  $"{unityObject.name} ({(type == 1 ? "Prefab" : "SceneObject")})", 
+                            info = type == 1 ? AssetDatabase.GetAssetPath(unityObject) : go.scene.path,
                         };
                         guids.Add(gid.ToString());
 
