@@ -1947,18 +1947,6 @@ namespace UnityEngine.Rendering.Universal
                 lightData.maxPerObjectAdditionalLightsCount = 0;
             }
 
-            if (settings.mainLightRenderingMode == LightRenderingMode.Disabled)
-            {
-                var mainLightIndex = GetBrightestDirectionalLightIndex(settings, visibleLights);
-                if (mainLightIndex != -1)
-                {
-                    // a visible main light was disabled, since it is still in the visible lights array we need to maintain
-                    // the mainLightIndex otherwise indexing in the lightloop goes wrong
-                    lightData.additionalLightsCount--;
-                    lightData.mainLightIndex = mainLightIndex;
-                }
-            }
-
             lightData.supportsAdditionalLights = settings.additionalLightsRenderingMode != LightRenderingMode.Disabled;
             lightData.shadeAdditionalLightsPerVertex = settings.additionalLightsRenderingMode == LightRenderingMode.PerVertex;
             lightData.supportsMixedLighting = settings.supportsMixedLighting;
