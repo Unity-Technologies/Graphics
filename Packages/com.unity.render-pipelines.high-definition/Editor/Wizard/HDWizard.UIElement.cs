@@ -43,7 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 Type objectSelectorType = playerSettingsType.Assembly.GetType("UnityEditor.ObjectSelector");
                 var instanceObjectSelectorInfo = objectSelectorType.GetProperty("get", BindingFlags.Static | BindingFlags.Public);
 #if UNITY_2022_2_OR_NEWER
-                var showInfo = objectSelectorType.GetMethod("Show", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(UnityEngine.Object), typeof(Type), typeof(UnityEngine.Object), typeof(bool), typeof(List<int>), typeof(Action<UnityEngine.Object>), typeof(Action<UnityEngine.Object>), typeof(bool) }, null);
+                var showInfo = objectSelectorType.GetMethod("Show", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(UnityEngine.Object), typeof(Type), typeof(UnityEngine.Object), typeof(bool), typeof(List<EntityId>), typeof(Action<UnityEngine.Object>), typeof(Action<UnityEngine.Object>), typeof(bool) }, null);
 #elif UNITY_2020_1_OR_NEWER
                 var showInfo = objectSelectorType.GetMethod("Show", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(UnityEngine.Object), typeof(Type), typeof(UnityEngine.Object), typeof(bool), typeof(List<int>), typeof(Action<UnityEngine.Object>), typeof(Action<UnityEngine.Object>) }, null);
 #else
@@ -58,7 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     new[] { objectSelectorVariable },
                     Expression.Assign(objectSelectorVariable, Expression.Call(null, instanceObjectSelectorInfo.GetGetMethod())),
 #if UNITY_2022_2_OR_NEWER
-                    Expression.Call(objectSelectorVariable, showInfo, objectParameter, typeParameter, Expression.Constant(null, typeof(UnityEngine.Object)), Expression.Constant(false), Expression.Constant(null, typeof(List<int>)), Expression.Constant(null, typeof(Action<UnityEngine.Object>)), onChangedObjectParameter, Expression.Constant(true))
+                    Expression.Call(objectSelectorVariable, showInfo, objectParameter, typeParameter, Expression.Constant(null, typeof(UnityEngine.Object)), Expression.Constant(false), Expression.Constant(null, typeof(List<EntityId>)), Expression.Constant(null, typeof(Action<UnityEngine.Object>)), onChangedObjectParameter, Expression.Constant(true))
 #elif UNITY_2020_1_OR_NEWER
                     Expression.Call(objectSelectorVariable, showInfo, objectParameter, typeParameter, Expression.Constant(null, typeof(UnityEngine.Object)), Expression.Constant(false), Expression.Constant(null, typeof(List<int>)), Expression.Constant(null, typeof(Action<UnityEngine.Object>)), onChangedObjectParameter)
 #else
