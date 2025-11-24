@@ -217,10 +217,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                // Strip all the area light shadow filtering variants when they are disabled in the shader config.
-                foreach (var areaShadowVariant in m_ShadowKeywords.AreaShadowVariants)
-                    if (inputData.shaderKeywordSet.IsEnabled(areaShadowVariant.Value))
-                        return true;
+                // Strip only AREA_SHADOW_HIGH variant, because HDRP enables AREA_SHADOW_MEDIUM if area light is disabled in ShaderConfig
+                if (inputData.shaderKeywordSet.IsEnabled(m_AreaShadowHigh))
+                    return true;
             }
 
             if (!shadowInitParams.supportScreenSpaceShadows && shader == m_ShaderResources.screenSpaceShadowPS)
