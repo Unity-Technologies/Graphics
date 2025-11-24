@@ -1,3 +1,4 @@
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -70,8 +71,10 @@ namespace UnityEditor.Rendering.HighDefinition
             // Remove editor only pass
             bool isSceneSelectionPass = snippet.passName == "SceneSelectionPass";
             bool isScenePickingPass = snippet.passName == "ScenePickingPass";
-            bool metaPassUnused = (snippet.passName == "META") && (SupportedRenderingFeatures.active.enlighten == false ||
-                ((int)SupportedRenderingFeatures.active.lightmapBakeTypes | (int)LightmapBakeType.Realtime) == 0);
+
+            bool isEnlightenSupported = SupportedRenderingFeatures.active.enlighten && ((int)SupportedRenderingFeatures.active.lightmapBakeTypes | (int)LightmapBakeType.Realtime) != 0;
+            bool metaPassUnused = (snippet.passName == "META") && (!isEnlightenSupported || !HDRPBuildData.instance.dynamicLightmapsUsed);
+
             bool editorVisualization = inputData.shaderKeywordSet.IsEnabled(m_EditorVisualization);
             if (isSceneSelectionPass || isScenePickingPass || metaPassUnused || editorVisualization)
                 return true;
