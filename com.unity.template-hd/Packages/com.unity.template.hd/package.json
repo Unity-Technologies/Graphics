@@ -1,7 +1,7 @@
 {
   "name": "com.unity.template.hd",
   "displayName": "High Definition RP",
-  "version": "16.1.1",
+  "version": "16.1.2",
   "type": "template",
   "host": "hub",
   "unity": "6000.0",
