@@ -297,12 +297,24 @@ namespace UnityEngine.Rendering
             return -1;
         }
 
+
         /// <summary>
         /// Returns the panel display name
         /// </summary>
         /// <param name="panelIndex">The panelIndex for the panel to get the name</param>
         /// <returns>The display name of the panel, or empty string otherwise</returns>
-        public string PanelDiplayName([DisallowNull] int panelIndex)
+        [Obsolete("Method is obsolete. Use PanelDisplayName instead. #from(6000.4) (UnityUpgradable) -> PanelDisplayName", true)]
+        public string PanelDiplayName(int panelIndex)
+        {
+            return PanelDisplayName(panelIndex);
+        }
+        
+        /// <summary>
+        /// Returns the panel display name
+        /// </summary>
+        /// <param name="panelIndex">The panelIndex for the panel to get the name</param>
+        /// <returns>The display name of the panel, or empty string otherwise</returns>
+        public string PanelDisplayName(int panelIndex)
         {
             if (panelIndex < 0 || panelIndex > m_Panels.Count - 1)
                 return string.Empty;
