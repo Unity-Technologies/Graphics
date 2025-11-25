@@ -512,7 +512,6 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights.SetupRenderGraphLights(renderGraph, renderingData, cameraData, lightData);
             if (usesDeferredLighting)
             {
-                m_DeferredLights.UseFramebufferFetch = renderGraph.nativeRenderPassesEnabled;
                 m_DeferredLights.SetupRenderGraphLights(renderGraph, cameraData, lightData);
             }
         }
@@ -598,8 +597,6 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
             UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
-
-            useRenderPassEnabled = renderGraph.nativeRenderPassesEnabled;
 
             MotionVectorRenderPass.SetRenderGraphMotionVectorGlobalMatrices(renderGraph, cameraData);
 
@@ -709,9 +706,6 @@ namespace UnityEngine.Rendering.Universal
 
         private void OnOffscreenDepthTextureRendering(RenderGraph renderGraph, ScriptableRenderContext context, UniversalResourceData resourceData, UniversalCameraData cameraData)
         {
-            if (!renderGraph.nativeRenderPassesEnabled)
-                ClearTargetsPass.Render(renderGraph, resourceData.activeColorTexture, resourceData.backBufferDepth, RTClearFlags.Depth, cameraData.backgroundColor);
-
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
             UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
@@ -964,14 +958,6 @@ namespace UnityEngine.Rendering.Universal
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
             UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
 
-            if (!renderGraph.nativeRenderPassesEnabled)
-            {
-                RTClearFlags clearFlags = (RTClearFlags) GetCameraClearFlag(cameraData);
-
-                if (clearFlags != RTClearFlags.None)
-                    ClearTargetsPass.Render(renderGraph, resourceData.activeColorTexture, resourceData.activeDepthTexture, clearFlags, cameraData.backgroundColor);
-            }
-
             if (renderingData.stencilLodCrossFadeEnabled)
                 m_StencilCrossFadeRenderPass.Render(renderGraph, context, resourceData.activeDepthTexture);
 
@@ -1105,14 +1091,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_DeferredLights.Setup(m_AdditionalLightsShadowCasterPass);
 
-                // We need to be sure there are no custom passes in between GBuffer/Deferred passes, if there are - we disable fb fetch just to be safe`
-                m_DeferredLights.UseFramebufferFetch = renderGraph.nativeRenderPassesEnabled;
-
                 m_DeferredLights.ResolveMixedLightingMode(lightData);
                 // Once the mixed lighting mode has been discovered, we know how many MRTs we need for the gbuffer.
                 // Subtractive mixed lighting requires shadowMask output, which is actually used to store unity_ProbesOcclusion values.
                 m_DeferredLights.CreateGbufferTextures(renderGraph, resourceData, isDepthNormalPrepass);
-
 
                 RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingGbuffer);
 
@@ -1848,7 +1830,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // TODO RENDERGRAPH: deferred optimization
                 if (usesDeferredLighting && m_DeferredLights.UseRenderingLayers)
-                    m_RenderingLayersTextureName = DeferredLights.k_GBufferNames[m_DeferredLights.GBufferRenderingLayers];
+                    m_RenderingLayersTextureName = DeferredLights.k_GBufferNames[m_DeferredLights.GBufferRenderingLayersIndex];
 
                 if (!m_RenderingLayerProvidesRenderObjectPass)
                     descriptor.msaaSamples = MSAASamples.None;// Depth-Only pass don't use MSAA
@@ -1857,7 +1839,7 @@ namespace UnityEngine.Rendering.Universal
                 // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
                 // Deferred gbuffer format is signed so that normals can be blended for terrain geometry.
                 if (usesDeferredLighting && m_RequiresRenderingLayer)
-                    descriptor.format = m_DeferredLights.GetGBufferFormat(m_DeferredLights.GBufferRenderingLayers); // the one used by the gbuffer.
+                    descriptor.format = m_DeferredLights.GetGBufferFormat(m_DeferredLights.GBufferRenderingLayersIndex); // the one used by the gbuffer.
                 else
                     descriptor.format = RenderingLayerUtils.GetFormat(m_RenderingLayersMaskSize);
 

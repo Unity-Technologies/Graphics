@@ -288,7 +288,6 @@ namespace UnityEngine.Rendering.Universal
             this.m_CopyDepthMode = data.copyDepthMode;
             this.m_CameraDepthAttachmentFormat = data.depthAttachmentFormat;
             this.m_CameraDepthTextureFormat = data.depthTextureFormat;
-            useRenderPassEnabled = data.useNativeRenderPass;
 
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
@@ -309,7 +308,7 @@ namespace UnityEngine.Rendering.Universal
                 deferredInitParams.clusterDeferredMaterial = m_ClusterDeferredMaterial;
                 deferredInitParams.lightCookieManager = m_LightCookieManager;
                 deferredInitParams.deferredPlus = renderingModeRequested == RenderingMode.DeferredPlus;
-                m_DeferredLights = new DeferredLights(deferredInitParams, useRenderPassEnabled);
+                m_DeferredLights = new DeferredLights(deferredInitParams);
                 m_DeferredLights.AccurateGbufferNormals = data.accurateGbufferNormals;
 
                 m_GBufferPass = new GBufferPass(RenderPassEvent.BeforeRenderingGbuffer, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference, m_DeferredLights);
@@ -401,7 +400,6 @@ namespace UnityEngine.Rendering.Universal
         protected override void Dispose(bool disposing)
         {
             m_ForwardLights.Cleanup();
-            m_GBufferPass?.Dispose();
 
             m_FinalBlitPass?.Dispose();
             m_OffscreenUICoverPrepass?.Dispose();
@@ -449,9 +447,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal override void ReleaseRenderTargets()
         {
-            if (m_DeferredLights != null && !m_DeferredLights.UseFramebufferFetch)
-                m_GBufferPass?.Dispose();
-
             m_MainLightShadowCasterPass?.Dispose();
             m_AdditionalLightsShadowCasterPass?.Dispose();
         }

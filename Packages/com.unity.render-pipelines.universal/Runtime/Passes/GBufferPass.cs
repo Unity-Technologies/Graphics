@@ -59,11 +59,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        public void Dispose()
-        {
-            
-        }
-        
         static void ExecutePass(RasterCommandBuffer cmd, PassData data, RendererList rendererList, RendererList errorRendererList)
         {
             bool usesRenderingLayers = data.deferredLights.UseRenderingLayers && !data.deferredLights.HasRenderingLayerPrepass;

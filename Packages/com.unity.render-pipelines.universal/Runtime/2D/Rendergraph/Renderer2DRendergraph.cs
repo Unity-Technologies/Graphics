@@ -818,15 +818,7 @@ namespace UnityEngine.Rendering.Universal
             // Default Render Pass
             for (var i = 0; i < batchCount; i++)
             {
-                if (!renderGraph.nativeRenderPassesEnabled && i == 0)
-                {
-                    RTClearFlags clearFlags = (RTClearFlags)GetCameraClearFlag(cameraData);
-                    if (clearFlags != RTClearFlags.None)
-                        ClearTargetsPass.Render(renderGraph, commonResourceData.activeColorTexture, commonResourceData.activeDepthTexture, clearFlags, cameraData.backgroundColor);
-                }
-
                 RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent2D.BeforeRenderingSprites, i);
-
 
                 LayerUtility.GetFilterSettings(m_Renderer2DData, layerBatches[i], out var filterSettings);
                 m_RendererPass.Render(renderGraph, frameData, i, ref filterSettings);

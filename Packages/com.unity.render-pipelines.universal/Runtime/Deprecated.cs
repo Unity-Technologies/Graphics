@@ -300,6 +300,16 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         [Obsolete("Probe volume debug resource are now in the ProbeVolumeDebugResources class. #from(2023.3)")]
         public ProbeVolumeResources probeVolumeResources;
+
+        /// <summary>
+        /// Specifies whether the renderer should use Native Render Pass.
+        /// </summary>
+        [Obsolete("Native Render Pass is automatically enabled through Render Graph, useNativeRenderPass is not considered anymore. #from(6000.5)")]
+        public bool useNativeRenderPass
+        {
+            get => true;
+            set { }
+        }
     }
 
     public sealed partial class Bloom : VolumeComponent, IPostProcessComponent
