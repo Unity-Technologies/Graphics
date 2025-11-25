@@ -167,6 +167,17 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
         }
 
+        internal static void SetupOffscreenUIViewportParams(Material material, ref Rect pixelRect, bool isRenderToBackBufferTarget)
+        {
+            Vector4 offscreenUIViewportParams = new Vector4(0f, 0f, 1f, 1f);
+            if (isRenderToBackBufferTarget)
+            {
+                var rcpScreenSize = new Vector2(1f / Screen.width, 1f / Screen.height);
+                offscreenUIViewportParams = new Vector4(pixelRect.x * rcpScreenSize.x, pixelRect.y * rcpScreenSize.y, pixelRect.width * rcpScreenSize.x, pixelRect.height * rcpScreenSize.y);
+            }
+            material.SetVector(ShaderPropertyId.offscreenUIViewportParams, offscreenUIViewportParams);
+        }
+
         // This is used to render materials that contain built-in shader passes not compatible with URP.
         // It will render those legacy passes with error/pink shader.
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]

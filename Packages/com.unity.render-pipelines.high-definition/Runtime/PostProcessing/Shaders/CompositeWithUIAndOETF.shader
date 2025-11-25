@@ -21,6 +21,7 @@ Shader "Hidden/HDRP/CompositeUI"
 
         CBUFFER_START(cb)
             float4 _HDROutputParams;
+            float4 _OffscreenUIViewportParams;
             float4 _SrcOffset;
             int _NeedsFlip;
             int _BlitTexArraySlice;
@@ -88,10 +89,11 @@ Shader "Hidden/HDRP/CompositeUI"
             outColor.xyz = afterPostColor.a * outColor.xyz + afterPostColor.xyz;
             #endif
 
+            float2 uiCoord = (samplePos * _ScreenSize.zw) * _OffscreenUIViewportParams.zw + _OffscreenUIViewportParams.xy;
             #if defined(USE_TEXTURE2D_X_AS_ARRAY) && defined(BLIT_SINGLE_SLICE)
-            float4 uiValue =  LOAD_TEXTURE2D_ARRAY(_UITexture, samplePos.xy, _BlitTexArraySlice);
+            float4 uiValue = SAMPLE_TEXTURE2D_ARRAY_LOD(_UITexture, s_point_clamp_sampler, uiCoord, _BlitTexArraySlice, 0);
             #else
-            float4 uiValue = LOAD_TEXTURE2D_X(_UITexture, samplePos.xy);
+            float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, uiCoord, 0);
             #endif
 
 

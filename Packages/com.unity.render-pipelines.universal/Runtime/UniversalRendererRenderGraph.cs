@@ -176,6 +176,7 @@ namespace UnityEngine.Rendering.Universal
         private static RTHandle s_RenderGraphCameraDepthHandle;
         private static int s_CurrentColorHandle = 0;
         private static RTHandle s_RenderGraphDebugTextureHandle;
+        private static RTHandle s_OffscreenUIColorHandle;
 
         private RTHandle currentRenderGraphCameraColorHandle
         {
@@ -226,6 +227,7 @@ namespace UnityEngine.Rendering.Universal
             s_RenderGraphCameraDepthHandle?.Release();
 
             s_RenderGraphDebugTextureHandle?.Release();
+            s_OffscreenUIColorHandle?.Release();
         }
 
         /// <summary>
@@ -400,6 +402,9 @@ namespace UnityEngine.Rendering.Universal
             CreateMotionVectorTextures(renderGraph, cameraDescriptor);
 
             CreateRenderingLayersTexture(renderGraph, cameraDescriptor);
+
+            if (cameraData.isHDROutputActive && cameraData.rendersOverlayUI)
+                CreateOffscreenUITexture(renderGraph, cameraDescriptor);
         }
 
         private readonly struct ClearCameraParams
@@ -1289,9 +1294,21 @@ namespace UnityEngine.Rendering.Universal
             bool outputToHDR = cameraData.isHDROutputActive;
             if (shouldRenderUI && outputToHDR)
             {
-                TextureHandle overlayUI;
-                m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, frameData, cameraDepthAttachmentFormat, out overlayUI);
-                resourceData.overlayUITexture = overlayUI;
+                if (cameraData.rendersOffscreenUI)
+                {
+                    m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, frameData, cameraDepthAttachmentFormat, resourceData.overlayUITexture);
+                    if (cameraData.blitsOffscreenUICover)
+                    {
+                        var blackTextureDesc = new RenderTextureDescriptor(1, 1, GraphicsFormat.R8G8B8A8_SRGB, 0);
+                        var source = CreateRenderGraphTexture(renderGraph, blackTextureDesc, "BlackTexture", false);
+                        m_OffscreenUICoverPrepass.Render(renderGraph, cameraData, resourceData, source, true);
+                    }
+                }
+                else
+                {
+                    // When the first camera renders the shared offscreen UI texture, register it as a global texture so subsequent cameras can use it in their final passes.
+                    RenderGraphUtils.SetGlobalTexture(renderGraph, ShaderPropertyId.overlayUITexture, resourceData.overlayUITexture);
+                }
             }
         }
 
@@ -1846,6 +1863,14 @@ namespace UnityEngine.Rendering.Universal
 
                 resourceData.renderingLayersTexture = CreateRenderGraphTexture(renderGraph, descriptor, m_RenderingLayersTextureName, true, descriptor.clearColor);
             }
+        }
+
+        void CreateOffscreenUITexture(RenderGraph renderGraph, TextureDesc descriptor)
+        {
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            DrawScreenSpaceUIPass.ConfigureOffscreenUITextureDesc(ref descriptor);
+            RenderingUtils.ReAllocateHandleIfNeeded(ref s_OffscreenUIColorHandle, descriptor, name: "_OverlayUITexture");
+            resourceData.overlayUITexture = renderGraph.ImportTexture(s_OffscreenUIColorHandle);
         }
 
         void DepthNormalPrepassRender(RenderGraph renderGraph, RenderPassInputSummary renderPassInputs, in TextureHandle depthTarget, uint batchLayerMask, bool setGlobalDepth, bool setGlobalTextures, bool partialPass)
