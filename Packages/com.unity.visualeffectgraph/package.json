@@ -17,12 +17,12 @@
   },
   "samples": [
     {
-      "displayName": "VisualEffectGraph Additions",
+      "displayName": "Visual Effect Graph Additions",
       "description": "Additional Assets for use with Visual Effect Graph",
       "path": "Samples~/VFXGraphAdditions"
     },
     {
-      "displayName": "OutputEvent Helpers",
+      "displayName": "Output Event Helpers",
       "description": "Additional Helper Scripts that intercept Output Events and interact with Game Objects",
       "path": "Samples~/VFXOutputEventHandlers"
     },
