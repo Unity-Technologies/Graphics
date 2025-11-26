@@ -91,7 +91,11 @@ void MyFunction_float(float3 A, float B, out float3 Out)
 #endif //MYHLSLINCLUDE_INCLUDED
 ```
 
-**File** mode allows for more flexibility with custom functions in a graph. You can define uniform variables outside the function scope, as shown here with a matrix.
+The **File** mode allows for more flexibility with custom functions in a graph.
+
+#### Shared data and uniform variables
+
+To supply shared data to your function without additional ports, use uniform variables defined outside the function scope.
 
 ```
 //UNITY_SHADER_NO_UPGRADE
@@ -105,6 +109,14 @@ void MyFunction_float(float3 A, float B, out float3 Out)
 }
 #endif //MYHLSLINCLUDE_INCLUDED
 ```
+
+When you add a uniform variable in a Custom Function, like the `float4x4` matrix in the example above, you make this variable global. As a result:
+
+- You can set this uniform globally only, using `Shader.SetGlobalMatrix()`.
+- You don't have to add an input parameter to allow the shader to access them directly.
+- You can't set it per material, because it's not declared in the `UnityPerMaterial` cbuffer and doesn't have a material property associated with it.
+
+#### Multiple functions and multiple files
 
 You can define multiple functions in the same file, and call them from your referenced function. Alternatively, you can reference the same file, but use different functions from different Custom Function nodes.
 
