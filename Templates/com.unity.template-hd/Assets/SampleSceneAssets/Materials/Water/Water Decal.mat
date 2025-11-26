@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Water Decal
+  m_Shader: {fileID: -6465566751694194690, guid: 52c621e4caf47104b83f52439fcebcb3, type: 3}
+  m_Parent: {fileID: -876546973899608171, guid: 52c621e4caf47104b83f52439fcebcb3, type: 3}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _AFFECTS_DEFORMATION
+  - _AFFECTS_LARGE_CURRENT
+  - _AFFECTS_RIPPLES_CURRENT
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Current_Map:
+        m_Texture: {fileID: 2800000, guid: 3b341e1394b21ac42836ecd672d3dcae, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AffectDeformation: 1
+    - _AffectFoam: 0
+    - _AffectLargeCurrent: 1
+    - _AffectRipplesCurrent: 1
+    - _AffectSimulationMask: 0
+    m_Colors: []
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
