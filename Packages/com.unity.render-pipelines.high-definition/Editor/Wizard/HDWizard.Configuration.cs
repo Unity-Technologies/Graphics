@@ -744,7 +744,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (EditorUtility.DisplayDialog("Changing editor graphics device",
                     "You've changed the active graphics API. This requires a restart of the Editor. After restarting, finish fixing DXR configuration by launching the wizard again.",
-                    "Restart Editor", "Not now"))
+                    "Restart Editor", "Restart Later"))
                 {
                     HDUserSettings.wizardNeedRestartAfterChangingToDX12 = false;
                     RequestCloseAndRelaunchWithCurrentArguments();
