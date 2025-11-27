@@ -326,7 +326,6 @@ namespace UnityEngine.Rendering
 
         private float _shortHysteresis;
         readonly private uint _defragCount;
-        readonly private uint _environmentCubemapResolution = 32;
         readonly private float _albedoBoost = 1.0f;
 
         public SurfaceCachePatchList PatchList => _patchList;
@@ -408,7 +407,6 @@ namespace UnityEngine.Rendering
             internal float VoxelMinSize;
             internal Vector3 GridTargetPos;
             internal GraphicsBuffer TraceScratchBuffer;
-            internal uint EnvironmentCubemapResolution;
         }
 
         private class RestirCandidateTemporalPassData
@@ -770,7 +768,6 @@ namespace UnityEngine.Rendering
 
                     RayTracingHelper.ResizeScratchBufferForTrace(passData.Shader, passData.PatchCapacity, 1, 1, ref _traceScratch);
                     passData.TraceScratchBuffer = _traceScratch;
-                    passData.EnvironmentCubemapResolution = _environmentCubemapResolution;
 
                     builder.AllowGlobalStateModification(true); // Set to ensure ordering.
                     builder.SetRenderFunc((UniformEstimationPassData data, UnsafeGraphContext cgContext) => UniformEstimate(data, cgContext));
@@ -799,7 +796,6 @@ namespace UnityEngine.Rendering
                     passData.ConfidenceCap = _estimationParams.RestirEstimationConfidenceCap;
                     passData.VoxelMinSize = Grid.VoxelMinSize;
                     passData.ValidationFrameInterval = _estimationParams.RestirEstimationValidationFrameInterval;
-                    passData.EnvironmentCubemapResolution = _environmentCubemapResolution;
 
                     RayTracingHelper.ResizeScratchBufferForTrace(passData.Shader, passData.PatchCapacity, 1, 1, ref _traceScratch);
                     passData.TraceScratchBuffer = _traceScratch;
@@ -878,7 +874,6 @@ namespace UnityEngine.Rendering
                     passData.TargetFunctionUpdateWeight = _estimationParams.RisEstimationTargetFunctionUpdateWeight;
                     passData.VoxelMinSize = Grid.VoxelMinSize;
                     passData.PatchAccumulatedLuminances = PatchList.RisAccumulatedLuminances;
-                    passData.EnvironmentCubemapResolution = _environmentCubemapResolution;
 
                     RayTracingHelper.ResizeScratchBufferForTrace(passData.Shader, passData.PatchCapacity, 1, 1, ref _traceScratch);
                     passData.TraceScratchBuffer = _traceScratch;
@@ -954,7 +949,7 @@ namespace UnityEngine.Rendering
             shader.SetIntParam(cmd, ShaderIDs._RingConfigOffset, (int)data.RingConfigOffset);
             shader.SetBufferParam(cmd, ShaderIDs._CellPatchIndices, data.CellPatchIndices);
             shader.SetVectorParam(cmd, ShaderIDs._GridTargetPos, data.GridTargetPos);
-            shader.SetTextureParam(cmd, ShaderIDs._EnvironmentCubemap, data.World.GetEnvironmentTexture((int)data.EnvironmentCubemapResolution));
+            shader.SetTextureParam(cmd, ShaderIDs._EnvironmentCubemap, data.World.GetEnvironmentTexture());
             shader.SetBufferParam(cmd, ShaderIDs._MaterialEntries, data.World.GetMaterialListBuffer());
             shader.SetTextureParam(cmd, ShaderIDs._AlbedoTextures, data.World.GetMaterialAlbedoTextures());
             shader.SetTextureParam(cmd, ShaderIDs._EmissionTextures, data.World.GetMaterialEmissionTextures());
@@ -999,7 +994,7 @@ namespace UnityEngine.Rendering
             shader.SetFloatParam(cmd, ShaderIDs._VoxelMinSize, data.VoxelMinSize);
             shader.SetBufferParam(cmd, ShaderIDs._CellPatchIndices, data.CellPatchIndices);
             shader.SetVectorParam(cmd, ShaderIDs._GridTargetPos, data.GridTargetPos);
-            shader.SetTextureParam(cmd, ShaderIDs._EnvironmentCubemap, data.World.GetEnvironmentTexture((int)data.EnvironmentCubemapResolution));
+            shader.SetTextureParam(cmd, ShaderIDs._EnvironmentCubemap, data.World.GetEnvironmentTexture());
             shader.SetBufferParam(cmd, ShaderIDs._MaterialEntries, data.World.GetMaterialListBuffer());
             shader.SetTextureParam(cmd, ShaderIDs._AlbedoTextures, data.World.GetMaterialAlbedoTextures());
             shader.SetTextureParam(cmd, ShaderIDs._EmissionTextures, data.World.GetMaterialEmissionTextures());
@@ -1081,7 +1076,7 @@ namespace UnityEngine.Rendering
             shader.SetIntParam(cmd, ShaderIDs._RingConfigOffset, (int)data.RingConfigOffset);
             shader.SetFloatParam(cmd, ShaderIDs._ShortHysteresis, data.ShortHysteresis);
             shader.SetVectorParam(cmd, ShaderIDs._GridTargetPos, data.GridTargetPos);
-            shader.SetTextureParam(cmd, ShaderIDs._EnvironmentCubemap, data.World.GetEnvironmentTexture((int)data.EnvironmentCubemapResolution));
+            shader.SetTextureParam(cmd, ShaderIDs._EnvironmentCubemap, data.World.GetEnvironmentTexture());
             shader.SetBufferParam(cmd, ShaderIDs._MaterialEntries, data.World.GetMaterialListBuffer());
             shader.SetTextureParam(cmd, ShaderIDs._AlbedoTextures, data.World.GetMaterialAlbedoTextures());
             shader.SetTextureParam(cmd, ShaderIDs._EmissionTextures, data.World.GetMaterialEmissionTextures());

@@ -163,6 +163,8 @@ namespace UnityEngine.Rendering.Universal
             private class WorldUpdatePassData
             {
                 internal SurfaceCacheWorld World;
+                internal uint EnvCubemapResolution;
+                internal Light Sun;
             }
 
             private class DebugPassData
@@ -336,6 +338,8 @@ namespace UnityEngine.Rendering.Universal
             private SurfaceCache _cache;
 
             private Matrix4x4 _prevClipToWorldTransform = Matrix4x4.identity;
+
+            readonly private uint _environmentCubemapResolution = 32;
 
             public SurfaceCachePass(
                 RayTracingContext rtContext,
@@ -566,9 +570,22 @@ namespace UnityEngine.Rendering.Universal
                     const bool multiplyPunctualLightIntensityByPI = false;
                     _worldAdapter.UpdateLights(_world, changes.addedLights, changes.removedLights, changes.changedLights, multiplyPunctualLightIntensityByPI);
 
-                    passData.World = _world;
+                    if (RenderSettings.ambientMode == AmbientMode.Skybox)
+                    {
+                        _world.SetEnvironmentMode(CubemapRender.Mode.Material);
+                        _world.SetEnvironmentMaterial(RenderSettings.skybox);
+                    }
+                    else if (RenderSettings.ambientMode == AmbientMode.Flat)
+                    {
+                        _world.SetEnvironmentMode(CubemapRender.Mode.Color);
+                        _world.SetEnvironmentColor(RenderSettings.ambientSkyColor);
+                    }
 
-                    _world.SetEnvironmentMaterial(RenderSettings.skybox);
+                    passData.World = _world;
+                    passData.EnvCubemapResolution = _environmentCubemapResolution;
+                    passData.Sun = RenderSettings.sun;
+
+
 
                     builder.AllowGlobalStateModification(true);
                     builder.SetRenderFunc((WorldUpdatePassData data, UnsafeGraphContext graphCtx) => UpdateWorld(data, graphCtx, ref _worldUpdateScratch));
@@ -696,7 +713,7 @@ namespace UnityEngine.Rendering.Universal
             static void UpdateWorld(WorldUpdatePassData data, UnsafeGraphContext graphCtx, ref GraphicsBuffer scratch)
             {
                 var cmd = CommandBufferHelpers.GetNativeCommandBuffer(graphCtx.cmd);
-                data.World.Build(cmd, ref scratch);
+                data.World.Build(cmd, ref scratch, data.EnvCubemapResolution, data.Sun);
             }
 
             static void LookupScreenIrradiance(ScreenIrradianceLookupPassData data, ComputeGraphContext cgContext)
@@ -932,7 +949,7 @@ namespace UnityEngine.Rendering.Universal
                 LightHandle[] handlesToRemove = new LightHandle[removedLights.Count];
                 for (int i = 0; i < removedLights.Count; i++)
                 {
-                    int lightEntityID = removedLights[i];
+                    var lightEntityID = removedLights[i];
                     handlesToRemove[i] = entityIDToHandle[lightEntityID];
                     entityIDToHandle.Remove(lightEntityID);
                 }
@@ -1007,7 +1024,7 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     InstanceHandle instance = world.AddInstance(mesh, materialHandles, masks, in localToWorldMatrix);
-                    int entityID = meshRenderer.GetEntityId();
+                    var entityID = meshRenderer.GetEntityId();
                     Debug.Assert(!entityIDToInstanceHandle.ContainsKey(entityID));
                     entityIDToInstanceHandle.Add(entityID, instance);
                 }

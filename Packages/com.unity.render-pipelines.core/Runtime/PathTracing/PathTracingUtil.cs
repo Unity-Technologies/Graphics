@@ -114,13 +114,13 @@ namespace UnityEngine.PathTracing.Core
             accel.Bind(cmd, "g_SceneAccelStruct", shader);
         }
 
-        internal static void BindWorld(CommandBuffer cmd, IRayTracingShader shader, World world, int skyBoxTextureResolution)
+        internal static void BindWorld(CommandBuffer cmd, IRayTracingShader shader, World world)
         {
             BindAccelerationStructure(cmd, shader, world.GetAccelerationStructure());
             BindLightBuffers(cmd, shader, world);
             BindMaterialsAndTextures(cmd, shader, world);
 
-            var envTex = world.GetEnvironmentTexture(cmd, skyBoxTextureResolution, out EnvironmentCDF envCDF);
+            var envTex = world.GetEnvironmentTexture(cmd, out EnvironmentCDF envCDF);
             shader.SetTextureParam(cmd, Shader.PropertyToID("g_EnvTex"), envTex);
             SetEnvSamplingShaderParams(cmd, shader, envCDF);
         }

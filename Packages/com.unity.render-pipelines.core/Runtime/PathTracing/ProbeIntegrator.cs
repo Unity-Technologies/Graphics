@@ -116,7 +116,7 @@ namespace UnityEngine.PathTracing.Integration
             // General path tracing parameters
             bool preExpose = false;
             Util.BindPathTracingInputs(cmd, shader, _countNEERayAsPathSegment, lightEvaluationPerEvent, preExpose, (int)bounceCount, environmentIntensityMultiplier, RenderedGameObjectsFilter.OnlyStatic, _samplingResources, _emptyExposureTexture);
-            Util.BindWorld(cmd, shader, world, 32);
+            Util.BindWorld(cmd, shader, world);
 
             // Zero initialize the output buffer
             const uint floatsPerSH = 27;
@@ -270,7 +270,7 @@ namespace UnityEngine.PathTracing.Integration
             var occlusionShader = _resourceLibrary.OcclusionShader;
 
             // General path tracing parameters
-            Util.BindWorld(cmd, occlusionShader, world, 32);
+            Util.BindWorld(cmd, occlusionShader, world);
             SamplingResources.Bind(cmd, _samplingResources);
 
             occlusionShader.SetBufferParam(cmd, ShaderProperties.PerProbeLightIndices, perProbeLightIndices);

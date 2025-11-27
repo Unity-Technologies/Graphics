@@ -104,9 +104,19 @@ namespace UnityEngine.Rendering
             return _lights.DirectionalLight;
         }
 
+        public void SetEnvironmentMode(CubemapRender.Mode mode)
+        {
+            _cubemapRender.SetMode(mode);
+        }
+
         public void SetEnvironmentMaterial(Material mat)
         {
             _cubemapRender.SetMaterial(mat);
+        }
+
+        public void SetEnvironmentColor(Color color)
+        {
+            _cubemapRender.SetColor(color);
         }
 
         public ComputeBuffer GetMaterialListBuffer()
@@ -129,10 +139,9 @@ namespace UnityEngine.Rendering
             return _materialPool.TransmissionTextures;
         }
 
-        public Texture GetEnvironmentTexture(int resolution)
+        public Texture GetEnvironmentTexture()
         {
-            var envTex = _cubemapRender.GetCubemap(resolution, out int _);
-            return envTex;
+            return _cubemapRender.GetCubemap();
         }
 
         public void Dispose()
@@ -251,11 +260,12 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public void Build(CommandBuffer cmdBuf, ref GraphicsBuffer scratchBuffer)
+        public void Build(CommandBuffer cmdBuf, ref GraphicsBuffer scratchBuffer, uint envCubemapResolution, UnityEngine.Light sun)
         {
             Debug.Assert(_rayTracingAccelerationStructure != null);
             _materialPool.Build(cmdBuf);
             _rayTracingAccelerationStructure.Build(cmdBuf, ref scratchBuffer);
+            _cubemapRender.Update(cmdBuf, sun, (int)envCubemapResolution);
         }
     }
 }

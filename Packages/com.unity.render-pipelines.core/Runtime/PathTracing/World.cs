@@ -326,6 +326,7 @@ namespace UnityEngine.PathTracing.Core
             _lightState = new LightState();
 
             _cubemapRender = new CubemapRender(worldResources.SkyBoxMesh, worldResources.SixFaceSkyBoxMesh);
+            _cubemapRender.SetMode(CubemapRender.Mode.Material);
             _environmentSampling = new EnvironmentImportanceSampling(worldResources.EnvironmentImportanceSamplingBuild);
             _reservoirGrid = new RegirLightGrid(worldResources.BuildLightGridShader);
             _conservativeLightGrid = new ConservativeLightGrid(worldResources.BuildLightGridShader);
@@ -371,15 +372,14 @@ namespace UnityEngine.PathTracing.Core
             return _materialPool.LightCubemapTextures;
         }
 
-        public Texture GetEnvironmentTexture(CommandBuffer cmd, int resolution, out EnvironmentCDF environmentCDF)
+        public Texture GetEnvironmentTexture(CommandBuffer cmd, out EnvironmentCDF environmentCDF)
         {
             Debug.Assert(_environmentSampling != null, "You should call World::Init() first");
-
-            var envTex = _cubemapRender.GetCubemap(resolution, out int skyHash);
-            if (_currentSkyboxHash != skyHash)
+            var envTex = _cubemapRender.GetCubemap();
+            if (_currentSkyboxHash != _cubemapRender.Hash)
             {
                 _environmentSampling.ComputeCDFBuffers(cmd, envTex);
-                _currentSkyboxHash = skyHash;
+                _currentSkyboxHash = _cubemapRender.Hash;
             }
             environmentCDF = _environmentSampling.GetSkyboxCDF();
             return envTex;
@@ -910,7 +910,7 @@ namespace UnityEngine.PathTracing.Core
             }
         }
 
-        public void Build(Bounds sceneBounds, CommandBuffer cmdBuf, ref GraphicsBuffer scratchBuffer, Rendering.Sampling.SamplingResources samplingResources, bool emissiveSampling)
+        public void Build(Bounds sceneBounds, CommandBuffer cmdBuf, ref GraphicsBuffer scratchBuffer, Rendering.Sampling.SamplingResources samplingResources, bool emissiveSampling, int envCubemapResolution)
         {
             Debug.Assert(_rayTracingAccelerationStructure != null);
             _lightState.Build(sceneBounds, cmdBuf, emissiveSampling && _cubemapRender.GetMaterial() != null);
@@ -926,6 +926,8 @@ namespace UnityEngine.PathTracing.Core
 
             _materialPool.Build(cmdBuf);
             _rayTracingAccelerationStructure.Build(cmdBuf, ref scratchBuffer);
+
+            _cubemapRender.Update(cmdBuf, RenderSettings.sun, envCubemapResolution);
         }
 
         public UInt64 GetInstanceHandles(InstanceHandle handle)
