@@ -12,7 +12,10 @@ Use Shader Graph with either of the Scriptable Render Pipelines (SRPs) available
 As of Unity version 2021.2, you can also use Shader Graph with the [Built-In Render Pipeline](https://docs.unity3d.com/Documentation/Manual/built-in-render-pipeline.html).
 
 > [!NOTE]
-> Shader Graph support for the Built-In Render Pipeline is for compatibility purposes only. Shader Graph doesn't receive updates for Built-In Render Pipeline support, aside from bug fixes for existing features. It's recommended to use Shader Graph with the Scriptable Render Pipelines.
+> - Shader Graph support for the Built-In Render Pipeline is for compatibility purposes only. Shader Graph doesn't receive updates for Built-In Render Pipeline support, aside from bug fixes for existing features. It's recommended to use Shader Graph with the Scriptable Render Pipelines.
+> - In the Built-In Render Pipeline, Shader Graph doesn't support XR.
+> - In the Built-In Render Pipeline, GPU Instancing doesn't work with Shader Graph shaders.
+> - In URP and HDRP, GPU instancing works with custom shaders only if you disable the [Scriptable Render Pipeline (SRP) Batcher](SRPBatcher) or [make a shader incompatible with the SRP Batcher](SRPBatcher-Incompatible).
 
 ## Installation
 
