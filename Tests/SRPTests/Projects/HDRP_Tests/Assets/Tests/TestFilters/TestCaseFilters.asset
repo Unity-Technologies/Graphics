@@ -345,26 +345,6 @@ MonoBehaviour:
     Reason: image difference
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 7deb5e53e3101c74ba65ea4ef9579f9a, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 18
-    Architecture: 0
-    XrSdk: 
-    StereoModes: 0
-    Reason: instability https://jira.unity3d.com/browse/UUM-75549
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: eb89f789e3ce3db4d91641ad06d27151, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 18
-    Architecture: 0
-    XrSdk: 
-    StereoModes: 0
-    Reason: instability https://jira.unity3d.com/browse/UUM-75549
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: c117ad53f0d031344b1a2e850c7e5eac, type: 3}
     ColorSpace: -1
     BuildPlatform: 19
