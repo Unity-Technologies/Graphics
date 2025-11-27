@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         public List<RenderPipelineAsset> renderPipelineAssets { get; private set; } = new();
 
-        internal Dictionary<int, ComputeShader> computeShaderCache { get; private set; } = new();
+        internal Dictionary<EntityId, ComputeShader> computeShaderCache { get; private set; } = new();
 
         internal bool pipelineSupportGPUResidentDrawer { get; private set; } = false;
         internal bool playerNeedGPUResidentDrawer { get; private set; } = false;

@@ -484,7 +484,7 @@ namespace UnityEngine.Rendering.Universal
             }
             return false;
         }
-        
+
         internal void UpdateCookieSpriteTexture()
         {
             m_CookieSpriteTexture?.Release();

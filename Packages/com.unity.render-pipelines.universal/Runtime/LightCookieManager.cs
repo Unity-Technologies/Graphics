@@ -86,11 +86,9 @@ namespace UnityEngine.Rendering.Universal
                 if (d == 0)
                 {
                     // Sort by texture ID if "undecided" to batch fetches to the same cookie texture.
-#pragma warning disable 618 // Todo(@daniel.andersen): Remove deprecated API usage
-                    int ai = alc.GetEntityId();
-                    int bi = blc.GetEntityId();
-                    return ai - bi;
-#pragma warning restore 618
+                    var ai = alc.GetEntityId().GetRawData();
+                    var bi = blc.GetEntityId().GetRawData();
+                    return (int)(ai - bi);
                 }
                 return d;
             };
@@ -630,14 +628,12 @@ namespace UnityEngine.Rendering.Universal
         uint ComputeCookieRequestPixelCount(ref WorkSlice<LightCookieMapping> validLightMappings)
         {
             uint requestPixelCount = 0;
-            int prevCookieID = 0;
+            EntityId prevCookieID = EntityId.None;
             for (int i = 0; i < validLightMappings.length; i++)
             {
                 var lcm = validLightMappings[i];
                 Texture cookie = lcm.light.cookie;
-#pragma warning disable 618 // Todo(@daniel.andersen): Remove deprecated API usage
-                int cookieID = cookie.GetEntityId();
-#pragma warning restore 618
+                EntityId cookieID = cookie.GetEntityId();
 
                 // Consider only unique textures as atlas request pixels
                 // NOTE: relies on same cookies being sorted together
