@@ -95,7 +95,7 @@ namespace UnityEditor.Rendering.Universal
         /// <summary>
         /// Use this for readonly material converters.
         /// </summary>
-        [BatchModeConverterInfo(ConverterContainerId.BuiltInToURP, typeof(ReadonlyMaterialConverter))]
+        [BatchModeConverterInfo(ConverterContainerId.BuiltInToURP, typeof(BuiltInToURP3DReadonlyMaterialConverter))]
         ReadonlyMaterial,
 
         /// <summary>

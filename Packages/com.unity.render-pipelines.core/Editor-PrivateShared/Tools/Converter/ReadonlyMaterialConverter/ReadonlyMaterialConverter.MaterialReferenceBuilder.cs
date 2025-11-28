@@ -3,7 +3,7 @@ using System.Reflection;
 using System;
 using UnityEngine;
 
-namespace UnityEditor.Rendering.Universal
+namespace UnityEditor.Rendering.Converter
 {
     internal class MaterialReferenceBuilder : IDisposable
     {

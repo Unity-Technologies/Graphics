@@ -1,12 +1,10 @@
 using NUnit.Framework;
 using UnityEditor.Rendering.Converter;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
-using UnityEngine.SceneManagement;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Rendering.Universal.Tools
+namespace UnityEditor.Rendering.HighDefinition.Tools
 {
     [TestFixture]
     [Category("Graphics Tools")]
@@ -56,13 +54,9 @@ namespace UnityEditor.Rendering.Universal.Tools
         [OneTimeSetUp]
         public void OneTimeSetup()
         {
-            var urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
-            if (urpAsset == null)
-                Assert.Ignore("Project without URP. Skipping test");
-
-            var universalRenderer = urpAsset.scriptableRenderer as UniversalRenderer;
-            if (universalRenderer == null)
-                Assert.Ignore("Project without URP - Universal Renderer. Skipping test");
+            var hdAsset = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+            if (hdAsset == null)
+                Assert.Ignore("Project without HDRP. Skipping test");
         }
 
         [SetUp]

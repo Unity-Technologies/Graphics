@@ -1,6 +1,10 @@
 using System.Runtime.CompilerServices;
 
+// HDRP
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.HighDefinition.Editor")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.HighDefinition.Editor.Tests")]
+
+// URP
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Editor")]
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Editor.Tests")]
 

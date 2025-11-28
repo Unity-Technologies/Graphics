@@ -1,22 +1,23 @@
 using System;
-using System.ComponentModel;
 using System.Reflection;
 using System.Text;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using static UnityEditor.Rendering.Universal.MaterialReferenceBuilder;
+using static UnityEditor.Rendering.Converter.MaterialReferenceBuilder;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.Rendering.Universal
+namespace UnityEditor.Rendering.Converter
 {
     internal class MaterialReferenceChanger : IDisposable
     {
         MaterialReferenceBuilder m_Builder;
+        ReadonlyMaterialMap m_Mappings;
 
-        public MaterialReferenceChanger()
+        public MaterialReferenceChanger(ReadonlyMaterialMap mappings)
         {
             m_Builder = new MaterialReferenceBuilder();
+            m_Mappings = mappings;
         }
 
         public void Dispose()
@@ -47,7 +48,7 @@ namespace UnityEditor.Rendering.Universal
             return true;
         }
 
-        private static bool TryChangeMaterialArray(Func<object> getter, Action<object> setter)
+        private bool TryChangeMaterialArray(Func<object> getter, Action<object> setter)
         {
             var materials = getter() as Material[];
             if (materials == null)
@@ -56,7 +57,7 @@ namespace UnityEditor.Rendering.Universal
             bool setIsNeeded = false;
             for (int i = 0; i < materials.Length; ++i)
             {
-                if (ReadonlyMaterialMap.TryGetMappingMaterial(materials[i], out var mappingMaterial))
+                if (m_Mappings.TryGetMappingMaterial(materials[i], out var mappingMaterial))
                 {
                     materials[i] = mappingMaterial;
                     setIsNeeded = true;
@@ -72,10 +73,10 @@ namespace UnityEditor.Rendering.Universal
             return true;
         }
 
-        private static bool TryChangeMaterial(Func<object> getter, Action<object> setter)
+        private bool TryChangeMaterial(Func<object> getter, Action<object> setter)
         {
             var material = getter() as Material;
-            if (ReadonlyMaterialMap.TryGetMappingMaterial(material, out var mappingMaterial))
+            if (m_Mappings.TryGetMappingMaterial(material, out var mappingMaterial))
             {
                 setter(mappingMaterial);
                 var updated = getter() as Material;
@@ -85,7 +86,7 @@ namespace UnityEditor.Rendering.Universal
             return true;
         }
 
-        private static bool ReassignMaterialsFromInstance(object obj, MemberInfo member, bool isArray)
+        private bool ReassignMaterialsFromInstance(object obj, MemberInfo member, bool isArray)
         {
             if (obj == null || member == null)
                 return false;
