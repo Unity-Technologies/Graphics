@@ -160,7 +160,9 @@ namespace UnityEngine.Rendering.Universal
 
                 var texture = probe.texture;
                 var id = probe.reflectionProbe.GetEntityId();
+#pragma warning disable 618 // Todo(@daniel.andersen): Remove deprecated API usage
                 var wasCached = m_Cache.TryGetValue(id, out var cachedProbe);
+#pragma warning restore 618
 
                 if (!texture)
                 {
@@ -193,8 +195,10 @@ namespace UnityEngine.Rendering.Universal
                     // Check if we ran out of space in the atlas.
                     if (mip < cachedProbe.mipCount)
                     {
+#pragma warning disable 618 // Todo(@daniel.andersen): Remove deprecated API usage
                         if (!m_WarningCache.ContainsKey(id)) showFullWarning = true;
                         m_WarningCache[id] = frameIndex;
+#pragma warning restore 618
                         for (var i = 0; i < mip; i++) m_AtlasAllocator.Free(new BuddyAllocation(cachedProbe.levels[i], cachedProbe.dataIndices[i]));
                         for (var i = 0; i < k_MaxMipCount; i++) cachedProbe.dataIndices[i] = -1;
                         continue;
@@ -218,7 +222,9 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
                     cachedProbe.imageContentsHash = texture.imageContentsHash;
 #endif
+#pragma warning disable 618 // Todo(@daniel.andersen): Remove deprecated API usage
                     m_NeedsUpdate.Add(id);
+#pragma warning restore 618
                 }
 
                 // If the probe is set to be updated every frame, we assign the last used frame to -1 so it's evicted in next frame.
@@ -228,7 +234,9 @@ namespace UnityEngine.Rendering.Universal
                     cachedProbe.lastUsed = frameIndex;
                 
                 cachedProbe.hdrData = probe.hdrData;
+#pragma warning disable 618 // Todo(@daniel.andersen): Remove deprecated API usage
                 m_Cache[id] = cachedProbe;
+#pragma warning restore 618
             }
 
             // Grow the atlas if it's not big enough to contain the current allocations.
@@ -265,7 +273,9 @@ namespace UnityEngine.Rendering.Universal
                 var probe = probes[probeIndex];
                 var id = probe.reflectionProbe.GetEntityId();
                 var dataIndex = probeIndex - skipCount;
+#pragma warning disable 618 // Todo(@daniel.andersen): Remove deprecated API usage
                 if (!m_Cache.TryGetValue(id, out var cachedProbe) || !probe.texture)
+#pragma warning restore 618
                 {
                     skipCount++;
                     continue;

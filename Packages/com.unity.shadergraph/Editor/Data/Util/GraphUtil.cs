@@ -177,7 +177,7 @@ namespace UnityEditor.ShaderGraph
             }
             else
             {
-                endNameEditAction.Action(0, assetPath, "");
+                endNameEditAction.Action(EntityId.None, assetPath, "");
             }
         }
 
@@ -263,7 +263,7 @@ namespace UnityEditor.ShaderGraph
         {
             var graphItem = ScriptableObject.CreateInstance<NewGraphAction>();
             graphItem.targets = null;
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, graphItem,
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(EntityId.None, graphItem,
                 string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), ShaderGraphImporter.GetIcon(), null);
         }
 
@@ -272,7 +272,7 @@ namespace UnityEditor.ShaderGraph
             var graphItem = ScriptableObject.CreateInstance<NewGraphAction>();
             graphItem.targets = targets;
             graphItem.blocks = blockDescriptors;
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, graphItem,
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(EntityId.None, graphItem,
                 string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), ShaderGraphImporter.GetIcon(), null);
         }
 

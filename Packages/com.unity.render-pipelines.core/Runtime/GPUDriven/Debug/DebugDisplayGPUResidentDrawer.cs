@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>Returns the view instances id for the selected occluder debug view index, or 0 if not valid.</summary>
-        internal bool GetOccluderViewInstanceID(out int viewInstanceID)
+        internal bool GetOccluderViewInstanceID(out EntityId viewInstanceID)
         {
             DebugRendererBatcherStats debugStats = GPUResidentDrawer.GetDebugStats();
             if (debugStats != null)
@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering
                 }
             }
 
-            viewInstanceID = 0;
+            viewInstanceID = EntityId.None;
             return false;
         }
 

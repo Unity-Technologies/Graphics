@@ -80,8 +80,10 @@ namespace UnityEditor.Rendering
             if (!playerNeedGPUResidentDrawer)
                 return;
 
+            #pragma warning disable 618 // Todo(@daniel.andersen): Remove deprecated API usage
             GraphicsSettings.GetRenderPipelineSettings<GPUResidentDrawerResources>()
                 .ForEachFieldOfType<ComputeShader>(computeShader => computeShaderCache.Add(computeShader.GetEntityId(), computeShader));
+            #pragma warning restore 618
         }
 
         /// <summary>

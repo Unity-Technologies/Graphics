@@ -19,11 +19,11 @@ namespace UnityEditor.Rendering.Universal.Analytics
     [AnalyticInfo(eventName: AnalyticsDataTypes.k_LightDataString, vendorKey: AnalyticsDataTypes.k_VendorKey, maxEventsPerHour: AnalyticsDataTypes.k_MaxEventsPerHour, maxNumberOfElements: AnalyticsDataTypes.k_MaxNumberOfElements)]
     internal class LightDataAnalytic : IAnalytic
     {
-        public LightDataAnalytic(int instance_id, bool was_create_event, Light2D.LightType light_type)
+        public LightDataAnalytic(EntityId entityId, bool was_create_event, Light2D.LightType light_type)
         {
             m_Data = new Light2DData
             {
-                instance_id = instance_id,
+                entityId = entityId,
                 was_create_event = was_create_event,
                 light_type = light_type
             };
@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.Universal.Analytics
             [SerializeField]
             public bool was_create_event;
             [SerializeField]
-            public int instance_id;
+            public EntityId entityId;
             [SerializeField]
             public Light2D.LightType light_type;
         };
@@ -51,11 +51,11 @@ namespace UnityEditor.Rendering.Universal.Analytics
     [AnalyticInfo(eventName: AnalyticsDataTypes.k_Renderer2DDataString, vendorKey: AnalyticsDataTypes.k_VendorKey, maxEventsPerHour: AnalyticsDataTypes.k_MaxEventsPerHour, maxNumberOfElements: AnalyticsDataTypes.k_MaxNumberOfElements)]
     internal class RenderAssetAnalytic : IAnalytic
     {
-        public RenderAssetAnalytic(int instance_id, bool was_create_event, int blending_layers_count, int blending_modes_used)
+        public RenderAssetAnalytic(EntityId entityId, bool was_create_event, int blending_layers_count, int blending_modes_used)
         {
             m_Data = new RendererAssetData
             {
-                instance_id = instance_id,
+                entityId = entityId,
                 was_create_event = was_create_event,
                 blending_layers_count = blending_layers_count,
                 blending_modes_used = blending_modes_used
@@ -68,7 +68,7 @@ namespace UnityEditor.Rendering.Universal.Analytics
             [SerializeField]
             public bool was_create_event;
             [SerializeField]
-            public int instance_id;
+            public EntityId entityId;
             [SerializeField]
             public int blending_layers_count;
             [SerializeField]

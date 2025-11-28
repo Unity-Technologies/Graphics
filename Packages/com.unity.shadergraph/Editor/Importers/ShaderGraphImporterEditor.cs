@@ -212,9 +212,9 @@ namespace UnityEditor.ShaderGraph
         }
 
         [OnOpenAsset(0)]
-        public static bool OnOpenAsset(int instanceID, int line)
+        public static bool OnOpenAsset(EntityId entityId, int line)
         {
-            var path = AssetDatabase.GetAssetPath((EntityId)instanceID);
+            var path = AssetDatabase.GetAssetPath(entityId);
             return ShowGraphEditWindow(path);
         }
     }

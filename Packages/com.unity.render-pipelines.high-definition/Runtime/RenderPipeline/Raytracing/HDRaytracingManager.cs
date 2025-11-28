@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static RayTracingSubMeshFlags[] subMeshFlagArray = new RayTracingSubMeshFlags[maxNumSubMeshes];
         static uint[] vfxSystemMasks = new uint[maxNumSubMeshes];
         static List<Material> materialArray = new List<Material>(maxNumSubMeshes);
-        static Dictionary<int, int> m_MaterialCRCs = new Dictionary<int, int>();
+        static Dictionary<EntityId, int> m_MaterialCRCs = new Dictionary<EntityId, int>();
 
         // Global shader variables ray tracing lightloop constant buffer
         ShaderVariablesRaytracingLightLoop m_ShaderVariablesRaytracingLightLoopCB = new ShaderVariablesRaytracingLightLoop();
@@ -200,7 +200,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     && HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.upperBound >= currentMaterial.renderQueue);
         }
 
-        private static bool UpdateMaterialCRC(int matInstanceId, int matCRC)
+        private static bool UpdateMaterialCRC(EntityId matInstanceId, int matCRC)
         {
             int matPrevCRC;
             if (m_MaterialCRCs.TryGetValue(matInstanceId, out matPrevCRC))

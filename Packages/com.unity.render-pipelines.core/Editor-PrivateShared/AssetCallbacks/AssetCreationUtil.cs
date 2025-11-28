@@ -92,7 +92,7 @@ namespace UnityEditor.RenderPipelines.Core
             assetCreationCallback.extension = extension;
 
             var icon = AssetPreview.GetMiniTypeThumbnail(type);
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, assetCreationCallback, name, icon, null, false);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(EntityId.None, assetCreationCallback, name, icon, null, false);
         }
 
         class AssetCreationCallback : ProjectWindowCallback.AssetCreationEndAction

@@ -119,7 +119,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     throw new InvalidOperationException("No valid payload provided");
 
                 writer.Write(debugDataPayload.graphName);
+#pragma warning disable 618 //todo @emilie.thaulow replace with proper read of EntityId
                 writer.Write(debugDataPayload.executionId);
+#pragma warning restore 618
                 writer.Write(DebugDataSerialization.ToJson(debugDataPayload.debugData));
             }
             else if (type == MessageType.AnalyticsData)
@@ -156,7 +158,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 }
 
                 payload.graphName = reader.ReadString();
+#pragma warning disable 618 //todo @emilie.thaulow replace with proper read of EntityId
                 payload.executionId = reader.ReadInt32();
+#pragma warning restore 618
                 payload.debugData = DebugDataSerialization.FromJson(reader.ReadString());
                 return (type, payload);
             }

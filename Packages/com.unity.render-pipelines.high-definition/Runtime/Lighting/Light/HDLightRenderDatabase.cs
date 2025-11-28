@@ -317,7 +317,7 @@ namespace UnityEngine.Rendering.HighDefinition
         //Dots lights wont have to use this and instead will have to set this data on their own.
         public unsafe void AttachGameObjectData(
             HDLightRenderEntity entity,
-            int instanceID,
+            EntityId entityId,
             HDAdditionalLightData additionalLightData,
             GameObject aovGameObject)
         {
@@ -329,10 +329,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (dataIndex == InvalidDataIndex)
                 return;
 
-            entityInfo.lightInstanceID = instanceID;
+            entityInfo.lightEntityId = entityId;
             m_LightEntities[entity.entityIndex] = entityInfo;
 
-            m_LightsToEntityItem.Add(entityInfo.lightInstanceID, entityInfo);
+            m_LightsToEntityItem.Add(entityInfo.lightEntityId, entityInfo);
             m_HDAdditionalLightData[dataIndex] = additionalLightData;
             m_AOVGameObjects[dataIndex] = aovGameObject;
             HDAdditionalLightDataUpdateInfo updateInfo = default;
@@ -359,7 +359,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_FreeIndices.Enqueue(lightEntity.entityIndex);
             LightEntityInfo entityData = m_LightEntities[lightEntity.entityIndex];
-            m_LightsToEntityItem.Remove(entityData.lightInstanceID);
+            m_LightsToEntityItem.Remove(entityData.lightEntityId);
 
             var lightData = m_HDAdditionalLightData[entityData.dataIndex];
             if (lightData != null)
@@ -385,8 +385,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 LightEntityInfo dataToUpdate = m_LightEntities[entityToUpdate.entityIndex];
                 dataToUpdate.dataIndex = entityData.dataIndex;
                 m_LightEntities[entityToUpdate.entityIndex] = dataToUpdate;
-                if (dataToUpdate.lightInstanceID != entityData.lightInstanceID)
-                    m_LightsToEntityItem[dataToUpdate.lightInstanceID] = dataToUpdate;
+                if (dataToUpdate.lightEntityId != entityData.lightEntityId)
+                    m_LightsToEntityItem[dataToUpdate.lightEntityId] = dataToUpdate;
             }
         }
 
@@ -541,9 +541,9 @@ namespace UnityEngine.Rendering.HighDefinition
         private struct LightEntityInfo
         {
             public int dataIndex;
-            public int lightInstanceID;
-            public static readonly LightEntityInfo Invalid = new LightEntityInfo() { dataIndex = InvalidDataIndex, lightInstanceID = -1 };
-            public bool valid { get { return dataIndex != -1 && lightInstanceID != -1; } }
+            public EntityId lightEntityId;
+            public static readonly LightEntityInfo Invalid = new LightEntityInfo() { dataIndex = InvalidDataIndex, lightEntityId = EntityId.None };
+            public bool valid { get { return dataIndex != -1 && lightEntityId != EntityId.None; } }
         }
 
         internal struct SpotLightCallbackData
@@ -569,7 +569,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private NativeList<HDShadowRequestSetHandle> m_ShadowRequestSetPackedHandles;
 
         private Queue<int> m_FreeIndices = new Queue<int>();
-        private Dictionary<int, LightEntityInfo> m_LightsToEntityItem = new Dictionary<int, LightEntityInfo>();
+        private Dictionary<EntityId, LightEntityInfo> m_LightsToEntityItem = new Dictionary<EntityId, LightEntityInfo>();
 
         private NativeArray<HDLightRenderData> m_LightData;
         private NativeArray<HDLightRenderEntity> m_OwnerEntity;
@@ -652,7 +652,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             int newIndex = m_LightCount++;
-            LightEntityInfo newDataIndex = new LightEntityInfo { dataIndex = newIndex, lightInstanceID = -1 };
+            LightEntityInfo newDataIndex = new LightEntityInfo { dataIndex = newIndex, lightEntityId = EntityId.None };
             return newDataIndex;
         }
 

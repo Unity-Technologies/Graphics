@@ -175,14 +175,14 @@ namespace UnityEngine.Rendering.Universal
         internal ushort[] indices { get { return m_Triangles; } set { m_Triangles = value; } }
 
         // Transients
-        int m_PreviousLightCookieSprite;
+        EntityId m_PreviousLightCookieSprite;
         internal Vector3 m_CachedPosition;
 
         // We use Blue Channel of LightMesh's vertex color to indicate Slot Index.
         int m_BatchSlotIndex = 0;
         internal int batchSlotIndex { get { return m_BatchSlotIndex; } set {  m_BatchSlotIndex = value; } }
 
-        private int lightCookieSpriteInstanceID => lightCookieSprite?.GetEntityId() ?? EntityId.None;
+        private EntityId lightCookieSpriteEntityId => lightCookieSprite?.GetEntityId() ?? EntityId.None;
 
         internal bool useCookieSprite => (lightType == LightType.Point || lightType == LightType.Sprite) && (lightCookieSprite != null && lightCookieSprite.texture != null);
 
@@ -501,7 +501,7 @@ namespace UnityEngine.Rendering.Universal
             var parametricRadiusChanged = LightUtility.CheckForChange(m_ShapeLightParametricRadius, ref m_PreviousShapeLightParametricRadius);
             var parametricSidesChanged = LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
             var parametricAngleOffsetChanged = LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);
-            var spriteInstanceChanged = LightUtility.CheckForChange(lightCookieSpriteInstanceID, ref m_PreviousLightCookieSprite);
+            var spriteInstanceChanged = LightUtility.CheckForChange(lightCookieSpriteEntityId, ref m_PreviousLightCookieSprite);
             var shapePathHashChanged = LightUtility.CheckForChange(shapePathHash, ref m_PreviousShapePathHash);
             var lightTypeChanged = LightUtility.CheckForChange(m_LightType, ref m_PreviousLightType);
             var hashChanged = fallOffSizeChanged || parametricRadiusChanged || parametricSidesChanged ||
@@ -585,7 +585,7 @@ namespace UnityEngine.Rendering.Universal
 
         void OnEnable()
         {
-            m_PreviousLightCookieSprite = lightCookieSpriteInstanceID;
+            m_PreviousLightCookieSprite = lightCookieSpriteEntityId;
             Light2DManager.RegisterLight(this);
             UpdateCookieSpriteTexture();
 

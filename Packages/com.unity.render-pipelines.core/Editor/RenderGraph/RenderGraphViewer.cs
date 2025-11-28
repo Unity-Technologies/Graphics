@@ -124,7 +124,7 @@ namespace UnityEditor.Rendering
 
         bool m_Paused = false;
 
-        static int s_EditorWindowInstanceId;
+        static EntityId s_EditorWindowEntityId;
         DateTime m_LastDataCaptureTime = DateTime.MinValue;
         string m_ConnectedDeviceName = "Local Editor";
         bool m_IsDeviceConnected = true;
@@ -2087,7 +2087,7 @@ namespace UnityEditor.Rendering
 
         void CreateGUI()
         {
-            s_EditorWindowInstanceId = GetEntityId();
+            s_EditorWindowEntityId = GetEntityId();
 
             if (EditorPrefs.HasKey(kPassFilterLegacyEditorPrefsKey))
                 m_PassFilterLegacy = (PassFilterLegacy)EditorPrefs.GetInt(kPassFilterLegacyEditorPrefsKey);
@@ -2143,7 +2143,7 @@ namespace UnityEditor.Rendering
             // maximized, seemingly nothing happens. When it gets unmaximized, both OnEnable() and OnDisable() get called
             // on a new EditorWindow instance, which I guess was the maximized one? Anyway we need to ignore this event
             // because the DebugSession is static and we don't want to unsubscribe because the window is still open.
-            if (s_EditorWindowInstanceId != GetEntityId())
+            if (s_EditorWindowEntityId != GetEntityId())
                 return;
 
             m_CurrentDebugData?.Clear();

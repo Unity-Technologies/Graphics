@@ -115,7 +115,7 @@ namespace UnityEditor.VFX
             return traitDescription;
         }
 
-        public virtual void GetImportDependentAssets(HashSet<int> dependencies)
+        public virtual void GetImportDependentAssets(HashSet<EntityId> dependencies)
         {
         }
 
@@ -404,7 +404,7 @@ namespace UnityEditor.VFX
             return base.CanBeCompiled() && m_Topology.CanBeCompiled() && m_Shading.CanBeCompiled();
         }
 
-        public sealed override void GetImportDependentAssets(HashSet<int> dependencies)
+        public sealed override void GetImportDependentAssets(HashSet<EntityId> dependencies)
         {
             base.GetImportDependentAssets(dependencies);
             m_Topology?.GetImportDependentAssets(dependencies);

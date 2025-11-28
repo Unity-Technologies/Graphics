@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering
         static void CreateVolumeProfile()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
-                0,
+                EntityId.None,
                 ScriptableObject.CreateInstance<CreateVolumeProfileAction>(),
                 "New Volume Profile.asset",
                 CoreUtils.GetIconForType<VolumeProfile>(),

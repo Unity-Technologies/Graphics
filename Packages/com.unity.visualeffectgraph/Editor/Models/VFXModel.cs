@@ -96,7 +96,7 @@ namespace UnityEditor.VFX
                 child.GetSourceDependentAssets(dependencies);
         }
 
-        public virtual void GetImportDependentAssets(HashSet<int> dependencies)
+        public virtual void GetImportDependentAssets(HashSet<EntityId> dependencies)
         {
             foreach (var child in children)
             {

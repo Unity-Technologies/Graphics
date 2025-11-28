@@ -126,7 +126,9 @@ namespace UnityEngine.Rendering
             if (Is2D(texture))
             {
                 Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, BlitType.Padding);
+#pragma warning disable 618 // todo @emilie.thaulow replace with GetIdentifier()
                 MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetEntityId(), blitMips);
+#pragma warning restore 618
             }
         }
 
@@ -145,7 +147,9 @@ namespace UnityEngine.Rendering
             if (Is2D(texture))
             {
                 Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, BlitType.PaddingMultiply);
+#pragma warning disable 618 // todo @emilie.thaulow replace with GetIdentifier()
                 MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetEntityId(), blitMips);
+#pragma warning restore 618
             }
         }
 
@@ -164,7 +168,9 @@ namespace UnityEngine.Rendering
             if (Is2D(texture))
             {
                 Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, BlitType.OctahedralPadding);
+#pragma warning disable 618 // todo @emilie.thaulow replace with GetIdentifier()
                 MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetEntityId(), blitMips);
+#pragma warning restore 618
             }
         }
 
@@ -183,7 +189,9 @@ namespace UnityEngine.Rendering
             if (Is2D(texture))
             {
                 Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, BlitType.OctahedralPaddingMultiply);
+#pragma warning disable 618 // todo @emilie.thaulow replace with GetIdentifier()
                 MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetEntityId(), blitMips);
+#pragma warning restore 618
             }
         }
 

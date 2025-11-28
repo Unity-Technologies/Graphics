@@ -270,7 +270,7 @@ namespace UnityEditor.VFX.UI
         {
             return new Parameter
             {
-                originalInstanceID = parameter.GetEntityId(),
+                originalEntityId = parameter.GetEntityId(),
                 name = parameter.exposedName,
                 category = parameter.category,
                 order = parameter.order,

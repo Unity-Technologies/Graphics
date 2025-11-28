@@ -311,7 +311,7 @@ namespace UnityEngine.Rendering
     {
         public const byte k_InvalidByteData = 0xff;
 
-        public NativeParallelHashMap<int, PerCameraInstanceDataArrays> perCameraData;
+        public NativeParallelHashMap<EntityId, PerCameraInstanceDataArrays> perCameraData;
 
         private NativeArray<int> m_StructData;
         public int instancesLength { get => m_StructData[0]; set => m_StructData[0] = value; }
@@ -361,7 +361,7 @@ namespace UnityEngine.Rendering
 
         public void Initialize(int initCapacity)
         {
-            perCameraData = new NativeParallelHashMap<int, PerCameraInstanceDataArrays>(1,Allocator.Persistent);
+            perCameraData = new NativeParallelHashMap<EntityId, PerCameraInstanceDataArrays>(1,Allocator.Persistent);
             m_StructData = new NativeArray<int>(2, Allocator.Persistent);
             instancesCapacity = initCapacity;
             instancesLength = 0;
@@ -653,8 +653,8 @@ namespace UnityEngine.Rendering
 
         // These accessors just for convenience and additional safety.
         // In general prefer converting an instance to an index and access by index.
-        public int Get_RendererGroupID(SharedInstanceHandle instance) { return rendererGroupIDs[SharedInstanceToIndex(instance)]; }
-        public int Get_MeshID(SharedInstanceHandle instance) { return meshIDs[SharedInstanceToIndex(instance)]; }
+        public EntityId Get_RendererGroupID(SharedInstanceHandle instance) { return rendererGroupIDs[SharedInstanceToIndex(instance)]; }
+        public EntityId Get_MeshID(SharedInstanceHandle instance) { return meshIDs[SharedInstanceToIndex(instance)]; }
         public unsafe ref AABB Get_LocalAABB(SharedInstanceHandle instance) { return ref UnsafeUtility.ArrayElementAsRef<AABB>(localAABBs.GetUnsafePtr(), SharedInstanceToIndex(instance)); }
         public CPUSharedInstanceFlags Get_Flags(SharedInstanceHandle instance) { return flags[SharedInstanceToIndex(instance)]; }
         public uint Get_LODGroupAndMask(SharedInstanceHandle instance) { return lodGroupAndMasks[SharedInstanceToIndex(instance)]; }
@@ -662,8 +662,8 @@ namespace UnityEngine.Rendering
         public int Get_RefCount(SharedInstanceHandle instance) { return refCounts[SharedInstanceToIndex(instance)]; }
         public unsafe ref SmallEntityIdArray Get_MaterialIDs(SharedInstanceHandle instance) { return ref UnsafeUtility.ArrayElementAsRef<SmallEntityIdArray>(materialIDArrays.GetUnsafePtr(), SharedInstanceToIndex(instance)); }
 
-        public void Set_RendererGroupID(SharedInstanceHandle instance, int rendererGroupID) { rendererGroupIDs[SharedInstanceToIndex(instance)] = rendererGroupID; }
-        public void Set_MeshID(SharedInstanceHandle instance, int meshID) { meshIDs[SharedInstanceToIndex(instance)] = meshID; }
+        public void Set_RendererGroupID(SharedInstanceHandle instance, EntityId rendererGroupID) { rendererGroupIDs[SharedInstanceToIndex(instance)] = rendererGroupID; }
+        public void Set_MeshID(SharedInstanceHandle instance, EntityId meshID) { meshIDs[SharedInstanceToIndex(instance)] = meshID; }
         public void Set_LocalAABB(SharedInstanceHandle instance, in AABB localAABB) { localAABBs[SharedInstanceToIndex(instance)] = localAABB; }
         public void Set_Flags(SharedInstanceHandle instance, CPUSharedInstanceFlags instanceFlags) { flags[SharedInstanceToIndex(instance)] = instanceFlags; }
         public void Set_LODGroupAndMask(SharedInstanceHandle instance, uint lodGroupAndMask) { lodGroupAndMasks[SharedInstanceToIndex(instance)] = lodGroupAndMask; }
@@ -676,7 +676,7 @@ namespace UnityEngine.Rendering
             materialIDArrays[index] = materialIDs;
         }
 
-        public void Set(SharedInstanceHandle instance, EntityId rendererGroupID, in SmallEntityIdArray materialIDs, int meshID, in AABB localAABB, TransformUpdateFlags transformUpdateFlags,
+        public void Set(SharedInstanceHandle instance, EntityId rendererGroupID, in SmallEntityIdArray materialIDs, EntityId meshID, in AABB localAABB, TransformUpdateFlags transformUpdateFlags,
             InstanceFlags instanceFlags, uint lodGroupAndMask, GPUDrivenMeshLodInfo meshLodInfo, int gameObjectLayer, int refCount)
         {
             int index = SharedInstanceToIndex(instance);
@@ -695,7 +695,7 @@ namespace UnityEngine.Rendering
 
         public void SetDefault(SharedInstanceHandle instance)
         {
-            Set(instance, EntityId.None, default, 0, new AABB(), TransformUpdateFlags.None, InstanceFlags.None, k_InvalidLODGroupAndMask, new GPUDrivenMeshLodInfo(), 0, 0);
+            Set(instance, EntityId.None, default, EntityId.None, new AABB(), TransformUpdateFlags.None, InstanceFlags.None, k_InvalidLODGroupAndMask, new GPUDrivenMeshLodInfo(), 0, 0);
         }
 
         public ReadOnly AsReadOnly()

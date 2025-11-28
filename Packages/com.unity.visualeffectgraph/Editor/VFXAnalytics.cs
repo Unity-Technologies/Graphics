@@ -125,7 +125,7 @@ namespace UnityEditor.VFX
 
                 var instanceId = view.controller.model.asset.GetEntityId();
                 var graphInfo = openedGraphInfo.SingleOrDefault(x => x.graph_id == instanceId);
-                if (graphInfo.graph_id > 0)
+                if (graphInfo.graph_id != EntityId.None)
                 {
                     openedGraphInfo.Remove(graphInfo);
                 }
@@ -195,7 +195,7 @@ namespace UnityEditor.VFX
         [Serializable]
         internal struct GraphInfo
         {
-            public int graph_id;
+            public EntityId graph_id;
             public int node_count;
             public List<string> experimentatl_node_names;
         }

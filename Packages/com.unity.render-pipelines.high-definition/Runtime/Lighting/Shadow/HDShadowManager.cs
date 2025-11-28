@@ -904,7 +904,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cachedShadowManager.directionalLightAtlas.UpdateSize(atlasResolution);
         }
 
-        internal int ReserveShadowResolutions(Vector2 resolution, ShadowMapType shadowMapType, int lightID, int index, ShadowMapUpdateType updateType)
+        internal int ReserveShadowResolutions(Vector2 resolution, ShadowMapType shadowMapType, EntityId lightID, int index, ShadowMapUpdateType updateType)
         {
             if (m_ShadowRequestCount >= m_MaxShadowRequests)
             {
