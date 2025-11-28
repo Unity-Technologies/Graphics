@@ -781,15 +781,16 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<PassData> GraphPasses(CompilerContextData ctx)
+        public readonly ReadOnlySpan<PassData> GraphPasses(CompilerContextData ctx, out NativeArray<PassData> actualPasses)
         {
             // When there's no pass being culled, we can directly return a Span of the Native List
             if (lastGraphPass - firstGraphPass + 1 == numGraphPasses)
             {
+                actualPasses = default;
                 return ctx.passData.MakeReadOnlySpan(firstGraphPass, numGraphPasses);
             }
 
-            var actualPasses =
+            actualPasses =
                 new NativeArray<PassData>(numGraphPasses, Allocator.Temp,
                     NativeArrayOptions.UninitializedMemory);
 
@@ -808,10 +809,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void GetGraphPassNames(CompilerContextData ctx, DynamicArray<Name> dest)
         {
-            foreach (ref readonly var pass in GraphPasses(ctx))
+            var span = GraphPasses(ctx, out var actualPasses);
+            foreach (ref readonly var pass in span)
             {
                 dest.Add(pass.GetName(ctx));
             }
+
+            if (actualPasses.IsCreated)
+                actualPasses.Dispose();
         }
 
         static bool CanMergeMSAASamples(ref NativePassData nativePass, ref PassData passToMerge)
@@ -953,7 +958,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 // Temporary cache of sampled textures in current Native Render Pass for conflict detection against fragments
                 using (HashSetPool<int>.Get(out var tempSampledTextures))
                 {
-                    var graphPasses = nativePass.GraphPasses(contextData);
+                    var graphPasses = nativePass.GraphPasses(contextData, out var actualPasses);
                     foreach (ref readonly var graphPass in graphPasses)
                     {
                         if (graphPass.numSampledOnlyRaster > 0) // Skip passes with no sampled textures
@@ -964,6 +969,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             }
                         }
                     }
+
+                    if (actualPasses.IsCreated)
+                        actualPasses.Dispose();
 
                     foreach (ref readonly var fragment in passToMerge.Fragments(contextData))
                     {

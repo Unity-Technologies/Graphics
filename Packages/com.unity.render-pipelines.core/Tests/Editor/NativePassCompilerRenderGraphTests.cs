@@ -1569,7 +1569,9 @@ namespace UnityEngine.Rendering.Tests
 
             ValidateNoGCAllocs(() =>
             {
-                passes[0].GraphPasses(result.contextData);
+                var graphPasses = passes[0].GraphPasses(result.contextData, out var actualPasses);
+                if (actualPasses.IsCreated)
+                    actualPasses.Dispose();
             });
 
             // From RenderPassCullingTests.cs
