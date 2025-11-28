@@ -1492,8 +1492,9 @@ namespace UnityEngine.Rendering.Universal
             int lastBaseCameraIndex = 0;
             for (int i = 0; i < cameras.Count; i++)
             {
+                // Assume a camera is a base camera if no UniversalAdditionalCameraData is available (e.g., for cameras created at runtime).
                 cameras[i].TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraAdditionalData);
-                if (baseCameraAdditionalData?.renderType == CameraRenderType.Base)
+                if (baseCameraAdditionalData == null || baseCameraAdditionalData.renderType == CameraRenderType.Base)
                     lastBaseCameraIndex = i;
             }
             return lastBaseCameraIndex;
