@@ -436,6 +436,7 @@
       * [StackLit Master Stack reference](stacklit-master-stack-reference.md)
       * [Canvas Master Stack reference](canvas-master-stack-reference.md)
       * [Fog Volume Master Stack reference](fog-volume-master-stack-reference.md)
+      * [Six Way Master Stack reference](six-way-master-stack-reference.md)
       * [Water Master Stack reference](master-stack-water.md)
       * [Terrain Master Stack reference](terrain-master-stack-reference.md)
   * [Environmental effects reference](reference-environmental-effects.md)
