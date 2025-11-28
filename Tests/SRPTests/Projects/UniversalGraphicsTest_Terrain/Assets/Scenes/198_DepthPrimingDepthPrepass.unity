@@ -245,8 +245,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ImageComparisonSettings:
-    TargetWidth: 640
-    TargetHeight: 360
+    TargetWidth: 1920
+    TargetHeight: 1080
     TargetMSAASamples: 1
     PerPixelCorrectnessThreshold: 0.0059
     PerPixelGammaThreshold: 0.0059

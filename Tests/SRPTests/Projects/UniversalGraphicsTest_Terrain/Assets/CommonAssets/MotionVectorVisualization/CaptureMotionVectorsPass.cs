@@ -49,17 +49,18 @@ namespace UnityEngine.Rendering.Universal
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
-            using (var builder = renderGraph.AddRenderPass<PassData>("Capture Motion Vector Pass", out var passData, s_ProfilingSampler))
+            using (var builder = renderGraph.AddUnsafePass<PassData>("Capture Motion Vector Pass", out var passData, s_ProfilingSampler))
             {
-                TextureHandle color = resourceData.activeColorTexture;
-                passData.target = builder.UseColorBuffer(color, 0);
+                passData.target = resourceData.activeColorTexture;
+                builder.SetRenderAttachment(passData.target, 0);
                 passData.isGameCamera = cameraData.camera.cameraType == CameraType.Game;
                 passData.material = m_Material;
                 passData.intensity = m_intensity;
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+                builder.SetRenderFunc((PassData data, UnsafeGraphContext rgContext) =>
                 {
-                    ExecutePass(data.target, rgContext.cmd, data.isGameCamera, data.material, data.intensity);
+                    var nativeCmd = CommandBufferHelpers.GetNativeCommandBuffer(rgContext.cmd);
+                    ExecutePass(data.target, nativeCmd, data.isGameCamera, data.material, data.intensity);
                 });
             }
         }
