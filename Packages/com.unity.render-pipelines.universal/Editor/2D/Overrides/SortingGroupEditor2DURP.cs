@@ -8,7 +8,7 @@ namespace UnityEditor
     [CustomEditor(typeof(UnityEngine.Rendering.SortingGroup))]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     [CanEditMultipleObjects]
-    internal class SortingGroupEditor2DURP : Editor
+    internal class SortingGroupEditor2DURP : SortingGroupEditor
     {
         private static class Styles
         {
@@ -19,8 +19,10 @@ namespace UnityEditor
         private SerializedProperty m_SortingLayerID;
         private SerializedProperty m_Sort3DAs2D;
 
-        public virtual void OnEnable()
+        public override void OnEnable()
         {
+            base.OnEnable();
+
             alwaysAllowExpansion = true;
             m_SortingOrder = serializedObject.FindProperty("m_SortingOrder");
             m_SortingLayerID = serializedObject.FindProperty("m_SortingLayerID");
