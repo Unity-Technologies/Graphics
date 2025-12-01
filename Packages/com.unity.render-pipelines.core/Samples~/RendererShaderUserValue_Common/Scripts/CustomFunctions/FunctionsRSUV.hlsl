@@ -9,6 +9,12 @@ void GetTexture2DArraySize_float(UnityTexture2DArray texture2DArray, out float W
     Height = h;
 }
 
+void GetColor_float(out float4 Color)
+{
+    uint data = GetData();
+    Color = DecodeUintToFloat4(data);
+}
+
 void GetRendererShaderUserValueHealth_float(out float Health, out bool ShowHealthBar, out float HealthBarOpacity)
 {
     uint data = GetData();

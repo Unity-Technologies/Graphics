@@ -59,19 +59,19 @@ public static class HelpersRSUV
     // Encode a Color32 type into the full raw uint
     public static uint EncodeData(Color32 color)
     {
-        return ((uint)color.r << 24) |
-               ((uint)color.g << 16) |
-               ((uint)color.b << 8) |
-               (uint)color.a;
+        return ((uint)color.r << 16) |
+               ((uint)color.g << 8) |
+               ((uint)color.b << 0) |
+               (uint)color.a  << 24;
     }
 
     // Encode a Color type into the full raw uint
     public static uint EncodeData(Color color)
     {
-        byte r = (byte)(Mathf.Clamp01(color.r) * 255f);
-        byte g = (byte)(Mathf.Clamp01(color.g) * 255f);
-        byte b = (byte)(Mathf.Clamp01(color.b) * 255f);
-        byte a = (byte)(Mathf.Clamp01(color.a) * 255f);
+        byte r = (byte)(Mathf.Clamp01(color.linear.r) * 255f);
+        byte g = (byte)(Mathf.Clamp01(color.linear.g) * 255f);
+        byte b = (byte)(Mathf.Clamp01(color.linear.b) * 255f);
+        byte a = (byte)(Mathf.Clamp01(color.linear.a) * 255f);
 
         return EncodeData(new Color32(r, g, b, a));
     }
