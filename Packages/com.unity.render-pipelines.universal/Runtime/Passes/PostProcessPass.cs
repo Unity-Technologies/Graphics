@@ -642,6 +642,7 @@ namespace UnityEngine.Rendering.Universal.CompatibilityMode
                     // Otherwise encoding will happen in the final post process pass or the final blit pass
                     HDROutputUtils.Operation hdrOperation = !m_HasFinalPass && m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
                     SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, m_Materials.uber, hdrOperation, cameraData.rendersOverlayUI);
+                    m_Materials.uber.SetVector(ShaderPropertyId.offscreenUIViewportParams, new Vector4(0f, 0f, 1f, 1f));
                 }
 
                 if (m_UseFastSRGBLinearConversion)
@@ -1627,6 +1628,7 @@ namespace UnityEngine.Rendering.Universal.CompatibilityMode
                     hdrOperations |= HDROutputUtils.Operation.ColorConversion;
 
                 SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, material, hdrOperations, cameraData.rendersOverlayUI);
+                material.SetVector(ShaderPropertyId.offscreenUIViewportParams, new Vector4(0f, 0f, 1f, 1f));
             }
 
             CoreUtils.SetKeyword(material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, cameraData.isAlphaOutputEnabled);

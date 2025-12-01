@@ -167,6 +167,17 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
         }
 
+        internal static void SetupOffscreenUIViewportParams(Material material, ref Rect pixelRect, bool isRenderToBackBufferTarget)
+        {
+            Vector4 offscreenUIViewportParams = new Vector4(0f, 0f, 1f, 1f);
+            if (isRenderToBackBufferTarget)
+            {
+                var rcpScreenSize = new Vector2(1f / Screen.width, 1f / Screen.height);
+                offscreenUIViewportParams = new Vector4(pixelRect.x * rcpScreenSize.x, pixelRect.y * rcpScreenSize.y, pixelRect.width * rcpScreenSize.x, pixelRect.height * rcpScreenSize.y);
+            }
+            material.SetVector(ShaderPropertyId.offscreenUIViewportParams, offscreenUIViewportParams);
+        }
+
 #if URP_COMPATIBILITY_MODE
         internal static void SetScaleBiasRt(RasterCommandBuffer cmd, in RenderingData renderingData)
         {
@@ -1114,7 +1125,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="textureHandle">Texture handle representing the texture in the render graph to check.</param>
         /// <returns>If the texture should be rendered flipped.</returns>
         internal static bool IsHandleYFlipped(in RasterGraphContext renderGraphContext, in TextureHandle textureHandle)
-        { 
+        {
             return renderGraphContext.GetTextureUVOrigin(textureHandle) == TextureUVOrigin.BottomLeft;
         }
 
