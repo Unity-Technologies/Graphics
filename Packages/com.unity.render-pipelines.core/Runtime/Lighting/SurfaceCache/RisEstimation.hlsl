@@ -51,15 +51,15 @@ SamplerState sampler_EnvironmentCubemap;
 UNIFIED_RT_DECLARE_ACCEL_STRUCT(_RayTracingAccelerationStructure);
 
 uint _FrameIdx;
-uint _GridSize;
+uint _VolumeSpatialResolution;
 uint _CascadeCount;
-float _VoxelMinSize;
 uint _MultiBounce;
 uint _CandidateCount;
 float _TargetFunctionUpdateWeight;
 uint _RingConfigOffset;
 float _ShortHysteresis;
-float3 _GridTargetPos;
+float3 _VolumeTargetPos;
+float _VolumeVoxelMinSize;
 float _MaterialAtlasTexelSize; // The size of 1 texel in the atlases above
 float _AlbedoBoost;
 float3 _DirectionalLightDirection;
@@ -112,7 +112,7 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
 {
     uint patchIdx = dispatchInfo.dispatchThreadID.x;
 
-    if (RingBuffer::IsPositionUnused(_RingConfigBuffer, _RingConfigOffset, patchIdx))
+    if (!RingBuffer::IsPositionInUse(_RingConfigBuffer, _RingConfigOffset, patchIdx))
         return;
 
     uint candidateCount = _CandidateCount;
@@ -169,11 +169,11 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
         sampler_EnvironmentCubemap,
         _PatchIrradiances,
         _CellPatchIndices,
-        _GridSize,
+        _VolumeSpatialResolution,
         _CascadeOffsets,
-        _GridTargetPos,
+        _VolumeTargetPos,
         _CascadeCount,
-        _VoxelMinSize);
+        _VolumeVoxelMinSize);
 
     // If we hit the backface of a water-tight piece of geometry we do nothing. This is to prevent accumulating "false" darkness
     // which can give artifacts if a patch reappears after temporarily being inside moving geometry.

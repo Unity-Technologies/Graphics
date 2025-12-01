@@ -19,7 +19,7 @@ float _ShortHysteresis;
 [numthreads(64, 1, 1)]
 void FilterTemporally(uint patchIdx : SV_DispatchThreadID)
 {
-    if (RingBuffer::IsPositionUnused(_RingConfigBuffer, _RingConfigOffset, patchIdx))
+    if (!RingBuffer::IsPositionInUse(_RingConfigBuffer, _RingConfigOffset, patchIdx))
         return;
 
     const SphericalHarmonics::RGBL1 newIrradiance = _InputPatchIrradiances[patchIdx];

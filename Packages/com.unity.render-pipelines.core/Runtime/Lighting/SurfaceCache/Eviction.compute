@@ -22,10 +22,7 @@ uint ModuloDistance(uint a, uint b, uint modulo)
 [numthreads(256, 1, 1)]
 void Evict(uint patchIdx : SV_DispatchThreadID)
 {
-    if (patchCapacity <= patchIdx)
-        return;
-
-    if (RingBuffer::IsPositionUnused(_RingConfigBuffer, _RingConfigOffset, patchIdx))
+    if (!RingBuffer::IsPositionInUse(_RingConfigBuffer, _RingConfigOffset, patchIdx))
         return;
 
     const uint cellIdx = _PatchCellIndices[patchIdx];

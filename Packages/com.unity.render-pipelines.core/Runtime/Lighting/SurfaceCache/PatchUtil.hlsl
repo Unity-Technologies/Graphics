@@ -28,7 +28,7 @@ namespace PatchUtil
 {
     static const uint invalidPatchIndex = UINT_MAX; // Must match C# side.
     static const uint invalidCellIndex = UINT_MAX; // Must match C# side.
-    static const uint gridCellAngularResolution = 4; // Must match C# side.
+    static const uint volumeAngularResolution = 4; // Must match C# side.
     static const float3 invalidIrradiance = float3(-1, -1, -1);
     static const uint updateMax = 32;
 
@@ -107,26 +107,26 @@ namespace PatchUtil
     struct VolumePositionResolution
     {
         uint cascadeIdx;
-        uint3 positionGridSpace;
+        uint3 positionVolumeSpace;
 
         void markInvalid()
         {
-            positionGridSpace = UINT_MAX;
+            positionVolumeSpace = UINT_MAX;
         }
 
         bool isValid()
         {
-            return all(positionGridSpace != UINT_MAX);
+            return all(positionVolumeSpace != UINT_MAX);
         }
     };
 
-    uint GetCellIndex(uint cascadeIdx, uint3 positionStorageSpace, uint directionIndex, uint gridSize, uint angularResolution)
+    uint GetCellIndex(uint cascadeIdx, uint3 positionStorageSpace, uint directionIndex, uint spatialResolution, uint angularResolution)
     {
         const uint angularResolutionSquared = angularResolution * angularResolution;
-        const uint gridSizeSquared = gridSize * gridSize;
+        const uint spatialResolutionSquared = spatialResolution * spatialResolution;
 
-        const uint cellsPerCascade = gridSizeSquared * gridSize * angularResolutionSquared;
-        const uint withinCascadeIdx = angularResolutionSquared * (positionStorageSpace.x * gridSizeSquared + positionStorageSpace.y * gridSize + positionStorageSpace.z) + directionIndex;
+        const uint cellsPerCascade = spatialResolutionSquared * spatialResolution * angularResolutionSquared;
+        const uint withinCascadeIdx = angularResolutionSquared * (positionStorageSpace.x * spatialResolutionSquared + positionStorageSpace.y * spatialResolution + positionStorageSpace.z) + directionIndex;
         return cellsPerCascade * cascadeIdx + withinCascadeIdx;
     }
 
@@ -154,42 +154,42 @@ namespace PatchUtil
         return VECTOR_LOGIC_SELECT(x < 0 && remainder != 0, modulus - remainder, remainder);
     }
 
-    uint3 ConvertGridSpaceToStorageSpace(uint3 posGridSpace, uint gridSize, int3 cascadeOffset)
+    uint3 ConvertVolumeSpaceToStorageSpace(uint3 posVolSpace, uint spatialResolution, int3 cascadeOffset)
     {
-        return SignedIntegerModulo(int3(posGridSpace) + cascadeOffset, gridSize);
+        return SignedIntegerModulo(int3(posVolSpace) + cascadeOffset, spatialResolution);
     }
 
-    uint3 ConvertStorageSpaceToGridSpace(uint3 posStorageSpace, uint gridSize, int3 cascadeOffset)
+    uint3 ConvertStorageSpaceToVolumeSpace(uint3 posStorageSpace, uint spatialResolution, int3 cascadeOffset)
     {
-        return SignedIntegerModulo(int3(posStorageSpace) - cascadeOffset, gridSize);
+        return SignedIntegerModulo(int3(posStorageSpace) - cascadeOffset, spatialResolution);
     }
 
-    bool IsInsideCascade(float3 gridTargetPos, float3 queryPos, float cascadeVoxelSize, uint gridSize)
+    bool IsInsideCascade(float3 volumeTargetPos, float3 queryPos, float cascadeVoxelSize, uint volumeSpatialResolution)
     {
-        const float3 dif = gridTargetPos - queryPos;
+        const float3 dif = volumeTargetPos - queryPos;
         const float difSquaredLength = dot(dif, dif);
-        // We subtract 0.5 here to account for the fact that the Grid Target Pos can move up to
+        // We subtract 0.5 here to account for the fact that the Volume Target Pos can move up to
         // 0.499... voxel sizes away from the cascade center in any dimension without causing the
         // cascade to move.
-        const float threshold = cascadeVoxelSize * (float(gridSize) * 0.5f - 0.5f);
+        const float threshold = cascadeVoxelSize * (float(volumeSpatialResolution) * 0.5f - 0.5f);
         const float squaredThreshold = threshold * threshold;
         return difSquaredLength < squaredThreshold;
     }
 
-    VolumePositionResolution ResolveVolumePosition(float3 queryPos, float3 gridTargetPos, uint gridSize, StructuredBuffer<int3> cascadeOffsets, uint cascadeCount, float voxelMinSize, uint startCascadeIdx = 0)
+    VolumePositionResolution ResolveVolumePosition(float3 queryPos, float3 volumeTargetPos, uint volumeSpatialResolution, StructuredBuffer<int3> cascadeOffsets, uint volumeCascadeCount, float volumeVoxelMinSize, uint startCascadeIdx = 0)
     {
         VolumePositionResolution resolution = (VolumePositionResolution)0; // Zero initialization is strictly not required but this silences a shader compiler warning.
-
         resolution.markInvalid();
-        const float halfGridSize = float(gridSize) * 0.5f;
-        for (uint cascadeIdx = startCascadeIdx; cascadeIdx < cascadeCount; ++cascadeIdx)
+        const float halfVolumeSize = float(volumeSpatialResolution) * 0.5f;
+
+        for (uint cascadeIdx = startCascadeIdx; cascadeIdx < volumeCascadeCount; ++cascadeIdx)
         {
-            const float cascadeVoxelSize = GetVoxelSize(voxelMinSize, cascadeIdx);
-            if (IsInsideCascade(gridTargetPos, queryPos, cascadeVoxelSize, gridSize))
+            const float cascadeVoxelSize = GetVoxelSize(volumeVoxelMinSize, cascadeIdx);
+            if (IsInsideCascade(volumeTargetPos, queryPos, cascadeVoxelSize, volumeSpatialResolution))
             {
                 const int3 cascadeOffset = cascadeOffsets[cascadeIdx];
-                const float3 centerRelativePositionSpatialGridSpace = queryPos / cascadeVoxelSize - cascadeOffset;
-                resolution.positionGridSpace = centerRelativePositionSpatialGridSpace + halfGridSize;
+                const float3 centerRelativePositionVolumeSpace = queryPos / cascadeVoxelSize - cascadeOffset;
+                resolution.positionVolumeSpace = centerRelativePositionVolumeSpace + halfVolumeSize;
                 resolution.cascadeIdx = cascadeIdx;
                 break;
             }
@@ -198,13 +198,13 @@ namespace PatchUtil
         return resolution;
     }
 
-    int ResolveCascadeIndex(float3 gridTargetPos, float3 queryPos, uint gridSize, uint cascadeCount, float voxelMinSize)
+    int ResolveCascadeIndex(float3 volumeTargetPos, float3 queryPos, uint volumeSpatialResolution, uint volumeCascadeCount, float volumeVoxelMinSize)
     {
         int result = -1;
-        for (uint cascadeIdx = 0; cascadeIdx < cascadeCount; ++cascadeIdx)
+        for (uint cascadeIdx = 0; cascadeIdx < volumeCascadeCount; ++cascadeIdx)
         {
-            const float cascadeVoxelSize = GetVoxelSize(voxelMinSize, cascadeIdx);
-            if (IsInsideCascade(gridTargetPos, queryPos, cascadeVoxelSize, gridSize))
+            const float cascadeVoxelSize = GetVoxelSize(volumeVoxelMinSize, cascadeIdx);
+            if (IsInsideCascade(volumeTargetPos, queryPos, cascadeVoxelSize, volumeSpatialResolution))
             {
                 result = cascadeIdx;
                 break;
@@ -266,10 +266,10 @@ namespace PatchUtil
         return result;
     }
 
-    bool ReadHemisphericalIrradiance(IrradianceBufferType patchIrradiances, CellPatchIndexBufferType cellPatchIndices, uint gridSize, uint cascadeIdx, uint3 gridSpacePosition, float3 worldNormal, out SphericalHarmonics::RGBL1 resultIrradiance)
+    bool ReadHemisphericalIrradiance(IrradianceBufferType patchIrradiances, CellPatchIndexBufferType cellPatchIndices, uint spatialResolution, uint cascadeIdx, uint3 volumeSpacePosition, float3 worldNormal, out SphericalHarmonics::RGBL1 resultIrradiance)
     {
-        const uint directionIdx = GetDirectionIndex(worldNormal, gridCellAngularResolution);
-        const uint cellIdx = GetCellIndex(cascadeIdx, gridSpacePosition, directionIdx, gridSize, gridCellAngularResolution);
+        const uint directionIdx = GetDirectionIndex(worldNormal, volumeAngularResolution);
+        const uint cellIdx = GetCellIndex(cascadeIdx, volumeSpacePosition, directionIdx, spatialResolution, volumeAngularResolution);
 
         bool resultBool = false;
         const uint patchIdx = cellPatchIndices[cellIdx];
@@ -282,14 +282,14 @@ namespace PatchUtil
         return resultBool;
     }
 
-    uint FindPatchIndex(float3 gridTargetPos, StructuredBuffer<uint> cellPatchIndices, uint gridSize, StructuredBuffer<int3> cascadeOffsets, uint cascadeCount, float voxelMinSize, float3 worldPosition, float3 worldNormal)
+    uint FindPatchIndex(float3 volumeTargetPos, StructuredBuffer<uint> cellPatchIndices, uint spatialResolution, StructuredBuffer<int3> cascadeOffsets, uint cascadeCount, float voxelMinSize, float3 worldPosition, float3 worldNormal)
     {
-        VolumePositionResolution posResolution = ResolveVolumePosition(worldPosition, gridTargetPos, gridSize, cascadeOffsets, cascadeCount, voxelMinSize);
+        VolumePositionResolution posResolution = ResolveVolumePosition(worldPosition, volumeTargetPos, spatialResolution, cascadeOffsets, cascadeCount, voxelMinSize);
         if (posResolution.isValid())
         {
-            const uint directionIdx = GetDirectionIndex(worldNormal, gridCellAngularResolution);
-            const uint3 positionStorageSpace = ConvertGridSpaceToStorageSpace(posResolution.positionGridSpace, gridSize, cascadeOffsets[posResolution.cascadeIdx]);
-            const uint cellIdx = GetCellIndex(posResolution.cascadeIdx, positionStorageSpace, directionIdx, gridSize, gridCellAngularResolution);
+            const uint directionIdx = GetDirectionIndex(worldNormal, volumeAngularResolution);
+            const uint3 positionStorageSpace = ConvertVolumeSpaceToStorageSpace(posResolution.positionVolumeSpace, spatialResolution, cascadeOffsets[posResolution.cascadeIdx]);
+            const uint cellIdx = GetCellIndex(posResolution.cascadeIdx, positionStorageSpace, directionIdx, spatialResolution, volumeAngularResolution);
             const uint patchIdx = cellPatchIndices[cellIdx];
             if (patchIdx != invalidPatchIndex)
             {
@@ -306,9 +306,9 @@ namespace PatchUtil
         }
     }
 
-    uint FindPatchIndexAndUpdateLastAccess(float3 gridTargetPos, StructuredBuffer<uint> cellPatchIndices, uint gridSize, StructuredBuffer<int3> cascadeOffsets, RWStructuredBuffer<PatchUtil::PatchCounterSet> patchCounterSets, uint cascadeCount, float voxelMinSize, float3 worldPosition, float3 worldNormal, uint frameIdx)
+    uint FindPatchIndexAndUpdateLastAccess(float3 volumeTargetPos, StructuredBuffer<uint> cellPatchIndices, uint spatialResolution, StructuredBuffer<int3> cascadeOffsets, RWStructuredBuffer<PatchUtil::PatchCounterSet> patchCounterSets, uint cascadeCount, float voxelMinSize, float3 worldPosition, float3 worldNormal, uint frameIdx)
     {
-        const uint patchIdx = FindPatchIndex(gridTargetPos, cellPatchIndices, gridSize, cascadeOffsets, cascadeCount, voxelMinSize,worldPosition, worldNormal);
+        const uint patchIdx = FindPatchIndex(volumeTargetPos, cellPatchIndices, spatialResolution, cascadeOffsets, cascadeCount, voxelMinSize,worldPosition, worldNormal);
         if (patchIdx != invalidPatchIndex)
         {
             WriteLastFrameAccess(patchCounterSets, patchIdx, frameIdx);
@@ -316,29 +316,29 @@ namespace PatchUtil
         return patchIdx;
     }
 
-    bool ReadHemisphericalIrradiance(IrradianceBufferType patchIrradiances, CellPatchIndexBufferType cellPatchIndices, uint gridSize, StructuredBuffer<int3> cascadeOffsets, float3 cascadeFocusPos, uint cascadeCount, float voxelMinSize, float3 worldPosition, float3 worldNormal, uint startCascadeIdx, out SphericalHarmonics::RGBL1 resultIrradiance)
+    bool ReadHemisphericalIrradiance(IrradianceBufferType patchIrradiances, CellPatchIndexBufferType cellPatchIndices, uint spatialResolution, StructuredBuffer<int3> cascadeOffsets, float3 cascadeFocusPos, uint cascadeCount, float voxelMinSize, float3 worldPosition, float3 worldNormal, uint startCascadeIdx, out SphericalHarmonics::RGBL1 resultIrradiance)
     {
-        VolumePositionResolution posResolution = ResolveVolumePosition(worldPosition, cascadeFocusPos, gridSize, cascadeOffsets, cascadeCount, voxelMinSize, startCascadeIdx);
+        VolumePositionResolution posResolution = ResolveVolumePosition(worldPosition, cascadeFocusPos, spatialResolution, cascadeOffsets, cascadeCount, voxelMinSize, startCascadeIdx);
         bool resultBool = false;
 
         resultIrradiance = (SphericalHarmonics::RGBL1)0; // Theoretically not required but added to silence a shader compilation warning.
 
         if (posResolution.isValid())
         {
-            const uint3 positionStorageSpace = ConvertGridSpaceToStorageSpace(posResolution.positionGridSpace, gridSize, cascadeOffsets[posResolution.cascadeIdx]);
-            resultBool = ReadHemisphericalIrradiance(patchIrradiances, cellPatchIndices, gridSize, posResolution.cascadeIdx, positionStorageSpace, worldNormal, resultIrradiance);
+            const uint3 positionStorageSpace = ConvertVolumeSpaceToStorageSpace(posResolution.positionVolumeSpace, spatialResolution, cascadeOffsets[posResolution.cascadeIdx]);
+            resultBool = ReadHemisphericalIrradiance(patchIrradiances, cellPatchIndices, spatialResolution, posResolution.cascadeIdx, positionStorageSpace, worldNormal, resultIrradiance);
         }
 
         return resultBool;
     }
 
-    bool ReadHemisphericalIrradiance(IrradianceBufferType patchIrradiances, CellPatchIndexBufferType cellPatchIndices, uint gridSize, StructuredBuffer<int3> cascadeOffsets, float3 cascadeFocusPos, uint cascadeCount, float voxelMinSize, float3 worldPosition, float3 worldNormal, out SphericalHarmonics::RGBL1 resultIrradiance)
+    bool ReadHemisphericalIrradiance(IrradianceBufferType patchIrradiances, CellPatchIndexBufferType cellPatchIndices, uint spatialResolution, StructuredBuffer<int3> cascadeOffsets, float3 cascadeFocusPos, uint cascadeCount, float voxelMinSize, float3 worldPosition, float3 worldNormal, out SphericalHarmonics::RGBL1 resultIrradiance)
     {
         const uint conservativeStartCascadeIdx = 0;
         return ReadHemisphericalIrradiance(
             patchIrradiances,
             cellPatchIndices,
-            gridSize,
+            spatialResolution,
             cascadeOffsets,
             cascadeFocusPos,
             cascadeCount,
@@ -349,23 +349,23 @@ namespace PatchUtil
             resultIrradiance);
     }
 
-    float3 ReadPlanarIrradiance(IrradianceBufferType patchIrradiances, CellPatchIndexBufferType cellPatchIndices, uint gridSize, uint cascadeIdx, uint3 gridSpacePosition, float3 worldNormal)
+    float3 ReadPlanarIrradiance(IrradianceBufferType patchIrradiances, CellPatchIndexBufferType cellPatchIndices, uint spatialResolution, uint cascadeIdx, uint3 volumeSpacePosition, float3 worldNormal)
     {
         SphericalHarmonics::RGBL1 resultIrradiance;
-        bool resultBool = ReadHemisphericalIrradiance(patchIrradiances, cellPatchIndices, gridSize, cascadeIdx, gridSpacePosition, worldNormal, resultIrradiance);
+        bool resultBool = ReadHemisphericalIrradiance(patchIrradiances, cellPatchIndices, spatialResolution, cascadeIdx, volumeSpacePosition, worldNormal, resultIrradiance);
         if (resultBool)
             return max(0, SphericalHarmonics::Eval(resultIrradiance, worldNormal));
         else
             return invalidIrradiance;
     }
 
-    float3 ReadPlanarIrradiance(float3 gridTargetPos, IrradianceBufferType patchIrradiances, CellPatchIndexBufferType cellPatchIndices, uint gridSize, StructuredBuffer<int3> cascadeOffsets, uint cascadeCount, float voxelMinSize, float3 worldPosition, float3 worldNormal)
+    float3 ReadPlanarIrradiance(float3 volumeTargetPos, IrradianceBufferType patchIrradiances, CellPatchIndexBufferType cellPatchIndices, uint spatialResolution, StructuredBuffer<int3> cascadeOffsets, uint cascadeCount, float voxelMinSize, float3 worldPosition, float3 worldNormal)
     {
-        VolumePositionResolution posResolution = ResolveVolumePosition(worldPosition, gridTargetPos, gridSize, cascadeOffsets, cascadeCount, voxelMinSize);
+        VolumePositionResolution posResolution = ResolveVolumePosition(worldPosition, volumeTargetPos, spatialResolution, cascadeOffsets, cascadeCount, voxelMinSize);
         if (posResolution.isValid())
         {
-            const uint3 positionStorageSpace = ConvertGridSpaceToStorageSpace(posResolution.positionGridSpace, gridSize, cascadeOffsets[posResolution.cascadeIdx]);
-            return ReadPlanarIrradiance(patchIrradiances, cellPatchIndices, gridSize, posResolution.cascadeIdx, positionStorageSpace, worldNormal);
+            const uint3 positionStorageSpace = ConvertVolumeSpaceToStorageSpace(posResolution.positionVolumeSpace, spatialResolution, cascadeOffsets[posResolution.cascadeIdx]);
+            return ReadPlanarIrradiance(patchIrradiances, cellPatchIndices, spatialResolution, posResolution.cascadeIdx, positionStorageSpace, worldNormal);
         }
         else
         {

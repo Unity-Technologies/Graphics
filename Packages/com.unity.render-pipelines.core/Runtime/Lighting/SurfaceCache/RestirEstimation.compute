@@ -20,7 +20,7 @@ float _ShortHysteresis;
 [numthreads(64, 1, 1)]
 void Estimate(uint patchIdx : SV_DispatchThreadID)
 {
-    if (RingBuffer::IsPositionUnused(_RingConfigBuffer, _RingConfigOffset, patchIdx))
+    if (!RingBuffer::IsPositionInUse(_RingConfigBuffer, _RingConfigOffset, patchIdx))
         return;
 
     const Realization realization = _PatchRealizations[patchIdx];
