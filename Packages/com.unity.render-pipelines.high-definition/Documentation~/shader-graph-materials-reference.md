@@ -16,6 +16,7 @@ Learn about the properties and behavior of HDRP Shader Graph contexts and master
 |[StackLit Master Stack reference](stacklit-master-stack-reference.md)|Properties and options in the StackLit master stack.|
 |[Canvas Master Stack reference](canvas-master-stack-reference.md)|Properties and options in the Canvas master stack.|
 |[Fog Volume Master Stack reference](fog-volume-master-stack-reference.md)|Properties and options in the Fog Volume master stack.|
+|[Six Way Master Stack reference](six-way-master-stack-reference.md)|Properties and options in the Six Way master stack.|
 
 ## Additional resources
 
