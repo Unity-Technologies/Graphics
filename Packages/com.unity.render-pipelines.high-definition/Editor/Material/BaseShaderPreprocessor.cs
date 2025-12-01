@@ -64,6 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Common keyword list
         protected ShaderKeyword m_Transparent;
         protected ShaderKeyword m_AlphaTestOn;
+        protected ShaderKeyword m_AreaShadowHigh;
         protected ShaderKeyword m_DebugDisplay;
         protected ShaderKeyword m_TileLighting;
         protected ShaderKeyword m_ClusterLighting;
@@ -115,6 +116,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // INSTANCING_ON
             m_Transparent = new ShaderKeyword("_SURFACE_TYPE_TRANSPARENT");
             m_AlphaTestOn = new ShaderKeyword("_ALPHATEST_ON");
+            m_AreaShadowHigh = new ShaderKeyword("AREA_SHADOW_HIGH");
             m_DebugDisplay = new ShaderKeyword("DEBUG_DISPLAY");
             m_TileLighting = new ShaderKeyword("USE_FPTL_LIGHTLIST");
             m_ClusterLighting = new ShaderKeyword("USE_CLUSTERED_LIGHTLIST");

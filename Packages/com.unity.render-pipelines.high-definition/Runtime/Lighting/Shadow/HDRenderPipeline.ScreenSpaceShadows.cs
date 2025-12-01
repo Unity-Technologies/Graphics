@@ -239,7 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
             }
 
-             switch (m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.directionalShadowFilteringQuality)
+            switch (m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.directionalShadowFilteringQuality)
             {
                 case HDShadowFilteringQuality.Low:
                     s_ScreenSpaceShadowsMat.EnableKeyword("DIRECTIONAL_SHADOW_LOW");
@@ -255,7 +255,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
             }
 
-           switch (m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.areaShadowFilteringQuality)
+            var areaShadowFilteringQuality = (ShaderConfig.s_AreaLights == 0) ? HDAreaShadowFilteringQuality.Medium
+                 : m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.areaShadowFilteringQuality;
+            switch (areaShadowFilteringQuality)
             {
                 case HDAreaShadowFilteringQuality.Medium:
                     s_ScreenSpaceShadowsMat.EnableKeyword("AREA_SHADOW_MEDIUM");
