@@ -5,7 +5,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
-using UnityEditorInternal.VR;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
