@@ -99,6 +99,8 @@ namespace Unity.UI.Shaders.Sample
         {
             _material ??= new(baseMaterial);
 
+            _material.CopyPropertiesFromMaterial(baseMaterial);
+
             if (_material.HasFloat(MeterValuePropertyId))
                 _material.SetFloat(MeterValuePropertyId, Value);
 
