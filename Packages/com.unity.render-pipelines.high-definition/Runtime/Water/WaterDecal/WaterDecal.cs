@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
             #endif
         }
 
-        internal int GetMaterialAtlasingId()
+        internal EntityId GetMaterialAtlasingId()
         {
 
 #pragma warning disable 618 // Todo(@daniel.andersen): Potentially use GetRawData or sometin'

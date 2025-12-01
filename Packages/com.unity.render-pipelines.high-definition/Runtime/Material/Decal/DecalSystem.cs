@@ -80,10 +80,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            Dictionary<int, Set> m_Requests = new Dictionary<int, Set>();
-            public Dictionary<int, Set> requests => m_Requests;
+            Dictionary<EntityId, Set> m_Requests = new Dictionary<EntityId, Set>();
+            public Dictionary<EntityId, Set> requests => m_Requests;
 
-            public Set this[int index]
+            public Set this[EntityId index]
             {
                 get
                 {
@@ -150,9 +150,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            Dictionary<int, Set> m_Requests = new Dictionary<int, Set>();
+            Dictionary<EntityId, Set> m_Requests = new Dictionary<EntityId, Set>();
 
-            public Set this[int index]
+            public Set this[EntityId index]
             {
                 get
                 {
@@ -190,10 +190,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public const int kInvalidIndex = -1;
-        public const int kNullMaterialIndex = int.MaxValue;
+        public static readonly EntityId kNullMaterialIndex = EntityId.None;
         public class DecalHandle
         {
-            public DecalHandle(int index, int materialID)
+            public DecalHandle(int index, EntityId materialID)
             {
                 m_MaterialID = materialID;
                 m_Index = index;
@@ -208,7 +208,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return true;
             }
 
-            public int m_MaterialID;    // identifies decal set
+            public EntityId m_MaterialID;    // identifies decal set
             public int m_Index;         // identifies decal within the set
         }
 
@@ -326,7 +326,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static public float[] m_BoundingDistances = new float[1];
 
-        private Dictionary<int, DecalSet> m_DecalSets = new Dictionary<int, DecalSet>();
+        private Dictionary<EntityId, DecalSet> m_DecalSets = new Dictionary<EntityId, DecalSet>();
         private List<DecalSet> m_DecalSetsRenderList = new List<DecalSet>(); // list of visible decalsets sorted by material draw order
 
         // current camera
@@ -765,7 +765,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Update memory allocation and assign decal handle, then update cached data
-            public DecalHandle AddDecal(int materialID, DecalProjector decalProjector)
+            public DecalHandle AddDecal(EntityId materialID, DecalProjector decalProjector)
             {
                 // increase array size if no space left
                 if (m_DecalsCount == m_Handles.Length)
@@ -1278,9 +1278,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var material = decalProjector.material;
 
             DecalSet decalSet = null;
-#pragma warning disable 618 // Todo(@daniel.andersen): Potentially use GetRawData or sometin'
-            int key = material != null ? material.GetEntityId() : kNullMaterialIndex;
-#pragma warning restore 618
+            EntityId key = material != null ? material.GetEntityId() : kNullMaterialIndex;
             if (!m_DecalSets.TryGetValue(key, out decalSet))
             {
 				SetupMipStreamingSettings(material, true);
@@ -1296,7 +1294,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             DecalSet decalSet = null;
-            int key = handle.m_MaterialID;
+            EntityId key = handle.m_MaterialID;
             if (m_DecalSets.TryGetValue(key, out decalSet))
             {
                 decalSet.RemoveDecal(handle);
@@ -1316,8 +1314,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return null;
 
             DecalSet decalSet = null;
-            int key = handle.m_MaterialID;
-            if (m_DecalSets.TryGetValue(key, out decalSet))
+            EntityId decalMaterialId = handle.m_MaterialID;
+            if (m_DecalSets.TryGetValue(decalMaterialId, out decalSet))
                 return decalSet;
             else
                 return null;

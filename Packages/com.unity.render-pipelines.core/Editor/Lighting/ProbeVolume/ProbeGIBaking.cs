@@ -1643,9 +1643,9 @@ namespace UnityEngine.Rendering
         /// Request additional bake request manager to recompute baked data for an array of requests
         /// </summary>
         /// <param name="probeInstanceIDs">Array of instance IDs of the probes doing the request.</param>
-        public static void BakeAdditionalRequests(int[] probeInstanceIDs)
+        public static void BakeAdditionalRequests(EntityId[] probeInstanceIDs)
         {
-            List<int> validProbeInstanceIDs = new List<int>();
+            List<EntityId> validProbeInstanceIDs = new List<EntityId>();
             List<Vector3> positions = new List<Vector3>();
             foreach (var probeInstanceID in probeInstanceIDs)
             {
@@ -1679,13 +1679,37 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Request additional bake request manager to recompute baked data for a given request
         /// </summary>
+        /// <param name="probeEntityId">The instance ID of the probe doing the request.</param>
+        public static void BakeAdditionalRequest(EntityId probeEntityId)
+        {
+            EntityId[] probeEntityIds = new EntityId[1];
+            probeEntityIds[0] = probeEntityId;
+
+            BakeAdditionalRequests(probeEntityIds);
+        }
+
+        // Obsolete wrapper methods for backward compatibility
+        /// <summary>
+        /// Request additional bake request manager to recompute baked data for an array of requests
+        /// </summary>
+        /// <param name="probeInstanceIDs">Array of instance IDs of the probes doing the request.</param>
+        [System.Obsolete("Use BakeAdditionalRequests(EntityId[]) instead. This method will be removed in a future version.")]
+        public static void BakeAdditionalRequests(int[] probeInstanceIDs)
+        {
+            var entityIds = new EntityId[probeInstanceIDs.Length];
+            for (int i = 0; i < probeInstanceIDs.Length; i++)
+                entityIds[i] = probeInstanceIDs[i];
+            BakeAdditionalRequests(entityIds);
+        }
+
+        /// <summary>
+        /// Request additional bake request manager to recompute baked data for a given request
+        /// </summary>
         /// <param name="probeInstanceID">The instance ID of the probe doing the request.</param>
+        [System.Obsolete("Use BakeAdditionalRequest(EntityId) instead. This method will be removed in a future version.")]
         public static void BakeAdditionalRequest(int probeInstanceID)
         {
-            int[] probeInstanceIDs = new int[1];
-            probeInstanceIDs[0] = probeInstanceID;
-
-            BakeAdditionalRequests(probeInstanceIDs);
+            BakeAdditionalRequest((EntityId)probeInstanceID);
         }
 
         static RenderingLayerBaker renderingLayerOverride = null;

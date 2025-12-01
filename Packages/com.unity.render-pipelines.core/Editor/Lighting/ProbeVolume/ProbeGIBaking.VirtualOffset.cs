@@ -149,9 +149,7 @@ namespace UnityEngine.Rendering
                     Span<bool> perSubMeshOpaqueness = stackalloc bool[subMeshCount];
                     perSubMeshOpaqueness.Fill(true);
 
-#pragma warning disable 618 // Todo(@daniel.andersen): Remove deprecated API usage
-                    accelStruct.AddInstance(renderer.component.GetEntityId(), renderer.component, maskAndMatDummy, maskAndMatDummy, perSubMeshOpaqueness, 1);
-#pragma warning restore 618
+                    accelStruct.AddInstance(renderer.component.GetEntityId().GetRawData(), renderer.component, maskAndMatDummy, maskAndMatDummy, perSubMeshOpaqueness, 1);
                 }
 
                 foreach (var terrain in contributors.terrains)
@@ -159,9 +157,7 @@ namespace UnityEngine.Rendering
                     int layerMask = 1 << terrain.component.gameObject.layer;
                     if ((layerMask & mask) == 0)
                         continue;
-#pragma warning disable 618 // Todo(@daniel.andersen): Remove deprecated API usage
-                    accelStruct.AddInstance(terrain.component.GetEntityId(), terrain.component, new uint[1] { 0xFFFFFFFF }, new uint[1] { 0xFFFFFFFF }, new bool[1] { true }, 1);
-#pragma warning restore 618
+                    accelStruct.AddInstance(terrain.component.GetEntityId().GetRawData(), terrain.component, new uint[1] { 0xFFFFFFFF }, new uint[1] { 0xFFFFFFFF }, new bool[1] { true }, 1);
                 }
 
                 return accelStruct;

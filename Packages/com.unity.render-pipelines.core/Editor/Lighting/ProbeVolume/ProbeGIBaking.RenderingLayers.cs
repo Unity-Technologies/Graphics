@@ -104,7 +104,7 @@ namespace UnityEngine.Rendering
                 Graphics.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }
-     
+
             static AccelStructAdapter BuildAccelerationStructure()
             {
                 var accelStruct = s_TracingContext.CreateAccelerationStructure();
@@ -127,18 +127,14 @@ namespace UnityEngine.Rendering
                     Span<bool> perSubMeshOpaqueness = stackalloc bool[subMeshCount];
                     perSubMeshOpaqueness.Fill(true);
 
-#pragma warning disable 618 // Todo(@daniel.andersen): Remove deprecated API usage
-                    accelStruct.AddInstance(renderer.component.GetEntityId(), renderer.component, perSubMeshMask, matIndices, perSubMeshOpaqueness, 1);
-#pragma warning restore 618
+                    accelStruct.AddInstance(renderer.component.GetEntityId().GetRawData(), renderer.component, perSubMeshMask, matIndices, perSubMeshOpaqueness, 1);
                 }
 
                 foreach (var terrain in contributors.terrains)
                 {
                     uint mask = GetInstanceMask(terrain.component.shadowCastingMode);
                     uint materialID = terrain.component.renderingLayerMask; // repurpose the material id as we don't need it here
-#pragma warning disable 618 // Todo(@daniel.andersen): Remove deprecated API usage
-                    accelStruct.AddInstance(terrain.component.GetEntityId(), terrain.component, new uint[1] { mask }, new uint[1] { materialID }, new bool[1] { true }, 1);
-#pragma warning restore 618
+                    accelStruct.AddInstance(terrain.component.GetEntityId().GetRawData(), terrain.component, new uint[1] { mask }, new uint[1] { materialID }, new bool[1] { true }, 1);
                 }
 
                 return accelStruct;

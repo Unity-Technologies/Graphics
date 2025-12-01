@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
     class DiffusionProfileHashTable
     {
         [System.NonSerialized]
-        static Dictionary<int,  uint>           diffusionProfileHashes = new Dictionary<int, uint>();
+        static Dictionary<EntityId,  uint>           diffusionProfileHashes = new Dictionary<EntityId, uint>();
 
         // Stable hash to avoid having different result after upgrading mono
         // Source: https://github.com/Unity-Technologies/mono/blob/unity-2021.2-mbe-pre-upgrade/mcs/class/referencesource/mscorlib/system/string.cs#L824
