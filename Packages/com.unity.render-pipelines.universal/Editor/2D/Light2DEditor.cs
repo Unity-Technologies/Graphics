@@ -213,7 +213,10 @@ namespace UnityEditor.Rendering.Universal
             labelRect.xMin += 16f;
             labelRect.xMax -= 20f;
 
-            bool newToggleState = GUI.Toggle(labelRect, toggleState.boolValue, " ");  // Needs a space because the checkbox won't have a proper outline if we don't make a space here
+            var labelRect_toggle = labelRect;
+            labelRect_toggle.width = labelRect.height;
+
+            bool newToggleState = GUI.Toggle(labelRect_toggle, toggleState.boolValue, " ");  // Needs a space because the checkbox won't have a proper outline if we don't make a space here
             bool newFoldoutState = CoreEditorUtils.DrawHeaderFoldout("", foldoutState.value);
 
             if (newToggleState != toggleState.boolValue)
