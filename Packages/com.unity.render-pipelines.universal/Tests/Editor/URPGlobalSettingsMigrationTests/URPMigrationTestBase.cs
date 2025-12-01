@@ -7,20 +7,22 @@ namespace UnityEditor.Rendering.Universal.Test
 {
     interface IGlobalSettingsMigrationTestCaseBase
     {
-        void SetUp(UniversalRenderPipelineGlobalSettings globalSettingsAsset, UniversalRenderPipelineAsset renderPipelineAsset);
+        void SetUp(UniversalRenderPipelineGlobalSettings globalSettingsAsset,
+            UniversalRenderPipelineAsset renderPipelineAsset);
 
-        void TearDown(UniversalRenderPipelineGlobalSettings globalSettingsAsset, UniversalRenderPipelineAsset renderPipelineAsset)
+        void TearDown(UniversalRenderPipelineGlobalSettings globalSettingsAsset,
+            UniversalRenderPipelineAsset renderPipelineAsset)
         {
-
         }
     }
 
-    interface IGlobalSettingsMigrationTestCase: IGlobalSettingsMigrationTestCaseBase
+    interface IGlobalSettingsMigrationTestCase : IGlobalSettingsMigrationTestCaseBase
     {
         bool IsMigrationCorrect(out string message);
     }
 
-    interface IRenderPipelineGraphicsSettingsTestCase<TRenderPipelineGraphicsSettings> : IGlobalSettingsMigrationTestCaseBase
+    interface
+        IRenderPipelineGraphicsSettingsTestCase<TRenderPipelineGraphicsSettings> : IGlobalSettingsMigrationTestCaseBase
         where TRenderPipelineGraphicsSettings : class, IRenderPipelineGraphicsSettings
     {
         bool IsMigrationCorrect(TRenderPipelineGraphicsSettings settings, out string message);
@@ -42,16 +44,24 @@ namespace UnityEditor.Rendering.Universal.Test
             }
 
             m_Asset = rpAsset;
-            m_OldInstance = EditorGraphicsSettings.GetRenderPipelineGlobalSettingsAsset<UniversalRenderPipeline>() as UniversalRenderPipelineGlobalSettings;
+            m_OldInstance =
+                EditorGraphicsSettings.GetRenderPipelineGlobalSettingsAsset<UniversalRenderPipeline>() as
+                    UniversalRenderPipelineGlobalSettings;
 
             m_Instance = ScriptableObject.CreateInstance<UniversalRenderPipelineGlobalSettings>();
-            m_Instance.name = $"{typeof(GlobalSettingsMigrationTestBase).Name}";
+            m_Instance.name = nameof(GlobalSettingsMigrationTestBase);
             EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset<UniversalRenderPipeline>(m_Instance);
 
             string assetPath = $"Assets/URP/MigrationTests/{m_Instance.name}.asset";
             CoreUtils.EnsureFolderTreeInAssetFilePath(assetPath);
             AssetDatabase.CreateAsset(m_Instance, assetPath);
             AssetDatabase.SaveAssets();
+        }
+
+        [SetUp]
+        public void SetUp()
+        {
+            Unity.RenderPipelines.Core.Runtime.Shared.InternalRenderPipelineGlobalSettingsUtils.ClearMigratedRenderPipelines();
         }
 
         [OneTimeTearDown]
@@ -76,13 +86,15 @@ namespace UnityEditor.Rendering.Universal.Test
             testCase.SetUp(m_Instance, m_Asset);
 
             UniversalRenderPipelineGlobalSettings.UpgradeAsset(m_Instance.GetEntityId());
-            bool migrationIsPerformed = m_Instance.m_AssetVersion == UniversalRenderPipelineGlobalSettings.k_LastVersion;
+            bool migrationIsPerformed =
+                m_Instance.m_AssetVersion == UniversalRenderPipelineGlobalSettings.k_LastVersion;
             bool migrationIsCorrect = false;
             string errorMessage = string.Empty;
             if (migrationIsPerformed)
             {
                 migrationIsCorrect = testCase.IsMigrationCorrect(out errorMessage);
             }
+
             testCase.TearDown(m_Instance, m_Asset);
 
             Assert.IsTrue(migrationIsPerformed, "Unable to perform the migration");
@@ -90,7 +102,9 @@ namespace UnityEditor.Rendering.Universal.Test
         }
     }
 
-    abstract class RenderPipelineGraphicsSettingsMigrationTestBase<TRenderPipelineGraphicsSettings> : GlobalSettingsMigrationTestBase
+    abstract class
+        RenderPipelineGraphicsSettingsMigrationTestBase<TRenderPipelineGraphicsSettings> :
+        GlobalSettingsMigrationTestBase
         where TRenderPipelineGraphicsSettings : class, IRenderPipelineGraphicsSettings
     {
         protected void DoTest(IRenderPipelineGraphicsSettingsTestCase<TRenderPipelineGraphicsSettings> testCase)
@@ -101,7 +115,8 @@ namespace UnityEditor.Rendering.Universal.Test
             testCase.SetUp(m_Instance, m_Asset);
 
             UniversalRenderPipelineGlobalSettings.UpgradeAsset(m_Instance.GetEntityId());
-            bool migrationIsPerformed = m_Instance.m_AssetVersion == UniversalRenderPipelineGlobalSettings.k_LastVersion;
+            bool migrationIsPerformed =
+                m_Instance.m_AssetVersion == UniversalRenderPipelineGlobalSettings.k_LastVersion;
             bool migrationIsCorrect = false;
             string errorMessage = string.Empty;
             if (migrationIsPerformed)
@@ -110,6 +125,7 @@ namespace UnityEditor.Rendering.Universal.Test
                     GraphicsSettings.GetRenderPipelineSettings<TRenderPipelineGraphicsSettings>(),
                     out errorMessage);
             }
+
             testCase.TearDown(m_Instance, m_Asset);
 
             Assert.IsTrue(migrationIsPerformed, "Unable to perform the migration");

@@ -10,7 +10,8 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Unity.RenderPipelines.GPUDriven.Runtime",
-        "Unity.RenderPipelines.Core.Editor.Shared"
+        "Unity.RenderPipelines.Core.Editor.Shared",
+        "Unity.RenderPipelines.Core.Runtime.Shared"
     ],
     "includePlatforms": [
         "Editor"
