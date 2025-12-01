@@ -298,6 +298,7 @@ namespace UnityEditor.VFX.UI
 
             m_Label = this.Q<Label>("user-label");
             m_TextField = this.Q<TextField>("user-title-textfield");
+            m_TextField.multiline = false;
             m_TextField.maxLength = 175;
             m_TextField.style.display = DisplayStyle.None;
 
