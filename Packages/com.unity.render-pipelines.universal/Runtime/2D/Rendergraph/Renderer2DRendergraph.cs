@@ -40,6 +40,7 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_RenderGraphBackbufferColorHandle;
         RTHandle m_RenderGraphBackbufferDepthHandle;
         RTHandle m_CameraSortingLayerHandle;
+        static RTHandle m_OffscreenUIColorHandle;
 
         Material m_BlitMaterial;
         Material m_BlitHDRMaterial;
@@ -116,8 +117,8 @@ namespace UnityEngine.Rendering.Universal
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + k_FinalBlitPassQueueOffset, m_BlitMaterial, m_BlitHDRMaterial);
             m_OffscreenUICoverPrepass = new FinalBlitPass(RenderPassEvent.BeforeRenderingPostProcessing, m_BlitMaterial, m_BlitOffscreenUICoverMaterial);
 
-            m_DrawOffscreenUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.BeforeRenderingPostProcessing, true);
-            m_DrawOverlayUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, false); // after m_FinalBlitPass
+            m_DrawOffscreenUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.BeforeRenderingPostProcessing);
+            m_DrawOverlayUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset); // after m_FinalBlitPass
 
             m_Renderer2DData = data;
             m_Renderer2DData.lightCullResult = new Light2DCullResult();
@@ -536,6 +537,9 @@ namespace UnityEngine.Rendering.Universal
 
             if (RequiresDepthCopyPass())
                 CreateCameraDepthCopyTexture(renderGraph, cameraTargetDescriptor);
+
+            if (cameraData.isHDROutputActive && cameraData.rendersOverlayUI)
+                CreateOffscreenUITexture(renderGraph, cameraTargetDescriptor);
         }
 
         void CreateCameraNormalsTextures(RenderGraph renderGraph, RenderTextureDescriptor descriptor, int width, int height)
@@ -647,6 +651,15 @@ namespace UnityEngine.Rendering.Universal
             depthDescriptor.depthStencilFormat = GraphicsFormat.None;
 
             resourceData.cameraDepthTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDescriptor, "_CameraDepthTexture", true);
+        }
+
+        void CreateOffscreenUITexture(RenderGraph renderGraph, in RenderTextureDescriptor descriptor)
+        {
+            UniversalResourceData resourceData = frameData.Get<CommonResourceData>();
+            TextureDesc textureDesc = new TextureDesc(descriptor);
+            DrawScreenSpaceUIPass.ConfigureOffscreenUITextureDesc(ref textureDesc);
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_OffscreenUIColorHandle, textureDesc, name: "_OverlayUITexture");
+            resourceData.overlayUITexture = renderGraph.ImportTexture(m_OffscreenUIColorHandle);
         }
 
         public override void OnBeginRenderGraphFrame()
@@ -854,11 +867,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, frameData, CoreUtils.GetDefaultDepthStencilFormat(), commonResourceData.overlayUITexture);
                     if (cameraData.blitsOffscreenUICover)
-                    {
-                        var blackTextureDesc = new RenderTextureDescriptor(1, 1, GraphicsFormat.R8G8B8A8_SRGB, 0);
-                        var source = UniversalRenderer.CreateRenderGraphTexture(renderGraph, blackTextureDesc, "BlackTexture", false);
-                        m_OffscreenUICoverPrepass.Render(renderGraph, cameraData, commonResourceData, source, true);
-                    }
+                        m_OffscreenUICoverPrepass.Render(renderGraph, cameraData, commonResourceData, renderGraph.defaultResources.blackTexture, true);
                 }
                 else
                 {

@@ -9,37 +9,15 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     internal class DrawScreenSpaceUIPass : ScriptableRenderPass
     {
-        RTHandle m_ColorTarget;
-        RTHandle m_DepthTarget;
-
-        // Whether to render on an offscreen render texture or on the current active render target
-        bool m_RenderOffscreen;
-
         /// <summary>
         /// Creates a new <c>DrawScreenSpaceUIPass</c> instance.
         /// </summary>
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
         /// <seealso cref="RenderPassEvent"/>
-        public DrawScreenSpaceUIPass(RenderPassEvent evt, bool renderOffscreen)
+        public DrawScreenSpaceUIPass(RenderPassEvent evt)
         {
             profilingSampler = ProfilingSampler.Get(URPProfileId.DrawScreenSpaceUI);
             renderPassEvent = evt;
-            m_RenderOffscreen = renderOffscreen;
-        }
-
-        /// <summary>
-        /// Get a descriptor for the required color texture for this pass.
-        /// </summary>
-        /// <param name="descriptor">Camera target descriptor.</param>
-        /// <param name="screenWidth">The full screen width.</param>
-        /// <param name="screenHeight">The full screen height.</param>
-        /// <seealso cref="RenderTextureDescriptor"/>
-        private static void ConfigureColorDescriptor(ref RenderTextureDescriptor descriptor, int screenWidth, int screenHeight)
-        {
-            descriptor.graphicsFormat = GraphicsFormat.R8G8B8A8_SRGB;
-            descriptor.depthStencilFormat = GraphicsFormat.None;
-            descriptor.width = screenWidth;
-            descriptor.height = screenHeight;
         }
 
         /// <summary>
@@ -80,30 +58,8 @@ namespace UnityEngine.Rendering.Universal
             commandBuffer.DrawRendererList(rendererList);
         }
 
-        // Non-RenderGraph path
         public void Dispose()
         {
-            m_ColorTarget?.Release();
-            m_DepthTarget?.Release();
-        }
-
-        /// <summary>
-        /// Configure the pass with the off-screen destination color texture and depth texture to execute the pass on.
-        /// </summary>
-        /// <param name="cameraData">Camera rendering data containing all relevant render target information.</param>
-        /// <param name="depthStencilFormat">Depth stencil format required for depth/stencil effects.</param>
-        public void Setup(UniversalCameraData cameraData, GraphicsFormat depthStencilFormat)
-        {
-            if (m_RenderOffscreen)
-            {
-                RenderTextureDescriptor colorDescriptor = cameraData.cameraTargetDescriptor;
-                ConfigureColorDescriptor(ref colorDescriptor, Screen.width, Screen.height);
-                RenderingUtils.ReAllocateHandleIfNeeded(ref m_ColorTarget, colorDescriptor, name: "_OverlayUITexture");
-
-                RenderTextureDescriptor depthDescriptor = cameraData.cameraTargetDescriptor;
-                ConfigureDepthDescriptor(ref depthDescriptor, depthStencilFormat, Screen.width, Screen.height);
-                RenderingUtils.ReAllocateHandleIfNeeded(ref m_DepthTarget, depthDescriptor, name: "_OverlayUITexture_Depth");
-            }
         }
         
         //RenderGraph path

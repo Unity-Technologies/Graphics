@@ -235,7 +235,6 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumeUpdate,
         CustomPassVolumeUpdate,
         OffscreenUIRendering,
-        ClearOffscreenUI,
         ComputeThickness,
 
         // XR
