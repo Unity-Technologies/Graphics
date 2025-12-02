@@ -797,7 +797,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 return ctx.passData.MakeReadOnlySpan(firstGraphPass, numGraphPasses);
             }
 
-            Debug.Assert(!ctx.compactedNonCulledRasterPasses.IsEmpty);
+            if (ctx.compactedNonCulledRasterPasses.IsEmpty)
+                throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_GraphPassesCalledBeforeCompactedNonCulledRasterPasses);
 
             return ctx.compactedNonCulledRasterPasses.MakeReadOnlySpan(firstCompactedNonCulledRasterPass, lastCompactedNonCulledRasterPass - firstCompactedNonCulledRasterPass + 1);
         }
