@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering
             get => Mathf.Max(0, DebugManager.instance.PanelIndex(selectedPanelDisplayName));
             set
             {
-                var displayName = DebugManager.instance.PanelDiplayName(value);
+                var displayName = DebugManager.instance.PanelDisplayName(value);
                 if (!string.IsNullOrEmpty(displayName))
                     selectedPanelDisplayName = displayName;
             }

@@ -41,8 +41,6 @@ For this effect, we need a Render Texture that contains the pixels we want to di
       - **Update Zone Space**: Normalized
       - **Update Zones**: list empty
 
-![The Custom Render Texture inspector as it looks with the preceding settings.](images/CustomRenderTextureInspector.png)
-
 The following Shader Graph reads the output of the Camera Render Texture, as well as the Self texture, then adds them and lerps the result so that it tends towards 0 over time. 
 
 ![The graph that is described in the preceding text.](images/CustomRenderTextureShaderGraph.png)

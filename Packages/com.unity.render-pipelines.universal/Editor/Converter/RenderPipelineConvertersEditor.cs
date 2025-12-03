@@ -97,8 +97,6 @@ namespace UnityEditor.Rendering.Universal
         Button m_InitAnConvertButton;
         Button m_ContainerHelpButton;
 
-        bool m_InitAndConvert;
-
         List<RenderPipelineConverter> m_CoreConvertersList = new List<RenderPipelineConverter>();
         List<VisualElement> m_VEList = new List<VisualElement>();
 
@@ -269,9 +267,6 @@ namespace UnityEditor.Rendering.Universal
                 m_InitButton = rootVisualElement.Q<Button>("initializeButton");
                 m_InitButton.RegisterCallback<ClickEvent>(InitializeAllActiveConverters);
 
-                m_InitAnConvertButton = rootVisualElement.Q<Button>("initializeAndConvert");
-                m_InitAnConvertButton.RegisterCallback<ClickEvent>(InitializeAndConvert);
-
                 m_ContainerHelpButton = rootVisualElement.Q<Button>("containerHelpButton");
                 m_ContainerHelpButton.RegisterCallback<ClickEvent>(GotoHelpURL);
                 m_ContainerHelpButton.Q<Image>("containerHelpImage").image = CoreEditorStyles.iconHelp;
@@ -287,43 +282,6 @@ namespace UnityEditor.Rendering.Universal
             if (DocumentationUtils.TryGetHelpURL(currentContainer.GetType(), out var url))
             {
                 Help.BrowseURL(url);
-            }
-        }
-
-        void InitOrConvert()
-        {
-            bool allSelectedHasInitialized = true;
-            // Check if all ticked ones have been initialized.
-            // If not then Init Button should be active
-            // Get all active converters
-
-            if (m_ConverterStates.Any())
-            {
-                foreach (ConverterState state in m_ConverterStates)
-                {
-                    if (state.isActiveAndEnabled && !state.isInitialized)
-                    {
-                        allSelectedHasInitialized = false;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                // If no converters is active.
-                // we should make the text somewhat disabled
-                allSelectedHasInitialized = false;
-            }
-
-            if (allSelectedHasInitialized)
-            {
-                m_ConvertButton.style.display = DisplayStyle.Flex;
-                m_InitButton.style.display = DisplayStyle.None;
-            }
-            else
-            {
-                m_ConvertButton.style.display = DisplayStyle.None;
-                m_InitButton.style.display = DisplayStyle.Flex;
             }
         }
 
@@ -471,7 +429,6 @@ namespace UnityEditor.Rendering.Universal
                 converterEnabledToggle.RegisterCallback<ClickEvent>((evt) =>
                 {
                     ConverterStatusInfo(id, item);
-                    InitOrConvert();
                     // This toggle needs to stop propagation since it is inside another clickable element
                     evt.StopPropagation();
                 });
@@ -603,7 +560,6 @@ namespace UnityEditor.Rendering.Universal
                 m_ScrollView.Add(item);
             }
 
-            InitOrConvert();
             HideUnhideConverters();
             rootVisualElement.Bind(m_SerializedObject);
         }
@@ -704,7 +660,6 @@ namespace UnityEditor.Rendering.Universal
                 m_SerializedObject.ApplyModifiedProperties();
 
                 CheckAllConvertersCompleted();
-                InitOrConvert();
             }
 
             void CheckAllConvertersCompleted()
@@ -742,17 +697,6 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        void InitializeAndConvert(ClickEvent evt)
-        {
-            m_InitAndConvert = ShouldCreateSearchIndex();
-
-            InitializeAllActiveConverters(evt);
-            if (!m_InitAndConvert)
-            {
-                Convert(evt);
-            }
-        }
-
         void InitializeAllActiveConverters(ClickEvent evt)
         {
             if (!SaveCurrentSceneAndContinue()) return;
@@ -779,7 +723,7 @@ namespace UnityEditor.Rendering.Universal
                 var title = $"Building {name} search index";
                 EditorUtility.DisplayProgressBar(title, "Creating search index...", -1f);
 
-                Search.SearchService.CreateIndex(name, IndexingOptions.Temporary | IndexingOptions.Extended,
+                Search.SearchService.CreateIndex(name, IndexingOptions.Temporary | IndexingOptions.Extended | IndexingOptions.Dependencies,
                     new[] { "Assets" },
                     new[] { ".prefab", ".unity", ".asset" },
                     null, OnSearchIndexCreated);
@@ -790,11 +734,6 @@ namespace UnityEditor.Rendering.Universal
                 EditorUtility.ClearProgressBar();
                 ConverterCollectData(() =>
                 {
-                    if (m_InitAndConvert)
-                    {
-                        Convert(null);
-                        m_InitAndConvert = false;
-                    }
                     EditorUtility.ClearProgressBar();
                     AssetDatabase.DesiredWorkerCount = m_WorkerCount;
                     AssetDatabase.ForceToDesiredWorkerCount();

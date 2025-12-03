@@ -60,6 +60,16 @@ UNITY_INSTANCING_BUFFER_END(PerInstance)
     #define VFX_GET_INSTANCE_ID(i)      input.instanceID
 #endif
 
+// These are supposed to be passed as a instanced constant property (unity_SpriteFlipArray) for sprites, but it doesn't work for VFX Shadergraph mesh outputs
+// because the instancing constant arrays (UNITY_DEFINE_INSTANCED_PROP...) are used for per-effect instancing in VFX, not per-particle instancing.
+// In any case, the value passed for VFX is always (1,1) currently, and not user-modifiable, so no need to get it from a constant buffer.
+#define unity_SpriteProps float4(1,1,1,1)
+#ifdef unity_SpriteColor
+#undef unity_SpriteColor
+#endif
+#define unity_SpriteColor float4(1,1,1,1)
+
+
 $splice(VFXPerBlockDefines)
 
 $splice(VFXSRPCommonInclude)
@@ -218,7 +228,7 @@ void GetElementData(inout AttributesElement element)
 
 #if !VFX_HAS_INDIRECT_DRAW && !HAS_STRIPS
     if (attributes.alive)
-#endif  
+#endif
     {
     $splice(VFXProcessBlocks)
     }

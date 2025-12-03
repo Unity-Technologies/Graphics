@@ -130,7 +130,8 @@ namespace UnityEditor.Rendering.Universal
                 // and we've already checked for other possible null exceptions here
                 if ((e.InnerException is NullReferenceException))
                 {
-                    Debug.LogWarning(generateErrorString(method.Name, obj.name));
+                    if (generateErrorString != null)
+                        Debug.LogWarning(generateErrorString(method.Name, obj.name));
                 }
                 else
                 {
