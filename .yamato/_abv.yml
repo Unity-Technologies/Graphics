@@ -9,7 +9,5 @@ graphics_repo_nightly_trunk:
           -  branch: master
              frequency: weekly
     dependencies:
-      -  path: .yamato/_templates.yml#all_template_ci_trunk
-         rerun: always
       -  path: .yamato/all-postprocessing.yml#PostProcessing_trunk
          rerun: always
