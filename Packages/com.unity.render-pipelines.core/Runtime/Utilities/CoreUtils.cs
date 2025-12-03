@@ -4,6 +4,9 @@ using System.IO;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using System.Runtime.CompilerServices;
+#if UNITY_6000_5_OR_NEWER
+using UnityEngine.Assemblies;
+#endif
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -1345,11 +1348,15 @@ namespace UnityEngine.Rendering
         /// <returns>The list of all assembly types of the current domain.</returns>
         public static IEnumerable<Type> GetAllAssemblyTypes()
         {
-            if (s_AssemblyTypes != null) 
+            if (s_AssemblyTypes != null)
                 return s_AssemblyTypes;
-            
+
             var typeList = new List<Type>();
+#if UNITY_6000_5_OR_NEWER
+            foreach (var assembly in CurrentAssemblies.GetLoadedAssemblies())
+#else
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+#endif
             {
                 try
                 {
