@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering
         /// <param name="debugSettings">The rendering debugger debug settings to read parameters from.</param>
         /// <param name="viewInstanceID">The instance ID of the camera using a GPU occlusion test.</param>
         /// <param name="colorBuffer">The color buffer to render the overlay on.</param>
-        public static void RenderDebugOcclusionTestOverlay(RenderGraph renderGraph, DebugDisplayGPUResidentDrawer debugSettings, int viewInstanceID, TextureHandle colorBuffer)
+        public static void RenderDebugOcclusionTestOverlay(RenderGraph renderGraph, DebugDisplayGPUResidentDrawer debugSettings, EntityId viewInstanceID, TextureHandle colorBuffer)
         {
             s_Instance?.batcher.occlusionCullingCommon.RenderDebugOcclusionTestOverlay(renderGraph, debugSettings, viewInstanceID, colorBuffer);
         }
@@ -334,7 +334,7 @@ namespace UnityEngine.Rendering
         private static readonly bool s_IsForcedOnViaCommandLine;
         private static readonly bool s_IsOcclusionForcedOnViaCommandLine;
 
-        private NativeList<int> m_FrameCameraIDs;
+        private NativeList<EntityId> m_FrameCameraIDs;
         private bool m_FrameUpdateNeeded = false;
 
         private bool m_IsSelectionDirty;
@@ -403,7 +403,7 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
             AssemblyReloadEvents.beforeAssemblyReload += OnAssemblyReload;
-            m_FrameCameraIDs = new NativeList<int>(1, Allocator.Persistent);
+            m_FrameCameraIDs = new NativeList<EntityId>(1, Allocator.Persistent);
             m_IsSelectionDirty = true; // Force at least one selection update
 #endif
             SceneManager.sceneLoaded += OnSceneLoaded;
@@ -512,7 +512,7 @@ namespace UnityEngine.Rendering
             bool newFrame = false;
             foreach (Camera camera in cameras)
             {
-                int instanceID = camera.GetEntityId();
+                EntityId instanceID = camera.GetEntityId();
                 if (m_FrameCameraIDs.Length == 0 || m_FrameCameraIDs.Contains(instanceID))
                 {
                     newFrame = true;
@@ -544,7 +544,7 @@ namespace UnityEngine.Rendering
             var rendererIDs = new NativeArray<EntityId>(renderers.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
             for (int i = 0; i < renderers.Length; ++i)
-                rendererIDs[i] = renderers[i] ? renderers[i].GetEntityId() : 0;
+                rendererIDs[i] = renderers[i] ? renderers[i].GetEntityId() : EntityId.None;
 
             m_Batcher.UpdateSelectedRenderers(rendererIDs);
 
@@ -945,7 +945,9 @@ namespace UnityEngine.Rendering
                         var meshID = meshIDArray[rendererIndex];
                         if (meshIDs.Contains(meshID))
                         {
+#pragma warning disable 618 // todo @emilie.thaulow make renderID an EntityId
                             renderersToAddForMeshes.AddNoResize(rendererID);
+#pragma warning restore 618
                             // We can skip the material check if we found a mesh match since at this point
                             // the renderer is already added and will be processed by the mesh branch
                             continue;
@@ -959,7 +961,10 @@ namespace UnityEngine.Rendering
                             var materialID = rendererMaterials[materialIndex];
                             if (materialIDs.Contains(materialID))
                             {
+
+#pragma warning disable 618 // todo @emilie.thaulow make renderID an EntityId
                                 renderersToAddForMaterials.AddNoResize(rendererID);
+#pragma warning restore 618
                                 break;
                             }
                         }

@@ -7,32 +7,62 @@ using UnityEngine.Rendering;
 using UnityEditor;
 #endif
 
-
 namespace UnityEngine.PathTracing.Core
 {
     internal class CubemapRender : IDisposable
     {
-        private Material _material;
+        internal enum Mode
+        {
+            Material,
+            Color
+        }
 
-        public CubemapRender(Mesh skyboxMesh, Mesh sixSixFaceSkyboxMesh)
+        private Material _material;
+        private Color _color = Color.black;
+        private readonly Mesh _skyboxMesh;
+        private readonly Mesh _sixFaceSkyboxMesh;
+        private RenderTexture _cubemap;
+        private int _hash;
+        private Mode _mode = Mode.Color;
+
+        private static readonly int[] _cubeFaceToSkyboxPass = { 2, 3, 4, 5, 0, 1 };
+        private static readonly Matrix4x4[] _cubemapFaceBases = new Matrix4x4[6]
+        {
+            new(new float4(0, 0, -1, 0), new float4(0, 1, 0, 0),  new float4(-1, 0, 0, 0), new float4(0, 0, 0, 1)),
+            new(new float4(0, 0, 1, 0),  new float4(0, 1, 0, 0),  new float4(1, 0, 0, 0),  new float4(0, 0, 0, 1)),
+            new(new float4(1, 0, 0, 0),  new float4(0, 0, -1, 0), new float4(0, -1, 0, 0), new float4(0, 0, 0, 1)),
+            new(new float4(1, 0, 0, 0),  new float4(0, 0, 1, 0),  new float4(0, 1, 0, 0),  new float4(0, 0, 0, 1)),
+            new(new float4(1, 0, 0, 0),  new float4(0, 1, 0, 0),  new float4(0, 0, -1, 0), new float4(0, 0, 0, 1)),
+            new(new float4(-1, 0, 0, 0), new float4(0, 1, 0, 0),  new float4(0, 0, 1, 0),  new float4(0, 0, 0, 1)),
+        };
+
+        public int Hash => _hash;
+
+        public CubemapRender(Mesh skyboxMesh, Mesh sixFaceSkyboxMesh)
         {
             _skyboxMesh = skyboxMesh;
-            _sixFaceSkyboxMesh = sixSixFaceSkyboxMesh;
-            _currentSkyboxHash = 0;
+            _sixFaceSkyboxMesh = sixFaceSkyboxMesh;
+            _hash = 0;
         }
 
         public void Dispose()
         {
-            if (_skyboxTexture != null)
-            {
-                _skyboxTexture.Release();
-                CoreUtils.Destroy(_skyboxTexture);
-            }
+            ReleaseCubemapIfExists();
         }
 
         public void SetMaterial(Material mat)
         {
             _material = mat;
+        }
+
+        public void SetColor(Color color)
+        {
+            _color = color;
+        }
+
+        public void SetMode(Mode mode)
+        {
+            _mode = mode;
         }
 
         public Material GetMaterial() => _material;
@@ -44,64 +74,95 @@ namespace UnityEngine.PathTracing.Core
             return cct * filter * light.intensity;
         }
 
-        public Texture GetCubemap(int cubemapResolution, out int hash)
+        public void Update(CommandBuffer cmd, Light sun, int resolution)
         {
-            if (!_material)
+            int newHash = ((int)_mode) + 1;
+            if (_mode == Mode.Color)
             {
-                // Note: prefabs have a null skyboxMaterial
-                hash = 42;
-                return CoreUtils.blackCubeTexture;
-            }
+                newHash ^= HashCode.Combine(_color.r, _color.g, _color.b);
 
-            hash = _material.ComputeCRC();
-            var light = RenderSettings.sun;
-            if (light != null)
+                if (newHash != _hash)
+                    RenderWithColor(cmd);
+            }
+            else if (_mode == Mode.Material)
             {
-                var color = LightColorInRenderingSpace(light);
-                var dir = -light.GetComponent<Transform>().forward;
-                hash ^= HashCode.Combine(color.r, color.g, color.b);
-                hash ^= HashCode.Combine(dir.x, dir.y, dir.z);
-            }
+                if (_material)
+                {
+                    newHash ^= _material.ComputeCRC();
+                    if (sun != null)
+                    {
+                        var color = LightColorInRenderingSpace(sun);
+                        var dir = -sun.GetComponent<Transform>().forward;
+                        newHash ^= HashCode.Combine(color.r, color.g, color.b);
+                        newHash ^= HashCode.Combine(dir.x, dir.y, dir.z);
+                    }
 
-            if (hash != _currentSkyboxHash)
-            {
-                Render(cubemapResolution);
-                _currentSkyboxHash = hash;
+                    if (newHash != _hash)
+                        RenderWithMaterial(cmd, sun, resolution);
+                }
+                else
+                {
+                    // Note: prefabs have a null skyboxMaterial
+                    newHash = 42;
+                    ReleaseCubemapIfExists();
+                }
             }
-
-           return _skyboxTexture;
+            _hash = newHash;
         }
 
-        public Texture Render(int cubemapResolution)
+        void ReleaseCubemapIfExists()
         {
-            if (_skyboxTexture == null || _skyboxTexture.width != cubemapResolution)
-                _skyboxTexture = CreateSkyboxTexture(cubemapResolution);
+            if (_cubemap != null)
+            {
+                _cubemap.Release();
+                CoreUtils.Destroy(_cubemap);
+                _cubemap = null;
+            }
+        }
 
-            using var cmd = new CommandBuffer();
+        public Texture GetCubemap()
+        {
+            return _cubemap != null ? _cubemap : CoreUtils.blackCubeTexture;
+        }
+
+        private void RenderWithColor(CommandBuffer cmd)
+        {
+            EnsureCubemapExistsWithParticularResolution(1);
+
+            for (int faceIndex = 0; faceIndex < 6; ++faceIndex)
+            {
+                cmd.SetRenderTarget(new RenderTargetIdentifier(_cubemap, 0, (CubemapFace) faceIndex));
+                cmd.SetViewport(new Rect(0, 0, 1, 1));
+                cmd.ClearRenderTarget(false, true, _color);
+            }
+        }
+
+        private void RenderWithMaterial(CommandBuffer cmd, Light sun, int cubemapResolution)
+        {
+            EnsureCubemapExistsWithParticularResolution(cubemapResolution);
 
             // We don't want to render  a (procedural) sun in our skybox for path tracing as it's already sampled as direct light
             bool isSunDisabled = _material.IsKeywordEnabled("_SUNDISK_NONE");
             if (!isSunDisabled)
                 _material.EnableKeyword("_SUNDISK_NONE");
 
-            var light = RenderSettings.sun;
             var properties = new MaterialPropertyBlock();
-            if (light != null)
+            if (sun != null)
             {
-                properties.SetVector(Shader.PropertyToID("_LightColor0"), LightColorInRenderingSpace(light));
-                properties.SetVector(Shader.PropertyToID("_WorldSpaceLightPos0"), -light.GetComponent<Transform>().forward);
+                properties.SetVector(Shader.PropertyToID("_LightColor0"), LightColorInRenderingSpace(sun));
+                properties.SetVector(Shader.PropertyToID("_WorldSpaceLightPos0"), -sun.GetComponent<Transform>().forward);
             }
 
             for (int faceIndex = 0; faceIndex < 6; ++faceIndex)
             {
-                var viewMatrix = CubemapFaceBases[faceIndex];
+                var viewMatrix = _cubemapFaceBases[faceIndex];
                 var proj = Matrix4x4.Perspective(90.0f, 1.0f, 0.1f, 10.0f);
                 if (IsOpenGLGfxDevice())
                     proj.SetColumn(1, -proj.GetColumn(1)); // flip Y axis
 
                 cmd.SetViewProjectionMatrices(viewMatrix, proj);
-                cmd.SetRenderTarget(new RenderTargetIdentifier(_skyboxTexture, 0, (CubemapFace) faceIndex));
-                cmd.SetViewport(new Rect(0, 0, _skyboxTexture.width, _skyboxTexture.height));
+                cmd.SetRenderTarget(new RenderTargetIdentifier(_cubemap, 0, (CubemapFace) faceIndex));
+                cmd.SetViewport(new Rect(0, 0, _cubemap.width, _cubemap.height));
                 cmd.ClearRenderTarget(false, true, new Color(0, 0, 0, 1));
 
 #if UNITY_EDITOR
@@ -109,7 +170,7 @@ namespace UnityEngine.PathTracing.Core
 #endif
                 if (_material.passCount == 6)
                 {
-                    int passIndex = CubeFaceToSkyboxPass[faceIndex];
+                    int passIndex = _cubeFaceToSkyboxPass[faceIndex];
                     cmd.DrawMesh(_sixFaceSkyboxMesh, Matrix4x4.identity, _material, passIndex, passIndex, properties);
                 }
                 else
@@ -121,32 +182,20 @@ namespace UnityEngine.PathTracing.Core
 #endif
             }
 
-            Graphics.ExecuteCommandBuffer(cmd);
-
             if (!isSunDisabled)
                 _material.DisableKeyword("_SUNDISK_NONE");
-
-            return _skyboxTexture;
         }
 
-        private static readonly Matrix4x4[] CubemapFaceBases = new Matrix4x4[6]
+        private void EnsureCubemapExistsWithParticularResolution(int resolution)
         {
-            new(new float4(0, 0, -1, 0), new float4(0, 1, 0, 0),  new float4(-1, 0, 0, 0), new float4(0, 0, 0, 1)),
-            new(new float4(0, 0, 1, 0),  new float4(0, 1, 0, 0),  new float4(1, 0, 0, 0),  new float4(0, 0, 0, 1)),
-            new(new float4(1, 0, 0, 0),  new float4(0, 0, -1, 0), new float4(0, -1, 0, 0), new float4(0, 0, 0, 1)),
-            new(new float4(1, 0, 0, 0),  new float4(0, 0, 1, 0),  new float4(0, 1, 0, 0),  new float4(0, 0, 0, 1)),
-            new(new float4(1, 0, 0, 0),  new float4(0, 1, 0, 0),  new float4(0, 0, -1, 0), new float4(0, 0, 0, 1)),
-            new(new float4(-1, 0, 0, 0), new float4(0, 1, 0, 0),  new float4(0, 0, 1, 0),  new float4(0, 0, 0, 1)),
-        };
+            if (_cubemap == null || _cubemap.width != resolution)
+            {
+                ReleaseCubemapIfExists();
+                CreateCubemap(resolution);
+            }
+        }
 
-        private static readonly int[] CubeFaceToSkyboxPass = { 2, 3, 4, 5, 0, 1 };
-
-        private readonly Mesh _skyboxMesh;
-        private readonly Mesh _sixFaceSkyboxMesh;
-        private RenderTexture _skyboxTexture;
-        private int _currentSkyboxHash;
-
-        private RenderTexture CreateSkyboxTexture(int width)
+        private void CreateCubemap(int width)
         {
             var texture = new RenderTexture(new RenderTextureDescriptor(){
                 dimension = TextureDimension.Cube,
@@ -160,11 +209,11 @@ namespace UnityEngine.PathTracing.Core
                 enableRandomWrite = true
             });
             texture.Create();
-            texture.name = "CreateSkyboxTexture";
-            return texture;
+            texture.name = "EnvironmentCubemap";
+            _cubemap = texture;
         }
 
-        private bool IsOpenGLGfxDevice()
+        private static bool IsOpenGLGfxDevice()
         {
             return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore;

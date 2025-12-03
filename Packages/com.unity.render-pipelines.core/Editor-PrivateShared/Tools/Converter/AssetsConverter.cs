@@ -30,7 +30,10 @@ namespace UnityEditor.Rendering.Converter
                 contextSearchQueriesAndIds,
                 (item, description) =>
                 {
-                    var assetItem = new RenderPipelineConverterAssetItem(item.id);
+                    var assetItem = new RenderPipelineConverterAssetItem(item.id)
+                    {
+                        info = description
+                    };
                     assets.Add(assetItem);
                 },
                 OnSearchFinish

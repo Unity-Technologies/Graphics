@@ -27,6 +27,8 @@ struct ps_output
 	float4 color : SV_Target0;
 	#if VFX_FEATURE_MOTION_VECTORS_FORWARD
 	float4 motionVector : SV_Target1;
+	#elif VFX_WRITE_RENDERING_LAYERS
+	uint outRenderingLayers : SV_Target1;
 	#endif
 };
 
@@ -73,6 +75,10 @@ ps_output frag(ps_input i)
 	${VFXComputeOutputMotionVector}
 	o.motionVector = encodedMotionVector;
 	o.motionVector.a = o.color.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f; //Independant clipping for motion vector pass
+	#endif
+
+	#if VFX_WRITE_RENDERING_LAYERS
+	o.outRenderingLayers = EncodeMeshRenderingLayer();
 	#endif
 
     ${VFXUnlitDebugDisplay}

@@ -125,7 +125,7 @@ namespace UnityEditor.VFX
 
                 var instanceId = view.controller.model.asset.GetEntityId();
                 var graphInfo = openedGraphInfo.SingleOrDefault(x => x.graph_id == instanceId);
-                if (graphInfo.graph_id > 0)
+                if (graphInfo.graph_id != EntityId.None)
                 {
                     openedGraphInfo.Remove(graphInfo);
                 }
@@ -182,8 +182,8 @@ namespace UnityEditor.VFX
             }
         }
 
-        const string k_AdditionalSamples = "VisualEffectGraph Additions";
-        const string k_AdditionalHelpers = "OutputEvent Helpers";
+        const string k_AdditionalSamplesOldName = "VisualEffectGraph Additions";
+        const string k_AdditionalHelpersOldName = "OutputEvent Helpers";
 
         static VFXAnalytics s_Instance;
 
@@ -195,7 +195,7 @@ namespace UnityEditor.VFX
         [Serializable]
         internal struct GraphInfo
         {
-            public int graph_id;
+            public EntityId graph_id;
             public int node_count;
             public List<string> experimentatl_node_names;
         }
@@ -401,8 +401,8 @@ namespace UnityEditor.VFX
                 data.experimental_node_names = experimentalNodeUsage.Keys.ToList();
                 data.experimental_node_count_per_asset = experimentalNodeUsage.Values.ToList();
 
-                data.has_samples_installed = HasPackage(k_AdditionalSamples) ? 1 : 0;
-                data.has_helpers_installed = HasPackage(k_AdditionalHelpers) ? 1 : 0;
+                data.has_samples_installed = HasPackage(VFXHelpDropdownButton.k_AdditionalSamples) || HasPackage(k_AdditionalSamplesOldName) ? 1 : 0;
+                data.has_helpers_installed = HasPackage(VFXHelpDropdownButton.k_AdditionalHelpers) || HasPackage(k_AdditionalHelpersOldName) ? 1 : 0;
 
                 data.system_template_used = analyticsData.systemTemplatesUsed;
                 data.compilation_error_names = analyticsData.compilationErrorsMessages;

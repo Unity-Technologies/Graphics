@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using NUnit.Framework;
+using UnityEditor.Rendering.Converter;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using static UnityEditor.Rendering.Universal.MaterialReferenceBuilder;
+using static UnityEditor.Rendering.Converter.MaterialReferenceBuilder;
 
 namespace UnityEditor.Rendering.Universal.Tools
 {
@@ -72,19 +73,23 @@ namespace UnityEditor.Rendering.Universal.Tools
         Material[] m_Materials;
         Material[] m_ExpectedMaterials;
 
+        BuiltInToURP3DReadonlyMaterialConverter m_Converter;
+
         [OneTimeSetUp]
         public void OneTimeSetup()
         {
             if (!(GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset))
                 Assert.Ignore("Current pipeline is not URP. Skipping tests");
 
-            m_Materials = ReadonlyMaterialMap.GetBuiltInMaterials();
+            m_Converter = new BuiltInToURP3DReadonlyMaterialConverter();
+
+            m_Materials = m_Converter.mappings.GetBuiltInMaterials();
             Assume.That(m_Materials.Length > 0, "There are no mapping materials");
 
             m_ExpectedMaterials = new Material[m_Materials.Length];
             for(int i = 0; i < m_Materials.Length; ++i)
             {
-                Assert.IsTrue(ReadonlyMaterialMap.TryGetMappingMaterial(m_Materials[i], out var expectedMaterial));
+                Assert.IsTrue(m_Converter.mappings.TryGetMappingMaterial(m_Materials[i], out var expectedMaterial));
                 m_ExpectedMaterials[i] = expectedMaterial;
             }
         }
@@ -150,7 +155,7 @@ namespace UnityEditor.Rendering.Universal.Tools
             var obj = CreateInstanceWithAllMaterials(classType, entry, out var getterArray, out var setterArray, out var getterSingle, out var setterSingle);
            
             // Perform the reassignment
-            using (var materialReferenceChanger = new MaterialReferenceChanger())
+            using (var materialReferenceChanger = new MaterialReferenceChanger(m_Converter.mappings))
             {
                 var sb = new StringBuilder();
                 bool ok = materialReferenceChanger.ReassignMaterials(obj, null, entry, sb);
@@ -169,7 +174,7 @@ namespace UnityEditor.Rendering.Universal.Tools
             var objPrefab = CreateInstanceWithAllMaterials(classType, entry, out var getterPrefabArray, out var setterPrefabArray, out var getterPrefabSingle, out var setterPrefabSingle);
 
             // Perform the reassignment
-            using (var materialReferenceChanger = new MaterialReferenceChanger())
+            using (var materialReferenceChanger = new MaterialReferenceChanger(m_Converter.mappings))
             {
                 var sb = new StringBuilder();
                 bool ok = materialReferenceChanger.ReassignMaterials(obj, objPrefab, entry, sb);
@@ -201,7 +206,7 @@ namespace UnityEditor.Rendering.Universal.Tools
             setterArray(builtInReversed);
 
             // Perform the reassignment
-            using (var materialReferenceChanger = new MaterialReferenceChanger())
+            using (var materialReferenceChanger = new MaterialReferenceChanger(m_Converter.mappings))
             {
                 var sb = new StringBuilder();
                 bool ok = materialReferenceChanger.ReassignMaterials(obj, objPrefab, entry, sb);

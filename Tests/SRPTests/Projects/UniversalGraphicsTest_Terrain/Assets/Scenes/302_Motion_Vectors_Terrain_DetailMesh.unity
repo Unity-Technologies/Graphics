@@ -183,6 +183,16 @@ PrefabInstance:
       propertyPath: m_NormalizedViewPortRect.height
       value: 10
       objectReference: {fileID: 0}
+    - target: {fileID: 5925587397941101150, guid: a477888deb65a194793f87af3323de08,
+        type: 3}
+      propertyPath: ImageComparisonSettings.UseBackBuffer
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5925587397941101150, guid: a477888deb65a194793f87af3323de08,
+        type: 3}
+      propertyPath: ImageComparisonSettings.ImageResolution
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6456975910273469994, guid: a477888deb65a194793f87af3323de08,
         type: 3}
       propertyPath: m_Name

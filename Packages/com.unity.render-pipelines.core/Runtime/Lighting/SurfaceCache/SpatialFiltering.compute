@@ -15,18 +15,18 @@ StructuredBuffer<uint> _CellPatchIndices;
 StructuredBuffer<int3> _CascadeOffsets;
 
 uint _FrameIdx;
-float _VoxelMinSize;
+float _VolumeVoxelMinSize;
 uint _CascadeCount;
-uint _GridSize;
+uint _VolumeSpatialResolution;
 uint _SampleCount;
 uint _RingConfigOffset;
 float _Radius;
-float3 _GridTargetPos;
+float3 _VolumeTargetPos;
 
 [numthreads(64, 1, 1)]
 void FilterSpatially(uint patchIdx : SV_DispatchThreadID)
 {
-    if (RingBuffer::IsPositionUnused(_RingConfigBuffer, _RingConfigOffset, patchIdx))
+    if (!RingBuffer::IsPositionInUse(_RingConfigBuffer, _RingConfigOffset, patchIdx))
         return;
 
     const PatchUtil::PatchGeometry patchGeo = _PatchGeometries[patchIdx];
@@ -41,17 +41,17 @@ void FilterSpatially(uint patchIdx : SV_DispatchThreadID)
     float3 right;
     OrthoBasisFromVector(patchGeo.normal, up, right);
 
-    const int cascadeResolution = PatchUtil::ResolveCascadeIndex(_GridTargetPos, patchGeo.position, _GridSize, _CascadeCount, _VoxelMinSize);
+    const int cascadeResolution = PatchUtil::ResolveCascadeIndex(_VolumeTargetPos, patchGeo.position, _VolumeSpatialResolution, _CascadeCount, _VolumeVoxelMinSize);
     const uint cascadeIdx = cascadeResolution != -1 ? cascadeResolution : _CascadeCount - 1;
 
     for (uint sampleIdx = 0; sampleIdx < _SampleCount; ++sampleIdx)
     {
         const float2 jitter = float2(rng.GetFloat(0), rng.GetFloat(1)) * 2.0f - 1.0f;
-        const float3 displacement = (up * jitter.x + right * jitter.y) * PatchUtil::GetVoxelSize(_VoxelMinSize, cascadeIdx) * _Radius;
+        const float3 displacement = (up * jitter.x + right * jitter.y) * PatchUtil::GetVoxelSize(_VolumeVoxelMinSize, cascadeIdx) * _Radius;
 
         SphericalHarmonics::RGBL1 irradiance;
         bool result = PatchUtil::ReadHemisphericalIrradiance(
-            _InputPatchIrradiances, _CellPatchIndices, _GridSize, _CascadeOffsets, _GridTargetPos, _CascadeCount, _VoxelMinSize,
+            _InputPatchIrradiances, _CellPatchIndices, _VolumeSpatialResolution, _CascadeOffsets, _VolumeTargetPos, _CascadeCount, _VolumeVoxelMinSize,
             patchGeo.position + displacement, patchGeo.normal, irradiance);
 
         if (result)

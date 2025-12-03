@@ -1,6 +1,12 @@
 // Required for the correct use of cross platform abstractions.
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
+// Configuration check
+#if VFX_FEATURE_MOTION_VECTORS_FORWARD && VFX_WRITE_RENDERING_LAYERS
+//VFX_FEATURE_MOTION_VECTORS_FORWARD is HDRP only, _WRITE_RENDERING_LAYERS is URP only, both can't be defined at same time
+#error Unexpected configuration VFX_FEATURE_MOTION_VECTORS_FORWARD & VFX_WRITE_RENDERING_LAYERS
+#endif
+
 //Helper to disable bounding box compute code
 #define USE_DYNAMIC_AABB 1
 

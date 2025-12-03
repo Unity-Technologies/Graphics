@@ -36,28 +36,28 @@ namespace RingBuffer
         return config;
     }
 
-    bool IsPositionOutsideRangeAssumingStartNotEqualEnd(uint start, uint end, uint pos)
+    bool IsPositionInUseAssumingStartNotEqualEnd(uint start, uint end, uint pos)
     {
         if(start < end)
-            return !(start <= pos && pos < end);
+            return start <= pos && pos < end;
         else if(end < start)
-            return end <= pos && pos < start;
+            return !(end <= pos && pos < start);
         else
             return true; // expected to never be taken
     }
 
-    bool IsPositionUnused(Config config, uint index)
+    bool IsPositionInUse(Config config, uint index)
     {
-        if (config.count == patchCapacity)
-            return config.count != patchCapacity;
+        if (config.start == config.end)
+            return config.count == patchCapacity;
         else
-            return IsPositionOutsideRangeAssumingStartNotEqualEnd(config.start, config.end, index);
+            return IsPositionInUseAssumingStartNotEqualEnd(config.start, config.end, index);
     }
 
-    bool IsPositionUnused(RingConfigBufferType buffer, uint bufferOffset, uint index)
+    bool IsPositionInUse(RingConfigBufferType buffer, uint bufferOffset, uint index)
     {
         Config config = LoadConfig(buffer, bufferOffset);
-        return IsPositionUnused(config, index);
+        return IsPositionInUse(config, index);
     }
 }
 

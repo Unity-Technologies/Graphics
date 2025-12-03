@@ -180,6 +180,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1604_Terrain_Holes.unity
     guid: c74289888608dce40a153ce7cebf20cf
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1605_Terrain_SmoothnessSource.unity
+    guid: ca38b1fb0302f34488cf0ff697674684
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1701_Decals.unity
     guid: a27cb5a638892574f99eb333bb3c7722
   - enabled: 1

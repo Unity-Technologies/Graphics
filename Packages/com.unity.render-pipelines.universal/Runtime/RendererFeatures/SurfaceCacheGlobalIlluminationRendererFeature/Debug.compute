@@ -24,14 +24,14 @@ Texture2D<float3> _ScreenShadedNormals;
 Texture2D<float3> _ScreenFlatNormals;
 
 uint _RingConfigOffset;
-uint _GridSize;
+uint _VolumeSpatialResolution;
 uint _CascadeCount;
-float _VoxelMinSize;
 uint _ViewMode;
 uint _ShowSamplePosition;
 float4x4 _ClipToWorldTransform;
 uint _FrameIdx;
-float3 _GridTargetPos;
+float _VolumeVoxelMinSize;
+float3 _VolumeTargetPos;
 
 uint _DummyBlackbox; // By using a uniform we force the compiler to not make any assumptions.
 float3 IsActuallyNan(float3 val) {
@@ -55,16 +55,16 @@ void Visualize(uint2 threadIdx : SV_DispatchThreadID)
     {
         const RingBuffer::Config ringConfig = RingBuffer::LoadConfig(_RingConfigBuffer, _RingConfigOffset);
         const uint patchIdx = float(threadIdx.x) / screenSize.x * patchCapacity;
-        if (RingBuffer::IsPositionUnused(ringConfig, patchIdx))
-        {
-            output = float3(1.0f, 1.0f, 1.0f);
-        }
-        else
+        if (RingBuffer::IsPositionInUse(ringConfig, patchIdx))
         {
             if (_PatchCellIndices[patchIdx] == PatchUtil::invalidCellIndex)
                 output = float3(1.0f, 0.0f, 0.0f);
             else
                 output = float3(0.0f, 1.0f, 0.0f);
+        }
+        else
+        {
+            output = float3(1.0f, 1.0f, 1.0f);
         }
     }
     else
@@ -78,13 +78,13 @@ void Visualize(uint2 threadIdx : SV_DispatchThreadID)
         const float3 worldShadedNormal = UnpackGBufferNormal(_ScreenShadedNormals[threadIdx.xy]);
         const float3 worldFlatNormal = _ScreenFlatNormals[threadIdx.xy];
 
-        PatchUtil::VolumePositionResolution posResolution = PatchUtil::ResolveVolumePosition(worldPos, _GridTargetPos, _GridSize, _CascadeOffsets, _CascadeCount, _VoxelMinSize);
+        PatchUtil::VolumePositionResolution posResolution = PatchUtil::ResolveVolumePosition(worldPos, _VolumeTargetPos, _VolumeSpatialResolution, _CascadeOffsets, _CascadeCount, _VolumeVoxelMinSize);
         output = float3(1.0f, 0.0f, 1.0f);
         if (posResolution.isValid())
         {
-            const uint directionIdx = PatchUtil::GetDirectionIndex(worldFlatNormal, PatchUtil::gridCellAngularResolution);
-            const uint3 positionStorageSpace = PatchUtil::ConvertGridSpaceToStorageSpace(posResolution.positionGridSpace, _GridSize, _CascadeOffsets[posResolution.cascadeIdx]);
-            const uint cellIdx = PatchUtil::GetCellIndex(posResolution.cascadeIdx, positionStorageSpace, directionIdx, _GridSize, PatchUtil::gridCellAngularResolution);
+            const uint directionIdx = PatchUtil::GetDirectionIndex(worldFlatNormal, PatchUtil::volumeAngularResolution);
+            const uint3 positionStorageSpace = PatchUtil::ConvertVolumeSpaceToStorageSpace(posResolution.positionVolumeSpace, _VolumeSpatialResolution, _CascadeOffsets[posResolution.cascadeIdx]);
+            const uint cellIdx = PatchUtil::GetCellIndex(posResolution.cascadeIdx, positionStorageSpace, directionIdx, _VolumeSpatialResolution, PatchUtil::volumeAngularResolution);
             const uint patchIdx = _CellPatchIndices[cellIdx];
             const bool hasPatch = (patchIdx != PatchUtil::invalidPatchIndex);
 

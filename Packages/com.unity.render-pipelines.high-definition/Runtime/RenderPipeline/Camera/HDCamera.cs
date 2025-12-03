@@ -367,7 +367,7 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Internal API
         internal struct ShadowHistoryUsage
         {
-            public int lightInstanceID;
+            public EntityId lightEntityId;
             public uint frameCount;
             public GPULightType lightType;
             public Matrix4x4 transform;
@@ -902,14 +902,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool ValidShadowHistory(HDAdditionalLightData lightData, int screenSpaceShadowIndex, GPULightType lightType)
         {
-            return shadowHistoryUsage[screenSpaceShadowIndex].lightInstanceID == lightData.GetEntityId()
+            return shadowHistoryUsage[screenSpaceShadowIndex].lightEntityId == lightData.GetEntityId()
                 && (shadowHistoryUsage[screenSpaceShadowIndex].frameCount == (cameraFrameCount - 1))
                 && (shadowHistoryUsage[screenSpaceShadowIndex].lightType == lightType);
         }
 
         internal void PropagateShadowHistory(HDAdditionalLightData lightData, int screenSpaceShadowIndex, GPULightType lightType)
         {
-            shadowHistoryUsage[screenSpaceShadowIndex].lightInstanceID = lightData.GetEntityId();
+            shadowHistoryUsage[screenSpaceShadowIndex].lightEntityId = lightData.GetEntityId();
             shadowHistoryUsage[screenSpaceShadowIndex].frameCount = cameraFrameCount;
             shadowHistoryUsage[screenSpaceShadowIndex].lightType = lightType;
             shadowHistoryUsage[screenSpaceShadowIndex].transform = lightData.transform.localToWorldMatrix;

@@ -1,0 +1,140 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
+  m_Name: Volumes_01
+  m_EditorClassIdentifier: 
+  Title:
+    m_Untranslated: What are Volumes?
+  m_Paragraphs:
+    m_Items:
+    - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
+      m_Tutorial: {fileID: 0}
+      m_Image: {fileID: 2800000, guid: b976b90444d2f2643b196eee391988a9, type: 3}
+      m_Video: {fileID: 0}
+      m_CriteriaCompletion: 0
+      m_Criteria:
+        m_Items: []
+      m_MaskingSettings:
+        m_MaskingEnabled: 0
+        m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
+    - m_Type: 0
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: "Volumes allow you to overrides certain HDRP settings per
+          Camera, this includes post-processing effects, lighting, shadows, fog,
+          sky, among others. These property overrides are stored in assets on disk
+          called <b>Volume Profiles.</b>\n\nThere are 3 main types of Volumes:  <b>Default,</b>
+          <b>Global,</b> and <b>Local.</b>\n\n\u2022 The <b>Default Volume</b> lives
+          under <b>Edit</b> > <b>Project Settings</b> > <b>Graphics</b> > <b>HDRP
+          Global Settings.</b> It defines the state of all project-wide Volume properties
+          affecting every Camera, in every Scene. Therefore, it is useful for setting
+          properties that are consistent across your project, such as Tonemapping
+          and Motion Blur, regardless of the loaded Scenes and the active Quality
+          Level and Render Pipeline Asset.\n\n\u2022 A <b>Global Volume</b> lives
+          inside the Scene as a Volume GameObject component. It can be considered
+          as infinitely large and is useful to control properties affecting the entire
+          world, such as Sky, Fog and Shadows, regardless of the Camera position.\n\n\u2022
+          A <b>Local Volume</b> also lives inside the Scene as a Volume GameObject
+          component, however it is used to override Volume properties within a very
+          specific area of the scene via a Box, Sphere, Capsule or Mesh collider.
+          Typically, the overriddes will be related to Post-processing and Exposure,
+          as these can greatly vary depending on the position of the Camera in the
+          Scene.\n\n\n<b>Expert tips</b>\n\nA fourth type of Volumes exists under
+          <b>Edit</b> > <b>Project Settings</b> > <b>Quality</b> > <b>HDRP</b> >
+          <b>Volumes.</b> This <b>Quality Volume</b> lets you define properties that
+          are specific to a Render Pipeline Asset, and therefore it can be tied to
+          a given Quality level and/or Platform. This may be useful for settings
+          up the properties of more expensive effects, such as the Ray Tracing ones.\n\nThe
+          properties set in the <b>Default Volume</b> and the <b>Quality Volume</b>
+          are applied at load time, therefore they do not have a runtime cost associated
+          with them. In contrast, Volume overrides defined using <b>Global</b> and
+          <b>Local Volumes</b> inside the scenes are evaluated every frame. Therefore,
+          it is recommended to use the <b>Default Volume</b> and optionally the <b>Quality
+          Volume</b> for values that do not need to vary at runtime."
+      m_Tutorial: {fileID: 0}
+      m_Image: {fileID: 0}
+      m_Video: {fileID: 0}
+      m_CriteriaCompletion: 0
+      m_Criteria:
+        m_Items: []
+      m_MaskingSettings:
+        m_MaskingEnabled: 0
+        m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
+  m_CameraSettings:
+    m_CameraMode: 1
+    m_FocusMode: 0
+    m_Orthographic: 0
+    m_Size: 9.263008
+    m_Pivot: {x: 40.67289, y: 2.5719264, z: 4.804869}
+    m_Rotation: {x: 1.1704407e-17, y: 0.5372997, z: -7.456531e-18, w: 0.8433914}
+    m_FrameObject:
+      m_SceneGuid: 
+      m_GameObjectGuid: 
+      m_SerializedComponentType:
+        m_TypeName: 
+      m_ComponentIndex: 0
+      m_AssetObject: {fileID: 0}
+      m_Prefab: {fileID: 0}
+    m_Enabled: 1
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_CompletedSound: {fileID: 0}
+  m_AutoAdvance: 0
+  Showing:
+    m_PersistentCalls:
+      m_Calls: []
+  Shown:
+    m_PersistentCalls:
+      m_Calls: []
+  Staying:
+    m_PersistentCalls:
+      m_Calls: []
+  CriteriaValidated:
+    m_PersistentCalls:
+      m_Calls: []
+  MaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  NonMaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforePageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_NextButton: 
+  m_DoneButton: 

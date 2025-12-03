@@ -103,8 +103,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cameraData.xr.enabled)
                 isRenderToBackBufferTarget = new RenderTargetIdentifier(destination.nameID, 0, CubemapFace.Unknown, -1) == new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, -1);
 #endif            
+            var pixelRect = data.useFullScreenViewport ? new Rect(0f, 0f, Screen.width, Screen.height) : cameraData.pixelRect;
+            RenderingUtils.SetupOffscreenUIViewportParams(data.blitMaterialData.material, ref pixelRect, isRenderToBackBufferTarget);
             if (isRenderToBackBufferTarget)
-                cmd.SetViewport(cameraData.pixelRect);
+                cmd.SetViewport(pixelRect);
 
             // turn off any global wireframe & "scene view wireframe shader hijack" settings for doing blits:
             // we never want them to show up as wireframe
@@ -126,28 +128,26 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal bool enableAlphaOutput;
             internal BlitMaterialData blitMaterialData;
             internal UniversalCameraData cameraData;
+            internal bool useFullScreenViewport;
         }
 
         /// <summary>
         /// Initialize the shared pass data.
         /// </summary>
         /// <param name="passData"></param>
-        private void InitPassData(UniversalCameraData cameraData, ref PassData passData, BlitType blitType, bool enableAlphaOutput)
+        private void InitPassData(UniversalCameraData cameraData, ref PassData passData, BlitType blitType, bool enableAlphaOutput, bool useFullScreenViewport)
         {
             passData.cameraData = cameraData;
             passData.requireSrgbConversion = cameraData.requireSrgbConversion;
             passData.enableAlphaOutput = enableAlphaOutput;
+            passData.useFullScreenViewport = useFullScreenViewport;
 
             passData.blitMaterialData = m_BlitMaterialData[(int)blitType];
         }
 
-        /// <inheritdoc cref="IRenderGraphRecorder.RecordRenderGraph"/>
-        override public void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
+        // Shared by both FinalBlitPass and OffscreenUICoverPrepass.
+        internal void Render(RenderGraph renderGraph, UniversalCameraData cameraData, UniversalResourceData resourceData, TextureHandle sourceTexture, bool useFullScreenViewport = false)
         {
-            var cameraData = frameData.Get<UniversalCameraData>();
-            var resourceData = frameData.Get<UniversalResourceData>();
-
-            var sourceTexture = resourceData.cameraColor;
             var destinationTexture = resourceData.backBufferColor; //By definition this pass blits to the backbuffer
             var overlayUITexture = resourceData.overlayUITexture;
 
@@ -155,7 +155,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 bool outputsToHDR = cameraData.isHDROutputActive;
                 bool outputsAlpha = cameraData.isAlphaOutputEnabled;
-                InitPassData(cameraData, ref passData, outputsToHDR ? BlitType.HDR : BlitType.Core, outputsAlpha);
+                InitPassData(cameraData, ref passData, outputsToHDR ? BlitType.HDR : BlitType.Core, outputsAlpha, useFullScreenViewport);
 
                 passData.sourceID = ShaderPropertyId.sourceTex;
                 passData.source = sourceTexture;
@@ -238,7 +238,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                         
                 });
             }
+        }
 
+        /// <inheritdoc cref="IRenderGraphRecorder.RecordRenderGraph"/>
+        override public void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
+        {
+            var cameraData = frameData.Get<UniversalCameraData>();
+            var resourceData = frameData.Get<UniversalResourceData>();
+            Render(renderGraph, cameraData, resourceData, resourceData.cameraColor);
             resourceData.SwitchActiveTexturesToBackbuffer();
         }
     }

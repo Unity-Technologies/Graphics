@@ -464,12 +464,12 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
     return cookie;
 }
 
-real PunctualLightAttenuationWithDistanceModification(real4 distances, real rangeAttenuationScale, real rangeAttenuationBias,
+real PunctualLightAttenuationWithDistanceModification(float4 distances, real rangeAttenuationScale, real rangeAttenuationBias,
                               real lightAngleScale, real lightAngleOffset)
 {
-    real distSq   = distances.y;
-    real distRcp  = distances.z; //distance contains light size modification. See ModifyDistancesForFillLighting
-    real distProj = distances.w;
+    float distSq   = distances.y;
+    float distRcp  = distances.z; //distance contains light size modification. See ModifyDistancesForFillLighting
+    float distProj = distances.w;
     real cosFwd   = distProj * rcp(distances.x); //we recompute inv distance here
 
     real attenuation = min(distRcp, 1.0 / PUNCTUAL_LIGHT_THRESHOLD);

@@ -824,7 +824,7 @@ namespace UnityEditor.VFX.UI
                 foreach (var parameter in serializableGraph.parameterNodes)
                 {
                     // if we have a parameter with the same name use it else create it with the copied data
-                    VFXParameter p = viewController.graph.children.OfType<VFXParameter>().FirstOrDefault(t => t.GetEntityId() == parameter.originalInstanceID);
+                    VFXParameter p = viewController.graph.children.OfType<VFXParameter>().FirstOrDefault(t => t.GetEntityId() == parameter.originalEntityId);
                     if (p == null)
                     {
                         Type type = parameter.value.type;

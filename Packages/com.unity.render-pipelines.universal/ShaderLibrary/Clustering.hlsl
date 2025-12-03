@@ -77,7 +77,16 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
 #if !URP_FP_DISABLE_ZBINNING
     uint header = Select4(asuint(urp_ZBins[zBinHeaderIndex / 4]), zBinHeaderIndex % 4);
 #else
-    uint header = headerIndex == 0 ? ((URP_FP_PROBES_BEGIN - 1) << 16) : (((URP_FP_WORDS_PER_TILE * 32 - 1) << 16) | URP_FP_PROBES_BEGIN);
+    uint header;
+    if (headerIndex == 0)
+    {
+        // If URP_FP_PROBES_BEGIN is 0, set the header to an invalid header that skips iteration
+        header = (int(URP_FP_PROBES_BEGIN) - 1) < 0 ? 0x0000FFFFu : ((URP_FP_PROBES_BEGIN - 1) << 16);
+    }
+    else
+    {
+        header = (((URP_FP_WORDS_PER_TILE * 32 - 1) << 16) | URP_FP_PROBES_BEGIN);
+    }
 #endif
 #if MAX_LIGHTS_PER_TILE > 32 || CLUSTER_HAS_REFLECTION_PROBES
     state.entityIndexNextMax = header;
@@ -87,8 +96,12 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
     if (URP_FP_WORDS_PER_TILE > 0)
     {
         state.tileMask =
+#if !URP_FP_DISABLE_TILING
             Select4(asuint(urp_Tiles[tileWordIndex / 4]), tileWordIndex % 4) &
+#endif
+#if !URP_FP_DISABLE_ZBINNING
             Select4(asuint(urp_ZBins[zBinWordIndex / 4]), zBinWordIndex % 4) &
+#endif
             (0xFFFFFFFFu << (header & 0x1F)) & (0xFFFFFFFFu >> (31 - (header >> 16)));
     }
 #endif
@@ -123,12 +136,12 @@ bool ClusterNext(inout ClusterIterator it, out uint entityIndex)
 #endif
     bool hasNext = it.tileMask != 0;
     uint bitIndex = FIRST_BIT_LOW(it.tileMask);
-    it.tileMask ^= (1 << bitIndex);
+    it.tileMask ^= (1u << bitIndex);
 #if MAX_LIGHTS_PER_TILE > 32 || CLUSTER_HAS_REFLECTION_PROBES
     // Subtract 32 because it stores the index of the _next_ word to fetch, but we want the current.
     // The upper 16 bits and bits representing values < 32 are masked out. The latter is due to the fact that it will be
     // included in what FIRST_BIT_LOW returns.
-    entityIndex = (((it.entityIndexNextMax - 32) & (0xFFFF & ~31))) + bitIndex;
+    entityIndex = (((it.entityIndexNextMax - 32) & (0xFFFFu & ~31))) + bitIndex;
 #else
     entityIndex = bitIndex;
 #endif

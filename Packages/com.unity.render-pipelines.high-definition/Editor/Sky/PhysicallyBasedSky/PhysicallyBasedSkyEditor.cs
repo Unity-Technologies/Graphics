@@ -232,7 +232,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     var materialIcon = AssetPreview.GetMiniTypeThumbnail(typeof(Material));
                     var action = ScriptableObject.CreateInstance<DoCreatePBRSkyDefaultMaterial>();
                     action.physicallyBasedSky = target as PhysicallyBasedSky;
-                    ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, materialName, materialIcon, null);
+                    ProjectWindowUtil.StartNameEditingIfProjectWindowExists(EntityId.None, action, materialName, materialIcon, null);
                 }
             }
         }

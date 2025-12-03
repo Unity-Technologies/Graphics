@@ -870,7 +870,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static HDShadowAtlas.BlurAlgorithm GetAreaLightShadowBlurAlgorithm()
         {
-            return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.areaShadowFilteringQuality == HDAreaShadowFilteringQuality.High ?
+            return (ShaderConfig.s_AreaLights == 1 && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.areaShadowFilteringQuality == HDAreaShadowFilteringQuality.High) ?
                 HDShadowAtlas.BlurAlgorithm.None : HDShadowAtlas.BlurAlgorithm.EVSM;
         }
 
@@ -904,7 +904,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cachedShadowManager.directionalLightAtlas.UpdateSize(atlasResolution);
         }
 
-        internal int ReserveShadowResolutions(Vector2 resolution, ShadowMapType shadowMapType, int lightID, int index, ShadowMapUpdateType updateType)
+        internal int ReserveShadowResolutions(Vector2 resolution, ShadowMapType shadowMapType, EntityId lightID, int index, ShadowMapUpdateType updateType)
         {
             if (m_ShadowRequestCount >= m_MaxShadowRequests)
             {
@@ -1238,7 +1238,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             shadowManagerData.shadowRequests = m_ShadowRequests;
             shadowManagerData.shadowResolutionRequestStorage = m_ShadowResolutionRequestStorage;
-            shadowManagerData.areaShadowFilteringQuality = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.areaShadowFilteringQuality;
+            shadowManagerData.areaShadowFilteringQuality = (ShaderConfig.s_AreaLights == 0) ? HDAreaShadowFilteringQuality.Medium
+                : HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.areaShadowFilteringQuality;
             m_Atlas.GetUnmanageDataForShadowRequestJobs(ref shadowManagerData.atlas);
             m_CascadeAtlas.GetUnmanageDataForShadowRequestJobs(ref shadowManagerData.cascadeShadowAtlas);
             if (ShaderConfig.s_AreaLights == 1)

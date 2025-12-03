@@ -53,25 +53,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.SetRenderAttachmentDepth(depth, AccessFlags.ReadWrite);
                 passData.deferredLights = m_DeferredLights;
 
-                if (!m_DeferredLights.UseFramebufferFetch)
+                for (int i = 0, idx = 0; i < gbuffer.Length; ++i)
                 {
-                    for (int i = 0; i < gbuffer.Length; ++i)
-                    {
-                        if (i != m_DeferredLights.GBufferLightingIndex)
-                            builder.UseTexture(gbuffer[i], AccessFlags.Read);
-                    }
-                }
-                else
-                {
-                    var idx = 0;
-                    for (int i = 0; i < gbuffer.Length; ++i)
-                    {
-                        if (i != m_DeferredLights.GBufferLightingIndex)
-                        {
-                            builder.SetInputAttachment(gbuffer[i], idx);
-                            idx++;
-                        }
-                    }
+                    if (i == m_DeferredLights.GBufferLightingIndex)
+                        continue;
+
+                    builder.SetInputAttachment(gbuffer[i], idx++); 
                 }
 
                 builder.AllowGlobalStateModification(true);

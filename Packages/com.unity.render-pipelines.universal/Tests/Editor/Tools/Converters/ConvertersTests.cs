@@ -79,7 +79,7 @@ namespace UnityEditor.Rendering.Universal.Tools
                 {
                     typeof(AnimationClipConverter),
                     typeof(BuiltInToURP3DMaterialUpgrader),
-                    typeof(ReadonlyMaterialConverter),
+                    typeof(BuiltInToURP3DReadonlyMaterialConverter),
                 }
             ).SetName("When Using Exclusive filter. The filter returns everything except the given ids");
 
@@ -102,7 +102,7 @@ namespace UnityEditor.Rendering.Universal.Tools
                     typeof(RenderSettingsConverter),
                     typeof(AnimationClipConverter),
                     typeof(BuiltInToURP3DMaterialUpgrader),
-                    typeof(ReadonlyMaterialConverter),
+                    typeof(BuiltInToURP3DReadonlyMaterialConverter),
                  }
             ).SetName("BuiltInToURP - When Using Exclusive filter with no converters. The filter returns everything");
 

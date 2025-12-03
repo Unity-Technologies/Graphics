@@ -10,7 +10,7 @@ namespace UnityEditor.VFX
     {
         public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
-            return new VFXTextureCubeArrayValue(0, mode);
+            return new VFXTextureCubeArrayValue(EntityId.None, mode);
         }
     }
 }

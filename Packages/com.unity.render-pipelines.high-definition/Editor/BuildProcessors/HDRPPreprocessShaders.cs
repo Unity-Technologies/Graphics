@@ -1,3 +1,4 @@
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -70,8 +71,10 @@ namespace UnityEditor.Rendering.HighDefinition
             // Remove editor only pass
             bool isSceneSelectionPass = snippet.passName == "SceneSelectionPass";
             bool isScenePickingPass = snippet.passName == "ScenePickingPass";
-            bool metaPassUnused = (snippet.passName == "META") && (SupportedRenderingFeatures.active.enlighten == false ||
-                ((int)SupportedRenderingFeatures.active.lightmapBakeTypes | (int)LightmapBakeType.Realtime) == 0);
+
+            bool isEnlightenSupported = SupportedRenderingFeatures.active.enlighten && ((int)SupportedRenderingFeatures.active.lightmapBakeTypes | (int)LightmapBakeType.Realtime) != 0;
+            bool metaPassUnused = (snippet.passName == "META") && (!isEnlightenSupported || !HDRPBuildData.instance.dynamicLightmapsUsed);
+
             bool editorVisualization = inputData.shaderKeywordSet.IsEnabled(m_EditorVisualization);
             if (isSceneSelectionPass || isScenePickingPass || metaPassUnused || editorVisualization)
                 return true;
@@ -214,10 +217,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                // Strip all the area light shadow filtering variants when they are disabled in the shader config.
-                foreach (var areaShadowVariant in m_ShadowKeywords.AreaShadowVariants)
-                    if (inputData.shaderKeywordSet.IsEnabled(areaShadowVariant.Value))
-                        return true;
+                // Strip only AREA_SHADOW_HIGH variant, because HDRP enables AREA_SHADOW_MEDIUM if area light is disabled in ShaderConfig
+                if (inputData.shaderKeywordSet.IsEnabled(m_AreaShadowHigh))
+                    return true;
             }
 
             if (!shadowInitParams.supportScreenSpaceShadows && shader == m_ShaderResources.screenSpaceShadowPS)

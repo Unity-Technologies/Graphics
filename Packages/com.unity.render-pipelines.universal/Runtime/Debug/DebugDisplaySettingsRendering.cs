@@ -600,7 +600,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         new DebugUI.MessageBox
                         {
-                            displayName = "The values on the Rendering Debugger editor window might not be accurate. Please use the playmode debug UI (Ctrl+Backspace).",
+                            displayName = "The values in the Rendering Debugger editor window might not be accurate. Please use the Rendering Debugger Overlay instead (Ctrl+Backspace in Play mode).",
                             style = DebugUI.MessageBox.Style.Warning,
                         },
                         DebugDisplaySettingsHDROutput.CreateHDROuputDisplayTable()

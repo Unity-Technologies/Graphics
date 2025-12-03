@@ -1,4 +1,4 @@
-﻿#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 ${VFXPassVelocityDefine}
 #elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
 ${VFXPassShadowDefine}
@@ -30,9 +30,9 @@ void frag(ps_input i
 #elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
     #if defined(WRITE_NORMAL_BUFFER)
     , out float4 outNormalBuffer : SV_Target0
-    , out float4 outDepthColor : SV_Target1
-    #else
-    , out float4 outDepthColor : SV_Target0
+    #endif
+    #if defined(_WRITE_RENDERING_LAYERS)
+    , out uint outRenderingLayers : SV_Target1
     #endif
 #elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION || VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
     , out float4 outColor : SV_Target0
@@ -92,7 +92,9 @@ void frag(ps_input i
     #elif VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
         outColor = _SelectionID;
     #elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
-        outDepthColor = float4(i.VFX_VARYING_POSCS.z, 0,0,0);
+        #if defined(_WRITE_RENDERING_LAYERS)
+            outRenderingLayers = EncodeMeshRenderingLayer();
+        #endif
     #elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
         //void
     #else

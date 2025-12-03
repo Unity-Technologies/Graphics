@@ -16,7 +16,8 @@
         "Unity.PackageManagerDocTools.Editor",
         "Unity.Rendering.Denoising.Runtime",
         "Unity.RenderPipelines.HighDefinition.Config.Runtime",
-        "Unity.RenderPipelines.GPUDriven.Runtime"
+        "Unity.RenderPipelines.GPUDriven.Runtime",
+        "Unity.InternalAPIEngineBridge.RenderPipelines.Core.Editor"
     ],
     "includePlatforms": [
         "Editor"

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
@@ -133,6 +134,7 @@ namespace UnityEditor.Rendering.Universal
         public static bool s_Strip2DPasses;
         public static bool s_UseSoftShadowQualityLevelKeywords;
         public static bool s_StripXRVariants;
+        public static bool s_UsesDynamicLightmaps;
 
         public static List<ShaderFeatures> supportedFeaturesList
         {
@@ -421,8 +423,9 @@ namespace UnityEditor.Rendering.Universal
                     // Update the Prefiltering settings for this URP asset
                     urpAsset.UpdateShaderKeywordPrefiltering(ref spd);
 
-                    // Mark the asset dirty so it can be serialized once the build is finished
+                    // Save the asset before build
                     EditorUtility.SetDirty(urpAsset);
+                    AssetDatabase.SaveAssetIfDirty(urpAsset);
                 }
             }
         }
@@ -430,6 +433,27 @@ namespace UnityEditor.Rendering.Universal
         // The path for gathering shader features for normal shader stripping
         private static void HandleEnabledShaderStripping()
         {
+            var originalSetup = EditorSceneManager.GetSceneManagerSetup();
+
+            bool dynamicLightmapsUsed = false;
+            foreach (EditorBuildSettingsScene scene in EditorBuildSettings.scenes)
+            {
+                if (!scene.enabled) continue;
+
+                EditorSceneManager.OpenScene(scene.path, OpenSceneMode.Single);
+
+                if (Lightmapping.HasDynamicGILightmapTextures())
+                {
+                    dynamicLightmapsUsed = true;
+                    break;
+                }
+            }
+
+            if (originalSetup.Length > 0)
+                EditorSceneManager.RestoreSceneManagerSetup(originalSetup);
+
+            s_UsesDynamicLightmaps = dynamicLightmapsUsed;
+
             s_Strip2DPasses = true;
             using (ListPool<UniversalRenderPipelineAsset>.Get(out List<UniversalRenderPipelineAsset> urpAssets))
             {
@@ -492,8 +516,9 @@ namespace UnityEditor.Rendering.Universal
                 // Update the Prefiltering settings for this URP asset
                 urpAsset.UpdateShaderKeywordPrefiltering(ref spd);
 
-                // Mark the asset dirty so it can be serialized once the build is finished
+                // Save the asset before build
                 EditorUtility.SetDirty(urpAsset);
+                AssetDatabase.SaveAssetIfDirty(urpAsset);
 
                 // Clean up
                 ssaoRendererFeatures.Clear();

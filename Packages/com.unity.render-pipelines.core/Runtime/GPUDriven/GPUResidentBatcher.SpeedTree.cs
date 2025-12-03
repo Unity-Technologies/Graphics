@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering
                 m_ProcessedThisFrameTreeBits.Resize(maxInstancesCount);
 
             bool becomeVisibleOnly = !Application.isPlaying;
-            var visibleTreeRendererIDs = new NativeList<int>(Allocator.TempJob);
+            var visibleTreeRendererIDs = new NativeList<EntityId>(Allocator.TempJob);
             var visibleTreeInstances = new NativeList<InstanceHandle>(Allocator.TempJob);
 
             m_BatchersContext.GetVisibleTreeInstances(compactedVisibilityMasks, m_ProcessedThisFrameTreeBits, visibleTreeRendererIDs, visibleTreeInstances,
@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering
             Profiler.EndSample();
         }
 
-        private unsafe void UpdateSpeedTreeWindAndUploadWindParamsToGPU(NativeArray<int> treeRendererIDs, NativeArray<InstanceHandle> treeInstances, bool history)
+        private unsafe void UpdateSpeedTreeWindAndUploadWindParamsToGPU(NativeArray<EntityId> treeRendererIDs, NativeArray<InstanceHandle> treeInstances, bool history)
         {
             if (treeRendererIDs.Length == 0)
                 return;
@@ -88,7 +88,6 @@ namespace UnityEngine.Rendering
             windParams.uintStride = uploader.GetUIntPerInstance();
             windParams.elementOffset = 0;
             windParams.elementsCount = treeInstances.Length;
-
             SpeedTreeWindManager.UpdateWindAndWriteBufferWindParams(treeRendererIDs, windParams, history);
             m_BatchersContext.SubmitToGpu(gpuInstanceIndices, ref uploader, submitOnlyWrittenParams: true);
 

@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering
     {
         public const int k_BatchSize = 256;
 
-        [ReadOnly] public NativeParallelHashMap<int, GPUInstanceIndex> lodGroupDataHash;
+        [ReadOnly] public NativeParallelHashMap<EntityId, GPUInstanceIndex> lodGroupDataHash;
         [ReadOnly] public NativeArray<EntityId> lodGroupIDs;
         [ReadOnly] public NativeArray<Vector3> worldSpaceReferencePoints;
         [ReadOnly] public NativeArray<float> worldSpaceSizes;
@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering
 
         public unsafe void Execute(int index)
         {
-            int lodGroupID = lodGroupIDs[index];
+            EntityId lodGroupID = lodGroupIDs[index];
 
             if (lodGroupDataHash.TryGetValue(lodGroupID, out var lodGroupInstance))
             {
@@ -176,8 +176,8 @@ namespace UnityEngine.Rendering
     internal class LODGroupDataPool : IDisposable
     {
         private NativeList<LODGroupData> m_LODGroupData;
-        private NativeParallelHashMap<int, GPUInstanceIndex> m_LODGroupDataHash;
-        public NativeParallelHashMap<int, GPUInstanceIndex> lodGroupDataHash => m_LODGroupDataHash;
+        private NativeParallelHashMap<EntityId, GPUInstanceIndex> m_LODGroupDataHash;
+        public NativeParallelHashMap<EntityId, GPUInstanceIndex> lodGroupDataHash => m_LODGroupDataHash;
 
         private NativeList<LODGroupCullingData> m_LODGroupCullingData;
         private NativeList<GPUInstanceIndex> m_FreeLODGroupDataHandles;
@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering
         public LODGroupDataPool(GPUResidentDrawerResources resources, int initialInstanceCount, bool supportDitheringCrossFade)
         {
             m_LODGroupData = new NativeList<LODGroupData>(Allocator.Persistent);
-            m_LODGroupDataHash = new NativeParallelHashMap<int, GPUInstanceIndex>(64, Allocator.Persistent);
+            m_LODGroupDataHash = new NativeParallelHashMap<EntityId, GPUInstanceIndex>(64, Allocator.Persistent);
 
             m_LODGroupCullingData = new NativeList<LODGroupCullingData>(Allocator.Persistent);
             m_FreeLODGroupDataHandles = new NativeList<GPUInstanceIndex>(Allocator.Persistent);

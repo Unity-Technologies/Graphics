@@ -299,9 +299,12 @@ namespace UnityEditor.Rendering.Universal
                     maskMapRemapMin.y = Mathf.Min(maskMapRemapMin.y, maskMapRemapMax.y);
                     maskMapRemapMin.z = Mathf.Min(Mathf.Max(0, maskMapRemapMin.z), maskMapRemapMax.z);
 
+                    // See also: TerrainLitGUI, TerrainLayerInspector.
                     if (TextureHasAlpha(terrainLayer.diffuseTexture))
                     {
-                        terrainLayer.smoothnessSource = (UnityEngine.TerrainLayerSmoothnessSource)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Smoothness Source"), terrainLayer.smoothnessSource);
+                        terrainLayer.smoothnessSource = (UnityEngine.TerrainLayerSmoothnessSource)EditorGUILayout.EnumPopup(
+                            EditorGUIUtility.TrTextContent("Smoothness Source"), terrainLayer.smoothnessSource);
+
                         if (terrainLayer.smoothnessSource == TerrainLayerSmoothnessSource.DiffuseAlphaChannel)
                         {
                             GUIStyle warnStyle = new GUIStyle(GUI.skin.label);

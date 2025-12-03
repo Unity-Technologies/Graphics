@@ -11,9 +11,9 @@ namespace UnityEditor.VFX.UI
 {
     class VFXHelpDropdownButton : DropDownButtonBase
     {
-        const string k_AdditionalSamples = "VisualEffectGraph Additions";
-        const string k_AdditionalHelpers = "OutputEvent Helpers";
-        const string k_LearningSamples = "Learning Templates";
+        internal const string k_AdditionalSamples = "Visual Effect Graph Additions";
+        internal const string k_AdditionalHelpers = "Output Event Helpers";
+        internal const string k_LearningSamples = "Learning Templates";
         const string k_ManualUrl = @"https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@{0}/index.html";
 
         string m_ManualUrlWithVersion;
@@ -43,7 +43,7 @@ namespace UnityEditor.VFX.UI
 
         protected override void OnMainButton()
         {
-            if (string.IsNullOrEmpty(m_ManualUrlWithVersion)) 
+            if (string.IsNullOrEmpty(m_ManualUrlWithVersion))
                 m_ManualUrlWithVersion = DocumentationInfo.GetDefaultPackageLink(Documentation.packageName);
 
             GotoUrl(m_ManualUrlWithVersion);

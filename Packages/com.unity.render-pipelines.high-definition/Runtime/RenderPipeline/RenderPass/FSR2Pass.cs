@@ -370,7 +370,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void CleanupCameraStates()
         {
-            Dictionary<int, UpscalerCameras.State> cameras = m_CameraStates.cameras;
+            Dictionary<EntityId, UpscalerCameras.State> cameras = m_CameraStates.cameras;
             m_CommandBuffer.Clear();
             foreach (var kv in cameras)
             {
@@ -403,7 +403,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float percentage = 100.0f;
             if (enableAutomaticSettings)
             {
-                var qualityMode = (AMD.FSR2Quality)(hdCam.fidelityFX2SuperResolutionUseCustomAttributes ? hdCam.fidelityFX2SuperResolutionQuality : dynamicResolutionSettings.FSR2QualitySetting);
+                var qualityMode = (AMD.FSR2Quality)(hdCam.fidelityFX2SuperResolutionUseCustomQualitySettings ? hdCam.fidelityFX2SuperResolutionQuality : dynamicResolutionSettings.FSR2QualitySetting);
                 percentage = (1.0f / m_Device.GetUpscaleRatioFromQualityMode(qualityMode)) * 100.0f;
                 DynamicResolutionHandler.SetSystemDynamicResScaler(fsr2Camera.ScaleDelegate, DynamicResScalePolicyType.ReturnsPercentage);
                 DynamicResolutionHandler.SetActiveDynamicScalerSlot(DynamicResScalerSlot.System);

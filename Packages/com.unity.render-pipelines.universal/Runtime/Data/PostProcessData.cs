@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
         static void CreatePostProcessData()
         {
             var icon = EditorGUIUtility.IconContent("ScriptableObject Icon").image as Texture2D;
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreatePostProcessDataAsset>(), "CustomPostProcessData.asset", icon, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(EntityId.None, CreateInstance<CreatePostProcessDataAsset>(), "CustomPostProcessData.asset", icon, null);
         }
 
         internal static PostProcessData GetDefaultPostProcessData()

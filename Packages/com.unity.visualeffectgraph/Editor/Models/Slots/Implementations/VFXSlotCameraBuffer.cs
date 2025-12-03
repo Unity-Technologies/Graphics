@@ -10,7 +10,7 @@ namespace UnityEditor.VFX
     {
         public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
-            return new VFXCameraBufferValue(0, mode);
+            return new VFXCameraBufferValue(EntityId.None, mode);
         }
     }
 }

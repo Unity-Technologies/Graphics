@@ -147,13 +147,13 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _CurrentClipToWorldTransform = Shader.PropertyToID("_CurrentClipToWorldTransform");
             public static readonly int _PreviousClipToWorldTransform = Shader.PropertyToID("_PreviousClipToWorldTransform");
             public static readonly int _FrameIdx = Shader.PropertyToID("_FrameIdx");
-            public static readonly int _GridSize = Shader.PropertyToID("_GridSize");
+            public static readonly int _VolumeSpatialResolution = Shader.PropertyToID("_VolumeSpatialResolution");
             public static readonly int _RingConfigOffset = Shader.PropertyToID("_RingConfigOffset");
-            public static readonly int _GridTargetPos = Shader.PropertyToID("_GridTargetPos");
+            public static readonly int _VolumeTargetPos = Shader.PropertyToID("_VolumeTargetPos");
             public static readonly int _FullResPixelOffset = Shader.PropertyToID("_FullResPixelOffset");
             public static readonly int _LowResScreenSize = Shader.PropertyToID("_LowResScreenSize");
             public static readonly int _CascadeCount = Shader.PropertyToID("_CascadeCount");
-            public static readonly int _VoxelMinSize = Shader.PropertyToID("_VoxelMinSize");
+            public static readonly int _VolumeVoxelMinSize = Shader.PropertyToID("_VolumeVoxelMinSize");
             public static readonly int _CascadeOffsets = Shader.PropertyToID("_CascadeOffsets");
             public static readonly int _PatchCellIndices = Shader.PropertyToID("_PatchCellIndices");
         }
@@ -163,6 +163,8 @@ namespace UnityEngine.Rendering.Universal
             private class WorldUpdatePassData
             {
                 internal SurfaceCacheWorld World;
+                internal uint EnvCubemapResolution;
+                internal Light Sun;
             }
 
             private class DebugPassData
@@ -185,13 +187,13 @@ namespace UnityEngine.Rendering.Universal
                 internal DebugViewMode_ ViewMode;
                 internal uint FrameIndex;
                 internal bool ShowSamplePosition;
-                internal uint GridSize;
-                internal float VoxelMinSize;
-                internal uint CascadeCount;
+                internal uint VolumeSpatialResolution;
+                internal float VolumeVoxelMinSize;
+                internal uint VolumeCascadeCount;
                 internal GraphicsBuffer CascadeOffsets;
                 internal uint RingConfigOffset;
                 internal Matrix4x4 ClipToWorldTransform;
-                internal Vector3 GridTargetPos;
+                internal Vector3 VolumeTargetPos;
             }
 
             private class FlatNormalResolutionPassData
@@ -228,15 +230,15 @@ namespace UnityEngine.Rendering.Universal
                 internal GraphicsBuffer PatchCellIndices;
                 internal GraphicsBuffer PatchCounterSets;
                 internal uint FrameIdx;
-                internal uint GridSize;
-                internal uint CascadeCount;
+                internal uint VolumeSpatialResolution;
+                internal uint VolumeCascadeCount;
                 internal uint RingConfigOffset;
                 internal bool UseMotionVectorSeeding;
                 internal GraphicsBuffer CascadeOffsets;
                 internal float VoxelMinSize;
                 internal Matrix4x4 CurrentClipToWorldTransform;
                 internal Matrix4x4 PreviousClipToWorldTransform;
-                internal Vector3 GridTargetPos;
+                internal Vector3 VolumeTargetPos;
                 internal uint2 FullResPixelOffset;
                 internal uint2 LowResScreenSize;
             }
@@ -258,13 +260,13 @@ namespace UnityEngine.Rendering.Universal
                 internal GraphicsBuffer PatchIrradiances;
                 internal GraphicsBuffer PatchCounterSets;
                 internal GraphicsBuffer CascadeOffsets;
-                internal uint GridSize;
-                internal uint CascadeCount;
+                internal uint VolumeSpatialResolution;
+                internal uint VolumeCascadeCount;
                 internal uint SampleCount;
                 internal uint FrameIndex;
-                internal float VoxelMinSize;
+                internal float VolumeVoxelMinSize;
                 internal Matrix4x4 ClipToWorldTransform;
-                internal Vector3 GridTargetPos;
+                internal Vector3 VolumeTargetPos;
             }
 
             private class ScreenIrradianceUpsamplingPassData
@@ -337,6 +339,8 @@ namespace UnityEngine.Rendering.Universal
 
             private Matrix4x4 _prevClipToWorldTransform = Matrix4x4.identity;
 
+            readonly private uint _environmentCubemapResolution = 32;
+
             public SurfaceCachePass(
                 RayTracingContext rtContext,
                 UnityEngine.Rendering.SurfaceCacheResourceSet resourceSet,
@@ -354,13 +358,13 @@ namespace UnityEngine.Rendering.Universal
                 float upsamplingKernelSize,
                 uint upsamplingSampleCount,
                 uint defragCount,
-                SurfaceCacheGridParameterSet gridParams,
+                SurfaceCacheVolumeParameterSet volParams,
                 SurfaceCacheEstimationParameterSet estimationParams,
                 SurfaceCachePatchFilteringParameterSet patchFilteringParams,
                 bool cascadeMovement)
             {
-                Debug.Assert(gridParams.CascadeCount != 0);
-                Debug.Assert(gridParams.CascadeCount <= SurfaceCache.CascadeMax);
+                Debug.Assert(volParams.CascadeCount != 0);
+                Debug.Assert(volParams.CascadeCount <= SurfaceCache.CascadeMax);
 
                 _screenResolveLookupShader = screenResolveLookupShader;
                 _screenResolveUpsamplingShader = screenResolveUpsamplingShader;
@@ -393,7 +397,7 @@ namespace UnityEngine.Rendering.Universal
                 _upsamplingSampleCount = upsamplingSampleCount;
                 _lookupSampleCount = lookupSampleCount;
 
-                _cache = new SurfaceCache(resourceSet, defragCount, gridParams, estimationParams, patchFilteringParams);
+                _cache = new SurfaceCache(resourceSet, defragCount, volParams, estimationParams, patchFilteringParams);
                 _sceneTracker = new SceneUpdatesTracker();
 
                 _world = new SurfaceCacheWorld();
@@ -469,7 +473,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (_cascadeMovement || _frameIdx == 0)
                 {
-                    _cache.Grid.TargetPos = cameraData.camera.transform.position;
+                    _cache.Volume.TargetPos = cameraData.camera.transform.position;
                 }
 
                 _cache.RecordPreparation(renderGraph, _frameIdx);
@@ -481,7 +485,7 @@ namespace UnityEngine.Rendering.Universal
                 var lowResScreenIrradiancesL11Handle = renderGraph.ImportTexture(_lowResScreenIrradiancesL11);
                 var lowResScreenIrradiancesL12Handle = renderGraph.ImportTexture(_lowResScreenIrradiancesL12);
                 var lowResScreenNdcDepthsHandle = renderGraph.ImportTexture(_lowResScreenNdcDepths);
-                var cellAllocationMarkHandle = renderGraph.ImportBuffer(_cache.Grid.CellAllocationMarks);
+                var cellAllocationMarkHandle = renderGraph.ImportBuffer(_cache.Volume.CellAllocationMarks);
 
                 using (var builder = renderGraph.AddComputePass("Surface Cache Flat Normal Resolution", out FlatNormalResolutionPassData passData))
                 {
@@ -515,8 +519,8 @@ namespace UnityEngine.Rendering.Universal
                     passData.LowResScreenIrradiancesL11 = lowResScreenIrradiancesL11Handle;
                     passData.LowResScreenIrradiancesL12 = lowResScreenIrradiancesL12Handle;
                     passData.LowResScreenNdcDepths = lowResScreenNdcDepthsHandle;
-                    passData.CellAllocationMarks = _cache.Grid.CellAllocationMarks;
-                    passData.CellPatchIndices = _cache.Grid.CellPatchIndices;
+                    passData.CellAllocationMarks = _cache.Volume.CellAllocationMarks;
+                    passData.CellPatchIndices = _cache.Volume.CellPatchIndices;
                     passData.RingConfigBuffer = _cache.RingConfig.Buffer;
                     passData.PatchIrradiances0 = _cache.PatchList.Irradiances[0];
                     passData.PatchIrradiances1 = _cache.PatchList.Irradiances[2];
@@ -524,8 +528,8 @@ namespace UnityEngine.Rendering.Universal
                     passData.PatchCellIndices = _cache.PatchList.CellIndices;
                     passData.PatchCounterSets = _cache.PatchList.CounterSets;
                     passData.FrameIdx = _frameIdx;
-                    passData.GridSize = _cache.Grid.GridSize;
-                    passData.CascadeCount = _cache.Grid.CascadeCount;
+                    passData.VolumeSpatialResolution = _cache.Volume.SpatialResolution;
+                    passData.VolumeCascadeCount = _cache.Volume.CascadeCount;
                     passData.RingConfigOffset = _cache.RingConfig.OffsetA;
 
                     {
@@ -537,11 +541,11 @@ namespace UnityEngine.Rendering.Universal
 
                     passData.LowResScreenSize = lowResScreenSize;
                     passData.UseMotionVectorSeeding = useMotionVectorPatchSeeding;
-                    passData.CascadeOffsets = _cache.Grid.CascadeOffsetBuffer;
-                    passData.VoxelMinSize = _cache.Grid.VoxelMinSize;
+                    passData.CascadeOffsets = _cache.Volume.CascadeOffsetBuffer;
+                    passData.VoxelMinSize = _cache.Volume.VoxelMinSize;
                     passData.CurrentClipToWorldTransform = clipToWorldTransform;
                     passData.PreviousClipToWorldTransform = _prevClipToWorldTransform;
-                    passData.GridTargetPos = _cache.Grid.TargetPos;
+                    passData.VolumeTargetPos = _cache.Volume.TargetPos;
 
                     builder.UseBuffer(cellAllocationMarkHandle, AccessFlags.Write);
                     builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
@@ -562,13 +566,26 @@ namespace UnityEngine.Rendering.Universal
                     var changes = _sceneTracker.GetChanges(filterBakedLights);
 
                     _worldAdapter.UpdateMaterials(_world, changes.addedMaterials, changes.removedMaterials, changes.changedMaterials);
-                    _worldAdapter.UpdateInstances(_world, changes.addedInstances, changes.changedInstances, changes.removedInstances, RenderedGameObjectsFilter.All, _fallbackMaterial);
+                    _worldAdapter.UpdateInstances(_world, changes.addedInstances, changes.changedInstances, changes.removedInstances, _fallbackMaterial);
                     const bool multiplyPunctualLightIntensityByPI = false;
                     _worldAdapter.UpdateLights(_world, changes.addedLights, changes.removedLights, changes.changedLights, multiplyPunctualLightIntensityByPI);
 
-                    passData.World = _world;
+                    if (RenderSettings.ambientMode == AmbientMode.Skybox)
+                    {
+                        _world.SetEnvironmentMode(CubemapRender.Mode.Material);
+                        _world.SetEnvironmentMaterial(RenderSettings.skybox);
+                    }
+                    else if (RenderSettings.ambientMode == AmbientMode.Flat)
+                    {
+                        _world.SetEnvironmentMode(CubemapRender.Mode.Color);
+                        _world.SetEnvironmentColor(RenderSettings.ambientSkyColor);
+                    }
 
-                    _world.SetEnvironmentMaterial(RenderSettings.skybox);
+                    passData.World = _world;
+                    passData.EnvCubemapResolution = _environmentCubemapResolution;
+                    passData.Sun = RenderSettings.sun;
+
+
 
                     builder.AllowGlobalStateModification(true);
                     builder.SetRenderFunc((WorldUpdatePassData data, UnsafeGraphContext graphCtx) => UpdateWorld(data, graphCtx, ref _worldUpdateScratch));
@@ -578,7 +595,7 @@ namespace UnityEngine.Rendering.Universal
 
                 using (var builder = renderGraph.AddComputePass("Surface Cache Screen Lookup", out ScreenIrradianceLookupPassData data))
                 {
-                    data.GridTargetPos = _cache.Grid.TargetPos;
+                    data.VolumeTargetPos = _cache.Volume.TargetPos;
                     data.ClipToWorldTransform = clipToWorldTransform;
                     data.ThreadCount = new uint3((uint)_lowResScreenIrradiancesL0.rt.width, (uint)_lowResScreenIrradiancesL0.rt.height, 1);
                     data.Shader = _screenResolveLookupShader;
@@ -591,13 +608,13 @@ namespace UnityEngine.Rendering.Universal
                     data.LowResScreenIrradiancesL11 = lowResScreenIrradiancesL11Handle;
                     data.LowResScreenIrradiancesL12 = lowResScreenIrradiancesL12Handle;
                     data.LowResScreenNdcDepths = lowResScreenNdcDepthsHandle;
-                    data.CellPatchIndices = _cache.Grid.CellPatchIndices;
+                    data.CellPatchIndices = _cache.Volume.CellPatchIndices;
                     data.PatchIrradiances = _cache.PatchList.Irradiances[outputIrradianceBufferIdx];
                     data.PatchCounterSets = _cache.PatchList.CounterSets;
-                    data.CascadeOffsets = _cache.Grid.CascadeOffsetBuffer;
-                    data.GridSize = _cache.Grid.GridSize;
-                    data.VoxelMinSize = _cache.Grid.VoxelMinSize;
-                    data.CascadeCount = _cache.Grid.CascadeCount;
+                    data.CascadeOffsets = _cache.Volume.CascadeOffsetBuffer;
+                    data.VolumeSpatialResolution = _cache.Volume.SpatialResolution;
+                    data.VolumeVoxelMinSize = _cache.Volume.VoxelMinSize;
+                    data.VolumeCascadeCount = _cache.Volume.CascadeCount;
                     data.SampleCount = _lookupSampleCount;
                     data.FrameIndex = _frameIdx;
 
@@ -627,18 +644,18 @@ namespace UnityEngine.Rendering.Universal
                         passData.ScreenFlatNormals = fullResScreenFlatNormalsHandle;
                         passData.ScreenIrradiances = fullResScreenIrradiancesHandle;
                         passData.PatchCellIndices = _cache.PatchList.CellIndices;
-                        passData.CellPatchIndices = _cache.Grid.CellPatchIndices;
+                        passData.CellPatchIndices = _cache.Volume.CellPatchIndices;
                         passData.RingConfigBuffer = _cache.RingConfig.Buffer;
                         passData.RingConfigOffset = _cache.RingConfig.OffsetA;
-                        passData.GridTargetPos = _cache.Grid.TargetPos;
+                        passData.VolumeTargetPos = _cache.Volume.TargetPos;
                         passData.PatchIrradiances = _cache.PatchList.Irradiances[outputIrradianceBufferIdx];
                         passData.PatchGeometries = _cache.PatchList.Geometries;
                         passData.PatchStatistics = _cache.PatchList.Statistics;
                         passData.PatchCounterSets = _cache.PatchList.CounterSets;
-                        passData.GridSize = _cache.Grid.GridSize;
-                        passData.VoxelMinSize = _cache.Grid.VoxelMinSize;
-                        passData.CascadeCount = _cache.Grid.CascadeCount;
-                        passData.CascadeOffsets = _cache.Grid.CascadeOffsetBuffer;
+                        passData.VolumeSpatialResolution = _cache.Volume.SpatialResolution;
+                        passData.VolumeVoxelMinSize = _cache.Volume.VoxelMinSize;
+                        passData.VolumeCascadeCount = _cache.Volume.CascadeCount;
+                        passData.CascadeOffsets = _cache.Volume.CascadeOffsetBuffer;
                         passData.ViewMode = _debugViewMode;
                         passData.FrameIndex = _frameIdx;
                         passData.ShowSamplePosition = _debugShowSamplePosition;
@@ -648,7 +665,6 @@ namespace UnityEngine.Rendering.Universal
                         builder.UseTexture(resourceData.cameraNormalsTexture, AccessFlags.Read);
                         builder.UseTexture(fullResScreenFlatNormalsHandle, AccessFlags.Read);
                         builder.UseTexture(passData.ScreenIrradiances, AccessFlags.Write);
-                        builder.UseBuffer(cellAllocationMarkHandle, AccessFlags.Read);
 
                         builder.SetRenderFunc((DebugPassData data, ComputeGraphContext cgContext) => RenderDebug(data, cgContext));
                     }
@@ -696,7 +712,7 @@ namespace UnityEngine.Rendering.Universal
             static void UpdateWorld(WorldUpdatePassData data, UnsafeGraphContext graphCtx, ref GraphicsBuffer scratch)
             {
                 var cmd = CommandBufferHelpers.GetNativeCommandBuffer(graphCtx.cmd);
-                data.World.Build(cmd, ref scratch);
+                data.World.Build(cmd, ref scratch, data.EnvCubemapResolution, data.Sun);
             }
 
             static void LookupScreenIrradiance(ScreenIrradianceLookupPassData data, ComputeGraphContext cgContext)
@@ -715,13 +731,13 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchIrradiances, data.PatchIrradiances);
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._CascadeOffsets, data.CascadeOffsets);
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchCounterSets, data.PatchCounterSets);
-                cmd.SetComputeIntParam(shader, ShaderIDs._GridSize, (int)data.GridSize);
-                cmd.SetComputeIntParam(shader, ShaderIDs._CascadeCount, (int)data.CascadeCount);
+                cmd.SetComputeIntParam(shader, ShaderIDs._VolumeSpatialResolution, (int)data.VolumeSpatialResolution);
+                cmd.SetComputeIntParam(shader, ShaderIDs._CascadeCount, (int)data.VolumeCascadeCount);
                 cmd.SetComputeIntParam(shader, ShaderIDs._SampleCount, (int)data.SampleCount);
                 cmd.SetComputeIntParam(shader, ShaderIDs._FrameIdx, (int)data.FrameIndex);
-                cmd.SetComputeFloatParam(shader, ShaderIDs._VoxelMinSize, data.VoxelMinSize);
+                cmd.SetComputeFloatParam(shader, ShaderIDs._VolumeVoxelMinSize, data.VolumeVoxelMinSize);
                 cmd.SetComputeMatrixParam(shader, ShaderIDs._ClipToWorldTransform, data.ClipToWorldTransform);
-                cmd.SetComputeVectorParam(shader, ShaderIDs._GridTargetPos, data.GridTargetPos);
+                cmd.SetComputeVectorParam(shader, ShaderIDs._VolumeTargetPos, data.VolumeTargetPos);
 
                 uint3 groupCount = DivUp(data.ThreadCount, data.ThreadGroupSize);
                 cmd.DispatchCompute(shader, kernelIndex, (int)groupCount.x, (int)groupCount.y, 1);
@@ -785,16 +801,16 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchCounterSets, data.PatchCounterSets);
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._CascadeOffsets, data.CascadeOffsets);
                 cmd.SetComputeIntParam(shader, ShaderIDs._FrameIdx, (int)data.FrameIdx);
-                cmd.SetComputeIntParam(shader, ShaderIDs._GridSize, (int)data.GridSize);
-                cmd.SetComputeIntParam(shader, ShaderIDs._CascadeCount, (int)data.CascadeCount);
+                cmd.SetComputeIntParam(shader, ShaderIDs._VolumeSpatialResolution, (int)data.VolumeSpatialResolution);
+                cmd.SetComputeIntParam(shader, ShaderIDs._CascadeCount, (int)data.VolumeCascadeCount);
                 cmd.SetComputeIntParam(shader, ShaderIDs._RingConfigOffset, (int)data.RingConfigOffset);
                 cmd.SetComputeIntParams(shader, ShaderIDs._FullResPixelOffset, (int)data.FullResPixelOffset.x, (int)data.FullResPixelOffset.y);
                 cmd.SetComputeIntParams(shader, ShaderIDs._LowResScreenSize, (int)data.LowResScreenSize.x, (int)data.LowResScreenSize.y);
                 cmd.SetComputeIntParam(shader, ShaderIDs._UseMotionVectorSeeding, data.UseMotionVectorSeeding ? 1 : 0);
-                cmd.SetComputeFloatParam(shader, ShaderIDs._VoxelMinSize, data.VoxelMinSize);
+                cmd.SetComputeFloatParam(shader, ShaderIDs._VolumeVoxelMinSize, data.VoxelMinSize);
                 cmd.SetComputeMatrixParam(shader, ShaderIDs._CurrentClipToWorldTransform, data.CurrentClipToWorldTransform);
                 cmd.SetComputeMatrixParam(shader, ShaderIDs._PreviousClipToWorldTransform, data.PreviousClipToWorldTransform);
-                cmd.SetComputeVectorParam(shader, ShaderIDs._GridTargetPos, data.GridTargetPos);
+                cmd.SetComputeVectorParam(shader, ShaderIDs._VolumeTargetPos, data.VolumeTargetPos);
 
                 uint3 groupCount = DivUp(data.ThreadCount, data.ThreadGroupSize);
                 cmd.DispatchCompute(shader, kernelIndex, (int)groupCount.x, (int)groupCount.y, 1);
@@ -818,14 +834,14 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchStatistics, data.PatchStatistics);
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchCounterSets, data.PatchCounterSets);
 
-                cmd.SetComputeIntParam(shader, ShaderIDs._GridSize, (int)data.GridSize);
-                cmd.SetComputeIntParam(shader, ShaderIDs._CascadeCount, (int)data.CascadeCount);
+                cmd.SetComputeIntParam(shader, ShaderIDs._VolumeSpatialResolution, (int)data.VolumeSpatialResolution);
+                cmd.SetComputeIntParam(shader, ShaderIDs._CascadeCount, (int)data.VolumeCascadeCount);
                 cmd.SetComputeIntParam(shader, ShaderIDs._ViewMode, (int)data.ViewMode);
                 cmd.SetComputeIntParam(shader, ShaderIDs._FrameIdx, (int)data.FrameIndex);
                 cmd.SetComputeIntParam(shader, ShaderIDs._ShowSamplePosition, data.ShowSamplePosition ? 1 : 0);
-                cmd.SetComputeFloatParam(shader, ShaderIDs._VoxelMinSize, data.VoxelMinSize);
+                cmd.SetComputeFloatParam(shader, ShaderIDs._VolumeVoxelMinSize, data.VolumeVoxelMinSize);
                 cmd.SetComputeFloatParam(shader, ShaderIDs._RingConfigOffset, data.RingConfigOffset);
-                cmd.SetComputeVectorParam(shader, ShaderIDs._GridTargetPos, data.GridTargetPos);
+                cmd.SetComputeVectorParam(shader, ShaderIDs._VolumeTargetPos, data.VolumeTargetPos);
                 cmd.SetComputeMatrixParam(shader, ShaderIDs._ClipToWorldTransform, data.ClipToWorldTransform);
 
                 uint3 groupCount = DivUp(data.ThreadCount, data.ThreadGroupSize);
@@ -932,7 +948,7 @@ namespace UnityEngine.Rendering.Universal
                 LightHandle[] handlesToRemove = new LightHandle[removedLights.Count];
                 for (int i = 0; i < removedLights.Count; i++)
                 {
-                    int lightEntityID = removedLights[i];
+                    var lightEntityID = removedLights[i];
                     handlesToRemove[i] = entityIDToHandle[lightEntityID];
                     entityIDToHandle.Remove(lightEntityID);
                 }
@@ -957,10 +973,9 @@ namespace UnityEngine.Rendering.Universal
                 List<MeshRenderer> addedInstances,
                 List<InstanceChanges> changedInstances,
                 List<EntityId> removedInstances,
-                RenderedGameObjectsFilter renderedGameObjects,
                 Material fallbackMaterial)
             {
-                UpdateInstances(world, _entityIDToWorldInstanceHandles, _entityIDToWorldMaterialHandles, addedInstances, changedInstances, removedInstances, renderedGameObjects, fallbackMaterial);
+                UpdateInstances(world, _entityIDToWorldInstanceHandles, _entityIDToWorldMaterialHandles, addedInstances, changedInstances, removedInstances, fallbackMaterial);
             }
 
             private static void UpdateInstances(
@@ -970,7 +985,6 @@ namespace UnityEngine.Rendering.Universal
                 List<MeshRenderer> addedInstances,
                 List<InstanceChanges> changedInstances,
                 List<EntityId> removedInstances,
-                RenderedGameObjectsFilter renderedGameObjects,
                 Material fallbackMaterial)
             {
                 foreach (var meshRendererEntityID in removedInstances)
@@ -988,7 +1002,7 @@ namespace UnityEngine.Rendering.Universal
 
                     var mesh = meshRenderer.GetComponent<MeshFilter>().sharedMesh;
 
-                    if (mesh.vertexCount == 0)
+                    if (mesh == null || mesh.vertexCount == 0)
                         continue;
 
                     var localToWorldMatrix = meshRenderer.transform.localToWorldMatrix;
@@ -1007,7 +1021,7 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     InstanceHandle instance = world.AddInstance(mesh, materialHandles, masks, in localToWorldMatrix);
-                    int entityID = meshRenderer.GetEntityId();
+                    var entityID = meshRenderer.GetEntityId();
                     Debug.Assert(!entityIDToInstanceHandle.ContainsKey(entityID));
                     entityIDToInstanceHandle.Add(entityID, instance);
                 }
@@ -1191,14 +1205,11 @@ namespace UnityEngine.Rendering.Universal
                 var coreResourceLoadResult = coreResources.LoadFromRenderPipelineResources(_rtContext);
                 Debug.Assert(coreResourceLoadResult);
 
-                float volSize = _parameterSet.VolumeParams.Size;
-                uint volRes = _parameterSet.VolumeParams.Resolution;
-                uint volCascCount = _parameterSet.VolumeParams.CascadeCount;
-                var gridParams = new SurfaceCacheGridParameterSet
+                var volParams = new SurfaceCacheVolumeParameterSet
                 {
-                    GridSize = volRes,
-                    VoxelMinSize = volSize / (volRes * (float)(1u << (int)(volCascCount - 1u))),
-                    CascadeCount = volCascCount
+                    Resolution = _parameterSet.VolumeParams.Resolution,
+                    Size = _parameterSet.VolumeParams.Size,
+                    CascadeCount = _parameterSet.VolumeParams.CascadeCount
                 };
 
                 var estimationParams = new SurfaceCacheEstimationParameterSet
@@ -1240,7 +1251,7 @@ namespace UnityEngine.Rendering.Universal
                     _parameterSet.ScreenFilteringParams.UpsamplingKernelSize,
                     _parameterSet.ScreenFilteringParams.UpsamplingSampleCount,
                     _parameterSet.AdvancedParams.DefragCount,
-                    gridParams,
+                    volParams,
                     estimationParams,
                     patchFilteringParams,
                     _parameterSet.VolumeParams.Movement);

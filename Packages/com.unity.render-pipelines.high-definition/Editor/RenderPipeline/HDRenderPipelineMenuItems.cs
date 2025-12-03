@@ -260,7 +260,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void MenuCreateDiffusionProfile()
         {
             var icon = CoreUtils.GetIconForType<DiffusionProfileSettings>();
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile.asset", icon, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(EntityId.None, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile.asset", icon, null);
         }
 
         [MenuItem("Assets/Create/Shader/HDRP Custom FullScreen Pass")]

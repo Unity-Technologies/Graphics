@@ -16,23 +16,23 @@ StructuredBuffer<int3> _CascadeOffsets;
 
 uint _FrameIdx;
 uint _CascadeCount;
-uint _GridSize;
+uint _VolumeSpatialResolution;
 uint _SampleCount;
 float _FilterSize;
-float _VoxelMinSize;
 uint _RingConfigOffset;
-float3 _GridTargetPos;
+float _VolumeVoxelMinSize;
+float3 _VolumeTargetPos;
 
 [numthreads(64, 1, 1)]
 void ResampleSpatially(uint patchIdx : SV_DispatchThreadID)
 {
-    if (RingBuffer::IsPositionUnused(_RingConfigBuffer, _RingConfigOffset, patchIdx))
+    if (!RingBuffer::IsPositionInUse(_RingConfigBuffer, _RingConfigOffset, patchIdx))
         return;
 
     Reservoir reservoir;
 
     const PatchUtil::PatchGeometry patchGeo = _PatchGeometries[patchIdx];
-    const int cascadeResolution = PatchUtil::ResolveCascadeIndex(_GridTargetPos, patchGeo.position, _GridSize, _CascadeCount, _VoxelMinSize);
+    const int cascadeResolution = PatchUtil::ResolveCascadeIndex(_VolumeTargetPos, patchGeo.position, _VolumeSpatialResolution, _CascadeCount, _VolumeVoxelMinSize);
     const uint cascadeIdx = cascadeResolution != -1 ? cascadeResolution : _CascadeCount - 1;
 
     QrngKronecker rng;
@@ -51,10 +51,10 @@ void ResampleSpatially(uint patchIdx : SV_DispatchThreadID)
         OrthoBasisFromVector(patchGeo.normal, up, right);
 
         const float2 jitter = (float2(rng.GetFloat(0), rng.GetFloat(1)) * 2.0f - 1.0f) * _FilterSize;
-        const float3 displacement = (up * jitter.x + right * jitter.y) * PatchUtil::GetVoxelSize(_VoxelMinSize, cascadeIdx);
+        const float3 displacement = (up * jitter.x + right * jitter.y) * PatchUtil::GetVoxelSize(_VolumeVoxelMinSize, cascadeIdx);
         const float3 jitteredPosition = patchGeo.position + displacement;
 
-        uint neighbourPatchIdx = PatchUtil::FindPatchIndex(_GridTargetPos, _CellPatchIndices, _GridSize, _CascadeOffsets, _CascadeCount, _VoxelMinSize, jitteredPosition, patchGeo.normal);
+        uint neighbourPatchIdx = PatchUtil::FindPatchIndex(_VolumeTargetPos, _CellPatchIndices, _VolumeSpatialResolution, _CascadeOffsets, _CascadeCount, _VolumeVoxelMinSize, jitteredPosition, patchGeo.normal);
         if (neighbourPatchIdx != PatchUtil::invalidPatchIndex)
         {
             Realization realization = _InputPatchRealizations[neighbourPatchIdx];

@@ -575,11 +575,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             if (enableValidityChecks)
             {
-                if (!Util.RenderGraphUtils.IsFramebufferFetchEmulationSupportedOnCurrentPlatform())
-                {
-                    throw new InvalidOperationException($"This API is not supported on the current platform: {SystemInfo.graphicsDeviceType}");
-                }
-
                 if (!Util.RenderGraphUtils.IsFramebufferFetchEmulationMSAASupportedOnCurrentPlatform())
                 {
                     var sourceInfo = m_RenderGraph.GetRenderTargetInfo(tex);

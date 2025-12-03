@@ -228,7 +228,7 @@ namespace UnityEngine.Rendering
                 var materialID = rendererData.materialID[materialIndex];
                 var packedMaterialData = packedMaterialDatas[matIndex];
 
-                if (materialID == 0)
+                if (materialID == EntityId.None)
                 {
                     Debug.LogWarning("Material in the shared materials list is null. Object will be partially rendered.");
                     continue;
@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering
                         submeshIndex = submeshIndex,
                         activeMeshLod = meshLodInfo.lodSelectionActive ? lodLoopIndex : -1,
                         flags = flags,
-                        transparentInstanceId = packedMaterialData.isTransparent ? rendererGroupID : 0,
+                        transparentInstanceId = packedMaterialData.isTransparent ? rendererGroupID : EntityId.None,
                         range = rangeKey,
                         overridenComponents = (uint)overridenComponents,
                         // When we've opted out of lightmap texture arrays, we

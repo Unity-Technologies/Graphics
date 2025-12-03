@@ -56,7 +56,6 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_DepthAttachmentFormat;
         SerializedProperty m_DepthTextureFormat;
         SerializedProperty m_AccurateGbufferNormals;
-        SerializedProperty m_UseNativeRenderPass;
         SerializedProperty m_DefaultStencilState;
         SerializedProperty m_PostProcessData;
         SerializedProperty m_Shaders;
@@ -76,7 +75,6 @@ namespace UnityEditor.Rendering.Universal
             m_DepthAttachmentFormat = serializedObject.FindProperty("m_DepthAttachmentFormat");
             m_DepthTextureFormat = serializedObject.FindProperty("m_DepthTextureFormat");
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
-            m_UseNativeRenderPass = serializedObject.FindProperty("m_UseNativeRenderPass");
             m_DefaultStencilState = serializedObject.FindProperty("m_DefaultStencilState");
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
             m_Shaders = serializedObject.FindProperty("shaders");

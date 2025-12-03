@@ -2,7 +2,9 @@
 
 ## Description
 
-Samples a **Texture 2D** and returns a **Vector 4** color value for use in the shader. You can override the **UV** coordinates using the **UV** input and define a custom **Sampler State** using the **Sampler** input. Use the **LOD** input to adjust the level of detail of the sample.
+Samples a **Texture 2D** and returns a **Vector 4** color value for use in the shader. You can override the **UV** coordinates using the **UV** input and define a custom **Sampler State** using the **Sampler** input.
+
+Use the **LOD** input to set the exact mip level to sample. This replaces the GPU's normal LOD selection and can result in visible aliasing, particularly for distant objects.
 
 To use the **Sample Texture 2D LOD Node** to sample a normal map, set the **Type** dropdown parameter to **Normal**.
 

@@ -77,7 +77,7 @@ internal class SampleDependencyImporter : IPackageManagerExtension
     Button samplesButton;
     const string samplesButtonName = "samplesButton";
     const string sampleContainerClassName = "sampleContainer";
-    const string importButtonClassName = "importButton";
+    const string importButtonClassName = "actionButton";
     const string injectedButtonClassName = "importWithDependenciesButton";
 
     void RefreshSampleButtons()
@@ -114,6 +114,8 @@ internal class SampleDependencyImporter : IPackageManagerExtension
             if (injectedButton == null)
             {
                 // Get and hide the original import button.
+                // WARNING! There are now two buttons - "Import" and "Locate". The Import button is first in the hierarchy
+                // so this happens to work, but it's really brittle so we need to find a better way to do this.
                 var importButton = sampleContainer.Q<Button>(className: importButtonClassName);
                 importButton.style.display = DisplayStyle.None;
 

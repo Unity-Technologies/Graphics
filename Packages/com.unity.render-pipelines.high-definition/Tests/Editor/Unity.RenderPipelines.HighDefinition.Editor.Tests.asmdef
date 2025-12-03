@@ -2,14 +2,16 @@
     "name": "Unity.RenderPipelines.HighDefinition.Editor.Tests",
     "rootNamespace": "",
     "references": [
-		"Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Core.Editor",
         "Unity.RenderPipelines.Core.Editor.Tests",
         "Unity.RenderPipelines.HighDefinition.Runtime",
         "Unity.RenderPipelines.HighDefinition.Editor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "Unity.RenderPipelines.GPUDriven.Runtime"
+        "Unity.RenderPipelines.GPUDriven.Runtime",
+        "Unity.RenderPipelines.Core.Editor.Shared",
+        "Unity.RenderPipelines.Core.Runtime.Shared"
     ],
     "includePlatforms": [
         "Editor"

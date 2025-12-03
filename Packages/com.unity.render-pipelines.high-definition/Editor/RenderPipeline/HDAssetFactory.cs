@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void CreateHDRenderPipeline()
         {
             var icon = CoreUtils.GetIconForType<HDRenderPipelineAsset>();
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetHDRenderPipeline>(), "New HDRenderPipelineAsset.asset", icon, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(EntityId.None, ScriptableObject.CreateInstance<DoCreateNewAssetHDRenderPipeline>(), "New HDRenderPipelineAsset.asset", icon, null);
         }
     }
 }

@@ -29,27 +29,27 @@ namespace UnityEngine.Rendering
         const float kInvalidValidity = 1f;
         const float kValidSHThresh = 0.33f;
 
-        private static Dictionary<int, SphericalHarmonicsL2> m_SHCoefficients = new Dictionary<int, SphericalHarmonicsL2>();
-        private static Dictionary<int, float> m_SHValidity = new Dictionary<int, float>();
-        private static Dictionary<int, Vector3> m_RequestPositions = new Dictionary<int, Vector3>();
+        private static Dictionary<EntityId, SphericalHarmonicsL2> m_SHCoefficients = new Dictionary<EntityId, SphericalHarmonicsL2>();
+        private static Dictionary<EntityId, float> m_SHValidity = new Dictionary<EntityId, float>();
+        private static Dictionary<EntityId, Vector3> m_RequestPositions = new Dictionary<EntityId, Vector3>();
 
         /// <summary>
         /// Enqueue a request for probe rendering at the specified location.
         /// </summary>
         /// <param name ="capturePosition"> The position at which a probe is baked.</param>
-        /// <param name ="probeInstanceID"> The instance ID of the probe doing the request.</param>
-        public void EnqueueRequest(Vector3 capturePosition, int probeInstanceID)
+        /// <param name ="probeEntityId"> The entityId of the probe doing the request.</param>
+        public void EnqueueRequest(Vector3 capturePosition, EntityId probeEntityId)
         {
-            m_SHCoefficients[probeInstanceID] = new SphericalHarmonicsL2();
-            m_SHValidity[probeInstanceID] = kInvalidSH;
-            m_RequestPositions[probeInstanceID] = capturePosition;
+            m_SHCoefficients[probeEntityId] = new SphericalHarmonicsL2();
+            m_SHValidity[probeEntityId] = kInvalidSH;
+            m_RequestPositions[probeEntityId] = capturePosition;
         }
 
         /// <summary>
         /// Dequeue a request for probe rendering.
         /// </summary>
         /// <param name ="probeInstanceID">The instance ID of the probe for which we want to dequeue a request. </param>
-        public void DequeueRequest(int probeInstanceID)
+        public void DequeueRequest(EntityId probeInstanceID)
         {
             if (m_SHCoefficients.ContainsKey(probeInstanceID))
             {
@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering
             return false;
         }
 
-        static internal bool GetPositionForRequest(int probeInstanceID, out Vector3 pos)
+        static internal bool GetPositionForRequest(EntityId probeInstanceID, out Vector3 pos)
         {
             if (m_SHCoefficients.ContainsKey(probeInstanceID))
             {
@@ -124,7 +124,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name ="probeInstanceID"> The instance ID of the probe doing the request and that wants the capture position updated.</param>
         /// <param name ="newPositionnewPosition"> The position at which a probe is baked.</param>
-        public void UpdatePositionForRequest(int probeInstanceID, Vector3 newPosition)
+        public void UpdatePositionForRequest(EntityId probeInstanceID, Vector3 newPosition)
         {
             if (m_SHCoefficients.ContainsKey(probeInstanceID))
             {
@@ -165,13 +165,13 @@ namespace UnityEngine.Rendering
             Debug.Assert(sh.Length == m_SHCoefficients.Count);
             Debug.Assert(sh.Length == validity.Length);
 
-            List<int> requestsInstanceIDs = new List<int>(m_SHCoefficients.Keys);
+            List<EntityId> requestsInstanceIDs = new List<EntityId>(m_SHCoefficients.Keys);
 
             for (int i = 0; i < sh.Length; ++i)
                 SetSHCoefficients(requestsInstanceIDs[i], sh[i], validity[i]);
         }
 
-        static internal void SetSHCoefficients(int instanceID, SphericalHarmonicsL2 sh, float validity)
+        static internal void SetSHCoefficients(EntityId instanceID, SphericalHarmonicsL2 sh, float validity)
         {
             if (validity < kValidSHThresh)
             {

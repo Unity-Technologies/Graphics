@@ -326,6 +326,7 @@ namespace UnityEngine.PathTracing.Core
             _lightState = new LightState();
 
             _cubemapRender = new CubemapRender(worldResources.SkyBoxMesh, worldResources.SixFaceSkyBoxMesh);
+            _cubemapRender.SetMode(CubemapRender.Mode.Material);
             _environmentSampling = new EnvironmentImportanceSampling(worldResources.EnvironmentImportanceSamplingBuild);
             _reservoirGrid = new RegirLightGrid(worldResources.BuildLightGridShader);
             _conservativeLightGrid = new ConservativeLightGrid(worldResources.BuildLightGridShader);
@@ -371,15 +372,14 @@ namespace UnityEngine.PathTracing.Core
             return _materialPool.LightCubemapTextures;
         }
 
-        public Texture GetEnvironmentTexture(CommandBuffer cmd, int resolution, out EnvironmentCDF environmentCDF)
+        public Texture GetEnvironmentTexture(CommandBuffer cmd, out EnvironmentCDF environmentCDF)
         {
             Debug.Assert(_environmentSampling != null, "You should call World::Init() first");
-
-            var envTex = _cubemapRender.GetCubemap(resolution, out int skyHash);
-            if (_currentSkyboxHash != skyHash)
+            var envTex = _cubemapRender.GetCubemap();
+            if (_currentSkyboxHash != _cubemapRender.Hash)
             {
                 _environmentSampling.ComputeCDFBuffers(cmd, envTex);
-                _currentSkyboxHash = skyHash;
+                _currentSkyboxHash = _cubemapRender.Hash;
             }
             environmentCDF = _environmentSampling.GetSkyboxCDF();
             return envTex;
@@ -434,7 +434,7 @@ namespace UnityEngine.PathTracing.Core
         {
             try
             {
-                _rayTracingAccelerationStructure.RemoveInstance(instance.ToInt());
+                _rayTracingAccelerationStructure.RemoveInstance(instance.Value);
                 _instanceHandleSet.Remove(instance);
                 RemoveEmissiveMeshes(instance);
             }
@@ -541,7 +541,7 @@ namespace UnityEngine.PathTracing.Core
             }
 
             InstanceHandle instance = _instanceHandleSet.Add();
-            _rayTracingAccelerationStructure.AddInstance(instance.ToInt(), mesh, localToWorldMatrix, masks, materialIndices, isOpaque, renderingLayerMask);
+            _rayTracingAccelerationStructure.AddInstance(instance.Value, mesh, localToWorldMatrix, masks, materialIndices, isOpaque, renderingLayerMask);
 
             if (enableEmissiveSampling && !ProcessEmissiveMeshes(instance, mesh, bounds, materials, isStatic, _rayTracingAccelerationStructure, _materialPool, filter, _lightState.MeshLights, _subMeshIndices))
                 LogError($"Failed to process emissive triangles in mesh {mesh.name}.");
@@ -551,16 +551,16 @@ namespace UnityEngine.PathTracing.Core
 
         public void UpdateInstanceTransform(InstanceHandle instance, Matrix4x4 localToWorldMatrix)
         {
-            _rayTracingAccelerationStructure.UpdateInstanceTransform(instance.ToInt(), localToWorldMatrix);
+            _rayTracingAccelerationStructure.UpdateInstanceTransform(instance.Value, localToWorldMatrix);
         }
 
         public void UpdateInstanceMask(InstanceHandle instance, Span<uint> perSubMeshMask)
         {
-            _rayTracingAccelerationStructure.UpdateInstanceMask(instance.ToInt(), perSubMeshMask);
+            _rayTracingAccelerationStructure.UpdateInstanceMask(instance.Value, perSubMeshMask);
         }
         public void UpdateInstanceMask(InstanceHandle instance, uint mask)
         {
-            _rayTracingAccelerationStructure.UpdateInstanceMask(instance.ToInt(), mask);
+            _rayTracingAccelerationStructure.UpdateInstanceMask(instance.Value, mask);
         }
 
         public void UpdateInstanceMaterials(InstanceHandle instance, Span<MaterialHandle> materials)
@@ -571,7 +571,7 @@ namespace UnityEngine.PathTracing.Core
                 _materialPool.GetMaterialInfo(materials[i].Value, out materialIndices[i], out bool isTransmissive);
             }
 
-            _rayTracingAccelerationStructure.UpdateInstanceMaterialIDs(instance.ToInt(), materialIndices);
+            _rayTracingAccelerationStructure.UpdateInstanceMaterialIDs(instance.Value, materialIndices);
         }
 
         public void UpdateInstanceEmission(
@@ -660,7 +660,7 @@ namespace UnityEngine.PathTracing.Core
 
             int subMeshCount = mesh.subMeshCount;
 
-            if (!rtAccelStruct.GetInstanceIDs(instance.ToInt(), out int[] instanceHandles))
+            if (!rtAccelStruct.GetInstanceIDs(instance.Value, out var instanceHandles))
             {
                 // This should never happen as long as the renderer was already added to the acceleration structure
                 return false;
@@ -910,7 +910,7 @@ namespace UnityEngine.PathTracing.Core
             }
         }
 
-        public void Build(Bounds sceneBounds, CommandBuffer cmdBuf, ref GraphicsBuffer scratchBuffer, Rendering.Sampling.SamplingResources samplingResources, bool emissiveSampling)
+        public void Build(Bounds sceneBounds, CommandBuffer cmdBuf, ref GraphicsBuffer scratchBuffer, Rendering.Sampling.SamplingResources samplingResources, bool emissiveSampling, int envCubemapResolution)
         {
             Debug.Assert(_rayTracingAccelerationStructure != null);
             _lightState.Build(sceneBounds, cmdBuf, emissiveSampling && _cubemapRender.GetMaterial() != null);
@@ -926,12 +926,13 @@ namespace UnityEngine.PathTracing.Core
 
             _materialPool.Build(cmdBuf);
             _rayTracingAccelerationStructure.Build(cmdBuf, ref scratchBuffer);
+
+            _cubemapRender.Update(cmdBuf, RenderSettings.sun, envCubemapResolution);
         }
 
         public UInt64 GetInstanceHandles(InstanceHandle handle)
         {
-            int[] ids;
-            _rayTracingAccelerationStructure.GetInstanceIDs(handle.ToInt(), out ids);
+            _rayTracingAccelerationStructure.GetInstanceIDs(handle.Value, out var ids);
             return (UInt64)ids[0];
         }
     }

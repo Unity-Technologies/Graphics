@@ -375,6 +375,11 @@ half MainLightRealtimeShadow(float4 shadowCoord, half4 shadowParams, ShadowSampl
         return half(1.0);
     #endif
 
+#if (UNITY_PLATFORM_META_QUEST) // Avoid shadowmap lookup if coordinates are outside of the shadowmap.
+    if (shadowCoord.z < 0.0 || any(saturate(shadowCoord.xy) != shadowCoord.xy))
+        return half(1.0);
+#endif
+    
     #if defined(_MAIN_LIGHT_SHADOWS_SCREEN) && !defined(_SURFACE_TYPE_TRANSPARENT)
         return SampleScreenSpaceShadowmap(shadowCoord);
     #else

@@ -3,6 +3,8 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialBlendModeEnum.cs.hlsl"
 
+#define VFX_WRITE_RENDERING_LAYERS 0
+
 #if VFX_BLENDMODE_ALPHA
     #define _BlendMode BLENDINGMODE_ALPHA
 #elif VFX_BLENDMODE_ADD
