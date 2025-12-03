@@ -277,6 +277,30 @@ namespace UnityEngine.Rendering.Universal
             return renderGraph.CreateTexture(rgDesc);
         }
 
+        internal static TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, RenderTextureDescriptor desc, string name, bool clear, Color color, int anisoLevel,
+            FilterMode filterMode = FilterMode.Point, TextureWrapMode wrapMode = TextureWrapMode.Clamp, bool discardOnLastUse = false)
+        {
+            TextureDesc rgDesc = new TextureDesc(desc.width, desc.height);
+            rgDesc.dimension = desc.dimension;
+            rgDesc.clearBuffer = clear;
+            rgDesc.clearColor = color;
+            rgDesc.bindTextureMS = desc.bindMS;
+            rgDesc.format = (desc.depthStencilFormat != GraphicsFormat.None) ? desc.depthStencilFormat : desc.graphicsFormat;
+            rgDesc.slices = desc.volumeDepth;
+            rgDesc.msaaSamples = (MSAASamples)desc.msaaSamples;
+            rgDesc.name = name;
+            rgDesc.enableRandomWrite = desc.enableRandomWrite;
+            rgDesc.filterMode = filterMode;
+            rgDesc.wrapMode = wrapMode;
+            rgDesc.useDynamicScale = desc.useDynamicScale;
+            rgDesc.useDynamicScaleExplicit = desc.useDynamicScaleExplicit;
+            rgDesc.discardBuffer = discardOnLastUse;
+            rgDesc.vrUsage = desc.vrUsage;
+            rgDesc.anisoLevel = anisoLevel;
+
+            return renderGraph.CreateTexture(rgDesc);
+        }
+
         bool ShouldApplyPostProcessing(bool postProcessEnabled)
         {
             return postProcessEnabled && m_PostProcessPasses.isCreated;
@@ -566,7 +590,7 @@ namespace UnityEngine.Rendering.Universal
                 var isSingleCamera = cameraData.resolveFinalTarget && cameraData.renderType == CameraRenderType.Base;
                 if (isSingleCamera)
                 {
-                    resourceData.cameraColor = CreateRenderGraphTexture(renderGraph, cameraTargetDescriptor, _SingleCameraTargetAttachmentName, clearColor, cameraBackgroundColor, FilterMode.Bilinear, discardOnLastUse: cameraData.resolveFinalTarget);
+                    resourceData.cameraColor = CreateRenderGraphTexture(renderGraph, cameraTargetDescriptor, _SingleCameraTargetAttachmentName, clearColor, cameraBackgroundColor, 1, FilterMode.Bilinear, discardOnLastUse: cameraData.resolveFinalTarget);
 
                     m_CurrentColorHandle = -1;
                 }

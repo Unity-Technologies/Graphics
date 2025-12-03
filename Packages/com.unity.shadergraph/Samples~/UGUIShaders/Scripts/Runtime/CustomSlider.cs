@@ -138,8 +138,13 @@ namespace Unity.UI.Shaders.Sample
         {
             _material ??= new Material(baseMaterial);
 
-            _material.SetFloat(StatePropertyId, (int)currentSelectionState);
-            _material.SetVector(SliderValuePropertyId, Vector);
+            _material.CopyPropertiesFromMaterial(baseMaterial);
+
+            if (_material.HasFloat(StatePropertyId))
+                _material.SetFloat(StatePropertyId, (int)currentSelectionState);
+
+            if (_material.HasVector(SliderValuePropertyId))
+                _material.SetVector(SliderValuePropertyId, Vector);
 
             return _material;
         }

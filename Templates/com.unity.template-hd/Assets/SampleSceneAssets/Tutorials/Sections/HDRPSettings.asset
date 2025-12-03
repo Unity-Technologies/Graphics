@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f107dc6d4c984c45bdafd3bb15f98f0, type: 3}
+  m_Name: HDRPSettings
+  m_EditorClassIdentifier: 
+  TutorialTitle:
+    m_Untranslated: HDRP settings
+  m_TutorialTitle: 
+  m_ProgressTrackingEnabled: 1
+  m_LessonId: 1002
+  m_Version: 0
+  m_Scene: {fileID: 102900000, guid: 3db1837cc97a95e4c98610966fac2b0b, type: 3}
+  m_DefaultSceneCameraSettings:
+    m_CameraMode: 0
+    m_FocusMode: 0
+    m_Orthographic: 0
+    m_Size: 0
+    m_Pivot: {x: 0, y: 0, z: 0}
+    m_Rotation: {x: 0, y: 0, z: 0, w: 0}
+    m_FrameObject:
+      m_SceneGuid: 
+      m_GameObjectGuid: 
+      m_SerializedComponentType:
+        m_TypeName: 
+      m_ComponentIndex: 0
+      m_AssetObject: {fileID: 0}
+      m_Prefab: {fileID: 0}
+    m_Enabled: 0
+  m_WindowLayout: {fileID: 0}
+  m_Pages:
+    m_Items:
+    - {fileID: 11400000, guid: b7394321e622a934ea3f556bd066d443, type: 2}
+    - {fileID: 11400000, guid: bfd5542088ba5684e9c83bdf7ea314aa, type: 2}
+    - {fileID: 11400000, guid: 329ddf25aa3c071458389c5a5db3f914, type: 2}
+    - {fileID: 11400000, guid: 8389121cc64f8c4428c29c9193bc2dc1, type: 2}
+    - {fileID: 11400000, guid: 3c6fc560034e6e04dab980e96b052077, type: 2}
+    - {fileID: 11400000, guid: 1a734ab6fe6b9af469fba274fc61ad6d, type: 2}
+  Modified:
+    m_PersistentCalls:
+      m_Calls: []
+  Initiated:
+    m_PersistentCalls:
+      m_Calls: []
+  PageInitiated:
+    m_PersistentCalls:
+      m_Calls: []
+  GoingBack:
+    m_PersistentCalls:
+      m_Calls: []
+  Completed:
+    m_PersistentCalls:
+      m_Calls: []
+  Quit:
+    m_PersistentCalls:
+      m_Calls: []

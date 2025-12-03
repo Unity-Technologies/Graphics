@@ -20,13 +20,13 @@ To use bicubic sampling in your project, enable the **Use Bicubic Lightmap Sampl
 
 ## Fix texture bleeding
 
-Bicubic sampling can cause texture bleeding, where Unity samples unintended texels from neighboring regions of a texture, leading to visual artifacts. To prevent texture bleeding, there needs to be enough padding between [lightmap UV charts](https://docs.unity3d.com/Manual/LightingGiUvs-landing.html). To fully remove texture bleeding artifacts, set the number of texels between each UV chart to at least 2 for bilinear filtering and at least 4 for bicubic filtering.
+Bicubic sampling can cause texture bleeding, where Unity samples unintended texels from neighboring regions of a texture, leading to visual artifacts. To prevent texture bleeding, there needs to be enough margin between [lightmap UV charts](LightingGiUvs-landing). To fully remove texture bleeding artifacts, set the number of texels between each UV chart to at least 2 for bilinear filtering and at least 4 for bicubic filtering.
 
-To change the padding in or between charts, refer to [Fix light bleeding in lightmaps](https://docs.unity3d.com/Manual/ProgressiveLightmapper-UVOverlap.html).
+To change the margin between charts, refer to [Fix light bleeding in lightmaps](ProgressiveLightmapper-UVOverlap).
 
 ## Additional resources
 
-* [Introduction to lightmaps and baking](https://docs.unity3d.com/Manual/Lightmappers.html)
-* [Configuring lightmaps and baking](https://docs.unity3d.com/Manual/Lightmapping-configure.html)
-* [Optimize baking](https://docs.unity3d.com/Manual/GPUProgressiveLightmapper.html)
-* [Introduction to lightmap UVs](https://docs.unity3d.com/Manual/LightingGiUvs.html)
+* [Introduction to lightmaps and baking](Lightmappers)
+* [Configuring lightmaps and baking](Lightmapping-configure)
+* [Optimize baking](GPUProgressiveLightmapper)
+* [Introduction to lightmap UVs](LightingGiUvs)

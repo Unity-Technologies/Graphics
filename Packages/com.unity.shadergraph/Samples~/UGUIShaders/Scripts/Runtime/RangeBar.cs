@@ -128,6 +128,8 @@ namespace Unity.UI.Shaders.Sample
         {
             _material ??= new Material(baseMaterial);
 
+            _material.CopyPropertiesFromMaterial(baseMaterial);
+
             if (_material.HasVector(RangeBarValuePropertyId))
                 _material.SetVector(RangeBarValuePropertyId, Vector);
 
