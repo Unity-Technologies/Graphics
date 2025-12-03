@@ -1947,6 +1947,37 @@ namespace UnityEngine.Rendering
 #endif
         }
 
+        /// <summary>
+        /// Indicates whether the combined camera viewports fully cover the screen area.
+        /// </summary>
+        /// <param name="cameras">List of cameras to render.</param>
+        /// <returns>True if the combined camera viewports fully cover the screen area.</returns>
+        public static bool IsScreenFullyCoveredByCameras(List<Camera> cameras)
+        {
+            if (cameras == null || cameras.Count == 0)
+                return false;
+
+            bool isScreenFullyCovered = false;
+            using (ListPool<Rect>.Get(out var cameraRects))
+            {
+                // We don't need to exclude stacked cameras for the input camera list because the overlay camera have the same viewport with its base camera.
+                foreach (var camera in cameras)
+                {
+                    if (camera.targetTexture != null || camera.cameraType != CameraType.Game)
+                        continue;
+
+                    // Skip test if any viewport is full-screen
+                    if (Mathf.Approximately(camera.rect.xMin, 0f) && Mathf.Approximately(camera.rect.yMin, 0f) && camera.rect.width >= Screen.width && camera.rect.height >= Screen.height)
+                        return true;
+
+                    cameraRects.Add(camera.rect);
+                }
+                isScreenFullyCovered = Mathf.Approximately(SweepLineRectUtils.CalculateRectUnionArea(cameraRects), 1f);
+            }
+
+            return isScreenFullyCovered;
+        }
+
 #if UNITY_EDITOR
         /// <summary>
         /// Populates null fields or collection elements in a target object from a source object of the same type.

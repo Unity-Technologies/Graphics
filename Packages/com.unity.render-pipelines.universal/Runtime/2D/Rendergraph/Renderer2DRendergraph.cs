@@ -43,6 +43,7 @@ namespace UnityEngine.Rendering.Universal
 
         Material m_BlitMaterial;
         Material m_BlitHDRMaterial;
+        Material m_BlitOffscreenUICoverMaterial;
         Material m_SamplingMaterial;
 
         // 2D specific render passes
@@ -55,6 +56,7 @@ namespace UnityEngine.Rendering.Universal
         UpscalePass m_UpscalePass;
         CopyCameraSortingLayerPass m_CopyCameraSortingLayerPass;
         FinalBlitPass m_FinalBlitPass;
+        FinalBlitPass m_OffscreenUICoverPrepass;
         DrawScreenSpaceUIPass m_DrawOffscreenUIPass;
         DrawScreenSpaceUIPass m_DrawOverlayUIPass; // from HDRP code
 
@@ -97,6 +99,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_BlitMaterial = CoreUtils.CreateEngineMaterial(shadersResources.coreBlitPS);
                 m_BlitHDRMaterial = CoreUtils.CreateEngineMaterial(shadersResources.blitHDROverlay);
+                m_BlitOffscreenUICoverMaterial = CoreUtils.CreateEngineMaterial(shadersResources.blitHDROverlay);
                 m_SamplingMaterial = CoreUtils.CreateEngineMaterial(shadersResources.samplingPS);
             }
 
@@ -112,6 +115,7 @@ namespace UnityEngine.Rendering.Universal
             m_UpscalePass = new UpscalePass(RenderPassEvent.AfterRenderingPostProcessing, m_BlitMaterial);
             m_CopyCameraSortingLayerPass = new CopyCameraSortingLayerPass(m_BlitMaterial);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + k_FinalBlitPassQueueOffset, m_BlitMaterial, m_BlitHDRMaterial);
+            m_OffscreenUICoverPrepass = new FinalBlitPass(RenderPassEvent.BeforeRenderingPostProcessing, m_BlitMaterial, m_BlitOffscreenUICoverMaterial);
 
             m_DrawOffscreenUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.BeforeRenderingPostProcessing, true);
             m_DrawOverlayUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, false); // after m_FinalBlitPass
@@ -867,9 +871,21 @@ namespace UnityEngine.Rendering.Universal
             bool outputToHDR = cameraData.isHDROutputActive;
             if (shouldRenderUI && outputToHDR)
             {
-                TextureHandle overlayUI;
-                m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, frameData, CoreUtils.GetDefaultDepthStencilFormat(), out overlayUI);
-                commonResourceData.overlayUITexture = overlayUI;
+                if (cameraData.rendersOffscreenUI)
+                {
+                    m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, frameData, CoreUtils.GetDefaultDepthStencilFormat(), commonResourceData.overlayUITexture);
+                    if (cameraData.blitsOffscreenUICover)
+                    {
+                        var blackTextureDesc = new RenderTextureDescriptor(1, 1, GraphicsFormat.R8G8B8A8_SRGB, 0);
+                        var source = UniversalRenderer.CreateRenderGraphTexture(renderGraph, blackTextureDesc, "BlackTexture", false);
+                        m_OffscreenUICoverPrepass.Render(renderGraph, cameraData, commonResourceData, source, true);
+                    }
+                }
+                else
+                {
+                    // When the first camera renders the shared offscreen UI texture, register it as a global texture so subsequent cameras can use it in their final passes.
+                    RenderGraphUtils.SetGlobalTexture(renderGraph, ShaderPropertyId.overlayUITexture, commonResourceData.overlayUITexture);
+                }
             }
         }
 
@@ -1028,6 +1044,7 @@ namespace UnityEngine.Rendering.Universal
             m_UpscalePass.Dispose();
             m_CopyDepthPass?.Dispose();
             m_FinalBlitPass?.Dispose();
+            m_OffscreenUICoverPrepass?.Dispose();
             m_DrawOffscreenUIPass?.Dispose();
             m_DrawOverlayUIPass?.Dispose();
             m_PostProcess?.Dispose();
@@ -1045,6 +1062,7 @@ namespace UnityEngine.Rendering.Universal
 
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_BlitHDRMaterial);
+            CoreUtils.Destroy(m_BlitOffscreenUICoverMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
 
 #if ENABLE_VR && ENABLE_XR_MODULE

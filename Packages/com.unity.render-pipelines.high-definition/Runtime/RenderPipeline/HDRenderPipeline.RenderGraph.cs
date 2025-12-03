@@ -258,7 +258,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, renderContext, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, opticalFogTransmittance,
                         m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, transparentPrepass, ref prepassOutput, shadowResult, cullingResults, customPassCullingResults, aovRequest, aovCustomPassBuffers);
 
-                    uiBuffer = RenderTransparentUI(m_RenderGraph, hdCamera, renderContext);
+                    bool rendersOffscreenUI = !m_OffscreenUIRenderedInCurrentFrame && HDROutputActiveForCameraType(hdCamera) && SupportedRenderingFeatures.active.rendersUIOverlay && !NeedHDRDebugMode(m_CurrentDebugDisplaySettings);
+                    if (rendersOffscreenUI)
+                    {
+                        uiBuffer = RenderHDROffscreenUI(m_RenderGraph, hdCamera, renderContext);
+                        m_OffscreenUIRenderedInCurrentFrame = true;
+                    }
+                    else
+                    {
+                        // We do not render offscreen ui for the rest of cameras.
+                        uiBuffer = m_OffscreenUIRenderedInCurrentFrame ? m_RenderGraph.ImportTexture(m_OffscreenUIColorBuffer.Value) : m_RenderGraph.defaultResources.blackTextureXR;
+                    }
+
+                    bool blitsOffscreenUICover = rendersOffscreenUI && m_RequireOffscreenUICoverPrepass;
+                    if (blitsOffscreenUICover)
+                    {
+                        BlitFullscreenUIToOffscreen(m_RenderGraph, colorBackBuffer, uiBuffer, hdCamera);
+                    }
 
                     if (NeedMotionVectorForTransparent(hdCamera.frameSettings))
                     {
@@ -440,7 +456,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 StopXRSinglePass(m_RenderGraph, hdCamera);
 
                 if (renderRequest.isLast)
+                {
                     RenderScreenSpaceOverlayUI(m_RenderGraph, hdCamera, colorBackBuffer);
+                }
             }
         }
 
@@ -495,6 +513,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Rect viewport;
             public Material blitMaterial;
             public Vector4 hdrOutputParmeters;
+            public Vector4 offscreenUIViewportParams;
             public bool applyAfterPP;
             public CubemapFace cubemapFace;
 
@@ -538,6 +557,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Pick the right material based off XR rendering using texture arrays and if we are dealing with a single slice at the moment or processing all slices automatically.
                     passData.blitMaterial = (TextureXR.useTexArray && passData.srcTexArraySlice >= 0) ? m_FinalBlitWithOETFTexArraySingleSlice : m_FinalBlitWithOETF;
                     GetHDROutputParameters(HDRDisplayInformationForCamera(hdCamera), HDRDisplayColorGamutForCamera(hdCamera), m_Tonemapping, out passData.hdrOutputParmeters, out var unused);
+                    GetOffscreenUIViewportParams(hdCamera, out passData.offscreenUIViewportParams);
                     passData.uiTexture = uiTexture;
                     builder.UseTexture(passData.uiTexture, AccessFlags.Read);
                     passData.applyAfterPP = hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess) && !NeedHDRDebugMode(m_CurrentDebugDisplaySettings);
@@ -562,6 +582,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             propertyBlock.SetTexture(HDShaderIDs._InputTexture, sourceTexture);
 
                             propertyBlock.SetVector(HDShaderIDs._HDROutputParams, data.hdrOutputParmeters);
+                            propertyBlock.SetVector(HDShaderIDs._OffscreenUIViewportParams, data.offscreenUIViewportParams);
                             propertyBlock.SetInt(HDShaderIDs._BlitTexArraySlice, data.srcTexArraySlice);
 
                             HDROutputUtils.ConfigureHDROutput(data.blitMaterial, data.colorGamut, HDROutputUtils.Operation.ColorEncoding);
@@ -1035,46 +1056,86 @@ namespace UnityEngine.Rendering.HighDefinition
             public Rect viewport;
         }
 
-        TextureHandle CreateOffscreenUIBuffer(RenderGraph renderGraph, MSAASamples msaaSamples, Rect viewport)
+        TextureHandle CreateOffscreenUIDepthBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
         {
-            return renderGraph.CreateTexture(new TextureDesc((int)viewport.width, (int)viewport.height, false, true)
-                { format = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = false, msaaSamples = msaaSamples, name = "UI Color Buffer" });
-        }
-
-        TextureHandle CreateOffscreenUIDepthBuffer(RenderGraph renderGraph, MSAASamples msaaSamples, Rect viewport)
-        {
-            return renderGraph.CreateTexture(new TextureDesc((int)viewport.width, (int)viewport.height, false, true)
+            return renderGraph.CreateTexture(new TextureDesc(Screen.width, Screen.height, false, true)
                 { format = CoreUtils.GetDefaultDepthStencilFormat(), clearBuffer = true, msaaSamples = msaaSamples, name = "UI Depth Buffer" });
         }
 
-        TextureHandle RenderTransparentUI(RenderGraph renderGraph, HDCamera hdCamera, ScriptableRenderContext renderContext)
+        TextureHandle RenderHDROffscreenUI(RenderGraph renderGraph, HDCamera hdCamera, ScriptableRenderContext renderContext)
         {
-            var output = renderGraph.defaultResources.blackTextureXR;
-            if (HDROutputActiveForCameraType(hdCamera) && SupportedRenderingFeatures.active.rendersUIOverlay && !NeedHDRDebugMode(m_CurrentDebugDisplaySettings))
+            TextureHandle output;
+            using (var builder = renderGraph.AddUnsafePass<RenderOffscreenUIData>("UI Rendering", out var passData, ProfilingSampler.Get(HDProfileId.OffscreenUIRendering)))
             {
-                using (var builder = renderGraph.AddUnsafePass<RenderOffscreenUIData>("UI Rendering", out var passData, ProfilingSampler.Get(HDProfileId.OffscreenUIRendering)))
+                output = renderGraph.ImportTexture(m_OffscreenUIColorBuffer.Value);
+                builder.SetRenderAttachment(output, 0);
+                var depthBuffer = CreateOffscreenUIDepthBuffer(renderGraph, hdCamera.msaaSamples);
+                builder.SetRenderAttachmentDepth(depthBuffer);
+
+                passData.camera = hdCamera.camera;
+                passData.rendererList = renderGraph.CreateUIOverlayRendererList(hdCamera.camera);
+                builder.UseRendererList(passData.rendererList);
+                passData.viewport = new Rect(0.0f, 0.0f, Screen.width, Screen.height);
+
+                builder.SetRenderFunc(static (RenderOffscreenUIData data, UnsafeGraphContext ctx) =>
                 {
-                    output = CreateOffscreenUIBuffer(renderGraph, hdCamera.msaaSamples, hdCamera.finalViewport);
-                    builder.SetRenderAttachment(output, 0);
-                    var depthBuffer = CreateOffscreenUIDepthBuffer(renderGraph, hdCamera.msaaSamples, hdCamera.finalViewport);
-                    builder.SetRenderAttachmentDepth(depthBuffer);
-
-                    passData.camera = hdCamera.camera;
-                    passData.rendererList = renderGraph.CreateUIOverlayRendererList(hdCamera.camera);
-                    builder.UseRendererList(passData.rendererList);
-                    passData.viewport = new Rect(0.0f, 0.0f, hdCamera.finalViewport.width, hdCamera.finalViewport.height);
-
-                    builder.SetRenderFunc(static (RenderOffscreenUIData data, UnsafeGraphContext ctx) =>
-                    {
-                        ctx.cmd.SetViewport(data.viewport);
-                        ctx.cmd.ClearRenderTarget(false, true, Color.clear);
-                        if (data.camera.targetTexture == null)
-                            ctx.cmd.DrawRendererList(data.rendererList);
-                    });
-                }
+                    ctx.cmd.SetViewport(data.viewport);
+                    ctx.cmd.ClearRenderTarget(false, true, Color.clear);
+                    if (data.camera.targetTexture == null)
+                        ctx.cmd.DrawRendererList(data.rendererList);
+                });
             }
-
             return output;
+        }
+
+        void BlitFullscreenUIToOffscreen(RenderGraph renderGraph, TextureHandle backBuffer, TextureHandle uiTexture, HDCamera hdCamera)
+        {
+            using (var builder = renderGraph.AddUnsafePass<FinalBlitPassData>("Offscreen UI Blit", out var passData, ProfilingSampler.Get(HDProfileId.OffscreenUIRendering)))
+            {
+                passData.viewport = new Rect(0.0f, 0.0f, Screen.width, Screen.height);
+                passData.srcTexArraySlice = -1;
+                passData.dstTexArraySlice = -1;
+                passData.flip = hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView;
+                passData.blitMaterial = HDUtils.GetBlitMaterial(TextureDimension.Tex2D);
+                passData.destination = backBuffer;
+                builder.UseTexture(passData.destination, AccessFlags.Write);
+                passData.colorGamut = HDRDisplayColorGamutForCamera(hdCamera);
+
+                passData.blitMaterial = m_BlitOffscreenUICover;
+                GetHDROutputParameters(HDRDisplayInformationForCamera(hdCamera), HDRDisplayColorGamutForCamera(hdCamera), m_Tonemapping, out passData.hdrOutputParmeters, out var unused);
+                passData.offscreenUIViewportParams = new Vector4(0f, 0f, hdCamera.finalViewport.width * (1f / Screen.width), hdCamera.finalViewport.height * (1f / Screen.height));
+                passData.uiTexture = uiTexture;
+                builder.UseTexture(passData.uiTexture, AccessFlags.Read);
+                passData.applyAfterPP = false;
+                passData.cubemapFace = CubemapFace.Unknown;
+
+                builder.SetRenderFunc(
+                    static (FinalBlitPassData data, UnsafeGraphContext ctx) =>
+                    {
+                        var propertyBlock = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
+                        RTHandle sourceTexture = TextureXR.GetBlackTexture();
+
+                        // We are in HDR mode so the final blit is different
+                        if (data.hdrOutputParmeters.x >= 0)
+                        {
+                            data.blitMaterial.SetInt(HDShaderIDs._NeedsFlip, data.flip ? 1 : 0);
+                            propertyBlock.SetVector(HDShaderIDs._SrcOffset, new Vector4(data.viewport.x, data.viewport.y, Screen.width, Screen.height));
+                            propertyBlock.SetTexture(HDShaderIDs._UITexture, data.uiTexture);
+                            propertyBlock.SetTexture(HDShaderIDs._InputTexture, sourceTexture);
+
+                            propertyBlock.SetVector(HDShaderIDs._HDROutputParams, data.hdrOutputParmeters);
+                            propertyBlock.SetVector(HDShaderIDs._OffscreenUIViewportParams, data.offscreenUIViewportParams);
+                            propertyBlock.SetInt(HDShaderIDs._BlitTexArraySlice, data.srcTexArraySlice);
+
+                            HDROutputUtils.ConfigureHDROutput(data.blitMaterial, data.colorGamut, HDROutputUtils.Operation.ColorEncoding);
+
+                            data.blitMaterial.DisableKeyword("APPLY_AFTER_POST");
+                            data.blitMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, TextureXR.GetBlackTexture());
+                        }
+
+                        HDUtils.DrawFullScreen(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd), data.viewport, data.blitMaterial, data.destination, data.cubemapFace, propertyBlock, 0, data.dstTexArraySlice);
+                    });
+            }
         }
 
         class AfterPostProcessPassData
