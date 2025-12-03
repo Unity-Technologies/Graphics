@@ -79,7 +79,7 @@ The play Controls Window displays the following controls:
 * Set (Popup) : Sets a custom play rate of the effect from the menu.
 * Show Bounds (Toggle) : Toggles visibility of the bounds of the effect
 * Show Event Tester (Toggle) : Shows Event Tester Utility Window
-* Play() and Stop() Buttons : Sends the default OnPlay and OnStop event to the component.
+* Send Play Event and Send Stop Event (Buttons) : Sends the default OnPlay and OnStop event to the component.
 * (Optional) Gizmos (Popup) : Toggles the visibility of property gizmos.
 
 ## Editing Properties with Gizmos

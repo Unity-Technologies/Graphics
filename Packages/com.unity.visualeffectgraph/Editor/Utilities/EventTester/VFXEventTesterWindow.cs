@@ -259,20 +259,20 @@ namespace UnityEditor.VFX
             EditorGUILayout.Space();
             using (new GUILayout.HorizontalScope(GUILayout.Width(358)))
             {
-                if (GUILayout.Button("Play", Styles.leftButton, GUILayout.Height(24)))
+                if (GUILayout.Button(Contents.play, Styles.leftButton, GUILayout.Height(24)))
                 {
                     SendEvent("OnPlay");
                 }
-                if (GUILayout.Button("Stop", Styles.middleButton, GUILayout.Height(24)))
+                if (GUILayout.Button(Contents.stop, Styles.middleButton, GUILayout.Height(24)))
                 {
                     SendEvent("OnStop");
                 }
-                if (GUILayout.Button("Custom", Styles.rightButton, GUILayout.Height(24)))
+                if (GUILayout.Button(Contents.custom, Styles.rightButton, GUILayout.Height(24)))
                 {
                     SendEvent(m_CustomEvent);
                 }
             }
-            m_CustomEvent = EditorGUILayout.TextField("Custom Event", m_CustomEvent);
+            m_CustomEvent = EditorGUILayout.TextField("Custom Event Name", m_CustomEvent);
             EditorGUI.EndDisabled();
         }
 
@@ -311,6 +311,10 @@ namespace UnityEditor.VFX
         static class Contents
         {
             public static readonly GUIContent title = new GUIContent("VFX Event Tester");
+            public static readonly GUIContent play = new GUIContent("Play Event", "Send the default play event");
+            public static readonly GUIContent stop = new GUIContent("Stop Event", "Send the default stop event");
+            public static readonly GUIContent custom = new GUIContent("Custom Event", "Send the custom event which name is defined below");
+
         }
 
         static class Styles
