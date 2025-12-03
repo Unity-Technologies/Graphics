@@ -395,6 +395,18 @@ namespace UnityEngine.Rendering.Universal
         public bool rendersOverlayUI => SupportedRenderingFeatures.active.rendersUIOverlay && resolveToScreen;
 
         /// <summary>
+        /// Makes the Camera render the offscreen overlay UI needed for HDR outputs.
+        /// URP shares the offscreen texture between cameras once the first base camera renders it.
+        /// </summary>
+        internal bool rendersOffscreenUI;
+
+        /// <summary>
+        /// Makes the Camera blit the offscreen overlay UI cover for HDR outputs.
+        /// The offscreen UI cover prepass ensures the overlay UI covers the entire display even when the combined camera viewports do not fill the screen.
+        /// </summary>
+        internal bool blitsOffscreenUICover;
+
+        /// <summary>
         /// True is the handle has its content flipped on the y axis.
         /// This happens only with certain rendering APIs.
         /// On those platforms, any handle will have its content flipped unless rendering to a backbuffer, however,
@@ -707,6 +719,8 @@ namespace UnityEngine.Rendering.Universal
             isLastBaseCamera = false;
             stackAnyPostProcessingEnabled = false;
             stackLastCameraOutputToHDR = false;
+            rendersOffscreenUI = false;
+            blitsOffscreenUICover = false;
         }
     }
 }

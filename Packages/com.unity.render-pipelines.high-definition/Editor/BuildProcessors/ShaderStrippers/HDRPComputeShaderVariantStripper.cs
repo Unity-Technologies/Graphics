@@ -15,6 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_ProbeVolumesL1 = new ShaderKeyword("PROBE_VOLUMES_L1");
         protected ShaderKeyword m_ProbeVolumesL2 = new ShaderKeyword("PROBE_VOLUMES_L2");
         protected ShaderKeyword m_WaterAbsorption = new ShaderKeyword("SUPPORT_WATER_ABSORPTION");
+        protected ShaderKeyword m_AreaShadowHigh = new ShaderKeyword("AREA_SHADOW_HIGH");
 
         protected HDRenderPipelineRuntimeShaders m_Shaders;
 
@@ -123,10 +124,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                // Strip all the area light shadow filtering variants when they are disabled in the shader config.
-                foreach (var areaShadowVariant in m_ShadowKeywords.AreaShadowVariants)
-                    if (inputData.shaderKeywordSet.IsEnabled(areaShadowVariant.Value))
-                        return true;
+                // Strip only AREA_SHADOW_HIGH variant, because HDRP enables AREA_SHADOW_MEDIUM if area light is disabled in ShaderConfig
+                if (inputData.shaderKeywordSet.IsEnabled(m_AreaShadowHigh))
+                    return true;
             }
 
             // Screen space shadow variant is exclusive, either we have a variant with dynamic if that support screen space shadow or not

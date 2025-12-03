@@ -33,7 +33,7 @@ namespace UnityEditor.Experimental.VFX.Utility
 
         static partial class Contents
         {
-            public static GUIContent title = new GUIContent("pCache Tool");
+            public static GUIContent title = new GUIContent("Point Cache Tool");
             public static GUIContent mode = new GUIContent("Bake Mode");
         }
     }

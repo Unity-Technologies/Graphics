@@ -5139,6 +5139,12 @@ namespace UnityEngine.Rendering.HighDefinition
             hdrOutputParameters2 = new Vector4(eetfMode, hueShift, paperWhite, (int)ColorGamutUtility.GetColorPrimaries(gamut));
         }
 
+        static void GetOffscreenUIViewportParams(HDCamera hdCamera, out Vector4 offscreenUIViewportParams)
+        {
+            var rcpScreenSize = new Vector2(1f / Mathf.Max(Screen.width, 1f), 1f / Mathf.Max(Screen.height, 1f));
+            offscreenUIViewportParams = new Vector4(hdCamera.finalViewport.x * rcpScreenSize.x, hdCamera.finalViewport.y * rcpScreenSize.y, hdCamera.finalViewport.width * rcpScreenSize.x, hdCamera.finalViewport.height * rcpScreenSize.y);
+        }
+
         void ComputeShadowsMidtonesHighlights(out Vector4 shadows, out Vector4 midtones, out Vector4 highlights, out Vector4 limits)
         {
             float weight;
@@ -5961,6 +5967,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public Vector4 hdroutParameters;
             public Vector4 hdroutParameters2;
+            public Vector4 offscreenUIViewportParams;
 
             public TextureHandle inputTest;
 
@@ -6023,6 +6030,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (passData.hdrOutputIsActive)
                 {
                     GetHDROutputParameters(HDRDisplayInformationForCamera(hdCamera), HDRDisplayColorGamutForCamera(hdCamera), m_Tonemapping, out passData.hdroutParameters, out passData.hdroutParameters2);
+                    GetOffscreenUIViewportParams(hdCamera, out passData.offscreenUIViewportParams);
                 }
 
                 builder.SetRenderFunc(
@@ -6144,12 +6152,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             finalPassMaterial.SetVector(HDShaderIDs._HDROutputParams, data.hdroutParameters);
                             finalPassMaterial.SetVector(HDShaderIDs._HDROutputParams2, data.hdroutParameters2);
+                            finalPassMaterial.SetVector(HDShaderIDs._OffscreenUIViewportParams, data.offscreenUIViewportParams);
                         }
                         else if (hdrOutputActive)
                         {
                             data.finalPassMaterial.EnableKeyword("HDR_INPUT");
                             finalPassMaterial.SetVector(HDShaderIDs._HDROutputParams, data.hdroutParameters);
                             finalPassMaterial.SetVector(HDShaderIDs._HDROutputParams2, data.hdroutParameters2);
+                            finalPassMaterial.SetVector(HDShaderIDs._OffscreenUIViewportParams, data.offscreenUIViewportParams);
                         }
 
                         finalPassMaterial.SetTexture(HDShaderIDs._UITexture, data.uiBuffer);

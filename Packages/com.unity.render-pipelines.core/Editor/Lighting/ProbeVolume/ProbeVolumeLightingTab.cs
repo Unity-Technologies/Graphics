@@ -361,6 +361,7 @@ namespace UnityEngine.Rendering
                 activeSet = newSet;
 
                 ProbeReferenceVolume.instance.Clear();
+                ProbeReferenceVolume.instance.SetActiveBakingSet(newSet);
             }
 
             if (activeSet != null)

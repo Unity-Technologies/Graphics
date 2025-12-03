@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             bool outputsToHDR = renderingData.cameraData.isHDROutputActive;
             bool outputsAlpha = false;
-            InitPassData(cameraData, ref m_PassData, outputsToHDR ? BlitType.HDR : BlitType.Core, outputsAlpha);
+            InitPassData(cameraData, ref m_PassData, outputsToHDR ? BlitType.HDR : BlitType.Core, outputsAlpha, false);
 
             if (m_PassData.blitMaterialData.material == null)
             {
@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(m_Source, cameraTargetHandle, cameraData);
                     ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_Source, cameraTargetHandle, cameraData, scaleBias);
                     cameraData.renderer.ConfigureCameraTarget(cameraTargetHandle, cameraTargetHandle);
-                }   
+                }
             }
         }
 #endif
@@ -233,9 +233,15 @@ namespace UnityEngine.Rendering.Universal.Internal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
                 isRenderToBackBufferTarget = new RenderTargetIdentifier(destination.nameID, 0, CubemapFace.Unknown, -1) == new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, -1);
-#endif            
+#endif
+            var pixelRect = data.useFullScreenViewport ? new Rect(0f, 0f, Screen.width, Screen.height) : cameraData.pixelRect;
+#if URP_COMPATIBILITY_MODE
+            RenderingUtils.SetupOffscreenUIViewportParams(data.blitMaterialData.material, ref pixelRect, GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode ? false : isRenderToBackBufferTarget);
+#else
+            RenderingUtils.SetupOffscreenUIViewportParams(data.blitMaterialData.material, ref pixelRect, isRenderToBackBufferTarget);
+#endif
             if (isRenderToBackBufferTarget)
-                cmd.SetViewport(cameraData.pixelRect);
+                cmd.SetViewport(pixelRect);
 
             // turn off any global wireframe & "scene view wireframe shader hijack" settings for doing blits:
             // we never want them to show up as wireframe
@@ -257,22 +263,24 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal bool enableAlphaOutput;
             internal BlitMaterialData blitMaterialData;
             internal UniversalCameraData cameraData;
+            internal bool useFullScreenViewport;
         }
 
         /// <summary>
         /// Initialize the shared pass data.
         /// </summary>
         /// <param name="passData"></param>
-        private void InitPassData(UniversalCameraData cameraData, ref PassData passData, BlitType blitType, bool enableAlphaOutput)
+        private void InitPassData(UniversalCameraData cameraData, ref PassData passData, BlitType blitType, bool enableAlphaOutput, bool useFullScreenViewport)
         {
             passData.cameraData = cameraData;
             passData.requireSrgbConversion = cameraData.requireSrgbConversion;
             passData.enableAlphaOutput = enableAlphaOutput;
+            passData.useFullScreenViewport = useFullScreenViewport;
 
             passData.blitMaterialData = m_BlitMaterialData[(int)blitType];
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, UniversalCameraData cameraData, in TextureHandle src, in TextureHandle dest, TextureHandle overlayUITexture)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, UniversalCameraData cameraData, in TextureHandle src, in TextureHandle dest, TextureHandle overlayUITexture, bool useFullScreenViewport = false)
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
@@ -286,7 +294,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 bool outputsToHDR = cameraData.isHDROutputActive;
                 bool outputsAlpha = cameraData.isAlphaOutputEnabled;
-                InitPassData(cameraData, ref passData, outputsToHDR ? BlitType.HDR : BlitType.Core, outputsAlpha);
+                InitPassData(cameraData, ref passData, outputsToHDR ? BlitType.HDR : BlitType.Core, outputsAlpha, useFullScreenViewport);
 
                 passData.sourceID = ShaderPropertyId.sourceTex;
                 passData.source = src;

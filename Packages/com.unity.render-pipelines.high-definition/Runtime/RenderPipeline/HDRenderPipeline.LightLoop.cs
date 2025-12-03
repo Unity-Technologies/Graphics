@@ -818,7 +818,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         break;
                 }
 
-                switch (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.areaShadowFilteringQuality)
+                var areaShadowFilteringQuality = (ShaderConfig.s_AreaLights == 0) ? HDAreaShadowFilteringQuality.Medium
+                    : HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.areaShadowFilteringQuality;
+                switch (areaShadowFilteringQuality)
                 {
                     case HDAreaShadowFilteringQuality.Medium:
                         data.deferredComputeShader.EnableKeyword("AREA_SHADOW_MEDIUM");

@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Class <c>ShadowShape2DProvider</c> has methods called by a <c>ShadowCaster2D</c> to determine if it should be listed as a Casting Option, and to provide geometry if it is the active <c>ShadowShape2DProvider</c>
     /// </summary>
+    [Serializable]
     public abstract class ShadowShape2DProvider
     {
         /// <summary>

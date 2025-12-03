@@ -199,6 +199,12 @@ namespace UnityEngine.Rendering.Universal
         // Store locally the value on the instance due as the Render Pipeline Asset data might change before the disposal of the asset, making some APV Resources leak.
         internal bool apvIsEnabled = false;
 
+        // Flag to check if offscreen UI cover prepass should be executed for the current frame.
+        internal static bool requireOffscreenUICoverPrepass;
+
+        // Flag to check if offscreen UI for HDR output is rendered in this frame at the first base camera.
+        internal static bool offscreenUIRenderedInCurrentFrame;
+
         // In some specific cases, we modify Screen.msaaSamples to reduce GPU bandwidth
         internal static bool canOptimizeScreenMSAASamples { get; private set; }
 
@@ -441,6 +447,10 @@ namespace UnityEngine.Rendering.Universal
             // For XR, HDR and no camera cases, UI Overlay ownership must be enforced
             AdjustUIOverlayOwnership(cameraCount);
 
+            // When HDR output is enabled, SRP renders the overlay UI per camera viewport, so any screen area not covered by viewports won’t display the UI.
+            // The offscreen UI cover prepass ensures the overlay UI covers the entire display by blitting UI to the screen first, even when the combined camera viewports do not fill the screen.
+            requireOffscreenUICoverPrepass = HDROutputForMainDisplayIsActive() && asset.supportsHDR && SupportedRenderingFeatures.active.rendersUIOverlay && !CoreUtils.IsScreenFullyCoveredByCameras(cameras);
+
             // Bandwidth optimization with Render Graph in some circumstances
             SetupScreenMSAASamplesState(cameraCount);
 
@@ -476,6 +486,8 @@ namespace UnityEngine.Rendering.Universal
 
                 SortCameras(cameras);
                 int lastBaseCameraIndex = GetLastBaseCameraIndex(cameras);
+                offscreenUIRenderedInCurrentFrame = false;
+
                 for (int i = 0; i < cameraCount; ++i)
                 {
                     // camera can be a base or an overlay camera
@@ -1101,6 +1113,13 @@ namespace UnityEngine.Rendering.Universal
                     // Update stack-related parameters
                     baseCameraData.stackAnyPostProcessingEnabled = stackAnyPostProcessingEnabled;
                     baseCameraData.stackLastCameraOutputToHDR = finalOutputHDR;
+
+                    // Render the offscreen overlay UI only in the first base camera.
+                    var rendersOffscreenUI = baseCameraData.rendersOverlayUI && finalOutputHDR && !offscreenUIRenderedInCurrentFrame;
+                    if (rendersOffscreenUI)
+                        offscreenUIRenderedInCurrentFrame = true;
+                    baseCameraData.rendersOffscreenUI = rendersOffscreenUI;
+                    baseCameraData.blitsOffscreenUICover = rendersOffscreenUI && requireOffscreenUICoverPrepass;
 
                     RenderSingleCamera(context, baseCameraData);
                 }
@@ -1945,18 +1964,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 lightData.additionalLightsCount = 0;
                 lightData.maxPerObjectAdditionalLightsCount = 0;
-            }
-
-            if (settings.mainLightRenderingMode == LightRenderingMode.Disabled)
-            {
-                var mainLightIndex = GetBrightestDirectionalLightIndex(settings, visibleLights);
-                if (mainLightIndex != -1)
-                {
-                    // a visible main light was disabled, since it is still in the visible lights array we need to maintain
-                    // the mainLightIndex otherwise indexing in the lightloop goes wrong
-                    lightData.additionalLightsCount--;
-                    lightData.mainLightIndex = mainLightIndex;
-                }
             }
 
             lightData.supportsAdditionalLights = settings.additionalLightsRenderingMode != LightRenderingMode.Disabled;
