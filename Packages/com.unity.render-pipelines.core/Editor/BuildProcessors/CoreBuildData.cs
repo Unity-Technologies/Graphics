@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         public List<RenderPipelineAsset> renderPipelineAssets { get; private set; } = new();
 
-        internal Dictionary<int, ComputeShader> computeShaderCache { get; private set; } = new();
+        internal Dictionary<EntityId, ComputeShader> computeShaderCache { get; private set; } = new();
 
         internal bool pipelineSupportGPUResidentDrawer { get; private set; } = false;
         internal bool playerNeedGPUResidentDrawer { get; private set; } = false;
@@ -80,8 +80,10 @@ namespace UnityEditor.Rendering
             if (!playerNeedGPUResidentDrawer)
                 return;
 
+            #pragma warning disable 618 // Todo(@daniel.andersen): Remove deprecated API usage
             GraphicsSettings.GetRenderPipelineSettings<GPUResidentDrawerResources>()
                 .ForEachFieldOfType<ComputeShader>(computeShader => computeShaderCache.Add(computeShader.GetEntityId(), computeShader));
+            #pragma warning restore 618
         }
 
         /// <summary>

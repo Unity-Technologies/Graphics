@@ -17,13 +17,13 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
         internal AccelStructInstances Instances { get => _instances; }
 
-        struct InstanceIDs
+        struct IdsOfInstances
         {
-            public int InstanceID;
+            public int IdOfInstance;
             public int AccelStructID;
         }
 
-        private readonly Dictionary<int, InstanceIDs[]> _objectHandleToInstances = new();
+        private readonly Dictionary<UInt64, IdsOfInstances[]> _objectHandleToInstances = new();
 
         public AccelStructAdapter(IRayTracingAccelStruct accelStruct, GeometryPool geometryPool)
         {
@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             _objectHandleToInstances.Clear();
         }
 
-        public void AddInstance(int objectHandle, Component meshRendererOrTerrain, Span<uint> perSubMeshMask, Span<uint> perSubMeshMaterialIDs, Span<bool> perSubMeshIsOpaque, uint renderingLayerMask)
+        public void AddInstance(UInt64 objectHandle, Component meshRendererOrTerrain, Span<uint> perSubMeshMask, Span<uint> perSubMeshMaterialIDs, Span<bool> perSubMeshIsOpaque, uint renderingLayerMask)
         {
             if (meshRendererOrTerrain is Terrain terrain)
             {
@@ -82,11 +82,11 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             }
         }
 
-        public void AddInstance(int objectHandle, Mesh mesh, Matrix4x4 localToWorldMatrix, Span<uint> perSubMeshMask, Span<uint> perSubMeshMaterialIDs, Span<bool> perSubMeshIsOpaque, uint renderingLayerMask)
+        public void AddInstance(UInt64 objectHandle, Mesh mesh, Matrix4x4 localToWorldMatrix, Span<uint> perSubMeshMask, Span<uint> perSubMeshMaterialIDs, Span<bool> perSubMeshIsOpaque, uint renderingLayerMask)
         {
             int subMeshCount = mesh.subMeshCount;
 
-            var instances = new InstanceIDs[subMeshCount];
+            var instances = new IdsOfInstances[subMeshCount];
             for (int i = 0; i < subMeshCount; ++i)
             {
                 var instanceDesc = new MeshInstanceDesc(mesh, i)
@@ -96,17 +96,17 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                     opaqueGeometry = perSubMeshIsOpaque[i]
                 };
 
-                instances[i].InstanceID = _instances.AddInstance(instanceDesc, perSubMeshMaterialIDs[i], renderingLayerMask);
-                instanceDesc.instanceID = (uint)instances[i].InstanceID;
+                instances[i].IdOfInstance = _instances.AddInstance(instanceDesc, perSubMeshMaterialIDs[i], renderingLayerMask);
+                instanceDesc.instanceID = (uint)instances[i].IdOfInstance;
                 instances[i].AccelStructID = _accelStruct.AddInstance(instanceDesc);
             }
 
             _objectHandleToInstances.Add(objectHandle, instances);
         }
 
-        private void AddInstance(int objectHandle, TerrainDesc terrainDesc)
+        private void AddInstance(UInt64 objectHandle, TerrainDesc terrainDesc)
         {
-            List<InstanceIDs> instanceHandles = new List<InstanceIDs>();
+            List<IdsOfInstances> instanceHandles = new List<IdsOfInstances>();
 
             AddHeightmap(terrainDesc, ref instanceHandles);
             AddTrees(terrainDesc, ref instanceHandles);
@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
         }
 
-        void AddHeightmap(TerrainDesc terrainDesc, ref List<InstanceIDs> instanceHandles)
+        void AddHeightmap(TerrainDesc terrainDesc, ref List<IdsOfInstances> instanceHandles)
         {
             var terrainMesh = TerrainToMesh.Convert(terrainDesc.terrain);
             var instanceDesc = new MeshInstanceDesc(terrainMesh);
@@ -128,17 +128,17 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
         }
 
-        void AddTrees(TerrainDesc terrainDesc, ref List<InstanceIDs> instanceHandles)
+        void AddTrees(TerrainDesc terrainDesc, ref List<IdsOfInstances> instanceHandles)
         {
             TerrainData terrainData = terrainDesc.terrain.terrainData;
-            float4x4 terrainLocalToWorld = terrainDesc.localToWorldMatrix;
-            float3 positionScale = new float3((float)terrainData.heightmapResolution, 1.0f, (float)terrainData.heightmapResolution) * terrainData.heightmapScale;
-            float3 positionOffset = new float3(terrainLocalToWorld[3].x, terrainLocalToWorld[3].y, terrainLocalToWorld[3].z);
+            Matrix4x4 terrainLocalToWorld = terrainDesc.localToWorldMatrix;
+            Vector3 positionScale = Vector3.Scale(new Vector3(terrainData.heightmapResolution, 1.0f, terrainData.heightmapResolution), terrainData.heightmapScale);
+            Vector3 positionOffset = terrainLocalToWorld.GetPosition();
 
             foreach (var treeInstance in terrainData.treeInstances)
             {
                 var localToWorld = Matrix4x4.TRS(
-                    positionOffset + new float3(treeInstance.position) * positionScale,
+                    positionOffset + Vector3.Scale(treeInstance.position, positionScale),
                     Quaternion.AngleAxis(treeInstance.rotation, Vector3.up),
                     new Vector3(treeInstance.widthScale, treeInstance.heightScale, treeInstance.widthScale));
 
@@ -167,44 +167,44 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             }
         }
 
-        InstanceIDs AddInstance(MeshInstanceDesc instanceDesc, uint materialID, uint renderingLayerMask)
+        IdsOfInstances AddInstance(MeshInstanceDesc instanceDesc, uint materialID, uint renderingLayerMask)
         {
-            InstanceIDs res = new InstanceIDs();
-            res.InstanceID = _instances.AddInstance(instanceDesc, materialID, renderingLayerMask);
-            instanceDesc.instanceID = (uint)res.InstanceID;
+            IdsOfInstances res = new IdsOfInstances();
+            res.IdOfInstance = _instances.AddInstance(instanceDesc, materialID, renderingLayerMask);
+            instanceDesc.instanceID = (uint)res.IdOfInstance;
             res.AccelStructID = _accelStruct.AddInstance(instanceDesc);
 
             return res;
         }
 
 
-        public void RemoveInstance(int objectHandle)
+        public void RemoveInstance(UInt64 objectHandle)
         {
             bool success = _objectHandleToInstances.TryGetValue(objectHandle, out var instances);
             Assert.IsTrue(success);
 
             foreach (var instance in instances)
             {
-                _instances.RemoveInstance(instance.InstanceID);
+                _instances.RemoveInstance(instance.IdOfInstance);
                 _accelStruct.RemoveInstance(instance.AccelStructID);
             }
 
             _objectHandleToInstances.Remove(objectHandle);
         }
 
-        public void UpdateInstanceTransform(int objectHandle, Matrix4x4 localToWorldMatrix)
+        public void UpdateInstanceTransform(UInt64 objectHandle, Matrix4x4 localToWorldMatrix)
         {
             bool success = _objectHandleToInstances.TryGetValue(objectHandle, out var instances);
             Assert.IsTrue(success);
 
             foreach(var instance in instances)
             {
-                _instances.UpdateInstanceTransform(instance.InstanceID, localToWorldMatrix);
+                _instances.UpdateInstanceTransform(instance.IdOfInstance, localToWorldMatrix);
                 _accelStruct.UpdateInstanceTransform(instance.AccelStructID, localToWorldMatrix);
             }
         }
 
-        public void UpdateInstanceMaterialIDs(int objectHandle, Span<uint> perSubMeshMaterialIDs)
+        public void UpdateInstanceMaterialIDs(UInt64 objectHandle, Span<uint> perSubMeshMaterialIDs)
         {
             bool success = _objectHandleToInstances.TryGetValue(objectHandle, out var instances);
             Assert.IsTrue(success);
@@ -212,11 +212,11 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             int i = 0;
             foreach (var instance in instances)
             {
-                _instances.UpdateInstanceMaterialID(instance.InstanceID, perSubMeshMaterialIDs[i++]);
+                _instances.UpdateInstanceMaterialID(instance.IdOfInstance, perSubMeshMaterialIDs[i++]);
             }
         }
 
-        public void UpdateInstanceMask(int objectHandle, Span<uint> perSubMeshMask)
+        public void UpdateInstanceMask(UInt64 objectHandle, Span<uint> perSubMeshMask)
         {
             bool success = _objectHandleToInstances.TryGetValue(objectHandle, out var instances);
             Assert.IsTrue(success);
@@ -224,13 +224,13 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             int i = 0;
             foreach (var instance in instances)
             {
-                _instances.UpdateInstanceMask(instance.InstanceID, perSubMeshMask[i]);
+                _instances.UpdateInstanceMask(instance.IdOfInstance, perSubMeshMask[i]);
                 _accelStruct.UpdateInstanceMask(instance.AccelStructID, perSubMeshMask[i]);
                 i++;
             }
         }
 
-        public void UpdateInstanceMask(int objectHandle, uint mask)
+        public void UpdateInstanceMask(UInt64 objectHandle, uint mask)
         {
             bool success = _objectHandleToInstances.TryGetValue(objectHandle, out var instances);
             Assert.IsTrue(success);
@@ -241,7 +241,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             int i = 0;
             foreach (var instance in instances)
             {
-                _instances.UpdateInstanceMask(instance.InstanceID, perSubMeshMask[i]);
+                _instances.UpdateInstanceMask(instance.IdOfInstance, perSubMeshMask[i]);
                 _accelStruct.UpdateInstanceMask(instance.AccelStructID, perSubMeshMask[i]);
                 i++;
             }
@@ -258,15 +258,15 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             _instances.NextFrame();
         }
 
-        public bool GetInstanceIDs(int rendererID, out int[] instanceIDs)
+        public bool GetInstanceIDs(UInt64 rendererID, out int[] instanceIDs)
         {
-            if (!_objectHandleToInstances.TryGetValue(rendererID, out InstanceIDs[] instIDs))
+            if (!_objectHandleToInstances.TryGetValue(rendererID, out IdsOfInstances[] instIDs))
             {
                 // This should never happen as long as the renderer was already added to the acceleration structure
                 instanceIDs = null;
                 return false;
             }
-            instanceIDs = Array.ConvertAll(instIDs, item => item.InstanceID);
+            instanceIDs = Array.ConvertAll(instIDs, item => item.IdOfInstance);
             return true;
         }
 

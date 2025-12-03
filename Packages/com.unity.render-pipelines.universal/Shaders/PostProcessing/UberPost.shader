@@ -70,6 +70,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         float4 _Bloom_Texture_TexelSize;
         float4 _Dithering_Params;
         float4 _HDROutputLuminanceParams;
+        float4 _OffscreenUIViewportParams;
 
         #define DistCenter              _Distortion_Params1.xy
         #define DistAxis                _Distortion_Params1.zw
@@ -278,7 +279,8 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
                 // HDR UI composition
                 UNITY_BRANCH if(_HDR_OVERLAY)
                 {
-                    float4 uiSample = SAMPLE_TEXTURE2D_X(_OverlayUITexture, sampler_PointClamp, input.texcoord);
+                    float2 uiCoord = input.texcoord * _OffscreenUIViewportParams.zw + _OffscreenUIViewportParams.xy;
+                    float4 uiSample = SAMPLE_TEXTURE2D_X(_OverlayUITexture, sampler_PointClamp, uiCoord);
                     color.rgb = SceneUIComposition(uiSample, color.rgb, PaperWhite, MaxNits);
                 }
             }

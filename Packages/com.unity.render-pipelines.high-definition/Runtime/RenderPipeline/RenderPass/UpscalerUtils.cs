@@ -14,11 +14,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             internal WeakReference<Camera> m_CamReference = new WeakReference<Camera>(null);
 
-            public int key;
+            public EntityId key;
             public object data;
             public UInt64 lastFrameId { set; get; }
 
-            public static int GetKey(Camera camera) => camera.GetEntityId();
+            public static EntityId GetKey(Camera camera) => camera.GetEntityId();
 
             public void Init(Camera camera)
             {
@@ -45,11 +45,11 @@ namespace UnityEngine.Rendering.HighDefinition
         //Amount of inactive frames dlss has rendered before we clean / destroy the plugin state.
         private static UInt64 sMaximumFrameExpiration = 400;
 
-        private Dictionary<int, State> m_CameraStates = new Dictionary<int, State>();
-        private List<int> m_InvalidCameraKeys = new List<int>();
+        private Dictionary<EntityId, State> m_CameraStates = new Dictionary<EntityId, State>();
+        private List<EntityId> m_InvalidCameraKeys = new List<EntityId>();
         private UInt64 m_FrameId = 0;
 
-        public Dictionary<int, State> cameras => m_CameraStates;
+        public Dictionary<EntityId, State> cameras => m_CameraStates;
 
         public State GetState(Camera camera)
         {
@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void ProcessExpiredCameras()
         {
-            foreach (KeyValuePair<int, State> kv in m_CameraStates)
+            foreach (KeyValuePair<EntityId, State> kv in m_CameraStates)
             {
                 if (!HasCameraStateExpired(kv.Value))
                     continue;

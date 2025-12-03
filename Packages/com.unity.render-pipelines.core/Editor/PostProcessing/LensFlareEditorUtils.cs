@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering
         internal static void CreateLensFlareDataSRPAsset()
         {
             const string relativePath = "New Lens Flare (SRP).asset";
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<LensFlareDataSRPCreator>(), relativePath, Icons.generic, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(EntityId.None, ScriptableObject.CreateInstance<LensFlareDataSRPCreator>(), relativePath, Icons.generic, null);
         }
 
         internal static LensFlareDataSRP CreateLensFlareDataSRPAsset(Scene scene, string targetName)

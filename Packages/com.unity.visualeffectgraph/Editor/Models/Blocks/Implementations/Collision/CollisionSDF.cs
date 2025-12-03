@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.Block
 
                 yield return p;
             }
-       
+
             var w = new VFXExpressionCastUintToFloat(new VFXExpressionTextureWidth(SDF));
             var h = new VFXExpressionCastUintToFloat(new VFXExpressionTextureHeight(SDF));
             var d = new VFXExpressionCastUintToFloat(new VFXExpressionTextureDepth(SDF));
@@ -92,7 +92,16 @@ else
         int i = 0;
         hit = false;
         float maxDist = length(tDelta * textureDimInvScale);
-        for(i = 0; i < ITERATION_COUNT; i++)
+
+        int iterationCount = ITERATION_COUNT;
+        if(dist < VFX_EPSILON)
+        {
+            hit = true;
+            tHit = 0;
+            iterationCount = 0;
+        }
+
+        for(i = 0; i < iterationCount; i++)
         {
             uvw = uvw + tDir * textureDimScale * dist;
             float newDist = colliderSign * (SampleSDF(DistanceField, uvw) - radiusOffset);
@@ -119,14 +128,18 @@ else
 
             string projectOnSurfaceCode = @"
         hit = true;
-        const int ITERATION_COUNT = 4;
-        int i = 0;
+
         float3 uvw = saturate(tPos + 0.5f);
         float3 sdfNormal = normalize(SampleSDFUnscaledDerivatives(DistanceField, uvw, uvStep));
         float radiusOffset = colliderSign * dot(sdfNormal*sdfNormal ,invScale * textureDimInvScale) * radius;
 
+        const int ITERATION_COUNT = 4;
+        int i = 0;
         for(i = 0; i < ITERATION_COUNT; i++)
         {
+            float dist = colliderSign * (SampleSDF(DistanceField, uvw) - radiusOffset);
+            if(abs(dist) < VFX_EPSILON)
+                break;
             uvw = IterateTowardSDFSurface(DistanceField, uvw, uvStep, radiusOffset, stepSizeMeter, sdfNormal);
         }
         tPos = uvw - 0.5f;
@@ -135,7 +148,6 @@ else
         hitNormal = colliderSign * VFXSafeNormalize(mul(float4(hitNormal, 0.0f), InvFieldTransform).xyz);
         tHit = 0;
 ";
-
 
             var Source = new StringBuilder($@"
 if (isZeroScaled)

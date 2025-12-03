@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu("Rendering/Lens Flare (SRP)")]
+    [CurrentPipelineHelpURL("shared/lens-flare/lens-flare-component")]
     public sealed class LensFlareComponentSRP : MonoBehaviour
     {
         [SerializeField]

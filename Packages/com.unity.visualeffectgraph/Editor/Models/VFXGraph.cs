@@ -1748,16 +1748,16 @@ namespace UnityEditor.VFX
         {
             visualEffectResource.ClearImportDependencies();
 
-            var dependencies = new HashSet<int>();
+            var dependencies = new HashSet<EntityId>();
             GetImportDependentAssets(dependencies);
 
             var guids = new HashSet<string>();
             foreach (var dependency in dependencies)
             {
-                if (dependency == 0)
+                if (dependency == EntityId.None)
                     continue;
 
-                if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier((EntityId)dependency, out string guid, out long localId))
+                if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(dependency, out string guid, out long localId))
                 {
                     if (!guids.Contains(guid))
                     {

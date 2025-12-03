@@ -442,7 +442,9 @@ namespace UnityEngine.Rendering
         /// <returns>Returns True if Unity successfully adds the texture.</returns>
         public bool AddTexture(CommandBuffer cmd, out Vector4 scaleOffset, Texture texture)
         {
+#pragma warning disable 618 // Todo(@daniel.andersen): Potentially use GetRawData or sometin'
             int key = texture.GetEntityId();
+#pragma warning restore 618
             if (!m_AllocationCache.TryGetValue(key, out scaleOffset))
             {
                 int width = texture.width;

@@ -434,7 +434,7 @@ namespace UnityEngine.PathTracing.Core
         {
             try
             {
-                _rayTracingAccelerationStructure.RemoveInstance(instance.ToInt());
+                _rayTracingAccelerationStructure.RemoveInstance(instance.Value);
                 _instanceHandleSet.Remove(instance);
                 RemoveEmissiveMeshes(instance);
             }
@@ -541,7 +541,7 @@ namespace UnityEngine.PathTracing.Core
             }
 
             InstanceHandle instance = _instanceHandleSet.Add();
-            _rayTracingAccelerationStructure.AddInstance(instance.ToInt(), mesh, localToWorldMatrix, masks, materialIndices, isOpaque, renderingLayerMask);
+            _rayTracingAccelerationStructure.AddInstance(instance.Value, mesh, localToWorldMatrix, masks, materialIndices, isOpaque, renderingLayerMask);
 
             if (enableEmissiveSampling && !ProcessEmissiveMeshes(instance, mesh, bounds, materials, isStatic, _rayTracingAccelerationStructure, _materialPool, filter, _lightState.MeshLights, _subMeshIndices))
                 LogError($"Failed to process emissive triangles in mesh {mesh.name}.");
@@ -551,16 +551,16 @@ namespace UnityEngine.PathTracing.Core
 
         public void UpdateInstanceTransform(InstanceHandle instance, Matrix4x4 localToWorldMatrix)
         {
-            _rayTracingAccelerationStructure.UpdateInstanceTransform(instance.ToInt(), localToWorldMatrix);
+            _rayTracingAccelerationStructure.UpdateInstanceTransform(instance.Value, localToWorldMatrix);
         }
 
         public void UpdateInstanceMask(InstanceHandle instance, Span<uint> perSubMeshMask)
         {
-            _rayTracingAccelerationStructure.UpdateInstanceMask(instance.ToInt(), perSubMeshMask);
+            _rayTracingAccelerationStructure.UpdateInstanceMask(instance.Value, perSubMeshMask);
         }
         public void UpdateInstanceMask(InstanceHandle instance, uint mask)
         {
-            _rayTracingAccelerationStructure.UpdateInstanceMask(instance.ToInt(), mask);
+            _rayTracingAccelerationStructure.UpdateInstanceMask(instance.Value, mask);
         }
 
         public void UpdateInstanceMaterials(InstanceHandle instance, Span<MaterialHandle> materials)
@@ -571,7 +571,7 @@ namespace UnityEngine.PathTracing.Core
                 _materialPool.GetMaterialInfo(materials[i].Value, out materialIndices[i], out bool isTransmissive);
             }
 
-            _rayTracingAccelerationStructure.UpdateInstanceMaterialIDs(instance.ToInt(), materialIndices);
+            _rayTracingAccelerationStructure.UpdateInstanceMaterialIDs(instance.Value, materialIndices);
         }
 
         public void UpdateInstanceEmission(
@@ -660,7 +660,7 @@ namespace UnityEngine.PathTracing.Core
 
             int subMeshCount = mesh.subMeshCount;
 
-            if (!rtAccelStruct.GetInstanceIDs(instance.ToInt(), out int[] instanceHandles))
+            if (!rtAccelStruct.GetInstanceIDs(instance.Value, out var instanceHandles))
             {
                 // This should never happen as long as the renderer was already added to the acceleration structure
                 return false;
@@ -930,8 +930,7 @@ namespace UnityEngine.PathTracing.Core
 
         public UInt64 GetInstanceHandles(InstanceHandle handle)
         {
-            int[] ids;
-            _rayTracingAccelerationStructure.GetInstanceIDs(handle.ToInt(), out ids);
+            _rayTracingAccelerationStructure.GetInstanceIDs(handle.Value, out var ids);
             return (UInt64)ids[0];
         }
     }

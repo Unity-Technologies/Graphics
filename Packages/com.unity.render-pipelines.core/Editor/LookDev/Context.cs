@@ -345,7 +345,7 @@ namespace UnityEditor.Rendering.LookDev
         /// </summary>
         public bool hasViewedObject =>
             !String.IsNullOrEmpty(viewedObjectAssetGUID)
-            || viewedObjecHierarchytEntityId != 0;
+            || viewedObjecHierarchytEntityId != EntityId.None;
 
         /// <summary>Reference to the object given for instantiation.</summary>
         public GameObject viewedObjectReference { get; private set; }
@@ -428,7 +428,7 @@ namespace UnityEditor.Rendering.LookDev
         public void UpdateViewedObject(GameObject viewedObject)
         {
             viewedObjectAssetGUID = "";
-            viewedObjecHierarchytEntityId = 0;
+            viewedObjecHierarchytEntityId = EntityId.None;
             viewedObjectReference = null;
             if (viewedObject == null || viewedObject.Equals(null))
                 return;
@@ -453,7 +453,7 @@ namespace UnityEditor.Rendering.LookDev
                 string path = AssetDatabase.GUIDToAssetPath(viewedObjectAssetGUID);
                 viewedObjectReference = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             }
-            else if (viewedObjecHierarchytEntityId != 0)
+            else if (viewedObjecHierarchytEntityId != EntityId.None)
             {
                 viewedObjectReference = EditorUtility.EntityIdToObject(viewedObjecHierarchytEntityId) as GameObject;
             }
@@ -468,7 +468,7 @@ namespace UnityEditor.Rendering.LookDev
         }
 
         internal void CleanTemporaryObjectIndexes()
-            => viewedObjecHierarchytEntityId = 0;
+            => viewedObjecHierarchytEntityId = EntityId.None;
 
         /// <summary>Reset the camera state to default values</summary>
         public void ResetCameraState()

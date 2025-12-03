@@ -422,7 +422,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var probeFormat = GraphicsFormat.R16G16B16A16_SFloat;
 
             List<HDProbe> activeProbes = new List<HDProbe>();
-            List<int> probeInstanceIDs = new List<int>();
+            List<EntityId> probeEntityIds = new List<EntityId>();
 
             // We must create a list of active probe instance IDs so we can perform all baking in a single batch
             foreach (var probe in bakedProbes)
@@ -437,12 +437,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 activeProbes.Add(probe);
-                probeInstanceIDs.Add(probe.GetEntityId());
+                probeEntityIds.Add(probe.GetEntityId());
             }
 
             // APV Normalization (Execute baking)
             {
-                AdaptiveProbeVolumes.BakeAdditionalRequests(probeInstanceIDs.ToArray());
+                AdaptiveProbeVolumes.BakeAdditionalRequests(probeEntityIds.ToArray());
             }
 
             // Render and write the result to disk

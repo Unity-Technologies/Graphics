@@ -591,7 +591,7 @@ namespace UnityEngine.Rendering
         private NativeArray<IndirectDrawInfo> m_DrawInfoStaging;
 
         private int m_ContextAllocCounter;
-        private NativeHashMap<int, int> m_ContextIndexFromViewID;
+        private NativeHashMap<EntityId, int> m_ContextIndexFromViewID;
         private NativeList<IndirectBufferContext> m_Contexts;
         private NativeArray<IndirectBufferAllocInfo> m_ContextAllocInfo;
         private NativeArray<int> m_AllocationCounters;
@@ -630,7 +630,7 @@ namespace UnityEngine.Rendering
             AllocateInstanceBuffers(initialInstanceCount);
             AllocateDrawBuffers(initialDrawCount);
 
-            m_ContextIndexFromViewID = new NativeHashMap<int, int>(initialContextCount, Allocator.Persistent);
+            m_ContextIndexFromViewID = new NativeHashMap<EntityId, int>(initialContextCount, Allocator.Persistent);
             m_Contexts = new NativeList<IndirectBufferContext>(initialContextCount, Allocator.Persistent);
             m_ContextAllocInfo = new NativeArray<IndirectBufferAllocInfo>(initialContextCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
@@ -740,7 +740,7 @@ namespace UnityEngine.Rendering
             ResetAllocators();
         }
 
-        public int TryAllocateContext(int viewID)
+        public int TryAllocateContext(EntityId viewID)
         {
             // Disallow using the same viewID multiple times for a frame, since it is used as a UID to update indirect args
             // This will prevent multiple context being created for example if a custom pass is being used
@@ -758,7 +758,7 @@ namespace UnityEngine.Rendering
             return contextIndex;
         }
 
-        public int TryGetContextIndex(int viewID)
+        public int TryGetContextIndex(EntityId viewID)
         {
             if (!m_ContextIndexFromViewID.TryGetValue(viewID, out var contextIndex))
                 contextIndex = -1;

@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering
     public struct OcclusionCullingSettings
     {
         /// <summary>The instance ID of the camera, to identify the culling output and occluders to use.</summary>
-        public int viewInstanceID;
+        public EntityId viewInstanceID;
         /// <summary>The occlusion test to use.</summary>
         public OcclusionTest occlusionTest;
         /// <summary>An instance multiplier to use for the generated indirect draw calls.</summary>
@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering
         /// <summary>Creates a new structure using the given parameters.</summary>
         /// <param name="viewInstanceID">The instance ID of the camera to find culling output and occluders for.</param>
         /// <param name="occlusionTest">The occlusion test to use.</param>
-        public OcclusionCullingSettings(int viewInstanceID, OcclusionTest occlusionTest)
+        public OcclusionCullingSettings(EntityId viewInstanceID, OcclusionTest occlusionTest)
         {
             this.viewInstanceID = viewInstanceID;
             this.occlusionTest = occlusionTest;
@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering
     public struct OccluderParameters
     {
         /// <summary>The instance ID of the camera, used to identify these occluders for the occlusion test.</summary>
-        public int viewInstanceID;
+        public EntityId viewInstanceID;
         /// <summary>The total number of subviews for this occluder.</summary>
         public int subviewCount;
 
@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>Creates a new structure using the given parameters.</summary>
         /// <param name="viewInstanceID">The instance ID of the camera to associate with these occluders.</param>
-        public OccluderParameters(int viewInstanceID)
+        public OccluderParameters(EntityId viewInstanceID)
         {
             this.viewInstanceID = viewInstanceID;
             this.subviewCount = 1;

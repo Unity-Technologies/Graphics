@@ -1799,7 +1799,6 @@ namespace UnityEngine.Rendering.Tests
             }
         }
 
-/* // DepthAttachment bug: https://jira.unity3d.com/projects/SRP/issues/SRP-897
         [Test]
         public void UnusedResourceCulling_CullProducer_WhenVersionsAreNotExplicitlyRead()
         {
@@ -1905,7 +1904,6 @@ namespace UnityEngine.Rendering.Tests
             // extraBuffer[2] latest version remains at 1
             Assert.AreEqual(result.contextData.UnversionedResourceData(passes[0].attachments[1].handle).latestVersionNumber, 1);
         }
-*/
 
         [Test]
         public void UnusedResourceCulling_DoNotCullProducer_WhenOneOfItsWrittenResourcesIsExplicitlyRead()
@@ -2007,6 +2005,42 @@ namespace UnityEngine.Rendering.Tests
             Assert.IsTrue(passes != null && passes.Count == 1 && passes[0].numGraphPasses == 1);
             // extraBuffer[0] latest version remains at 2
             Assert.AreEqual(result.contextData.UnversionedResourceData(passes[0].attachments[0].handle).latestVersionNumber, 3);
+        }
+
+        [Test]
+        public void UnusedResourceCulling_KeepUnusedLatestVersion_WhenProducerIsNotCulled()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            // This pass implicitly reads version 0 of extraTextures[0] and writes its version 1 that will be implicitly read in the next pass - dependency
+            // It also explicitly reads version 0 of extraTextures[1] and writes its version 1 but none reads it - no side effect
+            // It also implicitly reads version 0 of depthBuffer that is imported in RG but don't write it - no side effect
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.ReadWrite);
+                builder.SetRenderAttachment(renderTargets.backBuffer, 1, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            // This pass writes version 2 of extraTextures[2] that no one uses
+            // technically we could get rid of this version but we preserve it for now to ensure correct resource lifetime and render pass setup
+            // We explicitly request this pass not to be culled, so it will be preserved
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            // - TestPass1 can NOT be culled
+            // - TestPass1 can NOT be culled as it writes to an imported texture (backbuffer)
+            Assert.IsTrue(passes != null && passes.Count == 1 && passes[0].numGraphPasses == 2);
+            // extraBuffer[0] latest version remains at 2 if no one uses it
+            Assert.AreEqual(result.contextData.UnversionedResourceData(passes[0].attachments[0].handle).latestVersionNumber, 2);
         }
 
         // Test using a texture as both a texture and render attachment, one will require topleft and one bottom left so this should throw.

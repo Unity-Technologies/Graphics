@@ -860,7 +860,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static int NumLightIndicesPerClusteredTile()
         {
-            return ShaderConfig.FPTLMaxLightCount * (1 << k_Log2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
+            return (ShaderConfig.FPTLMaxLightCount + 1) * (1 << (k_Log2NumClusters + 1));       // total footprint for all layers of the tile (measured in light index entries)
         }
 
         void LightLoopAllocResolutionDependentBuffers(HDCamera hdCamera, int width, int height)

@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing.Tests
             const int instanceCount = 4;
             CreateMatchingRaysAndInstanceDescs(instanceCount, mesh, out RayWithFlags[] rays, out MeshInstanceDesc[] instanceDescs);
 
-            for (int i = 0; i < instanceCount; ++i)
+            for (ulong i = 0; i < instanceCount; ++i)
             {
                 m_AccelStruct.AddInstance(i, instanceDescs[i].mesh, instanceDescs[i].localToWorldMatrix, new uint[]{ 0xFFFFFFFF }, new uint[]{ 0xFFFFFFFF }, new bool[] { true }, 1);
             }

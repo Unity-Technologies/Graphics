@@ -104,7 +104,7 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
         }
 
-        public override void GetImportDependentAssets(HashSet<int> dependencies)
+        public override void GetImportDependentAssets(HashSet<EntityId> dependencies)
         {
             base.GetImportDependentAssets(dependencies);
             if (!object.ReferenceEquals(shader, null))

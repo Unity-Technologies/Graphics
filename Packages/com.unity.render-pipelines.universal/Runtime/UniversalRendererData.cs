@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.Universal
         static void CreateUniversalRendererData()
         {
             var icon = CoreUtils.GetIconForType<ScriptableRendererData>();
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalRendererAsset>(), "New Custom Universal Renderer Data.asset", icon, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(EntityId.None, CreateInstance<CreateUniversalRendererAsset>(), "New Custom Universal Renderer Data.asset", icon, null);
         }
 
 #endif
