@@ -16,6 +16,7 @@
     "com.unity.test-framework": "file:../../../../../Packages/com.unity.test-framework",
     "com.unity.testframework.graphics": "file:../../../Packages/com.unity.test-framework.graphics",
     "com.unity.testing.common-graphics": "file:../../../Packages/com.unity.testing.common-graphics",
+    "com.unity.testing.hdr-faking": "file:../../../Packages/com.unity.testing.hdr-faking",
     "com.unity.testing.urp": "file:../../../Packages/com.unity.testing.urp",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
     "com.unity.ugui": "2.0.0",
