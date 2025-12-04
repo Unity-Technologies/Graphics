@@ -907,6 +907,21 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
     EvaluateAdaptiveProbeVolume(apvSample, normalWS, bakeDiffuseLighting);
 }
 
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 viewDir, in uint renderingLayer,
+    out float3 bakeDiffuseLighting, out float4 probeOcclusion)
+{
+    bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+
+    APVSample apvSample = SampleAPV(posWS, normalWS, renderingLayer, viewDir);
+    #ifdef USE_APV_PROBE_OCCLUSION
+    probeOcclusion = apvSample.probeOcclusion;
+    #else
+    probeOcclusion = 1;
+    #endif
+
+    EvaluateAdaptiveProbeVolume(apvSample, normalWS, bakeDiffuseLighting);
+}
+
 void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 viewDir, in float2 positionSS, in uint renderingLayer,
     out float3 bakeDiffuseLighting)
 {
