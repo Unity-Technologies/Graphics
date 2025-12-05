@@ -372,10 +372,13 @@ namespace UnityEngine.Rendering.Universal
             if(reasonWarning == null && !cameraData.renderer.SupportsMotionVectors())
                 reasonWarning = "because the renderer does not implement motion vectors. Motion vectors are required.";
 
-            const int warningThrottleFrames = 60 * 1; // 60 FPS * 1 sec
-            if (s_warnCounter % warningThrottleFrames == 0)
-                Debug.LogWarning("Disabling TAA " + (isSTPRequested ? "and STP " : "") + reasonWarning);
-            s_warnCounter++;
+            if (reasonWarning != null)
+            {
+                const int warningThrottleFrames = 60 * 1; // 60 FPS * 1 sec
+                if (s_warnCounter % warningThrottleFrames == 0)
+                    Debug.LogWarning("Disabling TAA " + (isSTPRequested ? "and STP " : "") + reasonWarning);
+                s_warnCounter++;
+            }
 
             return reasonWarning;
         }
