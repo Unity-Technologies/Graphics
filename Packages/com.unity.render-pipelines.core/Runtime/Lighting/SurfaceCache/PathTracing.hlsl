@@ -18,7 +18,7 @@ SurfaceGeometry FetchSurfaceGeometry(UnifiedRT::InstanceData instanceInfo, Unifi
     UnifiedRT::HitGeomAttributes attributes = UnifiedRT::FetchHitGeomAttributes(hit);
 
     SurfaceGeometry res;
-    res.position = mul(instanceInfo.localToWorld, float4(attributes.position, 1)).xyz;
+    res.position = mul(float4(attributes.position, 1), instanceInfo.localToWorld);
     res.normal = normalize(mul((float3x3)instanceInfo.localToWorldNormals, attributes.faceNormal));
     res.uv0 = attributes.uv0.xy;
     res.uv1 = attributes.uv1.xy;
