@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine.Rendering.LookDev;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -25,10 +26,15 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 lookDevVolumeSettings.volumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(GraphicsSettings
                     .GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().lookDevVolumeProfile);
+
+                // Invalidate the volume profile hash
+                volumeProfileHash = -1;
+
+                Debug.Log($"[Look Dev] Created default Volume Profile at: {AssetDatabase.GetAssetPath(lookDevVolumeSettings.volumeProfile)}");
             }
 
             var lookDevVolumeProfile = lookDevVolumeSettings.volumeProfile;
-            int newHashCode = lookDevVolumeProfile.GetHashCode();
+            int newHashCode = lookDevVolumeProfile != null ? lookDevVolumeProfile.GetHashCode() : -1;
             if (newHashCode != volumeProfileHash)
             {
                 VolumeProfile oldProfile = volume.sharedProfile;

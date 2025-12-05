@@ -101,9 +101,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly ConfigStyle hdrpVolumeProfile = new ConfigStyle(
                 label: L10n.Tr("Default volume profile"),
                 error: L10n.Tr("Default volume profile must be assigned in the Project Settings > Graphics > HDRP! Also, for it to be editable, it should be outside of package."));
-            public static readonly ConfigStyle hdrpLookDevVolumeProfile = new ConfigStyle(
-                label: L10n.Tr("Default Look Dev volume profile"),
-                error: L10n.Tr("Default Look Dev volume profile must be assigned in the Project Settings > Graphics > HDRP! Also, for it to be editable, it should be outside of package."));
 
             public static readonly ConfigStyle hdrpMigratableAssets = new ConfigStyle(
                 label: L10n.Tr("Assets Migration"),
