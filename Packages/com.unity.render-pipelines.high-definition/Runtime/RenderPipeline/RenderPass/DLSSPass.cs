@@ -555,8 +555,11 @@ namespace UnityEngine.Rendering.HighDefinition
             dlssViewData.presetDLAA             = parameters.drsSettings.DLSSRenderPresetForDLAA;
 
             dlssViewData.inputRes  = new UpscalerResolution() { width = (uint)parameters.hdCamera.actualWidth, height = (uint)parameters.hdCamera.actualHeight };
-            dlssViewData.outputRes = new UpscalerResolution() { width = (uint)DynamicResolutionHandler.instance.finalViewport.x, height = (uint)DynamicResolutionHandler.instance.finalViewport.y };
-
+            dlssViewData.outputRes = new UpscalerResolution() {
+                width  = (uint)parameters.hdCamera.finalViewport.width,
+                height = (uint)parameters.hdCamera.finalViewport.height
+            };
+            
             dlssViewData.jitterX = -parameters.hdCamera.taaJitter.x;
             dlssViewData.jitterY = -parameters.hdCamera.taaJitter.y;
             dlssViewData.reset = parameters.resetHistory;
