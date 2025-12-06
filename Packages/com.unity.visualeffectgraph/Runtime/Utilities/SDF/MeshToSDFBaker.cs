@@ -39,6 +39,7 @@ namespace UnityEngine.VFX.SDF
         private int m_nStepsJFA;
         private Kernels m_Kernels;
         private Mesh m_Mesh;
+        private bool m_OwnsMesh;
         private RenderTexture m_textureVoxel, m_textureVoxelBis, m_DistanceTexture;
         private GraphicsBuffer m_bufferVoxel;
         private ComputeShader m_computeShader;
@@ -173,6 +174,28 @@ namespace UnityEngine.VFX.SDF
             return m_SizeBox;
         }
 
+        private MeshToSDFBaker(Vector3 sizeBox,
+            Vector3 center,
+            int maxRes,
+            Mesh mesh,
+            bool ownsMesh,
+            int signPassesCount,
+            float threshold,
+            float sdfOffset,
+            CommandBuffer cmd)
+        {
+            LoadRuntimeResources();
+            m_Mesh = mesh;
+            m_OwnsMesh = ownsMesh;
+            if (cmd != null)
+            {
+                m_Cmd = cmd;
+                m_OwnsCommandBuffer = false;
+            }
+            SetParameters(sizeBox, center, maxRes, signPassesCount, threshold, sdfOffset);
+            Init();
+        }
+
         /// <summary>
         /// Constructor of the class MeshToSDFBaker.
         /// </summary>
@@ -191,17 +214,9 @@ namespace UnityEngine.VFX.SDF
             int signPassesCount = 1,
             float threshold = 0.5f,
             float sdfOffset = 0.0f,
-            CommandBuffer cmd = null)
+            CommandBuffer cmd = null) :
+            this(sizeBox, center, maxRes, mesh, false, signPassesCount, threshold, sdfOffset, cmd)
         {
-            LoadRuntimeResources();
-            m_Mesh = mesh;
-            if (cmd != null)
-            {
-                m_Cmd = cmd;
-                m_OwnsCommandBuffer = false;
-            }
-            SetParameters(sizeBox, center, maxRes, signPassesCount, threshold, sdfOffset);
-            Init();
         }
 
         /// <summary>
@@ -225,8 +240,10 @@ namespace UnityEngine.VFX.SDF
             float threshold = 0.5f,
             float sdfOffset = 0.0f,
             CommandBuffer cmd = null) :
-            this(sizeBox, center, maxRes, InitMeshFromList(meshes, transforms), signPassesCount, threshold, sdfOffset, cmd)
+            this(sizeBox, center, maxRes, InitMeshFromList(meshes, transforms), true, signPassesCount, threshold, sdfOffset, cmd)
         {
+            if (!m_OwnsMesh)
+                throw new InvalidOperationException("InitMeshFromList expects owns mesh flag to prevent leak");
         }
 
         /// <summary>
@@ -238,6 +255,23 @@ namespace UnityEngine.VFX.SDF
             {
                 Debug.LogWarning("Dispose() should be called explicitly when an MeshToSDFBaker instance is finished being used.");
             }
+        }
+
+        private void Reinit(Vector3 sizeBox,
+            Vector3 center,
+            int maxRes,
+            Mesh mesh,
+            bool ownsMesh,
+            int signPassesCount = 1,
+            float threshold = 0.5f,
+            float sdfOffset = 0.0f)
+        {
+            ReleaseMeshIfOwned();
+            m_Mesh = mesh;
+            m_OwnsMesh = ownsMesh;
+
+            SetParameters(sizeBox, center, maxRes, signPassesCount, threshold, sdfOffset);
+            Init();
         }
 
         /// <summary>
@@ -258,9 +292,7 @@ namespace UnityEngine.VFX.SDF
             float threshold = 0.5f,
             float sdfOffset = 0.0f)
         {
-            m_Mesh = mesh;
-            SetParameters(sizeBox, center, maxRes, signPassesCount, threshold, sdfOffset);
-            Init();
+            Reinit(sizeBox, center, maxRes, mesh, false, signPassesCount, threshold, sdfOffset);
         }
 
         /// <summary>
@@ -283,7 +315,9 @@ namespace UnityEngine.VFX.SDF
             float threshold = 0.5f,
             float sdfOffset = 0.0f)
         {
-            Reinit(sizeBox, center, maxRes, InitMeshFromList(meshes, transforms), signPassesCount, threshold, sdfOffset);
+            Reinit(sizeBox, center, maxRes, InitMeshFromList(meshes, transforms), true, signPassesCount, threshold, sdfOffset);
+            if (!m_OwnsMesh)
+                throw new InvalidOperationException("InitMeshFromList expects owns mesh flag to prevent leak");
         }
 
         private void SetParameters(Vector3 sizeBox, Vector3 center, int maxRes, int signPassesCount, float threshold, float sdfOffset)
@@ -773,7 +807,6 @@ namespace UnityEngine.VFX.SDF
 
         private void InitMeshBuffers()
         {
-
             if (m_Mesh.GetVertexAttributeFormat(VertexAttribute.Position) != VertexAttributeFormat.Float32)
             {
                 throw new ArgumentException(
@@ -958,9 +991,22 @@ namespace UnityEngine.VFX.SDF
             m_Cmd.EndSample("BakeSDF.DistanceTransform");
         }
 
+        private void ReleaseMeshIfOwned()
+        {
+            if (m_Mesh && m_OwnsMesh)
+            {
+                if (Application.isPlaying)
+                    Object.Destroy(m_Mesh);
+                else
+                    Object.DestroyImmediate(m_Mesh);
+                m_Mesh = null;
+                m_OwnsMesh = false;
+            }
+        }
+
         private void ReleaseBuffersAndTextures()
         {
-            //Release  textures.
+            //Release textures.
             ReleaseRenderTexture(ref m_textureVoxel);
             ReleaseRenderTexture(ref m_textureVoxelBis);
             ReleaseRenderTexture(ref m_DistanceTexture);
@@ -979,7 +1025,7 @@ namespace UnityEngine.VFX.SDF
                 ReleaseRenderTexture(ref m_RayMaps[i]);
             }
 
-            //Release  buffers.
+            //Release buffers.
             ReleaseGraphicsBuffer(ref m_bufferVoxel);
             ReleaseGraphicsBuffer(ref m_TrianglesUV);
             ReleaseGraphicsBuffer(ref m_TrianglesInVoxels);
@@ -1002,6 +1048,7 @@ namespace UnityEngine.VFX.SDF
         /// </summary>
         public void Dispose()
         {
+            ReleaseMeshIfOwned();
             ReleaseBuffersAndTextures();
             GC.SuppressFinalize(this);
             m_IsDisposed = true;
