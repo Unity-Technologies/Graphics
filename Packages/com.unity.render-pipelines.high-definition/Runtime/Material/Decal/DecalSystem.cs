@@ -1507,7 +1507,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     ShaderGraphData shaderGraphData = m_ShaderGraphList[i];
                     if (shaderGraphData.passIndex == -1)
                     {
-                        Debug.LogError("Trying to update a shader graph texture with an invalid pass index");
+                        m_ShaderGraphVertexCount.Add(0);
+
+                        Debug.LogError($"Trying to update a shader graph texture with an invalid pass index on Material {shaderGraphData.material.name}");
                         continue;
                     }
 
