@@ -21,7 +21,7 @@ public class LightScript : MonoBehaviour
 }
 ```
 
-There is also a [RemoveHDLight]((https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/api/UnityEngine.Rendering.HighDefinition.GameObjectExtension.html#UnityEngine_Rendering_HighDefinition_GameObjectExtension_AddHDLight_UnityEngine_GameObject_UnityEngine_Rendering_HighDefinition_HDLightTypeAndShape_)) method to remove the light created with AddHDLight.
+There is also a [RemoveHDLight](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/api/UnityEngine.Rendering.HighDefinition.GameObjectExtension.html#UnityEngine_Rendering_HighDefinition_GameObjectExtension_AddHDLight_UnityEngine_GameObject_UnityEngine_Rendering_HighDefinition_HDLightTypeAndShape_) method to remove the light created with AddHDLight.
 
 Note: Another good way of spawning lights is simply by spawning prefabs of lights you configured in the editor, this is also more efficient than manually adding components and setting values.
 
