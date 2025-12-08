@@ -353,6 +353,7 @@ namespace UnityEditor.Rendering.Converter
                 {
                     Debug.LogError($"An exception occurred while initializing converter {current.displayName}. See console for more details.");
                     Debug.LogException(ex);
+                    InitializationFinish();
                 }
             }
 

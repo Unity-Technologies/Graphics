@@ -56,11 +56,13 @@ namespace UnityEditor.Rendering
         public enum MaterialPropertyType
         {
             /// <summary>Texture reference property.</summary>
-            Texture,
+            Texture = 0,
             /// <summary>Float property.</summary>
-            Float,
+            Float = 1,
             /// <summary>Color property.</summary>
-            Color
+            Color = 2,
+            /// <summary>Count property.</summary>
+            Count = 3
         }
 
         /// <summary>

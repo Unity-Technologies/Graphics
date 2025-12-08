@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor.Animations;
+using UnityEditor.Rendering.Universal;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Rendering;
+using UnityEngine.UIElements;
+using static UnityEditor.Rendering.AnimationClipUpgrader;
+using static UnityEditor.Rendering.Universal.AnimationClipConverter;
 using IMaterial = UnityEditor.Rendering.UpgradeUtility.IMaterial;
 using UID = UnityEditor.Rendering.UpgradeUtility.UID;
 
@@ -24,12 +28,26 @@ namespace UnityEditor.Rendering
     /// - Clips referenced by an <see cref="AnimatorController"/> used by an <see cref="Animator"/> component
     /// - Clips that are sub-assets of a <see cref="PlayableAsset"/> used by a <see cref="PlayableDirector"/> component with a single <see cref="Animator"/> binding
     /// It does not know about clips that might be referenced in other ways for run-time reassignment.
-    /// Recommended usage is to call <see cref="DoUpgradeAllClipsMenuItem"/> from a menu item callback.
     /// The utility can also provide faster, more reliable results if it knows what <see cref="MaterialUpgrader"/> was used to upgrade specific materials.
     /// </remarks>
     static partial class AnimationClipUpgrader
     {
         static readonly Regex k_MatchMaterialPropertyName = new Regex(@"material.(\w+)(\.\w+)?", RegexOptions.Compiled);
+
+        public static bool IsAnimatingMaterialProperties(AnimationClip animationClip)
+        {
+            var curveBindings = AnimationUtility.GetCurveBindings(animationClip);
+            if (curveBindings.Length == 0)
+                return false;
+
+            foreach (var curveBinding in curveBindings)
+            {
+                if (AnimationClipUpgrader.IsMaterialBinding(curveBinding))
+                    return true;
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// Determines whether the specified<see cref="EditorCurveBinding"/> is for a material property.
@@ -37,27 +55,18 @@ namespace UnityEditor.Rendering
         /// <remarks>Internal only for testability.</remarks>
         /// <param name="b">An <see cref="EditorCurveBinding"/>.</param>
         /// <returns><c>true</c> if the binding is for a material property; <c>false</c> otherwise.</returns>
-        internal static bool IsMaterialBinding(EditorCurveBinding b) =>
-            (b.type?.IsSubclassOf(typeof(Renderer)) ?? false)
-            && !string.IsNullOrEmpty(b.propertyName)
-            && k_MatchMaterialPropertyName.IsMatch(b.propertyName);
-
-        static readonly IReadOnlyCollection<string> k_ColorAttributeSuffixes =
-            new HashSet<string>(new[] { ".r", ".g", ".b", ".a" });
-
-        /// <summary>
-        /// Infer a shader property name and type from an <see cref="EditorCurveBinding"/>.
-        /// </summary>
-        /// <remarks>Internal only for testability.</remarks>
-        /// <param name="binding">A binding presumed to map to a material property. (See also <seealso cref="IsMaterialBinding"/>.)</param>
-        /// <returns>A shader property name, and a guess of what type of shader property it targets.</returns>
-        internal static (string Name, ShaderPropertyType Type) InferShaderProperty(EditorCurveBinding binding)
+        internal static bool IsMaterialBinding(EditorCurveBinding b)
         {
-            var match = k_MatchMaterialPropertyName.Match(binding.propertyName);
-            var propertyName = match.Groups[1].Value;
-            var propertyType = match.Groups[2].Value;
-            return (propertyName,
-                k_ColorAttributeSuffixes.Contains(propertyType) ? ShaderPropertyType.Color : ShaderPropertyType.Float);
+            if (b == null)
+                return false;
+
+            if (b.type == null || !b.type.IsSubclassOf(typeof(Renderer)))
+                return false;
+
+            if (string.IsNullOrEmpty(b.propertyName) || !k_MatchMaterialPropertyName.IsMatch(b.propertyName))
+                return false;
+
+            return true;
         }
 
         /// <summary>
@@ -71,14 +80,14 @@ namespace UnityEditor.Rendering
         /// </returns>
         internal static IDictionary<
             IAnimationClip,
-            (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<EditorCurveBinding, string> PropertyRenames)
+            (ClipPath Path, EditorCurveBinding[] Bindings, ShaderPropertyUsage Usage, IDictionary<EditorCurveBinding, string> PropertyRenames)
         > GetAssetDataForClipsFiltered(
             IEnumerable<ClipPath> clipPaths
         )
         {
             var result = new Dictionary<
                 IAnimationClip,
-                (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<EditorCurveBinding, string> PropertyRenames)
+                (ClipPath Path, EditorCurveBinding[] Bindings, ShaderPropertyUsage Usage, IDictionary<EditorCurveBinding, string> PropertyRenames)
                 >();
             foreach (var clipPath in clipPaths)
             {
@@ -87,12 +96,23 @@ namespace UnityEditor.Rendering
                     if (!(asset is AnimationClip clip))
                         continue;
 
-                    var bindings = AnimationUtility.GetCurveBindings(clip).Where(IsMaterialBinding).ToArray();
+                    var bindings = AnimationUtility.GetCurveBindings(clip);
                     if (bindings.Length == 0)
                         continue;
 
-                    result[(AnimationClipProxy)clip] =
-                        (clipPath, bindings, SerializedShaderPropertyUsage.Unknown, new Dictionary<EditorCurveBinding, string>());
+                    using (UnityEngine.Pool.ListPool<EditorCurveBinding>.Get(out var tmp))
+                    {
+                        foreach (var b in bindings)
+                        {
+                            if (IsMaterialBinding(b))
+                                tmp.Add(b);
+                        }
+
+                        if (tmp.Count != 0)
+                        {
+                            result[(AnimationClipProxy)clip] = (clipPath, tmp.ToArray(), ShaderPropertyUsage.None, new Dictionary<EditorCurveBinding, string>());
+                        }
+                    }
                 }
             }
 
@@ -180,9 +200,9 @@ namespace UnityEditor.Rendering
             IReadOnlyDictionary<PrefabPath, IReadOnlyCollection<ClipPath>> assetDependencies,
             IDictionary<
                 IAnimationClip,
-                (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<EditorCurveBinding, string> PropertyRenames)
+                (ClipPath Path, EditorCurveBinding[] Bindings, ShaderPropertyUsage Usage, IDictionary<EditorCurveBinding, string> PropertyRenames)
             > clipData,
-            IReadOnlyDictionary<string, IReadOnlyList<MaterialUpgrader>> allUpgradePathsToNewShaders,
+            AnimationClipUpgradePathsCache allUpgradePathsToNewShaders,
             IReadOnlyDictionary<UID, MaterialUpgrader> upgradePathsUsedByMaterials = default,
             Func<string, float, bool> progressFunctor = null
         )
@@ -240,10 +260,10 @@ namespace UnityEditor.Rendering
             IReadOnlyDictionary<ScenePath, IReadOnlyCollection<ClipPath>> assetDependencies,
             IDictionary<
                 IAnimationClip,
-                (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<EditorCurveBinding, string>
+                (ClipPath Path, EditorCurveBinding[] Bindings, ShaderPropertyUsage Usage, IDictionary<EditorCurveBinding, string>
                     PropertyRenames)
             > clipData,
-            IReadOnlyDictionary<string, IReadOnlyList<MaterialUpgrader>> allUpgradePathsToNewShaders,
+            AnimationClipUpgradePathsCache allUpgradePathsToNewShaders,
             IReadOnlyDictionary<UID, MaterialUpgrader> upgradePathsUsedByMaterials = default,
             Func<string, float, bool> progressFunctor = null
         )
@@ -281,13 +301,13 @@ namespace UnityEditor.Rendering
         /// <param name="upgradePathsUsedByMaterials">
         /// Optional table of materials known to have gone through a specific upgrade path.
         /// </param>
-        static void GatherClipsUsageForGameObject(
+        public static void GatherClipsUsageForGameObject(
             GameObject go,
             IDictionary<
                 IAnimationClip,
-                (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<EditorCurveBinding, string> PropertyRenames)
+                (ClipPath Path, EditorCurveBinding[] Bindings, ShaderPropertyUsage Usage, IDictionary<EditorCurveBinding, string> PropertyRenames)
             > clipData,
-            IReadOnlyDictionary<string, IReadOnlyList<MaterialUpgrader>> allUpgradePathsToNewShaders,
+            AnimationClipUpgradePathsCache allUpgradePathsToNewShaders,
             IReadOnlyDictionary<UID, MaterialUpgrader> upgradePathsUsedByMaterials = default
         )
         {
@@ -385,9 +405,9 @@ namespace UnityEditor.Rendering
             IEnumerable<IAnimationClip> clips,
             IDictionary<
                 IAnimationClip,
-                (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<EditorCurveBinding, string> PropertyRenames)
+                (ClipPath Path, EditorCurveBinding[] Bindings, ShaderPropertyUsage Usage, IDictionary<EditorCurveBinding, string> PropertyRenames)
             > clipData,
-            IReadOnlyDictionary<string, IReadOnlyList<MaterialUpgrader>> allUpgradePathsToNewShaders,
+            AnimationClipUpgradePathsCache allUpgradePathsToNewShaders,
             IReadOnlyDictionary<UID, MaterialUpgrader> upgradePathsUsedByMaterials
         )
         {
@@ -444,10 +464,10 @@ namespace UnityEditor.Rendering
             IAnimationClip clip,
             IDictionary<
                 IAnimationClip,
-                (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<EditorCurveBinding, string> PropertyRenames)
+                (ClipPath Path, EditorCurveBinding[] Bindings, ShaderPropertyUsage Usage, IDictionary<EditorCurveBinding, string> PropertyRenames)
             > clipData,
             IReadOnlyDictionary<string, (IRenderer Renderer, List<IMaterial> Materials)> renderersByPath,
-            IReadOnlyDictionary<string, IReadOnlyList<MaterialUpgrader>> allUpgradePathsToNewShaders,
+            AnimationClipUpgradePathsCache allUpgradePathsToNewShaders,
             IReadOnlyDictionary<UID, MaterialUpgrader> upgradePathsUsedByMaterials
         )
         {
@@ -459,36 +479,25 @@ namespace UnityEditor.Rendering
             foreach (var binding in data.Bindings)
             {
                 // skip if binding is not for material, or refers to a nonexistent renderer
-                if (
-                    !IsMaterialBinding(binding)
-                    || !renderersByPath.TryGetValue(binding.path, out var rendererData)
-                ) continue;
+                if (!IsMaterialBinding(binding) || !renderersByPath.TryGetValue(binding.path, out var rendererData))continue;
 
                 // determine the shader property name and type from the binding
-                var shaderProperty = InferShaderProperty(binding);
-                var renameType = shaderProperty.Type == ShaderPropertyType.Color
-                    ? MaterialUpgrader.MaterialPropertyType.Color
-                    : MaterialUpgrader.MaterialPropertyType.Float;
+                (string shaderProperty, ShaderPropertyType type) = EditorCurveBindingUtils.InferShaderProperty(binding);
+
+                MaterialUpgrader.MaterialPropertyType materialPropertyType = MaterialUpgrader.MaterialPropertyType.Float;
+                if (type == ShaderPropertyType.Color)
+                    materialPropertyType = MaterialUpgrader.MaterialPropertyType.Color;
+                else if (type == ShaderPropertyType.Texture)
+                    materialPropertyType = MaterialUpgrader.MaterialPropertyType.Texture;
 
                 // material property animations apply to all materials, so check shader usage in all of them
                 foreach (var material in rendererData.Materials)
                 {
-                    var usage = UpgradeUtility.GetNewPropertyName(
-                        shaderProperty.Name,
-                        material,
-                        renameType,
-                        allUpgradePathsToNewShaders,
-                        upgradePathsUsedByMaterials,
-                        out var newPropertyName
-                    );
+                    var usage = allUpgradePathsToNewShaders.GetShaderPropertyUsage(material.ShaderName, materialPropertyType, shaderProperty, out var newPropertyName);
 
                     // if the property has already been upgraded with a different name, mark the upgrade as ambiguous
-                    if (
-                        usage == SerializedShaderPropertyUsage.UsedByUpgraded
-                        && data.PropertyRenames.TryGetValue(binding, out var propertyRename)
-                        && propertyRename != newPropertyName
-                    )
-                        usage |= SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded;
+                    if ( usage == ShaderPropertyUsage.ValidForUpgrade && data.PropertyRenames.TryGetValue(binding, out var propertyRename) && propertyRename != newPropertyName)
+                        usage |= ShaderPropertyUsage.MultipleUpgradePaths;
 
                     data.Usage |= usage;
                     data.PropertyRenames[binding] = newPropertyName;
@@ -509,10 +518,9 @@ namespace UnityEditor.Rendering
         /// <param name="notUpgraded">Collector for all clips that are not upgraded.</param>
         /// <param name="progressFunctor">Optional functor to display a progress bar.</param>
         internal static void UpgradeClips(
-            IDictionary<IAnimationClip, (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<EditorCurveBinding, string> PropertyRenames)> clipsToUpgrade,
-            SerializedShaderPropertyUsage excludeFlags,
-            HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)> upgraded,
-            HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)> notUpgraded,
+            IDictionary<IAnimationClip, (ClipPath Path, EditorCurveBinding[] Bindings, ShaderPropertyUsage Usage, IDictionary<EditorCurveBinding, string> PropertyRenames)> clipsToUpgrade,
+            HashSet<(IAnimationClip Clip, ClipPath Path, ShaderPropertyUsage Usage)> upgraded,
+            HashSet<(IAnimationClip Clip, ClipPath Path, ShaderPropertyUsage Usage)> notUpgraded,
             Func<string, float, bool> progressFunctor = null
         )
         {
@@ -528,164 +536,36 @@ namespace UnityEditor.Rendering
                 if (progressFunctor != null && progressFunctor($"({clipIndex} of {totalNumberOfClips}) {kv.Value.Path.Path}", currentProgress))
                     break;
 
-                if (kv.Value.Usage == SerializedShaderPropertyUsage.Unknown || (kv.Value.Usage & excludeFlags) != 0)
+                if (kv.Value.Usage == ShaderPropertyUsage.None || (kv.Value.Usage & ShaderPropertyUsage.HasIssues) != 0)
                 {
                     notUpgraded.Add((kv.Key, kv.Value.Path, kv.Value.Usage));
                     continue;
                 }
 
                 var renames = kv.Value.PropertyRenames;
-                var bindings = kv.Key.GetCurveBindings().Where(IsMaterialBinding).ToArray();
-                if (bindings.Length > 0)
+                using (UnityEngine.Pool.ListPool<EditorCurveBinding>.Get(out var oldBindingsTmp))
+                using (UnityEngine.Pool.ListPool<EditorCurveBinding>.Get(out var newBindingsTmp))
                 {
-                    var newBindings = new EditorCurveBinding[bindings.Length];
-
-                    for (int i = 0; i < bindings.Length; ++i)
+                    foreach (var binding in kv.Key.GetCurveBindings())
                     {
-                        var binding = bindings[i];
+                        if (!IsMaterialBinding(binding))
+                            continue;
 
-                        newBindings[i] = binding;
                         if (renames.TryGetValue(binding, out var newName))
-                            newBindings[i].propertyName = k_MatchMaterialPropertyName.Replace(newBindings[i].propertyName, $"material.{newName}$2");
+                        {
+                            var (name, type) = EditorCurveBindingUtils.InferShaderProperty(binding);
+                            oldBindingsTmp.Add(binding);
+
+                            var newBinding = binding;
+                            newBinding.propertyName = binding.propertyName.Replace(name, newName);
+                            newBindingsTmp.Add(newBinding);
+                        }
                     }
 
-                    kv.Key.ReplaceBindings(bindings, newBindings);
+                    kv.Key.ReplaceBindings(oldBindingsTmp.ToArray(), newBindingsTmp.ToArray());
                 }
 
                 upgraded.Add((kv.Key, kv.Value.Path, kv.Value.Usage));
-            }
-        }
-
-        /// <summary>
-        /// A function to call from a menu item callback, which will upgrade all <see cref="AnimationClip"/> in the project.
-        /// </summary>
-        /// <param name="allUpgraders">All <see cref="MaterialUpgrader"/> for the current render pipeline.</param>
-        /// <param name="knownUpgradePaths">
-        /// Optional mapping of materials to upgraders they are known to have used.
-        /// Without this mapping, the method makes inferences about how a material might have been upgraded.
-        /// Making these inferences is slower and possibly not sensitive to ambiguous upgrade paths.
-        /// </param>
-        /// <param name="filterFlags">
-        /// Optional flags to filter out clips that are used in ways that are not safe for upgrading.
-        /// </param>
-        public static void DoUpgradeAllClipsMenuItem(
-            IEnumerable<MaterialUpgrader> allUpgraders,
-            string progressBarName,
-            IReadOnlyDictionary<UID, MaterialUpgrader> knownUpgradePaths = default,
-            SerializedShaderPropertyUsage filterFlags = ~(SerializedShaderPropertyUsage.UsedByUpgraded | SerializedShaderPropertyUsage.UsedByNonUpgraded)
-        )
-        {
-            var clipPaths = AssetDatabase.FindAssets("t:AnimationClip")
-                .Select(p => (ClipPath)AssetDatabase.GUIDToAssetPath(p))
-                .ToArray();
-            DoUpgradeClipsMenuItem(clipPaths, allUpgraders, progressBarName, knownUpgradePaths, filterFlags);
-        }
-
-        static void DoUpgradeClipsMenuItem(
-            ClipPath[] clipPaths,
-            IEnumerable<MaterialUpgrader> allUpgraders,
-            string progressBarName,
-            IReadOnlyDictionary<UID, MaterialUpgrader> upgradePathsUsedByMaterials,
-            SerializedShaderPropertyUsage filterFlags
-        )
-        {
-            // exit early if no clips
-            if (clipPaths?.Length == 0)
-                return;
-
-            // display dialog box
-            var dialogMessage = L10n.Tr(
-                "Upgrading Material curves in AnimationClips assumes you have already upgraded Materials and shaders as needed. " +
-                "It also requires loading assets that use clips to inspect their usage, which can be a slow process. " +
-                "Do you want to proceed?"
-            );
-
-            if (!EditorUtility.DisplayDialog(L10n.Tr("Upgrade AnimationClips"), dialogMessage, "Proceed", "Cancel"))
-                return;
-
-            // only include scene paths if user requested it
-            var prefabPaths = AssetDatabase.FindAssets("t:Prefab")
-                .Select(p => (PrefabPath)AssetDatabase.GUIDToAssetPath(p))
-                .ToArray();
-            var scenePaths = AssetDatabase.FindAssets("t:Scene")
-                .Select(p => (ScenePath)AssetDatabase.GUIDToAssetPath(p))
-                .ToArray();
-
-            // retrieve clip assets with material animation
-            var clipData = GetAssetDataForClipsFiltered(clipPaths);
-
-            const float kGatherInPrefabsTotalProgress = 0.33f;
-            const float kGatherInScenesTotalProgress = 0.66f;
-            const float kUpgradeClipsTotalProgress = 1f;
-
-            // create table mapping all upgrade paths to new shaders
-            var allUpgradePathsToNewShaders = UpgradeUtility.GetAllUpgradePathsToShaders(allUpgraders);
-
-            // retrieve interdependencies with prefabs to figure out which clips can be safely upgraded
-            GetClipDependencyMappings(clipPaths, prefabPaths, out var clipPrefabDependents, out var prefabDependencies);
-
-            GatherClipsUsageInDependentPrefabs(
-                clipPrefabDependents, prefabDependencies, clipData, allUpgradePathsToNewShaders, upgradePathsUsedByMaterials,
-                (info, progress) => EditorUtility.DisplayCancelableProgressBar(progressBarName, $"Gathering from prefabs {info}", Mathf.Lerp(0f, kGatherInPrefabsTotalProgress, progress))
-            );
-
-            if (EditorUtility.DisplayCancelableProgressBar(progressBarName, "", kGatherInPrefabsTotalProgress))
-            {
-                EditorUtility.ClearProgressBar();
-                return;
-            }
-
-            // if any scenes should be considered, do the same for clips used by scenes
-            if (scenePaths.Any())
-            {
-                GetClipDependencyMappings(clipPaths, scenePaths, out var clipSceneDependents, out var sceneDependencies);
-                GatherClipsUsageInDependentScenes(
-                    clipSceneDependents, sceneDependencies, clipData, allUpgradePathsToNewShaders, upgradePathsUsedByMaterials,
-                    (info, progress) => EditorUtility.DisplayCancelableProgressBar(progressBarName, $"Gathering from scenes {info}", Mathf.Lerp(kGatherInPrefabsTotalProgress, kGatherInScenesTotalProgress, progress))
-                );
-            }
-
-            if (EditorUtility.DisplayCancelableProgressBar(progressBarName, "", kGatherInScenesTotalProgress))
-            {
-                EditorUtility.ClearProgressBar();
-                return;
-            }
-
-            // patch clips that should be upgraded
-            var upgraded = new HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)>();
-            var notUpgraded = new HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)>();
-
-            AssetDatabase.StartAssetEditing();
-            UpgradeClips(
-                clipData, filterFlags, upgraded, notUpgraded,
-                (info, progress) => EditorUtility.DisplayCancelableProgressBar(progressBarName, $"Upgrading clips {info}", Mathf.Lerp(kGatherInScenesTotalProgress, kUpgradeClipsTotalProgress, progress))
-            );
-            AssetDatabase.SaveAssets();
-            AssetDatabase.StopAssetEditing();
-
-            EditorUtility.ClearProgressBar();
-
-            // report results
-            if (upgraded.Count > 0)
-            {
-                var successes = upgraded.Select(data => $"- {data.Path}: ({data.Usage})");
-                Debug.Log(
-                    "Upgraded the following clips:\n" +
-                    $"{string.Join("\n", successes)}"
-                );
-            }
-
-            if (notUpgraded.Count == clipData.Count)
-            {
-                Debug.LogWarning("No clips were upgraded. Did you remember to upgrade materials first?");
-            }
-            else if (notUpgraded.Count > 0)
-            {
-                var errors = notUpgraded.Select(data => $"- {data.Path}: ({data.Usage})");
-                Debug.LogWarning(
-                    $"Did not modify following clips because they they were used in ways other than {~filterFlags}:\n" +
-                    $"{string.Join("\n", errors)}"
-                );
             }
         }
     }
