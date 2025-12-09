@@ -147,12 +147,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal int GBufferSpecularMetallicIndex { get { return 1; } }
         internal int GBufferNormalSmoothnessIndex { get { return 2; } }
         internal int GBufferLightingIndex { get { return 3; } }
-        internal int GbufferDepthIndex { get { return UseFramebufferFetch ? GBufferLightingIndex + 1 : -1; } }
-        internal int GBufferRenderingLayers { get { return UseRenderingLayers ? GBufferLightingIndex + (UseFramebufferFetch ? 1 : 0) + 1 : -1; } }
+        internal int GBufferDepthIndex { get { return 4; } }
+        internal int GBufferRenderingLayersIndex { get { return UseRenderingLayers ? 5 : -1; } }
         // Shadow Mask can change at runtime. Because of this it needs to come after the non-changing buffers.
-        internal int GBufferShadowMask { get { return UseShadowMask ? GBufferLightingIndex + (UseFramebufferFetch ? 1 : 0) + (UseRenderingLayers ? 1 : 0) + 1 : -1; } }
+        internal int GBufferShadowMaskIndex { get { return UseShadowMask ? 5 + (UseRenderingLayers ? 1 : 0) : -1; } }
         // Color buffer count (not including dephStencil).
-        internal int GBufferSliceCount { get { return 4 + (UseFramebufferFetch ? 1 : 0) + (UseShadowMask ? 1 : 0) + (UseRenderingLayers ? 1 : 0); } }
+        internal int GBufferSliceCount { get { return 5 + (UseShadowMask ? 1 : 0) + (UseRenderingLayers ? 1 : 0); } }
 
         internal int GBufferInputAttachmentCount { get { return 4 + (UseShadowMask ? 1 : 0); } }
 
@@ -166,11 +166,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : DepthNormalOnlyPass.GetGraphicsFormat(); // normal normal normal packedSmoothness
             else if (index == GBufferLightingIndex) // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
                 return GraphicsFormat.None;
-            else if (index == GbufferDepthIndex) // Render-pass on mobiles: reading back real depth-buffer is either inefficient (Arm Vulkan) or impossible (Metal).
+            else if (index == GBufferDepthIndex) // Render-pass on mobiles: reading back real depth-buffer is either inefficient (Arm Vulkan) or impossible (Metal).
                 return GraphicsFormat.R32_SFloat;
-            else if (index == GBufferShadowMask) // Optional: shadow mask is outputted in mixed lighting subtractive mode for non-static meshes only
+            else if (index == GBufferShadowMaskIndex) // Optional: shadow mask is outputted in mixed lighting subtractive mode for non-static meshes only
                 return GraphicsFormat.B8G8R8A8_UNorm;
-            else if (index == GBufferRenderingLayers) // Optional: rendering layers is outputted when light layers are enabled (subset of rendering layers)
+            else if (index == GBufferRenderingLayersIndex) // Optional: rendering layers is outputted when light layers are enabled (subset of rendering layers)
                 return RenderingLayerUtils.GetFormat(RenderingLayerMaskSize);
             else
                 return GraphicsFormat.None;
@@ -186,8 +186,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool UseDecalLayers { get; set; }
         //
         internal bool UseLightLayers { get { return UniversalRenderPipeline.asset.useRenderingLayers; } }
-        //
-        internal bool UseFramebufferFetch { get; set; }
 
         internal bool HasRenderingLayerPrepass { get; set; }
 
@@ -248,7 +246,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public bool deferredPlus;
         }
 
-        internal DeferredLights(InitParams initParams, bool useNativeRenderPass = false)
+        internal DeferredLights(InitParams initParams)
         {
             // Cache result for GL platform here. SystemInfo properties are in C++ land so repeated access will be unecessary penalized.
             // They can also only be called from main thread!
@@ -273,7 +271,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             this.AccurateGbufferNormals = true;
             this.UseJobSystem = true;
-            this.UseFramebufferFetch = useNativeRenderPass;
             m_LightCookieManager = initParams.lightCookieManager;
             m_UseDeferredPlus = initParams.deferredPlus;
         }
@@ -305,12 +302,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc(static (SetupLightPassData data, UnsafeGraphContext rgContext) =>
                 {
-                    data.deferredLights.SetupLights(CommandBufferHelpers.GetNativeCommandBuffer(rgContext.cmd), data.cameraData, data.cameraTargetSizeCopy, data.lightData, true);
+                    data.deferredLights.SetupLights(CommandBufferHelpers.GetNativeCommandBuffer(rgContext.cmd), data.cameraData, data.cameraTargetSizeCopy, data.lightData);
                 });
             }
         }
 
-        internal void SetupLights(CommandBuffer cmd, UniversalCameraData cameraData, Vector2Int cameraTargetSizeCopy, UniversalLightData lightData, bool isRenderGraph = false)
+        private void SetupLights(CommandBuffer cmd, UniversalCameraData cameraData, Vector2Int cameraTargetSizeCopy, UniversalLightData lightData)
         {
             Profiler.BeginSample(k_SetupLights);
 
@@ -355,7 +352,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetKeyword(ShaderGlobalKeywords.ShadowsShadowMask, isShadowMask);
                     cmd.SetKeyword(ShaderGlobalKeywords.MixedLightingSubtractive, isSubtractive); // Backward compatibility
                     // This should be moved to a more global scope when framebuffer fetch is introduced to more passes
-                    cmd.SetKeyword(ShaderGlobalKeywords.RenderPassEnabled, this.UseFramebufferFetch && (cameraData.cameraType == CameraType.Game || camera.cameraType == CameraType.SceneView || isRenderGraph));
+                    cmd.SetKeyword(ShaderGlobalKeywords.RenderPassEnabled, true);
                     cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, UseLightLayers && !CoreUtils.IsSceneLightingDisabled(camera));
 
                     RenderingLayerUtils.SetupProperties(cmd, RenderingLayerMaskSize);
@@ -420,7 +417,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 if (i == GBufferNormalSmoothnessIndex && hasNormalPrepass)
                     resourceData.gBuffer[i] = resourceData.cameraNormalsTexture;
-                else if (i == GBufferRenderingLayers && useCameraRenderingLayersTexture)
+                else if (i == GBufferRenderingLayersIndex && useCameraRenderingLayersTexture)
                     resourceData.gBuffer[i] = resourceData.renderingLayersTexture;
                 else if (i != GBufferLightingIndex)
                 {
@@ -547,16 +544,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 if (m_StencilDeferredPasses[0] < 0)
                     InitStencilDeferredMaterial();
-            }
-
-            if (!UseFramebufferFetch)
-            {
-                Material deferredMaterial = m_UseDeferredPlus ? m_ClusterDeferredMaterial : m_StencilDeferredMaterial;
-                for (int i = 0; i < gbuffer.Length; i++)
-                {
-                    if (i != GBufferLightingIndex)
-                        deferredMaterial.SetTexture(k_GBufferShaderPropertyIDs[i], gbuffer[i]);
-                }
             }
 
             using (new ProfilingScope(cmd, m_ProfilingDeferredPass))

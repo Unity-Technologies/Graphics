@@ -44,13 +44,14 @@ namespace UnityEditor.Rendering.Universal
                         if (light.type != LightType.Directional &&
                             light.type != LightType.Point &&
                             light.type != LightType.Spot &&
-                            light.type != LightType.Rectangle)
+                            light.type != LightType.Rectangle &&
+                            light.type != LightType.Disc)
                         {
                             Debug.LogWarning(
                                 $"The {light.type} light type on the GameObject '{light.gameObject.name}' is unsupported by URP, and will not be rendered."
                             );
                         }
-                        else if (light.type == LightType.Rectangle && light.lightmapBakeType != LightmapBakeType.Baked)
+                        else if ((light.type == LightType.Rectangle || light.type == LightType.Disc) && light.lightmapBakeType != LightmapBakeType.Baked)
                         {
                             Debug.LogWarning(
                                 $"The GameObject '{light.gameObject.name}' is an area light type, but the mode is not set to baked. URP only supports baked area lights, not realtime or mixed ones."

@@ -33,6 +33,7 @@ CBUFFER_START(_Terrain)
     float4 _Control_TexelSize;
     half _DiffuseHasAlpha0, _DiffuseHasAlpha1, _DiffuseHasAlpha2, _DiffuseHasAlpha3;
     half _LayerHasMask0, _LayerHasMask1, _LayerHasMask2, _LayerHasMask3;
+    half _SmoothnessSource0, _SmoothnessSource1, _SmoothnessSource2, _SmoothnessSource3;
     half4 _Splat0_ST, _Splat1_ST, _Splat2_ST, _Splat3_ST;
     half _HeightTransition;
     half _NumLayersCount;

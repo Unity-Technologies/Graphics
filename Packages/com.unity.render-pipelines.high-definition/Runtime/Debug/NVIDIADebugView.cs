@@ -249,6 +249,9 @@ namespace UnityEngine.NVIDIA
 
         private void UpdateDebugUITable()
         {
+            if (m_DlssViewStateTableRows == null)
+                return;
+
             for (int r = 0; r < m_DlssViewStateTableRows.Length; ++r)
             {
                 var d = m_Data.dlssFeatureInfos[r];

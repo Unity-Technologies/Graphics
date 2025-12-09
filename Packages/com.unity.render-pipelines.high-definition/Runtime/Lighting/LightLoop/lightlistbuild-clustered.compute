@@ -61,7 +61,9 @@ RWStructuredBuffer<float> g_logBaseBuffer : register( u3 );             // don't
 
 
 #define MAX_NR_COARSE_ENTRIES LIGHT_CLUSTER_MAX_COARSE_ENTRIES
+#define MAX_NR_VISIBLE_LIGHTS 826                                       // correspond to m_MaxLightsOnScreen in LightLoop.cs    
 
+groupshared unsigned int ldsTilePassList[MAX_NR_VISIBLE_LIGHTS];
 groupshared unsigned int coarseList[MAX_NR_COARSE_ENTRIES];
 groupshared unsigned int clusterIdxs[MAX_NR_COARSE_ENTRIES/2];
 groupshared float4 lightPlanes[4*6]; // Each plane is defined by a float4. 6 planes per light, 4 lights (24 planes)
@@ -241,6 +243,16 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
     uint2 tileIDX = u3GroupID.xy;
     uint t=threadID;
+    int i;
+
+    const bool lightSortRequired = g_iNrVisibLights > MAX_NR_COARSE_ENTRIES;  // Uniform runtime branch
+    if (lightSortRequired)
+    {
+        UNITY_LOOP
+        for(i=t; i<MAX_NR_VISIBLE_LIGHTS; i+=NR_THREADS)
+            if(i<MAX_NR_VISIBLE_LIGHTS)
+                ldsTilePassList[i]=0;
+    }
 
     const uint log2TileSize = firstbithigh(TILE_SIZE_CLUSTERED);
     uint nrTilesX = ((uint)g_screenSize.x +(TILE_SIZE_CLUSTERED-1))>>log2TileSize;
@@ -340,7 +352,27 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
             unsigned int uInc = 1;
             unsigned int uIndex;
             InterlockedAdd(lightOffs, uInc, uIndex);
-            if(uIndex<MAX_NR_COARSE_ENTRIES) coarseList[uIndex] = l;        // add to light list
+            if (lightSortRequired)
+                ldsTilePassList[l] = 1;
+            else
+                if(uIndex<MAX_NR_COARSE_ENTRIES) coarseList[uIndex] = l;        // add to light list
+        }
+    }
+
+    if (lightSortRequired)
+    {
+#if NR_THREADS > PLATFORM_LANE_COUNT
+        GroupMemoryBarrierWithGroupSync();
+#endif
+        // Ascending sort to prevent unpredictable light list when the number of visible lights is greater than the coarse entries.
+        if(t==0)
+        {
+            int c=0;
+            for(int ii=0; ii<g_iNrVisibLights && c < MAX_NR_COARSE_ENTRIES; ii++)
+            {
+                if(ldsTilePassList[ii] == 1)
+                    coarseList[c++] = ii;
+            }
         }
     }
 
@@ -399,7 +431,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     //////////////////////////////////////////////////////////
 
     uint start = 0;
-    int i=(int) t;
+    i=(int) t;
     int iSpaceAvail = 0;
     int iSum = 0;
     if(i<nrClusters)

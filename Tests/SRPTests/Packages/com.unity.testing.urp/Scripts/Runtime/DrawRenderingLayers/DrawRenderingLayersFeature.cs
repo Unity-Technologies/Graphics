@@ -133,8 +133,8 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
                 builder.SetRenderAttachment(renderingLayerTexture, 0, AccessFlags.Write);
                 if (renderer.renderingModeActual == RenderingMode.Deferred)
                 {
-                    builder.UseTexture(resourceData.gBuffer[renderer.deferredLights.GBufferRenderingLayers]);
-                    passData.cameraRenderingLayersTexture = resourceData.gBuffer[renderer.deferredLights.GBufferRenderingLayers];
+                    builder.UseTexture(resourceData.gBuffer[renderer.deferredLights.GBufferRenderingLayersIndex]);
+                    passData.cameraRenderingLayersTexture = resourceData.gBuffer[renderer.deferredLights.GBufferRenderingLayersIndex];
                 }
                 else
                 {

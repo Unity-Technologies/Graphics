@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Replaced deprecated Mono API with CoreCLR-compatible API
 
+## [3.5.1] - 2025-09-19
+
+### Added
+- Package signed
+
 ## [3.5.0] - 2025-06-18
 
 ### Added

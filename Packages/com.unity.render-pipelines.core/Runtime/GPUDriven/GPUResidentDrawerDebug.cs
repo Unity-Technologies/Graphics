@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering
     internal struct InstanceCullerViewStats
     {
         public BatchCullingViewType viewType;
-        public int viewInstanceID;
+        public EntityId viewInstanceID;
         public int splitIndex;
         public int visibleInstancesOnCPU;
         public int visibleInstancesOnGPU;
@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering
 
     internal struct InstanceOcclusionEventStats
     {
-        public int viewInstanceID;
+        public EntityId viewInstanceID;
         public InstanceOcclusionEventType eventType;
         public int occluderVersion;
         public int subviewMask;
@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering
 
     internal struct DebugOccluderStats
     {
-        public int viewInstanceID;
+        public EntityId viewInstanceID;
         public int subviewCount;
         public Vector2Int occluderMipLayoutSize;
     }
@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering
         {
             if (viewIndex < instanceCullerStats.Length)
             {
-                int viewInstanceID = instanceCullerStats[viewIndex].viewInstanceID;
+                EntityId viewInstanceID = instanceCullerStats[viewIndex].viewInstanceID;
                 for (int passIndex = instanceOcclusionEventStats.Length - 1; passIndex >= 0; passIndex--)
                 {
                     if (instanceOcclusionEventStats[passIndex].viewInstanceID == viewInstanceID)

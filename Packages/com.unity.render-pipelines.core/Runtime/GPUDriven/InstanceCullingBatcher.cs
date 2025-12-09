@@ -240,11 +240,13 @@ namespace UnityEngine.Rendering
 
             for (int i = startIndex; i < startIndex + count; ++i)
             {
-                int instanceID = instanceIDs[i];
+                EntityId entityId = instanceIDs[i];
 
-                if (!hashMap.ContainsKey(instanceID))
+                if (!hashMap.ContainsKey(entityId))
                 {
-                    notFoundinstanceIDs.AddNoResize(instanceID);
+#pragma warning disable 618 // todo @emilie.thaulow fix this
+                    notFoundinstanceIDs.AddNoResize(entityId);
+#pragma warning restore 618
                     notFoundPackedMaterialDatas.AddNoResize(packedMaterialDatas[i]);
                 }
             }
@@ -303,7 +305,7 @@ namespace UnityEngine.Rendering
             var materialID = materialIDs[i];
             var packedMaterialData = packedMaterialDatas[i];
 
-            if (materialID == 0)
+            if (materialID == EntityId.None)
                 return;
 
             // Cache the packed material so we can detect a change in material that would need to update the renderer data.
@@ -685,8 +687,11 @@ namespace UnityEngine.Rendering
 
         public void OnFinishedCulling(IntPtr customCullingResult)
         {
+
             int viewInstanceID = (int)customCullingResult;
+#pragma warning disable 618 // todo @emilie.thaulow make this into an EntityId
             m_Culler.EnsureValidOcclusionTestResults(viewInstanceID);
+#pragma warning restore 618
         }
 
         public void DestroyDrawInstances(NativeArray<InstanceHandle> instances)
@@ -710,7 +715,7 @@ namespace UnityEngine.Rendering
 
             var destroyedBatchMaterials = new NativeList<uint>(destroyedMaterials.Length, Allocator.TempJob);
 
-            foreach (int destroyedMaterial in destroyedMaterials)
+            foreach (EntityId destroyedMaterial in destroyedMaterials)
             {
                 if (m_BatchMaterialHash.TryGetValue(destroyedMaterial, out var destroyedBatchMaterial))
                 {
@@ -735,7 +740,7 @@ namespace UnityEngine.Rendering
 
             Profiler.BeginSample("DestroyMeshes");
 
-            foreach (int destroyedMesh in destroyedMeshes)
+            foreach (EntityId destroyedMesh in destroyedMeshes)
             {
                 if (m_BatchMeshHash.TryGetValue(destroyedMesh, out var destroyedBatchMesh))
                 {
@@ -850,7 +855,7 @@ namespace UnityEngine.Rendering
             UpdateInstanceDataBufferLayoutVersion();
         }
 
-        public void InstanceOccludersUpdated(int viewInstanceID, int subviewMask)
+        public void InstanceOccludersUpdated(EntityId viewInstanceID, int subviewMask)
         {
             m_Culler.InstanceOccludersUpdated(viewInstanceID, subviewMask, m_BatchersContext);
         }

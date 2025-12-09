@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering
         public int activeMeshLod; // or -1 if this draw is not using mesh LOD
         public BatchMaterialID materialID;
         public BatchDrawCommandFlags flags;
-        public int transparentInstanceId; // non-zero for transparent instances, to ensure each instance has its own draw command (for sorting)
+        public EntityId transparentInstanceId; // non-zero for transparent instances, to ensure each instance has its own draw command (for sorting)
         public uint overridenComponents;
         public RangeKey range;
         public int lightmapIndex;
@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering
             hash = (hash * 23) + (int)activeMeshLod;
             hash = (hash * 23) + (int)materialID.value;
             hash = (hash * 23) + (int)flags;
-            hash = (hash * 23) + transparentInstanceId;
+            hash = (hash * 23) + transparentInstanceId.GetHashCode();
             hash = (hash * 23) + range.GetHashCode();
             hash = (hash * 23) + (int)overridenComponents;
             hash = (hash * 23) + lightmapIndex;
@@ -1472,7 +1472,7 @@ namespace UnityEngine.Rendering
         internal struct Info
         {
             public BatchCullingViewType viewType;
-            public int viewInstanceID;
+            public EntityId viewInstanceID;
             public int splitIndex;
         }
 
@@ -1496,7 +1496,7 @@ namespace UnityEngine.Rendering
             m_CounterSync.Dispose();
         }
 
-        public int TryAddSplits(BatchCullingViewType viewType, int viewInstanceID, int splitCount)
+        public int TryAddSplits(BatchCullingViewType viewType, EntityId viewInstanceID, int splitCount)
         {
             int baseIndex = m_Info.Length;
             if (baseIndex + splitCount > MaxSplitCount)
@@ -1560,7 +1560,7 @@ namespace UnityEngine.Rendering
 
         internal struct Info
         {
-            public int viewInstanceID;
+            public EntityId viewInstanceID;
             public InstanceOcclusionEventType eventType;
             public int occluderVersion;
             public int subviewMask;
@@ -1614,7 +1614,7 @@ namespace UnityEngine.Rendering
             m_CounterBuffer.Dispose();
         }
 
-        public int TryAdd(int viewInstanceID, InstanceOcclusionEventType eventType, int occluderVersion, int subviewMask, OcclusionTest occlusionTest)
+        public int TryAdd(EntityId viewInstanceID, InstanceOcclusionEventType eventType, int occluderVersion, int subviewMask, OcclusionTest occlusionTest)
         {
             int passIndex = m_PendingInfo.Length;
             if (passIndex + 1 > MaxPassCount)
@@ -1722,7 +1722,7 @@ namespace UnityEngine.Rendering
     {
         private struct AnimatedFadeData
         {
-            public int cameraID;
+            public EntityId cameraID;
             public JobHandle jobHandle;
         }
 
@@ -1817,8 +1817,9 @@ namespace UnityEngine.Rendering
 
             //For main camera, animate crossfades, and store the result in the hashmap to be retrieved by other cameras
             var viewID = cc.viewID.GetInstanceID();
-
+#pragma warning disable 618 // todo @emilie.thaulow make viewID an EntityId
             hasAnimatedCrossfade = perCameraInstanceData.perCameraData.TryGetValue(viewID, out var tmpCameraInstanceData);
+#pragma warning restore 618
             if (hasAnimatedCrossfade == false)
             {
                 // For picking / filtering and outlining passes. We do not have animated crossfade data.
@@ -1835,7 +1836,9 @@ namespace UnityEngine.Rendering
                 crossFadeArray = cameraInstanceData.crossFades
             }.Schedule(perCameraInstanceData.instancesLength, AnimateCrossFadeJob.k_BatchSize);
 
+#pragma warning disable 618 // todo @emilie.thaulow make viewID an EntityId
             m_LODParamsToCameraID.TryAdd(lodHash, new AnimatedFadeData(){ cameraID = viewID, jobHandle = handle});
+#pragma warning restore 618
             return handle;
         }
 
@@ -1865,9 +1868,10 @@ namespace UnityEngine.Rendering
                 InstanceCullerBurst.SetupCullingJobInput(QualitySettings.lodBias, QualitySettings.meshLodThreshold, contextPtr, &receiverPlanes, &receiverSphereCuller,
                                                          &frustumPlaneCuller, &screenRelativeMetric, &meshLodConstant);
             }
-
+#pragma warning disable 618 // todo @emilie.thaulow make GetInstanceID return EntityId
             if (occlusionCullingCommon != null)
                 occlusionCullingCommon.UpdateSilhouettePlanes(cc.viewID.GetInstanceID(), receiverPlanes.SilhouettePlaneSubArray());
+#pragma warning restore 618
 
             var jobHandle = AnimateCrossFades(perCameraInstanceData, cc, out var cameraInstanceData, out var hasAnimatedCrossfade);
 
@@ -2008,7 +2012,9 @@ namespace UnityEngine.Rendering
                 int debugCounterBaseIndex = -1;
                 if (m_DebugStats?.enabled ?? false)
                 {
+#pragma warning disable 618 // todo @emilie.thaulow make GetInstanceID return EntityId
                     debugCounterBaseIndex = m_SplitDebugArray.TryAddSplits(cc.viewType, cc.viewID.GetInstanceID(), cc.cullingSplits.Length);
+#pragma warning restore 618
                 }
 
                 var batchCount = drawInstanceData.drawBatches.Length;
@@ -2024,11 +2030,15 @@ namespace UnityEngine.Rendering
                 var binVisibleInstanceOffsets = new NativeArray<int>(maxBinCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
                 int indirectContextIndex = -1;
+#pragma warning disable 618 //todo @emilie.thaulow make GetInstanceID return EntityId
                 bool useOcclusionCulling = (occlusionCullingCommon != null) && occlusionCullingCommon.HasOccluderContext(cc.viewID.GetInstanceID());
+#pragma warning restore 618
                 if (useOcclusionCulling)
                 {
+#pragma warning disable 618 // todo @emilie.thaulow make GetInstanceID return EntityId
                     int viewInstanceID = cc.viewID.GetInstanceID();
                     indirectContextIndex = m_IndirectStorage.TryAllocateContext(viewInstanceID);
+#pragma warning restore 618
                     cullingOutput.customCullingResult[0] = (IntPtr)viewInstanceID;
                 }
                 IndirectBufferLimits indirectBufferLimits = m_IndirectStorage.GetLimits(indirectContextIndex);
@@ -2264,7 +2274,7 @@ namespace UnityEngine.Rendering
         }
 
 #endif
-        public void InstanceOccludersUpdated(int viewInstanceID, int subviewMask, RenderersBatchersContext batchersContext)
+        public void InstanceOccludersUpdated(EntityId viewInstanceID, int subviewMask, RenderersBatchersContext batchersContext)
         {
             if (m_DebugStats?.enabled ?? false)
             {
@@ -2350,7 +2360,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal void EnsureValidOcclusionTestResults(int viewInstanceID)
+        internal void EnsureValidOcclusionTestResults(EntityId viewInstanceID)
         {
             int indirectContextIndex = m_IndirectStorage.TryGetContextIndex(viewInstanceID);
             if (indirectContextIndex >= 0)

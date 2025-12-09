@@ -109,10 +109,13 @@ namespace UnityEngine.Rendering.HighDefinition
             #endif
         }
 
-        internal int GetMaterialAtlasingId()
+        internal EntityId GetMaterialAtlasingId()
         {
+
+#pragma warning disable 618 // Todo(@daniel.andersen): Potentially use GetRawData or sometin'
             // If material has a property block, we can't reuse the atlas slot
             return HasPropertyBlock() ? GetEntityId(): material.GetEntityId();
+#pragma warning restore 618
         }
         #endregion
 

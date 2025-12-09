@@ -11,7 +11,7 @@
     "com.unity.testtools.codecoverage": "1.1.0",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
-    "com.unity.xr.management": "4.5.0",
+    "com.unity.xr.management": "4.5.3",
     "com.unity.test-framework": "file:../../../../../Packages/com.unity.test-framework",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",

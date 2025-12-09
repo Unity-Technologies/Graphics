@@ -94,7 +94,7 @@ namespace UnityEngine.PathTracing.Tests
             var lights = CreateLights(lightCount);
             _world.AddLights(lights, _respectLightLayers, _autoEstimateLUTRange, MixedLightingMode.IndirectOnly);
             _world.lightPickingMethod = LightPickingMethod.LightGrid;
-            _world.Build(new Bounds(), _cmd, ref _buildScratchBuffer, _samplingResources, false);
+            _world.Build(new Bounds(), _cmd, ref _buildScratchBuffer, _samplingResources, false, cubemapResolution);
             Graphics.ExecuteCommandBuffer(_cmd);
             Assert.AreEqual(lightCount, _world.LightCount);
         }
@@ -139,6 +139,8 @@ namespace UnityEngine.PathTracing.Tests
             return world.GetAccelerationStructure().Instances;
         }
 
+        const int cubemapResolution = 8;
+
         [Test]
         [TestCase(0)]
         [TestCase(1)]
@@ -152,7 +154,7 @@ namespace UnityEngine.PathTracing.Tests
                 AddInstanceToWorld(mesh, localToWorld, _defaultMaterial);
             }
 
-            _world.Build(new Bounds(), _cmd, ref _buildScratchBuffer, _samplingResources, false);
+            _world.Build(new Bounds(), _cmd, ref _buildScratchBuffer, _samplingResources, false, cubemapResolution);
             Graphics.ExecuteCommandBuffer(_cmd);
 
             var instances = GetAccelStructInstancesFromWorld(_world);
@@ -183,7 +185,7 @@ namespace UnityEngine.PathTracing.Tests
             }
 
             // Build world
-            _world.Build(new Bounds(), _cmd, ref _buildScratchBuffer, _samplingResources, false);
+            _world.Build(new Bounds(), _cmd, ref _buildScratchBuffer, _samplingResources, false, cubemapResolution);
             Graphics.ExecuteCommandBuffer(_cmd);
 
             // Readback vertex buffer data from geo pool
@@ -225,7 +227,7 @@ namespace UnityEngine.PathTracing.Tests
             _world.RemoveInstance(handles[0]);
 
             // Build world
-            _world.Build(new Bounds(), _cmd, ref _buildScratchBuffer, _samplingResources, false);
+            _world.Build(new Bounds(), _cmd, ref _buildScratchBuffer, _samplingResources, false, cubemapResolution);
             Graphics.ExecuteCommandBuffer(_cmd);
 
             // Count should be 2
@@ -253,7 +255,7 @@ namespace UnityEngine.PathTracing.Tests
             AddInstanceToWorld(mesh, localToWorld, material);
 
             // Build world
-            _world.Build(new Bounds(), _cmd, ref _buildScratchBuffer, _samplingResources, true);
+            _world.Build(new Bounds(), _cmd, ref _buildScratchBuffer, _samplingResources, true, cubemapResolution);
             Graphics.ExecuteCommandBuffer(_cmd);
 
             // Check that mesh light count increased
@@ -279,7 +281,7 @@ namespace UnityEngine.PathTracing.Tests
             _world.RemoveInstance(instance);
 
             // Build world
-            _world.Build(new Bounds(), _cmd, ref _buildScratchBuffer, _samplingResources, true);
+            _world.Build(new Bounds(), _cmd, ref _buildScratchBuffer, _samplingResources, true, cubemapResolution);
             Graphics.ExecuteCommandBuffer(_cmd);
 
             // Check that mesh light count is 0
@@ -306,7 +308,7 @@ namespace UnityEngine.PathTracing.Tests
             _world.UpdateInstanceTransform(instance, newLocalToWorld);
 
             // Build world
-            _world.Build(new Bounds(), _cmd, ref _buildScratchBuffer, _samplingResources, false);
+            _world.Build(new Bounds(), _cmd, ref _buildScratchBuffer, _samplingResources, false, cubemapResolution);
             Graphics.ExecuteCommandBuffer(_cmd);
 
             // Readback instance buffer

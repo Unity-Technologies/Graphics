@@ -146,6 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Material m_ApplyDistortionMaterial;
         Material m_FinalBlitWithOETF;
+        Material m_BlitOffscreenUICover;
         Material m_FinalBlitWithOETFTexArraySingleSlice;
 
         Material m_ClearStencilBufferMaterial;
@@ -154,6 +155,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Lazy<RTHandle> m_CustomPassColorBuffer;
         Lazy<RTHandle> m_CustomPassDepthBuffer;
+        Lazy<RTHandle> m_OffscreenUIColorBuffer;
+
+        // Use to check if offscreen UI cover prepass should be executed for the current frame.
+        bool m_RequireOffscreenUICoverPrepass = false;
+        // Keep track of whether the shared offscreen UI texture has been already rendered in the current frame or not.
+        bool m_OffscreenUIRenderedInCurrentFrame = false;
 
         RTHandle m_CurrentColorBackBuffer;
         RTHandle m_CurrentDepthBackBuffer;
@@ -625,6 +632,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ApplyDistortionMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.applyDistortionPS);
 
             m_FinalBlitWithOETF = CoreUtils.CreateEngineMaterial(runtimeShaders.compositeUIAndOETFApplyPS);
+            m_BlitOffscreenUICover = CoreUtils.CreateEngineMaterial(runtimeShaders.compositeUIAndOETFApplyPS);
 
             if (TextureXR.useTexArray)
             {
@@ -704,6 +712,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DepthPyramidMipLevelOffsetsBuffer = new ComputeBuffer(15, sizeof(int) * 2);
 
             AllocateCustomPassBuffers();
+            m_OffscreenUIColorBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Screen.width, Screen.height, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_SRGB, useDynamicScale: false, wrapMode: TextureWrapMode.Clamp, autoGenerateMips: false, name: "UI Color Buffer"));
 
             // For debugging
             MousePositionDebug.instance.Build();
@@ -1022,6 +1031,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ApplyDistortionMaterial);
             CoreUtils.Destroy(m_ClearStencilBufferMaterial);
             CoreUtils.Destroy(m_FinalBlitWithOETF);
+            CoreUtils.Destroy(m_BlitOffscreenUICover);
             CoreUtils.Destroy(m_FinalBlitWithOETFTexArraySingleSlice);
 
             XRSystem.Dispose();
@@ -1047,6 +1057,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandles.Release(m_CustomPassColorBuffer.Value);
             if (m_CustomPassDepthBuffer.IsValueCreated)
                 RTHandles.Release(m_CustomPassDepthBuffer.Value);
+            if (m_OffscreenUIColorBuffer.IsValueCreated)
+                RTHandles.Release(m_OffscreenUIColorBuffer.Value);
 
             RTHandles.Release(m_CurrentColorBackBuffer);
             RTHandles.Release(m_CurrentDepthBackBuffer);
@@ -2157,6 +2169,14 @@ namespace UnityEngine.Rendering.HighDefinition
             int cameraCount = cameras.Count;
             // For XR, HDR and no camera cases, UI Overlay ownership must be enforced
             AdjustUIOverlayOwnership(cameraCount);
+
+            // When HDR output is enabled, SRP renders the overlay UI per camera viewport, so any screen area not covered by viewports won’t display the UI.
+            // The offscreen UI cover prepass ensures the overlay UI covers the entire display by blitting UI to the screen first, even when the combined camera viewports do not fill the screen.
+            m_RequireOffscreenUICoverPrepass = HDROutputForMainDisplayIsActive() && SupportedRenderingFeatures.active.rendersUIOverlay && !CoreUtils.IsScreenFullyCoveredByCameras(cameras);
+            m_OffscreenUIRenderedInCurrentFrame = false;
+
+            // Reallocate the offscreen UI buffer when the resolution changes.
+            ReAllocateOffscreenUIColorBufferIfNeeded();
 
             if (!m_ValidAPI || cameraCount == 0)
                 return;
@@ -3430,6 +3450,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void ReAllocateOffscreenUIColorBufferIfNeeded()
+        {
+            if (m_OffscreenUIColorBuffer.IsValueCreated)
+            {
+                if (Screen.width != m_OffscreenUIColorBuffer.Value.rt.width || Screen.height != m_OffscreenUIColorBuffer.Value.rt.height)
+                {
+                    RTHandles.Release(m_OffscreenUIColorBuffer.Value);
+                    m_OffscreenUIColorBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Screen.width, Screen.height, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_SRGB, useDynamicScale: false, wrapMode: TextureWrapMode.Clamp, autoGenerateMips: false, name: "UI Color Buffer"));
+                }
+            }
+        }
+        
         void AllocateCustomPassBuffers()
         {
             m_CustomPassColorBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetCustomBufferFormat(), enableRandomWrite: true, useDynamicScale: true, name: "CustomPassColorBuffer"));

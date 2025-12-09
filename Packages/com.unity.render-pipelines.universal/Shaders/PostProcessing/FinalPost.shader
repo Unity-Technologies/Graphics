@@ -33,6 +33,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         float4 _Grain_TilingParams;
         float4 _Dithering_Params;
         float4 _HDROutputLuminanceParams;
+        float4 _OffscreenUIViewportParams;
 
         #define GrainIntensity          _Grain_Params.x
         #define GrainResponse           _Grain_Params.y
@@ -127,7 +128,8 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
             {
                 UNITY_BRANCH if(_HDR_OVERLAY)
                 {
-                    float4 uiSample = SAMPLE_TEXTURE2D_X(_OverlayUITexture, sampler_PointClamp, input.texcoord);
+                    float2 uiCoord = input.texcoord * _OffscreenUIViewportParams.zw + _OffscreenUIViewportParams.xy;
+                    float4 uiSample = SAMPLE_TEXTURE2D_X(_OverlayUITexture, sampler_PointClamp, uiCoord);
                     color.rgb = SceneUIComposition(uiSample, color.rgb, PaperWhite, MaxNits);
                 }
 
@@ -174,7 +176,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         }
 
         Pass
-        {            
+        {
             Name "FinalPostXR"
             LOD 100
             ZWrite Off ZTest LEqual Blend Off Cull Off
@@ -207,7 +209,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         }
 
         Pass
-        {            
+        {
             Name "FinalPostXR"
             LOD 100
             ZWrite Off ZTest LEqual Blend Off Cull Off

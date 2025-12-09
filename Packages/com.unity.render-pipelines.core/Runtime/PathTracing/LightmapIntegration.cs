@@ -168,7 +168,7 @@ namespace UnityEngine.PathTracing.Integration
             bool preExpose = false;
             float environmentIntensityMultiplier = 1.0f;
             Util.BindPathTracingInputs(cmd, _accumulationShader, false, lightEvaluationsPerBounce, preExpose, 0, environmentIntensityMultiplier, RenderedGameObjectsFilter.OnlyStatic, _samplingResources, _emptyTexture);
-            Util.BindWorld(cmd, _accumulationShader, world, 1024);
+            Util.BindWorld(cmd, _accumulationShader, world);
 
             var requiredSizeInBytes = _accumulationShader.GetTraceScratchBufferRequiredSizeInBytes((uint)expandedOutput.count, 1, 1);
             if (requiredSizeInBytes > 0)
@@ -308,7 +308,7 @@ namespace UnityEngine.PathTracing.Integration
             bool preExpose = false;
             float environmentIntensityMultiplier = 1.0f;
             Util.BindPathTracingInputs(cmd, _accumulationShader, _countNEERayAsPathSegment, lightEvaluationsPerBounce, preExpose, (int)bounceCount, environmentIntensityMultiplier, RenderedGameObjectsFilter.OnlyStatic, _samplingResources, _emptyTexture);
-            Util.BindWorld(cmd, _accumulationShader, world, 1024);
+            Util.BindWorld(cmd, _accumulationShader, world);
 
             var requiredSizeInBytes = _accumulationShader.GetTraceScratchBufferRequiredSizeInBytes((uint)expandedOutput.count, 1, 1);
             if (requiredSizeInBytes > 0)
@@ -437,7 +437,7 @@ namespace UnityEngine.PathTracing.Integration
             bool preExpose = false;
             float environmentIntensityMultipler = 1.0f;
             Util.BindPathTracingInputs(cmd, _accumulationShader, false, lightEvaluationsPerBounce, preExpose, 0, environmentIntensityMultipler, RenderedGameObjectsFilter.OnlyStatic, _samplingResources, _emptyTexture);
-            Util.BindWorld(cmd, _accumulationShader, world, 1024);
+            Util.BindWorld(cmd, _accumulationShader, world);
 
             var requiredSizeInBytes = _accumulationShader.GetTraceScratchBufferRequiredSizeInBytes((uint)expandedOutput.count, 1, 1);
             if (requiredSizeInBytes > 0)
@@ -551,7 +551,7 @@ namespace UnityEngine.PathTracing.Integration
             bool preExpose = false;
             float environmentIntensityMultiplier = 1.0f;
             Util.BindPathTracingInputs(cmd, _accumulationShader, false, lightEvaluationsPerBounce, preExpose, 0, environmentIntensityMultiplier, RenderedGameObjectsFilter.OnlyStatic, _samplingResources, _emptyTexture);
-            Util.BindWorld(cmd, _accumulationShader, world, 1024);
+            Util.BindWorld(cmd, _accumulationShader, world);
 
             var requiredSizeInBytes = _accumulationShader.GetTraceScratchBufferRequiredSizeInBytes((uint)expandedOutput.count, 1, 1);
             if (requiredSizeInBytes > 0)
@@ -666,7 +666,7 @@ namespace UnityEngine.PathTracing.Integration
             bool preExpose = false;
             float environmentIntensityMultiplier = 1.0f;
             Util.BindPathTracingInputs(cmd, _accumulationShader, false, lightEvaluationsPerBounce, preExpose, 0, environmentIntensityMultiplier, RenderedGameObjectsFilter.OnlyStatic, _samplingResources, _emptyTexture);
-            Util.BindWorld(cmd, _accumulationShader, world, 1024);
+            Util.BindWorld(cmd, _accumulationShader, world);
 
             var requiredSizeInBytes = _accumulationShader.GetTraceScratchBufferRequiredSizeInBytes((uint)expandedOutput.count, 1, 1);
             if (requiredSizeInBytes > 0)
@@ -759,7 +759,7 @@ namespace UnityEngine.PathTracing.Integration
             Debug.Assert(math.ispow2(expandedSampleWidth));
             Debug.Assert(lightmapSamplesExpanded.count <= gBuffer.count);
             Debug.Assert(lightmapSamplesExpanded.count % expandedSampleWidth == 0);
-            Util.BindWorld(cmd, _accumulationShader, world, 1024);
+            Util.BindWorld(cmd, _accumulationShader, world);
 
             _accumulationShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorld, shaderLocalToWorld);
             _accumulationShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorldNormals, shaderLocalToWorldNormals);

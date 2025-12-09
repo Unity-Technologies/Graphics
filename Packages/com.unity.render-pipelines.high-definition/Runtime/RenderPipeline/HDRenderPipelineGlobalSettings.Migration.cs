@@ -1,8 +1,10 @@
 using System;
 using System.Linq;
+using Unity.RenderPipelines.Core.Runtime.Shared;
 
 #if UNITY_EDITOR
 using UnityEditor.Rendering;
+using UnityEditorInternal;
 using UnityEngine.Assertions;
 #endif
 
@@ -174,26 +176,12 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.RenderingLayerMask, (HDRenderPipelineGlobalSettings data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
-                if (data.renderingLayerNames == null || data.renderingLayerNames.Length == 0)
+                if (data.renderingLayerNames is not { Length: > 0 })
                     return;
-                
-                for (int i = 1; i < data.renderingLayerNames.Length; i++)
-                {
-                    if (i >= UnityEngine.RenderingLayerMask.GetRenderingLayerCount())
-                        RenderPipelineEditorUtility.TryAddRenderingLayerName("");
 
-                    var name = data.renderingLayerNames[i];
-                    if(string.IsNullOrWhiteSpace(name))
-                        continue;
-
-                    var currentLayerName = UnityEngine.RenderingLayerMask.RenderingLayerToName(i);
-                    if (!string.IsNullOrWhiteSpace(currentLayerName))
-                        currentLayerName += $" - {name}";
-                    else
-                        currentLayerName = name;
-
-                    RenderPipelineEditorUtility.TrySetRenderingLayerName(i, currentLayerName);
-                }
+                // We can't output an error here because Inner migration could cause another migration due a Graphics Settings asset reimporting.
+                InternalRenderPipelineGlobalSettingsUtils.TryMigrateRenderingLayersToTagManager<HDRenderPipeline>(
+                    data.renderingLayerNames);
 #pragma warning restore 618 // Type or member is obsolete
             })
         );
@@ -205,7 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static void MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset)
         {
-            if (instance != null && !instance.Equals(null) && !(instance.m_Version == Version.First))
+            if (instance != null && !instance.Equals(null) && instance.m_Version != Version.First)
                 return;
 
             //1. Create the instance or load current one

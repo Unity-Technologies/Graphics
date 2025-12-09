@@ -114,13 +114,13 @@ namespace UnityEngine.PathTracing.Core
             accel.Bind(cmd, "g_SceneAccelStruct", shader);
         }
 
-        internal static void BindWorld(CommandBuffer cmd, IRayTracingShader shader, World world, int skyBoxTextureResolution)
+        internal static void BindWorld(CommandBuffer cmd, IRayTracingShader shader, World world)
         {
             BindAccelerationStructure(cmd, shader, world.GetAccelerationStructure());
             BindLightBuffers(cmd, shader, world);
             BindMaterialsAndTextures(cmd, shader, world);
 
-            var envTex = world.GetEnvironmentTexture(cmd, skyBoxTextureResolution, out EnvironmentCDF envCDF);
+            var envTex = world.GetEnvironmentTexture(cmd, out EnvironmentCDF envCDF);
             shader.SetTextureParam(cmd, Shader.PropertyToID("g_EnvTex"), envTex);
             SetEnvSamplingShaderParams(cmd, shader, envCDF);
         }
@@ -264,7 +264,7 @@ namespace UnityEngine.PathTracing.Core
             Debug.Assert(UnsafeUtility.SizeOf<EntityId>() == sizeof(int),
                 "If this assert is firing, the size of EntityId has changed. Remove the intermediate cast to int below, and cast directly to ulong instead.");
 
-            return (ulong)(int)id;
+            return (ulong)(int)id.GetRawData();
         }
     }
 }

@@ -151,6 +151,7 @@ namespace UnityEngine.Rendering.Universal
         DrawObjectsPass m_RenderTransparentForwardPass;
         InvokeOnRenderObjectCallbackPass m_OnRenderObjectCallbackPass;
         FinalBlitPass m_FinalBlitPass;
+        FinalBlitPass m_OffscreenUICoverPrepass;
         CapturePass m_CapturePass;
 #if ENABLE_VR && ENABLE_XR_MODULE
         XROcclusionMeshPass m_XROcclusionMeshPass;
@@ -187,6 +188,7 @@ namespace UnityEngine.Rendering.Universal
         Material m_BlitMaterial = null;
         Material m_BlitHDRMaterial = null;
         Material m_SamplingMaterial = null;
+        Material m_BlitOffscreenUICoverMaterial = null;
         Material m_StencilDeferredMaterial = null;
         Material m_ClusterDeferredMaterial = null;
         Material m_CameraMotionVecMaterial = null;
@@ -224,6 +226,8 @@ namespace UnityEngine.Rendering.Universal
                 m_BlitMaterial = CoreUtils.CreateEngineMaterial(shadersResources.coreBlitPS);
                 m_BlitHDRMaterial = CoreUtils.CreateEngineMaterial(shadersResources.blitHDROverlay);
                 m_SamplingMaterial = CoreUtils.CreateEngineMaterial(shadersResources.samplingPS);
+                // Share viewport for all the cameras.
+                m_BlitOffscreenUICoverMaterial = CoreUtils.CreateEngineMaterial(shadersResources.blitHDROverlay);
             }
 
             Shader copyDephPS = null;
@@ -284,7 +288,6 @@ namespace UnityEngine.Rendering.Universal
             this.m_CopyDepthMode = data.copyDepthMode;
             this.m_CameraDepthAttachmentFormat = data.depthAttachmentFormat;
             this.m_CameraDepthTextureFormat = data.depthTextureFormat;
-            useRenderPassEnabled = data.useNativeRenderPass;
 
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
@@ -305,7 +308,7 @@ namespace UnityEngine.Rendering.Universal
                 deferredInitParams.clusterDeferredMaterial = m_ClusterDeferredMaterial;
                 deferredInitParams.lightCookieManager = m_LightCookieManager;
                 deferredInitParams.deferredPlus = renderingModeRequested == RenderingMode.DeferredPlus;
-                m_DeferredLights = new DeferredLights(deferredInitParams, useRenderPassEnabled);
+                m_DeferredLights = new DeferredLights(deferredInitParams);
                 m_DeferredLights.AccurateGbufferNormals = data.accurateGbufferNormals;
 
                 m_GBufferPass = new GBufferPass(RenderPassEvent.BeforeRenderingGbuffer, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference, m_DeferredLights);
@@ -372,6 +375,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + k_FinalBlitPassQueueOffset, m_BlitMaterial, m_BlitHDRMaterial);
+            m_OffscreenUICoverPrepass = new FinalBlitPass(RenderPassEvent.BeforeRenderingPostProcessing + k_FinalBlitPassQueueOffset, m_BlitMaterial, m_BlitOffscreenUICoverMaterial);
 
 #if UNITY_EDITOR
             m_FinalDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, copyDephPS, false, customPassName: "Copy Final Depth");
@@ -396,9 +400,9 @@ namespace UnityEngine.Rendering.Universal
         protected override void Dispose(bool disposing)
         {
             m_ForwardLights.Cleanup();
-            m_GBufferPass?.Dispose();
 
             m_FinalBlitPass?.Dispose();
+            m_OffscreenUICoverPrepass?.Dispose();
             m_DrawOffscreenUIPass?.Dispose();
             m_DrawOverlayUIPass?.Dispose();
 
@@ -426,6 +430,7 @@ namespace UnityEngine.Rendering.Universal
             base.Dispose(disposing);
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_BlitHDRMaterial);
+            CoreUtils.Destroy(m_BlitOffscreenUICoverMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
             CoreUtils.Destroy(m_StencilDeferredMaterial);
             CoreUtils.Destroy(m_ClusterDeferredMaterial);
@@ -442,9 +447,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal override void ReleaseRenderTargets()
         {
-            if (m_DeferredLights != null && !m_DeferredLights.UseFramebufferFetch)
-                m_GBufferPass?.Dispose();
-
             m_MainLightShadowCasterPass?.Dispose();
             m_AdditionalLightsShadowCasterPass?.Dispose();
         }

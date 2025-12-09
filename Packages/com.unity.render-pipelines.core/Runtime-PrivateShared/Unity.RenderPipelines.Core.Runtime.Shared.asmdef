@@ -2,7 +2,8 @@
     "name": "Unity.RenderPipelines.Core.Runtime.Shared",
     "rootNamespace": "",
     "references": [
-        "GUID:df380645f10b7bc4b97d4f5eb6303d95"
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+        "GUID:65f885ff41204234be23cc2446e7bb85"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

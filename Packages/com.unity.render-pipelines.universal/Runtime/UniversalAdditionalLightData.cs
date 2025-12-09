@@ -103,11 +103,19 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_AdditionalLightsShadowResolutionTier = AdditionalLightsShadowDefaultResolutionTier;
 
         /// <summary>
-        /// Returns the selected shadow resolution tier.
+        /// Gets or sets the selected shadow resolution tier.
+        /// Can only be modified during Play mode.
         /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when attempting to set the value outside of play mode.</exception>
         public int additionalLightsShadowResolutionTier
         {
             get { return m_AdditionalLightsShadowResolutionTier; }
+            set
+            {
+                if (!Application.isPlaying)
+                    throw new InvalidOperationException("Cannot modify additionalLightsShadowResolutionTier outside of play mode.");
+                m_AdditionalLightsShadowResolutionTier = value;
+            }
         }
 
         [SerializeField] bool m_CustomShadowLayers = false;

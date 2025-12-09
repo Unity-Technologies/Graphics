@@ -22,13 +22,13 @@ StructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances;
 StructuredBuffer<uint> _CellPatchIndices;
 StructuredBuffer<int3> _CascadeOffsets;
 
-uint _GridSize;
+uint _VolumeSpatialResolution;
 uint _CascadeCount;
 uint _SampleCount;
-float _VoxelMinSize;
+float _VolumeVoxelMinSize;
 float4x4 _ClipToWorldTransform;
 uint _FrameIdx;
-float3 _GridTargetPos;
+float3 _VolumeTargetPos;
 
 #define GROUP_SIZE 8
 
@@ -58,14 +58,14 @@ void Lookup(uint2 lowResPixelPos : SV_DispatchThreadID)
     QrngKronecker rng;
     rng.Init(lowResPixelPos, 0);
 
-    const int cascadeResolution = PatchUtil::ResolveCascadeIndex(_GridTargetPos, worldPos, _GridSize, _CascadeCount, _VoxelMinSize);
+    const int cascadeResolution = PatchUtil::ResolveCascadeIndex(_VolumeTargetPos, worldPos, _VolumeSpatialResolution, _CascadeCount, _VolumeVoxelMinSize);
     const uint cascadeIdx = cascadeResolution == -1 ? _CascadeCount - 1 : cascadeResolution;
-    const float voxelSize = PatchUtil::GetVoxelSize(_VoxelMinSize, cascadeIdx);
+    const float voxelSize = PatchUtil::GetVoxelSize(_VolumeVoxelMinSize, cascadeIdx);
 
     SphericalHarmonics::RGBL1 irradianceSum = (SphericalHarmonics::RGBL1)0;
     float weightSum = 0.0f;
     {
-        uint patchIdx = PatchUtil::FindPatchIndexAndUpdateLastAccess(_GridTargetPos, _CellPatchIndices, _GridSize, _CascadeOffsets, _PatchCounterSets, _CascadeCount, _VoxelMinSize, worldPos, worldNormal, _FrameIdx);
+        uint patchIdx = PatchUtil::FindPatchIndexAndUpdateLastAccess(_VolumeTargetPos, _CellPatchIndices, _VolumeSpatialResolution, _CascadeOffsets, _PatchCounterSets, _CascadeCount, _VolumeVoxelMinSize, worldPos, worldNormal, _FrameIdx);
         if (patchIdx != PatchUtil::invalidPatchIndex)
         {
             const float weight = 0.01f;
@@ -85,7 +85,7 @@ void Lookup(uint2 lowResPixelPos : SV_DispatchThreadID)
         const float3 localJitteredDirection = SampleConeUniform(jitter.x, jitter.y, cosSpread);
         const float3 jitteredWorldDir = mul(orthoBasis, localJitteredDirection);
 
-        uint patchIdx = PatchUtil::FindPatchIndexAndUpdateLastAccess(_GridTargetPos, _CellPatchIndices, _GridSize, _CascadeOffsets, _PatchCounterSets, _CascadeCount, _VoxelMinSize, jitteredWorldPos, jitteredWorldDir, _FrameIdx);
+        uint patchIdx = PatchUtil::FindPatchIndexAndUpdateLastAccess(_VolumeTargetPos, _CellPatchIndices, _VolumeSpatialResolution, _CascadeOffsets, _PatchCounterSets, _CascadeCount, _VolumeVoxelMinSize, jitteredWorldPos, jitteredWorldDir, _FrameIdx);
         if (patchIdx != PatchUtil::invalidPatchIndex)
         {
             SphericalHarmonics::AddMut(irradianceSum, _PatchIrradiances[patchIdx]);

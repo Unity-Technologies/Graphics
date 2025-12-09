@@ -50,11 +50,11 @@ void Defrag(Threading::Group group)
     Threading::Wave wave = group.GetWave();
 
     const RingBuffer::Config config = RingBuffer::LoadConfig(_RingConfigBuffer, _RingConfigReadOffset);
-    const bool isInRingContentRange = !RingBuffer::IsPositionUnused(config, patchIdx);
+    const bool isInRingContentRange = RingBuffer::IsPositionInUse(config, patchIdx);
 
     const uint firstLaneIndexOutsideContentRange = wave.Min(!isInRingContentRange ? wave.GetLaneIndex() : UINT_MAX);
     const bool isLaneIndexAfterFirstLaneIndexThatIsOutsideContentRange = firstLaneIndexOutsideContentRange == UINT_MAX || firstLaneIndexOutsideContentRange < wave.GetLaneIndex();
-    const bool startEndHazardCheck = config.start != config.end || RingBuffer::IsPositionOutsideRangeAssumingStartNotEqualEnd((config.start - SUB_GROUP_SIZE) % patchCapacity, config.start, patchIdx);
+    const bool startEndHazardCheck = config.start != config.end || !RingBuffer::IsPositionInUseAssumingStartNotEqualEnd((config.start - SUB_GROUP_SIZE) % patchCapacity, config.start, patchIdx);
 
     const uint patchCellIdx = _PatchCellIndices[patchIdx];
     const uint isReclaimable =

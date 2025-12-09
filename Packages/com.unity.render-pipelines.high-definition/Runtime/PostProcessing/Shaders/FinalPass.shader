@@ -63,6 +63,7 @@ Shader "Hidden/HDRP/FinalPass"
 
         float4 _HDROutputParams;
         float4 _HDROutputParams2;
+        float4 _OffscreenUIViewportParams;
         #define _MinNits            _HDROutputParams.x
         #define _MaxNits            _HDROutputParams.y
         #define _PaperWhite         _HDROutputParams.z
@@ -208,7 +209,8 @@ Shader "Hidden/HDRP/FinalPass"
             #ifdef HDR_ENCODING
             // Screen space overlay blending.
             {
-                float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);
+                float2 uiCoord = positionNDC.xy * _OffscreenUIViewportParams.zw + _OffscreenUIViewportParams.xy;
+                float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, uiCoord, 0);
                 outColor.rgb = SceneUIComposition(uiValue, outColor.rgb, _PaperWhite, _MaxNits);
 
                 outColor.rgb = OETF(outColor.rgb, _MaxNits);

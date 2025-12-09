@@ -1241,7 +1241,7 @@ namespace UnityEditor.ShaderGraph
             // Shared Templates
             string[] sharedTemplateDirectories = pass.sharedTemplateDirectories;
 
-            if (!File.Exists(passTemplatePath))
+            if (!File.Exists(FileUtil.PathToAbsolutePath(passTemplatePath)))
             {
                 UnityEngine.Profiling.Profiler.EndSample(); // GenerateShaderPass
                 return;

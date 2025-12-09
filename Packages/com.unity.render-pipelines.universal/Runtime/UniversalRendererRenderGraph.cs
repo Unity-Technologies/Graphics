@@ -176,6 +176,7 @@ namespace UnityEngine.Rendering.Universal
         private static RTHandle s_RenderGraphCameraDepthHandle;
         private static int s_CurrentColorHandle = 0;
         private static RTHandle s_RenderGraphDebugTextureHandle;
+        private static RTHandle s_OffscreenUIColorHandle;
 
         private RTHandle currentRenderGraphCameraColorHandle
         {
@@ -226,6 +227,7 @@ namespace UnityEngine.Rendering.Universal
             s_RenderGraphCameraDepthHandle?.Release();
 
             s_RenderGraphDebugTextureHandle?.Release();
+            s_OffscreenUIColorHandle?.Release();
         }
 
         /// <summary>
@@ -400,6 +402,9 @@ namespace UnityEngine.Rendering.Universal
             CreateMotionVectorTextures(renderGraph, cameraDescriptor);
 
             CreateRenderingLayersTexture(renderGraph, cameraDescriptor);
+
+            if (cameraData.isHDROutputActive && cameraData.rendersOverlayUI)
+                CreateOffscreenUITexture(renderGraph, cameraDescriptor);
         }
 
         private readonly struct ClearCameraParams
@@ -507,7 +512,6 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights.SetupRenderGraphLights(renderGraph, renderingData, cameraData, lightData);
             if (usesDeferredLighting)
             {
-                m_DeferredLights.UseFramebufferFetch = renderGraph.nativeRenderPassesEnabled;
                 m_DeferredLights.SetupRenderGraphLights(renderGraph, cameraData, lightData);
             }
         }
@@ -593,8 +597,6 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
             UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
-
-            useRenderPassEnabled = renderGraph.nativeRenderPassesEnabled;
 
             MotionVectorRenderPass.SetRenderGraphMotionVectorGlobalMatrices(renderGraph, cameraData);
 
@@ -704,9 +706,6 @@ namespace UnityEngine.Rendering.Universal
 
         private void OnOffscreenDepthTextureRendering(RenderGraph renderGraph, ScriptableRenderContext context, UniversalResourceData resourceData, UniversalCameraData cameraData)
         {
-            if (!renderGraph.nativeRenderPassesEnabled)
-                ClearTargetsPass.Render(renderGraph, resourceData.activeColorTexture, resourceData.backBufferDepth, RTClearFlags.Depth, cameraData.backgroundColor);
-
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
             UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
@@ -959,14 +958,6 @@ namespace UnityEngine.Rendering.Universal
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
             UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
 
-            if (!renderGraph.nativeRenderPassesEnabled)
-            {
-                RTClearFlags clearFlags = (RTClearFlags) GetCameraClearFlag(cameraData);
-
-                if (clearFlags != RTClearFlags.None)
-                    ClearTargetsPass.Render(renderGraph, resourceData.activeColorTexture, resourceData.activeDepthTexture, clearFlags, cameraData.backgroundColor);
-            }
-
             if (renderingData.stencilLodCrossFadeEnabled)
                 m_StencilCrossFadeRenderPass.Render(renderGraph, context, resourceData.activeDepthTexture);
 
@@ -1100,14 +1091,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_DeferredLights.Setup(m_AdditionalLightsShadowCasterPass);
 
-                // We need to be sure there are no custom passes in between GBuffer/Deferred passes, if there are - we disable fb fetch just to be safe`
-                m_DeferredLights.UseFramebufferFetch = renderGraph.nativeRenderPassesEnabled;
-
                 m_DeferredLights.ResolveMixedLightingMode(lightData);
                 // Once the mixed lighting mode has been discovered, we know how many MRTs we need for the gbuffer.
                 // Subtractive mixed lighting requires shadowMask output, which is actually used to store unity_ProbesOcclusion values.
                 m_DeferredLights.CreateGbufferTextures(renderGraph, resourceData, isDepthNormalPrepass);
-
 
                 RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingGbuffer);
 
@@ -1289,9 +1276,21 @@ namespace UnityEngine.Rendering.Universal
             bool outputToHDR = cameraData.isHDROutputActive;
             if (shouldRenderUI && outputToHDR)
             {
-                TextureHandle overlayUI;
-                m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, frameData, cameraDepthAttachmentFormat, out overlayUI);
-                resourceData.overlayUITexture = overlayUI;
+                if (cameraData.rendersOffscreenUI)
+                {
+                    m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, frameData, cameraDepthAttachmentFormat, resourceData.overlayUITexture);
+                    if (cameraData.blitsOffscreenUICover)
+                    {
+                        var blackTextureDesc = new RenderTextureDescriptor(1, 1, GraphicsFormat.R8G8B8A8_SRGB, 0);
+                        var source = CreateRenderGraphTexture(renderGraph, blackTextureDesc, "BlackTexture", false);
+                        m_OffscreenUICoverPrepass.Render(renderGraph, cameraData, resourceData, source, true);
+                    }
+                }
+                else
+                {
+                    // When the first camera renders the shared offscreen UI texture, register it as a global texture so subsequent cameras can use it in their final passes.
+                    RenderGraphUtils.SetGlobalTexture(renderGraph, ShaderPropertyId.overlayUITexture, resourceData.overlayUITexture);
+                }
             }
         }
 
@@ -1831,7 +1830,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // TODO RENDERGRAPH: deferred optimization
                 if (usesDeferredLighting && m_DeferredLights.UseRenderingLayers)
-                    m_RenderingLayersTextureName = DeferredLights.k_GBufferNames[m_DeferredLights.GBufferRenderingLayers];
+                    m_RenderingLayersTextureName = DeferredLights.k_GBufferNames[m_DeferredLights.GBufferRenderingLayersIndex];
 
                 if (!m_RenderingLayerProvidesRenderObjectPass)
                     descriptor.msaaSamples = MSAASamples.None;// Depth-Only pass don't use MSAA
@@ -1840,12 +1839,20 @@ namespace UnityEngine.Rendering.Universal
                 // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
                 // Deferred gbuffer format is signed so that normals can be blended for terrain geometry.
                 if (usesDeferredLighting && m_RequiresRenderingLayer)
-                    descriptor.format = m_DeferredLights.GetGBufferFormat(m_DeferredLights.GBufferRenderingLayers); // the one used by the gbuffer.
+                    descriptor.format = m_DeferredLights.GetGBufferFormat(m_DeferredLights.GBufferRenderingLayersIndex); // the one used by the gbuffer.
                 else
                     descriptor.format = RenderingLayerUtils.GetFormat(m_RenderingLayersMaskSize);
 
                 resourceData.renderingLayersTexture = CreateRenderGraphTexture(renderGraph, descriptor, m_RenderingLayersTextureName, true, descriptor.clearColor);
             }
+        }
+
+        void CreateOffscreenUITexture(RenderGraph renderGraph, TextureDesc descriptor)
+        {
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            DrawScreenSpaceUIPass.ConfigureOffscreenUITextureDesc(ref descriptor);
+            RenderingUtils.ReAllocateHandleIfNeeded(ref s_OffscreenUIColorHandle, descriptor, name: "_OverlayUITexture");
+            resourceData.overlayUITexture = renderGraph.ImportTexture(s_OffscreenUIColorHandle);
         }
 
         void DepthNormalPrepassRender(RenderGraph renderGraph, RenderPassInputSummary renderPassInputs, in TextureHandle depthTarget, uint batchLayerMask, bool setGlobalDepth, bool setGlobalTextures, bool partialPass)

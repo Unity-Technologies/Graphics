@@ -23,7 +23,8 @@ namespace UnityEditor.Rendering.Converter
             }
         }
 
-        public string info => assetPath;
+        [field:SerializeField]
+        public string info {get; set; }
 
         public bool isEnabled { get; set; } = true;
         public string isDisabledMessage { get; set; } = string.Empty;

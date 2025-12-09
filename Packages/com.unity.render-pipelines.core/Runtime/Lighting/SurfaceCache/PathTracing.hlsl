@@ -51,11 +51,11 @@ float3 SampleOutgoingRadianceAssumingLambertianBrdf(
     bool multiBounce,
     IrradianceBufferType patchIrradiances,
     StructuredBuffer<uint> cellPatchIndices,
-    uint gridSize,
+    uint volumeSpatialResolution,
     StructuredBuffer<int3> cascadeOffsets,
-    float3 gridTargetPos,
+    float3 volumeTargetPos,
     uint cascadeCount,
-    float voxelMinSize,
+    float volumeVoxelMinSize,
     float3 albedo,
     float3 emission)
 {
@@ -82,7 +82,7 @@ float3 SampleOutgoingRadianceAssumingLambertianBrdf(
 
     if (multiBounce)
     {
-        float3 cacheRead = PatchUtil::ReadPlanarIrradiance(gridTargetPos, patchIrradiances, cellPatchIndices, gridSize, cascadeOffsets, cascadeCount, voxelMinSize, position, normal);
+        float3 cacheRead = PatchUtil::ReadPlanarIrradiance(volumeTargetPos, patchIrradiances, cellPatchIndices, volumeSpatialResolution, cascadeOffsets, cascadeCount, volumeVoxelMinSize, position, normal);
         if (all(cacheRead != PatchUtil::invalidIrradiance))
             radianceSample += cacheRead;
     }
@@ -104,11 +104,11 @@ float3 SampleIncomingRadianceAssumingLambertianBrdf(
     SamplerState envSampler,
     IrradianceBufferType patchIrradiances,
     StructuredBuffer<uint> cellPatchIndices,
-    uint gridSize,
+    uint volumeSpatialResolution,
     StructuredBuffer<int3> cascadeOffsets,
-    float3 gridTargetPos,
+    float3 volumeTargetPos,
     uint cascadeCount,
-    float voxelMinSize)
+    float volumeVoxelMinSize)
 {
     UnifiedRT::Hit hitResult = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, ray, UnifiedRT::kRayFlagNone);
     float3 radianceSample;
@@ -146,11 +146,11 @@ float3 SampleIncomingRadianceAssumingLambertianBrdf(
                 multiBounce,
                 patchIrradiances,
                 cellPatchIndices,
-                gridSize,
+                volumeSpatialResolution,
                 cascadeOffsets,
-                gridTargetPos,
+                volumeTargetPos,
                 cascadeCount,
-                voxelMinSize,
+                volumeVoxelMinSize,
                 hitMat.baseColor,
                 hitMat.emissive);
         }

@@ -23,14 +23,14 @@ SamplerState sampler_EnvironmentCubemap;
 UNIFIED_RT_DECLARE_ACCEL_STRUCT(_RayTracingAccelerationStructure);
 
 uint _FrameIdx;
-uint _GridSize;
+uint _VolumeSpatialResolution;
 uint _CascadeCount;
-float _VoxelMinSize;
+float _VolumeVoxelMinSize;
+float3 _VolumeTargetPos;
 uint _MultiBounce;
 float _ConfidenceCap;
 uint _ValidationFrameInterval;
 uint _RingConfigOffset;
-float3 _GridTargetPos;
 float _MaterialAtlasTexelSize; // The size of 1 texel in the atlases above
 float _AlbedoBoost;
 float3 _DirectionalLightDirection;
@@ -40,7 +40,7 @@ void GenerateCandidateAndResampleTemporally(UnifiedRT::DispatchInfo dispatchInfo
 {
     uint patchIdx = dispatchInfo.dispatchThreadID.x;
 
-    if (RingBuffer::IsPositionUnused(_RingConfigBuffer, _RingConfigOffset, patchIdx))
+    if (!RingBuffer::IsPositionInUse(_RingConfigBuffer, _RingConfigOffset, patchIdx))
         return;
 
     UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_RayTracingAccelerationStructure);
@@ -124,11 +124,11 @@ void GenerateCandidateAndResampleTemporally(UnifiedRT::DispatchInfo dispatchInfo
                             _MultiBounce,
                             _PatchIrradiances,
                             _CellPatchIndices,
-                            _GridSize,
+                            _VolumeSpatialResolution,
                             _CascadeOffsets,
-                            _GridTargetPos,
+                            _VolumeTargetPos,
                             _CascadeCount,
-                            _VoxelMinSize,
+                            _VolumeVoxelMinSize,
                             mat.baseColor,
                             mat.emissive);
                 }
@@ -173,11 +173,11 @@ void GenerateCandidateAndResampleTemporally(UnifiedRT::DispatchInfo dispatchInfo
             sampler_EnvironmentCubemap,
             _PatchIrradiances,
             _CellPatchIndices,
-            _GridSize,
+            _VolumeSpatialResolution,
             _CascadeOffsets,
-            _GridTargetPos,
+            _VolumeTargetPos,
             _CascadeCount,
-            _VoxelMinSize);
+            _VolumeVoxelMinSize);
 
         if (all(radianceSample != invalidRadianceSample))
         {

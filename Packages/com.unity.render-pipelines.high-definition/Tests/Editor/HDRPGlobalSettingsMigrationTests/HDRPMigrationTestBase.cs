@@ -45,13 +45,19 @@ namespace UnityEditor.Rendering.HighDefinition.Test
             m_OldInstance = EditorGraphicsSettings.GetRenderPipelineGlobalSettingsAsset<HDRenderPipeline>() as HDRenderPipelineGlobalSettings;
 
             m_Instance = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettings>();
-            m_Instance.name = $"{typeof(GlobalSettingsMigrationTestBase).Name}";
+            m_Instance.name = $"{nameof(GlobalSettingsMigrationTestBase)}";
             EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset<HDRenderPipeline>(m_Instance);
 
             string assetPath = $"Assets/URP/MigrationTests/{m_Instance.name}.asset";
             CoreUtils.EnsureFolderTreeInAssetFilePath(assetPath);
             AssetDatabase.CreateAsset(m_Instance, assetPath);
             AssetDatabase.SaveAssets();
+        }
+
+        [SetUp]
+        public void SetUp()
+        {
+            Unity.RenderPipelines.Core.Runtime.Shared.InternalRenderPipelineGlobalSettingsUtils.ClearMigratedRenderPipelines();
         }
 
         [OneTimeTearDown]

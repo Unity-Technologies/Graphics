@@ -99,20 +99,10 @@ namespace UnityEngine.Rendering.Universal
                 }
                 builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Read);
 
-                if (renderGraph.nativeRenderPassesEnabled)
-                {
-                    if (resourceData.gBuffer[4].IsValid())
-                        builder.SetInputAttachment(resourceData.gBuffer[4], 0);
-                    if (m_DecalLayers && resourceData.gBuffer[5].IsValid())
-                        builder.SetInputAttachment(resourceData.gBuffer[5], 1);
-                }
-                else
-                {
-                    if (cameraDepthTexture.IsValid())
-                        builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
-                    if(m_DecalLayers && renderingLayersTexture.IsValid())
-                        builder.UseTexture(renderingLayersTexture, AccessFlags.Read);
-                }
+                if (resourceData.gBuffer[4].IsValid())
+                    builder.SetInputAttachment(resourceData.gBuffer[4], 0);
+                if (m_DecalLayers && resourceData.gBuffer[5].IsValid())
+                    builder.SetInputAttachment(resourceData.gBuffer[5], 1);
 
                 SortingCriteria sortingCriteria = passData.cameraData.defaultOpaqueSortFlags;
                 DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, renderingData,

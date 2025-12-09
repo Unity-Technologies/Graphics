@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.UnifiedRayTracing
         internal static void CreateNewUnifiedRayTracingShader()
         {
             var action = ScriptableObject.CreateInstance<DoCreateUnifiedRayTracingShader>();
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, "NewUnifiedRayTracingShader.urtshader", null, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(EntityId.None, action, "NewUnifiedRayTracingShader.urtshader", null, null);
         }
 
         internal class DoCreateUnifiedRayTracingShader : AssetCreationEndAction

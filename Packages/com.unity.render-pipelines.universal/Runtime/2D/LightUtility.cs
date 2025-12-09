@@ -49,6 +49,14 @@ namespace UnityEngine.Rendering.Universal
             return changed;
         }
 
+        public static bool CheckForChange(EntityId a, ref EntityId b)
+        {
+            var changed = a != b;
+            b = a;
+            return changed;
+        }
+
+
         public static bool CheckForChange(float a, ref float b)
         {
             var changed = a != b;

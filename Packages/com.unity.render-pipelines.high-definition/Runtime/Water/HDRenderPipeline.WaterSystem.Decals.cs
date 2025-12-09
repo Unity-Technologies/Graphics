@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_DecalAtlasSize;
         int m_MaxDecalCount;
 
-        GlobalKeyword horizontalDeformationKeyword; 
+        GlobalKeyword horizontalDeformationKeyword;
 
         // Buffers used to hold all the water foam generators
         WaterDecalData[] m_WaterDecalDataCPU;
@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
         struct VisibleDecalData
         {
             public WaterDecal decal;
-            public int materialId;
+            public EntityId materialId;
 
             public readonly int resX => decal.resolution.x;
             public readonly int resY => decal.resolution.y;
@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 int hash = 17;
                 hash = hash * 23 + (int)passType;
-                hash = hash * 23 + materialId;
+                hash = hash * 23 + materialId.GetHashCode();
                 return hash;
             }
         }

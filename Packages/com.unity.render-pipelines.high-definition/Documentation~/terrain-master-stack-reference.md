@@ -1,4 +1,4 @@
-# Terrain Master Stack reference
+# TerrainLit Master Stack reference
 
 You can modify the properties of a Terrain shader graph in the Terrain Master Stack.
 

@@ -1,10 +1,10 @@
-using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEditor.Rendering.Converter;
+using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.TestTools;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
 
 namespace UnityEditor.Rendering.Universal.Tools
 {
@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.Universal.Tools
 
         GameObject m_GO;
         MeshRenderer m_MeshRenderer;
+        BuiltInToURP3DReadonlyMaterialConverter m_Converter;
 
         public static GameObject CreatePrefabWithMeshRenderer(Material[] materials, string assetPath)
         {
@@ -48,7 +49,7 @@ namespace UnityEditor.Rendering.Universal.Tools
             finally
             {
                 // Cleanup temporary instance
-                Object.DestroyImmediate(go);
+                UnityEngine.Object.DestroyImmediate(go);
             }
         }
 
@@ -67,15 +68,17 @@ namespace UnityEditor.Rendering.Universal.Tools
         [SetUp]
         public void Setup()
         {
-            var materials = ReadonlyMaterialMap.GetBuiltInMaterials();
+            m_Converter = new BuiltInToURP3DReadonlyMaterialConverter();
+
+            var materials = m_Converter.mappings.GetBuiltInMaterials();
             Assume.That(materials.Length > 0, "There are no mapping materials");
 
             m_GO = CreatePrefabWithMeshRenderer(materials, k_PrefabPath);
             m_MeshRenderer = m_GO.GetComponent<MeshRenderer>();
-            Assert.AreEqual(ReadonlyMaterialMap.count, m_MeshRenderer.sharedMaterials.Length, "ReadonlyMaterialMap - Lengths are different");
+            Assert.AreEqual(m_Converter.mappings.count, m_MeshRenderer.sharedMaterials.Length, "ReadonlyMaterialMap - Lengths are different");
 
             int i = 0;
-            foreach (var key in ReadonlyMaterialMap.Keys)
+            foreach (var key in m_Converter.mappings.Keys)
             {
                 Assert.AreEqual(key, m_MeshRenderer.sharedMaterials[i].name, "ReadonlyMaterialMap - Order has changed");
                 ++i;
@@ -91,10 +94,10 @@ namespace UnityEditor.Rendering.Universal.Tools
         private void CheckMaterials(Material[] actual)
         {
             int i = 0;
-            var materials = ReadonlyMaterialMap.GetBuiltInMaterials();
-            foreach (var key in ReadonlyMaterialMap.Keys)
+            var materials = m_Converter.mappings.GetBuiltInMaterials();
+            foreach (var key in m_Converter.mappings.Keys)
             {
-                Assert.IsTrue(ReadonlyMaterialMap.TryGetMappingMaterial(materials[i], out var expected));
+                Assert.IsTrue(m_Converter.mappings.TryGetMappingMaterial(materials[i], out var expected));
                 CheckMaterials(expected, actual[i]);
                 ++i;
             }
@@ -109,7 +112,7 @@ namespace UnityEditor.Rendering.Universal.Tools
         [Timeout(5 * 60 * 1000)]
         public void ReassignGameObjectMaterials_Succeeds_WhenMaterialCanBeSet()
         {
-            var materialConverter = new ReadonlyMaterialConverter();
+            var materialConverter = new BuiltInToURP3DReadonlyMaterialConverter();
             var gid = GlobalObjectId.GetGlobalObjectIdSlow(m_GO);
 
             var assetItem = new RenderPipelineConverterAssetItem(gid, AssetDatabase.GetAssetPath(m_GO));

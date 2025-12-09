@@ -990,7 +990,7 @@ namespace UnityEngine.Rendering.Tests
                 renderersID[1] = gameObjects[1].GetComponent<MeshRenderer>().GetEntityId();
                 renderersID[2] = gameObjects[2].GetComponent<MeshRenderer>().GetEntityId();
 
-                var lodGroupDataMap = new NativeParallelHashMap<int, GPUInstanceIndex>(64, Allocator.TempJob);
+                var lodGroupDataMap = new NativeParallelHashMap<EntityId, GPUInstanceIndex>(64, Allocator.TempJob);
 
                 gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(renderersID, (in GPUDrivenRendererGroupData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
                 {

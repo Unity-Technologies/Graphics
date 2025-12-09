@@ -50,15 +50,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             return Blitter.CanCopyMSAA(bindTextureMS);
         }
 
-        internal static bool IsFramebufferFetchEmulationSupportedOnCurrentPlatform()
-        {
-#if PLATFORM_WEBGL
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
-                return false;
-#endif
-            return true;
-        }
-
         internal static bool IsFramebufferFetchEmulationMSAASupportedOnCurrentPlatform()
         {
             // TODO: Temporarily disable this utility pending a more efficient solution for supporting or disabling framebuffer fetch emulation on PS4/PS5.
@@ -79,9 +70,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
         /// </returns>
         public static bool IsFramebufferFetchSupportedOnCurrentPlatform(this RenderGraph graph, in TextureHandle tex)
         {
-            if (!IsFramebufferFetchEmulationSupportedOnCurrentPlatform())
-                return false;
-
             if (!IsFramebufferFetchEmulationMSAASupportedOnCurrentPlatform())
             {
                 var sourceInfo = graph.GetRenderTargetInfo(tex);
@@ -104,9 +92,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
                 return false;
 
             if (!graph.nativeRenderPassesEnabled)
-                return false;
-
-            if (!IsFramebufferFetchEmulationSupportedOnCurrentPlatform())
                 return false;
 
             var sourceInfo = graph.GetRenderTargetInfo(source);

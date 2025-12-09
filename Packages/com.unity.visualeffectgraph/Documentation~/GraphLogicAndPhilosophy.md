@@ -89,8 +89,12 @@ If you change the value of a setting, you need to recompile the Graph to see the
 
 ### Groups
 
-You can group Nodes together to organize your graphs. You can drag grouped Nodes around together and even give them a title to describe what the group does. To add a Group, select multiple Nodes, right-click, and select **Group Selection**.
+You can group Nodes and Sticky Notes together to organize your graphs. You can drag Groups around together and even give them a title to describe what the Group does. 
+
+* To create an empty Group, right-click anywhere in the workspace and select **Create Group Node**.
+
+* To group multiple items, select all the targeted items, right-click on one of them, and select **Group Selection**.
 
 ### Sticky Notes
 
-Sticky Notes are draggable comment elements you can add to leave explanations or reminders for co-workers or yourself.
+Sticky Notes are draggable comment elements you can add to leave explanations or reminders for co-workers or yourself. For more details, refer to [Sticky Notes](StickyNotes.md).
