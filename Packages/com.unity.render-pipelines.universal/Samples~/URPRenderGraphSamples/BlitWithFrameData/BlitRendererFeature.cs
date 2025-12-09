@@ -20,10 +20,6 @@ public class BlitRendererFeature : ScriptableRendererFeature
         TextureHandle m_TextureHandleFront;
         TextureHandle m_TextureHandleBack;
 
-        // Scale bias is used to control how the blit operation is done. The x and y parameter controls the scale
-        // and z and w controls the offset.
-        static Vector4 scaleBias = new Vector4(1f, 1f, 0f, 0f);
-
         // Bool to manage which texture is the most recent.
         bool m_IsFront = true;
 
