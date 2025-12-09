@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_BindDepthStencilAttachmentProperty;
         private SerializedProperty m_PassMaterialProperty;
         private SerializedProperty m_PassIndexProperty;
+        private bool m_ShowDuplicateColorCopyWarning;
 
         private static readonly GUIContent k_InjectionPointGuiContent = new GUIContent("Injection Point", "Specifies where in the frame this pass will be injected.");
         private static readonly GUIContent k_RequirementsGuiContent = new GUIContent("Requirements", "A mask of URP internal textures that will need to be generated and bound for sampling.\n\nNote that 'Color' here corresponds to '_CameraOpaqueTexture' so most of the time you will want to use the 'Fetch Color Buffer' option instead.");
@@ -58,6 +59,18 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_InjectionPointProperty, k_InjectionPointGuiContent);
             EditorGUILayout.PropertyField(m_RequirementsProperty, k_RequirementsGuiContent);
             EditorGUILayout.PropertyField(m_FetchColorBufferProperty, k_FetchColorBufferGuiContent);
+
+            if (Event.current.type == EventType.Layout)
+            {
+                bool requestedColor = (m_RequirementsProperty.GetEnumValue<ScriptableRenderPassInput>() & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
+                m_ShowDuplicateColorCopyWarning = requestedColor && m_FetchColorBufferProperty.boolValue;
+            }
+
+            if (m_ShowDuplicateColorCopyWarning)
+            {
+                EditorGUILayout.HelpBox("You request two different color textures: the opaque color texture via \"Requirements: Color\", and the current camera attachment via \"Fetch Color Buffer\". While this is allowed, we recommend disabling one of these two options for optimal performance.", MessageType.Warning, true);
+            }
+
             EditorGUILayout.PropertyField(m_BindDepthStencilAttachmentProperty, k_BindDepthStencilAttachmentGuiContent);
 
             MaterialFieldWithButton(m_PassMaterialProperty, k_PassMaterialGuiContent);
