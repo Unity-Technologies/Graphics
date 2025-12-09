@@ -11,7 +11,7 @@ PostProcessing_OSX_Metal_playmode_mono_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
     commands:
-      -  brew tap --force-auto-update Unity-Technologies/homebrew-unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew tap Unity-Technologies/homebrew-unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install Unity-Technologies/homebrew-unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
@@ -50,7 +50,7 @@ PostProcessing_OSX_Metal_Standalone_mono_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
     commands:
-      -  brew tap --force-auto-update Unity-Technologies/homebrew-unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew tap Unity-Technologies/homebrew-unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install Unity-Technologies/homebrew-unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
