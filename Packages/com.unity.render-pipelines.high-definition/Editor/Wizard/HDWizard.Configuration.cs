@@ -187,7 +187,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     (fromAsync) => HDRenderPipelineGlobalSettings.Ensure(true), indent: 1),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpVolumeProfile, IsDefaultVolumeProfileCorrect, FixDefaultVolumeProfile, indent: 1),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpDiffusionProfile, IsDiffusionProfileCorrect, FixDiffusionProfile, indent: 1),
-                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpLookDevVolumeProfile, IsDefaultLookDevVolumeProfileCorrect, FixDefaultLookDevVolumeProfile, indent: 1),
             });
 
             entryList.AddRange(new Entry[]
@@ -581,32 +580,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (VolumeManager.instance.isInitialized)
                 VolumeManager.instance.SetGlobalDefaultProfile(volumeProfileCopy);
-        }
-
-        bool IsDefaultLookDevVolumeProfileCorrect()
-        {
-            if (!IsHdrpGlobalSettingsUsedCorrect())
-                return false;
-
-            if (!GraphicsSettings.TryGetRenderPipelineSettings<LookDevVolumeProfileSettings>(out var settings) ||
-                settings.volumeProfile == null)
-                return false;
-
-            if (!GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineEditorAssets>(out var editorAssets))
-                return false;
-
-            var defaultValuesAsset = editorAssets.lookDevVolumeProfile;
-            return !VolumeUtils.IsDefaultVolumeProfile(settings.volumeProfile, defaultValuesAsset);
-        }
-
-        void FixDefaultLookDevVolumeProfile(bool fromAsyncUnused)
-        {
-            if (!IsHdrpGlobalSettingsUsedCorrect())
-                FixHdrpGlobalSettingsUsed(fromAsync: false);
-
-            var settings = GraphicsSettings.GetRenderPipelineSettings<LookDevVolumeProfileSettings>();
-            var defaultValuesAsset = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().lookDevVolumeProfile;
-            settings.volumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(defaultValuesAsset);
         }
 
         IEnumerable<IMigratableAsset> migratableAssets
