@@ -10,6 +10,10 @@ using UnityEngine.Assertions;
 using UnityEditor;
 #endif
 
+#if UNITY_6000_5_OR_NEWER
+using UnityEngine.Assemblies;
+#endif
+
 namespace UnityEngine.Rendering.PostProcessing
 {
     using SceneManagement;
@@ -1211,7 +1215,11 @@ namespace UnityEngine.Rendering.PostProcessing
         {
             if (m_AssemblyTypes == null)
             {
+#if UNITY_6000_5_OR_NEWER
+                m_AssemblyTypes = CurrentAssemblies.GetLoadedAssemblies()
+#else
                 m_AssemblyTypes = AppDomain.CurrentDomain.GetAssemblies()
+#endif
                     .SelectMany(t =>
                     {
                         // Ugly hack to handle mis-versioned dlls
