@@ -1130,7 +1130,7 @@ namespace UnityEditor.Rendering
             if (m_SelectedExecutionIndex != executionIndex)
             {
                 m_SelectedExecutionIndex = executionIndex;
-                UpdateCurrentDebugData();
+                UpdateCurrentDebugData(true);
             }
 
             // Using a custom toolbar menu instead of default Dropdown in order to get access to allowDuplicateNames,
@@ -2031,7 +2031,7 @@ namespace UnityEditor.Rendering
 
             string connectionStatus = m_IsDeviceConnected ? "Online" : "Offline";
 
-            bool isEditor = m_ConnectedDeviceName == "Editor";
+            bool isEditor = m_ConnectedDeviceName == k_EditorName;
             string sourceLabel = isEditor ? "Source: Editor" : $"Source: {m_ConnectedDeviceName} ({connectionStatus})";
 
             bool hasCapture = HasValidDebugData && m_LastDataCaptureTime != DateTime.MinValue;
@@ -2051,7 +2051,8 @@ namespace UnityEditor.Rendering
             {
                 m_CurrentDebugData = RenderGraphDebugSession.GetDebugData(m_SelectedRenderGraph, selectedExecutionItem.id);
 
-                if (HasValidDebugData)
+                // Update timestamp when we get valid data, or when forcing an update
+                if (HasValidDebugData || force)
                     m_LastDataCaptureTime = DateTime.Now;
             }
             else
@@ -2065,6 +2066,8 @@ namespace UnityEditor.Rendering
                     currentGraphDropdown.style.display = DisplayStyle.None;
                 if (currentExecutionToolbarMenu != null)
                     currentExecutionToolbarMenu.style.display = DisplayStyle.None;
+
+                m_LastDataCaptureTime = DateTime.MinValue;
             }
 
             UpdateStatusLabel();
@@ -2169,6 +2172,7 @@ namespace UnityEditor.Rendering
         void OnPlayerDisconnected(int playerID)
         {
             m_IsDeviceConnected = false;
+            m_ConnectedDeviceName = k_EditorName;
 
             if (!m_Paused)
             {
