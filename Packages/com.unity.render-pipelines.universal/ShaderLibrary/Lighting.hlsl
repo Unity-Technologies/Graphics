@@ -153,8 +153,13 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
     if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
 #endif
     {
-        half3 lightColor = light.color * light.distanceAttenuation;
-        vertexLightColor += LightingLambert(lightColor, light.direction, normalWS);
+#if defined(UNITY_PLATFORM_META_QUEST)
+        if(light.distanceAttenuation > 0.0)
+#endif
+        {
+            half3 lightColor = light.color * light.distanceAttenuation;
+            vertexLightColor += LightingLambert(lightColor, light.direction, normalWS);
+        }
     }
 
     LIGHT_LOOP_END
@@ -376,6 +381,9 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
         if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
 #endif
         {
+#if defined(UNITY_PLATFORM_META_QUEST)
+            if(light.distanceAttenuation > 0.0)
+#endif
             lightingData.additionalLightsColor += LightingPhysicallyBased(brdfData, brdfDataClearCoat, light,
                                                                           inputData.normalWS, inputData.viewDirectionWS,
                                                                           surfaceData.clearCoatMask, specularHighlightsOff);
@@ -470,6 +478,9 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
         if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
 #endif
         {
+#if defined(UNITY_PLATFORM_META_QUEST)
+            if(light.distanceAttenuation > 0.0)
+#endif
             lightingData.additionalLightsColor += CalculateBlinnPhong(light, inputData, surfaceData);
         }
     LIGHT_LOOP_END
