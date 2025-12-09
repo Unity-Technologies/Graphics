@@ -17,7 +17,7 @@
     "com.unity.testing.common-graphics": "file:../../../Packages/com.unity.testing.common-graphics",
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
     "com.unity.test-framework": "file:../../../../../Packages/com.unity.test-framework",
-    "com.unity.testframework.graphics": "file:../../../Packages/com.unity.test-framework.graphics",
+    "local.gtf.references": "file:../../../Packages/local.gtf.references",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
     "com.unity.ugui": "2.0.0",
     "com.unity.modules.ai": "1.0.0",
@@ -57,5 +57,14 @@
     "com.unity.render-pipelines.universal",
     "com.unity.testing.xr",
     "com.unity.testing.urp"
+  ],
+  "scopedRegistries": [
+    {
+      "name": "UPM Candidates (GTF)",
+      "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
+      "scopes": [
+          "com.unity.testframework.graphics"
+      ]
+    }
   ]
 }

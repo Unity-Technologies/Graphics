@@ -1,0 +1,19 @@
+
+{
+  "displayName": "Graphics Test Framework (published v9)",
+  "name": "local.gtf.references",
+  "version": "1.0.0",
+  "unity": "6000.3",
+  "description": "Shim package that contains a reference to the com.unity.testframework.graphics package for easier version pinning.",
+  "keywords": [
+      "qa",
+      "test",
+      "testing",
+      "tests",
+      "graphics"
+  ],
+  "category": "Libraries",
+  "dependencies": {
+    "com.unity.testframework.graphics": "9.0.0-exp.33"
+  }
+}
