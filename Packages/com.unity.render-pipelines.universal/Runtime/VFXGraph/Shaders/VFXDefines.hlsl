@@ -1,6 +1,10 @@
 #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
+#if defined(_WRITE_RENDERING_LAYERS)
+#define VFX_WRITE_RENDERING_LAYERS 1
+#endif
+
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 #define CameraBuffer Texture2DArray
 #define VFXSamplerCameraBuffer VFXSampler2DArray

@@ -44,6 +44,10 @@ void frag(ps_input i
 #elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
     , out float4 dummy : SV_Target0
 #endif
+
+#if VFX_WRITE_RENDERING_LAYERS
+    , out uint outRenderingLayers : SV_Target1
+#endif
 )
 {
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
@@ -102,4 +106,8 @@ void frag(ps_input i
 	#else
 		#error VFX_PASSDEPTH undefined
 	#endif
+
+#if VFX_WRITE_RENDERING_LAYERS
+	outRenderingLayers = EncodeMeshRenderingLayer();
+#endif
 }
