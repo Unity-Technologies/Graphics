@@ -21,10 +21,10 @@ namespace UnityEditor.Rendering.HighDefinition
             asset.name = typeof(HDRenderPipelineAsset).Name;
 
             string path = $"Assets/{HDProjectSettings.projectSettingsFolderPath}/{asset.name}.asset";
-            path = AssetDatabase.GenerateUniqueAssetPath(path);
             CoreUtils.EnsureFolderTreeInAssetFilePath(path);
-
-            AssetDatabase.CreateAsset(asset, path);
+            
+            var uniqueAssetPath = AssetDatabase.GenerateUniqueAssetPath(path);
+            AssetDatabase.CreateAsset(asset, uniqueAssetPath);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
@@ -325,6 +325,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         foldout.Add(new HelpBox("This section is not available in your current OS platform.", HelpBoxMessageType.Warning));
                     }
                 }
+
+                m_FixAllButton.style.display = m_AvailableInCurrentPlatform ? DisplayStyle.Flex : DisplayStyle.None;
 
                 foldout.value = HDUserSettings.IsOpen(mode);
                 foldout.RegisterValueChangedCallback(evt => HDUserSettings.SetOpen(mode, evt.newValue));
