@@ -114,7 +114,7 @@ void GenerateCandidateAndResampleTemporally(UnifiedRT::DispatchInfo dispatchInfo
                 }
                 else
                 {
-                    sample.radiance = SampleOutgoingRadianceAssumingLambertianBrdf(
+                    sample.radiance = OutgoingDirectionalBounceAndMultiBounceRadiance(
                             hitGeo.position,
                             hitGeo.normal,
                             dispatchInfo,
@@ -161,7 +161,7 @@ void GenerateCandidateAndResampleTemporally(UnifiedRT::DispatchInfo dispatchInfo
         ray.tMin = 0;
         ray.tMax = FLT_MAX;
 
-        const float3 radianceSample = SampleIncomingRadianceAssumingLambertianBrdf(
+        const float3 radianceSample = IncomingEnviromentAndDirectionalBounceAndMultiBounceRadiance(
             dispatchInfo,
             accelStruct,
             ray,
@@ -179,7 +179,7 @@ void GenerateCandidateAndResampleTemporally(UnifiedRT::DispatchInfo dispatchInfo
             _CascadeCount,
             _VolumeVoxelMinSize);
 
-        if (all(radianceSample != invalidRadianceSample))
+        if (all(radianceSample != invalidRadiance))
         {
             newRealization = oldRealization;
             if (all(radianceSample + oldRealization.sample.radiance != 0.0f))

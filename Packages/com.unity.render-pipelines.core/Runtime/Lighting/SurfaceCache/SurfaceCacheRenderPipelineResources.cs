@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering
     sealed class SurfaceCacheRenderPipelineResourceSet : IRenderPipelineResources
     {
         [SerializeField, HideInInspector]
-        int m_Version = 2;
+        int m_Version = 3;
 
         int IRenderPipelineGraphicsSettings.version => m_Version;
 
@@ -38,6 +38,12 @@ namespace UnityEngine.Rendering
         [ResourcePath("Runtime/Lighting/SurfaceCache/Eviction.compute")]
         public ComputeShader m_EvictionShader;
 
+        [ResourcePath("Runtime/Lighting/SurfaceCache/PunctualLightSampling.urtshader")]
+        public ComputeShader m_PunctualLightSamplingComputeShader;
+
+        [ResourcePath("Runtime/Lighting/SurfaceCache/PunctualLightSampling.urtshader")]
+        public RayTracingShader m_PunctualLightSamplingRayTracingShader;
+
         [ResourcePath("Runtime/Lighting/SurfaceCache/UniformEstimation.urtshader")]
         public ComputeShader m_UniformEstimationComputeShader;
 
@@ -63,6 +69,18 @@ namespace UnityEngine.Rendering
         {
             get => m_TemporalFilteringShader;
             set => this.SetValueAndNotify(ref m_TemporalFilteringShader, value, nameof(m_TemporalFilteringShader));
+        }
+
+        public ComputeShader punctualLightSamplingComputeShader
+        {
+            get => m_PunctualLightSamplingComputeShader;
+            set => this.SetValueAndNotify(ref m_PunctualLightSamplingComputeShader, value, nameof(m_PunctualLightSamplingComputeShader));
+        }
+
+        public RayTracingShader punctualLightSamplingRayTracingShader
+        {
+            get => m_PunctualLightSamplingRayTracingShader;
+            set => this.SetValueAndNotify(ref m_PunctualLightSamplingRayTracingShader, value, nameof(m_PunctualLightSamplingRayTracingShader));
         }
 
         public ComputeShader uniformEstimationComputeShader

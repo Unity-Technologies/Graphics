@@ -1,11 +1,12 @@
 #define PATCH_UTIL_USE_RW_IRRADIANCE_BUFFER
 
 #include "Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Common.hlsl"
 #include "PathTracing.hlsl"
 #include "Estimation.hlsl"
 #include "RingBuffer.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Common.hlsl"
+#include "PunctualLightSample.hlsl"
 
 StructuredBuffer<uint> _RingConfigBuffer;
 RWStructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances;
@@ -15,9 +16,10 @@ RWStructuredBuffer<PatchUtil::PatchCounterSet> _PatchCounterSets;
 StructuredBuffer<uint> _CellPatchIndices;
 StructuredBuffer<int3> _CascadeOffsets;
 StructuredBuffer<MaterialPool::MaterialEntry> _MaterialEntries;
-Texture2DArray<float4> _AlbedoTextures;
-Texture2DArray<float4> _TransmissionTextures;
-Texture2DArray<float4> _EmissionTextures;
+StructuredBuffer<PunctualLightSample> _PunctualLightSamples;
+Texture2DArray _AlbedoTextures;
+Texture2DArray _TransmissionTextures;
+Texture2DArray _EmissionTextures;
 SamplerState sampler_EmissionTextures;
 SamplerState sampler_AlbedoTextures;
 SamplerState sampler_TransmissionTextures;
@@ -25,6 +27,8 @@ TextureCube<float3> _EnvironmentCubemap;
 SamplerState sampler_EnvironmentCubemap;
 UNIFIED_RT_DECLARE_ACCEL_STRUCT(_RayTracingAccelerationStructure);
 
+uint _HasSpotLight;
+float3 _SpotLightIntensity;
 uint _FrameIdx;
 uint _VolumeSpatialResolution;
 uint _CascadeCount;
@@ -36,33 +40,71 @@ uint _RingConfigOffset;
 float3 _VolumeTargetPos;
 float _MaterialAtlasTexelSize; // The size of 1 texel in the atlases above
 float _AlbedoBoost;
+uint _PunctualLightSampleCount;
 float3 _DirectionalLightDirection;
 float3 _DirectionalLightIntensity;
 
-void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
+void ProjectAndAccumulate(inout SphericalHarmonics::RGBL1 accumulator, float3 sample, float3 direction)
 {
-    uint patchIdx = dispatchInfo.dispatchThreadID.x;
+    accumulator.l0 += sample * SphericalHarmonics::y0;
+    accumulator.l1s[0] += sample * SphericalHarmonics::y1Constant * direction.y;
+    accumulator.l1s[1] += sample * SphericalHarmonics::y1Constant * direction.z;
+    accumulator.l1s[2] += sample * SphericalHarmonics::y1Constant * direction.x;
+}
 
-    if (!RingBuffer::IsPositionInUse(_RingConfigBuffer, _RingConfigOffset, patchIdx))
-        return;
+void SamplePunctualLightBounceRadiance(
+    inout QrngKronecker rng,
+    uint patchIdx,
+    UnifiedRT::RayTracingAccelStruct accelStruct,
+    UnifiedRT::DispatchInfo dispatchInfo,
+    PatchUtil::PatchGeometry patchGeo,
+    inout SphericalHarmonics::RGBL1 accumulator,
+    inout bool gotValidSamples)
+{
+    rng.Init(patchIdx, _FrameIdx * _SampleCount + 1024);
+    SphericalHarmonics::RGBL1 radianceAccumulator = (SphericalHarmonics::RGBL1)0;
 
-    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_RayTracingAccelerationStructure);
+    uint validSampleCount = 0;
+    for(uint sampleIdx = 0; sampleIdx < _SampleCount; ++sampleIdx)
+    {
+        PunctualLightBounceRadianceSample sample = SamplePunctualLightBounceRadiance(
+            dispatchInfo,
+            accelStruct,
+            _PunctualLightSamples,
+            _PunctualLightSampleCount,
+            rng.GetFloat(0),
+            _SpotLightIntensity,
+            patchGeo.position,
+            patchGeo.normal);
 
-    QrngKronecker rng;
-    rng.Init(uint2(patchIdx, 0), _FrameIdx * _SampleCount);
+        if (!sample.IsValid())
+            continue;
 
-    const PatchUtil::PatchGeometry patchGeo = _PatchGeometries[patchIdx];
+        validSampleCount++;
+        ProjectAndAccumulate(radianceAccumulator, sample.radianceOverDensity, sample.direction);
 
-    MaterialPoolParamSet matPoolParams;
-    matPoolParams.materialEntries = _MaterialEntries;
-    matPoolParams.albedoTextures = _AlbedoTextures;
-    matPoolParams.transmissionTextures = _TransmissionTextures;
-    matPoolParams.emissionTextures = _EmissionTextures;
-    matPoolParams.emissionSampler = sampler_EmissionTextures;
-    matPoolParams.albedoSampler = sampler_AlbedoTextures;
-    matPoolParams.transmissionSampler = sampler_TransmissionTextures;
-    matPoolParams.atlasTexelSize = _MaterialAtlasTexelSize;
-    matPoolParams.albedoBoost = _AlbedoBoost;
+        rng.NextSample();
+    }
+
+    if (validSampleCount != 0)
+    {
+        gotValidSamples = true;
+        const float normalizationFactor = rcp(validSampleCount);
+        SphericalHarmonics::AddMut(accumulator, SphericalHarmonics::MulPure(radianceAccumulator, normalizationFactor));
+    }
+}
+
+void SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
+    inout QrngKronecker rng,
+    uint patchIdx,
+    UnifiedRT::RayTracingAccelStruct accelStruct,
+    UnifiedRT::DispatchInfo dispatchInfo,
+    MaterialPoolParamSet matPoolParams,
+    PatchUtil::PatchGeometry patchGeo,
+    inout SphericalHarmonics::RGBL1 accumulator,
+    inout bool gotValidSamples)
+{
+    rng.Init(patchIdx, _FrameIdx * _SampleCount);
 
     UnifiedRT::Ray ray;
     ray.origin = OffsetRayOrigin(patchGeo.position, patchGeo.normal);
@@ -75,7 +117,7 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
     for(uint sampleIdx = 0; sampleIdx < _SampleCount; ++sampleIdx)
     {
         ray.direction = UniformHemisphereSample(float2(rng.GetFloat(0), rng.GetFloat(1)), patchGeo.normal);
-        const float3 radianceSample = SampleIncomingRadianceAssumingLambertianBrdf(
+        const float3 radiance = IncomingEnviromentAndDirectionalBounceAndMultiBounceRadiance(
             dispatchInfo,
             accelStruct,
             ray,
@@ -93,28 +135,72 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
             _CascadeCount,
             _VolumeVoxelMinSize);
 
-        // If we hit the backface of a water-tight piece of geometry we skip. This is to prevent accumulating "false" darkness
-        // which can give artifacts if a patch reappears after temporarily being inside moving geometry.
-        // If we hit the backface of geometry which is not water tight, then this most likely a user authoring problem.
-        if (all(radianceSample == invalidRadianceSample))
+        if (all(radiance == invalidRadiance))
             continue;
 
         validSampleCount++;
-
-        radianceAccumulator.l0 += radianceSample * SphericalHarmonics::y0;
-        radianceAccumulator.l1s[0] += radianceSample * SphericalHarmonics::y1Constant * ray.direction.y;
-        radianceAccumulator.l1s[1] += radianceSample * SphericalHarmonics::y1Constant * ray.direction.z;
-        radianceAccumulator.l1s[2] += radianceSample * SphericalHarmonics::y1Constant * ray.direction.x;
+        ProjectAndAccumulate(radianceAccumulator, radiance, ray.direction);
 
         rng.NextSample();
     }
 
     if (validSampleCount != 0)
     {
-        // Normalize MC estimate.
-        const float pi2 = 2.0f * PI; // This is the inverse density of uniform hemisphere sampling.
-        const float normalizationFactor = pi2 / (float)validSampleCount;
-        const SphericalHarmonics::RGBL1 radianceSampleMean = SphericalHarmonics::MulPure(radianceAccumulator, normalizationFactor);
-        ProcessAndStoreRadianceSample(_PatchIrradiances, _PatchStatistics, _PatchCounterSets, patchIdx, radianceSampleMean, _ShortHysteresis);
+        gotValidSamples = true;
+        const float reciprocalDensity = 2.0f * PI;
+        const float normalizationFactor = reciprocalDensity * rcp(validSampleCount);
+        SphericalHarmonics::AddMut(accumulator, SphericalHarmonics::MulPure(radianceAccumulator, normalizationFactor));
     }
+}
+
+void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
+{
+    uint patchIdx = dispatchInfo.dispatchThreadID.x;
+
+    if (!RingBuffer::IsPositionInUse(_RingConfigBuffer, _RingConfigOffset, patchIdx))
+        return;
+
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_RayTracingAccelerationStructure);
+    QrngKronecker rng;
+
+    const PatchUtil::PatchGeometry patchGeo = _PatchGeometries[patchIdx];
+
+    MaterialPoolParamSet matPoolParams;
+    matPoolParams.materialEntries = _MaterialEntries;
+    matPoolParams.albedoTextures = _AlbedoTextures;
+    matPoolParams.transmissionTextures = _TransmissionTextures;
+    matPoolParams.emissionTextures = _EmissionTextures;
+    matPoolParams.emissionSampler = sampler_EmissionTextures;
+    matPoolParams.albedoSampler = sampler_AlbedoTextures;
+    matPoolParams.transmissionSampler = sampler_TransmissionTextures;
+    matPoolParams.atlasTexelSize = _MaterialAtlasTexelSize;
+    matPoolParams.albedoBoost = _AlbedoBoost;
+
+    SphericalHarmonics::RGBL1 radianceSampleMean = (SphericalHarmonics::RGBL1)0;
+    bool gotValidSamples = false;
+
+    SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
+        rng,
+        patchIdx,
+        accelStruct,
+        dispatchInfo,
+        matPoolParams,
+        patchGeo,
+        radianceSampleMean,
+        gotValidSamples);
+
+    if (_HasSpotLight)
+    {
+        SamplePunctualLightBounceRadiance(
+            rng,
+            patchIdx,
+            accelStruct,
+            dispatchInfo,
+            patchGeo,
+            radianceSampleMean,
+            gotValidSamples);
+    }
+
+    if (gotValidSamples)
+        ProcessAndStoreRadianceSample(_PatchIrradiances, _PatchStatistics, _PatchCounterSets, patchIdx, radianceSampleMean, _ShortHysteresis);
 }

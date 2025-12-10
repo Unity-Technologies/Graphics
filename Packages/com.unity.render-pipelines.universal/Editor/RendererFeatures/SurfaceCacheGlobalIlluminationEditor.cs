@@ -170,7 +170,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Volume", EditorStyles.boldLabel);
             _volumeSize.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(TextContent.VolumeSize, _volumeSize.floatValue));
-            EditorGUILayout.IntSlider(_volumeResolution, 16, 64, TextContent.VolumeResolution);
+            EditorGUILayout.IntSlider(_volumeResolution, 16, 128, TextContent.VolumeResolution);
             EditorGUILayout.IntSlider(_volumeCascadeCount, 1, (int)SurfaceCache.CascadeMax, TextContent.VolumeCascadeCount);
             EditorGUILayout.PropertyField(_volumeMovement, TextContent.VolumeMovement);
 

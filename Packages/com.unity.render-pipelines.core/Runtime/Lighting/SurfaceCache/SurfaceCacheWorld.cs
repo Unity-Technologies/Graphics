@@ -38,13 +38,23 @@ namespace UnityEngine.Rendering
             internal Vector3 Intensity;
         }
 
+        internal struct SpotLight
+        {
+            internal Vector3 Position;
+            internal Vector3 Direction;
+            internal Vector3 Intensity;
+            internal float Angle;
+        }
+
         internal class LightSet
         {
             (LightHandle, DirectionalLight)? _directionalLightPair;
+            (LightHandle, SpotLight)? _spotLightPair;
             Dictionary<LightHandle, LightType> _handleToTypeMap = new();
             LightHandleSet _handles = new();
 
             public DirectionalLight? DirectionalLight => _directionalLightPair.HasValue ? _directionalLightPair.Value.Item2 : null;
+            public SpotLight? SpotLight => _spotLightPair.HasValue ? _spotLightPair.Value.Item2 : null;
 
             internal LightHandle Add(LightDescriptor desc)
             {
@@ -54,10 +64,21 @@ namespace UnityEngine.Rendering
                 {
                     var dirLight = new DirectionalLight()
                     {
-                        Direction = (desc.Transform.rotation * Vector3.forward).normalized,
+                        Direction = desc.Transform.GetColumn(2),
                         Intensity = desc.LinearLightColor
                     };
                     _directionalLightPair = (handle, dirLight);
+                }
+                else if (desc.Type == LightType.Spot && !_spotLightPair.HasValue)
+                {
+                    var dirLight = new SpotLight()
+                    {
+                        Position = desc.Transform.GetPosition(),
+                        Direction = desc.Transform.GetColumn(2),
+                        Intensity = desc.LinearLightColor,
+                        Angle = desc.SpotAngle
+                    };
+                    _spotLightPair = (handle, dirLight);
                 }
 
                 return handle;
@@ -74,6 +95,10 @@ namespace UnityEngine.Rendering
                 if (type == LightType.Directional && _directionalLightPair.HasValue && handle == _directionalLightPair.Value.Item1)
                 {
                     _directionalLightPair = null;
+                }
+                if (type == LightType.Spot && _spotLightPair.HasValue && handle == _spotLightPair.Value.Item1)
+                {
+                    _spotLightPair = null;
                 }
             }
         }
@@ -107,6 +132,11 @@ namespace UnityEngine.Rendering
         public void SetEnvironmentMode(CubemapRender.Mode mode)
         {
             _cubemapRender.SetMode(mode);
+        }
+
+        public SpotLight? GetSpotLight()
+        {
+            return _lights.SpotLight;
         }
 
         public void SetEnvironmentMaterial(Material mat)
