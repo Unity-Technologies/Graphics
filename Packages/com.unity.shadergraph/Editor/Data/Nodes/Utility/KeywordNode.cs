@@ -18,6 +18,13 @@ namespace UnityEditor.ShaderGraph
 
         protected override bool CanPropagateFloatLiteral => true;
 
+        public override string documentationURL => NodeUtils.GetDocumentationString(keyword.overrideReferenceName switch
+        {
+            "MATERIAL_QUALITY" => "Material Quality Keyword",
+            "RAYTRACING_SHADER_GRAPH" => "Raytracing Quality Keyword",
+            _ => "Keyword",
+        });
+
         public KeywordNode()
         {
             UpdateNodeAfterDeserialization();
