@@ -4,7 +4,6 @@
 This documentation assumes that you are already familiar with the concepts described in the following pages:
 * [SpeedTree](https://docs.unity3d.com/Manual/SpeedTree.html)
 * [Sub Graph Nodes](Sub-graph-Node.md)
-* [Sub Graph Assets](Sub-graph-Asset.md)
 * [Keywords](Keywords.md)
 
 The documentation on [ShaderLab material properties](https://docs.unity3d.com/Manual/SL-Properties.html) might also be contextually helpful.

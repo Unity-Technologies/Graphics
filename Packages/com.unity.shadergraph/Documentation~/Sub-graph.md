@@ -1,26 +1,33 @@
-# Sub Graph
+# Introduction to Sub Graphs
 
-## Description
+A Sub Graph is a type of shader graph that you include in other shader graphs. Use a Sub Graph to perform the same operations multiple times within a single shader graph, or across multiple shader graphs. It's similar to a reusable function in programming. 
 
-A Sub Graph is a special type of Shader Graph, which you can reference from inside other graphs. This is useful when you wish to perform the same operations multiple times in one graph or across multiple graphs. A Sub Graph differs from a Shader Graph in three main ways:
-- [Properties](Property-Types.md) in the [Blackboard](Blackboard.md) of a Sub Graph define the input [Ports](Port.md) of a [Sub Graph Node](Sub-graph-Node.md) when you reference the Sub Graph from inside another graph.
-- A Sub Graph has its own Asset type. For more information, including instructions on how to make a new Sub Graph, see [Sub Graph Asset](Sub-graph-Asset.md).
-- A Sub Graph does not have a [Master Stack](Master-Stack.md). Instead, it has a [Node](Node.md) called **Output**.
+Create and edit Sub Graphs in the same way as regular shader graphs. Sub Graphs differ from regular shader graphs in the following ways:
 
-For information about the components of a Sub Graph, see [Sub Graph Asset](Sub-graph-Asset.md).
+- A Sub Graph is saved in its own asset file.
+- A Sub Graph doesn't have a Master Stack. Instead it has an Output Node.
+- When you add a Sub Graph to a shader graph, Unity creates a [Sub Graph Node](Sub-graph-Node.md). The inputs are the blackboard properties of the Sub Graph, and the outputs are from the Output node. 
+- To change the behavior of a Sub Graph, add a Dropdown node to the Sub Graph. For more information, refer to [Change the behavior of a Sub Graph with a dropdown](Change-Behaviour-Sub-Graph-Dropdown.md).
 
-## Output Node
+For more information, refer to [Create a Sub Graph](Create-Sub-Graph.md).
 
-The Output Node defines the output ports of a [Sub Graph Node](Sub-graph-Node.md) when you reference the Sub Graph from inside another graph. To add and remove ports, use the [Custom Port Menu](Custom-Port-Menu.md) in the **Node Settings** tab of the [Graph Inspector](Internal-Inspector.md) by clicking on the Sub Graph Output node.
+## Examples
 
-The preview used for Sub Graphs is determined by the first port of the Output Node. Valid [Data Types](Data-Types.md) for the first port are `Float`, `Vector 2`, `Vector 3`, `Vector 4`, `Matrix2`, `Matrix3`, `Matrix4`, and `Boolean`. Any other data type will produce an error in the preview shader and the Sub Graph will become invalid.
+The following Sub Graph uses a Multiply node to brighten an input color.
 
-## Sub Graphs and shader stages
-If a Node within a Sub Graph specifies a shader stage (for example, how the [Sample Texture 2D Node](Sample-Texture-2D-Node.md) specifies the **fragment** shader stage), the Editor locks the entire Sub Graph to that stage. You cannot connect any Nodes that specify a different shader stage to the Sub Graph Output Node, and the Editor locks any Sub Graph Nodes that references the graph to that shader stage.
+![A Color property connected to the A input of a Multiply node. The B input of the Multiply node is set to (5, 5, 5, 1), which brightens the color. The output is connected to an Output node, with a Sub Graph output called Brighter_Color.](images/sub-graph-example.png)
 
-From 10.3 onward, Texture and SamplerState type inputs and outputs to Sub Graphs benefit from an improved data structure. For a detailed explanation, see [Custom Function Node](Custom-Function-Node.md).
+The following shader graph uses the Sub Graph to brighten a custom color.
 
-## Sub Graphs and Keywords
-[Keywords](Keywords.md) that you define on the [Blackboard](Blackboard.md) in a Sub Graph behave similarly to those in regular Shader Graphs. When you add a Sub Graph Node to a Shader Graph, Unity defines all Keywords in that Sub Graph in the Shader Graph as well, so that the Sub Graph works as intended.
+![A dark Color property connected to the input of the Brighten Color Sub Graph node. The Sub Graph node displays a preview of the multiplied brighter color. The output connects to the Base Color of the Fragment context.](images/sub-graph-example-parent-graph.png)
 
-To use a Sub Graph Keyword inside a Shader Graph, or to expose that Keyword in the Material Inspector, copy it from the Sub Graph to the Shader Graph's Blackboard.
+Refer to the following for other example Sub Graphs:
+
+- [Shader Graph samples](ShaderGraph-Samples.md)
+- Built-in nodes that are Sub Graphs, for example the [ThreadMapDetail node](ThreadMapDetail-Node.md) or the [SpeedTree](SpeedTree8-SubGraphAssets.md) nodes.
+- The example shader graph on the [Sample Texture 2D node](Sample-Texture-2D-Node.md) page.
+
+## Additional resources
+
+- [Branch On Input Connection node](Branch-On-Input-Connection-Node.md)
+- [Custom Function Node](Custom-Function-Node.md)
