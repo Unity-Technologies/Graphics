@@ -470,9 +470,12 @@ half3 MixFogColor(half3 fragColor, half3 fogColor, half fogFactor)
     
     if (anyFogEnabled)
     {
-        half fogIntensity = ComputeFogIntensity(fogFactor);
-        // Workaround for UUM-61728: using a manual lerp to avoid rendering artifacts on some GPUs when Vulkan is used
-        fragColor = fragColor * fogIntensity + fogColor * (half(1.0) - fogIntensity);    
+        if (IsFogEnabled())
+        {
+            half fogIntensity = ComputeFogIntensity(fogFactor);
+            // Workaround for UUM-61728: using a manual lerp to avoid rendering artifacts on some GPUs when Vulkan is used
+            fragColor = fragColor * fogIntensity + fogColor * (half(1.0) - fogIntensity);
+        }
     }
     return fragColor;
 }
