@@ -1670,6 +1670,9 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override string renderPipelineShaderTag => UniversalRenderPipeline.k_ShaderTagName;
 
+        /// <inheritdoc/>
+        protected override bool requiresCompatibleRenderPipelineGlobalSettings => true;
+
         /// <summary>Names used for display of rendering layer masks.</summary>
         [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(2023.3)")]
         public override string[] renderingLayerMaskNames => RenderingLayerMask.GetDefinedRenderingLayerNames();
@@ -2037,5 +2040,6 @@ namespace UnityEngine.Rendering.Universal
                 ;
             }
         }
+
     }
 }
