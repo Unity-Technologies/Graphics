@@ -518,6 +518,12 @@ namespace UnityEngine.Rendering.Universal
 
         // Additional lights settings
         [SerializeField] LightRenderingMode m_AdditionalLightsRenderingMode = LightRenderingMode.PerPixel;
+
+#if UNITY_META_QUEST
+#if UNITY_EDITOR // multi_compile _ META_QUEST_LIGHTUNROLL (only on  meta platforms)
+        [ShaderKeywordFilter.RemoveIfNot(1, keywordNames: ShaderKeywordStrings.META_QUEST_LIGHTUNROLL)]
+#endif
+#endif
         [SerializeField] int m_AdditionalLightsPerObjectLimit = 4;
         [SerializeField] bool m_AdditionalLightShadowsSupported = false;
         [SerializeField] ShadowResolution m_AdditionalLightsShadowmapResolution = ShadowResolution._2048;

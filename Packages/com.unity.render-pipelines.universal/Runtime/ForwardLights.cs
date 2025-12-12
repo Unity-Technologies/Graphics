@@ -523,7 +523,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeAtlas, lightData.reflectionProbeAtlas && m_UseForwardPlus && lightData.reflectionProbeBlending); // Needs to match shader stripping
 
                 var asset = UniversalRenderPipeline.asset;
-
+#if UNITY_META_QUEST
+                if (asset != null)
+                    cmd.SetKeyword(ShaderGlobalKeywords.META_QUEST_LIGHTUNROLL, asset.maxAdditionalLightsCount == 1 && asset.additionalLightsRenderingMode != LightRenderingMode.Disabled);
+#endif
                 bool apvIsEnabled = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
                 #if UNITY_WEBGL && !UNITY_EDITOR
                 apvIsEnabled &= SystemInfo.graphicsDeviceType == GraphicsDeviceType.WebGPU; // APV not supported on WebGL, don't try to enable it. WebGPU is fine, though.

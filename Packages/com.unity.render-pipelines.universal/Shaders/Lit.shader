@@ -135,6 +135,9 @@ Shader "Universal Render Pipeline/Lit"
 
             // -------------------------------------
             // Universal Pipeline keywords
+#if defined(UNITY_PLATFORM_META_QUEST)
+            #pragma multi_compile _ META_QUEST_LIGHTUNROLL
+#endif
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
