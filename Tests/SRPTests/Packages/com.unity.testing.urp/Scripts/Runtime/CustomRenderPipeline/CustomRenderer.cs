@@ -135,11 +135,6 @@ namespace UnityEngine.Rendering.Universal
 
             SetupRenderGraphCameraProperties(renderGraph, targetHandle.IsValid() ? targetHandle : depthHandle);
 
-            if (!renderGraph.nativeRenderPassesEnabled)
-            {
-                ClearTargetsPass.Render(renderGraph, targetHandle, depthHandle, cameraData);
-            }
-
             m_RenderOpaqueForwardPass.Render(renderGraph, frameData, targetHandle, depthHandle, mainShadowsTexture, additionalShadowsTexture);
         }
     }

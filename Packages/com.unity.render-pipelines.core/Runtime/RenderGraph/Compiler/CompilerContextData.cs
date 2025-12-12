@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
     // Note pass=node in the graph, both are sometimes mixed up here
     // Datastructure that contains passes and dependencies and allow you to iterate and reason on them more like a graph
-    internal class CompilerContextData : IDisposable, RenderGraph.ICompiledGraph
+    internal class CompilerContextData : IDisposable
     {
         public CompilerContextData()
         {

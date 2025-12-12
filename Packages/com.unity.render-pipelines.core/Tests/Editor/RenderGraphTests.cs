@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
                 builder.UseTexture(texture, AccessFlags.Read);
-                builder.UseTexture(m_RenderGraph.ImportBackbuffer(0), AccessFlags.Write);
+                builder.AllowPassCulling(false);
                 builder.SetRenderFunc((RenderGraphTestPassData data, UnsafeGraphContext context) => { });
             }
 
@@ -264,7 +264,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
                 builder.UseTexture(texture, AccessFlags.Read);
-                builder.UseTexture(m_RenderGraph.ImportBackbuffer(0), AccessFlags.Write); // Needed for the passes to not be culled
+                builder.AllowPassCulling(false);
                 builder.SetRenderFunc((RenderGraphTestPassData data, UnsafeGraphContext context) => { });
             }
 
@@ -303,7 +303,7 @@ namespace UnityEngine.Rendering.Tests
                 using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass1", out var passData))
                 {
                     builder.UseTexture(texture, AccessFlags.Read); // This is illegal (transient resource was created in previous pass)
-                    builder.UseTexture(m_RenderGraph.ImportBackbuffer(0), AccessFlags.Write); // Needed for the passes to not be culled
+                    builder.AllowPassCulling(false);
                     builder.SetRenderFunc((RenderGraphTestPassData data, UnsafeGraphContext context) => { });
                 }
 
@@ -318,7 +318,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
                 texture = builder.CreateTransientTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-                builder.UseTexture(m_RenderGraph.ImportBackbuffer(0), AccessFlags.Write); // Needed for the passes to not be culled
+                builder.AllowPassCulling(false);
                 builder.SetRenderFunc((RenderGraphTestPassData data, UnsafeGraphContext context) => { });
             }
 
@@ -406,7 +406,7 @@ namespace UnityEngine.Rendering.Tests
             {
                 builder.UseTexture(texture1, AccessFlags.Read);
                 builder.UseTexture(texture3, AccessFlags.Read);
-                builder.UseTexture(m_RenderGraph.ImportBackbuffer(0), AccessFlags.Write); // Needed for the passes to not be culled
+                builder.AllowPassCulling(false);
                 builder.EnableAsyncCompute(false);
                 builder.SetRenderFunc((RenderGraphTestPassData data, UnsafeGraphContext context) => { });
             }
@@ -415,7 +415,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass6", out var passData))
             {
                 builder.UseTexture(texture3, AccessFlags.Read);
-                builder.UseTexture(m_RenderGraph.ImportBackbuffer(0), AccessFlags.Write); // Needed for the passes to not be culled
+                builder.AllowPassCulling(false);
                 builder.EnableAsyncCompute(false);
                 builder.SetRenderFunc((RenderGraphTestPassData data, UnsafeGraphContext context) => { });
             }
@@ -554,7 +554,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass5", out var passData))
             {
                 builder.UseTexture(texture0, AccessFlags.Read);
-                builder.UseTexture(m_RenderGraph.ImportBackbuffer(0), AccessFlags.Write); // Needed for the passes to not be culled
+                builder.AllowPassCulling(false);
                 builder.EnableAsyncCompute(false);
                 builder.SetRenderFunc((RenderGraphTestPassData data, UnsafeGraphContext context) => { });
             }
@@ -586,7 +586,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
                 builder.UseTexture(texture0, AccessFlags.Read);
-                builder.UseTexture(m_RenderGraph.ImportBackbuffer(0), AccessFlags.Write); // Needed for the passes to not be culled
+                builder.AllowPassCulling(false);
                 builder.SetRenderFunc((RenderGraphTestPassData data, UnsafeGraphContext context) => { });
             }
 
@@ -621,7 +621,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
                 builder.UseTexture(texture1, AccessFlags.Read);
-                builder.UseTexture(m_RenderGraph.ImportBackbuffer(0), AccessFlags.Write); // Needed for the passes to not be culled
+                builder.AllowPassCulling(false);
                 builder.SetRenderFunc((RenderGraphTestPassData data, UnsafeGraphContext context) => { });
             }
 
@@ -656,7 +656,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
                 builder.UseTexture(texture0, AccessFlags.Read);
-                builder.UseTexture(m_RenderGraph.ImportBackbuffer(0), AccessFlags.Write); // Needed for the passes to not be culled
+                builder.AllowPassCulling(false);
                 builder.SetRenderFunc((RenderGraphTestPassData data, UnsafeGraphContext context) => { });
             }
 
@@ -682,7 +682,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
                 builder.UseTexture(texture0, AccessFlags.Read);
-                builder.UseTexture(m_RenderGraph.ImportBackbuffer(0), AccessFlags.Write); // Needed for the passes to not be culled
+                builder.AllowPassCulling(false);
                 builder.SetRenderFunc((RenderGraphTestPassData data, UnsafeGraphContext context) => { });
             }
 
@@ -987,26 +987,6 @@ namespace UnityEngine.Rendering.Tests
             };
             LogAssert.Expect(LogType.Error, "Render Graph Execution error");
             LogAssert.Expect(LogType.Exception, $"Exception: {kErrorMessage}");
-            m_Camera.Render();
-        }
-
-        [Test]
-        public void UsingAddRenderPassWithNRPThrows()
-        {
-            // m_RenderGraph.nativeRenderPassesEnabled is true by default
-            // record and execute render graph calls
-            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
-            {
-#pragma warning disable CS0618 // Type or member is obsolete
-                using var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("HDRP Render Pass", out var passData);
-#pragma warning restore CS0618 // Type or member is obsolete
-            };
-
-            LogAssert.Expect(LogType.Error, "Render Graph Execution error");
-            LogAssert.Expect(LogType.Exception,
-                "InvalidOperationException: `AddRenderPass` is not compatible with the Native Render Pass Compiler. It is meant to be used with the HDRP Compiler. " +
-                "The APIs that are compatible with the Native Render Pass Compiler are AddUnsafePass, AddComputePass and AddRasterRenderPass.");
-
             m_Camera.Render();
         }
 
@@ -1882,7 +1862,6 @@ namespace UnityEngine.Rendering.Tests
                 () => m_RenderGraph.CreateBuffer(new BufferHandle()),
                 () => m_RenderGraph.ImportBuffer(null),
                 () => m_RenderGraph.ImportBackbuffer(new RenderTargetIdentifier(), new RenderTargetInfo()),
-                () => m_RenderGraph.ImportBackbuffer(new RenderTargetIdentifier()),
 
                 // RendererList APIs
                 () => m_RenderGraph.CreateRendererList(new RendererListDesc()),

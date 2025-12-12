@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [Categorization.CategoryInfo(Name = "Render Graph", Order = 50)]
     [Categorization.ElementInfo(Order = 10)]
+    [Obsolete("RenderGraphSettings class is currently obsolete as its only property is obsolete. #from(6000.5)", true)]
     class RenderGraphSettings: IRenderPipelineGraphicsSettings
     {
         #region Version

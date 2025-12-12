@@ -589,16 +589,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 graphicsResource.Release();
             base.ReleaseGraphicsResource();
         }
-
-        public override void LogCreation(RenderGraphLogger logger)
-        {
-            logger.LogLine($"Created Texture: {desc.name} (Cleared: {desc.clearBuffer})");
-        }
-
-        public override void LogRelease(RenderGraphLogger logger)
-        {
-            logger.LogLine($"Released Texture: {desc.name}");
-        }
     }
 
     class TexturePool : RenderGraphResourcePool<RTHandle>

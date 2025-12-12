@@ -361,13 +361,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 {
                     var inputPass = passes[passId];
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-                    if (inputPass.type == RenderGraphPassType.Legacy)
-                    {
-                        throw new Exception(RenderGraph.RenderGraphExceptionMessages.UsingLegacyRenderGraph(inputPass.name));
-                    }
-#endif
-
                     // Accessing already existing passData in place in the container through reference to avoid deep copy
                     // Make sure everything is reset and initialized or we will use obsolete data from previous frame
                     ref var ctxPass = ref ctx.passData.ElementAt(passId);

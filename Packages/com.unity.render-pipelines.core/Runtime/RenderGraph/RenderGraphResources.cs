@@ -188,8 +188,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public virtual void UpdateGraphicsResource() { }
         public virtual void ReleasePooledGraphicsResource(int frameIndex) { }
         public virtual void ReleaseGraphicsResource() { }
-        public virtual void LogCreation(RenderGraphLogger logger) { }
-        public virtual void LogRelease(RenderGraphLogger logger) { }
         public virtual int GetSortIndex() { return 0; }
         public virtual int GetDescHashCode() { return 0; }
     }

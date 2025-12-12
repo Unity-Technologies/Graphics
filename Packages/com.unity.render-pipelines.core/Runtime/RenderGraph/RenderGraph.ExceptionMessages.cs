@@ -171,10 +171,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             internal const string k_NoActivePassForSubpass =
                 "Compiler error: Generated a subpass pass but no pass is currently active.";
-            internal static string UsingLegacyRenderGraph(string passName) =>
-                "Pass '" + passName + "' is using the legacy rendergraph API." +
-                " You cannot use legacy passes with the Native Render Pass Compiler." +
-                " The APIs that are compatible with the Native Render Pass Compiler are AddUnsafePass, AddComputePass and AddRasterRenderPass.";
 
             internal static string IncompatibleTextureUVOriginStore(string firstAttachmentName, TextureUVOriginSelection firstAttachmentOrigin, string secondAttachmentName, TextureUVOriginSelection secondAttachmentOrigin) =>
                 $"Texture attachment {firstAttachmentName} with uv origin {firstAttachmentOrigin} does not match with texture attachment {secondAttachmentName} with uv origin {secondAttachmentOrigin}. Storing both would result in contents being flipped.";

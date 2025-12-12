@@ -9,7 +9,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public abstract void PurgeUnusedResources(int currentFrameIndex);
         public abstract void Cleanup();
         public abstract void CheckFrameAllocation(bool onException, int frameIndex);
-        public abstract void LogResources(RenderGraphLogger logger);
     }
 
     abstract class RenderGraphResourcePool<Type> : IRenderGraphResourcePool where Type : class
@@ -115,38 +114,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 m_FrameAllocatedResources.Clear();
             }
 #endif
-        }
-
-        struct ResourceLogInfo
-        {
-            public string name;
-            public long size;
-        }
-
-        public override void LogResources(RenderGraphLogger logger)
-        {
-            List<ResourceLogInfo> allocationList = new List<ResourceLogInfo>();
-            foreach (var kvp in m_ResourcePool)
-            {
-                foreach (var res in kvp.Value)
-                {
-                    allocationList.Add(new ResourceLogInfo { name = GetResourceName(res.Value.resource), size = GetResourceSize(res.Value.resource) });
-                }
-            }
-
-            logger.LogLine($"== {GetResourceTypeName()} Resources ==");
-
-            allocationList.Sort((a, b) => a.size < b.size ? 1 : -1);
-            int index = 0;
-            float total = 0;
-            foreach (var element in allocationList)
-            {
-                float size = element.size / (1024.0f * 1024.0f);
-                total += size;
-                logger.LogLine($"[{index++:D2}]\t[{size:0.00} MB]\t{element.name}");
-            }
-
-            logger.LogLine($"\nTotal Size [{total:0.00}]");
         }
 
         public float GetMemorySizeInMB()

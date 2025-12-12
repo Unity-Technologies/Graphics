@@ -10,23 +10,9 @@ using UnityEngine.Rendering.Tests;
 
 namespace UnityEditor.Rendering.Tests
 {
-    public enum Compiler
-    {
-        RenderGraph,
-        NativeRenderGraph
-    }
-
-    [TestFixture(Compiler.RenderGraph)]
-    [TestFixture(Compiler.NativeRenderGraph)]
     public class RenderGraphViewerUITests
     {
-        readonly Compiler m_Compiler;
         readonly ScriptableRenderContext m_Context = new(); // NOTE: Dummy context, can't call its functions
-
-        public RenderGraphViewerUITests(Compiler compiler)
-        {
-            m_Compiler = compiler;
-        }
 
         public static RenderGraphViewer FindRenderGraphViewerWindow()
         {
@@ -61,7 +47,6 @@ namespace UnityEditor.Rendering.Tests
             m_Viewer = OpenAndCheckRenderGraphViewer();
 
             m_RenderGraph = new RenderGraph("TestRenderGraph");
-            m_RenderGraph.nativeRenderPassesEnabled = m_Compiler == Compiler.NativeRenderGraph;
 
             var cameraObject = new GameObject("TestCamera", typeof(Camera));
             m_Camera = cameraObject.GetComponent<Camera>();

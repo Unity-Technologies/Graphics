@@ -81,31 +81,8 @@ namespace UnityEngine.Rendering
             /// <param name="builder">Render Graph Builder</param>
             /// <param name="outputIsTemp">Whether or not to allocate a transient resource.</param>
             /// <returns>The created Render Graph Resources.</returns>
-            [Obsolete("This Create signature is deprecated and will be removed in the future. Please use Create(IBaseRenderGraphBuilder) instead. #from(6000.3)")]
-            public static RenderGraphResources Create(int newMaxElementCount, RenderGraph renderGraph, RenderGraphBuilder builder, bool outputIsTemp = false)
-            {
-                var resources = new RenderGraphResources();
-                resources.Initialize(newMaxElementCount, renderGraph, builder, outputIsTemp);
-                return resources;
-            }
-
-#pragma warning disable CS0618 // Type or member is obsolete
-            void Initialize(int newMaxElementCount, RenderGraph renderGraph, RenderGraphBuilder builder, bool outputIsTemp = false)
-            {
-                newMaxElementCount = Math.Max(newMaxElementCount, 1);
-                ShaderDefs.CalculateTotalBufferSize(newMaxElementCount, out int totalSize, out int levelCounts);
-
-                var prefixBuffer0Desc = new BufferDesc(totalSize, 4, GraphicsBuffer.Target.Raw) { name = "prefixBuffer0" };
-                prefixBuffer0 = outputIsTemp ? builder.CreateTransientBuffer(prefixBuffer0Desc) : builder.WriteBuffer(renderGraph.CreateBuffer(prefixBuffer0Desc));
-                prefixBuffer1 = builder.CreateTransientBuffer(new BufferDesc(newMaxElementCount, 4, GraphicsBuffer.Target.Raw) { name = "prefixBuffer1" });
-                totalLevelCountBuffer = builder.CreateTransientBuffer(new BufferDesc(1, 4, GraphicsBuffer.Target.Raw) { name = "totalLevelCountBuffer" });
-                levelOffsetBuffer = builder.CreateTransientBuffer(new BufferDesc(levelCounts, System.Runtime.InteropServices.Marshal.SizeOf<LevelOffsets>(), GraphicsBuffer.Target.Structured) { name = "levelOffsetBuffer" });
-                indirectDispatchArgsBuffer = builder.CreateTransientBuffer(new BufferDesc(ShaderDefs.ArgsBufferStride * levelCounts, sizeof(uint), GraphicsBuffer.Target.Structured | GraphicsBuffer.Target.IndirectArguments) { name = "indirectDispatchArgsBuffer" });//3 arguments for upp dispatch, 3 arguments for lower dispatch
-                alignedElementCount = ShaderDefs.AlignUpGroup(newMaxElementCount);
-                maxBufferCount = totalSize;
-                maxLevelCount = levelCounts;
-            }
-#pragma warning restore CS0618 // Type or member is obsolete
+            [Obsolete("This Create signature is deprecated and will be removed in the future. Please use Create(IBaseRenderGraphBuilder) instead. #from(6000.5)", true)]
+            public static RenderGraphResources Create(int newMaxElementCount, RenderGraph renderGraph, RenderGraphBuilder builder, bool outputIsTemp = false) { return new RenderGraphResources(); }
 
             /// <summary>
             /// Creates the render graph buffer resources from an input count.

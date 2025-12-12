@@ -13,14 +13,6 @@ using UnityEngine.TestTools;
 
 namespace PerformanceTests.Runtime
 {
-    public enum Compiler
-    {
-        RenderGraph,
-        NativeRenderGraph
-    }
-
-    [TestFixture(Compiler.RenderGraph)]
-    [TestFixture(Compiler.NativeRenderGraph)]
     public class RenderGraphPerformanceTests
     {
         const int k_NumWarmupIterations = 5;
@@ -28,23 +20,16 @@ namespace PerformanceTests.Runtime
 
         readonly RenderGraph m_RenderGraph = new();
         readonly ScriptableRenderContext m_Context = new(); // NOTE: Dummy context, can't call its functions
-        readonly Compiler m_Compiler;
         Camera m_Camera;
 
         int m_NumPasses;
 
         readonly ProfilingSampler k_RecordRenderGraphSampler = new ProfilingSampler("RecordRenderGraph");
 
-        public RenderGraphPerformanceTests(Compiler compiler)
-        {
-            m_Compiler = compiler;
-        }
-
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
             m_RenderGraph.ClearCurrentCompiledGraph();
-            m_RenderGraph.nativeRenderPassesEnabled = m_Compiler == Compiler.NativeRenderGraph;
         }
 
         [OneTimeTearDown]
@@ -91,16 +76,13 @@ namespace PerformanceTests.Runtime
         {
             yield return k_RecordRenderGraphSampler;
             
-            // High level profiling markers for Render Graph
+            // High level profiling markers for overall Render Graph workflow
             foreach (var val in Enum.GetValues(typeof(RenderGraphProfileId)))
                 yield return ProfilingSampler.Get((RenderGraphProfileId)val);
 
-            if (m_Compiler == Compiler.NativeRenderGraph)
-            {
-                // Low level profiling markers for Native Render Pass Compiler
-                foreach (var val in Enum.GetValues(typeof(NativePassCompiler.NativeCompilerProfileId)))
-                    yield return ProfilingSampler.Get((NativePassCompiler.NativeCompilerProfileId)val);
-            }
+            // Low level profiling markers for Render Graph Compiler
+            foreach (var val in Enum.GetValues(typeof(NativePassCompiler.NativeCompilerProfileId)))
+                yield return ProfilingSampler.Get((NativePassCompiler.NativeCompilerProfileId)val);
         }
 
         // This is a [UnityTest] because Profiling.Recorder requires frame tick to happen.

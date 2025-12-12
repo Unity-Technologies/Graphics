@@ -146,7 +146,6 @@ namespace UnityEditor.Rendering
         int m_CurrentHoveredVisibleResourceIndex = -1;
         int m_CurrentSelectedVisiblePassIndex = -1;
 
-        const string kPassFilterLegacyEditorPrefsKey = "RenderGraphViewer.PassFilterLegacy";
         const string kPassFilterEditorPrefsKey = "RenderGraphViewer.PassFilter";
         const string kResourceFilterEditorPrefsKey = "RenderGraphViewer.ResourceFilter";
         const string kSelectedExecutionEditorPrefsKey = "RenderGraphViewer.SelectedExecution";
@@ -156,7 +155,6 @@ namespace UnityEditor.Rendering
         IVisualElementScheduledItem m_RefreshUIDelayed;
 
         PassFilter m_PassFilter = PassFilter.CulledPasses | PassFilter.RasterPasses | PassFilter.UnsafePasses | PassFilter.ComputePasses;
-        PassFilterLegacy m_PassFilterLegacy = PassFilterLegacy.CulledPasses;
 
         ResourceFilter m_ResourceFilter =
             ResourceFilter.ImportedResources |  ResourceFilter.Textures |
@@ -213,12 +211,6 @@ namespace UnityEditor.Rendering
             var window = GetWindow<RenderGraphViewer>();
             window.titleContent = new GUIContent("Render Graph Viewer");
             window.minSize = new Vector2(880f, 300f);
-        }
-
-        [Flags]
-        enum PassFilterLegacy
-        {
-            CulledPasses = 1 << 0,
         }
 
         [Flags]
@@ -375,34 +367,31 @@ namespace UnityEditor.Rendering
                 var pass = m_CurrentDebugData.passList[passIdInGroup];
 
                 // Native pass compatibility
-                if (m_CurrentDebugData.isNRPCompiler)
+                if (pass.nrpInfo.nativePassInfo != null && pass.nrpInfo.nativePassInfo.passCompatibility.Count > 0)
                 {
-                    if (pass.nrpInfo.nativePassInfo != null && pass.nrpInfo.nativePassInfo.passCompatibility.Count > 0)
+                    foreach (var msg in pass.nrpInfo.nativePassInfo.passCompatibility)
                     {
-                        foreach (var msg in pass.nrpInfo.nativePassInfo.passCompatibility)
+                        int linkedPassId = msg.Key;
+                        string compatibilityMessage = msg.Value.message;
+                        var linkedPassGroup = GetGroupedPassIds(linkedPassId);
+                        foreach (var passIdInLinkedPassGroup in linkedPassGroup)
                         {
-                            int linkedPassId = msg.Key;
-                            string compatibilityMessage = msg.Value.message;
-                            var linkedPassGroup = GetGroupedPassIds(linkedPassId);
-                            foreach (var passIdInLinkedPassGroup in linkedPassGroup)
-                            {
-                                if (selectedPassIds.Contains(passIdInLinkedPassGroup))
-                                    continue; // Don't show compatibility info among passes that are merged
+                            if (selectedPassIds.Contains(passIdInLinkedPassGroup))
+                                continue; // Don't show compatibility info among passes that are merged
 
-                                if (m_PassIdToVisiblePassIndex.TryGetValue(passIdInLinkedPassGroup,
-                                        out int visiblePassIndexInLinkedPassGroup))
-                                {
-                                    var info = m_PassElementsInfo[visiblePassIndexInLinkedPassGroup];
-                                    info.hasPassCompatibilityTooltip = true;
-                                    info.isPassCompatibleToMerge = msg.Value.isCompatible;
-                                    info.passBlock.tooltip = compatibilityMessage;
-                                }
+                            if (m_PassIdToVisiblePassIndex.TryGetValue(passIdInLinkedPassGroup,
+                                    out int visiblePassIndexInLinkedPassGroup))
+                            {
+                                var info = m_PassElementsInfo[visiblePassIndexInLinkedPassGroup];
+                                info.hasPassCompatibilityTooltip = true;
+                                info.isPassCompatibleToMerge = msg.Value.isCompatible;
+                                info.passBlock.tooltip = compatibilityMessage;
                             }
                         }
-
-                        // Each native pass has compatibility messages, it's enough to process the first one
-                        break;
                     }
+
+                    // Each native pass has compatibility messages, it's enough to process the first one
+                    break;
                 }
 
                 // Async compute dependencies
@@ -1017,7 +1006,7 @@ namespace UnityEditor.Rendering
 
         void UpdateFilterEnabledState(string prefsKey, bool enabled)
         {
-            if (prefsKey == kPassFilterEditorPrefsKey || prefsKey == kPassFilterLegacyEditorPrefsKey)
+            if (prefsKey == kPassFilterEditorPrefsKey)
                 m_PassFilterEnabled = enabled;
             else if (prefsKey == kResourceFilterEditorPrefsKey)
                 m_ResourceFilterEnabled = enabled;
@@ -1042,14 +1031,9 @@ namespace UnityEditor.Rendering
         void RebuildPassFilterUI()
         {
             var passFilter = rootVisualElement.Q<ToggleDropdown>(Names.kPassFilterField);
-            if (m_CurrentDebugData?.isNRPCompiler ?? false)
-            {
-                BuildEnumFlagsToggleDropdown(passFilter, m_PassFilter, kPassFilterEditorPrefsKey, val => m_PassFilter = val, true);
-            }
-            else
-            {
-                BuildEnumFlagsToggleDropdown(passFilter, m_PassFilterLegacy, kPassFilterLegacyEditorPrefsKey, val => m_PassFilterLegacy = val, true);
-            }
+
+            BuildEnumFlagsToggleDropdown(passFilter, m_PassFilter, kPassFilterEditorPrefsKey, val => m_PassFilter = val, true);
+            
             passFilter.text = L10n.Tr("Pass Filter");
         }
 
@@ -1203,6 +1187,17 @@ namespace UnityEditor.Rendering
             return true;
         }
 
+        private bool IsPassTypeAllowed(RenderGraphPassType passType)
+        {
+            return passType switch
+            {
+                RenderGraphPassType.Compute => m_PassFilter.HasFlag(PassFilter.ComputePasses),
+                RenderGraphPassType.Raster => m_PassFilter.HasFlag(PassFilter.RasterPasses),
+                RenderGraphPassType.Unsafe => m_PassFilter.HasFlag(PassFilter.UnsafePasses),
+                _ => true // Allow unknown types by default
+            };
+        }
+
         bool IsPassVisible(RenderGraph.DebugData.PassData pass)
         {
             if (!pass.generateDebugData)
@@ -1211,24 +1206,10 @@ namespace UnityEditor.Rendering
             if (!m_PassFilterEnabled)
                 return true;
 
-            if (m_CurrentDebugData.isNRPCompiler)
-            {
-                if (pass.culled && !m_PassFilter.HasFlag(PassFilter.CulledPasses))
-                    return false;
-                if (pass.type == RenderGraphPassType.Compute && !m_PassFilter.HasFlag(PassFilter.ComputePasses))
-                    return false;
-                if (pass.type == RenderGraphPassType.Raster && !m_PassFilter.HasFlag(PassFilter.RasterPasses))
-                    return false;
-                if (pass.type == RenderGraphPassType.Unsafe && !m_PassFilter.HasFlag(PassFilter.UnsafePasses))
-                    return false;
-            }
-            else
-            {
-                if (pass.culled && !m_PassFilterLegacy.HasFlag(PassFilterLegacy.CulledPasses))
-                    return false;
-            }
+            if (pass.culled && !m_PassFilter.HasFlag(PassFilter.CulledPasses))
+                return false;
 
-            return true;
+            return IsPassTypeAllowed(pass.type);
         }
 
         static readonly string[] k_ResourceNames =
@@ -2091,8 +2072,6 @@ namespace UnityEditor.Rendering
         {
             s_EditorWindowEntityId = GetEntityId();
 
-            if (EditorPrefs.HasKey(kPassFilterLegacyEditorPrefsKey))
-                m_PassFilterLegacy = (PassFilterLegacy)EditorPrefs.GetInt(kPassFilterLegacyEditorPrefsKey);
             if (EditorPrefs.HasKey(kPassFilterEditorPrefsKey))
                 m_PassFilter = (PassFilter)EditorPrefs.GetInt(kPassFilterEditorPrefsKey);
             if (EditorPrefs.HasKey(kResourceFilterEditorPrefsKey))
