@@ -4,6 +4,9 @@ using UnityEngine.Experimental.Rendering;
 using System.IO;
 using UnityEditor;
 using System.Linq;
+#if UNITY_6000_5_OR_NEWER
+using UnityEngine.Assemblies;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition.LTC
 {
@@ -35,7 +38,11 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
             // This function lists all the classes that implement the interface IBSDF
             List<Type> types = new List<Type>();
             Type searchInterface = typeof(IBRDF);
+#if UNITY_6000_5_OR_NEWER
+            return CurrentAssemblies.GetLoadedAssemblies()
+#else
             return AppDomain.CurrentDomain.GetAssemblies()
+#endif
                 .SelectMany(s => s.GetTypes())
                 .Where(p => searchInterface.IsAssignableFrom(p) && !p.IsInterface).ToArray();
         }
