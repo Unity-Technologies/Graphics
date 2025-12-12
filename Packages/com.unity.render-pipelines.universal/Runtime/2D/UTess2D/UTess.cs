@@ -702,60 +702,15 @@ namespace UnityEngine.Rendering.Universal.UTess
             if (points.Length < 3 || points.Length >= kMaxVertexCount)
                 return ret;
 
-            // Ensure inputs form a proper PlanarGraph.
-            bool validGraph = false, handleEdgeCase = false;
-            int pgEdgeCount = 0, pgPointCount = 0;
-            NativeArray<int2> pgEdges = new NativeArray<int2>(edges.Length * 8, allocator);
-            NativeArray<float2> pgPoints = new NativeArray<float2>(points.Length * 4, allocator);
-
-            // Valid Edges and Paths, correct the Planar Graph. If invalid create a simple convex hull rect.
-            if (0 != edges.Length)
-            {
-                validGraph = PlanarGraph.Validate(allocator, points, points.Length, edges, edges.Length, ref pgPoints, ref pgPointCount, ref pgEdges, ref pgEdgeCount);
-            }
-
-            // Fallbacks are now handled by the Higher level packages. Enable if UTess needs to handle it.
-            // #if UTESS_QUAD_FALLBACK
-            //             if (!validGraph)
-            //             {
-            //                 pgPointCount = 0;
-            //                 handleEdgeCase = true;
-            //                 ModuleHandle.Copy(points, pgPoints, points.Length);
-            //                 GraphConditioner(points, ref pgPoints, ref pgPointCount, ref pgEdges, ref pgEdgeCount, false);
-            //             }
-            // #else
-
-            // If its not a valid Graph simply return back input Data without triangulation instead of going through UTess (pointless wasted cpu cycles).
-            if (!validGraph)
-            {
-                outEdgeCount = edges.Length;
-                outVertexCount = points.Length;
-                ModuleHandle.Copy(edges, outEdges, edges.Length);
-                ModuleHandle.Copy(points, outVertices, points.Length);
-            }
-
-            // Do a proper Delaunay Triangulation if Inputs are valid.
-            if (pgPointCount > 2 && pgEdgeCount > 2)
-            {
-                // Tessellate does not add new points, only PG and SD does. Assuming each point creates a degenerate triangle, * 4 is more than enough.
-                NativeArray<int> tsIndices = new NativeArray<int>(pgPointCount * 8, allocator);
-                NativeArray<float2> tsVertices = new NativeArray<float2>(pgPointCount * 4, allocator);
-                int tsIndexCount = 0, tsVertexCount = 0;
-                validGraph = Tessellator.Tessellate(allocator, pgPoints, pgPointCount, pgEdges, pgEdgeCount, ref tsVertices, ref tsVertexCount, ref tsIndices, ref tsIndexCount);
-                if (validGraph)
-                {
-                    // Copy Out
-                    TransferOutput(pgEdges, pgEdgeCount, ref outEdges, ref outEdgeCount, tsIndices, tsIndexCount, ref outIndices, ref outIndexCount, tsVertices, tsVertexCount, ref outVertices, ref outVertexCount);
-                    if (handleEdgeCase == true)
-                        outEdgeCount = 0;
-                }
-                tsVertices.Dispose();
-                tsIndices.Dispose();
-            }
-
-            // Dispose Temp Memory.
-            pgPoints.Dispose();
-            pgEdges.Dispose();
+            // Tessellate does not add new points, only PG and SD does. Assuming each point creates a degenerate triangle, * 4 is more than enough.
+            NativeArray<int> tsIndices = new NativeArray<int>(points.Length * 8, allocator);
+            NativeArray<float2> tsVertices = new NativeArray<float2>(points.Length * 4, allocator);
+            int tsIndexCount = 0, tsVertexCount = 0;
+            var doneGeometry = Tessellator.Tessellate(allocator, points, points.Length, edges, edges.Length, ref tsVertices, ref tsVertexCount, ref tsIndices, ref tsIndexCount);
+            if (doneGeometry)
+                TransferOutput(edges, edges.Length, ref outEdges, ref outEdgeCount, tsIndices, tsIndexCount, ref outIndices, ref outIndexCount, tsVertices, tsVertexCount, ref outVertices, ref outVertexCount);
+            tsVertices.Dispose();
+            tsIndices.Dispose();
             return ret;
         }
     }
