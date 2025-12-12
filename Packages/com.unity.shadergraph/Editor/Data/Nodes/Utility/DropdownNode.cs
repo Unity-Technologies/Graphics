@@ -15,6 +15,8 @@ namespace UnityEditor.ShaderGraph
         internal const int k_MinEnumEntries = 2;
         protected override bool CanPropagateFloatLiteral => true;
 
+        public override string documentationURL => NodeUtils.GetDocumentationString("Dropdown");
+
         public DropdownNode()
         {
             UpdateNodeAfterDeserialization();

@@ -14,6 +14,8 @@ namespace UnityEditor.ShaderGraph
 
         protected override bool CanPropagateFloatLiteral => true;
 
+        public override string documentationURL => NodeUtils.GetDocumentationString("Redirect");
+
         public RedirectNodeData()
         {
             name = "Redirect Node";

@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL => Documentation.GetPageLink("SGNode-Emission");
+        public override string documentationURL => NodeUtils.GetDocumentationString("Emission");
 
         [SerializeField]
         EmissiveIntensityUnit _intensityUnit;
