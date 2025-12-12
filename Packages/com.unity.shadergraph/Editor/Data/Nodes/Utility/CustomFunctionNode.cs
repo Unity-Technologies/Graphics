@@ -21,6 +21,8 @@ namespace UnityEditor.ShaderGraph
 
         public override IEnumerable<int> allowedNodeVersions => new int[] { 1 };
 
+        public override string documentationURL => NodeUtils.GetDocumentationString("Custom Function");
+
         [Serializable]
         public class MinimalCustomFunctionNode : IHasDependencies
         {
