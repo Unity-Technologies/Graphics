@@ -30,6 +30,7 @@ namespace ShaderStrippingAndPrefiltering
             public bool stripUnusedVariants { get; set; }
             public bool stripUnusedPostProcessingVariants { get; set; }
             public bool stripUnusedXRVariants { get; set; }
+            public bool usesDynamicLightmaps { get; set; }
 
             public Shader shader { get; set; }
             public ShaderType shaderType { get; set; }
