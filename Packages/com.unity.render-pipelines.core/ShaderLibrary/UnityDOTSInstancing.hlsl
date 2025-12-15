@@ -294,7 +294,7 @@ void SetupDOTSInstanceSelectMasks() {}
 
 #ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
 CBUFFER_START(unity_DOTSInstancing_IndirectInstanceVisibility)
-    float4 unity_DOTSInstancing_IndirectInstanceVisibilityRaw[4096];
+    float4 unity_DOTSInstancing_IndirectInstanceVisibilityRaw[1024];
 CBUFFER_END
 #else
 ByteAddressBuffer unity_DOTSInstancing_IndirectInstanceVisibility;
