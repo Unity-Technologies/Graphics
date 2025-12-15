@@ -32,6 +32,7 @@
         * [Add inputs and outputs to a Sub Graph](Add-Inputs-Outputs-Sub-Graph.md)
         * [Set default inputs for a Sub Graph](Sub-Graph-Default-Property-Values.md)
         * [Change the behaviour of a Sub Graph](Change-Behaviour-Sub-Graph-Dropdown.md)
+        * [Expose a Sub Graph property in the Inspector window](Sub-Graph-Promote-Property.md)
         * [Sub Graph asset](Sub-graph-Asset.md)
     * [Sticky Notes](Sticky-Notes.md)
     * [Color Modes](Color-Modes.md)
