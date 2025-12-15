@@ -38,7 +38,7 @@ PostProcessing_Linux_Vulkan_Standalone_mono_Linear_trunk:
     agent:
         type: Unity::VM::GPU
         image: desktop/ubuntu-22.04-desktop:v2.5184455
-        flavor: b1.large
+        flavor: b1.xlarge
     variables:
         CUSTOM_REVISION: 'trunk'
         TEST_FILTER: .*
