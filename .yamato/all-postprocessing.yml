@@ -15,6 +15,8 @@ PR_PostProcessing_trunk:
          rerun: always
       -  path: .yamato/postprocessing-osx-metal.yml#PostProcessing_OSX_Metal_playmode_mono_Linear_trunk
          rerun: always
+      -  path: .yamato/postprocessing-osx-metal.yml#PostProcessing_OSX_Metal_Standalone_mono_Linear_trunk
+         rerun: always
       -  path: .yamato/postprocessing-linux-vulkan.yml#PostProcessing_Linux_Vulkan_Standalone_mono_Linear_trunk
          rerun: always
       -  path: .yamato/postprocessing-linux-vulkan.yml#PostProcessing_Linux_Vulkan_playmode_mono_Linear_trunk
