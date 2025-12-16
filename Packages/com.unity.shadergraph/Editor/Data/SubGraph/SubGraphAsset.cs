@@ -87,6 +87,8 @@ namespace UnityEditor.ShaderGraph
 
         public string path;
 
+        public string documentationPath;
+
         public List<FunctionPair> functions = new List<FunctionPair>();
 
         public IncludeCollection includes;

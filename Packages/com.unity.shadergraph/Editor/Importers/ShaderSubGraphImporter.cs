@@ -24,6 +24,9 @@ namespace UnityEditor.ShaderGraph
     [CoreRPHelpURL("Sub-graph", "com.unity.shadergraph")]
     class ShaderSubGraphImporter : ScriptedImporter
     {
+        [SerializeField, HideInInspector]
+        private string documentationPath;
+
         public const string Extension = "shadersubgraph";
 
         [SuppressMessage("ReSharper", "UnusedMember.Local")]
@@ -84,7 +87,7 @@ namespace UnityEditor.ShaderGraph
 
             try
             {
-                ProcessSubGraph(graphAsset, graphData, importLog);
+                ProcessSubGraph(graphAsset, graphData, importLog, documentationPath);
             }
             catch (Exception e)
             {
@@ -169,7 +172,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static void ProcessSubGraph(SubGraphAsset asset, GraphData graph, ShaderGraphImporter.AssetImportErrorLog importLog)
+        static void ProcessSubGraph(SubGraphAsset asset, GraphData graph, ShaderGraphImporter.AssetImportErrorLog importLog, string documentationPath)
         {
             var graphIncludes = new IncludeCollection();
             var registry = new FunctionRegistry(new ShaderStringBuilder(), graphIncludes, true);
@@ -186,6 +189,7 @@ namespace UnityEditor.ShaderGraph
             asset.inputStructName = $"Bindings_{asset.hlslName}_{asset.assetGuid}_$precision";
             asset.functionName = $"SG_{asset.hlslName}_{asset.assetGuid}_$precision";
             asset.path = graph.path;
+            asset.documentationPath = documentationPath;
 
             var outputNode = graph.outputNode;
 

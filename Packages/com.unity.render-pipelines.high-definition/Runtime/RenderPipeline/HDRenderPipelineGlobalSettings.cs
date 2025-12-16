@@ -109,13 +109,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     EditorUtility.SetDirty(diffusionProfileList);
                 }
             }
-
-            if (TryGet(typeof(LookDevVolumeProfileSettings), out var lookDevSettings) &&
-                lookDevSettings is LookDevVolumeProfileSettings lookDevVolumeProfileSettings &&
-                assets != null)
-            {
-                lookDevVolumeProfileSettings.volumeProfile ??= VolumeUtils.CopyVolumeProfileFromResourcesToAssets(assets.lookDevVolumeProfile);
-            }
         }
 
         void SetUpRPAssetIncluded()

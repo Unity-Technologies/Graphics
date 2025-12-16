@@ -12,6 +12,7 @@ Explore nodes that enable color and channel manipulation, mathematical and proce
 | [Input](Input-Nodes.md)                                       | Learn about values, mesh attributes, gradients, matrices, deformation data, PBR parameters, scene information, and texture sampling options. |
 | [Math](Math-Nodes.md)                                         | Learn about mathematical operations.                                                 |
 | [Procedural](Procedural-Nodes.md)                             | Learn about creating patterns, noise textures, and geometric shapes.                                                                         |
+| [SpeedTree](SpeedTree8-SubGraphAssets.md)                     | Learn about using SpeedTree 8 Sub Graph assets |
 | [Utility](Utility-Nodes.md)                                   | Learn about basic preview, sub-graph referencing, and essential logic operations.    |
 | [UV](UV-Nodes.md)                                             | Learn about manipulation and mapping effects, enabling advanced texture animations, coordinate transformations, and warping techniques.      |
 
