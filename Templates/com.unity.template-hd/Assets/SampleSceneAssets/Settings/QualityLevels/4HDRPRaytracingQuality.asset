@@ -19,7 +19,6 @@ MonoBehaviour:
     supportSSAO: 1
     supportSSGI: 0
     supportSubsurfaceScattering: 1
-    subsurfaceScatteringAttenuation: 1
     sssSampleBudget:
       m_Values: 140000002800000050000000
       m_SchemaId:
@@ -35,7 +34,6 @@ MonoBehaviour:
     supportWater: 1
     waterSimulationResolution: 256
     supportWaterExclusion: 0
-    supportWaterHorizontalDeformation: 0
     supportWaterDecals: 1
     waterDecalAtlasSize: 1024
     maximumWaterDecalCount: 48
@@ -52,7 +50,6 @@ MonoBehaviour:
     supportTransparentDepthPostpass: 1
     colorBufferFormat: 48
     supportCustomPass: 1
-    supportVariableRateShading: 1
     customBufferFormat: 12
     supportedLitShaderMode: 2
     planarReflectionResolution:
@@ -315,7 +312,7 @@ MonoBehaviour:
       - 0.5
       - 0.5
     gpuResidentDrawerSettings:
-      mode: 0
+      mode: 1
       smallMeshScreenPercentage: 0
       enableOcclusionCullingInCameras: 0
       useDepthPrepassForOccluders: 1
@@ -549,4 +546,3 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 26bdddf49760c61438938733f07fa2a2, type: 2}
   - {fileID: 11400000, guid: 78322c7f82657514ebe48203160e3f39, type: 2}
   m_PrefilterUseLegacyLightmaps: 0
-  m_PrefilterUseLightmapBicubicSampling: 0

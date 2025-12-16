@@ -4,6 +4,18 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [16.1.2] - 2025-12-08
+
+### Added
+
+- Added Underwater and Caustics for water system. 
+- Added rocks under the outside pier to reveal caustics. 
+
+### Changed
+
+- Fixed punctual lights intensity and spotline inner angles issues after upgrading and rebaked lighting. 
+- Fixed Scene View camera position. 
+
 ## [16.1.1] - 2025-10-04
 
 ### Added
