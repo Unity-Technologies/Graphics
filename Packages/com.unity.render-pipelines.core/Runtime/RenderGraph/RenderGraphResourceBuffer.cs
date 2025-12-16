@@ -137,16 +137,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 graphicsResource.Release();
             base.ReleaseGraphicsResource();
         }
-
-        public override void LogCreation(RenderGraphLogger logger)
-        {
-            logger.LogLine($"Created GraphicsBuffer: {desc.name}");
-        }
-
-        public override void LogRelease(RenderGraphLogger logger)
-        {
-            logger.LogLine($"Released GraphicsBuffer: {desc.name}");
-        }
     }
 
     class BufferPool : RenderGraphResourcePool<GraphicsBuffer>

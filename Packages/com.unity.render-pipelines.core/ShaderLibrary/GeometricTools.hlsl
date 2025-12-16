@@ -1,6 +1,9 @@
 #ifndef UNITY_GEOMETRICTOOLS_INCLUDED
 #define UNITY_GEOMETRICTOOLS_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+
 //-----------------------------------------------------------------------------
 // Transform functions
 //-----------------------------------------------------------------------------
@@ -308,6 +311,11 @@ bool CullTriangleBackFace(float3 p0, float3 p1, float3 p2, float epsilon, float3
 {
     float3 V = viewPos - p0;
     return CullTriangleBackFaceView(p0, p1, p2, epsilon, V, winding);
+}
+
+float AreaOfSphericalCapWithRadiusOne(float cosAngle)
+{
+    return 2.0f * PI * (1.0f - cosAngle);
 }
 
 #endif // UNITY_GEOMETRICTOOLS_INCLUDED

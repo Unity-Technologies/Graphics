@@ -1280,11 +1280,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, frameData, cameraDepthAttachmentFormat, resourceData.overlayUITexture);
                     if (cameraData.blitsOffscreenUICover)
-                    {
-                        var blackTextureDesc = new RenderTextureDescriptor(1, 1, GraphicsFormat.R8G8B8A8_SRGB, 0);
-                        var source = CreateRenderGraphTexture(renderGraph, blackTextureDesc, "BlackTexture", false);
-                        m_OffscreenUICoverPrepass.Render(renderGraph, cameraData, resourceData, source, true);
-                    }
+                        m_OffscreenUICoverPrepass.Render(renderGraph, cameraData, resourceData, renderGraph.defaultResources.blackTexture, true);
                 }
                 else
                 {

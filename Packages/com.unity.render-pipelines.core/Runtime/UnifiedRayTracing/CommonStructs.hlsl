@@ -49,9 +49,13 @@ struct Hit
 
 struct InstanceData
 {
-    float4x4 localToWorld;
-    float4x4 previousLocalToWorld;
-    float4x4 localToWorldNormals;
+    float4x3 localToWorld; // transpose before transforming a vector (or do a left-side multiplication) float3x4 isn't used to avoid wasting space due its column alignment to float4s
+    float localToWorldDeterminant;
+    float localToWorldDetSign;
+    uint padding0;
+    uint padding1;
+    float4x3 previousLocalToWorld; // transpose before transforming a vector (or do a left-side multiplication)
+    float4x3 localToWorldNormals; // cast to float3x3 before use (right-side multiplication to transform a vector)
     uint renderingLayerMask;
     uint instanceMask;
     uint userMaterialID;

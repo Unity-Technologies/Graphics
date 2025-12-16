@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Unity.Mathematics;
 using UnityEngine.Assertions;
 
@@ -57,12 +58,16 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                 throw new System.InvalidOperationException("Failed to allocate geometry data for instance");
             m_GeometryPool.SendGpuCommands();
 
+            float localToWorldDet = meshInstance.localToWorldMatrix.determinant;
+
              m_InstanceBuffer.Set(slotAllocation,
                 new RTInstance
                 {
-                    localToWorld = meshInstance.localToWorldMatrix,
+                    localToWorld = ToFloat4x3(meshInstance.localToWorldMatrix),
+                    localToWorldDeterminant = localToWorldDet,
+                    localToWorldDetSign = localToWorldDet > 0 ? 1.0f : -1.0f,
                     localToWorldNormals = NormalMatrix(meshInstance.localToWorldMatrix),
-                    previousLocalToWorld = meshInstance.localToWorldMatrix,
+                    previousLocalToWorld = ToFloat4x3(meshInstance.localToWorldMatrix),
                     userMaterialID = materialID,
                     instanceMask = meshInstance.mask,
                     renderingLayerMask = renderingLayerMask,
@@ -123,7 +128,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             Assert.IsTrue(success);
 
             var instanceInfo = m_InstanceBuffer.Get(instanceEntry.indexInInstanceBuffer);
-            instanceInfo.localToWorld = localToWorldMatrix;
+            instanceInfo.localToWorld = ToFloat4x3(localToWorldMatrix);
             instanceInfo.localToWorldNormals = NormalMatrix(localToWorldMatrix);
             m_InstanceBuffer.Set(instanceEntry.indexInInstanceBuffer, instanceInfo);
 
@@ -196,20 +201,31 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             return m_Instances.Count;
         }
 
-        static private float4x4 NormalMatrix(float4x4 m)
+        static float4x3 NormalMatrix(float4x4 m)
         {
             float3x3 t = new float3x3(m);
-            return new float4x4(math.inverse(math.transpose(t)), new float3(0.0));
+            var res = math.inverse(math.transpose(t));
+
+            return new float4x3(new float4(res.c0, 0.0f), new float4(res.c1, 0.0f), new float4(res.c2, 0.0f));
+        }
+        static float4x3 ToFloat4x3(in float4x4 m)
+        {
+            return new float4x3(m.c0.x, m.c0.y, m.c0.z, m.c1.x, m.c1.y, m.c1.z, m.c2.x, m.c2.y, m.c2.z, m.c3.x, m.c3.y, m.c3.z);
         }
 
         readonly GeometryPool m_GeometryPool;
         readonly PersistentGpuArray<RTInstance> m_InstanceBuffer = new PersistentGpuArray<RTInstance>(100);
 
+        [StructLayout(LayoutKind.Sequential)]
         public struct RTInstance
         {
-            public float4x4 localToWorld;
-            public float4x4 previousLocalToWorld;
-            public float4x4 localToWorldNormals;
+            public float4x3 localToWorld;
+            public float localToWorldDeterminant;
+            public float localToWorldDetSign;
+            public uint padding0;
+            public uint padding1;
+            public float4x3 previousLocalToWorld;
+            public float4x3 localToWorldNormals;
             public uint renderingLayerMask;
             public uint instanceMask;
             public uint userMaterialID;

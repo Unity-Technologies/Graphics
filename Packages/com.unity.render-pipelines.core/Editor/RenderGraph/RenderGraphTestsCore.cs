@@ -144,7 +144,6 @@ namespace UnityEngine.Rendering.Tests
 
             // Getting the RG from the custom asset pipeline
             m_RenderGraph = m_RenderGraphTestPipeline.renderGraph;
-            m_RenderGraph.nativeRenderPassesEnabled = true;
 
             // Necessary to disable it for the Unit Tests, as the caller is not the same.
             RenderGraph.RenderGraphExceptionMessages.enableCaller = false;

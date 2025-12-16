@@ -3,6 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+#if UNITY_6000_5_OR_NEWER
+using UnityEngine.Assemblies;
+#endif
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -18,8 +21,13 @@ namespace UnityEngine.Rendering.Tests
         /// <returns>The found type</returns>
         public static Type FindTypeByName(string name)
         {
+#if UNITY_6000_5_OR_NEWER
+            var type = CurrentAssemblies
+                .GetLoadedAssemblies()
+#else
             var type = AppDomain.CurrentDomain
                 .GetAssemblies()
+#endif
                 .Select(assembly => assembly.GetType(name))
                 .FirstOrDefault(tt => tt != null);
 

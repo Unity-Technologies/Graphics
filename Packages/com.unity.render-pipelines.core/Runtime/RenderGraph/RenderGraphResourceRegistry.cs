@@ -163,8 +163,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         DynamicArray<RendererListLegacyResource> m_RendererListLegacyResources = new DynamicArray<RendererListLegacyResource>();
 
         RenderGraphDebugParams m_RenderGraphDebug;
-        RenderGraphLogger m_ResourceLogger = new RenderGraphLogger();
-        RenderGraphLogger m_FrameInformationLogger; // Comes from the RenderGraph instance.
         int m_CurrentFrameIndex;
         int m_ExecutionCount;
 
@@ -286,10 +284,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
         }
 
-        internal RenderGraphResourceRegistry(RenderGraphDebugParams renderGraphDebug, RenderGraphLogger frameInformationLogger)
+        internal RenderGraphResourceRegistry(RenderGraphDebugParams renderGraphDebug)
         {
             m_RenderGraphDebug = renderGraphDebug;
-            m_FrameInformationLogger = frameInformationLogger;
 
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
             {
@@ -310,10 +307,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             m_ExecutionCount = executionCount;
             ResourceHandle.NewFrame(executionCount);
-
-            // We can log independently of current execution name since resources are shared across all executions of render graph.
-            if (m_RenderGraphDebug.enableLogging)
-                m_ResourceLogger.Initialize("RenderGraph Resources");
         }
 
         internal void BeginExecute(int currentFrameIndex)
@@ -1018,10 +1011,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if (!resource.imported)
             {
                 resource.CreatePooledGraphicsResource();
-
-                if (m_RenderGraphDebug.enableLogging)
-                    resource.LogCreation(m_FrameInformationLogger);
-
                 executedWork = m_RenderGraphResources[type].createResourceCallback?.Invoke(rgContext, resource);
             }
 
@@ -1089,12 +1078,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if (!resource.imported)
             {
                 m_RenderGraphResources[type].releaseResourceCallback?.Invoke(rgContext, resource);
-
-                if (m_RenderGraphDebug.enableLogging)
-                {
-                    resource.LogRelease(m_FrameInformationLogger);
-                }
-
                 resource.ReleasePooledGraphicsResource(m_CurrentFrameIndex);
             }
         }
@@ -1192,7 +1175,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
-        internal void CreateRendererLists(List<RendererListHandle> rendererLists, ScriptableRenderContext context, bool manualDispatch = false)
+        internal void CreateRendererLists(List<RendererListHandle> rendererLists, ScriptableRenderContext context)
         {
             // We gather the active renderer lists of a frame in a list/array before we pass it in the core API for batch processing
             m_ActiveRendererLists.Clear();
@@ -1225,15 +1208,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 }
 
             }
-
-            if (manualDispatch)
-                context.PrepareRendererListsAsync(m_ActiveRendererLists);
         }
 
         internal void Clear(bool onException)
         {
-            LogResources();
-
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
                 m_RenderGraphResources[i].Clear(onException, m_CurrentFrameIndex);
             m_RendererListResources.Clear();
@@ -1253,28 +1231,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 m_RenderGraphResources[i].Cleanup();
 
             RTHandles.Release(m_CurrentBackbuffer);
-        }
-
-        void LogResources()
-        {
-            if (m_RenderGraphDebug.enableLogging)
-            {
-                m_ResourceLogger.LogLine("==== Render Graph Resource Log ====\n");
-
-                for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
-                {
-                    if (m_RenderGraphResources[type].pool != null)
-                    {
-                        m_RenderGraphResources[type].pool.LogResources(m_ResourceLogger);
-                        m_ResourceLogger.LogLine("");
-                    }
-                }
-            }
-        }
-
-        internal void FlushLogs()
-        {
-            m_ResourceLogger.FlushLogs();
         }
 
         #endregion

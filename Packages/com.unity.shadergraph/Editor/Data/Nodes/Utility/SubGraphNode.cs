@@ -106,14 +106,8 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<string> m_DropdownSelectedEntries = new List<string>();
 
-        public override string documentationURL {
-            get {
-                // TODO: There should be a way for unity authored and distributed subgraphs to provide custom doc links.
-                if (m_SubGraph?.name.Contains("SpeedTree8") ?? false)
-                    return Documentation.GetPageLink("SpeedTree8-SubGraphAssets");
-                else return Documentation.GetPageLink("Sub-graph");
-            }
-        }
+        public override string documentationURL =>
+            Documentation.GetPageLink(string.IsNullOrEmpty(m_SubGraph.documentationPath)? "Sub-graph-Node" : m_SubGraph.documentationPath);
 
         public string subGraphGuid
         {

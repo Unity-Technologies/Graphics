@@ -14,7 +14,6 @@ namespace UnityEditor.Rendering.Tests
         static RenderGraph.DebugData CreateTestDebugData()
         {
             RenderGraph.DebugData debugData = new("TestExecution");
-            debugData.isNRPCompiler = true;
 
             var resourceReadLists = new RenderGraph.DebugData.PassData.ResourceIdLists();
             var resourceWriteLists = new RenderGraph.DebugData.PassData.ResourceIdLists();
@@ -97,7 +96,6 @@ namespace UnityEditor.Rendering.Tests
             var jsonDebugData = RenderGraph.DebugDataSerialization.FromJson(json);
             var jsonPassData = jsonDebugData.passList[0];
 
-            Assert.AreEqual(debugData.isNRPCompiler, jsonDebugData.isNRPCompiler);
             Assert.AreEqual(passData.name, jsonPassData.name);
             Assert.AreEqual(passData.type, jsonPassData.type);
 

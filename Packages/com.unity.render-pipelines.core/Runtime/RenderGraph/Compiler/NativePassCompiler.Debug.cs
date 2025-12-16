@@ -136,8 +136,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         {
             ref var ctx = ref contextData;
 
-            debugData.isNRPCompiler = true;
-
             // Resolve read/write lists per resource
             Dictionary<(RenderGraphResourceType, int), List<int>> resourceReadLists = new Dictionary<(RenderGraphResourceType, int), List<int>>();
             Dictionary<(RenderGraphResourceType, int), List<int>> resourceWriteLists = new Dictionary<(RenderGraphResourceType, int), List<int>>();

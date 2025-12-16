@@ -337,10 +337,6 @@ The **Color monitors** are a set of industry-standard monitors to help artists c
 | **Clear Render Targets When Freed**  | Clears render textures when they're no longer used by render graph.                  |
 | **Disable Pass Culling**             | Disables HDRP culling render passes that have no impact on the final render.         |
 | **Disable Pass Merging**             | Disables HDRP merging render passes.                                                 |
-| **Immediate Mode**                   | Enables the render graph system evaluating passes immediately after it creates them. |
-| **Enable Logging**                   | Enables logging to the **Console** window.                                           |
-| **Log Frame Information**            | Logs how HDRP uses the resources during the frame, in the **Console** window.        |
-| **Log Resources**                    | Logs the resources HDRP uses during the frame, in the **Console** window.            |
 
 The **NVIDIA device debug view** is a panel that displays a list of the current feature states of NVIDIA Deep Learning Super Sampling (DLSS). Each row represents an active screen in which DLSS is running.
 

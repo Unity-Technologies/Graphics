@@ -377,11 +377,11 @@ bool SampleEmissiveMesh(StructuredBuffer<UnifiedRT::InstanceData> instanceList, 
     v3 = UnifiedRT::Internal::FetchVertex(meshInfo, triangleVertexIndices.z);
 
     UnifiedRT::InstanceData instanceInfo = UnifiedRT::GetInstance(instanceIndex);
-    v1.pos = mul(instanceInfo.localToWorld, float4(v1.pos, 1)).xyz;
-    v2.pos = mul(instanceInfo.localToWorld, float4(v2.pos, 1)).xyz;
-    v3.pos = mul(instanceInfo.localToWorld, float4(v3.pos, 1)).xyz;
+    v1.pos = mul(float4(v1.pos, 1), instanceInfo.localToWorld);
+    v2.pos = mul(float4(v2.pos, 1), instanceInfo.localToWorld);
+    v3.pos = mul(float4(v3.pos, 1), instanceInfo.localToWorld);
 
-    float3 geometricNormal = cross(v2.pos - v1.pos, v3.pos - v1.pos);
+    float3 geometricNormal = cross(v2.pos - v1.pos, v3.pos - v1.pos) * instanceInfo.localToWorldDetSign;
 
     // compute the random position
     float3 position = samplePoint.x * v1.pos + samplePoint.y * v2.pos + (1 - samplePoint.x - samplePoint.y) * v3.pos;

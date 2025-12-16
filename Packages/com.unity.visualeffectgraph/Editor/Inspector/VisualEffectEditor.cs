@@ -1505,8 +1505,8 @@ namespace UnityEditor.VFX
             public static readonly GUIContent allowInstancing = EditorGUIUtility.TrTextContent("Allow Instancing", "When enabled, the effect will try to be batched with other of the same type.");
 
             public static readonly GUIContent graphInBundle = EditorGUIUtility.TrTextContent("Exposed properties are hidden in the Inspector when Visual Effect Assets are stored in Asset Bundles.");
-            public static readonly GUIContent play = new GUIContent("Play()");
-            public static readonly GUIContent stop = new GUIContent("Stop()");
+            public static readonly GUIContent play = new GUIContent("Send Play Event");
+            public static readonly GUIContent stop = new GUIContent("Send Stop Event");
 
             static readonly GUIContent[] m_Icons;
 
@@ -1518,6 +1518,7 @@ namespace UnityEditor.VFX
                 Step,
                 Stop
             }
+
             static Contents()
             {
                 m_Icons = new GUIContent[1 + (int)Icon.Stop];
@@ -1533,7 +1534,7 @@ namespace UnityEditor.VFX
                         Debug.LogError("Can't find icon for " + name + " in Styles");
                         continue;
                     }
-                    m_Icons[i] = new GUIContent(texture);
+                    m_Icons[i] = new GUIContent(texture, name);
                 }
             }
 

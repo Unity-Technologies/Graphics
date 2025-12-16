@@ -361,13 +361,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 {
                     var inputPass = passes[passId];
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-                    if (inputPass.type == RenderGraphPassType.Legacy)
-                    {
-                        throw new Exception(RenderGraph.RenderGraphExceptionMessages.UsingLegacyRenderGraph(inputPass.name));
-                    }
-#endif
-
                     // Accessing already existing passData in place in the container through reference to avoid deep copy
                     // Make sure everything is reset and initialized or we will use obsolete data from previous frame
                     ref var ctxPass = ref ctx.passData.ElementAt(passId);
@@ -1170,9 +1163,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 foreach (ref readonly var nativePass in contextData.NativePasses)
                 {
                     // Loop over all created resources by this nrp
-                    var graphPasses = nativePass.GraphPasses(contextData);
-                    foreach (ref readonly var subPass in graphPasses)
+                    for (int passIdx = nativePass.firstGraphPass; passIdx < nativePass.lastGraphPass + 1; ++passIdx)
                     {
+                        ref var subPass = ref contextData.passData.ElementAt(passIdx);
+                        if (subPass.culled)
+                            continue;
+
                         foreach (ref readonly var createdRes in subPass.FirstUsedResources(contextData))
                         {
                             ref var createInfo = ref contextData.UnversionedResourceData(createdRes);
@@ -1189,8 +1185,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 // But to avoid execution errors we still need to create the resource in this case.
 
                                 // Check if it is in the destroy list of any of the subpasses > if yes > memoryless
-                                foreach (ref readonly var subPass2 in graphPasses)
+                                for (int passIdx2 = nativePass.firstGraphPass; passIdx2 < nativePass.lastGraphPass + 1; ++passIdx2)
                                 {
+                                    ref var subPass2 = ref contextData.passData.ElementAt(passIdx2);
+                                    if (subPass2.culled)
+                                        continue;
+
                                     foreach (ref readonly var destroyedRes in subPass2.LastUsedResources(contextData))
                                     {
                                         ref var destInfo = ref contextData.UnversionedResourceData(destroyedRes);

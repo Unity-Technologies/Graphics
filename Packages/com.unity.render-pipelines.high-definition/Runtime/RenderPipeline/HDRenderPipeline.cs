@@ -37,7 +37,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private LensSettings m_LensSettings;
         private SpecularFadeSettings m_SpecularFadeSettings;
         private ColorGradingSettings m_ColorGradingSettings;
-        private RenderGraphSettings m_RenderGraphSettings;
         private RenderingPathFrameSettings m_RenderingPathFrameSettings;
         private CustomPostProcessOrdersSettings m_CustomPostProcessOrdersSettings;
 
@@ -503,7 +502,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LensSettings                    = GraphicsSettings.GetRenderPipelineSettings<LensSettings>();
             m_SpecularFadeSettings            = GraphicsSettings.GetRenderPipelineSettings<SpecularFadeSettings>();
             m_ColorGradingSettings            = GraphicsSettings.GetRenderPipelineSettings<ColorGradingSettings>();
-            m_RenderGraphSettings             = GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>();
             m_RenderingPathFrameSettings      = GraphicsSettings.GetRenderPipelineSettings<RenderingPathFrameSettings>();
             m_CustomPostProcessOrdersSettings = GraphicsSettings.GetRenderPipelineSettings<CustomPostProcessOrdersSettings>();
             runtimeMaterials = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();

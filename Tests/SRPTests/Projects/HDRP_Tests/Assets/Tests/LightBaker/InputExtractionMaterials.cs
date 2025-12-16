@@ -163,7 +163,7 @@ namespace UnityEditor.LightBaking.Tests
             }
         };
 
-        [Test, Category("Graphics"), GraphicsTest(TextureFormat = TextureFormat .RGBAHalf, Extension = "exr")]
+        [Test, Category("Graphics"), GraphicsTest(TextureFormat = TextureFormat.RGBAHalf, ImageExtension = ImageExtension.EXR)]
         public void MetaPassTemplateTests(
             GraphicsTestCase testCase,
             [ValueSource(nameof(metaPassTests))] MetaPassSceneTest metaPassTest

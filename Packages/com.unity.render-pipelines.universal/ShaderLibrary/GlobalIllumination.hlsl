@@ -83,11 +83,9 @@ half3 SampleProbeVolumeVertex(in float3 absolutePositionWS, in float3 normalWS, 
 
 #if defined(EVALUATE_SH_VERTEX) || defined(EVALUATE_SH_MIXED)
     half3 bakedGI;
-    // The screen space position is used for noise, which is irrelevant when doing vertex sampling
-    float2 positionSS = float2(0, 0);
     if (_EnableProbeVolumes)
     {
-        EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, GetMeshRenderingLayer(), bakedGI, probeOcclusion);
+        EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, GetMeshRenderingLayer(), bakedGI, probeOcclusion);
     }
     else
     {

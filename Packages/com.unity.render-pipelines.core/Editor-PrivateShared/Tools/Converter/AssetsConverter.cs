@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering.Converter
 
             if (obj == null)
             {
-                message = $"Failed to load {assetItem.name} Global ID {assetItem.guid} Asset Path {assetItem.assetPath}";
+                message = $"Failed to load {assetItem.name} Global ID {assetItem.GlobalObjectId} Asset Path {assetItem.assetPath}";
                 return Status.Error;
             }
 

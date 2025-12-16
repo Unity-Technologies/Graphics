@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                         m_RendererLists.AddRange(m_RenderPasses[i].usedRendererListList);
                 }
 
-                m_Resources.CreateRendererLists(m_RendererLists, m_RenderGraphContext.renderContext, m_RendererListCulling);
+                m_Resources.CreateRendererLists(m_RendererLists, m_RenderGraphContext.renderContext);
 
                 return nativeCompiler;
             }

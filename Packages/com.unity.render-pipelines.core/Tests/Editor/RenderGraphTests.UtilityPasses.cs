@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.Tests
     {
         class TestBlitResources
         {
+            public TextureHandle backBuffer;
             public TextureHandle[] textures = new TextureHandle[2];
             public Material material;
             public RenderGraphUtils.BlitMaterialParameters blitParameters;
@@ -24,6 +25,14 @@ namespace UnityEngine.Rendering.Tests
             TestBlitResources result = new TestBlitResources();
 
             result.material = new Material(Shader.Find("Hidden/BlitCopy"));
+
+            RenderTargetInfo importInfo = new RenderTargetInfo();
+            importInfo.width = 1024;
+            importInfo.height = 768;
+            importInfo.volumeDepth = 1;
+            importInfo.msaaSamples = 1;
+            importInfo.format = GraphicsFormat.R16G16B16A16_SFloat;
+            result.backBuffer = g.ImportBackbuffer(0, importInfo);
 
             for (int i = 0; i < result.textures.Length; i++)
             {
@@ -147,14 +156,14 @@ namespace UnityEngine.Rendering.Tests
         public void RenderPassAddBlitBackbufferTarget()
         {
             var resources = CreateBlitResources(m_RenderGraph);
-            resources.blitParameters.destination = m_RenderGraph.ImportBackbuffer(0);
+            resources.blitParameters.destination = resources.backBuffer;
             
             // Using a backbuffer as destination is allowed
             Assert.DoesNotThrow(delegate { m_RenderGraph.AddBlitPass(resources.blitParameters, "BlitPassBackbufferTarget0"); });
             Assert.DoesNotThrow(delegate { m_RenderGraph.AddBlitPass(resources.blitParameters.source, resources.blitParameters.destination, Vector2.one, Vector2.zero, passName: "BlitPassBackbufferTarget1"); });
             
             resources.blitParameters.destination = resources.textures[1];
-            resources.blitParameters.source = m_RenderGraph.ImportBackbuffer(0);
+            resources.blitParameters.source = resources.backBuffer;
             
             // Using a backbuffer as source is not allowed and throws an exception
             Assert.Throws<System.ArgumentException>(() =>

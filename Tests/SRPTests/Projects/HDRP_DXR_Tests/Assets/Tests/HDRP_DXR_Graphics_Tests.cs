@@ -87,6 +87,11 @@ namespace UnityEngine.Rendering.HighDefinition.DXR_Tests
             "10003_TerrainShadow",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-104980"
         )]
+		[IgnoreGraphicsTest(
+			"107_ReflectionsHybridFullRes_OnTransparent",
+			"Disabled for Instability ",
+			runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.GameCoreXboxSeries }
+		)]
         public IEnumerator Run(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);

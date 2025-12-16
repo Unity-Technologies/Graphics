@@ -12,17 +12,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public bool clearRenderTargetsAtRelease;
         public bool disablePassCulling;
         public bool disablePassMerging;
-        public bool immediateMode;
-        public bool logFrameInformation;
-        public bool logResources;
-
-        public bool enableLogging => logFrameInformation || logResources;
-
-        public void ResetLogging()
-        {
-            logFrameInformation = false;
-            logResources = false;
-        }
 
         internal void Reset()
         {
@@ -30,9 +19,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
             clearRenderTargetsAtRelease = false;
             disablePassCulling = false;
             disablePassMerging = false;
-            immediateMode = false;
-
-            ResetLogging();
         }
 
         private static class Strings
@@ -41,10 +27,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
             public static readonly NameAndTooltip ClearRenderTargetsAtFree = new() { name = "Clear Render Targets When Freed", tooltip = "Enable to clear all render textures when textures are freed by the graph to detect use after free of textures." };
             public static readonly NameAndTooltip DisablePassCulling = new() { name = "Disable Pass Culling", tooltip = "Enable to temporarily disable culling to assess if a pass is culled." };
             public static readonly NameAndTooltip DisablePassMerging = new() { name = "Disable Pass Merging", tooltip = "Enable to temporarily disable pass merging to diagnose issues or analyze performance." };
-            public static readonly NameAndTooltip ImmediateMode = new() { name = "Immediate Mode", tooltip = "Enable to force render graph to execute all passes in the order you registered them." };
-            public static readonly NameAndTooltip EnableLogging = new() { name = "Enable Logging", tooltip = "Enable to allow HDRP to capture information in the log." };
-            public static readonly NameAndTooltip LogFrameInformation = new() { name = "Log Frame Information", tooltip = "Enable to log information output from each frame." };
-            public static readonly NameAndTooltip LogResources = new() { name = "Log Resources", tooltip = "Enable to log the current render graph's global resource usage." };
         }
 
         internal List<DebugUI.Widget> GetWidgetList(string name)
@@ -81,49 +63,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
                             nameAndTooltip = Strings.DisablePassMerging,
                             getter = () => disablePassMerging,
                             setter = value => disablePassMerging = value,
-                            isHiddenCallback = () => !RenderGraph.hasAnyRenderGraphWithNativeRenderPassesEnabled
-                        },
-                        new DebugUI.BoolField
-                        {
-                            nameAndTooltip = Strings.ImmediateMode,
-                            getter = () => immediateMode,
-                            setter = value => immediateMode = value,
-                            // [UUM-64948] Temporarily disable for URP while we implement support for Immediate Mode in the RenderGraph
-                            isHiddenCallback = () => !IsImmediateModeSupported()
-                        },
-                        new DebugUI.Button
-                        {
-                            nameAndTooltip = Strings.LogFrameInformation,
-                            action = () =>
-                            {
-                                logFrameInformation = true;
-#if UNITY_EDITOR
-                                UnityEditor.SceneView.RepaintAll();
-#endif
-                            }
-                        },
-                        new DebugUI.Button
-                        {
-                            nameAndTooltip = Strings.LogResources,
-                            action = () =>
-                            {
-                                logResources = true;
-#if UNITY_EDITOR
-                                UnityEditor.SceneView.RepaintAll();
-#endif
-                            }
                         }
                     }
                 }
             };
 
             return list;
-        }
-
-        private bool IsImmediateModeSupported()
-        {
-            return GraphicsSettings.currentRenderPipeline is IRenderGraphEnabledRenderPipeline rgPipeline &&
-                   rgPipeline.isImmediateModeSupported;
         }
 
         public void RegisterDebug(string name, DebugUI.Panel debugPanel = null)
@@ -152,9 +97,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 return clearRenderTargetsAtCreation ||
                        clearRenderTargetsAtRelease ||
                        disablePassCulling ||
-                       disablePassMerging ||
-                       immediateMode ||
-                       enableLogging;
+                       disablePassMerging;
             }
         }
     }

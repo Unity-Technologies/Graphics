@@ -1,6 +1,8 @@
 #ifndef UNITY_FIBONACCI_INCLUDED
 #define UNITY_FIBONACCI_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
 #if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH || SHADER_API_SWITCH2 || defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL)
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif

@@ -317,9 +317,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var analyticDerivative = GetOrCreateGraphicsSettings<AnalyticDerivativeSettings>(data);
             analyticDerivative.debugOutput = data.analyticDerivativeDebugOutput;
             analyticDerivative.emulation = data.analyticDerivativeEmulation;
-
-            var renderGraphSettings = GetOrCreateGraphicsSettings<RenderGraphSettings>(data);
-            renderGraphSettings.dynamicRenderPassCullingEnabled = data.rendererListCulling;
 #pragma warning restore 618
         }
 

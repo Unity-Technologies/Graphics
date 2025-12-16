@@ -103,20 +103,6 @@ namespace UnityEditor.Rendering.HighDefinition.Test.GlobalSettingsMigration
             }
         }
 
-        class DynamicRenderPassCullingSettingsMigrationTestCase : HDRPMiscMigrationTestCase<RenderGraphSettings>
-        {
-            public override void SetUpMisc(HDRenderPipelineGlobalSettings globalSettingsAsset)
-            {
-                globalSettingsAsset.rendererListCulling = true;
-            }
-
-            public override bool IsMiscSettingsMigrationCorrect(RenderGraphSettings settings, out string message)
-            {
-                message = string.Empty;
-                return settings.dynamicRenderPassCullingEnabled;
-            }
-        }
-
         static TestCaseData[] s_TestCaseDatas =
         {
             new TestCaseData(new AnalyticDerivativeSettingsMigrationTestCase())
@@ -129,8 +115,6 @@ namespace UnityEditor.Rendering.HighDefinition.Test.GlobalSettingsMigration
                 .SetName("When performing a migration of ColorGradingSettings, settings are being transferred correctly"),
             new TestCaseData(new SpecularFadeSettingsMigrationTestCase())
                 .SetName("When performing a migration of SpecularFade, settings are being transferred correctly"),
-            new TestCaseData(new DynamicRenderPassCullingSettingsMigrationTestCase())
-                .SetName("When performing a migration of DynamicRenderPassCullingSettings, settings are being transferred correctly"),
         };
 
         [Test, TestCaseSource(nameof(s_TestCaseDatas))]

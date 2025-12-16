@@ -319,7 +319,8 @@ namespace UnityEngine.PathTracing.Tests
             // Check that transform was updated
             var instancesArray = new AccelStructInstances.RTInstance[1];
             instanceBuffer.GetData(instancesArray);
-            Assert.AreEqual((float4x4)newLocalToWorld, instancesArray[0].localToWorld);
+            var m = math.transpose(instancesArray[0].localToWorld);
+            Assert.AreEqual((float4x4)newLocalToWorld, new float4x4(new float3x3(m.c0, m.c1, m.c2), m.c3));
         }
     }
 }

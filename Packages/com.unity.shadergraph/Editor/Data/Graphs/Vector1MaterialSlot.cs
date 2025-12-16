@@ -4,7 +4,6 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
@@ -117,11 +116,15 @@ namespace UnityEditor.ShaderGraph
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {
-            var slot = foundSlot as Vector1MaterialSlot;
-            if (slot != null)
+            if (foundSlot is IMaterialSlotSupportsLiteralMode literal)
+                LiteralMode = literal.LiteralMode;
+
+            switch(foundSlot)
             {
-                value = slot.value;
-                LiteralMode = slot.LiteralMode;
+                case IMaterialSlotHasValue<float> slot1: value = slot1.value; break;
+                case IMaterialSlotHasValue<Vector2> slot2: value = slot2.value.x; break;
+                case IMaterialSlotHasValue<Vector3> slot3: value = slot3.value.x; break;
+                case IMaterialSlotHasValue<Vector4> slot4: value = slot4.value.x; break;
             }
         }
 

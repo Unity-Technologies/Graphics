@@ -274,6 +274,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [IgnoreGraphicsTest("9601_SkinnedMeshBatching-Off$", "Outdated ref-image.")]
         [IgnoreGraphicsTest("9602_SkinnedMeshBatching-On$", "Outdated ref-image.")]
         [IgnoreGraphicsTest(
+            "9701_CustomPass_DrawRenderers",
+            "Unstable - see https://jira.unity3d.com/browse/UUM-130183",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }
+        )]
+        [IgnoreGraphicsTest(
             "9703_SampleColorBuffer_InjectionPoints_Scaling$",
             "Small differences in texture-sampling. Could be related to the forced-trilinear issue?",
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }
@@ -335,6 +340,31 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [IgnoreGraphicsTest(
             "4109_DRS-FSR2-AfterPost",
             "Graphics devices type not supported", // FSR is DX12/DX11/Vulkan on PC-only
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.PlayStation4, GraphicsDeviceType.XboxOne, GraphicsDeviceType.OpenGLCore, GraphicsDeviceType.Switch, GraphicsDeviceType.XboxOneD3D12, GraphicsDeviceType.GameCoreXboxOne, GraphicsDeviceType.GameCoreXboxSeries, GraphicsDeviceType.PlayStation5, GraphicsDeviceType.PlayStation5NGGC, GraphicsDeviceType.WebGPU, GraphicsDeviceType.Switch2 }
+        )]
+        [IgnoreGraphicsTest(
+            "4110_DRS-FSR2-With-CustomPass",
+            "Graphics devices type not supported", // FSR is DX12/DX11/Vulkan on PC-only
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.PlayStation4, GraphicsDeviceType.XboxOne, GraphicsDeviceType.OpenGLCore, GraphicsDeviceType.Switch, GraphicsDeviceType.XboxOneD3D12, GraphicsDeviceType.GameCoreXboxOne, GraphicsDeviceType.GameCoreXboxSeries, GraphicsDeviceType.PlayStation5, GraphicsDeviceType.PlayStation5NGGC, GraphicsDeviceType.WebGPU, GraphicsDeviceType.Switch2 }
+        )]
+        [IgnoreGraphicsTest(
+            "4088_DRS-DLSS-Hardware",
+            "Platform not supported", // DLSS is DX12/DX11/Vulkan on PC-only
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.PlayStation4, GraphicsDeviceType.XboxOne, GraphicsDeviceType.OpenGLCore, GraphicsDeviceType.Switch, GraphicsDeviceType.XboxOneD3D12, GraphicsDeviceType.GameCoreXboxOne, GraphicsDeviceType.GameCoreXboxSeries, GraphicsDeviceType.PlayStation5, GraphicsDeviceType.PlayStation5NGGC, GraphicsDeviceType.WebGPU, GraphicsDeviceType.Switch2 }
+        )]
+        [IgnoreGraphicsTest(
+            "4089_DRS-DLSS-Software",
+            "Platform not supported", // DLSS is DX12/DX11/Vulkan on PC-only
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.PlayStation4, GraphicsDeviceType.XboxOne, GraphicsDeviceType.OpenGLCore, GraphicsDeviceType.Switch, GraphicsDeviceType.XboxOneD3D12, GraphicsDeviceType.GameCoreXboxOne, GraphicsDeviceType.GameCoreXboxSeries, GraphicsDeviceType.PlayStation5, GraphicsDeviceType.PlayStation5NGGC, GraphicsDeviceType.WebGPU, GraphicsDeviceType.Switch2 }
+        )]
+        [IgnoreGraphicsTest(
+            "4103_DRS-DLSS-AfterPost",
+            "Graphics devices type not supported", // DLSS is DX12/DX11/Vulkan on PC-only
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.PlayStation4, GraphicsDeviceType.XboxOne, GraphicsDeviceType.OpenGLCore, GraphicsDeviceType.Switch, GraphicsDeviceType.XboxOneD3D12, GraphicsDeviceType.GameCoreXboxOne, GraphicsDeviceType.GameCoreXboxSeries, GraphicsDeviceType.PlayStation5, GraphicsDeviceType.PlayStation5NGGC, GraphicsDeviceType.WebGPU, GraphicsDeviceType.Switch2 }
+        )]
+        [IgnoreGraphicsTest(
+            "4111_DRS-DLSS-With-CustomPass",
+            "Graphics devices type not supported", // DLSS is DX12/DX11/Vulkan on PC-only
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.PlayStation4, GraphicsDeviceType.XboxOne, GraphicsDeviceType.OpenGLCore, GraphicsDeviceType.Switch, GraphicsDeviceType.XboxOneD3D12, GraphicsDeviceType.GameCoreXboxOne, GraphicsDeviceType.GameCoreXboxSeries, GraphicsDeviceType.PlayStation5, GraphicsDeviceType.PlayStation5NGGC, GraphicsDeviceType.WebGPU, GraphicsDeviceType.Switch2 }
         )]
         public IEnumerator Run(SceneGraphicsTestCase testCase)

@@ -2,7 +2,7 @@
 
 The Sample Texture 3D node samples a **Texture 3D** asset and returns a **Vector 4** color value. You can specify the **UV** coordinates for a texture sample and use a [Sampler State node](Sampler-State-Node.md) to define a specific Sampler State.
 
-For more information about Texture 3D assets, see [3D textures](https://docs.unity3d.com/Manual/class-Texture3D.html) in the Unity User manual.
+For more information about Texture 3D assets, refer to [3D textures](https://docs.unity3d.com/Manual/class-Texture3D.html) in the Unity User manual.
 
 [!include[nodes-sample-errors](./snippets/sample-nodes/nodes-sample-errors.md)]
 
@@ -34,30 +34,11 @@ The Sample Texture 3D [!include[nodes-inputs](./snippets/nodes-inputs.md)]
 
 The Sample Texture 3D [!include[nodes-additional-settings](./snippets/nodes-additional-settings.md)]
 
-<table>
-<thead>
-<tr>
-<th><strong>Name</strong></th>
-<th><strong>Type</strong></th>
-<th colspan="2"><strong>Description</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td rowspan="3"><strong>Mip Sampling Mode</strong></td>
-<td rowspan="3">Dropdown</td>
-<td colspan="2">Choose the sampling mode that the Sample Texture 3D node uses to calculate the mip level of the texture. </td>
-</tr>
-<tr>
-<td><strong>Standard</strong></td>
-<td>The mip is calculated and selected automatically for the texture.</td>
-</tr>
-<tr>
-<td><strong>LOD</strong></td>
-<td>Set an explicit mip for the texture. The texture will always use this mip, regardless of the DDX or DDY calculations between pixels. If the <strong>Mip Sampling Mode</strong> is set to <strong>LOD</strong>, you can connect the node to a Block node in the <strong>Vertex</strong> Context. For more information on Block nodes and Contexts, see <a href="Master-Stack.md">Master Stack</a>.</td>
-</tr>
-</tbody>
-</table>
+| Name | Type | Option | Description |
+|---|---|---|---|
+| Mip Sampling Mode | Dropdown | N/A | Choose the sampling mode that the Sample Texture 3D node uses to calculate the mip level of the texture. |
+| N/A | N/A | Standard | The mip is calculated and selected automatically for the texture. |
+| N/A | N/A | LOD | Set an explicit mip for the texture. The texture will always use this mip, regardless of the DDX or DDY calculations between pixels. If the Mip Sampling Mode is set to LOD, you can connect the node to a Block node in the Vertex Context. For more information on Block nodes and Contexts, refer to [Master Stack](Master-Stack.md). |
 
 ## Outputs
 

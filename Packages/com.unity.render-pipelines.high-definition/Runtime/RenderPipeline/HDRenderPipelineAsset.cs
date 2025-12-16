@@ -27,6 +27,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <inheritdoc/>
         public override string renderPipelineShaderTag => HDRenderPipeline.k_ShaderTagName;
 
+        /// <inheritdoc/>
+        protected override bool requiresCompatibleRenderPipelineGlobalSettings => true;
+
         [System.NonSerialized]
         internal bool isInOnValidateCall = false;
 

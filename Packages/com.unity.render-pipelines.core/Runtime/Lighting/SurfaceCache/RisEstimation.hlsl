@@ -157,7 +157,7 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
     matPoolParams.atlasTexelSize = _MaterialAtlasTexelSize;
     matPoolParams.albedoBoost = _AlbedoBoost;
 
-    const float3 radianceSample = SampleIncomingRadianceAssumingLambertianBrdf(
+    const float3 radianceSample = IncomingEnviromentAndDirectionalBounceAndMultiBounceRadiance(
         dispatchInfo,
         accelStruct,
         ray,
@@ -178,7 +178,7 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
     // If we hit the backface of a water-tight piece of geometry we do nothing. This is to prevent accumulating "false" darkness
     // which can give artifacts if a patch reappears after temporarily being inside moving geometry.
     // If we hit the backface of geometry which is not water tight, then this most likely a user authoring problem.
-    if (all(radianceSample != invalidRadianceSample))
+    if (all(radianceSample != invalidRadiance))
     {
         float luminance = dot(radianceSample, float3(0.2126f, 0.7152f, 0.0722f));
         SphericalHarmonics::ScalarL2 luminanceEstimate = EstimateFromLuminanceSample(luminance, reservoir.sample.direction);

@@ -90,6 +90,7 @@ To set a custom color for a node, right-click on the target node to bring up the
 
 For each project, you can customize the predefined color modes according to your needs.
 
+<a name="override-category-and-precision-default-colors"></a>
 ### Override the Category and Precision default colors
 
 You can override preset colors in the **Category** and **Precision** modes. Unity uses a `.uss` style sheet and Hex color codes to set colors. The default style sheet in your project is  `Packages/com.unity.shadergraph/Editor/Resources/Styles/ColorMode.uss`.

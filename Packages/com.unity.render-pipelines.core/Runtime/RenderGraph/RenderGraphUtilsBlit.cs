@@ -91,9 +91,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             if (!source.IsValid() || !destination.IsValid())
                 return false;
 
-            if (!graph.nativeRenderPassesEnabled)
-                return false;
-
             var sourceInfo = graph.GetRenderTargetInfo(source);
             var destinationInfo = graph.GetRenderTargetInfo(destination);
 
@@ -158,9 +155,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             [CallerLineNumber] int line = 0)
 #endif
         {
-            if (!graph.nativeRenderPassesEnabled)
-                throw new ArgumentException("CopyPass only supported for native render pass. Please use the blit functions instead for non native render pass platforms.");
-
             var sourceInfo = graph.GetRenderTargetInfo(source);
             var destinationInfo = graph.GetRenderTargetInfo(destination);
 

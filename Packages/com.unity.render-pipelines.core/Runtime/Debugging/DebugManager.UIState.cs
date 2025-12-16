@@ -130,7 +130,11 @@ namespace UnityEngine.Rendering
             }
 #else
             get => false;
-            set => throw new NotSupportedException("Rendering Debugger Runtime UI requires the ugui package.");
+            set
+            {
+                if (value)
+                    throw new NotSupportedException("Rendering Debugger Runtime UI requires the ugui package.");
+            }
 #endif
         }
 
@@ -156,7 +160,11 @@ namespace UnityEngine.Rendering
             }
 #else
             get => false;
-            set => throw new NotSupportedException("Rendering Debugger Runtime UI requires the ugui package.");
+            set
+            {
+                if (value)
+                    throw new NotSupportedException("Rendering Debugger Runtime UI requires the ugui package.");
+            }
 #endif
         }
     }

@@ -24,6 +24,13 @@ struct Light
 #define CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK
 #endif
 
+
+#if defined(UNITY_PLATFORM_META_QUEST) && META_QUEST_LIGHTUNROLL
+	#define UNROLL_ONELIGHT [unroll(1)]
+#else
+	#define UNROLL_ONELIGHT
+#endif
+
 #if USE_CLUSTER_LIGHT_LOOP
     #define LIGHT_LOOP_BEGIN(lightCount) { \
     uint lightIndex; \
@@ -34,6 +41,7 @@ struct Light
     #define LIGHT_LOOP_END } }
 #else
     #define LIGHT_LOOP_BEGIN(lightCount) \
+    UNROLL_ONELIGHT \
     for (uint lightIndex = 0u; lightIndex < lightCount; ++lightIndex) {
     #define LIGHT_LOOP_END }
 #endif

@@ -106,7 +106,7 @@ HitGeomAttributes FetchHitGeomAttributesInWorldSpace(UnifiedRT::InstanceData ins
     UnifiedRT::HitGeomAttributes res = UnifiedRT::FetchHitGeomAttributes(hit);
 
     HitGeomAttributes wsRes = res;
-    wsRes.position = mul(instanceInfo.localToWorld, float4(res.position, 1)).xyz;
+    wsRes.position = mul(float4(res.position, 1), instanceInfo.localToWorld);
     wsRes.normal = normalize(mul((float3x3)instanceInfo.localToWorldNormals, res.normal));
     wsRes.faceNormal = normalize(mul((float3x3)instanceInfo.localToWorldNormals, res.faceNormal));
 

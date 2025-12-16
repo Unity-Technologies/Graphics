@@ -42,9 +42,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
             // Compilation hash of the render graph that produced this DebugData.
             public int graphHash;
 
-            // If true, the data was output by NRP compiler, in which case PassData.nrpInfo is available.
-            public bool isNRPCompiler;
-
             [Serializable]
             public class ResourceLists<T>
             {

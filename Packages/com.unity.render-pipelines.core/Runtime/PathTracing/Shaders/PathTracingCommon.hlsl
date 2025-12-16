@@ -149,8 +149,8 @@ PTHitGeom GetHitGeomInfo(UnifiedRT::InstanceData instanceInfo, UnifiedRT::Hit hi
     UnifiedRT::HitGeomAttributes attributes = UnifiedRT::FetchHitGeomAttributes(hit);
 
     PTHitGeom res;
-    res.worldPosition = mul(instanceInfo.localToWorld, float4(attributes.position, 1)).xyz;
-    res.lastWorldPosition = mul(instanceInfo.previousLocalToWorld, float4(attributes.position, 1)).xyz;
+    res.worldPosition = mul(float4(attributes.position, 1), instanceInfo.localToWorld).xyz;
+    res.lastWorldPosition = mul(float4(attributes.position, 1), instanceInfo.previousLocalToWorld);
     res.worldNormal = normalize(mul((float3x3)instanceInfo.localToWorldNormals, attributes.normal));
     res.worldFaceNormal = mul((float3x3)instanceInfo.localToWorldNormals, attributes.faceNormal);
     res.uv0 = attributes.uv0.xy;
@@ -159,7 +159,7 @@ PTHitGeom GetHitGeomInfo(UnifiedRT::InstanceData instanceInfo, UnifiedRT::Hit hi
 
     // compute the area of the hit point (used for MIS)
     float l = length(res.worldFaceNormal);
-    res.triangleArea = 0.5 * determinant(instanceInfo.localToWorld) * l;
+    res.triangleArea = 0.5 * instanceInfo.localToWorldDeterminant * l;
 
     // normalize the face normal
     if (l > 0)

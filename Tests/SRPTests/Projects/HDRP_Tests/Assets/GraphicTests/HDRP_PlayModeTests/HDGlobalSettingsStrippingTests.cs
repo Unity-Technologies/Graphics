@@ -14,7 +14,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [TestCase(typeof(RenderingPathFrameSettings), true)]
         [TestCase(typeof(LensSettings), true)]
         [TestCase(typeof(ColorGradingSettings), true)]
-        [TestCase(typeof(RenderGraphSettings), true)]
         [TestCase(typeof(SpecularFadeSettings), true)]
         [TestCase(typeof(AnalyticDerivativeSettings), true)]
         [TestCase(typeof(CustomPostProcessOrdersSettings), true)]

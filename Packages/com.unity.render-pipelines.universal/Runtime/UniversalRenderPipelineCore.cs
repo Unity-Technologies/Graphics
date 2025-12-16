@@ -977,6 +977,11 @@ namespace UnityEngine.Rendering.Universal
         public static GlobalKeyword LinearToSRGBConversion;
         public static GlobalKeyword _ENABLE_ALPHA_OUTPUT;
         public static GlobalKeyword ForwardPlus; // Backward compatibility. Deprecated in 6.1.
+
+#if UNITY_META_QUEST
+        public static GlobalKeyword META_QUEST_LIGHTUNROLL;
+#endif
+
         // TODO: Move following keywords to Local keywords?
         // https://docs.unity3d.com/ScriptReference/Rendering.LocalKeyword.html
         //public static GlobalKeyword TonemapACES;
@@ -1090,6 +1095,10 @@ namespace UnityEngine.Rendering.Universal
             ShaderGlobalKeywords.LinearToSRGBConversion = GlobalKeyword.Create(ShaderKeywordStrings.LinearToSRGBConversion);
             ShaderGlobalKeywords._ENABLE_ALPHA_OUTPUT = GlobalKeyword.Create(ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT);
             ShaderGlobalKeywords.ForwardPlus = GlobalKeyword.Create(ShaderKeywordStrings.ForwardPlus); // Backward compatibility. Deprecated in 6.1.
+#if UNITY_META_QUEST
+            ShaderGlobalKeywords.META_QUEST_LIGHTUNROLL = GlobalKeyword.Create(ShaderKeywordStrings.META_QUEST_LIGHTUNROLL);
+#endif
+
         }
     }
 
@@ -1421,6 +1430,11 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Deprecated keyword. Use ClusterLightLoop instead. </summary>
         internal const string ForwardPlus = "_FORWARD_PLUS"; // Backward compatibility. Deprecated in 6.1.
+
+#if UNITY_META_QUEST
+        /// <summary> Unroll light loop if there is only one additional light on Meta Quest device . </summary>
+        internal const string META_QUEST_LIGHTUNROLL = "META_QUEST_LIGHTUNROLL";
+#endif
 
         /// <summary> Keyword used for Multi Sampling Anti-Aliasing (MSAA) with 2 per pixel sample count. </summary>
         public const string Msaa2 = "_MSAA_2";

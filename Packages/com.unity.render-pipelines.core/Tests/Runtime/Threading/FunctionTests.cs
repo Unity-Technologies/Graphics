@@ -180,7 +180,8 @@ class ThreadingEmulationFunctionTests : IPrebuildSetup
     }
 
     [Test]
-    [UnityPlatform(exclude = new[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WSAPlayerX64, RuntimePlatform.WindowsPlayer })] //https://jira.unity3d.com/browse/UUM-78016
+    // [UnityPlatform(exclude = new[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WSAPlayerX64, RuntimePlatform.WindowsPlayer })] //https://jira.unity3d.com/browse/UUM-78016
+    [Ignore("Unstable: https://jira.unity3d.com/browse/UUM-111743")]
     public void WaveTest([Values]Kernel kernel, [Values]WaveSizeKeyword waveSizeKeyword)
     {
         int groupSize = (int)GroupSizeKeyword.GROUP_SIZE_128;
@@ -219,6 +220,7 @@ class ThreadingEmulationFunctionTests : IPrebuildSetup
     }
 
     [Test]
+    [Ignore("Unstable: https://jira.unity3d.com/browse/UUM-111743")]
     public void GroupTest([Values]Kernel kernel, [Values]GroupSizeKeyword groupSizeKeyword)
     {
         int groupSize = (int)groupSizeKeyword;

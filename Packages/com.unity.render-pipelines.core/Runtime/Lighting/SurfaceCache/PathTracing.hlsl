@@ -1,9 +1,13 @@
-#include "Common.hlsl"
-#include "PatchUtil.hlsl"
+#ifndef SURFACE_CACHE_PATH_TRACING
+#define SURFACE_CACHE_PATH_TRACING
+
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/MaterialPool/MaterialPool.hlsl"
+#include "Common.hlsl"
+#include "PatchUtil.hlsl"
+#include "PunctualLightSample.hlsl"
 
 struct SurfaceGeometry
 {
@@ -13,12 +17,21 @@ struct SurfaceGeometry
     float2 uv1;
 };
 
+bool IsValidSample(bool isFrontFace)
+{
+    // If we hit backface geometry then we assume that a patch is inside geometry. In this case we
+    // effectively pause the update process by skipping samples to prevent accumulating "irrelevant"
+    // darkness which can give artifacts if/when a patch reappears after temporarily being inside
+    // moving geometry.
+    return isFrontFace;
+}
+
 SurfaceGeometry FetchSurfaceGeometry(UnifiedRT::InstanceData instanceInfo, UnifiedRT::Hit hit)
 {
     UnifiedRT::HitGeomAttributes attributes = UnifiedRT::FetchHitGeomAttributes(hit);
 
     SurfaceGeometry res;
-    res.position = mul(instanceInfo.localToWorld, float4(attributes.position, 1)).xyz;
+    res.position = mul(float4(attributes.position, 1), instanceInfo.localToWorld);
     res.normal = normalize(mul((float3x3)instanceInfo.localToWorldNormals, attributes.faceNormal));
     res.uv0 = attributes.uv0.xy;
     res.uv1 = attributes.uv1.xy;
@@ -29,9 +42,9 @@ SurfaceGeometry FetchSurfaceGeometry(UnifiedRT::InstanceData instanceInfo, Unifi
 struct MaterialPoolParamSet
 {
     StructuredBuffer<MaterialPool::MaterialEntry> materialEntries;
-    Texture2DArray<float4> albedoTextures;
-    Texture2DArray<float4> transmissionTextures;
-    Texture2DArray<float4> emissionTextures;
+    Texture2DArray albedoTextures;
+    Texture2DArray transmissionTextures;
+    Texture2DArray emissionTextures;
     SamplerState emissionSampler;
     SamplerState albedoSampler;
     SamplerState transmissionSampler;
@@ -39,9 +52,89 @@ struct MaterialPoolParamSet
     float albedoBoost;
 };
 
-static const float3 invalidRadianceSample = float3(-1.0f, -1.0f, -1.0f);
+static const float3 invalidRadiance = float3(-1.0f, -1.0f, -1.0f);
 
-float3 SampleOutgoingRadianceAssumingLambertianBrdf(
+struct PunctualLightBounceRadianceSample
+{
+    float3 direction;
+    float3 radianceOverDensity; // L_i(X_i) / p(X_i)
+
+    void MarkInvalid()
+    {
+        radianceOverDensity = -1.0f;
+    }
+
+    bool IsValid()
+    {
+        return !all(radianceOverDensity == -1.0f);
+    }
+};
+
+PunctualLightBounceRadianceSample SamplePunctualLightBounceRadiance(
+    UnifiedRT::DispatchInfo dispatchInfo,
+    UnifiedRT::RayTracingAccelStruct accelStruct,
+    StructuredBuffer<PunctualLightSample> punctualLightSamples,
+    uint punctualLightSampleCount,
+    float uniformRand,
+    float3 spotLightIntensity,
+    float3 position,
+    float3 normal)
+{
+    PunctualLightBounceRadianceSample result = (PunctualLightBounceRadianceSample)0;
+
+    PunctualLightSample punctualLightSample = punctualLightSamples[min(punctualLightSampleCount, uniformRand * punctualLightSampleCount)];
+    if (punctualLightSample.HasHit())
+    {
+        const float epsilon = 0.01f;
+        const float planeDistance = dot(normal, punctualLightSample.hitPos - position);
+        if (epsilon < planeDistance) // Light sample hit point must be "in front" of the patch.
+        {
+            UnifiedRT::Ray reconnectionRay;
+            reconnectionRay.origin = OffsetRayOrigin(position, normal);
+            reconnectionRay.direction = normalize(punctualLightSample.hitPos - position);
+            reconnectionRay.tMin = 0;
+            reconnectionRay.tMax = FLT_MAX;
+            UnifiedRT::Hit reconnectionResult = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, reconnectionRay, UnifiedRT::kRayFlagNone);
+
+            if (!IsValidSample(reconnectionResult.isFrontFace))
+            {
+                result.MarkInvalid();
+            }
+            else
+            {
+                if (reconnectionResult.IsValid() &&
+                    reconnectionResult.instanceID == punctualLightSample.hitInstanceId &&
+                    reconnectionResult.primitiveIndex == punctualLightSample.hitPrimitiveIndex)
+                {
+                    result.direction = reconnectionRay.direction;
+                    #if 0 // readable version
+                    const float bounceCosTerm = dot(-punctualLightSample.dir, punctualLightSample.hitNormal);
+                    const float bounceSolidAngleToAreaJacobian = 1.0f / (punctualLightSample.distance * punctualLightSample.distance); // To integrate over punctual light we must switch to area measure.
+                    const float3 brdf = punctualLightSample.hitAlbedo * INV_PI;
+                    const float3 punctualLightBouncedRadiance = bounceCosTerm * bounceSolidAngleToAreaJacobian * spotLightIntensity * brdf;
+
+                    // We transform from patch solid angle measure to (common) surface area measure to punctual light solid angle measure.
+                    const float patchSolidAngleToBounceAreaJacobian = dot(-reconnectionRay.direction, punctualLightSample.hitNormal) / (reconnectionResult.hitDistance * reconnectionResult.hitDistance);
+                    const float bounceAreaToLightSolidAngleJacobian = punctualLightSample.distance * punctualLightSample.distance / dot(-punctualLightSample.dir, punctualLightSample.hitNormal);
+                    const float patchSolidAngleToLightSolidAngleJacbian = patchSolidAngleToBounceAreaJacobian * bounceAreaToLightSolidAngleJacobian;
+
+                    result.radianceOverDensity = punctualLightBouncedRadiance * patchSolidAngleToLightSolidAngleJacbian * punctualLightSample.reciprocalDensity;
+                    #else // optimized version
+                    result.radianceOverDensity =
+                        INV_PI * dot(-reconnectionRay.direction, punctualLightSample.hitNormal) *
+                        punctualLightSample.reciprocalDensity *
+                        rcp(reconnectionResult.hitDistance * reconnectionResult.hitDistance) *
+                        spotLightIntensity * punctualLightSample.hitAlbedo;
+                    #endif
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+float3 OutgoingDirectionalBounceAndMultiBounceRadiance(
     float3 position,
     float3 normal,
     UnifiedRT::DispatchInfo dispatchInfo,
@@ -59,23 +152,23 @@ float3 SampleOutgoingRadianceAssumingLambertianBrdf(
     float3 albedo,
     float3 emission)
 {
-    float3 radianceSample = 0.0f;
+    float3 radiance = 0.0f;
 
     if (any(dirLightIntensity != 0.0f))
     {
         const float worldHitNormalDotSunDir = dot(dirLightDirection, normal);
         if (worldHitNormalDotSunDir < 0.0f)
         {
-            UnifiedRT::Ray ray2;
-            ray2.origin = OffsetRayOrigin(position, normal);
-            ray2.direction = -dirLightDirection;
-            ray2.tMin = 0;
-            ray2.tMax = FLT_MAX;
+            UnifiedRT::Ray shadowRay;
+            shadowRay.origin = OffsetRayOrigin(position, normal);
+            shadowRay.direction = -dirLightDirection;
+            shadowRay.tMin = 0;
+            shadowRay.tMax = FLT_MAX;
 
-            UnifiedRT::Hit hitResult2 = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, ray2, UnifiedRT::kRayFlagNone);
+            UnifiedRT::Hit hitResult2 = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, shadowRay, UnifiedRT::kRayFlagNone);
             if (!hitResult2.IsValid())
             {
-                radianceSample += dirLightIntensity * dot(-dirLightDirection, normal);
+                radiance += dirLightIntensity * dot(-dirLightDirection, normal);
             }
         }
     }
@@ -84,15 +177,15 @@ float3 SampleOutgoingRadianceAssumingLambertianBrdf(
     {
         float3 cacheRead = PatchUtil::ReadPlanarIrradiance(volumeTargetPos, patchIrradiances, cellPatchIndices, volumeSpatialResolution, cascadeOffsets, cascadeCount, volumeVoxelMinSize, position, normal);
         if (all(cacheRead != PatchUtil::invalidIrradiance))
-            radianceSample += cacheRead;
+            radiance += cacheRead;
     }
 
-    radianceSample *= albedo / PI;
-    radianceSample += emission;
-    return radianceSample;
+    radiance *= albedo * INV_PI;
+    radiance += emission;
+    return radiance;
 }
 
-float3 SampleIncomingRadianceAssumingLambertianBrdf(
+float3 IncomingEnviromentAndDirectionalBounceAndMultiBounceRadiance(
     UnifiedRT::DispatchInfo dispatchInfo,
     UnifiedRT::RayTracingAccelStruct accelStruct,
     UnifiedRT::Ray ray,
@@ -111,12 +204,12 @@ float3 SampleIncomingRadianceAssumingLambertianBrdf(
     float volumeVoxelMinSize)
 {
     UnifiedRT::Hit hitResult = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, ray, UnifiedRT::kRayFlagNone);
-    float3 radianceSample;
+    float3 radiance;
     if (hitResult.IsValid())
     {
-        if (!hitResult.isFrontFace)
+        if (!IsValidSample(hitResult.isFrontFace))
         {
-            radianceSample = invalidRadianceSample;
+            radiance = invalidRadiance;
         }
         else
         {
@@ -136,7 +229,7 @@ float3 SampleIncomingRadianceAssumingLambertianBrdf(
                 hitGeo.uv0,
                 hitGeo.uv1);
 
-            radianceSample = SampleOutgoingRadianceAssumingLambertianBrdf(
+            radiance = OutgoingDirectionalBounceAndMultiBounceRadiance(
                 hitGeo.position,
                 hitGeo.normal,
                 dispatchInfo,
@@ -157,7 +250,9 @@ float3 SampleIncomingRadianceAssumingLambertianBrdf(
     }
     else
     {
-        radianceSample = envTex.SampleLevel(envSampler, ray.direction, 0);
+        radiance = envTex.SampleLevel(envSampler, ray.direction, 0);
     }
-    return radianceSample;
+    return radiance;
 }
+
+#endif
