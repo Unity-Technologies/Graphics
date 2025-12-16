@@ -203,13 +203,21 @@ namespace UnityEditor.ShaderGraph
         {
             CheckBindings(nodeGroupShortcutID);
             var graphView = GetGraphView();
+            bool selectionHasGroupableElements = false;
             foreach(var selected in graphView.selection)
+            {
                 if ((selected is IShaderNodeView nodeView && nodeView.node is AbstractMaterialNode)
                     || selected.GetType() == typeof(Drawing.StickyNote))
                 {
-                    graphView.GroupSelection();
-                    break;
+                    selectionHasGroupableElements = true;
                 }
+                if (selected is Group)
+                {
+                    return;
+                }
+            }
+            if (selectionHasGroupableElements)
+                graphView.GroupSelection();
         }
 
         internal const string nodeUnGroupShortcutID = "ShaderGraph/Selection: Node Ungroup";

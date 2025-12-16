@@ -46,10 +46,18 @@ namespace UnityEditor.ShaderGraph
             public static readonly GUIContent CustomInterpLabel = L10n.TextContent("Custom Interpolator Channel Settings", "");
             public static readonly GUIContent CustomInterpWarnThresholdLabel = L10n.TextContent("Warning Threshold", $"Shader Graph displays a warning when the user creates more custom interpolators than permitted by this setting. The number of interpolators that trigger this warning must be between {kMinChannelThreshold} and the Error Threshold.");
             public static readonly GUIContent CustomInterpErrorThresholdLabel = L10n.TextContent("Error Threshold", $"Shader Graph displays an error message when the user tries to create more custom interpolators than permitted by this setting. The number of interpolators that trigger this error must be between {kMinChannelThreshold} and {kMaxChannelThreshold}.");
-            public static readonly GUIContent ReadMore = L10n.TextContent("Read more");
+            public static readonly string kReadMore = "read more";
+            public static readonly GUIStyle readMoreStyle;
 
             public static readonly GUIContent HeatmapSectionLabel = L10n.TextContent("Heatmap Color Mode Settings", "");
             public static readonly GUIContent HeatmapAssetLabel = L10n.TextContent("Custom Values", "Specifies a custom Heatmap Values asset with data to display in the Heatmap color mode. If empty, a set of default values will be used.");
+
+            static Styles()
+            {
+                readMoreStyle = new GUIStyle(EditorStyles.linkLabel);
+                readMoreStyle.fontSize = EditorStyles.miniLabel.fontSize;
+                readMoreStyle.wordWrap = true;
+            }
         }
 
         SerializedObject m_SerializedObject;
@@ -114,12 +122,15 @@ namespace UnityEditor.ShaderGraph
             m_customInterpWarn.intValue = Mathf.Clamp(newWarn, kMinChannelThreshold, oldError);
 
             GUILayout.BeginHorizontal(EditorStyles.helpBox);
-            GUILayout.Label(EditorGUIUtility.IconContent("console.infoicon"), GUILayout.ExpandWidth(true));
-            GUILayout.Box(kCustomInterpolatorHelpBox, EditorStyles.wordWrappedLabel);
-            if (EditorGUILayout.LinkButton(Styles.ReadMore))
+            GUILayout.Label(EditorGUIUtility.GetHelpIcon(MessageType.Info), GUILayout.ExpandWidth(false));
+            GUILayout.BeginVertical();
+            GUILayout.Label(kCustomInterpolatorHelpBox, EditorStyles.wordWrappedMiniLabel);
+            if (GUILayout.Button(Styles.kReadMore, Styles.readMoreStyle))
             {
                 System.Diagnostics.Process.Start(kCustomInterpolatorDocumentationURL);
             }
+            EditorGUIUtility.AddCursorRect(GUILayoutUtility.GetLastRect(), MouseCursor.Link);
+            GUILayout.EndVertical();
             GUILayout.EndHorizontal();
             EditorGUI.indentLevel--;
 

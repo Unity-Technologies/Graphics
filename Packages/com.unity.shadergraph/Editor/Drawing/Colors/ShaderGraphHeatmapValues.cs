@@ -46,6 +46,7 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
+    [CoreRPHelpURL("index","com.unity.shadergraph")]
     class ShaderGraphHeatmapValues : ScriptableObject
     {
         const string k_PackageDefaultsPath = "Packages/com.unity.shadergraph/Editor/Resources/DefaultHeatmapValues.asset";
