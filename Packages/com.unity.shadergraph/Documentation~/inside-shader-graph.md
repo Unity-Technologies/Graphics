@@ -7,8 +7,7 @@ Learn about Shader Graph concepts and features.
 | [Shader Graph Asset](Shader-Graph-Asset.md) | Learn about the asset type that contains any shader graph you create. |
 | [Graph Target](Graph-Target.md) | Determine the end point compatibility of a shader you generate with Shader Graph. |
 | [Node](Node.md) | Create nodes in your shader graph and learn about node interconnection details with ports and edges. |
-| [Sub Graph](Sub-graph.md) | Create sub graphs that you can reference from inside other graphs. |
-| [Sub Graph Asset](Sub-graph-Asset.md) | Learn about the asset type that contains any sub graph you create. |
+| [Sub Graphs](Sub-graphs.md) | Create sub graphs that you can reference from inside other graphs. |
 | [Sticky Notes](Sticky-Notes.md) | Use sticky notes to write comments within your shader graphs. |
 | [Color Modes](Color-Modes.md) | Select color modes to improve your graph readability according to certain criteria like node category, relative performance cost, data precision mode, or custom colors. |
 | [Precision Modes](Precision-Modes.md) | Set precision modes for graphs, subgraphs, and nodes to help you optimize your content for different platforms. |

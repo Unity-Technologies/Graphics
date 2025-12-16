@@ -152,7 +152,7 @@ PlayerSettings:
     enable360StereoCapture: 0
   enableFrameTimingStats: 1
   enableOpenGLProfilerGPURecorders: 1
-  allowHDRDisplaySupport: 0
+  allowHDRDisplaySupport: 1
   useHDRDisplay: 0
   hdrBitDepth: 0
   m_ColorGamuts: 00000000

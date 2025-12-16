@@ -97,6 +97,9 @@ ${VFXEnd}
     #pragma fragment frag
     void frag(ps_input i
     , out float4 outColor : SV_Target0
+    #if defined(_WRITE_RENDERING_LAYERS)
+    , out uint outRenderingLayers : SV_Target1
+    #endif
     #if USE_DOUBLE_SIDED
     , bool frontFace : SV_IsFrontFace
     #endif
@@ -120,6 +123,10 @@ ${VFXEnd}
             outColor = VFXGetPixelOutputForwardShaderGraph(i, surface, normalWS);
         #else
             outColor = VFXGetPixelOutputForward(i, normalWS, uvData, frontFace);
+        #endif
+
+        #if defined(_WRITE_RENDERING_LAYERS)
+            outRenderingLayers = EncodeMeshRenderingLayer();
         #endif
     }
     ENDHLSL

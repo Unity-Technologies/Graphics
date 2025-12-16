@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField][HideInInspector]
         Version m_Version;
 
-      /// <summary>Current version of these settings container. Used only for upgrading a project.</summary>
+        /// <summary>Current version of these settings container. Used only for upgrading a project.</summary>
         public int version => (int)m_Version;
         #endregion
 
