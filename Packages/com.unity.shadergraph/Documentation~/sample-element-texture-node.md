@@ -25,4 +25,4 @@ Sampling multiple times with this node is more efficient than using several sepa
 
 ## Additional resources
 
-- [Create and apply custom shaders](xref:uie-create-apply-custom-shaders)
+- [Introduction to UI Shader Graph](xref:uie-introduction-to-ui-shader-graph)

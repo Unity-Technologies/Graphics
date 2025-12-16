@@ -6,6 +6,8 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/AmbientOcclusion.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DecalInput.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl"
 
 float3 _LightDirection;
 
@@ -183,6 +185,12 @@ float4 VFXTransformFinalColor(float4 color, float4 posCS)
         color.rgb = (float3)1.0f;
         color = VFXApplyAO(color, posCS);
     }
+
+#ifdef _DBUFFER
+    float3 decalColor = color.rgb;
+    ApplyDecalToBaseColor(posCS, decalColor);
+    color.rgb = decalColor;
+#endif
 
     return color;
 }

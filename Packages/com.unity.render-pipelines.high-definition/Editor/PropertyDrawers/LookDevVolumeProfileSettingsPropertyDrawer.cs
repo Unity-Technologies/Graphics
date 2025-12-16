@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         VisualElement m_Root;
         Editor m_LookDevVolumeProfileEditor;
+        int m_LookDevVolumeProfileHash = -1;
         SerializedObject m_SettingsSerializedObject;
         SerializedProperty m_VolumeProfileSerializedProperty;
         EditorPrefBool m_DefaultVolumeProfileFoldoutExpanded;
@@ -51,6 +52,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
         Editor GetLookDevDefaultVolumeProfileEditor(VolumeProfile lookDevAsset)
         {
+            int currentHash = (lookDevAsset != null) ? lookDevAsset.GetHashCode() : -1;
+            if (currentHash != m_LookDevVolumeProfileHash)
+            {
+                Editor.DestroyImmediate(m_LookDevVolumeProfileEditor);
+                m_LookDevVolumeProfileEditor = null;
+                m_LookDevVolumeProfileHash = currentHash;
+            }
+
             Editor.CreateCachedEditor(lookDevAsset, typeof(VolumeProfileEditor), ref m_LookDevVolumeProfileEditor);
             return m_LookDevVolumeProfileEditor;
         }
@@ -68,8 +77,12 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 tooltip = k_LookDevVolumeProfileAssetLabel.tooltip,
                 objectType = typeof(VolumeProfile),
-                value = m_VolumeProfileSerializedProperty.objectReferenceValue as VolumeProfile,
+                style =
+                {
+                    flexShrink = 1,
+                }
             };
+            field.BindProperty(m_VolumeProfileSerializedProperty);
             field.AddToClassList("unity-base-field__aligned"); //Align with other BaseField<T>
             field.Q<Label>().RegisterCallback<ClickEvent>(evt => toggle.value ^= true);
 
@@ -91,37 +104,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (evt.newValue == evt.previousValue)
                     return;
 
-                if (evt.newValue == null)
+                if (GraphicsSettings.TryGetRenderPipelineSettings<LookDevVolumeProfileSettings>(out var lookDevVolumeProfileSettings))
                 {
-                    if (evt.previousValue != null)
-                    {
-                        field.SetValueWithoutNotify(evt.previousValue);
-                        Debug.Log("This Volume Profile Asset cannot be null. Rolling back to previous value.");
-                        return;
-                    }
-                    else
-                    {
-                        if (RenderPipelineManager.currentPipeline is not HDRenderPipeline)
-                        {
-                            m_VolumeProfileSerializedProperty.objectReferenceValue = null;
-                        }
-                        else
-                        {
-                            var lookDevVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<LookDevVolumeProfileSettings>();
-                            if (lookDevVolumeProfileSettings.volumeProfile == null)
-                            {
-                                lookDevVolumeProfileSettings.volumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(
-                                    GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().lookDevVolumeProfile);
-                            }
-
-                            m_VolumeProfileSerializedProperty.objectReferenceValue = lookDevVolumeProfileSettings.volumeProfile;
-                        }
-                    }
+                    lookDevVolumeProfileSettings.volumeProfile = evt.newValue as VolumeProfile;
+                    m_VolumeProfileSerializedProperty.objectReferenceValue = lookDevVolumeProfileSettings.volumeProfile;
+                    m_VolumeProfileSerializedProperty.serializedObject.ApplyModifiedProperties();
+                    m_SettingsSerializedObject.Update();
                 }
-                else
-                    m_VolumeProfileSerializedProperty.objectReferenceValue = evt.newValue;
 
-                m_VolumeProfileSerializedProperty.serializedObject.ApplyModifiedProperties();
+                m_LookDevVolumeProfileHash = -1; // Invalidate the hash, to allow the IMGUI container recreate the editor
             });
 
             return profileLine;
@@ -153,6 +144,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.HelpBox("VisualEnvironment is not modifiable and will be overridden by the LookDev", MessageType.Warning);
                     if (lookDevAsset.Has<HDRISky>())
                         EditorGUILayout.HelpBox("HDRISky is not modifiable and will be overridden by the LookDev", MessageType.Warning);
+                }
+                else
+                {
+                    EditorGUILayout.HelpBox("No Look Dev Volume Profile assigned. A default profile will be created automatically when you open the Look Dev tool (Window > Rendering > Look Dev).", MessageType.Info);
                 }
             });
         }

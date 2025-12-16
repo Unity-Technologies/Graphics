@@ -9,7 +9,7 @@
     "com.unity.rendering.denoising": "1.0.5",
     "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
     "com.unity.test-framework": "file:../../../../../Packages/com.unity.test-framework",
-    "com.unity.testframework.graphics": "file:../../../Packages/com.unity.test-framework.graphics",
+    "local.gtf.references": "file:../../../Packages/local.gtf.references",
     "com.unity.testing.common-graphics": "file:../../../Packages/com.unity.testing.common-graphics",
     "com.unity.testing.hdrp": "file:../../../Packages/com.unity.testing.hdrp",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
@@ -52,5 +52,14 @@
     "com.unity.render-pipelines.high-definition",
     "com.unity.testing.hdrp",
     "com.unity.testing.xr"
+  ],
+  "scopedRegistries": [
+    {
+      "name": "UPM Candidates (GTF)",
+      "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
+      "scopes": [
+          "com.unity.testframework.graphics"
+      ]
+    }
   ]
 }

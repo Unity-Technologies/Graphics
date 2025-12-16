@@ -19,8 +19,6 @@ namespace UnityEditor.Rendering.HighDefinition
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL => NodeUtils.GetDocumentationString("HD-Custom-Color");
-
         const int kUvInputSlotId = 0;
         const string kUvInputSlotName = "UV";
 

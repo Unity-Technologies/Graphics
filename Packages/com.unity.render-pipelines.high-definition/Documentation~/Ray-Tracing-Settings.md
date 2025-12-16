@@ -8,7 +8,7 @@ For more information about the ray tracing settings properties, refer to [Ray Tr
 ## Add objects to the Ray Tracing Acceleration Structure
 
 HDRP provides a utility function that adds objects to the ray tracing acceleration structure.
-The function is `AddInstanceToRAS` and it takes a [Renderer](https://docs.unity3d.com/ScriptReference/Renderer.html)) a `HDEffectsParameters` parameter and two a booleans that tracks changes in the transform and material properties of the included game objects.
+The function is `AddInstanceToRAS` and it takes a [Renderer](https://docs.unity3d.com/ScriptReference/Renderer.html) a `HDEffectsParameters` parameter and two a booleans that tracks changes in the transform and material properties of the included game objects.
 
 ```
 using System.Collections;

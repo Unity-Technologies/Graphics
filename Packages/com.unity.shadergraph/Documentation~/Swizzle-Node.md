@@ -7,9 +7,11 @@ Creates a new [vector](https://docs.unity3d.com/Manual/VectorCookbook.html) from
 To specify how input elements should be swizzled, enter a formatting string in the input mask.
 To invert the order of the input elements, for example, use the string "wzyx" or "abgr".
 
-The length of the input mask determines the dimensions of the output vector. The error "Invalid Mask" indicates an input mask value which includes one or more channels that do not exist in the input vector.
+The length of the input mask determines the dimensions of the output vector, while the channels used by the input mask determine the dimensions of the input vector.
 
-To output a vector3 with the x, y and z elements of the input vector, for example, use the input mask “xyz” or “rgb”.
+For example;
+* To output a vector4 that contains two copies of a vector2 input, set **Mask** to `xyxy`.
+* To output the alpha value from a vector4 input, set **Mask** to `a`.
 
 
 

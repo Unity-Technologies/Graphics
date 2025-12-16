@@ -348,10 +348,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 
 
             Debug.ClearDeveloperConsole();
-
+#if UNITY_EDITOR
             UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(
                 TestContext.CurrentContext.Test
             );
+#endif
 #if ENABLE_VR
             XRGraphicsAutomatedTests.running = false;
 #endif

@@ -19,7 +19,7 @@
     "com.unity.ugui": "2.0.0",
     "com.unity.ui.test-framework": "file:../../../../../Packages/com.unity.ui.test-framework",
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
-    "com.unity.testframework.graphics": "file:../../../Packages/com.unity.test-framework.graphics",
+    "local.gtf.references": "file:../../../Packages/local.gtf.references",
     "com.unity.test-framework": "file:../../../../../Packages/com.unity.test-framework",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
@@ -58,5 +58,14 @@
     "com.unity.testing.xr",
     "com.unity.render-pipelines.visualeffectgraph",
     "com.unity.shadergraph"
+  ],
+  "scopedRegistries": [
+    {
+      "name": "UPM Candidates (GTF)",
+      "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
+      "scopes": [
+          "com.unity.testframework.graphics"
+      ]
+    }
   ]
 }
