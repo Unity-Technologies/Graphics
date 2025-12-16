@@ -1,0 +1,5 @@
+.group > .mainContainer > #headerContainer > #titleContainer > #titleField > #unity-text-input {
+    font-size: 24px;
+    padding-left: -1px;
+    -unity-text-align: middle-center;
+}

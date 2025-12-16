@@ -45,6 +45,7 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<DragLeaveEvent>(DragLeave);
 
             capabilities |= Capabilities.Ascendable;
+            this.AddStyleSheetPath("VFXGroupNode");
         }
 
         public bool CanAcceptDrop()
