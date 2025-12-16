@@ -712,7 +712,7 @@ namespace UnityEngine.Rendering.Universal
             static void UpdateWorld(WorldUpdatePassData data, UnsafeGraphContext graphCtx, ref GraphicsBuffer scratch)
             {
                 var cmd = CommandBufferHelpers.GetNativeCommandBuffer(graphCtx.cmd);
-                data.World.Build(cmd, ref scratch, data.EnvCubemapResolution, data.Sun);
+                data.World.Commit(cmd, ref scratch, data.EnvCubemapResolution, data.Sun);
             }
 
             static void LookupScreenIrradiance(ScreenIrradianceLookupPassData data, ComputeGraphContext cgContext)

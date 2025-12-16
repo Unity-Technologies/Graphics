@@ -6,7 +6,7 @@
 #include "PathTracing.hlsl"
 #include "Estimation.hlsl"
 #include "RingBuffer.hlsl"
-#include "PunctualLightSample.hlsl"
+#include "PunctualLights.hlsl"
 
 StructuredBuffer<uint> _RingConfigBuffer;
 RWStructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances;
@@ -27,8 +27,7 @@ TextureCube<float3> _EnvironmentCubemap;
 SamplerState sampler_EnvironmentCubemap;
 UNIFIED_RT_DECLARE_ACCEL_STRUCT(_RayTracingAccelerationStructure);
 
-uint _HasSpotLight;
-float3 _SpotLightIntensity;
+uint _SpotLightCount;
 uint _FrameIdx;
 uint _VolumeSpatialResolution;
 uint _CascadeCount;
@@ -61,7 +60,7 @@ void SamplePunctualLightBounceRadiance(
     inout SphericalHarmonics::RGBL1 accumulator,
     inout bool gotValidSamples)
 {
-    rng.Init(patchIdx, _FrameIdx * _SampleCount + 1024);
+    rng.Init(patchIdx, _FrameIdx * _SampleCount);
     SphericalHarmonics::RGBL1 radianceAccumulator = (SphericalHarmonics::RGBL1)0;
 
     uint validSampleCount = 0;
@@ -73,7 +72,6 @@ void SamplePunctualLightBounceRadiance(
             _PunctualLightSamples,
             _PunctualLightSampleCount,
             rng.GetFloat(0),
-            _SpotLightIntensity,
             patchGeo.position,
             patchGeo.normal);
 
@@ -189,7 +187,7 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
         radianceSampleMean,
         gotValidSamples);
 
-    if (_HasSpotLight)
+    if (_SpotLightCount != 0)
     {
         SamplePunctualLightBounceRadiance(
             rng,

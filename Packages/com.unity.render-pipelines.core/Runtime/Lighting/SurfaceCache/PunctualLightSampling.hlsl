@@ -7,10 +7,11 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
 #include "PathTracing.hlsl"
-#include "PunctualLightSample.hlsl"
+#include "PunctualLights.hlsl"
 
 UNIFIED_RT_DECLARE_ACCEL_STRUCT(_RayTracingAccelerationStructure);
 
+StructuredBuffer<SpotLight> _SpotLights;
 RWStructuredBuffer<PunctualLightSample> _Samples;
 
 StructuredBuffer<MaterialPool::MaterialEntry> _MaterialEntries;
@@ -23,10 +24,7 @@ SamplerState sampler_TransmissionTextures;
 float _MaterialAtlasTexelSize;
 float _AlbedoBoost;
 uint _FrameIdx;
-
-float3 _SpotLightPosition;
-float3 _SpotLightDirection;
-float _SpotLightCosAngle;
+uint _SpotLightCount;
 
 void SamplePunctualLights(UnifiedRT::DispatchInfo dispatchInfo)
 {
@@ -46,18 +44,21 @@ void SamplePunctualLights(UnifiedRT::DispatchInfo dispatchInfo)
     QrngKronecker rng;
     rng.Init(dispatchInfo.globalThreadIndex.x, _FrameIdx);
 
+    const uint spotLightIndex = min(rng.GetFloat(0) * _SpotLightCount, _SpotLightCount - 1);
+    const SpotLight light = _SpotLights[spotLightIndex];
+
     UnifiedRT::Ray ray;
     ray.tMin = 0;
     ray.tMax = FLT_MAX;
-    ray.origin = _SpotLightPosition;
+    ray.origin = light.position;
     {
-        float3 localDir = SampleConeUniform(rng.GetFloat(0), rng.GetFloat(1), _SpotLightCosAngle);
-        float3x3 spotBasis = OrthoBasisFromVector(_SpotLightDirection);
+        float3 localDir = SampleConeUniform(rng.GetFloat(1), rng.GetFloat(1), light.cosAngle);
+        float3x3 spotBasis = OrthoBasisFromVector(light.direction);
         ray.direction = mul(spotBasis, localDir);
     }
 
-    PunctualLightSample sample = (PunctualLightSample)0;
-    sample.dir = ray.direction;
+    PunctualLightSample lightSample = (PunctualLightSample)0;
+    lightSample.dir = ray.direction;
 
     UnifiedRT::Hit hitResult = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, ray, UnifiedRT::kRayFlagNone);
     if (hitResult.IsValid() && hitResult.isFrontFace)
@@ -78,18 +79,19 @@ void SamplePunctualLights(UnifiedRT::DispatchInfo dispatchInfo)
             hitGeo.uv0,
             hitGeo.uv1);
 
-        sample.hitPos = ray.origin + ray.direction * hitResult.hitDistance;
-        sample.hitNormal = hitGeo.normal;
-        sample.distance = hitResult.hitDistance;
-        sample.hitAlbedo = hitMat.baseColor;
-        sample.reciprocalDensity = AreaOfSphericalCapWithRadiusOne(_SpotLightCosAngle);
-        sample.hitInstanceId = hitResult.instanceID;
-        sample.hitPrimitiveIndex = hitResult.primitiveIndex;
+        lightSample.hitPos = ray.origin + ray.direction * hitResult.hitDistance;
+        lightSample.hitNormal = hitGeo.normal;
+        lightSample.distance = hitResult.hitDistance;
+        lightSample.hitAlbedo = hitMat.baseColor;
+        lightSample.reciprocalDensity = AreaOfSphericalCapWithRadiusOne(light.cosAngle) * _SpotLightCount;
+        lightSample.hitInstanceId = hitResult.instanceID;
+        lightSample.hitPrimitiveIndex = hitResult.primitiveIndex;
+        lightSample.intensity = light.intensity;
     }
     else
     {
-        sample.MarkNoHit();
+        lightSample.MarkNoHit();
     }
 
-    _Samples[dispatchInfo.globalThreadIndex.x] = sample;
+    _Samples[dispatchInfo.globalThreadIndex.x] = lightSample;
 }

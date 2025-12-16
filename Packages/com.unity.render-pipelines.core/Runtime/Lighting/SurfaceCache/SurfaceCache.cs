@@ -556,6 +556,7 @@ namespace UnityEngine.Rendering
             public static readonly int _DirectionalLightDirection = Shader.PropertyToID("_DirectionalLightDirection");
             public static readonly int _DirectionalLightIntensity = Shader.PropertyToID("_DirectionalLightIntensity");
             public static readonly int _MaterialAtlasTexelSize = Shader.PropertyToID("_MaterialAtlasTexelSize");
+            public static readonly int _SpotLightCount = Shader.PropertyToID("_SpotLightCount");
             public static readonly int _TransmissionTextures = Shader.PropertyToID("_TransmissionTextures");
             public static readonly int _EmissionTextures = Shader.PropertyToID("_EmissionTextures");
             public static readonly int _VolumeTargetPos = Shader.PropertyToID("_VolumeTargetPos");
@@ -576,9 +577,7 @@ namespace UnityEngine.Rendering
             public static readonly int _ShortHysteresis = Shader.PropertyToID("_ShortHysteresis");
             public static readonly int _PatchCellIndices = Shader.PropertyToID("_PatchCellIndices");
             public static readonly int _RingConfigBuffer = Shader.PropertyToID("_RingConfigBuffer");
-            public static readonly int _SpotLightPosition = Shader.PropertyToID("_SpotLightPosition");
-            public static readonly int _SpotLightDirection = Shader.PropertyToID("_SpotLightDirection");
-            public static readonly int _SpotLightCosAngle = Shader.PropertyToID("_SpotLightCosAngle");
+            public static readonly int _SpotLights = Shader.PropertyToID("_SpotLights");
             public static readonly int _Radius = Shader.PropertyToID("_Radius");
             public static readonly int _InputPatchIrradiances = Shader.PropertyToID("_InputPatchIrradiances");
             public static readonly int _OutputPatchIrradiances = Shader.PropertyToID("_OutputPatchIrradiances");
@@ -623,7 +622,7 @@ namespace UnityEngine.Rendering
             _volume = new SurfaceCacheVolume(volParams.Resolution, volParams.CascadeCount, volParams.Size);
             _ringConfig = new SurfaceCacheRingConfig();
             _patches = new SurfaceCachePatchList(patchCapacity, estimationParams.Method);
-            _punctualLightSamples = new GraphicsBuffer(GraphicsBuffer.Target.Structured, (int)punctualLightSampleCount, sizeof(float) * 16);
+            _punctualLightSamples = new GraphicsBuffer(GraphicsBuffer.Target.Structured, (int)punctualLightSampleCount, sizeof(float) * 19);
 
             _estimationParams = estimationParams;
             _patchFilteringParams = patchFilteringParams;
@@ -952,16 +951,15 @@ namespace UnityEngine.Rendering
         static void UniformEstimate(UniformEstimationPassData data, UnsafeGraphContext graphCtx)
         {
             var cmd = CommandBufferHelpers.GetNativeCommandBuffer(graphCtx.cmd);
-            var nullableSpotLight = data.World.GetSpotLight();
+            var spotLightBuffer = data.World.GetSpotLightBuffer();
+            var spotLightCount = (int)data.World.GetSpotLightCount();
 
-            if (nullableSpotLight.HasValue)
+            if (spotLightCount != 0)
             {
-                var spotLight = nullableSpotLight.Value;
                 var shader = data.PunctualLightSamplingShader;
                 data.World.GetAccelerationStructure().Bind(cmd, "_RayTracingAccelerationStructure", shader);
-                shader.SetVectorParam(cmd, ShaderIDs._SpotLightPosition, spotLight.Position);
-                shader.SetVectorParam(cmd, ShaderIDs._SpotLightDirection, spotLight.Direction);
-                shader.SetFloatParam(cmd, ShaderIDs._SpotLightCosAngle, Mathf.Cos(spotLight.Angle / 360.0f * 2.0f * Mathf.PI * 0.5f));
+                shader.SetBufferParam(cmd, ShaderIDs._SpotLights, spotLightBuffer);
+                shader.SetIntParam(cmd, ShaderIDs._SpotLightCount, spotLightCount);
                 shader.SetFloatParam(cmd, ShaderIDs._FrameIdx, data.FrameIdx);
                 shader.SetBufferParam(cmd, ShaderIDs._Samples, data.PunctualLightSamples);
                 shader.SetBufferParam(cmd, ShaderIDs._MaterialEntries, data.World.GetMaterialListBuffer());
@@ -1000,8 +998,7 @@ namespace UnityEngine.Rendering
                 shader.SetTextureParam(cmd, ShaderIDs._TransmissionTextures, data.World.GetMaterialTransmissionTextures());
                 shader.SetFloatParam(cmd, ShaderIDs._AlbedoBoost, data.AlbedoBoost);
                 shader.SetFloatParam(cmd, ShaderIDs._MaterialAtlasTexelSize, GetMaterialAtlasTexelSize(data.World.GetMaterialAlbedoTextures()));
-                shader.SetIntParam(cmd, Shader.PropertyToID("_HasSpotLight"), nullableSpotLight.HasValue ? 1 : 0);
-                shader.SetVectorParam(cmd, Shader.PropertyToID("_SpotLightIntensity"), nullableSpotLight.HasValue ? nullableSpotLight.Value.Intensity : Vector3.zero);
+                shader.SetIntParam(cmd, ShaderIDs._SpotLightCount, spotLightCount);
 
                 var (dirLightDirection, dirLightIntensity) = GetDirectionalLightUniforms(data.World.GetDirectionalLight());
                 shader.SetVectorParam(cmd, ShaderIDs._DirectionalLightDirection, dirLightDirection);
