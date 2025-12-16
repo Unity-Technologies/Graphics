@@ -1,4 +1,4 @@
-# Custom Color Node (HDRP)
+# Custom Color Buffer Node (HDRP)
 
 The Custom Color Node accesses the custom pass color buffer allocated by HDRP.
 

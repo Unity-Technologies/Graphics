@@ -14,6 +14,8 @@ namespace UnityEditor.ShaderGraph
     {
         internal const int k_MinEnumEntries = 2;
 
+        public override string documentationURL => NodeUtils.GetDocumentationString("Dropdown");
+
         public DropdownNode()
         {
             UpdateNodeAfterDeserialization();

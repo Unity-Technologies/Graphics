@@ -16,6 +16,13 @@ namespace UnityEditor.ShaderGraph
         internal const int k_MinEnumEntries = 2;
         internal const int k_MaxEnumEntries = 8;
 
+        public override string documentationURL => NodeUtils.GetDocumentationString(keyword.overrideReferenceName switch
+        {
+            "MATERIAL_QUALITY" => "Material Quality Keyword",
+            "RAYTRACING_SHADER_GRAPH" => "Raytracing Quality Keyword",
+            _ => "Keyword",
+        });
+
         public KeywordNode()
         {
             UpdateNodeAfterDeserialization();

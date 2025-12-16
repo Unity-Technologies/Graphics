@@ -1,4 +1,4 @@
-# Custom Render Texture Slice Node
+# Slice Index / Cubemap Face Node
 
 ## Description
 
