@@ -109,7 +109,8 @@ void Main(Group group)
 
     uint2 v_segmentMin, v_segmentMax;
 
-    if(s_segmentIndex < gs_ActiveSegmentCount)
+    // Dynamic branch must be enforced to avoid out-of-bounds memory access in _Vertex1RecordBuffer on certain platforms.
+    UNITY_BRANCH if(s_segmentIndex < gs_ActiveSegmentCount)
     {
         const float w0 = asfloat(_Vertex1RecordBuffer.Load((s_segment.vertexIndex0 << 4) + 12u));
         const float w1 = asfloat(_Vertex1RecordBuffer.Load((s_segment.vertexIndex1 << 4) + 12u));

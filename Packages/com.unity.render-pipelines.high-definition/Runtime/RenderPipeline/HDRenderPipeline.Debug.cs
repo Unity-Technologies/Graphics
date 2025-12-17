@@ -1629,7 +1629,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_WaterSystem.RenderWaterDebug(renderGraph, hdCamera, output, depth);
 
                 // Render the debug lines.
-                RenderLines(renderGraph, depthBuffer, hdCamera, lightLists);
+                TransparentPrepassOutput prepassOutput = default;
+                prepassOutput.depthBufferPreRefraction = depthBuffer;
+                m_WaterSystem.InitializeWaterPrepassOutput(renderGraph, ref prepassOutput);
+
+                RenderLines(renderGraph, depthBuffer, hdCamera, prepassOutput, lightLists);
                 ComposeLines(renderGraph, hdCamera, output, depth, TextureHandle.nullHandle, -1);
 
                 using (var builder = renderGraph.AddUnsafePass<DebugViewMaterialData>("DisplayDebug ViewMaterial", out var passData, ProfilingSampler.Get(HDProfileId.DisplayDebugViewMaterial)))
