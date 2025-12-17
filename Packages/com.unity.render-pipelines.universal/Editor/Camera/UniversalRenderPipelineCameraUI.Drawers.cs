@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
@@ -56,6 +57,7 @@ namespace UnityEditor.Rendering.Universal
         public static readonly CED.IDrawer[] Inspector =
         {
             CED.Group(
+                PrepareOnTileValidationWarning,
                 DrawerCameraType
                 ),
             SectionProjectionSettings,
@@ -111,7 +113,103 @@ namespace UnityEditor.Rendering.Universal
             if (owner is UniversalRenderPipelineCameraEditor cameraEditor)
             {
                 cameraEditor.DrawStackSettings();
+                DisplayOnTileValidationWarning(p.cameras, p => p.arraySize != 0, Styles.cameraStackLabelForOnTileValidation, p);
             }
+        }
+
+        struct OnTileValidationInfos
+        {
+            public readonly bool enabled;
+            public readonly string rendererName;
+            public readonly ScriptableRendererData assetToOpen;
+            public OnTileValidationInfos(string rendererName, ScriptableRendererData assetToOpen)
+            {
+                enabled = true;
+                this.rendererName = rendererName;
+                this.assetToOpen = assetToOpen;
+            }
+        }
+
+        static OnTileValidationInfos lastOnTileValidationInfos;
+
+        static void PrepareOnTileValidationWarning(UniversalRenderPipelineSerializedCamera serialized, Editor owner)
+        {
+            // Rules:
+            //   - mono selection: Display warning if RendererData's OnTileValidation is enabled (with 'Open' behaviour)
+            //   - multi selection:
+            //      - Display warning if all RendererData's OnTileValidation are enabled
+            //      - Only have 'Open' behaviour if all RendererData are the same
+            
+            lastOnTileValidationInfos = default;
+
+            // Note: UniversalRenderPipeline.asset should not be null or this inspector would not be shown.
+            // Just in case off though:
+            if (UniversalRenderPipeline.asset == null)
+                return;
+
+            bool HasOnTileValidationAtIndex(int index, out ScriptableRendererData rendererData)
+                =>  UniversalRenderPipeline.asset.TryGetRendererData(index, out rendererData)
+                    && rendererData is UniversalRendererData universalData 
+                    && universalData.onTileValidation;
+
+            // If impacted section are not opened, early exit
+            if (!(k_ExpandedState[Expandable.Rendering] || k_ExpandedState[Expandable.Stack]))
+                return;
+
+            ScriptableRendererData rendererData = null;
+
+            if (!serialized.renderer.hasMultipleDifferentValues)
+            {
+                if (!HasOnTileValidationAtIndex(serialized.renderer.intValue, out rendererData))
+                    return;
+
+                lastOnTileValidationInfos = new OnTileValidationInfos($"'{rendererData.name}'", assetToOpen: rendererData);
+                return;
+            }
+
+            bool targetSameAsset = true;
+            var firstAdditionalData = (UniversalAdditionalCameraData)serialized.serializedAdditionalDataObject.targetObjects[0];
+            if (!HasOnTileValidationAtIndex(firstAdditionalData.rendererIndex, out rendererData))
+                return;
+
+            using var o = StringBuilderPool.Get(out var sb);
+            sb.Append("'");
+            sb.Append(rendererData.name);
+            sb.Append("'");
+            for (int i = 1; i < serialized.serializedAdditionalDataObject.targetObjects.Length; ++i)
+            {
+                var additionalCameraData = (UniversalAdditionalCameraData)serialized.serializedAdditionalDataObject.targetObjects[i];
+                if (!HasOnTileValidationAtIndex(additionalCameraData.rendererIndex, out var otherRenderer))
+                    return;
+
+                targetSameAsset &= rendererData == otherRenderer;
+                sb.Append(", '");
+                sb.Append(otherRenderer.name);
+                sb.Append("'");
+            }
+
+            lastOnTileValidationInfos = new OnTileValidationInfos(sb.ToString(), assetToOpen: targetSameAsset ? rendererData : null);
+        }
+
+        static void DisplayOnTileValidationWarning(SerializedProperty prop, Func<SerializedProperty, bool> shouldDisplayWarning, GUIContent label, UniversalRenderPipelineSerializedCamera serialized)
+        {
+            if (!lastOnTileValidationInfos.enabled
+                || prop == null 
+                || shouldDisplayWarning == null 
+                || prop.hasMultipleDifferentValues 
+                || !shouldDisplayWarning(prop))
+                return;
+
+            if (lastOnTileValidationInfos.assetToOpen != null)
+                CoreEditorUtils.DrawFixMeBox(
+                    string.Format(Styles.formaterOnTileValidation, label == null ? prop.displayName : label.text, lastOnTileValidationInfos.rendererName),
+                    MessageType.Warning,
+                    "Open",
+                    () => AssetDatabase.OpenAsset(lastOnTileValidationInfos.assetToOpen));
+            else
+                EditorGUILayout.HelpBox(
+                    string.Format(Styles.formaterOnTileValidation, label == null ? prop.displayName : label.text, lastOnTileValidationInfos.rendererName),
+                    MessageType.Warning);
         }
     }
 }

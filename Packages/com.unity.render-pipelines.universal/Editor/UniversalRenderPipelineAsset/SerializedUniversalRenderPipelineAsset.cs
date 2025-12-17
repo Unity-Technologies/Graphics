@@ -5,9 +5,7 @@ namespace UnityEditor.Rendering.Universal
 {
     internal class SerializedUniversalRenderPipelineAsset
     {
-        public SerializedProperty rendererDataProp { get; }
-        public SerializedProperty defaultRendererProp { get; }
-
+        public SerializedProperty rendererDatas { get; }
         public SerializedProperty requireDepthTextureProp { get; }
         public SerializedProperty requireOpaqueTextureProp { get; }
         public SerializedProperty opaqueDownsamplingProp { get; }
@@ -105,6 +103,8 @@ namespace UnityEditor.Rendering.Universal
         {
             asset = serializedObject.targetObject as UniversalRenderPipelineAsset;
             this.serializedObject = serializedObject;
+
+            rendererDatas = serializedObject.FindProperty("m_RendererDataList");
 
             requireDepthTextureProp = serializedObject.FindProperty("m_RequireDepthTexture");
             requireOpaqueTextureProp = serializedObject.FindProperty("m_RequireOpaqueTexture");

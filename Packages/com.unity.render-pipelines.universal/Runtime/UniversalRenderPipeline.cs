@@ -981,6 +981,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
+            if (isStackedRendering && renderer is UniversalRenderer {onTileValidation: true})
+                throw new ArgumentException("The active URP Renderer has 'On Tile Validation' on. This currently does not allow Camera Stacking usage. Check your scene and remove all overlay Cameras.");
 
             // Prepare XR rendering
             var xrActive = false;
@@ -1367,6 +1369,9 @@ namespace UnityEngine.Rendering.Universal
             // However it should still respect the sample count of the target texture camera is rendering to.
             if (cameraData.xrRendering && rendererSupportsMSAA && camera.targetTexture == null)
                 msaaSamples = (int)XRSystem.GetDisplayMSAASamples();
+
+            if (renderer is UniversalRenderer { onTileValidation: true } && UniversalRenderer.PlatformRequiresExplicitMsaaResolve())
+                msaaSamples = 1;
 
             bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
 

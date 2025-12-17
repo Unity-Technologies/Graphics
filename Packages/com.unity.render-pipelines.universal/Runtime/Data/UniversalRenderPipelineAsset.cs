@@ -953,6 +953,24 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #if UNITY_EDITOR
+        internal bool TryGetRendererData(int index, out ScriptableRendererData result)
+        {
+            result = null;
+            if (m_RendererDataList == null || m_RendererDataList.Length == 0)
+                return false;
+
+            if (index < 0 || index >= m_RendererDataList.Length)
+            {
+                if (m_DefaultRendererIndex < 0 || m_DefaultRendererIndex >= m_RendererDataList.Length)
+                    return false;
+
+                index = m_DefaultRendererIndex; //out of range index fallback on default
+            }
+            
+            result = m_RendererDataList[index];
+            return result != null;
+        }
+
         internal GUIContent[] rendererDisplayList
         {
             get

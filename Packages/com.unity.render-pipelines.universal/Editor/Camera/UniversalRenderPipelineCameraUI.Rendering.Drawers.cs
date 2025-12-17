@@ -133,7 +133,8 @@ namespace UnityEditor.Rendering.Universal
                         OverlayCameraRenderTypeDrawer,
                         CED.Group(
                             CameraUI.Rendering.Drawer_Rendering_CullingMask,
-                            CameraUI.Rendering.Drawer_Rendering_OcclusionCulling
+                            CameraUI.Rendering.Drawer_Rendering_OcclusionCulling,
+                            OcclusionCullingWithWarningOnTileValidation
                         )
                     ),
                     CED.noop,
@@ -148,7 +149,8 @@ namespace UnityEditor.Rendering.Universal
                     FoldoutOption.Indent,
                     CED.Group(
                         CameraUI.Rendering.Drawer_Rendering_CullingMask,
-                        CameraUI.Rendering.Drawer_Rendering_OcclusionCulling
+                        CameraUI.Rendering.Drawer_Rendering_OcclusionCulling,
+                        OcclusionCullingWithWarningOnTileValidation
                     )
                 );
             }
@@ -272,24 +274,38 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
-            static void DrawerRenderingRenderPostProcessing(UniversalRenderPipelineSerializedCamera p, Editor owner)
+            static void DrawerRenderingRenderPostProcessing(UniversalRenderPipelineSerializedCamera serialized, Editor owner)
             {
-                EditorGUILayout.PropertyField(p.renderPostProcessing, Styles.renderPostProcessing);
+                EditorGUILayout.PropertyField(serialized.renderPostProcessing, Styles.renderPostProcessing);
+
+                // There is other issue displayed if one try to use PP while Renderer does not allow it
+                bool enabledInRenderer = serialized.renderer.hasMultipleDifferentValues
+                    || (UniversalRenderPipeline.asset.TryGetRendererData(serialized.renderer.intValue, out var rendererData)
+                        && rendererData is UniversalRendererData universalData
+                        && universalData.postProcessData != null);
+                DisplayOnTileValidationWarning(serialized.renderPostProcessing, p => p.boolValue && enabledInRenderer, Styles.renderPostProcessing, serialized);
             }
 
-            static void DrawerRenderingPriority(UniversalRenderPipelineSerializedCamera p, Editor owner)
+            static void DrawerRenderingPriority(UniversalRenderPipelineSerializedCamera serialized, Editor owner)
             {
-                EditorGUILayout.PropertyField(p.baseCameraSettings.depth, Styles.priority);
+                EditorGUILayout.PropertyField(serialized.baseCameraSettings.depth, Styles.priority);
             }
 
-            static void DrawerRenderingDepthTexture(UniversalRenderPipelineSerializedCamera p, Editor owner)
+            static void DrawerRenderingDepthTexture(UniversalRenderPipelineSerializedCamera serialized, Editor owner)
             {
-                EditorGUILayout.PropertyField(p.renderDepth, Styles.requireDepthTexture);
+                EditorGUILayout.PropertyField(serialized.renderDepth, Styles.requireDepthTexture);
+                DisplayOnTileValidationWarning(serialized.renderDepth, p => p.intValue == (int)CameraOverrideOption.On, Styles.requireDepthTexture, serialized);
             }
 
-            static void DrawerRenderingOpaqueTexture(UniversalRenderPipelineSerializedCamera p, Editor owner)
+            static void DrawerRenderingOpaqueTexture(UniversalRenderPipelineSerializedCamera serialized, Editor owner)
             {
-                EditorGUILayout.PropertyField(p.renderOpaque, Styles.requireOpaqueTexture);
+                EditorGUILayout.PropertyField(serialized.renderOpaque, Styles.requireOpaqueTexture);
+                DisplayOnTileValidationWarning(serialized.renderOpaque, p => p.intValue == (int)CameraOverrideOption.On, Styles.requireOpaqueTexture, serialized);
+            }
+            
+            static void OcclusionCullingWithWarningOnTileValidation(UniversalRenderPipelineSerializedCamera serialized, Editor owner)
+            {
+                DisplayOnTileValidationWarning(serialized.baseCameraSettings.occlusionCulling, p => p.boolValue, CameraUI.Rendering.Styles.occlusionCulling, serialized);
             }
         }
     }

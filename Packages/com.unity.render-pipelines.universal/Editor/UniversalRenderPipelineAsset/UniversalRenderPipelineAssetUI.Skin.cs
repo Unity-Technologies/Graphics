@@ -156,6 +156,10 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUIUtility.TrTextContent("Render Graph must be enabled to use occlusion culling.");
             public static GUIContent stencilLodCrossFadeWarningMessage =
                 EditorGUIUtility.TrTextContent("LOD Cross Fade with stencil dithering is not compatible with stencil override in Renderer.");
+            
+            public static readonly string formatterOnTileValidationOneRenderer = L10n.Tr("'{0}' will be skipped because it is incompatible with the enabled 'On-Tile Validation' on the Renderer: {1}.");
+            public static readonly string formatterOnTileValidationMultipleRenderer = L10n.Tr("'{0}' will be skipped whenever an active renderer uses 'On-Tile Validation' setting, such as: {1}.");
+            public static readonly string suffixWhenDifferentPositionOnTileValidation = L10n.Tr(" (different position)");
 
             // Dropdown menu options
             public static string[] mainLightOptions = { "Disabled", "Per Pixel" };

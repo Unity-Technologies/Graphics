@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -7,6 +9,20 @@ using UnityEngine.Rendering.Universal;
 namespace UnityEditor.Rendering.Universal
 {
     using CED = CoreEditorDrawer<SerializedUniversalRenderPipelineAsset>;
+
+    //The internal one is private
+    static class StringBuilderPool
+    {
+        internal static readonly UnityEngine.Pool.ObjectPool<StringBuilder> s_Pool = new (
+            () => new StringBuilder(), 
+            null, 
+            sb => sb.Clear()    //clear on release
+            );
+
+        public static StringBuilder Get() => s_Pool.Get();
+        public static UnityEngine.Pool.PooledObject<StringBuilder> Get(out StringBuilder value) => s_Pool.Get(out value);
+        public static void Release(StringBuilder toRelease) => s_Pool.Release(toRelease);
+    }
 
     internal partial class UniversalRenderPipelineAssetUI
     {
@@ -101,6 +117,7 @@ namespace UnityEditor.Rendering.Universal
         }
 
         public static readonly CED.IDrawer Inspector = CED.Group(
+            CED.Group(PrepareOnTileValidationWarning),
             CED.AdditionalPropertiesFoldoutGroup(Styles.renderingSettingsText, Expandable.Rendering, k_ExpandedState, ExpandableAdditional.Rendering, k_AdditionalPropertiesState, DrawRendering, DrawRenderingAdditional),
             CED.FoldoutGroup(Styles.qualitySettingsText, Expandable.Quality, k_ExpandedState, DrawQuality),
             CED.AdditionalPropertiesFoldoutGroup(Styles.lightingSettingsText, Expandable.Lighting, k_ExpandedState, ExpandableAdditional.Lighting, k_AdditionalPropertiesState, DrawLighting, DrawLightingAdditional),
@@ -114,45 +131,50 @@ namespace UnityEditor.Rendering.Universal
 
         static void DrawRendering(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
-            if (ownerEditor is UniversalRenderPipelineAssetEditor urpAssetEditor)
+            if (ownerEditor is not UniversalRenderPipelineAssetEditor urpAssetEditor)
+                return;
+
+            EditorGUILayout.Space();
+            urpAssetEditor.rendererList.DoLayoutList();
+
+            if (!serialized.asset.ValidateRendererData(-1))
+                EditorGUILayout.HelpBox(Styles.rendererMissingDefaultMessage.text, MessageType.Error, true);
+            else if (!serialized.asset.ValidateRendererDataList(true))
+                EditorGUILayout.HelpBox(Styles.rendererMissingMessage.text, MessageType.Warning, true);
+            else if (!ValidateRendererGraphicsAPIs(serialized.asset, out var unsupportedGraphicsApisMessage))
+                EditorGUILayout.HelpBox(Styles.rendererUnsupportedAPIMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
+
+            EditorGUILayout.PropertyField(serialized.requireDepthTextureProp, Styles.requireDepthTextureText);
+            DisplayOnTileValidationWarning(serialized.requireDepthTextureProp, p => p.boolValue, Styles.requireDepthTextureText);
+
+            EditorGUILayout.PropertyField(serialized.requireOpaqueTextureProp, Styles.requireOpaqueTextureText);
+            DisplayOnTileValidationWarning(serialized.requireOpaqueTextureProp, p => p.boolValue, Styles.requireOpaqueTextureText);
+
+            EditorGUI.BeginDisabledGroup(!serialized.requireOpaqueTextureProp.boolValue);
+            EditorGUILayout.PropertyField(serialized.opaqueDownsamplingProp, Styles.opaqueDownsamplingText);
+            EditorGUI.EndDisabledGroup();
+            EditorGUILayout.PropertyField(serialized.supportsTerrainHolesProp, Styles.supportsTerrainHolesText);
+
+            EditorGUILayout.PropertyField(serialized.gpuResidentDrawerMode, Styles.gpuResidentDrawerMode);
+
+            var brgStrippingError = EditorGraphicsSettings.batchRendererGroupShaderStrippingMode != BatchRendererGroupStrippingMode.KeepAll;
+            var lightingModeError = !HasCorrectLightingModes(serialized.asset);
+            var staticBatchingWarning = PlayerSettings.GetStaticBatchingForPlatform(EditorUserBuildSettings.activeBuildTarget);
+
+            if ((GPUResidentDrawerMode)serialized.gpuResidentDrawerMode.intValue != GPUResidentDrawerMode.Disabled)
             {
-                EditorGUILayout.Space();
-                urpAssetEditor.rendererList.DoLayoutList();
+                ++EditorGUI.indentLevel;
+                serialized.smallMeshScreenPercentage.floatValue = Mathf.Clamp(EditorGUILayout.FloatField(Styles.smallMeshScreenPercentage, serialized.smallMeshScreenPercentage.floatValue), 0.0f, 20.0f);
+                EditorGUILayout.PropertyField(serialized.gpuResidentDrawerEnableOcclusionCullingInCameras, Styles.gpuResidentDrawerEnableOcclusionCullingInCameras);
+                DisplayOnTileValidationWarning(serialized.gpuResidentDrawerEnableOcclusionCullingInCameras, p => p.boolValue, Styles.gpuResidentDrawerEnableOcclusionCullingInCameras);
+                --EditorGUI.indentLevel;
 
-                if (!serialized.asset.ValidateRendererData(-1))
-                    EditorGUILayout.HelpBox(Styles.rendererMissingDefaultMessage.text, MessageType.Error, true);
-                else if (!serialized.asset.ValidateRendererDataList(true))
-                    EditorGUILayout.HelpBox(Styles.rendererMissingMessage.text, MessageType.Warning, true);
-                else if (!ValidateRendererGraphicsAPIs(serialized.asset, out var unsupportedGraphicsApisMessage))
-                    EditorGUILayout.HelpBox(Styles.rendererUnsupportedAPIMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
-
-                EditorGUILayout.PropertyField(serialized.requireDepthTextureProp, Styles.requireDepthTextureText);
-                EditorGUILayout.PropertyField(serialized.requireOpaqueTextureProp, Styles.requireOpaqueTextureText);
-                EditorGUI.BeginDisabledGroup(!serialized.requireOpaqueTextureProp.boolValue);
-                EditorGUILayout.PropertyField(serialized.opaqueDownsamplingProp, Styles.opaqueDownsamplingText);
-                EditorGUI.EndDisabledGroup();
-                EditorGUILayout.PropertyField(serialized.supportsTerrainHolesProp, Styles.supportsTerrainHolesText);
-
-                EditorGUILayout.PropertyField(serialized.gpuResidentDrawerMode, Styles.gpuResidentDrawerMode);
-
-                var brgStrippingError = EditorGraphicsSettings.batchRendererGroupShaderStrippingMode != BatchRendererGroupStrippingMode.KeepAll;
-                var lightingModeError = !HasCorrectLightingModes(serialized.asset);
-                var staticBatchingWarning = PlayerSettings.GetStaticBatchingForPlatform(EditorUserBuildSettings.activeBuildTarget);
-
-                if ((GPUResidentDrawerMode)serialized.gpuResidentDrawerMode.intValue != GPUResidentDrawerMode.Disabled)
-                {
-                    ++EditorGUI.indentLevel;
-                    serialized.smallMeshScreenPercentage.floatValue = Mathf.Clamp(EditorGUILayout.FloatField(Styles.smallMeshScreenPercentage, serialized.smallMeshScreenPercentage.floatValue), 0.0f, 20.0f);
-                    EditorGUILayout.PropertyField(serialized.gpuResidentDrawerEnableOcclusionCullingInCameras, Styles.gpuResidentDrawerEnableOcclusionCullingInCameras);
-                    --EditorGUI.indentLevel;
-
-                    if (brgStrippingError)
-                        EditorGUILayout.HelpBox(Styles.brgShaderStrippingErrorMessage.text, MessageType.Warning, true);
-                    if (lightingModeError)
-                        EditorGUILayout.HelpBox(Styles.lightModeErrorMessage.text, MessageType.Warning, true);
-                    if (staticBatchingWarning)
-                        EditorGUILayout.HelpBox(Styles.staticBatchingInfoMessage.text, MessageType.Info, true);
-                }
+                if (brgStrippingError)
+                    EditorGUILayout.HelpBox(Styles.brgShaderStrippingErrorMessage.text, MessageType.Warning, true);
+                if (lightingModeError)
+                    EditorGUILayout.HelpBox(Styles.lightModeErrorMessage.text, MessageType.Warning, true);
+                if (staticBatchingWarning)
+                    EditorGUILayout.HelpBox(Styles.staticBatchingInfoMessage.text, MessageType.Info, true);
             }
         }
 
@@ -180,12 +202,49 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.storeActionsOptimizationProperty, Styles.storeActionsOptimizationText);
         }
 
+        static bool IsAndroidXRTargetted() //Include Quest platform
+        {
+#if XR_MANAGEMENT_4_0_1_OR_NEWER
+            var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
+            if (buildTargetGroup != BuildTargetGroup.Android)
+                return false;
+
+            var buildTargetSettings = XR.Management.XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
+            return buildTargetSettings != null
+                && buildTargetSettings.AssignedSettings != null
+                && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0;
+#else
+            return false;
+#endif
+        }
+
         static void DrawQuality(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
             DrawHDR(serialized, ownerEditor);
 
-            EditorGUILayout.PropertyField(serialized.msaa, Styles.msaaText);
+            EditorGUILayout.PropertyField(serialized.msaa, Styles.msaaText);            
+            DisplayOnTileValidationWarning(
+                serialized.msaa, 
+                p => p.intValue != (int)MsaaQuality.Disabled
+                    // This operation is actually ok on Quest
+                    && !IsAndroidXRTargetted(), 
+                Styles.msaaText);
+
             serialized.renderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, serialized.renderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
+            DisplayOnTileValidationWarning(
+                serialized.renderScale, 
+                p =>
+                {
+                    // Duplicating logic from UniversalRenderPipeline.InitializeStackedCameraData
+                    const float kRenderScaleThreshold = 0.05f;
+                    bool canRequireIntermediateTexture = Mathf.Abs(1.0f - p.floatValue) >= kRenderScaleThreshold;
+                    if (!canRequireIntermediateTexture)
+                        return false;
+                    
+                    // This operation is actually ok on Quest
+                    return !IsAndroidXRTargetted();
+                }, 
+                Styles.renderScaleText);
 
             DrawUpscalingFilterDropdownAndOptions(serialized, ownerEditor);
 
@@ -299,6 +358,8 @@ namespace UnityEditor.Rendering.Universal
 #endif
             }
 
+            DisplayOnTileValidationWarning(serialized.upscalingFilter, p => p.intValue != (int)UpscalingFilterSelection.Auto, Styles.upscalingFilterText);
+
             // draw upscaler options, if any
             switch (serialized.asset.upscalingFilter)
             {
@@ -351,6 +412,7 @@ namespace UnityEditor.Rendering.Universal
         static void DrawHDR(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
             EditorGUILayout.PropertyField(serialized.hdr, Styles.hdrText);
+            DisplayOnTileValidationWarning(serialized.hdr, p => p.boolValue, Styles.hdrText);
 
             // Nested and in-between additional property
             bool additionalProperties = k_ExpandedState[Expandable.Quality] && k_AdditionalPropertiesState[ExpandableAdditional.Quality];
@@ -749,6 +811,8 @@ namespace UnityEditor.Rendering.Universal
 
         static void DrawPostProcessing(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
+            DisplayOnTileValidationWarningForPostProcessingSection(Styles.postProcessingSettingsText);
+
             EditorGUILayout.PropertyField(serialized.colorGradingMode, Styles.colorGradingMode);
             bool isHdrOn = serialized.hdr.boolValue;
             if (!isHdrOn && serialized.colorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
@@ -830,5 +894,220 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.useAdaptivePerformance, Styles.useAdaptivePerformance);
         }
 #endif
+        
+        struct OnTileValidationInfos
+        {
+            public bool enabled => !string.IsNullOrEmpty(formatter);
+            public readonly string formatter;
+            public readonly string rendererNames;
+            public readonly string rendererNamesWithPostProcess;
+
+            public OnTileValidationInfos(string formatter, string rendererNames, string rendererNamesWithPostProcess)
+            {
+                this.formatter = formatter;
+                this.rendererNames = rendererNames;
+                this.rendererNamesWithPostProcess = rendererNamesWithPostProcess;
+            }
+        }
+
+        static OnTileValidationInfos lastOnTileValidationInfos; //prevent computing this multiple time for this ImGUI frame
+
+        static void PrepareOnTileValidationWarning(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
+        {
+            // Rules:
+            //   - mono selection:
+            //      - only 1 Renderer in the list: Display warning if RendererData's OnTileValidation is enabled
+            //      - many Renderers in the list: Display warning with list of RendererData's where OnTileValidation is enabled
+            //   - multi selection:
+            //      - compute the list interection of RendererDatas where OnTileValidation is enabled amongst all URPAsset in selection
+            //      - If list is not empty, display warning with this list. Additionaly specify for item iden due to being at different position
+            //   - Additionally for both, for Post Processing section: only show names where Post Processing is enabled
+
+            lastOnTileValidationInfos = default;
+            
+            // If impacted section are not opened, early exit
+            if (!(k_ExpandedState[Expandable.Rendering] || k_ExpandedState[Expandable.Quality] || k_ExpandedState[Expandable.PostProcessing]))
+                return;
+
+            // Helper to iterate property of an array quickly (without GetArrayElementAtIndex)
+            IEnumerable<SerializedProperty> ArrayElementPropertyEnumerator(SerializedProperty property)
+            {
+                if (!property.hasVisibleChildren)
+                    yield break;
+
+                var iterator = property.Copy();
+                var end = iterator.GetEndProperty();
+
+                // Move to the first child property
+                iterator.NextVisible(enterChildren: true);
+                iterator.NextVisible(enterChildren: false); //skip size
+
+                while (!SerializedProperty.EqualContents(iterator, end))
+                {
+                    yield return iterator;
+                    iterator.NextVisible(enterChildren: false);
+                } 
+            }
+            
+            // Helper to filter the list and get only unique result of UniversalRendererData that have the OnTileValidation.
+            // The returned IDisposable is for being able to return the HashSet to the pool when Dispose is call like at end of Using. 
+            IDisposable SelectUniqueAndCast(IEnumerable<SerializedProperty> properties, out HashSet<UniversalRendererData> uniques)
+            {
+                var e = properties.GetEnumerator();
+                var disposer = HashSetPool<UniversalRendererData>.Get(out uniques);
+                while (e.MoveNext())
+                    if (!e.Current.hasMultipleDifferentValues 
+                        && e.Current.boxedValue is UniversalRendererData universalData 
+                        && universalData.onTileValidation)
+                        uniques.Add(universalData);
+                return disposer;
+            }
+            
+            // Additional select to filter the one that have PostProcessing enabled.
+            IEnumerable<UniversalRendererData> WherePostProcessingEnabled(IEnumerable<UniversalRendererData> renderer)
+            {
+                var e = renderer.GetEnumerator();
+                while (e.MoveNext())
+                    if (e.Current.postProcessData != null)
+                        yield return e.Current;
+            }
+
+            // Helper to draw the name in the collection as a string, between '' and with a coma separator 
+            string ListElementNames(IEnumerable<UniversalRendererData> collection, string suffix = "")
+            {
+                var e = collection.GetEnumerator();
+                if (!e.MoveNext())
+                    return string.Empty;
+
+                string GetName(IEnumerator<UniversalRendererData> e)
+                    => $"'{e.Current.name}'{suffix}";
+
+                string last = GetName(e);
+                if (!e.MoveNext())
+                    return last;
+
+                using var o = StringBuilderPool.Get(out var sb);
+                do
+                {
+                    sb.Append(last);
+                    last = $", {GetName(e)}";
+                }
+                while (e.MoveNext());
+                sb.Append(last);
+
+                return sb.ToString();
+            }
+            
+            // Helper for multiple selection to distinguish element that remain at stable position (in the selection) from others
+            string ConcatCollectionInName(IEnumerable<UniversalRendererData> rightlyPositioned, IEnumerable<UniversalRendererData> wronglyPositioned)
+            {
+                var firstPart = ListElementNames(rightlyPositioned);
+                var secondPart = ListElementNames(wronglyPositioned, Styles.suffixWhenDifferentPositionOnTileValidation);
+                if (string.IsNullOrEmpty(firstPart))
+                    return secondPart;
+                if (string.IsNullOrEmpty(secondPart)) 
+                    return firstPart;
+                return $"{firstPart}, {secondPart}";
+            }
+
+            string names = null;
+            string namesWithPostProcess = null;
+            if (!serialized.rendererDatas.hasMultipleDifferentValues)
+            {
+                // Simple case: all element selected share the same list.
+                // Minimize the operation alongs foldout opened
+                using (SelectUniqueAndCast(ArrayElementPropertyEnumerator(serialized.rendererDatas), out var renderers))
+                {
+                    if (renderers.Count == 0)
+                        return;
+
+                    if (k_ExpandedState[Expandable.Rendering] || k_ExpandedState[Expandable.Quality])
+                        names = ListElementNames(renderers);
+
+                    if (k_ExpandedState[Expandable.PostProcessing])
+                        namesWithPostProcess = ListElementNames(WherePostProcessingEnabled(renderers));
+                
+                    lastOnTileValidationInfos = new OnTileValidationInfos(
+                        serialized.rendererDatas.arraySize == 1 ? Styles.formatterOnTileValidationOneRenderer : Styles.formatterOnTileValidationMultipleRenderer,
+                        names,
+                        namesWithPostProcess);
+                    return;
+                }
+            }
+
+            // Complex case: the renderer list is different in some elements of the selection
+
+            // Let's compute the intersection of each RendererList where it is a UniversalRenderer with On-Tile Validation enabled.
+            // If the intersection is empty, it would means no RendererData validate the criteria so we early exit.
+
+            // We can retrieve element at stable position by directly checking the serialization of the selection.
+            // Elements in the intersection that are not in the stable positio list are elements shared in all list but with moving index.
+
+
+            // Helper to build the HashSet of UniversalRenderer that have OnTileValidation on one targeted asset.
+            // The returned IDisposable is for being able to return the HashSet to the pool when Dispose is call like at end of Using.
+            IDisposable GetUniversalRendererWithOnTileValidationEnabled(UniversalRenderPipelineAsset asset, out HashSet<UniversalRendererData> set)
+            {
+                IDisposable disposer = HashSetPool<UniversalRendererData>.Get(out set);
+                for (int rendererIndex = 0; rendererIndex < asset.rendererDataList.Length; ++rendererIndex)
+                    if (asset.rendererDataList[rendererIndex] is UniversalRendererData universalData && universalData.onTileValidation)
+                        set.Add(universalData);
+                return disposer;
+            }
+
+            using (GetUniversalRendererWithOnTileValidationEnabled((UniversalRenderPipelineAsset)serialized.serializedObject.targetObjects[0], out var movingPositions))
+            {
+                if (movingPositions.Count == 0)
+                    return;
+
+                for (int i = 1; i < serialized.serializedObject.targetObjects.Length; ++i)
+                    using (GetUniversalRendererWithOnTileValidationEnabled((UniversalRenderPipelineAsset)serialized.serializedObject.targetObjects[i], out var otherIntersection))
+                    {
+                        if (otherIntersection.Count == 0)
+                            return;
+                        movingPositions.IntersectWith(otherIntersection);
+                        if (movingPositions.Count == 0)
+                            return;
+                    }
+
+                using (SelectUniqueAndCast(ArrayElementPropertyEnumerator(serialized.rendererDatas), out var stablePositions))
+                {
+                    foreach (var stablePositionElement in stablePositions)
+                        movingPositions.Remove(stablePositionElement);
+
+                    if (k_ExpandedState[Expandable.Rendering] || k_ExpandedState[Expandable.Quality])
+                        names = ConcatCollectionInName(stablePositions, movingPositions);
+                        
+                    if (k_ExpandedState[Expandable.PostProcessing])
+                        namesWithPostProcess = ConcatCollectionInName(WherePostProcessingEnabled(stablePositions), WherePostProcessingEnabled(movingPositions));
+                }
+
+                lastOnTileValidationInfos = new OnTileValidationInfos(Styles.formatterOnTileValidationMultipleRenderer, names, namesWithPostProcess);
+            }
+        }
+
+        static void DisplayOnTileValidationWarning(SerializedProperty prop, Func<SerializedProperty, bool> shouldDisplayWarning, GUIContent label = null)
+        {
+            if (prop == null 
+                || shouldDisplayWarning == null 
+                || !lastOnTileValidationInfos.enabled
+                || !shouldDisplayWarning(prop))
+                return;
+
+            EditorGUILayout.HelpBox(
+                string.Format(lastOnTileValidationInfos.formatter, label == null ? prop.displayName : label.text, lastOnTileValidationInfos.rendererNames), 
+                MessageType.Warning);
+        }
+        
+        //variant for a whole section such as post processing
+        static void DisplayOnTileValidationWarningForPostProcessingSection(GUIContent label)
+        {
+            if (label == null || !lastOnTileValidationInfos.enabled || string.IsNullOrEmpty(lastOnTileValidationInfos.rendererNamesWithPostProcess))
+                return;
+            
+            EditorGUILayout.HelpBox(
+                string.Format(lastOnTileValidationInfos.formatter, label.text, lastOnTileValidationInfos.rendererNamesWithPostProcess), 
+                MessageType.Warning);
+        }
     }
 }
