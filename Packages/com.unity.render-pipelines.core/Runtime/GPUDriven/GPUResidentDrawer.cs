@@ -1,35 +1,66 @@
 #define GPU_RESIDENT_DRAWER_ALLOW_FORCE_ON
 
+#if UNITY_EDITOR
+#define GPU_RESIDENT_DRAWER_ENABLE_VALIDATION
+#endif
+//#define GPU_RESIDENT_DRAWER_ENABLE_DEEP_VALIDATION
+
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Assertions;
 using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
-using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
-using static UnityEngine.ObjectDispatcher;
-using Unity.Jobs;
-using static UnityEngine.Rendering.RenderersParameters;
-using Unity.Jobs.LowLevel.Unsafe;
 using UnityEngine.Rendering.RenderGraphModule;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Burst;
 
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.Rendering;
 #endif
 
 namespace UnityEngine.Rendering
 {
+    internal struct InternalGPUResidentDrawerSettings
+    {
+        public RenderPipelineAsset renderPipelineAsset;
+        public GPUResidentDrawerResources resources;
+        public OnCullingCompleteCallback onCompleteCallback;
+        public bool isManagedByUnitTest;
+
+        public static readonly InternalGPUResidentDrawerSettings Default = new InternalGPUResidentDrawerSettings
+        {
+            renderPipelineAsset = null,
+            resources = null,
+            onCompleteCallback = null,
+            isManagedByUnitTest = false,
+        };
+    }
+
     /// <summary>
     /// Static utility class for updating data post cull in begin camera rendering
     /// </summary>
+    [BurstCompile]
     public partial class GPUResidentDrawer
     {
-        internal static GPUResidentDrawer instance { get => s_Instance; }
+#if GPU_RESIDENT_DRAWER_ENABLE_VALIDATION || GPU_RESIDENT_DRAWER_ENABLE_DEEP_VALIDATION
+        internal const bool EnableValidation = true;
+#else
+        internal const bool EnableValidation = false;
+#endif
+
+#if GPU_RESIDENT_DRAWER_ENABLE_DEEP_VALIDATION
+        internal const bool EnableDeepValidation = true;
+#else
+        internal const bool EnableDeepValidation = false;
+#endif
+
+        internal static bool MaintainContext { get; set; } = false;
+        internal static bool ForceOcclusion { get; set; } = false;
+
         private static GPUResidentDrawer s_Instance = null;
+
+        private static uint s_InstanceVersion = 0;
 
         ////////////////////////////////////////
         // Public API for rendering pipelines //
@@ -50,7 +81,7 @@ namespace UnityEngine.Rendering
                 return false;
 
             if (s_Instance.settings.enableOcclusionCulling)
-                    return true;
+                return true;
 
             return false;
         }
@@ -63,16 +94,15 @@ namespace UnityEngine.Rendering
         /// </param>
         public static void PostCullBeginCameraRendering(RenderRequestBatcherContext context)
         {
-            s_Instance?.batcher.PostCullBeginCameraRendering(context);
+            s_Instance?.OnPostCullBeginCameraRendering(context);
         }
-
 
         /// <summary>
         /// Utility function for updating probe data after global ambient probe is set up
         /// </summary>
         public static void OnSetupAmbientProbe()
         {
-            s_Instance?.batcher.OnSetupAmbientProbe();
+            s_Instance?.UpdateAmbientProbeAndGPUBuffer(forceUpdate: false);
         }
 
         /// <summary>
@@ -88,7 +118,9 @@ namespace UnityEngine.Rendering
         /// <param name="subviewOcclusionTests">Specifies the occluder subviews to use with each culling split index.</param>
         public static void InstanceOcclusionTest(RenderGraph renderGraph, in OcclusionCullingSettings settings, ReadOnlySpan<SubviewOcclusionTest> subviewOcclusionTests)
         {
-            s_Instance?.batcher.InstanceOcclusionTest(renderGraph, settings, subviewOcclusionTests);
+            if (s_Instance == null || !s_Instance.m_InstanceDataSystem.hasBoundingSpheres)
+                return;
+            s_Instance.m_Culler.InstanceOcclusionTest(renderGraph, settings, subviewOcclusionTests, s_Instance.m_GRDContext);
         }
 
         /// <summary>
@@ -103,7 +135,9 @@ namespace UnityEngine.Rendering
         /// <param name="occluderSubviewUpdates">Specifies which occluder subviews to update from slices of the input depth buffer.</param>
         public static void UpdateInstanceOccluders(RenderGraph renderGraph, in OccluderParameters occluderParameters, ReadOnlySpan<OccluderSubviewUpdate> occluderSubviewUpdates)
         {
-            s_Instance?.batcher.UpdateInstanceOccluders(renderGraph, occluderParameters, occluderSubviewUpdates);
+            if (s_Instance == null || !s_Instance.m_InstanceDataSystem.hasBoundingSpheres)
+                return;
+            s_Instance.m_OcclusionCullingCommon.UpdateInstanceOccluders(renderGraph, s_Instance.m_GRDContext, occluderParameters, occluderSubviewUpdates);
         }
 
         /// <summary>
@@ -113,7 +147,7 @@ namespace UnityEngine.Rendering
         public static void ReinitializeIfNeeded()
         {
 #if UNITY_EDITOR
-            if (!IsForcedOnViaCommandLine() && !MaintainContext && (IsProjectSupported() != IsEnabled()))
+            if (!IsForcedOnViaCommandLine() && !MaintainContext && (IsProjectSupported() != IsInitialized()))
             {
                 Reinitialize();
             }
@@ -129,11 +163,11 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="renderGraph">Render graph that will have a compute pass added.</param>
         /// <param name="debugSettings">The rendering debugger debug settings to read parameters from.</param>
-        /// <param name="viewInstanceID">The instance ID of the camera using a GPU occlusion test.</param>
+        /// <param name="viewID">The EntityId of the camera using a GPU occlusion test.</param>
         /// <param name="colorBuffer">The color buffer to render the overlay on.</param>
-        public static void RenderDebugOcclusionTestOverlay(RenderGraph renderGraph, DebugDisplayGPUResidentDrawer debugSettings, EntityId viewInstanceID, TextureHandle colorBuffer)
+        public static void RenderDebugOcclusionTestOverlay(RenderGraph renderGraph, DebugDisplayGPUResidentDrawer debugSettings, EntityId viewID, TextureHandle colorBuffer)
         {
-            s_Instance?.batcher.occlusionCullingCommon.RenderDebugOcclusionTestOverlay(renderGraph, debugSettings, viewInstanceID, colorBuffer);
+            s_Instance?.m_OcclusionCullingCommon.RenderDebugOcclusionTestOverlay(renderGraph, debugSettings, viewID, colorBuffer);
         }
 
         /// <summary>
@@ -146,15 +180,34 @@ namespace UnityEngine.Rendering
         /// <param name="colorBuffer">The color buffer to render the overlay on.</param>
         public static void RenderDebugOccluderOverlay(RenderGraph renderGraph, DebugDisplayGPUResidentDrawer debugSettings, Vector2 screenPos, float maxHeight, TextureHandle colorBuffer)
         {
-            s_Instance?.batcher.occlusionCullingCommon.RenderDebugOccluderOverlay(renderGraph, debugSettings, screenPos, maxHeight, colorBuffer);
+            s_Instance?.m_OcclusionCullingCommon.RenderDebugOccluderOverlay(renderGraph, debugSettings, screenPos, maxHeight, colorBuffer);
         }
 
         #endregion
 
-        internal static DebugRendererBatcherStats GetDebugStats()
-        {
-            return s_Instance?.m_BatchersContext.debugStats;
-        }
+        internal static bool IsEnabledFromSettings() => GetGlobalSettingsFromRPAsset().mode != GPUResidentDrawerMode.Disabled;
+
+        internal static bool IsInitialized() => s_Instance != null;
+
+        internal static uint GetInstanceVersion() => s_InstanceVersion;
+
+        internal static NativeReference<GPUArchetypeManager> GetGPUArchetypeManager() => s_Instance != null ? s_Instance.m_InstanceDataSystem.archetypeManager : default;
+
+        internal static ref DefaultGPUComponents GetDefaultGPUComponents() => ref s_Instance.m_InstanceDataSystem.defaultGPUComponents;
+
+        internal static GPUInstanceDataBuffer.ReadOnly GetInstanceDataBuffer() => s_Instance != null ? s_Instance.m_InstanceDataSystem.gpuBuffer.AsReadOnly() : default;
+
+        internal static GPUInstanceDataBufferReadback<T> ReadbackInstanceDataBuffer<T>() where T : unmanaged => s_Instance != null ? s_Instance.m_InstanceDataSystem.ReadbackInstanceDataBuffer<T>() : default;
+
+        internal static DebugRendererBatcherStats GetDebugStats() => s_Instance?.m_GRDContext.debugStats;
+
+        internal static void PushMeshRendererUpdateBatches(NativeArray<MeshRendererUpdateBatch> batches) => s_Instance.m_WorldProcessor.PushMeshRendererUpdateBatches(batches);
+
+        internal static void PushLODGroupUpdateBatches(NativeArray<LODGroupUpdateBatch> batches) => s_Instance.m_WorldProcessor.PushLODGroupUpdateBatches(batches);
+
+        internal static void PushMeshRendererDeletionBatches(NativeArray<NativeArray<EntityId>> batches) => s_Instance.m_WorldProcessor.PushMeshRendererDeletionBatch(batches);
+
+        internal static void PushLODGroupDeletionBatches(NativeArray<NativeArray<EntityId>> batches) => s_Instance.m_WorldProcessor.PushLODGroupDeletionBatch(batches);
 
         private void InsertIntoPlayerLoop()
         {
@@ -217,15 +270,9 @@ namespace UnityEngine.Rendering
 #if UNITY_EDITOR
         private static void OnAssemblyReload()
         {
-            if (s_Instance is not null)
-                s_Instance.Dispose();
+            Cleanup();
         }
 #endif
-
-        internal static bool IsEnabled()
-        {
-            return s_Instance is not null;
-        }
 
         internal static GPUResidentDrawerSettings GetGlobalSettingsFromRPAsset()
         {
@@ -269,9 +316,6 @@ namespace UnityEngine.Rendering
 #endif
         }
 
-        internal static bool MaintainContext { get; set; } = false;
-        internal static bool ForceOcclusion { get; set; } = false;
-
         internal static void Reinitialize()
         {
             var settings = GetGlobalSettingsFromRPAsset();
@@ -289,26 +333,29 @@ namespace UnityEngine.Rendering
             {
                 Debug.LogError($"The GPU Resident Drawer encountered an error during initialization. The standard SRP path will be used instead. [Error: {exception.Message}]");
                 Debug.LogError($"GPU Resident drawer stack trace: {exception.StackTrace}");
-                CleanUp();
+                Cleanup();
             }
 #endif
         }
 
-        private static void CleanUp()
+        private static void Cleanup()
         {
             if (s_Instance == null)
                 return;
 
             s_Instance.Dispose();
             s_Instance = null;
+            ++s_InstanceVersion;
         }
 
         private static void Recreate(GPUResidentDrawerSettings settings)
         {
-            CleanUp();
+            Cleanup();
+
             if (IsGPUResidentDrawerSupportedBySRP(settings, out var message, out var severity))
             {
-                s_Instance = new GPUResidentDrawer(settings, 4096, 0);
+                s_Instance = new GPUResidentDrawer(settings);
+                ++s_InstanceVersion;
             }
             else
             {
@@ -316,19 +363,23 @@ namespace UnityEngine.Rendering
             }
         }
 
-        IntPtr m_ContextIntPtr = IntPtr.Zero;
-
-        internal GPUResidentBatcher batcher { get => m_Batcher; }
-
-        internal GPUResidentDrawerSettings settings { get => m_Settings; }
-
+        private IntPtr m_ContextIntPtr = IntPtr.Zero;
         private GPUResidentDrawerSettings m_Settings;
-        private GPUDrivenProcessor m_GPUDrivenProcessor = null;
-        private RenderersBatchersContext m_BatchersContext = null;
-        private GPUResidentBatcher m_Batcher = null;
+        private InternalGPUResidentDrawerSettings m_InternalSettings;
 
-        private ObjectDispatcher m_Dispatcher;
+        // Core Systems
+        internal GPUDrivenProcessor m_GPUDrivenProcessor;
+        internal ObjectDispatcher m_ObjectDispatcher;
+        internal InstanceDataSystem m_InstanceDataSystem;
+        internal LODGroupDataSystem m_LODGroupDataSystem;
+        internal InstanceCuller m_Culler;
+        internal OcclusionCullingCommon m_OcclusionCullingCommon;
+        internal InstanceCullingBatcher m_Batcher;
+        internal GPUResidentContext m_GRDContext;
+        internal SpeedTreeWindGPUDataUpdater m_SpeedTreeWindGPUDataUpdater;
+        internal WorldProcessor m_WorldProcessor;
 
+        internal GPUResidentDrawerSettings settings => m_Settings;
 
 #if UNITY_EDITOR
         private static readonly bool s_IsForcedOnViaCommandLine;
@@ -337,11 +388,9 @@ namespace UnityEngine.Rendering
         private NativeList<EntityId> m_FrameCameraIDs;
         private bool m_FrameUpdateNeeded = false;
 
-        private bool m_IsSelectionDirty;
-
         static GPUResidentDrawer()
         {
-			Lightmapping.bakeCompleted += Reinitialize;
+            Lightmapping.bakeCompleted += Reinitialize;
 
 #if GPU_RESIDENT_DRAWER_ALLOW_FORCE_ON
             foreach (var arg in Environment.GetCommandLineArgs())
@@ -361,50 +410,60 @@ namespace UnityEngine.Rendering
         }
 #endif
 
-        private GPUResidentDrawer(GPUResidentDrawerSettings settings, int maxInstanceCount, int maxTreeInstanceCount)
+        internal GPUResidentDrawer(in GPUResidentDrawerSettings settings) : this(settings, InternalGPUResidentDrawerSettings.Default) {}
+
+        internal GPUResidentDrawer(in GPUResidentDrawerSettings settings, in InternalGPUResidentDrawerSettings internalSettings)
         {
-            var resources = GraphicsSettings.GetRenderPipelineSettings<GPUResidentDrawerResources>();
-            var renderPipelineAsset = GraphicsSettings.currentRenderPipeline;
-            var mbAsset = renderPipelineAsset as IGPUResidentRenderPipeline;
-            Debug.Assert(mbAsset != null, "No compatible Render Pipeline found");
-            Assert.IsFalse(settings.mode == GPUResidentDrawerMode.Disabled);
+            Assert.IsTrue(settings.mode != GPUResidentDrawerMode.Disabled);
+
+            var resources = internalSettings.resources != null ? internalSettings.resources : GraphicsSettings.GetRenderPipelineSettings<GPUResidentDrawerResources>();
+            var renderPipelineAsset = internalSettings.renderPipelineAsset != null ? internalSettings.renderPipelineAsset : GraphicsSettings.currentRenderPipeline;
+
+            if (renderPipelineAsset is not IGPUResidentRenderPipeline)
+                Assert.IsTrue(internalSettings.isManagedByUnitTest, "No compatible Render Pipeline found");
+
             m_Settings = settings;
-
-            var rbcDesc = RenderersBatchersContextDesc.NewDefault();
-            rbcDesc.instanceNumInfo = new InstanceNumInfo(meshRendererNum: maxInstanceCount, speedTreeNum: maxTreeInstanceCount);
-            rbcDesc.supportDitheringCrossFade = settings.supportDitheringCrossFade;
-            rbcDesc.smallMeshScreenPercentage = settings.smallMeshScreenPercentage;
-            rbcDesc.enableBoundingSpheresInstanceData = settings.enableOcclusionCulling;
-            rbcDesc.enableCullerDebugStats = true; // for now, always allow the possibility of reading counter stats from the cullers.
-
-            var instanceCullingBatcherDesc = InstanceCullingBatcherDesc.NewDefault();
-#if UNITY_EDITOR
-            instanceCullingBatcherDesc.brgPicking = settings.pickingShader;
-            instanceCullingBatcherDesc.brgLoading = settings.loadingShader;
-            instanceCullingBatcherDesc.brgError = settings.errorShader;
-#endif
-
+            m_InternalSettings = internalSettings;
             m_GPUDrivenProcessor = new GPUDrivenProcessor();
-            m_BatchersContext = new RenderersBatchersContext(rbcDesc, m_GPUDrivenProcessor, resources);
-            m_Batcher = new GPUResidentBatcher(
-                m_BatchersContext,
-                instanceCullingBatcherDesc,
-                m_GPUDrivenProcessor);
+            //@ Disable partial rendering for now as it hasn't been widely tested in the main branch.
+            //@ This feature was initially developed alongside deferred materials and was controlled by deferred materials settings.
+            //@ It enables rendering only the materials and sub-meshes within the same object that are supported by the BRG, while SRP handles the rest.
+            m_GPUDrivenProcessor.enablePartialRendering = false;
 
-            m_Dispatcher = new ObjectDispatcher();
-            m_Dispatcher.EnableTypeTracking<LODGroup>(TypeTrackingFlags.SceneObjects);
-            m_Dispatcher.EnableTypeTracking<Mesh>();
-            m_Dispatcher.EnableTypeTracking<Material>();
-            m_Dispatcher.EnableTypeTracking<MeshRenderer>(TypeTrackingFlags.SceneObjects);
-            m_Dispatcher.EnableTypeTracking<Camera>(TypeTrackingFlags.SceneObjects | TypeTrackingFlags.EditorOnlyObjects);
+            m_ObjectDispatcher = new ObjectDispatcher();
+            m_InstanceDataSystem = new InstanceDataSystem(1024, settings.enableOcclusionCulling, resources);
+            m_LODGroupDataSystem = new LODGroupDataSystem(settings.supportDitheringCrossFade);
+            m_Culler = new InstanceCuller();
+            m_OcclusionCullingCommon = new OcclusionCullingCommon();
+            m_Batcher = new InstanceCullingBatcher();
+            m_GRDContext = new GPUResidentContext(settings,
+                m_InstanceDataSystem,
+                m_LODGroupDataSystem,
+                m_Culler,
+                m_OcclusionCullingCommon,
+                m_Batcher,
+                resources);
+            m_SpeedTreeWindGPUDataUpdater = new SpeedTreeWindGPUDataUpdater();
+            m_WorldProcessor = new WorldProcessor();
 
-            m_Dispatcher.EnableTransformTracking<MeshRenderer>(TransformTrackingType.GlobalTRS);
-            m_Dispatcher.EnableTransformTracking<LODGroup>(TransformTrackingType.GlobalTRS);
+            m_ObjectDispatcher.EnableTypeTracking<Mesh>();
+            m_ObjectDispatcher.EnableTypeTracking<Material>();
+            m_ObjectDispatcher.EnableTypeTracking<MeshRenderer>(ObjectDispatcher.TypeTrackingFlags.SceneObjects);
+            m_ObjectDispatcher.EnableTypeTracking<LODGroup>(ObjectDispatcher.TypeTrackingFlags.SceneObjects);
+            m_ObjectDispatcher.EnableTypeTracking<Camera>(ObjectDispatcher.TypeTrackingFlags.SceneObjects | ObjectDispatcher.TypeTrackingFlags.EditorOnlyObjects);
+            m_ObjectDispatcher.EnableTransformTracking<MeshRenderer>(ObjectDispatcher.TransformTrackingType.GlobalTRS);
+            m_ObjectDispatcher.EnableTransformTracking<LODGroup>(ObjectDispatcher.TransformTrackingType.GlobalTRS);
+
+            m_Culler.Initialize(resources, m_GRDContext.debugStats);
+            m_OcclusionCullingCommon.Initialize(resources);
+            m_Batcher.Initialize(m_GRDContext, settings, OnFinishedCulling, internalSettings.onCompleteCallback);
+            m_SpeedTreeWindGPUDataUpdater.Initialize(m_InstanceDataSystem, m_Culler);
+            m_WorldProcessor.Initialize(m_GPUDrivenProcessor, m_ObjectDispatcher, m_GRDContext);
 
 #if UNITY_EDITOR
-            AssemblyReloadEvents.beforeAssemblyReload += OnAssemblyReload;
             m_FrameCameraIDs = new NativeList<EntityId>(1, Allocator.Persistent);
-            m_IsSelectionDirty = true; // Force at least one selection update
+            if (!internalSettings.isManagedByUnitTest)
+                AssemblyReloadEvents.beforeAssemblyReload += OnAssemblyReload;
 #endif
             SceneManager.sceneLoaded += OnSceneLoaded;
 
@@ -412,16 +471,9 @@ namespace UnityEngine.Rendering
             RenderPipelineManager.endContextRendering += OnEndContextRendering;
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
-#if UNITY_EDITOR
-            Selection.selectionChanged += OnSelectionChanged;
-#endif
 
-            // GPU Resident Drawer only supports legacy lightmap binding.
-            // Accordingly, we set the keyword globally across all shaders.
-            const string useLegacyLightmapsKeyword = "USE_LEGACY_LIGHTMAPS";
-            Shader.EnableKeyword(useLegacyLightmapsKeyword);
-
-            InsertIntoPlayerLoop();
+            if (!internalSettings.isManagedByUnitTest)
+                InsertIntoPlayerLoop();
 
             string extraText = IsForcedOnViaCommandLine() ? " (forced on via commandline)" : "";
             extraText = MaintainContext ? " (forced on via MaintainContext)" : extraText;
@@ -434,12 +486,16 @@ namespace UnityEngine.Rendering
             Console.WriteLine($"GPU Resident Drawer created{extraText}.");
         }
 
-        private void Dispose()
+        internal void Dispose()
         {
-            Assert.IsNotNull(s_Instance);
+            NativeArray<EntityId> rendererIDs = m_InstanceDataSystem.renderWorld.instanceIDs;
+            if (rendererIDs.Length > 0)
+                m_GPUDrivenProcessor.DisableGPUDrivenRendering(rendererIDs);
 
 #if UNITY_EDITOR
-            AssemblyReloadEvents.beforeAssemblyReload -= OnAssemblyReload;
+            if (!m_InternalSettings.isManagedByUnitTest)
+                AssemblyReloadEvents.beforeAssemblyReload -= OnAssemblyReload;
+
             if (m_FrameCameraIDs.IsCreated)
                 m_FrameCameraIDs.Dispose();
 #endif
@@ -450,25 +506,30 @@ namespace UnityEngine.Rendering
             RenderPipelineManager.endContextRendering -= OnEndContextRendering;
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
-#if UNITY_EDITOR
-            Selection.selectionChanged -= OnSelectionChanged;
-#endif
 
-            RemoveFromPlayerLoop();
+            if (!m_InternalSettings.isManagedByUnitTest)
+                RemoveFromPlayerLoop();
 
-            const string useLegacyLightmapsKeyword = "USE_LEGACY_LIGHTMAPS";
-            Shader.DisableKeyword(useLegacyLightmapsKeyword);
-
-            m_Dispatcher.Dispose();
-            m_Dispatcher = null;
-
-            s_Instance = null;
-
-            m_Batcher?.Dispose();
-
-            m_BatchersContext.Dispose();
+            m_WorldProcessor.Dispose();
+            m_WorldProcessor = null;
+            m_SpeedTreeWindGPUDataUpdater.Dispose();
+            m_SpeedTreeWindGPUDataUpdater = null;
+            m_Batcher.Dispose();
+            m_Batcher = null;
+            m_OcclusionCullingCommon?.Dispose();
+            m_OcclusionCullingCommon = null;
+            m_Culler.Dispose();
+            m_Culler = null;
+            m_InstanceDataSystem.Dispose();
+            m_InstanceDataSystem = null;
+            m_LODGroupDataSystem.Dispose();
+            m_LODGroupDataSystem = null;
+            m_GRDContext.Dispose();
+            m_GRDContext = null;
+            m_ObjectDispatcher.Dispose();
+            m_ObjectDispatcher = null;
             m_GPUDrivenProcessor.Dispose();
-
+            m_GPUDrivenProcessor = null;
             m_ContextIntPtr = IntPtr.Zero;
 
             Console.WriteLine($"GPU Resident Drawer disposed.");
@@ -477,29 +538,13 @@ namespace UnityEngine.Rendering
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             // Loaded scene might contain light probes that would affect existing objects. Hence we have to update all probes data.
-            if(mode == LoadSceneMode.Additive)
-                m_BatchersContext.UpdateAmbientProbeAndGpuBuffer(forceUpdate: true);
+            if (mode == LoadSceneMode.Additive)
+                UpdateAmbientProbeAndGPUBuffer(forceUpdate: true);
         }
 
         private static void PostPostLateUpdateStatic()
         {
             s_Instance?.PostPostLateUpdate();
-        }
-
-        private void OnBeginContextRendering(ScriptableRenderContext context, List<Camera> cameras)
-        {
-            if (s_Instance is null)
-                return;
-
-            // This logic ensures that EditorFrameUpdate is not called more than once after calling BeginContextRendering, unless EndContextRendering has also been called.
-            if (m_ContextIntPtr == IntPtr.Zero)
-            {
-                m_ContextIntPtr = context.Internal_GetPtr();
-#if UNITY_EDITOR
-                EditorFrameUpdate(cameras);
-#endif
-                m_Batcher.OnBeginContextRendering();
-            }
         }
 
 #if UNITY_EDITOR
@@ -524,456 +569,86 @@ namespace UnityEngine.Rendering
             if (newFrame)
             {
                 if (m_FrameUpdateNeeded)
-                    m_Batcher.UpdateFrame();
+                {
+                    CullerUpdateFrame();
+                }
                 else
+                {
                     m_FrameUpdateNeeded = true;
+                }
             }
-        }
-
-        private void OnSelectionChanged()
-        {
-            m_IsSelectionDirty = true;
-        }
-
-        private void UpdateSelection()
-        {
-            Profiler.BeginSample("GPUResidentDrawer.UpdateSelection");
-
-            Object[] renderers = Selection.GetFiltered(typeof(MeshRenderer), SelectionMode.Deep);
-
-            var rendererIDs = new NativeArray<EntityId>(renderers.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-
-            for (int i = 0; i < renderers.Length; ++i)
-                rendererIDs[i] = renderers[i] ? renderers[i].GetEntityId() : EntityId.None;
-
-            m_Batcher.UpdateSelectedRenderers(rendererIDs);
-
-            rendererIDs.Dispose();
-
-            Profiler.EndSample();
         }
 #endif
 
+        private void OnBeginContextRendering(ScriptableRenderContext context, List<Camera> cameras)
+        {
+            // This logic ensures that EditorFrameUpdate is not called more than once after calling BeginContextRendering, unless EndContextRendering has also been called.
+            if (m_ContextIntPtr == IntPtr.Zero)
+            {
+                m_ContextIntPtr = context.Internal_GetPtr();
+#if UNITY_EDITOR
+                EditorFrameUpdate(cameras);
+#endif
+                m_SpeedTreeWindGPUDataUpdater.OnBeginContextRendering();
+            }
+        }
+
         private void OnEndContextRendering(ScriptableRenderContext context, List<Camera> cameras)
         {
-            if (s_Instance is null)
-                return;
+            ParallelBitArray compactedVisibilityMasks = m_Culler.GetCompactedVisibilityMasks(syncCullingJobs: true);
 
             if (m_ContextIntPtr == context.Internal_GetPtr())
             {
                 m_ContextIntPtr = IntPtr.Zero;
-                m_Batcher.OnEndContextRendering();
+                if (compactedVisibilityMasks.IsCreated)
+                    m_InstanceDataSystem.UpdatePerFrameInstanceVisibility(compactedVisibilityMasks);
             }
         }
 
         private void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
-            m_Batcher.OnBeginCameraRendering(camera);
+            m_Culler.OnBeginCameraRendering(camera);
         }
 
         private void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
         {
-            m_Batcher.OnEndCameraRendering(camera);
+            m_Culler.OnEndCameraRendering(camera);
+        }
+
+        private void OnFinishedCulling(IntPtr customCullingResult)
+        {
+            m_Culler.EnsureValidOcclusionTestResults(viewID : EntityId.From((ulong)customCullingResult));
+            m_SpeedTreeWindGPUDataUpdater.UpdateGPUData();
+        }
+
+        private void OnPostCullBeginCameraRendering(RenderRequestBatcherContext context) {}
+
+        private void UpdateAmbientProbeAndGPUBuffer(bool forceUpdate)
+        {
+            if (forceUpdate || m_GRDContext.cachedAmbientProbe != RenderSettings.ambientProbe)
+            {
+                m_GRDContext.cachedAmbientProbe = RenderSettings.ambientProbe;
+                m_InstanceDataSystem.UpdateAllInstanceProbes();
+            }
+        }
+
+        private void CullerUpdateFrame()
+        {
+            m_Culler.UpdateFrame(m_InstanceDataSystem.renderWorld.cameraCount);
+            m_OcclusionCullingCommon.UpdateFrame();
+            if (m_GRDContext.debugStats != null)
+                m_OcclusionCullingCommon.UpdateOccluderStats(m_GRDContext.debugStats);
         }
 
         private void PostPostLateUpdate()
         {
-            m_BatchersContext.UpdateAmbientProbeAndGpuBuffer(forceUpdate: false);
-
-            Profiler.BeginSample("GPUResidentDrawer.DispatchChanges");
-            var lodGroupTransformData = m_Dispatcher.GetTransformChangesAndClear<LODGroup>(TransformTrackingType.GlobalTRS, Allocator.TempJob);
-            var lodGroupData = m_Dispatcher.GetTypeChangesAndClear<LODGroup>(Allocator.TempJob, noScriptingArray: true);
-            var meshDataSorted = m_Dispatcher.GetTypeChangesAndClear<Mesh>(Allocator.TempJob, sortByInstanceID: true, noScriptingArray: true);
-            var cameraChanges = m_Dispatcher.GetTypeChangesAndClear<Camera>(Allocator.TempJob, noScriptingArray: true);
-            var materialData = m_Dispatcher.GetTypeChangesAndClear<Material>(Allocator.TempJob, noScriptingArray: true);
-            var rendererData = m_Dispatcher.GetTypeChangesAndClear<MeshRenderer>(Allocator.TempJob, noScriptingArray: true);
-            Profiler.EndSample();
-
-            Profiler.BeginSample("GPUResidentDrawer.ClassifyMaterials");
-            ClassifyMaterials(materialData.changedID, out NativeList<EntityId> unsupportedChangedMaterials,
-                out NativeList<EntityId> supportedChangedMaterials,
-                out NativeList<GPUDrivenPackedMaterialData> supportedChangedPackedMaterialDatas, Allocator.TempJob);
-            Profiler.EndSample();
-
-            Profiler.BeginSample("GPUResidentDrawer.FindUnsupportedRenderers");
-            NativeList<EntityId> unsupportedRenderers = FindUnsupportedRenderers(unsupportedChangedMaterials.AsArray());
-            Profiler.EndSample();
-
-            Profiler.BeginSample("GPUResidentDrawer.ProcessMaterials");
-            ProcessMaterials(materialData.destroyedID, unsupportedChangedMaterials.AsArray());
-            Profiler.EndSample();
-
-            Profiler.BeginSample("GPUResidentDrawer.ProcessMeshes");
-            ProcessMeshes(meshDataSorted.destroyedID);
-            Profiler.EndSample();
-
-            Profiler.BeginSample("GPUResidentDrawer.ProcessLODGroups");
-            ProcessLODGroups(lodGroupData.changedID, lodGroupData.destroyedID, lodGroupTransformData.transformedID);
-            Profiler.EndSample();
-
-            Profiler.BeginSample("GPUResidentDrawer.ProcessCameras");
-            ProcessCameras(cameraChanges.changedID, cameraChanges.destroyedID);
-            Profiler.EndSample();
-
-            Profiler.BeginSample("GPUResidentDrawer.ProcessRenderers");
-            ProcessRenderers(rendererData, unsupportedRenderers.AsArray());
-            Profiler.EndSample();
-
-            Profiler.BeginSample("GPUResidentDrawer.ProcessRendererMaterialAndMeshChanges");
-            ProcessRendererMaterialAndMeshChanges(rendererData.changedID, supportedChangedMaterials.AsArray(), supportedChangedPackedMaterialDatas.AsArray(), meshDataSorted.changedID);
-            Profiler.EndSample();
-
-            lodGroupTransformData.Dispose();
-            lodGroupData.Dispose();
-            meshDataSorted.Dispose();
-            materialData.Dispose();
-            cameraChanges.Dispose();
-            rendererData.Dispose();
-            unsupportedChangedMaterials.Dispose();
-            unsupportedRenderers.Dispose();
-            supportedChangedMaterials.Dispose();
-            supportedChangedPackedMaterialDatas.Dispose();
-
-            m_BatchersContext.UpdateInstanceMotions();
-            m_Batcher.UpdateFrame();
+            UpdateAmbientProbeAndGPUBuffer(forceUpdate: false);
+            m_WorldProcessor.Update();
+            CullerUpdateFrame();
 
 #if UNITY_EDITOR
-            if (m_IsSelectionDirty)
-            {
-                UpdateSelection();
-                m_IsSelectionDirty = false;
-            }
-
             m_FrameUpdateNeeded = false;
 #endif
-        }
-
-        private void ProcessMaterials(NativeArray<EntityId> destroyedID, NativeArray<EntityId> unsupportedMaterials)
-        {
-            if (destroyedID.Length > 0)
-                m_Batcher.DestroyMaterials(destroyedID);
-
-            if (unsupportedMaterials.Length > 0)
-                m_Batcher.DestroyMaterials(unsupportedMaterials);
-        }
-
-        private void ProcessCameras(NativeArray<EntityId> changedIDs, NativeArray<EntityId> destroyedIDs)
-        {
-            m_BatchersContext.UpdateCameras(changedIDs);
-            m_BatchersContext.FreePerCameraInstanceData(destroyedIDs);
-        }
-
-        private void ProcessMeshes(NativeArray<EntityId> destroyedID)
-        {
-            if (destroyedID.Length == 0)
-                return;
-
-            var destroyedMeshInstances = new NativeList<InstanceHandle>(Allocator.TempJob);
-            ScheduleQueryMeshInstancesJob(destroyedID, destroyedMeshInstances).Complete();
-            m_Batcher.DestroyDrawInstances(destroyedMeshInstances.AsArray());
-            destroyedMeshInstances.Dispose();
-
-            //@ Check if we need to update instance bounds and light probe sampling positions after mesh is destroyed.
-            m_Batcher.DestroyMeshes(destroyedID);
-        }
-
-        private void ProcessLODGroups(NativeArray<EntityId> changedID, NativeArray<EntityId> destroyed, NativeArray<EntityId> transformedID)
-        {
-            m_BatchersContext.DestroyLODGroups(destroyed);
-            m_BatchersContext.UpdateLODGroups(changedID);
-            m_BatchersContext.TransformLODGroups(transformedID);
-        }
-
-        private void ProcessRendererMaterialAndMeshChanges(NativeArray<EntityId> excludedRenderers, NativeArray<EntityId> changedMaterials, NativeArray<GPUDrivenPackedMaterialData> changedPackedMaterialDatas, NativeArray<EntityId> changedMeshes)
-        {
-            if (changedMaterials.Length == 0 && changedMeshes.Length == 0)
-                return;
-
-            Profiler.BeginSample("GPUResidentDrawer.GetMaterialsWithChangedPackedMaterial");
-
-            var filteredMaterials = GetMaterialsWithChangedPackedMaterial(changedMaterials, changedPackedMaterialDatas, Allocator.TempJob);
-            // Make sure we update the packed material cache AFTER filtering the materials as we need to compare the packed materials
-            // with their previous values.
-            var updatePackedMaterialCacheJob = m_Batcher.SchedulePackedMaterialCacheUpdate(changedMaterials, changedPackedMaterialDatas);
-
-            Profiler.EndSample();
-
-            if (filteredMaterials.Count == 0 && changedMeshes.Length == 0)
-            {
-                filteredMaterials.Dispose();
-                updatePackedMaterialCacheJob.Complete();
-                return;
-            }
-
-            var sortedExcludedRenderers = new NativeArray<EntityId>(excludedRenderers, Allocator.TempJob);
-            if (sortedExcludedRenderers.Length > 0)
-            {
-                Profiler.BeginSample("ProcessRendererMaterialAndMeshChanges.Sort");
-                sortedExcludedRenderers.SortJob().Schedule().Complete();
-                Profiler.EndSample();
-            }
-
-            Profiler.BeginSample("GPUResidentDrawer.FindRenderersFromMaterialsOrMeshes");
-
-            var (renderersWithChangedMaterials, renderersWithChangedMeshes) = FindRenderersFromMaterialsOrMeshes(sortedExcludedRenderers, filteredMaterials, changedMeshes, Allocator.TempJob);
-            filteredMaterials.Dispose();
-
-            Profiler.EndSample();
-
-            sortedExcludedRenderers.Dispose();
-            updatePackedMaterialCacheJob.Complete();
-
-            if (renderersWithChangedMaterials.Length == 0 && renderersWithChangedMeshes.Length == 0)
-            {
-                renderersWithChangedMaterials.Dispose();
-                renderersWithChangedMeshes.Dispose();
-                return;
-            }
-
-            Profiler.BeginSample("GPUResidentDrawer.UpdateRenderers");
-            {
-                var changedMaterialsCount = renderersWithChangedMaterials.Length;
-                var changedMeshesCount = renderersWithChangedMeshes.Length;
-                var totalCount = changedMaterialsCount + changedMeshesCount;
-
-                var changedInstances = new NativeArray<InstanceHandle>(totalCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-                var changedRenderers = new NativeArray<EntityId>(totalCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-
-                NativeArray<EntityId>.Copy(renderersWithChangedMaterials.AsArray(), changedRenderers, changedMaterialsCount);
-                NativeArray<EntityId>.Copy(renderersWithChangedMeshes.AsArray(), changedRenderers.GetSubArray(changedMaterialsCount, changedMeshesCount), changedMeshesCount);
-
-                ScheduleQueryRendererGroupInstancesJob(changedRenderers, changedInstances).Complete();
-
-                m_Batcher.DestroyDrawInstances(changedInstances);
-                m_Batcher.UpdateRenderers(renderersWithChangedMaterials.AsArray(), true);
-                m_Batcher.UpdateRenderers(renderersWithChangedMeshes.AsArray(), false);
-
-                changedInstances.Dispose();
-                changedRenderers.Dispose();
-
-                renderersWithChangedMaterials.Dispose();
-                renderersWithChangedMeshes.Dispose();
-            }
-            Profiler.EndSample();
-        }
-
-        private void ProcessRenderers(TypeDispatchData rendererChanges, NativeArray<EntityId> unsupportedRenderers)
-        {
-            Profiler.BeginSample("GPUResidentDrawer.ProcessRenderers");
-
-            var changedInstances = new NativeArray<InstanceHandle>(rendererChanges.changedID.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            ScheduleQueryRendererGroupInstancesJob(rendererChanges.changedID, changedInstances).Complete();
-
-            m_Batcher.DestroyDrawInstances(changedInstances);
-            changedInstances.Dispose();
-            m_Batcher.UpdateRenderers(rendererChanges.changedID);
-
-            FreeRendererGroupInstances(rendererChanges.destroyedID, unsupportedRenderers);
-
-            Profiler.EndSample();
-
-            Profiler.BeginSample("GPUResidentDrawer.TransformMeshRenderers");
-            var transformChanges = m_Dispatcher.GetTransformChangesAndClear<MeshRenderer>(TransformTrackingType.GlobalTRS, Allocator.TempJob);
-            var transformedInstances = new NativeArray<InstanceHandle>(transformChanges.transformedID.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            ScheduleQueryRendererGroupInstancesJob(transformChanges.transformedID, transformedInstances).Complete();
-            // We can pull localToWorldMatrices directly from the renderers if we are doing update after PostLatUpdate.
-            // This will save us transform re computation as matrices are ready inside renderer's TransformInfo.
-            TransformInstances(transformedInstances, transformChanges.localToWorldMatrices);
-            transformedInstances.Dispose();
-            transformChanges.Dispose();
-
-            Profiler.EndSample();
-        }
-
-        private void TransformInstances(NativeArray<InstanceHandle> instances, NativeArray<Matrix4x4> localToWorldMatrices)
-        {
-            Profiler.BeginSample("GPUResidentDrawer.TransformInstances");
-
-            m_BatchersContext.UpdateInstanceTransforms(instances, localToWorldMatrices);
-
-            Profiler.EndSample();
-        }
-
-        private void FreeInstances(NativeArray<InstanceHandle> instances)
-        {
-            Profiler.BeginSample("GPUResidentDrawer.FreeInstances");
-
-            m_Batcher.DestroyDrawInstances(instances);
-            m_BatchersContext.FreeInstances(instances);
-
-            Profiler.EndSample();
-        }
-
-        private void FreeRendererGroupInstances(NativeArray<EntityId> rendererGroupIDs, NativeArray<EntityId> unsupportedRendererGroupIDs)
-        {
-            Profiler.BeginSample("GPUResidentDrawer.FreeRendererGroupInstances");
-
-            m_Batcher.FreeRendererGroupInstances(rendererGroupIDs);
-
-            if (unsupportedRendererGroupIDs.Length > 0)
-            {
-                m_Batcher.FreeRendererGroupInstances(unsupportedRendererGroupIDs);
-                m_GPUDrivenProcessor.DisableGPUDrivenRendering(unsupportedRendererGroupIDs);
-            }
-
-            Profiler.EndSample();
-        }
-
-        //@ Implement later...
-        private InstanceHandle AppendNewInstance(int rendererGroupID, in Matrix4x4 instanceTransform)
-        {
-            throw new NotImplementedException();
-        }
-
-        //@ Additionally we need to implement the way to tie external transforms (not Transform components) with instances.
-        //@ So that an individual instance could be transformed externally and then updated in the drawer.
-
-        private JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<EntityId> rendererGroupIDs, NativeArray<InstanceHandle> instances)
-        {
-            return m_BatchersContext.ScheduleQueryRendererGroupInstancesJob(rendererGroupIDs, instances);
-        }
-
-        private JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<EntityId> rendererGroupIDs, NativeList<InstanceHandle> instances)
-        {
-            return m_BatchersContext.ScheduleQueryRendererGroupInstancesJob(rendererGroupIDs, instances);
-        }
-
-        private JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<EntityId> rendererGroupIDs, NativeArray<int> instancesOffset, NativeArray<int> instancesCount, NativeList<InstanceHandle> instances)
-        {
-            return m_BatchersContext.ScheduleQueryRendererGroupInstancesJob(rendererGroupIDs, instancesOffset, instancesCount, instances);
-        }
-
-        private JobHandle ScheduleQueryMeshInstancesJob(NativeArray<EntityId> sortedMeshIDs, NativeList<InstanceHandle> instances)
-        {
-            return m_BatchersContext.ScheduleQueryMeshInstancesJob(sortedMeshIDs, instances);
-        }
-
-        private void ClassifyMaterials(NativeArray<EntityId> materials, out NativeList<EntityId> unsupportedMaterials,
-            out NativeList<EntityId> supportedMaterials, out NativeList<GPUDrivenPackedMaterialData> supportedPackedMaterialDatas, Allocator allocator)
-        {
-            supportedMaterials = new NativeList<EntityId>(materials.Length, allocator);
-            unsupportedMaterials = new NativeList<EntityId>(materials.Length, allocator);
-            supportedPackedMaterialDatas = new NativeList<GPUDrivenPackedMaterialData>(materials.Length, allocator);
-
-            if (materials.Length > 0)
-            {
-                GPUResidentDrawerBurst.ClassifyMaterials(materials, m_Batcher.instanceCullingBatcher.batchMaterialHash.AsReadOnly(),
-                                                         ref supportedMaterials, ref unsupportedMaterials, ref supportedPackedMaterialDatas);
-            }
-        }
-
-        private NativeList<EntityId> FindUnsupportedRenderers(NativeArray<EntityId> unsupportedMaterials)
-        {
-            NativeList<EntityId> unsupportedRenderers = new NativeList<EntityId>(Allocator.TempJob);
-
-            if (unsupportedMaterials.Length > 0)
-            {
-                GPUResidentDrawerBurst.FindUnsupportedRenderers(unsupportedMaterials, m_BatchersContext.sharedInstanceData.materialIDArrays,
-                    m_BatchersContext.sharedInstanceData.rendererGroupIDs, ref unsupportedRenderers);
-            }
-
-            return unsupportedRenderers;
-        }
-
-        private NativeHashSet<EntityId> GetMaterialsWithChangedPackedMaterial(NativeArray<EntityId> materials, NativeArray<GPUDrivenPackedMaterialData> packedMaterialDatas, Allocator allocator)
-        {
-            NativeHashSet<EntityId> filteredMaterials = new NativeHashSet<EntityId>(materials.Length, allocator);
-
-            GPUResidentDrawerBurst.GetMaterialsWithChangedPackedMaterial(materials, packedMaterialDatas,
-                batcher.instanceCullingBatcher.packedMaterialHash.AsReadOnly(), ref filteredMaterials);
-
-            return filteredMaterials;
-        }
-
-        private (NativeList<EntityId> renderersWithMaterials, NativeList<EntityId> renderersWithMeshes) FindRenderersFromMaterialsOrMeshes(NativeArray<EntityId> sortedExcludeRenderers, NativeHashSet<EntityId> materials, NativeArray<EntityId> meshes, Allocator rendererListAllocator)
-        {
-            var sharedInstanceData = m_BatchersContext.sharedInstanceData;
-            var renderersWithMaterials = new NativeList<EntityId>(sharedInstanceData.rendererGroupIDs.Length, rendererListAllocator);
-            var renderersWithMeshes = new NativeList<EntityId>(sharedInstanceData.rendererGroupIDs.Length, rendererListAllocator);
-
-            var jobHandle = new FindRenderersFromMaterialOrMeshJob
-            {
-                materialIDs = materials.AsReadOnly(),
-                materialIDArrays = sharedInstanceData.materialIDArrays,
-                meshIDs = meshes.AsReadOnly(),
-                meshIDArray = sharedInstanceData.meshIDs,
-                rendererGroupIDs = sharedInstanceData.rendererGroupIDs,
-                sortedExcludeRendererIDs = sortedExcludeRenderers.AsReadOnly(),
-                selectedRenderGroupsForMaterials = renderersWithMaterials.AsParallelWriter(),
-                selectedRenderGroupsForMeshes = renderersWithMeshes.AsParallelWriter()
-            }.ScheduleBatch(sharedInstanceData.rendererGroupIDs.Length, FindRenderersFromMaterialOrMeshJob.k_BatchSize);
-            jobHandle.Complete();
-
-            return (renderersWithMaterials, renderersWithMeshes);
-        }
-
-        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
-        private unsafe struct FindRenderersFromMaterialOrMeshJob : IJobParallelForBatch
-        {
-            public const int k_BatchSize = 128;
-
-            [ReadOnly] public NativeHashSet<EntityId>.ReadOnly materialIDs;
-            [ReadOnly] public NativeArray<SmallEntityIdArray>.ReadOnly materialIDArrays;
-            [ReadOnly] public NativeArray<EntityId>.ReadOnly meshIDs;
-            [ReadOnly] public NativeArray<EntityId>.ReadOnly meshIDArray;
-            [ReadOnly] public NativeArray<EntityId>.ReadOnly rendererGroupIDs;
-            [ReadOnly] public NativeArray<EntityId>.ReadOnly sortedExcludeRendererIDs;
-
-            [WriteOnly] public NativeList<EntityId>.ParallelWriter selectedRenderGroupsForMaterials;
-            [WriteOnly] public NativeList<EntityId>.ParallelWriter selectedRenderGroupsForMeshes;
-
-            public void Execute(int startIndex, int count)
-            {
-                int* renderersToAddForMaterialsPtr = stackalloc int[k_BatchSize];
-                var renderersToAddForMaterials = new UnsafeList<int>(renderersToAddForMaterialsPtr, k_BatchSize);
-                renderersToAddForMaterials.Length = 0;
-
-                int* renderersToAddForMeshesPtr = stackalloc int[k_BatchSize];
-                var renderersToAddForMeshes = new UnsafeList<int>(renderersToAddForMeshesPtr, k_BatchSize);
-                renderersToAddForMeshes.Length = 0;
-
-                for (int index = 0; index < count; index++)
-                {
-                    var rendererIndex = startIndex + index;
-                    var rendererID = rendererGroupIDs[rendererIndex];
-
-                    // We ignore this renderer if it is in the excluded list.
-                    if (sortedExcludeRendererIDs.BinarySearch(rendererID) >= 0)
-                        continue;
-
-                    {
-                        var meshID = meshIDArray[rendererIndex];
-                        if (meshIDs.Contains(meshID))
-                        {
-#pragma warning disable 618 // todo @emilie.thaulow make renderID an EntityId
-                            renderersToAddForMeshes.AddNoResize(rendererID);
-#pragma warning restore 618
-                            // We can skip the material check if we found a mesh match since at this point
-                            // the renderer is already added and will be processed by the mesh branch
-                            continue;
-                        }
-                    }
-                    {
-                        var rendererMaterials = materialIDArrays[rendererIndex];
-
-                        for (int materialIndex = 0; materialIndex < rendererMaterials.Length; materialIndex++)
-                        {
-                            var materialID = rendererMaterials[materialIndex];
-                            if (materialIDs.Contains(materialID))
-                            {
-
-#pragma warning disable 618 // todo @emilie.thaulow make renderID an EntityId
-                                renderersToAddForMaterials.AddNoResize(rendererID);
-#pragma warning restore 618
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                selectedRenderGroupsForMaterials.AddRangeNoResize(renderersToAddForMaterialsPtr, renderersToAddForMaterials.Length);
-                selectedRenderGroupsForMeshes.AddRangeNoResize(renderersToAddForMeshesPtr, renderersToAddForMeshes.Length);
-            }
         }
     }
 }

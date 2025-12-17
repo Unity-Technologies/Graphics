@@ -1727,7 +1727,8 @@ namespace UnityEngine.Rendering.Universal
 
         static class Strings
         {
-            public static readonly string notURPRenderer = $"{nameof(GPUResidentDrawer)} Disabled due to some configured Universal Renderers not being {nameof(UniversalRendererData)}.";
+            public static readonly string nullRenderer = $"{nameof(GPUResidentDrawer)} Disabled. One or more Scriptable Renderer in the Render Pipeline Asset is null.";
+            public static readonly string notURPRenderer = $"{nameof(GPUResidentDrawer)} Disabled. One or more Scriptable Renderer in the Render Pipeline Asset is not of the type {nameof(UniversalRendererData)}.";
             public static readonly string renderingModeIncompatible = $"{nameof(GPUResidentDrawer)} Disabled due to some configured Universal Renderers not using the Forward+ or Deferred+ rendering paths.";
         }
 
@@ -1741,6 +1742,12 @@ namespace UnityEngine.Rendering.Universal
             // since BiRP-style per-object lights and reflection probes are incompatible with DOTS instancing.
             foreach (var rendererData in m_RendererDataList)
             {
+                if (rendererData == null)
+                {
+                    message = Strings.nullRenderer;
+                    return false;
+                }
+
                 if (rendererData is not UniversalRendererData universalRendererData)
                 {
                     message = Strings.notURPRenderer;

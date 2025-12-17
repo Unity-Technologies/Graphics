@@ -1,49 +1,105 @@
-#pragma exclude_renderers gles
-
 #pragma kernel MainCopyInstances
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/CoreDataSystems/GPUInstanceDataBuffer.cs.hlsl"
 
 //#pragma enable_d3d11_debug_symbols
 
-int _InputValidComponentCounts;
-int _InstanceOffset;
-int _InstanceCounts;
-int _OutputInstanceOffset;
-ByteAddressBuffer _ValidComponentIndices;
-ByteAddressBuffer _ComponentByteCounts;
-ByteAddressBuffer _InputComponentAddresses;
-ByteAddressBuffer _InputComponentInstanceIndexRanges;
-ByteAddressBuffer _OutputComponentAddresses;
-ByteAddressBuffer _OutputComponentInstanceIndexRanges;
+static const uint kThreadGroupSize = GPUINSTANCEDATABUFFERCONSTANTS_THREAD_GROUP_SIZE;
+static const uint kUIntPerThread = GPUINSTANCEDATABUFFERCONSTANTS_UINT_PER_THREAD;
+static const uint kUIntPerThreadGroup = GPUINSTANCEDATABUFFERCONSTANTS_UINT_PER_THREAD_GROUP;
+static const uint kMaxThreadGroupsPerDispatch = GPUINSTANCEDATABUFFERCONSTANTS_MAX_THREAD_GROUPS_PER_DISPATCH;
+
+int _DispatchThreadGroupBase;
+int _InputComponentsCount;
+
+StructuredBuffer<uint> _InputThreadGroupBeginIndices;
+StructuredBuffer<uint> _InputComponentDataAddresses;
+StructuredBuffer<uint> _OutputComponentDataAddresses;
+StructuredBuffer<uint> _OutputComponentDataUIntSizes;
+
 ByteAddressBuffer _InputBuffer;
 RWByteAddressBuffer _OutputBuffer;
 
-[numthreads(64,1,1)]
-void MainCopyInstances(uint3 dispatchThreadID : SV_DispatchThreadID)
+//@ Check performance.
+uint BinarySearchComponentDataIndex(uint globalGroupIndex, out uint2 groupRange)
 {
-    if (dispatchThreadID.x >= (uint) _InstanceCounts)
-        return;
+    uint left = 0;
+    uint right = _InputComponentsCount - 1;
+    uint index = 0;
 
-    uint instanceIndex = _InstanceOffset + dispatchThreadID.x;
-    uint instanceOutputIndex = _OutputInstanceOffset + dispatchThreadID.x;
-    
-    [loop]
-    for (int validComponentIndex = 0; validComponentIndex < _InputValidComponentCounts; ++validComponentIndex)
+    while (left <= right)
     {
-        uint componentIndex = _ValidComponentIndices.Load(validComponentIndex << 2);
-        uint instanceInputIndexBegin = _InputComponentInstanceIndexRanges.Load(componentIndex * 8);
-        uint instanceInputIndexEnd = _InputComponentInstanceIndexRanges.Load(componentIndex * 8 + 4);
-        if (instanceIndex < instanceInputIndexBegin || instanceIndex >= instanceInputIndexEnd)
-            continue;
-        uint inputComponentAddress = _InputComponentAddresses.Load(componentIndex << 2);
-        uint outputComponentAddress = _OutputComponentAddresses.Load(componentIndex << 2);
-        uint componentByteSize = _ComponentByteCounts.Load(componentIndex << 2);
-        for (uint uintIndex = 0; uintIndex < componentByteSize / 4u; ++uintIndex)
+        index = (left + right) / 2;
+        groupRange.x = _InputThreadGroupBeginIndices[index];
+        groupRange.y = _InputThreadGroupBeginIndices[index + 1];
+        if (globalGroupIndex >= groupRange.x && globalGroupIndex < groupRange.y)
+            break;
+        else if (globalGroupIndex < groupRange.x)
+            right = index - 1;
+        else
+            left = index + 1;
+    }
+
+    return index;
+}
+
+[numthreads(kThreadGroupSize, 1, 1)]
+void MainCopyInstances(uint groupThreadID : SV_GroupThreadID, uint groupID : SV_GroupID)
+{
+    uint globalGroupIndex = _DispatchThreadGroupBase + groupID;
+
+    uint2 groupRange;
+    uint index = BinarySearchComponentDataIndex(globalGroupIndex, groupRange);
+    uint inputComponentDataAddress = _InputComponentDataAddresses[index];
+    uint outputComponentDataAddress = _OutputComponentDataAddresses[index];
+    uint componentDataUIntSize = _OutputComponentDataUIntSizes[index];
+
+    uint groupOffset = globalGroupIndex - groupRange.x;
+    uint groupInputDataAddress = inputComponentDataAddress + groupOffset * kUIntPerThreadGroup * 4;
+    uint groupOutputDataAddress = outputComponentDataAddress + groupOffset * kUIntPerThreadGroup * 4;
+
+    bool isLastGroup = globalGroupIndex == groupRange.y - 1;
+
+    uint localData[kUIntPerThread];
+
+    if (!isLastGroup)
+    {
+        uint i = 0;
+
+        [loop]
+        for (i = 0; i < kUIntPerThread; ++i)
         {
-            uint byteOffsetInput = instanceIndex * componentByteSize + uintIndex * 4;
-            uint byteOffsetOutput = instanceOutputIndex * componentByteSize + uintIndex * 4;
-            uint inputAddress = inputComponentAddress + byteOffsetInput;
-            uint outputAddress = outputComponentAddress + byteOffsetOutput;
-            _OutputBuffer.Store(outputAddress, _InputBuffer.Load(inputAddress));
+            uint threadDataUIntOffset = kThreadGroupSize * i + groupThreadID;
+            localData[i] = _InputBuffer.Load(groupInputDataAddress + threadDataUIntOffset * 4);
+        }
+        [loop]
+        for (i = 0; i < kUIntPerThread; ++i)
+        {
+            uint threadDataUIntOffset = kThreadGroupSize * i + groupThreadID;
+            _OutputBuffer.Store(groupOutputDataAddress + threadDataUIntOffset * 4, localData[i]);
+        }
+    }
+    else
+    {
+        uint i = 0;
+        uint groupDataUIntSize = min(componentDataUIntSize - groupOffset * kUIntPerThreadGroup, kUIntPerThreadGroup);
+
+        [loop]
+        for (i = 0; i < kUIntPerThread; ++i)
+        {
+            uint threadDataUIntOffset = kThreadGroupSize * i + groupThreadID;
+            if (threadDataUIntOffset >= groupDataUIntSize)
+                break;
+            localData[i] = _InputBuffer.Load(groupInputDataAddress + threadDataUIntOffset * 4);
+        }
+        [loop]
+        for (i = 0; i < kUIntPerThread; ++i)
+        {
+            uint threadDataUIntOffset = kThreadGroupSize * i + groupThreadID;
+            if (threadDataUIntOffset >= groupDataUIntSize)
+                break;
+            _OutputBuffer.Store(groupOutputDataAddress + threadDataUIntOffset * 4, localData[i]);
         }
     }
 }

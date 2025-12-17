@@ -3,8 +3,8 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2 webgpu
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/OccluderDepthPyramidConstants.cs.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/OcclusionTestCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/Culling/OccluderDepthPyramidConstants.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/Culling/OcclusionTestCommon.hlsl"
 
 #pragma multi_compile _ USE_SRC
 #pragma multi_compile _ SRC_IS_ARRAY
