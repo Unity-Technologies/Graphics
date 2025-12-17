@@ -1,48 +1,41 @@
-# Default VFX Graph Templates window
-
+# VFX Graph Templates window
 Use the template window to create a VFX Graph asset with a predefined effect. You can use these templates as a starting point for your own effects.
-Each template has a description and an image to describe its behavior.
+Each template has a description and an image to describe its behavior.    
+This window is displayed when you create a new Visual Effect Graph from the `Create` context menu in the project browser.
 
-![Template-Window](Images/templates-window.png)    
+![Template-Window](Images/templates-window.png)
 
-## Use a VFX Graph Template
+## Open from VFX Graph editor toolbar
+![toolbar](Images/templates-window-toolbar.png)
 
-![toolbar](Images/templates-window-toolbar.png)    
-To open the VFX Graph Templates window:
-1. Select the dropdown arrow next to the **Add** (**+**) icon in the Visual Effect graph toolbar.
-2. Select one of the following options:
-      * **Create from template** - Creates a new VFX Graph asset based on a VFX Graph template. 
-      * **Insert template** - adds a VFX Graph template to the VFX Graph asset that is currently open.
-3. In the Create new VFX Asset window, select a Default VFX Graph template. 
-4. Double-click the Template asset, or select **Create**
+You can open the templates window from the **Add** (+) button in the VFX Graph editor toolbar. This button includes a drop-down to either `insert` a template in the current graph, or `create` a new asset file from a template.
 
-The Add **[+]** button opens the templates window to insert a template in the current VFX (it will be placed at the center of the screen).    
-You can also use the **Insert template** option from the context menu in the graph.
+When you insert a template, Unity places it at the center of the screen.    
 
 > [!TIP]
-> If you hold the **CTRL** key while clicking on **[+]** button, the templates window will open to create a new VFX asset.
+> If you hold the `CTRL` key while you click on the **Add** (+) button, the templates window opens to create a new VFX asset.
 
-## Create a custom VFX Graph template
+## Open from the VFX Graph context menu
+When you right click in the VFX Graph editor window, the context menu shows the **Insert template** option, which inserts the template at the mouse position.
 
-VFX Graph includes an API that you can use to create and manage your own VFX Graph templates. 
+## Search and filter templates
+The template window includes a search field to filter templates according to various criteria.
+The search field works the same way as with the main [Unity search window](https://docs.unity3d.com/Manual/search-window-reference.html), although there are fewer filters available.
 
-To create a new VFX Graph template, use the `VFXTemplateHelper.TrySetTemplate` method.    
-Include the following in your script:
-   - The path to the VFX asset.
-   - A `VFXTemplateDescriptor` structure with following information:
-     - Name: Name of the template.
-     - Category: The category this template appears in.
-     - Description: A description for the template to display in the template window details panel.
-     - Icon: (optional) An image icon to show in the template window list of templates.
-     - Thumbnail: (optional) An image to display in the template window details panel.  
+## Sort templates
+Next to the search field, a dropdown allows to sort templates by:
+- Name
+- Order
+- Modification date
+- Last used
+- Favorite
 
-The method returns `true` when the script creates a new template, otherwise it returns `false`.
-Custom templates appear in the templates window in the Category you defined.
+> [!NOTE]
+> The sorting is applied inside each category, but categories are always sorted by name.
 
-### Use an existing VFX Graph template in script
+## VFX Graph template Editor
 
-To get an existing template descriptor: 
-1. Use the method `VFXTemplateHelper.TryGetTemplate`.   
-2.Provide the path to the asset and a `VFXTemplateDescriptor` structure that will be filled if the asset is found and is a template.  
-
-The method returns `true` when the script finds the template, otherwise it returns `false`.
+When you select a [Visual Effect Asset](VisualEffectGraphAsset.md) in the Project window, the inspector displays a section dedicated to template description.
+To make a Visual Effect asset become a template, activate the **Use as Template** option.
+By default the template name is the asset name, but you can override it by editing the `Name` field.
+The description, icon and thumbnail fields are optional, but can help to understand the purpose of the template when browsing in the template window.

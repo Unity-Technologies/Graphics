@@ -24,6 +24,7 @@ namespace UnityEditor.VFX
         private static VFXMainCameraBufferFallback m_CameraBuffersFallback = VFXMainCameraBufferFallback.PreferMainCamera;
         private static bool m_MultithreadUpdateEnabled = true;
         private static bool m_InstancingEnabled = true;
+        private static bool m_ShowPackageIndexingBanner = true;
         private static int m_AuthoringPrewarmStepCountPerSeconds = kAuthoringPrewarmStepCountPerSecondsDefault;
         private static float m_AuthoringPrewarmMaxTime = kAuthoringPrewarmMaxTimeDefault;
         private static bool m_VisualEffectTargetListed = false;
@@ -100,6 +101,20 @@ namespace UnityEditor.VFX
             }
         }
 
+        public static bool showPackageIndexingBanner
+        {
+            get
+            {
+                LoadIfNeeded();
+                return m_ShowPackageIndexingBanner;
+            }
+            set
+            {
+                m_ShowPackageIndexingBanner = value;
+                EditorPrefs.SetBool(showPackageIndexingBannerKey, m_ShowPackageIndexingBanner);
+            }
+        }
+
         public static int authoringPrewarmStepCountPerSeconds
         {
             get
@@ -141,6 +156,7 @@ namespace UnityEditor.VFX
         public const string cameraBuffersFallbackKey = "VFX.CameraBuffersFallback";
         public const string multithreadUpdateEnabledKey = "VFX.MultithreadUpdateEnabled";
         public const string instancingEnabledKey = "VFX.InstancingEnabled";
+        public const string showPackageIndexingBannerKey = "VFX.ShowPackageIndexingBanner";
         public const string authoringPrewarmStepCountPerSecondsKey = "VFX.AuthoringPrewarmStepCountPerSeconds";
         public const string authoringPrewarmMaxTimeKey = "VFX.AuthoringPrewarmMaxTimeKey";
         public const string visualEffectTargetListedKey = UnityEditor.ShaderGraph.VFXTarget.kVisualEffectTargetListedKey;
@@ -158,6 +174,7 @@ namespace UnityEditor.VFX
                 m_CameraBuffersFallback = (VFXMainCameraBufferFallback)EditorPrefs.GetInt(cameraBuffersFallbackKey, (int)VFXMainCameraBufferFallback.PreferMainCamera);
                 m_MultithreadUpdateEnabled = EditorPrefs.GetBool(multithreadUpdateEnabledKey, true);
                 m_InstancingEnabled = EditorPrefs.GetBool(instancingEnabledKey, true);
+                m_ShowPackageIndexingBanner = EditorPrefs.GetBool(showPackageIndexingBannerKey, true);
 
                 m_AuthoringPrewarmStepCountPerSeconds = EditorPrefs.GetInt(authoringPrewarmStepCountPerSecondsKey, kAuthoringPrewarmStepCountPerSecondsDefault);
                 m_AuthoringPrewarmStepCountPerSeconds = Mathf.Clamp(m_AuthoringPrewarmStepCountPerSeconds, 0, kAuthoringPrewarmStepCountPerSecondsMax);
@@ -235,6 +252,8 @@ namespace UnityEditor.VFX
                     }
 #endif
 
+                    m_ShowPackageIndexingBanner = EditorGUILayout.Toggle(new GUIContent("Show package indexing banner", "When enabled, a banner will be displayed in the template window if packages are not indexed"), m_ShowPackageIndexingBanner);
+
                     m_CameraBuffersFallback = (VFXMainCameraBufferFallback)EditorGUILayout.EnumPopup(new GUIContent("Main Camera fallback", "Specifies the camera source for MainCamera Operators and Blocks to use when in the editor."), m_CameraBuffersFallback);
                     m_VisualEffectTargetListed = EditorGUILayout.Toggle(new GUIContent("Show Target in Shader Graph (deprecated)", "When enabled, the Visual Effect Target is listed in Active Targets dropdown in Shader Graph."), m_VisualEffectTargetListed);
 
@@ -252,6 +271,7 @@ namespace UnityEditor.VFX
                         EditorPrefs.SetInt(cameraBuffersFallbackKey, (int)m_CameraBuffersFallback);
                         EditorPrefs.SetBool(multithreadUpdateEnabledKey, m_MultithreadUpdateEnabled);
                         EditorPrefs.SetBool(instancingEnabledKey, m_InstancingEnabled);
+                        EditorPrefs.SetBool(showPackageIndexingBannerKey, m_ShowPackageIndexingBanner);
 
                         m_AuthoringPrewarmStepCountPerSeconds = Mathf.Clamp(m_AuthoringPrewarmStepCountPerSeconds, 0, kAuthoringPrewarmStepCountPerSecondsMax);
                         EditorPrefs.SetInt(authoringPrewarmStepCountPerSecondsKey, m_AuthoringPrewarmStepCountPerSeconds);

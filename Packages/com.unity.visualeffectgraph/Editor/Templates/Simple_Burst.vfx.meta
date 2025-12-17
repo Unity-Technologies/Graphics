@@ -11,6 +11,7 @@ VisualEffectImporter:
       effects such as hits, impacts, explosions, sparks, etc.
     icon: {fileID: 2800000, guid: 521a2f1ecfc48fe41bb234842f8c93cc, type: 3}
     thumbnail: {fileID: 2800000, guid: edc22bdb6d4484a4e87b7ff5a619008b, type: 3}
+    order: 2
   useAsTemplate: 1
   userData: 
   assetBundleName: 

@@ -33,7 +33,7 @@ namespace UnityEditor.VFX.Test
             var sceneView = SceneView.GetWindow(typeof(SceneView));
             sceneView.position = new Rect(0, 0, 800, 600);
 
-            var vfxGraph = VFXTestCommon.CopyTemporaryGraph("Packages/com.unity.visualeffectgraph/Editor/Templates/02_Simple_Loop.vfx");
+            var vfxGraph = VFXTestCommon.CopyTemporaryGraph("Packages/com.unity.visualeffectgraph/Editor/Templates/Simple_Loop.vfx");
             m_Domain_Reload_With_VFX_Live_In_Scene_Graph = vfxGraph;
             Assert.IsNotNull(vfxGraph);
             yield return null;
@@ -59,7 +59,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(VFXCompilationMode.Runtime, VisualEffectAssetUtility.GetCompilationMode(m_Domain_Reload_With_VFX_Live_In_Scene_Asset));
             var window = VFXViewWindow.GetWindow(vfxGraph, true, true);
             window.LoadResource(vfxGraph.GetResource(), vfxComponent);
-            
+
             for (int i = 0; i < 4; ++i)
                 yield return null;
 

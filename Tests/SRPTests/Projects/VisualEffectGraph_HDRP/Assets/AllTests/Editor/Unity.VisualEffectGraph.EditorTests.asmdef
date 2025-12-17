@@ -1,5 +1,6 @@
 {
     "name": "Unity.VisualEffectGraph.EditorTests",
+    "rootNamespace": "",
     "references": [
         "Unity.Testing.VisualEffectGraph.Editor",
         "Unity.Testing.VisualEffectGraph.EditorTests",
@@ -13,9 +14,8 @@
         "UnityEditor.TestRunner",
         "Unity.Timeline",
         "Unity.Timeline.Editor",
-        "Unity.Nuget.Moq.Editor",
-        "UnityEditor.UIElements.TestFramework",
-        "Unity.UI.TestFramework.Runtime"
+        "Unity.UI.TestFramework.Runtime",
+        "Unity.UI.TestFramework.Editor"
     ],
     "includePlatforms": [
         "Editor"
@@ -27,5 +27,7 @@
         "Moq.dll"
     ],
     "autoReferenced": true,
-    "defineConstraints": []
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

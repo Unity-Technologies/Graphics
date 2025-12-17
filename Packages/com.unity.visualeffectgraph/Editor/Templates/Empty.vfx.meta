@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 6bcf2b5bb4032c74fa455ddd0af12db8
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  template:
+    name: Empty VFX
+    category: Built-in
+    description: Create a completely empty VFX asset
+    icon: {fileID: 2800000, guid: e0b0c3eb88471ae4e816e77dcb0daa77, type: 3}
+    thumbnail: {fileID: 2800000, guid: 6e3e22332cef02447956ecfdf9352294, type: 3}
+    order: 6
+  useAsTemplate: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

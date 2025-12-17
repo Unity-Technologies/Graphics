@@ -11,6 +11,7 @@ VisualEffectImporter:
       and can be adjusted to create effects such as fireworks, impacts, hits, etc.
     icon: {fileID: 2800000, guid: e81d1aad004b59347b9428aa392dd26f, type: 3}
     thumbnail: {fileID: 2800000, guid: a470305953dc9c941b100d56afe7edd0, type: 3}
+    order: 5
   useAsTemplate: 1
   userData: 
   assetBundleName: 

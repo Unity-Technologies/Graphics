@@ -19,6 +19,7 @@ static class VFXPicker
             SearchService.CreateContext(CreateSceneRefProvider(vfxAsset)),
             (item, canceled) => SelectItem(item, canceled, selectHandler));
         viewState.title = "Visual Effect";
+        viewState.context.useExplicitProvidersAsNormalProviders = true;
         viewState.flags |= SearchViewFlags.DisableInspectorPreview | SearchViewFlags.CompactView;
         SearchService.ShowPicker(viewState);
     }

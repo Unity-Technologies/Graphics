@@ -12,6 +12,7 @@ VisualEffectImporter:
       spells, magic abilities, missile trails, etc.
     icon: {fileID: 2800000, guid: caebc41a219a402419aebd2158be2e8c, type: 3}
     thumbnail: {fileID: 2800000, guid: a7160eac4dcba2b478fa804f93baed89, type: 3}
+    order: 4
   useAsTemplate: 1
   userData: 
   assetBundleName: 

@@ -643,15 +643,16 @@ class VisualEffectAssetEditor : UnityEditor.Editor
 
         // Template section uses UIToolkit
         var importers = new List<VisualEffectImporter>();
-        foreach (var t in targets)
+        var paths = targets.Select(AssetDatabase.GetAssetPath).ToArray();
+        foreach (var path in paths)
         {
-            var path = AssetDatabase.GetAssetPath(t);
             var importer = AssetImporter.GetAtPath(path) as VisualEffectImporter;
             if (importer != null)
             {
                 importers.Add(importer);
             }
         }
+
         if (importers.Count > 0)
         {
             root.styleSheets.Add(VFXView.LoadStyleSheet("VisualEffectAssetEditor"));
@@ -664,24 +665,6 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             var useAsTemplateProperty = allImportersSerializedObject.FindProperty("m_UseAsTemplate");
             var useAsTemplateCheckbox = new Toggle("Use as Template") { tooltip = "When enabled, this asset will be used as a template for new Visual Effect Assets" };
             useAsTemplateCheckbox.BindProperty(useAsTemplateProperty);
-            useAsTemplateCheckbox.TrackPropertyValue(useAsTemplateProperty,
-                x =>
-                {
-                    if (x.boolValue)
-                    {
-                        // When enabling the template for the first time, initialize the template name with the asset name if not already done
-                        // so that the name is never empty when used as a template.
-                        for (int i = 0; i < importers.Count; i++)
-                        {
-                            var template = importers[i].templateProperty;
-                            if (string.IsNullOrEmpty(template.name))
-                            {
-                                template.name = targets[i].name;
-                                importers[i].templateProperty = template;
-                            }
-                        }
-                    }
-                });
             header.Add(useAsTemplateCheckbox);
 
             var expander = new Foldout { text = "Template", style = { marginLeft = 15f } };
@@ -724,6 +707,18 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             var thumbnailField = new ObjectField("Thumbnail") { objectType = typeof(Texture2D), tooltip = "Thumbnail of the template, used to represent the template in the Template window details view." };
             thumbnailField.BindProperty(allImportersSerializedObject.FindProperty("m_Template.thumbnail"));
             expander.Add(thumbnailField);
+
+            header.TrackSerializedObjectValue(allImportersSerializedObject, x =>
+            {
+                // Does not work
+                /*foreach (var t in targets)
+                {
+                    EditorUtility.SetDirty(t);
+                    AssetDatabase.SaveAssetIfDirty(t);
+                }*/
+                // This works
+                AssetDatabase.ForceReserializeAssets(paths, ForceReserializeAssetsOptions.ReserializeMetadata);
+            });
         }
 
         return root;

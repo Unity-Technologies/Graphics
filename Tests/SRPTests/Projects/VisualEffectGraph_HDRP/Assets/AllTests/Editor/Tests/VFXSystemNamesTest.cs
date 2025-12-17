@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
-
+using UnityEditor.Experimental.GraphView;
 using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -38,6 +38,10 @@ namespace UnityEditor.VFX.Test
             VFXViewWindow.GetAllWindows()
                 .ToList()
                 .ForEach(x => x.Close());
+            if (EditorWindow.HasOpenInstances<GraphViewTemplateWindow>())
+            {
+                EditorWindow.GetWindow<GraphViewTemplateWindow>()?.Close();
+            }
         }
 
         [Test]
@@ -158,21 +162,24 @@ namespace UnityEditor.VFX.Test
             Assert.True(EditorWindow.HasOpenInstances<VFXViewWindow>());
             var vfxViewWindow = EditorWindow.GetWindowDontShow<VFXViewWindow>();
 
-            // Create first VFX using template item number 5
             var onCreateAssetMethod = vfxViewWindow.graphView.GetType().GetMethod("OnCreateAsset", BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.NotNull(onCreateAssetMethod);
+
+            // Create first VFX using firework template
+            GraphViewTemplateWindowHelpers.SetLastUsedTemplatePref("d379eac073f73024780a8968d2259cef");
             onCreateAssetMethod.Invoke(vfxViewWindow.graphView, null);
             yield return null;
-            var enumerator = GraphViewTemplateWindowTest.CheckNewVFXIsCreated(5);
+            var enumerator = GraphViewTemplateWindowOpening.CheckNewVFXIsCreated();
             while (enumerator.MoveNext())
                 yield return enumerator.Current;
             vfxViewWindow.graphView.OnSave();
 
-            // Create a new VFX using the template item number 2
+            // Create a new VFX using the simple loop template
+            GraphViewTemplateWindowHelpers.SetLastUsedTemplatePref("a8d8823499ff50847aa460cb119c445d");
             onCreateAssetMethod.Invoke(vfxViewWindow.graphView, null);
             yield return null;
 
-            enumerator = GraphViewTemplateWindowTest.CheckNewVFXIsCreated(2);
+            enumerator = GraphViewTemplateWindowOpening.CheckNewVFXIsCreated();
             while (enumerator.MoveNext())
                 yield return enumerator.Current;
         }

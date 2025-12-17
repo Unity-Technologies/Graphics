@@ -12,6 +12,7 @@ VisualEffectImporter:
       trails, etc.
     icon: {fileID: 2800000, guid: e5a019bfd128b514ba2b9e0b2a60fc67, type: 3}
     thumbnail: {fileID: 2800000, guid: 9daa3fda7c4df3f4d8ce3e8a479b199b, type: 3}
+    order: 3
   useAsTemplate: 1
   userData: 
   assetBundleName: 
