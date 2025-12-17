@@ -214,6 +214,8 @@ namespace UnityEditor.VFX
                 compiledVersionProperty.intValue = (int)VFXGraphCompiledData.compiledVersion;
                 runtimeVersionProperty.intValue = (int)VisualEffectAsset.currentRuntimeDataVersion;
                 serializedVFXManager.ApplyModifiedProperties();
+                EditorUtility.SetDirty(vfxmanager);
+                AssetDatabase.SaveAssets();
 
                 AssetDatabase.StartAssetEditing();
                 try
