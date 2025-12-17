@@ -1,8 +1,9 @@
 {
   "dependencies": {
+    "com.unity.ide.visualstudio": "2.0.25",
     "com.unity.postprocessing": "file:../../../com.unity.postprocessing",
     "com.unity.test-framework": "1.1.30",
-    "com.unity.testframework.graphics": "7.11.1-exp.1",
+    "com.unity.testframework.graphics": "8.13.1-exp.1",
     "com.unity.modules.animation": "1.0.0",
     "com.unity.modules.assetbundle": "1.0.0",
     "com.unity.modules.audio": "1.0.0",
@@ -15,7 +16,6 @@
     "com.unity.modules.unityanalytics": "1.0.0",
     "com.unity.modules.unitywebrequest": "1.0.0",
     "com.unity.modules.video": "1.0.0",
-    "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.xr": "1.0.0"
   },
   "disableProjectUpdate": true,

@@ -30,7 +30,7 @@ PostProcessing_Win_DX11_Standalone_mono_Linear_trunk:
     agent:
         type: Unity::VM::GPU
         image: automation-tooling/win10-21H1:v2.2309361
-        flavor: b1.large
+        flavor: b1.xlarge
     variables:
         CUSTOM_REVISION: 'trunk'
         TEST_FILTER: .*
@@ -68,7 +68,7 @@ Build_PostProcessing_Win_DX11_Standalone_mono_Linear_trunk:
          retries: 2
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --timeout=1200
+      -  command: utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --playerGraphicsAPI=Direct3D11 --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --timeout=1200
     artifacts:
         logs:
             paths:

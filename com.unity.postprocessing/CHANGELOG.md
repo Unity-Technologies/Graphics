@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Fixed
+- Fixed obsolete ProjectWindow usage in Unity 6.4 or newer
 - Replaced deprecated Mono API with CoreCLR-compatible API
 
 ## [3.5.1] - 2025-09-19
