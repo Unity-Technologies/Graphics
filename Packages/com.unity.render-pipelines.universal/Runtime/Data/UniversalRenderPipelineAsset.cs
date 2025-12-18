@@ -247,22 +247,6 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
-    /// Defines if profiling is logged or not. This enum is not longer in use, use the Profiler instead.
-    /// </summary>
-    [Obsolete("PipelineDebugLevel is replaced to use the profiler and has no effect. #from(2022.2) #breakingFrom(2023.1)", true)]
-    public enum PipelineDebugLevel
-    {
-        /// <summary>
-        /// Disabled logging for profiling.
-        /// </summary>
-        Disabled,
-        /// <summary>
-        /// Enabled logging for profiling.
-        /// </summary>
-        Profiling,
-    }
-
-    /// <summary>
     /// Options to select the type of Renderer to use.
     /// </summary>
     public enum RendererType
@@ -582,7 +566,6 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.LightLayers)]
 #endif
         [SerializeField] bool m_SupportsLightLayers = false;
-        [SerializeField][Obsolete("#from(2022.1) #breakingFrom(2023.1)", true)] PipelineDebugLevel m_DebugLevel;
         [SerializeField][Obsolete("#from(6000.0) #breakingFrom(6000.4)", true)] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
 
         // Adaptive performance settings
@@ -1606,12 +1589,6 @@ namespace UnityEngine.Rendering.Universal
             get => m_VolumeProfile;
             set => m_VolumeProfile = value;
         }
-
-        /// <summary>
-        /// Previously returned the debug level for this Render Pipeline Asset but is now deprecated. Replaced to use the profiler and is no longer used.
-        /// </summary>
-        [Obsolete("PipelineDebugLevel is deprecated and replaced to use the profiler. Calling debugLevel is not necessary. #from(2022.2) #breakingFrom(2023.1)", true)]
-        public PipelineDebugLevel debugLevel => PipelineDebugLevel.Disabled;
 
         /// <summary>
         /// Specifies if SRPBacher is used by this <c>UniversalRenderPipelineAsset</c>.
