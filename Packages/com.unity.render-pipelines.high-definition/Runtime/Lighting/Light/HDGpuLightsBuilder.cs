@@ -214,10 +214,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             m_LightCount = lightCount;
 
-            int requestedDurectinalCount = Math.Max(1, directionalLightCount);
-            if (requestedDurectinalCount > m_DirectionalLightCapacity)
+            int requestedDirectionalCount = Math.Max(1, directionalLightCount);
+            if (requestedDirectionalCount > m_DirectionalLightCapacity)
             {
-                m_DirectionalLightCapacity = Math.Max(Math.Max(m_DirectionalLightCapacity * 2, requestedDurectinalCount), ArrayCapacity);
+                m_DirectionalLightCapacity = Math.Max(Math.Max(m_DirectionalLightCapacity * 2, requestedDirectionalCount), ArrayCapacity);
                 m_DirectionalLights.ResizeArray(m_DirectionalLightCapacity);
             }
             m_DirectionalLightCount = directionalLightCount;
