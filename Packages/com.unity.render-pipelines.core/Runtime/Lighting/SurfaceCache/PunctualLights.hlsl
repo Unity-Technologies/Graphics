@@ -1,7 +1,7 @@
 #ifndef SURFACE_CACHE_PUNCTUAL_LIGHT_SAMPLE
 #define SURFACE_CACHE_PUNCTUAL_LIGHT_SAMPLE
 
-struct SpotLight
+struct PunctualLight
 {
     float3 position;
     float3 direction;

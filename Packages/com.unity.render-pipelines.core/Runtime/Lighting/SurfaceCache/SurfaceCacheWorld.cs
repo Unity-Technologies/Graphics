@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering
             internal Vector3 Intensity;
         }
 
-        internal struct SpotLight
+        internal struct PunctualLight
         {
             internal Vector3 Position;
             internal Vector3 Direction;
@@ -120,19 +120,21 @@ namespace UnityEngine.Rendering
 
             LightHandleSet _handles = new();
             Dictionary<LightHandle, (LightType, Handle<Light>)> _handleToTypeAndSubHandleMap = new();
-            LightList<SpotLight> _spotLights = new();
+            LightList<PunctualLight> _punctualLights = new();
             LightList<DirectionalLight> _directionalLights = new();
 
             public DirectionalLight? DirectionalLight => 0 < _directionalLights.Count ? _directionalLights.Values[0] : null;
-            public GraphicsBuffer SpotLightsBuffer => _spotLights.Buffer;
-            public uint SpotLightsCount => _spotLights.Count;
+            public GraphicsBuffer PunctualLightBuffer => _punctualLights.Buffer;
+            public uint PunctualLightCount => _punctualLights.Count;
 
             Handle<Light> AddToList(LightDescriptor desc)
             {
                 if (desc.Type == LightType.Directional)
                     return _directionalLights.Add(ConvertDirectionalLight(desc));
                 else if (desc.Type == LightType.Spot)
-                    return _spotLights.Add(ConvertSpotLight(desc));
+                    return _punctualLights.Add(ConvertSpotLight(desc));
+                else if (desc.Type == LightType.Point)
+                    return _punctualLights.Add(ConvertPointLight(desc));
                 else
                     return Handle<Light>.Invalid;
             }
@@ -141,8 +143,8 @@ namespace UnityEngine.Rendering
             {
                 if (type == LightType.Directional)
                     _directionalLights.Remove(subHandle);
-                else if (type == LightType.Spot)
-                    _spotLights.Remove(subHandle);
+                else if (type == LightType.Spot || type == LightType.Point)
+                    _punctualLights.Remove(subHandle);
             }
 
             void UpdateInList(Handle<Light> subHandle, LightDescriptor desc)
@@ -150,7 +152,9 @@ namespace UnityEngine.Rendering
                 if (desc.Type == LightType.Directional)
                     _directionalLights.Update(subHandle, ConvertDirectionalLight(desc));
                 else if (desc.Type == LightType.Spot)
-                    _spotLights.Update(subHandle, ConvertSpotLight(desc));
+                    _punctualLights.Update(subHandle, ConvertSpotLight(desc));
+                else if (desc.Type == LightType.Point)
+                    _punctualLights.Update(subHandle, ConvertPointLight(desc));
             }
 
             static Vector3 GetLightDirection(LightDescriptor desc)
@@ -167,14 +171,25 @@ namespace UnityEngine.Rendering
                 };
             }
 
-            static SpotLight ConvertSpotLight(LightDescriptor desc)
+            static PunctualLight ConvertSpotLight(LightDescriptor desc)
             {
-                return new SpotLight()
+                return new PunctualLight()
                 {
                     Position = desc.Transform.GetPosition(),
                     Direction = GetLightDirection(desc),
                     Intensity = desc.LinearLightColor,
                     CosAngle = Mathf.Cos(desc.SpotAngle / 360.0f * 2.0f * Mathf.PI * 0.5f)
+                };
+            }
+
+            static PunctualLight ConvertPointLight(LightDescriptor desc)
+            {
+                return new PunctualLight()
+                {
+                    Position = desc.Transform.GetPosition(),
+                    Direction = Vector3.up, // doesn't matter
+                    Intensity = desc.LinearLightColor,
+                    CosAngle = -1.0f // cos(pi) = -1
                 };
             }
 
@@ -249,13 +264,13 @@ namespace UnityEngine.Rendering
             internal void Commit(CommandBuffer cmd)
             {
                 _directionalLights.Commit(cmd);
-                _spotLights.Commit(cmd);
+                _punctualLights.Commit(cmd);
             }
 
             public void Dispose()
             {
                 _directionalLights.Dispose();
-                _spotLights.Dispose();
+                _punctualLights.Dispose();
             }
         }
 
@@ -290,14 +305,14 @@ namespace UnityEngine.Rendering
             _cubemapRender.SetMode(mode);
         }
 
-        public GraphicsBuffer GetSpotLightBuffer()
+        public GraphicsBuffer GetPunctualLightBuffer()
         {
-            return _lights.SpotLightsBuffer;
+            return _lights.PunctualLightBuffer;
         }
 
-        public uint GetSpotLightCount()
+        public uint GetPunctualLightCount()
         {
-            return _lights.SpotLightsCount;
+            return _lights.PunctualLightCount;
         }
 
         public void SetEnvironmentMaterial(Material mat)

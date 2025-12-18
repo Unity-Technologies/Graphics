@@ -27,7 +27,7 @@ TextureCube<float3> _EnvironmentCubemap;
 SamplerState sampler_EnvironmentCubemap;
 UNIFIED_RT_DECLARE_ACCEL_STRUCT(_RayTracingAccelerationStructure);
 
-uint _SpotLightCount;
+uint _PunctualLightCount;
 uint _FrameIdx;
 uint _VolumeSpatialResolution;
 uint _CascadeCount;
@@ -187,7 +187,7 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
         radianceSampleMean,
         gotValidSamples);
 
-    if (_SpotLightCount != 0)
+    if (_PunctualLightCount != 0)
     {
         SamplePunctualLightBounceRadiance(
             rng,

@@ -117,13 +117,20 @@ PunctualLightBounceRadianceSample SamplePunctualLightBounceRadiance(
                     const float bounceAreaToLightSolidAngleJacobian = punctualLightSample.distance * punctualLightSample.distance / dot(-punctualLightSample.dir, punctualLightSample.hitNormal);
                     const float patchSolidAngleToLightSolidAngleJacobian = patchSolidAngleToBounceAreaJacobian * bounceAreaToLightSolidAngleJacobian;
 
-                    result.radianceOverDensity = punctualLightBouncedRadiance * patchSolidAngleToLightSolidAngleJacobian * punctualLightSample.reciprocalDensity;
+                    if (isfinite(bounceSolidAngleToAreaJacobian) && isfinite(patchSolidAngleToBounceAreaJacobian))
+                        result.radianceOverDensity = punctualLightBouncedRadiance * patchSolidAngleToLightSolidAngleJacobian * punctualLightSample.reciprocalDensity;
+                    else
+                        result.MarkInvalid();
                     #else // optimized version
-                    result.radianceOverDensity =
-                        INV_PI * dot(-reconnectionRay.direction, punctualLightSample.hitNormal) *
-                        punctualLightSample.reciprocalDensity *
-                        rcp(reconnectionResult.hitDistance * reconnectionResult.hitDistance) *
-                        punctualLightSample.intensity * punctualLightSample.hitAlbedo;
+                    const float reciprocalSquaredDistance = rcp(reconnectionResult.hitDistance * reconnectionResult.hitDistance);
+                    if (isfinite(reciprocalSquaredDistance))
+                        result.radianceOverDensity =
+                            INV_PI * dot(-reconnectionRay.direction, punctualLightSample.hitNormal) *
+                            punctualLightSample.reciprocalDensity *
+                            reciprocalSquaredDistance *
+                            punctualLightSample.intensity * punctualLightSample.hitAlbedo;
+                    else
+                        result.MarkInvalid();
                     #endif
                 }
             }
