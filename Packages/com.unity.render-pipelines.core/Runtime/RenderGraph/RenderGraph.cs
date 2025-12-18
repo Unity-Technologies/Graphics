@@ -356,7 +356,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public bool nativeRenderPassesEnabled { get; set; } = true;
 
         internal/*for tests*/ RenderGraphResourceRegistry m_Resources;
-        RenderGraphObjectPool m_RenderGraphPool = new RenderGraphObjectPool();
+        internal/*for tests*/ RenderGraphObjectPool m_RenderGraphPool = new RenderGraphObjectPool();
         RenderGraphBuilders m_builderInstance = new RenderGraphBuilders();
         internal/*for tests*/ List<RenderGraphPass> m_RenderPasses = new List<RenderGraphPass>(64);
         List<RendererListHandle> m_RendererLists = new List<RendererListHandle>(32);
