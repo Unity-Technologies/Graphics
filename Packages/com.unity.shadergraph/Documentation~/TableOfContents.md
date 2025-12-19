@@ -85,7 +85,7 @@
     * [Custom Render Texture](Custom-Render-Texture-Nodes.md)
         * [Self](Custom-Render-Texture-Self-Node.md)
         * [Size](Custom-Render-Texture-Size-Node.md)
-        * [Slice](Slice-Index-Cubemap-Face-Node.md)
+        * [Slice Index / Cubemap Face](Slice-Index-Cubemap-Face-Node.md)
     * [Dropdown](Dropdown-Node.md)
     * [Input](Input-Nodes.md)
         * Basic
@@ -126,7 +126,7 @@
         * Lighting
             * [Ambient](Ambient-Node.md)
             * [Baked GI](Baked-GI-Node.md)
-            * [Main Light Direction](https://docs.unity3d.com/Packages/com.unity.shadergraph@13.1/manual/Main-Light-Direction-Node.html)
+            * [Main Light Direction](Main-Light-Direction-Node.md)
             * [Reflection Probe](Reflection-Probe-Node.md)
         * Matrix
             * [Matrix 2x2](Matrix-2x2-Node.md)
