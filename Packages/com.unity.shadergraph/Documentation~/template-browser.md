@@ -33,4 +33,4 @@ To create a custom shader graph template, follow these steps:
 
 ## Additional resources
 
-* [Create a new shader graph from a template](create-shader-graph-template.md)
+* [Create a new shader graph](Create-Shader-Graph.md)
