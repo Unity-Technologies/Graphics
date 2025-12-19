@@ -1676,10 +1676,10 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <inheritdoc/>
-        public bool IsGPUResidentDrawerSupportedBySRP(out string message, out LogType severty)
+        public bool IsGPUResidentDrawerSupportedBySRP(out string message, out LogType severity)
         {
             message = string.Empty;
-            severty = LogType.Warning;
+            severity = LogType.Warning;
 
             // if any of the renderers are not set to Forward+ return false
             foreach (var rendererData in m_RendererDataList)

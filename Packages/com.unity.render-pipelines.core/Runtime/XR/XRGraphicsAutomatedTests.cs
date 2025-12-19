@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Used by render pipelines to initialize XR tests.
         /// </summary>
-        public static bool enabled { get; } = activatedFromCommandLine;
+        public static bool enabled { get; set; } = activatedFromCommandLine;
 
         /// <summary>
         /// Set by automated test framework and read by render pipelines.
