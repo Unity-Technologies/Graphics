@@ -45,6 +45,18 @@ public class HDRP_Runtime_Graphics_Tests
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal }
     )]
     [IgnoreGraphicsTest(
+        "003-VirtualTexturing$",
+        "https://jira.unity3d.com/browse/UUM-131182 Both Switches fail on MultiThreaded (pass on Native Jobs)",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch, RuntimePlatform.Switch2 },
+        renderingThreadingModes: new RenderingThreadingMode[] { RenderingThreadingMode.MultiThreaded }
+    )]
+    [IgnoreGraphicsTest(
+        "003-VirtualTexturing-Forward$",
+        "https://jira.unity3d.com/browse/UUM-131182 Switch fails on MultiThreaded (pass on Native Jobs)",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch },
+        renderingThreadingModes: new RenderingThreadingMode[] { RenderingThreadingMode.MultiThreaded }
+    )]
+    [IgnoreGraphicsTest(
         "004-CloudsFlaresDecals$",
         "Area with cloud-coverage is blue on Intel-based MacOS (CI).",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
