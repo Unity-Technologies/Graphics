@@ -47,6 +47,7 @@ namespace UnityEditor.ShaderGraph
             public static readonly GUIContent CustomInterpWarnThresholdLabel = L10n.TextContent("Warning Threshold", $"Shader Graph displays a warning when the user creates more custom interpolators than permitted by this setting. The number of interpolators that trigger this warning must be between {kMinChannelThreshold} and the Error Threshold.");
             public static readonly GUIContent CustomInterpErrorThresholdLabel = L10n.TextContent("Error Threshold", $"Shader Graph displays an error message when the user tries to create more custom interpolators than permitted by this setting. The number of interpolators that trigger this error must be between {kMinChannelThreshold} and {kMaxChannelThreshold}.");
             public static readonly string kReadMore = "read more";
+            public static readonly GUIStyle helpBoxIconStyle;
             public static readonly GUIStyle readMoreStyle;
 
             public static readonly GUIContent HeatmapSectionLabel = L10n.TextContent("Heatmap Color Mode Settings", "");
@@ -54,6 +55,15 @@ namespace UnityEditor.ShaderGraph
 
             static Styles()
             {
+                helpBoxIconStyle = new GUIStyle();
+                helpBoxIconStyle.fixedWidth = 16;
+                helpBoxIconStyle.fixedHeight = 16;
+                // We want the spacing of an EditorStyles.wordWrappedMiniLabel within an EditorStyles.helpBox,
+                // but adding padding to the icon means we can't guarantee the icon's size is 16x16, so manually
+                // compute margins
+                helpBoxIconStyle.margin.left = EditorStyles.wordWrappedMiniLabel.padding.left + EditorStyles.wordWrappedMiniLabel.margin.left;
+                helpBoxIconStyle.margin.top = EditorStyles.wordWrappedMiniLabel.padding.top + EditorStyles.wordWrappedMiniLabel.margin.top;
+
                 readMoreStyle = new GUIStyle(EditorStyles.linkLabel);
                 readMoreStyle.fontSize = EditorStyles.miniLabel.fontSize;
                 readMoreStyle.wordWrap = true;
@@ -121,17 +131,20 @@ namespace UnityEditor.ShaderGraph
             m_customInterpError.intValue = Mathf.Clamp(newError, oldWarn, kMaxChannelThreshold);
             m_customInterpWarn.intValue = Mathf.Clamp(newWarn, kMinChannelThreshold, oldError);
 
-            GUILayout.BeginHorizontal(EditorStyles.helpBox);
-            GUILayout.Label(EditorGUIUtility.GetHelpIcon(MessageType.Info), GUILayout.ExpandWidth(false));
-            GUILayout.BeginVertical();
+            GUILayout.BeginVertical(EditorStyles.helpBox);
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(EditorGUIUtility.GetHelpIcon(MessageType.Info), Styles.helpBoxIconStyle);
             GUILayout.Label(kCustomInterpolatorHelpBox, EditorStyles.wordWrappedMiniLabel);
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
             if (GUILayout.Button(Styles.kReadMore, Styles.readMoreStyle))
             {
                 System.Diagnostics.Process.Start(kCustomInterpolatorDocumentationURL);
             }
             EditorGUIUtility.AddCursorRect(GUILayoutUtility.GetLastRect(), MouseCursor.Link);
-            GUILayout.EndVertical();
             GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
             EditorGUI.indentLevel--;
 
             EditorGUILayout.LabelField(Styles.HeatmapSectionLabel, EditorStyles.boldLabel);
