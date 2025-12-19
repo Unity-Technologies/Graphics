@@ -2,7 +2,13 @@
     "name": "Unity.RenderPipelines.Core.Editor.Shared",
     "rootNamespace": "",
     "references": [
-        "GUID:3eae0364be2026648bf74846acb8a731"
+        "GUID:3eae0364be2026648bf74846acb8a731",
+        "GUID:716365d8000d25e4c8621aa2d34a92fa",
+        "GUID:9149a3cbb036049f68e4e5b6388b9c85",
+        "GUID:c49c619b6af2be941af9bcbca2641964",
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+        "GUID:4fd6538c1c56b409fb53fdf0183170ec",
+        "GUID:214c0945bb158c940aada223f3223ee8"
     ],
     "includePlatforms": [
         "Editor"

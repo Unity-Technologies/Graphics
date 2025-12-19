@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering
         /// Update the capture location for the probe request.
         /// </summary>
         /// <param name ="probeInstanceID"> The instance ID of the probe doing the request and that wants the capture position updated.</param>
-        /// <param name ="newPositionnewPosition"> The position at which a probe is baked.</param>
+        /// <param name ="newPosition"> The position at which a probe is baked.</param>
         public void UpdatePositionForRequest(EntityId probeInstanceID, Vector3 newPosition)
         {
             if (m_SHCoefficients.ContainsKey(probeInstanceID))
@@ -160,7 +160,7 @@ namespace UnityEngine.Rendering
             return true;
         }
 
-        static void SetSHCoefficients(NativeArray<SphericalHarmonicsL2> sh, NativeArray<float> validity)
+        static internal void SetSHCoefficients(NativeArray<SphericalHarmonicsL2> sh, NativeArray<float> validity)
         {
             Debug.Assert(sh.Length == m_SHCoefficients.Count);
             Debug.Assert(sh.Length == validity.Length);
