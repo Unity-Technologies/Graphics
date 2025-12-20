@@ -17,7 +17,7 @@ int _AnyHitDecision;
 
 uint AnyHitExecute(UnifiedRT::HitContext hitContext, inout RayPayload payload)
 {
-    payload.anyHits |= (1 << hitContext.InstanceID());
+    payload.anyHits |= (1u << hitContext.InstanceID());
 
     return _AnyHitDecision;
 }
