@@ -51,8 +51,6 @@ namespace Unity.Rendering.Universal.Tests
             {
                 Assert.Ignore("Quest XR Automation: Test scene is not compatible with XR and will be skipped.");
             }
-
-            XRDevice.DisableAutoXRCameraTracking(Camera.main, true);
 #endif
             int waitFrames = 1;
 
