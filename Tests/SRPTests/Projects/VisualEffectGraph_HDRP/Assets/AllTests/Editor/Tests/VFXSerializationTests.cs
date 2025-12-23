@@ -1400,6 +1400,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest, Description("Cover case UUM-69716")]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })] // Unstable on WindowsEditor: https://jira.unity3d.com/browse/UUM-131297
         public IEnumerator Unexpected_Failure_With_Missing_Type()
         {
             m_CustomLogHandler.Reset();
