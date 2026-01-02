@@ -71,7 +71,6 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty mixedLightingSupportedProp { get; }
         public SerializedProperty useRenderingLayers { get; }
         public SerializedProperty supportsLightCookies { get; }
-        public SerializedProperty debugLevelProp { get; }
 
         public SerializedProperty volumeFrameworkUpdateModeProp { get; }
         public SerializedProperty volumeProfileProp { get; }
@@ -163,7 +162,6 @@ namespace UnityEditor.Rendering.Universal
             mixedLightingSupportedProp = serializedObject.FindProperty("m_MixedLightingSupported");
             useRenderingLayers = serializedObject.FindProperty("m_SupportsLightLayers");
             supportsLightCookies = serializedObject.FindProperty("m_SupportsLightCookies");
-            debugLevelProp = serializedObject.FindProperty("m_DebugLevel");
 
             volumeFrameworkUpdateModeProp = serializedObject.FindProperty("m_VolumeFrameworkUpdateMode");
             volumeProfileProp = serializedObject.FindProperty("m_VolumeProfile");
