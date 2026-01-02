@@ -14,6 +14,7 @@
     "com.unity.testing.visualeffectgraph": "file:../../../Packages/com.unity.testing.visualeffectgraph",
     "com.unity.testing.common-graphics": "file:../../../Packages/com.unity.testing.common-graphics",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
+    "com.unity.testing.urp": "file:../../../Packages/com.unity.testing.urp",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
     "com.unity.xr.legacyinputhelpers": "2.1.2",
@@ -53,6 +54,7 @@
   "testables": [
     "com.unity.testing.visualeffectgraph",
     "com.unity.testing.xr",
+    "com.unity.testing.urp",
     "com.unity.render-pipelines.visualeffectgraph",
     "com.unity.shadergraph"
   ]
