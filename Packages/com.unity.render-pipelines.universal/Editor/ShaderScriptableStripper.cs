@@ -405,7 +405,6 @@ namespace UnityEditor.Rendering.Universal
 #if SURFACE_CACHE
             if (strippingData.PassHasKeyword(m_ScreenSpaceIrradiance))
             {
-                bool useScreenSpaceIrradiance = strippingData.IsShaderFeatureEnabled(ShaderFeatures.SurfaceCache);
                 return !strippingData.IsShaderFeatureEnabled(ShaderFeatures.SurfaceCache) && strippingData.IsKeywordEnabled(m_ScreenSpaceIrradiance);
             }
             return false;

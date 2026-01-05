@@ -414,6 +414,30 @@ namespace UnityEngine.Rendering
             return instance;
         }
 
+        public InstanceHandle AddInstance(
+            Terrain terrain,
+            MaterialHandle material,
+            uint mask,
+            in Matrix4x4 localToWorldMatrix)
+        {
+            Debug.Assert(terrain.terrainData != null);
+            Debug.Assert(material != MaterialHandle.Invalid);
+
+            Span<uint> masks = stackalloc uint[1] { mask };
+
+            Span<uint> materialIndices = stackalloc uint[1];
+            Span<bool> isOpaque = stackalloc bool[1];
+
+            _materialPool.GetMaterialInfo(material.Value, out materialIndices[0], out bool isTransmissive);
+            isOpaque[0] = !isTransmissive;
+
+            Component comp = terrain;
+            InstanceHandle instance = _instanceHandleSet.Add();
+
+            _rayTracingAccelerationStructure.AddInstance(instance.Value, comp, masks, materialIndices, isOpaque, terrain.renderingLayerMask);
+            return instance;
+        }
+
         public void UpdateInstanceTransform(InstanceHandle instance, Matrix4x4 localToWorldMatrix)
         {
             _rayTracingAccelerationStructure.UpdateInstanceTransform(instance.Value, localToWorldMatrix);

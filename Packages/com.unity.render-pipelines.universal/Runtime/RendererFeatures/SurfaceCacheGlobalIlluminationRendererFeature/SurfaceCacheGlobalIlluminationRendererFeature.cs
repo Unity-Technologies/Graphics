@@ -566,7 +566,19 @@ namespace UnityEngine.Rendering.Universal
                     var changes = _sceneTracker.GetChanges(filterBakedLights);
 
                     _worldAdapter.UpdateMaterials(_world, changes.addedMaterials, changes.removedMaterials, changes.changedMaterials);
-                    _worldAdapter.UpdateInstances(_world, changes.addedInstances, changes.changedInstances, changes.removedInstances, _fallbackMaterial);
+                    _worldAdapter.UpdateMeshRenderers(
+                        _world,
+                        changes.addedMeshRenderers,
+                        changes.changedMeshRenderers,
+                        changes.removedMeshRenderers,
+                        _fallbackMaterial);
+                    _worldAdapter.UpdateTerrains(
+                        _world,
+                        changes.addedTerrains,
+                        changes.changedTerrains,
+                        changes.removedTerrains,
+                        _fallbackMaterial);
+
                     const bool multiplyPunctualLightIntensityByPI = false;
                     _worldAdapter.UpdateLights(_world, changes.addedLights, changes.removedLights, changes.changedLights, multiplyPunctualLightIntensityByPI);
 
@@ -968,26 +980,36 @@ namespace UnityEngine.Rendering.Universal
                 world.UpdateLights(handlesToUpdate, ConvertUnityLightsToLightDescriptors(changedLights.ToArray(), multiplyPunctualLightIntensityByPI));
             }
 
-            internal void UpdateInstances(
+            internal void UpdateMeshRenderers(
                 SurfaceCacheWorld world,
-                List<MeshRenderer> addedInstances,
-                List<InstanceChanges> changedInstances,
-                List<EntityId> removedInstances,
+                List<MeshRenderer> addedMeshRenderers,
+                List<MeshRendererInstanceChanges> changedMeshRenderers,
+                List<EntityId> removedMeshRenderers,
                 Material fallbackMaterial)
             {
-                UpdateInstances(world, _entityIDToWorldInstanceHandles, _entityIDToWorldMaterialHandles, addedInstances, changedInstances, removedInstances, fallbackMaterial);
+                UpdateMeshRenderers(world, _entityIDToWorldInstanceHandles, _entityIDToWorldMaterialHandles, addedMeshRenderers, changedMeshRenderers, removedMeshRenderers, fallbackMaterial);
             }
 
-            private static void UpdateInstances(
+            internal void UpdateTerrains(
+                SurfaceCacheWorld world,
+                List<Terrain> addedTerrains,
+                List<TerrainInstanceChanges> changedTerrains,
+                List<EntityId> removedTerrains,
+                Material fallbackMaterial)
+            {
+                UpdateTerrains(world, _entityIDToWorldInstanceHandles, _entityIDToWorldMaterialHandles, addedTerrains, changedTerrains, removedTerrains, fallbackMaterial);
+            }
+
+            private static void UpdateMeshRenderers(
                 SurfaceCacheWorld world,
                 Dictionary<EntityId, InstanceHandle> entityIDToInstanceHandle,
                 Dictionary<EntityId, MaterialHandle> entityIDToMaterialHandle,
-                List<MeshRenderer> addedInstances,
-                List<InstanceChanges> changedInstances,
-                List<EntityId> removedInstances,
+                List<MeshRenderer> addedMeshRenderers,
+                List<MeshRendererInstanceChanges> changedMeshRenderers,
+                List<EntityId> removedMeshRenderers,
                 Material fallbackMaterial)
             {
-                foreach (var meshRendererEntityID in removedInstances)
+                foreach (var meshRendererEntityID in removedMeshRenderers)
                 {
                     if (entityIDToInstanceHandle.TryGetValue(meshRendererEntityID, out var instanceHandle))
                     {
@@ -996,7 +1018,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                foreach (var meshRenderer in addedInstances)
+                foreach (var meshRenderer in addedMeshRenderers)
                 {
                     Debug.Assert(!meshRenderer.isPartOfStaticBatch);
 
@@ -1026,20 +1048,20 @@ namespace UnityEngine.Rendering.Universal
                     entityIDToInstanceHandle.Add(entityID, instance);
                 }
 
-                foreach (var instanceUpdate in changedInstances)
+                foreach (var meshRendererUpdate in changedMeshRenderers)
                 {
-                    var meshRenderer = instanceUpdate.meshRenderer;
+                    var meshRenderer = meshRendererUpdate.instance;
                     var gameObject = meshRenderer.gameObject;
 
                     Debug.Assert(entityIDToInstanceHandle.ContainsKey(meshRenderer.GetEntityId()));
                     var instanceHandle = entityIDToInstanceHandle[meshRenderer.GetEntityId()];
 
-                    if ((instanceUpdate.changes & ModifiedProperties.Transform) != 0)
+                    if ((meshRendererUpdate.changes & ModifiedProperties.Transform) != 0)
                     {
                         world.UpdateInstanceTransform(instanceHandle, gameObject.transform.localToWorldMatrix);
                     }
 
-                    if ((instanceUpdate.changes & ModifiedProperties.Material) != 0)
+                    if ((meshRendererUpdate.changes & ModifiedProperties.Material) != 0)
                     {
                         var materials = Util.GetMaterials(meshRenderer);
                         var materialHandles = new MaterialHandle[materials.Length];
@@ -1058,6 +1080,68 @@ namespace UnityEngine.Rendering.Universal
                         }
 
                         world.UpdateInstanceMask(instanceHandle, masks);
+                    }
+                }
+            }
+
+            private void UpdateTerrains(
+                SurfaceCacheWorld world,
+                Dictionary<EntityId, InstanceHandle> entityIDToInstanceHandle,
+                Dictionary<EntityId, MaterialHandle> entityIDToMaterialHandle,
+                List<Terrain> addedTerrains,
+                List<TerrainInstanceChanges> changedTerrains,
+                List<EntityId> removedTerrains,
+                Material fallbackMaterial)
+            {
+                foreach (var terrainEntityID in removedTerrains)
+                {
+                    if (entityIDToInstanceHandle.TryGetValue(terrainEntityID, out var instanceHandle))
+                    {
+                        world.RemoveInstance(instanceHandle);
+                        entityIDToInstanceHandle.Remove(terrainEntityID);
+                    }
+                }
+
+                foreach (var terrain in addedTerrains)
+                {
+                    var localToWorldMatrix = terrain.transform.localToWorldMatrix;
+
+                    var material = terrain.splatBaseMaterial;
+                    var matEntityId = material == null ? fallbackMaterial.GetEntityId() : material.GetEntityId();
+                    var materialHandle = entityIDToMaterialHandle[matEntityId];
+                    uint mask =  1u;
+
+                    InstanceHandle instance = world.AddInstance(terrain, materialHandle, mask, in localToWorldMatrix);
+                    var entityID = terrain.GetEntityId();
+                    Debug.Assert(!entityIDToInstanceHandle.ContainsKey(entityID));
+                    entityIDToInstanceHandle.Add(entityID, instance);
+                }
+
+                foreach (var terrainUpdate in changedTerrains)
+                {
+                    var terrain = terrainUpdate.instance;
+                    var gameObject = terrain.gameObject;
+
+                    Debug.Assert(entityIDToInstanceHandle.ContainsKey(terrain.GetEntityId()));
+                    var instanceHandle = entityIDToInstanceHandle[terrain.GetEntityId()];
+
+                    if ((terrainUpdate.changes & ModifiedProperties.Transform) != 0)
+                    {
+                        world.UpdateInstanceTransform(instanceHandle, gameObject.transform.localToWorldMatrix);
+                    }
+
+                    if ((terrainUpdate.changes & ModifiedProperties.Material) != 0)
+                    {
+                        var material = terrain.splatBaseMaterial;
+
+                        var matEntityId = material == null ? fallbackMaterial.GetEntityId() : material.GetEntityId();
+                        var materialHandle = entityIDToMaterialHandle[matEntityId];
+
+                        world.UpdateInstanceMaterials(instanceHandle, new MaterialHandle[] { materialHandle });
+
+                        var mask = material != null ? 1u : 0u;
+
+                        world.UpdateInstanceMask(instanceHandle, new uint[] { mask } );
                     }
                 }
             }
