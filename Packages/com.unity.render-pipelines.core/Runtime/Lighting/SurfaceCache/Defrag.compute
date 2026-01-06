@@ -33,7 +33,6 @@
 RWStructuredBuffer<uint> _RingConfigBuffer;
 RWStructuredBuffer<uint> _CellPatchIndices;
 RWStructuredBuffer<uint> _PatchCellIndices;
-RWStructuredBuffer<PatchUtil::PatchCounterSet> _PatchCounterSets;
 RWStructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances0;
 RWStructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances1;
 RWStructuredBuffer<PatchUtil::PatchGeometry> _PatchGeometries;
@@ -80,7 +79,6 @@ void Defrag(Threading::Group group)
 
         const uint newPatchIdx = (patchIdx + rightReclaimableCount) % patchCapacity;
         _PatchCellIndices[newPatchIdx] = oldPatchCellIndex;
-        _PatchCounterSets[newPatchIdx] = _PatchCounterSets[patchIdx];
         _PatchIrradiances0[newPatchIdx] = _PatchIrradiances0[patchIdx];
         _PatchIrradiances1[newPatchIdx] = _PatchIrradiances1[patchIdx];
         _PatchGeometries[newPatchIdx] = _PatchGeometries[patchIdx];

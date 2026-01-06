@@ -16,7 +16,7 @@ RWTexture2D<float3> _ResultL10;
 RWTexture2D<float3> _ResultL11;
 RWTexture2D<float3> _ResultL12;
 RWTexture2D<float> _ResultNdcDepths;
-RWStructuredBuffer<PatchUtil::PatchCounterSet> _PatchCounterSets;
+RWStructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
 
 StructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances;
 StructuredBuffer<uint> _CellPatchIndices;
@@ -65,7 +65,7 @@ void Lookup(uint2 lowResPixelPos : SV_DispatchThreadID)
     SphericalHarmonics::RGBL1 irradianceSum = (SphericalHarmonics::RGBL1)0;
     float weightSum = 0.0f;
     {
-        uint patchIdx = PatchUtil::FindPatchIndexAndUpdateLastAccess(_VolumeTargetPos, _CellPatchIndices, _VolumeSpatialResolution, _CascadeOffsets, _PatchCounterSets, _CascadeCount, _VolumeVoxelMinSize, worldPos, worldNormal, _FrameIdx);
+        uint patchIdx = PatchUtil::FindPatchIndexAndUpdateLastAccess(_VolumeTargetPos, _CellPatchIndices, _VolumeSpatialResolution, _CascadeOffsets, _PatchStatistics, _CascadeCount, _VolumeVoxelMinSize, worldPos, worldNormal, _FrameIdx);
         if (patchIdx != PatchUtil::invalidPatchIndex)
         {
             const float weight = 0.01f;
@@ -85,7 +85,7 @@ void Lookup(uint2 lowResPixelPos : SV_DispatchThreadID)
         const float3 localJitteredDirection = SampleConeUniform(jitter.x, jitter.y, cosSpread);
         const float3 jitteredWorldDir = mul(orthoBasis, localJitteredDirection);
 
-        uint patchIdx = PatchUtil::FindPatchIndexAndUpdateLastAccess(_VolumeTargetPos, _CellPatchIndices, _VolumeSpatialResolution, _CascadeOffsets, _PatchCounterSets, _CascadeCount, _VolumeVoxelMinSize, jitteredWorldPos, jitteredWorldDir, _FrameIdx);
+        uint patchIdx = PatchUtil::FindPatchIndexAndUpdateLastAccess(_VolumeTargetPos, _CellPatchIndices, _VolumeSpatialResolution, _CascadeOffsets, _PatchStatistics, _CascadeCount, _VolumeVoxelMinSize, jitteredWorldPos, jitteredWorldDir, _FrameIdx);
         if (patchIdx != PatchUtil::invalidPatchIndex)
         {
             SphericalHarmonics::AddMut(irradianceSum, _PatchIrradiances[patchIdx]);

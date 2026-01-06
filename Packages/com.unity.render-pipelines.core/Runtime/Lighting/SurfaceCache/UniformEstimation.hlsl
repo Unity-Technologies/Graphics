@@ -12,7 +12,6 @@ StructuredBuffer<uint> _RingConfigBuffer;
 RWStructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances;
 StructuredBuffer<PatchUtil::PatchGeometry> _PatchGeometries;
 RWStructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
-RWStructuredBuffer<PatchUtil::PatchCounterSet> _PatchCounterSets;
 StructuredBuffer<uint> _CellPatchIndices;
 StructuredBuffer<int3> _CascadeOffsets;
 StructuredBuffer<MaterialPool::MaterialEntry> _MaterialEntries;
@@ -200,5 +199,5 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
     }
 
     if (gotValidSamples)
-        ProcessAndStoreRadianceSample(_PatchIrradiances, _PatchStatistics, _PatchCounterSets, patchIdx, radianceSampleMean, _ShortHysteresis);
+        ProcessAndStoreRadianceSample(_PatchIrradiances, _PatchStatistics, patchIdx, radianceSampleMean, _ShortHysteresis);
 }

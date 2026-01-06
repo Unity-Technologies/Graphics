@@ -35,7 +35,6 @@ StructuredBuffer<uint> _RingConfigBuffer;
 RWStructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances;
 RWStructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
 StructuredBuffer<PatchUtil::PatchGeometry> _PatchGeometries;
-RWStructuredBuffer<PatchUtil::PatchCounterSet> _PatchCounterSets;
 StructuredBuffer<uint> _CellPatchIndices;
 StructuredBuffer<int3> _CascadeOffsets;
 RWStructuredBuffer<SphericalHarmonics::ScalarL2> _PatchAccumulatedLuminances;
@@ -185,6 +184,6 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
         ProcessAndStoreLuminanceSample(_PatchAccumulatedLuminances, patchIdx, luminanceEstimate, _TargetFunctionUpdateWeight);
 
         const SphericalHarmonics::RGBL1 estimate = EstimateFromSampleAndWeight(radianceSample, reservoir.sample.direction, outputWeight);
-        ProcessAndStoreRadianceSample(_PatchIrradiances, _PatchStatistics, _PatchCounterSets, patchIdx, estimate, _ShortHysteresis);
+        ProcessAndStoreRadianceSample(_PatchIrradiances, _PatchStatistics, patchIdx, estimate, _ShortHysteresis);
     }
 }

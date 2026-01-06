@@ -15,7 +15,7 @@ SphericalHarmonics::RGBL1 FilterTemporallyVarianceGuided(float shortHysteresis, 
         const float3 driftWeight = smoothstep(0, 1, drift * driftScaling);
         const float longHys = 0.995f;
 
-        float3 updateWeight = lerp(longHys, shortHysteresis, driftWeight);
+        float3 updateWeight = lerp((float3)longHys, (float3)shortHysteresis, driftWeight);
         if (updateCount != PatchUtil::updateMax)
             updateWeight = 1.0f - rcp(updateCount);
 

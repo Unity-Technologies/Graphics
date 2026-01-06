@@ -38,15 +38,16 @@ namespace PatchUtil
         float3 normal;
     };
 
+    struct PatchCounterSet
+    {
+        uint data;
+    };
+
     struct PatchStatisticsSet
     {
         float3 mean;
         float3 variance;
-    };
-
-    struct PatchCounterSet
-    {
-        uint data;
+        PatchCounterSet patchCounters;
     };
 
     void Reset(inout PatchCounterSet set)
@@ -79,11 +80,11 @@ namespace PatchUtil
         return a.data == b.data;
     }
 
-    void WriteLastFrameAccess(RWStructuredBuffer<PatchUtil::PatchCounterSet> counterSets, uint patchIdx, uint frameIdx)
+    void WriteLastFrameAccess(RWStructuredBuffer<PatchUtil::PatchStatisticsSet> statisticsSets, uint patchIdx, uint frameIdx)
     {
-        PatchCounterSet counterSet = counterSets[patchIdx];
+        PatchCounterSet counterSet = statisticsSets[patchIdx].patchCounters;
         SetLastAccessFrame(counterSet, frameIdx);
-        counterSets[patchIdx] = counterSet;
+        statisticsSets[patchIdx].patchCounters = counterSet;
     }
 
     float GetVoxelSize(float voxelMinSize, uint cascadeIdx)
@@ -306,12 +307,12 @@ namespace PatchUtil
         }
     }
 
-    uint FindPatchIndexAndUpdateLastAccess(float3 volumeTargetPos, StructuredBuffer<uint> cellPatchIndices, uint spatialResolution, StructuredBuffer<int3> cascadeOffsets, RWStructuredBuffer<PatchUtil::PatchCounterSet> patchCounterSets, uint cascadeCount, float voxelMinSize, float3 worldPosition, float3 worldNormal, uint frameIdx)
+    uint FindPatchIndexAndUpdateLastAccess(float3 volumeTargetPos, StructuredBuffer<uint> cellPatchIndices, uint spatialResolution, StructuredBuffer<int3> cascadeOffsets, RWStructuredBuffer<PatchUtil::PatchStatisticsSet> patchStatisticSets, uint cascadeCount, float voxelMinSize, float3 worldPosition, float3 worldNormal, uint frameIdx)
     {
         const uint patchIdx = FindPatchIndex(volumeTargetPos, cellPatchIndices, spatialResolution, cascadeOffsets, cascadeCount, voxelMinSize,worldPosition, worldNormal);
         if (patchIdx != invalidPatchIndex)
         {
-            WriteLastFrameAccess(patchCounterSets, patchIdx, frameIdx);
+            WriteLastFrameAccess(patchStatisticSets, patchIdx, frameIdx);
         }
         return patchIdx;
     }

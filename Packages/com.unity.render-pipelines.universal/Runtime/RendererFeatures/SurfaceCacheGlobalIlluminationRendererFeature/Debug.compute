@@ -13,10 +13,9 @@ StructuredBuffer<uint> _RingConfigBuffer;
 StructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances;
 StructuredBuffer<uint> _PatchCellIndices;
 StructuredBuffer<PatchUtil::PatchGeometry> _PatchGeometries;
-StructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
+RWStructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
 StructuredBuffer<uint> _CellPatchIndices;
 StructuredBuffer<int3> _CascadeOffsets;
-RWStructuredBuffer<PatchUtil::PatchCounterSet> _PatchCounterSets;
 
 RWTexture2D<float4> _Result;
 Texture2D<float> _ScreenDepths;
@@ -73,6 +72,10 @@ void Visualize(uint2 threadIdx : SV_DispatchThreadID)
         if (ndcDepth == invalidNdcDepth)
             return;
 
+        const float3 green = float3(0, 1, 0);
+        const float3 red = float3(1, 0, 0);
+        const float3 pink = float3(1, 0, 1);
+
         const float2 uv = (float2(threadIdx.xy) + 0.5f) / float2(screenSize);
         const float3 worldPos = ComputeWorldSpacePosition(uv, ndcDepth, _ClipToWorldTransform);
         const float3 worldShadedNormal = UnpackGBufferNormal(_ScreenShadedNormals[threadIdx.xy]);
@@ -94,7 +97,7 @@ void Visualize(uint2 threadIdx : SV_DispatchThreadID)
             {
                 patchIrradiance = _PatchIrradiances[patchIdx];
                 patchPos = _PatchGeometries[patchIdx].position;
-                PatchUtil::WriteLastFrameAccess(_PatchCounterSets, patchIdx, _FrameIdx);
+                PatchUtil::WriteLastFrameAccess(_PatchStatistics, patchIdx, _FrameIdx);
             }
 
             if (_ShowSamplePosition == 1 && hasPatch && length(worldPos - patchPos) < 0.12f)
@@ -114,9 +117,9 @@ void Visualize(uint2 threadIdx : SV_DispatchThreadID)
                 {
                     const float3 shEval = SphericalHarmonics::Eval(patchIrradiance, worldShadedNormal);
                     if (any(IsActuallyNan(shEval)))
-                        output = float3(1, 0, 0);
+                        output = red;
                     else if (any(IsActuallyInf(shEval)))
-                        output = float3(0, 1, 0);
+                        output = green;
                     else
                         output = max(0, shEval);
                 }
@@ -151,16 +154,20 @@ void Visualize(uint2 threadIdx : SV_DispatchThreadID)
             {
                 if (hasPatch)
                 {
-                    output = sqrt(_PatchStatistics[patchIdx].variance) * 0.1f;
+                    float3 variance = _PatchStatistics[patchIdx].variance;
+                    if (any(isinf(variance)) || any(isnan(variance)))
+                        output = pink;
+                    else if (any(variance < 0))
+                        output = red; // Since this is an estimate, negative values may happen.
+                    else
+                        output = sqrt(variance) * 0.1f;
                 }
             }
             else if (_ViewMode == 6)
             {
                 if (hasPatch)
                 {
-                    const float3 green = float3(0, 1, 0);
-                    const float3 red = float3(1, 0, 0);
-                    const PatchUtil::PatchCounterSet counterSet = _PatchCounterSets[patchIdx];
+                    const PatchUtil::PatchCounterSet counterSet = _PatchStatistics[patchIdx].patchCounters;
                     const uint updateCount = PatchUtil::GetUpdateCount(counterSet);
                     const float s = float(updateCount) / PatchUtil::updateMax;
                     const float3 redGreenMix = lerp(red, green, s);

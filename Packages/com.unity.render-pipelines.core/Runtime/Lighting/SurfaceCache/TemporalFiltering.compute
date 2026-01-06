@@ -8,7 +8,6 @@
 #include "TemporalFiltering.hlsl"
 
 StructuredBuffer<uint> _RingConfigBuffer;
-StructuredBuffer<PatchUtil::PatchCounterSet> _PatchCounterSets;
 StructuredBuffer<SphericalHarmonics::RGBL1> _InputPatchIrradiances;
 StructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
 RWStructuredBuffer<SphericalHarmonics::RGBL1> _OutputPatchIrradiances;
@@ -26,7 +25,7 @@ void FilterTemporally(uint patchIdx : SV_DispatchThreadID)
     const SphericalHarmonics::RGBL1 oldIrradiance = _OutputPatchIrradiances[patchIdx];
 
     const PatchUtil::PatchStatisticsSet stats = _PatchStatistics[patchIdx];
-    const uint updateCount = PatchUtil::GetUpdateCount(_PatchCounterSets[patchIdx]);
+    const uint updateCount = PatchUtil::GetUpdateCount(_PatchStatistics[patchIdx].patchCounters);
     SphericalHarmonics::RGBL1 output = FilterTemporallyVarianceGuided(_ShortHysteresis, updateCount, stats.variance, stats.mean, newIrradiance, oldIrradiance);
 
     _OutputPatchIrradiances[patchIdx] = output;
