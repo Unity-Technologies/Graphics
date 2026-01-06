@@ -576,6 +576,50 @@ namespace UnityEngine.VFX.Test
         }
 #endif
 
+        private IEnumerator Release_Batch_Instance_When_Disabled_CompareInstanceCount(string testName, VisualEffectAsset vfxAsset, uint expectedInstanceCount)
+        {
+            yield return null;
+
+            uint currentInstanceCount = VFXManager.GetBatchedEffectInfo(vfxAsset).activeInstanceCount;
+            Assert.AreEqual(expectedInstanceCount, currentInstanceCount, $"{testName}: Instance count should match:");
+        }
+
+
+        [UnityTest]
+        public IEnumerator Release_Batch_Instance_When_Disabled()
+        {
+            SceneManagement.SceneManager.LoadScene("Packages/com.unity.testing.visualeffectgraph/Scenes/024_StripIndirectAndSorting.unity");
+            yield return null;
+
+            VisualEffect vfxComponent = null;
+            foreach (var component in Object.FindObjectsByType<VisualEffect>(FindObjectsSortMode.None))
+            {
+                if (component.visualEffectAsset.name == "024_StripIndirectAndSorting_NoIndirect")
+                {
+                    vfxComponent = component;
+                    break;
+                }
+            }
+            var vfxAsset = vfxComponent.visualEffectAsset;
+
+            uint initialInstanceCount = VFXManager.GetBatchedEffectInfo(vfxAsset).activeInstanceCount;
+
+            vfxComponent.enabled = false;
+            yield return Release_Batch_Instance_When_Disabled_CompareInstanceCount("Disable keeps instances by default", vfxAsset, initialInstanceCount);
+
+            vfxComponent.releaseInstanceWhenDisabled = true;
+            yield return Release_Batch_Instance_When_Disabled_CompareInstanceCount("Setting releaseInstanceWhenDisabled releases instance if already disabled", vfxAsset, initialInstanceCount - 1);
+
+            vfxComponent.enabled = true;
+            yield return Release_Batch_Instance_When_Disabled_CompareInstanceCount("Enabling the component again recreates the instance", vfxAsset, initialInstanceCount);
+
+            vfxComponent.enabled = false;
+            yield return Release_Batch_Instance_When_Disabled_CompareInstanceCount("Disabling the component with releaseInstanceWhenDisabled releases the instance", vfxAsset, initialInstanceCount - 1);
+
+            vfxComponent.releaseInstanceWhenDisabled = false;
+            yield return Release_Batch_Instance_When_Disabled_CompareInstanceCount("Clearing releaseInstanceWhenDisabled when disabled recreates the instance", vfxAsset, initialInstanceCount);
+        }
+
         private static Vector4[] s_SampleGradient_Branch_Instancing_Readback = null;
 
         static void SampleGradient_Branch_Instancing_Readback(AsyncGPUReadbackRequest request)
