@@ -1606,7 +1606,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             scaleBias.w = data.loadOffset.y;
                         }
                         natCmd.SetGlobalVector(HDShaderIDs._ScaleBias, scaleBias);
-
+                        natCmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthTexture);
                         natCmd.SetViewport(data.viewport);
                         natCmd.DrawProcedural(Matrix4x4.identity, data.downsampleDepthMaterial, 0, MeshTopology.Triangles, 3, 1, null);
                     });

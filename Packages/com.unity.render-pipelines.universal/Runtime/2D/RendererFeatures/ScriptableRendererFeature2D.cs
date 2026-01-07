@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="ScriptableRenderer"/>
     /// <seealso cref="ScriptableRenderPass2D"/>
     [ExcludeFromPreset]
+    [SupportedOnRenderer(typeof(Renderer2DData))]
     public abstract partial class ScriptableRendererFeature2D : ScriptableRendererFeature
     {
         /// <summary>

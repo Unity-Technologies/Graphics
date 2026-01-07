@@ -32,6 +32,7 @@
         * [Add inputs and outputs to a Sub Graph](Add-Inputs-Outputs-Sub-Graph.md)
         * [Set default inputs for a Sub Graph](Sub-Graph-Default-Property-Values.md)
         * [Change the behaviour of a Sub Graph](Change-Behaviour-Sub-Graph-Dropdown.md)
+        * [Expose a Sub Graph property in the Inspector window](Sub-Graph-Promote-Property.md)
         * [Sub Graph asset](Sub-graph-Asset.md)
     * [Sticky Notes](Sticky-Notes.md)
     * [Color Modes](Color-Modes.md)
@@ -89,7 +90,7 @@
     * [Custom Render Texture](Custom-Render-Texture-Nodes.md)
         * [Self](Custom-Render-Texture-Self-Node.md)
         * [Size](Custom-Render-Texture-Size-Node.md)
-        * [Slice](Slice-Index-Cubemap-Face-Node.md)
+        * [Slice Index / Cubemap Face](Slice-Index-Cubemap-Face-Node.md)
     * [Dropdown](Dropdown-Node.md)
     * [Input](Input-Nodes.md)
         * Basic
@@ -130,7 +131,7 @@
         * Lighting
             * [Ambient](Ambient-Node.md)
             * [Baked GI](Baked-GI-Node.md)
-            * [Main Light Direction](https://docs.unity3d.com/Packages/com.unity.shadergraph@13.1/manual/Main-Light-Direction-Node.html)
+            * [Main Light Direction](Main-Light-Direction-Node.md)
             * [Reflection Probe](Reflection-Probe-Node.md)
         * Matrix
             * [Matrix 2x2](Matrix-2x2-Node.md)
