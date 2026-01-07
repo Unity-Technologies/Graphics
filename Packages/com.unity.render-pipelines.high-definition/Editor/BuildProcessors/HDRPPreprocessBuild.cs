@@ -33,9 +33,6 @@ namespace UnityEditor.Rendering.HighDefinition
             bool isDevelopmentBuild = (report.summary.options & BuildOptions.Development) != 0;
             m_BuildData = new HDRPBuildData(EditorUserBuildSettings.activeBuildTarget, isDevelopmentBuild);
 
-            // Since the HDRPBuildData instance is used in a lot of places, doing this check here ensures that it is done before the build starts.
-            m_BuildData.SetDynamicLightmapsUsedInBuildScenes();
-
             if (m_BuildData.buildingPlayerForHDRenderPipeline)
             {
                 // Now that we know that we are on HDRP we need to make sure everything is correct, otherwise we break the build.
