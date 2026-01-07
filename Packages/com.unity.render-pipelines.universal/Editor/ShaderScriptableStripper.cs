@@ -31,7 +31,6 @@ namespace UnityEditor.Rendering.Universal
             public bool stripUnusedVariants { get; set; }
             public bool stripUnusedPostProcessingVariants { get; set; }
             public bool stripUnusedXRVariants { get; set; }
-            public bool usesDynamicLightmaps { get; set; }
 
             public Shader shader { get; set; }
             public ShaderType shaderType { get; set; }
@@ -71,7 +70,6 @@ namespace UnityEditor.Rendering.Universal
             public bool stripUnusedVariants { get; set; }
             public bool stripUnusedPostProcessingVariants { get; set; }
             public bool stripUnusedXRVariants { get; set; }
-            public bool usesDynamicLightmaps { get; set; }
 
             public Shader shader { get; set; }
             public ShaderType shaderType { get => passData.shaderType; set{} }
@@ -1064,17 +1062,15 @@ namespace UnityEditor.Rendering.Universal
 
         internal bool StripUnusedPass_Meta(ref IShaderScriptableStrippingData strippingData)
         {
-            bool isEnlightenSupported = SupportedRenderingFeatures.active.enlighten && ((int)SupportedRenderingFeatures.active.lightmapBakeTypes | (int)LightmapBakeType.Realtime) != 0;
-
-            // Meta pass is needed in the player for Enlighten Precomputed Realtime GI albedo and emission, as well as Surface Cache Global Illumination.
+            // Meta pass is needed in the player for Enlighten Precomputed Realtime GI albedo and emission.
             if (strippingData.passType == PassType.Meta)
             {
-                if ((!isEnlightenSupported || !strippingData.usesDynamicLightmaps)
-
+                if (SupportedRenderingFeatures.active.enlighten == false
+                    || ((int)SupportedRenderingFeatures.active.lightmapBakeTypes | (int)LightmapBakeType.Realtime) == 0
 #if SURFACE_CACHE
-                    && !strippingData.IsShaderFeatureEnabled(ShaderFeatures.SurfaceCache)
+                    || !strippingData.IsShaderFeatureEnabled(ShaderFeatures.SurfaceCache)
 #endif
-                )
+                   )
                     return true;
             }
             return false;
@@ -1240,7 +1236,6 @@ namespace UnityEditor.Rendering.Universal
                 stripUnusedVariants = ShaderBuildPreprocessor.s_StripUnusedVariants,
                 stripUnusedPostProcessingVariants = ShaderBuildPreprocessor.s_StripUnusedPostProcessingVariants,
                 stripUnusedXRVariants = ShaderBuildPreprocessor.s_StripXRVariants,
-                usesDynamicLightmaps = ShaderBuildPreprocessor.s_UsesDynamicLightmaps,
                 IsHDRDisplaySupportEnabled = PlayerSettings.allowHDRDisplaySupport,
                 IsRenderCompatibilityMode =
 #if URP_COMPATIBILITY_MODE

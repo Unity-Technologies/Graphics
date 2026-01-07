@@ -29,7 +29,6 @@ namespace ShaderStrippingAndPrefiltering
             public bool stripUnusedVariants { get; set; }
             public bool stripUnusedPostProcessingVariants { get; set; }
             public bool stripUnusedXRVariants { get; set; }
-            public bool usesDynamicLightmaps { get; set; }
             public bool IsHDRDisplaySupportEnabled { get; set; }
             public bool IsRenderCompatibilityMode { get; set; }
 
@@ -227,7 +226,6 @@ namespace ShaderStrippingAndPrefiltering
             helper.IsFalse(helper.stripper.StripUnusedPass(ref helper.data));
 
             TestStripUnusedPass_2D(shader);
-            TestStripUnusedPass_Meta(shader);
             TestStripUnusedPass_XR(shader);
             TestStripUnusedPass_ShadowCaster(shader);
             TestStripUnusedPass_Decals(shader);
@@ -250,76 +248,6 @@ namespace ShaderStrippingAndPrefiltering
             helper.IsTrue(helper.stripper.StripUnusedPass(ref helper.data));
         }
 
-        public void TestStripUnusedPass_Meta(Shader shader)
-        {
-            TestHelper helper;
-
-            bool enlightenPrev = SupportedRenderingFeatures.active.enlighten;
-            LightmapBakeType lightmapBakeTypesPrev = SupportedRenderingFeatures.active.lightmapBakeTypes;
-
-            SupportedRenderingFeatures.active.enlighten = false;
-            SupportedRenderingFeatures.active.lightmapBakeTypes = LightmapBakeType.Mixed | LightmapBakeType.Baked;
-
-            helper = new TestHelper(shader, ShaderFeatures.None);
-            helper.data.usesDynamicLightmaps = false;
-            helper.data.passType = PassType.Meta;
-            helper.IsTrue(helper.stripper.StripUnusedPass_Meta(ref helper.data));
-            helper.IsTrue(helper.stripper.StripUnusedPass(ref helper.data));
-
-            SupportedRenderingFeatures.active.enlighten = true;
-            SupportedRenderingFeatures.active.lightmapBakeTypes = LightmapBakeType.Mixed | LightmapBakeType.Baked;
-            helper = new TestHelper(shader, ShaderFeatures.None);
-            helper.data.usesDynamicLightmaps = false;
-            helper.data.passType = PassType.Meta;
-            helper.IsTrue(helper.stripper.StripUnusedPass_Meta(ref helper.data));
-            helper.IsTrue(helper.stripper.StripUnusedPass(ref helper.data));
-
-            SupportedRenderingFeatures.active.enlighten = false;
-            SupportedRenderingFeatures.active.lightmapBakeTypes = LightmapBakeType.Realtime | LightmapBakeType.Mixed | LightmapBakeType.Baked;
-            helper = new TestHelper(shader, ShaderFeatures.None);
-            helper.data.usesDynamicLightmaps = false;
-            helper.data.passType = PassType.Meta;
-            helper.IsTrue(helper.stripper.StripUnusedPass_Meta(ref helper.data));
-            helper.IsTrue(helper.stripper.StripUnusedPass(ref helper.data));
-
-            SupportedRenderingFeatures.active.enlighten = false;
-            SupportedRenderingFeatures.active.lightmapBakeTypes = LightmapBakeType.Mixed | LightmapBakeType.Baked;
-            helper = new TestHelper(shader, ShaderFeatures.None);
-            helper.data.usesDynamicLightmaps = true;
-            helper.data.passType = PassType.Meta;
-            helper.IsTrue(helper.stripper.StripUnusedPass_Meta(ref helper.data));
-            helper.IsTrue(helper.stripper.StripUnusedPass(ref helper.data));
-
-            SupportedRenderingFeatures.active.enlighten = true;
-            SupportedRenderingFeatures.active.lightmapBakeTypes = LightmapBakeType.Realtime | LightmapBakeType.Mixed | LightmapBakeType.Baked;
-            helper = new TestHelper(shader, ShaderFeatures.None);
-            helper.data.usesDynamicLightmaps = true;
-            helper.data.passType = PassType.Meta;
-            helper.IsFalse(helper.stripper.StripUnusedPass_Meta(ref helper.data));
-            helper.IsFalse(helper.stripper.StripUnusedPass(ref helper.data));
-
-#if SURFACE_CACHE
-            SupportedRenderingFeatures.active.enlighten = false;
-            SupportedRenderingFeatures.active.lightmapBakeTypes = LightmapBakeType.Mixed | LightmapBakeType.Baked;
-            helper = new TestHelper(shader, ShaderFeatures.SurfaceCache);
-            helper.data.usesDynamicLightmaps = false;
-            helper.data.passType = PassType.Meta;
-            helper.IsFalse(helper.stripper.StripUnusedPass_Meta(ref helper.data));
-            helper.IsFalse(helper.stripper.StripUnusedPass(ref helper.data));
-
-            SupportedRenderingFeatures.active.enlighten = true;
-            SupportedRenderingFeatures.active.lightmapBakeTypes = LightmapBakeType.Realtime | LightmapBakeType.Mixed | LightmapBakeType.Baked;
-            helper = new TestHelper(shader, ShaderFeatures.SurfaceCache);
-            helper.data.usesDynamicLightmaps = true;
-            helper.data.passType = PassType.Meta;
-            helper.IsFalse(helper.stripper.StripUnusedPass_Meta(ref helper.data));
-            helper.IsFalse(helper.stripper.StripUnusedPass(ref helper.data));
-#endif
-
-            // Restore previous SupportedRenderingFeatures values
-            SupportedRenderingFeatures.active.enlighten = enlightenPrev;
-            SupportedRenderingFeatures.active.lightmapBakeTypes = lightmapBakeTypesPrev;
-        }
 
         public void TestStripUnusedPass_XR(Shader shader)
         {
