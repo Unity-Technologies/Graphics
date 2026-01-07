@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering
         {
             GPUInstanceIndex lodGroupIndex = renderWorld.lodGroupIndices[instanceIndex];
             uint lodMask = renderWorld.lodMasks[instanceIndex];
-            
+
             if (lodGroupIndex.Equals(GPUInstanceIndex.Invalid) && lodMask == 0)
             {
                 if (viewType >= BatchCullingViewType.SelectionOutline || !smallMeshCulling || minScreenRelativeHeight == 0.0f)
@@ -476,7 +476,7 @@ namespace UnityEngine.Rendering
             InstanceHandle instance = renderWorld.indexToHandle[instanceIndex];
             InternalMeshRendererSettings rendererSettings = renderWorld.rendererSettings[instanceIndex];
             bool affectsLightmaps = LightmapUtils.AffectsLightmaps(renderWorld.lightmapIndices[instanceIndex]);
-            
+
             var visibilityMask = CalculateVisibilityMask(instanceIndex, rendererSettings.ShadowCastingMode, affectsLightmaps);
             if (visibilityMask == k_VisibilityMaskNotVisible)
             {
@@ -1979,9 +1979,7 @@ namespace UnityEngine.Rendering
             }
 
             // For main camera, animate crossfades, and store the result in the hashmap to be retrieved by other cameras
-            EntityId viewID = EntityId.From(context.viewID.GetInstanceID());
-
-            if (!renderWorld.TryGetPerCameraInstanceData(viewID, out perCameraInstanceData))
+            if (!renderWorld.TryGetPerCameraInstanceData(context.viewID.GetEntityId(), out perCameraInstanceData))
             {
                 // For picking / filtering and outlining passes. We do not have animated crossfade data.
                 hasAnimatedCrossfade = false;
@@ -1999,7 +1997,7 @@ namespace UnityEngine.Rendering
 
             m_LODParamsToCameraID.TryAdd(lodHash, new AnimatedFadeData
             {
-                cameraID = viewID,
+                cameraID = context.viewID.GetEntityId(),
                 jobHandle = animatedCrossFadesJob
             });
 
@@ -2038,9 +2036,8 @@ namespace UnityEngine.Rendering
                     &screenRelativeMetric,
                     &meshLodConstant);
             }
-
             if (occlusionCullingCommon != null)
-                occlusionCullingCommon.UpdateSilhouettePlanes(EntityId.From(context.viewID.GetInstanceID()), receiverPlanes.SilhouettePlaneSubArray());
+                occlusionCullingCommon.UpdateSilhouettePlanes(context.viewID.GetEntityId(), receiverPlanes.SilhouettePlaneSubArray());
 
             JobHandle animatedCrossFadesJob = AnimateCrossFades(renderWorld, context,
                 out RenderWorld.PerCameraInstanceData perCameraInstanceData,
@@ -2049,7 +2046,7 @@ namespace UnityEngine.Rendering
             var emptyPerCameraInstanceData = new RenderWorld.PerCameraInstanceData(0, Allocator.TempJob);
             if (!perCameraInstanceData.IsCreated)
                 perCameraInstanceData = emptyPerCameraInstanceData; // Set struct with empty NativeArray otherwise safety checks will complain
-            
+
             var cullingJob = new CullingJob
             {
                 renderWorld = renderWorld,
@@ -2218,11 +2215,10 @@ namespace UnityEngine.Rendering
             {
                 cullingJobHandle = ScheduleCompactedVisibilityMaskJob(renderWorld, rendererVisibilityMasks, cullingJobHandle);
 
-                EntityId viewID = EntityId.From(context.viewID.GetInstanceID());
                 int debugCounterBaseIndex = -1;
                 if (m_DebugStats?.enabled ?? false)
                 {
-                    debugCounterBaseIndex = m_SplitDebugArray.TryAddSplits(context.viewType, viewID, context.cullingSplits.Length);
+                    debugCounterBaseIndex = m_SplitDebugArray.TryAddSplits(context.viewType, context.viewID.GetEntityId(), context.cullingSplits.Length);
                 }
 
                 var batchCount = drawInstanceData.drawBatches.Length;
@@ -2237,12 +2233,12 @@ namespace UnityEngine.Rendering
                 var binVisibleInstanceCounts = new NativeArray<int>(maxBinCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var binVisibleInstanceOffsets = new NativeArray<int>(maxBinCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
-                bool useOcclusionCulling = (occlusionCullingCommon != null) && occlusionCullingCommon.HasOccluderContext(viewID);
+                bool useOcclusionCulling = (occlusionCullingCommon != null) && occlusionCullingCommon.HasOccluderContext(context.viewID.GetEntityId());
                 int indirectContextIndex = -1;
                 if (useOcclusionCulling)
                 {
-                    indirectContextIndex = m_IndirectStorage.TryAllocateContext(viewID);
-                    cullingOutput.customCullingResult[0] = (IntPtr)viewID.GetRawData();
+                    indirectContextIndex = m_IndirectStorage.TryAllocateContext(context.viewID.GetEntityId());
+                    cullingOutput.customCullingResult[0] = (IntPtr)context.viewID.GetEntityId().GetRawData();
                 }
                 IndirectBufferLimits indirectBufferLimits = m_IndirectStorage.GetLimits(indirectContextIndex);
                 NativeArray<IndirectBufferAllocInfo> indirectBufferAllocInfo = m_IndirectStorage.GetAllocInfoSubArray(indirectContextIndex);
@@ -2409,7 +2405,7 @@ namespace UnityEngine.Rendering
             var drawOutputJob = new DrawCommandOutputFiltering
             {
                 renderWorld = renderWorld,
-                viewID = EntityId.From(context.viewID.GetInstanceID()),
+                viewID = context.viewID.GetEntityId(),
                 batchIDs = batchIDs,
                 instanceDataBuffer = instanceDataBuffer,
                 rendererVisibilityMasks = rendererVisibilityMasks,
@@ -2451,7 +2447,7 @@ namespace UnityEngine.Rendering
             var drawOutputJob = new DrawCommandOutputFiltering
             {
                 renderWorld = renderWorld,
-                viewID = EntityId.From(context.viewID.GetInstanceID()),
+                viewID = context.viewID.GetEntityId(),
                 batchIDs = batchIDs,
                 instanceDataBuffer = instanceDataBuffer,
                 rendererVisibilityMasks = rendererVisibilityMasks,

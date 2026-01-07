@@ -2266,7 +2266,7 @@ namespace UnityEngine.Rendering.Tests
             // Retrieve it from the pool and make sure this is the right one
             RTHandle resOut;
             texturePool.TryGetResource(0, out resOut);
-            Assert.IsTrue(resIn.GetInstanceID() == resOut.GetInstanceID());
+            Assert.IsTrue(resIn.GetUniqueID() == resOut.GetUniqueID());
 
             texturePool.Cleanup();
         }

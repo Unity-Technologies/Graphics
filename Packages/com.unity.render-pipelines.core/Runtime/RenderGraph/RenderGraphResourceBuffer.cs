@@ -161,9 +161,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return "GraphicsBuffer";
         }
 
-        override protected int GetSortIndex(GraphicsBuffer res)
+        override protected ulong GetSortIndex(GraphicsBuffer res)
         {
-            return res.GetHashCode();
+            return (ulong)res.GetHashCode();
         }
     }
 }

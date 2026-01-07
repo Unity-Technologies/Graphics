@@ -20,7 +20,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
         // ------------------------
         // Version history:
         // 1 - Initial version
-        internal const int k_Version = 1;
+        // 2 - Changed executionId from 32bit InstanceID to 64bit EntityId
+        internal const int k_Version = 2;
 
         // These were generated using GUID.NewGuid and hard-coded
         static readonly Guid s_EditorToPlayerGuid = new Guid("df519969-f421-4397-b2a1-1740abc989a0");
@@ -119,9 +120,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     throw new InvalidOperationException("No valid payload provided");
 
                 writer.Write(debugDataPayload.graphName);
-#pragma warning disable 618 //todo @emilie.thaulow replace with proper read of EntityId
-                writer.Write(debugDataPayload.executionId);
-#pragma warning restore 618
+                writer.Write(debugDataPayload.executionId.GetRawData());
                 writer.Write(DebugDataSerialization.ToJson(debugDataPayload.debugData));
             }
             else if (type == MessageType.AnalyticsData)
@@ -141,7 +140,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return memoryStream.ToArray();
         }
 
-        internal static (MessageType, IPayload) DeserializeMessage(byte[] data)
+        internal static unsafe (MessageType, IPayload) DeserializeMessage(byte[] data)
         {
             using var memoryStream = new MemoryStream(data);
             using var reader = new BinaryReader(memoryStream);
@@ -158,9 +157,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 }
 
                 payload.graphName = reader.ReadString();
-#pragma warning disable 618 //todo @emilie.thaulow replace with proper read of EntityId
-                payload.executionId = reader.ReadInt32();
-#pragma warning restore 618
+                ulong rawEntityId = reader.ReadUInt64();
+                payload.executionId = *((EntityId*)(&rawEntityId));
                 payload.debugData = DebugDataSerialization.FromJson(reader.ReadString());
                 return (type, payload);
             }

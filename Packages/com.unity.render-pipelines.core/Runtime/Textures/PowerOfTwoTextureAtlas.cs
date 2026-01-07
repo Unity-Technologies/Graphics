@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 
@@ -11,7 +12,7 @@ namespace UnityEngine.Rendering
         readonly int m_MipPadding;
         const float k_MipmapFactorApprox = 1.33f;
 
-        private Dictionary<int, Vector2Int> m_RequestedTextures = new Dictionary<int, Vector2Int>();
+        private Dictionary<TextureIdentifier, Vector2Int> m_RequestedTextures = new Dictionary<TextureIdentifier, Vector2Int>();
 
         /// <summary>
         /// Create a new texture atlas, must have power of two size.
@@ -120,15 +121,44 @@ namespace UnityEngine.Rendering
         /// <param name="sourceScaleOffset">Source scale (.xy) and offset(.zw).</param>
         /// <param name="blitMips">Blit mip maps.</param>
         /// <param name="overrideInstanceID">Override texture instance ID.</param>
-        public override void BlitTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
+        [Obsolete("BlitTexture(CommandBuffer, Vector4, Texture, Vector4, bool, int) is obsolete, use BlitTexture(CommandBuffer, Vector4, Texture, Vector4, bool, TextureIdentifier) instead.", true)]
+        public override void BlitTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips, int overrideInstanceID)
+        {
+            int instanceID = overrideInstanceID != -1 ? overrideInstanceID : texture.GetEntityId();
+            TextureIdentifier identifier = new TextureIdentifier((ulong)instanceID);
+            BlitTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, identifier);
+        }
+
+        /// <summary>
+        /// Blit texture into the atlas with padding.
+        /// </summary>
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
+        /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
+        /// <param name="texture">Source Texture</param>
+        /// <param name="sourceScaleOffset">Source scale (.xy) and offset(.zw).</param>
+        /// <param name="overrideInstanceID">Override texture instance ID.</param>
+        [Obsolete("BlitTexture(CommandBuffer, Vector4, Texture, Vector4, int) is obsolete, use BlitTexture(CommandBuffer, Vector4, Texture, Vector4, bool, TextureIdentifier) instead.", true)]
+        public override void BlitTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, int overrideInstanceID)
+        {
+            BlitTexture(cmd, scaleOffset, texture, sourceScaleOffset, true, overrideInstanceID);
+        }
+
+        /// <summary>
+        /// Blit texture into the atlas with padding.
+        /// </summary>
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
+        /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
+        /// <param name="texture">Source Texture</param>
+        /// <param name="sourceScaleOffset">Source scale (.xy) and offset(.zw).</param>
+        /// <param name="blitMips">Blit mip maps.</param>
+        /// <param name="overrideIdentifier">Override texture identifier.</param>
+        public override void BlitTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, TextureIdentifier overrideIdentifier = default)
         {
             // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
             if (Is2D(texture))
             {
                 Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, BlitType.Padding);
-#pragma warning disable 618 // todo @emilie.thaulow replace with GetIdentifier()
-                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetEntityId(), blitMips);
-#pragma warning restore 618
+                MarkGPUTextureValid(overrideIdentifier != default ? overrideIdentifier : GetTextureIdentifier(texture), blitMips);
             }
         }
 
@@ -141,15 +171,45 @@ namespace UnityEngine.Rendering
         /// <param name="sourceScaleOffset">Source scale (.xy) and offset(.zw).</param>
         /// <param name="blitMips">Blit mip maps.</param>
         /// <param name="overrideInstanceID">Override texture instance ID.</param>
-        public void BlitTextureMultiply(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
+        [Obsolete("BlitTextureMultiply(CommandBuffer, Vector4, Texture, Vector4, bool, int) is obsolete, use BlitTextureMultiply(CommandBuffer, Vector4, Texture, Vector4, bool, TextureIdentifier) instead.", true)]
+        public void BlitTextureMultiply(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips, int overrideInstanceID)
+        {
+            int instanceID = overrideInstanceID != -1 ? overrideInstanceID : texture.GetEntityId();
+            TextureIdentifier identifier = new TextureIdentifier((ulong)instanceID);
+            BlitTextureMultiply(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, identifier);
+
+        }
+
+        /// <summary>
+        /// Blit texture into the atlas with padding and blending.
+        /// </summary>
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
+        /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
+        /// <param name="texture">Source Texture</param>
+        /// <param name="sourceScaleOffset">Source scale (.xy) and offset(.zw).</param>
+        /// <param name="overrideInstanceID">Override texture instance ID.</param>
+        [Obsolete("BlitTextureMultiply(CommandBuffer, Vector4, Texture, Vector4, int) is obsolete, use BlitTextureMultiply(CommandBuffer, Vector4, Texture, Vector4, bool, TextureIdentifier) instead.", true)]
+        public void BlitTextureMultiply(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, int overrideInstanceID)
+        {
+            BlitTextureMultiply(cmd, scaleOffset, texture, sourceScaleOffset, true, overrideInstanceID);
+        }
+
+        /// <summary>
+        /// Blit texture into the atlas with padding and blending.
+        /// </summary>
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
+        /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
+        /// <param name="texture">Source Texture</param>
+        /// <param name="sourceScaleOffset">Source scale (.xy) and offset(.zw).</param>
+        /// <param name="blitMips">Blit mip maps.</param>
+        /// <param name="overrideIdentifier">Override texture identifier.</param>
+        public void BlitTextureMultiply(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, TextureIdentifier overrideIdentifier = default)
         {
             // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
             if (Is2D(texture))
             {
                 Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, BlitType.PaddingMultiply);
-#pragma warning disable 618 // todo @emilie.thaulow replace with GetIdentifier()
-                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetEntityId(), blitMips);
-#pragma warning restore 618
+                MarkGPUTextureValid(overrideIdentifier != default ? overrideIdentifier : GetTextureIdentifier(texture), blitMips);
             }
         }
 
@@ -162,15 +222,46 @@ namespace UnityEngine.Rendering
         /// <param name="sourceScaleOffset">Source scale (.xy) and offset(.zw).</param>
         /// <param name="blitMips">Blit mip maps.</param>
         /// <param name="overrideInstanceID">Override texture instance ID.</param>
-        public override void BlitOctahedralTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
+        [Obsolete("BlitOctahedralTexture(CommandBuffer, Vector4, Texture, Vector4, bool, int) is obsolete, use BlitOctahedralTexture(CommandBuffer, Vector4, Texture, Vector4, bool ,TextureIdentifier ) instead.", true)]
+        public override void BlitOctahedralTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips, int overrideInstanceID)
+        {
+            int instanceID = overrideInstanceID != -1 ? overrideInstanceID : texture.GetEntityId();
+            TextureIdentifier identifier = new TextureIdentifier((ulong)instanceID);
+            BlitOctahedralTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, identifier);
+
+        }
+
+        /// <summary>
+        /// Blit octahedral texture into the atlas with padding.
+        /// </summary>
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
+        /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
+        /// <param name="texture">Source Texture</param>
+        /// <param name="sourceScaleOffset">Source scale (.xy) and offset(.zw).</param>
+        /// <param name="overrideInstanceID">Override texture instance ID.</param>
+        [Obsolete("BlitOctahedralTexture(CommandBuffer, Vector4, Texture, Vector4, int) is obsolete, use BlitOctahedralTexture(CommandBuffer, Vector4, Texture, Vector4, bool ,TextureIdentifier ) instead.", true)]
+        public override void BlitOctahedralTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, int overrideInstanceID)
+        {
+            BlitOctahedralTexture(cmd, scaleOffset, texture, sourceScaleOffset, true, overrideInstanceID);
+
+        }
+
+        /// <summary>
+        /// Blit octahedral texture into the atlas with padding.
+        /// </summary>
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
+        /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
+        /// <param name="texture">Source Texture</param>
+        /// <param name="sourceScaleOffset">Source scale (.xy) and offset(.zw).</param>
+        /// <param name="blitMips">Blit mip maps.</param>
+        /// <param name="textureIdentifier">Override texture identifier.</param>
+        public override void BlitOctahedralTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, TextureIdentifier textureIdentifier = default)
         {
             // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
             if (Is2D(texture))
             {
                 Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, BlitType.OctahedralPadding);
-#pragma warning disable 618 // todo @emilie.thaulow replace with GetIdentifier()
-                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetEntityId(), blitMips);
-#pragma warning restore 618
+                MarkGPUTextureValid(textureIdentifier != default ? textureIdentifier : GetTextureIdentifier(texture), blitMips);
             }
         }
 
@@ -183,15 +274,44 @@ namespace UnityEngine.Rendering
         /// <param name="sourceScaleOffset">Source scale (.xy) and offset(.zw).</param>
         /// <param name="blitMips">Blit mip maps.</param>
         /// <param name="overrideInstanceID">Override texture instance ID.</param>
-        public void BlitOctahedralTextureMultiply(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
+        [Obsolete("BlitOctahedralTextureMultiply(CommandBuffer, Vector4, Texture, Vector4, bool, int) is obsolete, use BlitOctahedralTextureMultiply(CommandBuffer, Vector4, Texture, Vector4, bool,TextureIdentifier  ) instead.", true)]
+        public void BlitOctahedralTextureMultiply(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips, int overrideInstanceID )
+        {
+            int instanceID = overrideInstanceID != -1 ? overrideInstanceID : texture.GetEntityId();
+            TextureIdentifier identifier = new TextureIdentifier((ulong)instanceID);
+            BlitOctahedralTextureMultiply(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, identifier);
+        }
+
+        /// <summary>
+        /// Blit octahedral texture into the atlas with padding.
+        /// </summary>
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
+        /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
+        /// <param name="texture">Source Texture</param>
+        /// <param name="sourceScaleOffset">Source scale (.xy) and offset(.zw).</param>
+        /// <param name="overrideInstanceID">Override texture instance ID.</param>
+        [Obsolete("BlitOctahedralTextureMultiply(CommandBuffer, Vector4, Texture, Vector4, int) is obsolete, use BlitOctahedralTextureMultiply(CommandBuffer, Vector4, Texture, Vector4, bool,TextureIdentifier  ) instead.", true)]
+        public void BlitOctahedralTextureMultiply(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, int overrideInstanceID )
+        {
+            BlitOctahedralTextureMultiply(cmd, scaleOffset, texture, sourceScaleOffset, true, overrideInstanceID);
+        }
+
+        /// <summary>
+        /// Blit octahedral texture into the atlas with padding.
+        /// </summary>
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
+        /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
+        /// <param name="texture">Source Texture</param>
+        /// <param name="sourceScaleOffset">Source scale (.xy) and offset(.zw).</param>
+        /// <param name="blitMips">Blit mip maps.</param>
+        /// <param name="overrideIdentifier">Override texture identifier.</param>
+        public void BlitOctahedralTextureMultiply(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, TextureIdentifier overrideIdentifier = default)
         {
             // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
             if (Is2D(texture))
             {
                 Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, BlitType.OctahedralPaddingMultiply);
-#pragma warning disable 618 // todo @emilie.thaulow replace with GetIdentifier()
-                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetEntityId(), blitMips);
-#pragma warning restore 618
+                MarkGPUTextureValid(overrideIdentifier != default ? overrideIdentifier : GetTextureIdentifier(texture), blitMips);
             }
         }
 
@@ -221,7 +341,25 @@ namespace UnityEngine.Rendering
         /// <param name="height">Request height in pixels.</param>
         /// <param name="overrideInstanceID">Override texture instance ID.</param>
         /// <returns>True on success, false otherwise.</returns>
-        public override bool AllocateTexture(CommandBuffer cmd, ref Vector4 scaleOffset, Texture texture, int width, int height, int overrideInstanceID = -1)
+        [Obsolete("AllocateTexture(CommandBuffer, ref Vector4, Texture, int, int, int) is obsolete, use AllocateTexture(CommandBuffer, ref Vector4, Texture, int, int, TextureIdentifier) instead.", true)]
+        public override bool AllocateTexture(CommandBuffer cmd, ref Vector4 scaleOffset, Texture texture, int width, int height, int overrideInstanceID)
+        {
+            TextureIdentifier identifier = new TextureIdentifier((ulong)overrideInstanceID);
+            return AllocateTexture(cmd, ref scaleOffset, texture, width, height, identifier);
+        }
+
+        // Override the behavior when we add a texture so all non-pot textures are blitted to a pot target zone
+        /// <summary>
+        /// Allocate space from the atlas for a texture and copy texture contents into the atlas.
+        /// </summary>
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
+        /// <param name="scaleOffset">Allocated scale (.xy) and offset (.zw)</param>
+        /// <param name="texture">Source Texture</param>
+        /// <param name="width">Request width in pixels.</param>
+        /// <param name="height">Request height in pixels.</param>
+        /// <param name="overrideIdentifier">Override texture identifier.</param>
+        /// <returns>True on success, false otherwise.</returns>
+        public override bool AllocateTexture(CommandBuffer cmd, ref Vector4 scaleOffset, Texture texture, int width, int height, TextureIdentifier overrideIdentifier = default)
         {
             // This atlas only supports square textures
             if (height != width)
@@ -232,7 +370,7 @@ namespace UnityEngine.Rendering
 
             TextureSizeToPowerOfTwo(texture, ref height, ref width);
 
-            return base.AllocateTexture(cmd, ref scaleOffset, texture, width, height);
+            return base.AllocateTexture(cmd, ref scaleOffset, texture, width, height, default(TextureIdentifier));
         }
 
         /// <summary>
@@ -255,7 +393,7 @@ namespace UnityEngine.Rendering
         /// <param name="height">The height</param>
         /// <returns>True if the space is reserved</returns>
         public bool ReserveSpace(Texture texture, int width, int height)
-            => ReserveSpace(GetTextureID(texture), width, height);
+            => ReserveSpace(GetTextureIdentifier(texture), width, height);
 
         /// <summary>
         /// Reserves the space on the texture atlas
@@ -266,7 +404,7 @@ namespace UnityEngine.Rendering
         /// <param name="height">The height</param>
         /// <returns>True if the space is reserved</returns>
         public bool ReserveSpace(Texture textureA, Texture textureB, int width, int height)
-            => ReserveSpace(GetTextureID(textureA, textureB), width, height);
+            => ReserveSpace(GetTextureIdentifier(textureA, textureB), width, height);
 
         /// <summary>
         /// Reserves the space on the texture atlas
@@ -275,23 +413,36 @@ namespace UnityEngine.Rendering
         /// <param name="width">The width</param>
         /// <param name="height">The height</param>
         /// <returns>True if the space is reserved</returns>
+        [Obsolete("ReserveSpace with int id is obsolete, use the TextureIdentifier version instead.", true)]
         public bool ReserveSpace(int id, int width, int height)
         {
-            m_RequestedTextures[id] = new Vector2Int(width, height);
+            TextureIdentifier identifier = new TextureIdentifier((ulong)id);
+            return ReserveSpace(identifier, width, height);
+        }
+
+        /// <summary>
+        /// Reserves the space on the texture atlas
+        /// </summary>
+        /// <param name="identifier">The id</param>
+        /// <param name="width">The width</param>
+        /// <param name="height">The height</param>
+        /// <returns>True if the space is reserved</returns>
+        public bool ReserveSpace(TextureIdentifier identifier, int width, int height)
+        {
+            m_RequestedTextures[identifier] = new Vector2Int(width, height);
 
             // Cookie texture resolution changing between frame is a special case, so we handle it here.
             // The texture will be re-allocated and may cause holes in the atlas texture, which is fine
             // because when it doesn't have any more space, it will re-layout the texture correctly.
-            var cachedSize = GetCachedTextureSize(id);
-            if (!IsCached(out _, id) || cachedSize.x != width || cachedSize.y != height)
+            var cachedSize = GetCachedTextureSize(identifier);
+            if (!IsCached(out _, identifier) || cachedSize.x != width || cachedSize.y != height)
             {
                 Vector4 scaleBias = Vector4.zero;
-                if (!AllocateTextureWithoutBlit(id, width, height, ref scaleBias))
+                if (!AllocateTextureWithoutBlit(identifier, width, height, ref scaleBias))
                     return false;
             }
             return true;
         }
-
         /// <summary>
         /// sort all the requested allocation from biggest to smallest and re-insert them.
         /// This function does not moves the textures in the atlas, it only changes their coordinates
@@ -299,7 +450,7 @@ namespace UnityEngine.Rendering
         /// <returns>True if all textures have successfully been re-inserted in the atlas</returns>
         public bool RelayoutEntries()
         {
-            var entries = new List<(int instanceId, Vector2Int size)>();
+            var entries = new List<(TextureIdentifier identifier, Vector2Int size)>();
 
             foreach (var entry in m_RequestedTextures)
                 entries.Add((entry.Key, entry.Value));
@@ -314,7 +465,7 @@ namespace UnityEngine.Rendering
             bool success = true;
             Vector4 newScaleOffset = Vector4.zero;
             foreach (var e in entries)
-                success &= AllocateTextureWithoutBlit(e.instanceId, e.size.x, e.size.y, ref newScaleOffset);
+                success &= AllocateTextureWithoutBlit(e.identifier, e.size.x, e.size.y, ref newScaleOffset);
 
             return success;
         }

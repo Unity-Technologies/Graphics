@@ -1426,9 +1426,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (!Atlas.IsCached(out textureScaleBias.m_ScaleBias, textureScaleBias.texture))
                     {
-#pragma warning disable 618 // Todo(@daniel.andersen): Potentially use GetRawData or sometin'
-                        if (!Atlas.AllocateTextureWithoutBlit(textureScaleBias.texture.GetEntityId(), textureScaleBias.width, textureScaleBias.height, ref textureScaleBias.m_ScaleBias))
-#pragma warning restore 618
+                        if (!Atlas.AllocateTextureWithoutBlit(textureScaleBias.texture, textureScaleBias.width, textureScaleBias.height, ref textureScaleBias.m_ScaleBias))
                         {
                             m_AllocationSuccess = false;
                         }

@@ -11,6 +11,18 @@ namespace UnityEditor.Rendering.Tests
 {
     class RenderGraphViewerDebugDataSerializationTests
     {
+        static EntityId CreateTestEntityId(int intValue)
+        {
+            EntityId testEntityId;
+            unsafe
+            {
+                UnityEngine.Debug.Assert(sizeof(int) == sizeof(EntityId));
+                testEntityId = *(EntityId*)&intValue;
+            }
+
+            return testEntityId;
+        }
+
         static RenderGraph.DebugData CreateTestDebugData()
         {
             RenderGraph.DebugData debugData = new("TestExecution");
@@ -154,9 +166,7 @@ namespace UnityEditor.Rendering.Tests
             {
                 version = DebugMessageHandler.k_Version,
                 graphName = "TestGraph",
-#pragma warning disable 618 // todo @emilie.thaulow replace with unique id
-                executionId = 123,
-#pragma warning restore 618
+                executionId = CreateTestEntityId(123),
                 debugData = CreateTestDebugData()
             };
 
@@ -194,9 +204,7 @@ namespace UnityEditor.Rendering.Tests
             Assert.True(deserializedPayload.isCompatible);
             Assert.AreEqual(DebugMessageHandler.k_Version, deserializedPayload.version);
 
-#pragma warning disable 618 // todo @emilie.thaulow replace with unique id
-            Assert.AreEqual(123, (int)deserializedDebugDataPayload.executionId);
-#pragma warning restore 618
+            Assert.AreEqual(CreateTestEntityId(123), deserializedDebugDataPayload.executionId);
             Assert.AreEqual("TestGraph", deserializedDebugDataPayload.graphName);
             Assert.NotNull(deserializedDebugDataPayload.debugData);
         }
@@ -208,9 +216,7 @@ namespace UnityEditor.Rendering.Tests
             {
                 version = DebugMessageHandler.k_Version,
                 graphName = "TestGraph",
-#pragma warning disable 618 // todo @emilie.thaulow replace with unique id
-                executionId = 123,
-#pragma warning restore 618
+                executionId = CreateTestEntityId(123),
                 debugData = CreateTestDebugData()
             };
 
