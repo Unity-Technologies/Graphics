@@ -171,52 +171,6 @@ namespace UnityEngine.Rendering.UnifiedRayTracing.Tests
                 AssertAABBsAreEqual(new float3(3.0f, 1.0f, 0.0f), new float3(4.0f, 2.0f, 0.0f), instanceBvhRoot.aabb1_min, instanceBvhRoot.aabb1_max, tolerance);
             }
         }
-
-        [Test]
-        [Ignore("Test too unstable on Yamato (UUM-95662, UUM-67382)")]
-        public void AddInstance_MeshWith2GBWorthOfVertices_Throws()
-        {
-            var resources = new RayTracingResources();
-            resources.Load();
-
-            using var accelStruct = new ComputeRayTracingAccelStruct(
-                new AccelerationStructureOptions() { buildFlags = BuildFlags.PreferFastBuild },
-                resources,
-                new ReferenceCounter());
-
-            Random.InitState(1987);
-
-            int vertexCount = 200000001; // 200 millions
-            int indexCount = vertexCount; // must be a multiple of 3
-
-            Mesh mesh = new Mesh();
-            mesh.indexFormat = IndexFormat.UInt32;
-
-            Vector3[] vertices = new Vector3[vertexCount];
-            for (int i = 0; i < vertexCount; ++i)
-            {
-                vertices[i] = new Vector3(0.0f, 0.0f, Random.Range(0.0f, 1.0f));
-            }
-            mesh.SetVertices(vertices);
-
-            Vector3[] normals = new Vector3[vertexCount];
-            mesh.SetNormals(normals);
-
-            Vector2[] uv = new Vector2[vertexCount];
-            mesh.SetUVs(0, uv);
-
-            int[] tris = new int[indexCount];
-            for (int i = 0; i < indexCount; ++i)
-                tris[i] = i;
-
-            mesh.SetIndices(tris, MeshTopology.Triangles, 0);
-
-            MeshInstanceDesc instanceDesc = new MeshInstanceDesc(mesh);
-            Assert.Throws<UnifiedRayTracingException>(() => accelStruct.AddInstance(instanceDesc));
-
-            Assert.That(accelStruct.m_BlasAllocator.allocatedSize, Is.Zero);
-            Assert.That(accelStruct.m_BlasLeavesAllocator.allocatedSize, Is.Zero);
-        }
     }
 
 
