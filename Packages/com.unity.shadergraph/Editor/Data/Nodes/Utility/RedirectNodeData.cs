@@ -12,6 +12,8 @@ namespace UnityEditor.ShaderGraph
         public const int kInputSlotID = 0;
         public const int kOutputSlotID = 1;
 
+        public override string documentationURL => NodeUtils.GetDocumentationString("Redirect");
+
         public RedirectNodeData()
         {
             name = "Redirect Node";

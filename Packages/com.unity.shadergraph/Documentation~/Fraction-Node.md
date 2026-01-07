@@ -1,8 +1,14 @@
-# Fraction Node
+# Fraction node
 
-## Description
+The Fraction node returns the fractional part of an input, also known as the decimal part. The range is 0 to 1. For example, the fractional part of 3.75 is 0.75.
 
-Returns the fractional (or decimal) part of input **In**; which is greater than or equal to 0 and less than 1.
+The Fraction node calculates the result using the following formula:
+
+```
+fractional_part = input - floor(input)
+```
+
+As a result, the node returns a positive value if you input a negative number. For example, the fractional part of -3.75 is 0.25.
 
 ## Ports
 

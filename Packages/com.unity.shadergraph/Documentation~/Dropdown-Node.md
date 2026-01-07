@@ -1,6 +1,6 @@
-# Sub Graph Dropdown node
+# Dropdown node
 
-The Sub Graph Dropdown node is a node representation of a Dropdown property. It allows you to create a custom dropdown menu on a Sub Graph node in its parent Shader Graph. You can specify the number of options that appear in the dropdown menu, and their names.
+The Dropdown node is a node representation of a Dropdown property. It allows you to create a custom dropdown menu on a Subgraph node in its parent Shader Graph. You can specify the number of options that appear in the dropdown menu, and their names.
 
 After you create a Dropdown property and add a Dropdown node to a Subgraph, the Subgraph node in any parent Shader Graph displays with a dropdown control.
 

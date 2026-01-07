@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return requestFallBack && writeCount == 0;
         }
 
-        public virtual void CreatePooledGraphicsResource() { }
+        public virtual void CreatePooledGraphicsResource(bool forceResourceCreation) { }
         public virtual void CreateGraphicsResource() { }
         public virtual void UpdateGraphicsResource() { }
         public virtual void ReleasePooledGraphicsResource(int frameIndex) { }
@@ -236,7 +236,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             graphicsResource = null;
         }
 
-        public override void CreatePooledGraphicsResource()
+        public override void CreatePooledGraphicsResource(bool forceResourceCreation)
         {
             Debug.Assert(m_Pool != null, "RenderGraphResource: CreatePooledGraphicsResource should only be called for regular pooled resources");
 
@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             // If the pool doesn't have any available resource that we can use, we will create one
             // In any case, we will update the graphicsResource name based on the RenderGraph resource name
-            if (!m_Pool.TryGetResource(hashCode, out graphicsResource))
+            if (forceResourceCreation || !m_Pool.TryGetResource(hashCode, out graphicsResource))
             {
                 CreateGraphicsResource();
             }

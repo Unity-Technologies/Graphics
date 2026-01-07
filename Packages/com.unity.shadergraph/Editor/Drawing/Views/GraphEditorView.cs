@@ -153,6 +153,42 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private static readonly ProfilerMarker AddGroupsMarker = new ProfilerMarker("AddGroups");
         private static readonly ProfilerMarker AddStickyNotesMarker = new ProfilerMarker("AddStickyNotes");
+
+        static GUIContent saveIcon;
+        static GUIContent SaveIcon =>
+            saveIcon ??= new GUIContent(EditorGUIUtility.IconContent("SaveActive").image, "Save");
+
+        static GUIContent dropdownIcon;
+        static GUIContent DropdownIcon =>
+            dropdownIcon ??= EditorGUIUtility.IconContent("Dropdown");
+
+        static GUIContent blackboardIcon;
+        static GUIContent BlackboardIcon
+        {
+            get
+            {
+                if (blackboardIcon == null)
+                {
+                    var suffix = (EditorGUIUtility.isProSkin ? "_dark" : "") + (EditorGUIUtility.pixelsPerPoint >= 2 ? "@2x" : "");
+                    var path = $"Icons/blackboard{suffix}";
+                    blackboardIcon = new GUIContent(Resources.Load<Texture2D>(path), "Blackboard");
+                }
+                return blackboardIcon;
+            }
+        }
+
+        static GUIContent inspectorIcon;
+        static GUIContent InspectorIcon =>
+            inspectorIcon ??= new GUIContent(EditorGUIUtility.IconContent("UnityEditor.InspectorWindow").image, "Graph Inspector");
+
+        static GUIContent previewIcon;
+        static GUIContent PreviewIcon =>
+            previewIcon ??= new GUIContent(EditorGUIUtility.IconContent("PreMatSphere").image, "Main Preview");
+
+        static GUIContent helpIcon;
+        static GUIContent HelpIcon =>
+            helpIcon ??= new GUIContent(EditorGUIUtility.IconContent("_Help").image, "Open Shader Graph User Manual");
+
         public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager, string graphName)
         {
             m_GraphViewGroupTitleChanged = OnGroupTitleChanged;
@@ -172,7 +208,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_UserViewSettings = JsonUtility.FromJson<UserViewSettings>(serializedSettings) ?? new UserViewSettings();
             m_ColorManager = new ColorManager(m_UserViewSettings.colorProvider);
 
-
             List<IShaderGraphToolbarExtension> toolbarExtensions = new();
             foreach (var type in TypeCache.GetTypesDerivedFrom(typeof(IShaderGraphToolbarExtension)).Where(e => !e.IsGenericType))
             {
@@ -183,12 +218,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             var toolbar = new IMGUIContainer(() =>
             {
                 GUILayout.BeginHorizontal(EditorStyles.toolbar);
-                if (GUILayout.Button(new GUIContent(EditorGUIUtility.FindTexture("SaveActive"), "Save"), EditorStyles.toolbarButton))
+                if (GUILayout.Button(SaveIcon, EditorStyles.toolbarButton))
                 {
                     if (saveRequested != null)
                         saveRequested();
                 }
-                if (GUILayout.Button(EditorResources.Load<Texture>("d_dropdown"), EditorStyles.toolbarButton))
+                if (GUILayout.Button(DropdownIcon, EditorStyles.toolbarButton))
                 {
                     GenericMenu menu = new GenericMenu();
                     menu.AddItem(new GUIContent("Save As..."), false, () => saveAsRequested());
@@ -218,22 +253,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                 GUILayout.Label("Color Mode");
                 var newColorIndex = EditorGUILayout.Popup(m_ColorManager.activeIndex, colorProviders, GUILayout.Width(100f));
                 GUILayout.Space(4);
-                m_UserViewSettings.isBlackboardVisible = GUILayout.Toggle(m_UserViewSettings.isBlackboardVisible, new GUIContent(Resources.Load<Texture2D>("Icons/blackboard"), "Blackboard"), EditorStyles.toolbarButton);
+                
+                m_UserViewSettings.isBlackboardVisible = GUILayout.Toggle(m_UserViewSettings.isBlackboardVisible, BlackboardIcon, EditorStyles.toolbarButton);
 
                 GUILayout.Space(6);
 
-                m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, new GUIContent(EditorGUIUtility.TrIconContent("d_UnityEditor.InspectorWindow").image, "Graph Inspector"), EditorStyles.toolbarButton);
+                m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, InspectorIcon, EditorStyles.toolbarButton);
 
                 GUILayout.Space(6);
 
-                m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, new GUIContent(EditorGUIUtility.FindTexture("PreMatSphere"), "Main Preview"), EditorStyles.toolbarButton);
+                m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, PreviewIcon, EditorStyles.toolbarButton);
 
-                if (GUILayout.Button(new GUIContent(EditorGUIUtility.TrIconContent("_Help").image, "Open Shader Graph User Manual"), EditorStyles.toolbarButton))
+                if (GUILayout.Button(HelpIcon, EditorStyles.toolbarButton))
                 {
                     Application.OpenURL(UnityEngine.Rendering.ShaderGraph.Documentation.GetPageLink("index"));
-                    //Application.OpenURL("https://docs.unity3d.com/Packages/com.unity.shadergraph@17.0/manual/index.html"); // TODO : point to latest?
                 }
-                if (GUILayout.Button(EditorResources.Load<Texture>("d_dropdown"), EditorStyles.toolbarButton))
+                if (GUILayout.Button(DropdownIcon, EditorStyles.toolbarButton))
                 {
                     GenericMenu menu = new GenericMenu();
                     menu.AddItem(new GUIContent("Shader Graph Samples"), false, () =>
@@ -256,10 +291,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     menu.AddItem(new GUIContent("Shader Graph Forums"), false, () =>
                     {
                         Application.OpenURL("https://forum.unity.com/forums/shader-graph.346/");
-                    });
-                    menu.AddItem(new GUIContent("Shader Graph Roadmap"), false, () =>
-                    {
-                        Application.OpenURL("https://portal.productboard.com/unity/1-unity-platform-rendering-visual-effects/tabs/7-shader-graph");
                     });
                     menu.ShowAsContext();
                 }

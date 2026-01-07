@@ -83,10 +83,10 @@
         * [Split](Split-Node.md)
         * [Swizzle](Swizzle-Node.md)
     * [Custom Render Texture](Custom-Render-Texture-Nodes.md)
-        * [Self](Custom-Texture-Self.md)
-        * [Size](Custom-Texture-Size.md)
-        * [Slice](Custom-Texture-Slice.md)
-    * [Dropdowns](Sub-Graph-Dropdown-Node.md)
+        * [Self](Custom-Render-Texture-Self-Node.md)
+        * [Size](Custom-Render-Texture-Size-Node.md)
+        * [Slice Index / Cubemap Face](Slice-Index-Cubemap-Face-Node.md)
+    * [Dropdown](Dropdown-Node.md)
     * [Input](Input-Nodes.md)
         * Basic
             * [Boolean](Boolean-Node.md)
@@ -126,7 +126,7 @@
         * Lighting
             * [Ambient](Ambient-Node.md)
             * [Baked GI](Baked-GI-Node.md)
-            * [Main Light Direction](https://docs.unity3d.com/Packages/com.unity.shadergraph@13.1/manual/Main-Light-Direction-Node.html)
+            * [Main Light Direction](Main-Light-Direction-Node.md)
             * [Reflection Probe](Reflection-Probe-Node.md)
         * Matrix
             * [Matrix 2x2](Matrix-2x2-Node.md)
@@ -166,6 +166,9 @@
             * [Texture 2D Asset](Texture-2D-Asset-Node.md)
             * [Texture 3D Asset](Texture-3D-Asset-Node.md)
             * [Texture Size](Texture-Size-Node.md)
+    * [Keyword](Keyword-Node.md)
+        * [Material Quality](Material-Quality-Keyword-Node.md)
+        * [Raytracing Quality](Raytracing-Quality-Keyword-Node.md)
     * [Math](Math-Nodes.md)
         * Advanced
             * [Absolute](Absolute-Node.md)
@@ -258,6 +261,8 @@
             * [Rectangle](Rectangle-Node.md)
             * [Rounded Polygon](Rounded-Polygon-Node.md)
             * [Rounded Rectangle](Rounded-Rectangle-Node.md)
+    * [Property](Property-Node.md)
+    * [Redirect](Redirect-Node.md)
     * [SpeedTree](SpeedTree8-SubGraphAssets.md)
     * [Sub Graphs](Sub-graph-Node.md)
         * [UVCombine](UVCombine-Node.md)

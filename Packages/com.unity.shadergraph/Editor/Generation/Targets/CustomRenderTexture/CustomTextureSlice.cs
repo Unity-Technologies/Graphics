@@ -21,6 +21,8 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+        public override string documentationURL => NodeUtils.GetDocumentationString("Slice Index Cubemap Face");
+
         protected int[] validSlots => new[] { OutputSlotCubeFaceId, OutputSlot3DSliceId };
 
         public sealed override void UpdateNodeAfterDeserialization()

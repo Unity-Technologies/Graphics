@@ -33,8 +33,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         const string kFresnelOutputSlotName = "Fresnel";
 
-        public override string documentationURL => Documentation.GetPageLink("Fresnel-Equation-Node");
-
         private enum FresnelSlots
         {
             kDotVectorsInputSlotId,

@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering
         public static void ReinitializeIfNeeded()
         {
 #if UNITY_EDITOR
-            if (!IsForcedOnViaCommandLine() && (IsProjectSupported() != IsEnabled()))
+            if (!IsForcedOnViaCommandLine() && !MaintainContext && (IsProjectSupported() != IsEnabled()))
             {
                 Reinitialize();
             }
@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering
         /// Is GRD forced on via the command line via -force-gpuresidentdrawer. Editor only.
         /// </summary>
         /// <returns>true if forced on</returns>
-        private static bool IsForcedOnViaCommandLine()
+        internal static bool IsForcedOnViaCommandLine()
         {
 #if UNITY_EDITOR
             return s_IsForcedOnViaCommandLine;
@@ -260,7 +260,7 @@ namespace UnityEngine.Rendering
         /// Is occlusion culling forced on via the command line via -force-gpuocclusion. Editor only.
         /// </summary>
         /// <returns>true if forced on</returns>
-        private static bool IsOcclusionForcedOnViaCommandLine()
+        internal static bool IsOcclusionForcedOnViaCommandLine()
         {
 #if UNITY_EDITOR
             return s_IsOcclusionForcedOnViaCommandLine;
@@ -268,6 +268,10 @@ namespace UnityEngine.Rendering
             return false;
 #endif
         }
+
+        internal static bool MaintainContext { get; set; } = false;
+
+        internal static bool ForceOcclusion { get; set; } = false;
 
         internal static void Reinitialize()
         {

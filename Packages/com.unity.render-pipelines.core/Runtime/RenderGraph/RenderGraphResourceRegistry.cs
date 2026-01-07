@@ -1034,7 +1034,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             var resource = m_RenderGraphResources[type].resourceArray[index];
             if (!resource.imported)
             {
-                resource.CreatePooledGraphicsResource();
+                resource.CreatePooledGraphicsResource(rgContext.forceResourceCreation);
 
                 if (m_RenderGraphDebug.enableLogging)
                     resource.LogCreation(m_FrameInformationLogger);

@@ -61,6 +61,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         internal RenderGraphDefaultResources defaultResources;
         internal RenderGraphPass executingPass;
         internal bool contextlessTesting;
+        internal bool forceResourceCreation;
     }
 
     // This whole thing is  a bit of a mess InternalRenderGraphContext is public (but all members are internal)
@@ -1185,6 +1186,15 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_RenderGraphContext.contextlessTesting = parameters.invalidContextForTesting;
             m_RenderGraphContext.renderGraphPool = m_RenderGraphPool;
             m_RenderGraphContext.defaultResources = m_DefaultResources;
+
+            // With the actual implementation of the Frame Debugger, we cannot re-use resources during the same frame
+            // or it breaks the rendering of the pass preview, since the FD copies the texture after the execution of the RG.
+            m_RenderGraphContext.forceResourceCreation =
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                FrameDebugger.enabled;
+#else
+            false;
+#endif
 
             if (m_DebugParameters.immediateMode)
             {
