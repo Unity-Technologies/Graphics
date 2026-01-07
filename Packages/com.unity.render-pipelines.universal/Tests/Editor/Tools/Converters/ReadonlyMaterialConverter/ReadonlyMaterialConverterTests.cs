@@ -2,6 +2,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.TestTools;
 
 namespace UnityEditor.Rendering.Universal.Tools
 {
@@ -70,6 +71,7 @@ namespace UnityEditor.Rendering.Universal.Tools
 
         [Test]
         [Timeout(5 * 60 * 1000)]
+        [UnityPlatform(exclude = new[] { RuntimePlatform.OSXEditor })] // Timing out on macos: https://jira.unity3d.com/browse/UUM-131234
         public void ReassignGameObjectMaterials_Succeeds_WhenMaterialCanBeSet()
         {
             var materialConverter = new ReadonlyMaterialConverter();

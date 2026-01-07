@@ -651,7 +651,7 @@ float3 AcesTonemap(float3 aces)
 
     // --- Red modifier --- //
     half hue = rgb_2_hue(half3(aces));
-    half centeredHue = center_hue(hue, RRT_RED_HUE);
+    float centeredHue = center_hue(hue, RRT_RED_HUE); // UUM-125596 Must be float for subsequent calculations
     float hueWeight;
     {
         //hueWeight = cubic_basis_shaper(centeredHue, RRT_RED_WIDTH);

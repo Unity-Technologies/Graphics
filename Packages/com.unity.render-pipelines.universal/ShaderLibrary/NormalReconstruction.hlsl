@@ -20,6 +20,26 @@ float GetRawDepth(float2 uv)
 // https://github.com/keijiro/DepthInverseProjection
 // constructs view space ray at the far clip plane from the screen uv
 // then multiplies that ray by the linear 01 depth
+float3 ViewSpacePosAtScreenUV(float2 uv, float deviceDepth)
+{
+    float3 viewSpaceRay = mul(_NormalReconstructionMatrix[unity_eyeIndex], float4(uv * 2.0 - 1.0, 1.0, 1.0) * _ProjectionParams.z).xyz;
+    return viewSpaceRay * Linear01Depth(deviceDepth, _ZBufferParams);
+}
+
+float3 ViewSpacePosAtPixelPosition(float2 positionSS, float deviceDepth)
+{
+    float2 uv = positionSS * _ScreenSize.zw;
+    return ViewSpacePosAtScreenUV(uv, deviceDepth);
+}
+
+half3 ReconstructNormalDerivative(float2 positionSS, float deviceDepth)
+{
+    float3 viewSpacePos = ViewSpacePosAtPixelPosition(positionSS, deviceDepth);
+    float3 hDeriv = ddy(viewSpacePos);
+    float3 vDeriv = ddx(viewSpacePos);
+    return half3(SafeNormalize(cross(hDeriv, vDeriv)));
+}
+
 float3 ViewSpacePosAtScreenUV(float2 uv)
 {
     float3 viewSpaceRay = mul(_NormalReconstructionMatrix[unity_eyeIndex], float4(uv * 2.0 - 1.0, 1.0, 1.0) * _ProjectionParams.z).xyz;
