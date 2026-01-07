@@ -35,13 +35,17 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddUnsafePass<UnsafePassData>(passName, out var passData, profilingSampler))
             {
-                // Setup up the pass data with cameraColor, which has the correct orientation and position in a built player
-                passData.source = resourceData.cameraColor;
+                // Setup up the pass data with activeColorTexture, which has the correct orientation and position in a built player
+                // In most cases, it will be resolved to cameraColor as the source since we cannot sample the backbuffer directly.
+                // However, activeColorTexture allows us to support offscreen rendering scenarios where URP renders
+                // to a fake backbuffer (an output texture with no final blit). When using a real backbuffer,
+                // Camera Capture forces an intermediate attachment, ensuring we can still sample activeColorTexture.
+                passData.source = resourceData.activeColorTexture;
                 passData.captureActions = cameraData.captureActions;
 
                 // Setup up the builder
                 builder.AllowPassCulling(false);
-                builder.UseTexture(resourceData.cameraColor);
+                builder.UseTexture(resourceData.activeColorTexture, AccessFlags.Read);
                 builder.SetRenderFunc(static (UnsafePassData data, UnsafeGraphContext unsafeContext) =>
                 {
                     var nativeCommandBuffer = CommandBufferHelpers.GetNativeCommandBuffer(unsafeContext.cmd);
