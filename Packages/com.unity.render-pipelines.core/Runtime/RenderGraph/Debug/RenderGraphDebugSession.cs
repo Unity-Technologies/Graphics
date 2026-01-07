@@ -158,9 +158,27 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
-        public static List<string> GetRegisteredGraphs() => s_CurrentDebugSession.debugDataContainer.GetRenderGraphs();
+        public static List<string> s_EmptyRegisteredGraphs = new();
+        public static List<string> GetRegisteredGraphs()
+        {
+            if (s_CurrentDebugSession == null || s_CurrentDebugSession.debugDataContainer == null)
+            {
+                return s_EmptyRegisteredGraphs;
+            }
 
-        public static List<DebugExecutionItem> GetExecutions(string graphName) => s_CurrentDebugSession.debugDataContainer.GetExecutions(graphName);
+            return s_CurrentDebugSession.debugDataContainer.GetRenderGraphs();
+        }
+
+        public static List<DebugExecutionItem> s_EmptyExecutions = new();
+        public static List<DebugExecutionItem> GetExecutions(string graphName)
+        {
+            if (s_CurrentDebugSession == null || s_CurrentDebugSession.debugDataContainer == null)
+            {
+                return s_EmptyExecutions;
+            }
+
+            return s_CurrentDebugSession.debugDataContainer.GetExecutions(graphName);
+        }
 
         public static DebugData GetDebugData(string renderGraph, EntityId executionId)
         {
