@@ -13,6 +13,9 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
+#if UNITY_6000_5_OR_NEWER
+using UnityEngine.Assemblies;
+#endif
 using Node = UnityEditor.Experimental.GraphView.Node;
 using UnityEngine.Pool;
 
@@ -38,7 +41,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Get reference to GraphView assembly
             Assembly graphViewAssembly = null;
+#if UNITY_6000_5_OR_NEWER
+            foreach (var assembly in CurrentAssemblies.GetLoadedAssemblies())
+#else
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+#endif
             {
                 var assemblyName = assembly.GetName().ToString();
                 if (assemblyName.Contains("GraphView"))

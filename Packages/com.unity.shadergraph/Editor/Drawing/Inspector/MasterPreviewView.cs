@@ -7,6 +7,9 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing.Interfaces;
 using Object = UnityEngine.Object;
+#if UNITY_6000_5_OR_NEWER
+using UnityEngine.Assemblies;
+#endif
 
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
@@ -42,7 +45,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         }
 
         List<string> m_DoNotShowPrimitives = new List<string>(new string[] { PrimitiveType.Plane.ToString() });
+#if UNITY_6000_5_OR_NEWER
+        static Type s_ObjectSelector = CurrentAssemblies.GetLoadedAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEditor.ObjectSelector");
+#else
         static Type s_ObjectSelector = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEditor.ObjectSelector");
+#endif
 
         public string assetName
         {

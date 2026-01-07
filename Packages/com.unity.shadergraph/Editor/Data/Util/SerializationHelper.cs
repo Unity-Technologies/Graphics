@@ -4,6 +4,9 @@ using System.Globalization;
 using System.Reflection;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
+#if UNITY_6000_5_OR_NEWER
+using UnityEngine.Assemblies;
+#endif
 
 namespace UnityEditor.Graphing
 {
@@ -52,7 +55,11 @@ namespace UnityEditor.Graphing
             if (!typeInfo.IsValid())
                 return null;
 
+#if UNITY_6000_5_OR_NEWER
+            var assemblies = CurrentAssemblies.GetLoadedAssemblies();
+#else
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+#endif
             foreach (var assembly in assemblies)
             {
                 var type = assembly.GetType(typeInfo.fullName);
