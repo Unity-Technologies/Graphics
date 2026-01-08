@@ -278,7 +278,6 @@
     * [Terrain](Terrain-Nodes.md)
         * [Terrain Properties](Terrain-Properties-Node.md)
         * [Terrain Texture](Terrain-Texture-Node.md)
-        * Layers
     * [UI](ui-nodes.md)
         * [Default Bitmap Text](default-bitmap-text-node.md)
         * [Default Gradient](default-gradient-node.md)
