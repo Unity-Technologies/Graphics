@@ -497,6 +497,12 @@ namespace UnityEditor.Rendering.Universal
             disableGroup = serialized.additionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
             EditorGUI.BeginDisabledGroup(disableGroup);
             serialized.additionalLightsPerObjectLimitProp.intValue = EditorGUILayout.IntSlider(Styles.perObjectLimit, serialized.additionalLightsPerObjectLimitProp.intValue, 0, UniversalRenderPipeline.maxPerObjectLights);
+#if UNITY_META_QUEST
+            if (serialized.additionalLightsPerObjectLimitProp.intValue > 1)
+            {
+                EditorGUILayout.HelpBox("When targeting Meta Quest, setting the Per Object Limit to 1 will improve shader performance.", MessageType.Info);
+            }
+#endif
             EditorGUI.EndDisabledGroup();
 
             disableGroup |= (serialized.additionalLightsPerObjectLimitProp.intValue == 0 || serialized.additionalLightsRenderingModeProp.intValue != (int)LightRenderingMode.PerPixel);
