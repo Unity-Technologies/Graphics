@@ -7,405 +7,288 @@ using System.Reflection;
 
 using Moq;
 using NUnit.Framework;
+
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.PackageManager.UI;
+using UnityEditor.Search;
+using UnityEditor.UIElements;
+using UnityEditor.UIElements.TestFramework;
 using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using UnityEngine.UIElements.TestFramework;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Test
 {
-    [TestFixture]
-    public class GraphViewTemplateWindowTest
+    class MockSaveFileDialogHelper : GraphViewTemplateWindow.ISaveFileDialogHelper
     {
-        static readonly string kSampleExpectedPath = "Assets/Samples";
+        readonly string m_ReturnPath;
 
-        private class MockSaveFileDialogHelper : GraphViewTemplateWindow.ISaveFileDialogHelper
+        public MockSaveFileDialogHelper(string returnPath)
         {
-            private readonly string m_ReturnPath;
+            m_ReturnPath = returnPath;
+        }
 
-            public MockSaveFileDialogHelper(string returnPath)
+        public int CallCount { get; private set; }
+
+        public string OpenSaveFileDialog()
+        {
+            CallCount++;
+            return m_ReturnPath;
+        }
+    }
+
+    static class GraphViewTemplateWindowHelpers
+    {
+        const float kTimeout = 30_000f; // 30 seconds
+
+        public static void StopSearchIndexingTasks()
+        {
+            for (var index = 0; index < Progress.GetCount(); index++)
             {
-                m_ReturnPath = returnPath;
-            }
-
-            public int callCount { get; private set; }
-
-            public string OpenSaveFileDialog()
-            {
-                callCount++;
-                return m_ReturnPath;
+                var id = Progress.GetId(index);
+                var taskName = Progress.GetName(id);
+                if (taskName.Contains("search", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    Progress.Cancel(id);
+                }
             }
         }
 
-        [SetUp]
-        public void Setup()
+        public static IEnumerator WaitTemplateSearchCompleted(GraphViewTemplateWindow templateWindow, bool stopIndexing = true)
         {
-            EventHelpers.TestSetUp();
-            Cleanup();
+            var searchProviderField = templateWindow.GetType().GetField("m_SearchProvider", BindingFlags.Instance | BindingFlags.NonPublic);
+            var searchProvider = (TemplateSearchProvider)searchProviderField?.GetValue(templateWindow);
+            Assert.NotNull(searchProvider, "Search provider should not be null.");
+
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            while (searchProvider.IsSearching && sw.ElapsedMilliseconds < kTimeout)
+            {
+                yield return null;
+            }
+            sw.Stop();
+            Assert.IsFalse(searchProvider.IsSearching, $"Search indexing did not end after {sw.ElapsedMilliseconds} ms.");
+            Debug.Log($"Waited {sw.ElapsedMilliseconds} ms for search to complete.");
         }
 
-        [TearDown]
-        public void TearDown()
+        public static IEnumerator WaitUntilTemplatesAreCollected(GraphViewTemplateWindow templateWindow)
         {
-            EventHelpers.TestTearDown();
-            Cleanup();
+            yield return WaitTemplateSearchCompleted(templateWindow);
+
+            var templateTree = GetTemplateTree(templateWindow);
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            while (templateTree.Count == 0 && sw.ElapsedMilliseconds < kTimeout)
+            {
+                yield return null;
+            }
+            sw.Stop();
+            Assert.Greater(templateTree.Count, 0, $"No templates found in the template window after {sw.ElapsedMilliseconds} ms.");
+            Debug.Log($"Waited {sw.ElapsedMilliseconds} ms for templates to be collected.");
+        }
+
+        public static bool TrySetSaveFileDialogHelper(GraphViewTemplateWindow window, GraphViewTemplateWindow.ISaveFileDialogHelper saveFileDialogHelper)
+        {
+            var templateHelperField = window.GetType().GetField("m_TemplateHelper", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(templateHelperField);
+            var templateHelper = (ITemplateHelper)templateHelperField.GetValue(window);
+            if (templateHelper != null)
+            {
+                templateHelper.saveFileDialogHelper = saveFileDialogHelper;
+                return true;
+            }
+
+            return false;
+        }
+
+        public static void SetLastUsedTemplatePref(string guid = "a8d8823499ff50847aa460cb119c445d")
+        {
+            // Force selection of the simple loop template
+            var templateWindowPrefs = new GraphViewTemplateWindowPrefs { LastUsedTemplateGuid = guid };
+            templateWindowPrefs.SavePrefs(VFXTemplateHelperInternal.VFXGraphToolKey);
+        }
+
+        public static void SortBy(GraphViewTemplateWindow window, string sortBy)
+        {
+            var sortDropdown = window.rootVisualElement.Q<DropdownField>();
+            Assert.NotNull(sortDropdown);
+            sortDropdown.value = sortBy;
+        }
+
+        public static TreeView GetTreeView(GraphViewTemplateWindow window)
+        {
+            var treeViewField = window.GetType().GetField("m_ListOfTemplates", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(treeViewField);
+            TreeView treeView = treeViewField.GetValue(window) as TreeView;
+            Assert.NotNull(treeView);
+
+            return treeView;
+        }
+
+        public static void ClearFavorite(List<TreeViewItemData<ITemplateDescriptor>> items)
+        {
+            items.ForEach(x =>
+            {
+                var id = GraphViewTemplateWindow.GetGlobalId((GraphViewTemplateDescriptor)x.data);
+                SearchSettings.RemoveItemFavorite(new SearchItem(id));
+            });
+            SearchSettings.Save();
+        }
+
+        public static List<TreeViewItemData<ITemplateDescriptor>> GetTemplateTree(GraphViewTemplateWindow window)
+        {
+            var templateTreeField = window.GetType().GetField("m_TemplatesTree", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(templateTreeField);
+            List<TreeViewItemData<ITemplateDescriptor>> templateTree = templateTreeField.GetValue(window) as List<TreeViewItemData<ITemplateDescriptor>>;
+            Assert.NotNull(templateTree);
+
+            return templateTree;
+        }
+    }
+
+    [TestFixture]
+    class GraphViewTemplateWindowTest : EditorWindowUITestFixture<GraphViewTemplateWindow>
+    {
+        static readonly string k_SampleExpectedPath = "Assets/Samples";
+        static readonly string k_AltSamplePackageName = "Visual Effect Graph Additions";
+
+        readonly VFXTemplateHelperInternal m_vfxTemplateHelper = new();
+        readonly Mock<ITemplateHelper> m_templateHelperMock;
+
+        List<TreeViewItemData<ITemplateDescriptor>> m_TemplateTree;
+        ToolbarSearchField m_SearchField;
+
+        private delegate bool TryGetTemplateDelegate(string guid, out GraphViewTemplateDescriptor descriptor);
+
+        public GraphViewTemplateWindowTest()
+        {
+            m_templateHelperMock = new Mock<ITemplateHelper>();
+            m_templateHelperMock.SetupGet(x => x.assetType).Returns(m_vfxTemplateHelper.assetType);
+            m_templateHelperMock.SetupGet(x => x.toolKey).Returns(m_vfxTemplateHelper.toolKey);
+            m_templateHelperMock.SetupGet(x => x.packageInfoName).Returns(m_vfxTemplateHelper.packageInfoName);
+            m_templateHelperMock.SetupGet(x => x.emptyTemplateGuid).Returns(m_vfxTemplateHelper.emptyTemplateGuid);
+            m_templateHelperMock.SetupGet(x => x.builtInCategory).Returns(m_vfxTemplateHelper.builtInCategory);
+            m_templateHelperMock.SetupGet(x => x.builtInTemplatePath).Returns(m_vfxTemplateHelper.builtInTemplatePath);
+            m_templateHelperMock.SetupGet(x => x.createNewAssetTitle).Returns(m_vfxTemplateHelper.createNewAssetTitle);
+            m_templateHelperMock.SetupGet(x => x.learningSampleName).Returns(k_AltSamplePackageName);
+            m_templateHelperMock
+                .Setup(x => x.RaiseImportSampleDependencies(It.IsAny<PackageManager.PackageInfo>(), It.IsAny<Sample>()))
+                .Callback((PackageManager.PackageInfo pkg, Sample sample) => m_vfxTemplateHelper.RaiseImportSampleDependencies(pkg, sample));
+            m_templateHelperMock
+                .Setup(x => x.TryGetTemplate(It.IsAny<string>(), out It.Ref<GraphViewTemplateDescriptor>.IsAny))
+                .Returns(new TryGetTemplateDelegate((string guid, out GraphViewTemplateDescriptor descriptor) => m_vfxTemplateHelper.TryGetTemplate(guid, out descriptor)));
+
+            createWindowFunction = () =>
+            {
+                GraphViewTemplateWindow.ShowCreateFromTemplateAdbOnly(m_templateHelperMock.Object, null, false);
+                return EditorWindow.GetWindowDontShow<GraphViewTemplateWindow>();
+            };
+        }
+
+        [UnitySetUp]
+        public IEnumerator UnitySetUp()
+        {
+            AssetDatabase.DeleteAsset(k_SampleExpectedPath);
+            GraphViewTemplateWindowHelpers.StopSearchIndexingTasks();
+            m_TemplateTree = GraphViewTemplateWindowHelpers.GetTemplateTree(window);
+
+            m_SearchField = window.rootVisualElement.Q<ToolbarSearchField>();
+            Assert.NotNull(m_SearchField);
+            m_SearchField.value = string.Empty;
+            yield return null;
+            GraphViewTemplateWindowHelpers.SortBy(window, "Name");
+            yield return null;
+            yield return GraphViewTemplateWindowHelpers.WaitUntilTemplatesAreCollected(window);
+        }
+
+        [Test]
+        public void Favorite_A_VFX_Template()
+        {
+            var allItems = m_TemplateTree.SelectMany(x => x.children).ToList();
+            var lastItem = allItems.Last();
+            Debug.Log($"Last item: {lastItem.data.header}");
+
+            GraphViewTemplateWindowHelpers.ClearFavorite(allItems);
+
+            // Click in the favorites button
+            var treeview = GraphViewTemplateWindowHelpers.GetTreeView(window);
+            var lastItemRoot = treeview.GetRootElementForId(lastItem.id);
+            var id = GraphViewTemplateWindow.GetGlobalId((GraphViewTemplateDescriptor)lastItem.data);
+            Assert.False(GraphViewTemplateWindow.IsFavorite(id));
+
+            var button = lastItemRoot.Q<Button>("Favorite");
+            simulate.FrameUpdate();
+            simulate.MouseMove(button.worldBound.center, button.worldBound.center + Vector2.up);
+            simulate.FrameUpdate();
+            simulate.Click(button);
+
+            Assert.True(GraphViewTemplateWindow.IsFavorite(id));
         }
 
         [UnityTest]
-        public IEnumerator Create_VFX_TemplateList()
+        public IEnumerator Check_Default_Templates()
         {
-            VisualEffectAssetEditorUtility.CreateVisualEffectAsset();
+            Assert.AreEqual("Create new VFX Asset", window.titleContent.text);
             yield return null;
 
-            var templateWindow = EditorWindow.GetWindowDontShow<GraphViewTemplateWindow>();
-            Assert.NotNull(templateWindow);
-            Assert.AreEqual("Create new VFX Asset", templateWindow.titleContent.text);
-
-            var templateTree = GetTemplateTree(templateWindow);
-
             // Only the built-in category
-            Assert.AreEqual(1, templateTree.Count);
-            var builtInCategory = templateTree.First();
+            Assert.AreEqual(1, m_TemplateTree.Count);
+            var builtInCategory = m_TemplateTree.First();
             Assert.AreEqual("Default VFX Graph Templates", builtInCategory.data.header);
 
             // 7 built-in templates
             Assert.AreEqual(7, builtInCategory.children.Count());
             var headers = builtInCategory.children.Select(x => x.data.header).ToArray();
-            CollectionAssert.AreEqual(new string[] { "Minimal System", "Simple Loop", "Simple Burst", "Simple Trail", "Head & Trail", "Firework", "Empty VFX"}, headers);
+            CollectionAssert.AreEqual(new[] { "Empty VFX", "Firework", "Head & Trail", "Minimal System", "Simple Burst", "Simple Loop", "Simple Trail" }, headers);
         }
 
         [UnityTest]
-        public IEnumerator Create_VFX_From_Project_Browser()
+        public IEnumerator Search_VFX_Template()
         {
-            VisualEffectAssetEditorUtility.CreateVisualEffectAsset();
+            m_SearchField.value = "*adbonly* Simple";
+
+            // Wait for the search service to operate
+            yield return GraphViewTemplateWindowHelpers.WaitTemplateSearchCompleted(window);
             yield return null;
 
-            yield return CheckNewVFXIsCreated();
+            var items = m_TemplateTree.SelectMany(x => x.children).Select(x => x.data.header).ToArray();
+            CollectionAssert.AreEqual(new[] { "Simple Burst", "Simple Loop", "Simple Trail" }, items);
+        }
+
+        [Test]
+        public void Sort_Template_By_Favorite()
+        {
+            var allItems = m_TemplateTree.SelectMany(x => x.children).ToList();
+            var lastItem = allItems.Last();
+            var lastItemName = lastItem.data.header;
+            GraphViewTemplateWindowHelpers.ClearFavorite(allItems);
+
+            // Put the last item in favorites (should use the button, but it's not working right now)
+            var id = GraphViewTemplateWindow.GetGlobalId((GraphViewTemplateDescriptor)lastItem.data);
+            SearchSettings.AddItemFavorite(new SearchItem(id));
+            SearchSettings.Save();
+
+            GraphViewTemplateWindowHelpers.SortBy(window, "Favorite");
+            allItems = m_TemplateTree.SelectMany(x => x.children).ToList();
+            Assert.AreEqual(lastItemName, allItems[0].data.header);
         }
 
         [UnityTest]
-        public IEnumerator Create_VFX_From_Inspector()
+        public IEnumerator Search_No_Result()
         {
-            VisualEffectAssetEditorUtility.CreateVisualEffectGameObject(new MenuCommand(null));
+            m_SearchField.value = "xx##yy"; // A string matching no existing template
+            simulate.FrameUpdate();
+
+            yield return GraphViewTemplateWindowHelpers.WaitTemplateSearchCompleted(window, false);
             yield return null;
 
-            var go = new GameObject("Visual Effect");
-            var vfxComp = go.AddComponent<VisualEffect>();
-            var editor = (AdvancedVisualEffectEditor)Editor.CreateEditor(vfxComp);
-            editor.serializedObject.Update();
-
-            // Simulate click on "new" button
-            var createNewVFXMethod = editor.GetType().GetMethod("CreateNewVFX", BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.NotNull(createNewVFXMethod);
-            createNewVFXMethod.Invoke(editor, null);
-            yield return null;
-
-            Assert.True(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>());
-            yield return CheckNewVFXIsCreated();
+            var emptyResultLabel = window.rootVisualElement.Q<Label>("EmptyResults");
+            Assert.AreEqual(DisplayStyle.Flex, emptyResultLabel.resolvedStyle.display);
         }
 
-        [UnityTest]
-        public IEnumerator Create_VFX_From_VFXGraph_Editor()
+        [Test, Description("Covers UUM-95871")]
+        public void Check_Install_Learning_Sample_Button()
         {
-            var controller = VFXTestCommon.StartEditTestAsset();
-            yield return null;
-
-            var window = VFXViewWindow.GetWindow(controller.graph, false, true);
-            yield return OpenTemplateWindowFromDropDown(window, "OnCreateNew");
-
-            yield return CheckNewVFXIsCreated();
-        }
-
-        [UnityTest]
-        public IEnumerator Create_VFX_From_VFXGraph_Editor_NoAsset()
-        {
-            VFXViewWindow.ShowWindow();
-            yield return null;
-
-            Assert.True(EditorWindow.HasOpenInstances<VFXViewWindow>());
-            var window = EditorWindow.GetWindowDontShow<VFXViewWindow>();
-
-            yield return OpenTemplateWindowNoAssetWindow(window);
-            yield return CheckNewVFXIsCreated();
-        }
-
-        [UnityTest]
-        public IEnumerator Create_VFX_From_VFXGraph_Editor_Cancel()
-        {
-            var controller = VFXTestCommon.StartEditTestAsset();
-            yield return null;
-
-            // Get template dropdown from the VFX graph toolbar
-            var window = VFXViewWindow.GetWindow(controller.graph, false, true);
-            yield return OpenTemplateWindowFromDropDown(window, "OnCreateNew");
-
-            var templateWindow = EditorWindow.GetWindowDontShow<GraphViewTemplateWindow>();
-            Assert.NotNull(templateWindow);
-            yield return null;
-
-            // This is to avoid the save file dialog user interaction
-            var mockSaveFileDialogHelper = new MockSaveFileDialogHelper(string.Empty);
-            TrySetSaveFileDialogHelper(templateWindow, mockSaveFileDialogHelper);
-
-            // Select Simple Loop item
-            var treeView = GetTreeView(templateWindow);
-            treeView.selectedIndex = 3;
-
-            // Simulate click on cancel button
-            yield return ClickButton(templateWindow.rootVisualElement, "CancelButton");
-
-            Assert.AreEqual(0, mockSaveFileDialogHelper.callCount);
-            Assert.False(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>());
-        }
-
-        [UnityTest]
-        public IEnumerator Insert_VFX_Template()
-        {
-            var controller = VFXTestCommon.StartEditTestAsset();
-            yield return null;
-
-            Assert.AreEqual(0, controller.contexts.Count());
-
-            // Get template dropdown from the VFX graph toolbar
-            var window = VFXViewWindow.GetWindow(controller.graph, false, true);
-            yield return OpenTemplateWindowFromDropDown(window, "OnInsert");
-
-            var templateWindow = EditorWindow.GetWindowDontShow<GraphViewTemplateWindow>();
-            Assert.NotNull(templateWindow);
-
-            // This is to avoid the save file dialog user interaction
-            var mockSaveFileDialogHelper = new MockSaveFileDialogHelper(string.Empty);
-            TrySetSaveFileDialogHelper(templateWindow, mockSaveFileDialogHelper);
-
-            // Select Simple Loop item
-            var treeView = GetTreeView(templateWindow);
-            treeView.selectedIndex = 3;
-
-            // Simulate click on create button
-            yield return ClickButton(templateWindow.rootVisualElement, "CreateButton");
-
-            Assert.False(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>());
-            Assert.AreEqual(0, mockSaveFileDialogHelper.callCount);
-            Assert.AreEqual(4, controller.contexts.Count());
-        }
-
-        [UnityTest]
-        public IEnumerator Insert_VFX_Template_Cancel()
-        {
-            var controller = VFXTestCommon.StartEditTestAsset();
-            yield return null;
-
-            Assert.AreEqual(0, controller.contexts.Count());
-
-            // Get template dropdown from the VFX graph toolbar
-            var window = VFXViewWindow.GetWindow(controller.graph, false, true);
-            yield return OpenTemplateWindowFromDropDown(window, "OnInsert");
-
-            var templateWindow = EditorWindow.GetWindowDontShow<GraphViewTemplateWindow>();
-            Assert.NotNull(templateWindow);
-
-            // This is to avoid the save file dialog user interaction
-            var mockSaveFileDialogHelper = new MockSaveFileDialogHelper(string.Empty);
-            TrySetSaveFileDialogHelper(templateWindow, mockSaveFileDialogHelper);
-
-            // Select Simple Loop item
-            var treeView = GetTreeView(templateWindow);
-            treeView.selectedIndex = 3;
-
-            // Simulate click on cancel button
-            yield return ClickButton(templateWindow.rootVisualElement, "CancelButton");
-
-            Assert.False(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>());
-            Assert.AreEqual(0, controller.contexts.Count());
-            Assert.AreEqual(0, mockSaveFileDialogHelper.callCount);
-        }
-
-        private static void CreateAndOpenVFX(int i, out string path)
-        {
-            var graph = VFXTestCommon.CreateGraph_And_System();
-            var inlineOperator = ScriptableObject.CreateInstance<VFXInlineOperator>();
-            inlineOperator.SetSettingValue("m_Type", (SerializableType)typeof(int));
-            inlineOperator.inputSlots[0].value = i;
-            graph.AddChild(inlineOperator);
-            path = AssetDatabase.GetAssetPath(graph);
-            AssetDatabase.ImportAsset(path);
-
-            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
-            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
-            var window = VFXViewWindow.GetWindow(asset, true);
-            window.LoadAsset(asset, null);
-            window.Show();
-        }
-
-        private static VFXViewWindow GetWindowFromPath(string path)
-        {
-            var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
-            return VFXViewWindow.GetWindow(vfx);
-        }
-
-        [UnityTest, Description("Relative to UUM-41334, cover basic asset replacement.")]
-        public IEnumerator VFXView_Open_Three_View_Replace_Two_Content()
-        {
-            CreateAndOpenVFX(666, out var pathA);
-            CreateAndOpenVFX(777, out var pathB);
-            CreateAndOpenVFX(888, out var pathC);
-            yield return null;
-
-            var content = File.ReadAllBytes(pathA);
-            File.WriteAllBytes(pathB, content);
-            File.WriteAllBytes(pathC, content);
-            AssetDatabase.ImportAsset(pathB);
-            AssetDatabase.ImportAsset(pathC);
-            yield return null;
-
-            var resources = VFXViewWindow.GetAllWindows()
-                .Select(o => o.displayedResource.ToString())
-                .ToArray();
-
-            Assert.AreEqual(3, resources.Length);
-            Assert.AreEqual(resources.Length, resources.Distinct().Count());
-
-            var pathCResource = GetWindowFromPath(pathC).displayedResource;
-            var getWindow = VFXViewWindow.GetWindow(pathCResource);
-            Assert.IsNotNull(getWindow);
-
-            //Close now all windows to track potential failure
-            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
-
-            yield return null;
-        }
-
-        [UnityTest, Description("Relative to UUM-41334, cover create new from an empty window.")]
-        public IEnumerator VFXView_Create_From_No_Asset_Reuse_Same_View()
-        {
-            CreateAndOpenVFX(159, out var path);
-
-            Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count());
-            AssetDatabase.DeleteAsset(path);
-
-            //Insure the displayedResource has been correctly updated between "null" and null
-            //not really needed but ease debug and more realistic regarding user real usage
-            int maxFrame = 16;
-            while (!object.ReferenceEquals(VFXViewWindow.GetAllWindows().First().displayedResource, null) && --maxFrame > 0)
-            {
-                VFXViewWindow.GetAllWindows().First().Focus();
-                Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count());
-                yield return null;
-            }
-            Assert.Greater(maxFrame, 0);
-
-            // Find the "Create new Visual Effect Graph" button and click it
-            var window = VFXViewWindow.GetAllWindows().First();
-            yield return OpenTemplateWindowNoAssetWindow(window);
-
-            var templateWindow = EditorWindow.GetWindowDontShow<GraphViewTemplateWindow>();
-            Assert.NotNull(templateWindow);
-            var treeView = GetTreeView(templateWindow);
-            treeView.selectedIndex = 2;
-
-            var newPath = $"{VFXTestCommon.tempBasePath}vfx_from_template_{System.Guid.NewGuid()}.vfx";
-            var mockSaveFileDialogHelper = new MockSaveFileDialogHelper(newPath);
-
-            var remainingAttempts = 10;
-            while (!TrySetSaveFileDialogHelper(templateWindow, mockSaveFileDialogHelper) && remainingAttempts > 0)
-            {
-                remainingAttempts--;
-                yield return null;
-            }
-
-            yield return ClickButton(templateWindow.rootVisualElement, "CreateButton");
-            Assert.AreEqual(1u, mockSaveFileDialogHelper.callCount);
-            yield return null;
-
-            Assert.IsTrue(File.Exists(newPath));
-            Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count());
-
-            Assert.IsTrue(window.displayedResource != null);
-            var openedAsset = AssetDatabase.GetAssetPath(window.displayedResource.asset);
-            Assert.AreEqual(newPath, openedAsset);
-            yield return null;
-        }
-
-        [UnityTest, Description("Repro UUM-41334")]
-        public IEnumerator VFXView_Open_Two_View_Delete_Replace_Other_Content()
-        {
-            Assert.AreEqual(0, VFXViewWindow.GetAllWindows().Count());
-
-            CreateAndOpenVFX(123, out var pathA);
-            CreateAndOpenVFX(456, out var pathB);
-
-            Assert.AreNotEqual(pathA, pathB);
-            var windowA = GetWindowFromPath(pathA);
-            var windowB = GetWindowFromPath(pathB);
-            Assert.AreNotEqual(windowA, windowB);
-            Assert.IsTrue(windowA.displayedResource != null);
-            Assert.IsTrue(windowB.displayedResource != null);
-            yield return null;
-
-            //Delete ObjectA
-            AssetDatabase.DeleteAsset(pathA);
-            yield return null;
-            windowA = GetWindowFromPath(pathA);
-            windowB = GetWindowFromPath(pathB);
-            Assert.IsFalse(windowA.displayedResource != null);
-            Assert.IsTrue(windowB.displayedResource != null);
-
-            //Insure the displayedResource has been correctly updated between "null" and null (not really needed but ease later debug)
-            int maxFrame = 16;
-            while (!object.ReferenceEquals(windowA.displayedResource, null) && --maxFrame > 0)
-            {
-                windowA.Focus();
-                yield return null;
-            }
-            Assert.Greater(maxFrame, 0);
-
-            //windowsA simulate creation of new asset with same path than windowB
-            yield return OpenTemplateWindowNoAssetWindow(windowA);
-            Assert.IsTrue(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>());
-            var templateWindow = EditorWindow.GetWindowDontShow<GraphViewTemplateWindow>();
-            Assert.NotNull(templateWindow);
-            var treeView = GetTreeView(templateWindow);
-            treeView.selectedIndex = 2;
-
-            var mockSaveFileDialogHelper = new MockSaveFileDialogHelper(pathB);
-            TrySetSaveFileDialogHelper(templateWindow, mockSaveFileDialogHelper);
-            Assert.IsTrue(windowB.displayedResource != null);
-            yield return ClickButton(templateWindow.rootVisualElement, "CreateButton");
-            Assert.AreEqual(1, mockSaveFileDialogHelper.callCount);
-
-            windowA = GetWindowFromPath(pathA);
-            windowB = GetWindowFromPath(pathB);
-
-            //We are supposed to switch back to the other single windows
-            Assert.IsTrue(File.Exists(pathB));
-            Assert.IsTrue(windowB.displayedResource != null);
-            Assert.IsFalse(windowA.displayedResource != null);
-
-            //Focus is expected to be have been requested
-            maxFrame = 16;
-            while (!windowB.hasFocus && --maxFrame > 0)
-            {
-                yield return null;
-            }
-            Assert.Greater(maxFrame, 0);
-
-            //Check if expected path still opened
-            var displayedPath = AssetDatabase.GetAssetPath(windowB.displayedResource.asset);
-            Assert.AreEqual(pathB, displayedPath);
-
-            yield return null;
-        }
-
-        [UnityTest, Description("Covers UUM-95871")]
-        public IEnumerator Check_Install_Learning_Sample_Button()
-        {
-            var controller = VFXTestCommon.StartEditTestAsset();
-            yield return null;
-
             // Create a mock package extension that throws to simulate a failing package
             var throwingExtensionMock = new Mock<IPackageManagerExtension>();
             throwingExtensionMock.Setup(x => x.OnPackageSelectionChange(It.IsAny<PackageManager.PackageInfo>())).Throws<NullReferenceException>();
@@ -414,21 +297,11 @@ namespace UnityEditor.VFX.Test
             {
                 PackageManagerExtensions.RegisterExtension(throwingExtensionMock.Object);
 
-                // Get template dropdown from the VFX graph toolbar
-                var vfxViewWindow = VFXViewWindow.GetWindow(controller.graph, false, true);
-                var templateDropDown = vfxViewWindow.rootVisualElement.Q<CreateFromTemplateDropDownButton>();
-                Assert.NotNull(templateDropDown);
+                RecreatePanel();
 
-                // Open the template window
-                var onCreateNewMethod = templateDropDown.GetType().GetMethod("OnCreateNew", BindingFlags.Instance | BindingFlags.NonPublic);
-                Assert.NotNull(onCreateNewMethod);
-                onCreateNewMethod.Invoke(templateDropDown, null);
-
-                Assert.True(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>());
-                var templateWindow = EditorWindow.GetWindow<GraphViewTemplateWindow>();
-                var installButton = templateWindow.rootVisualElement.Q<Button>("InstallButton");
-                Assert.NotNull(installButton);
+                var installButton = window.rootVisualElement.Q<Button>("InstallButton");
                 Assert.True(installButton.enabledSelf);
+                simulate.FrameUpdate();
 
                 //Behavior changed since UUM-121936, we aren't relying on OnPackageSelectionChange anymore
                 throwingExtensionMock.Verify(x => x.OnPackageSelectionChange(It.IsAny<PackageManager.PackageInfo>()), Times.Never);
@@ -442,46 +315,20 @@ namespace UnityEditor.VFX.Test
         [UnityTest, Description("Covers UUM-121936")]
         public IEnumerator Check_Install_Dependencies_Learning_Sample_Button()
         {
-            //The responsability of covering learning template behavior is Check_Additional_Doesnt_Generate_Any_Errors
-            //Using this package because it's lighter than actual learning template and doesn't contain cs which would trigger domain reload
-            //There are two names tested because of incoming rename de8e00f4fbe7ffa7baca025721db706b4f8d352c
-            var fakeLearningTemplates = new[] { "VisualEffectGraph Additions", "Visual Effect Graph Additions" };
-            
-            var templateHelper = new Mock<ITemplateHelper>();
-            templateHelper.Setup(x => x.packageInfoName).Returns(VisualEffectGraphPackageInfo.name);
-            templateHelper.Setup(x => x.emptyTemplateName).Returns("MockEmpty");
-            templateHelper.Setup(x => x.builtInCategory).Returns("MockCategory");
-            templateHelper.Setup(x => x.createNewAssetTitle).Returns("MockNewAssetTitle");
-            templateHelper.Setup(x => x.RaiseImportSampleDependencies(It.IsAny<PackageManager.PackageInfo>(), It.IsAny<Sample>()))
-                .Callback((PackageManager.PackageInfo info, Sample sample) => { VFXTemplateHelperInternal.ImportSampleDependencies(info, sample); });
+            var installButton = window.rootVisualElement.Q<Button>("InstallButton");
+            Assert.NotNull(installButton);
 
-            foreach (var fakeLearningTemplate in fakeLearningTemplates)
-            {
-                templateHelper.Setup(x => x.learningSampleName).Returns(fakeLearningTemplate);
+            m_templateHelperMock.Verify(x => x.RaiseImportSampleDependencies(It.IsAny<PackageManager.PackageInfo>(), It.IsAny<Sample>()), Times.Never);
+            Assert.IsFalse(Directory.Exists(k_SampleExpectedPath), $"The directory {k_SampleExpectedPath} should not exist before installing the sample.");
+            yield return ClickButton(window.rootVisualElement, "InstallButton");
 
-                GraphViewTemplateWindow.ShowCreateFromTemplate(templateHelper.Object, (_, _) => { });
-                Assert.True(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>());
-                var templateWindow = EditorWindow.GetWindow<GraphViewTemplateWindow>();
-                var installButton = templateWindow.rootVisualElement.Q<Button>("InstallButton");
-                Assert.NotNull(installButton);
+            Assert.IsTrue(Directory.Exists(k_SampleExpectedPath), $"Fail to find: {k_SampleExpectedPath}");
+            yield return null;
 
-                templateHelper.Verify(x => x.RaiseImportSampleDependencies(It.IsAny<PackageManager.PackageInfo>(), It.IsAny<Sample>()), Times.Never);
-                Assert.IsFalse(Directory.Exists(kSampleExpectedPath));
-                yield return ClickButton(templateWindow.rootVisualElement, "InstallButton");
+            Assert.True(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>()); //Install template doesn't trigger Close
+            m_templateHelperMock.Verify(x => x.RaiseImportSampleDependencies(It.IsAny<PackageManager.PackageInfo>(), It.IsAny<Sample>()), Times.Once);
 
-                if (!Directory.Exists(kSampleExpectedPath))
-                {
-                    //Retry with other Additions template name candidate
-                    Debug.Log($"Fail to find: {fakeLearningTemplate}");
-                    templateWindow.Close();
-                    yield return null;
-                    continue;
-                }
-
-                Assert.True(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>()); //Install template doesn't trigger Close
-                templateHelper.Verify(x => x.RaiseImportSampleDependencies(It.IsAny<PackageManager.PackageInfo>(), It.IsAny<Sample>()), Times.Once);
-                break;
-            }
+            AssetDatabase.DeleteAsset(k_SampleExpectedPath);
         }
 
         internal static IEnumerator CheckNewVFXIsCreated(int templateIndex = 3)
@@ -593,8 +440,8 @@ namespace UnityEditor.VFX.Test
             VFXTestCommon.DeleteAllTemporaryGraph();
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
 
-            if (Directory.Exists(kSampleExpectedPath))
-                AssetDatabase.DeleteAsset(kSampleExpectedPath);
+            if (Directory.Exists(k_SampleExpectedPath))
+                AssetDatabase.DeleteAsset(k_SampleExpectedPath);
         }
     }
 }

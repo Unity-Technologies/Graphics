@@ -1,7 +1,10 @@
 using System;
+using System.IO;
 using System.Reflection;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEditor.Search;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -19,22 +22,43 @@ namespace UnityEditor.VFX
             }
         }
 
+        const string k_EmptyTemplateRelativePath = "/Editor/Templates/Empty.vfx";
+
+        string m_EmptyTemplateGuid;
+
+        public static string VFXGraphToolKey => "VFXGraph";
+        public string toolKey => VFXGraphToolKey;
         public string packageInfoName => VisualEffectGraphPackageInfo.name;
         public string learningSampleName => "Learning Templates";
         public string templateWindowDocUrl =>Documentation.GetPageLink("Templates-window");
         public string builtInTemplatePath => VisualEffectAssetEditorUtility.templatePath;
         public string builtInCategory => "Default VFX Graph Templates";
-        public string assetType => "VisualEffectAsset";
-        public string emptyTemplateName => "Empty VFX";
-        public string emptyTemplateDescription => "Create a completely empty VFX asset";
-        public string lastSelectedGuidKey => "VFXTemplateWindow.LastSelectedGuid";
+        public Type assetType => typeof(VisualEffectAsset);
+
+        public string emptyTemplateGuid
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(m_EmptyTemplateGuid))
+                {
+                    m_EmptyTemplateGuid = FindEmptyTemplateDescriptor();
+                }
+
+                return m_EmptyTemplateGuid;
+            }
+        }
+
         public string createNewAssetTitle => "Create new VFX Asset";
         public string insertTemplateTitle => "Insert a template into current VFX Asset";
-        public string emptyTemplateIconPath => $"{VisualEffectGraphPackageInfo.assetPackagePath}/Editor/Templates/UI/EmptyTemplate@256.png";
-        public string emptyTemplateScreenshotPath => $"{VisualEffectGraphPackageInfo.assetPackagePath}/Editor/Templates/UI/3d_Empty.png";
         public string customTemplateIcon => $"{VisualEffectGraphPackageInfo.assetPackagePath}/Editor/Templates/UI/CustomVFXGraph@256.png";
-        public GraphViewTemplateWindow.ISaveFileDialogHelper saveFileDialogHelper { get; set; } = new SaveFileDialog();
 
+        public bool showPackageIndexingBanner
+        {
+            get => VFXViewPreference.showPackageIndexingBanner;
+            set => VFXViewPreference.showPackageIndexingBanner = value;
+        }
+
+        public GraphViewTemplateWindow.ISaveFileDialogHelper saveFileDialogHelper { get; set; } = new SaveFileDialog();
 
         public static void ImportSampleDependencies(PackageManager.PackageInfo packageInfo, PackageManager.UI.Sample sample)
         {
@@ -93,18 +117,29 @@ namespace UnityEditor.VFX
         /// <returns>Returns true if the template is created, otherwise it returns false.</returns>
         public bool TrySetTemplate(string vfxPath, GraphViewTemplateDescriptor graphViewTemplate) => TrySetTemplateStatic(vfxPath, graphViewTemplate);
 
+        public SearchProposition[] GetSearchPropositions() => Array.Empty<SearchProposition>();
+
+        public ITemplateSorter[] GetTemplateSorter() => Array.Empty<ITemplateSorter>();
+
         internal static bool TryGetTemplateStatic(string vfxPath, out GraphViewTemplateDescriptor graphViewTemplate)
         {
-            var importer = (VisualEffectImporter)AssetImporter.GetAtPath(vfxPath);
-            if (importer is { useAsTemplateProperty: true, templateProperty: var nativeTemplate } && !string.IsNullOrEmpty(nativeTemplate.name))
+            // Can happen because the search engine sometimes finds prefabs
+            if (!vfxPath.EndsWith(VisualEffectResource.Extension))
             {
-                graphViewTemplate = new GraphViewTemplateDescriptor
+                graphViewTemplate = default;
+                return false;
+            }
+
+            if (AssetImporter.GetAtPath(vfxPath) is VisualEffectImporter { useAsTemplateProperty: true, templateProperty: var nativeTemplate })
+            {
+                graphViewTemplate = new GraphViewTemplateDescriptor(VFXGraphToolKey)
                 {
                     name = nativeTemplate.name,
                     category = nativeTemplate.category,
                     description = nativeTemplate.description,
                     icon = nativeTemplate.icon,
                     thumbnail = nativeTemplate.thumbnail,
+                    order = nativeTemplate.order,
                 };
 
                 return true;
@@ -136,6 +171,11 @@ namespace UnityEditor.VFX
             }
 
             return false;
+        }
+
+        string FindEmptyTemplateDescriptor()
+        {
+            return AssetDatabase.GUIDFromAssetPath(VisualEffectGraphPackageInfo.assetPackagePath + k_EmptyTemplateRelativePath).ToString();
         }
     }
 }

@@ -247,22 +247,6 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
-    /// Defines if profiling is logged or not. This enum is not longer in use, use the Profiler instead.
-    /// </summary>
-    [Obsolete("PipelineDebugLevel is replaced to use the profiler and has no effect. #from(2022.2) #breakingFrom(2023.1)", true)]
-    public enum PipelineDebugLevel
-    {
-        /// <summary>
-        /// Disabled logging for profiling.
-        /// </summary>
-        Disabled,
-        /// <summary>
-        /// Enabled logging for profiling.
-        /// </summary>
-        Profiling,
-    }
-
-    /// <summary>
     /// Options to select the type of Renderer to use.
     /// </summary>
     public enum RendererType
@@ -582,7 +566,6 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.LightLayers)]
 #endif
         [SerializeField] bool m_SupportsLightLayers = false;
-        [SerializeField][Obsolete("#from(2022.1) #breakingFrom(2023.1)", true)] PipelineDebugLevel m_DebugLevel;
         [SerializeField][Obsolete("#from(6000.0) #breakingFrom(6000.4)", true)] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
 
         // Adaptive performance settings
@@ -953,6 +936,24 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #if UNITY_EDITOR
+        internal bool TryGetRendererData(int index, out ScriptableRendererData result)
+        {
+            result = null;
+            if (m_RendererDataList == null || m_RendererDataList.Length == 0)
+                return false;
+
+            if (index < 0 || index >= m_RendererDataList.Length)
+            {
+                if (m_DefaultRendererIndex < 0 || m_DefaultRendererIndex >= m_RendererDataList.Length)
+                    return false;
+
+                index = m_DefaultRendererIndex; //out of range index fallback on default
+            }
+            
+            result = m_RendererDataList[index];
+            return result != null;
+        }
+
         internal GUIContent[] rendererDisplayList
         {
             get
@@ -1590,12 +1591,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Previously returned the debug level for this Render Pipeline Asset but is now deprecated. Replaced to use the profiler and is no longer used.
-        /// </summary>
-        [Obsolete("PipelineDebugLevel is deprecated and replaced to use the profiler. Calling debugLevel is not necessary. #from(2022.2) #breakingFrom(2023.1)", true)]
-        public PipelineDebugLevel debugLevel => PipelineDebugLevel.Disabled;
-
-        /// <summary>
         /// Specifies if SRPBacher is used by this <c>UniversalRenderPipelineAsset</c>.
         /// </summary>
         /// <see href="https://docs.unity3d.com/Manual/SRPBatcher.html"/>
@@ -1727,7 +1722,8 @@ namespace UnityEngine.Rendering.Universal
 
         static class Strings
         {
-            public static readonly string notURPRenderer = $"{nameof(GPUResidentDrawer)} Disabled due to some configured Universal Renderers not being {nameof(UniversalRendererData)}.";
+            public static readonly string nullRenderer = $"{nameof(GPUResidentDrawer)} Disabled. One or more Scriptable Renderer in the Render Pipeline Asset is null.";
+            public static readonly string notURPRenderer = $"{nameof(GPUResidentDrawer)} Disabled. One or more Scriptable Renderer in the Render Pipeline Asset is not of the type {nameof(UniversalRendererData)}.";
             public static readonly string renderingModeIncompatible = $"{nameof(GPUResidentDrawer)} Disabled due to some configured Universal Renderers not using the Forward+ or Deferred+ rendering paths.";
         }
 
@@ -1741,6 +1737,12 @@ namespace UnityEngine.Rendering.Universal
             // since BiRP-style per-object lights and reflection probes are incompatible with DOTS instancing.
             foreach (var rendererData in m_RendererDataList)
             {
+                if (rendererData == null)
+                {
+                    message = Strings.nullRenderer;
+                    return false;
+                }
+
                 if (rendererData is not UniversalRendererData universalRendererData)
                 {
                     message = Strings.notURPRenderer;

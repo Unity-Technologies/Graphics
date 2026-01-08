@@ -109,61 +109,6 @@ namespace UnityEngine.Rendering.Tests
         }
     }
 
-    //Helper class containing a snapshot of the GPU big instance buffer data
-    internal struct InstanceDataBufferCPUReadbackData : IDisposable
-    {
-        public NativeArray<uint> data;
-        GPUInstanceDataBuffer m_InstanceDataBuffer;
-
-        public bool Load(GPUInstanceDataBuffer instanceDataBuffer)
-        {
-            int errorCount = 0;
-            m_InstanceDataBuffer = instanceDataBuffer;
-            var cmdBuffer = new CommandBuffer();
-            int uintSize = UnsafeUtility.SizeOf<uint>();
-            var localData = new NativeArray<uint>(instanceDataBuffer.byteSize / uintSize, Allocator.Persistent);
-            cmdBuffer.RequestAsyncReadback(instanceDataBuffer.gpuBuffer, (AsyncGPUReadbackRequest req) =>
-            {
-                if (req.done)
-                    localData.CopyFrom(req.GetData<uint>());
-                else ++errorCount;
-            });
-            cmdBuffer.WaitAllAsyncReadbackRequests();
-            Graphics.ExecuteCommandBuffer(cmdBuffer);
-            cmdBuffer.Release();
-            data = localData;
-            if (errorCount != 0)
-                Debug.LogError("GPU Readback fail: Instance buffer data. Abandoning test.");
-            return errorCount == 0;
-        }
-
-        public T LoadData<T>(InstanceHandle instance, int propertyID) where T : unmanaged
-        {
-            return LoadData<T>(m_InstanceDataBuffer.CPUInstanceToGPUInstance(instance), propertyID);
-        }
-
-        public T LoadData<T>(GPUInstanceIndex gpuInstanceIndex, int propertyID) where T : unmanaged
-        {
-            int uintSize = UnsafeUtility.SizeOf<uint>();
-            int propertyIndex = m_InstanceDataBuffer.GetPropertyIndex(propertyID);
-            Assert.IsTrue(m_InstanceDataBuffer.descriptions[propertyIndex].isPerInstance);
-            int gpuBaseAddress = m_InstanceDataBuffer.gpuBufferComponentAddress[propertyIndex];
-            int indexInArray = (gpuBaseAddress + m_InstanceDataBuffer.descriptions[propertyIndex].byteSize * gpuInstanceIndex.index) / uintSize;
-
-            unsafe
-            {
-                uint* dataPtr = (uint*)data.GetUnsafePtr<uint>() + indexInArray;
-                T result = *(T*)(dataPtr);
-                return result;
-            }
-        }
-
-        public void Dispose()
-        {
-            data.Dispose();
-        }
-    }
-
     internal class RenderPassTest : RenderPipelineAsset<RenderPassTestCullInstance>
     {
         public delegate void TestDelegate(ScriptableRenderContext ctx, Camera[] cameras);

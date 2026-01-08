@@ -1,8 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.Experimental.GraphView;
+
 using System;
 using System.Linq;
 
@@ -61,6 +60,7 @@ namespace UnityEditor.VFX.UI
         }
 
         Material m_Mat;
+        bool m_WaitingRecompute;
 
         static Mesh s_Mesh;
 
@@ -76,16 +76,16 @@ namespace UnityEditor.VFX.UI
             this.style.overflow = Overflow.Visible;
 
             m_Title = this.Query<Label>("title");
-            m_TitleField = this.Query<TextField>("title-field");
-
-            m_TitleField.style.display = DisplayStyle.None;
-
             m_Title.RegisterCallback<MouseDownEvent>(OnTitleMouseDown);
-
-            m_TitleField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(OnTitleBlur, TrickleDown.TrickleDown);
-            m_TitleField.RegisterCallback<ChangeEvent<string>>(OnTitleChange);
-            m_TitleField.maxLength = kMaximumSystemNameLength;
             m_Title.RegisterCallback<GeometryChangedEvent>(OnTitleRelayout);
+
+            m_TitleField = this.Query<TextField>("title-field");
+            m_TitleField.style.display = DisplayStyle.None;
+            m_TitleField.maxLength = kMaximumSystemNameLength;
+            m_TitleField.multiline = false;
+            m_TitleField.RegisterCallback<ChangeEvent<string>>(OnTitleChange);
+            m_TitleField.RegisterCallback<GeometryChangedEvent>(OnTitleRelayout);
+            m_TitleField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(OnTitleBlur, TrickleDown.TrickleDown);
 
             Content content = new Content(this);
             content.style.position = UnityEngine.UIElements.Position.Absolute;
@@ -95,27 +95,20 @@ namespace UnityEditor.VFX.UI
             pickingMode = PickingMode.Ignore;
             Add(content);
             RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
-            this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
             visible = false;
-        }
-
-        public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
-        {
         }
 
         public void OnRename()
         {
-            m_TitleField.RemoveFromClassList("empty");
+            m_Title.style.display = DisplayStyle.None;
             m_TitleField.value = m_Title.text;
-
             m_TitleField.style.display = DisplayStyle.Flex;
-            UpdateTitleFieldRect();
             m_TitleField.Q(TextField.textInputUssName).Focus();
             m_TitleField.SelectAll();
         }
 
-        Label m_Title;
-        TextField m_TitleField;
+        readonly Label m_Title;
+        readonly TextField m_TitleField;
 
 
         void OnTitleMouseDown(MouseDownEvent e)
@@ -128,42 +121,16 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        bool IsDifferenceTooSmall(float x, float y)
+        void OnTitleRelayout(GeometryChangedEvent geometryChangedEvent)
         {
-            return Mathf.Abs(x - y) < 1f;
-        }
-
-        void OnTitleRelayout(GeometryChangedEvent e)
-        {
-            if (IsDifferenceTooSmall(e.oldRect.x, e.newRect.x) &&
-                IsDifferenceTooSmall(e.oldRect.y, e.newRect.y) &&
-                IsDifferenceTooSmall(e.oldRect.width, e.newRect.width) &&
-                IsDifferenceTooSmall(e.oldRect.height, e.newRect.height))
-            {
-                return;
-            }
-
-            UpdateTitleFieldRect();
             RecomputeBounds();
-        }
-
-        void UpdateTitleFieldRect()
-        {
-            Rect rect = m_Title.layout;
-            m_Title.parent.ChangeCoordinatesTo(m_TitleField.parent, rect);
-
-
-            m_TitleField.style.top = rect.yMin - 6;
-            m_TitleField.style.left = rect.xMin - 5;
-            m_TitleField.style.right = m_Title.resolvedStyle.marginRight + m_Title.resolvedStyle.borderRightWidth + 2;
-            m_TitleField.style.height = rect.height - m_Title.resolvedStyle.marginTop - m_Title.resolvedStyle.marginBottom;
         }
 
         void OnTitleBlur(FocusOutEvent e)
         {
             title = m_TitleField.value;
             m_TitleField.style.display = DisplayStyle.None;
-
+            m_Title.style.display = DisplayStyle.Flex;
             controller.SetTitle(title);
         }
 
@@ -175,29 +142,20 @@ namespace UnityEditor.VFX.UI
         void OnTitleChange(ChangeEvent<string> e)
         {
             title = m_TitleField.value;
-            if (string.IsNullOrEmpty(e.previousValue) != string.IsNullOrEmpty(e.newValue))
-            {
-                RecomputeBounds();
-            }
+            RecomputeBounds();
         }
 
         public override string title
         {
-            get
-            {
-                return m_Title.text;
-            }
+            get => m_Title.text;
             set
             {
                 if (m_Title.text != value)
                 {
                     m_Title.text = value;
-                    RecomputeBounds();
                 }
             }
         }
-
-        public bool m_WaitingRecompute;
 
         public void RecomputeBounds()
         {
@@ -206,17 +164,9 @@ namespace UnityEditor.VFX.UI
 
             visible = true;
             //title width should be at least as wide as a context to be valid.
-            float titleWidth = m_Title.layout.width;
+            VisualElement textElement = m_Title.resolvedStyle.display == DisplayStyle.Flex ? m_Title : m_TitleField;
+            float titleWidth = textElement.layout.width;
             bool shouldDeferRecompute = float.IsNaN(titleWidth) || titleWidth < 50;
-            bool titleEmpty = string.IsNullOrEmpty(m_Title.text) || shouldDeferRecompute;
-            if (titleEmpty)
-            {
-                m_Title.AddToClassList("empty");
-            }
-            else
-            {
-                m_Title.RemoveFromClassList("empty");
-            }
 
             Rect rect = Rect.zero;
 
@@ -226,14 +176,9 @@ namespace UnityEditor.VFX.UI
                 {
                     if (context != null)
                     {
-                        if (rect == Rect.zero)
-                        {
-                            rect = context.localBound;
-                        }
-                        else
-                        {
-                            rect = RectUtils.Encompass(rect, context.GetPosition());
-                        }
+                        rect = rect == Rect.zero
+                            ? context.localBound
+                            : RectUtils.Encompass(rect, context.GetPosition());
                     }
                 }
             }
@@ -243,7 +188,7 @@ namespace UnityEditor.VFX.UI
                 rect = Rect.zero;
             }
 
-            rect = RectUtils.Inflate(rect, 20, titleEmpty ? 20 : m_Title.layout.height, 20, 20);
+            rect = RectUtils.Inflate(rect, 20, Mathf.Max(20, textElement.layout.height), 20, 20);
             if (shouldDeferRecompute)
             {
                 SetPosition(rect);
@@ -262,10 +207,7 @@ namespace UnityEditor.VFX.UI
         VFXContextUI[] m_Contexts;
         internal VFXContextUI[] contexts
         {
-            get
-            {
-                return m_Contexts;
-            }
+            get => m_Contexts;
             private set
             {
                 if (m_Contexts != null)
@@ -303,7 +245,7 @@ namespace UnityEditor.VFX.UI
                     for (int iy = 0; iy < 4; ++iy)
                     {
                         vertices[ix + iy * 4] = new Vector3(ix < 2 ? -1 : 1, iy < 2 ? -1 : 1, 0);
-                        uvsBorder[ix + iy * 4] = new Vector2(ix == 0 || ix == 3 ? 1 : 0, iy == 0 || iy == 3 ? 1 : 0);
+                        uvsBorder[ix + iy * 4] = new Vector2(ix is 0 or 3 ? 1 : 0, iy is 0 or 3 ? 1 : 0);
                         uvsDistance[ix + iy * 4] = new Vector2(iy < 2 ? ix / 2 : 2 - ix / 2, iy < 2 ? 0 : 1);
                     }
                 }
@@ -373,38 +315,22 @@ namespace UnityEditor.VFX.UI
         Color m_StartColor;
         public Color startColor
         {
-            get
-            {
-                return m_StartColor;
-            }
-            set
-            {
-                m_StartColor = value;
-            }
+            get => m_StartColor;
+            set => m_StartColor = value;
         }
+
         Color m_EndColor;
         public Color endColor
         {
-            get
-            {
-                return m_EndColor;
-            }
-            set
-            {
-                m_EndColor = value;
-            }
+            get => m_EndColor;
+            set => m_EndColor = value;
         }
+
         Color m_MiddleColor;
         public Color middleColor
         {
-            get
-            {
-                return m_MiddleColor;
-            }
-            set
-            {
-                m_MiddleColor = value;
-            }
+            get => m_MiddleColor;
+            set => m_MiddleColor = value;
         }
 
         static readonly CustomStyleProperty<Color> s_StartColorProperty = new CustomStyleProperty<Color>("--start-color");
@@ -419,24 +345,16 @@ namespace UnityEditor.VFX.UI
         }
 
         VFXSystemController m_Controller;
-        Controller IControlledElement.controller
-        {
-            get { return m_Controller; }
-        }
+        Controller IControlledElement.controller => m_Controller;
+
         public VFXSystemController controller
         {
-            get { return m_Controller; }
+            get => m_Controller;
             set
             {
-                if (m_Controller != null)
-                {
-                    m_Controller.UnregisterHandler(this);
-                }
+                m_Controller?.UnregisterHandler(this);
                 m_Controller = value;
-                if (m_Controller != null)
-                {
-                    m_Controller.RegisterHandler(this);
-                }
+                m_Controller?.RegisterHandler(this);
             }
         }
 

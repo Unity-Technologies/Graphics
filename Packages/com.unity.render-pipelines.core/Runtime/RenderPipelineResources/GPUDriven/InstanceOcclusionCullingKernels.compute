@@ -1,16 +1,14 @@
-#pragma exclude_renderers gles
-
 #pragma kernel ResetDrawArgs
 #pragma kernel CopyInstances
 #pragma kernel CullInstances
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/InstanceOcclusionCuller.cs.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/InstanceOcclusionCullerShaderVariables.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/Culling/InstanceOcclusionCuller.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/Culling/InstanceOcclusionCullerShaderVariables.cs.hlsl"
 
 #pragma multi_compile _ USE_ARRAY
 #pragma multi_compile _ OCCLUSION_DEBUG
-#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/OcclusionCullingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/Culling/OcclusionCullingCommon.hlsl"
 
 #pragma multi_compile _ OCCLUSION_FIRST_PASS OCCLUSION_SECOND_PASS
 

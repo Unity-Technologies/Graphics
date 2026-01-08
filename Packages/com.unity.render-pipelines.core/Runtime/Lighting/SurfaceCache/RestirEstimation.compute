@@ -12,7 +12,6 @@ StructuredBuffer<Realization> _PatchRealizations;
 StructuredBuffer<PatchUtil::PatchGeometry> _PatchGeometries;
 RWStructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances;
 RWStructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
-RWStructuredBuffer<PatchUtil::PatchCounterSet> _PatchCounterSets;
 
 uint _RingConfigOffset;
 float _ShortHysteresis;
@@ -44,6 +43,6 @@ void Estimate(uint patchIdx : SV_DispatchThreadID)
         estimate.l1s[1] = realization.sample.radiance * SphericalHarmonics::y1Constant * rayDirection.z;
         estimate.l1s[2] = realization.sample.radiance * SphericalHarmonics::y1Constant * rayDirection.x;
         SphericalHarmonics::MulMut(estimate, realization.weight);
-        ProcessAndStoreRadianceSample(_PatchIrradiances, _PatchStatistics, _PatchCounterSets, patchIdx, estimate, _ShortHysteresis);
+        ProcessAndStoreRadianceSample(_PatchIrradiances, _PatchStatistics, patchIdx, estimate, _ShortHysteresis);
     }
 }

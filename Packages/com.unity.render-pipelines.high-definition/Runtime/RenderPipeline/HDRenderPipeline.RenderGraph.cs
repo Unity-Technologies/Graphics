@@ -1788,7 +1788,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderProbeVolumeDebug(renderGraph, hdCamera, prepassOutput.depthPyramidTexture, normalBuffer);
 
             // Render the software line raster path.
-            RenderLines(m_RenderGraph, prepassOutput.depthPyramidTexture, hdCamera, lightLists);
+            RenderLines(m_RenderGraph, prepassOutput.depthPyramidTexture, hdCamera, transparentPrepass, lightLists);
 
             // Immediately compose the lines if the user wants lines in the color pyramid (refraction), but with poor TAA ghosting.
             ComposeLines(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.motionVectorsBuffer, (int)LineRendering.CompositionMode.BeforeColorPyramid);

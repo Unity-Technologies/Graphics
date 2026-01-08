@@ -1,36 +1,30 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using UnityEditor.LightBaking;
 
 namespace UnityEngine.Rendering
 {
     partial class AdaptiveProbeVolumes
     {
         // This class is used to (1) access the internal class UnityEditor.LightBaking.BakePipelineDriver and (2) provide a slightly higher level API.
-        private sealed class BakePipelineDriver : IDisposable
+        sealed class BakePipelineDriver : IDisposable
         {
-            // Keep in sync with the enum BakePipeline::Run::StageName
-            public enum StageName : int
-            {
-                Initialized,
-                Preprocess,
-                Bake,
-                PostProcess,
-                AdditionalBake,
-                Done
-            }
-
-            private readonly object _bakePipelineDriver;
-            private readonly Type _bakePipelineDriverType;
+            readonly object m_BakePipelineDriver;
+            readonly Type m_BakePipelineDriverType;
+            readonly Type m_StageNameType;
 
             internal BakePipelineDriver()
             {
-                _bakePipelineDriverType = Type.GetType("UnityEditor.LightBaking.BakePipelineDriver, UnityEditor");
-                bool newed = _bakePipelineDriverType != null;
-                Debug.Assert(newed, "Unexpected, could not find the type UnityEditor.LightBaking.BakePipelineDriver");
-                _bakePipelineDriver = newed ? Activator.CreateInstance(_bakePipelineDriverType) : null;
-                Debug.Assert(_bakePipelineDriver != null, "Unexpected, could not new up a BakePipelineDriver");
+                Debug.Assert(UnityEditorInternal.InternalEditorUtility.CurrentThreadIsMainThread());
+
+                m_BakePipelineDriverType = Type.GetType("UnityEditor.LightBaking.BakePipelineDriver, UnityEditor");
+                Debug.Assert(m_BakePipelineDriverType != null, "Unexpected, could not find the type UnityEditor.LightBaking.BakePipelineDriver");
+                m_StageNameType = m_BakePipelineDriverType.GetNestedType("StageName", BindingFlags.NonPublic | BindingFlags.Public);
+                Debug.Assert(m_StageNameType is { IsEnum: true }, "Unexpected, could not find the nested enum StageName on BakePipelineDriver");
+                Debug.Assert(IsStageNameEnumConsistent(m_StageNameType), "Unexpected, StageName enum is not consistent with BakePipelineDriver.StageName enum");
+                m_BakePipelineDriver = Activator.CreateInstance(m_BakePipelineDriverType, nonPublic: true);
+                Debug.Assert(m_BakePipelineDriver != null, "Unexpected, could not new up a BakePipelineDriver");
             }
 
             internal void StartBake(bool enablePatching, ref float progress, ref StageName stage)
@@ -51,36 +45,78 @@ namespace UnityEngine.Rendering
             internal void Step(ref float progress, ref StageName stage) =>
                 Update(true, true, true, out progress, out stage);
 
-            private void SetEnableBakedLightmaps(bool enable) =>
+            void SetEnableBakedLightmaps(bool enable) =>
                 InvokeMethod(new object[] { enable }, out _);
 
-            private void SetEnablePatching(bool enable) =>
+            void SetEnablePatching(bool enable) =>
                 InvokeMethod(new object[] { enable }, out _);
 
-            private void Update(bool isOnDemandBakeInProgress, bool isOnDemandBakeAsync, bool shouldBeRunning,
+            void Update(bool isOnDemandBakeInProgress, bool isOnDemandBakeAsync, bool shouldBeRunning,
                 out float progress, out StageName stage)
             {
-                object[] parameters = { isOnDemandBakeInProgress, isOnDemandBakeAsync, shouldBeRunning, -1.0f, -1 };
+                progress = -1.0f;
+                stage = StageName.Invalid;
+                object[] parameters = { isOnDemandBakeInProgress, isOnDemandBakeAsync, shouldBeRunning, progress,
+                    Enum.ToObject(m_StageNameType, (int)stage) };
                 InvokeMethod(parameters, out _);
                 progress = (float)parameters[3];
-                stage = (StageName)parameters[4];
+                stage = (StageName)Convert.ToInt32(parameters[4]);
             }
 
             public void Dispose() =>
                 InvokeMethod(new object[] { }, out _);
 
-            private bool InvokeMethod(object[] parameters, out object result, [CallerMemberName] string methodName = "")
+            bool InvokeMethod(object[] parameters, out object result, [CallerMemberName] string methodName = "")
             {
-                MethodInfo methodInfo = _bakePipelineDriverType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                MethodInfo methodInfo = m_BakePipelineDriverType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
                 bool gotMethod = methodInfo != null;
                 Debug.Assert(gotMethod, $"Unexpected, could not find {methodName} on BakePipelineDriver");
-                if (!gotMethod)
-                {
-                    result = null;
-                    return false;
-                }
 
-                result = methodInfo.Invoke(_bakePipelineDriver, parameters);
+                result = methodInfo.Invoke(m_BakePipelineDriver, parameters);
+
+                return true;
+            }
+
+            // Keep this in sync with the enum in Editor\Src\GI\BakePipeline\BakePipeline.bindings.h
+            public enum StageName
+            {
+                Invalid = -1,
+                Initialized = 0,
+                Preprocess = 1,
+                PreprocessProbes = 2,
+                Bake = 3,
+                PostProcess = 4,
+                AdditionalBake = 5,
+                Done = 6
+            }
+
+            // If StageName is not kept in sync, this should return false
+            static bool IsStageNameEnumConsistent(Type otherType)
+            {
+                string[] ourNames = Enum.GetNames(typeof(StageName));
+                string[] otherNames = Enum.GetNames(otherType);
+
+                if (ourNames.Length != otherNames.Length)
+                    return false;
+
+                Array ourValues = Enum.GetValues(typeof(StageName));
+                Array otherValues = Enum.GetValues(otherType);
+
+                // Brute-force compare each local name against the external by lookup
+                for (int i = 0; i < ourNames.Length; i++)
+                {
+                    string name = ourNames[i];
+
+                    int otherIndex = Array.IndexOf(otherNames, name);
+                    if (otherIndex < 0)
+                        return false;
+
+                    int ourVal = Convert.ToInt32(ourValues.GetValue(i));
+                    int otherVal = Convert.ToInt32(otherValues.GetValue(otherIndex));
+
+                    if (ourVal != otherVal)
+                        return false;
+                }
 
                 return true;
             }

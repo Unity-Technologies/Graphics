@@ -213,7 +213,7 @@
 }
 
 .blackboardCategory > .mainContainer > #categoryHeader > #categoryTitleLabel {
-    color: #606060;
+    color: #A0A0A0;
     font-size: 11px;
 }
 

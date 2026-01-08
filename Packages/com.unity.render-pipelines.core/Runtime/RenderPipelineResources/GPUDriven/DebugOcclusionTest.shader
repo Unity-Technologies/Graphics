@@ -22,9 +22,9 @@ Shader "Hidden/Core/DebugOcclusionTest"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
-            #include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/InstanceOcclusionCuller.cs.hlsl"
-            #include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/OcclusionCullingDebugShaderVariables.cs.hlsl"
-            #include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/OcclusionCullingCommon.cs.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/Culling/InstanceOcclusionCuller.cs.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/Culling/OcclusionCullingDebugShaderVariables.cs.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/Culling/OcclusionCullingCommon.cs.hlsl"
 
             StructuredBuffer<uint> _OcclusionDebugOverlay;
 

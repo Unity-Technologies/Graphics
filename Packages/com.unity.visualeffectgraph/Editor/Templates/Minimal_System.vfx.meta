@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: b7261d938a155b74cb61a60a16d9f2aa
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  template:
+    name: Minimal System
+    category: Built-in
+    description: 'A simple system with pre-wired contexts: spawn, initialize, update,
+      and output. It is helpful to speed up VFX creation while starting with a minimal
+      setup.'
+    icon: {fileID: 2800000, guid: cfaffeb6eec377d43902caf7b0b9c935, type: 3}
+    thumbnail: {fileID: 2800000, guid: 6e3e22332cef02447956ecfdf9352294, type: 3}
+    order: 0
+  useAsTemplate: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

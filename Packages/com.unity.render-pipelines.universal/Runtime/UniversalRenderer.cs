@@ -200,6 +200,7 @@ namespace UnityEngine.Rendering.Universal
         internal LayerMask opaqueLayerMask { get; set; }
         internal LayerMask transparentLayerMask { get; set; }
         internal bool shadowTransparentReceive { get; set; }
+        internal bool onTileValidation { get; set; }
 
         internal GraphicsFormat cameraDepthTextureFormat { get => (m_CameraDepthTextureFormat != DepthFormat.Default) ? (GraphicsFormat)m_CameraDepthTextureFormat : CoreUtils.GetDefaultDepthStencilFormat(); }
         internal GraphicsFormat cameraDepthAttachmentFormat { get => (m_CameraDepthAttachmentFormat != DepthFormat.Default) ? (GraphicsFormat)m_CameraDepthAttachmentFormat : CoreUtils.GetDefaultDepthStencilFormat(); }
@@ -255,6 +256,8 @@ namespace UnityEngine.Rendering.Universal
             opaqueLayerMask = data.opaqueLayerMask;
             transparentLayerMask = data.transparentLayerMask;
             shadowTransparentReceive = data.shadowTransparentReceive;
+
+            onTileValidation = data.onTileValidation;
 
             var asset = UniversalRenderPipeline.asset;
             if (asset != null && asset.supportsLightCookies)
@@ -385,10 +388,12 @@ namespace UnityEngine.Rendering.Universal
 
             supportedRenderingFeatures = new RenderingFeatures();
 
-            if (renderingModeRequested == RenderingMode.Deferred || renderingModeRequested == RenderingMode.DeferredPlus)
+            if (renderingModeRequested is RenderingMode.Deferred or RenderingMode.DeferredPlus)
             {
                 // Deferred rendering does not support MSAA.
-                this.supportedRenderingFeatures.msaa = false;
+                // if On-Tile Validation is enabled, Deferred(+) will fallback to Forward(+). Thus we must not fix msaa value in this case.
+                if (!onTileValidation)
+                    supportedRenderingFeatures.msaa = false;
             }
 
             LensFlareCommonSRP.mergeNeeded = 0;
@@ -648,7 +653,7 @@ namespace UnityEngine.Rendering.Universal
                         break;
                     case CopyDepthMode.AfterOpaques:
                         earliestDepth = RenderPassEvent.AfterRenderingOpaques;
-                        break;                    
+                        break;
                 }
 
                 inputSummary.requiresDepthTextureEarliestEvent = (RenderPassEvent)Mathf.Min((int)earliestDepth, (int)inputSummary.requiresDepthTextureEarliestEvent);
@@ -668,7 +673,7 @@ namespace UnityEngine.Rendering.Universal
                     inputSummary.requiresDepthTexture = true;
                     inputSummary.requiresDepthTextureEarliestEvent = (RenderPassEvent)Mathf.Min( (int)RenderPassEvent.BeforeRenderingPostProcessing, (int)inputSummary.requiresDepthTextureEarliestEvent);
                 }
-                    
+
             }
 
             // Motion vectors imply depth

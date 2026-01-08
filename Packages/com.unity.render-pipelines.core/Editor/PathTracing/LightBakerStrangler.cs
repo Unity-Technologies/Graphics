@@ -126,34 +126,6 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             Cancelled
         };
 
-        // Mirrors native side LightProbeOcclusion struct
-        [StructLayout(LayoutKind.Sequential)]
-        public unsafe struct LightProbeOcclusion
-        {
-            public const int MaxLightsPerProbe = 4;
-
-            public fixed int ProbeOcclusionLightIndex[MaxLightsPerProbe];
-            public fixed float Occlusion[MaxLightsPerProbe];
-            public fixed sbyte OcclusionMaskChannel[MaxLightsPerProbe];
-
-            public int GetProbeOcclusionLightIndex(int index) => ProbeOcclusionLightIndex[index];
-            public void SetProbeOcclusionLightIndex(int index, int value) => ProbeOcclusionLightIndex[index] = value;
-            public float GetOcclusion(int index) => Occlusion[index];
-            public void SetOcclusion(int index, float value) => Occlusion[index] = value;
-            public sbyte GetOcclusionMaskChannel(int index) => OcclusionMaskChannel[index];
-            public void SetOcclusionMaskChannel(int index, sbyte value) => OcclusionMaskChannel[index] = value;
-
-            public void SetDefaultValues()
-            {
-                for (int i = 0; i < MaxLightsPerProbe; ++i)
-                {
-                    ProbeOcclusionLightIndex[i] = -1;
-                    Occlusion[i] = 0.0f;
-                    OcclusionMaskChannel[i] = -1;
-                }
-            }
-        }
-
         // File layout matches WriteInterleavedSHArrayToFile.
         private static bool SaveProbesToFileInterleaved(string filename, NativeArray<SphericalHarmonicsL2> shArray)
         {
@@ -460,13 +432,13 @@ namespace UnityEditor.PathTracing.LightBakerBridge
         {
             ulong workSteps = 0;
             if (outputTypeMask.HasFlag(ProbeRequestOutputType.RadianceIndirect))
-                workSteps += ProbeIntegrator.CalculateWorkSteps((uint)count, effectiveIndirectSampleCount, bounceCount);
+                workSteps += ProbeIntegrator.CalculateWorkSteps(count, effectiveIndirectSampleCount, bounceCount);
             if (outputTypeMask.HasFlag(ProbeRequestOutputType.RadianceDirect))
-                workSteps += ProbeIntegrator.CalculateWorkSteps((uint)count, directSampleCount, 0);
+                workSteps += ProbeIntegrator.CalculateWorkSteps(count, directSampleCount, 0);
             if (outputTypeMask.HasFlag(ProbeRequestOutputType.Validity))
-                workSteps += ProbeIntegrator.CalculateWorkSteps((uint)count, effectiveIndirectSampleCount, 0);
+                workSteps += ProbeIntegrator.CalculateWorkSteps(count, effectiveIndirectSampleCount, 0);
             if (outputTypeMask.HasFlag(ProbeRequestOutputType.LightProbeOcclusion) && usesProbeOcclusion)
-                workSteps += ProbeIntegrator.CalculateWorkSteps((uint)count, effectiveIndirectSampleCount, 0);
+                workSteps += ProbeIntegrator.CalculateWorkSteps(count, effectiveIndirectSampleCount, 0);
 
             return workSteps;
         }

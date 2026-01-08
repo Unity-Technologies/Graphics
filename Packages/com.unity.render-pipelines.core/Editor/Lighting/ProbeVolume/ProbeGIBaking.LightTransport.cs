@@ -4,13 +4,13 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
 using UnityEditor;
-
 using UnityEngine.LightTransport;
 using UnityEngine.LightTransport.PostProcessing;
 using UnityEditor.PathTracing.LightBakerBridge;
 using UnityEngine.PathTracing.Core;
 using UnityEngine.PathTracing.Integration;
 using UnityEngine.PathTracing.PostProcessing;
+using UnityEditor.LightBaking;
 using UnityEngine.Rendering.Sampling;
 using UnityEngine.Rendering.UnifiedRayTracing;
 using UnityEngine.SceneManagement;
@@ -72,28 +72,23 @@ namespace UnityEngine.Rendering
 
         class DefaultLightTransport : LightingBaker
         {
-#if UNIFIED_BAKER
-            public override bool isThreadSafe => false; // Unified backend is not thread safe until we backport the Async APV PR.
-#else
-            public override bool isThreadSafe => true; // Can be run on a worker thread as it uses RadeonRays + OpenCL which is thread safe.
-#endif
+            public override bool isThreadSafe => false; // The Unified backend is not thread safe; the bake pipeline driver must be run on the main thread for VO baking.
 
-            int bakedProbeCount;
-            NativeArray<Vector3> positions;
-            InputExtraction.BakeInput input;
-            bool bakeProbeOcclusion;
-
-            public BakeJob[] jobs;
+            public BakeType bakeType { get; set; }
+            private BakePipelineDriver bakePipelineDriver;
 
             // Outputs
-            public NativeArray<SphericalHarmonicsL2> irradianceResults;
-            public NativeArray<float> validityResults;
-            public NativeArray<Vector4> occlusionResults;
-            // Baked in a other job, but used in this one if available when fixing seams
-            private NativeArray<uint> renderingLayerMasks;
+            private NativeArray<SphericalHarmonicsL2> irradianceResults;
+            private NativeArray<float> validityResults;
+            private NativeArray<Vector4> occlusionResults;
+            private NativeArray<uint> renderingLayerMasks; // Baked in a other job, but used in this one if available when fixing seams
 
-            public override ulong currentStep => (ulong)bakedProbeCount;
-            public override ulong stepCount => (ulong)positions.Length;
+            private bool isDone;
+            private long probeCount;
+            private ulong step;
+            public override ulong currentStep => isDone ? stepCount : Math.Min(step, inProgressMaxStepCount);
+            private ulong inProgressMaxStepCount => stepCount == 0 ? 0 : stepCount - 1;
+            public override ulong stepCount => (ulong)probeCount;
 
             public override NativeArray<SphericalHarmonicsL2> irradiance => irradianceResults;
             public override NativeArray<float> validity => validityResults;
@@ -101,21 +96,14 @@ namespace UnityEngine.Rendering
 
             public override void Initialize(bool bakeProbeOcclusion, NativeArray<Vector3> probePositions)
             {
-                if (!InputExtraction.ExtractFromScene(out input, true))
-                {
-                    Debug.LogError("InputExtraction.ExtractFromScene failed.");
-                    return;
-                }
-
-                bakedProbeCount = 0;
-                positions = probePositions;
-
-                irradianceResults = new NativeArray<SphericalHarmonicsL2>(positions.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-                validityResults = new NativeArray<float>(positions.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-
-                this.bakeProbeOcclusion = bakeProbeOcclusion;
+                bakeType = BakeType.Full;
+                isDone = false;
+                step = 0;
+                probeCount = probePositions.Length;
+                irradianceResults = new NativeArray<SphericalHarmonicsL2>(probePositions.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+                validityResults = new NativeArray<float>(probePositions.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
                 if (bakeProbeOcclusion)
-                    occlusionResults = new NativeArray<Vector4>(positions.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+                    occlusionResults = new NativeArray<Vector4>(probePositions.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             }
 
             public override void Initialize(bool bakeProbeOcclusion, NativeArray<Vector3> probePositions, NativeArray<uint> bakedRenderingLayerMasks)
@@ -132,47 +120,77 @@ namespace UnityEngine.Rendering
 
             public override bool Step()
             {
-                if (input == null)
-                    return false;
-                //RayTracingContext raytracingContext = null;
-
-#if UNIFIED_BAKER
-                RayTracingBackend backend = RayTracingContext.IsBackendSupported(RayTracingBackend.Hardware) ? RayTracingBackend.Hardware : RayTracingBackend.Compute;
-                RayTracingResources rayTracingResources = new RayTracingResources();
-                rayTracingResources.Load();
-                RayTracingContext raytracingContext = new RayTracingContext(backend, rayTracingResources);
-                BakeContext bakeContext = BakeContext.CreateUnityComputeContext(input, raytracingContext, out var creationSucceeded);
-#else
-                BakeContext bakeContext = BakeContext.CreateRadeonRaysContext(input, out var creationSucceeded);
-#endif
-
-                try
+                // If we are baking APV only, kick off the bake pipeline if we have not done it already.
+                bool apvOnly = bakeType is BakeType.ApvOnly or BakeType.AdditionalApvOnly;
+                if (apvOnly)
                 {
-                    if (!creationSucceeded)
-                        return false;
+                    float progress = 0;
+                    BakePipelineDriver.StageName stage = default;
 
-                    if (!bakeContext.Init(input, positions, bakeProbeOcclusion))
-                        return false;
-                
-                    for (int i = 0; i < jobs.Length; i++)
+                    if (bakePipelineDriver == null)
                     {
-                        ref var job = ref jobs[i];
-                        if (job.probeCount != 0)
-                        {
-                            if (!bakeContext.Bake(job, ref irradianceResults, ref validityResults, ref occlusionResults))
-                                return false;
+                        Debug.Assert(UnityEditorInternal.InternalEditorUtility.CurrentThreadIsMainThread());
 
-                            bakedProbeCount += job.probeCount;
-                        }
+                        bakePipelineDriver = new BakePipelineDriver();
+
+                        bakePipelineDriver.StartBake(
+                        bakeType == BakeType.ApvOnly, // We need patching for ApvOnly, not for AdditionalApvOnly.
+                        ref progress, ref stage);
+                    }
+
+                    // For a full bake, we are called after the bake pipeline driver has finished.
+                    // For an APV only bake,we need to repeatedly call the pipeline driver until finished.
+                    if (bakePipelineDriver.RunInProgress())
+                    {
+                        bakePipelineDriver.Step(ref progress, ref stage);
+                        // Update the step count based on the progress, the step count 0 - number of probes.
+                        // For APV only the stepcount is used to report progress.
+                        if (stage == BakePipelineDriver.StageName.Bake)
+                            step = (ulong)(Math.Clamp(progress, 0.0f, 1.0f) * probeCount);
+                        return true;
                     }
                 }
-                finally
+
+                // At this point, the baked data exists on disk. Either the regular LightBaker process wrote it,
+                // or our local BakePipeline wrote it, in case of APV-only bake.
                 {
-                    bakeContext.Dispose();
-#if UNIFIED_BAKER
-                    raytracingContext?.Dispose();
-#endif
+                    using NativeArray<byte> shBytes = new(System.IO.File.ReadAllBytes(System.IO.Path.Combine(APVLightBakerPostProcessingOutputFolder, "irradiance.shl2")), Allocator.TempJob);
+                    using NativeArray<SphericalHarmonicsL2> shData = shBytes.GetSubArray(sizeof(ulong), shBytes.Length - sizeof(ulong)).Reinterpret<SphericalHarmonicsL2>(sizeof(byte));
+                    irradiance.CopyFrom(shData);
                 }
+                {
+                    using NativeArray<byte> validityBytes = new(System.IO.File.ReadAllBytes(System.IO.Path.Combine(APVLightBakerOutputFolder, "validity0.float")), Allocator.TempJob);
+                    using NativeArray<float> validityData = validityBytes.GetSubArray(sizeof(ulong), validityBytes.Length - sizeof(ulong)).Reinterpret<float>(sizeof(byte));
+                    validity.CopyFrom(validityData);
+                }
+                if (occlusionResults.IsCreated)
+                {
+                    // Read LightProbeOcclusion structs from disk
+                    using NativeArray<byte> occlusionBytes = new(System.IO.File.ReadAllBytes(System.IO.Path.Combine(APVLightBakerPostProcessingOutputFolder, "occlusion.occ")), Allocator.TempJob);
+                    using NativeArray<LightProbeOcclusion> occlusionData = occlusionBytes.GetSubArray(sizeof(ulong), occlusionBytes.Length - sizeof(ulong)).Reinterpret<LightProbeOcclusion>(sizeof(byte));
+
+                    // Create swizzled occlusion buffer which is indexed by shadowmask channel. This the format expected by shader code.
+                    NativeArray<Vector4> swizzledOcclusion = new NativeArray<Vector4>(occlusionData.Length, Allocator.TempJob);
+                    for (int probeIdx = 0; probeIdx < occlusionData.Length; probeIdx++)
+                    {
+                        LightProbeOcclusion occlusion = occlusionData[probeIdx];
+                        Vector4 swizzled = Vector4.zero;
+                        for (int lightIdx = 0; lightIdx < 4; lightIdx++)
+                        {
+                            if (occlusionData[probeIdx].GetOcclusionMaskChannel(lightIdx, out sbyte shadowmaskIdx) && shadowmaskIdx >= 0)
+                            {
+                                occlusion.GetOcclusion(lightIdx, out float occlusionFactor);
+                                swizzled[shadowmaskIdx] = occlusionFactor;
+                            }
+                        }
+
+                        swizzledOcclusion[probeIdx] = swizzled;
+                    }
+                    occlusion.CopyFrom(swizzledOcclusion);
+                    swizzledOcclusion.Dispose();
+                }
+
+                isDone = true;
 
                 return true;
             }
@@ -181,13 +199,15 @@ namespace UnityEngine.Rendering
             {
                 irradianceResults.Dispose();
                 validityResults.Dispose();
-                if (bakeProbeOcclusion)
+                if (occlusionResults.IsCreated)
                     occlusionResults.Dispose();
                 renderingLayerMasks.Dispose();
+
+                bakePipelineDriver?.Dispose();
             }
         }
 
-        struct BakeJob
+        private struct BakeJob : IDisposable
         {
             public Bounds aabb;
             public ProbeReferenceVolume.Volume obb;
@@ -266,397 +286,6 @@ namespace UnityEngine.Rendering
             public void Dispose()
             {
                 progress.Dispose();
-            }
-        }
-
-        struct BakeContext: IDisposable
-        {
-            internal class LightTransportBakingProfiling : BakingProfiling<LightTransportBakingProfiling.Stages>, IDisposable
-            {
-                //protected override string LogFile => "BakeGI";
-                protected override bool ShowProgressBar => false;
-
-                public enum Stages
-                {
-                    BakeGI,
-                    IntegrateDirectRadiance,
-                    IntegrateIndirectRadiance,
-                    IntegrateValidity,
-                    IntegrateOcclusion,
-                    Postprocess,
-                    ReadBack,
-                    None
-                }
-
-                static Stages currentStage = Stages.None;
-                public LightTransportBakingProfiling(Stages stage) : base(stage, ref currentStage) { }
-                public override Stages GetLastStep() => Stages.None;
-                public static void GetProgressRange(out float progress0, out float progress1) { float s = 1 / (float)Stages.None; progress0 = (float)currentStage * s; progress1 = progress0 + s; }
-                public void Dispose() { OnDispose(ref currentStage); }
-            }
-
-            public IDeviceContext deviceContext;
-            public IProbeIntegrator integrator;
-            public IWorld world;
-            public IProbePostProcessor postProcessor;
-
-            public BufferID positionsBufferID;
-            public BufferID directRadianceBufferId;
-            public BufferID indirectRadianceBufferId;
-            public BufferID validityBufferId;
-            public BufferID perProbeLightIndicesId;
-            public BufferID occlusionBufferId;
-
-            public BufferID windowedDirectSHBufferId;
-            public BufferID boostedIndirectSHBufferId;
-            public BufferID combinedSHBufferId;
-            public BufferID irradianceBufferId;
-
-            private bool allocatedBuffers;
-
-            const float k_PushOffset = 0.0001f;
-            const int k_MaxProbeCountPerBatch = 128 * 1024;
-
-            const int maxOcclusionLightsPerProbe = 4;
-            static readonly int sizeOfFloat = 4;
-            static readonly int SHL2RGBElements = 3 * 9;
-            static readonly int sizeSHL2RGB = sizeOfFloat * SHL2RGBElements;
-
-            int[] perProbeShadowmaskIndices;
-            bool bakeProbeOcclusion;
-
-            SamplingResources samplingResources;
-
-            public bool Init(InputExtraction.BakeInput input, NativeArray<Vector3> probePositions, bool doBakeProbeOcclusion)
-            {
-                if (!postProcessor.Initialize(deviceContext))
-                {
-                    Debug.LogError("Failed to initialize postprocessor.");
-                    return false;
-                }
-
-                bakeProbeOcclusion = doBakeProbeOcclusion;
-                CreateBuffers(probePositions.Length);
-
-                // Upload probe positions
-                var positionsSlice = new BufferSlice<Vector3>(positionsBufferID, 0);
-                var positionWriteEvent = deviceContext.CreateEvent();
-                deviceContext.WriteBuffer(positionsSlice, probePositions, positionWriteEvent);
-
-                if (bakeProbeOcclusion)
-                {
-                    // Upload per probe light indices
-                    int[] perProbeLightIndicesArray = InputExtraction.ComputeOcclusionLightIndicesFromBakeInput(input, probePositions.ToArray(), (uint)maxOcclusionLightsPerProbe);
-                    using var perProbeLightIndices = new NativeArray<int>(perProbeLightIndicesArray, Allocator.TempJob);
-                    var perProbeLightIndicesSlice = new BufferSlice<int>(perProbeLightIndicesId, 0);
-                    var perProbeLightIndicesWriteEvent = deviceContext.CreateEvent();
-                    deviceContext.WriteBuffer(perProbeLightIndicesSlice, perProbeLightIndices, perProbeLightIndicesWriteEvent);
-                    deviceContext.Wait(perProbeLightIndicesWriteEvent);
-                    deviceContext.DestroyEvent(perProbeLightIndicesWriteEvent);
-
-                    // Store per-probe shadowmask indices. They will be used to swizzle the occlusion buffer.
-                    perProbeShadowmaskIndices = InputExtraction.GetShadowmaskChannelsFromLightIndices(input, perProbeLightIndicesArray);
-                }
-
-                // Wait for writes to finish
-                deviceContext.Wait(positionWriteEvent);
-                deviceContext.DestroyEvent(positionWriteEvent);
-
-                return true;
-            }
-
-            public static BakeContext CreateUnityComputeContext(InputExtraction.BakeInput input, RayTracingContext rayTracingContext, out bool creationSucceeded)
-            {
-                creationSucceeded = true;
-
-                var probePostProcessingShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/ProbePostProcessing.compute");
-                var probeOcclusionLightIndexMappingShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/ProbeOcclusionLightIndexMapping.compute");
-                var autoEstimateLUTRange = true;
-
-                var bakeContext = new BakeContext();
-
-                var ucDevCtx = new UnityComputeDeviceContext();
-                bakeContext.deviceContext = ucDevCtx;
-
-                // setup world
-                var ucWorld = new UnityComputeWorld();
-                bakeContext.world = ucWorld;
-                var worldResources = new WorldResourceSet();
-                worldResources.LoadFromAssetDatabase();
-
-                // Create and init world
-                ucWorld.Init(rayTracingContext, worldResources);
-
-                bakeContext.postProcessor = new UnityComputeProbePostProcessor(probePostProcessingShader);
-
-                bakeContext.samplingResources = new SamplingResources();
-                bakeContext.samplingResources.Load((uint)SamplingResources.ResourceType.All);
-
-                ProbeIntegratorResources integrationResources = new();
-                integrationResources.Load(rayTracingContext);
-
-                bakeContext.integrator = new UnityComputeProbeIntegrator(true, bakeContext.samplingResources, integrationResources, probeOcclusionLightIndexMappingShader);
-
-                if (!bakeContext.deviceContext.Initialize())
-                {
-                    Debug.LogError("Failed to initialize context.");
-                    creationSucceeded = false;
-                    return bakeContext;
-                }
-
-                using var inputProgress = new BakeProgressState();
-                // Deserialize BakeInput, inject data into world
-                BakeInputToWorldConversion.PopulateWorld(input, ucWorld, bakeContext.samplingResources, ucDevCtx.GetCommandBuffer(), autoEstimateLUTRange);
-
-                return bakeContext;
-            }
-
-            public static BakeContext CreateRadeonRaysContext(InputExtraction.BakeInput input, out bool creationSucceeded)
-            {
-                creationSucceeded = true;
-                var bakeContext = new BakeContext
-                {
-                    deviceContext = new RadeonRaysContext(),
-                    integrator = new RadeonRaysProbeIntegrator(),
-                    world = new RadeonRaysWorld(),
-                    postProcessor = new RadeonRaysProbePostProcessor(),
-                };
-
-                if (!bakeContext.deviceContext.Initialize())
-                {
-                    creationSucceeded = false;
-                    Debug.LogError("Failed to initialize context.");
-                    return bakeContext;
-                }
-
-                using var inputProgress = new BakeProgressState();
-                if (!InputExtraction.PopulateWorld(input, inputProgress, bakeContext.deviceContext, bakeContext.world))
-                {
-                    creationSucceeded = false;
-                    Debug.LogError("Failed to extract inputs.");
-                    return bakeContext;
-                }
-
-                return bakeContext;
-            }
-
-            private void CreateBuffers(int probeCount)
-            {
-                // Allocate shared position and light index buffer for all jobs
-                positionsBufferID = deviceContext.CreateBuffer((ulong)probeCount, (ulong)(3 * sizeOfFloat));
-
-                int batchSize = Mathf.Min(k_MaxProbeCountPerBatch, probeCount);
-                var shBytes = (ulong)(sizeSHL2RGB * batchSize);
-                var validityBytes = (ulong)(sizeOfFloat * batchSize);
-
-                directRadianceBufferId = deviceContext.CreateBuffer((ulong)(batchSize * SHL2RGBElements), (ulong)sizeOfFloat);
-                indirectRadianceBufferId = deviceContext.CreateBuffer((ulong)(batchSize * SHL2RGBElements), (ulong)sizeOfFloat);
-                validityBufferId = deviceContext.CreateBuffer((ulong)batchSize, (ulong)sizeOfFloat);
-
-                windowedDirectSHBufferId = deviceContext.CreateBuffer((ulong)(batchSize * SHL2RGBElements), (ulong)sizeOfFloat);
-                boostedIndirectSHBufferId = deviceContext.CreateBuffer((ulong)(batchSize * SHL2RGBElements), (ulong)sizeOfFloat);
-                combinedSHBufferId = deviceContext.CreateBuffer((ulong)(batchSize * SHL2RGBElements), (ulong)sizeOfFloat);
-                irradianceBufferId = deviceContext.CreateBuffer((ulong)(batchSize * SHL2RGBElements), (ulong)sizeOfFloat);
-
-                if (bakeProbeOcclusion)
-                {
-                    var lightIndicesBytes = (ulong)(sizeOfFloat * maxOcclusionLightsPerProbe * probeCount);
-                    perProbeLightIndicesId = deviceContext.CreateBuffer((ulong)(maxOcclusionLightsPerProbe * probeCount), (ulong)sizeOfFloat);
-
-                    var occlusionBytes = (ulong)(sizeOfFloat * maxOcclusionLightsPerProbe * batchSize);
-                    occlusionBufferId = deviceContext.CreateBuffer((ulong)(maxOcclusionLightsPerProbe * batchSize), (ulong)sizeOfFloat);
-                }
-                allocatedBuffers = true;
-            }
-
-            public bool Bake(in BakeJob job, ref NativeArray<SphericalHarmonicsL2> irradianceResults, ref NativeArray<float> validityResults, ref NativeArray<Vector4> occlusionResults)
-            {
-                // Divide the job into batches of 128k probes to reduce memory usage.
-                int batchCount = CoreUtils.DivRoundUp(job.probeCount, k_MaxProbeCountPerBatch);
-
-                // Get slices for all buffers because the API require those
-                // All jobs use overlapping slices as they are not run simultaneously
-                var directRadianceSlice = new BufferSlice<SphericalHarmonicsL2>(directRadianceBufferId, 0);
-                var indirectRadianceSlice = new BufferSlice<SphericalHarmonicsL2>(indirectRadianceBufferId, 0);
-                var validitySlice = new BufferSlice<float>(validityBufferId, 0);
-                var occlusionSlice = new BufferSlice<Vector4>(occlusionBufferId, 0);
-                var windowedDirectRadianceSlice = new BufferSlice<SphericalHarmonicsL2>(windowedDirectSHBufferId, 0);
-                var boostedIndirectRadianceSlice = indirectRadianceSlice;
-                var combinedSHSlice = new BufferSlice<SphericalHarmonicsL2>(combinedSHBufferId, 0);
-                var irradianceSlice = new BufferSlice<SphericalHarmonicsL2>(irradianceBufferId, 0);
-
-                // Loop over all batches
-                for (int batchIndex = 0; batchIndex < batchCount; batchIndex++)
-                {
-                    int batchOffset = batchIndex * k_MaxProbeCountPerBatch;
-                    int probeCount = Mathf.Min(job.probeCount - batchOffset, k_MaxProbeCountPerBatch);
-
-                    // Get the correct slice of position and light indices as all jobs share the same array.
-                    var positionsSlice = new BufferSlice<Vector3>(positionsBufferID, (ulong)(job.startOffset + batchOffset));
-                    var perProbeLightIndicesSlice = new BufferSlice<int>(perProbeLightIndicesId, (ulong)(job.startOffset + batchOffset) * maxOcclusionLightsPerProbe);
-
-                    /// Baking
-
-                    // Prepare integrator.
-                    integrator.Prepare(deviceContext, world, positionsSlice, k_PushOffset, job.maxBounces);
-                    integrator.SetProgressReporter(job.progress);
-
-                    // Bake direct radiance
-                    using (new LightTransportBakingProfiling(LightTransportBakingProfiling.Stages.IntegrateDirectRadiance))
-                    {
-                        var integrationResult = integrator.IntegrateDirectRadiance(deviceContext, 0, probeCount, job.directSampleCount, job.ignoreEnvironement, directRadianceSlice);
-                        if (integrationResult.type != IProbeIntegrator.ResultType.Success) return false;
-                        if (LightingBaker.cancel) return true;
-                    }
-
-                    // Bake indirect radiance
-                    using (new LightTransportBakingProfiling(LightTransportBakingProfiling.Stages.IntegrateIndirectRadiance))
-                    {
-                        var integrationResult = integrator.IntegrateIndirectRadiance(deviceContext, 0, probeCount, job.indirectSampleCount, job.ignoreEnvironement, indirectRadianceSlice);
-                        if (integrationResult.type != IProbeIntegrator.ResultType.Success) return false;
-                        if (LightingBaker.cancel) return true;
-                    }
-
-                    // Bake validity
-                    using (new LightTransportBakingProfiling(LightTransportBakingProfiling.Stages.IntegrateValidity))
-                    {
-                        var validityResult = integrator.IntegrateValidity(deviceContext, 0, probeCount, job.validitySampleCount, validitySlice);
-                        if (validityResult.type != IProbeIntegrator.ResultType.Success) return false;
-                        if (LightingBaker.cancel) return true;
-                    }
-
-                    // Bake occlusion
-                    if (bakeProbeOcclusion)
-                    {
-                        using (new LightTransportBakingProfiling(LightTransportBakingProfiling.Stages.IntegrateOcclusion))
-                        {
-                            var occlusionResult = integrator.IntegrateOcclusion(deviceContext, 0, probeCount, job.occlusionSampleCount, (int)maxOcclusionLightsPerProbe, perProbeLightIndicesSlice, occlusionSlice.SafeReinterpret<float>());
-                            if (occlusionResult.type != IProbeIntegrator.ResultType.Success) return false;
-                            if (LightingBaker.cancel) return true;
-                        }
-                    }
-
-                    /// Postprocess
-
-                    using (new LightTransportBakingProfiling(LightTransportBakingProfiling.Stages.Postprocess))
-                    {
-                        // Apply windowing to direct component.
-                        if (!postProcessor.WindowSphericalHarmonicsL2(deviceContext, directRadianceSlice, windowedDirectRadianceSlice, probeCount))
-                            return false;
-
-                        // Apply indirect intensity multiplier to indirect radiance
-                        if (job.indirectScale.Equals(1.0f) == false)
-                        {
-                            boostedIndirectRadianceSlice = new BufferSlice<SphericalHarmonicsL2>(boostedIndirectSHBufferId, 0);
-                            if (!postProcessor.ScaleSphericalHarmonicsL2(deviceContext, indirectRadianceSlice, boostedIndirectRadianceSlice, probeCount, job.indirectScale))
-                                return false;
-                        }
-
-                        // Combine direct and indirect radiance
-                        if (!postProcessor.AddSphericalHarmonicsL2(deviceContext, windowedDirectRadianceSlice, boostedIndirectRadianceSlice, combinedSHSlice, probeCount))
-                            return false;
-
-                        // Convert radiance to irradiance
-                        if (!postProcessor.ConvolveRadianceToIrradiance(deviceContext, combinedSHSlice, irradianceSlice, probeCount))
-                            return false;
-
-                        // Transform to the format expected by the Unity renderer
-                        if (!postProcessor.ConvertToUnityFormat(deviceContext, irradianceSlice, combinedSHSlice, probeCount))
-                            return false;
-
-                        // Apply de-ringing to combined SH
-                        if (!postProcessor.DeringSphericalHarmonicsL2(deviceContext, combinedSHSlice, combinedSHSlice, probeCount))
-                            return false;
-                    }
-
-                    /// Read results
-
-                    var jobIrradianceResults = irradianceResults.GetSubArray(job.startOffset + batchOffset, probeCount);
-                    var jobValidityResults = validityResults.GetSubArray(job.startOffset + batchOffset, probeCount);
-                    var jobOcclusionResults = default(NativeArray<Vector4>);
-                    if (bakeProbeOcclusion)
-                        jobOcclusionResults = occlusionResults.GetSubArray(job.startOffset + batchOffset, probeCount);
-
-                    // Schedule read backs to get results back from GPU memory into CPU memory.
-                    var irradianceReadEvent = deviceContext.CreateEvent();
-                    deviceContext.ReadBuffer(combinedSHSlice, jobIrradianceResults, irradianceReadEvent);
-                    var validityReadEvent = deviceContext.CreateEvent();
-                    deviceContext.ReadBuffer(validitySlice, jobValidityResults, validityReadEvent);
-                    var occlusionReadEvent = default(EventID);
-                    if (bakeProbeOcclusion)
-                    {
-                        occlusionReadEvent = deviceContext.CreateEvent();
-                        deviceContext.ReadBuffer(occlusionSlice, jobOcclusionResults, occlusionReadEvent);
-                    }
-                    if (!deviceContext.Flush()) return false;
-
-                    using (new LightTransportBakingProfiling(LightTransportBakingProfiling.Stages.ReadBack))
-                    {
-                        // Wait for read backs to complete.
-                        bool waitResult = deviceContext.Wait(irradianceReadEvent) && deviceContext.Wait(validityReadEvent) && (!bakeProbeOcclusion || deviceContext.Wait(occlusionReadEvent));
-                        if (!waitResult) return false;
-                    }
-
-                    deviceContext.DestroyEvent(irradianceReadEvent);
-                    deviceContext.DestroyEvent(validityReadEvent);
-
-                    if (bakeProbeOcclusion)
-                    {
-                        deviceContext.DestroyEvent(occlusionReadEvent);
-
-                        // Swizzle occlusion buffer so it is indexed by shadowmask channel.
-                        // This is the format expected by shader code.
-                        int baseProbeIdx = job.startOffset + batchOffset;
-                        for (int probeIdx = 0; probeIdx < probeCount; probeIdx++)
-                        {
-                            Vector4 original = jobOcclusionResults[probeIdx];
-                            Vector4 swizzled = Vector3.zero;
-
-                            for (int lightIdx = 0; lightIdx < maxOcclusionLightsPerProbe; lightIdx++)
-                            {
-                                int shadowmaskIdx = perProbeShadowmaskIndices[(baseProbeIdx + probeIdx) * maxOcclusionLightsPerProbe + lightIdx];
-                                if (shadowmaskIdx >= 0)
-                                {
-                                    swizzled[shadowmaskIdx] = original[lightIdx];
-                                }
-                            }
-
-                            jobOcclusionResults[probeIdx] = swizzled;
-                        }
-                    }
-
-                    if (LightingBaker.cancel)
-                        return true;
-                }
-
-                return true;
-            }
-
-            public void Dispose()
-            {
-                if (allocatedBuffers)
-                {
-                    deviceContext.DestroyBuffer(positionsBufferID);
-                    deviceContext.DestroyBuffer(directRadianceBufferId);
-                    deviceContext.DestroyBuffer(indirectRadianceBufferId);
-                    deviceContext.DestroyBuffer(validityBufferId);
-                    if (bakeProbeOcclusion)
-                    {
-                        deviceContext.DestroyBuffer(occlusionBufferId);
-                        deviceContext.DestroyBuffer(perProbeLightIndicesId);
-                    }
-
-                    deviceContext.DestroyBuffer(windowedDirectSHBufferId);
-                    deviceContext.DestroyBuffer(boostedIndirectSHBufferId);
-                    deviceContext.DestroyBuffer(combinedSHBufferId);
-                    deviceContext.DestroyBuffer(irradianceBufferId);
-                }
-
-                samplingResources?.Dispose();
-                postProcessor.Dispose();
-                world.Dispose();
-                integrator.Dispose();
-                deviceContext.Dispose();
             }
         }
 
@@ -883,41 +512,18 @@ namespace UnityEngine.Rendering
             }
         }
 
-
         // Helper functions to bake a subset of the probes
-
-        internal static void BakeProbes(Vector3[] positionValues, SphericalHarmonicsL2[] shValues, float[] validityValues)
+        private static void BakeAdditionalProbes(out SphericalHarmonicsL2[] shValues,
+            out float[] validityValues)
         {
-            int numProbes = positionValues.Length;
+            while (s_BakeData.lightingJob.currentStep < s_BakeData.lightingJob.stepCount)
+                if (!s_BakeData.lightingJob.Step())
+                    s_BakeData.failed = true;
 
-            var positionsInput = new NativeArray<Vector3>(positionValues, Allocator.Temp);
+            shValues = s_BakeData.lightingJob.irradiance.ToArray();
+            validityValues = s_BakeData.lightingJob.validity.ToArray();
 
-            var lightingJob = lightingOverride ?? new DefaultLightTransport();
-            lightingJob.Initialize(false, positionsInput);
-
-            var defaultJob = lightingJob as DefaultLightTransport;
-            if (defaultJob != null)
-            {
-                var job = new BakeJob();
-                job.Create(null, ProbeVolumeLightingTab.GetLightingSettings(), false);
-                job.probeCount = numProbes;
-
-                defaultJob.jobs = new BakeJob[] { job };
-            }
-
-            while (lightingJob.currentStep < lightingJob.stepCount)
-                lightingJob.Step();
-
-            lightingJob.irradiance.CopyTo(shValues);
-            lightingJob.validity.CopyTo(validityValues);
-
-            if (defaultJob != null)
-            {
-                foreach (var job in defaultJob.jobs)
-                job.Dispose();
-            }
-            lightingJob.Dispose();
-            positionsInput.Dispose();
+            CleanBakeData();
         }
 
         internal static void BakeAdjustmentVolume(ProbeVolumeBakingSet bakingSet, ProbeAdjustmentVolume touchup)
@@ -1061,12 +667,11 @@ namespace UnityEngine.Rendering
                     failed |= !layerMaskJob.Step();
 
                 // Bake probe SH
-                var lightingJob = lightingOverride ?? new DefaultLightTransport();
-                lightingJob.Initialize(ProbeVolumeLightingTab.GetLightingSettings().mixedBakeMode != MixedLightingMode.IndirectOnly, uniquePositions.AsArray(), layerMaskJob.renderingLayerMasks);
-                if (lightingJob is DefaultLightTransport defaultLightingJob)
-                    defaultLightingJob.jobs = jobs;
+                s_BakeData.InitLightingJob(m_BakingSet, uniquePositions, BakeType.ApvOnly);
+                LightingBaker lightingJob = s_BakeData.lightingJob;
                 while (!failed && lightingJob.currentStep < lightingJob.stepCount)
                     failed |= !lightingJob.Step();
+                CleanLightingBakeData();
 
                 // Upload new data in cells
                 foreach ((int uniqueProbeIndex, int cellIndex, int i) in bakedProbes)
@@ -1140,7 +745,7 @@ namespace UnityEngine.Rendering
             }
 
             if (ProbeVolumeLightingTab.instance == null)
-                AdaptiveProbeVolumes.Dispose();
+                CleanUp();
         }
     }
 }

@@ -45,6 +45,11 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent intermediateTextureMode = EditorGUIUtility.TrTextContent("Intermediate Texture (Obsolete)", "Should be set to Auto. Controls when URP renders via an intermediate texture.");
             public static readonly GUIContent warningIntermediateTextureMode = EditorGUIUtility.TrTextContent("'Always' is Obsolete. Change it to Auto. This can improve performance. The setting will disappear once it is corrected to 'Auto'.");
             public static readonly GUIContent deferredPlusIncompatibleWarning = EditorGUIUtility.TrTextContent("Deferred+ is only available with Render Graph. In compatibility mode, Deferred+ falls back to Forward+.");
+            public static readonly GUIContent onTileValidation = EditorGUIUtility.TrTextContent("On-Tile Validation", "Enables the feature validation to prevent going off tile. This is mainly useful for tile based architectures.");
+            public static readonly string onTileValidationWarning = L10n.Tr("On-Tile validation is enabled. All ScriptableRendererFeatures and other features requiring a full-screen pass will be skipped to preserve the On-Tile optimization.");
+            public static readonly string deferredOnTileValidationWarning = L10n.Tr("Deferred rendering path is incompatible with the enabled 'On-Tile Validation' and will fallback to Forward.");
+            public static readonly string deferredPlusOnTileValidationWarning = L10n.Tr("Deferred+ rendering path is incompatible with the enabled 'On-Tile Validation' and will fallback to Forward+.");
+            public static readonly string postProcessingOnTileValidationWarning = L10n.Tr("'Post-processing' will be skipped because it is incompatible with the enabled 'On-Tile Validation'.");
         }
 
         SerializedProperty m_PrepassLayerMask;
@@ -61,6 +66,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_Shaders;
         SerializedProperty m_ShadowTransparentReceiveProp;
         SerializedProperty m_IntermediateTextureMode;
+        SerializedProperty m_OnTileValidation;
 
         List<string> m_DepthFormatStrings = new List<string>();
 
@@ -80,6 +86,7 @@ namespace UnityEditor.Rendering.Universal
             m_Shaders = serializedObject.FindProperty("shaders");
             m_ShadowTransparentReceiveProp = serializedObject.FindProperty("m_ShadowTransparentReceive");
             m_IntermediateTextureMode = serializedObject.FindProperty("m_IntermediateTextureMode");
+            m_OnTileValidation = serializedObject.FindProperty("m_OnTileValidation");
         }
 
         private void PopulateCompatibleDepthFormats(int renderingMode)
@@ -181,6 +188,19 @@ namespace UnityEditor.Rendering.Universal
                 PopulateCompatibleDepthFormats(m_RenderingMode.intValue);
                 depthFormatIndex = GetDepthFormatIndex((DepthFormat)m_DepthAttachmentFormat.intValue, m_RenderingMode.intValue);
             }
+            
+            if (m_OnTileValidation.boolValue)
+            {
+                switch ((RenderingMode)m_RenderingMode.intValue)
+                {
+                    case RenderingMode.Deferred:
+                        EditorGUILayout.HelpBox(Styles.deferredOnTileValidationWarning, MessageType.Warning);
+                        break;
+                    case RenderingMode.DeferredPlus:
+                        EditorGUILayout.HelpBox(Styles.deferredPlusOnTileValidationWarning, MessageType.Warning);
+                        break;
+                }
+            }
 
             if (m_RenderingMode.intValue == (int)RenderingMode.Deferred || m_RenderingMode.intValue == (int)RenderingMode.DeferredPlus)
             {
@@ -215,6 +235,10 @@ namespace UnityEditor.Rendering.Universal
             m_DepthAttachmentFormat.intValue = (int)GetDepthFormatAt(depthFormatIndex, m_RenderingMode.intValue);
 
             EditorGUILayout.PropertyField(m_DepthTextureFormat, Styles.DepthTextureFormat);
+            
+            EditorGUILayout.PropertyField(m_OnTileValidation, Styles.onTileValidation);
+            if (m_OnTileValidation.boolValue)
+                EditorGUILayout.HelpBox(Styles.onTileValidationWarning, MessageType.Warning);
 
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
@@ -232,6 +256,8 @@ namespace UnityEditor.Rendering.Universal
             {
                 m_PostProcessData.objectReferenceValue = postProcessIncluded ? PostProcessData.GetDefaultPostProcessData() : null;
             }
+            if (postProcessIncluded && m_OnTileValidation.boolValue)
+                EditorGUILayout.HelpBox(Styles.postProcessingOnTileValidationWarning, MessageType.Warning);
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_PostProcessData, Styles.PostProcessLabel);
             EditorGUI.indentLevel--;

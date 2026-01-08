@@ -7,7 +7,7 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/MaterialPool/MaterialPool.hlsl"
 #include "Common.hlsl"
 #include "PatchUtil.hlsl"
-#include "PunctualLightSample.hlsl"
+#include "PunctualLights.hlsl"
 
 struct SurfaceGeometry
 {
@@ -76,7 +76,6 @@ PunctualLightBounceRadianceSample SamplePunctualLightBounceRadiance(
     StructuredBuffer<PunctualLightSample> punctualLightSamples,
     uint punctualLightSampleCount,
     float uniformRand,
-    float3 spotLightIntensity,
     float3 position,
     float3 normal)
 {
@@ -111,20 +110,27 @@ PunctualLightBounceRadianceSample SamplePunctualLightBounceRadiance(
                     const float bounceCosTerm = dot(-punctualLightSample.dir, punctualLightSample.hitNormal);
                     const float bounceSolidAngleToAreaJacobian = 1.0f / (punctualLightSample.distance * punctualLightSample.distance); // To integrate over punctual light we must switch to area measure.
                     const float3 brdf = punctualLightSample.hitAlbedo * INV_PI;
-                    const float3 punctualLightBouncedRadiance = bounceCosTerm * bounceSolidAngleToAreaJacobian * spotLightIntensity * brdf;
+                    const float3 punctualLightBouncedRadiance = bounceCosTerm * bounceSolidAngleToAreaJacobian * punctualLightSample.intensity * brdf;
 
                     // We transform from patch solid angle measure to (common) surface area measure to punctual light solid angle measure.
                     const float patchSolidAngleToBounceAreaJacobian = dot(-reconnectionRay.direction, punctualLightSample.hitNormal) / (reconnectionResult.hitDistance * reconnectionResult.hitDistance);
                     const float bounceAreaToLightSolidAngleJacobian = punctualLightSample.distance * punctualLightSample.distance / dot(-punctualLightSample.dir, punctualLightSample.hitNormal);
-                    const float patchSolidAngleToLightSolidAngleJacbian = patchSolidAngleToBounceAreaJacobian * bounceAreaToLightSolidAngleJacobian;
+                    const float patchSolidAngleToLightSolidAngleJacobian = patchSolidAngleToBounceAreaJacobian * bounceAreaToLightSolidAngleJacobian;
 
-                    result.radianceOverDensity = punctualLightBouncedRadiance * patchSolidAngleToLightSolidAngleJacbian * punctualLightSample.reciprocalDensity;
+                    if (isfinite(bounceSolidAngleToAreaJacobian) && isfinite(patchSolidAngleToBounceAreaJacobian))
+                        result.radianceOverDensity = punctualLightBouncedRadiance * patchSolidAngleToLightSolidAngleJacobian * punctualLightSample.reciprocalDensity;
+                    else
+                        result.MarkInvalid();
                     #else // optimized version
-                    result.radianceOverDensity =
-                        INV_PI * dot(-reconnectionRay.direction, punctualLightSample.hitNormal) *
-                        punctualLightSample.reciprocalDensity *
-                        rcp(reconnectionResult.hitDistance * reconnectionResult.hitDistance) *
-                        spotLightIntensity * punctualLightSample.hitAlbedo;
+                    const float reciprocalSquaredDistance = rcp(reconnectionResult.hitDistance * reconnectionResult.hitDistance);
+                    if (isfinite(reciprocalSquaredDistance))
+                        result.radianceOverDensity =
+                            INV_PI * dot(-reconnectionRay.direction, punctualLightSample.hitNormal) *
+                            punctualLightSample.reciprocalDensity *
+                            reciprocalSquaredDistance *
+                            punctualLightSample.intensity * punctualLightSample.hitAlbedo;
+                    else
+                        result.MarkInvalid();
                     #endif
                 }
             }

@@ -48,7 +48,18 @@ float4 GetScaledScreenParams()
 // Returns 'true' if the current view performs a perspective projection.
 bool IsPerspectiveProjection()
 {
+#if defined(UNITY_PLATFORM_META_QUEST)
+    #if defined(META_QUEST_ORTHO_PROJ_KEYWORD_DECLARED)
+    if (META_QUEST_ORTHO_PROJ)
+        return false;
+    else
+        return true;
+    #else
+    return true;
+    #endif
+#else
     return (unity_OrthoParams.w == 0);
+#endif
 }
 
 float3 GetCameraPositionWS()

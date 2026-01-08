@@ -190,7 +190,8 @@ namespace UnityEngine.PathTracing.Integration
                 }
             }
         }
-        internal static ulong CalculateWorkSteps(uint probesCount, uint sampleCount, uint bounceCount) => probesCount*sampleCount*(0 == bounceCount ? 1 : bounceCount);
+        internal static ulong CalculateWorkSteps(ulong probesCount, ulong sampleCount, ulong bounceCount) =>
+            probesCount * sampleCount * (0 == bounceCount ? 1 : bounceCount);
 
         internal void EstimateIndirectRadianceShl2(
             CommandBuffer cmd,

@@ -656,15 +656,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ChangeCustomNodeColor(DropdownMenuAction menuAction)
         {
-            // Color Picker is internal :(
-            var t = typeof(EditorWindow).Assembly.GetTypes().FirstOrDefault(ty => ty.Name == "ColorPicker");
-            var m = t?.GetMethod("Show", new[] { typeof(Action<Color>), typeof(Color), typeof(bool), typeof(bool) });
-            if (m == null)
-            {
-                Debug.LogWarning("Could not invoke Color Picker for ShaderGraph.");
-                return;
-            }
-
             var editorView = GetFirstAncestorOfType<GraphEditorView>();
             var defaultColor = Color.gray;
             if (selection.FirstOrDefault(sel => sel is MaterialNodeView) is MaterialNodeView selNode1)
@@ -686,7 +677,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             graph.owner.RegisterCompleteObjectUndo("Change Node Color");
-            m.Invoke(null, new object[] { (Action<Color>)ApplyColor, defaultColor, true, false });
+            ColorPicker.Show(ApplyColor, defaultColor, true, false);
         }
 
         protected internal override bool canDeleteSelection

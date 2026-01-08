@@ -4,7 +4,7 @@
 
 #define OCCLUSION_DEBUG 1
 
-#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/OcclusionCullingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/Culling/OcclusionCullingCommon.hlsl"
 
 [numthreads(8, 8, 1)]
 void ClearOcclusionDebug(uint2 dispatchIndex : SV_DispatchThreadID, uint3 groupId : SV_GroupID)

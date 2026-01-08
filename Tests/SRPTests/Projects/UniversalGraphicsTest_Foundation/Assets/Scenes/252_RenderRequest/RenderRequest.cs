@@ -72,11 +72,18 @@ public class RenderRequest : MonoBehaviour
         }
     }
 
+    bool m_WaitedOneFrame = false;
     bool m_TriggerOnce = true;
 
     // Update is called once per frame
     public void Update()
     {
+        if (!m_WaitedOneFrame)
+        {
+            m_WaitedOneFrame = true;
+            return;
+        }
+
         if (!m_TriggerOnce)
             return;
 

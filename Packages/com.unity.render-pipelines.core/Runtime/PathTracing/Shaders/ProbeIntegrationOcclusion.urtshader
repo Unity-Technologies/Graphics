@@ -40,27 +40,35 @@ void IntegrateOcclusion(UnifiedRT::DispatchInfo dispatchInfo)
         PathTracingSampler rngState;
         rngState.Init(inProbeIdxWithOffset, g_SampleOffset + inProbeSampleIdx);
 
-        uint lightIndex = g_PerProbeLightIndices[perProbeLightIndicesIdx];
-        if (lightIndex == -1)
+        // NOTE: Do NOT attempt to refactor these nested if-statements to use 'continue'.
+        // FXC chokes on 'continue' instructions, resulting in completely incorrect output.
+        int lightIndex = g_PerProbeLightIndices[perProbeLightIndicesIdx];
+        if (lightIndex >= 0)
+        {
+            PTLight light = FetchLight(lightIndex);
+            if (light.type == SPOT_LIGHT || light.type == POINT_LIGHT || light.type == DIRECTIONAL_LIGHT)
+            {
+                uint dimsOffset = 0;
+                uint dimsUsed = 0;
+                float3 attenuation = 1.0f;
+                bool isVisible = IsLightVisibleFromPoint(dispatchInfo, accelStruct, g_AccelStructInstanceList, SHADOW_RAY_VIS_MASK, worldPosition, rngState, dimsOffset, dimsUsed, light, true, attenuation);
+                if (isVisible)
+                {
+                    g_Occlusion[outOcclusionValueIdx] = 1.0f / g_SampleCount;
+                }
+                else
+                {
+                    g_Occlusion[outOcclusionValueIdx] = 0.0f;
+                }
+            }
+            else
+            {
+                g_Occlusion[outOcclusionValueIdx] = 0.0f;
+            }
+        }
+        else
         {
             g_Occlusion[outOcclusionValueIdx] = 0.0f;
-            continue;
-        }
-
-        PTLight light = FetchLight(lightIndex);
-        if (light.type != SPOT_LIGHT && light.type != POINT_LIGHT && light.type != DIRECTIONAL_LIGHT)
-        {
-            g_Occlusion[outOcclusionValueIdx] = 0.0f;
-            continue;
-        }
-
-        uint dimsOffset = 0;
-        uint dimsUsed = 0;
-        float3 attenuation = 1.0f;
-        bool isVisible = IsLightVisibleFromPoint(dispatchInfo, accelStruct, g_AccelStructInstanceList, SHADOW_RAY_VIS_MASK, worldPosition, rngState, dimsOffset, dimsUsed, light, true, attenuation);
-        if (isVisible)
-        {
-            g_Occlusion[outOcclusionValueIdx] = 1.0f / g_SampleCount;
         }
     }
 }

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -555,7 +557,7 @@ namespace UnityEngine.Rendering.Universal
 
                         //On GLES we don't support sampling the MSAA targets, so if auto depth resolve is not available, the only thing that works is rendering to a color target.
                         //This has been the behavior from at least 6.0. However, it results in the format mostly being color on the different graphics APIs, even when
-                        //it could be a depth format if MSAA sampling for depht is allowed. 
+                        //it could be a depth format if MSAA sampling for depht is allowed.
                         if (RenderingUtils.MultisampleDepthResolveSupported())
                         {
                             tempColorDepthDesc.graphicsFormat = GraphicsFormat.None;
@@ -566,7 +568,7 @@ namespace UnityEngine.Rendering.Universal
                             tempColorDepthDesc.depthStencilFormat = GraphicsFormat.None;
                         }
 
-                        depthHistory.Update(ref tempColorDepthDesc, xrMultipassEnabled);                        
+                        depthHistory.Update(ref tempColorDepthDesc, xrMultipassEnabled);
 
                         if (depthHistory.GetCurrentTexture(multipassId) != null)
                         {
@@ -589,14 +591,68 @@ namespace UnityEngine.Rendering.Universal
             resourceData.InitFrame();
         }
 
+        static void ApplyConstraints(bool onTileValidation, UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalPostProcessingData postProcessingData, List<ScriptableRenderPass> activeRenderPassQueue, ref RenderingMode renderingMode, ref DepthPrimingMode depthPrimingMode)
+        {
+            if (!onTileValidation)
+                return;
+
+            cameraData.requiresOpaqueTexture = false;
+            cameraData.requiresDepthTexture = false;
+
+            cameraData.postProcessEnabled = false;
+            cameraData.stackAnyPostProcessingEnabled = false;
+            postProcessingData.isEnabled = false;
+
+            cameraData.useGPUOcclusionCulling = false;
+            cameraData.isHdrEnabled = false;
+
+            if (!PlatformAutoDetect.isXRMobile)
+            {
+                cameraData.renderScale = 1.0f;
+                cameraData.imageScalingMode = ImageScalingMode.None;
+            }
+
+            if (renderingData.renderingMode == RenderingMode.DeferredPlus)
+                renderingData.renderingMode = RenderingMode.ForwardPlus;
+
+            if (renderingMode == RenderingMode.DeferredPlus)
+                renderingMode = RenderingMode.ForwardPlus;
+
+            if (renderingData.renderingMode == RenderingMode.Deferred)
+                renderingData.renderingMode = RenderingMode.Forward;
+
+            if (renderingMode == RenderingMode.Deferred)
+                renderingMode = RenderingMode.Forward;
+
+            if (cameraData.baseCamera != null && cameraData.baseCamera != cameraData.camera)
+                throw new ArgumentException("The active URP Renderer has 'On Tile Validation' on. This currently does not allow Camera Stacking usage. Check your scene and remove all overlay Cameras.");
+
+            if (activeRenderPassQueue.Count > 0)
+                throw new ArgumentException("The active URP Renderer has 'On Tile Validation' on. This currently does not allow any ScriptableRenderFeature enabled, and it does not allow enqueuing any ScriptableRenderPass. Check your Renderer asset and disable all Renderer Features. Also, ensure that no C# script enqueus any passes on the renderer.");
+        }
+
+        //Catches mistakes by Unity devs with regards to clearing the settings
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        static void ValidateCorrectnessOfConstraints(bool onTileValidation, in RenderPassInputSummary renderPassInputs, bool requireIntermediateTextures)
+        {
+            if (!onTileValidation)
+                return;
+
+            if (renderPassInputs is { requiresColorTexture: false, requiresDepthTexture: false, requiresMotionVectors: false, requiresNormalsTexture: false} && !requireIntermediateTextures)
+                return;
+
+            throw new ArgumentException("On Tile Validation is on but certain features still added requirements that would validate this.");
+        }
+
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
             UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
+
+            ApplyConstraints(onTileValidation, renderingData, cameraData, postProcessingData,activeRenderPassQueue, ref m_RenderingMode, ref m_DepthPrimingMode);
 
             MotionVectorRenderPass.SetRenderGraphMotionVectorGlobalMatrices(renderGraph, cameraData);
 
@@ -607,7 +663,7 @@ namespace UnityEngine.Rendering.Universal
             bool isCameraTargetOffscreenDepth = cameraData.camera.targetTexture != null && cameraData.camera.targetTexture.format == RenderTextureFormat.Depth;
             bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcess != null;
 
-            //First get the input requirements for the the ScriptableRenderPasses. These are all user passes plus potentially some that URP adds. 
+            //First get the input requirements for the the ScriptableRenderPasses. These are all user passes plus potentially some that URP adds.
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(activeRenderPassQueue);
             //Then add all the requirements of internal features that are not implemented as ScriptableRenderPass's. After this call we have a complete view on the render pass input requirements for the entire frame.
             AddRequirementsOfInternalFeatures(ref renderPassInputs, cameraData, applyPostProcessing, m_RenderingLayerProvidesByDepthNormalPass, m_MotionVectorPass, m_CopyDepthMode);
@@ -627,6 +683,8 @@ namespace UnityEngine.Rendering.Universal
             // to pick the correct target, as if there is an intermediate texture, overlay cam should use them
             if (cameraData.renderType == CameraRenderType.Base)
                 s_RequiresIntermediateAttachments = RequiresIntermediateAttachments(cameraData, in renderPassInputs, requireCopyFromDepth, applyPostProcessing);
+
+            ValidateCorrectnessOfConstraints(onTileValidation, renderPassInputs, s_RequiresIntermediateAttachments);
 
             CreateRenderGraphCameraRenderTargets(renderGraph, isCameraTargetOffscreenDepth, s_RequiresIntermediateAttachments, depthTextureIsDepthFormat);
 
@@ -897,7 +955,7 @@ namespace UnityEngine.Rendering.Universal
             else if ((earliestDepthReadEvent < RenderPassEvent.AfterRenderingOpaques))
             {
                 // If we have a partial prepass (or no prepass), we must finish rendering the gbuffer before complete depth data is available.
-                schedule = DepthCopySchedule.AfterGBuffer;                
+                schedule = DepthCopySchedule.AfterGBuffer;
             }
             else if (earliestDepthReadEvent < RenderPassEvent.AfterRenderingSkybox)
             {
@@ -907,7 +965,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 schedule = DepthCopySchedule.AfterSkybox;
             }
-            else 
+            else
             {
                 schedule = DepthCopySchedule.AfterTransparents;
             }
@@ -1384,7 +1442,7 @@ namespace UnityEngine.Rendering.Universal
                     SetupAfterPostRenderGraphFinalPassDebug(renderGraph, frameData);
             }
 
-            //We already checked the passes so we can skip here if there are none as a small optimization 
+            //We already checked the passes so we can skip here if there are none as a small optimization
             if (hasPassesAfterPostProcessing)
                 RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingPostProcessing);
 
@@ -1409,7 +1467,7 @@ namespace UnityEngine.Rendering.Universal
                 debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, !resolveToDebugScreen);
 
                 //Will swap the active camera targets to backbuffer (resourceData.SwitchActiveTexturesToBackbuffer)
-                m_FinalBlitPass.RecordRenderGraph(renderGraph, frameData);                
+                m_FinalBlitPass.RecordRenderGraph(renderGraph, frameData);
             }
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRendering);
@@ -1771,7 +1829,7 @@ namespace UnityEngine.Rendering.Universal
 
             var depthDescriptor = descriptor;
             depthDescriptor.msaaSamples = MSAASamples.None;// Depth-Only pass don't use MSAA
-                       
+
 
             if (isDepthTexture)
             {

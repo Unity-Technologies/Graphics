@@ -102,7 +102,6 @@ namespace UnityEngine.PathTracing.Core
                 }
                 else
                 {
-                    // Note: prefabs have a null skyboxMaterial
                     newHash = 42;
                     ReleaseCubemapIfExists();
                 }
@@ -151,6 +150,11 @@ namespace UnityEngine.PathTracing.Core
             {
                 properties.SetVector(Shader.PropertyToID("_LightColor0"), LightColorInRenderingSpace(sun));
                 properties.SetVector(Shader.PropertyToID("_WorldSpaceLightPos0"), -sun.GetComponent<Transform>().forward);
+            }
+            else
+            {
+                properties.SetVector(Shader.PropertyToID("_LightColor0"), Color.black);
+                properties.SetVector(Shader.PropertyToID("_WorldSpaceLightPos0"), new Vector4(0, 0, -1, 0));
             }
 
             for (int faceIndex = 0; faceIndex < 6; ++faceIndex)

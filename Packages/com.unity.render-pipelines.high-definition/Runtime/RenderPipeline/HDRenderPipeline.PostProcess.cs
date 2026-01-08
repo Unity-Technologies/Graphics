@@ -4142,6 +4142,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int ratio = (int)m_LensFlareScreenSpace.resolution.value;
             Color tintColor = m_LensFlareScreenSpace.tintColor.value;
+            int bloomMip = m_LensFlareScreenSpace.bloomMip.value;
 
             using (var builder = renderGraph.AddUnsafePass<LensFlareScreenSpaceData>("Lens Flare Screen Space", out var passData, ProfilingSampler.Get(HDProfileId.LensFlareScreenSpace)))
             {
@@ -4151,7 +4152,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.viewport = postProcessViewportSize;
                 passData.hdCamera = hdCamera;
                 passData.screenSpaceLensFlareBloomMipTexture = screenSpaceLensFlareBloomMipTexture;
-                builder.UseTexture(passData.screenSpaceLensFlareBloomMipTexture, AccessFlags.ReadWrite);
+                // NOTE: SSLF mip texture is usually the bloom.mip[N] and the BloomTexture is bloom.mip[0]. Sometimes N == 0 which causes double UseTexture error.
+                // Check if we are trying to use the same texture twice in the RG.
+                if(bloomMip != 0)
+                    builder.UseTexture(passData.screenSpaceLensFlareBloomMipTexture, AccessFlags.ReadWrite);
                 passData.originalBloomTexture = originalBloomTexture;
                 builder.UseTexture(passData.originalBloomTexture, AccessFlags.ReadWrite);
 

@@ -51,6 +51,9 @@ void Frag(PackedVaryingsToPS packedInput,
 
     // Compute the BSDF Data
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
+    WaterSurfaceProfile profile = _WaterSurfaceProfiles[bsdfData.surfaceIndex];
+    EvaluateSmoothnessFade(posInput.positionWS, profile, bsdfData);
+
 
     // If the camera is in the underwater region of this surface and the the camera is under the surface
 #if defined(SHADER_STAGE_FRAGMENT)

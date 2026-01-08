@@ -73,7 +73,7 @@ namespace UnityEditor.VFX
         /// <returns>Returns true if the template is created, otherwise it returns false.</returns>
         public static bool TrySetTemplate(string vfxPath, VFXTemplateDescriptor vfxTemplateDescriptor)
         {
-            return VFXTemplateHelperInternal.TrySetTemplateStatic(vfxPath, new GraphViewTemplateDescriptor
+            return VFXTemplateHelperInternal.TrySetTemplateStatic(vfxPath, new GraphViewTemplateDescriptor(VFXTemplateHelperInternal.VFXGraphToolKey)
             {
                 name = vfxTemplateDescriptor.name,
                 category = vfxTemplateDescriptor.category,

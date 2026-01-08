@@ -389,7 +389,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             sceneBounds = new Bounds();
 
             // Extract meshes
-            meshes = new Mesh[bakeInput.meshData.Length];
+            meshes = new Mesh[bakeInput.meshData.Length + bakeInput.terrainData.Length];
             int meshIndex = 0;
             for (int i = 0; i < bakeInput.meshData.Length; i++)
             {

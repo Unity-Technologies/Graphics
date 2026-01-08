@@ -1,10 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using Unity.Collections;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
+
 using static UnityEngine.Rendering.DebugUI;
 using static UnityEngine.Rendering.DebugUI.Widget;
 
@@ -36,20 +36,20 @@ namespace UnityEngine.Rendering
             }
         }
 
-        /// <summary>Returns the view instances id for the selected occluder debug view index, or 0 if not valid.</summary>
-        internal bool GetOccluderViewInstanceID(out EntityId viewInstanceID)
+        /// <summary>Returns the view EntityId for the selected occluder debug view index, or EntityId.Null if not valid.</summary>
+        internal bool GetOccluderViewID(out EntityId viewID)
         {
             DebugRendererBatcherStats debugStats = GPUResidentDrawer.GetDebugStats();
             if (debugStats != null)
             {
                 if (occluderDebugViewIndex >= 0 && occluderDebugViewIndex < debugStats.occluderStats.Length)
                 {
-                    viewInstanceID = debugStats.occluderStats[occluderDebugViewIndex].viewInstanceID;
+                    viewID = debugStats.occluderStats[occluderDebugViewIndex].viewID;
                     return true;
                 }
             }
 
-            viewInstanceID = EntityId.None;
+            viewID = EntityId.None;
             return false;
         }
 
@@ -165,13 +165,13 @@ namespace UnityEngine.Rendering
                         {
                             var viewStats = GetInstanceCullerViewStats(viewIndex);
 #if UNITY_EDITOR
-                            Object view = EditorUtility.EntityIdToObject(viewStats.viewInstanceID);
+                            Object view = EditorUtility.EntityIdToObject(viewStats.viewID);
                             if (view)
                             {
-                                return $"{viewStats.viewInstanceID} ({view.name})";
+                                return $"{viewStats.viewID} ({view.name})";
                             }
 #endif
-                            return viewStats.viewInstanceID;
+                            return viewStats.viewID;
                         }
                     },
                     new DebugUI.Value { displayName = "Split Index",        refreshRate = k_RefreshRate, formatString = k_FormatString, getter = () => GetInstanceCullerViewStats(viewIndex).splitIndex },
@@ -235,13 +235,13 @@ namespace UnityEngine.Rendering
                         {
                             var eventStats = GetInstanceOcclusionEventStats(eventIndex);
 #if UNITY_EDITOR
-                            Object view = EditorUtility.EntityIdToObject(eventStats.viewInstanceID);
+                            Object view = EditorUtility.EntityIdToObject(eventStats.viewID);
                             if (view)
                             {
-                                return $"{eventStats.viewInstanceID} ({view.name})";
+                                return $"{eventStats.viewID} ({view.name})";
                             }
 #endif
-                            return eventStats.viewInstanceID;
+                            return eventStats.viewID;
                         }
                     },
                     new DebugUI.Value { displayName = "Event Type",         refreshRate = k_RefreshRate, formatString = k_FormatString, getter = () => $"{GetInstanceOcclusionEventStats(eventIndex).eventType}" },
@@ -265,7 +265,7 @@ namespace UnityEngine.Rendering
                 isHiddenCallback = () => index >= GetOcclusionContextsCounts(),
                 children =
                 {
-                    new DebugUI.Value { displayName = "View Instance ID",   refreshRate = k_RefreshRate, formatString = k_FormatString, getter = () => GetOccluderStats(index).viewInstanceID },
+                    new DebugUI.Value { displayName = "View Instance ID",   refreshRate = k_RefreshRate, formatString = k_FormatString, getter = () => GetOccluderStats(index).viewID },
                     new DebugUI.Value { displayName = "Subview Count",      refreshRate = k_RefreshRate, formatString = k_FormatString, getter = () => GetOccluderStats(index).subviewCount },
                     new DebugUI.Value { displayName = "Size Per Subview",       refreshRate = k_RefreshRate, formatString = k_FormatString, getter =
                     () =>
@@ -301,14 +301,14 @@ namespace UnityEngine.Rendering
                         var settings = GPUResidentDrawer.GetGlobalSettingsFromRPAsset();
                         return GPUResidentDrawer.IsGPUResidentDrawerSupportedBySRP(settings, out var msg, out var _) ? string.Empty : msg;
                     },
-                    isHiddenCallback = () => GPUResidentDrawer.IsEnabled()
+                    isHiddenCallback = () => GPUResidentDrawer.IsInitialized()
                 };
                 foldout.children.Add(helpBox);
 
                 foldout.children.Add(new Container()
                 {
                     displayName = Strings.occlusionCullingTitle,
-                    isHiddenCallback = () => !GPUResidentDrawer.IsEnabled(),
+                    isHiddenCallback = () => !GPUResidentDrawer.IsInitialized(),
                     children =
                     {
                         new DebugUI.BoolField { nameAndTooltip = Strings.occlusionTestOverlayEnable, getter = () => data.occlusionTestOverlayEnable, setter = value => data.occlusionTestOverlayEnable = value},
@@ -328,7 +328,7 @@ namespace UnityEngine.Rendering
                     nameAndTooltip = Strings.displayBatcherStats,
                     getter = () => data.displayBatcherStats,
                     setter = value => data.displayBatcherStats = value,
-                    isHiddenCallback = () => !GPUResidentDrawer.IsEnabled()
+                    isHiddenCallback = () => !GPUResidentDrawer.IsInitialized()
                 });
 
                 AddInstanceCullingStatsWidget(data);

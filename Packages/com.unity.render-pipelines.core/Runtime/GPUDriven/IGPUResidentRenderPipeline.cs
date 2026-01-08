@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering
         /// <returns>true if enabled</returns>
         static bool IsGPUResidentDrawerEnabled()
         {
-            return GPUResidentDrawer.IsEnabled();
+            return GPUResidentDrawer.IsInitialized();
         }
     }
 }

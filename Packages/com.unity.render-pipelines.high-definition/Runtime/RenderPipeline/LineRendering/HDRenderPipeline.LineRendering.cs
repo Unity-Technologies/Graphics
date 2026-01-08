@@ -108,6 +108,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public BufferHandle perVoxelOffset;
             public BufferHandle perTileLogBaseTweak;
 
+            public BufferHandle waterLine;
+            public BufferHandle cameraHeightBuffer;
+            public BufferHandle waterSurfaceProfiles;
+            public TextureHandle waterGBuffer3;
+
+            public TextureHandle waterDepthStencil;
+
             public TextureHandle targetColor;
             public TextureHandle targetDepth;
             public TextureHandle targetMV;
@@ -154,7 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        void RenderLines(RenderGraph renderGraph, in TextureHandle depthPrepassTexture, HDCamera hdCamera, BuildGPULightListOutput lightLists)
+        void RenderLines(RenderGraph renderGraph, in TextureHandle depthPrepassTexture, HDCamera hdCamera, in TransparentPrepassOutput transparentPrepass, BuildGPULightListOutput lightLists)
         {
             if (!LineRenderingIsEnabled(hdCamera, out var settings))
                 return;
@@ -170,6 +177,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseBuffer(passData.perVoxelOffset, AccessFlags.Read);
                 passData.perTileLogBaseTweak = lightLists.perTileLogBaseTweak;
                 builder.UseBuffer(passData.perTileLogBaseTweak, AccessFlags.Read);
+
+                // Water absorption buffers
+                passData.waterDepthStencil = transparentPrepass.depthBufferPreRefraction;
+                builder.UseTexture(passData.waterDepthStencil, AccessFlags.Read);
+                passData.waterSurfaceProfiles = transparentPrepass.waterSurfaceProfiles;
+                builder.UseBuffer(passData.waterSurfaceProfiles, AccessFlags.Read);
+                passData.cameraHeightBuffer = transparentPrepass.waterGBuffer.cameraHeight;
+                builder.UseBuffer(passData.cameraHeightBuffer, AccessFlags.Read);
+                passData.waterLine = transparentPrepass.waterLine;
+                builder.UseBuffer(passData.waterLine, AccessFlags.Read);
+                passData.waterGBuffer3 = transparentPrepass.waterGBuffer.waterGBuffer3;
+                builder.UseTexture(passData.waterGBuffer3, AccessFlags.Read);
 
                 passData.targetColor = m_LineColorBuffer;
                 builder.UseTexture(passData.targetColor, AccessFlags.Write);
@@ -194,6 +213,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         CoreUtils.SetKeyword(natCmd, "USE_FPTL_LIGHTLIST", false);
                         CoreUtils.SetKeyword(natCmd, "USE_CLUSTERED_LIGHTLIST", true);
+                    }
+
+                    // Water absorption buffers
+                    {
+                        natCmd.SetGlobalTexture(HDShaderIDs._StencilTexture, data.waterDepthStencil, RenderTextureSubElement.Stencil);
+                        natCmd.SetGlobalTexture(HDShaderIDs._RefractiveDepthBuffer, data.waterDepthStencil, RenderTextureSubElement.Depth);
+
+                        natCmd.SetGlobalBuffer(HDShaderIDs._WaterCameraHeightBuffer, data.cameraHeightBuffer);
+                        natCmd.SetGlobalBuffer(HDShaderIDs._WaterSurfaceProfiles, data.waterSurfaceProfiles);
+                        natCmd.SetGlobalBuffer(HDShaderIDs._WaterLineBuffer, data.waterLine);
+                        natCmd.SetGlobalTexture(HDShaderIDs._WaterGBufferTexture3, data.waterGBuffer3);
                     }
 
                     // Clear the internal targets.

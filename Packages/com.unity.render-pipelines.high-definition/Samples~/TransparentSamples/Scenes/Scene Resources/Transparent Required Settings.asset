@@ -45,7 +45,7 @@ MonoBehaviour:
     validationType: 0
     uiSectionInt: 16
     uiSubSectionInt: 64
-  - m_name: Set Compute Thickness Layer Mask to TransparentFX & IgnoreRaycast
+  - m_name: Check TransparentFX & IgnoreRaycast in Layer Mask
     m_description: Set Compute Thickness Layer Mask to TransparentFX & IgnoreRaycast
     propertyPath: m_RenderPipelineSettings.computeThicknessLayerMask
     valueType: 1

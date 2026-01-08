@@ -977,8 +977,8 @@ namespace UnityEngine.Rendering.Universal
         public static GlobalKeyword LinearToSRGBConversion;
         public static GlobalKeyword _ENABLE_ALPHA_OUTPUT;
         public static GlobalKeyword ForwardPlus; // Backward compatibility. Deprecated in 6.1.
-
-#if UNITY_META_QUEST
+#if (UNITY_META_QUEST)
+        public static GlobalKeyword META_QUEST_ORTHO_PROJ;
         public static GlobalKeyword META_QUEST_LIGHTUNROLL;
 #endif
 
@@ -1095,7 +1095,8 @@ namespace UnityEngine.Rendering.Universal
             ShaderGlobalKeywords.LinearToSRGBConversion = GlobalKeyword.Create(ShaderKeywordStrings.LinearToSRGBConversion);
             ShaderGlobalKeywords._ENABLE_ALPHA_OUTPUT = GlobalKeyword.Create(ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT);
             ShaderGlobalKeywords.ForwardPlus = GlobalKeyword.Create(ShaderKeywordStrings.ForwardPlus); // Backward compatibility. Deprecated in 6.1.
-#if UNITY_META_QUEST
+#if (UNITY_META_QUEST)
+            ShaderGlobalKeywords.META_QUEST_ORTHO_PROJ = GlobalKeyword.Create(ShaderKeywordStrings.META_QUEST_ORTHO_PROJ);
             ShaderGlobalKeywords.META_QUEST_LIGHTUNROLL = GlobalKeyword.Create(ShaderKeywordStrings.META_QUEST_LIGHTUNROLL);
 #endif
 
@@ -1431,7 +1432,10 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Deprecated keyword. Use ClusterLightLoop instead. </summary>
         internal const string ForwardPlus = "_FORWARD_PLUS"; // Backward compatibility. Deprecated in 6.1.
 
-#if UNITY_META_QUEST
+#if (UNITY_META_QUEST)
+        /// <summary> Used to statically branch when checking for projection type on Meta Quest device . </summary>
+        internal const string META_QUEST_ORTHO_PROJ = "META_QUEST_ORTHO_PROJ";
+
         /// <summary> Unroll light loop if there is only one additional light on Meta Quest device . </summary>
         internal const string META_QUEST_LIGHTUNROLL = "META_QUEST_LIGHTUNROLL";
 #endif
@@ -1603,6 +1607,12 @@ namespace UnityEngine.Rendering.Universal
         private static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>
         {
             LightDataGI lightData = new LightDataGI();
+
+            // URP uses a game like lambertian response for punctual lights, they are off by a factor PI.
+            // Since LightBaker expects its punctual lights to be expressed in standard radiometric units, the intensity is pre-multiplied by PI here to counteract this.
+            // This ensures that the baked punctual light intensity matches realtime intensity. (See GFXLIGHT-1755)
+            const float piCorrection = Mathf.PI;
+
 #if UNITY_EDITOR
             // Always extract lights in the Editor.
             for (int i = 0; i < requests.Length; i++)
@@ -1617,6 +1627,8 @@ namespace UnityEngine.Rendering.Universal
                     case LightType.Directional:
                         DirectionalLight directionalLight = new DirectionalLight();
                         LightmapperUtils.Extract(light, ref directionalLight);
+                        directionalLight.color.intensity *= piCorrection;
+                        directionalLight.indirectColor.intensity *= piCorrection;
 
                         if (light.cookie != null)
                         {
@@ -1638,11 +1650,15 @@ namespace UnityEngine.Rendering.Universal
                     case LightType.Point:
                         PointLight pointLight = new PointLight();
                         LightmapperUtils.Extract(light, ref pointLight);
+                        pointLight.color.intensity *= piCorrection;
+                        pointLight.indirectColor.intensity *= piCorrection;
                         lightData.Init(ref pointLight, ref cookie);
                         break;
                     case LightType.Spot:
                         SpotLight spotLight = new SpotLight();
                         LightmapperUtils.Extract(light, ref spotLight);
+                        spotLight.color.intensity *= piCorrection;
+                        spotLight.indirectColor.intensity *= piCorrection;
                         spotLight.innerConeAngle = light.innerSpotAngle * Mathf.Deg2Rad;
                         spotLight.angularFalloff = AngularFalloffType.AnalyticAndInnerAngle;
                         lightData.Init(ref spotLight, ref cookie);
@@ -1688,16 +1704,22 @@ namespace UnityEngine.Rendering.Universal
                         case LightType.Directional:
                             DirectionalLight directionalLight = new DirectionalLight();
                             LightmapperUtils.Extract(light, ref directionalLight);
+                            directionalLight.color.intensity *= piCorrection;
+                            directionalLight.indirectColor.intensity *= piCorrection;
                             lightData.Init(ref directionalLight);
                             break;
                         case LightType.Point:
                             PointLight pointLight = new PointLight();
                             LightmapperUtils.Extract(light, ref pointLight);
+                            pointLight.color.intensity *= piCorrection;
+                            pointLight.indirectColor.intensity *= piCorrection;
                             lightData.Init(ref pointLight);
                             break;
                         case LightType.Spot:
                             SpotLight spotLight = new SpotLight();
                             LightmapperUtils.Extract(light, ref spotLight);
+                            spotLight.color.intensity *= piCorrection;
+                            spotLight.indirectColor.intensity *= piCorrection;
                             spotLight.innerConeAngle = light.innerSpotAngle * Mathf.Deg2Rad;
                             spotLight.angularFalloff = AngularFalloffType.AnalyticAndInnerAngle;
                             lightData.Init(ref spotLight);

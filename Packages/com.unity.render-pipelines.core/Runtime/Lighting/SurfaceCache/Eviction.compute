@@ -5,7 +5,7 @@
 #include "PatchUtil.hlsl"
 
 StructuredBuffer<uint> _RingConfigBuffer;
-StructuredBuffer<PatchUtil::PatchCounterSet> _PatchCounterSets;
+StructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
 RWStructuredBuffer<uint> _CellAllocationMarks;
 RWStructuredBuffer<uint> _CellPatchIndices;
 RWStructuredBuffer<uint> _PatchCellIndices;
@@ -29,7 +29,7 @@ void Evict(uint patchIdx : SV_DispatchThreadID)
     if (cellIdx == PatchUtil::invalidCellIndex)
         return;
 
-    const PatchUtil::PatchCounterSet counterSet = _PatchCounterSets[patchIdx];
+    const PatchUtil::PatchCounterSet counterSet = _PatchStatistics[patchIdx].patchCounters;
     const uint lastAccessFrameIdx = PatchUtil::GetLastAccessFrame(counterSet);
 
     // Here we take into account that last frame access index is in [0, 2^16-1].

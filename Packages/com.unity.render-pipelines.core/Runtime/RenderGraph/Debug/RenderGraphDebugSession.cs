@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             public DebugData GetDebugData(string renderGraph, EntityId executionId)
             {
                 if (!m_Container.TryGetValue(renderGraph, out var debugDataForGraph))
-                    throw new InvalidOperationException();
+                    throw new InvalidOperationException($"RenderGraph '{renderGraph}' was never registered with the debug session.");
                 return debugDataForGraph[executionId];
             }
 
@@ -147,6 +147,17 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             EndSession();
             s_CurrentDebugSession = new TSession();
+        }
+
+        // internal: Required in test
+        internal static void Create(Type sessionType)
+        {
+            EndSession();
+
+            if (sessionType.IsAssignableFrom(typeof(RenderGraphDebugSession)))
+                throw new ArgumentException("Incorrect session type. Type should be derived from RenderGraphDebugSession.");
+
+            s_CurrentDebugSession = Activator.CreateInstance(sessionType) as RenderGraphDebugSession;
         }
 
         public static void EndSession()

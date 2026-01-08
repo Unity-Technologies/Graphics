@@ -1,45 +1,51 @@
-#pragma exclude_renderers gles
-
 #pragma kernel MainUploadScatterInstances
 
 //#pragma enable_d3d11_debug_symbols
 
-int _InputValidComponentCounts;
-int _InputInstanceCounts;
-int _InputInstanceByteSize;
+int _InputComponentsCount;
+int _InputInstancesCount;
 ByteAddressBuffer _InputInstanceData;
 ByteAddressBuffer _InputInstanceIndices;
-ByteAddressBuffer _InputComponentOffsets;
-ByteAddressBuffer _InputValidComponentIndices;
 ByteAddressBuffer _InputComponentAddresses;
-ByteAddressBuffer _InputComponentByteCounts;
-ByteAddressBuffer _InputComponentInstanceIndexRanges;
+ByteAddressBuffer _OutputComponentByteCounts;
+ByteAddressBuffer _OutputComponentIndices;
+ByteAddressBuffer _OutputComponentInstanceIndexRanges;
+ByteAddressBuffer _OutputComponentIsPerInstance;
+ByteAddressBuffer _OutputComponentAddresses;
 RWByteAddressBuffer _OutputBuffer;
 
-[numthreads(64,1,1)]
+[numthreads(64, 1, 1)]
 void MainUploadScatterInstances(uint3 dispatchThreadID : SV_DispatchThreadID)
 {
-    uint instanceOffset = dispatchThreadID.x;
-    if (instanceOffset >= (uint)_InputInstanceCounts)
+    uint inputInstanceIndex = dispatchThreadID.x;
+    
+    if (inputInstanceIndex >= (uint) _InputInstancesCount)
         return;
 
-    uint instanceIndex = _InputInstanceIndices.Load(instanceOffset << 2);
+    uint outputInstanceIndex = _InputInstanceIndices.Load(inputInstanceIndex << 2);
 
     [loop]
-    for (int validComponentIndex = 0; validComponentIndex < _InputValidComponentCounts; ++validComponentIndex)
+    for (int inputComponent = 0; inputComponent < _InputComponentsCount; ++inputComponent)
     {
-        uint componentIndex = _InputValidComponentIndices.Load(validComponentIndex << 2);
-        uint instanceIndexBegin = _InputComponentInstanceIndexRanges.Load(componentIndex * 8);
-        uint instanceIndexEnd = _InputComponentInstanceIndexRanges.Load(componentIndex * 8 + 4);
-        if (instanceIndex < instanceIndexBegin || instanceIndex >= instanceIndexEnd)
+        uint outputComponent = _OutputComponentIndices.Load(inputComponent << 2);
+        uint instanceIndexRangeBegin = _OutputComponentInstanceIndexRanges.Load(outputComponent * 8);
+        uint instanceIndexRangeEnd = _OutputComponentInstanceIndexRanges.Load(outputComponent * 8 + 4);
+
+        // Not every instance has all the components.
+        if (outputInstanceIndex < instanceIndexRangeBegin || outputInstanceIndex >= instanceIndexRangeEnd)
             continue;
-        uint inputComponentOffset = _InputComponentOffsets.Load(componentIndex << 2);
-        uint componentAddress = _InputComponentAddresses.Load(componentIndex << 2);
-        uint componentByteSize = _InputComponentByteCounts.Load(componentIndex << 2);
+        
+        uint inputComponentAddress = _InputComponentAddresses.Load(inputComponent << 2);
+        uint componentByteSize = _OutputComponentByteCounts.Load(outputComponent << 2);
+        uint outputComponentAddress = _OutputComponentAddresses.Load(outputComponent << 2);
+
+        // Some components are shared between all instances.
+        uint isPerInstanceComponent = _OutputComponentIsPerInstance.Load(outputComponent << 2);
+
+        uint inputAddress = inputComponentAddress + inputInstanceIndex * componentByteSize * isPerInstanceComponent;
+        uint outputAddress = outputComponentAddress + outputInstanceIndex * componentByteSize * isPerInstanceComponent;
+        
         for (uint uintIndex = 0; uintIndex < componentByteSize / 4u; ++uintIndex)
-        {
-            uint outputAddress = componentAddress + instanceIndex * componentByteSize + uintIndex * 4;
-            _OutputBuffer.Store(outputAddress, _InputInstanceData.Load(instanceOffset * _InputInstanceByteSize + (inputComponentOffset + uintIndex) * 4));
-        }
+            _OutputBuffer.Store(outputAddress + uintIndex * 4, _InputInstanceData.Load(inputAddress + uintIndex * 4));
     }
 }

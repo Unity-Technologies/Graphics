@@ -15,7 +15,7 @@
 RWStructuredBuffer<uint> _RingConfigBuffer;
 RWStructuredBuffer<PatchUtil::PatchGeometry> _PatchGeometries;
 RWStructuredBuffer<uint> _PatchCellIndices;
-RWStructuredBuffer<PatchUtil::PatchCounterSet> _PatchCounterSets;
+RWStructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
 RWStructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances0;
 RWStructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances1;
 RWStructuredBuffer<uint> _CellAllocationMarks;
@@ -221,7 +221,11 @@ void Allocate(uint2 lowResPixelPos : SV_DispatchThreadID)
 
             _PatchIrradiances0[resolutionResult.patchIdx] = irradianceSeed;
             _PatchIrradiances1[resolutionResult.patchIdx] = irradianceSeed;
-            _PatchCounterSets[resolutionResult.patchIdx] = counterSet;
+            PatchUtil::PatchStatisticsSet stats;
+            stats.mean = irradianceSeed.l0;
+            stats.variance = 0;
+            stats.patchCounters = counterSet;
+            _PatchStatistics[resolutionResult.patchIdx] = stats;
         }
     }
 }

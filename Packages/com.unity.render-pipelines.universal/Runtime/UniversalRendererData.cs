@@ -154,6 +154,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_AccurateGbufferNormals = false;
 
         [SerializeField] IntermediateTextureMode m_IntermediateTextureMode = IntermediateTextureMode.Always;
+        [SerializeField] bool m_OnTileValidation = false;
 
         /// <inheritdoc/>
         protected override ScriptableRenderer Create()
@@ -343,6 +344,23 @@ namespace UnityEngine.Rendering.Universal
             {
                 SetDirty();
                 m_IntermediateTextureMode = value;
+            }
+        }
+
+        /// <summary>
+        /// On-Tile validation validates features to prevent going off tile.
+        /// This is mainly useful for tile based architectures.
+        /// </summary>
+        public bool onTileValidation
+        {
+            get => m_OnTileValidation;
+            set
+            {
+                if (m_OnTileValidation == value)
+                    return;
+
+                SetDirty();
+                m_OnTileValidation = value;
             }
         }
 

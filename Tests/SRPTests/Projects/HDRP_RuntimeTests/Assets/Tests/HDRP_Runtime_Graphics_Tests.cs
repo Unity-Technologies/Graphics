@@ -45,6 +45,18 @@ public class HDRP_Runtime_Graphics_Tests
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal }
     )]
     [IgnoreGraphicsTest(
+        "003-VirtualTexturing$",
+        "https://jira.unity3d.com/browse/UUM-131182 Both Switches fail on MultiThreaded (pass on Native Jobs)",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch, RuntimePlatform.Switch2 },
+        renderingThreadingModes: new RenderingThreadingMode[] { RenderingThreadingMode.MultiThreaded }
+    )]
+    [IgnoreGraphicsTest(
+        "003-VirtualTexturing-Forward$",
+        "https://jira.unity3d.com/browse/UUM-131182 Switch fails on MultiThreaded (pass on Native Jobs)",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch },
+        renderingThreadingModes: new RenderingThreadingMode[] { RenderingThreadingMode.MultiThreaded }
+    )]
+    [IgnoreGraphicsTest(
         "004-CloudsFlaresDecals$",
         "Area with cloud-coverage is blue on Intel-based MacOS (CI).",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
@@ -55,11 +67,6 @@ public class HDRP_Runtime_Graphics_Tests
         "https://jira.unity3d.com/browse/UUM-54029",
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal },
         architectures: new Architecture[] { Architecture.X64 }
-    )]
-    [IgnoreGraphicsTest(
-        "011-HighQualityLines$",
-        "Getting NVN_QUEUE_GET_ERROR_RESULT_GPU_ERROR_MMU_FAULT GPU Error. Tracked in https://jira.unity3d.com/browse/UUM-127274.",
-        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch, RuntimePlatform.Switch2 }
     )]
     [IgnoreGraphicsTest(
         "012-SVL_Check$",

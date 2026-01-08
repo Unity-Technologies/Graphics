@@ -374,7 +374,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // clear dispatch indirect buffer
                 cmd.SetComputeBufferParam(data.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, data.output.dispatchIndirectBuffer);
-                cmd.DispatchCompute(data.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, 1, 1, 1);
+                cmd.DispatchCompute(data.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, HDUtils.DivRoundUp(LightDefinitions.s_NumFeatureVariants, k_ThreadGroupOptimalSize), 1, data.viewCount);
 
                 // add tiles to indirect buffer
                 cmd.SetComputeBufferParam(data.buildDispatchIndirectShader, s_BuildIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, data.output.dispatchIndirectBuffer);

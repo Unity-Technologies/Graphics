@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         NativeList<AttachmentDescriptor> m_BeginRenderPassAttachments;
 
         // Contains the index of the non culled passes for native render passes that has at least one pass culled.
-        NativeList<int> m_NonCulledPassIndicesForRasterPasses;
+        internal NativeList<int> m_NonCulledPassIndicesForRasterPasses;
 
         internal static bool s_ForceGenerateAuditsForTests = false;
 
@@ -711,6 +711,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 if (passWasCulled)
                 {
                     CollectNonCulledPassIndicesForRasterPasses(ctx.passData.Length, indexSinceLastCulledPass, clearList: !nonCulledPassIndicesListWasCleared);
+                    nonCulledPassIndicesListWasCleared = true;
+                }
+
+                // We need to clear this data to avoid reusing stale data from a previously compiled graph.
+                if (!nonCulledPassIndicesListWasCleared && m_NonCulledPassIndicesForRasterPasses.IsCreated)
+                {
+                    m_NonCulledPassIndicesForRasterPasses.Clear();
+                    m_NonCulledPassIndicesForRasterPasses.SetCapacity(ctx.passData.Length);
                 }
 
                 if (activeNativePassId >= 0)

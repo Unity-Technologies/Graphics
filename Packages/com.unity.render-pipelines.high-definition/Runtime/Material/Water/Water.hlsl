@@ -415,9 +415,6 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // Grab the water profile of this surface
     WaterSurfaceProfile profile = _WaterSurfaceProfiles[bsdfData.surfaceIndex];
 
-    // Make sure to apply the smoothness fade
-    EvaluateSmoothnessFade(posInput.positionWS, profile, bsdfData);
-
     // Profile data
     preLightData.tipScatteringHeight = profile.tipScatteringHeight;
     preLightData.bodyScatteringHeight = profile.bodyScatteringHeight;

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.PathTracing.Core;
 using UnityEngine.Rendering.UnifiedRayTracing;
 
@@ -38,68 +39,238 @@ namespace UnityEngine.Rendering
             internal Vector3 Intensity;
         }
 
-        internal struct SpotLight
+        internal struct PunctualLight
         {
             internal Vector3 Position;
             internal Vector3 Direction;
             internal Vector3 Intensity;
-            internal float Angle;
+            internal float CosAngle;
         }
 
-        internal class LightSet
+        internal class LightSet : IDisposable
         {
-            (LightHandle, DirectionalLight)? _directionalLightPair;
-            (LightHandle, SpotLight)? _spotLightPair;
-            Dictionary<LightHandle, LightType> _handleToTypeMap = new();
-            LightHandleSet _handles = new();
+            struct Light { }
 
-            public DirectionalLight? DirectionalLight => _directionalLightPair.HasValue ? _directionalLightPair.Value.Item2 : null;
-            public SpotLight? SpotLight => _spotLightPair.HasValue ? _spotLightPair.Value.Item2 : null;
+            class LightList<T> : IDisposable where T : struct
+            {
+                private HandleSet<Light> _handles = new();
+                private List<T> _list = new();
+                private Dictionary<Handle<Light>, int> _handleToIndex = new();
+                private Dictionary<int, Handle<Light>> _indexToHandle = new();
+                private bool _gpuDirty = false;
+                private GraphicsBuffer _buffer;
+
+                internal uint Count => (uint)_list.Count;
+                internal List<T> Values => _list;
+                internal GraphicsBuffer Buffer => _buffer;
+
+                internal Handle<Light> Add(T light)
+                {
+                    var handle = _handles.Add();
+                    var index = _list.Count;
+                    _handleToIndex[handle] = index;
+                    _indexToHandle[index] = handle;
+                    _list.Add(light);
+                    _gpuDirty = true;
+                    return handle;
+                }
+
+                internal void Update(Handle<Light> handle, T light)
+                {
+                    Debug.Assert(_handleToIndex.ContainsKey(handle));
+                    _gpuDirty = true;
+                    _list[_handleToIndex[handle]] = light;
+                }
+
+                internal void Remove(Handle<Light> handle)
+                {
+                    Debug.Assert(_handleToIndex.ContainsKey(handle));
+                    _gpuDirty = true;
+                    var swapIndex = _handleToIndex[handle];
+                    _handleToIndex.Remove(handle);
+
+                    int endIndex = _list.Count - 1;
+                    Handle<Light> moveHandle = _indexToHandle[endIndex];
+
+                    _list[swapIndex] = _list[endIndex];
+                    _list.RemoveAt(endIndex);
+                    _indexToHandle[swapIndex] = moveHandle;
+                    _handleToIndex[moveHandle] = swapIndex;
+                }
+
+                internal void Commit(CommandBuffer cmd)
+                {
+                    if (_gpuDirty)
+                    {
+                        _gpuDirty = false;
+                        if (_buffer == null || _buffer.count < _list.Count)
+                        {
+                            _buffer?.Dispose();
+                            _buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, _list.Count, UnsafeUtility.SizeOf<T>());
+                        }
+                        cmd.SetBufferData(_buffer, _list);
+                    }
+                }
+
+                public void Dispose()
+                {
+                    _buffer?.Dispose();
+                }
+            }
+
+            LightHandleSet _handles = new();
+            Dictionary<LightHandle, (LightType, Handle<Light>)> _handleToTypeAndSubHandleMap = new();
+            LightList<PunctualLight> _punctualLights = new();
+            LightList<DirectionalLight> _directionalLights = new();
+
+            public DirectionalLight? DirectionalLight => 0 < _directionalLights.Count ? _directionalLights.Values[0] : null;
+            public GraphicsBuffer PunctualLightBuffer => _punctualLights.Buffer;
+            public uint PunctualLightCount => _punctualLights.Count;
+
+            Handle<Light> AddToList(LightDescriptor desc)
+            {
+                if (desc.Type == LightType.Directional)
+                    return _directionalLights.Add(ConvertDirectionalLight(desc));
+                else if (desc.Type == LightType.Spot)
+                    return _punctualLights.Add(ConvertSpotLight(desc));
+                else if (desc.Type == LightType.Point)
+                    return _punctualLights.Add(ConvertPointLight(desc));
+                else
+                    return Handle<Light>.Invalid;
+            }
+
+            void RemoveFromList(LightType type, Handle<Light> subHandle)
+            {
+                if (type == LightType.Directional)
+                    _directionalLights.Remove(subHandle);
+                else if (type == LightType.Spot || type == LightType.Point)
+                    _punctualLights.Remove(subHandle);
+            }
+
+            void UpdateInList(Handle<Light> subHandle, LightDescriptor desc)
+            {
+                if (desc.Type == LightType.Directional)
+                    _directionalLights.Update(subHandle, ConvertDirectionalLight(desc));
+                else if (desc.Type == LightType.Spot)
+                    _punctualLights.Update(subHandle, ConvertSpotLight(desc));
+                else if (desc.Type == LightType.Point)
+                    _punctualLights.Update(subHandle, ConvertPointLight(desc));
+            }
+
+            static Vector3 GetLightDirection(LightDescriptor desc)
+            {
+                return desc.Transform.GetColumn(2).normalized;
+            }
+
+            static DirectionalLight ConvertDirectionalLight(LightDescriptor desc)
+            {
+                return new DirectionalLight()
+                {
+                    Direction = GetLightDirection(desc),
+                    Intensity = desc.LinearLightColor
+                };
+            }
+
+            static PunctualLight ConvertSpotLight(LightDescriptor desc)
+            {
+                return new PunctualLight()
+                {
+                    Position = desc.Transform.GetPosition(),
+                    Direction = GetLightDirection(desc),
+                    Intensity = desc.LinearLightColor,
+                    CosAngle = Mathf.Cos(desc.SpotAngle / 360.0f * 2.0f * Mathf.PI * 0.5f)
+                };
+            }
+
+            static PunctualLight ConvertPointLight(LightDescriptor desc)
+            {
+                return new PunctualLight()
+                {
+                    Position = desc.Transform.GetPosition(),
+                    Direction = Vector3.up, // doesn't matter
+                    Intensity = desc.LinearLightColor,
+                    CosAngle = -1.0f // cos(pi) = -1
+                };
+            }
+
+            static bool ShouldBeInList(LightDescriptor desc)
+            {
+                return desc.LinearLightColor != Vector3.zero;
+            }
+
+            internal void Update(LightHandle handle, LightDescriptor desc)
+            {
+                var (type, subHandle) = _handleToTypeAndSubHandleMap[handle];
+
+                if (type == desc.Type)
+                {
+                    bool isInList = subHandle != Handle<Light>.Invalid;
+                    if (ShouldBeInList(desc))
+                    {
+                        if (isInList)
+                        {
+                            UpdateInList(subHandle, desc);
+                        }
+                        else
+                        {
+                            subHandle = AddToList(desc);
+                            _handleToTypeAndSubHandleMap[handle] = (type, subHandle);
+                        }
+                    }
+                    else
+                    {
+                        if (isInList)
+                        {
+                            RemoveFromList(type, subHandle);
+                            _handleToTypeAndSubHandleMap[handle] = (type, Handle<Light>.Invalid);
+                        }
+                    }
+                }
+                else
+                {
+                    var oldType = type;
+                    var newType = desc.Type;
+                    RemoveFromList(oldType, subHandle);
+                    Handle<Light> newSubHandle = Handle<Light>.Invalid;
+                    if (ShouldBeInList(desc))
+                        newSubHandle = AddToList(desc);
+                    _handleToTypeAndSubHandleMap[handle] = (newType, newSubHandle);
+                }
+            }
 
             internal LightHandle Add(LightDescriptor desc)
             {
                 var handle = _handles.Add();
-                _handleToTypeMap[handle] = desc.Type;
-                if (desc.Type == LightType.Directional && !_directionalLightPair.HasValue)
-                {
-                    var dirLight = new DirectionalLight()
-                    {
-                        Direction = desc.Transform.GetColumn(2),
-                        Intensity = desc.LinearLightColor
-                    };
-                    _directionalLightPair = (handle, dirLight);
-                }
-                else if (desc.Type == LightType.Spot && !_spotLightPair.HasValue)
-                {
-                    var dirLight = new SpotLight()
-                    {
-                        Position = desc.Transform.GetPosition(),
-                        Direction = desc.Transform.GetColumn(2),
-                        Intensity = desc.LinearLightColor,
-                        Angle = desc.SpotAngle
-                    };
-                    _spotLightPair = (handle, dirLight);
-                }
+                Handle<Light> subHandle = Handle<Light>.Invalid;
 
+                if (ShouldBeInList(desc))
+                    subHandle = AddToList(desc);
+
+                _handleToTypeAndSubHandleMap[handle] = (desc.Type, subHandle);
                 return handle;
             }
 
             internal void Remove(LightHandle handle)
             {
-                Debug.Assert(_handleToTypeMap.ContainsKey(handle), "Unexpected light handle.");
+                Debug.Assert(_handleToTypeAndSubHandleMap.ContainsKey(handle), "Unexpected light handle.");
 
-                var type = _handleToTypeMap[handle];
+                var (type, subHandle) = _handleToTypeAndSubHandleMap[handle];
+                _handleToTypeAndSubHandleMap.Remove(handle);
 
-                _handleToTypeMap.Remove(handle);
-                _handles.Remove(handle);
-                if (type == LightType.Directional && _directionalLightPair.HasValue && handle == _directionalLightPair.Value.Item1)
-                {
-                    _directionalLightPair = null;
-                }
-                if (type == LightType.Spot && _spotLightPair.HasValue && handle == _spotLightPair.Value.Item1)
-                {
-                    _spotLightPair = null;
-                }
+                if (subHandle != Handle<Light>.Invalid)
+                    RemoveFromList(type, subHandle);
+            }
+
+            internal void Commit(CommandBuffer cmd)
+            {
+                _directionalLights.Commit(cmd);
+                _punctualLights.Commit(cmd);
+            }
+
+            public void Dispose()
+            {
+                _directionalLights.Dispose();
+                _punctualLights.Dispose();
             }
         }
 
@@ -134,9 +305,14 @@ namespace UnityEngine.Rendering
             _cubemapRender.SetMode(mode);
         }
 
-        public SpotLight? GetSpotLight()
+        public GraphicsBuffer GetPunctualLightBuffer()
         {
-            return _lights.SpotLight;
+            return _lights.PunctualLightBuffer;
+        }
+
+        public uint GetPunctualLightCount()
+        {
+            return _lights.PunctualLightCount;
         }
 
         public void SetEnvironmentMaterial(Material mat)
@@ -179,6 +355,7 @@ namespace UnityEngine.Rendering
             _rayTracingAccelerationStructure?.Dispose();
             _materialPool?.Dispose();
             _cubemapRender?.Dispose();
+            _lights.Dispose();
         }
 
         public AccelStructAdapter GetAccelerationStructure()
@@ -237,6 +414,30 @@ namespace UnityEngine.Rendering
             return instance;
         }
 
+        public InstanceHandle AddInstance(
+            Terrain terrain,
+            MaterialHandle material,
+            uint mask,
+            in Matrix4x4 localToWorldMatrix)
+        {
+            Debug.Assert(terrain.terrainData != null);
+            Debug.Assert(material != MaterialHandle.Invalid);
+
+            Span<uint> masks = stackalloc uint[1] { mask };
+
+            Span<uint> materialIndices = stackalloc uint[1];
+            Span<bool> isOpaque = stackalloc bool[1];
+
+            _materialPool.GetMaterialInfo(material.Value, out materialIndices[0], out bool isTransmissive);
+            isOpaque[0] = !isTransmissive;
+
+            Component comp = terrain;
+            InstanceHandle instance = _instanceHandleSet.Add();
+
+            _rayTracingAccelerationStructure.AddInstance(instance.Value, comp, masks, materialIndices, isOpaque, terrain.renderingLayerMask);
+            return instance;
+        }
+
         public void UpdateInstanceTransform(InstanceHandle instance, Matrix4x4 localToWorldMatrix)
         {
             _rayTracingAccelerationStructure.UpdateInstanceTransform(instance.Value, localToWorldMatrix);
@@ -266,7 +467,6 @@ namespace UnityEngine.Rendering
                 var handle = _lights.Add(lightDescs[i]);
                 handles[i] = handle;
             }
-            UpdateLights(handles, lightDescs);
             return handles;
         }
 
@@ -277,8 +477,7 @@ namespace UnityEngine.Rendering
             {
                 ref readonly LightDescriptor descriptor = ref lightDescriptors[i];
                 var handle = lightHandles[i];
-                _lights.Remove(handle);
-                lightHandles[i] = _lights.Add(descriptor);
+                _lights.Update(handle, descriptor);
             }
         }
 
@@ -290,12 +489,13 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public void Build(CommandBuffer cmdBuf, ref GraphicsBuffer scratchBuffer, uint envCubemapResolution, UnityEngine.Light sun)
+        public void Commit(CommandBuffer cmdBuf, ref GraphicsBuffer scratchBuffer, uint envCubemapResolution, UnityEngine.Light sun)
         {
             Debug.Assert(_rayTracingAccelerationStructure != null);
             _materialPool.Build(cmdBuf);
             _rayTracingAccelerationStructure.Build(cmdBuf, ref scratchBuffer);
             _cubemapRender.Update(cmdBuf, sun, (int)envCubemapResolution);
+            _lights.Commit(cmdBuf);
         }
     }
 }

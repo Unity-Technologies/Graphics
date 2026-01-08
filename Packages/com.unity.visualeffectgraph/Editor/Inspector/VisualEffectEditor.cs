@@ -72,6 +72,7 @@ namespace UnityEditor.VFX
         SerializedProperty m_RandomSeed;
         SerializedProperty m_VFXPropertySheet;
         SerializedProperty m_AllowInstancing;
+        SerializedProperty m_ReleaseInstanceOnDisable;
 
         RendererEditor m_RendererEditor;
 
@@ -107,6 +108,7 @@ namespace UnityEditor.VFX
             m_VisualEffectAsset = serializedObject.FindProperty("m_Asset");
             m_VFXPropertySheet = m_SingleSerializedObject.FindProperty("m_PropertySheet");
             m_AllowInstancing = serializedObject.FindProperty("m_AllowInstancing");
+            m_ReleaseInstanceOnDisable = serializedObject.FindProperty("m_ReleaseInstanceOnDisable");
 
             var renderers = targets.Cast<Component>().Select(t => t.GetComponent<VFXRenderer>()).ToArray();
             m_RendererEditor = new RendererEditor(renderers);
@@ -1271,13 +1273,14 @@ namespace UnityEditor.VFX
                 {
                     EditorGUI.BeginChangeCheck();
                     EditorGUILayout.PropertyField(m_AllowInstancing, Contents.allowInstancing);
+                    EditorGUILayout.PropertyField(m_ReleaseInstanceOnDisable, Contents.releaseInstanceOnDisable);
                     if (EditorGUI.EndChangeCheck())
                     {
                         serializedObject.ApplyModifiedProperties();
 
                         foreach (var visualEffect in targets.OfType<VisualEffect>())
                         {
-                            visualEffect.RecreateData();
+                            visualEffect.RecreateBatchInstance();
                         }
                     }
                 }
@@ -1503,6 +1506,7 @@ namespace UnityEditor.VFX
             public static readonly GUILayoutOption playRateDropdownWidth = GUILayout.Width(40);
 
             public static readonly GUIContent allowInstancing = EditorGUIUtility.TrTextContent("Allow Instancing", "When enabled, the effect will try to be batched with other of the same type.");
+            public static readonly GUIContent releaseInstanceOnDisable = EditorGUIUtility.TrTextContent("Release Instance On Disable", "When enabled, the effect instance will be created when the component is enabled, and released when it is disabled, to optimize memory usage.");
 
             public static readonly GUIContent graphInBundle = EditorGUIUtility.TrTextContent("Exposed properties are hidden in the Inspector when Visual Effect Assets are stored in Asset Bundles.");
             public static readonly GUIContent play = new GUIContent("Send Play Event");

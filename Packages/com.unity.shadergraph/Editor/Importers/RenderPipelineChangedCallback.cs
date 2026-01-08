@@ -12,6 +12,7 @@ namespace UnityEditor.ShaderGraph
         {
             RenderPipelineManager.activeRenderPipelineTypeChanged -= SRPChanged;
             RenderPipelineManager.activeRenderPipelineTypeChanged += SRPChanged;
+            SRPChanged();
         }
 
         static Hash128 ComputeCurrentRenderPipelineHash()

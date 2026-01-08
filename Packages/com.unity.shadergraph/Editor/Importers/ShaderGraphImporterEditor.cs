@@ -20,6 +20,8 @@ namespace UnityEditor.ShaderGraph
     {
         protected override bool needsApplyRevert => false;
         MaterialEditor materialEditor = null;
+        bool needsSaveMetaFile = false;
+        bool needsReimport = false;
 
         public override void OnInspectorGUI()
         {
@@ -138,7 +140,7 @@ namespace UnityEditor.ShaderGraph
             EditorGUILayout.Space();
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serializedObject.FindProperty(ShaderGraphImporter.UseAsTemplateFieldName));
-            bool needsReimport = EditorGUI.EndChangeCheck();
+            needsReimport |= EditorGUI.EndChangeCheck();
             using (new EditorGUI.IndentLevelScope(1))
             using (new EditorGUI.DisabledScope(!(target as ShaderGraphImporter)?.UseAsTemplate ?? true))
             {
@@ -146,15 +148,12 @@ namespace UnityEditor.ShaderGraph
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(ShaderGraphImporter.ExposeTemplateAsShaderFieldName), new GUIContent("Expose as Shader", "Toggle whether or not the template shader should be exposed in shader dropdowns."));
                 needsReimport |= EditorGUI.EndChangeCheck();
 
+                EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(ShaderGraphImporter.TemplateFieldName));
+                needsSaveMetaFile |= EditorGUI.EndChangeCheck();
             }
 
             ApplyRevertGUI();
-            if (needsReimport)
-            {
-                AssetImporter importer = target as AssetImporter;
-                AssetDatabase.ImportAsset(importer.assetPath);
-            }
 
             if (materialEditor)
             {
@@ -163,6 +162,22 @@ namespace UnityEditor.ShaderGraph
                 using (new EditorGUI.DisabledGroupScope(true))
                     materialEditor.OnInspectorGUI();
             }
+        }
+
+        protected override void Apply()
+        {
+            base.Apply();
+            var importer = (AssetImporter)target;
+            if (needsSaveMetaFile)
+            {
+                AssetDatabase.ForceReserializeAssets(new []{ importer.assetPath }, ForceReserializeAssetsOptions.ReserializeMetadata);
+            }
+            if (needsReimport)
+            {
+                AssetDatabase.ImportAsset(importer.assetPath);
+            }
+            needsSaveMetaFile = false;
+            needsReimport = false;
         }
 
         public override void OnEnable()

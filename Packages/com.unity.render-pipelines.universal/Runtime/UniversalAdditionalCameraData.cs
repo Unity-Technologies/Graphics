@@ -491,7 +491,7 @@ namespace UnityEngine.Rendering.Universal
         [NonSerialized] internal UniversalCameraHistory m_History = new UniversalCameraHistory();
 
         [SerializeField] internal TemporalAA.Settings m_TaaSettings = TemporalAA.Settings.Create();
-        
+
         static UniversalAdditionalCameraData s_DefaultAdditionalCameraData = null;
         internal static UniversalAdditionalCameraData defaultAdditionalCameraData
         {
@@ -609,6 +609,24 @@ namespace UnityEngine.Rendering.Universal
             {
                 Debug.LogWarning(name + ": " + removedCamsCount + " camera overlay" + (removedCamsCount > 1 ? "s" : "") + " no longer exists and will be removed from the camera stack.");
             }
+        }
+
+        // internal: Required in test
+        internal bool TryAddCameraToStack(Camera overlayCamera)
+        {
+            if (overlayCamera == null
+                || !overlayCamera.TryGetComponent(out UniversalAdditionalCameraData urpCameraData)
+                || urpCameraData.renderType != CameraRenderType.Overlay
+                || renderType != CameraRenderType.Base)
+                return false;
+
+            var overlayRenderer = urpCameraData.scriptableRenderer;
+            if (overlayRenderer.GetType() != scriptableRenderer.GetType()
+                || (overlayRenderer.SupportedCameraStackingTypes() & 1 << (int)CameraRenderType.Overlay) == 0)
+                return false;
+
+            m_Cameras.Add(overlayCamera);
+            return true;
         }
 
         /// <summary>
@@ -997,15 +1015,17 @@ namespace UnityEngine.Rendering.Universal
 
             return renderers[m_RendererIndex];
         }
-        
+
+        internal int rendererIndex => m_RendererIndex;
+
         enum Version
         {
             Initial = 0,
             DepthAndOpaqueTextureOptions = 2,
-            
+
             Count
         }
-        
+
         [SerializeField] Version m_Version = Version.Count;
 
         // This piece of code is needed because some objects could have been created before existence of Version enum
@@ -1021,7 +1041,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_Version == Version.Count) // deserializing and object without version
                 m_Version = Version.Initial; // reset to run the migration
-            
+
             if (m_Version < Version.DepthAndOpaqueTextureOptions)
             {
                 m_RequiresDepthTextureOption = (m_RequiresDepthTexture) ? CameraOverrideOption.On : CameraOverrideOption.Off;

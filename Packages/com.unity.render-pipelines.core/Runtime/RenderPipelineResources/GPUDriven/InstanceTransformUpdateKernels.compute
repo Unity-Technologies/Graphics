@@ -1,5 +1,5 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/InstanceData/InstanceTransformUpdateDefs.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/CoreDataSystems/InstanceTransformUpdateDefs.cs.hlsl"
 
 #pragma kernel ScatterInitTransformMain
 #pragma kernel ScatterUpdateTransformMain

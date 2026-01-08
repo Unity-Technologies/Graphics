@@ -1,3 +1,5 @@
+using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 using UnityEngine.Assertions;
 using Unity.Mathematics;
@@ -6,17 +8,56 @@ using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Burst;
-using UnityEngine.Profiling;
+
+[assembly: RegisterGenericJobType(typeof(UnityEngine.Rendering.ParallelSortExtensions.RadixSortBucketCountJob<int>))]
+[assembly: RegisterGenericJobType(typeof(UnityEngine.Rendering.ParallelSortExtensions.RadixSortBucketCountJob<ulong>))]
+
+[assembly: RegisterGenericJobType(typeof(UnityEngine.Rendering.ParallelSortExtensions.RadixSortBatchPrefixSumJob<int>))]
+[assembly: RegisterGenericJobType(typeof(UnityEngine.Rendering.ParallelSortExtensions.RadixSortBatchPrefixSumJob<ulong>))]
+
+[assembly: RegisterGenericJobType(typeof(UnityEngine.Rendering.ParallelSortExtensions.RadixSortBucketSortJob<int>))]
+[assembly: RegisterGenericJobType(typeof(UnityEngine.Rendering.ParallelSortExtensions.RadixSortBucketSortJob<ulong>))]
+
+[assembly: RegisterGenericJobType(typeof(SortJob<int, NativeSortExtension.DefaultComparer<int>>))]
+[assembly: RegisterGenericJobType(typeof(SortJob<ulong, NativeSortExtension.DefaultComparer<ulong>>))]
 
 namespace UnityEngine.Rendering
 {
     internal static class ParallelSortExtensions
     {
-        const int kMinRadixSortArraySize = 2048;
+        // This constant is used in the ParallelSort unit test to make sure we're hitting the parallel code path.
+        internal const int kMinRadixSortArraySize = 2048;
         const int kMinRadixSortBatchSize = 256;
 
-        internal static JobHandle ParallelSort(this NativeArray<int> array)
+        internal enum ParallelSortValueType
         {
+            Int,
+            ULong
+        }
+
+        private static int GetBucketIndex(int value, int radix)
+        {
+            return (value >> radix * 8) & 0xFF;
+        }
+
+        private static int GetBucketIndex(ulong value, int radix)
+        {
+            return (int)((value >> radix * 8) & 0xFF);
+        }
+
+        private static void Swap<T>(ref NativeArray<T> a, ref NativeArray<T> b) where T : unmanaged
+        {
+            NativeArray<T> temp = a;
+            a = b;
+            b = temp;
+        }
+
+        // The method supports for the moment only keys of type int or ulong.
+        internal static JobHandle ParallelSort<T>(this NativeArray<T> array) where T : unmanaged, IComparable<T>
+        {
+            // Only these two integer types are supported
+            Assert.IsTrue(typeof(T) == typeof(ulong) || typeof(T) == typeof(int));
+
             if (array.Length <= 1)
                 return new JobHandle();
 
@@ -27,10 +68,12 @@ namespace UnityEngine.Rendering
                 int workersCount = Mathf.Max(JobsUtility.JobWorkerCount + 1, 1);
                 int batchSize = Mathf.Max(kMinRadixSortBatchSize, Mathf.CeilToInt((float)array.Length / workersCount));
                 int jobsCount = Mathf.CeilToInt((float)array.Length / batchSize);
+                int keyByteSize = Marshal.SizeOf<T>();
+                int signBitRadixIndex = keyByteSize - 1;
 
                 Assert.IsTrue(jobsCount * batchSize >= array.Length);
 
-                var supportArray = new NativeArray<int>(array.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                var supportArray = new NativeArray<T>(array.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var counter = new NativeArray<int>(1, Allocator.TempJob);
                 var buckets = new NativeArray<int>(jobsCount * 256, Allocator.TempJob);
                 var indices = new NativeArray<int>(jobsCount * 256, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
@@ -39,18 +82,27 @@ namespace UnityEngine.Rendering
                 var arraySource = array;
                 var arrayDest = supportArray;
 
-                for (int radix = 0; radix < 4; ++radix)
+                ParallelSortValueType valueType = typeof(T) == typeof(int) ? ParallelSortValueType.Int : ParallelSortValueType.ULong;
+
+                // Add any unsigned value type to this condition
+                if (valueType == ParallelSortValueType.ULong)
                 {
-                    var bucketCountJobData = new RadixSortBucketCountJob
+                    // There are no sign bits in this type.
+                    signBitRadixIndex = -1;
+                }
+
+                for (int radix = 0; radix < keyByteSize; ++radix)
+                {
+                    var bucketCountJobData = new RadixSortBucketCountJob<T>
                     {
                         radix = radix,
-                        jobsCount = jobsCount,
                         batchSize = batchSize,
                         buckets = buckets,
-                        array = arraySource
+                        array = arraySource,
+                        valueType = valueType
                     };
 
-                    var batchPrefixSumJobData = new RadixSortBatchPrefixSumJob
+                    var batchPrefixSumJobData = new RadixSortBatchPrefixSumJob<T>
                     {
                         radix = radix,
                         jobsCount = jobsCount,
@@ -58,7 +110,8 @@ namespace UnityEngine.Rendering
                         counter = counter,
                         buckets = buckets,
                         indices = indices,
-                        indicesSum = indicesSum
+                        indicesSum = indicesSum,
+                        signBitRadixIndex = signBitRadixIndex
                     };
 
                     var prefixSumJobData = new RadixSortPrefixSumJob
@@ -68,13 +121,14 @@ namespace UnityEngine.Rendering
                         indicesSum = indicesSum
                     };
 
-                    var bucketSortJobData = new RadixSortBucketSortJob
+                    var bucketSortJobData = new RadixSortBucketSortJob<T>
                     {
                         radix = radix,
                         batchSize = batchSize,
                         indices = indices,
                         array = arraySource,
-                        arraySorted = arrayDest
+                        arraySorted = arrayDest,
+                        valueType = valueType
                     };
 
                     jobHandle = bucketCountJobData.ScheduleParallel(jobsCount, 1, jobHandle);
@@ -83,13 +137,6 @@ namespace UnityEngine.Rendering
                     jobHandle = bucketSortJobData.ScheduleParallel(jobsCount, 1, jobHandle);
 
                     JobHandle.ScheduleBatchedJobs();
-
-                    static void Swap(ref NativeArray<int> a, ref NativeArray<int> b)
-                    {
-                        NativeArray<int> temp = a;
-                        a = b;
-                        b = temp;
-                    }
 
                     Swap(ref arraySource, ref arrayDest);
                 }
@@ -109,12 +156,12 @@ namespace UnityEngine.Rendering
         }
 
         [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
-        internal struct RadixSortBucketCountJob : IJobFor
+        internal struct RadixSortBucketCountJob<T> : IJobFor where T : unmanaged
         {
             [ReadOnly] public int radix;
-            [ReadOnly] public int jobsCount;
             [ReadOnly] public int batchSize;
-            [ReadOnly] [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> array;
+            [ReadOnly] public ParallelSortValueType valueType;
+            [ReadOnly] [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<T> array;
 
             [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> buckets;
 
@@ -125,21 +172,39 @@ namespace UnityEngine.Rendering
 
                 int jobBuckets = index * 256;
 
-                for (int i = start; i < end; ++i)
+                // This hacky system instead of relying solely on C# generics is because our current version of C# doesn't support IBinaryWriter
+                // which would let us restrain the generic type to types that accept the binary shift and "and" operations
+                // used in GetBucketIndex.
+                if (valueType == ParallelSortValueType.Int)
                 {
-                    int value = array[i];
-                    int bucket = (value >> radix * 8) & 0xFF;
-                    buckets[jobBuckets + bucket] += 1;
+                    NativeArray<int> intArray = array.Reinterpret<int>(4);
+                    for (int i = start; i < end; ++i)
+                    {
+                        int value = intArray[i];
+                        int bucket = GetBucketIndex(value, radix);
+                        buckets[jobBuckets + bucket] += 1;
+                    }
+                }
+                else
+                {
+                    NativeArray<ulong> ulongArray = array.Reinterpret<ulong>(8);
+                    for (int i = start; i < end; ++i)
+                    {
+                        ulong value = ulongArray[i];
+                        int bucket = GetBucketIndex(value, radix);
+                        buckets[jobBuckets + bucket] += 1;
+                    }
                 }
             }
         }
 
         [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
-        internal struct RadixSortBatchPrefixSumJob : IJobFor
+        internal struct RadixSortBatchPrefixSumJob<T> : IJobFor where T : unmanaged
         {
             [ReadOnly] public int radix;
             [ReadOnly] public int jobsCount;
-            [ReadOnly] [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> array;
+            [ReadOnly] public int signBitRadixIndex;
+            [ReadOnly] [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<T> array;
 
             [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> counter;
             [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> indicesSum;
@@ -181,7 +246,7 @@ namespace UnityEngine.Rendering
                 {
                     int sum = 0;
 
-                    if(radix < 3)
+                    if (radix != signBitRadixIndex)
                     {
                         for (int i = 0; i < 16; ++i)
                         {
@@ -190,7 +255,8 @@ namespace UnityEngine.Rendering
                             sum += indexSum;
                         }
                     }
-                    else // Negative
+                    // The radix contains the sign bit so might be negative
+                    else
                     {
                         for (int i = 8; i < 16; ++i)
                         {
@@ -240,14 +306,15 @@ namespace UnityEngine.Rendering
         }
 
         [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
-        internal struct RadixSortBucketSortJob : IJobFor
+        internal struct RadixSortBucketSortJob<T> : IJobFor where T : unmanaged
         {
             [ReadOnly] public int radix;
             [ReadOnly] public int batchSize;
-            [ReadOnly] [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> array;
+            [ReadOnly] public ParallelSortValueType valueType;
+            [ReadOnly] [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<T> array;
 
             [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> indices;
-            [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> arraySorted;
+            [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<T> arraySorted;
 
             public void Execute(int index)
             {
@@ -256,12 +323,32 @@ namespace UnityEngine.Rendering
 
                 int jobIndices = index * 256;
 
-                for (int i = start; i < end; ++i)
+                // This hacky system instead of relying solely on C# generics is because our current version of C# doesn't support IBinaryWriter
+                // which would let us restrain the generic type to types that accept the binary shift and "and" operations
+                // used in GetBucketIndex.
+                if (valueType == ParallelSortValueType.Int)
                 {
-                    int value = array[i];
-                    int bucket = (value >> radix * 8) & 0xFF;
-                    int sortedIndex = indices[jobIndices + bucket]++;
-                    arraySorted[sortedIndex] = value;
+                    NativeArray<int> inArray = array.Reinterpret<int>(4);
+                    NativeArray<int> outArray = arraySorted.Reinterpret<int>(4);
+                    for (int i = start; i < end; ++i)
+                    {
+                        int value = inArray[i];
+                        int bucket = GetBucketIndex(value, radix);
+                        int sortedIndex = indices[jobIndices + bucket]++;
+                        outArray[sortedIndex] = value;
+                    }
+                }
+                else
+                {
+                    NativeArray<ulong> inArray = array.Reinterpret<ulong>(8);
+                    NativeArray<ulong> outArray = arraySorted.Reinterpret<ulong>(8);
+                    for (int i = start; i < end; ++i)
+                    {
+                        ulong value = inArray[i];
+                        int bucket = GetBucketIndex(value, radix);
+                        int sortedIndex = indices[jobIndices + bucket]++;
+                        outArray[sortedIndex] = value;
+                    }
                 }
             }
         }

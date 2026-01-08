@@ -235,7 +235,9 @@ namespace UnityEngine.Rendering.Universal
             float invNear = Mathf.Approximately(near, 0.0f) ? 0.0f : 1.0f / near;
             float invFar = Mathf.Approximately(far, 0.0f) ? 0.0f : 1.0f / far;
             float isOrthographic = camera.orthographic ? 1.0f : 0.0f;
-
+#if (UNITY_META_QUEST)
+            cmd.SetKeyword(ShaderGlobalKeywords.META_QUEST_ORTHO_PROJ, camera.orthographic);
+#endif
             // From http://www.humus.name/temp/Linearize%20depth.txt
             // But as depth component textures on OpenGL always return in 0..1 range (as in D3D), we have to use
             // the same constants for both D3D and OpenGL here.
