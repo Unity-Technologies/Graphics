@@ -24,8 +24,6 @@ namespace UnityEditor.Rendering
                 EditorConnection.instance.Initialize();
                 EditorConnection.instance.RegisterConnection(m_OnPlayerConnected);
                 EditorConnection.instance.RegisterDisconnection(m_OnPlayerDisconnected);
-
-                EditorApplication.quitting += OnEditorQuitting;
             }
 
             public void Dispose()
@@ -35,26 +33,14 @@ namespace UnityEditor.Rendering
                     EditorConnection.instance.UnregisterConnection(m_OnPlayerConnected);
                     EditorConnection.instance.UnregisterDisconnection(m_OnPlayerDisconnected);
 
-                    // NOTE: There is a bug where editor crashes if we call DisconnectAll during shutdown flow. In this case
-                    // it's fine to skip the disconnect as the player will get notified of it anyway.
-                    if (!m_EditorQuitting)
-                        EditorConnection.instance.DisconnectAll();
-
                     m_ConnectionState.Dispose();
                     m_ConnectionState = null;
-
-                    EditorApplication.quitting -= OnEditorQuitting;
                 }
             }
 
             public void OnConnectionDropdownIMGUI()
             {
                 PlayerConnectionGUILayout.ConnectionTargetSelectionDropdown(m_ConnectionState, EditorStyles.toolbarDropDown, 250);
-            }
-
-            void OnEditorQuitting()
-            {
-                m_EditorQuitting = true;
             }
         }
     }
