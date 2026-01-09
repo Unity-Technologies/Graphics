@@ -136,6 +136,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public int cachedHash;
         public int transientPassIndex;
         public int sharedResourceLastFrameUsed;
+        public bool isBackBuffer;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual void Reset(IRenderGraphResourcePool _ = null)

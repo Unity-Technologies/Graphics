@@ -43,16 +43,17 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public readonly bool clear; // graph.m_Resources.GetTextureResourceDesc(fragment.resource).clearBuffer;
         public readonly bool discard; // graph.m_Resources.GetTextureResourceDesc(fragment.resource).discardBuffer;
         public readonly bool bindMS;
+        public readonly bool isBackBuffer;
 
         public TextureUVOriginSelection textureUVOrigin;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public string GetName(CompilerContextData ctx, in ResourceHandle h) => ctx.GetResourceName(h);
 
-        public ResourceUnversionedData(TextureResource rll, ref RenderTargetInfo info, ref TextureDesc desc, bool isResourceShared)
+        public ResourceUnversionedData(TextureResource rll, ref RenderTargetInfo info, ref TextureDesc desc, bool isResBackBuffer)
         {
             isImported = rll.imported;
-            isShared = isResourceShared;
+            isShared = false;
             tag = 0;
             firstUsePassID = -1;
             lastUsePassID = -1;
@@ -69,16 +70,17 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             clear = desc.clearBuffer;
             discard = desc.discardBuffer;
             bindMS = info.bindMS;
+            isBackBuffer = isResBackBuffer;
             textureUVOrigin = rll.textureUVOrigin;
             graphicsFormat = desc.format;
         }
 
-        public ResourceUnversionedData(IRenderGraphResource rll, ref BufferDesc _, bool isResourceShared)
+        public ResourceUnversionedData(IRenderGraphResource rll, ref BufferDesc _, bool isResBackBuffer)
         {
             // We don't do anything with the BufferDesc for now. The compiler doesn't really need the details of the buffer like it does with textures
             // since for textures it needs the details to merge passes etc. Which is not relevant for buffers.
             isImported = rll.imported;
-            isShared = isResourceShared;
+            isShared = false;
             tag = 0;
             firstUsePassID = -1;
             lastUsePassID = -1;
@@ -95,16 +97,17 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             clear = false;
             discard = false;
             bindMS = false;
+            isBackBuffer = isResBackBuffer;
             textureUVOrigin = TextureUVOriginSelection.Unknown;
             graphicsFormat = GraphicsFormat.None;
         }
 
-        public ResourceUnversionedData(IRenderGraphResource rll, ref RayTracingAccelerationStructureDesc _, bool isResourceShared)
+        public ResourceUnversionedData(IRenderGraphResource rll, ref RayTracingAccelerationStructureDesc _, bool isResBackBuffer)
         {
             // We don't do anything with the RayTracingAccelerationStructureDesc for now. The compiler doesn't really need the details of the acceleration structures like it does with textures
             // since for textures it needs the details to merge passes etc. Which is not relevant for acceleration structures.
             isImported = rll.imported;
-            isShared = isResourceShared;
+            isShared = false;
             tag = 0;
             firstUsePassID = -1;
             lastUsePassID = -1;
@@ -121,6 +124,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             clear = false;
             discard = false;
             bindMS = false;
+            isBackBuffer = isResBackBuffer;
             textureUVOrigin = TextureUVOriginSelection.Unknown;
             graphicsFormat = GraphicsFormat.None;
         }
@@ -294,25 +298,27 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 var tex = rll as TextureResource;
                                 resources.GetRenderTargetInfo(h, out var info);
                                 ref var desc = ref tex.desc;
-                                bool isResourceShared = resources.IsRenderGraphResourceShared(h);
+                                bool isBackBuffer = resources.IsRenderGraphResourceBackBuffer(h);
 
-                                unversionedData[t][r] = new ResourceUnversionedData(tex, ref info, ref desc, isResourceShared);
+                                unversionedData[t][r] = new ResourceUnversionedData(tex, ref info, ref desc, isBackBuffer);
                                 break;
                             }
                         case (int)RenderGraphResourceType.Buffer:
                             {
                                 ref var desc = ref (rll as BufferResource).desc;
                                 bool isResourceShared = resources.IsRenderGraphResourceShared(h);
+                                bool isBackBuffer = resources.IsRenderGraphResourceBackBuffer(h);
 
-                                unversionedData[t][r] = new ResourceUnversionedData(rll, ref desc, isResourceShared);
+                                unversionedData[t][r] = new ResourceUnversionedData(rll, ref desc, isBackBuffer);
                                 break;
                             }
                         case (int)RenderGraphResourceType.AccelerationStructure:
                             {
                                 ref var desc = ref (rll as RayTracingAccelerationStructureResource).desc;
                                 bool isResourceShared = resources.IsRenderGraphResourceShared(h);
+                                bool isBackBuffer = resources.IsRenderGraphResourceBackBuffer(h);
 
-                                unversionedData[t][r] = new ResourceUnversionedData(rll, ref desc, isResourceShared);
+                                unversionedData[t][r] = new ResourceUnversionedData(rll, ref desc, isBackBuffer);
                                 break;
                             }
                         default:

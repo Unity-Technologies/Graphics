@@ -18,11 +18,11 @@ namespace UnityEngine.Rendering.Tests
             public BufferHandle[] buffers = new BufferHandle[8];
         }
 
-        TextureDesc SimpleTextureDesc(string name, int w, int h, int samples)
+        TextureDesc SimpleTextureDesc(string name, int w, int h, int samples, GraphicsFormat graphicsFormat)
         {
             TextureDesc result = new TextureDesc(w, h);
             result.msaaSamples = (MSAASamples)samples;
-            result.format = GraphicsFormat.R8G8B8A8_UNorm;
+            result.format = graphicsFormat;
             result.name = name;
             return result;
         }
@@ -36,6 +36,7 @@ namespace UnityEngine.Rendering.Tests
             public TextureHandle extraDepthBufferBottomLeft;
             public TextureHandle extraTextureBottomLeft;
             public TextureHandle extraTextureTopLeft;
+            public TextureHandle extraTextureDepth;
         };
 
         TestRenderTargets ImportAndCreateRenderTargets(RenderGraph g)
@@ -74,8 +75,10 @@ namespace UnityEngine.Rendering.Tests
 
             for (int i = 0; i < result.extraTextures.Length; i++)
             {
-                result.extraTextures[i] = g.CreateTexture(SimpleTextureDesc("ExtraTexture" + i, 1024, 768, 1));
+                result.extraTextures[i] = g.CreateTexture(SimpleTextureDesc("ExtraTexture" + i, 1024, 768, 1, GraphicsFormat.R8G8B8A8_UNorm));
             }
+
+            result.extraTextureDepth = g.CreateTexture(SimpleTextureDesc("ExtraDepthTexture", 1024, 768, 1, GraphicsFormat.D24_UNorm));
 
             importParams.textureUVOrigin = TextureUVOrigin.TopLeft;
             result.extraTextureTopLeft = g.ImportTexture(extraTextureTopLeftHandle, importInfo, importParams);
@@ -113,27 +116,30 @@ namespace UnityEngine.Rendering.Tests
             // Render something to 0,1
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[1], 1, AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
 
             // Render extra bits to 1
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
             // Render to final buffer
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[1], 1, AccessFlags.Write);
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
-                builder.SetRenderAttachment(renderTargets.backBuffer, 2, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
+                builder.SetRenderAttachment(renderTargets.extraTextures[2], 2, AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
 
             var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
@@ -144,7 +150,7 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(3, passes[0].numGraphPasses);
 
             ref var firstAttachment = ref passes[0].attachments[0];
-            Assert.AreEqual(RenderBufferLoadAction.Load, firstAttachment.loadAction);
+            Assert.AreEqual(RenderBufferLoadAction.Clear, firstAttachment.loadAction);
 
             ref var secondAttachment = ref passes[0].attachments[1];
             Assert.AreEqual(RenderBufferLoadAction.Clear, secondAttachment.loadAction);
@@ -153,7 +159,7 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(RenderBufferLoadAction.Clear, thirdAttachment.loadAction);
 
             ref var fourthAttachment = ref passes[0].attachments[3];
-            Assert.AreEqual(RenderBufferLoadAction.Load, fourthAttachment.loadAction);
+            Assert.AreEqual(RenderBufferLoadAction.Clear, fourthAttachment.loadAction);
         }
 
         /*[Test]
@@ -210,7 +216,7 @@ namespace UnityEngine.Rendering.Tests
             // depth
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraDepthBuffer, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
             }
@@ -219,7 +225,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
-                builder.SetRenderAttachment(renderTargets.backBuffer, 2, AccessFlags.Write);
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 2, AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
             }
 
@@ -275,7 +281,7 @@ namespace UnityEngine.Rendering.Tests
             // with depth
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraDepthBuffer, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
             }
@@ -284,7 +290,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
-                builder.SetRenderAttachment(renderTargets.backBuffer, 2, AccessFlags.Write);
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 2, AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
             }
 
@@ -334,15 +340,17 @@ namespace UnityEngine.Rendering.Tests
             // Render something to depth
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
             // Merge pass, render with WriteAll in extra 0
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.WriteAll);
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
 
             var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
@@ -352,11 +360,11 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(2, passes[0].numGraphPasses);
 
             // Validate attachments
-            Assert.AreEqual(renderTargets.depthBuffer.handle.index, passes[0].attachments[0].handle.index);
+            Assert.AreEqual(renderTargets.extraTextureDepth.handle.index, passes[0].attachments[0].handle.index);
             Assert.AreEqual(renderTargets.extraTextures[0].handle.index, passes[0].attachments[1].handle.index);
 
             ref var depthAttachment = ref passes[0].attachments[0];
-            Assert.AreEqual(RenderBufferLoadAction.Load, depthAttachment.loadAction);
+            Assert.AreEqual(RenderBufferLoadAction.Clear, depthAttachment.loadAction);
 
             ref var extraAttachment = ref passes[0].attachments[1];
             Assert.AreEqual(RenderBufferLoadAction.DontCare, extraAttachment.loadAction);
@@ -372,16 +380,18 @@ namespace UnityEngine.Rendering.Tests
             // Render something to extra 0
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.WriteAll);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
             // Read from extra 0
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
                 builder.SetInputAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Read);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
 
             var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
@@ -391,11 +401,11 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(2, passes[0].numGraphPasses);
 
             // Validate attachments
-            Assert.AreEqual(renderTargets.depthBuffer.handle.index, passes[0].attachments[0].handle.index);
+            Assert.AreEqual(renderTargets.extraTextureDepth.handle.index, passes[0].attachments[0].handle.index);
             Assert.AreEqual(renderTargets.extraTextures[0].handle.index, passes[0].attachments[1].handle.index);
 
             ref var depthAttachment = ref passes[0].attachments[0];
-            Assert.AreEqual(RenderBufferLoadAction.Load, depthAttachment.loadAction);
+            Assert.AreEqual(RenderBufferLoadAction.Clear, depthAttachment.loadAction);
 
             ref var extraAttachment = ref passes[0].attachments[1];
             Assert.AreEqual(RenderBufferLoadAction.DontCare, extraAttachment.loadAction);
@@ -411,16 +421,18 @@ namespace UnityEngine.Rendering.Tests
             // Render something to 0,1
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Read);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
             // Render to final buffer
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.WriteAll);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
 
             var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
@@ -430,11 +442,11 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(2, passes[0].numGraphPasses);
 
             // Validate attachments
-            Assert.AreEqual(renderTargets.depthBuffer.handle.index, passes[0].attachments[0].handle.index);
+            Assert.AreEqual(renderTargets.extraTextureDepth.handle.index, passes[0].attachments[0].handle.index);
             Assert.AreEqual(renderTargets.extraTextures[0].handle.index, passes[0].attachments[1].handle.index);
 
             ref var depthAttachment = ref passes[0].attachments[0];
-            Assert.AreEqual(RenderBufferLoadAction.Load, depthAttachment.loadAction);
+            Assert.AreEqual(RenderBufferLoadAction.Clear, depthAttachment.loadAction);
 
             // LoadAction is Clear because it was not used by another pass before, in other case it should be Load
             ref var extraAttachment = ref passes[0].attachments[1];
@@ -451,28 +463,31 @@ namespace UnityEngine.Rendering.Tests
             // Discard extra 0
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Discard);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
             // Read extra 0
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Read);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
             // Write to extra 0
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
             // break pass using another depth, Read extra 0
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.extraDepthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Read);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
             }
@@ -484,12 +499,12 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(3, passes[0].numGraphPasses);
 
             // Validate attachments
-            Assert.AreEqual(renderTargets.depthBuffer.handle.index, passes[0].attachments[0].handle.index);
+            Assert.AreEqual(renderTargets.extraTextureDepth.handle.index, passes[0].attachments[0].handle.index);
             Assert.AreEqual(renderTargets.extraTextures[0].handle.index, passes[0].attachments[1].handle.index);
             Assert.AreEqual(renderTargets.extraTextures[0].handle.index, passes[1].attachments[1].handle.index);
 
             ref var depthAttachment = ref passes[0].attachments[0];
-            Assert.AreEqual(RenderBufferLoadAction.Load, depthAttachment.loadAction);
+            Assert.AreEqual(RenderBufferLoadAction.Clear, depthAttachment.loadAction);
 
             // As we have a discard flag in the pass the LoadAction is DontCare, but as it has also a Write flag it should Store the result for the next pass
             ref var extraAttachmentPass0 = ref passes[0].attachments[1];
@@ -498,7 +513,6 @@ namespace UnityEngine.Rendering.Tests
 
             ref var extraAttachmentPass1 = ref passes[1].attachments[1];
             Assert.AreEqual(RenderBufferLoadAction.Load, extraAttachmentPass1.loadAction);
-
         }
 
         [Test]
@@ -729,9 +743,10 @@ namespace UnityEngine.Rendering.Tests
                 using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>($"TestPass_{i}", out var passData))
                 {
                     builder.SetInputAttachment(renderTargets.extraTextures[1 - i % 2], 0);
-                    builder.SetRenderAttachmentDepth(renderTargets.depthBuffer);
+                    builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth);
                     builder.SetRenderAttachment(renderTargets.extraTextures[i % 2], 1);
                     builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                    builder.AllowPassCulling(false);
                 }
             }
 
@@ -753,27 +768,30 @@ namespace UnityEngine.Rendering.Tests
             // Render something to extra 0
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
 
             // Render extra bits to extra 1, this causes 1 to be allocated in pass 1 which will be the first sub pass of the merged native pass
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[1], 0, AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
 
             // Render extra bits to extra 2, this causes 2 to be allocated in pass 2 which will be the second sub pass of the merged native pass
             // It's also the last time extra 1 is used so it gets freed
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[1], 0, AccessFlags.ReadWrite);
                 builder.SetRenderAttachment(renderTargets.extraTextures[2], 1, AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
 
             // Render to final buffer
@@ -781,9 +799,10 @@ namespace UnityEngine.Rendering.Tests
             {
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[2], 1, AccessFlags.Write);
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
-                builder.SetRenderAttachment(renderTargets.backBuffer, 2, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
+                builder.SetRenderAttachment(renderTargets.extraTextures[3], 2, AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
 
             var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
@@ -810,7 +829,6 @@ namespace UnityEngine.Rendering.Tests
 
             Assert.AreEqual(1, lastUsed.Count);
             Assert.AreEqual(renderTargets.extraTextures[1].handle.index, lastUsed[0].index);
-
         }
 
         [Test]
@@ -823,18 +841,20 @@ namespace UnityEngine.Rendering.Tests
             // Render something to extra 0
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
 
             // Render to final buffer
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.ReadWrite);
-                builder.SetRenderAttachment(renderTargets.backBuffer, 1, AccessFlags.Write);
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 1, AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
 
             var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
@@ -876,22 +896,24 @@ namespace UnityEngine.Rendering.Tests
             // Render something to extra 0,1,2
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[1], 1, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[2], 2, AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
 
             // Render to final buffer using extra 0 as attachment
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.ReadWrite);
-                builder.SetRenderAttachment(renderTargets.backBuffer, 1, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.ReadWrite);
+                builder.SetRenderAttachment(renderTargets.extraTextures[4], 1, AccessFlags.Write);
                 builder.SetInputAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Read);
                 builder.SetInputAttachment(renderTargets.extraTextures[1], 1, AccessFlags.Read);
                 builder.SetInputAttachment(renderTargets.extraTextures[2], 2, AccessFlags.Read);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
 
             var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
@@ -902,11 +924,11 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(2, nativePasses[0].numGraphPasses);
 
             // Validate attachments
-            Assert.AreEqual(renderTargets.depthBuffer.handle.index, nativePasses[0].attachments[0].handle.index);
+            Assert.AreEqual(renderTargets.extraTextureDepth.handle.index, nativePasses[0].attachments[0].handle.index);
             Assert.AreEqual(renderTargets.extraTextures[0].handle.index, nativePasses[0].attachments[1].handle.index);
             Assert.AreEqual(renderTargets.extraTextures[1].handle.index, nativePasses[0].attachments[2].handle.index);
             Assert.AreEqual(renderTargets.extraTextures[2].handle.index, nativePasses[0].attachments[3].handle.index);
-            Assert.AreEqual(renderTargets.backBuffer.handle.index, nativePasses[0].attachments[4].handle.index);
+            Assert.AreEqual(renderTargets.extraTextures[4].handle.index, nativePasses[0].attachments[4].handle.index);
 
             // Sub Pass 0
             ref var subPass = ref result.contextData.nativeSubPassData.ElementAt(nativePasses[0].firstNativeSubPass);
@@ -1653,7 +1675,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Depth_Subpass3", out var passData))
             {
                 builder.SetInputAttachment(renderTargets.extraTextures[0], 0);
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
                 builder.SetRenderAttachment(renderTargets.extraTextures[3], 0);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
                 builder.AllowPassCulling(false);
@@ -1673,7 +1695,7 @@ namespace UnityEngine.Rendering.Tests
             Assert.IsTrue(passes != null && passes.Count == 1 && passes[0].numGraphPasses == 5 && passes[0].numNativeSubPasses == 4);
 
             // Depth is the first attachment
-            Assert.IsTrue(passes[0].attachments[0].handle.index == renderTargets.depthBuffer.handle.index);
+            Assert.IsTrue(passes[0].attachments[0].handle.index == renderTargets.extraTextureDepth.handle.index);
             Assert.IsTrue(passes[0].attachments[1].handle.index == renderTargets.extraTextures[1].handle.index);
             Assert.IsTrue(passes[0].attachments[2].handle.index == renderTargets.extraTextures[2].handle.index);
             Assert.IsTrue(passes[0].attachments[3].handle.index == renderTargets.extraTextures[0].handle.index);
@@ -1917,8 +1939,9 @@ namespace UnityEngine.Rendering.Tests
             {
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.ReadWrite);
                 builder.SetRenderAttachment(renderTargets.extraTextures[1], 1, AccessFlags.Write);
-                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Read);
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Read);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
 
             // This pass explicitly reads version 1 of extraTextures[1] and writes its version 2 that none reads - no side effect
@@ -2018,8 +2041,9 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
                 builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.ReadWrite);
-                builder.SetRenderAttachment(renderTargets.backBuffer, 1, AccessFlags.Write);
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 1, AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
             }
 
             // This pass writes version 2 of extraTextures[2] that no one uses

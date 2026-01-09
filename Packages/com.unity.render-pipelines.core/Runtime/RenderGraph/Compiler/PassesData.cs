@@ -611,6 +611,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         MultisampledShaderResolveMustBeLastPass, // The current pass has MultisampledShaderResolve specified and so must be the last pass
         ExtendedFeatureFlagsIncompatible, // Handles the case where flags added via SetExtendedFeatureFlags are not compatible
         PassMergingDisabled, // Wasn't merged because pass merging is disabled
+        BackbufferInMultipleRenderTargetsNotSupported, // Prevent RG pass merging if one pass targets the backbuffer and the other pass some user render targets
         Merged, // I actually got merged
 
         Count
@@ -649,6 +650,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             "The current merged pass uses multisampled shader resolve and so can't have any more passes merged into it.",
             "Extended feature flags are incompatible",
             "Pass merging is disabled so this pass was not merged",
+            "One pass targets the backbuffer while the other pass targets some user texture, this is not supported on this platform.",
             "The next pass got merged into this pass.",
         };
     }
@@ -862,6 +864,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 if (nativePass.hasDepth && passToMerge.fragmentInfoHasDepth)
                 {
                     ref readonly var firstFragment = ref contextData.fragmentData.ElementAt(passToMerge.firstFragment);
+
                     if (nativePass.fragments[0].resource.index != firstFragment.resource.index)
                     {
                         return new PassBreakAudit(PassBreakReason.DifferentDepthTextures, passIdToMerge);
@@ -1048,8 +1051,44 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 return new PassBreakAudit(PassBreakReason.SubPassLimitReached, passIdToMerge);
             }
 
+            var compatibleAttachments = CanMergeBackBufferAndCustomRenderTargets(contextData, ref nativePass, ref passToMerge, passIdToMerge);
+            if (!compatibleAttachments)
+            {
+                return new PassBreakAudit(PassBreakReason.BackbufferInMultipleRenderTargetsNotSupported, passIdToMerge);
+            }
+
             // All is good! Pass can be merged into active native pass
             return new PassBreakAudit(PassBreakReason.Merged, passIdToMerge);
+        }
+
+        static bool CanMergeBackBufferAndCustomRenderTargets(CompilerContextData contextData, ref NativePassData nativePass, ref PassData passToMerge, int passIdToMerge)
+        {
+            if (SystemInfo.supportsBackbufferInMultipleRenderTargets)
+                return true;
+
+            var hasBackBuffer = false;
+            var hasCustomRenderTarget = false;
+
+            foreach (ref readonly var graphPassFragment in passToMerge.Fragments(contextData))
+            {
+                var isBackBuffer = contextData.UnversionedResourceData(graphPassFragment.resource).isBackBuffer;
+
+                hasBackBuffer |= isBackBuffer;
+                hasCustomRenderTarget |= !isBackBuffer;
+            }
+
+            for (int i = 0; i < nativePass.fragments.size; ++i)
+            {
+                var isBackBuffer = contextData.UnversionedResourceData(nativePass.fragments[i].resource).isBackBuffer;
+
+                hasBackBuffer |= isBackBuffer;
+                hasCustomRenderTarget |= !isBackBuffer;
+
+                if (hasBackBuffer && hasCustomRenderTarget)
+                    return false;
+            }
+
+            return true;
         }
 
         static bool TotalAttachmentsSizeExceedPixelStorageLimit(CompilerContextData contextData, ref NativePassData nativePass, ref FixedAttachmentArray<PassFragmentData> attachmentsToTryAdding)

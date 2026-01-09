@@ -131,16 +131,6 @@ namespace UnityEngine.Rendering.Universal
                 m_BindDepthStencilAttachment = bindDepthStencilAttachment;
             }
 
-            internal void ReAllocate(RenderTextureDescriptor desc)
-            {
-
-            }
-
-            private static void ExecuteCopyColorPass(RasterCommandBuffer cmd, RTHandle sourceTexture)
-            {
-                Blitter.BlitTexture(cmd, sourceTexture, new Vector4(1, 1, 0, 0), 0.0f, false);
-            }
-
             private static void ExecuteMainPass(RasterCommandBuffer cmd, RTHandle sourceTexture, Material material, int passIndex)
             {
                 s_SharedPropertyBlock.Clear();
@@ -254,22 +244,6 @@ namespace UnityEngine.Rendering.Universal
                     builder.SetRenderFunc(static (MainPassData data, RasterGraphContext rgContext) =>
                     {
                         ExecuteMainPass(rgContext.cmd, data.inputTexture, data.material, data.passIndex);
-                    });
-                }
-            }
-
-            private void AddCopyPassRenderPassFullscreen(RenderGraph renderGraph, in TextureHandle source, in TextureHandle destination)
-            {
-                using (var builder = renderGraph.AddRasterRenderPass<CopyPassData>("Copy Color Full Screen", out var passData, profilingSampler))
-                {
-                    passData.inputTexture = source;
-                    builder.UseTexture(passData.inputTexture, AccessFlags.Read);
-
-                    builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
-
-                    builder.SetRenderFunc(static (CopyPassData data, RasterGraphContext rgContext) =>
-                    {
-                        ExecuteCopyColorPass(rgContext.cmd, data.inputTexture);
                     });
                 }
             }
