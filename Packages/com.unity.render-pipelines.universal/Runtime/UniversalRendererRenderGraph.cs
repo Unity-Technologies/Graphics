@@ -1925,7 +1925,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_DepthNormalPrepass.Render(renderGraph, frameData, resourceData.cameraNormalsTexture, in depthTarget, resourceData.renderingLayersTexture, batchLayerMask, setGlobalDepth, setGlobalTextures, partialPass);
 
-            if (m_RequiresRenderingLayer)
+            if (m_RenderingLayerProvidesByDepthNormalPass)
                 SetRenderingLayersGlobalTextures(renderGraph);
         }
     }

@@ -176,11 +176,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                     builder.SetGlobalTextureAfterPass(depthTexture, s_CameraDepthTextureID);
 
                 // Required here because of RenderingLayerUtils.SetupProperties
-                builder.AllowGlobalStateModification(true);
+                if (passData.enableRenderingLayers)
+                    builder.AllowGlobalStateModification(true);
 
                 builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
-                    RenderingLayerUtils.SetupProperties(context.cmd, data.maskSize);
+                    if (data.enableRenderingLayers)
+                        RenderingLayerUtils.SetupProperties(context.cmd, data.maskSize);
                     ExecutePass(context.cmd, data, data.rendererList);
                 });
             }
