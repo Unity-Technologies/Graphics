@@ -66,6 +66,11 @@ public class HDRP_Runtime_Graphics_Tests
         "https://jira.unity3d.com/browse/UUM-70791",
         runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.PS4, RuntimePlatform.PS5, RuntimePlatform.Switch, RuntimePlatform.Switch2 }
     )]
+    [IgnoreGraphicsTest(
+        "006-Compositor$",
+        "Getting NVN_QUEUE_GET_ERROR_RESULT_GPU_ERROR_MMU_FAULT GPU Error. Tracked in https://jira.unity3d.com/browse/UUM-131945.",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch, RuntimePlatform.Switch2 }
+    )]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {
         yield return HDRP_GraphicTestRunner.Run(testCase);
