@@ -623,9 +623,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return "Texture";
         }
 
-        override protected int GetSortIndex(RTHandle res)
+        override protected ulong GetSortIndex(RTHandle res)
         {
-            return res.GetInstanceID();
+            return res.GetUniqueID();
         }
     }
 }

@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return memoryStream.ToArray();
         }
 
-        internal static (MessageType, IPayload) DeserializeMessage(byte[] data)
+        internal unsafe static (MessageType, IPayload) DeserializeMessage(byte[] data)
         {
             using var memoryStream = new MemoryStream(data);
             using var reader = new BinaryReader(memoryStream);

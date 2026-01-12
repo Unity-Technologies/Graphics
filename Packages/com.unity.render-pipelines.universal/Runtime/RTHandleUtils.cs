@@ -15,8 +15,8 @@ namespace UnityEngine.Rendering.Universal
     {
         // Dictionary tracks resources by hash and stores resources with same hash in a List (list instead of a stack because we need to be able to remove stale allocations, potentially in the middle of the stack).
         // The list needs to be sorted otherwise you could get inconsistent resource usage from one frame to another.
-        protected Dictionary<int, SortedList<int, (RTHandle resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, SortedList<int, (RTHandle resource, int frameIndex)>>();
-        protected List<int> m_RemoveList = new List<int>(32); // Used to remove stale resources as there is no RemoveAll on SortedLists
+        protected Dictionary<int, SortedList<ulong, (RTHandle resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, SortedList<ulong, (RTHandle resource, int frameIndex)>>();
+        protected List<ulong> m_RemoveList = new List<ulong>(32); // Used to remove stale resources as there is no RemoveAll on SortedLists
 
         protected static int s_CurrentStaleResourceCount = 0;
         // Keep stale resources alive for 3 frames
@@ -56,11 +56,11 @@ namespace UnityEngine.Rendering.Universal
             if (!m_ResourcePool.TryGetValue(hashCode, out var list))
             {
                 // Init list with max capacity to avoid runtime GC.Alloc when calling list.Add(resize list)
-                list = new SortedList<int, (RTHandle resource, int frameIndex)>(s_StaleResourceMaxCapacity);
+                list = new SortedList<ulong, (RTHandle resource, int frameIndex)>(s_StaleResourceMaxCapacity);
                 m_ResourcePool.Add(hashCode, list);
             }
 
-            list.Add(resource.GetInstanceID(), (resource, currentFrameIndex));
+            list.Add(resource.GetUniqueID(), (resource, currentFrameIndex));
             s_CurrentStaleResourceCount++;
 
             return true;
@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool TryGetResource(in TextureDesc texDesc, out RTHandle resource, bool usepool = true)
         {
             int hashCode = GetHashCodeWithNameHash(texDesc);
-            if (usepool && m_ResourcePool.TryGetValue(hashCode, out SortedList<int, (RTHandle resource, int frameIndex)> list) && list.Count > 0)
+            if (usepool && m_ResourcePool.TryGetValue(hashCode, out SortedList<ulong, (RTHandle resource, int frameIndex)> list) && list.Count > 0)
             {
                 resource = list.Values[list.Count - 1].resource;
                 list.RemoveAt(list.Count - 1); // O(1) since it's the last element.

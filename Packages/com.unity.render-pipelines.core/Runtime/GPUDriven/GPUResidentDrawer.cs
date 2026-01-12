@@ -924,12 +924,12 @@ namespace UnityEngine.Rendering
 
             public void Execute(int startIndex, int count)
             {
-                int* renderersToAddForMaterialsPtr = stackalloc int[k_BatchSize];
-                var renderersToAddForMaterials = new UnsafeList<int>(renderersToAddForMaterialsPtr, k_BatchSize);
+                EntityId* renderersToAddForMaterialsPtr = stackalloc EntityId[k_BatchSize];
+                var renderersToAddForMaterials = new UnsafeList<EntityId>(renderersToAddForMaterialsPtr, k_BatchSize);
                 renderersToAddForMaterials.Length = 0;
 
-                int* renderersToAddForMeshesPtr = stackalloc int[k_BatchSize];
-                var renderersToAddForMeshes = new UnsafeList<int>(renderersToAddForMeshesPtr, k_BatchSize);
+                EntityId* renderersToAddForMeshesPtr = stackalloc EntityId[k_BatchSize];
+                var renderersToAddForMeshes = new UnsafeList<EntityId>(renderersToAddForMeshesPtr, k_BatchSize);
                 renderersToAddForMeshes.Length = 0;
 
                 for (int index = 0; index < count; index++)
@@ -945,9 +945,7 @@ namespace UnityEngine.Rendering
                         var meshID = meshIDArray[rendererIndex];
                         if (meshIDs.Contains(meshID))
                         {
-#pragma warning disable 618 // todo @emilie.thaulow make renderID an EntityId
                             renderersToAddForMeshes.AddNoResize(rendererID);
-#pragma warning restore 618
                             // We can skip the material check if we found a mesh match since at this point
                             // the renderer is already added and will be processed by the mesh branch
                             continue;

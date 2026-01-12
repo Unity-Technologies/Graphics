@@ -229,8 +229,8 @@ namespace UnityEngine.Rendering
 
         public unsafe void Execute(int startIndex, int count)
         {
-            int* notFoundinstanceIDsPtr = stackalloc int[k_BatchSize];
-            var notFoundinstanceIDs = new UnsafeList<int>(notFoundinstanceIDsPtr, k_BatchSize);
+            EntityId* notFoundinstanceIDsPtr = stackalloc EntityId[k_BatchSize];
+            var notFoundinstanceIDs = new UnsafeList<EntityId>(notFoundinstanceIDsPtr, k_BatchSize);
 
             GPUDrivenPackedMaterialData* notFoundPackedMaterialDatasPtr = stackalloc GPUDrivenPackedMaterialData[k_BatchSize];
             var notFoundPackedMaterialDatas = new UnsafeList<GPUDrivenPackedMaterialData>(notFoundPackedMaterialDatasPtr, k_BatchSize);
@@ -244,9 +244,7 @@ namespace UnityEngine.Rendering
 
                 if (!hashMap.ContainsKey(entityId))
                 {
-#pragma warning disable 618 // todo @emilie.thaulow fix this
                     notFoundinstanceIDs.AddNoResize(entityId);
-#pragma warning restore 618
                     notFoundPackedMaterialDatas.AddNoResize(packedMaterialDatas[i]);
                 }
             }
