@@ -45,11 +45,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         }
 
         List<string> m_DoNotShowPrimitives = new List<string>(new string[] { PrimitiveType.Plane.ToString() });
-#if UNITY_6000_5_OR_NEWER
-        static Type s_ObjectSelector = CurrentAssemblies.GetLoadedAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEditor.ObjectSelector");
-#else
-        static Type s_ObjectSelector = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEditor.ObjectSelector");
-#endif
 
         public string assetName
         {
@@ -161,12 +156,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_Graph.previewData.serializedMesh.mesh = changedMesh;
         }
 
-        private static EditorWindow Get()
-        {
-            PropertyInfo P = s_ObjectSelector.GetProperty("get", BindingFlags.Public | BindingFlags.Static);
-            return P.GetValue(null, null) as EditorWindow;
-        }
-
         void OnMeshChanged(Object obj)
         {
             var mesh = obj as Mesh;
@@ -185,9 +174,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         void ChangeMeshCustom()
         {
-            var ShowMethod = s_ObjectSelector.GetMethod("Show", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(UnityEngine.Object), typeof(Type), typeof(UnityEngine.Object), typeof(bool), typeof(List<int>), typeof(Action<UnityEngine.Object>), typeof(Action<UnityEngine.Object>), typeof(bool) }, new ParameterModifier[8]);
-            m_PreviousMesh = m_Graph.previewData.serializedMesh.mesh;
-            ShowMethod.Invoke(Get(), new object[] { null, typeof(Mesh), null, false, null, (Action<Object>)OnMeshChanged, (Action<Object>)OnMeshChanged, false });
+            InternalBridge.ObjectSelector.Show(null, typeof(Mesh), null, false, null, (Action<Object>)OnMeshChanged, (Action<Object>)OnMeshChanged, false);
         }
 
         void OnGeometryChanged(GeometryChangedEvent evt)
