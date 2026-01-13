@@ -213,6 +213,8 @@ namespace Framework
         {
             var workersWithImports = importDifference.WorkerImportCounts.Where(kvp => kvp.Value > 0).ToList();
 
+            Assert.IsTrue(workersWithImports.Count > 0, "Expect at least 1 worker");
+
             var maxImportsWorker = workersWithImports.OrderByDescending(kvp => kvp.Value).First();
             Assert.IsTrue(maxImportsWorker.Value > 1,
                 $"Expected at least 2 imports on a single Worker for {assetPath}");
