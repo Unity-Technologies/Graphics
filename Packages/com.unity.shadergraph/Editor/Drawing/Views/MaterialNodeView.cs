@@ -334,6 +334,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var path = AssetDatabase.GUIDToAssetPath(subgraphNode.subGraphGuid);
                 ShaderGraphImporterEditor.ShowGraphEditWindow(path);
+
+                // Stop the double click event from starting a drag action on the node
+                evt.StopImmediatePropagation();
             }
         }
 
