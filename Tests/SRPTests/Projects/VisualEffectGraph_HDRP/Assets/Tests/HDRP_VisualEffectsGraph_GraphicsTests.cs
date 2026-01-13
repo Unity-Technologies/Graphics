@@ -35,6 +35,7 @@ namespace UnityEngine.VFX.Test
         [IgnoreGraphicsTest("StressTestRuntime_GPUEvent", "No reference images provided")]
         [IgnoreGraphicsTest("Timeline_FirstFrame", "No reference images provided")]
         [IgnoreGraphicsTest("NamedObject_ExposedProperties", "No reference images provided")]
+        [IgnoreGraphicsTest("35_ShaderGraphGenerationFTP", "https://jira.unity3d.com/browse/UUM-131997", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsEditor }, graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Direct3D12 })]
 
         [MockHmdSetup(99)]
         [AssetBundleSetup]
