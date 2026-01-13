@@ -49,9 +49,9 @@ StructuredBuffer<uint> g_vBigTileLightList : register( t4 );        // don't sup
 RWStructuredBuffer<uint> g_vLightList : register( u0 );             // don't support RWBuffer yet in unity
 
 #define CATEGORY_LIST_SIZE          LIGHTCATEGORY_COUNT
-#define MAX_NR_VISIBLE_LIGHTS       826                             // correspond to m_MaxLightsOnScreen in LightLoop.cs
+#define MAX_NR_VISIBLE_LIGHTS       4096                            // correspond to m_MaxLightsOnScreen in LightLoop.cs
 
-groupshared unsigned int ldsTilePassList[MAX_NR_VISIBLE_LIGHTS];
+groupshared unsigned int ldsTilePassList[MAX_NR_VISIBLE_LIGHTS/32];
 groupshared unsigned int coarseList[LIGHT_LIST_MAX_COARSE_ENTRIES];
 groupshared unsigned int prunedList[LIGHT_LIST_MAX_COARSE_ENTRIES];     // temporarily support room for all 64 while in LDS
 
@@ -160,10 +160,9 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     const bool lightSortRequired = g_iNrVisibLights > LIGHT_LIST_MAX_COARSE_ENTRIES;  // Uniform runtime branch
     if (lightSortRequired)
     {
-        UNITY_LOOP
-        for(i=t; i<MAX_NR_VISIBLE_LIGHTS; i+=NR_THREADS)
-            if(i<MAX_NR_VISIBLE_LIGHTS)
-                ldsTilePassList[i]=0;
+        UNITY_UNROLLX((MAX_NR_VISIBLE_LIGHTS/32) / NR_THREADS)
+        for(i=t; i<MAX_NR_VISIBLE_LIGHTS/32; i+=NR_THREADS)
+            ldsTilePassList[i]=0;
     }
 
     uint iWidth = g_viDimensions.x;
@@ -254,9 +253,10 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
         {
             unsigned int uInc = 1;
             unsigned int uIndex;
+            unsigned int ul = l;
             InterlockedAdd(lightOffs, uInc, uIndex);
             if (lightSortRequired)
-                ldsTilePassList[l] = 1;
+                InterlockedOr(ldsTilePassList[ul >> 5], 1u << (ul & (32 - 1)));     // ldsTilePassList[ul/32] |= 1u << (ul % 32);
             else
                 if(uIndex<LIGHT_LIST_MAX_COARSE_ENTRIES) coarseList[uIndex] = l;        // add to light list
         }
@@ -275,10 +275,15 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
         if(t==0)
         {
             int c=0;
-            for(int ii=0; ii<g_iNrVisibLights && c < LIGHT_LIST_MAX_COARSE_ENTRIES; ii++)
+            for (int ii = 0; ii < MAX_NR_VISIBLE_LIGHTS/32 && c < LIGHT_LIST_MAX_COARSE_ENTRIES; ii++)
             {
-                if(ldsTilePassList[ii] == 1)
-                    coarseList[c++] = ii;
+                unsigned int mask = ldsTilePassList[ii];
+                while (mask != 0u && c < LIGHT_LIST_MAX_COARSE_ENTRIES)
+                {
+                    unsigned int l = firstbitlow(mask);
+                    mask &= ~(1u << l);
+                    coarseList[c++] = ii * 32 + l;
+                }
             }
         }
     }
