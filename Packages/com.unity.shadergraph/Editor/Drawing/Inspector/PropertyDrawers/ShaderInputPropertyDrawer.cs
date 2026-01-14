@@ -1499,11 +1499,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 m_CustomAttributesReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
                 {
                     var entry = (AbstractShaderProperty.PropertyAttribute)m_CustomAttributesReorderableList.list[index];
-                    Rect displayRect = new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight);
+                    float entryHeight = EditorGUIUtility.singleLineHeight;
+                    float columnWidth = rect.width / 2;
+                    float verticalPadding = (rect.height - entryHeight) / 2;
+                    Rect nameDisplayRect = new Rect(rect.x, rect.y + verticalPadding, columnWidth, entryHeight);
+                    Rect valueDisplayRect = new Rect(rect.x + columnWidth, rect.y + verticalPadding, columnWidth, entryHeight);
 
                     EditorGUI.BeginChangeCheck();
-                    var name = EditorGUI.DelayedTextField(displayRect, entry.name, EditorStyles.label);
-                    var value = EditorGUI.DelayedTextField(new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.value);
+                    var name = EditorGUI.DelayedTextField(nameDisplayRect, entry.name, EditorStyles.label);
+                    var value = EditorGUI.DelayedTextField(valueDisplayRect, entry.value);
 
                     if (EditorGUI.EndChangeCheck())
                     {
