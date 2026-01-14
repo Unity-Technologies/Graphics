@@ -13,6 +13,10 @@ using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Profiling;
 using static UnityEngine.Camera;
 
+#if ENABLE_MULTI_WINDOWING && PLATFORM_SUPPORTS_PER_WINDOW_TRANSPARENCY
+using UnityEngine.Windowing;
+#endif
+
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -1373,7 +1377,11 @@ namespace UnityEngine.Rendering.Universal
             if (renderer is UniversalRenderer { onTileValidation: true } && UniversalRenderer.PlatformRequiresExplicitMsaaResolve())
                 msaaSamples = 1;
 
+#if ENABLE_MULTI_WINDOWING && PLATFORM_SUPPORTS_PER_WINDOW_TRANSPARENCY && !UNITY_EDITOR
+            bool needsAlphaChannel = GameWindowManager.IsGameWindowTransparent(cameraData.camera.targetDisplay);
+#else
             bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
+#endif
 
             cameraData.hdrColorBufferPrecision = asset ? asset.hdrColorBufferPrecision : HDRColorBufferPrecision._32Bits;
             cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData,
