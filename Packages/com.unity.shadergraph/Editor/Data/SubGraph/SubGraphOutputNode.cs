@@ -27,6 +27,12 @@ namespace UnityEditor.ShaderGraph
         };
         public bool IsFirstSlotValid = true;
 
+        // Returns true if the given slot is non-null and the slot's data may be used to render a preview
+        public static bool IsPreviewableType(MaterialSlot slot)
+        {
+            return slot == null ? false : s_ValidSlotTypes.Contains(slot.concreteValueType);
+        }
+
         public SubGraphOutputNode()
         {
             name = "Output";
@@ -75,7 +81,7 @@ namespace UnityEditor.ShaderGraph
             {
                 owner.AddValidationError(objectId, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Error);
             }
-            else if (!s_ValidSlotTypes.Contains(slots.FirstOrDefault().concreteValueType))
+            else if (!IsPreviewableType(slots.FirstOrDefault()))
             {
                 IsFirstSlotValid = false;
                 owner.AddValidationError(objectId, "Preview can only compile if the first output slot is a Vector, Matrix, or Boolean type. Please adjust slot types.", ShaderCompilerMessageSeverity.Error);
