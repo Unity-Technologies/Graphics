@@ -1,3 +1,4 @@
+using UnityEngine;
 using UnityEngine.TestTools.Graphics;
 
 public class UniversalGraphicsTestSettings : GraphicsTestSettings
@@ -16,7 +17,7 @@ public class UniversalGraphicsTestSettings : GraphicsTestSettings
     }
     public RenderBackendCompatibility renderBackendCompatibility = RenderBackendCompatibility.RenderGraphAndNonRenderGraph;
 
-    [UnityEngine.Tooltip("If enabled, the back buffer resolution will be set to the value specified by Image Comparison Settings -> Image Resolution, before doing the back buffer capture.")]
+    [HideInInspector]
     public bool SetBackBufferResolution = false;
 
     public UniversalGraphicsTestSettings()

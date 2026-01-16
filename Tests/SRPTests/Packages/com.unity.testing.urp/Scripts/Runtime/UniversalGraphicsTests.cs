@@ -28,8 +28,6 @@ namespace Unity.Rendering.Universal.Tests
             Watermark.showDeveloperWatermark = false;
             GraphicsTestLogger.Log(
                 $"Running test case '{testCase}' with scene '{testCase.ScenePath}'.");
-            GlobalResolutionSetter.SetResolution(RuntimePlatform.Android, width: 1920, height: 1080);
-            GlobalResolutionSetter.SetResolution(RuntimePlatform.EmbeddedLinuxArm64, width: 1920, height: 1080);
 
             SceneManager.LoadScene(testCase.ScenePath);
 
@@ -73,22 +71,20 @@ namespace Unity.Rendering.Universal.Tests
 
             if (settings.SetBackBufferResolution)
             {
-                // Set screen/backbuffer resolution before doing the capture in ImageAssert.AreEqual. This will avoid doing
-                // any resizing/scaling of the rendered image when comparing with the reference image in ImageAssert.AreEqual.
-                // This has to be done before WaitForEndOfFrame, as the request will only be applied after the frame ends.
-                int targetWidth = settings.ImageComparisonSettings.TargetWidth;
-                int targetHeight = settings.ImageComparisonSettings.TargetHeight;
-                Screen.SetResolution(targetWidth, targetHeight, settings.ImageComparisonSettings.UseBackBuffer ? FullScreenMode.FullScreenWindow : Screen.fullScreenMode);
+                //This option is disabled and we keep it only to keep the extra wait frames and preserve the existing
+                // reference image.
 
-                // Yield once to finish the current frame (this code runs before the rendering in a frame) with the former
-                // resolution.
-                // Yield twice to finish the next frame with the new resolution taking effect.
-                // Note that once the yields finish and the test resumes after the next for loop, the rendering will be
-                // in the same frame where the new resolution first took place. For effects such as motion vector
-                // rendering it means if the aspect ratio changes after setting the resolution, the previous camera matrix
-                // will be reset, cancelling out all the camera-based motions.
-                // In this case (e.g. UniversalGraphicsTest_Terrain, test scene 300 and 301) increase the wait frame to 3
-                // on the UniversalGraphicsTestSettings component.
+                // Changing resolution during a test run introduce instabilities.
+                // Decides of a resolution for a test run and leave it to that. The resolution for most
+                // test projects is set to a constant 1080p,except when running in XR compatibility mode.
+
+                // XR compatibility mode changes resolution depending on the target size, because the image is
+                // always captured from the backbuffer.
+
+                GraphicsTestLogger.Log(LogType.Log, "Set back buffer resolution is being deprecated and does not change the resolution anymore, it only introduces extra wait frames to the test.");
+
+                // Removing this line causes a subset of tests to fail. Removing it would require to update images
+                // and revisit some tests.
                 waitFrames = Mathf.Max(waitFrames, 2);
             }
 
