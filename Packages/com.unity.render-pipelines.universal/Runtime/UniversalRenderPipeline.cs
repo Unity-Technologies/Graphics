@@ -2476,7 +2476,7 @@ namespace UnityEngine.Rendering.Universal
             shadowData.mainLightShadowmapHeight = (int)(shadowData.mainLightShadowmapHeight * MainLightShadowmapResolutionMultiplier);
 
             var MainLightShadowCascadesCountBias = AdaptivePerformance.AdaptivePerformanceRenderSettings.MainLightShadowCascadesCountBias;
-            shadowData.mainLightShadowCascadesCount = Mathf.Clamp(shadowData.mainLightShadowCascadesCount - MainLightShadowCascadesCountBias, 0, 4);
+            shadowData.mainLightShadowCascadesCount = Mathf.Clamp(shadowData.mainLightShadowCascadesCount - MainLightShadowCascadesCountBias, 1, 4);
 
             var shadowQualityIndex = AdaptivePerformance.AdaptivePerformanceRenderSettings.ShadowQualityBias;
             for (int i = 0; i < shadowQualityIndex; i++)
