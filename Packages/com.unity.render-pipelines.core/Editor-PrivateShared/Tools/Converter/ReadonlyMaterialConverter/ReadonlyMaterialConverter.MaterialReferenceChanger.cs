@@ -117,6 +117,7 @@ namespace UnityEditor.Rendering.Converter
                     catch (Exception ex)
                     {
                         errors.Append($"{ex.Message} while trying to reassign materials from {component}.");
+                        ok = false;
                     }
                 }
             }
