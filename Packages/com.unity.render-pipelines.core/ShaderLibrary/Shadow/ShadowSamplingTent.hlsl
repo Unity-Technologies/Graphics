@@ -106,7 +106,7 @@ void SampleShadow_GetTexelWeights_Tent_7x7(real offset, out real4 texelsWeightsA
 }
 
 // 3x3 Tent filter (45 degree sloped triangles in U and V)
-void SampleShadow_ComputeSamples_Tent_3x3(real4 shadowMapTexture_TexelSize, real2 coord, out real fetchesWeights[4], out real2 fetchesUV[4])
+void SampleShadow_ComputeSamples_Tent_3x3(real4 shadowMapTexture_TexelSize, float2 coord, out real fetchesWeights[4], out real2 fetchesUV[4])
 {
     // tent base is 3x3 base thus covering from 9 to 12 texels, thus we need 4 bilinear PCF fetches
     real2 tentCenterInTexelSpace = coord.xy * shadowMapTexture_TexelSize.zw;
@@ -186,7 +186,7 @@ void SampleShadow_ComputeSamples_Tent_3x3(real4 shadowMapTexture_TexelSize, real
     (fetchesWeights)[8] = fetchesWeightsU.z * fetchesWeightsV.z; \
 }
 
-void SampleShadow_ComputeSamples_Tent_5x5(real4 shadowMapTexture_TexelSize, real2 coord, out real fetchesWeights[9], out real2 fetchesUV[9])
+void SampleShadow_ComputeSamples_Tent_5x5(real4 shadowMapTexture_TexelSize, float2 coord, out real fetchesWeights[9], out real2 fetchesUV[9])
 {
     SampleShadow_ComputeSamples_Tent_Filter_5x5(real, shadowMapTexture_TexelSize, coord, fetchesWeights, fetchesUV);
 }
@@ -254,7 +254,7 @@ void SampleShadow_ComputeSamples_Tent_5x5(real4 shadowMapTexture_TexelSize, real
 
 
 
-void SampleShadow_ComputeSamples_Tent_7x7(real4 shadowMapTexture_TexelSize, real2 coord, out real fetchesWeights[16], out real2 fetchesUV[16])
+void SampleShadow_ComputeSamples_Tent_7x7(real4 shadowMapTexture_TexelSize, float2 coord, out real fetchesWeights[16], out real2 fetchesUV[16])
 {
     SampleShadow_ComputeSamples_Tent_Filter_7x7(real, shadowMapTexture_TexelSize, coord, fetchesWeights, fetchesUV);
 }
