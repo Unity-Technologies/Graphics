@@ -26,7 +26,7 @@ public class TextMeshPixelSize : MonoBehaviour
 
             if (testSettings != null) o = testSettings.ImageComparisonSettings;
             if (o == null && targetCamera != null) o = targetCamera.gameObject.GetComponentInChildren<HDRP_TestSettings>()?.ImageComparisonSettings;
-            if (o == null) o = FindFirstObjectByType<HDRP_TestSettings>()?.ImageComparisonSettings;
+            if (o == null) o = FindAnyObjectByType<HDRP_TestSettings>()?.ImageComparisonSettings;
             if (o == null) o = new ImageComparisonSettings() { TargetWidth = forceTargetDimensions.x, TargetHeight = forceTargetDimensions.y }; // use overrides as defaults
 
             return o;
@@ -54,7 +54,7 @@ public class TextMeshPixelSize : MonoBehaviour
 
     void CorrectSize()
     {
-        if (targetCamera == null) targetCamera = FindFirstObjectByType<Camera>();
+        if (targetCamera == null) targetCamera = FindAnyObjectByType<Camera>();
         if (targetCamera == null) return;
 
         if (textMesh == null) textMesh = GetComponent<TextMesh>();

@@ -10,7 +10,9 @@ public class SceneFixedTimeAnimatorUpdater : MonoBehaviour
     void Start()
     {
         m_SceneAnimators = new List<Animator>();
-        var foundObjects = FindObjectsByType<Animator>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+#pragma warning disable CS0618 // Type or member is obsolete
+        var foundObjects = FindObjectsByType<Animator>(FindObjectsInactive.Include);
+#pragma warning restore CS0618 // Type or member is obsolete
         if (foundObjects != null)
         {
             foreach (var obj in foundObjects)

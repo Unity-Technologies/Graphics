@@ -227,7 +227,9 @@ namespace UnityEngine.Rendering
         {
             if (m_RootUIPersistentCanvas == null)
             {
+                #pragma warning disable CS0618 // Type or member is obsolete
                 var uiManager = UnityObject.FindFirstObjectByType<DebugUIHandlerPersistentCanvas>();
+#pragma warning restore CS0618 // Type or member is obsolete
 
                 if (uiManager == null)
                 {

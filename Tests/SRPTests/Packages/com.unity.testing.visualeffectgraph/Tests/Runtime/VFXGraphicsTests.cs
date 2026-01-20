@@ -71,11 +71,13 @@ namespace UnityEngine.VFX.Test
                 Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(xrCompatible, 0, imageComparisonSettings);
 
 #if VFX_TESTS_HAS_HDRP
+#pragma warning disable CS0618
                 foreach (var volume in GameObject.FindObjectsByType<Volume>(FindObjectsSortMode.InstanceID))
                 {
                     if (volume.profile.TryGet<Rendering.HighDefinition.Fog>(out var fog))
                         fog.volumeSliceCount.value *= 2;
                 }
+#pragma warning restore CS0618
 #endif
             }
 

@@ -196,7 +196,9 @@ namespace UnityEngine.Rendering
             }
             else
             {
+                #pragma warning disable CS0618 // Type or member is obsolete
                 var renderers = Object.FindObjectsByType<Renderer>(FindObjectsSortMode.InstanceID);
+                #pragma warning restore CS0618 // Type or member is obsolete
                 Profiling.Profiler.BeginSample($"Find Renderers ({renderers.Length})");
                 foreach (var renderer in renderers)
                 {
@@ -205,7 +207,9 @@ namespace UnityEngine.Rendering
                 }
                 Profiling.Profiler.EndSample();
 
+                #pragma warning disable CS0618 // Type or member is obsolete
                 var terrains = Object.FindObjectsByType<Terrain>(FindObjectsSortMode.InstanceID);
+#pragma warning restore CS0618 // Type or member is obsolete
                 Profiling.Profiler.BeginSample($"Find Terrains ({terrains.Length})");
                 foreach (var terrain in terrains)
                 {

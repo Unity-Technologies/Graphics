@@ -33,7 +33,9 @@ public class GraphicTestTools
     [MenuItem("Internal/GraphicTest Tools/Update All Material Placers")]
     public static void UpdateAllPlacers()
     {
+#pragma warning disable CS0618 // Type or member is obsolete
         MultiMaterialPlacer[] placers = Object.FindObjectsByType<MultiMaterialPlacer>(FindObjectsSortMode.InstanceID);
+#pragma warning restore CS0618 // Type or member is obsolete
 
         for (int i = 0; i < placers.Length; ++i)
         {

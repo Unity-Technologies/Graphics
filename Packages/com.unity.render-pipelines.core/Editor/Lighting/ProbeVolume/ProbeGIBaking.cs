@@ -746,7 +746,9 @@ namespace UnityEngine.Rendering
             if (activeSet != null)
                 activeSet.Clear();
 
+            #pragma warning disable CS0618 // Type or member is obsolete
             var probeVolumes = GameObject.FindObjectsByType<ProbeVolume>(FindObjectsSortMode.InstanceID);
+#pragma warning restore CS0618 // Type or member is obsolete
             foreach (var probeVolume in probeVolumes)
                 probeVolume.OnLightingDataAssetCleared();
         }
@@ -879,7 +881,9 @@ namespace UnityEngine.Rendering
         static TouchupVolumeWithBoundsList GetAdjustementVolumes()
         {
             // This is slow, but we should have very little amount of touchup volumes.
+#pragma warning disable CS0618 // Type or member is obsolete
             var touchupVolumes = Object.FindObjectsByType<ProbeAdjustmentVolume>(FindObjectsSortMode.InstanceID);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             var touchupVolumesAndBounds = new TouchupVolumeWithBoundsList(touchupVolumes.Length);
             foreach (var touchup in touchupVolumes)

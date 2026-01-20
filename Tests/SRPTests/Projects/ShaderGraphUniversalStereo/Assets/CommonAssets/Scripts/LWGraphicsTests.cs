@@ -27,7 +27,7 @@ public class LWGraphicsTests
         yield return null;
 
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
-        var settings = Object.FindFirstObjectByType<LWGraphicsTestSettings>();
+        var settings = Object.FindAnyObjectByType<LWGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find LWGraphicsTestSettings");
 
         // Stereo screen capture on Mac generates monoscopic images and won't be fixed.

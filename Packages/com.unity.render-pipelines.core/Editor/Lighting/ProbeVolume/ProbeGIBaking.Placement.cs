@@ -73,7 +73,9 @@ namespace UnityEngine.Rendering
 
         internal static List<ProbeVolume> GetProbeVolumeList()
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             var fullPvList = GameObject.FindObjectsByType<ProbeVolume>(FindObjectsSortMode.InstanceID);
+#pragma warning restore CS0618 // Type or member is obsolete
             List<ProbeVolume> usedPVList;
 
             if (isBakingSceneSubset)

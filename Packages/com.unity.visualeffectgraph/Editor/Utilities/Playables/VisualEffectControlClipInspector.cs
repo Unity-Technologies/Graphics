@@ -30,7 +30,9 @@ namespace UnityEditor.VFX
                 serializedObject.ApplyModifiedProperties();
 
                 //Modification on tracks doesn't trigger a refresh, calling manually the director refresh
+#pragma warning disable CS0618 // Type or member is obsolete
                 var allDirectors = FindObjectsByType<UnityEngine.Playables.PlayableDirector>(FindObjectsInactive.Exclude, FindObjectsSortMode.InstanceID);
+#pragma warning restore CS0618 // Type or member is obsolete
                 foreach (var director in allDirectors)
                 {
                     director.RebuildGraph();
