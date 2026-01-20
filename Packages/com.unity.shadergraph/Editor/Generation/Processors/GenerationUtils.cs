@@ -1040,7 +1040,7 @@ namespace UnityEditor.ShaderGraph
                     if (isSubgraphOutput)
                     {
                         var firstSlot = slots.FirstOrDefault();
-                        if (firstSlot != null)
+                        if (SubGraphOutputNode.IsPreviewableType(firstSlot))
                         {
                             var hlslName = $"{NodeUtils.GetHLSLSafeName(firstSlot.shaderOutputName)}_{firstSlot.id}";
                             surfaceDescriptionStruct.AppendLine("{0} {1};", firstSlot.concreteValueType.ToShaderString(firstSlot.owner.concretePrecision), hlslName);
@@ -1206,7 +1206,7 @@ namespace UnityEditor.ShaderGraph
             else if (rootNode is SubGraphOutputNode)
             {
                 var slot = slots.FirstOrDefault();
-                if (slot != null)
+                if (SubGraphOutputNode.IsPreviewableType(slot))
                 {
                     var foundEdges = graph.GetEdges(slot.slotReference).ToArray();
                     var hlslName = $"{NodeUtils.GetHLSLSafeName(slot.shaderOutputName)}_{slot.id}";
