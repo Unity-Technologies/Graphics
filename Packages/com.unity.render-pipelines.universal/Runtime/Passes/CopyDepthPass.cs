@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             copyDepthMaterial.SetTexture(ShaderConstants._CameraDepthAttachment, source);
             copyDepthMaterial.SetFloat(ShaderConstants._ZWriteShaderHandle, passData.copyToDepth ? 1.0f : 0.0f);
-            Blitter.BlitTexture(cmd, source, scaleBias, copyDepthMaterial, 0);            
+            Blitter.BlitTexture(cmd, source, scaleBias, copyDepthMaterial, 0);
         }
 
         /// <summary>
@@ -176,7 +176,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             var canSampleMSAADepth = sourceDesc.bindTextureMS && SystemInfo.supportsMultisampledTextures != 0;
 
             Debug.Assert(!hasMSAA || canUseResolvedDepth || canSampleMSAADepth || !dstHasDepthFormat
-                , "Can't copy depth to destiation with depth format due to MSAA and platform/API limitations: no resolved depth resource (bindMS), depth resolve unsupported, and MSAA depth sampling unsupported.");
+                , "Can't copy depth to destination with depth format due to MSAA and platform/API limitations: no resolved depth resource (bindMS), depth resolve unsupported, and MSAA depth sampling unsupported.");
 
             // Having a different pass name than profilingSampler.name is bad practice but this method was public before we cleaned up this naming
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
@@ -238,8 +238,34 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // binding a dummy color target as a workaround to an OSX issue in Editor scene view (UUM-47698).
                     // Also required for preview camera rendering for grid drawn with builtin RP (UUM-55171).
                     // Also required for render gizmos (UUM-91335).
+                    // When MSAA is enabled with Dbuffer can cause sample count mismatches between active color and depth target; create a dummy color target to resolve. (UUM-131330)
                     if (cameraData.isSceneViewCamera || cameraData.isPreviewCamera || UnityEditor.Handles.ShouldRenderGizmos())
-                        builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
+                    {
+                        // get info for the active color
+                        var activeColorInfo = renderGraph.GetRenderTargetInfo(resourceData.activeColorTexture);
+
+                        // destination depth info (the texture we created earlier)
+                        var destInfo = renderGraph.GetRenderTargetInfo(destination);
+
+                        // if samples mismatch, create a dummy color RT with dest's samples
+                        if (activeColorInfo.msaaSamples != destInfo.msaaSamples)
+                        {
+                            TextureHandle dummyColor = renderGraph.CreateTexture(new TextureDesc(activeColorInfo.width, activeColorInfo.height, false, true)
+                            {
+                                name = "Copy Depth Editor Dummy Color",
+                                slices = activeColorInfo.volumeDepth,
+                                format = activeColorInfo.format,
+                                msaaSamples = (MSAASamples)destInfo.msaaSamples, // match the depth target
+                                clearBuffer = false,
+                                bindTextureMS = activeColorInfo.bindMS
+                            });
+                            builder.SetRenderAttachment(dummyColor, 0);
+                        }
+                        else
+                        {
+                            builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
+                        }
+                    }
 #endif
                 }
                 else
