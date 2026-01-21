@@ -31,6 +31,11 @@ namespace UnityEngine.Rendering.HighDefinition.DXR_Tests
             "Strict Mode not supported"
         )]
         [IgnoreGraphicsTest(
+            "10001_TerrainReflectionPerf",
+            "Unstable: https://jira.unity3d.com/browse/UUM-132736",
+            runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.GameCoreXboxSeries }
+        )]
+        [IgnoreGraphicsTest(
             "10004_TerrainPathTracing|10004_TerrainPathTracing_NoDecalSurfaceGradient|5001_PathTracing|5001_PathTracing_Denoised_Intel|5001_PathTracing_Denoised_Optix|5002_PathTracing_GI|5003_PathTracing_transparency|5004_PathTracing_arealight|5005_PathTracing_Fog|5006_PathTracing_DoFVolume|5007_PathTracing_Materials_SG_Lit|5007_PathTracing_Materials_SG_Unlit|5007_PathTracing_Materials_StackLit|5008_PathTracing_NormalMapping|5009_PathTracing_FabricMaterial|501_RecursiveRendering|501_RecursiveRenderingTransparent|5010_PathTracingAlpha|5011_PathTracing_ShadowMatte|5012_PathTracing_Transmission|5013_PathTracing_ShadowFlags|5014_PathTracing_DoubleSidedOverride|5015_PathTracing_DoFCamera|5016_PathTracingTiledRendering|5017_PathTracing_Decals|505_RecursiveRenderingFog|506_RecursiveRenderingTransparentLayer|507_RecursiveRenderingDecal|5019_PathTracing_AmbientOcclusion|5018_PathTracing_MaterialOverrides|5021_PathTracing_Depth_2|5022_PathTracing_Depth_3|5020_PathTracing_Depth_1|5023_PathTracing_MeshInstancing_SG_Lit|5026_PathTracing_BoxLight",
             "Unsupported",
             runtimePlatforms: new RuntimePlatform[]
