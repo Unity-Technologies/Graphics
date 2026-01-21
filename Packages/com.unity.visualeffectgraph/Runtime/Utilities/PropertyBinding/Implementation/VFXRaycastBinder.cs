@@ -3,7 +3,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/Raycast Binder")]
+    [AddComponentMenu("Visual Effects/Property Binders/Raycast Binder")]
     [VFXBinder("Physics/Raycast")]
     class VFXRaycastBinder : VFXBinderBase
     {

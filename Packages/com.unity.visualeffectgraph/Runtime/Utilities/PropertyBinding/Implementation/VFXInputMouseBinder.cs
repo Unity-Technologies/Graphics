@@ -7,7 +7,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/Input Mouse Binder")]
+    [AddComponentMenu("Visual Effects/Property Binders/Input Mouse Binder")]
     [VFXBinder("Input/Mouse")]
     class VFXInputMouseBinder : VFXBinderBase
     {

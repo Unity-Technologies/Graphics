@@ -2,7 +2,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/Previous Position Binder")]
+    [AddComponentMenu("Visual Effects/Property Binders/Previous Position Binder")]
     [VFXBinder("Transform/Position (Previous)")]
     class VFXPreviousPositionBinder : VFXSpaceableBinder
     {

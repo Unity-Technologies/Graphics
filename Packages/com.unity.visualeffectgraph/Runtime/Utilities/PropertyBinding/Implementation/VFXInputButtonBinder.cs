@@ -2,7 +2,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/Input Button Binder")]
+    [AddComponentMenu("Visual Effects/Property Binders/Input Button Binder")]
     [VFXBinder("Input/Button")]
     class VFXInputButtonBinder : VFXBinderBase
     {

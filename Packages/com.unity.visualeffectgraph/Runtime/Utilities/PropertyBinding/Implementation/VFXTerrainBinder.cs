@@ -3,7 +3,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/Terrain Binder")]
+    [AddComponentMenu("Visual Effects/Property Binders/Terrain Binder")]
     [VFXBinder("Utility/Terrain")]
     class VFXTerrainBinder : VFXBinderBase
     {

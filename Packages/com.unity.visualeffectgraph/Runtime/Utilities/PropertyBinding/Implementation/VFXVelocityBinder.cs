@@ -2,7 +2,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/Velocity Binder")]
+    [AddComponentMenu("Visual Effects/Property Binders/Velocity Binder")]
     [VFXBinder("Transform/Velocity")]
     class VFXVelocityBinder : VFXSpaceableBinder
     {

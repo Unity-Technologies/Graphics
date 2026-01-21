@@ -2,7 +2,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/Enabled Binder")]
+    [AddComponentMenu("Visual Effects/Property Binders/Enabled Binder")]
     [VFXBinder("GameObject/Enabled")]
     class VFXEnabledBinder : VFXBinderBase
     {

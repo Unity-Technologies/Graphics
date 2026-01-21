@@ -2,7 +2,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/Position Binder")]
+    [AddComponentMenu("Visual Effects/Property Binders/Position Binder")]
     [VFXBinder("Transform/Position")]
     class VFXPositionBinder : VFXSpaceableBinder
     {

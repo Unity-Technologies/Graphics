@@ -2,7 +2,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/Light Binder")]
+    [AddComponentMenu("Visual Effects/Property Binders/Light Binder")]
     [VFXBinder("Utility/Light")]
     class VFXLightBinder : VFXBinderBase
     {

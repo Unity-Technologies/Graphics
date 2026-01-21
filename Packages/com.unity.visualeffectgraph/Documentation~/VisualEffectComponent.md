@@ -6,7 +6,7 @@ The Visual Effect Component creates an instance of a Visual Effect in the scene,
 
 To create a Visual Effect:
 
-1. Add the Visual Effect component using the **Add Component** menu in the Inspector or  navigate toi **Component > Effects > Visual Effect**
+1. Add the Visual Effect component using the **Add Component** menu in the Inspector or  navigate to **Component > Visual Effects > Visual Effect**
 2. Click the **New** Button, next to the Asset Template property Field.
 3. Save the new Visual Effect Graph asset.
 

@@ -2,7 +2,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/Transform Binder")]
+    [AddComponentMenu("Visual Effects/Property Binders/Transform Binder")]
     [VFXBinder("Transform/Transform")]
     class VFXTransformBinder : VFXSpaceableBinder
     {
