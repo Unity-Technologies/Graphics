@@ -48,7 +48,7 @@ internal class SampleDependencyImporter : IPackageManagerExtension
     {
         get
         {
-            _panelRoot ??= injectingElement.panel.visualTree;
+            _panelRoot ??= injectingElement?.panel?.visualTree;
             return _panelRoot;
         }
     }
@@ -82,11 +82,11 @@ internal class SampleDependencyImporter : IPackageManagerExtension
 
     void RefreshSampleButtons()
     {
-        if (injectingElement == null || m_PackageInfo == null || m_SampleList == null)
+        if (injectingElement == null || m_PackageInfo == null || m_SampleList == null || panelRoot == null)
             return;
 
         // Call refresh of samples and button injection when switching to the "Samples" tab.
-        if (samplesButton == null )
+        if (samplesButton == null)
         {
             samplesButton = panelRoot.Q<Button>(name: samplesButtonName);
             if (samplesButton != null)
