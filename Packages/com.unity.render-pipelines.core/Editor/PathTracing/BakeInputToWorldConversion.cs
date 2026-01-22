@@ -418,7 +418,6 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 else
                     LightmapIntegrationHelpers.ComputeUVBounds(meshes[i].uv2, out uvBoundsSizes[i], out uvBoundsOffsets[i]);
             }
-            Debug.Assert(meshes.Length == bakeInput.meshData.Length);
 
             // Baking specific settings
             RenderedGameObjectsFilter filter = RenderedGameObjectsFilter.OnlyStatic;
