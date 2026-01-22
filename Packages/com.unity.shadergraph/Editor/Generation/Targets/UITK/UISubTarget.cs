@@ -110,6 +110,7 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
                     shaderFallback = "",
                     CanUseSpriteAtlas = "True",
                     generatesPreview = true,
+                    customTags = "\"isCustomUITKShader\"=\"true\"",
                     passes = new PassCollection(),
 
                 };
