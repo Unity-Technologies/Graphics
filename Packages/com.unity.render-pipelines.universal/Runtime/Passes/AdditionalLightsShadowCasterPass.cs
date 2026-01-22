@@ -743,7 +743,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     bool lightHasSoftShadows = shadows != LightShadows.Soft;
                     bool supportsSoftShadows = shadowData.supportsSoftShadows;
                     float softShadows = ShadowUtils.SoftShadowQualityToShaderProperty(light, (supportsSoftShadows && lightHasSoftShadows));
-                    s_EmptyAdditionalLightIndexToShadowParams[lightIndexToUse] = new Vector4(light.shadowStrength, softShadows, lightType, lightIndexToUse);
+                    s_EmptyAdditionalLightIndexToShadowParams[lightIndexToUse] = new Vector4(light.shadowStrength, softShadows, lightType, c_DefaultShadowParams.w);
                 }
                 else
                 {

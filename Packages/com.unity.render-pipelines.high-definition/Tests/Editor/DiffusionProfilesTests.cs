@@ -2,6 +2,8 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEditor.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
@@ -75,6 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         }
 
         [Test]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })] // Unstable: https://jira.unity3d.com/browse/UUM-132689
         public void DiffusionProfile_AutoRegister()
         {
             m_List.ReplaceWithArray(Array.Empty<DiffusionProfileSettings>());
@@ -128,6 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         }
 
         [Test]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })] // Unstable: https://jira.unity3d.com/browse/UUM-132689
         public void RegisterReferencedDiffusionProfiles()
         {
             GraphicsSettings.GetRenderPipelineSettings<DiffusionProfileDefaultSettings>().autoRegister = true;

@@ -79,7 +79,7 @@ real ConvertLuminanceToEv(real luminance)
 
 // Non physically based hack to limit light influence to attenuationRadius.
 // Square the result to smoothen the function.
-real DistanceWindowing(real distSquare, real rangeAttenuationScale, real rangeAttenuationBias)
+real DistanceWindowing(float distSquare, real rangeAttenuationScale, real rangeAttenuationBias)
 {
     // If (range attenuation is enabled)
     //   rangeAttenuationScale = 1 / r^2
