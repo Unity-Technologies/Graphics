@@ -1,7 +1,7 @@
 #ifndef VECTOR_LOGIC
 #define VECTOR_LOGIC
 
-#if defined(XBOX)
+#if defined(SHADER_API_GAMECORE)
 #define USE_HLSL2021_VECTOR_LOGIC_INTRINSICS
 #endif
 
@@ -9,7 +9,7 @@
 
 #define VECTOR_LOGIC_AND(x, y) and(x, y)
 #define VECTOR_LOGIC_OR(x, y) or(x, y)
-#define VECTOR_LOGIC_SELECT(condition, trueValue, falseValue) select(condition, trueValue, falseValue)
+#define VECTOR_LOGIC_SELECT(condition, trueValue, falseValue) select((condition), (trueValue), (falseValue))
 
 #else
 
