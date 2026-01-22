@@ -167,7 +167,9 @@ namespace UnityEditor.Rendering.HighDefinition
         Light GetSun()
         {
             Light sunObject = null;
+            #pragma warning disable CS0618 // Type or member is obsolete
             var lights = FindObjectsByType<Light>(FindObjectsInactive.Exclude, FindObjectsSortMode.InstanceID);
+#pragma warning restore CS0618 // Type or member is obsolete
             foreach (var light in lights)
             {
                 if (light.type != LightType.Directional)

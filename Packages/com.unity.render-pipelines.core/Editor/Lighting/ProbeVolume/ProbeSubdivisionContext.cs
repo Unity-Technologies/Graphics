@@ -42,7 +42,9 @@ namespace UnityEngine.Rendering
 
                 if (Time.realtimeSinceStartupAsDouble - s_LastSubdivisionTime > debugDisplay.subdivisionDelayInSeconds)
                 {
+                    #pragma warning disable CS0618 // Type or member is obsolete
                     var probeVolume = GameObject.FindFirstObjectByType<ProbeVolume>();
+#pragma warning restore CS0618 // Type or member is obsolete
                     if (probeVolume == null || !probeVolume.isActiveAndEnabled)
                         return;
 

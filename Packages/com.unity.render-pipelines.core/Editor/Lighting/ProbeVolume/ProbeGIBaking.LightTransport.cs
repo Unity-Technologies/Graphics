@@ -668,7 +668,7 @@ namespace UnityEngine.Rendering
             var sceneLights = new Dictionary<Scene, List<Light>>();
 
             // Modify each baked light, take note of which scenes they belong to.
-            var allLights = Object.FindObjectsByType<Light>(FindObjectsSortMode.None);
+            var allLights = Object.FindObjectsByType<Light>();
             foreach (var light in allLights)
             {
                 if (light.lightmapBakeType != LightmapBakeType.Realtime)

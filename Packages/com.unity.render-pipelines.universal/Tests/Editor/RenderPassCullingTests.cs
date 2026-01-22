@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.Tests
 
             var cullingResults = cullContextData.Cull(ref cullingParameters);
 
-            var lightsInScene = Object.FindObjectsByType<Light>(FindObjectsSortMode.None);
+            var lightsInScene = Object.FindObjectsByType<Light>();
             Assert.IsTrue(cullingResults.visibleLights.Length == lightsInScene.Length);
         }
     }

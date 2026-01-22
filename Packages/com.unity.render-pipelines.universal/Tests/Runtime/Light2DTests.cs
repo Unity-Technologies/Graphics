@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.Universal.Tests
         [OneTimeSetUp]
         public void OneTimeSetup()
         {
-            var allGameObjectsInScene = Object.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+            var allGameObjectsInScene = Object.FindObjectsByType<GameObject>();
             foreach (var go in allGameObjectsInScene)
             {
                 Object.DestroyImmediate(go);

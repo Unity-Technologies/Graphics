@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     {
         // Dictionary tracks resources by hash and stores resources with same hash in a List (list instead of a stack because we need to be able to remove stale allocations, potentially in the middle of the stack).
         // The list needs to be sorted otherwise you could get inconsistent resource usage from one frame to another.
-        protected Dictionary<int, SortedList<int, (Type resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, SortedList<int, (Type resource, int frameIndex)>>();
+        protected Dictionary<int, SortedList<ulong, (Type resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, SortedList<ulong, (Type resource, int frameIndex)>>();
 
         // This list allows us to determine if all resources were correctly released in the frame when validity checks are enabled.
         // This is useful to warn in case of user error or avoid leaks when a render graph execution error occurs for example.
@@ -28,13 +28,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
         protected abstract string GetResourceName(in Type res);
         protected abstract long GetResourceSize(in Type res);
         protected abstract string GetResourceTypeName();
-        protected abstract int GetSortIndex(Type res);
+        protected abstract ulong GetSortIndex(Type res);
 
         public void ReleaseResource(int hash, Type resource, int currentFrameIndex)
         {
             if (!m_ResourcePool.TryGetValue(hash, out var list))
             {
-                list = new SortedList<int, (Type, int)>();
+                list = new SortedList<ulong, (Type, int)>();
                 m_ResourcePool.Add(hash, list);
             }
 
@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public bool TryGetResource(int hashCode, out Type resource)
         {
-            if (m_ResourcePool.TryGetValue(hashCode, out SortedList<int, (Type resource, int frameIndex)> list) && list.Count > 0)
+            if (m_ResourcePool.TryGetValue(hashCode, out SortedList<ulong, (Type resource, int frameIndex)> list) && list.Count > 0)
             {
                 var index = list.Count - 1;
                 resource = list.Values[index].resource;
@@ -176,7 +176,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return totalResources;
         }
 
-        static List<int> s_ToRemoveList = new List<int>(32);
+        static List<ulong> s_ToRemoveList = new List<ulong>(32);
 
         public override void PurgeUnusedResources(int currentFrameIndex)
         {

@@ -306,13 +306,13 @@ namespace UnityEngine.Rendering
             maxBrickCount = cellCount * ProbeReferenceVolume.CellSize(refVolume.GetMaxSubdivision());
             inverseScale = ProbeBrickPool.kBrickCellCount / refVolume.MinBrickSize();
             offset = refVolume.ProbeOffset();
-            
+
             // Initialize NativeHashMaps with reasonable initial capacity
             // Using a larger capacity to reduce allocations during baking
             positionToIndex = new NativeHashMap<int, int>(100000, Allocator.Persistent);
             uniqueBrickSubdiv = new NativeHashMap<int, int>(100000, Allocator.Persistent);
         }
-        
+
         public void Dispose()
         {
             if (positionToIndex.IsCreated)
@@ -746,7 +746,9 @@ namespace UnityEngine.Rendering
             if (activeSet != null)
                 activeSet.Clear();
 
+            #pragma warning disable CS0618 // Type or member is obsolete
             var probeVolumes = GameObject.FindObjectsByType<ProbeVolume>(FindObjectsSortMode.InstanceID);
+#pragma warning restore CS0618 // Type or member is obsolete
             foreach (var probeVolume in probeVolumes)
                 probeVolume.OnLightingDataAssetCleared();
         }
@@ -879,7 +881,9 @@ namespace UnityEngine.Rendering
         static TouchupVolumeWithBoundsList GetAdjustementVolumes()
         {
             // This is slow, but we should have very little amount of touchup volumes.
+#pragma warning disable CS0618 // Type or member is obsolete
             var touchupVolumes = Object.FindObjectsByType<ProbeAdjustmentVolume>(FindObjectsSortMode.InstanceID);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             var touchupVolumesAndBounds = new TouchupVolumeWithBoundsList(touchupVolumes.Length);
             foreach (var touchup in touchupVolumes)
@@ -1098,7 +1102,7 @@ namespace UnityEngine.Rendering
                     {
                         FixSeams(
                             s_BakeData.positionRemap,
-                            s_BakeData.originalPositions,
+                            s_BakeData.sortedPositions,
                             s_BakeData.lightingJob.irradiance,
                             s_BakeData.lightingJob.validity,
                             s_BakeData.lightingJob.occlusion,
@@ -1323,7 +1327,7 @@ namespace UnityEngine.Rendering
             NativeArray<Vector4> skyOcclusion,
             NativeArray<uint> renderingLayerMasks)
         {
-            // Seams are caused are caused by probes on the boundary between two subdivision levels
+            // Seams are caused by probes on the boundary between two subdivision levels
             // The idea is to find first them and do a kind of dilation to smooth the values on the boundary
             // the dilation process consits in doing a trilinear sample of the higher subdivision brick and override the lower subdiv with that
             // We have to mark the probes on the boundary as valid otherwise leak reduction at runtime will interfere with this method
@@ -1443,7 +1447,8 @@ namespace UnityEngine.Rendering
                             {
                                 uint renderingLayerMask = renderingLayerMasks[positionRemap[index]];
                                 bool commonRenderingLayer = (renderingLayerMask & probeRenderingLayerMask) != 0;
-                                if (!commonRenderingLayer) continue; // We do not use this probe contribution if it does not share at least a common rendering layer
+                                if (!commonRenderingLayer)
+                                    continue; // We do not use this probe contribution if it does not share at least a common rendering layer
                             }
 
                             // Do the lerp in compressed format to match result on GPU
@@ -1512,7 +1517,7 @@ namespace UnityEngine.Rendering
             var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
             var hasVirtualOffsets = m_BakingSet.settings.virtualOffsetSettings.useVirtualOffset;
             var hasRenderingLayers = m_BakingSet.useRenderingLayers;
-            
+
             if (!ValidateBakingCellsSize(bakingCellsArray, chunkSizeInProbes, hasVirtualOffsets, hasRenderingLayers))
                 return; // Early exit if validation fails
 

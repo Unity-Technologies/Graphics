@@ -677,7 +677,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                m_AdditionalLightsCookieAtlas.AllocateTexture(cmd, ref uvScaleOffset, cookie, scaledWidth, scaledHeight);
+                m_AdditionalLightsCookieAtlas.AllocateTexture(cmd, ref uvScaleOffset, cookie, scaledWidth, scaledHeight, Texture2DAtlas.TextureIdentifier.None);
             }
 
             AdjustUVRect(ref uvScaleOffset, cookie, ref scaledCookieSize);
@@ -702,7 +702,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                m_AdditionalLightsCookieAtlas.AllocateTexture(cmd, ref uvScaleOffset, cookie, scaledOctCookieSize, scaledOctCookieSize);
+                m_AdditionalLightsCookieAtlas.AllocateTexture(cmd, ref uvScaleOffset, cookie, scaledOctCookieSize, scaledOctCookieSize, Texture2DAtlas.TextureIdentifier.None);
             }
 
             // Cookie size in the atlas might not match CookieTexture size.

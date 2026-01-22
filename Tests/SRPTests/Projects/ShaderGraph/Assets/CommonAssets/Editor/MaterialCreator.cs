@@ -27,7 +27,9 @@ public class MaterialCreator : MonoBehaviour
     [MenuItem("Tools/SG Tests/Get Rid of Underscores")]
     static void KillUnderscores()
     {
+#pragma warning disable CS0618
         GameObject[] allObjects = UnityEngine.Object.FindObjectsByType<GameObject>(FindObjectsSortMode.InstanceID);
+#pragma warning restore CS0618
         foreach (GameObject go in allObjects)
         {
             go.name = go.name.Replace("_", "");

@@ -1,5 +1,7 @@
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
+using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -140,13 +142,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public readonly int resX => decal.resolution.x;
             public readonly int resY => decal.resolution.y;
-            public int MaterialId(WaterDecal.PassType passType)
+            public readonly unsafe Texture2DAtlas.TextureIdentifier GetFakeTextureIdentifier(WaterDecal.PassType passType)
             {
-                int hash = 17;
-                hash = hash * 23 + (int)passType;
-                hash = hash * 23 + materialId.GetHashCode();
-                return hash;
+                ulong hash = 17;
+                hash = hash * 23 + (ulong)passType;
+                hash = hash * 23 + (ulong)materialId.GetHashCode();
+                Texture2DAtlas.TextureIdentifier identifier = Texture2DAtlas.TextureIdentifier.None;
+                Assert.IsTrue(sizeof(Texture2DAtlas.TextureIdentifier) == sizeof(ulong));
+                UnsafeUtility.MemCpy(&identifier, &hash, sizeof(Texture2DAtlas.TextureIdentifier));
+                return identifier;
             }
+
         }
 
         bool CullWaterDecals()
@@ -251,7 +257,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (decal.updateMode == CustomRenderTextureUpdateMode.Realtime)
                         decal.updateCount++;
 
-                    bool ReserveAtlasSpace(WaterDecal.PassType passType, in VisibleDecalData cpuData) => m_DecalAtlas.ReserveSpace(cpuData.MaterialId(passType), cpuData.resX, cpuData.resY);
+                    bool ReserveAtlasSpace(WaterDecal.PassType passType, in VisibleDecalData cpuData) => m_DecalAtlas.ReserveSpace(cpuData.GetFakeTextureIdentifier(passType), cpuData.resX, cpuData.resY);
 
                     if (affectDeformation && !ReserveAtlasSpace(WaterDecal.PassType.Deformation, in cpuData))
                         needRelayout = true;
@@ -292,7 +298,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Render decals in atlas if needed
             void FetchCoords(in VisibleDecalData cpuData, WaterDecal.PassType passType, string passName, ref Vector4 scaleBias)
             {
-                int id = cpuData.MaterialId(passType);
+                var id = cpuData.GetFakeTextureIdentifier(passType);
                 if (!m_DecalAtlas.IsCached(out scaleBias, id))
                 {
                     // Used in WaterDecal.shader to discard decal
@@ -427,7 +433,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     int numTiles = HDUtils.DivRoundUp((int)currentWater.deformationRes, 8);
 
                     cmd.SetKeyword(horizontalDeformationKeyword, HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportWaterHorizontalDeformation);
-                 
+
                     // First we need to clear the edge pixel and blur the deformation a bit
                     cmd.SetComputeTextureParam(m_WaterDeformationCS, m_FilterDeformationKernel, HDShaderIDs._WaterDeformationBuffer, currentWater.deformationSGBuffer);
                     cmd.SetComputeTextureParam(m_WaterDeformationCS, m_FilterDeformationKernel, HDShaderIDs._WaterDeformationBufferRW, currentWater.deformationBuffer);
