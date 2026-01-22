@@ -240,7 +240,9 @@ void Frag(PackedVaryings packedInput,
 #endif
 
 #if defined(DECAL_RECONSTRUCT_NORMAL)
-    #if defined(_DECAL_NORMAL_BLEND_HIGH)
+    #if defined(_RENDER_PASS_ENABLED)
+        half3 normalWS = half3(ReconstructNormalDerivative(input.positionCS.xy, LOAD_FRAMEBUFFER_X_INPUT(GBUFFER3, positionCS.xy).x));
+    #elif defined(_DECAL_NORMAL_BLEND_HIGH)
         half3 normalWS = half3(ReconstructNormalTap9(positionCS.xy));
     #elif defined(_DECAL_NORMAL_BLEND_MEDIUM)
         half3 normalWS = half3(ReconstructNormalTap5(positionCS.xy));
@@ -248,7 +250,11 @@ void Frag(PackedVaryings packedInput,
         half3 normalWS = half3(ReconstructNormalDerivative(input.positionCS.xy));
     #endif
 #elif defined(DECAL_LOAD_NORMAL)
-    half3 normalWS = half3(LoadSceneNormals(positionCS.xy));
+    #if defined(_RENDER_PASS_ENABLED)
+    half3 normalWS = normalize(LOAD_FRAMEBUFFER_X_INPUT(GBUFFER2, positionCS.xy).rgb);
+    #else
+    half3 normalWS = normalize(LoadSceneNormals(positionCS.xy).rgb);
+    #endif
 #endif
 
     float2 positionSS = FoveatedRemapNonUniformToLinearCS(input.positionCS.xy) * _ScreenSize.zw;
