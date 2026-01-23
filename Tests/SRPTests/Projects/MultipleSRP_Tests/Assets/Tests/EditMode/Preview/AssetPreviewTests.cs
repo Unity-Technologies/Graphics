@@ -116,6 +116,7 @@ namespace Preview
             }
         }
 
+        [Ignore("issue: no worker when launching AssertSingleWorkerUsedAtLeastTwice https://jira.unity3d.com/browse/UUM-131927")]
         [UnityTest]
         [TestCaseSource(nameof(s_TestCaseDataPreviewImporter))]
         /// <summary>

@@ -66,7 +66,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// Fully discarding both multisampled and resolved data is not currently possible.
         /// </summary>
         public bool discardOnLastUse;
-
         /// <summary>
         /// The uv orientation that should be used by texture resources imported into the rendergraph.
         /// </summary>
@@ -391,6 +390,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return m_RenderGraphResources[res.iType].resourceArray[res.index].imported;
         }
 
+        internal bool IsRenderGraphResourceBackBuffer(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+
+            return m_RenderGraphResources[res.iType].resourceArray[res.index].isBackBuffer;
+        }
+
         internal bool IsRenderGraphResourceShared(RenderGraphResourceType type, int index)
         {
             CheckHandleValidity(type, index);
@@ -484,6 +490,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             texResource.desc.clearColor = importParams.clearColor;
             texResource.desc.discardBuffer = importParams.discardOnLastUse;
             texResource.textureUVOrigin = (TextureUVOriginSelection)importParams.textureUVOrigin;
+            texResource.isBackBuffer = (rt != null) ? rt.m_NameID == BuiltinRenderTextureType.CameraTarget || rt.m_NameID == BuiltinRenderTextureType.Depth : false;
 
             var texHandle = new TextureHandle(newHandle, false, isBuiltin);
 
@@ -504,6 +511,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             texResource.imported = true;
             // Be sure to clear the desc to the default state
             texResource.desc = new TextureDesc();
+            texResource.isBackBuffer = rt.m_NameID == BuiltinRenderTextureType.CameraTarget || rt.m_NameID == BuiltinRenderTextureType.Depth;
 
             // Apparently existing code tries to import null textures !?? So we sort of allow them then :(
             if (rt != null)

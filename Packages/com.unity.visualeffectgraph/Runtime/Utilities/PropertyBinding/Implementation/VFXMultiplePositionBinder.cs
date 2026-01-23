@@ -3,7 +3,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/Multiple Position Binder")]
+    [AddComponentMenu("Visual Effects/Property Binders/Multiple Position Binder")]
     [VFXBinder("Point Cache/Multiple Position Binder")]
     class VFXMultiplePositionBinder : VFXBinderBase
     {

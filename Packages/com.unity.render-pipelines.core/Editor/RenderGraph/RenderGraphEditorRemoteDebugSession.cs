@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         void RegisterAndUpdateDebugData(string graphName, EntityId executionId, string executionName, DebugData debugData)
         {
             RegisterGraph(graphName);
-            RegisterExecution(graphName, executionId, debugData.executionName);
+            RegisterExecution(graphName, executionId, executionName);
             SetDebugData(graphName, executionId, debugData);
         }
     }

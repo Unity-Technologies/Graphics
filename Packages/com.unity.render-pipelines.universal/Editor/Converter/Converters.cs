@@ -101,7 +101,7 @@ namespace UnityEditor.Rendering.Universal
         /// <summary>
         /// Use this for 2D material conversion
         /// </summary>
-        [BatchModeConverterInfo(ConverterContainerId.BuiltInToURP2D, typeof(BuiltInToURP2DMaterialUpgrader))]
+        [BatchModeConverterInfo(ConverterContainerId.BuiltInToURP2D, typeof(BuiltInToURP2DReadonlyMaterialConverter))]
         ReadonlyMaterial2D,
 
         /// <summary>

@@ -13,6 +13,9 @@ using Debug = UnityEngine.Debug;
 using System.Reflection;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using UnityEditor.ProjectWindowCallback;
+#if UNITY_6000_5_OR_NEWER
+using UnityEngine.Assemblies;
+#endif
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -336,7 +339,11 @@ namespace UnityEditor.ShaderGraph
             if (s_LegacyTypeRemapping == null)
             {
                 s_LegacyTypeRemapping = new Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo>();
+#if UNITY_6000_5_OR_NEWER
+                foreach (var assembly in CurrentAssemblies.GetLoadedAssemblies())
+#else
                 foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+#endif
                 {
                     foreach (var type in assembly.GetTypesOrNothing())
                     {

@@ -675,7 +675,7 @@ namespace UnityEngine.Rendering.Universal
             bool requirePrepass = requirePrepassForTextures || useDepthPriming;
 
             // Only use a depth format when we do a prepass directly the cameraDepthTexture. If we do depth priming (ie, prepass to the activeCameraDepth), we don't do a prepass to the texture. Instead, we do a copy from the primed attachment.
-            bool prepassToCameraDepthTexture = requirePrepassForTextures && !usesDeferredLighting;
+            bool prepassToCameraDepthTexture = requirePrepassForTextures && !usesDeferredLighting && !useDepthPriming;
             bool depthTextureIsDepthFormat = prepassToCameraDepthTexture;
             bool requireCopyFromDepth = renderPassInputs.requiresDepthTexture && !prepassToCameraDepthTexture;
 
@@ -1925,7 +1925,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_DepthNormalPrepass.Render(renderGraph, frameData, resourceData.cameraNormalsTexture, in depthTarget, resourceData.renderingLayersTexture, batchLayerMask, setGlobalDepth, setGlobalTextures, partialPass);
 
-            if (m_RequiresRenderingLayer)
+            if (m_RenderingLayerProvidesByDepthNormalPass)
                 SetRenderingLayersGlobalTextures(renderGraph);
         }
     }

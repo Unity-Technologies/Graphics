@@ -108,6 +108,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 case PassBreakReason.PassMergingDisabled:
                     message += "The pass merging is disabled.";
                     break;
+                case PassBreakReason.BackbufferInMultipleRenderTargetsNotSupported:
+                    message += "Mixing backbuffer and custom render textures is not supported on this platform "
+                                + "(see SystemInfo.supportsBackbufferInMultipleRenderTargets).";
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

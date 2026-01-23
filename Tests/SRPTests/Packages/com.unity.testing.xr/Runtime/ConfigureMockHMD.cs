@@ -33,7 +33,15 @@ namespace Unity.Testing.XR.Runtime
                     Unity.XR.MockHMD.MockHMD.SetRenderMode(Unity.XR.MockHMD.MockHMDBuildSettings.RenderMode.SinglePassInstanced);
 
                     // Configure MockHMD to match the original settings from the test scene
-                    UnityEngine.TestTools.Graphics.ImageAssert.GetImageResolution(settings, out int w, out int h);
+                    int w = 1920;
+                    int h = 1080;
+
+                    if(!settings.UseBackBuffer)
+                    {
+                        w = settings.TargetWidth;
+                        h = settings.TargetHeight;
+                    }
+
                     Unity.XR.MockHMD.MockHMD.SetEyeResolution(w, h);
                     Unity.XR.MockHMD.MockHMD.SetMirrorViewCrop(0.0f);
 

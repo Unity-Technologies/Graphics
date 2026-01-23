@@ -11,15 +11,8 @@ namespace UnityEditor.Rendering.Universal
     {
         private bool m_IsInitialized;
 
-        private SerializedProperty _uniformEstimationSampleCount;
-        private SerializedProperty _restirEstimationConfidenceCap;
-        private SerializedProperty _restirEstimationSpatialSampleCount;
-        private SerializedProperty _restirEstimationSpatialFilterSize;
-        private SerializedProperty _restirEstimationValidationFrameInterval;
-        private SerializedProperty _risEstimationCandidateCount;
-        private SerializedProperty _risEstimationTargetFunctionUpdateWeight;
+        private SerializedProperty _estimationSampleCount;
         private SerializedProperty _multiBounce;
-        private SerializedProperty _estimationMethod;
         private SerializedProperty _temporalSmoothing;
         private SerializedProperty _spatialFilterEnabled;
         private SerializedProperty _spatialFilterSampleCount;
@@ -39,15 +32,8 @@ namespace UnityEditor.Rendering.Universal
 
         private struct TextContent
         {
-            public static GUIContent UniformEstimationSampleCount = EditorGUIUtility.TrTextContent("Sample Count", "");
-            public static GUIContent RestirEstimationConfidenceCap = EditorGUIUtility.TrTextContent("Confidence Cap", "");
-            public static GUIContent RestirEstimationSpatialSampleCount = EditorGUIUtility.TrTextContent("Spatial Sample Count", "");
-            public static GUIContent RestirEstimationSpatialFilterSize = EditorGUIUtility.TrTextContent("Spatial Filter Size", "");
-            public static GUIContent RestirEstimationValidationFrameInterval = EditorGUIUtility.TrTextContent("Validation Frame Interval", "");
-            public static GUIContent RisEstimationCandidateCount = EditorGUIUtility.TrTextContent("Candidate Count", "");
-            public static GUIContent RisEstimationTargetFunctionUpdateWeight = EditorGUIUtility.TrTextContent("Target Function Update Weight", "");
+            public static GUIContent EstimationSampleCount = EditorGUIUtility.TrTextContent("Sample Count", "");
             public static GUIContent MultiBounce = EditorGUIUtility.TrTextContent("Multi Bounce", "");
-            public static GUIContent EstimationMethod = EditorGUIUtility.TrTextContent("Estimation Method", "");
 
             public static GUIContent TemporalSmoothing = EditorGUIUtility.TrTextContent("Temporal Smoothing", "");
             public static GUIContent SpatialFilterEnabled = EditorGUIUtility.TrTextContent("Spatial Filter Enabled", "");
@@ -73,48 +59,38 @@ namespace UnityEditor.Rendering.Universal
 
         private void Init()
         {
-            SerializedProperty paramSet = serializedObject.FindProperty("_parameterSet");
+            SerializedProperty paramSets = serializedObject.FindProperty("_parameterSet");
 
-            SerializedProperty uniformParamSet = paramSet.FindPropertyRelative("UniformEstimationParams");
-            SerializedProperty restirParamSet = paramSet.FindPropertyRelative("RestirEstimationParams");
-            SerializedProperty risParamSet = paramSet.FindPropertyRelative("RisEstimationParams");
-            SerializedProperty patchFilteringParamSet = paramSet.FindPropertyRelative("PatchFilteringParams");
-            SerializedProperty screenFilteringParamSet = paramSet.FindPropertyRelative("ScreenFilteringParams");
-            SerializedProperty gridParamSet = paramSet.FindPropertyRelative("GridParams");
-            SerializedProperty volumeParamSet = paramSet.FindPropertyRelative("VolumeParams");
-            SerializedProperty advancedParamSet = paramSet.FindPropertyRelative("AdvancedParams");
+            SerializedProperty estimationParams = paramSets.FindPropertyRelative("EstimationParams");
+            SerializedProperty patchFilteringParams = paramSets.FindPropertyRelative("PatchFilteringParams");
+            SerializedProperty screenFilteringParams = paramSets.FindPropertyRelative("ScreenFilteringParams");
+            SerializedProperty volumeParams = paramSets.FindPropertyRelative("VolumeParams");
+            SerializedProperty advancedParams = paramSets.FindPropertyRelative("AdvancedParams");
 
-            _multiBounce = paramSet.FindPropertyRelative("MultiBounce");
-            _estimationMethod = paramSet.FindPropertyRelative("EstimationMethod");
+            _multiBounce = paramSets.FindPropertyRelative("MultiBounce");
 
-            _uniformEstimationSampleCount = uniformParamSet.FindPropertyRelative("SampleCount");
-            _restirEstimationConfidenceCap = restirParamSet.FindPropertyRelative("ConfidenceCap");
-            _restirEstimationSpatialSampleCount = restirParamSet.FindPropertyRelative("SpatialSampleCount");
-            _restirEstimationSpatialFilterSize = restirParamSet.FindPropertyRelative("SpatialFilterSize");
-            _restirEstimationValidationFrameInterval = restirParamSet.FindPropertyRelative("ValidationFrameInterval");
-            _risEstimationCandidateCount = risParamSet.FindPropertyRelative("CandidateCount");
-            _risEstimationTargetFunctionUpdateWeight = risParamSet.FindPropertyRelative("TargetFunctionUpdateWeight");
+            _estimationSampleCount = estimationParams.FindPropertyRelative("SampleCount");
 
-            _temporalSmoothing = patchFilteringParamSet.FindPropertyRelative("TemporalSmoothing");
-            _spatialFilterEnabled = patchFilteringParamSet.FindPropertyRelative("SpatialFilterEnabled");
-            _spatialFilterSampleCount = patchFilteringParamSet.FindPropertyRelative("SpatialFilterSampleCount");
-            _spatialFilterRadius = patchFilteringParamSet.FindPropertyRelative("SpatialFilterRadius");
-            _temporalPostFilterEnabled = patchFilteringParamSet.FindPropertyRelative("TemporalPostFilterEnabled");
+            _temporalSmoothing = patchFilteringParams.FindPropertyRelative("TemporalSmoothing");
+            _spatialFilterEnabled = patchFilteringParams.FindPropertyRelative("SpatialFilterEnabled");
+            _spatialFilterSampleCount = patchFilteringParams.FindPropertyRelative("SpatialFilterSampleCount");
+            _spatialFilterRadius = patchFilteringParams.FindPropertyRelative("SpatialFilterRadius");
+            _temporalPostFilterEnabled = patchFilteringParams.FindPropertyRelative("TemporalPostFilterEnabled");
 
-            _lookupSampleCount = screenFilteringParamSet.FindPropertyRelative("LookupSampleCount");
-            _upsamplingKernelSize = screenFilteringParamSet.FindPropertyRelative("UpsamplingKernelSize");
-            _upsamplingSampleCount = screenFilteringParamSet.FindPropertyRelative("UpsamplingSampleCount");
+            _lookupSampleCount = screenFilteringParams.FindPropertyRelative("LookupSampleCount");
+            _upsamplingKernelSize = screenFilteringParams.FindPropertyRelative("UpsamplingKernelSize");
+            _upsamplingSampleCount = screenFilteringParams.FindPropertyRelative("UpsamplingSampleCount");
 
-            _volumeSize = volumeParamSet.FindPropertyRelative("Size");
-            _volumeResolution = volumeParamSet.FindPropertyRelative("Resolution");
-            _volumeCascadeCount = volumeParamSet.FindPropertyRelative("CascadeCount");
-            _volumeMovement = volumeParamSet.FindPropertyRelative("Movement");
+            _volumeSize = volumeParams.FindPropertyRelative("Size");
+            _volumeResolution = volumeParams.FindPropertyRelative("Resolution");
+            _volumeCascadeCount = volumeParams.FindPropertyRelative("CascadeCount");
+            _volumeMovement = volumeParams.FindPropertyRelative("Movement");
 
-            _debugEnabled = paramSet.FindPropertyRelative("DebugEnabled");
-            _debugViewMode = paramSet.FindPropertyRelative("DebugViewMode");
-            _debugShowSamplePosition = paramSet.FindPropertyRelative("DebugShowSamplePosition");
+            _debugEnabled = paramSets.FindPropertyRelative("DebugEnabled");
+            _debugViewMode = paramSets.FindPropertyRelative("DebugViewMode");
+            _debugShowSamplePosition = paramSets.FindPropertyRelative("DebugShowSamplePosition");
 
-            _defragCount = advancedParamSet.FindPropertyRelative("DefragCount");
+            _defragCount = advancedParams.FindPropertyRelative("DefragCount");
         }
 
         public override void OnInspectorGUI()
@@ -127,31 +103,9 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox("Enable \"Always Refresh\" in the Scene View to see realtime updates in the Scene View.", MessageType.Info);
             }
 
-            EditorGUILayout.LabelField("Light Transport", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Sampling", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_multiBounce, TextContent.MultiBounce);
-            EditorGUILayout.PropertyField(_estimationMethod, TextContent.EstimationMethod);
-            if (_estimationMethod.intValue == (int)SurfaceCacheEstimationMethod.Uniform)
-            {
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField("Uniform Estimation", EditorStyles.boldLabel);
-                EditorGUILayout.IntSlider(_uniformEstimationSampleCount, 1, 32, TextContent.UniformEstimationSampleCount);
-            }
-            else if (_estimationMethod.intValue == (int)SurfaceCacheEstimationMethod.Restir)
-            {
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField("Restir Estimation", EditorStyles.boldLabel);
-                EditorGUILayout.IntSlider(_restirEstimationConfidenceCap, 1, 64, TextContent.RestirEstimationConfidenceCap);
-                EditorGUILayout.IntSlider(_restirEstimationSpatialSampleCount, 0, 8, TextContent.RestirEstimationSpatialSampleCount);
-                EditorGUILayout.Slider(_restirEstimationSpatialFilterSize, 0.0f, 4.0f, TextContent.RestirEstimationSpatialFilterSize);
-                EditorGUILayout.IntSlider(_restirEstimationValidationFrameInterval, 2, 8, TextContent.RestirEstimationValidationFrameInterval);
-            }
-            else if (_estimationMethod.intValue == (int)SurfaceCacheEstimationMethod.Ris)
-            {
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField("SH-Guided Ris Estimation", EditorStyles.boldLabel);
-                EditorGUILayout.IntSlider(_risEstimationCandidateCount, 2, 64, TextContent.RisEstimationCandidateCount);
-                EditorGUILayout.Slider(_risEstimationTargetFunctionUpdateWeight, 0.0f, 1.0f, TextContent.RisEstimationTargetFunctionUpdateWeight);
-            }
+            EditorGUILayout.IntSlider(_estimationSampleCount, 1, 32, TextContent.EstimationSampleCount);
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Patch Filtering", EditorStyles.boldLabel);

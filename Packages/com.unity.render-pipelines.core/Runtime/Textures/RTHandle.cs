@@ -203,19 +203,32 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Get the identifier of the RTHandle.
+        /// </summary>
+        /// <returns>The RTHandle identifier.</returns>
+        public ulong GetUniqueID()
+        {
+            if (m_RT != null)
+                return m_RT.GetEntityId().GetRawData();
+            else if (m_ExternalTexture != null)
+                return m_ExternalTexture.GetEntityId().GetRawData();
+            else
+                return (ulong)m_NameID.GetHashCode(); // No instance ID so we return the hash code.
+        }
+
+        /// <summary>
         /// Get the Instance ID of the RTHandle.
         /// </summary>
         /// <returns>The RTHandle Instance ID.</returns>
+        [Obsolete("GetInstanceID() is obsolete, use GetUniqueID() instead.", true)]
         public int GetInstanceID()
         {
-#pragma warning disable 618 // todo @emilie.thaulow replace with ulong
             if (m_RT != null)
-                return m_RT.GetEntityId();
+                return m_RT.GetInstanceID();
             else if (m_ExternalTexture != null)
-                return m_ExternalTexture.GetEntityId();
+                return m_ExternalTexture.GetInstanceID();
             else
                 return m_NameID.GetHashCode(); // No instance ID so we return the hash code.
-#pragma warning restore 618
         }
 
         /// <summary>

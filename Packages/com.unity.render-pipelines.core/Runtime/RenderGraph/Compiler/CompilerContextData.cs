@@ -353,11 +353,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         }
         #endregion
 
-        // IDisposable implementation
-
         bool m_AreNativeListsAllocated = false;
-
-        ~CompilerContextData() => Cleanup();
 
         public void Dispose()
         {

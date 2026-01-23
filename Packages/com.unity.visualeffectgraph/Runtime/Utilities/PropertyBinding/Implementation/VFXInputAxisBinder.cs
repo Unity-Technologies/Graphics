@@ -2,7 +2,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/Input Axis Binder")]
+    [AddComponentMenu("Visual Effects/Property Binders/Input Axis Binder")]
     [VFXBinder("Input/Axis")]
     class VFXInputAxisBinder : VFXBinderBase
     {

@@ -6,7 +6,8 @@ using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.TestTools;
 using Unity.Collections;
 using UnityEngine.Rendering.RendererUtils;
-using System.Text.RegularExpressions;
+using UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -43,11 +44,11 @@ namespace UnityEngine.Rendering.Tests
             public BufferHandle[] buffers = new BufferHandle[8];
         }
 
-        TextureDesc SimpleTextureDesc(string name, int w, int h, int samples)
+        TextureDesc SimpleTextureDesc(string name, int w, int h, int samples, GraphicsFormat graphicsFormat)
         {
             TextureDesc result = new TextureDesc(w, h);
             result.msaaSamples = (MSAASamples)samples;
-            result.format = GraphicsFormat.R8G8B8A8_UNorm;
+            result.format = graphicsFormat;
             result.name = name;
             return result;
         }
@@ -59,7 +60,20 @@ namespace UnityEngine.Rendering.Tests
             public TextureHandle[] extraTextures = new TextureHandle[10];
             public TextureHandle extraDepthBuffer;
             public TextureHandle extraDepthBufferBottomLeft;
+            public TextureHandle extraTextureDepth;
         };
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            NativePassCompiler.s_ForceGenerateAuditsForTests = true;
+        }
+
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
+        {
+            NativePassCompiler.s_ForceGenerateAuditsForTests = false;
+        }
 
         TestRenderTargets ImportAndCreateRenderTargets(RenderGraph g, TextureUVOrigin backBufferUVOrigin = TextureUVOrigin.BottomLeft)
         {
@@ -95,8 +109,10 @@ namespace UnityEngine.Rendering.Tests
 
             for (int i = 0; i < result.extraTextures.Length; i++)
             {
-                result.extraTextures[i] = g.CreateTexture(SimpleTextureDesc("ExtraTexture" + i, 1024, 768, 1));
+                result.extraTextures[i] = g.CreateTexture(SimpleTextureDesc("ExtraTexture" + i, 1024, 768, 1, GraphicsFormat.R8G8B8A8_UNorm));
             }
+
+            result.extraTextureDepth = g.CreateTexture(SimpleTextureDesc("ExtraDepthTexture", 1024, 768, 1, GraphicsFormat.D24_UNorm));
 
             return result;
         }
@@ -1291,6 +1307,11 @@ namespace UnityEngine.Rendering.Tests
         {
             m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
             {
+                if (!SystemInfo.supportsMultisampledShaderResolve)
+                {
+                    return; // Skip the test if the platform does not support multisampled shader resolve
+                }
+
                 var colorTexDesc = new TextureDesc(Vector2.one, false, false)
                 {
                     width = 4,
@@ -2266,7 +2287,7 @@ namespace UnityEngine.Rendering.Tests
             // Retrieve it from the pool and make sure this is the right one
             RTHandle resOut;
             texturePool.TryGetResource(0, out resOut);
-            Assert.IsTrue(resIn.GetInstanceID() == resOut.GetInstanceID());
+            Assert.IsTrue(resIn.GetUniqueID() == resOut.GetUniqueID());
 
             texturePool.Cleanup();
         }
@@ -2344,6 +2365,11 @@ namespace UnityEngine.Rendering.Tests
 
                 var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
                 var passes = result.contextData.GetNativePasses();
+
+                // Nothing to test here, since the passes are not merged because of the "back buffer in multiple render targets" API limitation (e.g OpenGL)
+                if (passes.Count > 1 && passes[0].breakAudit.reason == PassBreakReason.BackbufferInMultipleRenderTargetsNotSupported)
+                    return;
+
                 Assert.AreEqual(1, passes.Count);
                 Assert.AreEqual(4, passes[0].attachments.size);
                 Assert.AreEqual(3, passes[0].numGraphPasses);
@@ -2426,6 +2452,117 @@ namespace UnityEngine.Rendering.Tests
                 Assert.AreEqual(2, passes[1].attachments.size);
                 Assert.AreEqual(2, passes[1].numGraphPasses);
                 Assert.AreEqual(2, passes[1].numNativeSubPasses);
+            };
+
+            m_Camera.Render();
+
+            m_RenderGraph.Cleanup();
+        }
+
+        [Test]
+        public void CanMergeBackBufferAndCustomRenderTargets()
+        {
+            if (SystemInfo.supportsBackbufferInMultipleRenderTargets)
+                return;
+
+            // We don't send the list of graphics commands to execute to avoid mistmatch attachment size errors in the native render pass layer due to the backbuffer usage.
+            // To reproduce the "Trying to load color backbuffer into a complex RenderPass setup" error, this setting needs to be true.
+            // Because of the mismatch error, it cannot be enabled on the CI, so instead, we verify the breaking audit (CannotMixBackBuffersAndCustomTextures).
+            m_RenderGraphTestPipeline.invalidContextForTesting = true;
+            NativePassCompiler.s_ForceGenerateAuditsForTests = true;
+
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                var renderTargets = ImportAndCreateRenderTargets(m_RenderGraph);
+
+                // Alloc a custom depth buffer
+                var extraDepthBufferHandle = RTHandles.Alloc(1024, 768,
+                    GraphicsFormat.D32_SFloat_S8_UInt, dimension: TextureDimension.Tex2D, useMipMap: false, autoGenerateMips: false, name: "Extra Depth Buffer");
+
+                // Import it and assign it to the extraDepthBuffer handle
+                var importInfoDepth = new RenderTargetInfo();
+                importInfoDepth.width = 1024;
+                importInfoDepth.height = 768;
+                importInfoDepth.volumeDepth = 1;
+                importInfoDepth.msaaSamples = 1;
+                importInfoDepth.format = GraphicsFormat.D32_SFloat_S8_UInt;
+                renderTargets.extraDepthBuffer = m_RenderGraph.ImportTexture(extraDepthBufferHandle, importInfoDepth, new ImportResourceParams());
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<UVOriginPassData>("TestPass0", out var passData))
+                {
+                    builder.SetRenderAttachment(renderTargets.backBuffer, 0, AccessFlags.Write);
+                    builder.SetRenderFunc(static (UVOriginPassData data, RasterGraphContext context) =>{ });
+                    builder.AllowPassCulling(false);
+                }
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<UVOriginPassData>("TestPass1", out var passData))
+                {
+                    builder.SetRenderAttachmentDepth(renderTargets.extraDepthBuffer, AccessFlags.Read);
+                    builder.SetRenderAttachment(renderTargets.extraTextures[1], 0, AccessFlags.Write);
+                    builder.SetRenderFunc(static (UVOriginPassData data, RasterGraphContext context) =>{ });
+                    builder.AllowPassCulling(false);
+                }
+                
+                var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+                var passes = result.contextData.GetNativePasses();
+
+                Assert.AreEqual(2, passes.Count);
+                Assert.IsTrue(passes[0].breakAudit.reason == PassBreakReason.BackbufferInMultipleRenderTargetsNotSupported);
+            };
+
+            m_Camera.Render();
+
+            m_RenderGraph.Cleanup();
+        }
+
+        [Test]
+        public void CanMergeBackBufferAndCustomRenderTargetsDepth()
+        {
+            if (SystemInfo.supportsBackbufferInMultipleRenderTargets)
+                return;
+
+            // We don't send the list of graphics commands to execute to avoid mistmatch attachment size errors in the native render pass layer due to the backbuffer usage.
+            // To reproduce the "Trying to load color backbuffer into a complex RenderPass setup" error, this setting needs to be true.
+            // Because of the mismatch error, it cannot be enabled on the CI, so instead, we verify the breaking audit (CannotMixBackBuffersAndCustomTextures).
+            m_RenderGraphTestPipeline.invalidContextForTesting = true;
+            NativePassCompiler.s_ForceGenerateAuditsForTests = true;
+
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                var renderTargets = ImportAndCreateRenderTargets(m_RenderGraph);
+
+                // Alloc a custom depth buffer
+                var extraDepthBufferHandle = RTHandles.Alloc(1024, 768,
+                    GraphicsFormat.D32_SFloat_S8_UInt, dimension: TextureDimension.Tex2D, useMipMap: false, autoGenerateMips: false, name: "Extra Depth Buffer");
+
+                // Import it and assign it to the extraDepthBuffer handle
+                var importInfoDepth = new RenderTargetInfo();
+                importInfoDepth.width = 1024;
+                importInfoDepth.height = 768;
+                importInfoDepth.volumeDepth = 1;
+                importInfoDepth.msaaSamples = 1;
+                importInfoDepth.format = GraphicsFormat.D32_SFloat_S8_UInt;
+                renderTargets.extraDepthBuffer = m_RenderGraph.ImportTexture(extraDepthBufferHandle, importInfoDepth, new ImportResourceParams());
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<UVOriginPassData>("TestPass0", out var passData))
+                {
+                    builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                    builder.SetRenderFunc(static (UVOriginPassData data, RasterGraphContext context) => { });
+                    builder.AllowPassCulling(false);
+                }
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<UVOriginPassData>("TestPass1", out var passData))
+                {
+                    builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
+                    builder.SetRenderFunc(static (UVOriginPassData data, RasterGraphContext context) => { });
+                    builder.AllowPassCulling(false);
+                }
+
+                var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+                var passes = result.contextData.GetNativePasses();
+
+                Assert.AreEqual(2, passes.Count);
+                Assert.IsTrue(passes[0].breakAudit.reason == PassBreakReason.BackbufferInMultipleRenderTargetsNotSupported);
             };
 
             m_Camera.Render();

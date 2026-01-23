@@ -20,15 +20,6 @@ namespace UnityEngine.Rendering
         [ResourcePath("Runtime/Lighting/SurfaceCache/SpatialFiltering.compute")]
         public ComputeShader m_SpatialFilteringShader;
 
-        [ResourcePath("Runtime/Lighting/SurfaceCache/RestirEstimation.compute")]
-        public ComputeShader m_RestirEstimationShader;
-
-        [ResourcePath("Runtime/Lighting/SurfaceCache/RisEstimation.urtshader")]
-        public ComputeShader m_RisEstimationComputeShader;
-
-        [ResourcePath("Runtime/Lighting/SurfaceCache/RisEstimation.urtshader")]
-        public RayTracingShader m_RisEstimationRayTracingShader;
-
         [ResourcePath("Runtime/Lighting/SurfaceCache/Scrolling.compute")]
         public ComputeShader m_ScrollingShader;
 
@@ -44,20 +35,11 @@ namespace UnityEngine.Rendering
         [ResourcePath("Runtime/Lighting/SurfaceCache/PunctualLightSampling.urtshader")]
         public RayTracingShader m_PunctualLightSamplingRayTracingShader;
 
-        [ResourcePath("Runtime/Lighting/SurfaceCache/UniformEstimation.urtshader")]
-        public ComputeShader m_UniformEstimationComputeShader;
+        [ResourcePath("Runtime/Lighting/SurfaceCache/Estimation.urtshader")]
+        public ComputeShader m_EstimationComputeShader;
 
-        [ResourcePath("Runtime/Lighting/SurfaceCache/UniformEstimation.urtshader")]
-        public RayTracingShader m_UniformEstimationRayTracingShader;
-
-        [ResourcePath("Runtime/Lighting/SurfaceCache/RestirCandidateTemporal.urtshader")]
-        public ComputeShader m_RestirCandidateTemporalComputeShader;
-
-        [ResourcePath("Runtime/Lighting/SurfaceCache/RestirCandidateTemporal.urtshader")]
-        public RayTracingShader m_RestirCandidateTemporalRayTracingShader;
-
-        [ResourcePath("Runtime/Lighting/SurfaceCache/RestirSpatial.compute")]
-        public ComputeShader m_RestirSpatialShader;
+        [ResourcePath("Runtime/Lighting/SurfaceCache/Estimation.urtshader")]
+        public RayTracingShader m_EstimationRayTracingShader;
 
         public ComputeShader spatialFilteringShader
         {
@@ -83,58 +65,22 @@ namespace UnityEngine.Rendering
             set => this.SetValueAndNotify(ref m_PunctualLightSamplingRayTracingShader, value, nameof(m_PunctualLightSamplingRayTracingShader));
         }
 
-        public ComputeShader uniformEstimationComputeShader
+        public ComputeShader estimationComputeShader
         {
-            get => m_UniformEstimationComputeShader;
-            set => this.SetValueAndNotify(ref m_UniformEstimationComputeShader, value, nameof(m_UniformEstimationComputeShader));
+            get => m_EstimationComputeShader;
+            set => this.SetValueAndNotify(ref m_EstimationComputeShader, value, nameof(m_EstimationComputeShader));
         }
 
-        public RayTracingShader uniformEstimationRayTracingShader
+        public RayTracingShader estimationRayTracingShader
         {
-            get => m_UniformEstimationRayTracingShader;
-            set => this.SetValueAndNotify(ref m_UniformEstimationRayTracingShader, value, nameof(m_UniformEstimationRayTracingShader));
-        }
-
-        public ComputeShader restirCandidateTemporalComputeShader
-        {
-            get => m_RestirCandidateTemporalComputeShader;
-            set => this.SetValueAndNotify(ref m_RestirCandidateTemporalComputeShader, value, nameof(m_RestirCandidateTemporalComputeShader));
-        }
-
-        public RayTracingShader restirCandidateTemporalRayTracingShader
-        {
-            get => m_RestirCandidateTemporalRayTracingShader;
-            set => this.SetValueAndNotify(ref m_RestirCandidateTemporalRayTracingShader, value, nameof(m_RestirCandidateTemporalRayTracingShader));
-        }
-
-        public ComputeShader restirSpatialShader
-        {
-            get => m_RestirSpatialShader;
-            set => this.SetValueAndNotify(ref m_RestirSpatialShader, value, nameof(m_RestirSpatialShader));
-        }
-
-        public ComputeShader restirEstimationShader
-        {
-            get => m_RestirEstimationShader;
-            set => this.SetValueAndNotify(ref m_RestirEstimationShader, value, nameof(m_RestirEstimationShader));
+            get => m_EstimationRayTracingShader;
+            set => this.SetValueAndNotify(ref m_EstimationRayTracingShader, value, nameof(m_EstimationRayTracingShader));
         }
 
         public ComputeShader defragShader
         {
             get => m_DefragShader;
             set => this.SetValueAndNotify(ref m_DefragShader, value, nameof(m_DefragShader));
-        }
-
-        public ComputeShader risEstimationComputeShader
-        {
-            get => m_RisEstimationComputeShader;
-            set => this.SetValueAndNotify(ref m_RisEstimationComputeShader, value, nameof(m_RisEstimationComputeShader));
-        }
-
-        public RayTracingShader risEstimationRayTracingShader
-        {
-            get => m_RisEstimationRayTracingShader;
-            set => this.SetValueAndNotify(ref m_RisEstimationRayTracingShader, value, nameof(m_RisEstimationRayTracingShader));
         }
 
         public ComputeShader scrollingShader

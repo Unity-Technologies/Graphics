@@ -81,18 +81,23 @@ public class HDRP_TestSettings_Editor : Editor
         EditorGUILayout.PropertyField(containsVFX);
         EditorGUILayout.PropertyField(doBeforeTest);
 
-        if(typedTarget.ImageComparisonSettings.UseBackBuffer)
+        string resolutionSource = "";
+
+        if (typedTarget.ImageComparisonSettings.UseBackBuffer)
         {
-            targetResolution = GetResolutionFromBackBufferResolutionEnum(typedTarget.ImageComparisonSettings.ImageResolution.ToString());
+            // Default to 1080p when using backbuffer
+            targetResolution = new Vector2(1920, 1080);
+            resolutionSource = "Backbuffer Default (1920x1080)";
         }
         else
         {
             targetResolution = new Vector2(typedTarget.ImageComparisonSettings.TargetWidth, typedTarget.ImageComparisonSettings.TargetHeight);
+            resolutionSource = $"Target {targetResolution.x}x{targetResolution.y}";
         }
 
         liveViewSize = GUILayout.Toggle(liveViewSize, "When enabled, Game View resolution is updated live.");
 
-        if (GUILayout.Button("Set Game View Size") || liveViewSize && (prevWidth != targetResolution.x || prevHeight != targetResolution.y))
+        if (GUILayout.Button($"Set Game View Size to {resolutionSource}") || liveViewSize && (prevWidth != targetResolution.x || prevHeight != targetResolution.y))
         {
             prevWidth = (int)targetResolution.x;
             prevHeight = (int)targetResolution.y;
@@ -112,12 +117,6 @@ public class HDRP_TestSettings_Editor : Editor
         }
 
         serializedObject.ApplyModifiedProperties();
-    }
-
-    public Vector2 GetResolutionFromBackBufferResolutionEnum(string resolution)
-    {
-        string[] resolutionArray = resolution.ToString().Split('w')[1].Split('h');
-        return new Vector2(int.Parse(resolutionArray[0]), int.Parse(resolutionArray[1]));
     }
 
     void SetGameViewSize()

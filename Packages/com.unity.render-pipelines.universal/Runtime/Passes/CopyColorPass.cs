@@ -186,9 +186,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         private void RenderInternal(RenderGraph renderGraph, in TextureHandle destination, in TextureHandle source, bool useProceduralBlit)
         {
-            bool isES3 = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
-
-            if (m_DownsamplingMethod != Downsampling.None || isES3)
+            if (m_DownsamplingMethod != Downsampling.None)
             {
                 AddDownsampleAndCopyColorRenderPass(renderGraph, destination, source, useProceduralBlit, k_DownsampleAndCopyPassName);
             }

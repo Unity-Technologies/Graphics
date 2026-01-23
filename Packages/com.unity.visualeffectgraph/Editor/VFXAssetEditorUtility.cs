@@ -2,6 +2,7 @@ using System.IO;
 using UnityEngine;
 using UnityEditor.VFX;
 using UnityEngine.VFX;
+using UnityEngine.Rendering;
 using UnityEditor.ProjectWindowCallback;
 
 using UnityObject = UnityEngine.Object;
@@ -57,7 +58,7 @@ namespace UnityEditor
         public const string editorResourcesFolder = "Editor/UIResources";
         public static string editorResourcesPath => VisualEffectGraphPackageInfo.assetPackagePath + "/" + editorResourcesFolder;
 
-        [MenuItem("GameObject/Visual Effects/Visual Effect", priority = 12)]
+        [MenuItem("GameObject/Visual Effects/Visual Effect", priority = CoreUtils.Sections.section1)]
         public static void CreateVisualEffectGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;

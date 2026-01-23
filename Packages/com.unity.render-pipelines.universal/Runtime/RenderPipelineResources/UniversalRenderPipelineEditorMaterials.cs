@@ -20,6 +20,16 @@ namespace UnityEngine.Rendering.Universal
             set => this.SetValueAndNotify(ref m_DefaultMaterial, value);
         }
 
+        [SerializeField]
+        [ResourcePath("Runtime/Materials/SimpleLit.mat")]
+        private Material m_SimpleLitMaterial;
+
+        public virtual Material simpleLitMaterial
+        {
+            get => m_SimpleLitMaterial;
+            set => this.SetValueAndNotify(ref m_SimpleLitMaterial, value);
+        }
+
         // This is the URP default material for new particle systems, is the closest match to the built-in shader.
         [SerializeField]
         [ResourcePath("Runtime/Materials/ParticlesUnlit.mat")]

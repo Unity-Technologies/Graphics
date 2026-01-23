@@ -100,7 +100,7 @@ namespace PatchUtil
     float2 SphereToSquare(float3 n)
     {
         n /= (abs(n.x) + abs(n.y) + abs(n.z));
-        n.xy = n.z >= 0.0 ? n.xy : OctWrap(n.xy);
+        n.xy = VECTOR_LOGIC_SELECT(n.z >= 0.0, n.xy, OctWrap(n.xy));
         n.xy = n.xy * 0.5 + 0.5;
         return n.xy;
     }
@@ -152,7 +152,7 @@ namespace PatchUtil
     uint3 SignedIntegerModulo(int3 x, uint modulus)
     {
         const uint3 remainder = uint3(abs(x)) % modulus;
-        return VECTOR_LOGIC_SELECT(x < 0 && remainder != 0, modulus - remainder, remainder);
+        return VECTOR_LOGIC_SELECT(VECTOR_LOGIC_AND(x < 0, remainder != 0), modulus - remainder, remainder);
     }
 
     uint3 ConvertVolumeSpaceToStorageSpace(uint3 posVolSpace, uint spatialResolution, int3 cascadeOffset)

@@ -6,7 +6,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/Plane Binder")]
+    [AddComponentMenu("Visual Effects/Property Binders/Plane Binder")]
     [VFXBinder("Utility/Plane")]
     class VFXPlaneBinder : VFXSpaceableBinder
     {

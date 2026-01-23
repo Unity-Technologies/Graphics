@@ -1175,25 +1175,9 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] private ParameterSet _parameterSet = new ParameterSet();
 
         [Serializable]
-        class UniformEstimationParameterSet
+        class EstimationParameterSet
         {
             public uint SampleCount = 2;
-        }
-
-        [Serializable]
-        class RestirEstimationParameterSet
-        {
-            public uint ConfidenceCap = 30;
-            public uint SpatialSampleCount = 4;
-            public float SpatialFilterSize = 2.0f;
-            public uint ValidationFrameInterval = 4;
-        }
-
-        [Serializable]
-        class RisEstimationParameterSet
-        {
-            public uint CandidateCount = 8;
-            public float TargetFunctionUpdateWeight = 0.8f;
         }
 
         [Serializable]
@@ -1232,16 +1216,13 @@ namespace UnityEngine.Rendering.Universal
         [Serializable]
         class ParameterSet
         {
-            public SurfaceCacheEstimationMethod EstimationMethod = SurfaceCacheEstimationMethod.Uniform;
             public bool MultiBounce = true;
 
-            [SerializeField] public UniformEstimationParameterSet UniformEstimationParams = new UniformEstimationParameterSet();
-            [SerializeField] public RestirEstimationParameterSet RestirEstimationParams = new RestirEstimationParameterSet();
-            [SerializeField] public RisEstimationParameterSet RisEstimationParams = new RisEstimationParameterSet();
+            public EstimationParameterSet EstimationParams = new EstimationParameterSet();
             public PatchFilteringParameterSet PatchFilteringParams = new PatchFilteringParameterSet();
-            [SerializeField] public ScreenFilteringParameterSet ScreenFilteringParams = new ScreenFilteringParameterSet();
-            [SerializeField] public VolumeParameterSet VolumeParams = new VolumeParameterSet();
-            [SerializeField] public AdvancedParameterSet AdvancedParams = new AdvancedParameterSet();
+            public ScreenFilteringParameterSet ScreenFilteringParams = new ScreenFilteringParameterSet();
+            public VolumeParameterSet VolumeParams = new VolumeParameterSet();
+            public AdvancedParameterSet AdvancedParams = new AdvancedParameterSet();
 
             public bool DebugEnabled = false;
             public DebugViewMode_ DebugViewMode = DebugViewMode_.CellIndex;
@@ -1294,15 +1275,8 @@ namespace UnityEngine.Rendering.Universal
 
                 var estimationParams = new SurfaceCacheEstimationParameterSet
                 {
-                    Method = _parameterSet.EstimationMethod,
                     MultiBounce = _parameterSet.MultiBounce,
-                    RestirEstimationConfidenceCap = _parameterSet.RestirEstimationParams.ConfidenceCap,
-                    RestirEstimationSpatialSampleCount = _parameterSet.RestirEstimationParams.SpatialSampleCount,
-                    RestirEstimationSpatialFilterSize = _parameterSet.RestirEstimationParams.SpatialFilterSize,
-                    RestirEstimationValidationFrameInterval = _parameterSet.RestirEstimationParams.ValidationFrameInterval,
-                    UniformEstimationSampleCount = _parameterSet.UniformEstimationParams.SampleCount,
-                    RisEstimationCandidateCount = _parameterSet.RisEstimationParams.CandidateCount,
-                    RisEstimationTargetFunctionUpdateWeight = _parameterSet.RisEstimationParams.TargetFunctionUpdateWeight
+                    SampleCount = _parameterSet.EstimationParams.SampleCount,
                 };
 
                 var patchFilteringParams = new SurfaceCachePatchFilteringParameterSet

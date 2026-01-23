@@ -3,7 +3,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/Hierarchy to Attribute Map Binder")]
+    [AddComponentMenu("Visual Effects/Property Binders/Hierarchy to Attribute Map Binder")]
     [VFXBinder("Point Cache/Hierarchy to Attribute Map")]
     class VFXHierarchyAttributeMapBinder : VFXBinderBase
     {

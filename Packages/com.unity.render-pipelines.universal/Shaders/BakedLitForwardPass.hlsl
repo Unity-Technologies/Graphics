@@ -1,3 +1,5 @@
+#ifndef UNIVERSAL_BAKEDLIT_FORWARD_PASS_INCLUDED
+#define UNIVERSAL_BAKEDLIT_FORWARD_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #if defined(LOD_FADE_CROSSFADE)
@@ -179,3 +181,5 @@ void BakedLitForwardPassFragment(
     outRenderingLayers = EncodeMeshRenderingLayer();
 #endif
 }
+
+#endif

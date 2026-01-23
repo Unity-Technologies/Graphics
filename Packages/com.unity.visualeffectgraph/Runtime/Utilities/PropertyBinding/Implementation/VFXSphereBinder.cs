@@ -3,7 +3,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/Sphere Collider Binder")]
+    [AddComponentMenu("Visual Effects/Property Binders/Sphere Collider Binder")]
     [VFXBinder("Collider/Sphere")]
     class VFXSphereBinder : VFXSpaceableBinder
     {

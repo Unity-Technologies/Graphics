@@ -59,10 +59,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 m_TempMRTArrays[i] = new RenderTargetIdentifier[i + 1];
         }
 
-        // IDisposable implementation
-
-        ~NativePassCompiler() => Cleanup();
-
         public void Dispose()
         {
             Cleanup();

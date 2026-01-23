@@ -24,10 +24,12 @@
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
+#define DIV_ROUND_UP(N, D)                      (((N) + ((D) - 1)) / (D)) // No division by 0 checks
+
 #define FINE_PRUNING_ENABLED
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
 
-#define LIGHT_FPTL_VISIBILITY_DWORD_COUNTS (((SHADEROPTIONS_FPTLMAX_LIGHT_COUNT+1) + 31)/32)
+#define LIGHT_FPTL_VISIBILITY_DWORD_COUNTS      DIV_ROUND_UP(SHADEROPTIONS_FPTLMAX_LIGHT_COUNT + 1, 32)
 
 StructuredBuffer<float4> g_vBoundsBuffer : register( t1 );
 StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);
@@ -43,17 +45,20 @@ StructuredBuffer<uint> g_vBigTileLightList : register( t4 );        // don't sup
 #define NR_THREADS              64                                  // default to 64 threads per group on other platforms..
 #endif
 
-#define PIXEL_PER_THREAD      ((TILE_SIZE_FPTL*TILE_SIZE_FPTL) / NR_THREADS) // 8 or 4
+#define PIXEL_PER_THREAD        ((TILE_SIZE_FPTL*TILE_SIZE_FPTL) / NR_THREADS) // 8 or 4
+#if !(PIXEL_PER_THREAD == 4 || PIXEL_PER_THREAD == 8)
+#error "Invalid Pixels per Thread. Should be 4 or 8."
+#endif
 
 // output buffer
 RWStructuredBuffer<uint> g_vLightList : register( u0 );             // don't support RWBuffer yet in unity
 
 #define CATEGORY_LIST_SIZE          LIGHTCATEGORY_COUNT
-#define MAX_NR_VISIBLE_LIGHTS       826                             // correspond to m_MaxLightsOnScreen in LightLoop.cs
+#define MAX_NR_VISIBLE_LIGHTS       4096                            // correspond to m_MaxLightsOnScreen in LightLoop.cs
 
-groupshared unsigned int ldsTilePassList[MAX_NR_VISIBLE_LIGHTS];
-groupshared unsigned int coarseList[LIGHT_LIST_MAX_COARSE_ENTRIES];
-groupshared unsigned int prunedList[LIGHT_LIST_MAX_COARSE_ENTRIES];     // temporarily support room for all 64 while in LDS
+groupshared uint ldsTilePassList[MAX_NR_VISIBLE_LIGHTS/32];
+groupshared uint coarseList[LIGHT_LIST_MAX_COARSE_ENTRIES];
+groupshared uint prunedList[LIGHT_LIST_MAX_COARSE_ENTRIES];     // temporarily support room for all 64 while in LDS
 
 groupshared uint ldsZMin;
 groupshared uint ldsZMax;
@@ -61,9 +66,9 @@ groupshared uint lightOffs;
 #ifdef FINE_PRUNING_ENABLED
 groupshared uint ldsDoesLightIntersect[LIGHT_FPTL_VISIBILITY_DWORD_COUNTS];
 #endif
-groupshared int ldsNrLightsFinal;
+groupshared uint ldsNrLightsFinal;
 
-groupshared int ldsCategoryListCount[CATEGORY_LIST_SIZE];
+groupshared uint ldsCategoryListCount[CATEGORY_LIST_SIZE];
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 groupshared uint lightOffsSph;
@@ -73,7 +78,6 @@ groupshared uint lightOffsSph;
 groupshared uint ldsFeatureFlags;
 RWStructuredBuffer<uint> g_TileFeatureFlags;
 #endif
-
 
 float GetLinearDepth(float2 pixXY, float zDptBufSpace)    // 0 is near 1 is far
 {
@@ -88,15 +92,15 @@ float GetLinearDepth(float2 pixXY, float zDptBufSpace)    // 0 is near 1 is far
     float m22 = g_mInvScrProjection[2].z, m23 = g_mInvScrProjection[2].w;
     float m32 = g_mInvScrProjection[3].z, m33 = g_mInvScrProjection[3].w;
 
-    return (m22*zDptBufSpace+m23) / (m32*zDptBufSpace+m33);
-#endif
+    return (m22 * zDptBufSpace + m23) / (m32 * zDptBufSpace + m33);
+#endif // USE_OBLIQUE_MODE
 }
 
 float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 {
     float4x4 g_mScrProjection = g_mScrProjectionArr[unity_StereoEyeIndex];
 
-    bool isOrthographic = g_isOrthographic!=0;
+    bool isOrthographic = g_isOrthographic != 0;
     float fSx = g_mScrProjection[0].x;
     float fSy = g_mScrProjection[1].y;
     float fCx = isOrthographic ? g_mScrProjection[0].w : g_mScrProjection[0].z;
@@ -106,12 +110,12 @@ float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
     bool useLeftHandVersion = true;
 #else
     bool useLeftHandVersion = isOrthographic;
-#endif
+#endif // USE_LEFT_HAND_CAMERA_SPACE
 
     float s = useLeftHandVersion ? 1 : (-1);
-    float2 p = float2( (s*v2ScrPos.x-fCx)/fSx, (s*v2ScrPos.y-fCy)/fSy);
+    float2 p = float2((s * v2ScrPos.x - fCx) / fSx, (s * v2ScrPos.y - fCy) / fSy);
 
-    return float3(isOrthographic ? p.xy : (fLinDepth*p.xy), fLinDepth);
+    return float3(isOrthographic ? p.xy : (fLinDepth * p.xy), fLinDepth);
 }
 
 float GetOnePixDiagWorldDistAtDepthOne()
@@ -120,75 +124,85 @@ float GetOnePixDiagWorldDistAtDepthOne()
     float fSx = g_mScrProjection[0].x;
     float fSy = g_mScrProjection[1].y;
 
-    return length( float2(1.0/fSx,1.0/fSy) );
+    return length(float2(1.0 / fSx, 1.0 / fSy));
 }
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
-int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate);
-#endif
+int SphericalIntersectionTests(uint threadID, uint iNrCoarseLights, float2 screenCoordinate);
+#endif // PERFORM_SPHERICAL_INTERSECTION_TESTS
 
 #ifdef FINE_PRUNING_ENABLED
 #if PIXEL_PER_THREAD == 4
-void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 vLinDepths);
+void FinePruneLights(uint threadID, uint iNrCoarseLights, uint2 viTilLL, float4 vLinDepths);
 #else
-void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vLinDepths[PIXEL_PER_THREAD]);
+void FinePruneLights(uint threadID, uint iNrCoarseLights, uint2 viTilLL, float vLinDepths[PIXEL_PER_THREAD]);
 #endif
-#endif
+#endif // FINE_PRUNING_ENABLED
 
 #ifdef USE_TWO_PASS_TILED_LIGHTING
 uint FetchBigTileLightIndex(uint lightStart, uint lightOffset)
 {
-    const uint lightOffsetPlusOne = lightOffset + 1; // Add +1 as first slot is reserved to store number of light
+    uint lightOffsetPlusOne = lightOffset + 1; // Add +1 as first slot is reserved to store number of light
     // Light index are store on 16bit
-    return (g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * lightStart / 2 + (lightOffsetPlusOne >> 1)] >> ((lightOffsetPlusOne & 1) * 16)) & 0xffff;
+    return ((g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * lightStart / 2u + (lightOffsetPlusOne >> 1)] >> ((lightOffsetPlusOne & 1u) * 16u))) & 0xFFFFu;
 }
-#endif
+#endif // USE_TWO_PASS_TILED_LIGHTING
+
+groupshared uint2 viDimensionsMinusOne;        // (g_viDimensions.x - 1, g_viDimensions.y - 1)
+groupshared uint nrTilesX;
+groupshared uint nrTilesY;
 
 [numthreads(NR_THREADS, 1, 1)]
 void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     uint2 tileIDX = u3GroupID.xy;
-    uint t=threadID;
-    int i;
+    uint t = threadID;
+    uint i;
 
-    UNITY_UNROLLX(LIGHT_LIST_MAX_COARSE_ENTRIES)
-    for(i=t; i<LIGHT_LIST_MAX_COARSE_ENTRIES; i+=NR_THREADS)
-        if(i<LIGHT_LIST_MAX_COARSE_ENTRIES)
-            prunedList[i]=0;
-
-    const bool lightSortRequired = g_iNrVisibLights > LIGHT_LIST_MAX_COARSE_ENTRIES;  // Uniform runtime branch
-    if (lightSortRequired)
+    UNITY_UNROLLX(DIV_ROUND_UP(LIGHT_LIST_MAX_COARSE_ENTRIES, NR_THREADS))
+    for (i = t; i < LIGHT_LIST_MAX_COARSE_ENTRIES; i += NR_THREADS)
     {
-        UNITY_LOOP
-        for(i=t; i<MAX_NR_VISIBLE_LIGHTS; i+=NR_THREADS)
-            if(i<MAX_NR_VISIBLE_LIGHTS)
-                ldsTilePassList[i]=0;
+        prunedList[i] = 0;
     }
 
-    uint iWidth = g_viDimensions.x;
-    uint iHeight = g_viDimensions.y;
-    uint nrTilesX = (iWidth+15)/16;
-    uint nrTilesY = (iHeight+15)/16;
+    bool lightSortRequired = g_iNrVisibLights > LIGHT_LIST_MAX_COARSE_ENTRIES;  // Uniform runtime branch
+    if (lightSortRequired)
+    {
+        UNITY_UNROLLX(DIV_ROUND_UP(MAX_NR_VISIBLE_LIGHTS/32, NR_THREADS))
+        for (i = t; i < MAX_NR_VISIBLE_LIGHTS/32; i += NR_THREADS)
+        {
+            ldsTilePassList[i] = 0;
+        }
+    }
 
     // build tile scr boundary
-    const uint uFltMax = 0x7f7fffff;  // FLT_MAX as a uint
-    if(t==0)
+    const uint uFltMax = 0x7f7fffffu;  // FLT_MAX as a uint
+    if (t == 0)
     {
+        viDimensionsMinusOne = uint2(max(0, g_viDimensions - 1));
+
+        nrTilesX = DIV_ROUND_UP(g_viDimensions.x, 16u);
+        nrTilesY = DIV_ROUND_UP(g_viDimensions.y, 16u);
+
         ldsZMin = uFltMax;
         ldsZMax = 0;
         lightOffs = 0;
+
+#ifdef USE_FEATURE_FLAGS
+        ldsFeatureFlags = 0;
+#endif // USE_FEATURE_FLAGS
     }
 
 #if NR_THREADS > PLATFORM_LANE_COUNT
     GroupMemoryBarrierWithGroupSync();
 #endif
 
-
-    uint2 viTilLL = 16*tileIDX;
+    uint2 viTilLL = 16u * tileIDX;
 
     // establish min and max depth first
-    float dpt_mi=asfloat(uFltMax), dpt_ma=0.0;
+    float dpt_mi = asfloat(uFltMax);
+    float dpt_ma = 0.0;
 
 
 #if PIXEL_PER_THREAD == 4
@@ -198,14 +212,14 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
 #endif
     {
         // Fetch depths and calculate min/max
-        UNITY_UNROLL
+        UNITY_UNROLLX(PIXEL_PER_THREAD)
         for(i = 0; i < PIXEL_PER_THREAD; i++)
         {
-            int idx = i * NR_THREADS + t;
-            uint2 uCrd = min( uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1) );
-            const float fDepth = FetchDepth(uCrd);
-            vLinDepths[i] = GetLinearDepth(uCrd+float2(0.5,0.5), fDepth);
-            if(fDepth<VIEWPORT_SCALE_Z)     // if not skydome
+            uint idx = i * NR_THREADS + t;
+            uint2 uCrd = min(uint2(viTilLL.x + (idx & 0xFu), viTilLL.y + (idx >> 4)), viDimensionsMinusOne);
+            float fDepth = FetchDepth(uCrd);
+            vLinDepths[i] = GetLinearDepth(uCrd + float2(0.5,0.5), fDepth);
+            if (fDepth < VIEWPORT_SCALE_Z)     // if not skydome
             {
                 dpt_mi = min(fDepth, dpt_mi);
                 dpt_ma = max(fDepth, dpt_ma);
@@ -216,69 +230,82 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
         InterlockedMin(ldsZMin, asuint(dpt_mi));
 
         // For some platforms we always need GroupMemoryBarrierWithGroupSync() otherwise results are incorrect.
-		// Reason is under investigation, related discussions:
-		// https://unity.slack.com/archives/C02C8FWPNHE/p1704321597295329
-		// https://unity.slack.com/archives/G3JUQKYV8/p1705081617447289
+        // Reason is under investigation, related discussions:
+        // https://unity.slack.com/archives/C02C8FWPNHE/p1704321597295329
+        // https://unity.slack.com/archives/G3JUQKYV8/p1705081617447289
 #if NR_THREADS > PLATFORM_LANE_COUNT || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2)
         GroupMemoryBarrierWithGroupSync();
 #endif
     }
 
+    // the lower left and upper right corners of the tile's bounding box to test each light's bounding box against
+    float3 vTileLL = float3(viTilLL.x        / (float)g_viDimensions.x, viTilLL.y        / (float)g_viDimensions.y, asfloat(ldsZMin));
+    float3 vTileUR = float3((viTilLL.x + 16) / (float)g_viDimensions.x, (viTilLL.y + 16) / (float)g_viDimensions.y, asfloat(ldsZMax));
+    vTileUR.xy = min(vTileUR.xy, float2(1.0, 1.0)).xy;
 
-    float3 vTileLL = float3(viTilLL.x/(float) iWidth, viTilLL.y/(float) iHeight, asfloat(ldsZMin));
-    float3 vTileUR = float3((viTilLL.x+16)/(float) iWidth, (viTilLL.y+16)/(float) iHeight, asfloat(ldsZMax));
-    vTileUR.xy = min(vTileUR.xy,float2(1.0,1.0)).xy;
-
+    // number of lights processed using AABB
+    uint nrLightsProc;
 
     // build coarse list using AABB
 #ifdef USE_TWO_PASS_TILED_LIGHTING
-    const uint log2BigTileToTileRatio = firstbithigh(64) - firstbithigh(16);
+    const uint log2BigTileToTileRatio = 6 - 4; // firstbithigh(64) - firstbithigh(16)
 
-    int NrBigTilesX = (nrTilesX + ((1 << log2BigTileToTileRatio) -1 )) >> log2BigTileToTileRatio;
-    int NrBigTilesY = (nrTilesY + ((1 << log2BigTileToTileRatio) - 1)) >> log2BigTileToTileRatio;
-    const int bigTileBase = unity_StereoEyeIndex * NrBigTilesX * NrBigTilesY;
-    const uint bigTileIdx = bigTileBase + (tileIDX.y>>log2BigTileToTileRatio)*NrBigTilesX + (tileIDX.x>>log2BigTileToTileRatio);       // map the idx to 64x64 tiles
-    int nrBigTileLights = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * bigTileIdx / 2 + 0] & 0xFFFF;
-    for(int l0=(int) t; l0<(int) nrBigTileLights; l0 += NR_THREADS)
+    uint NrBigTilesX = (nrTilesX + ((1 << log2BigTileToTileRatio) - 1)) >> log2BigTileToTileRatio;
+    uint NrBigTilesY = (nrTilesY + ((1 << log2BigTileToTileRatio) - 1)) >> log2BigTileToTileRatio;
+    uint bigTileBase = unity_StereoEyeIndex * NrBigTilesX * NrBigTilesY;
+    uint bigTileIdx = bigTileBase + (tileIDX.y >> log2BigTileToTileRatio) * NrBigTilesX + (tileIDX.x >> log2BigTileToTileRatio);       // map the idx to 64x64 tiles
+    uint nrBigTileLights = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * bigTileIdx / 2u + 0u] & 0xFFFFu;
+    nrLightsProc = nrBigTileLights;
+    for (uint l0 = t; l0 < nrBigTileLights; l0 += NR_THREADS)
     {
-        int l = FetchBigTileLightIndex(bigTileIdx, l0);
+        uint l = FetchBigTileLightIndex(bigTileIdx, l0);
 #else
-    for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
+    nrLightsProc = (uint)g_iNrVisibLights;
+    for (uint l = t; l < (uint)g_iNrVisibLights; l += NR_THREADS)
     {
-#endif
-        const ScreenSpaceBoundsIndices boundsIndices = GenerateScreenSpaceBoundsIndices(l, g_iNrVisibLights, unity_StereoEyeIndex);
-        const float3 vMi = g_vBoundsBuffer[boundsIndices.min].xyz;
-        const float3 vMa = g_vBoundsBuffer[boundsIndices.max].xyz;
+#endif // USE_TWO_PASS_TILED_LIGHTING
+        ScreenSpaceBoundsIndices boundsIndices = GenerateScreenSpaceBoundsIndices(l, (uint)g_iNrVisibLights, unity_StereoEyeIndex);
+        float3 vMi = g_vBoundsBuffer[boundsIndices.min].xyz;
+        float3 vMa = g_vBoundsBuffer[boundsIndices.max].xyz;
 
-        if( all(vMa>vTileLL) && all(vMi<vTileUR))
+        if (all(vMa > vTileLL) && all(vMi < vTileUR))
         {
-            unsigned int uInc = 1;
-            unsigned int uIndex;
-            InterlockedAdd(lightOffs, uInc, uIndex);
+            uint uIndex;
+            InterlockedAdd(lightOffs, 1u, uIndex);
             if (lightSortRequired)
-                ldsTilePassList[l] = 1;
+            {
+                InterlockedOr(ldsTilePassList[l >> 5], 1u << (l & (32 - 1)));     // ldsTilePassList[l/32] |= 1u << (l % 32);
+            }
             else
-                if(uIndex<LIGHT_LIST_MAX_COARSE_ENTRIES) coarseList[uIndex] = l;        // add to light list
+            {
+                if (uIndex < LIGHT_LIST_MAX_COARSE_ENTRIES) coarseList[uIndex] = l;        // add to light list
+            }
         }
     }
 
 #ifdef FINE_PRUNING_ENABLED
-    if(t<LIGHT_FPTL_VISIBILITY_DWORD_COUNTS) ldsDoesLightIntersect[t] = 0;
-#endif
+    if (t < LIGHT_FPTL_VISIBILITY_DWORD_COUNTS) ldsDoesLightIntersect[t] = 0;
+#endif // FINE_PRUNING_ENABLED
 
     if (lightSortRequired)
     {
 #if NR_THREADS > PLATFORM_LANE_COUNT
         GroupMemoryBarrierWithGroupSync();
 #endif
+
         // Ascending sort to prevent unpredictable light list when the number of visible lights is greater than the coarse entries.
-        if(t==0)
+        if (t == 0)
         {
-            int c=0;
-            for(int ii=0; ii<g_iNrVisibLights && c < LIGHT_LIST_MAX_COARSE_ENTRIES; ii++)
+            uint c = 0;
+            for (uint ii = 0; ii < MAX_NR_VISIBLE_LIGHTS/32 && c < LIGHT_LIST_MAX_COARSE_ENTRIES; ii++)
             {
-                if(ldsTilePassList[ii] == 1)
-                    coarseList[c++] = ii;
+                uint mask = ldsTilePassList[ii];
+                while (mask != 0u && c < LIGHT_LIST_MAX_COARSE_ENTRIES)
+                {
+                    uint l = firstbitlow(mask);
+                    mask &= ~(1u << l);
+                    coarseList[c++] = ii * 32 + l;
+                }
             }
         }
     }
@@ -287,17 +314,19 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     GroupMemoryBarrierWithGroupSync();
 #endif
 
-    int iNrCoarseLights = min(lightOffs,LIGHT_LIST_MAX_COARSE_ENTRIES);
+    uint iNrCoarseLights = min(lightOffs, LIGHT_LIST_MAX_COARSE_ENTRIES);
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
-    iNrCoarseLights = SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(16/2,16/2), uint2(iWidth-1, iHeight-1))) );
-#endif
+    iNrCoarseLights = SphericalIntersectionTests(t, iNrCoarseLights, float2(min(viTilLL.xy + uint2(16 / 2, 16 / 2), viDimensionsMinusOne)));
+#endif // PERFORM_SPHERICAL_INTERSECTION_TESTS
 
 #ifndef FINE_PRUNING_ENABLED
     {
-        UNITY_UNROLL
-        for(i=t; i<LIGHT_LIST_MAX_COARSE_ENTRIES; i+=NR_THREADS) if(i<iNrCoarseLights) prunedList[i] = coarseList[i];
-        if(t==0) ldsNrLightsFinal=iNrCoarseLights;
+        for (i = t; i < iNrCoarseLights; i += NR_THREADS)
+        {
+            prunedList[i] = coarseList[i];
+        }
+        if (t == 0) ldsNrLightsFinal = iNrCoarseLights;
     }
 #else
     {
@@ -305,27 +334,23 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
         // all accepted entries delivered in prunedList[].
         FinePruneLights(t, iNrCoarseLights, viTilLL, vLinDepths);
     }
-#endif
+#endif // FINE_PRUNING_ENABLED
 
-    if(t<CATEGORY_LIST_SIZE) ldsCategoryListCount[t]=0;
-#ifdef USE_FEATURE_FLAGS
-    if(t==0) ldsFeatureFlags=0;
-#endif
+    if (t < CATEGORY_LIST_SIZE) ldsCategoryListCount[t] = 0;
 
 #if NR_THREADS > PLATFORM_LANE_COUNT
     GroupMemoryBarrierWithGroupSync();
 #endif
 
-
-    int nrLightsCombinedList = min(ldsNrLightsFinal,LIGHT_LIST_MAX_COARSE_ENTRIES);
-    for(i=t; i<nrLightsCombinedList; i+=NR_THREADS)
+    uint nrLightsCombinedList = min(ldsNrLightsFinal, LIGHT_LIST_MAX_COARSE_ENTRIES);
+    for (i = t; i < nrLightsCombinedList; i += NR_THREADS)
     {
-        const int lightBoundIndex = GenerateLightCullDataIndex(prunedList[i], g_iNrVisibLights, unity_StereoEyeIndex);
+        uint lightBoundIndex = GenerateLightCullDataIndex(prunedList[i], (uint)g_iNrVisibLights, unity_StereoEyeIndex);
 
-        InterlockedAdd(ldsCategoryListCount[_LightVolumeData[lightBoundIndex].lightCategory], 1);
+        InterlockedAdd(ldsCategoryListCount[_LightVolumeData[lightBoundIndex].lightCategory], 1u);
 #ifdef USE_FEATURE_FLAGS
         InterlockedOr(ldsFeatureFlags, _LightVolumeData[lightBoundIndex].featureFlags);
-#endif
+#endif // USE_FEATURE_FLAGS
     }
 
     // sort lights (gives a more efficient execution in both deferred and tiled forward lighting).
@@ -334,93 +359,105 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     //MERGESORTLIST(prunedList, coarseList, nrLightsCombinedList, t, NR_THREADS);
 #endif
 
+    uint stereoEyeOffset = unity_StereoEyeIndex * nrTilesX * nrTilesY;
+
 #ifdef USE_FEATURE_FLAGS
-    if(t == 0)
+    if (t == 0)
     {
         uint featureFlags = ldsFeatureFlags | g_BaseFeatureFlags;
         // In case of back
-        if(ldsZMax < ldsZMin)   // is background pixel
+        if (ldsZMax < ldsZMin)   // is background pixel
         {
             // There is no stencil usage with compute path, featureFlags set to 0 is use to have fast rejection of tile in this case. It will still execute but will do nothing
             featureFlags = 0;
         }
 
-        g_TileFeatureFlags[tileIDX.y * nrTilesX + tileIDX.x + unity_StereoEyeIndex * nrTilesX * nrTilesY] = featureFlags;
+        uint featureOffs = tileIDX.y * nrTilesX + tileIDX.x;
+
+        // Eye base offset must match code in GetCountAndStartTile()
+        featureOffs += stereoEyeOffset;
+
+        g_TileFeatureFlags[featureOffs] = featureFlags;
     }
-#endif
+#endif // USE_FEATURE_FLAGS
 
     // write lights to global buffers
-    int localOffs=0;
-    int offs = tileIDX.y*nrTilesX + tileIDX.x;
+    uint localOffs = 0;
+    uint offs = tileIDX.y * nrTilesX + tileIDX.x;
 
-#if defined(UNITY_STEREO_INSTANCING_ENABLED)
     // Eye base offset must match code in GetCountAndStartTile()
-    offs += unity_StereoEyeIndex * nrTilesX * nrTilesY * LIGHTCATEGORY_COUNT;
-#endif
+    offs += stereoEyeOffset * LIGHTCATEGORY_COUNT;
 
     // All our cull data are in the same list, but at render time envLights are separated so we need to shift the index
     // to make it work correctly
-    int shiftIndex[CATEGORY_LIST_SIZE];
-    ZERO_INITIALIZE_ARRAY(int, shiftIndex, CATEGORY_LIST_SIZE);
+#if CATEGORY_LIST_SIZE == 4
+    uint4 shiftIndex = 0;
+#else
+    uint shiftIndex[CATEGORY_LIST_SIZE];
+    ZERO_INITIALIZE_ARRAY(uint, shiftIndex, CATEGORY_LIST_SIZE);
+#endif
 
     shiftIndex[LIGHTCATEGORY_ENV] = _EnvLightIndexShift;
     shiftIndex[LIGHTCATEGORY_DECAL] = _DecalIndexShift;
 
-    for(int category=0; category<CATEGORY_LIST_SIZE; category++)
+    UNITY_UNROLLX(CATEGORY_LIST_SIZE)
+    for (uint category = 0; category < CATEGORY_LIST_SIZE; category++)
     {
-        int nrLightsFinal = ldsCategoryListCount[category];
-        int nrLightsFinalClamped = nrLightsFinal<SHADEROPTIONS_FPTLMAX_LIGHT_COUNT ? nrLightsFinal : SHADEROPTIONS_FPTLMAX_LIGHT_COUNT;
+        uint nrLightsFinal = ldsCategoryListCount[category];
+        uint nrLightsFinalClamped = min(nrLightsFinal, SHADEROPTIONS_FPTLMAX_LIGHT_COUNT);
 
-        const int nrDWords = ((nrLightsFinalClamped+1)+1)>>1;
-        for(int l=(int) t; l<(int) nrDWords; l += NR_THREADS)
+        uint nrDWords = ((nrLightsFinalClamped + 1) + 1) >> 1;
+        for (uint l = t; l < nrDWords; l += NR_THREADS)
         {
             // We remap the prunedList index to the original LightData / EnvLightData indices
-            uint uLow = l==0 ? nrLightsFinalClamped : prunedList[max(0,2 * l - 1 + localOffs)] - shiftIndex[category];
+            uint uLow = l == 0 ? nrLightsFinalClamped : prunedList[max(0, 2 * (int)l - 1 + (int)localOffs)] - shiftIndex[category];
             uint uHigh = prunedList[2 * l + 0 + localOffs] - shiftIndex[category];
 
-            g_vLightList[LIGHT_DWORD_PER_FPTL_TILE*offs + l] = (uLow&0xffff) | (uHigh<<16);
+            g_vLightList[LIGHT_DWORD_PER_FPTL_TILE * offs + l] = (uLow & 0xFFFFu) | (uHigh << 16);
         }
 
         localOffs += nrLightsFinal;
-        offs += (nrTilesX*nrTilesY);
+        offs += (nrTilesX * nrTilesY);
     }
 }
 
 
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
-int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate)
+int SphericalIntersectionTests(uint threadID, uint iNrCoarseLights, float2 screenCoordinate)
 {
-    if(threadID==0) lightOffsSph = 0;
+    if (threadID == 0) lightOffsSph = 0;
 
     // make a copy of coarseList in prunedList.
-    int l;
-    for(l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
-        prunedList[l]=coarseList[l];
+    uint l;
+    for (l = threadID; l < iNrCoarseLights; l += NR_THREADS)
+    {
+        prunedList[l] = coarseList[l];
+    }
 
 #if NR_THREADS > PLATFORM_LANE_COUNT
     GroupMemoryBarrierWithGroupSync();
 #endif
 
 #if USE_LEFT_HAND_CAMERA_SPACE
-    float3 V = GetViewPosFromLinDepth( screenCoordinate, 1.0);
+    float3 V = GetViewPosFromLinDepth(screenCoordinate, 1.0);
 #else
-    float3 V = GetViewPosFromLinDepth( screenCoordinate, -1.0);
-#endif
+    float3 V = GetViewPosFromLinDepth(screenCoordinate, -1.0);
+#endif // USE_LEFT_HAND_CAMERA_SPACE
 
     float onePixDiagDist = GetOnePixDiagWorldDistAtDepthOne();
-    float halfTileSizeAtZDistOne = 8*onePixDiagDist;        // scale by half a tile
+    float halfTileSizeAtZDistOne = 8 * onePixDiagDist;        // scale by half a tile
 
-    for(l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
+    for (l = threadID; l < iNrCoarseLights; l += NR_THREADS)
     {
-        const int lightBoundIndex = GenerateLightCullDataIndex(prunedList[l], g_iNrVisibLights, unity_StereoEyeIndex);
+        uint lightBoundIndex = GenerateLightCullDataIndex(prunedList[l], (uint)g_iNrVisibLights, unity_StereoEyeIndex);
         SFiniteLightBound lightData = g_data[lightBoundIndex];
 
-        if( DoesSphereOverlapTile(V, halfTileSizeAtZDistOne, lightData.center.xyz, lightData.radius, g_isOrthographic!=0) )
+        if (DoesSphereOverlapTile(V, halfTileSizeAtZDistOne, lightData.center.xyz, lightData.radius, g_isOrthographic != 0))
         {
-            unsigned int uIndex;
-            InterlockedAdd(lightOffsSph, 1, uIndex);
-            coarseList[uIndex]=prunedList[l];       // read from the original copy of coarseList which is backed up in prunedList
+            uint uIndex;
+            InterlockedAdd(lightOffsSph, 1u, uIndex);
+            coarseList[uIndex] = prunedList[l];       // read from the original copy of coarseList which is backed up in prunedList
         }
     }
 
@@ -430,111 +467,114 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 
     return lightOffsSph;
 }
-#endif
-
+#endif // PERFORM_SPHERICAL_INTERSECTION_TESTS
 
 #ifdef FINE_PRUNING_ENABLED
-int GetCoarseLightIndex(int l, int iNrCoarseLights)
+uint GetCoarseLightIndex(uint l, uint iNrCoarseLights)
 {
-    return l < iNrCoarseLights ? GenerateLightCullDataIndex(coarseList[l], g_iNrVisibLights, unity_StereoEyeIndex) : 0;
+    return l < iNrCoarseLights ? GenerateLightCullDataIndex(coarseList[l], (uint)g_iNrVisibLights, unity_StereoEyeIndex) : 0;
 }
 
-groupshared uint s_lightVolumesCache[LIGHT_LIST_MAX_COARSE_ENTRIES];
+// Use a split cache based on platform
+#define USE_SPLIT_LIGHT_VOLUME_CACHE        (defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2))
 
-void StoreLightVolumeCache(int lightIndex, int coarseIndex, int volumeType)
+#if USE_SPLIT_LIGHT_VOLUME_CACHE
+groupshared uint2 s_lightVolumesCache[LIGHT_LIST_MAX_COARSE_ENTRIES];
+#else
+groupshared uint s_lightVolumesCache[LIGHT_LIST_MAX_COARSE_ENTRIES];
+#endif // USE_SPLIT_LIGHT_VOLUME_CACHE
+
+void StoreLightVolumeCache(uint lightIndex, uint coarseIndex, uint volumeType)
 {
+#if USE_SPLIT_LIGHT_VOLUME_CACHE
+    s_lightVolumesCache[lightIndex] = uint2(coarseIndex, volumeType);
+#else
     // 3 bits for the volume type, in case we have a corrupted one we can early out of the switch statement.
     // 29 bits for a coarse light index.
-    s_lightVolumesCache[lightIndex] = (uint)(volumeType & 0x7) | (uint)(coarseIndex << 3);
+    s_lightVolumesCache[lightIndex] = (uint)(volumeType & 0x7u) | (uint)(coarseIndex << 3);
+#endif // USE_SPLIT_LIGHT_VOLUME_CACHE
 }
 
-void LoadLightVolumeCache(int lightIndex, out int coarseIndex, out int volumeType)
+void LoadLightVolumeCache(uint lightIndex, out uint coarseIndex, out uint volumeType)
 {
+#if USE_SPLIT_LIGHT_VOLUME_CACHE
+    uint2 data = s_lightVolumesCache[lightIndex];
+    coarseIndex = data.x;
+    volumeType = data.y;
+#else
     uint data = s_lightVolumesCache[lightIndex];
-    coarseIndex = (int)(data >> 3);
-    volumeType = (int)(data & 0x7);
+    coarseIndex = (uint)(data >> 3);
+    volumeType = (uint)(data & 0x7u);
+#endif // USE_SPLIT_LIGHT_VOLUME_CACHE
 }
 
 // initializes ldsNrLightsFinal with the number of accepted lights.
 // all accepted entries delivered in prunedList[].
 #if PIXEL_PER_THREAD == 4
-void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 vLinDepths) // keep float4 vectorization when possible, as shader compiler may generate bad code for array of floats.
+void FinePruneLights(uint threadID, uint iNrCoarseLights, uint2 viTilLL, float4 vLinDepths) // keep float4 vectorization when possible, as shader compiler may generate bad code for array of floats.
 #else
-void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vLinDepths[PIXEL_PER_THREAD])
+void FinePruneLights(uint threadID, uint iNrCoarseLights, uint2 viTilLL, float vLinDepths[PIXEL_PER_THREAD])
 #endif
 {
     uint t = threadID;
-    uint iWidth = g_viDimensions.x;
-    uint iHeight = g_viDimensions.y;
     uint uLightsFlags[LIGHT_FPTL_VISIBILITY_DWORD_COUNTS];
     {
-        [unroll(LIGHT_FPTL_VISIBILITY_DWORD_COUNTS)]
+        UNITY_UNROLLX(LIGHT_FPTL_VISIBILITY_DWORD_COUNTS)
         for (uint ii = 0; ii < LIGHT_FPTL_VISIBILITY_DWORD_COUNTS; ++ii)
-            uLightsFlags[ii] = 0u;
-    }
-
-    int l=0;
-    // need this outer loop even on xb1 and ps4 since direct lights and
-    // reflection lights are kept in separate regions.
-
-    {
-        #define MAX_FINE_PRUNE_LOOP_CNT (((SHADEROPTIONS_FPTLMAX_LIGHT_COUNT+1) + NR_THREADS - 1)/NR_THREADS)
-        [unroll(MAX_FINE_PRUNE_LOOP_CNT)]
-        for (uint it = 0; it < MAX_FINE_PRUNE_LOOP_CNT; ++it)
         {
-            uint i = t + it * NR_THREADS;
-            if (i < (uint)iNrCoarseLights)
-            {
-                int idxCoarse = GetCoarseLightIndex((int)i, iNrCoarseLights);
-                int uLightVolume = (int)_LightVolumeData[idxCoarse].lightVolume;
-                StoreLightVolumeCache(i, idxCoarse, uLightVolume);
-            }
+            uLightsFlags[ii] = 0u;
         }
     }
 
-#if NR_THREADS > PLATFORM_LANE_COUNT
+    {
+        for (uint i = t; i < iNrCoarseLights; i += NR_THREADS)
+        {
+            uint idxCoarse = GetCoarseLightIndex(i, iNrCoarseLights);
+            uint uLightVolume = (uint)_LightVolumeData[idxCoarse].lightVolume;
+            StoreLightVolumeCache(i, idxCoarse, uLightVolume);
+        }
+    }
+
+#if NR_THREADS > PLATFORM_LANE_COUNT || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2)
     GroupMemoryBarrierWithGroupSync();
 #endif
 
     //When using LDS to cache the volume data, this produces the best most optimal code.
     //Doing a manual loop like the one below adds an extra cost of .1 ms on ps4 if we use LDS.
-    for (; l < iNrCoarseLights; ++l)
+    for (uint l = 0; l < iNrCoarseLights; ++l)
     {
-        int idxCoarse;
-        int uLightVolume;
+        uint idxCoarse;
+        uint uLightVolume;
         LoadLightVolumeCache(l, idxCoarse, uLightVolume);
 
-        // WARNING: we use here a uint for lightValid because there is a bug with the unity vulkan compiler.
-        // If this is a bool, the second dword of uLightsFlags never gets written to, which causes light tile artifacts
-        // on tiles that have more than 32 lights.
-        uint lightValid = 0;
+        bool lightValid = false;
         if (uLightVolume == LIGHTVOLUMETYPE_CONE)
         {
             LightVolumeData lightData = _LightVolumeData[idxCoarse];
-            const bool bIsSpotDisc = true; // (lightData.flags&IS_CIRCULAR_SPOT_SHAPE) != 0;
-            for(int i=0; i<PIXEL_PER_THREAD; i++)
+            bool bIsSpotDisc = true; // (lightData.flags&IS_CIRCULAR_SPOT_SHAPE) != 0;
+            for (uint i = 0; i < PIXEL_PER_THREAD; i++)
             {
-                int idx = t + i*NR_THREADS;
+                uint idx = t + i * NR_THREADS;
 
-                uint2 uPixLoc = min(uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1));
+                uint2 uPixLoc = min(uint2(viTilLL.x + (idx & 0xFu), viTilLL.y + (idx >> 4)), viDimensionsMinusOne);
                 float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i]);
 
                 // check pixel
                 float3 fromLight = vVPos-lightData.lightPos.xyz;
                 float distSq = dot(fromLight,fromLight);
-                const float fSclProj = dot(fromLight, lightData.lightAxisZ.xyz);        // spotDir = lightData.lightAxisZ.xyz
+                float fSclProj = dot(fromLight, lightData.lightAxisZ.xyz);        // spotDir = lightData.lightAxisZ.xyz
 
                 float2 V = abs( float2( dot(fromLight, lightData.lightAxisX.xyz), dot(fromLight, lightData.lightAxisY.xyz) ) );
 
                 float fDist2D = bIsSpotDisc ? length(V) : max(V.x,V.y);
-                bool validInPixel = all( float2(lightData.radiusSq, fSclProj) > float2(distSq, fDist2D*lightData.cotan) );
+                bool validInPixel = all( float2(lightData.radiusSq, fSclProj) > float2(distSq, fDist2D * lightData.cotan) );
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
                 //a wave is on the same tile, and the loop is uniform for the wave.
                 // thus we early out if at least 1 thread in the wave passed this light, saving some ALU.
                 lightValid = WaveActiveAnyTrue(validInPixel);
 #else
                 lightValid = validInPixel;
-#endif
+#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
                 if (lightValid)
                     break;
             }
@@ -542,11 +582,11 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
         else if (uLightVolume == LIGHTVOLUMETYPE_SPHERE)
         {
             LightVolumeData lightData = _LightVolumeData[idxCoarse];
-            for(int i=0; i<PIXEL_PER_THREAD; i++)
+            for (uint i = 0; i < PIXEL_PER_THREAD; i++)
             {
-                int idx = t + i*NR_THREADS;
+                uint idx = t + i * NR_THREADS;
 
-                uint2 uPixLoc = min(uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1));
+                uint2 uPixLoc = min(uint2(viTilLL.x + (idx & 0xFu), viTilLL.y + (idx >> 4)), viDimensionsMinusOne);
                 float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i]);
 
                 // check pixel
@@ -559,7 +599,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
                 lightValid = WaveActiveAnyTrue(validInPixel);
 #else
                 lightValid = validInPixel;
-#endif
+#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
                 if (lightValid)
                     break;
            }
@@ -567,11 +607,11 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
         else if (uLightVolume ==  LIGHTVOLUMETYPE_BOX)
         {
             LightVolumeData lightData = _LightVolumeData[idxCoarse];
-            for(int i=0; i<PIXEL_PER_THREAD; i++)
+            for (uint i = 0; i < PIXEL_PER_THREAD; i++)
             {
-                int idx = t + i*NR_THREADS;
+                uint idx = t + i * NR_THREADS;
 
-                uint2 uPixLoc = min(uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1));
+                uint2 uPixLoc = min(uint2(viTilLL.x + (idx & 0xFu), viTilLL.y + (idx >> 4)), viDimensionsMinusOne);
                 float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i]);
 
                 // check pixel
@@ -584,7 +624,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
                 lightValid = WaveActiveAnyTrue(validInPixel);
 #else
                 lightValid = validInPixel;
-#endif
+#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
                 if (lightValid)
                     break;
             }
@@ -594,22 +634,24 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
 
         // Imlicit division by 32, to pick the correct array index.
         // E.g 37th light devided by 32 = 1.15 (rounded to 1), so we pick uLightsFlags[1] (which represents the lights from 32 to 64).
-        uLightsFlags[l >> 5] |= lightValid << (l&31);
+        uLightsFlags[l >> 5] |= lightValid ? 1u << (l & 31u) : 0u;
     }
 
     // Merge results from all threads into shared memory.
     // `InterlockedOr` performs a bitwise OR between `ldsDoesLightIntersect` and `uLightsFlags`.
     // This allows multiple threads to update `ldsDoesLightIntersect` without collision.
     {
-        [unroll(LIGHT_FPTL_VISIBILITY_DWORD_COUNTS)]
+        UNITY_UNROLLX(LIGHT_FPTL_VISIBILITY_DWORD_COUNTS)
         for (uint ii = 0; ii < LIGHT_FPTL_VISIBILITY_DWORD_COUNTS; ++ii)
+        {
             InterlockedOr(ldsDoesLightIntersect[ii], uLightsFlags[ii]);
+        }
     }
 
     // For some platforms we always need GroupMemoryBarrierWithGroupSync() otherwise results are incorrect.
-	// Reason is under investigation, related discussions:
-	// https://unity.slack.com/archives/C02C8FWPNHE/p1704321597295329
-	// https://unity.slack.com/archives/G3JUQKYV8/p1705081617447289
+    // Reason is under investigation, related discussions:
+    // https://unity.slack.com/archives/C02C8FWPNHE/p1704321597295329
+    // https://unity.slack.com/archives/G3JUQKYV8/p1705081617447289
 #if NR_THREADS > PLATFORM_LANE_COUNT || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2)
     GroupMemoryBarrierWithGroupSync();
 #endif
@@ -619,56 +661,29 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
         if (t == 0)
             ldsNrLightsFinal = 0;
 
-        // Split the job into multiple passes to ensure all lights are processed even if NR_THREADS is smaller than SHADEROPTIONS_FPTLMAX_LIGHT_COUNT.
-        // A thread will possibly processes many lights.
-        #define MAX_LIGHT_WRITE_LOOP_CNT (((SHADEROPTIONS_FPTLMAX_LIGHT_COUNT+1) + NR_THREADS - 1)/NR_THREADS)
-        [unroll(MAX_LIGHT_WRITE_LOOP_CNT)]
-        for (uint it = 0; it < MAX_LIGHT_WRITE_LOOP_CNT; ++it)
+        // Retrieve the light index for the current thread and current iteration.
+        for (uint lightIndex = t; lightIndex < iNrCoarseLights; lightIndex += NR_THREADS)
         {
-            // Retrieve the light index for the current thread and current iteration.
-            uint lightIndex = t + it * NR_THREADS;
-
             // Check if the mask of the current light is valid (intersection with the tile).
             uint lightsMask = ldsDoesLightIntersect[lightIndex >> 5];
 
             // Select only the current light bit i in the block of 32.
-            uint localMask = (1u << (lightIndex & 31));
+            uint localMask = (1u << (lightIndex & 31u));
 
             // If the thread index is in the light list and the mask is valid.
-            if (lightIndex < (uint)iNrCoarseLights && (localMask & lightsMask) != 0u)
+            if ((localMask & lightsMask) != 0u)
             {
-                // ldsDoesLightIntersect[k] contains the valid lights for each block of 32 lights.
-                // We sum the number of enabled bits (countbits()) in all blocks before the block i.
-                // backOffset represents the number of valid lights before the block where i is located.
-                uint backOffset = 0;
-                [unroll(LIGHT_FPTL_VISIBILITY_DWORD_COUNTS)]
-                for (uint k = 0u; k < LIGHT_FPTL_VISIBILITY_DWORD_COUNTS; ++k)
-                    if (k < (lightIndex >> 5))
-                        backOffset += countbits(ldsDoesLightIntersect[k]);
+                // InterlockedAdd ensures atomic and ordered writing to prunedList, preventing threads from overwriting each other's values.
+                // Increment ldsNrLightsFinal (represents the total number of lights for the tile).
+                uint finalPrunedLightIndex;
+                InterlockedAdd(ldsNrLightsFinal, 1u, finalPrunedLightIndex);
 
-                // Count the number of valid lights (set bits) in the current 32-bit block before the current lightIndex.
-                uint lightsInActualBlock = countbits((localMask - 1u) & lightsMask);
-
-                // Determine the index of the current light by calculating how many lights were stored before it.
-                // This ensures that lights are packed correctly without gaps.
-                uint uIndex = backOffset + lightsInActualBlock;
-
-                // Ensure the computed index does not exceed the max allowed light entries.
-                if (uIndex < LIGHT_LIST_MAX_COARSE_ENTRIES)
-                {
-                    // InterlockedAdd ensures atomic and ordered writing to prunedList, preventing threads from overwriting each other's values.
-                    // Increment ldsNrLightsFinal (represents the total number of lights for the tile).
-                    unsigned int uInc = 1;
-                    unsigned int finalPrunedLightIndex;
-                    InterlockedAdd(ldsNrLightsFinal, uInc, finalPrunedLightIndex);
-
-                    // Add the light to the prune list. If the index varies due to desynchronization (e.g without the previous InterlockedAdd),
-                    // it can causes flickering (mostly seen on Metal and Apple GPUs).
-                    if (finalPrunedLightIndex < LIGHT_LIST_MAX_COARSE_ENTRIES)
-                        prunedList[finalPrunedLightIndex] = coarseList[lightIndex];
-                }
+                // Add the light to the prune list. If the index varies due to desynchronization (e.g without the previous InterlockedAdd),
+                // it can causes flickering (mostly seen on Metal and Apple GPUs).
+                if (finalPrunedLightIndex < LIGHT_LIST_MAX_COARSE_ENTRIES)
+                    prunedList[finalPrunedLightIndex] = coarseList[lightIndex];
             }
         }
     }
 }
-#endif
+#endif // FINE_PRUNING_ENABLED

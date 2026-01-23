@@ -24,6 +24,9 @@ public class CameraCaptureBridgeScript : MonoBehaviour
 
     void Capture(RenderTargetIdentifier rtId, CommandBuffer cmd)
     {
-        cmd.Blit(rtId, m_RenderTexture);
+        if (m_RenderTexture != null)
+        {
+            cmd.Blit(rtId, m_RenderTexture);
+        }
     }
 }

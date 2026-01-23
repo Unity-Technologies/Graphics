@@ -61,9 +61,13 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (rendererFeature.isActive)
                 {
-                    result |= rendererFeature.RequireRenderingLayers(isDeferred, accurateGbufferNormals, out Event rendererEvent, out MaskSize rendererMaskSize);
-                    combinedEvent = Combine(combinedEvent, rendererEvent);
-                    combinedMaskSize = Combine(combinedMaskSize, rendererMaskSize);
+                    bool required = rendererFeature.RequireRenderingLayers(isDeferred, accurateGbufferNormals, out Event rendererEvent, out MaskSize rendererMaskSize);
+                    result |= required;
+                    if (required)
+                    {
+                        combinedEvent = Combine(combinedEvent, rendererEvent);
+                        combinedMaskSize = Combine(combinedMaskSize, rendererMaskSize);
+                    }
                 }
             }
 

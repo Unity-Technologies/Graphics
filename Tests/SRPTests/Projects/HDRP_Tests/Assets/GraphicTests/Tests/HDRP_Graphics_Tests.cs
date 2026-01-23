@@ -54,6 +54,8 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
+            // Standard resolution for backbuffer capture is 1080p
+            Screen.SetResolution(1920, 1080, true);
             SceneManager.LoadScene("GraphicsTestTransitionScene", LoadSceneMode.Single);
         }
 

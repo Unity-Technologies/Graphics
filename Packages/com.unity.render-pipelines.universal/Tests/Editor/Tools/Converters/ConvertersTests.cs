@@ -112,7 +112,7 @@ namespace UnityEditor.Rendering.Universal.Tools
                 ConverterFilter.Exclusive,
                  new List<Type>
                  {
-                    typeof(BuiltInToURP2DMaterialUpgrader),
+                    typeof(BuiltInToURP2DReadonlyMaterialConverter),
                  }
             ).SetName("BuiltInToURP2D - When Using Exclusive filter with no converters. The filter returns everything");
 

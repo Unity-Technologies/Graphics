@@ -2,7 +2,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/Input Key Press Binder")]
+    [AddComponentMenu("Visual Effects/Property Binders/Input Key Press Binder")]
     [VFXBinder("Input/Key")]
     class VFXInputKeyBinder : VFXBinderBase
     {

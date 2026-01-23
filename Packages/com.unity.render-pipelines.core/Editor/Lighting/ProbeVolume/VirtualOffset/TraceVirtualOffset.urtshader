@@ -1,4 +1,4 @@
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal webgpu switch switch2
+#pragma only_renderers d3d11 xboxone xboxseries vulkan metal webgpu
 #define UNIFIED_RT_GROUP_SIZE_X 64
 #define UNIFIED_RT_GROUP_SIZE_Y 1
 

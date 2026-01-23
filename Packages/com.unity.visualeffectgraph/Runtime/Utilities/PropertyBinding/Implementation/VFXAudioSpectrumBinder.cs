@@ -4,7 +4,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/Audio Spectrum Binder")]
+	[AddComponentMenu("Visual Effects/Property Binders/Audio Spectrum Binder")]
     [VFXBinder("Audio/Audio Spectrum to AttributeMap")]
     class VFXAudioSpectrumBinder : VFXBinderBase
     {
