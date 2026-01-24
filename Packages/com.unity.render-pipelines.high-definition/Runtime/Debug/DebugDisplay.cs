@@ -2125,11 +2125,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void RegisterDebug()
         {
-#if UNITY_EDITOR
-            if (UnityEditor.BuildPipeline.isBuildingPlayer)
-                return;
-#endif
-            
             RegisterMaterialDebug();
             RegisterLightingDebug();
             RegisterRenderingDebug();
@@ -2149,7 +2144,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (items == null || items.Length == 0)
                 return;
-            
+
             var panel = DebugManager.instance.GetPanel(panelName);
             if (panel != null)
                 panel.children.Remove(items);
