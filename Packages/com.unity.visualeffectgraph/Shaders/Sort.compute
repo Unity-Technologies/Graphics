@@ -41,6 +41,13 @@
 #define USE_ALTERNATE_BITONIC_NETWORK 0
 #endif
 
+// Some platforms require the use of a dynamic branch when accessing buffers that could be out of bounds
+#if defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2)
+#define USE_DYNAMIC_BRANCH      UNITY_BRANCH
+#else
+#define USE_DYNAMIC_BRANCH
+#endif
+
 #define ELEMENTS_PER_THREAD (2 * ITERATIONS_COUNT)
 #define BITONIC_THREADS_COUNT ELEMENTS_COUNT / ELEMENTS_PER_THREAD
 #define MERGE_THREADS_COUNT ELEMENTS_COUNT
@@ -112,6 +119,8 @@ void LoadFromMemory(uint3 groupId, uint ldsIndex)
     uint memIndex = DST_INDEX(groupId, ldsIndex);
 
     KVP kvp = { REJECTED_VALUE, 0xFFFFFFFF };
+
+    USE_DYNAMIC_BRANCH
     if (instanceDstIndex < GetElementCount(groupId.z))
         kvp = inputSequence[totalInstanceCount + memIndex];
 
@@ -245,6 +254,7 @@ void MERGE_PASS(uint3 groupId           : SV_GroupID,
     const int arrayStart = arraySize * (id / arraySize);
 
     // If the current array considered is less than one half filled (due to element count), we can copy it directly as it is already sorted
+    USE_DYNAMIC_BRANCH
     if (GetElementCount(groupId.z) - (uint)arrayStart <= subArraySize)
     {
 #if FINAL_PASS
