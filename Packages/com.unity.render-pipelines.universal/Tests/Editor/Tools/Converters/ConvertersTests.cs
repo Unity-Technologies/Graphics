@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
+using UnityEngine.TestTools;
+using UnityEngine;
 
 namespace UnityEditor.Rendering.Universal.Tools
 {
@@ -47,6 +49,19 @@ namespace UnityEditor.Rendering.Universal.Tools
         {
             bool ok = Converters.RunInBatchMode(new List<Type>() { typeof(NotAConverterType) });
             Assert.IsFalse(ok);
+        }
+
+        [Test]
+        public void RunInBatchMode_LogsUsageWarning()
+        {
+            LogAssert.Expect(
+                LogType.Warning,
+                "Using this API can lead to incomplete or unpredictable conversion outcomes. " +
+                "For reliable results, please perform the conversion via the dedicated window: " +
+                "Window > Rendering > Render Pipeline Converter."
+            );
+
+            bool _ = Converters.RunInBatchMode(new List<Type>() {});
         }
 
 #pragma warning disable CS0618 // Type or member is obsolete
