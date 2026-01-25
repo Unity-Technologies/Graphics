@@ -56,7 +56,7 @@ namespace UnityEngine.VFX
         [Serializable]
         public struct ClipEvent
         {
-            public static Color defaultEditorColor = new Color32(123, 158, 5, 255);
+            public static readonly Color defaultEditorColor = new Color32(123, 158, 5, 255);
             public Color editorColor;
             public VisualEffectPlayableSerializedEventNoColor enter;
             public VisualEffectPlayableSerializedEventNoColor exit;
