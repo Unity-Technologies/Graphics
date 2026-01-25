@@ -12,7 +12,7 @@ namespace Unity.UI.Shaders.Sample
     /// <summary>
     /// A simple Meter.
     /// </summary>
-    [AddComponentMenu("UI/ShaderGraph Samples/Meter")]
+    [AddComponentMenu("UI (Canvas)/ShaderGraph Samples/Meter")]
     [RequireComponent(typeof(Graphic))]
     [DisallowMultipleComponent]
     public class Meter : UIBehaviour, IMaterialModifier
@@ -108,7 +108,7 @@ namespace Unity.UI.Shaders.Sample
         }
 
 #if UNITY_EDITOR
-        [MenuItem("GameObject/UI/ShaderGraph Samples/Meter", false, 30)]
+        [MenuItem("GameObject/UI (Canvas)/ShaderGraph Samples/Meter", false, 30)]
         static void CreateToggleGameObject(MenuCommand command)
         {
             GameObject go = ObjectFactory.CreateGameObject("Meter", new System.Type[] { typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(RectTransformSize), typeof(Meter) });
