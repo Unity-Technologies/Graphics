@@ -398,7 +398,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 ulong lightmapWorkSteps = CalculateWorkStepsForLightmapRequests(in lightmapRequestData, lightmapDescriptors, lightmapBakeSettings);
                 progressState.SetTotalWorkSteps(probeWorkSteps + lightmapWorkSteps);
 
-                if (!ExecuteProbeRequests(in bakeInput, in probeRequestData, deviceContext, useLegacyBakingBehavior, world, bakeInput.lightingSettings.maxBounces, progressState, samplingResources))
+                if (!ExecuteProbeRequests(in bakeInput, in probeRequestData, deviceContext, useLegacyBakingBehavior, world, progressState, samplingResources))
                     return false;
 
                 if (lightmapRequestData.requests.Length <= 0)
@@ -419,11 +419,16 @@ namespace UnityEditor.PathTracing.LightBakerBridge
 
         internal static ulong CalculateWorkStepsForProbeRequests(in BakeInput bakeInput, in ProbeRequestData probeRequestData)
         {
-            (uint directSampleCount, uint effectiveIndirectSampleCount) = GetProbeSampleCounts(bakeInput.lightingSettings.probeSampleCounts);
             ulong calculatedWorkSteps = 0;
             foreach (ProbeRequest probeRequest in probeRequestData.requests)
-                calculatedWorkSteps += CalculateProbeWorkSteps(probeRequest.count, probeRequest.outputTypeMask, directSampleCount, effectiveIndirectSampleCount, bakeInput.lightingSettings.mixedLightingMode != MixedLightingMode.IndirectOnly,
-                    bakeInput.lightingSettings.maxBounces);
+            {
+                (uint directSampleCount, uint effectiveIndirectSampleCount) = GetProbeSampleCounts(probeRequest.sampleCount);
+
+                calculatedWorkSteps += CalculateProbeWorkSteps(probeRequest.count, probeRequest.outputTypeMask,
+                    directSampleCount, effectiveIndirectSampleCount,
+                    bakeInput.lightingSettings.mixedLightingMode != MixedLightingMode.IndirectOnly,
+                    probeRequest.maxBounces);
+            }
 
             return calculatedWorkSteps;
         }
@@ -1443,7 +1448,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
         }
 
         internal static bool ExecuteProbeRequests(in BakeInput bakeInput, in ProbeRequestData probeRequestData, UnityComputeDeviceContext deviceContext,
-            bool useLegacyBakingBehavior, UnityComputeWorld world, uint bounceCount, BakeProgressState progressState,
+            bool useLegacyBakingBehavior, UnityComputeWorld world, BakeProgressState progressState,
             UnityEngine.Rendering.Sampling.SamplingResources samplingResources)
         {
             if (probeRequestData.requests.Length == 0)
@@ -1470,8 +1475,6 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             BufferSlice<int> perProbeLightIndicesBufferSlice = perProbeLightIndicesBuffer.Slice<int>();
             deviceContext.WriteBuffer(perProbeLightIndicesBufferSlice, inputPerProbeLightIndices);
 
-            (uint directSampleCount, uint effectiveIndirectSampleCount) = GetProbeSampleCounts(bakeInput.lightingSettings.probeSampleCounts);
-
             ProbeRequest[] probeRequests = probeRequestData.requests;
             for (int probeRequestIndex = 0; probeRequestIndex < probeRequests.Length; probeRequestIndex++)
             {
@@ -1481,6 +1484,9 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 int requestLength = (int)request.count;
                 ulong floatBufferSize = sizeof(float) * request.count;
                 float pushoff = request.pushoff;
+                int bounceCount = (int)request.maxBounces;
+                (uint directSampleCount, uint effectiveIndirectSampleCount) = GetProbeSampleCounts(request.sampleCount);
+
                 probeIntegrator.Prepare(deviceContext, world, positionsBuffer.Slice<Vector3>(), pushoff, (int)bounceCount);
 
                 List<EventID> eventsToWaitFor = new();

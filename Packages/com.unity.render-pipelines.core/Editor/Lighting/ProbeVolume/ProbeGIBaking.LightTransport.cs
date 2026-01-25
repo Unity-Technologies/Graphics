@@ -219,7 +219,6 @@ namespace UnityEngine.Rendering
             public int directSampleCount;
             public int indirectSampleCount;
             public int validitySampleCount;
-            public int occlusionSampleCount;
             public int maxBounces;
 
             public int skyOcclusionBakingSamples;
@@ -269,7 +268,6 @@ namespace UnityEngine.Rendering
                 this.directSampleCount = directSampleCount * sampleCountMultiplier;
                 this.indirectSampleCount = indirectSampleCount * sampleCountMultiplier;
                 this.validitySampleCount = indirectSampleCount * sampleCountMultiplier;
-                this.occlusionSampleCount = directSampleCount * sampleCountMultiplier;
                 this.maxBounces = maxBounces;
 
                 this.indirectScale = lightingSettings.indirectScale;

@@ -615,6 +615,8 @@ namespace UnityEditor.PathTracing.LightBakerBridge
         public ProbeRequestOutputType outputTypeMask;
         public UInt64 positionOffset;
         public UInt64 count;
+        public SampleCount sampleCount;
+        public UInt32 maxBounces;
         public float pushoff;
         public string outputFolderPath;
 
@@ -628,6 +630,8 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             visitor.TransferBlittable(ref outputTypeMask);
             visitor.TransferBlittable(ref positionOffset);
             visitor.TransferBlittable(ref count);
+            visitor.TransferBlittable(ref sampleCount);
+            visitor.TransferBlittable(ref maxBounces);
             visitor.TransferBlittable(ref pushoff);
             visitor.TransferString(ref outputFolderPath);
             visitor.TransferBlittable(ref integrationRadiusOffset);
@@ -923,7 +927,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
     {
         // Should match BakeInputSerialization::kCurrentFileVersion in BakeInputSerialization.h.
         // If these are out of sync, the implementation in this file probably needs to be updated.
-        const UInt64 CurrentFileVersion = 202509021;
+        const UInt64 CurrentFileVersion = 202601191;
 
         public static bool Deserialize(string path, out BakeInput bakeInput)
         {

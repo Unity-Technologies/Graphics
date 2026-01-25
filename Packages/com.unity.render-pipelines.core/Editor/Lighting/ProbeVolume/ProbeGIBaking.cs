@@ -1067,9 +1067,9 @@ namespace UnityEngine.Rendering
             if (s_BakeData.sortedPositions.Length == 0)
                 return;
 
-            var lsa = ProbeVolumeLightingTab.GetLightingSettings();
+            var lightingSettings = ProbeVolumeLightingTab.GetLightingSettings();
             ProbeBakeRequestOutput outputTypes = ProbeBakeRequestOutput.All;
-            if (lsa.mixedBakeMode == MixedLightingMode.IndirectOnly)
+            if (lightingSettings.mixedBakeMode == MixedLightingMode.IndirectOnly)
                 outputTypes &= ~ProbeBakeRequestOutput.Occlusion;
 
             var extraPos = s_BakeData.sortedPositions.ToArray();
@@ -1087,9 +1087,21 @@ namespace UnityEngine.Rendering
 
             bakeInput.SetProbePositions(newPositions);
             bakeInput.SetOcclusionLightIndices(newOcclusionIndices);
+
+            int sampleCountMultiplier = (int)lightingSettings.lightProbeSampleCountMultiplier;
+#if UNIFIED_BAKER
+            int indirectSampleCount = lightingSettings.indirectSampleCount;
+#else
+            int indirectSampleCount = Math.Max(lightingSettings.indirectSampleCount, lightingSettings.environmentSampleCount);
+#endif
+
             bakeInput.AddProbeRequest(new ProbeBakeRequest
             {
                 outputTypes = outputTypes,
+                directSampleCount = (uint)(lightingSettings.directSampleCount * sampleCountMultiplier),
+                indirectSampleCount = (uint)(indirectSampleCount * sampleCountMultiplier),
+                environmentSampleCount = (uint)(lightingSettings.environmentSampleCount * sampleCountMultiplier),
+                maxBounces = (uint)lightingSettings.maxBounces,
                 positionOffset = (ulong)prevProbeCount,
                 positionLength = (ulong)extraPos.Length,
                 bakeOutputFolderPath = APVLightBakerOutputFolder,
@@ -1097,7 +1109,7 @@ namespace UnityEngine.Rendering
                 ignoreDirectEnvironment = m_BakingSet != null ? m_BakingSet.bakedSkyOcclusion : false,
                 ignoreIndirectEnvironment = m_BakingSet != null ? m_BakingSet.bakedSkyOcclusion : false,
                 pushoff = 0.0001f,
-                indirectScale = lsa.indirectScale,
+                indirectScale = lightingSettings.indirectScale,
                 dering = true,
             });
 
