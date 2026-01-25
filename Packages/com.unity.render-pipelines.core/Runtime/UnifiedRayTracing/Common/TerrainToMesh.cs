@@ -99,6 +99,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             mesh.indexFormat = IndexFormat.UInt32;
             mesh.SetVertices(m_Job.positions);
             mesh.SetUVs(0, m_Job.uvs);
+            mesh.SetUVs(1, m_Job.uvs);
             mesh.SetNormals(m_Job.normals);
             mesh.SetIndices(TriangleIndicesWithoutHoles().ToArray(), MeshTopology.Triangles, 0);
 
