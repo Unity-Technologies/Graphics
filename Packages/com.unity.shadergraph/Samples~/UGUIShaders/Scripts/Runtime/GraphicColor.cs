@@ -7,7 +7,7 @@ namespace Unity.UI.Shaders.Sample
     /// <summary>
     /// 
     /// </summary>
-    [AddComponentMenu("UI/ShaderGraph Samples/Graphic Color")]
+    [AddComponentMenu("UI (Canvas)/ShaderGraph Samples/Graphic Color")]
     [RequireComponent(typeof(Graphic))]
     public class GraphicColor : UIBehaviour
     {
