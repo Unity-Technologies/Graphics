@@ -17,7 +17,7 @@ namespace Unity.UI.Shaders.Sample
     /// <see cref="Toggle.isOn"/> changes.
     /// <para>Implemented as a variant of <see cref="Toggle"/> to make it work nicely with <see cref="ToggleGroup"/>.</para>
     /// </summary>
-    [AddComponentMenu("UI/ShaderGraph Samples/Toggle")]
+    [AddComponentMenu("UI (Canvas)/ShaderGraph Samples/Toggle")]
     [RequireComponent(typeof(Graphic))]
     public class CustomToggle : Toggle, IMaterialModifier
     {
@@ -129,7 +129,7 @@ namespace Unity.UI.Shaders.Sample
         }
 
 #if UNITY_EDITOR
-        [MenuItem("GameObject/UI/ShaderGraph Samples/Toggle", false, 30)]
+        [MenuItem("GameObject/UI (Canvas)/ShaderGraph Samples/Toggle", false, 30)]
         static void CreateToggleGameObject(MenuCommand command)
         {
             GameObject go = ObjectFactory.CreateGameObject("SG Toggle", new Type[] { typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(CustomToggle) });

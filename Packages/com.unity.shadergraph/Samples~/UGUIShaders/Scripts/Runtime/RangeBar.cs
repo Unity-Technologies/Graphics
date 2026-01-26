@@ -13,7 +13,7 @@ namespace Unity.UI.Shaders.Sample
     /// A simple ProgressBar.
     /// <para>Becomes interactable when associated with a <see cref="CustomSlider"/></para>
     /// </summary>
-    [AddComponentMenu("UI/ShaderGraph Samples/Range Bar")]
+    [AddComponentMenu("UI (Canvas)/ShaderGraph Samples/Range Bar")]
     [RequireComponent(typeof(Graphic))]
     [DisallowMultipleComponent]
     public class RangeBar : UIBehaviour, IMaterialModifier
@@ -137,7 +137,7 @@ namespace Unity.UI.Shaders.Sample
         }
 
 #if UNITY_EDITOR
-        [MenuItem("GameObject/UI/ShaderGraph Samples/Range Bar", false, 30)]
+        [MenuItem("GameObject/UI (Canvas)/ShaderGraph Samples/Range Bar", false, 30)]
         static void CreateToggleGameObject(MenuCommand command)
         {
             GameObject go = ObjectFactory.CreateGameObject("Range Bar", new System.Type[] { typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(RectTransformSize), typeof(RangeBar) });
