@@ -27,9 +27,11 @@ namespace UnityEditor.Experimental.VFX.Utility
         {
             GUILayout.Label("Texture baking", EditorStyles.boldLabel);
 
+            GUILayout.BeginHorizontal();
             m_Texture = (Texture2D)EditorGUILayout.ObjectField("Texture", m_Texture, typeof(Texture2D), false);
+            GUILayout.EndHorizontal();
 
-            m_DecimationThresholdMode = (DecimationThresholdMode)EditorGUILayout.EnumPopup("Decimation Threshold", m_DecimationThresholdMode);
+            m_DecimationThresholdMode = (DecimationThresholdMode)EditorGUILayout.EnumPopup("Decimation Threshold", m_DecimationThresholdMode, GUILayout.ExpandWidth(false));
             if (m_DecimationThresholdMode != DecimationThresholdMode.None)
                 m_Threshold = EditorGUILayout.Slider("Threshold", m_Threshold, 0.0f, 1.0f);
 
@@ -38,7 +40,9 @@ namespace UnityEditor.Experimental.VFX.Utility
                 m_SeedPixels = EditorGUILayout.IntField("Seed", m_SeedPixels);
             m_ExportColors = EditorGUILayout.Toggle("Export Colors", m_ExportColors);
 
+            GUILayout.BeginHorizontal();
             m_OutputFormat = (PCache.Format)EditorGUILayout.EnumPopup("File Format", m_OutputFormat);
+            GUILayout.EndHorizontal();
 
             if (m_Texture != null)
             {

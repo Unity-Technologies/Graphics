@@ -24,7 +24,10 @@ namespace UnityEditor.Experimental.VFX.Utility
 
         private void OnGUI()
         {
+            GUILayout.BeginHorizontal();
             mode = (BakeMode)EditorGUILayout.EnumPopup(Contents.mode, mode);
+            GUILayout.EndHorizontal();
+
             switch (mode)
             {
                 case BakeMode.Mesh: OnGUI_Mesh(); break;

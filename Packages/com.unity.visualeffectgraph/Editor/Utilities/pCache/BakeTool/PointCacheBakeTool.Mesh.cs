@@ -35,10 +35,18 @@ namespace UnityEditor.Experimental.VFX.Utility
         void OnGUI_Mesh()
         {
             GUILayout.Label("Mesh Baking", EditorStyles.boldLabel);
-            m_Mesh = (Mesh)EditorGUILayout.ObjectField(Contents.mesh, m_Mesh, typeof(Mesh), false);
+            GUILayout.BeginHorizontal();
+            m_Mesh = (Mesh)EditorGUILayout.ObjectField(Contents.mesh, m_Mesh, typeof(Mesh), false, GUILayout.MaxWidth(400), GUILayout.ExpandWidth(true));
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
             m_Distribution = (Distribution)EditorGUILayout.EnumPopup(Contents.distribution, m_Distribution);
+            GUILayout.EndHorizontal();
             if (m_Distribution != Distribution.RandomUniformArea)
+            {
+                GUILayout.BeginHorizontal();
                 m_MeshBakeMode = (MeshBakeMode)EditorGUILayout.EnumPopup(Contents.meshBakeMode, m_MeshBakeMode);
+                GUILayout.EndHorizontal();
+            }
 
             m_ExportNormals = EditorGUILayout.Toggle("Export Normals", m_ExportNormals);
             m_ExportColors = EditorGUILayout.Toggle("Export Colors", m_ExportColors);
@@ -48,7 +56,9 @@ namespace UnityEditor.Experimental.VFX.Utility
             if (m_Distribution != Distribution.Sequential)
                 m_SeedMesh = EditorGUILayout.IntField("Seed", m_SeedMesh);
 
+            GUILayout.BeginHorizontal();
             m_OutputFormat = (PCache.Format)EditorGUILayout.EnumPopup("File Format", m_OutputFormat);
+            GUILayout.EndHorizontal();
 
             if (m_Mesh != null)
             {
