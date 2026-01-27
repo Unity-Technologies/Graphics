@@ -8,6 +8,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public RenderGraphEditorLocalDebugSession() : base()
         {
+            connectionName = "Editor";
+
             RegisterAllLocallyKnownGraphsAndExecutions();
 
             var analyticsPayload = new DebugMessageHandler.AnalyticsPayload();

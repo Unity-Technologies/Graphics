@@ -39,6 +39,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
             // Set to true when data has been set
             public bool valid = false;
 
+            // Capture metadata that is not populated by default
+            public string captureSourceString;
+            public string captureTimestamp;
+
             // Compilation hash of the render graph that produced this DebugData.
             public int graphHash;
 
