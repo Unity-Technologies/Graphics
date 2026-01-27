@@ -28,6 +28,9 @@ namespace UnityEditor.ShaderGraph
         bool m_Hidden;
 
         [SerializeField]
+        bool m_HideConnector;
+
+        [SerializeField]
         string m_ShaderOutputName;
 
         [SerializeField]
@@ -138,6 +141,34 @@ namespace UnityEditor.ShaderGraph
             return m_DisplayName;
         }
 
+        public static MaterialSlot CreateMaterialSlotFromProperty(AbstractShaderProperty property, int slotId)
+        {
+            MaterialSlot slot;
+            switch (property)
+            {
+                case ColorShaderProperty color:
+                    slot = new ColorRGBAMaterialSlot(slotId, property.displayName, property.referenceName, SlotType.Input, color.value);
+                    break;
+                case Vector1ShaderProperty vector1:
+                    switch (vector1.floatType)
+                    {
+                        case FloatType.Slider: slot = new Vector1MaterialRangeSlot(slotId, vector1); break;
+                        case FloatType.Integer: slot = new Vector1MaterialIntegerSlot(slotId, vector1); break;
+                        case FloatType.Enum: slot = new Vector1MaterialEnumSlot(slotId, vector1); break;
+                        default:
+                        case FloatType.Default: slot = new Vector1MaterialSlot(slotId, vector1); break;
+                    }
+                    (slot as Vector1MaterialSlot).LiteralMode = vector1.LiteralFloatMode;
+                    break;
+                default:
+                    SlotValueType valueType = property.concreteShaderValueType.ToSlotValueType();
+                    slot = CreateMaterialSlot(valueType, slotId, property.displayName, property.referenceName, SlotType.Input, Vector4.zero);
+                    break;
+            }
+            slot.hideConnector = property.hideConnector;
+            return slot;
+        }
+
         public static MaterialSlot CreateMaterialSlot(
             SlotValueType type,
             int slotId,
@@ -217,6 +248,14 @@ namespace UnityEditor.ShaderGraph
         {
             get { return m_Hidden; }
             set { m_Hidden = value; }
+        }
+
+        internal virtual bool canHideConnector => false;
+
+        public bool hideConnector
+        {
+            get { return m_HideConnector && canHideConnector; }
+            set { m_HideConnector = value; }
         }
 
         public int id

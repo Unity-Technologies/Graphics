@@ -156,6 +156,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             BuildDisplayNameField(propertySheet);
             BuildReferenceNameField(propertySheet);
             BuildPromoteField(propertySheet);
+            BuildNoConnectorField(propertySheet);
             BuildPropertyFields(propertySheet);            
             BuildKeywordFields(propertySheet, shaderInput);
             BuildDropdownFields(propertySheet, shaderInput);
@@ -216,6 +217,27 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 "Promote to final Shader",
                 out var promoteToggleVisualElement,
                 tooltip: "Promote this as a material property to the final shader. It will not show up as an input port on the Subgraph Node."));
+        }
+
+        void BuildNoConnectorField(PropertySheet propertySheet)
+        {
+            if (shaderInput is not AbstractShaderProperty property)
+                return;
+            if (!isSubGraph || property.promoteToFinalShader || property.hidden || !property.canHideConnector)
+                return;
+
+            var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
+            propertySheet.Add(toggleDataPropertyDrawer.CreateGUI(
+                evt =>
+                {
+                    this._preChangeValueCallback("Change disable connector toggle");
+                    property.hideConnector = evt.isOn;
+                    this._postChangeValueCallback(true, ModificationScope.Topological);
+                },
+                new ToggleData(property.hideConnector),
+                "Disable connector",
+                out _,
+                tooltip: "Select this to prevent a port from appearing on the subgraph."));
         }
 
         void BuildExposedField(PropertySheet propertySheet)
@@ -617,7 +639,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         void HandleVector1ShaderProperty(PropertySheet propertySheet, Vector1ShaderProperty vector1ShaderProperty)
         {
-            if (shaderInput.isExposed && (!isSubGraph || shaderInput.promoteToFinalShader) && !isCurrentPropertyGlobal)
+            if (shaderInput.isExposed && (!isSubGraph || shaderInput.promoteToFinalShader) && !isCurrentPropertyGlobal || isSubGraph && !shaderInput.promoteToFinalShader)
             {
                 var enumPropertyDrawer = new EnumPropertyDrawer();
                 propertySheet.Add(enumPropertyDrawer.CreateGUI(
@@ -626,33 +648,36 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         this._preChangeValueCallback("Change Vector1 Mode");
                         vector1ShaderProperty.floatType = (FloatType)newValue;
                         this._postChangeValueCallback(true);
+                        this._dropdownChangedCallback();
                     },
                     vector1ShaderProperty.floatType,
                     "Mode",
                     FloatType.Default,
                     out var modePropertyEnumField,
-                    tooltip: "Indicate how this float property should appear in the material inspector UI."));
+                    tooltip: isSubGraph ? "Indicate which editor should appear on the node." : "Indicate how this float property should appear in the material inspector UI."));
             }
 
-            var floatType = (!shaderInput.isExposed || isSubGraph || isCurrentPropertyGlobal) && !shaderInput.promoteToFinalShader ? FloatType.Default : vector1ShaderProperty.floatType;
+            var floatType = vector1ShaderProperty.floatType;
             // Handle vector 1 mode parameters
             switch (floatType)
             {
                 case FloatType.Slider:
-                    var sliderTypePropertyDrawer = new EnumPropertyDrawer();
-                    propertySheet.Add(sliderTypePropertyDrawer.CreateGUI(
-                        newValue =>
-                        {
-                            this._preChangeValueCallback("Change Slider Type");
-                            vector1ShaderProperty.sliderType = (SliderType)newValue;
-                            this._postChangeValueCallback(true);
-                        },
-                        vector1ShaderProperty.sliderType,
-                    "Slider Type",
-                        SliderType.Default,
-                        out var sliderTypePropertyEnumField,
-                        tooltip: "Set the Slider type."));
-
+                    if (!isSubGraph) // slider type isn't supported in subgraphs
+                    {
+                        var sliderTypePropertyDrawer = new EnumPropertyDrawer();
+                        propertySheet.Add(sliderTypePropertyDrawer.CreateGUI(
+                            newValue =>
+                            {
+                                this._preChangeValueCallback("Change Slider Type");
+                                vector1ShaderProperty.sliderType = (SliderType)newValue;
+                                this._postChangeValueCallback(true);
+                            },
+                            vector1ShaderProperty.sliderType,
+                        "Slider Type",
+                            SliderType.Default,
+                            out var sliderTypePropertyEnumField,
+                            tooltip: "Set the Slider type."));
+                    }
                     var floatPropertyDrawer = new FloatPropertyDrawer();
                     // Default field
                     propertySheet.Add(floatPropertyDrawer.CreateGUI(
@@ -785,6 +810,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                             this._preChangeValueCallback("Change Enum Type");
                             vector1ShaderProperty.enumType = (EnumType)newValue;
                             this._postChangeValueCallback(true);
+                            this._dropdownChangedCallback();
                         },
                         (EnumTypeForUI)vector1ShaderProperty.enumType,
                         "Enum Type",
@@ -807,10 +833,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                                     newValue = GetSanitizedEnumRefName(newValue);
                                     vector1ShaderProperty.cSharpEnumString = newValue;
                                     this._postChangeValueCallback(true);
+                                    this._dropdownChangedCallback();
                                 },
                                 vector1ShaderProperty.cSharpEnumString,
                                 "C# Enum Type",
-                                tooltip: "Enter an Enum type."));
+                                tooltip: "Enter a fully qualified enum type name."));
+
+                            if (string.IsNullOrEmpty(vector1ShaderProperty.cSharpEnumString))
+                                propertySheet.Add(new HelpBoxRow($"Type name string is empty, must be a fully qualified enum type name.", MessageType.Error));
+                            else if (vector1ShaderProperty.cSharpEnumType == null)
+                                propertySheet.Add(new HelpBoxRow($"Type of '{vector1ShaderProperty.cSharpEnumString}' could not be found or is not an enum type.", MessageType.Error));
                             break;
                         case EnumType.KeywordEnum:
                         default:
@@ -1808,6 +1840,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         vector1Property.enumValues[index] = value;
 
                         this._postChangeValueCallback(true);
+                        this._dropdownChangedCallback();
                     }
                 };
 
@@ -1826,6 +1859,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
                     // Update GUI
                     this._postChangeValueCallback(true);
+                    this._dropdownChangedCallback();
                     m_EnumSelectedIndex = list.count - 1;
                 };
 
@@ -1840,6 +1874,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
                     // Rebuild();
                     this._postChangeValueCallback(true);
+                    this._dropdownChangedCallback();
                     m_EnumSelectedIndex = m_EnumSelectedIndex >= list.list.Count - 1 ? list.list.Count - 1 : m_EnumSelectedIndex;
                 };
 
@@ -1878,6 +1913,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     vector1Property.enumNames.Insert(newIndex, name);
                     vector1Property.enumValues.Insert(newIndex, value);
                     this._postChangeValueCallback(true);
+                    this._dropdownChangedCallback();
                 };
             }
         }

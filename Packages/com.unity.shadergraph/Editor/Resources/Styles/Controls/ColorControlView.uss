@@ -12,6 +12,10 @@ ColorControlView > ColorField {
     width: 184px;
 }
 
+.unity-base-field__input{
+    min-width: 24px;
+}
+
 ColorControlView > #enumPanel > EnumField {
     flex: 1;
     height: 19px;

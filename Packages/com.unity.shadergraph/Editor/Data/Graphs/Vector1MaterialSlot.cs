@@ -40,7 +40,13 @@ namespace UnityEditor.ShaderGraph
             set => m_LiteralMode = value;
         }
 
+        internal override bool canHideConnector => true;
         public Vector1MaterialSlot()
+        {
+        }
+
+        public Vector1MaterialSlot(int slotId, Vector1ShaderProperty fromProperty)
+           : this(slotId, fromProperty.displayName, fromProperty.referenceName, SlotType.Input, fromProperty.value, literal: fromProperty.LiteralFloatMode)
         {
         }
 
@@ -75,7 +81,9 @@ namespace UnityEditor.ShaderGraph
 
         public override VisualElement InstantiateControl()
         {
-            return new MultiFloatSlotControlView(owner, labels, () => new Vector4(value, 0f, 0f, 0f), (newValue) => value = newValue.x);
+            return hideConnector
+                ? new FloatSlotControlView(this)
+                : new MultiFloatSlotControlView(owner, labels, () => new Vector4(value, 0f, 0f, 0f), (newValue) => value = newValue.x);
         }
 
         protected override string ConcreteSlotValueAsVariable()
@@ -134,6 +142,33 @@ namespace UnityEditor.ShaderGraph
             if (other is IMaterialSlotHasValue<float> ms)
             {
                 m_DefaultValue = ms.defaultValue;
+            }
+        }
+
+        class FloatSlotControlView : VisualElement
+        {
+            Vector1MaterialSlot m_Slot;
+
+            public FloatSlotControlView(Vector1MaterialSlot slot)
+            {
+                m_Slot = slot;
+                var integerField = slot.hideConnector
+                    ? new FloatField(slot.RawDisplayName())
+                    : new FloatField();
+
+                integerField.value = slot.value;
+                integerField.RegisterValueChangedCallback(OnValueChange);
+                Add(integerField);
+            }
+
+            void OnValueChange(ChangeEvent<float> evt)
+            {
+                if (evt.newValue != m_Slot.value)
+                {
+                    m_Slot.owner.owner.owner.RegisterCompleteObjectUndo("Integer Change");
+                    m_Slot.value = evt.newValue;
+                    m_Slot.owner.Dirty(ModificationScope.Node);
+                }
             }
         }
     }

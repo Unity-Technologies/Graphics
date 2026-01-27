@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    internal class ReorderableListView<T> : VisualElement
+    internal class ReorderableTextListView<T> : VisualElement
     {
         // generic control to display and allow the user to directly reorder/add/remove from a list of T
 
@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal delegate void ListReorderedDelegate(List<T> reorderedList);
         public ListReorderedDelegate OnListReorderedCallback;
 
-        internal ReorderableListView(
+        internal ReorderableTextListView(
             List<T> dataList,
             string header = "Reorder data:",
             bool allowReorder = true,

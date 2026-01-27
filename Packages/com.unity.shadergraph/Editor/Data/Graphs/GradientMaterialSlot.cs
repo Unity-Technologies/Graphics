@@ -23,6 +23,8 @@ namespace UnityEditor.ShaderGraph
         public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Gradient; } }
         public override bool isDefaultValue => true;
 
+        internal override bool canHideConnector => true;
+
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
         { }
 

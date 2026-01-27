@@ -14,6 +14,10 @@ GradientControlView > #gradientPanel > GradientField {
     margin-bottom: 1px;
 }
 
+.unity-base-field__input {
+    min-width: 32px;
+}
+
 GradientControlView > #gradientPanel > Label {
     width: 100px;
     margin-left: 8px;

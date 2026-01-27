@@ -25,6 +25,8 @@ namespace UnityEditor.ShaderGraph
         {
         }
 
+        internal override bool canHideConnector => true;
+
         public override VisualElement InstantiateControl()
         {
             return new ColorRGBASlotControlView(this);

@@ -21,6 +21,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
+        internal override bool canHideConnector => true;
 
         public override float value
         {
@@ -161,8 +162,24 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public Type cSharpEnumType
         {
-            get => m_CSharpEnumType;
+            get => m_CSharpEnumType ?? GetEnumHelper(m_CSharpEnumString);
             set => m_CSharpEnumType = value;
+        }
+
+        internal static Type GetEnumHelper(string typeName)
+        {
+            if (string.IsNullOrEmpty(typeName))
+                return null;
+
+            var type = Type.GetType(typeName, false, true);
+            if (type != null) return type;
+            foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                type = a.GetType(typeName, false, true);
+                if (type != null && type.IsEnum)
+                    return type;
+            }
+            return null;
         }
 
         [SerializeField]
@@ -179,7 +196,9 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public List<string> enumNames
         {
-            get => m_EnumNames;
+            get => enumType == EnumType.CSharpEnum && cSharpEnumType != null && cSharpEnumType.IsEnum
+                ? new List<string>(cSharpEnumType.GetEnumNames())
+                : m_EnumNames;
             set => m_EnumNames = value;
         }
 
@@ -188,7 +207,17 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public List<int> enumValues
         {
-            get => m_EnumValues;
+            get
+            {
+                if (enumType == EnumType.CSharpEnum && cSharpEnumType != null && cSharpEnumType.IsEnum)
+                {
+                    var values = new List<int>();
+                    foreach (var item in cSharpEnumType.GetEnumValues())
+                        values.Add((int)item);
+                    return values;
+                }
+                return m_EnumValues;
+            }
             set => m_EnumValues = value;
         }
 
