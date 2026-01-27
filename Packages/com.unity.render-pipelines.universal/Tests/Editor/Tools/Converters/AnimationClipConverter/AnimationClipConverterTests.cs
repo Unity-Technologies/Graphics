@@ -112,11 +112,17 @@ namespace UnityEditor.Rendering.Universal.Tools
 
         private static Material GetDefaultDiffuse()
         {
+            if (GraphicsSettings.currentRenderPipeline is not UniversalRenderPipelineAsset)
+                return null;
+
             return AssetDatabase.GetBuiltinExtraResource<Material>("Default-Diffuse.mat");
         }
 
         private static Material GetURPDefaultMaterial()
         {
+            if (GraphicsSettings.currentRenderPipeline is not UniversalRenderPipelineAsset)
+                return null;
+
             // Get URP default material from graphics settings
             return GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineEditorMaterials>().defaultMaterial;
         }

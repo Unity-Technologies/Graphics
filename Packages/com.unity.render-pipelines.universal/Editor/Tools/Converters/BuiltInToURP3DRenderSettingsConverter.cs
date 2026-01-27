@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEditor.Rendering.Converter;
 using UnityEngine;
 using UnityEngine.Categorization;
@@ -10,122 +9,18 @@ using ShadowQuality = UnityEngine.ShadowQuality;
 namespace UnityEditor.Rendering.Universal
 {
     [Serializable]
-    internal class RenderSettingsConverterItem : IRenderPipelineConverterItem
-    {
-        public int qualityLevelIndex { get; set; }
-
-        public string name { get; set; }
-
-        public string info { get; set; }
-
-        public bool isEnabled { get; set; }
-        public string isDisabledMessage { get; set; }
-
-        public Texture2D icon => CoreUtils.GetIconForType<UniversalRenderPipelineAsset>();
-
-        public void OnClicked()
-        {
-            SettingsService.OpenProjectSettings("Project/Quality");
-        }
-    }
-    [Serializable]
     [URPHelpURL("features/rp-converter")]
     [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
     [ElementInfo(Name = "Rendering Settings",
                  Order = int.MinValue,
                  Description = "This converter creates Universal Render Pipeline (URP) assets and corresponding Renderer assets, configuring their settings to match the equivalent settings from the Built-in Render Pipeline.")]
-    class RenderSettingsConverter : IRenderPipelineConverter
+    class BuiltInToURP3DRenderSettingsConverter : RenderSettingsConverter
     {
-        public void Scan(Action<List<IRenderPipelineConverterItem>> onScanFinish)
-        {
-            List<IRenderPipelineConverterItem> renderPipelineConverterItems = new ();
-            QualitySettings.ForEach((index, name) =>
-            {
-                var item = new RenderSettingsConverterItem
-                {
-                    qualityLevelIndex = index,
-                    name = name
-                };
+        public override bool isEnabled => true;
 
-                if (QualitySettings.renderPipeline is not UniversalRenderPipelineAsset)
-                {
-                    item.isEnabled = true;
-                    item.info = $"Create a Universal Render Pipeline Asset for Quality Level {index} ({name})";
-                }
-                else
-                {
-                    item.info = "Quality Level already references a Universal Render Pipeline Asset.";
-                    item.isEnabled = false;
-                    item.isDisabledMessage = item.info;
-                }
-                renderPipelineConverterItems.Add(item);
-            });
+        public override string isDisabledMessage => string.Empty;
 
-            onScanFinish?.Invoke(renderPipelineConverterItems);
-        }
-
-        public bool isEnabled => true;
-
-        public string isDisabledMessage => string.Empty;
-
-        public Status Convert(IRenderPipelineConverterItem item, out string message)
-        {
-            message = string.Empty;
-
-            if (item is RenderSettingsConverterItem qualityLevelItem)
-            {
-                if (CreateURPAssetForQualityLevel(qualityLevelItem.qualityLevelIndex, out message))                
-                    return Status.Success;
-            }
-
-            return Status.Error;
-        }
-
-        private bool CreateURPAssetForQualityLevel(int qualityIndex, out string message)
-        {
-            bool ok = false;
-            message = string.Empty;
-
-            var currentQualityLevel = QualitySettings.GetQualityLevel();
-
-            QualitySettings.SetQualityLevel(qualityIndex);
-
-            if (QualitySettings.renderPipeline is UniversalRenderPipelineAsset urpAsset)
-            {
-                message = $"Quality Level {qualityIndex} already references a Universal Render Pipeline Asset: {urpAsset.name}.";
-            }
-            else
-            {
-                var asset = CreateAsset($"{QualitySettings.names[qualityIndex]}");
-
-                if (asset != null)
-                {
-                    // Map built-in data to the URP asset data
-                    SetPipelineSettings(asset);
-
-                    GetRenderers(out var renderers, out var defaultIndex);
-                    asset.m_RendererDataList = renderers;
-                    asset.m_DefaultRendererIndex = defaultIndex;
-
-                    // Set the asset dirty to make sure that the renderer data is saved
-                    EditorUtility.SetDirty(asset);
-
-                    QualitySettings.renderPipeline = asset;
-                    ok = true;
-                }
-                else
-                {
-                    message = "Failed to create Universal Render Pipeline Asset.";
-                }
-            }
-
-            // Restore back the quality level
-            QualitySettings.SetQualityLevel(currentQualityLevel);
-
-            return ok;
-        }
-
-        UniversalRenderPipelineAsset CreateAsset(string name)
+        protected override RenderPipelineAsset CreateAsset(string name)
         {
             string path = $"Assets/{UniversalProjectSettings.projectSettingsFolderPath}/{name}.asset";
             if (AssetDatabase.AssetPathExists(path))
@@ -157,6 +52,9 @@ namespace UnityEditor.Rendering.Universal
             var asset = UniversalRenderPipelineAsset.CreateRendererAsset(path, RendererType.UniversalRenderer, relativePath: false) as UniversalRendererData;
             asset.renderingMode = renderingPath == RenderingPath.Forward ? RenderingMode.Forward : RenderingMode.Deferred;
 
+            EditorUtility.SetDirty(asset);
+            AssetDatabase.SaveAssetIfDirty(asset);
+
             return asset;
         }
 
@@ -178,10 +76,21 @@ namespace UnityEditor.Rendering.Universal
 
                 renderers = tmp.ToArray();
             }
+
+            // Tell the asset database to regenerate the fileId, otherwise when adding the reference to the URP
+            // asset the fileId might not be computed and the reference might be lost.
+            AssetDatabase.Refresh();
         }
 
-        private void SetPipelineSettings(UniversalRenderPipelineAsset asset)
+        protected override void SetPipelineSettings(RenderPipelineAsset asset)
         {
+            if (asset is not UniversalRenderPipelineAsset urpAsset)
+                return;
+
+            GetRenderers(out var renderers, out var defaultIndex);
+            urpAsset.m_RendererDataList = renderers;
+            urpAsset.m_DefaultRendererIndex = defaultIndex;
+
             var targetGrp = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
             var tier = EditorGraphicsSettings.GetTierSettings(targetGrp, GraphicsTier.Tier3);
 
@@ -202,39 +111,39 @@ namespace UnityEditor.Rendering.Universal
             var softParticles = QualitySettings.softParticles;
 
             // General
-            asset.supportsCameraDepthTexture = softParticles;
+            urpAsset.supportsCameraDepthTexture = softParticles;
 
             // Quality
-            asset.supportsHDR = hdr;
-            asset.msaaSampleCount = msaa == 0 ? 1 : msaa;
+            urpAsset.supportsHDR = hdr;
+            urpAsset.msaaSampleCount = msaa == 0 ? 1 : msaa;
 
             // Main Light
-            asset.mainLightRenderingMode = pixelLightCount == 0
+            urpAsset.mainLightRenderingMode = pixelLightCount == 0
                 ? LightRenderingMode.Disabled
                 : LightRenderingMode.PerPixel;
-            asset.supportsMainLightShadows = shadows != ShadowQuality.Disable;
-            asset.mainLightShadowmapResolution =
+            urpAsset.supportsMainLightShadows = shadows != ShadowQuality.Disable;
+            urpAsset.mainLightShadowmapResolution =
                 GetEquivalentMainlightShadowResolution((int)shadowResolution);
 
             // Additional Lights
-            asset.additionalLightsRenderingMode = pixelLightCount == 0
+            urpAsset.additionalLightsRenderingMode = pixelLightCount == 0
                 ? LightRenderingMode.PerVertex
                 : LightRenderingMode.PerPixel;
-            asset.maxAdditionalLightsCount = pixelLightCount != 0 ? Mathf.Max(0, pixelLightCount) : 4;
-            asset.supportsAdditionalLightShadows = shadows != ShadowQuality.Disable;
-            asset.additionalLightsShadowmapResolution =
+            urpAsset.maxAdditionalLightsCount = pixelLightCount != 0 ? Mathf.Max(0, pixelLightCount) : 4;
+            urpAsset.supportsAdditionalLightShadows = shadows != ShadowQuality.Disable;
+            urpAsset.additionalLightsShadowmapResolution =
                 GetEquivalentAdditionalLightAtlasShadowResolution((int)shadowResolution);
 
             // Reflection Probes
-            asset.reflectionProbeBlending = reflectionProbeBlending;
-            asset.reflectionProbeBoxProjection = reflectionProbeBoxProjection;
+            urpAsset.reflectionProbeBlending = reflectionProbeBlending;
+            urpAsset.reflectionProbeBoxProjection = reflectionProbeBoxProjection;
 
             // Shadows
-            asset.shadowDistance = shadowDistance;
-            asset.shadowCascadeCount = cascadeShadows ? shadowCascadeCount : 1;
-            asset.cascade2Split = cascadeSplit2;
-            asset.cascade4Split = cascadeSplit4;
-            asset.supportsSoftShadows = shadows == ShadowQuality.All;
+            urpAsset.shadowDistance = shadowDistance;
+            urpAsset.shadowCascadeCount = cascadeShadows ? shadowCascadeCount : 1;
+            urpAsset.cascade2Split = cascadeSplit2;
+            urpAsset.cascade4Split = cascadeSplit4;
+            urpAsset.supportsSoftShadows = shadows == ShadowQuality.All;
         }
 
         #region HelperFunctions

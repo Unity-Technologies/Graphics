@@ -79,7 +79,7 @@ namespace UnityEditor.Rendering.Universal
         /// <summary>
         /// Use this for the render settings converters.
         /// </summary>
-        [BatchModeConverterInfo(ConverterContainerId.BuiltInToURP, typeof(RenderSettingsConverter))]
+        [BatchModeConverterInfo(ConverterContainerId.BuiltInToURP, typeof(BuiltInToURP3DRenderSettingsConverter))]
         RenderSettings,
 
         /// <summary>
@@ -99,6 +99,12 @@ namespace UnityEditor.Rendering.Universal
         /// </summary>
         [BatchModeConverterInfo(ConverterContainerId.BuiltInToURP2D, typeof(BuiltInToURP2DReadonlyMaterialConverter))]
         ReadonlyMaterial2D,
+
+        /// <summary>
+        /// Use this for 2D material conversion
+        /// </summary>
+        [BatchModeConverterInfo(ConverterContainerId.BuiltInToURP2D, typeof(BuiltInToURP2DRenderSettingsConverter))]
+        RenderSettings2D,
 
         /// <summary>
         /// Use this for 3D URP material conversion

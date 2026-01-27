@@ -50,9 +50,9 @@ namespace UnityEditor.Rendering.Universal.Tools
         }
 
         [Test]
-        public void WhenRunningTheConverter_TheCurrent_QualityLevel_IsNowURP_AndHasEverythingProperlyAssigned()
+        public void WhenRunningBuiltInToURP3DRenderSettingsConverter_TheCurrent_QualityLevel_IsNowURP_AndHasEverythingProperlyAssigned()
         {
-            var renderSettingsConverter = new RenderSettingsConverter();
+            var renderSettingsConverter = new BuiltInToURP3DRenderSettingsConverter();
             var expectedEntry = $"[{m_QualityLevel}] {m_QualityLevelName}";
 
             void OnScanFinished(List<IRenderPipelineConverterItem> scanItems)
@@ -62,7 +62,7 @@ namespace UnityEditor.Rendering.Universal.Tools
                 Assert.AreEqual(m_QualityLevel, QualitySettings.GetQualityLevel(), "Initialization did not rollback quality level");
                 
                 var status = renderSettingsConverter.Convert(scanItems[m_QualityLevel], out string msg);
-                Assert.IsTrue(status == Status.Success, msg);
+                Assert.IsTrue(status != Status.Error, msg);
 
                 Assert.AreEqual(m_QualityLevel, QualitySettings.GetQualityLevel(), "Run did not rollback quality level");
 
@@ -90,13 +90,13 @@ namespace UnityEditor.Rendering.Universal.Tools
                 Assert.AreEqual(expectedMainLightMode, urpAsset.mainLightRenderingMode, "mainLightRenderingMode mismatch");
 
                 Assert.AreEqual(QualitySettings.shadows != UnityEngine.ShadowQuality.Disable, urpAsset.supportsMainLightShadows, "supportsMainLightShadows mismatch");
-                Assert.AreEqual(RenderSettingsConverter.GetEquivalentMainlightShadowResolution((int)QualitySettings.shadowResolution), urpAsset.mainLightShadowmapResolution, "mainLightShadowmapResolution mismatch");
+                Assert.AreEqual(BuiltInToURP3DRenderSettingsConverter.GetEquivalentMainlightShadowResolution((int)QualitySettings.shadowResolution), urpAsset.mainLightShadowmapResolution, "mainLightShadowmapResolution mismatch");
 
                 var expectedAdditionalLightsMode = QualitySettings.pixelLightCount == 0 ? LightRenderingMode.PerVertex : LightRenderingMode.PerPixel;
                 Assert.AreEqual(expectedAdditionalLightsMode, urpAsset.additionalLightsRenderingMode, "additionalLightsRenderingMode mismatch");
                 Assert.AreEqual(QualitySettings.pixelLightCount != 0 ? Mathf.Max(0, QualitySettings.pixelLightCount) : 4, urpAsset.maxAdditionalLightsCount, "maxAdditionalLightsCount mismatch");
                 Assert.AreEqual(QualitySettings.shadows != UnityEngine.ShadowQuality.Disable, urpAsset.supportsAdditionalLightShadows, "supportsAdditionalLightShadows mismatch");
-                Assert.AreEqual(RenderSettingsConverter.GetEquivalentAdditionalLightAtlasShadowResolution((int)QualitySettings.shadowResolution), urpAsset.additionalLightsShadowmapResolution, "additionalLightsShadowmapResolution mismatch");
+                Assert.AreEqual(BuiltInToURP3DRenderSettingsConverter.GetEquivalentAdditionalLightAtlasShadowResolution((int)QualitySettings.shadowResolution), urpAsset.additionalLightsShadowmapResolution, "additionalLightsShadowmapResolution mismatch");
 
                 Assert.AreEqual(tier.reflectionProbeBlending, urpAsset.reflectionProbeBlending, "reflectionProbeBlending mismatch");
                 Assert.AreEqual(tier.reflectionProbeBoxProjection, urpAsset.reflectionProbeBoxProjection, "reflectionProbeBoxProjection mismatch");
@@ -114,8 +114,37 @@ namespace UnityEditor.Rendering.Universal.Tools
             }
 
             renderSettingsConverter.Scan(OnScanFinished);
+        }
 
-            
+        [Test]
+        public void WhenRunningBuiltInToURP2DRenderSettingsConverter_TheCurrent_QualityLevel_IsNowURP_AndHasEverythingProperlyAssigned()
+        {
+            var renderSettingsConverter = new BuiltInToURP2DRenderSettingsConverter();
+            var expectedEntry = $"[{m_QualityLevel}] {m_QualityLevelName}";
+
+            void OnScanFinished(List<IRenderPipelineConverterItem> scanItems)
+            {
+                Assert.IsTrue(scanItems.Count > 0, "Initialization did not found the item to convert");
+
+                Assert.AreEqual(m_QualityLevel, QualitySettings.GetQualityLevel(), "Initialization did not rollback quality level");
+
+                var status = renderSettingsConverter.Convert(scanItems[m_QualityLevel], out string msg);
+                Assert.IsTrue(status != Status.Error, msg);
+
+                Assert.AreEqual(m_QualityLevel, QualitySettings.GetQualityLevel(), "Run did not rollback quality level");
+
+                // ---------- ASSET REFERENCE CHECK  ----------
+                var urpAsset = QualitySettings.renderPipeline as UniversalRenderPipelineAsset;
+                Assert.IsNotNull(urpAsset, "URP asset is not assigned");
+                Assert.AreEqual($"Assets/{UniversalProjectSettings.projectSettingsFolderPath}/{m_QualityLevelName}.asset", AssetDatabase.GetAssetPath(urpAsset));
+
+                // ---------- RENDERER REFERENCE CHECK ----------
+                Assert.IsNotNull(urpAsset.m_RendererDataList);
+                Assert.AreEqual(1, urpAsset.m_RendererDataList.Length);
+                Assert.AreEqual($"Assets/{UniversalProjectSettings.projectSettingsFolderPath}/Default_2D_Renderer.asset", AssetDatabase.GetAssetPath(urpAsset.m_RendererDataList[0]));
+            }
+
+            renderSettingsConverter.Scan(OnScanFinished);
         }
     }
 

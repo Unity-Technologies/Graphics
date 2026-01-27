@@ -114,7 +114,7 @@ namespace UnityEditor.Rendering.Universal.Tools
 #if PPV2_EXISTS
                     typeof(PPv2Converter),
 #endif
-                    typeof(RenderSettingsConverter),
+                    typeof(BuiltInToURP3DRenderSettingsConverter),
                     typeof(AnimationClipConverter),
                     typeof(BuiltInToURP3DMaterialUpgrader),
                     typeof(BuiltInToURP3DReadonlyMaterialConverter),
@@ -127,6 +127,7 @@ namespace UnityEditor.Rendering.Universal.Tools
                 ConverterFilter.Exclusive,
                  new List<Type>
                  {
+                    typeof(BuiltInToURP2DRenderSettingsConverter),
                     typeof(BuiltInToURP2DReadonlyMaterialConverter),
                  }
             ).SetName("BuiltInToURP2D - When Using Exclusive filter with no converters. The filter returns everything");
