@@ -243,7 +243,7 @@ namespace UnityEditor.Rendering.Universal
         {
             foreach (var converter in converters)
             {
-                var sb = new StringBuilder($"Conversion results for item: {converter}:{Environment.NewLine}");
+                var sb = new StringBuilder();
 
                 converter.Scan(OnConverterCompleteDataCollection);
 
@@ -271,7 +271,9 @@ namespace UnityEditor.Rendering.Universal
                     }
                     converter.AfterConvert();
 
-                    Debug.Log(sb.ToString());
+                    var conversionResult = sb.ToString();
+                    if (!string.IsNullOrEmpty(conversionResult))
+                        Debug.Log(sb.ToString());
                 }
             }
 

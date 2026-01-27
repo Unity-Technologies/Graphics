@@ -99,7 +99,8 @@ namespace UnityEditor.Rendering
             set => m_Text.tooltip = value;
         }
 
-        Vector2 m_LastLocalMousePos;
+        bool m_IsHoveringLabel;
+        Rect m_TooltipRect;
 
         /// <summary>Constructor</summary>
         public HeaderFoldout() : base()
@@ -111,7 +112,33 @@ namespace UnityEditor.Rendering
             RegisterCallback<AttachToPanelEvent>(DelayedInit);
 
             var line = hierarchy[0][0]; //pass by herarchy to ignore content redirection
-            
+            line.RegisterCallback<PointerEnterEvent>(e =>
+            {
+                m_IsHoveringLabel = true;
+
+                const float tipWidth = 200f;
+                const float tipHeight = 24f;
+
+                m_TooltipRect = new Rect(
+                    e.position.x,
+                    e.position.y,
+                    tipWidth,
+                    tipHeight
+                );
+            });
+            line.RegisterCallback<PointerLeaveEvent>(e =>
+            {
+                m_IsHoveringLabel = false;
+            });
+            line.RegisterCallback<TooltipEvent>(evt =>
+            {
+                if (!m_IsHoveringLabel)
+                    return;
+
+                evt.rect = m_TooltipRect;
+                evt.StopPropagation();
+            });
+
             m_IconElement = new Image()
             {
                 style =
@@ -133,21 +160,6 @@ namespace UnityEditor.Rendering
 
             m_Text = new Label();
             m_Text.AddToClassList(k_LabelClass);
-            m_Text.RegisterCallback<PointerMoveEvent>(e =>
-            {
-                m_LastLocalMousePos = e.position; // in root's local coords
-            });
-            m_Text.RegisterCallback<TooltipEvent>(evt =>
-            {
-                // Offset the tooltip slightly from the cursor
-                const float tipWidth = 200f;   // approximate width; the system will size it
-                const float tipHeight = 24f;   // approximate height
-
-                evt.rect = new Rect(m_LastLocalMousePos.x, m_LastLocalMousePos.y, tipWidth, tipHeight);
-
-                // Optional: ensure only this handler sets the rect
-                evt.StopPropagation();
-            });
             line.Add(m_Text);
 
             m_HelpButton = new Button(Background.FromTexture2D(CoreEditorStyles.iconHelp), () => Help.BrowseURL(m_DocumentationURL));
