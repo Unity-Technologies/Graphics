@@ -358,6 +358,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         internal/*for tests*/ RenderGraphResourceRegistry m_Resources;
         internal/*for tests*/ RenderGraphObjectPool m_RenderGraphPool = new RenderGraphObjectPool();
         RenderGraphBuilders m_builderInstance = new RenderGraphBuilders();
+        RenderGraphValidationLayer m_ValidationLayer = null;
         internal/*for tests*/ List<RenderGraphPass> m_RenderPasses = new List<RenderGraphPass>(64);
         List<RendererListHandle> m_RendererLists = new List<RendererListHandle>(32);
         RenderGraphDebugParams m_DebugParameters = new RenderGraphDebugParams();
@@ -398,6 +399,15 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             get { return m_renderTextureUVOriginStrategy; }
             internal set { m_renderTextureUVOriginStrategy = value; }
+        }
+
+        internal RenderGraphValidationLayer validationLayer
+        {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            set { m_ValidationLayer = value; }
+#else
+            set { }
+#endif
         }
 
         /// <summary>If true, the Render Graph Viewer is active.</summary>
@@ -468,6 +478,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_RenderGraphPool.Cleanup();
             nativeCompiler?.Cleanup();
             m_CompilationCache?.Clear();
+            m_ValidationLayer?.Clear();
 
             DelegateHashCodeUtils.ClearCache();
         }
@@ -1059,7 +1070,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             m_RenderPasses.Add(renderPass);
 
-            m_builderInstance.Setup(renderPass, m_Resources, this);
+            m_builderInstance.Setup(renderPass, m_Resources, this, m_ValidationLayer);
 
             return m_builderInstance;
         }
@@ -1114,7 +1125,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             m_RenderPasses.Add(renderPass);
 
-            m_builderInstance.Setup(renderPass, m_Resources, this);
+            m_builderInstance.Setup(renderPass, m_Resources, this, m_ValidationLayer);
 
             return m_builderInstance;
         }
@@ -1182,7 +1193,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             m_RenderPasses.Add(renderPass);
 
-            m_builderInstance.Setup(renderPass, m_Resources, this);
+            m_builderInstance.Setup(renderPass, m_Resources, this, m_ValidationLayer);
 
             return m_builderInstance;
         }
@@ -1218,6 +1229,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_CurrentExecutionCanGenerateDebugData = parameters.generateDebugData && parameters.executionId != EntityId.None;
 
             m_renderTextureUVOriginStrategy = parameters.renderTextureUVOriginStrategy;
+            m_ValidationLayer = null;
 
             m_Resources.BeginRenderGraph(m_ExecutionCount++);
 
@@ -1382,7 +1394,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
-        #endregion
+#endregion
 
         #region Internal Interface
 
@@ -1398,6 +1410,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_Resources.Clear(m_ExecutionExceptionWasRaised);
             m_RendererLists.Clear();
             registeredGlobals.Clear();
+            m_ValidationLayer?.Clear();
         }
 
         void InvalidateContext()
@@ -1406,6 +1419,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_RenderGraphContext.renderGraphPool = null;
             m_RenderGraphContext.defaultResources = null;
             m_RenderGraphContext.compilerContext = null;
+        }
+
+        internal string GetTextureName(in TextureHandle textureHandle)
+        {
+            return m_Resources.GetName(in textureHandle);
         }
 
         internal delegate void OnGraphRegisteredDelegate(string graphName);

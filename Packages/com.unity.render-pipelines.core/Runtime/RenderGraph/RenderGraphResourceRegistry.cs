@@ -197,6 +197,15 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return texResource.graphicsResource;
         }
 
+        internal string GetName(in TextureHandle handle)
+        {
+            if (!handle.IsValid())
+                return null;
+
+            var texResource = GetTextureResource(handle.handle);
+            return texResource.GetName();
+        }
+
         internal bool TextureNeedsFallback(in TextureHandle handle)
         {
             if (!handle.IsValid())
