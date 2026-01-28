@@ -75,7 +75,8 @@ namespace UnityEngine.Rendering
         public GraphicsBuffer positionNormalBuffer; // buffer storing position and normal
     }
 
-    class ProbeVolumeDebug : IDebugData
+    [Serializable]
+    class ProbeVolumeDebug : IDebugData, ISerializedDebugDisplaySettings
     {
         public bool drawProbes;
         public bool drawBricks;
@@ -195,7 +196,7 @@ namespace UnityEngine.Rendering
         /// <summary>Name of debug panel for Probe Volume</summary>
         public static readonly string k_DebugPanelName = "Probe Volumes";
 
-        internal ProbeVolumeDebug probeVolumeDebug { get; } = new ProbeVolumeDebug();
+        internal ProbeVolumeDebug probeVolumeDebug { get; private set; }
 
         /// <summary>Colors that can be used for debug visualization of the brick structure subdivision.</summary>
         public Color[] subdivisionDebugColors { get; } = new Color[ProbeBrickIndex.kMaxSubdivisionLevels];
@@ -251,7 +252,7 @@ namespace UnityEngine.Rendering
         {
             RenderDebug(camera, null, exposureTexture);
         }
-        
+
         /// <summary>
         /// Render Probe Volume related debug
         /// </summary>
@@ -410,6 +411,7 @@ namespace UnityEngine.Rendering
 #if UNITY_EDITOR
             SceneView.duringSceneGui += SceneGUI; // Used to get click and keyboard event on scene view for Probe Sampling Debug
 #endif
+            probeVolumeDebug = DebugDisplaySerializer.GetOrCreate<ProbeVolumeDebug>();
             if (TryCreateDebugRenderData())
                 RegisterDebug();
 
@@ -1337,7 +1339,7 @@ namespace UnityEngine.Rendering
 
             if (HasActiveStreamingRequest(cell))
                 return null;
-                
+
             int maxSubdiv = GetMaxSubdivision() - 1;
 
             if (!cell.data.bricks.IsCreated || cell.data.bricks.Length == 0 || !cell.data.probePositions.IsCreated || !cell.loaded)

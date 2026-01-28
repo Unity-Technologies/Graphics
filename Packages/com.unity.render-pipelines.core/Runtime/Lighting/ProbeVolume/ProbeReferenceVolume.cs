@@ -853,7 +853,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public ProbeVolumeTextureMemoryBudget memoryBudget => m_MemoryBudget;
 
-        static ProbeReferenceVolume _instance = new ProbeReferenceVolume();
+        static ProbeReferenceVolume s_Instance = new ProbeReferenceVolume();
 
         internal List<ProbeVolumePerSceneData> perSceneDataList { get; private set; } = new List<ProbeVolumePerSceneData>();
 
@@ -1011,7 +1011,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Get the instance of the probe reference volume (singleton).
         /// </summary>
-        public static ProbeReferenceVolume instance => _instance;
+        public static ProbeReferenceVolume instance => s_Instance;
 
         /// <summary>
         /// Initialize the Probe Volume system

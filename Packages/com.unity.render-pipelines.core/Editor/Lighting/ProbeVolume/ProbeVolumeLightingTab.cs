@@ -1,3 +1,7 @@
+#if ENABLE_UIELEMENTS_MODULE && (UNITY_EDITOR || DEVELOPMENT_BUILD)
+#define ENABLE_RENDERING_DEBUGGER_UI
+#endif
+
 using System;
 using System.Linq;
 using System.Reflection;
@@ -288,12 +292,12 @@ namespace UnityEngine.Rendering
 
         internal static void OpenProbeVolumeDebugPanel(object userData, string[] options, int selected)
         {
-            var debugPanel = EditorWindow.GetWindow<DebugWindow>();
-            debugPanel.titleContent = DebugWindow.Styles.windowTitle;
-            debugPanel.Show();
-            var index = DebugManager.instance.FindPanelIndex(ProbeReferenceVolume.k_DebugPanelName);
-            if (index != -1)
-                DebugManager.instance.RequestEditorWindowPanelIndex(index);
+#if ENABLE_RENDERING_DEBUGGER_UI
+            var debugWindow = EditorWindow.GetWindow<DebugWindow>();
+            debugWindow.titleContent = DebugWindow.s_TitleContent;
+            debugWindow.Show();
+            DebugManager.instance.RequestEditorWindowPanel(ProbeReferenceVolume.k_DebugPanelName);
+#endif
         }
 
         // Need to have this only clear probes when we properly split lightmap and probe baking.
@@ -1235,6 +1239,9 @@ namespace UnityEngine.Rendering
                 // Include some state tracking here because it's the only function called at each repaint
                 var debug = ProbeReferenceVolume.instance.probeVolumeDebug;
                 var bakingSet = ProbeReferenceVolume.instance.currentBakingSet;
+
+                if (debug == null)
+                    return false;
 
                 bool debugLayers = debug.drawProbes && debug.probeShading == DebugProbeShadingMode.RenderingLayerMasks && bakingSet != null;
                 if (!debug.drawBricks && !debug.drawProbeSamplingDebug && !debugLayers)

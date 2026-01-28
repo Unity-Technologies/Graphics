@@ -1,7 +1,15 @@
+#if ENABLE_UIELEMENTS_MODULE && (UNITY_EDITOR || DEVELOPMENT_BUILD)
+#define ENABLE_RENDERING_DEBUGGER_UI
+#endif
+
 using System;
 using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
+
+#endif
+#if ENABLE_RENDERING_DEBUGGER_UI
+using UnityEngine.UIElements;
 #endif
 
 namespace UnityEngine.Rendering
@@ -13,6 +21,71 @@ namespace UnityEngine.Rendering
         /// </summary>
         public class Container : Widget, IContainer
         {
+#if ENABLE_RENDERING_DEBUGGER_UI
+            /// <inheritdoc/>
+            protected override VisualElement Create()
+            {
+                VisualElement container = new UIElements.VisualElement();
+                container.AddToClassList("debug-window-container");
+                if (!hideDisplayName)
+                {
+                    var label = new Label(displayName);
+                    label.AddToClassList("debug-window-container-displayname");
+                    container.Add(label);
+                }
+
+                var content = new VisualElement();
+                content.AddToClassList("debug-window-container-content");
+                AddChildren(content, m_Context);
+                container.Add(content);
+
+                return container;
+            }
+
+            /// <summary>
+            /// Adds all the children to the given container
+            /// </summary>
+            /// <param name="container">The container to insert elements</param>
+            /// <param name="context">The context where the widget is being added</param>
+            protected void AddChildren(VisualElement container, DebugUI.Context context)
+            {
+                for (int i = 0; i < children.Count; ++i)
+                {
+                    var child = children[i];
+
+                    if (context == Context.Editor && child.isRuntimeOnly)
+                        continue;
+                    if (context.IsAnyRuntimeContext() && child.isEditorOnly)
+                        continue;
+
+                    var childUIElement = child.ToVisualElement(context);
+                    if (childUIElement != null)
+                        container.Add(childUIElement);
+                }
+
+                // As the elements might change visibility, we need to update alternating background colors
+                if (alternateRowColors)
+                {
+                    this.ScheduleTracked(container, () => container.schedule.Execute(() =>
+                    {
+                        int i = 0;
+                        foreach (var child in container.Children())
+                        {
+                            if (child.style.display == DisplayStyle.Flex)
+                            {
+                                if (i % 2 != 0)
+                                    child.AddToClassList(k_AlternateRowColorClassName);
+                                else
+                                    child.RemoveFromClassList(k_AlternateRowColorClassName);
+
+                                ++i;
+                            }
+                        }
+                    }).Every(100));
+                }
+            }
+#endif
+
             const string k_IDToken = "#";
             internal bool hideDisplayName => string.IsNullOrEmpty(displayName) || displayName.StartsWith(k_IDToken);
 
@@ -20,6 +93,13 @@ namespace UnityEngine.Rendering
             /// List of children.
             /// </summary>
             public ObservableList<Widget> children { get; private set; }
+
+            const string k_AlternateRowColorClassName = "debug-window-row-alternate";
+
+            /// <summary>
+            /// Set to true to alternate background colors of the rows inside the container.
+            /// </summary>
+            public bool alternateRowColors { get; set; }
 
             /// <summary>
             /// Panel the container is attached to.
@@ -29,10 +109,6 @@ namespace UnityEngine.Rendering
                 get { return m_Panel; }
                 internal set
                 {
-                    /// Frequenlty used panels do now own widgets
-                    if (value != null && value.flags.HasFlag(DebugUI.Flags.FrequentlyUsed))
-                        return;
-
                     m_Panel = value;
 
                     // Bubble down
@@ -118,30 +194,133 @@ namespace UnityEngine.Rendering
                 if (m_Panel != null)
                     m_Panel.SetDirty();
             }
-
-            /// <summary>
-            /// Returns the hash code of the widget.
-            /// </summary>
-            /// <returns>Hash code of the widget.</returns>
-            public override int GetHashCode()
-            {
-                int hash = 17;
-                hash = hash * 23 + queryPath.GetHashCode();
-                hash = hash * 23 + isHidden.GetHashCode();
-
-                int numChildren = children.Count;
-                for (int i = 0; i < numChildren; i++)
-                    hash = hash * 23 + children[i].GetHashCode();
-
-                return hash;
-            }
         }
 
         /// <summary>
         /// Unity-like foldout that can be collapsed.
         /// </summary>
-        public class Foldout : Container, IValueField
+        public class Foldout : Container
+#pragma warning disable CS0618 // Type or member is obsolete
+            , IValueField
+#pragma warning restore CS0618 // Type or member is obsolete
         {
+
+#if ENABLE_RENDERING_DEBUGGER_UI
+
+            /// <inheritdoc/>
+            protected override VisualElement Create()
+            {
+                var container = new UIElements.Foldout { text = displayName };
+                if (m_Context == Context.Editor && (contextMenuItems != null || !string.IsNullOrEmpty(documentationUrl)))
+                {
+#if UNITY_EDITOR
+                    // Get Toggle element of the Foldout to be able to attach the help and menu buttons
+                    var toggleHeader = container.Q<Toggle>().ElementAt(0);
+                    if (!string.IsNullOrEmpty(documentationUrl))
+                    {
+                        var infoButton = new UIElements.Button((Background.FromTexture2D((Texture2D)EditorGUIUtility.TrIconContent("_Help").image )),() => Help.BrowseURL(documentationUrl));
+                        infoButton.AddToClassList("info-button");
+                        infoButton.tooltip = $"Open Reference for {displayName}.";
+                        toggleHeader.Add(infoButton);
+                    }
+                    if (contextMenuItems != null)
+                    {
+                        var button = new UIElements.Button();
+                        button.AddToClassList("more-options-button");
+
+                        var contextualMenu = new GenericDropdownMenu();
+                        foreach(var item in contextMenuItems)
+                        {
+                            contextualMenu.AddItem(item.displayName, false, item.action );
+                        }
+
+                        button.clicked += () =>
+                        {
+                            contextualMenu.DropDown(button.worldBound, button, DropdownMenuSizeMode.Auto);
+                        };
+
+                        toggleHeader.Add(button);
+                    }
+#endif
+                }
+
+                // Add special classes for styles
+                container.AddToClassList("debug-window-foldout");
+
+                // Update UI to match object's initial state
+                container.SetValueWithoutNotify(GetValue());
+
+                // Sync value to object when changed in UI
+                container.RegisterCallback<ChangeEvent<bool>>(evt =>
+                {
+                    SetValue(container.value);
+                });
+                // Sync value to object based on navigation events separately, because they don't trigger a ChangeEvent
+                container.RegisterCallback<NavigationMoveEvent>(evt =>
+                {
+                    if (DebugManager.instance.selectedWidget == this)
+                    {
+                        if (evt.direction == NavigationMoveEvent.Direction.Right)
+                            SetValue(true);
+                        else if (evt.direction == NavigationMoveEvent.Direction.Left)
+                            SetValue(false);
+                    }
+                }, TrickleDown.TrickleDown); // Foldout internally stops propagation so must use TrickleDown to see it
+
+                // Sync opened state from object to UI
+                this.ScheduleTracked(container, () => container.schedule.Execute(() =>
+                {
+                    container.SetValueWithoutNotify(GetValue());
+                }).Every(100));
+
+                if (columnLabels is { Length: > 0 })
+                {
+                    var columnLabelsValues = new DebugUI.Value[columnLabels.Length];
+
+                    for (int i = 0; i < columnLabels.Length; i++)
+                    {
+                        string value = columnLabels[i];
+                        object Getter() => value;
+                        columnLabelsValues[i] = new DebugUI.Value()
+                        {
+                            displayName = string.Empty,
+                            getter = Getter
+                        };
+                    }
+
+                    var header = new DebugUI.ValueTuple()
+                    {
+                        displayName = string.Empty,
+                        isHeader = true,
+                        values = columnLabelsValues
+                    };
+
+                    container.Add(header.ToVisualElement(m_Context));
+
+                    container.RegisterCallback<GeometryChangedEvent>(evt =>
+                    {
+                        var numColumns = columnLabels.Length;
+                        foreach (var visualElement in container.Children())
+                        {
+                            var width = (evt.newRect.width - ValueTuple.GetLabelWidth(m_Context)) / numColumns;
+                            int i = 0;
+                            foreach (var child in visualElement.Children())
+                            {
+                                if (i != 0)
+                                    child.style.width = width;
+
+                                ++i;
+                            }
+                        }
+                    });
+                }
+
+                AddChildren(container, m_Context);
+
+                return container;
+            }
+#endif
+
             /// <summary>
             /// Context menu item.
             /// </summary>
@@ -163,10 +342,27 @@ namespace UnityEngine.Rendering
             /// </summary>
             public bool isReadOnly { get { return false; } }
 
+            bool m_Opened;
+
             /// <summary>
             /// Opened state of the foldout.
             /// </summary>
-            public bool opened { get; set; }
+            public bool opened
+            {
+                get => m_Opened;
+                set
+                {
+                    if (opened != value)
+                    {
+#if ENABLE_RENDERING_DEBUGGER_UI
+                        if (m_VisualElement != null)
+                            DebugManager.instance.schedulerTracker.SetHierarchyEnabled(m_Context, this, value);
+
+#endif
+                        m_Opened = value;
+                    }
+                }
+            }
 
             /// <summary>
             /// Draw the foldout in full width using a header style.
@@ -287,6 +483,7 @@ namespace UnityEngine.Rendering
             /// Set the opened state of the foldout.
             /// </summary>
             /// <param name="value">True to open the foldout, false to close it.</param>
+            [Obsolete("This method is no longer used. #from(6000.5)")]
             public void SetValue(object value) => SetValue((bool)value);
 
             /// <summary>
@@ -294,6 +491,7 @@ namespace UnityEngine.Rendering
             /// </summary>
             /// <param name="value">Input value.</param>
             /// <returns>The validated value.</returns>
+            [Obsolete("This method is no longer used. #from(6000.5)")]
             public object ValidateValue(object value) => value;
 
             /// <summary>
@@ -301,16 +499,6 @@ namespace UnityEngine.Rendering
             /// </summary>
             /// <param name="value">Input value.</param>
             public void SetValue(bool value) => opened = value;
-
-            void IValueField.SetValue(object value)
-            {
-                SetValue((bool)ValidateValue(value));
-            }
-
-            object IValueField.ValidateValue(object value)
-            {
-                return (bool)value;
-            }
         }
 
         /// <summary>
@@ -346,22 +534,131 @@ namespace UnityEngine.Rendering
         /// </summary>
         public class Table : Container
         {
-            static GUIStyle columnHeaderStyle = new GUIStyle()
+#if ENABLE_RENDERING_DEBUGGER_UI
+            /// <inheritdoc/>
+            protected override VisualElement Create()
             {
-                alignment = TextAnchor.MiddleCenter
-            };
+                var container = new UIElements.VisualElement();
+                container.AddToClassList("debug-window-table");
+
+                using (ListPool<string>.Get(out var tmp))
+                {
+                    if (children.Count != 0 && children[0] is Row row)
+                    {
+                        foreach (var child in row.children)
+                            tmp.Add(child.displayName);
+                    }
+
+                    var columnLabelsValues = new DebugUI.Value[tmp.Count];
+                    for (int i = 0; i < columnLabelsValues.Length; i++)
+                    {
+                        string value = tmp[i];
+                        object Getter() => value;
+                        columnLabelsValues[i] = new DebugUI.Value()
+                        {
+                            displayName = string.Empty,
+                            getter = Getter
+                        };
+                    }
+
+                    var header = new DebugUI.ValueTuple()
+                    {
+                        displayName = string.Empty,
+                        isHeader = true,
+                        values = columnLabelsValues
+                    };
+
+                    var headerVisualElement = header.ToVisualElement(m_Context);
+                    headerVisualElement.AddToClassList("debug-window-table-header-row");
+
+                    foreach (var headerElement in headerVisualElement.Children())
+                        headerElement.AddToClassList("debug-window-table-header-cell");
+
+                    container.Add(headerVisualElement);
+
+                    // NOTE: Current implementation constructs the table cells from individual elements, so cell width needs to be
+                    // set manually like this. This is necessary because of the DebugUI.Table/Row structure, which is why we can't use
+                    // a proper table.
+                    container.RegisterCallback<GeometryChangedEvent>(evt =>
+                    {
+                        var numColumns = columnLabelsValues.Length;
+                        var availableWidth = evt.newRect.width;
+                        if (displayRowNames)
+                            availableWidth -= ValueTuple.GetLabelWidth(m_Context);
+                        var width = availableWidth / numColumns;
+
+                        foreach (var visualElement in container.Children())
+                        {
+                            int i = 0;
+                            foreach (var child in visualElement.Children())
+                            {
+                                if (i == 0)
+                                    child.style.display = displayRowNames ? DisplayStyle.Flex : DisplayStyle.None;
+                                else
+                                    child.style.width = width;
+                                ++i;
+                            }
+                        }
+                    });
+                }
+
+                AddChildren(container, m_Context);
+
+                container.enabledSelf = !isReadOnly;
+
+                return container;
+            }
+#endif
 
             /// <summary>Row Container.</summary>
-            public class Row : Foldout
+            public class Row : Container
             {
                 /// <summary>Constructor.</summary>
                 public Row() { displayName = "Row"; }
+
+                /// <summary>Opened state of the row. No longer used.</summary>
+                [Obsolete("This class no longer inherits from Foldout, but from Container. This field is kept for compatibility but it no longer does anything. #from(6000.5)")]
+                public bool opened { get; set; }
+
+#if ENABLE_RENDERING_DEBUGGER_UI
+                /// <inheritdoc/>
+                protected override VisualElement Create()
+                {
+                    var rowContainer = new UIElements.VisualElement();
+                    rowContainer.AddToClassList("debug-window-table-row");
+
+                    var label = new Label(displayName) { style = { width = ValueTuple.GetLabelWidth(m_Context) }, };
+                    label.AddToClassList("debug-window-table-row-displayname");
+                    rowContainer.Add(label);
+
+                    foreach (var c in children)
+                    {
+                        c.keepLayoutWhenHidden = true;
+                        var rowElement = c.ToVisualElement(m_Context);
+                        rowElement.AddToClassList("debug-window-table-cell");
+
+                        // In Table layout we don't want to show the labels of DebugUI.Values
+                        var valueLabel = rowElement.Q<Label>(className: "debug-window-value-name");
+                        if (valueLabel != null)
+                            valueLabel.style.display = DisplayStyle.None;
+
+                        rowContainer.Add(rowElement);
+                    }
+
+                    return rowContainer;
+                }
+#endif
             }
 
             /// <summary>
             /// True if the table is read only.
             /// </summary>
             public bool isReadOnly = false;
+
+            /// <summary>
+            /// Set to false to hide the first column containing the row names
+            /// </summary>
+            public bool displayRowNames = true;
 
             /// <summary>Constructor.</summary>
             public Table() { displayName = "Array"; }
@@ -371,6 +668,7 @@ namespace UnityEngine.Rendering
             /// </summary>
             /// <param name="index">Index of the column.</param>
             /// <param name="visible">True if the column should be visible.</param>
+            [Obsolete("This method is no longer used. #from(6000.5)")]
             public void SetColumnVisibility(int index, bool visible)
             {
 #if UNITY_EDITOR
@@ -412,6 +710,7 @@ namespace UnityEngine.Rendering
             /// </summary>
             /// <param name="index">Index of the column.</param>
             /// <returns>True if the column is visible.</returns>
+            [Obsolete("This method is no longer used. #from(6000.5)")]
             public bool GetColumnVisibility(int index)
             {
 #if UNITY_EDITOR
@@ -433,6 +732,7 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// The scroll position of the table.
             /// </summary>
+            [Obsolete("This property is no longer used. #from(6000.5)")]
             public Vector2 scroll = Vector2.zero;
 
             int m_ColumnCount;
@@ -441,6 +741,7 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// The table header for drawing
             /// </summary>
+            [Obsolete("This property is no longer used. #from(6000.5)")]
             public UnityEditor.IMGUI.Controls.MultiColumnHeader Header
             {
                 get
@@ -470,7 +771,7 @@ namespace UnityEngine.Rendering
                             headerContent = new GUIContent(name, tooltip ?? string.Empty)
                         };
 
-                        columnHeaderStyle.CalcMinMaxWidth(col.headerContent, out col.width, out float _);
+                        //columnHeaderStyle.CalcMinMaxWidth(col.headerContent, out col.width, out float _);
                         col.width = Mathf.Min(col.width, 50f);
                         return col;
                     }
@@ -496,6 +797,7 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// The visible columns
             /// </summary>
+            [Obsolete("This property is no longer used. #from(6000.5)")]
             public bool[] VisibleColumns
             {
                 get

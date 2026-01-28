@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering
             static void UpdateRealtimeSubdivisionDebug()
             {
                 var debugDisplay = ProbeReferenceVolume.instance.probeVolumeDebug;
-                if (!debugDisplay.realtimeSubdivision)
+                if (debugDisplay == null || !debugDisplay.realtimeSubdivision)
                     return;
 
                 // Avoid killing the GPU when Unity is in background and runInBackground is disabled

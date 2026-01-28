@@ -1,0 +1,108 @@
+:root {
+}
+
+/* Lateral Tab Panel */
+
+#debug-window-tab-panel {
+    align-items: stretch;
+    min-width: 120px;
+}
+
+.debug-window-tab-item {
+    padding-bottom: 4px;
+    padding-left: 15px;
+    padding-top: 2px;
+}
+
+/* Main Tab Panel Content */
+
+#debug-window-tab-container {
+    min-width: 300px;
+    align-items: stretch;
+    flex-wrap: nowrap;
+    flex-grow: 1;
+}
+
+.debug-window-tab-content {
+    padding-right: 5px;
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
+
+/* Align content of the foldouts with the text */
+.debug-window-foldout>.unity-foldout__content {
+    margin: 0px 4px 8px 6px;
+}
+
+.selected {
+    background-color: var(--unity-colors-highlight-background-inactive);
+}
+.selected:focus {
+     background-color: var(--unity-colors-highlight-background);
+ }
+
+
+.debug-window-colorfield.debug-window-table-cell {
+    padding: 0px 0px 0px 0px;
+    margin: 0px 0px 0px 0px;
+}
+
+.debug-window-messagebox {
+    margin: 1px 0px;
+}
+
+/* Compensate from editor stylesheet, Z-input no margin-right, Vector4 needs no margin-right and add the lost margin-left*/
+#unity-w-input.unity-composite-field__field {
+    margin-right: 0px;
+    margin-left: 4px;
+}
+
+
+/* Header Foldout */
+
+.debug-window-foldout > .unity-foldout__toggle {
+    border-width: 1px 0px 1px 0px;
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    border-top-color: var(--unity-colors-default-border);
+    border-bottom-color: var(--unity-colors-inspector_titlebar-border_accent);
+    background-color: var(--unity-colors-inspector_titlebar-background);
+}
+
+.debug-window-foldout > .unity-foldout__toggle:hover {
+    background-color: var(--unity-colors-inspector_titlebar-background-hover);
+}
+
+.debug-window-foldout > .unity-foldout__toggle > .unity-toggle__input > .unity-toggle__checkmark
+{
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.more-options-button {
+    background-image: var(--unity-icons-pane_options);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-color: transparent;
+    border-color: transparent;
+    width: 16px;
+    margin: 0px 4px 0px 0px !important;
+    padding: 0px 0px 0px 0px !important;
+}
+
+.more-options-button:hover {
+    background-color: var(--unity-colors-button-background-hover);
+}
+
+.info-button {
+    background-color: transparent;
+    border-color: transparent;
+    width: 24px;
+    margin: 0px 4px 0px 0px !important;
+    padding: 0px 0px 0px 0px !important;
+}
+
+.info-button:hover {
+    background-color: var(--unity-colors-button-background-hover);
+}

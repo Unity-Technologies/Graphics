@@ -34,14 +34,21 @@ namespace UnityEditor.Rendering
         /// </summary>
         public List<RenderPipelineAsset> renderPipelineAssets { get; private set; } = new();
 
+        /// <summary>
+        /// Whether the build is a development build or not.
+        /// </summary>
+        public bool developmentBuild { get; private set; } = false;
+
         internal Dictionary<EntityId, ComputeShader> computeShaderCache { get; private set; } = new();
 
         internal bool pipelineSupportGPUResidentDrawer { get; private set; } = false;
         internal bool playerNeedGPUResidentDrawer { get; private set; } = false;
 
-        private CoreBuildData(BuildTarget buildTarget)
+        private CoreBuildData(BuildTarget buildTarget, bool development)
         {
             m_Instance = this;
+
+            developmentBuild = development;
 
             if (!buildTarget.TryGetRenderPipelineAssets(renderPipelineAssets))
                 return;
@@ -56,7 +63,7 @@ namespace UnityEditor.Rendering
         }
 
         private static CoreBuildData CreateInstance()
-            => new(EditorUserBuildSettings.activeBuildTarget);
+            => new(EditorUserBuildSettings.activeBuildTarget, EditorUserBuildSettings.development);
 
         private void CheckGPUResidentDrawerUsage()
         {

@@ -1,41 +1,80 @@
+using System;
+using System.Collections.Generic;
+
 namespace UnityEngine.Rendering.Universal
 {
-    class DebugDisplaySettingsCommon : IDebugDisplaySettingsData
+    [Serializable]
+    class DebugDisplaySettingsCommon : IDebugDisplaySettingsData, ISerializedDebugDisplaySettings
     {
         [DisplayInfo(name = "Frequently Used", order = -1)]
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
-            const string k_GoToSectionString = "Go to Section...";
 
-            public override DebugUI.Flags Flags => DebugUI.Flags.FrequentlyUsed;
+            DebugUI.Foldout.ContextMenuItem AddGoToSectionContextMenuItem(string panelName)
+            {
+                return new DebugUI.Foldout.ContextMenuItem
+                {
+                    displayName = $"Open {panelName} Tab...",
+                    action = () =>
+                    {
+                        DebugManager.instance.RequestEditorWindowPanel(panelName);
+                    }
+                };
+            }
 
             public SettingsPanel()
             {
                 AddWidget(new DebugUI.RuntimeDebugShadersMessageBox());
 
-                foreach (var widget in DebugManager.instance.GetItems(DebugUI.Flags.FrequentlyUsed))
+                var debugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
+                var renderingSettingsData = debugDisplaySettings.renderingSettings;
+                AddWidget(new DebugUI.Foldout
                 {
-                    if (widget is DebugUI.Foldout foldout)
+                    displayName = "Rendering Debug",
+                    isHeader = true,
+                    opened = true,
+                    children =
                     {
-                        if (foldout.contextMenuItems == null)
-                            foldout.contextMenuItems = new();
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateMapOverlays(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateStpDebugViews(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateMapOverlaySize(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateHDR(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateMSAA(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreatePostProcessing(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateAdditionalWireframeShaderViews(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateWireframeNotSupportedWarning(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateOverdrawMode(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateMaxOverdrawCount(renderingSettingsData),
+                    },
+                    contextMenuItems = new List<DebugUI.Foldout.ContextMenuItem> { AddGoToSectionContextMenuItem("Rendering") }
+                });
 
-                        foldout.contextMenuItems.Add(new DebugUI.Foldout.ContextMenuItem
-                        {
-                            displayName = k_GoToSectionString,
-                            action = () =>
-                            {
-                                var debugManger = DebugManager.instance;
-                                var panelIndex = debugManger.PanelIndex(foldout.panel.displayName);
-                                if (panelIndex >= 0)
-                                    DebugManager.instance.RequestEditorWindowPanelIndex(panelIndex);
-                            }
-                        });
-                    }
+                var materialSettingsData = debugDisplaySettings.materialSettings;
+                AddWidget(new DebugUI.Foldout
+                {
+                    displayName = "Material Filters",
+                    isHeader = true,
+                    opened = true,
+                    children =
+                    {
+                        DebugDisplaySettingsMaterial.WidgetFactory.CreateMaterialOverride(materialSettingsData)
+                    },
+                    contextMenuItems = new List<DebugUI.Foldout.ContextMenuItem> { AddGoToSectionContextMenuItem("Material") }
+                });
 
-                    AddWidget(widget);
-                }
-
+                var lightingSettingsData = debugDisplaySettings.lightingSettings;
+                AddWidget(new DebugUI.Foldout
+                {
+                    displayName = "Lighting Debug Modes",
+                    isHeader = true,
+                    opened = true,
+                    children =
+                    {
+                        DebugDisplaySettingsLighting.WidgetFactory.CreateLightingDebugMode(lightingSettingsData),
+                        DebugDisplaySettingsLighting.WidgetFactory.CreateLightingFeatures(lightingSettingsData)
+                    },
+                    contextMenuItems = new List<DebugUI.Foldout.ContextMenuItem> { AddGoToSectionContextMenuItem("Lighting") }
+                });
             }
         }
 

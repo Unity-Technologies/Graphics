@@ -102,8 +102,6 @@ public class DebugViewController : MonoBehaviour
 
     void OnDestroy()
     {
-        HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-        if (hdPipeline != null)
-            ((IDebugData)hdPipeline.debugDisplaySettings).GetReset().Invoke();
+        DebugManager.instance.Reset();
     }
 }

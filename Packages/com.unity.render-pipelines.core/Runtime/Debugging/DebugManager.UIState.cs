@@ -1,22 +1,11 @@
-#if ENABLE_UGUI_PACKAGE && (UNITY_EDITOR || DEVELOPMENT_BUILD)
+#if ENABLE_UIELEMENTS_MODULE && (UNITY_EDITOR || DEVELOPMENT_BUILD)
 #define ENABLE_RENDERING_DEBUGGER_UI
 #endif
 
 using System;
-using System.Diagnostics;
-
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-
-#if ENABLE_RENDERING_DEBUGGER_UI
-using UnityEngine.UI;
-using UnityEngine.Rendering.UI;
-#endif
 
 namespace UnityEngine.Rendering
 {
-    using UnityObject = UnityEngine.Object;
 
     public sealed partial class DebugManager
     {
@@ -99,41 +88,37 @@ namespace UnityEngine.Rendering
         public bool displayRuntimeUI
         {
 #if ENABLE_RENDERING_DEBUGGER_UI
-            get => m_Root != null && m_Root.activeInHierarchy;
+            get => m_RuntimeDebugWindow != null && m_RuntimeDebugWindow.gameObject.activeInHierarchy;
             set
             {
                 if (value)
                 {
-                    m_Root = UnityObject.Instantiate(Resources.Load<Transform>("DebugUICanvas")).gameObject;
-                    m_Root.name = "[Debug Canvas]";
-                    m_Root.transform.localPosition = Vector3.zero;
-                    m_RootUICanvas = m_Root.GetComponent<DebugUIHandlerCanvas>();
-
-#if UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_SWITCH || UNITY_SWITCH2
-                    var canvasScaler = m_Root.GetComponent<CanvasScaler>();
-                    canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-#endif
-
-                    m_Root.SetActive(true);
+                    if (m_RuntimeDebugWindow == null && GraphicsSettings.TryGetRenderPipelineSettings<RenderingDebuggerRuntimeResources>(out _))
+                    {
+                        var go = new GameObject("[Debug UI]");
+                        m_RuntimeDebugWindow = go.AddComponent<RuntimeDebugWindow>();
+                        go.SetActive(true);
+                    }
                 }
                 else
                 {
-                    CoreUtils.Destroy(m_Root);
-                    m_Root = null;
-                    m_RootUICanvas = null;
+                    if (m_RuntimeDebugWindow != null)
+                    {
+                        CoreUtils.Destroy(m_RuntimeDebugWindow.gameObject);
+                        m_RuntimeDebugWindow = null;
+                    }
                 }
 
                 onDisplayRuntimeUIChanged(value);
-                DebugUpdater.HandleInternalEventSystemComponents(value);
 
-                runtimeUIState.open = m_Root != null && m_Root.activeInHierarchy;
+                runtimeUIState.open = m_RuntimeDebugWindow != null && m_RuntimeDebugWindow.gameObject.activeInHierarchy;
             }
 #else
             get => false;
             set
             {
                 if (value)
-                    throw new NotSupportedException("Rendering Debugger Runtime UI requires the ugui package.");
+                    throw new NotSupportedException("Rendering Debugger Runtime UI requires the UIElements module.");
             }
 #endif
         }
@@ -144,18 +129,22 @@ namespace UnityEngine.Rendering
         public bool displayPersistentRuntimeUI
         {
 #if ENABLE_RENDERING_DEBUGGER_UI
-            get => m_RootUIPersistentCanvas != null && m_PersistentRoot.activeInHierarchy;
+            get => m_RuntimePersistentDebugUI != null && m_RuntimePersistentDebugUI.gameObject.activeInHierarchy;
             set
             {
                 if (value)
                 {
-                    EnsurePersistentCanvas();
+                    if (m_RuntimePersistentDebugUI == null && GraphicsSettings.TryGetRenderPipelineSettings<RenderingDebuggerRuntimeResources>(out _))
+                    {
+                        var go = new GameObject("[Persistent Debug UI]");
+                        m_RuntimePersistentDebugUI = go.AddComponent<RuntimePersistentDebugUI>();
+                        go.SetActive(true);
+                    }
                 }
                 else
                 {
-                    CoreUtils.Destroy(m_PersistentRoot);
-                    m_PersistentRoot = null;
-                    m_RootUIPersistentCanvas = null;
+                    CoreUtils.Destroy(m_RuntimePersistentDebugUI.gameObject);
+                    m_RuntimePersistentDebugUI = null;
                 }
             }
 #else
@@ -163,7 +152,7 @@ namespace UnityEngine.Rendering
             set
             {
                 if (value)
-                    throw new NotSupportedException("Rendering Debugger Runtime UI requires the ugui package.");
+                    throw new NotSupportedException("Rendering Debugger Runtime UI requires the UIElements module.");
             }
 #endif
         }

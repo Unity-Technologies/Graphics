@@ -209,6 +209,8 @@ namespace UnityEngine.Rendering
 
         internal static void PushLODGroupDeletionBatches(NativeArray<NativeArray<EntityId>> batches) => s_Instance.m_WorldProcessor.PushLODGroupDeletionBatch(batches);
 
+        internal static DebugDisplayGPUResidentDrawer debugDisplaySettings => s_Instance?.m_DebugDisplaySettings;
+
         private void InsertIntoPlayerLoop()
         {
             var rootLoop = LowLevel.PlayerLoop.GetCurrentPlayerLoop();
@@ -380,6 +382,8 @@ namespace UnityEngine.Rendering
         internal WorldProcessor m_WorldProcessor;
 
         internal GPUResidentDrawerSettings settings => m_Settings;
+
+        private DebugDisplayGPUResidentDrawer m_DebugDisplaySettings = null;
 
 #if UNITY_EDITOR
         private static readonly bool s_IsForcedOnViaCommandLine;
@@ -591,6 +595,9 @@ namespace UnityEngine.Rendering
 #endif
                 m_SpeedTreeWindGPUDataUpdater.OnBeginContextRendering();
             }
+
+            if (m_DebugDisplaySettings == null)
+                m_DebugDisplaySettings = DebugDisplaySerializer.Get<DebugDisplayGPUResidentDrawer>();
         }
 
         private void OnEndContextRendering(ScriptableRenderContext context, List<Camera> cameras)

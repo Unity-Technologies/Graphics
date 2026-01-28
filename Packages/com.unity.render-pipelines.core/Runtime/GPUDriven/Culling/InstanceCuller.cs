@@ -2216,7 +2216,7 @@ namespace UnityEngine.Rendering
                 cullingJobHandle = ScheduleCompactedVisibilityMaskJob(renderWorld, rendererVisibilityMasks, cullingJobHandle);
 
                 int debugCounterBaseIndex = -1;
-                if (m_DebugStats?.enabled ?? false)
+                if (GPUResidentDrawer.debugDisplaySettings?.displayBatcherStats ?? false)
                 {
                     debugCounterBaseIndex = m_SplitDebugArray.TryAddSplits(context.viewType, context.viewID.GetEntityId(), context.cullingSplits.Length);
                 }
@@ -2471,7 +2471,7 @@ namespace UnityEngine.Rendering
 #endif
         public void InstanceOccludersUpdated(EntityId viewID, int subviewMask, OcclusionCullingCommon occlusionCullingCommon)
         {
-            if (m_DebugStats?.enabled ?? false)
+            if (GPUResidentDrawer.debugDisplaySettings?.displayBatcherStats ?? false)
             {
                 bool hasOccluders = occlusionCullingCommon.GetOccluderContext(viewID, out OccluderContext occluderCtx);
                 if (hasOccluders)
@@ -2706,7 +2706,7 @@ namespace UnityEngine.Rendering
                     if (!allocInfo.IsEmpty())
                     {
                         int debugCounterIndex = -1;
-                        if (m_DebugStats?.enabled ?? false)
+                        if (GPUResidentDrawer.debugDisplaySettings?.displayBatcherStats ?? false)
                         {
                             debugCounterIndex = m_OcclusionEventDebugArray.TryAdd(
                                 settings.viewInstanceID,
@@ -2797,7 +2797,7 @@ namespace UnityEngine.Rendering
 
         private void FlushDebugCounters()
         {
-            if (m_DebugStats?.enabled ?? false)
+            if (GPUResidentDrawer.debugDisplaySettings?.displayBatcherStats ?? false)
             {
                 m_SplitDebugArray.MoveToDebugStatsAndClear(m_DebugStats);
                 m_OcclusionEventDebugArray.MoveToDebugStatsAndClear(m_DebugStats);

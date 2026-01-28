@@ -1,5 +1,12 @@
+#if ENABLE_UIELEMENTS_MODULE && (UNITY_EDITOR || DEVELOPMENT_BUILD)
+#define ENABLE_RENDERING_DEBUGGER_UI
+#endif
+
 using System;
-using static UnityEngine.Rendering.DebugUI;
+
+#if ENABLE_RENDERING_DEBUGGER_UI
+using UnityEngine.UIElements;
+#endif
 
 namespace UnityEngine.Rendering
 {
@@ -12,6 +19,39 @@ namespace UnityEngine.Rendering
         /// </summary>
         public class Panel : IContainer, IComparable<Panel>
         {
+#if ENABLE_RENDERING_DEBUGGER_UI
+            /// <inheritdoc/>
+            public VisualElement Create(DebugUI.Context context)
+            {
+                VisualElement container = new GroupBox()
+                {
+                    text = displayName,
+                    name = displayName + "_Content"
+                };
+
+                var label = container.Q<Label>(className:"unity-group-box__label");
+                label.AddToClassList("debug-window-header-title");
+                container.AddToClassList("debug-window-tab-content");
+                container.AddToClassList("unity-inspector-element");
+
+                var content = new VisualElement();
+                foreach (var child in children)
+                {
+                    if (context == Context.Editor && child.isRuntimeOnly)
+                        continue;
+                    if (context.IsAnyRuntimeContext() && child.isEditorOnly)
+                        continue;
+
+                    var childUIElement = child.ToVisualElement(context);
+                    if (childUIElement != null)
+                        content.Add(childUIElement);
+                }
+                container.Add(content);
+
+                return container;
+            }
+#endif
+
             /// <summary>
             /// Widget flags for this panel.
             /// </summary>
@@ -44,7 +84,8 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// Returns true if the panel should always be updated.
             /// </summary>
-            public bool editorForceUpdate { get { return (flags & Flags.EditorForceUpdate) != 0; } }
+            [Obsolete("This is no longer used. #from(6000.5)")]
+            public bool editorForceUpdate => false;
 
             /// <summary>
             /// List of children.
@@ -54,7 +95,7 @@ namespace UnityEngine.Rendering
             /// Callback used when the panel is set dirty.
             /// </summary>
             public event Action<Panel> onSetDirty = delegate { };
-            
+
 #if UNITY_EDITOR
             public string documentationUrl { get; set; }
 #endif
@@ -111,23 +152,6 @@ namespace UnityEngine.Rendering
                     children[i].GenerateQueryPath();
 
                 onSetDirty(this);
-            }
-
-            /// <summary>
-            /// Returns the hash code of the panel.
-            /// </summary>
-            /// <returns>Hash code of the panel.</returns>
-            public override int GetHashCode()
-            {
-                int hash = 17;
-                hash = hash * 23 + displayName.GetHashCode();
-
-
-                int numChildren = children.Count;
-                for (int i = 0; i < numChildren; i++)
-                    hash = hash * 23 + children[i].GetHashCode();
-
-                return hash;
             }
 
             /// <summary>

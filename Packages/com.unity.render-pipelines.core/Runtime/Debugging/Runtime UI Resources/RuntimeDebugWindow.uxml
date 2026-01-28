@@ -1,0 +1,12 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance"
+    engine="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd">
+    <ui:VisualElement name="debug-window">
+        <ui:HelpBox text="No debug items found." name="no-debug-items-message" />
+        <ui:VisualElement name="content-container">
+            <ui:TabView name="debug-window-tabview"/>
+            <ui:VisualElement name="toolbar">
+                <ui:Button text="Reset" name="btn-reset" focusable="false" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

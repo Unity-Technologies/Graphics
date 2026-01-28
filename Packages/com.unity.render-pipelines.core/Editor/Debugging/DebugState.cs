@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering
     /// Serialized state of a Debug Item.
     /// </summary>
     [Serializable]
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     public abstract class DebugState : ScriptableObject
     {
         /// <summary>
@@ -58,6 +59,7 @@ namespace UnityEditor.Rendering
     /// </summary>
     /// <typeparam name="T">The type of the Debug Item.</typeparam>
     [Serializable]
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     public class DebugState<T> : DebugState
     {
         /// <summary>
@@ -115,6 +117,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Attribute specifying which types should be save as this Debug State.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     public sealed class DebugStateAttribute : Attribute
     {
         internal readonly Type[] types;
@@ -133,12 +136,14 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Boolean Debug State.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [Serializable, DebugState(typeof(DebugUI.BoolField), typeof(DebugUI.Foldout), typeof(DebugUI.HistoryBoolField))]
     public sealed class DebugStateBool : DebugState<bool> { }
 
     /// <summary>
     /// Enums Debug State.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [Serializable, DebugState(typeof(DebugUI.EnumField), typeof(DebugUI.HistoryEnumField))]
     public sealed class DebugStateEnum : DebugState<int>
     {
@@ -173,12 +178,14 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Integer Debug State.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [Serializable, DebugState(typeof(DebugUI.IntField))]
     public sealed class DebugStateInt : DebugState<int> { }
 
     /// <summary>
     /// Object Debug State.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [Serializable, DebugState(typeof(DebugUI.ObjectPopupField), typeof(DebugUI.CameraSelector), typeof(DebugUI.ObjectField))]
     public sealed class DebugStateObject : DebugState<UnityEngine.Object>
     {
@@ -235,6 +242,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Flags Debug State.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [Serializable, DebugState(typeof(DebugUI.BitField))]
     public sealed class DebugStateFlags : DebugState<Enum>
     {
@@ -266,42 +274,49 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Unsigned Integer Debug State.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [Serializable, DebugState(typeof(DebugUI.UIntField))]
     public sealed class DebugStateUInt : DebugState<uint> { }
 
     /// <summary>
     /// Rendering layer mask state.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [Serializable, DebugState(typeof(DebugUI.RenderingLayerField))]
     public sealed class DebugStateRenderingLayer : DebugState<RenderingLayerMask> { }
 
     /// <summary>
     /// Float Debug State.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [Serializable, DebugState(typeof(DebugUI.FloatField))]
     public sealed class DebugStateFloat : DebugState<float> { }
 
     /// <summary>
     /// Color Debug State.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [Serializable, DebugState(typeof(DebugUI.ColorField))]
     public sealed class DebugStateColor : DebugState<Color> { }
 
     /// <summary>
     /// Vector2 Debug State.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [Serializable, DebugState(typeof(DebugUI.Vector2Field))]
     public sealed class DebugStateVector2 : DebugState<Vector2> { }
 
     /// <summary>
     /// Vector3 Debug State.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [Serializable, DebugState(typeof(DebugUI.Vector3Field))]
     public sealed class DebugStateVector3 : DebugState<Vector3> { }
 
     /// <summary>
     /// Vector4 Debug State.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [Serializable, DebugState(typeof(DebugUI.Vector4Field))]
     public sealed class DebugStateVector4 : DebugState<Vector4> { }
 }

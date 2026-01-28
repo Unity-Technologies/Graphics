@@ -21,11 +21,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public MatCapModeEditorPreferences()
             {
-                mixAlbedo.value = EditorPrefs.GetBool(Keys.matcapViewMixAlbedo, true);
-                mixAlbedo.onValueChanged += value => EditorPrefs.SetBool(Keys.matcapViewMixAlbedo, value);
-
-                viewScale.value = EditorPrefs.GetFloat(Keys.matcapViewScale, 1.0f);
-                viewScale.onValueChanged += value => EditorPrefs.SetFloat(Keys.matcapViewScale, value);
+                // EditorPrefs is not allowed to be called from a ScriptableObject constructor
+                EditorApplication.delayCall += () =>
+                {
+                    mixAlbedo.value = EditorPrefs.GetBool(Keys.matcapViewMixAlbedo, true);
+                    viewScale.value = EditorPrefs.GetFloat(Keys.matcapViewScale, 1.0f);
+                    mixAlbedo.onValueChanged += value => EditorPrefs.SetBool(Keys.matcapViewMixAlbedo, value);
+                    viewScale.onValueChanged += value => EditorPrefs.SetFloat(Keys.matcapViewScale, value);
+                };
             }
         }
 

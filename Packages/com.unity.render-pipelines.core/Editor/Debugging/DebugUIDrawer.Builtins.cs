@@ -9,6 +9,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for Value Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.Value))]
     public sealed class DebugUIDrawerValue : DebugUIWidgetDrawer<DebugUI.Value>
     {
@@ -27,6 +28,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for ValueTuple Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.ValueTuple))]
     public sealed class DebugUIDrawerValueTuple : DebugUIWidgetDrawer<DebugUI.ValueTuple>
     {
@@ -48,13 +50,13 @@ namespace UnityEditor.Rendering
             for (int i = 0; i < field.numElements; i++)
             {
                 var columnRect = drawRect;
-                columnRect.x += EditorGUIUtility.labelWidth + i * DebugWindow.Styles.foldoutColumnWidth;
-                columnRect.width = DebugWindow.Styles.foldoutColumnWidth;
+                columnRect.x += EditorGUIUtility.labelWidth + i * LegacyStyles.foldoutColumnWidth;
+                columnRect.width = LegacyStyles.foldoutColumnWidth;
                 var value = field.values[i].GetValue();
 
                 var style = EditorStyles.label;
                 if (Convert.ToSingle(value) == 0)
-                    style = DebugWindow.Styles.labelWithZeroValueStyle;
+                    style = LegacyStyles.labelWithZeroValueStyle;
 
                 EditorGUI.LabelField(columnRect, field.values[i].FormatString(value), style);
             }
@@ -65,6 +67,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for ProgressBarValue Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.ProgressBarValue))]
     public sealed class DebugUIDrawerProgressBarValue : DebugUIWidgetDrawer<DebugUI.ProgressBarValue>
     {
@@ -85,6 +88,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for Button Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.Button))]
     public sealed class DebugUIDrawerButton : DebugUIWidgetDrawer<DebugUI.Button>
     {
@@ -108,6 +112,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for Boolean Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.BoolField))]
     public sealed class DebugUIDrawerBoolField : DebugUIFieldDrawer<bool, DebugUI.BoolField, DebugStateBool>
     {
@@ -128,6 +133,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for History Boolean Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.HistoryBoolField))]
     public sealed class DebugUIDrawerHistoryBoolField : DebugUIFieldDrawer<bool, DebugUI.HistoryBoolField, DebugStateBool>
     {
@@ -168,6 +174,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for Integer Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.IntField))]
     public sealed class DebugUIDrawerIntField : DebugUIFieldDrawer<int, DebugUI.IntField, DebugStateInt>
     {
@@ -190,6 +197,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for Unsigned Integer Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.UIntField))]
     public sealed class DebugUIDrawerUIntField : DebugUIFieldDrawer<uint, DebugUI.UIntField, DebugStateUInt>
     {
@@ -215,6 +223,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for Float Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.FloatField))]
     public sealed class DebugUIDrawerFloatField : DebugUIFieldDrawer<float, DebugUI.FloatField, DebugStateFloat>
     {
@@ -237,6 +246,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for Enum Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.EnumField))]
     public sealed class DebugUIDrawerEnumField : DebugUIFieldDrawer<int, DebugUI.EnumField, DebugStateEnum>
     {
@@ -274,6 +284,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for Object Popup Fields Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.ObjectPopupField))]
     public sealed class DebugUIDrawerObjectPopupField : DebugUIFieldDrawer<UnityEngine.Object, DebugUI.ObjectPopupField, DebugStateObject>
     {
@@ -339,6 +350,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for History Enum Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.HistoryEnumField))]
     public sealed class DebugUIDrawerHistoryEnumField : DebugUIFieldDrawer<int, DebugUI.HistoryEnumField, DebugStateEnum>
     {
@@ -398,6 +410,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for Bitfield Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.BitField))]
     public sealed class DebugUIDrawerBitField : DebugUIFieldDrawer<Enum, DebugUI.BitField, DebugStateFlags>
     {
@@ -427,6 +440,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for Maskfield Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.RenderingLayerField))]
     public sealed class DebugUIDrawerRenderingLayerField : DebugUIFieldDrawer<RenderingLayerMask, DebugUI.RenderingLayerField, DebugStateRenderingLayer>
     {
@@ -449,6 +463,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for Foldout Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.Foldout))]
     public sealed class DebugUIDrawerFoldout : DebugUIDrawer
     {
@@ -456,7 +471,7 @@ namespace UnityEditor.Rendering
         static void DisplayColumns(Rect drawRect, List<GUIContent> rowContents)
         {
             drawRect.x += EditorGUIUtility.labelWidth;
-            drawRect.width = DebugWindow.Styles.foldoutColumnWidth;
+            drawRect.width = LegacyStyles.foldoutColumnWidth;
 
             int indent = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 0; //be at left of rects
@@ -465,7 +480,7 @@ namespace UnityEditor.Rendering
                 EditorGUI.LabelField(drawRect, rowContents[i], EditorStyles.miniBoldLabel);
 
                 // Offset the rect to the next possible column
-                drawRect.x += DebugWindow.Styles.foldoutColumnWidth;
+                drawRect.x += LegacyStyles.foldoutColumnWidth;
             }
             EditorGUI.indentLevel = indent;
         }
@@ -478,7 +493,7 @@ namespace UnityEditor.Rendering
         public override void Begin(DebugUI.Widget widget, DebugState state)
         {
             CoreEditorUtils.DrawSplitter();
-            
+
             var w = Cast<DebugUI.Foldout>(widget);
             var s = Cast<DebugStateBool>(state);
 
@@ -540,6 +555,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for Color Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.ColorField))]
     public sealed class DebugUIDrawerColorField : DebugUIFieldDrawer<Color, DebugUI.ColorField, DebugStateColor>
     {
@@ -560,6 +576,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for Vector2 Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.Vector2Field))]
     public sealed class DebugUIDrawerVector2Field : DebugUIFieldDrawer<Vector2, DebugUI.Vector2Field, DebugStateVector2>
     {
@@ -580,6 +597,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for Vector3 Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.Vector3Field))]
     public sealed class DebugUIDrawerVector3Field : DebugUIFieldDrawer<Vector3, DebugUI.Vector3Field, DebugStateVector3>
     {
@@ -600,6 +618,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for Vector4 Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.Vector4Field))]
     public sealed class DebugUIDrawerVector4Field : DebugUIFieldDrawer<Vector4, DebugUI.Vector4Field, DebugStateVector4>
     {
@@ -620,6 +639,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for <see cref="DebugUI.ObjectField"/> items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.ObjectField))]
     public sealed class DebugUIDrawerObjectField : DebugUIFieldDrawer<UnityEngine.Object, DebugUI.ObjectField, DebugStateObject>
     {
@@ -640,6 +660,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for <see cref="DebugUI.ObjectListField"/> Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.ObjectListField))]
     public sealed class DebugUIDrawerObjectListField : DebugUIDrawer
     {
@@ -654,7 +675,7 @@ namespace UnityEditor.Rendering
             var w = Cast<DebugUI.ObjectListField>(widget);
             var objects = w.GetValue();
 
-            float height = Math.Max(objects != null ? objects.Length : 0, 1) * DebugWindow.Styles.singleRowHeight;
+            float height = Math.Max(objects != null ? objects.Length : 0, 1) * LegacyStyles.singleRowHeight;
             var rect = PrepareControlRect(height);
 
             rect = EditorGUI.PrefixLabel(rect, EditorGUIUtility.TrTextContent(widget.displayName));
@@ -679,7 +700,7 @@ namespace UnityEditor.Rendering
             for (int i = 0; i < objects.Length; i++)
             {
                 objects[i] = EditorGUI.ObjectField(rect, GUIContent.none, objects[i], widget.type, true);
-                rect.y += DebugWindow.Styles.singleRowHeight;
+                rect.y += LegacyStyles.singleRowHeight;
             }
         }
     }
@@ -687,6 +708,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for MessageBox Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.MessageBox))]
     public sealed class DebugUIDrawerMessageBox : DebugUIDrawer
     {
@@ -717,6 +739,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for Container Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.Container))]
     public sealed class DebugUIDrawerContainer : DebugUIDrawer
     {
@@ -748,6 +771,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for Horizontal Box Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.HBox))]
     public sealed class DebugUIDrawerHBox : DebugUIDrawer
     {
@@ -774,6 +798,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for Vertical Box Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.VBox))]
     public sealed class DebugUIDrawerVBox : DebugUIDrawer
     {
@@ -801,6 +826,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Builtin Drawer for Table Debug Items.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     [DebugUIDrawer(typeof(DebugUI.Table))]
     public sealed class DebugUIDrawerTable : DebugUIDrawer
     {
@@ -855,7 +881,7 @@ namespace UnityEditor.Rendering
 
                     bool isAlternate = r % 2 == 0;
 
-                    EditorGUI.LabelField(rowRect, GUIContent.none, EditorGUIUtility.TrTextContent(row.displayName), isAlternate ? DebugWindow.Styles.centeredLeft : DebugWindow.Styles.centeredLeftAlternate);
+                    EditorGUI.LabelField(rowRect, GUIContent.none, EditorGUIUtility.TrTextContent(row.displayName), isAlternate ? LegacyStyles.centeredLeft : LegacyStyles.centeredLeftAlternate);
                     rowRect.xMin -= 2;
                     rowRect.xMax += 2;
 
@@ -885,7 +911,7 @@ namespace UnityEditor.Rendering
                 var child = row.children[visibleColumns[c] - 1] as DebugUI.ObjectListField;
                 if (child == null || child.GetValue() == null)
                     continue;
-                height = Mathf.Max(height, child.GetValue().Length * DebugWindow.Styles.singleRowHeight);
+                height = Mathf.Max(height, child.GetValue().Length * LegacyStyles.singleRowHeight);
             }
             return height;
         }
@@ -923,7 +949,7 @@ namespace UnityEditor.Rendering
                 if (child.GetType() == typeof(DebugUI.Value))
                 {
                     var widget = Cast<DebugUI.Value>(child);
-                    EditorGUI.LabelField(rect, GUIContent.none, EditorGUIUtility.TrTextContent(widget.GetValue().ToString()), isAlternate ? DebugWindow.Styles.centeredLeft : DebugWindow.Styles.centeredLeftAlternate);
+                    EditorGUI.LabelField(rect, GUIContent.none, EditorGUIUtility.TrTextContent(widget.GetValue().ToString()), isAlternate ? LegacyStyles.centeredLeft : LegacyStyles.centeredLeftAlternate);
                 }
                 else if (child.GetType() == typeof(DebugUI.ColorField))
                 {
@@ -946,6 +972,30 @@ namespace UnityEditor.Rendering
                     DebugUIDrawerObjectListField.DoObjectList(rect, widget, widget.GetValue());
                 }
             }
+        }
+    }
+
+    class LegacyStyles
+    {
+        public static GUIStyle labelWithZeroValueStyle { get; } = new GUIStyle(EditorStyles.label);
+
+        public readonly GUIStyle sectionScrollView = "PreferencesSectionBox";
+        public readonly GUIStyle sectionElement = new GUIStyle("PreferencesSection");
+
+        public static GUIStyle centeredLeft = new GUIStyle(EditorStyles.label) { alignment = TextAnchor.MiddleLeft };
+        public static GUIStyle centeredLeftAlternate = new GUIStyle(EditorStyles.label) { alignment = TextAnchor.MiddleLeft };
+        public static float singleRowHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+
+        public static int foldoutColumnWidth = 70;
+
+        public LegacyStyles()
+        {
+            sectionScrollView = new GUIStyle(sectionScrollView);
+            sectionScrollView.overflow.bottom += 1;
+
+            sectionElement.alignment = TextAnchor.MiddleLeft;
+
+            labelWithZeroValueStyle.normal.textColor = Color.gray;
         }
     }
 }

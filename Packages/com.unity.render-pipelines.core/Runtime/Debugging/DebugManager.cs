@@ -1,4 +1,4 @@
-#if ENABLE_UGUI_PACKAGE && (UNITY_EDITOR || DEVELOPMENT_BUILD)
+#if ENABLE_UIELEMENTS_MODULE && (UNITY_EDITOR || DEVELOPMENT_BUILD)
 #define ENABLE_RENDERING_DEBUGGER_UI
 #endif
 
@@ -6,24 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using UnityEngine.Assertions;
-
-#if ENABLE_RENDERING_DEBUGGER_UI
-using UnityEngine.Rendering.UI;
-#endif
 
 namespace UnityEngine.Rendering
 {
-    using UnityObject = UnityEngine.Object;
-
     /// <summary>
     /// Implementing this interface enables integration with Unity's Rendering debugger, providing a way to manage and control the state of debug data.
     /// </summary>
     ///
     /// <remarks>
     /// Use the `IDebugData` interface to register custom debug data. You can reset the data when necessary, which makes it suitable for debugging scenarios
-    /// where you need to clear or reset specific data. For example, when the application state changes or during gameplay session resets, 
+    /// where you need to clear or reset specific data. For example, when the application state changes or during gameplay session resets,
     /// or when the **Reset** button is selected in the **Rendering Debugger** window in the Editor or at runtime.
     /// </remarks>
     ///
@@ -75,7 +67,7 @@ namespace UnityEngine.Rendering
     ///         new DebugUI.Value { displayName = "Light Color", getter = () => Color.white, setter = value => Debug.Log($"Light Color set to {value}") }
     ///     };
     ///     var items = list.ToArray();
-    ///     
+    ///
     ///     /// Obtain the panel from the DebugManager instance, and add the Widgets that we want to display there.
     ///     var panel = DebugManager.instance.GetPanel("Lighting", true);
     ///     panel.children.AddRange(items);
@@ -112,10 +104,33 @@ namespace UnityEngine.Rendering
             }
         }
 
+        void ForEachWidgetInContainer(DebugUI.Widget widget, Action<DebugUI.Widget> action)
+        {
+            action(widget);
+
+            if (widget is DebugUI.IContainer container)
+            {
+                foreach (var child in container.children)
+                    ForEachWidgetInContainer(child, action);
+            }
+        }
+
+        /// <summary>
+        /// Iterate over all widgets in all panels and invoke the provided action on each widget.
+        /// </summary>
+        /// <param name="action">Action to invoke.</param>
+        internal void ForEachWidget(Action<DebugUI.Widget> action)
+        {
+            foreach (var panel in m_Panels)
+                foreach (var widget in panel.children)
+                    ForEachWidgetInContainer(widget, action);
+        }
+
         /// <summary>
         /// Callback called when the runtime UI changed.
         /// </summary>
         public event Action<bool> onDisplayRuntimeUIChanged = delegate { };
+
         /// <summary>
         /// Callback called when the debug window is dirty.
         /// </summary>
@@ -128,15 +143,16 @@ namespace UnityEngine.Rendering
         /// </summary>
         public bool refreshEditorRequested;
 
-        int? m_RequestedPanelIndex;
+        string m_RequestedPanel;
 
 #if ENABLE_RENDERING_DEBUGGER_UI
-        GameObject m_Root;
-        DebugUIHandlerCanvas m_RootUICanvas;
+        internal RuntimeDebugWindow m_RuntimeDebugWindow;
+        RuntimePersistentDebugUI m_RuntimePersistentDebugUI;
 
-        GameObject m_PersistentRoot;
-        DebugUIHandlerPersistentCanvas m_RootUIPersistentCanvas;
+        internal SchedulerTracker schedulerTracker { get; } = new();
 #endif
+
+        internal DebugUI.Widget selectedWidget { get; set; }
 
         /// <summary>
         /// Is any debug window or UI currently active.
@@ -175,18 +191,20 @@ namespace UnityEngine.Rendering
         /// </summary>
         public void Reset()
         {
+            DebugDisplaySerializer.SaveFoldoutStates();
+            DebugDisplaySerializer.Clear();
             resetData?.Invoke();
-            ReDrawOnScreenDebug();
         }
 
         /// <summary>
         /// Request the runtime debug UI be redrawn on the next update.
         /// </summary>
+        [Obsolete("This method is obsolete. #from(6000.5)")]
         public void ReDrawOnScreenDebug()
         {
 #if ENABLE_RENDERING_DEBUGGER_UI
             if (displayRuntimeUI)
-                m_RootUICanvas?.RequestHierarchyReset();
+                m_RuntimeDebugWindow?.RequestRecreateGUI();
 #endif
         }
 
@@ -202,78 +220,45 @@ namespace UnityEngine.Rendering
         /// <param name="data">Data to be registered.</param>
         public void UnregisterData(IDebugData data) => resetData -= data.GetReset();
 
-        /// <summary>
-        /// Get hashcode state of the Debug Window.
-        /// </summary>
-        /// <returns>The calculated hashcode for the current state of the Debug Window.</returns>
-        public int GetState()
+        int GetMaxPinnedIndex(DebugUI.Container container)
         {
-            int hash = 17;
-
-            foreach (var panel in m_Panels)
-                hash = hash * 23 + panel.GetHashCode();
-
-            return hash;
-        }
-
-#if ENABLE_RENDERING_DEBUGGER_UI
-        internal void RegisterRootCanvas(DebugUIHandlerCanvas root)
-        {
-            Assert.IsNotNull(root);
-            m_Root = root.gameObject;
-            m_RootUICanvas = root;
-        }
-
-        internal void ChangeSelection(DebugUIHandlerWidget widget, bool fromNext)
-        {
-            m_RootUICanvas.ChangeSelection(widget, fromNext);
-        }
-
-        internal void SetScrollTarget(DebugUIHandlerWidget widget)
-        {
-            if (m_RootUICanvas != null)
-                m_RootUICanvas.SetScrollTarget(widget);
-        }
-
-        void EnsurePersistentCanvas()
-        {
-            if (m_RootUIPersistentCanvas == null)
+            int pinnedIndex = -1;
+            foreach (var child in container.children)
             {
-                var uiManager = UnityObject.FindFirstObjectByType<DebugUIHandlerPersistentCanvas>();
-
-                if (uiManager == null)
+                if (child is DebugUI.ValueTuple valueTuple && valueTuple.pinnedElementIndex > pinnedIndex)
                 {
-                    m_PersistentRoot = UnityObject.Instantiate(Resources.Load<Transform>("DebugUIPersistentCanvas")).gameObject;
-                    m_PersistentRoot.name = "[Debug Canvas - Persistent]";
-                    m_PersistentRoot.transform.localPosition = Vector3.zero;
+                    pinnedIndex = valueTuple.pinnedElementIndex;
                 }
-                else
-                {
-                    m_PersistentRoot = uiManager.gameObject;
-                }
-
-                m_RootUIPersistentCanvas = m_PersistentRoot.GetComponent<DebugUIHandlerPersistentCanvas>();
             }
+            return pinnedIndex;
         }
 
-        internal void TogglePersistent(DebugUI.Widget widget, int? forceTupleIndex = null)
+        internal void TogglePersistent()
         {
+            if (selectedWidget != null)
+                TogglePersistent(selectedWidget);
+        }
+
+        void TogglePersistent(DebugUI.Widget widget, int? forceTupleIndex = null)
+        {
+#if ENABLE_RENDERING_DEBUGGER_UI
             if (widget == null)
                 return;
 
-            EnsurePersistentCanvas();
+            displayPersistentRuntimeUI = true;
+
 
             switch (widget)
             {
                 case DebugUI.Value value:
-                    m_RootUIPersistentCanvas.Toggle(value);
+                    m_RuntimePersistentDebugUI.Toggle(value);
                     break;
                 case DebugUI.ValueTuple valueTuple:
-                    m_RootUIPersistentCanvas.Toggle(valueTuple, forceTupleIndex);
+                    m_RuntimePersistentDebugUI.Toggle(valueTuple, forceTupleIndex);
                     break;
                 case DebugUI.Container container:
                     // When container is toggled, we make sure that if there are ValueTuples, they all get the same element index.
-                    int pinnedIndex = container.children.Max(w => (w as DebugUI.ValueTuple)?.pinnedElementIndex ?? -1);
+                    int pinnedIndex = GetMaxPinnedIndex(container);
                     foreach (var child in container.children)
                     {
                         if (child is DebugUI.Value || child is DebugUI.ValueTuple)
@@ -284,8 +269,11 @@ namespace UnityEngine.Rendering
                     Debug.Log("Only readonly items can be made persistent.");
                     break;
             }
-        }
+
+            if (m_RuntimePersistentDebugUI != null && m_RuntimePersistentDebugUI.IsEmpty())
+                displayPersistentRuntimeUI = false;
 #endif
+        }
 
         void OnPanelDirty(DebugUI.Panel panel)
         {
@@ -321,7 +309,7 @@ namespace UnityEngine.Rendering
         {
             return PanelDisplayName(panelIndex);
         }
-        
+
         /// <summary>
         /// Returns the panel display name
         /// </summary>
@@ -339,19 +327,35 @@ namespace UnityEngine.Rendering
         /// Request DebugWindow to open the specified panel.
         /// </summary>
         /// <param name="index">Index of the debug window panel to activate.</param>
+        [Obsolete("Use RequestEditorWindowPanelName instead. #from(6000.5)")]
         public void RequestEditorWindowPanelIndex(int index)
         {
-            // Similar to RefreshEditor(), this function is required to bypass a dependency problem where DebugWindow
-            // cannot be accessed from the Core.Runtime assembly. Should there be a better way to allow editor-dependent
-            // features in DebugUI?
-            m_RequestedPanelIndex = index;
+            if (m_Panels[index] != null)
+                RequestEditorWindowPanel(m_Panels[index].displayName);
         }
 
-        internal int? GetRequestedEditorWindowPanelIndex()
+        /// <summary>
+        /// Request DebugWindow to open the specified panel.
+        /// </summary>
+        /// <param name="panelName">Name of window panel to activate.</param>
+        public void RequestEditorWindowPanel(string panelName)
         {
-            int? requestedIndex = m_RequestedPanelIndex;
-            m_RequestedPanelIndex = null;
-            return requestedIndex;
+            int panelIndex = FindPanelIndex(panelName);
+            if (panelIndex != -1)
+            {
+                m_RequestedPanel = panelName;
+            }
+            else
+            {
+                Debug.LogWarning($"No panel with name {panelName} has been registered.");
+            }
+        }
+
+        internal string GetRequestedEditorWindowPanel()
+        {
+            string requestedPanel = m_RequestedPanel;
+            m_RequestedPanel = null;
+            return requestedPanel;
         }
 
         // TODO: Optimally we should use a query path here instead of a display name

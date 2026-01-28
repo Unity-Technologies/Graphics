@@ -14,9 +14,7 @@ namespace UnityEngine.Rendering
         EnableDebugMenu,
         PreviousDebugPanel,
         NextDebugPanel,
-        Action,
         MakePersistent,
-        MoveVertical,
         MoveHorizontal,
         Multiplier,
         ResetAll,
@@ -93,15 +91,6 @@ namespace UnityEngine.Rendering
             previousDebugPanel.repeatMode = DebugActionRepeatMode.Never;
             AddAction(DebugAction.PreviousDebugPanel, previousDebugPanel);
 
-            var validate = new DebugActionDesc();
-#if USE_INPUT_SYSTEM
-            validate.buttonAction = debugActionMap.FindAction(kValidateBtn);
-#else
-            validate.buttonTriggerList.Add(new[] { kValidateBtn });
-#endif
-            validate.repeatMode = DebugActionRepeatMode.Never;
-            AddAction(DebugAction.Action, validate);
-
             var persistent = new DebugActionDesc();
 #if USE_INPUT_SYSTEM
             persistent.buttonAction = debugActionMap.FindAction(kPersistentBtn);
@@ -118,19 +107,8 @@ namespace UnityEngine.Rendering
             multiplier.buttonTriggerList.Add(new[] { kMultiplierBtn });
 #endif
             multiplier.repeatMode = DebugActionRepeatMode.Delay;
-            validate.repeatDelay = 0f;
-
+            multiplier.repeatDelay = 0f;
             AddAction(DebugAction.Multiplier, multiplier);
-
-            var moveVertical = new DebugActionDesc();
-#if USE_INPUT_SYSTEM
-            moveVertical.buttonAction = debugActionMap.FindAction(kDPadVertical);
-#else
-            moveVertical.axisTrigger = kDPadVertical;
-#endif
-            moveVertical.repeatMode = DebugActionRepeatMode.Delay;
-            moveVertical.repeatDelay = 0.16f;
-            AddAction(DebugAction.MoveVertical, moveVertical);
 
             var moveHorizontal = new DebugActionDesc();
 #if USE_INPUT_SYSTEM
@@ -329,12 +307,9 @@ namespace UnityEngine.Rendering
                 new InputManagerEntry { name = kResetBtn,         kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "left alt",    altBtnPositive = "joystick button 1" },
                 new InputManagerEntry { name = kDebugNextBtn,     kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "page down",   altBtnPositive = "joystick button 5" },
                 new InputManagerEntry { name = kDebugPreviousBtn, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "page up",     altBtnPositive = "joystick button 4" },
-                new InputManagerEntry { name = kValidateBtn,      kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "return",      altBtnPositive = "joystick button 0" },
                 new InputManagerEntry { name = kPersistentBtn,    kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "right shift", altBtnPositive = "joystick button 2" },
                 new InputManagerEntry { name = kMultiplierBtn,    kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "left shift",  altBtnPositive = "joystick button 3" },
                 new InputManagerEntry { name = kDPadHorizontal,   kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "right",       btnNegative = "left", gravity = 1000f, deadZone = 0.001f, sensitivity = 1000f },
-                new InputManagerEntry { name = kDPadVertical,     kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "up",          btnNegative = "down", gravity = 1000f, deadZone = 0.001f, sensitivity = 1000f },
-                new InputManagerEntry { name = kDPadVertical,     kind = InputManagerEntry.Kind.Axis, axis = InputManagerEntry.Axis.Seventh, btnPositive = "up",    btnNegative = "down", gravity = 1000f, deadZone = 0.001f, sensitivity = 1000f },
                 new InputManagerEntry { name = kDPadHorizontal,   kind = InputManagerEntry.Kind.Axis, axis = InputManagerEntry.Axis.Sixth,   btnPositive = "right", btnNegative = "left", gravity = 1000f, deadZone = 0.001f, sensitivity = 1000f },
             };
 
@@ -365,10 +340,6 @@ namespace UnityEngine.Rendering
             previous.AddBinding("<Keyboard>/pageUp");
             previous.AddBinding("<Gamepad>/leftShoulder");
 
-            var validateAction = debugActionMap.AddAction(kValidateBtn, type: InputActionType.Button);
-            validateAction.AddBinding("<Keyboard>/enter");
-            validateAction.AddBinding("<Gamepad>/a");
-
             var persistentAction = debugActionMap.AddAction(kPersistentBtn, type: InputActionType.Button);
             persistentAction.AddBinding("<Keyboard>/rightShift");
             persistentAction.AddBinding("<Gamepad>/x");
@@ -376,13 +347,6 @@ namespace UnityEngine.Rendering
             var multiplierAction = debugActionMap.AddAction(kMultiplierBtn, type: InputActionType.Value);
             multiplierAction.AddBinding("<Keyboard>/leftShift");
             multiplierAction.AddBinding("<Gamepad>/y");
-
-            var moveVerticalAction = debugActionMap.AddAction(kDPadVertical);
-            moveVerticalAction.AddCompositeBinding("1DAxis")
-                .With("Positive", "<Gamepad>/dpad/up")
-                .With("Negative", "<Gamepad>/dpad/down")
-                .With("Positive", "<Keyboard>/upArrow")
-                .With("Negative", "<Keyboard>/downArrow");
 
             var moveHorizontalAction = debugActionMap.AddAction(kDPadHorizontal);
             moveHorizontalAction.AddCompositeBinding("1DAxis")

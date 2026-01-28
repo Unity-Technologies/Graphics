@@ -8,9 +8,10 @@ using NameAndTooltip = UnityEngine.Rendering.DebugUI.Widget.NameAndTooltip;
 #if ENABLE_VIRTUALTEXTURES
 namespace UnityEngine.Rendering.HighDefinition
 {
-    internal class DebugDisplayVirtualTexturing : IDebugDisplaySettingsData
+    [Serializable]
+    internal class DebugDisplayVirtualTexturing : IDebugDisplaySettingsData, ISerializedDebugDisplaySettings
     {
-        internal class Settings 
+        internal class Settings
         {
             public bool debugDisableResolving = false;
         }
@@ -29,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             displayName = "Debug disable Feedback Streaming",
                             getter = () => data.debugDisableResolving,
-                            setter = value => data.debugDisableResolving = value 
+                            setter = value => data.debugDisableResolving = value
                         },
                         new DebugUI.Value()
                         {

@@ -251,7 +251,8 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Class managing debug display in HDRP.
     /// </summary>
-    public partial class DebugDisplaySettings : IDebugData
+    [Serializable]
+    public partial class DebugDisplaySettings : IDebugData, ISerializedDebugDisplaySettings
     {
         static string k_PanelMaterials = "Material";
         static string k_PanelLighting = "Lighting";
@@ -285,6 +286,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Debug data.
         /// </summary>
+        [Serializable]
         public partial class DebugData
         {
             /// <summary>Ratio of the screen size in which overlays are rendered.</summary>
@@ -323,8 +325,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public FalseColorDebugSettings falseColorDebugSettings = new FalseColorDebugSettings();
 
             /// <summary>Current decals debug settings.</summary>
-            [Obsolete("decalsDebugSettings has been deprecated, please use HDDebugDisplaySettings.Instance.decalSettings instead. #from(2023.1)")]
-            public DecalsDebugSettings decalsDebugSettings = HDDebugDisplaySettings.Instance.decalSettings.m_Data;
+            [Obsolete("decalsDebugSettings has been deprecated, please use HDDebugDisplaySettings.Instance.decalSettings instead. #from(2023.1)", true)]
+            public DecalsDebugSettings decalsDebugSettings;
 
             /// <summary>Current transparency debug settings.</summary>
             public TransparencyDebugSettings transparencyDebugSettings = new TransparencyDebugSettings();
@@ -455,12 +457,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderingHistoryBuffersViewEnumIndex = -1;
             }
         }
-        DebugData m_Data;
+
+        [SerializeField]
+        DebugData m_Data = new DebugData();
 
         /// <summary>
         /// Debug data.
         /// </summary>
         public DebugData data { get => m_Data; }
+
+        internal Action resetAction { private get; set; }
 
         // Had to keep those public because HDRP tests using it (as a workaround to access proper enum values for this debug)
         /// <summary>List of Full Screen Rendering Debug mode names.</summary>
@@ -474,6 +480,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int[] lightingFullScreenDebugValues => s_LightingFullScreenDebugValues;
 
         internal DebugDisplaySettings()
+        {
+        }
+
+        void InitializeDebugEnums()
         {
             FillFullScreenDebugEnum(ref s_LightingFullScreenDebugStrings, ref s_LightingFullScreenDebugValues, FullScreenDebugMode.MinLightingFullScreenDebug, FullScreenDebugMode.MaxLightingFullScreenDebug);
             FillFullScreenDebugEnum(ref s_RenderingFullScreenDebugStrings, ref s_RenderingFullScreenDebugValues, FullScreenDebugMode.MinRenderingFullScreenDebug, FullScreenDebugMode.MaxRenderingFullScreenDebug);
@@ -494,23 +504,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateDiffuseColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Diffuse Color");
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateSpecularColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Metal or SpecularColor");
-
-            m_Data = new DebugData();
         }
 
         /// <summary>
         /// Get Reset action.
         /// </summary>
         /// <returns></returns>
-        Action IDebugData.GetReset() => () =>
-        {
-            m_Data = new DebugData();
-
-            // This is not a debug property owned by `DebugData`, it is a static property on `Texture`.
-            // When the user hits reset, we want to make sure texture mip caching is enabled again (regardless of whether the
-            // user toggled this in the Rendering Debugger UI or changed it using the scripting API).
-            Texture.streamingTextureDiscardUnusedMips = false;
-        };
+        Action IDebugData.GetReset() => resetAction;
 
         internal float[] GetDebugMaterialIndexes()
         {
@@ -1135,6 +1135,7 @@ namespace UnityEngine.Rendering.HighDefinition
             list.Add(new DebugUI.Container
             {
                 isHiddenCallback = () => !ShaderConfig.s_GlobalMipBias,
+                displayName = "Global Mip Bias",
                 children =
                 {
                     new DebugUI.BoolField
@@ -1163,19 +1164,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             UnregisterDebugItems(k_PanelLighting, m_DebugLightingItems);
             RegisterLightingDebug();
-        }
-
-        void RefreshRenderingDebug<T>(DebugUI.Field<T> field, T value)
-        {
-            // Explicitly invoke the render debug unregister to handle render graph items.
-            UnregisterRenderingDebug();
-            RegisterRenderingDebug();
-        }
-
-        void RefreshMaterialDebug<T>(DebugUI.Field<T> field, T value)
-        {
-            UnregisterDebugItems(k_PanelMaterials, m_DebugMaterialItems);
-            RegisterMaterialDebug();
         }
 
         static class LightingStrings
@@ -2125,6 +2113,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void RegisterDebug()
         {
+            InitializeDebugEnums();
+            
             RegisterMaterialDebug();
             RegisterLightingDebug();
             RegisterRenderingDebug();

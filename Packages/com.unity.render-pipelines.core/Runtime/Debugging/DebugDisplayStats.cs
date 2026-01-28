@@ -118,6 +118,7 @@ namespace UnityEngine.Rendering
         {
             var foldout = new DebugUI.Foldout(title, BuildProfilingSamplerWidgetList(samplers), k_DetailedStatsColumnLabels);
             foldout.opened = true;
+            foldout.alternateRowColors = true;
             return foldout;
         }
 

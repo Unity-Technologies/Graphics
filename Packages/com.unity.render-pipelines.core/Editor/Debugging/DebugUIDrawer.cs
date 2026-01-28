@@ -10,6 +10,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Attribute specifying wich type of Debug Item should this drawer be used with.
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     public class DebugUIDrawerAttribute : Attribute
     {
         internal readonly Type type;
@@ -27,6 +28,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Debug Item Drawer
     /// </summary>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     public class DebugUIDrawer
     {
         /// <summary>
@@ -130,6 +132,7 @@ namespace UnityEditor.Rendering
     /// <typeparam name="TValue">The internal value of the field</typeparam>
     /// <typeparam name="TField">The type of the field widget</typeparam>
     /// <typeparam name="TState">The state of the field</typeparam>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     public abstract class DebugUIFieldDrawer<TValue, TField, TState> : DebugUIDrawer
         where TField : DebugUI.Field<TValue>
         where TState : DebugState
@@ -174,14 +177,6 @@ namespace UnityEditor.Rendering
         /// <returns>The current value from the UI</returns>
         protected abstract TValue DoGUI(Rect rect, GUIContent label, TField field, TState state);
 
-        struct WidgetChangedAction
-        {
-            public string query_path;
-            public TValue previous_value;
-            public TValue new_value;
-        }
-
-        static List<WidgetChangedAction> s_Analytic = new List<WidgetChangedAction>();
         /// <summary>
         /// Implement this to execute processing after UI rendering.
         /// </summary>
@@ -194,16 +189,7 @@ namespace UnityEditor.Rendering
                 var w = Cast<TField>(widget);
                 var s = Cast<TState>(state);
 
-                s_Analytic.Clear();
-                s_Analytic.Add(new()
-                {
-                    query_path = widget.queryPath,
-                    previous_value = w.GetValue(),
-                    new_value = value
-                });
-
                 Apply(w, s, value);
-                GraphicsToolUsageAnalytic.ActionPerformed<DebugWindow>("Widget Value Changed", s_Analytic.ToNestedColumn());
             }
         }
     }
@@ -212,6 +198,7 @@ namespace UnityEditor.Rendering
     /// Common class to help drawing widgets
     /// </summary>
     /// <typeparam name="TWidget">The widget</typeparam>
+    [Obsolete("This class is no longer used. #from(6000.5)")]
     public abstract class DebugUIWidgetDrawer<TWidget> : DebugUIDrawer
         where TWidget : DebugUI.Widget
     {

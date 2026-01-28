@@ -513,6 +513,16 @@ namespace UnityEngine.Rendering.HighDefinition
             HDProbeSystem.Parameters = asset.reflectionSystemParameters;
 
             DebugManager.instance.RefreshEditor();
+            m_DebugDisplaySettings = DebugDisplaySerializer.GetOrCreate<DebugDisplaySettings>();
+            m_DebugDisplaySettings.resetAction = () =>
+            {
+                m_DebugDisplaySettings = DebugDisplaySerializer.GetOrCreate<DebugDisplaySettings>();
+
+                // This is not a debug property owned by `DebugData`, it is a static property on `Texture`.
+                // When the user hits reset, we want to make sure texture mip caching is enabled again (regardless of whether the
+                // user toggled this in the Rendering Debugger UI or changed it using the scripting API).
+                Texture.streamingTextureDiscardUnusedMips = false;
+            };
 
             m_ValidAPI = true;
 

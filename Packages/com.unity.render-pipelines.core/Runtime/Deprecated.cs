@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine.Assertions;
-using static UnityEngine.Rendering.DebugUI;
 
 namespace UnityEngine.Rendering
 {
@@ -103,6 +102,16 @@ namespace UnityEngine.Rendering
         /// <param name="open">State of the debug window.</param>
         [Obsolete("Use DebugManager.instance.displayEditorUI property instead. #from(2023.1)")]
         public void ToggleEditorUI(bool open) => editorUIState.open = open;
+
+        /// <summary>
+        /// Get hashcode state of the Debug Window.
+        /// </summary>
+        /// <returns>The calculated hashcode for the current state of the Debug Window.</returns>
+        [Obsolete("This method is unused. #from(6000.5)")]
+        public int GetState()
+        {
+            return 0;
+        }
     }
 
     /// <summary>
@@ -195,13 +204,17 @@ namespace UnityEngine.Rendering
 
                 if (!validValue.Equals(getter()))
                 {
+#if UNITY_EDITOR
+                    uint previousValue = GetValue();
+                    onWidgetValueChangedAnalytic?.Invoke(queryPath, previousValue, validValue);
+#endif
                     setter(validValue);
                     onValueChanged?.Invoke(this, validValue);
                 }
             }
         }
     }
-    
+
     /// <summary>
     /// Defines the basic structure for a Volume, providing the necessary properties for determining
     /// whether the volume should be applied globally to the scene or to specific colliders.

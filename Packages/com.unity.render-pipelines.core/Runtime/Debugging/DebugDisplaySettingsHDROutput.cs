@@ -33,68 +33,20 @@ namespace UnityEngine.Rendering
             var table = new DebugUI.Table()
             {
                 displayName = Strings.hdrOutputAPI,
+                alternateRowColors = true,
                 isReadOnly = true
             };
 
-            var row_hdrActive = new DebugUI.Table.Row()
-            {
-                displayName = Strings.hdrActive,
-                opened = true
-            };
-
-            var row_hdrAvailable = new DebugUI.Table.Row()
-            {
-                displayName = Strings.hdrAvailable,
-                opened = true
-            };
-
-            var row_gamut = new DebugUI.Table.Row()
-            {
-                displayName = Strings.gamut,
-                opened = false
-            };
-
-            var row_format = new DebugUI.Table.Row()
-            {
-                displayName = Strings.format,
-                opened = false
-            };
-
-            var row_autoHdrTonemapping = new DebugUI.Table.Row()
-            {
-                displayName = Strings.autoHdrTonemapping,
-                opened = false
-            };
-
-            var row_paperWhite = new DebugUI.Table.Row()
-            {
-                displayName = Strings.paperWhite,
-                opened = false
-            };
-
-            var row_minLuminance = new DebugUI.Table.Row()
-            {
-                displayName = Strings.minLuminance,
-                opened = false
-            };
-
-            var row_maxLuminance = new DebugUI.Table.Row()
-            {
-                displayName = Strings.maxLuminance,
-                opened = false
-            };
-
-            var row_maxFullFrameLuminance = new DebugUI.Table.Row()
-            {
-                displayName = Strings.maxFullFrameLuminance,
-                opened = false
-            };
-
-            var row_modeChangeRequested = new DebugUI.Table.Row()
-            {
-                displayName = Strings.modeChangeRequested,
-                opened = false
-            };
+            var row_hdrActive = new DebugUI.Table.Row { displayName = Strings.hdrActive };
+            var row_hdrAvailable = new DebugUI.Table.Row { displayName = Strings.hdrAvailable };
+            var row_gamut = new DebugUI.Table.Row { displayName = Strings.gamut };
+            var row_format = new DebugUI.Table.Row { displayName = Strings.format };
+            var row_autoHdrTonemapping = new DebugUI.Table.Row { displayName = Strings.autoHdrTonemapping };
+            var row_paperWhite = new DebugUI.Table.Row { displayName = Strings.paperWhite };
+            var row_minLuminance = new DebugUI.Table.Row { displayName = Strings.minLuminance };
+            var row_maxLuminance = new DebugUI.Table.Row { displayName = Strings.maxLuminance };
+            var row_maxFullFrameLuminance = new DebugUI.Table.Row { displayName = Strings.maxFullFrameLuminance};
+            var row_modeChangeRequested = new DebugUI.Table.Row { displayName = Strings.modeChangeRequested };
 
             //Iterate through all displays
             HDROutputSettings[] displays = HDROutputSettings.displays;
@@ -115,9 +67,9 @@ namespace UnityEngine.Rendering
                 row_hdrActive.children.Add
                 (
                     new DebugUI.Value()
-                    {   
+                    {
                         displayName = name,
-                        getter = () => 
+                        getter = () =>
                         {
                             return d.active;
                         }
@@ -127,9 +79,9 @@ namespace UnityEngine.Rendering
                 row_hdrAvailable.children.Add
                 (
                     new DebugUI.Value()
-                    {   
+                    {
                         displayName = name,
-                        getter = () => 
+                        getter = () =>
                         {
                             return d.available;
                         }
@@ -139,9 +91,9 @@ namespace UnityEngine.Rendering
                 row_gamut.children.Add
                 (
                     new DebugUI.Value()
-                    {   
+                    {
                         displayName = name,
-                        getter = () => 
+                        getter = () =>
                         {
                             if(d.available)
                             {
@@ -155,9 +107,9 @@ namespace UnityEngine.Rendering
                 row_format.children.Add
                 (
                     new DebugUI.Value()
-                    {   
+                    {
                         displayName = name,
-                        getter = () => 
+                        getter = () =>
                         {
                             if(d.available)
                             {
@@ -171,9 +123,9 @@ namespace UnityEngine.Rendering
                 row_autoHdrTonemapping.children.Add
                 (
                     new DebugUI.Value()
-                    {   
+                    {
                         displayName = name,
-                        getter = () => 
+                        getter = () =>
                         {
                             if(d.available)
                             {
@@ -187,9 +139,9 @@ namespace UnityEngine.Rendering
                 row_paperWhite.children.Add
                 (
                     new DebugUI.Value()
-                    {   
+                    {
                         displayName = name,
-                        getter = () => 
+                        getter = () =>
                         {
                             if(d.available)
                             {
@@ -203,9 +155,9 @@ namespace UnityEngine.Rendering
                 row_minLuminance.children.Add
                 (
                     new DebugUI.Value()
-                    {   
+                    {
                         displayName = name,
-                        getter = () => 
+                        getter = () =>
                         {
                             if(d.available)
                             {
@@ -219,9 +171,9 @@ namespace UnityEngine.Rendering
                 row_maxLuminance.children.Add
                 (
                     new DebugUI.Value()
-                    {   
+                    {
                         displayName = name,
-                        getter = () => 
+                        getter = () =>
                         {
                             if(d.available)
                             {
@@ -235,9 +187,9 @@ namespace UnityEngine.Rendering
                 row_maxFullFrameLuminance.children.Add
                 (
                     new DebugUI.Value()
-                    {   
+                    {
                         displayName = name,
-                        getter = () => 
+                        getter = () =>
                         {
                             if(d.available)
                             {
@@ -251,9 +203,9 @@ namespace UnityEngine.Rendering
                 row_modeChangeRequested.children.Add
                 (
                     new DebugUI.Value()
-                    {   
+                    {
                         displayName = name,
-                        getter = () => 
+                        getter = () =>
                         {
                             if(d.available)
                             {

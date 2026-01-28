@@ -9,8 +9,10 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Decal-related Rendering Debugger settings.
     /// </summary>
     [HDRPHelpURL("understand-decals")]
-    class DebugDisplaySettingsDecal : IDebugDisplaySettingsData
+    [Serializable]
+    class DebugDisplaySettingsDecal : IDebugDisplaySettingsData, ISerializedDebugDisplaySettings
     {
+        [SerializeField]
         internal DecalsDebugSettings m_Data = new DecalsDebugSettings();
 
         /// <summary>Display the decal atlas.</summary>

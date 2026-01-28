@@ -64,7 +64,7 @@ namespace UnityEditor.VFX
         {
             try
             {
-                var sampleDependencyImporterType = typeof(Rendering.DebugState).Assembly.GetType("SampleDependencyImporter");
+                var sampleDependencyImporterType = typeof(Rendering.EditorPrefBool).Assembly.GetType("SampleDependencyImporter");
                 var instanceProperty = sampleDependencyImporterType.GetProperty("instance", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
                 var importerInstance = instanceProperty.GetValue(null);
                 var importSampleDependenciesMethod = sampleDependencyImporterType.GetMethod(

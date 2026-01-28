@@ -81,6 +81,7 @@ namespace UnityEngine.Rendering
                 displayName = "Frame Stats",
                 opened = true,
                 columnLabels = new string[] { "Avg", "Min", "Max" },
+                alternateRowColors = true,
                 children =
                 {
                     new DebugUI.ValueTuple
