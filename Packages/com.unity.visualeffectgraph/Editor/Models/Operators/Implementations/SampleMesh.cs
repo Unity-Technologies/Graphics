@@ -445,6 +445,7 @@ To avoid this, change the input Transform space from Local to World or None.";
             var outputType = GetSampledType(vertexAttribute);
             VFXExpression sampled = null;
 
+            vertexIndex = new VFXExpressionMin(vertexIndex, new VFXExpressionMeshVertexCount(mesh));
             var meshChannelFormatAndDimension = new VFXExpressionMeshChannelInfos(mesh, channelIndex);
             var vertexOffset = vertexIndex * meshVertexStride + meshChannelOffset;
 

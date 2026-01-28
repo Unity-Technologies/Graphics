@@ -120,15 +120,15 @@ PlayerSettings:
   xboxOneEnableTypeOptimization: 0
   xboxOnePresentImmediateThreshold: 0
   switchQueueCommandMemory: 1048576
-  switchQueueControlMemory: 65536
+  switchQueueControlMemory: 1048576
   switchQueueComputeMemory: 262144
   switchNVNShaderPoolsGranularity: 33554432
   switchNVNDefaultPoolsGranularity: 16777216
   switchNVNOtherPoolsGranularity: 16777216
   switchGpuScratchPoolGranularity: 2097152
   switchAllowGpuScratchShrinking: 0
-  switchNVNMaxPublicTextureIDCount: 0
-  switchNVNMaxPublicSamplerIDCount: 0
+  switchNVNMaxPublicTextureIDCount: 65536
+  switchNVNMaxPublicSamplerIDCount: 65536
   switchMaxWorkerMultiple: 8
   switchNVNGraphicsFirmwareMemory: 32
   vulkanNumSwapchainBuffers: 3
