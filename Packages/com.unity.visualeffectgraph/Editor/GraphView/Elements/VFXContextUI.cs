@@ -879,7 +879,8 @@ namespace UnityEditor.VFX.UI
             List<KeyValuePair<string, object>> settings = new();
             foreach (var setting in newContextController.model.GetSettings(true))
             {
-                if (!newContextController.model.CanTransferSetting(setting))
+                if (!newContextController.model.CanTransferSetting(setting)
+                    || !controller.model.CanTransferSetting(setting.name))
                     continue;
 
                 if (!setting.valid || setting.field.GetCustomAttributes(typeof(VFXSettingAttribute), true).Length == 0)
