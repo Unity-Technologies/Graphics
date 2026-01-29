@@ -707,7 +707,9 @@ namespace UnityEngine.Rendering.Universal
 
             RenderSingleCamera(context, cameraData);
         }
-
+#if ENABLE_VR && ENABLE_XR_MODULE
+        static private LODParameters cachedLODParameters;
+#endif
         static bool TryGetCullingParameters(UniversalCameraData cameraData, out ScriptableCullingParameters cullingParams)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -718,6 +720,15 @@ namespace UnityEngine.Rendering.Universal
                 // Sync the FOV on the camera to match the projection from the XR device
                 if (!cameraData.camera.usePhysicalProperties && !XRGraphicsAutomatedTests.enabled)
                     cameraData.camera.fieldOfView = Mathf.Rad2Deg * Mathf.Atan(1.0f / cullingParams.stereoProjectionMatrix.m11) * 2.0f;
+
+                if (cameraData.xr.isFirstCameraPass)
+                {
+                    cachedLODParameters = cullingParams.lodParameters;
+                    cachedLODParameters.fieldOfView = cameraData.camera.fieldOfView; // Update it in case it was synced above
+                    cullingParams.lodParameters = cachedLODParameters;
+                }
+                else
+                    cullingParams.lodParameters = cachedLODParameters;  // For Quad Views, ensures that the inset pass will use the same mesh LODs as the outset pass
 
                 return true;
             }
