@@ -1076,7 +1076,7 @@ namespace UnityEngine.Rendering.HighDefinition
             io.previousPreUpscaleResolution = hdCamera.historyRTHandleProperties.previousViewportSize;
             io.postUpscaleResolution = new Vector2Int((int)hdCamera.finalViewport.width, (int)hdCamera.finalViewport.height);
             io.enableTexArray = TextureXR.useTexArray;
-            io.cameraInstanceID = hdCamera.camera.GetEntityId();
+            io.cameraInstanceID = hdCamera.camera.GetEntityId().GetRawData();
             io.nearClipPlane = hdCamera.camera.nearClipPlane;
             io.farClipPlane = hdCamera.camera.farClipPlane;
             io.fieldOfViewDegrees = hdCamera.camera.fieldOfView;
@@ -1148,7 +1148,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Insert the active upscaler's render graph passes
-            IUpscaler upscaler = upscaling.GetActiveUpscaler();
+            IUpscaler upscaler = upscaling.activeUpscaler;
             Debug.Assert(upscaler != null);
             upscaler.RecordRenderGraph(renderGraph, hdCamera.contextContainer);
 

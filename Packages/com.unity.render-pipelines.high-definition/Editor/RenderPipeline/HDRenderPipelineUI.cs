@@ -562,6 +562,25 @@ namespace UnityEditor.Rendering.HighDefinition
 #endif
         static void Drawer_SectionDynamicResolutionSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
+#if ENABLE_UPSCALER_FRAMEWORK
+            bool ShouldSkipAdvancedUpscaler(string upscalerName)
+            {
+                // Filter out DLSS/FSR2/STP IUpscaler implementations since HDRP already lists these upscalers as builtin.
+                // We skip these upscalers since IUpscalers don't have per-camera overrides while the builtin do, 
+                // leading to potential for user confusion and bad UX.
+                // If we need to test these IUpscalers in HDRP, remove the condition from here + update numIUpscalersToDisplay
+                // count below to reflect the correct number of options to display.
+                return upscalerName == STPIUpscaler.upscalerName
+                    #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+                    || upscalerName == DLSSIUpscaler.upscalerName
+                    #endif
+                    #if ENABLE_AMD && ENABLE_AMD_MODULE
+                    || upscalerName == FSR2IUpscaler.upscalerName
+                    #endif
+                    ;
+            }
+#endif
+
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.enabled, Styles.enabled);
 
             bool showUpsampleFilterAsFallback = false;
@@ -584,7 +603,7 @@ namespace UnityEditor.Rendering.HighDefinition
             advancedUpscalersAvailable |= (1 << (int)AdvancedUpscalers.STP);
 
 #if ENABLE_UPSCALER_FRAMEWORK
-            if (HDRenderPipeline.currentPipeline != null && HDRenderPipeline.currentPipeline.upscaling != null && HDRenderPipeline.currentPipeline.upscaling.upscalerNames.Length > 0)
+            if (HDRenderPipeline.currentPipeline != null && HDRenderPipeline.currentPipeline.upscaling != null && HDRenderPipeline.currentPipeline.upscaling.upscalerNames.Count > 0)
             {
                 advancedUpscalersDetectedMask |= (1 << (int)AdvancedUpscalers.IUpscaler);
             }
@@ -643,19 +662,36 @@ namespace UnityEditor.Rendering.HighDefinition
                                 EditorGUI.LabelField(new Rect(rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight), name, EditorStyles.label);
                             },
                             onAddDropdownCallback = (rect,list) => {
+#if ENABLE_UPSCALER_FRAMEWORK
                                 int numIUpscalers = 0;
+#endif
+                                int numIUpscalersToDisplay = 0; // we'll exclude already available IUpscalers (STP/FSR2/DLSS)
 #if ENABLE_UPSCALER_FRAMEWORK
                                 if (HDRenderPipeline.currentPipeline != null && HDRenderPipeline.currentPipeline.upscaling != null)
                                 {
-                                    numIUpscalers = HDRenderPipeline.currentPipeline.upscaling.upscalerNames.Length;
-                                }
+                                    numIUpscalers = HDRenderPipeline.currentPipeline.upscaling.upscalerNames.Count;
+
+                                    // count the IUpscalers surviving the filtering by ShouldSkipAdvancedUpscaler()
+                                    numIUpscalersToDisplay = numIUpscalers;
+                                    numIUpscalersToDisplay -= 1; // STP
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+                                    numIUpscalersToDisplay -= 1; // DLSS
 #endif
+#if ENABLE_AMD && ENABLE_AMD_MODULE
+                                    numIUpscalersToDisplay -= 1; // FSR2
+#endif
+                                }
+#endif // ENABLE_UPSCALER_FRAMEWORK
                                 int numBuiltinUpscalers = math.countbits(advancedUpscalersAvailable);
-                                AdvancedUpscalers[] possible = new AdvancedUpscalers[numBuiltinUpscalers + numIUpscalers];
-                                var names = new GUIContent[numBuiltinUpscalers + numIUpscalers];
-                                var enabled = new bool[numBuiltinUpscalers + numIUpscalers];
+                                int numTotalUpscalers = numBuiltinUpscalers + numIUpscalersToDisplay;
+
+                                AdvancedUpscalers[] possible = new AdvancedUpscalers[numTotalUpscalers];
+                                var names = new GUIContent[numTotalUpscalers];
+                                var enabled = new bool[numTotalUpscalers];
+
                                 // Populate builtin upscalers
-                                for (int upscalerRemainingMask = advancedUpscalersAvailable, nextItem = 0; upscalerRemainingMask != 0;)
+                                int nextItem = 0;
+                                for (int upscalerRemainingMask = advancedUpscalersAvailable; upscalerRemainingMask != 0;)
                                 {
                                     AdvancedUpscalers upscalerIndex = (AdvancedUpscalers)math.tzcnt(upscalerRemainingMask);
                                     enabled[nextItem] = (advancedUpscalersEnabledMask & (1 << (int)upscalerIndex)) == 0;
@@ -668,9 +704,14 @@ namespace UnityEditor.Rendering.HighDefinition
                                 // Populate IUpscalers
                                 for (int i = numBuiltinUpscalers; i < numBuiltinUpscalers + numIUpscalers; i++)
                                 {
-                                    possible[i] = AdvancedUpscalers.IUpscaler;
-                                    names[i] = new GUIContent(HDRenderPipeline.currentPipeline.upscaling.upscalerNames[i - numBuiltinUpscalers]);
-                                    enabled[i] = false;
+                                    string upscalerName = HDRenderPipeline.currentPipeline.upscaling.upscalerNames[i - numBuiltinUpscalers];
+                                    if (ShouldSkipAdvancedUpscaler(upscalerName))
+                                        continue;
+
+                                    possible[nextItem] = AdvancedUpscalers.IUpscaler;
+                                    names[nextItem] = new GUIContent(upscalerName);
+                                    enabled[nextItem] = false;
+                                    nextItem++;
                                 }
 #endif
 
@@ -891,20 +932,23 @@ namespace UnityEditor.Rendering.HighDefinition
                     bool optionsChanged = false;
                     HDRenderPipelineEditor hdrpEditor = owner as HDRenderPipelineEditor;
 
-                    // O(N^2) IUpscaler name comparison but typical use case is <6 entries w/ each entry around 20B of char data
                     for (int i = 0; i < serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.arraySize; ++i)
                     {
                         string advancedUpscalerName = serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.GetArrayElementAtIndex(i).stringValue;
 
-                        List<UpscalerOptions> upscalerOptionsList = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.IUpscalerOptions;
+                        if (ShouldSkipAdvancedUpscaler(advancedUpscalerName))
+                            continue;
+
+                        List<UpscalerOptions> upscalerOptionsList = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.upscalerOptions;
+                        // O(N^2) IUpscaler name comparison but typical use case is <6 entries w/ each entry around 20B of char data
                         foreach (UpscalerOptions upscalerOptions in upscalerOptionsList)
                         {
-                            if (upscalerOptions.UpscalerName != advancedUpscalerName)
+                            if (upscalerOptions.upscalerName != advancedUpscalerName)
                             {
                                 continue;
                             }
 
-                            EditorGUILayout.LabelField(upscalerOptions.UpscalerName, EditorStyles.boldLabel);
+                            EditorGUILayout.LabelField(upscalerOptions.upscalerName, EditorStyles.boldLabel);
                             ++EditorGUI.indentLevel;
 
                             Debug.Assert(hdrpEditor != null);

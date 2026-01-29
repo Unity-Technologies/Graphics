@@ -31,16 +31,16 @@ namespace UnityEngine.Rendering.Universal
             if (!m_IsValid)
                 return;
 
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 #if ENABLE_UPSCALER_FRAMEWORK
             var postProcessingData = frameData.Get<UniversalPostProcessingData>();
-            if (postProcessingData.activeUpscaler != null)
-                return;
-#endif
-
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            if (postProcessingData.activeUpscaler != null && postProcessingData.activeUpscaler.isTemporal)
+                return; // we are using a temporal upscaler that uses jitter, skip TAA pass
+#else
             // We are actually running STP which reuses TAA Jitter. Skip TAA pass.
             if (cameraData.IsSTPRequested())
                 return;
+#endif
 
             // Note that enabling camera jitter uses the same CameraData::IsTemporalAAEnabled(). So if we add any other kind of overrides
             // then we need to put it in CameraData::IsTemporalAAEnabled() as opposed

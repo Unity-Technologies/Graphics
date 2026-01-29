@@ -38,11 +38,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool supportDataDrivenLensFlare;
 
+#if ENABLE_UPSCALER_FRAMEWORK
         /// <summary>
         /// Returns null if there isn't an active upscaler
         /// </summary>
-#if ENABLE_UPSCALER_FRAMEWORK
-        public IUpscaler activeUpscaler;
+        internal IUpscaler activeUpscaler;
 #endif
 
         /// <summary>
@@ -56,6 +56,10 @@ namespace UnityEngine.Rendering.Universal
             useFastSRGBLinearConversion = false;
             supportScreenSpaceLensFlare = false;
             supportDataDrivenLensFlare = false;
+
+#if ENABLE_UPSCALER_FRAMEWORK
+            activeUpscaler = null;
+#endif
         }
     }
 }

@@ -1,4 +1,3 @@
-#if UNITY_EDITOR
 #if ENABLE_UPSCALER_FRAMEWORK && ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
 using UnityEditor;
 using UnityEngine;
@@ -18,13 +17,13 @@ public class DLSSOptionsEditor : Editor
     private void OnEnable()
     {
         // Find each property by its exact field name in DLSSOptions.cs
-        m_QualityMode = serializedObject.FindProperty("DLSSQualityMode");
-        m_FixedResolution = serializedObject.FindProperty("FixedResolutionMode");
-        m_PresetQuality = serializedObject.FindProperty("DLSSRenderPresetQuality");
-        m_PresetBalanced = serializedObject.FindProperty("DLSSRenderPresetBalanced");
-        m_PresetPerformance = serializedObject.FindProperty("DLSSRenderPresetPerformance");
-        m_PresetUltraPerformance = serializedObject.FindProperty("DLSSRenderPresetUltraPerformance");
-        m_PresetDLAA = serializedObject.FindProperty("DLSSRenderPresetDLAA");
+        m_QualityMode = serializedObject.FindProperty("m_DLSSQualityMode");
+        m_FixedResolution = serializedObject.FindProperty("m_FixedResolutionMode");
+        m_PresetQuality = serializedObject.FindProperty("m_DLSSRenderPresetQuality");
+        m_PresetBalanced = serializedObject.FindProperty("m_DLSSRenderPresetBalanced");
+        m_PresetPerformance = serializedObject.FindProperty("m_DLSSRenderPresetPerformance");
+        m_PresetUltraPerformance = serializedObject.FindProperty("m_DLSSRenderPresetUltraPerformance");
+        m_PresetDLAA = serializedObject.FindProperty("m_DLSSRenderPresetDLAA");
     }
 
     #region STYLES
@@ -163,5 +162,4 @@ public class DLSSOptionsEditor : Editor
         serializedObject.ApplyModifiedProperties();
     }
 }
-#endif
 #endif

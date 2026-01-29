@@ -36,6 +36,16 @@
             "name": "com.unity.modules.uielements",
             "expression": "1.0.0",
             "define": "ENABLE_UIELEMENTS_MODULE"
+        },
+        {
+            "name": "com.unity.modules.nvidia",
+            "expression": "1.0.0",
+            "define": "ENABLE_NVIDIA_MODULE"
+        },
+        {
+            "name": "com.unity.modules.amd",
+            "expression": "1.0.0",
+            "define": "ENABLE_AMD_MODULE"
         }
     ],
     "noEngineReferences": false

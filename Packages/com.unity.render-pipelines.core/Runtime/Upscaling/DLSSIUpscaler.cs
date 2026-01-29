@@ -18,15 +18,15 @@ using UnityEditor;
 #endif
 static class RegisterDLSS
 { 
-    static RegisterDLSS() => UpscalerRegistry.Register<DLSSIUpscaler, DLSSOptions>(DLSSIUpscaler.UPSCALER_NAME);
+    static RegisterDLSS() => UpscalerRegistry.Register<DLSSIUpscaler, DLSSOptions>(DLSSIUpscaler.upscalerName);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    static void InitRuntime() => UpscalerRegistry.Register<DLSSIUpscaler, DLSSOptions>(DLSSIUpscaler.UPSCALER_NAME);
+    static void InitRuntime() => UpscalerRegistry.Register<DLSSIUpscaler, DLSSOptions>(DLSSIUpscaler.upscalerName);
 }
 
 public class DLSSIUpscaler : AbstractUpscaler
 {
-    public static readonly string UPSCALER_NAME = "DLSS (IUpscaler)";
+    public static readonly string upscalerName = "Deep Learning Super Sampling 4";
 
 #region DLSS_UTILITIES
     static bool CheckDLSSFeatureAvailable()
@@ -87,12 +87,12 @@ public class DLSSIUpscaler : AbstractUpscaler
         settings.inputRTHeight  = data.colorInputSizeY;
         settings.outputRTWidth  = data.colorOutputSizeX;
         settings.outputRTHeight = data.colorOutputSizeY;
-        settings.quality = (DLSSQuality)options.DLSSQualityMode;
-        settings.presetQualityMode = (DLSSPreset)options.DLSSRenderPresetQuality;
-        settings.presetBalancedMode = (DLSSPreset)options.DLSSRenderPresetBalanced;
-        settings.presetPerformanceMode = (DLSSPreset)options.DLSSRenderPresetPerformance;
-        settings.presetUltraPerformanceMode = (DLSSPreset)options.DLSSRenderPresetUltraPerformance;
-        settings.presetDlaaMode = (DLSSPreset)options.DLSSRenderPresetDLAA;
+        settings.quality = (DLSSQuality)options.dlssQualityMode;
+        settings.presetQualityMode = options.dlssRenderPresetQuality;
+        settings.presetBalancedMode = options.dlssRenderPresetBalanced;
+        settings.presetPerformanceMode = options.dlssRenderPresetPerformance;
+        settings.presetUltraPerformanceMode = options.dlssRenderPresetUltraPerformance;
+        settings.presetDlaaMode = options.dlssRenderPresetDLAA;
         ctx = GraphicsDevice.device.CreateFeature(cmd, settings);
     }
 #endregion // DLSS_UTILITIES
@@ -124,39 +124,41 @@ public class DLSSIUpscaler : AbstractUpscaler
 #region IUPSCALER_INTERFACE
     public DLSSIUpscaler(DLSSOptions o)
     {
+        // check availability
         if(!CheckDLSSFeatureAvailable())
         {
             m_DLSSReady = false;
             return;
         }
 
+        // setup options
         m_Options = o;
-        if(m_Options == null)
+        if (m_Options == null)
         {
             Debug.LogWarning("null options given to DLSSIUpscaler()");
             m_Options = (DLSSOptions)ScriptableObject.CreateInstance(typeof(DLSSOptions));
-            m_Options.UpscalerName = GetName();
+            m_Options.upscalerName = name;
         }
-        if (string.IsNullOrEmpty(m_Options.UpscalerName))
+        if (string.IsNullOrEmpty(m_Options.upscalerName))
         {
             Debug.LogWarning("options given with empty ID");
-            m_Options.UpscalerName = GetName();
+            m_Options.upscalerName = name;
         }
-        m_QualityModeHistory = (DLSSQuality)m_Options.DLSSQualityMode;
 
-        m_OutputResolutionPrevious = new Vector2Int(0, 0);
+        // init state
         m_InputResolution = new Vector2Int(1, 1);
         m_OutputResolution = new Vector2Int(1, 1);
         m_Jitter = new Vector2(0, 0);
 
+        m_OptionsHistory = DLSSOptions.Instantiate(m_Options);
+        m_OutputResolutionPrevious = new Vector2Int(0, 0);
+
         m_DLSSReady = true;
     }
 
-    public override string GetName() 
-    {
-        return UPSCALER_NAME;
-    }
-    public override bool IsTemporalUpscaler() { return true; }
+    public override string name => upscalerName;
+    public override bool isTemporal => true;
+    public override bool supportsSharpening => false;
     public override void CalculateJitter(int frameIndex, out Vector2 jitter, out bool allowScaling)
     {
         float upscaleRatio = (float)(m_OutputResolution.x) / m_InputResolution.x;
@@ -176,11 +178,11 @@ public class DLSSIUpscaler : AbstractUpscaler
 
     public override void NegotiatePreUpscaleResolution(ref Vector2Int preUpscaleResolution, Vector2Int postUpscaleResolution)
     {
-        if(m_Options.FixedResolutionMode)
+        if(m_Options.fixedResolutionMode)
         {
             Debug.Assert(GraphicsDevice.device != null);
 
-            DLSSQuality qualityMode = (DLSSQuality)m_Options.DLSSQualityMode;
+            DLSSQuality qualityMode = (DLSSQuality)m_Options.dlssQualityMode;
             GraphicsDevice.device.GetOptimalSettings(
                 (uint)postUpscaleResolution.x,
                 (uint)postUpscaleResolution.y,
@@ -194,25 +196,25 @@ public class DLSSIUpscaler : AbstractUpscaler
 
     static int CalculateJitterPhaseCount(float upscaleRatio)
     {
-        const float basePhaseCount = 8.0f;
-        return (int)(basePhaseCount * upscaleRatio * upscaleRatio);
+        const float k_BasePhaseCount = 8.0f;
+        return (int)(k_BasePhaseCount * upscaleRatio * upscaleRatio);
     }
 
     private bool ShouldResetDLSSContext(UpscalingIO io)
     {
-        bool qualityChanged = m_QualityModeHistory != (DLSSQuality)m_Options.DLSSQualityMode;
-
-        bool presetChanged = m_PresetQualityHistory != (DLSSPreset)m_Options.DLSSRenderPresetQuality
-            || m_PresetBalancedHistory != (DLSSPreset)m_Options.DLSSRenderPresetBalanced
-            || m_PresetPerfHistory != (DLSSPreset)m_Options.DLSSRenderPresetPerformance
-            || m_PresetUltraPerfHistory != (DLSSPreset)m_Options.DLSSRenderPresetUltraPerformance
-            || m_PresetDLAAHistory != (DLSSPreset)m_Options.DLSSRenderPresetDLAA;
+        bool resolutionScalingModeChanged = m_OptionsHistory.fixedResolutionMode != m_Options.fixedResolutionMode;
+        bool qualityChanged = m_OptionsHistory.dlssQualityMode!= m_Options.dlssQualityMode;
+        bool presetChanged = m_OptionsHistory.dlssRenderPresetQuality != m_Options.dlssRenderPresetQuality
+            || m_OptionsHistory.dlssRenderPresetBalanced != m_Options.dlssRenderPresetBalanced
+            || m_OptionsHistory.dlssRenderPresetPerformance != m_Options.dlssRenderPresetPerformance
+            || m_OptionsHistory.dlssRenderPresetUltraPerformance != m_Options.dlssRenderPresetUltraPerformance
+            || m_OptionsHistory.dlssRenderPresetDLAA != m_Options.dlssRenderPresetDLAA;
 
         bool outputResolutionChanged = m_OutputResolutionPrevious != io.postUpscaleResolution;
 
         bool nullContext = m_DLSSContext == null;
 
-        return nullContext || qualityChanged || presetChanged || outputResolutionChanged;
+        return nullContext || qualityChanged || presetChanged || outputResolutionChanged || resolutionScalingModeChanged;
     }
 
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
@@ -235,7 +237,7 @@ public class DLSSIUpscaler : AbstractUpscaler
             outputDesc.width = io.postUpscaleResolution.x;
             outputDesc.height = io.postUpscaleResolution.y;
 
-            outputDesc.format = GraphicsFormatUtility.GetLinearFormat(inputDesc.format);
+            outputDesc.format = inputDesc.format;
             outputDesc.msaaSamples = MSAASamples.None;
             outputDesc.useMipMap = false;
             outputDesc.autoGenerateMips = false;
@@ -322,27 +324,16 @@ public class DLSSIUpscaler : AbstractUpscaler
 
         // record history
         m_OutputResolutionPrevious = io.postUpscaleResolution;
-        m_QualityModeHistory = (DLSSQuality)m_Options.DLSSQualityMode;
-        m_PresetQualityHistory = (DLSSPreset)m_Options.DLSSRenderPresetQuality;
-        m_PresetBalancedHistory = (DLSSPreset)m_Options.DLSSRenderPresetBalanced;
-        m_PresetPerfHistory = (DLSSPreset)m_Options.DLSSRenderPresetPerformance;
-        m_PresetUltraPerfHistory = (DLSSPreset)m_Options.DLSSRenderPresetUltraPerformance;
-        m_PresetDLAAHistory = (DLSSPreset)m_Options.DLSSRenderPresetDLAA;
+        m_OptionsHistory.CopyFrom(m_Options);
     }
 #endregion
 
 
-#region DATA
-    // static data
+    #region DATA
     private bool m_DLSSReady = false;
 
     DLSSOptions m_Options = null;
-    DLSSQuality m_QualityModeHistory = DLSSQuality.DLAA;
-    DLSSPreset m_PresetQualityHistory = DLSSPreset.Preset_Default;
-    DLSSPreset m_PresetBalancedHistory = DLSSPreset.Preset_Default;
-    DLSSPreset m_PresetPerfHistory = DLSSPreset.Preset_Default;
-    DLSSPreset m_PresetUltraPerfHistory = DLSSPreset.Preset_Default;
-    DLSSPreset m_PresetDLAAHistory = DLSSPreset.Preset_Default;
+    DLSSOptions m_OptionsHistory = null;
 
     // per-view DLSS data (per camera / per use)
     private DLSSContext m_DLSSContext = null;

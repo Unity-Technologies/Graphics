@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 UnityEngine.Debug.LogError($"[HDRP Serialized Asset] Could not find 'dynamicResolutionSettings' property in m_RenderPipelineSettings for {asset.name}.");
                 return;
             }
-            SerializedProperty UpscalerOptionBaseProp = dynamicResolutionSettingsProp.FindPropertyRelative("IUpscalerOptions");
+            SerializedProperty UpscalerOptionBaseProp = dynamicResolutionSettingsProp.FindPropertyRelative("upscalerOptions");
             if (UpscalerOptionBaseProp == null)
             {
                 UnityEngine.Debug.LogError($"[HDRP Serialized Asset] Could not find 'UpscalerOptions' property in DynamicResolutionSettings for {asset.name}.");
@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 serializedObject.ApplyModifiedProperties();
                 EditorUtility.SetDirty(asset);
 
-                UnityEngine.Debug.Log($"[URP Serialized Asset] UniversalRenderPipelineAsset '{asset.name}' auto-populated and saved on SerializedObject creation.");
+                UnityEngine.Debug.Log($"[HDRP Serialized Asset] HDRenderPipelineAsset '{asset.name}' auto-populated and saved on SerializedObject creation.");
             }
 #endif
         }

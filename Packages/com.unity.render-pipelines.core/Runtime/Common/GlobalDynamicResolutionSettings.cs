@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering
             rayTracingHalfResThreshold = 50.0f,
 
 #if ENABLE_UPSCALER_FRAMEWORK
-            IUpscalerOptions = new List<UpscalerOptions>(),
+            upscalerOptions = new List<UpscalerOptions>(),
 #endif
 
             DLSSUseOptimalSettings = true,
@@ -193,8 +193,12 @@ namespace UnityEngine.Rendering
         public float fsrSharpness;
 
 #if ENABLE_UPSCALER_FRAMEWORK
+        /// <summary>
+        /// The list of configuration options for all registered upscalers.
+        /// These are typically auto-populated as sub-assets within the Render Pipeline Asset.
+        /// </summary>
         [SerializeReference]
-        public List<UpscalerOptions> IUpscalerOptions;
+        public List<UpscalerOptions> upscalerOptions;
 #endif
 
         /// <summary>The maximum resolution percentage that dynamic resolution can reach.</summary>

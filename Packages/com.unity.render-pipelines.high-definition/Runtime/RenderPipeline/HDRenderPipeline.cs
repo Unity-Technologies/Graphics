@@ -759,7 +759,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             VrsInitializeResources();
 #if ENABLE_UPSCALER_FRAMEWORK
-            upscaling = new Upscaling(asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.IUpscalerOptions);
+            upscaling = new Upscaling(asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.upscalerOptions);
 #endif
 
 #if UNITY_EDITOR
@@ -1464,7 +1464,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     default:
                     {
                         // The upscaler name should be an IUpscaler
-                        IUpscaler optActiveIUpscaler = this.upscaling.GetActiveUpscaler();
+                        IUpscaler optActiveIUpscaler = this.upscaling.activeUpscaler;
 
 
                         // TODO (Apoorva): Make this condition dynamic from the IUpscaler interface, so that an
@@ -1472,7 +1472,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         bool isSupported = ((drsSettings.dynResType == DynamicResolutionType.Hardware) && isHwDrsSupported) || drsSettings.forceResolution;
                         if (isSupported)
                         {
-                            if (optActiveIUpscaler == null || name != optActiveIUpscaler.GetName())
+                            if (optActiveIUpscaler == null || name != optActiveIUpscaler.name)
                             {
                                 // The active upscaler should be an IUpscaler, but it isn't currently set active in the
                                 // upscaling manager.
@@ -1485,7 +1485,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 else
                                 {
                                     // The upscaler was successfully set. Get a handle to it.
-                                    optActiveIUpscaler = this.upscaling.GetActiveUpscaler();
+                                    optActiveIUpscaler = this.upscaling.activeUpscaler;
                                     Debug.Assert(optActiveIUpscaler != null);
                                 }
                             }
@@ -1493,7 +1493,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             if (optActiveIUpscaler != null)
                             {
                                 hdCam.cameraCanRenderIUpscaler = true;
-                                hdCam.cameraIUpscalerIsTemporalUpscaler = optActiveIUpscaler.IsTemporalUpscaler();
+                                hdCam.cameraIUpscalerIsTemporalUpscaler = optActiveIUpscaler.isTemporal;
                                 found = true;
                             }
                         }
