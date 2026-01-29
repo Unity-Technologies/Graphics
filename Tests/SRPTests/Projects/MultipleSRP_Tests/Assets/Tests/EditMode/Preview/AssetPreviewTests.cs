@@ -270,8 +270,7 @@ namespace Preview
             if (name.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
                 name = name.Substring(0, name.Length - 4);
 
-            var testCase = new GraphicsTestCase(name);
-            var image = testCase.ReferenceImage.Image;
+            var image = new ReferenceImage(name).Image;
             Assert.IsTrue(image != null, $"Reference image not found for test case {name}");
             return image;
         }
