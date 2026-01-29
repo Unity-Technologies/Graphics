@@ -16,6 +16,7 @@ This section includes descriptions for properties in the High Definition Render 
 |[Camera and scene composition reference](reference-camera-scene-composition.md)| Properties that belong to HDRP cameras and the graphics compositor. |
 |[Build, test, and deploy reference](reference-build-test-deploy.md)| Properties that you can use to troubleshoot and publish a project. |
 |[Rendering and post-processing reference](reference-rendering-post-processing.md)| Properties that control how HDRP renders a scene and applies post-processing |
+|[Look Dev window reference](look-dev-reference.md)|Properties in the Look Dev window.|
 |[HDRP Glossary](Glossary.md)| Definitions for HDRP-specific terminology. |
 
 

@@ -464,4 +464,5 @@
         * [Dynamic Resolution component reference](reference-dynamic-resolution.md)
         * [High Dynamic Range (HDR) tonemapping reference](reference-hdr-tonemapping.md)
         * [Custom Pass reference](custom-pass-reference.md)
+  * [Look Dev window reference](look-dev-reference.md)
   * [HDRP Glossary](Glossary.md)
