@@ -136,7 +136,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_ReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
             {
                 EditorGUI.LabelField(
-                    new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight),
+                    new Rect(rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight),
                     m_TextList[index], EditorStyles.label);
             };
 

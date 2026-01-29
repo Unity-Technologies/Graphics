@@ -46,9 +46,9 @@ namespace UnityEditor.ShaderGraph
             public static readonly GUIContent CustomInterpLabel = L10n.TextContent("Custom Interpolator Channel Settings", "");
             public static readonly GUIContent CustomInterpWarnThresholdLabel = L10n.TextContent("Warning Threshold", $"Shader Graph displays a warning when the user creates more custom interpolators than permitted by this setting. The number of interpolators that trigger this warning must be between {kMinChannelThreshold} and the Error Threshold.");
             public static readonly GUIContent CustomInterpErrorThresholdLabel = L10n.TextContent("Error Threshold", $"Shader Graph displays an error message when the user tries to create more custom interpolators than permitted by this setting. The number of interpolators that trigger this error must be between {kMinChannelThreshold} and {kMaxChannelThreshold}.");
-            public static readonly string kReadMore = "read more";
+            public static readonly string kLearnMore = "Learn More";
             public static readonly GUIStyle helpBoxIconStyle;
-            public static readonly GUIStyle readMoreStyle;
+            public static readonly GUIStyle learnMoreStyle;
 
             public static readonly GUIContent HeatmapSectionLabel = L10n.TextContent("Heatmap Color Mode Settings", "");
             public static readonly GUIContent HeatmapAssetLabel = L10n.TextContent("Custom Values", "Specifies a custom Heatmap Values asset with data to display in the Heatmap color mode. If empty, a set of default values will be used.");
@@ -64,9 +64,10 @@ namespace UnityEditor.ShaderGraph
                 helpBoxIconStyle.margin.left = EditorStyles.wordWrappedMiniLabel.padding.left + EditorStyles.wordWrappedMiniLabel.margin.left;
                 helpBoxIconStyle.margin.top = EditorStyles.wordWrappedMiniLabel.padding.top + EditorStyles.wordWrappedMiniLabel.margin.top;
 
-                readMoreStyle = new GUIStyle(EditorStyles.linkLabel);
-                readMoreStyle.fontSize = EditorStyles.miniLabel.fontSize;
-                readMoreStyle.wordWrap = true;
+                learnMoreStyle = new GUIStyle(EditorStyles.linkLabel);
+                learnMoreStyle.margin = new RectOffset(8, 8, 8, 8);
+                learnMoreStyle.fontSize = EditorStyles.miniLabel.fontSize;
+                learnMoreStyle.wordWrap = true;
             }
         }
 
@@ -138,7 +139,7 @@ namespace UnityEditor.ShaderGraph
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button(Styles.kReadMore, Styles.readMoreStyle))
+            if (GUILayout.Button(Styles.kLearnMore, Styles.learnMoreStyle))
             {
                 System.Diagnostics.Process.Start(kCustomInterpolatorDocumentationURL);
             }
