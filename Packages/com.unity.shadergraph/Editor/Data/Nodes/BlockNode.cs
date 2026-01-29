@@ -99,6 +99,16 @@ namespace UnityEditor.ShaderGraph
             set => OnCustomBlockFieldModified(customName, customWidth, value);
         }
 
+        // A helper method to create a temporary BlockNode for use during code generation.
+        public static BlockNode CreateInlineBlockNode(BlockFieldDescriptor fieldDescriptor, GraphData owner)
+        {
+            BlockNode result = new BlockNode();
+            result.Init(fieldDescriptor);
+            result.owner = owner;
+            result.Concretize();
+            return result;
+        }
+
         public void Init(BlockFieldDescriptor fieldDescriptor)
         {
             m_Descriptor = fieldDescriptor;
