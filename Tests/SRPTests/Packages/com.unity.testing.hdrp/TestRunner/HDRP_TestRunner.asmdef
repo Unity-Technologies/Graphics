@@ -5,6 +5,7 @@
         "Unity.Postprocessing.Runtime",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.Testing.XR.Runtime",
+        "UnityEditor.TestTools.Graphics",
         "UnityEngine.TestTools.Graphics",
         "Unity.RenderPipelines.GPUDriven.Runtime"
     ],

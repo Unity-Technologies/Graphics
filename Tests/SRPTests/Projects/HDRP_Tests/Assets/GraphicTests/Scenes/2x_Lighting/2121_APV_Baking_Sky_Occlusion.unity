@@ -38,12 +38,12 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.71185607, g: 0.4354058, b: 0.6579552, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -94,7 +94,8 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: 43e395b781fa1e44e9a66f46d03e2347,
+    type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: bb0e4bd9a993f47a29472c24d740822f,
     type: 2}
 --- !u!196 &4
@@ -462,6 +463,7 @@ MonoBehaviour:
   m_StaticLightingSkyUniqueID: 3
   m_StaticLightingCloudsUniqueID: 0
   m_StaticLightingVolumetricClouds: 0
+  bounces: 1
 --- !u!4 &245550353
 Transform:
   m_ObjectHideFlags: 1
@@ -1355,7 +1357,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a83d2f7ae04ab6f4f99b0d85377be998, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  serializedBakingSet: {fileID: 0}
+  serializedBakingSet: {fileID: 11400000, guid: 6357118c4ee334efbb08293918fcbe84,
+    type: 2}
   sceneGUID: 7ade3d105a5eb453b96e65e54f9609f8
   obsoleteAsset: {fileID: 0}
   obsoleteCellSharedDataAsset: {fileID: 0}
@@ -1503,10 +1506,10 @@ MonoBehaviour:
   objectLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  lowestSubdivLevelOverride: 0
-  highestSubdivLevelOverride: 0
+  lowestSubdivLevelOverride: 3
+  highestSubdivLevelOverride: 3
   overridesSubdivLevels: 0
-  mightNeedRebaking: 1
+  mightNeedRebaking: 0
   cachedTransform:
     e00: 1
     e01: 0
@@ -1524,9 +1527,9 @@ MonoBehaviour:
     e31: 0
     e32: 0
     e33: 1
-  cachedHashCode: -586836053
+  cachedHashCode: -586797965
   fillEmptySpaces: 0
-  version: 1
+  version: 2
   globalVolume: 1
 --- !u!4 &1032115244
 Transform:

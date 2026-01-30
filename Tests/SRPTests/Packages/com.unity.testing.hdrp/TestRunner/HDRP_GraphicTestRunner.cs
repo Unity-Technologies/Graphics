@@ -1,22 +1,17 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using NUnit;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
-using UnityEngine.Events;
-using System.IO;
 using System.Linq;
 using UnityEngine.VFX;
 
-public class HDRP_GraphicTestRunner
+public static class HDRP_GraphicTestRunner
 {
-    private bool GPUResidentDrawerRequested()
+    private static bool GPUResidentDrawerRequested()
     {
         bool forcedOn = false;
         foreach (var arg in Environment.GetCommandLineArgs())
@@ -35,11 +30,7 @@ public class HDRP_GraphicTestRunner
         return false;
     }
 
-    [UnityTest]
-    [PrebuildSetup("SetupGraphicsTestCases")]
-    [UseGraphicsTestCases]
-    [Timeout(450 * 1000)] // Set timeout to 450 sec. to handle complex scenes with many shaders (previous timeout was 300s)
-    public IEnumerator Run(GraphicsTestCase testCase)
+    public static IEnumerator Run(SceneGraphicsTestCase testCase)
     {
         HDRP_TestSettings settings = null;
         Camera[] cameras = null;
@@ -54,7 +45,7 @@ public class HDRP_GraphicTestRunner
         UnityEditor.ShaderUtil.allowAsyncCompilation = true;
         UnityEditor.EditorSettings.asyncShaderCompilation = true;
 
-		Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
+		Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImage.LoadMessage}.");
         SceneManager.LoadScene(testCase.ScenePath);
 
         // Wait for scene loading to retrieve settings/camera.
@@ -225,7 +216,7 @@ public class HDRP_GraphicTestRunner
         if (settingsSG == null || !settingsSG.compareSGtoBI)
         {
             // Standard Test
-            ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings?.ImageComparisonSettings, testCase.ReferenceImagePathLog);
+            ImageAssert.AreEqual(testCase.ReferenceImage.Image, camera, settings?.ImageComparisonSettings, testCase.ReferenceImage.LoadMessage);
 
             // For some reason, tests on mac os have started failing with render graph enabled by default.
             // Some tests have 400+ gcalloc in them. Unfortunately it's not reproductible outside of command line so it's impossible to debug.
@@ -256,7 +247,7 @@ public class HDRP_GraphicTestRunner
             // First test: Shader Graph
             try
             {
-                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null) ? settings.ImageComparisonSettings : null, testCase.ReferenceImagePathLog);
+                ImageAssert.AreEqual(testCase.ReferenceImage.Image, camera, (settings != null) ? settings.ImageComparisonSettings : null, testCase.ReferenceImage.LoadMessage);
             }
             catch (AssertionException)
             {
@@ -272,8 +263,7 @@ public class HDRP_GraphicTestRunner
             // Second test: HDRP/Lit Materials
             try
             {
-                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null) ? settings.ImageComparisonSettings : null, testCase.ReferenceImagePathLog);
-            }
+                ImageAssert.AreEqual(testCase.ReferenceImage.Image, camera, (settings != null) ? settings.ImageComparisonSettings : null, testCase.ReferenceImage.LoadMessage);            }
             catch (AssertionException)
             {
                 biFail = true;
@@ -310,27 +300,11 @@ public class HDRP_GraphicTestRunner
 
     }
 
-    public void SetRayTracingAccumulationOnCameras(HDCamera[] hdCameras, bool b)
+    public static void SetRayTracingAccumulationOnCameras(HDCamera[] hdCameras, bool b)
     {
         foreach(HDCamera hdCamera in hdCameras)
         {
             hdCamera.SetRayTracingAccumulation(b);
         }
     }
-
-#if UNITY_EDITOR
-
-    [TearDown]
-    public void DumpImagesInEditor()
-    {
-        UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
-    }
-
-    [TearDown]
-    public void TearDownXR()
-    {
-        XRGraphicsAutomatedTests.running = false;
-    }
-
-#endif
 }

@@ -18,6 +18,7 @@
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
     "local.utf.references": "file:../../../Packages/local.utf.references",
     "local.gtf.references": "file:../../../Packages/local.gtf.references",
+    "com.unity.testing.common-graphics": "file:../../../Packages/com.unity.testing.common-graphics",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
     "com.unity.ugui": "2.0.0",
     "com.unity.modules.ai": "1.0.0",
