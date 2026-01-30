@@ -31,7 +31,7 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
 
     int probeId = dispatchInfo.globalThreadIndex;
 
-    QrngSobol rngState;
+    QrngSobol2D rngState;
     rngState.Init(uint2((uint)probeId, 0), _SampleId);
 
     if (_SampleId==0)
@@ -43,7 +43,7 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
 
     UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_AccelStruct);
 
-    float2 u = float2(rngState.GetFloat(0), rngState.GetFloat(1));
+    float2 u = rngState.GetSample(0);
     float3 rayFirstDirection = MapSquareToSphere(u);
 
     float pathWeight = 4.0f * PI; // 1 / SphereSamplePDF
@@ -69,7 +69,7 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
         }
         else
         {
-            u = float2(rngState.GetFloat(2*bounceIndex), rngState.GetFloat(2*bounceIndex+1));
+            u = rngState.GetSample(bounceIndex);
 
             SampleDiffuseBrdf(u, normalWS, ray.direction);
             ray.direction = normalize(ray.direction);

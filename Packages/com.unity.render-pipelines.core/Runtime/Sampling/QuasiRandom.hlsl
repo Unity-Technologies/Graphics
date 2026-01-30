@@ -11,7 +11,7 @@ static const uint kMaxSobolDim = SOBOL_MATRICES_COUNT;
 // infinite dims, 2097151 max samples, pixel tiling wraps at 65536
 // Define QRNG_SOBOL_02 to only use first 2 sobol dims and rely on scrambling for the others, this
 // effectively makes every pair of dims a perfect (0,2) sequence
-struct QrngSobol
+struct QrngSobol2D
 {
     uint pixelSeed;
     uint sampleIndex;
@@ -27,7 +27,7 @@ struct QrngSobol
         sampleIndex = startSampleIndex;
     }
 
-    float GetFloat(uint dimension)
+    float PrivateGetFloat(uint dimension)
     {
     #ifdef QRNG_SOBOL_02
         uint index = NestedUniformOwenScramble(sampleIndex, pixelSeed ^ ( dimension / 2));
@@ -39,6 +39,11 @@ struct QrngSobol
     #endif
     }
 
+    float2 GetSample(uint dimension)
+    {
+        return float2(PrivateGetFloat(dimension*2), PrivateGetFloat(dimension*2+1));
+    }
+
     void NextSample()
     {
         sampleIndex++;
@@ -47,7 +52,7 @@ struct QrngSobol
 
 // From paper: "A Low-Discrepancy Sampler that Distributes Monte Carlo Errors as a Blue Noise in Screen Space" by Heitz and Belcour
 // 256 max dims, 256 max samples (beyond 256, the sequence keeps going with another set of 256 samples belonging to another dim, and so on every 256 samples), pixel tiling wraps at 128
-struct QrngSobolBlueNoise
+struct QrngSobolBlueNoise2D
 {
     uint2 pixelCoord;
     uint sampleIndex;
@@ -63,11 +68,16 @@ struct QrngSobolBlueNoise
         Init(seed / 256, seed % 256);
     }
 
-    float GetFloat(uint dimension)
+    float PrivateGetFloat(uint dimension)
     {
         // If we go past the number of stored samples per dim, just shift all to the next pair of dimensions
         dimension += (sampleIndex / 256) * 2;
         return GetBNDSequenceSample(pixelCoord, sampleIndex, dimension);
+    }
+
+    float2 GetSample(uint dimension)
+    {
+        return float2(PrivateGetFloat(dimension*2), PrivateGetFloat(dimension*2+1));
     }
 
     void NextSample()
@@ -80,7 +90,7 @@ struct QrngSobolBlueNoise
 // infinite dims and samples, pixel tiling depends on target sample count. The more samples, the smaller the tile (ex: for 256 samples, tiling size is 4096)
 // define QRNG_GLOBAL_SOBOL_ENHANCED_TILING to get tiling to always wrap at 65536
 // Define QRNG_SOBOL_02 to only use first 2 sobol dims and rely on scrambling for the others
-struct QrngGlobalSobolBlueNoise
+struct QrngGlobalSobolBlueNoise2D
 {
     uint pixelMortonCode;
     uint log2SamplesPerPixel;
@@ -98,7 +108,7 @@ struct QrngGlobalSobolBlueNoise
         Init(uint2(seed & 0xFFFF, seed >> 16), startSampleIndex, perPixelSampleCount);
     }
 
-    float GetFloat(uint dimension)
+    float PrivateGetFloat(uint dimension)
     {
     #ifdef QRNG_SOBOL_02
         uint index = NestedUniformOwenScramble(sampleIndex, LowBiasHash32(dimension/2, 0xe0aaaf75)) & ((1U << log2SamplesPerPixel) - 1U);
@@ -106,6 +116,11 @@ struct QrngGlobalSobolBlueNoise
     #else
         return GetOwenScrambledZShuffledSobolSample(sampleIndex, dimension, kMaxSobolDim, pixelMortonCode, log2SamplesPerPixel);
     #endif
+    }
+
+    float2 GetSample(uint dimension)
+    {
+        return float2(PrivateGetFloat(dimension*2), PrivateGetFloat(dimension*2+1));
     }
 
     void NextSample()
@@ -117,7 +132,7 @@ struct QrngGlobalSobolBlueNoise
 // Kronecker sequence from paper "Optimizing Kronecker Sequences for Multidimensional Sampling"
 //fast but lower quality than Sobol, infinite dims and samples, pixel tiling wraps at 65536
 //define QRNG_KRONECKER_ENHANCED_QUALITY to add small scale jitter
-struct QrngKronecker
+struct QrngKronecker2D
 {
     uint cranleyPattersonSeed;
     uint shuffledSampleIndex;
@@ -141,7 +156,7 @@ struct QrngKronecker
 #endif
     }
 
-    float GetFloat(uint dimension)
+    float PrivateGetFloat(uint dimension)
     {
         const uint alphas[]= { // values are stored multiplied by (1 << 32)
             // R2 from http://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/
@@ -162,6 +177,11 @@ struct QrngKronecker
 #endif
         // Kronecker sequence evaluation
         return UintToFloat01(cranleyPattersonRot + alphas[dimension % 4] * shuffledSampleIndex);
+    }
+
+    float2 GetSample(uint dimension)
+    {
+        return float2(PrivateGetFloat(dimension*2), PrivateGetFloat(dimension*2+1));
     }
 
     void NextSample()

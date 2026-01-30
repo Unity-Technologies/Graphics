@@ -80,7 +80,7 @@ void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
     rngState.Init(lightmapTexelPos, g_SampleOffset + localSampleIndex);
 
      // select a random point in the texel
-    const float2 random01 = float2(rngState.GetFloatSample(RAND_DIM_AA_X), rngState.GetFloatSample(RAND_DIM_AA_Y));
+    const float2 random01 = rngState.GetSample2D(RAND_DIM_AA);
     const float2 texelSample = g_StochasticAntialiasing == 1 ? random01 : JitterSample(GetSuperSamplingOffset(g_SampleOffset + localSampleIndex, g_SuperSampleWidth), random01, 0.001f); // the jitter is to avoid issues with raytracing watertightness
     const float2 instanceScale = float2(g_InstanceWidthScale, g_InstanceHeightScale);
     const UnifiedRT::Hit hit = LightmapSampleTexelOffset(instanceTexelPos, texelSample, instanceSize, instanceScale, dispatchInfo, uvAccelStruct, g_UvFallback[instanceTexelPos]);

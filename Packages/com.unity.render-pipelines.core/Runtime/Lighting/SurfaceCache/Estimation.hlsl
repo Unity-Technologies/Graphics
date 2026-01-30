@@ -84,7 +84,7 @@ void ProjectAndAccumulate(inout SphericalHarmonics::RGBL1 accumulator, float3 sa
 }
 
 void SamplePunctualLightBounceRadiance(
-    inout QrngKronecker rng,
+    inout QrngKronecker2D rng,
     uint patchIdx,
     UnifiedRT::RayTracingAccelStruct accelStruct,
     UnifiedRT::DispatchInfo dispatchInfo,
@@ -103,7 +103,7 @@ void SamplePunctualLightBounceRadiance(
             accelStruct,
             _PunctualLightSamples,
             _PunctualLightSampleCount,
-            rng.GetFloat(0),
+            rng.GetSample(0).x,
             patchGeo.position,
             patchGeo.normal);
 
@@ -125,7 +125,7 @@ void SamplePunctualLightBounceRadiance(
 }
 
 void SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
-    inout QrngKronecker rng,
+    inout QrngKronecker2D rng,
     uint patchIdx,
     UnifiedRT::RayTracingAccelStruct accelStruct,
     UnifiedRT::DispatchInfo dispatchInfo,
@@ -146,7 +146,7 @@ void SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
     uint validSampleCount = 0;
     for(uint sampleIdx = 0; sampleIdx < _SampleCount; ++sampleIdx)
     {
-        ray.direction = UniformHemisphereSample(float2(rng.GetFloat(0), rng.GetFloat(1)), patchGeo.normal);
+        ray.direction = UniformHemisphereSample(rng.GetSample(0), patchGeo.normal);
         const float3 radiance = IncomingEnviromentAndDirectionalBounceAndMultiBounceRadiance(
             dispatchInfo,
             accelStruct,
@@ -191,7 +191,7 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
         return;
 
     UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_RayTracingAccelerationStructure);
-    QrngKronecker rng;
+    QrngKronecker2D rng;
 
     const PatchUtil::PatchGeometry patchGeo = _PatchGeometries[patchIdx];
 

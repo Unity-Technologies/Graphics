@@ -32,7 +32,7 @@ void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
 
     // now sample direct lighting with the gBuffer data
     uint numLights = g_NumLights;
-    uint dimsOffset = 2; // first two dimensions are used for the stochastic gBuffer sampling
+    uint dimsOffset = 1; // first dimension is used for the stochastic gBuffer sampling
     float visibility[4] = { 0.f, 0.f, 0.f, 0.f };
     for (uint lightIndex = 0; lightIndex < numLights; ++lightIndex)
     {
@@ -47,9 +47,6 @@ void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
 
         float3 attenuation = 1.0f;
         float isVisible = IsLightVisibleFromPoint(dispatchInfo, accelStruct, g_AccelStructInstanceList, ShadowRayMask(), origin, rngState, dimsOffset, dimsUsed, light, g_ReceiveShadows, attenuation) ? dot(float3(1.0f, 1.0f, 1.0f), attenuation)/3.0f : 0.0f;
-        // always start at an even dimension
-        if (dimsUsed % 2 == 1)
-            dimsUsed++;
         dimsOffset += dimsUsed;
         if (light.shadowMaskChannel < 0 || light.shadowMaskChannel >= 4)
             continue;

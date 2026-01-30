@@ -1494,9 +1494,8 @@ namespace UnityEditor.PathTracing.LightBakerBridge
 
                 // Integrate indirect radiance
                 using NativeArray<SphericalHarmonicsL2> outputIndirectRadiance = new(requestLength, Allocator.Persistent);
-                if (request.outputTypeMask.HasFlag(ProbeRequestOutputType.RadianceIndirect))
+                if (request.outputTypeMask.HasFlag(ProbeRequestOutputType.RadianceIndirect) && effectiveIndirectSampleCount > 0)
                 {
-                    Debug.Assert(effectiveIndirectSampleCount > 0);
                     var shIndirectBuffer = deviceContext.CreateBuffer(request.count * 27, sizeof(float));
                     buffersToDestroy.Add(shIndirectBuffer);
                     var shIndirectBufferSlice = shIndirectBuffer.Slice<SphericalHarmonicsL2>();
@@ -1510,9 +1509,8 @@ namespace UnityEditor.PathTracing.LightBakerBridge
 
                 // Integrate direct radiance
                 using NativeArray<SphericalHarmonicsL2> outputDirectRadiance = new(requestLength, Allocator.Persistent);
-                if (request.outputTypeMask.HasFlag(ProbeRequestOutputType.RadianceDirect))
+                if (request.outputTypeMask.HasFlag(ProbeRequestOutputType.RadianceDirect) && directSampleCount > 0)
                 {
-                    Debug.Assert(directSampleCount > 0);
                     var shDirectBuffer = deviceContext.CreateBuffer(request.count * 27, sizeof(float));
                     buffersToDestroy.Add(shDirectBuffer);
                     var shDirectBufferSlice = shDirectBuffer.Slice<SphericalHarmonicsL2>();
@@ -1526,9 +1524,8 @@ namespace UnityEditor.PathTracing.LightBakerBridge
 
                 // Integrate validity
                 using NativeArray<float> outputValidity = new(requestLength, Allocator.Persistent);
-                if (request.outputTypeMask.HasFlag(ProbeRequestOutputType.Validity))
+                if (request.outputTypeMask.HasFlag(ProbeRequestOutputType.Validity) && effectiveIndirectSampleCount > 0)
                 {
-                    Debug.Assert(effectiveIndirectSampleCount > 0);
                     var validityBuffer = deviceContext.CreateBuffer(request.count, sizeof(float));
                     buffersToDestroy.Add(validityBuffer);
                     var validityBufferSlice = validityBuffer.Slice<float>();
@@ -1543,8 +1540,8 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 // Integrate occlusion values
                 const int maxOcclusionLightsPerProbe = 4;
                 bool usesProbeOcclusion = bakeInput.lightingSettings.mixedLightingMode != MixedLightingMode.IndirectOnly;
-                using NativeArray<float> outputOcclusion = new(requestLength * maxOcclusionLightsPerProbe, Allocator.Persistent, NativeArrayOptions.ClearMemory);
-                if (request.outputTypeMask.HasFlag(ProbeRequestOutputType.LightProbeOcclusion) && usesProbeOcclusion)
+                using NativeArray<float> outputOcclusion = new(requestLength * maxOcclusionLightsPerProbe, Allocator.Persistent);
+                if (request.outputTypeMask.HasFlag(ProbeRequestOutputType.LightProbeOcclusion) && usesProbeOcclusion && effectiveIndirectSampleCount > 0)
                 {
                     var occlusionBuffer = deviceContext.CreateBuffer(maxOcclusionLightsPerProbe * request.count, sizeof(float));
                     buffersToDestroy.Add(occlusionBuffer);

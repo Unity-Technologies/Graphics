@@ -58,7 +58,7 @@ float3 EstimateEmission(PTLight light, float3 worldPosition)
 {
     const float Deg2Rad = PI * 2.0f / 360.0f;
     float3 emission = float3(1.0f, 1.0f, 1.0f);
-    
+
     if (light.type == DIRECTIONAL_LIGHT)
         // Directional lights affect all cells
         emission = light.intensity;
@@ -100,12 +100,12 @@ float3 EstimateEmission(PTLight light, float3 worldPosition)
         // Analytical range attenuation from SRP core
         float attenuation = SmoothWindowedDistanceAttenuation(d * d, rcp(d), light.attenuation.x, light.attenuation.y);
 
-        // The analytical lights are single sided. To properly do the conservative culling, we re-use the spotlight culling code 
+        // The analytical lights are single sided. To properly do the conservative culling, we re-use the spotlight culling code
         float4 bSphere = float4(worldPosition, 0.5 * GetCellSize());
         const float angle = 0.5f * 180.0f * Deg2Rad;
         bool intersection = TestConeVsSphere(light.position, light.forward, light.range, angle, bSphere);
         attenuation = intersection ? attenuation : 0.0f;
-        
+
         emission = attenuation * light.intensity;
     }
     else if (light.type == BOX_LIGHT)
@@ -116,7 +116,7 @@ float3 EstimateEmission(PTLight light, float3 worldPosition)
         const float angle = 0.5f * 180.0f * Deg2Rad;
         bool intersection = TestConeVsSphere(light.position, light.forward, light.range, angle, bSphere);
         float attenuation = intersection ? 1.0f : 0.0f;
-        
+
         emission = attenuation * light.intensity;
     }
 
@@ -263,7 +263,7 @@ void BuildRegirLightGrid(in uint3 gidx : SV_DispatchThreadID, in uint threadInde
                 // The reservoirs are stratified based on the lightIndex % g_NumReservoirs
                 uint reservoirLocalIndex = lightIndex % max(g_NumReservoirs, 1);
                 uint reservoirGlobalIndex = cellIndex * g_NumReservoirs + reservoirLocalIndex;
-                float rnd = rngState.GetFloatSample(lightIndex);
+                float rnd = rngState.GetSample1D(lightIndex);
                 UpdateReservoir(reservoirGlobalIndex, lightIndex, targetFunction, rnd);
                 s_SampleCount[threadIndex * MAX_RESERVOIRS_PER_VOXEL + reservoirLocalIndex] += 1;
             }

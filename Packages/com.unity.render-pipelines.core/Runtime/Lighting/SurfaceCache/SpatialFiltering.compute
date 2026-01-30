@@ -31,7 +31,7 @@ void FilterSpatially(uint patchIdx : SV_DispatchThreadID)
 
     const PatchUtil::PatchGeometry patchGeo = _PatchGeometries[patchIdx];
 
-    QrngKronecker rng;
+    QrngKronecker2D rng;
     rng.Init(uint2(patchIdx, 0), _FrameIdx * _SampleCount);
 
     SphericalHarmonics::RGBL1 patchIrradianceSum = _InputPatchIrradiances[patchIdx];
@@ -46,7 +46,7 @@ void FilterSpatially(uint patchIdx : SV_DispatchThreadID)
 
     for (uint sampleIdx = 0; sampleIdx < _SampleCount; ++sampleIdx)
     {
-        const float2 jitter = float2(rng.GetFloat(0), rng.GetFloat(1)) * 2.0f - 1.0f;
+        const float2 jitter = rng.GetSample(0) * 2.0f - 1.0f;
         const float3 displacement = (up * jitter.x + right * jitter.y) * PatchUtil::GetVoxelSize(_VolumeVoxelMinSize, cascadeIdx) * _Radius;
 
         SphericalHarmonics::RGBL1 irradiance;

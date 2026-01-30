@@ -29,7 +29,7 @@ UNIFIED_RT_DECLARE_ACCEL_STRUCT(g_SceneAccelStruct);
 
 int ScatterDiffusely(PTHitGeom hitGeom, float3 V, inout PathTracingSampler rngState, out UnifiedRT::Ray bounceRay, out float brdfPdf)
 {
-    float2 u = float2(rngState.GetFloatSample(RAND_DIM_SURF_SCATTER_X), rngState.GetFloatSample(RAND_DIM_SURF_SCATTER_Y));
+    float2 u = rngState.GetSample2D(RAND_DIM_SURF_SCATTER);
 
     bounceRay = (UnifiedRT::Ray)0;
 
@@ -109,7 +109,7 @@ bool ShouldTransmitRay(inout PathTracingSampler rngState, MaterialProperties mat
         // Additionally, we should divide the contribution of the ray by the probability of choosing either reflection or refraction,
         // but we intentionally don't do this, since the old baker didn't do it either.
         float transmissionProbability = dot(material.transmission, 1.0f) / 3.0f;
-        if (rngState.GetFloatSample(RAND_DIM_TRANSMISSION) < transmissionProbability)
+        if (rngState.GetSample1D(RAND_DIM_TRANSMISSION) < transmissionProbability)
         {
             result = true;
         }
@@ -267,7 +267,7 @@ uint TraceBounceRayAndAddRadiance(inout PathIterator iterator, int bounceIndex, 
         AddEnvironmentRadiance(iterator, bounceIndex != 0);
     }
 
-    float bullet = rngState.GetFloatSample(RAND_DIM_RUSSIAN_ROULETTE);
+    float bullet = rngState.GetSample1D(RAND_DIM_RUSSIAN_ROULETTE);
 
     if (bounceIndex >= RUSSIAN_ROULETTE_MIN_BOUNCES)
     {

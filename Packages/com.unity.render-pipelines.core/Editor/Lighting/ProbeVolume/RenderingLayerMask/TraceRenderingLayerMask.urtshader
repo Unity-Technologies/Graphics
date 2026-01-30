@@ -26,7 +26,7 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
     ray.tMax = FLT_MAX;
     ray.tMin = 0.0f;
 
-    QrngSobol rngState;
+    QrngSobol2D rngState;
     rngState.Init(0, SAMPLE_COUNT);
 
     int4 hitCount = 0;
@@ -35,7 +35,7 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
 
     for (uint i = 0; i < SAMPLE_COUNT; ++i)
     {
-        float2 u = float2(rngState.GetFloat(2*i), rngState.GetFloat(2*i+1));
+        float2 u = rngState.GetSample(i);
         ray.direction = MapSquareToSphere(u);
 
         uint hitMask = 0;
