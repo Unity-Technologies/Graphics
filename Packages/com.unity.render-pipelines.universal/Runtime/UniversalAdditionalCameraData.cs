@@ -503,12 +503,8 @@ namespace UnityEngine.Rendering.Universal
                 return s_DefaultAdditionalCameraData;
             }
         }
-
-#if UNITY_EDITOR
-        internal new Camera camera
-#else
+        
         internal Camera camera
-#endif
         {
             get
             {
