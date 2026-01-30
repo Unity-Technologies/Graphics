@@ -46,12 +46,7 @@ SAMPLER(sampler_TerrainHolesTexture);
 
 UnityTexture2D TerrainBuildUnityTexture2DStructInternal(Texture2D tex, SamplerState samplerstate, float4 texelSize, float4 scaleTranslate)
 {
-    UnityTexture2D result;
-    result.tex = tex;
-    result.samplerstate = samplerstate;
-    result.texelSize = texelSize;
-    result.scaleTranslate = scaleTranslate;
-    return result;
+    return UnityBuildTexture2DStructInternal(tex, samplerstate, texelSize, scaleTranslate, float4(0, 0, 0, 0));
 }
 
 

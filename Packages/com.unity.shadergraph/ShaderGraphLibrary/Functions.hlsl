@@ -80,6 +80,20 @@ float3 OklabToLinear(float3 lab)
 		-0.0041960863f * l - 0.7034186147f * m + 1.7076147010f * s);
 }
 
+// Decodes data sampled from an lDLR- or RGBM-encoded HDR texture, given decode instructions as supplied by
+// the built-in {textureName}_HDR property.
+float4 DecodeHDRSample(float4 encoded, float4 decodeInstructions)
+{
+    float alpha = decodeInstructions.w * (encoded.a - 1.0) + 1.0;
+#if UNITY_COLORSPACE_GAMMA
+    encoded.rgb = (decodeInstructions.x * alpha) * encoded.rgb;
+#else
+    encoded.rgb = (decodeInstructions.x * PositivePow(alpha, decodeInstructions.y)) * encoded.rgb;
+#endif
+    encoded.a = 1;
+    return encoded;
+}
+
 #ifndef SHADERGRAPH_SAMPLE_SCENE_DEPTH
     #define SHADERGRAPH_SAMPLE_SCENE_DEPTH(uv) shadergraph_SampleSceneDepth(uv)
 #endif

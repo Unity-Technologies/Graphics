@@ -21,9 +21,14 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
 
+        [SerializeField]
+        internal bool isHDR = false;
+
+        internal string isHDRString => isHDR ? "[HDR]" : "";
+
         internal override string GetPropertyBlockString()
         {
-            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2DArray) = \"\" {{}}";
+            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{isHDRString}{referenceName}(\"{displayName}\", 2DArray) = \"\" {{}}";
         }
 
         internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => (decl != HLSLDeclaration.HybridPerInstance) && (decl != HLSLDeclaration.DoNotDeclare);
@@ -32,6 +37,8 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             action(new HLSLProperty(HLSLType._Texture2DArray, referenceName, HLSLDeclaration.Global));
             action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
+            if (isHDR)
+                action(new HLSLProperty(HLSLType._float4, referenceName + "_HDR", HLSLDeclaration.Global));
         }
 
         internal override string GetPropertyAsArgumentString(string precisionString)
@@ -48,8 +55,11 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             if (isSubgraphProperty && !promoteToFinalShader)
                 return referenceName;
-            else
-                return $"UnityBuildTexture2DArrayStruct({referenceName})";
+
+            string nameArg = referenceName;
+            string samplerArg = $"sampler{referenceName}";
+            string hdrDecodeArg = isHDR ? $"{referenceName}_HDR" : "float4(0, 0, 0, 0)";
+            return $"UnityBuildTexture2DArrayStructInternal({nameArg}, {samplerArg}, {hdrDecodeArg})";
         }
 
         [SerializeField]
