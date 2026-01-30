@@ -1088,30 +1088,31 @@ namespace UnityEngine.Rendering
             bakeInput.SetProbePositions(newPositions);
             bakeInput.SetOcclusionLightIndices(newOcclusionIndices);
 
-            int sampleCountMultiplier = (int)lightingSettings.lightProbeSampleCountMultiplier;
-#if UNIFIED_BAKER
-            int indirectSampleCount = lightingSettings.indirectSampleCount;
-#else
-            int indirectSampleCount = Math.Max(lightingSettings.indirectSampleCount, lightingSettings.environmentSampleCount);
-#endif
-
-            bakeInput.AddProbeRequest(new ProbeBakeRequest
+            int requestIdx = 0;
+            foreach (var bakeJob in s_BakeData.jobs)
             {
-                outputTypes = outputTypes,
-                directSampleCount = (uint)(lightingSettings.directSampleCount * sampleCountMultiplier),
-                indirectSampleCount = (uint)(indirectSampleCount * sampleCountMultiplier),
-                environmentSampleCount = (uint)(lightingSettings.environmentSampleCount * sampleCountMultiplier),
-                maxBounces = (uint)lightingSettings.maxBounces,
-                positionOffset = (ulong)prevProbeCount,
-                positionLength = (ulong)extraPos.Length,
-                bakeOutputFolderPath = APVLightBakerOutputFolder,
-                postProcessOutputFolderPath = APVLightBakerPostProcessingOutputFolder,
-                ignoreDirectEnvironment = m_BakingSet != null ? m_BakingSet.bakedSkyOcclusion : false,
-                ignoreIndirectEnvironment = m_BakingSet != null ? m_BakingSet.bakedSkyOcclusion : false,
-                pushoff = 0.0001f,
-                indirectScale = lightingSettings.indirectScale,
-                dering = true,
-            });
+                string probeOutputSubFolder = $"/probeRequest{requestIdx}";
+
+                bakeInput.AddProbeRequest(new ProbeBakeRequest
+                {
+                    outputTypes = outputTypes,
+                    directSampleCount = (uint)bakeJob.directSampleCount,
+                    indirectSampleCount = (uint)bakeJob.indirectSampleCount,
+                    environmentSampleCount = (uint)bakeJob.environmentSampleCount,
+                    maxBounces = (uint)bakeJob.maxBounces,
+                    positionOffset = (ulong)bakeJob.startOffset,
+                    positionLength = (ulong)bakeJob.probeCount,
+                    bakeOutputFolderPath = APVLightBakerOutputFolder + probeOutputSubFolder,
+                    postProcessOutputFolderPath = APVLightBakerPostProcessingOutputFolder + probeOutputSubFolder,
+                    ignoreDirectEnvironment = m_BakingSet != null ? m_BakingSet.bakedSkyOcclusion : false,
+                    ignoreIndirectEnvironment = m_BakingSet != null ? m_BakingSet.bakedSkyOcclusion : false,
+                    pushoff = 0.0001f,
+                    indirectScale = bakeJob.indirectScale,
+                    dering = true,
+                });
+
+                requestIdx++;
+            }
 
             s_BakeData.bakeInput = bakeInput;
         }
