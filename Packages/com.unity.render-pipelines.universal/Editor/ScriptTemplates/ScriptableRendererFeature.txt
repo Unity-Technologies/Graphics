@@ -85,8 +85,9 @@ public class #SCRIPTNAME# : ScriptableRendererFeature
                 // Setup pass inputs and outputs through the builder interface.
                 // Eg:
                 // builder.UseTexture(sourceTexture);
-                // TextureHandle destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, cameraData.cameraTargetDescriptor, "Destination Texture", false);
-
+                // TextureDesc colorDescriptor = resourceData.activeColorTexture.GetDescriptor(renderGraph);
+                // colorDescriptor.name = "Destination Texture";
+                // TextureHandle destination = renderGraph.CreateTexture(colorDescriptor);
                 // This sets the render target of the pass to the active color texture. Change it to your own render target as needed.
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
 
