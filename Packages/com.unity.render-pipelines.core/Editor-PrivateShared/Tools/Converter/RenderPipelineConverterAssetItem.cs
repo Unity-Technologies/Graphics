@@ -17,6 +17,15 @@ namespace UnityEditor.Rendering.Converter
         }
 
         [SerializeField]
+        private string m_GUID;
+
+        public string guid
+        {
+            get => m_GUID;
+            protected set => m_GUID = value;
+        }
+
+        [SerializeField]
         private string m_GlobalObjectId;
 
         public string GlobalObjectId => m_GlobalObjectId;
@@ -58,6 +67,7 @@ namespace UnityEditor.Rendering.Converter
 
             m_AssetPath = AssetDatabase.GUIDToAssetPath(gid.assetGUID);
             m_GlobalObjectId = gid.ToString();
+            m_GUID = gid.assetGUID.ToString();
         }
 
         public RenderPipelineConverterAssetItem(GlobalObjectId gid, string assetPath)
@@ -67,6 +77,7 @@ namespace UnityEditor.Rendering.Converter
 
             m_AssetPath = assetPath;
             m_GlobalObjectId = gid.ToString();
+            m_GUID = AssetDatabase.AssetPathToGUID(assetPath);
         }
 
         public UnityEngine.Object LoadObject()

@@ -1,26 +1,112 @@
 using System;
-using System.IO;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Rendering.Universal;
-using UnityEditor.SceneManagement;
-using UnityEngine.Categorization;
 using UnityEditor.Rendering.Converter;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.Categorization;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
+    [Serializable]
+    internal class ParametricToFreeformLightUpgraderItem : RenderPipelineConverterAssetItem
+    {
+        public int type { get; set; }
+
+        public ParametricToFreeformLightUpgraderItem(string id) : base(id)
+        {
+        }
+
+        public ParametricToFreeformLightUpgraderItem(GlobalObjectId gid, string assetPath) : base(gid, assetPath)
+        {
+        }
+
+        public new Texture2D icon => EditorGUIUtility.ObjectContent(null, typeof(UnityEngine.Rendering.Universal.Light2D)).image as Texture2D;
+    }
+
     [Serializable]
     [PipelineTools]
     [ElementInfo(Name = "Parametric to Freeform Light Upgrade",
              Order = 100,
              Description = "This will upgrade all parametric lights to freeform lights.")]
-    internal sealed class ParametricToFreeformLightUpgrader : RenderPipelineConverter
+    internal sealed class ParametricToFreeformLightUpgrader : IRenderPipelineConverter
     {
+        public bool isEnabled
+        {
+            get
+            {
+                var urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+                if (urpAsset == null)
+                    return false;
+
+                var renderer = urpAsset.scriptableRenderer as Renderer2D;
+                if (renderer == null)
+                    return false;
+
+                return true;
+            }
+        }
+        public string isDisabledMessage => "The current Render Pipeline is not URP or the current Renderer is not 2D";
+
+        public void Scan(Action<List<IRenderPipelineConverterItem>> onScanFinish)
+        {
+            var returnList = new List<IRenderPipelineConverterItem>();
+            void OnSearchFinish()
+            {
+                onScanFinish?.Invoke(returnList);
+            }
+
+            var processedIds = new HashSet<string>();
+
+            SearchServiceUtils.RunQueuedSearch
+            (
+                SearchServiceUtils.IndexingOptions.DeepSearch,
+                new List<(string, string)>()
+                {
+                    ("t:UnityEngine.Rendering.Universal.Light2D", "Light 2D"),
+                },
+                (item, description) =>
+                {
+                    // Direct conversion - works for both assets and scene objects
+                    var unityObject = item.ToObject();
+
+                    if (unityObject == null)
+                        return;
+
+                    // Ensure we're always working with GameObjects
+                    GameObject go = null;
+
+                    if (unityObject is GameObject gameObject)
+                        go = gameObject;
+                    else if (unityObject is Component component)
+                        go = component.gameObject;
+                    else
+                        return; // Not a GameObject or Component
+
+                    var gid = GlobalObjectId.GetGlobalObjectIdSlow(go);
+                    if (!processedIds.Add(gid.ToString()))
+                        return;
+
+                    int type = gid.identifierType; // 1=Asset, 2=SceneObject
+
+                    var isPrefab = type == 1;
+                    var lightUpgraderItem = new ParametricToFreeformLightUpgraderItem(gid.ToString())
+                    {
+                        info = isPrefab
+                            ? $"Prefab: {AssetDatabase.GetAssetPath(unityObject)}"
+                            : $"Scene: {go.scene.path}",
+                        type = type
+                    };
+
+
+                    returnList.Add(lightUpgraderItem);
+                },
+                OnSearchFinish
+            );
+        }
+
         const float k_EnscribedSquareDiagonalLength = 0.70710678118654752440084436210485f;
-
-        List<string> m_AssetsToConvert = new List<string>();
-
-        string m_Light2DId;
 
         public static void UpgradeParametricLight(Light2D light)
         {
@@ -79,59 +165,16 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        public override void OnInitialize(InitializeConverterContext context, Action callback)
+        public Status Convert(IRenderPipelineConverterItem item, out string message)
         {
-            string[] allAssetPaths = AssetDatabase.GetAllAssetPaths();
-
-            foreach (string path in allAssetPaths)
+            if (item is ParametricToFreeformLightUpgraderItem lightItem)
             {
-                if (URP2DConverterUtility.IsPrefabOrScenePath(path, "m_LightType: 0"))
-                {
-                    ConverterItemDescriptor desc = new ConverterItemDescriptor()
-                    {
-                        name = Path.GetFileNameWithoutExtension(path),
-                        info = path,
-                        warningMessage = String.Empty,
-                        helpLink = String.Empty
-                    };
-
-                    // Each converter needs to add this info using this API.
-                    m_AssetsToConvert.Add(path);
-                    context.AddAssetToConvert(desc);
-                }
+                if (lightItem.type == 1) URP2DConverterUtility.UpgradePrefab(lightItem.assetPath, UpgradeGameObject);
+                else URP2DConverterUtility.UpgradeScene(lightItem.assetPath, UpgradeGameObject);
             }
 
-            callback.Invoke();
-        }
-
-        public override void OnRun(ref RunItemContext context)
-        {
-            string result = string.Empty;
-            string ext = Path.GetExtension(context.item.descriptor.info);
-            if (ext == ".prefab")
-                result = URP2DConverterUtility.UpgradePrefab(context.item.descriptor.info, UpgradeGameObject);
-            else if (ext == ".unity")
-                URP2DConverterUtility.UpgradeScene(context.item.descriptor.info, UpgradeGameObject);
-
-            if (result != string.Empty)
-            {
-                context.didFail = true;
-                context.info = result;
-            }
-            else
-            {
-                context.hasConverted = true;
-            }
-        }
-
-        public override void OnClicked(int index)
-        {
-            EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(m_AssetsToConvert[index]));
-        }
-
-        public override void OnPostRun()
-        {
-            Resources.UnloadUnusedAssets();
+            message = string.Empty;
+            return Status.Success;
         }
     }
 }
