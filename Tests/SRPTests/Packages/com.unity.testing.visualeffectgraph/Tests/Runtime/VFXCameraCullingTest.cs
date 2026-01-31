@@ -37,6 +37,7 @@ namespace UnityEngine.VFX.Test
         }
 
         [UnityTest]
+        [Ignore("Unstable: https://jira.unity3d.com/browse/UUM-119807")]
         public IEnumerator Ensure_Camera_Commands_Are_Culled()
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene(kScenePath);
