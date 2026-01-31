@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering
                     Span<bool> perSubMeshOpaqueness = stackalloc bool[subMeshCount];
                     perSubMeshOpaqueness.Fill(true);
 
-                    accelStruct.AddInstance(renderer.component.GetEntityId().GetRawData(), renderer.component, maskAndMatDummy, maskAndMatDummy, perSubMeshOpaqueness, 1);
+                    accelStruct.AddInstance(EntityId.ToULong(renderer.component.GetEntityId()), renderer.component, maskAndMatDummy, maskAndMatDummy, perSubMeshOpaqueness, 1);
                 }
 
                 foreach (var terrain in contributors.terrains)
@@ -160,7 +160,7 @@ namespace UnityEngine.Rendering
                     if ((layerMask & mask) == 0)
                         continue;
 
-                    accelStruct.AddInstance(terrain.component.GetEntityId().GetRawData(), terrain.component, new uint[1] { 0xFFFFFFFF }, new uint[1] { 0xFFFFFFFF }, new bool[1] { true }, 1);
+                    accelStruct.AddInstance(EntityId.ToULong(terrain.component.GetEntityId()), terrain.component, new uint[1] { 0xFFFFFFFF }, new uint[1] { 0xFFFFFFFF }, new bool[1] { true }, 1);
                 }
 
                 return accelStruct;
@@ -482,7 +482,7 @@ namespace UnityEngine.Rendering
             for (int i = 0; i < matIndices.Length; ++i)
             {
                 if (i < renderer.sharedMaterials.Length && renderer.sharedMaterials[i] != null)
-                    matIndices[i] = (uint)renderer.sharedMaterials[i].GetEntityId().GetRawData();
+                    matIndices[i] = (uint)EntityId.ToULong(renderer.sharedMaterials[i].GetEntityId());
                 else
                     matIndices[i] = 0;
             }

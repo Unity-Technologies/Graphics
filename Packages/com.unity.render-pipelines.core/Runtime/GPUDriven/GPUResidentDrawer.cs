@@ -624,7 +624,7 @@ namespace UnityEngine.Rendering
 
         private void OnFinishedCulling(IntPtr customCullingResult)
         {
-            m_Culler.EnsureValidOcclusionTestResults(viewID : EntityId.From((ulong)customCullingResult));
+            m_Culler.EnsureValidOcclusionTestResults(viewID : EntityId.FromULong((ulong)customCullingResult));
             m_SpeedTreeWindGPUDataUpdater.UpdateGPUData();
         }
 

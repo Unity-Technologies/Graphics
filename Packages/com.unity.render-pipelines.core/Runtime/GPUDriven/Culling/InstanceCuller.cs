@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering
             hash = (hash * 23) + (int)activeMeshLod;
             hash = (hash * 23) + (int)materialID.value;
             hash = (hash * 23) + (int)flags;
-            hash = (hash * 23) + (int)transparentInstanceID.GetRawData();
+            hash = (hash * 23) + (int)EntityId.ToULong(transparentInstanceID);
             hash = (hash * 23) + range.GetHashCode();
             hash = (hash * 23) + archetype.index;
             hash = (hash * 23) + lightmapIndex;
@@ -2238,7 +2238,7 @@ namespace UnityEngine.Rendering
                 if (useOcclusionCulling)
                 {
                     indirectContextIndex = m_IndirectStorage.TryAllocateContext(context.viewID.GetEntityId());
-                    cullingOutput.customCullingResult[0] = (IntPtr)context.viewID.GetEntityId().GetRawData();
+                    cullingOutput.customCullingResult[0] = (IntPtr)EntityId.ToULong(context.viewID.GetEntityId());
                 }
                 IndirectBufferLimits indirectBufferLimits = m_IndirectStorage.GetLimits(indirectContextIndex);
                 NativeArray<IndirectBufferAllocInfo> indirectBufferAllocInfo = m_IndirectStorage.GetAllocInfoSubArray(indirectContextIndex);
