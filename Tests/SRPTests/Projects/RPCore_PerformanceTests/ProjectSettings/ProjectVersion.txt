@@ -1,2 +1,0 @@
-m_EditorVersion: 2023.1.0a23
-m_EditorVersionWithRevision: 2023.1.0a23 (2822a2614045)

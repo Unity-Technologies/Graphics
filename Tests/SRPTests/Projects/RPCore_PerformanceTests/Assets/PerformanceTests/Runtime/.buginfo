@@ -1,5 +1,0 @@
-srp-foundation:
-  when:
-    path:
-      - ^.*RenderGraph.*$
-  area: SRP Foundation
