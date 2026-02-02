@@ -1961,7 +1961,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     else if (int.TryParse(displayName, out int intVal) || float.TryParse(displayName, out float floatVal))
                         Debug.LogWarning("Invalid display name. Display names cannot be valid integer or floating point numbers.");
                     else
-                        keyword.entries[index] = new KeywordEntry(GetFirstUnusedKeywordID(), displayName, referenceName);
+                        keyword.entries[index] = new KeywordEntry(entry.id, displayName, referenceName);
 
                     this._postChangeValueCallback(true);
                 }
