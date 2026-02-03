@@ -571,9 +571,22 @@ void TransformNormalizedScreenUV(inout float2 uv)
     #endif
 }
 
-float2 GetNormalizedScreenSpaceUV(float2 positionCS)
+void TransformNormalizedScreenUVPreTransform(inout float2 uv)
 {
-    float2 normalizedScreenSpaceUV = positionCS.xy * rcp(GetScaledScreenParams().xy);
+    #if defined(UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION)
+        if(UNITY_DISPLAY_ORIENTATION_PRETRANSFORM % 2 > 0)
+        {
+            uv = uv.yx;
+        }
+    #endif
+}
+
+float2 GetNormalizedScreenSpaceUV(float2 positionCS)
+{ 
+    float2 screenParamUV = GetScaledScreenParams().xy;
+    TransformNormalizedScreenUVPreTransform(screenParamUV);
+
+    float2 normalizedScreenSpaceUV = positionCS.xy * rcp(screenParamUV);
     TransformNormalizedScreenUV(normalizedScreenSpaceUV);
     return normalizedScreenSpaceUV;
 }
