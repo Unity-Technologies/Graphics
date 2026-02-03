@@ -100,13 +100,20 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Return true if the RTHandles were reallocated.
-        internal bool Update(ref RenderTextureDescriptor cameraDesc, bool xrMultipassEnabled = false)
+        internal bool Update(UniversalCameraData cameraData, bool xrMultipassEnabled = false)
         {
+            ref RenderTextureDescriptor cameraDesc = ref cameraData.cameraTargetDescriptor;
             if (cameraDesc.width > 0 && cameraDesc.height > 0 && cameraDesc.graphicsFormat != GraphicsFormat.None)
             {
                 var taaDesc = TemporalAA.TemporalAADescFromCameraDesc(ref cameraDesc);
 
-                if (IsDirty(ref taaDesc))
+                // Editor can reuse a camera as a preview camera or do single frame RenderRequests.
+                // These can break history as it is no longer unique for the camera.
+                // Avoid resetting history and treat previews as redraws.
+                Camera camera = cameraData.camera;
+                bool isPreview = camera.cameraType == CameraType.Preview;
+                bool isRenderRequest = camera.isProcessingRenderRequest;
+                if (!isPreview && !isRenderRequest && IsDirty(ref taaDesc))
                     Reset();
 
                 if (!IsValid())

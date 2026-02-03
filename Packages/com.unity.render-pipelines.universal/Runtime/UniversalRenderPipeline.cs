@@ -2111,7 +2111,7 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    allocation = cameraData.taaHistory.Update(ref cameraData.cameraTargetDescriptor, xrMultipassEnabled);
+                    allocation = cameraData.taaHistory.Update(cameraData, xrMultipassEnabled);
                 }
 
                 // Fill new history with current frame
