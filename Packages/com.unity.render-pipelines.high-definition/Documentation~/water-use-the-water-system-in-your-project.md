@@ -35,9 +35,9 @@ Open **Game Object** > **Water Surface** and select a surface type.
 
 You can also use a [Water shader graph](settings-and-properties-related-to-the-water-system.md) to create a Water material.
 
-### Adjust Scene view Effects options
 If water surface movement lags and stutters in the Scene view, open the <b>Effects</b> menu in the [View Options](https://docs.unity3d.com/Manual/ViewModes.html) toolbar and enable the **Always Refresh** option.
 
+Unity doesn't render the water surface if you select the Unlit [Draw Mode](https://docs.unity3d.com/Manual/overlays-reference-draw-modes.html).
 ## Configuration examples
 You can adjust the <a href="settings-and-properties-related-to-the-water-system.md">properties</a> to simulate the appearance of a calm or stormy day, clean or dirty water. Here are a few examples of the kinds of adjustments you might make to simulate different water conditions.
 <br/>
