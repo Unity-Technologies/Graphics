@@ -8,7 +8,6 @@ using Unity.Collections;
 using UnityEngine.Rendering.RendererUtils;
 using UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler;
 
-
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Rendering;
@@ -1490,7 +1489,7 @@ namespace UnityEngine.Rendering.Tests
 
             m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
             {
-                var redTexture = CreateRedTexture(kWidth, kHeight);
+                var redTexture = CreateColorTexture(kWidth, kHeight, Color.red);
                 ImportResourceParams importParams = new ImportResourceParams()
                 {
                     clearColor = Color.blue, clearOnFirstUse = true
@@ -1535,6 +1534,128 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
+        public void ImportedTexturesOperatorEqualAndNotEqual()
+        {
+            const int kWidth = 4;
+            const int kHeight = 4;
+
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                var importParams = new ImportResourceParams()
+                {
+                    clearColor = Color.black,
+                    clearOnFirstUse = true
+                };
+
+                var redTexture = CreateColorTexture(kWidth, kHeight, Color.red);
+                var red2Texture = CreateColorTexture(kWidth, kHeight, Color.red);
+                var blackTexture = CreateColorTexture(kWidth, kHeight, Color.black);
+
+                var importedTextureRed = m_RenderGraph.ImportTexture(redTexture, importParams);
+                var importedTextureRed2 = m_RenderGraph.ImportTexture(red2Texture, importParams);
+                var importedTextureRedSame = m_RenderGraph.ImportTexture(redTexture, importParams);
+                var importedTextureBlack = m_RenderGraph.ImportTexture(blackTexture, importParams);
+
+                // Different textures, different handles.
+                Assert.True(importedTextureRed != importedTextureBlack);
+
+                // Different textures, different handles.
+                Assert.True(importedTextureRed != importedTextureRed2);
+
+                // Same texture, different handles.
+                Assert.False(importedTextureRed == importedTextureRedSame);
+
+                importedTextureRedSame = importedTextureRed;
+
+                // Same texture, same handle.
+                Assert.True(importedTextureRed == importedTextureRedSame);
+            };
+
+            m_Camera.Render();
+        }
+
+        [Test]
+        public void CreatedTexturesOperatorEqualAndNotEqual()
+        {
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                const int kWidth = 4;
+                const int kHeight = 4;
+
+                var texture0 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, name = "Texture0" });
+                var texture1 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, name = "Texture1" });
+
+                // Different textures, different handles.
+                Assert.True(texture0 != texture1);
+
+                // Different textures, different handles.
+                Assert.False(texture0 == texture1);
+
+                texture1 = texture0;
+
+                // Same texture, same handles.
+                Assert.True(texture0 == texture1);
+
+                // Same texture, same handles.
+                Assert.False(texture0 != texture1);
+            };
+
+            m_Camera.Render();
+        }
+
+        [Test]
+        public void TexturesOperatorWorksInList()
+        {
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                const int kWidth = 4;
+                const int kHeight = 4;
+
+                var texture0 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, name = "Texture0" });
+                var texture1 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, name = "Texture1" });
+
+                var listHandles = new List<TextureHandle>();
+                listHandles.Add(texture0);
+
+                Assert.True(listHandles.Contains(texture0));
+                Assert.True(!listHandles.Contains(texture1));
+
+                listHandles.Add(texture1);
+
+                Assert.True(listHandles.Contains(texture1));
+            };
+
+            m_Camera.Render();
+        }
+
+        [Test]
+        public void TexturesOperatorWorksInDictionary()
+        {
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                const int kWidth = 4;
+                const int kHeight = 4;
+
+                var texture0 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, name = "Texture0" });
+                var texture1 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, name = "Texture1" });
+
+                var dictionaryHandles = new Dictionary<TextureHandle, int>();
+                dictionaryHandles.Add(texture0, 0);
+
+                Assert.True(dictionaryHandles.ContainsKey(texture0));
+                Assert.True(dictionaryHandles.TryGetValue(texture0, out var value0) && value0 == 0);
+                Assert.True(!dictionaryHandles.ContainsKey(texture1));
+
+                dictionaryHandles.Add(texture1, 1);
+
+                Assert.True(dictionaryHandles.ContainsKey(texture1));
+                Assert.True(dictionaryHandles.TryGetValue(texture1, out var value1) && value1 == 1);
+            };
+
+            m_Camera.Render();
+        }
+
+        [Test]
         public void RequestAsyncReadbackIntoNativeArrayWorks()
         {
             bool asyncReadbackDone = false;
@@ -1553,7 +1674,7 @@ namespace UnityEngine.Rendering.Tests
 
                 passExecuted = true;
 
-                var redTexture = CreateRedTexture(kWidth, kHeight);
+                var redTexture = CreateColorTexture(kWidth, kHeight, Color.red);
                 var texture0 = m_RenderGraph.ImportTexture(redTexture);
 
                 pixels = new NativeArray<byte>(kWidth * kHeight * 4, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
@@ -1604,11 +1725,8 @@ namespace UnityEngine.Rendering.Tests
             }
         }
 
-        RTHandle CreateRedTexture(int width, int height)
+        RTHandle CreateColorTexture(int width, int height, Color color)
         {
-            // Create a red color
-            Color redColor = Color.red;
-
             // Initialize the RTHandle system if necessary
             RTHandles.Initialize(width, height);
 
@@ -1626,7 +1744,7 @@ namespace UnityEngine.Rendering.Tests
             {
                 for (int x = 0; x < tempTexture.width; x++)
                 {
-                    tempTexture.SetPixel(x, y, redColor);
+                    tempTexture.SetPixel(x, y, color);
                 }
             }
             tempTexture.Apply();
