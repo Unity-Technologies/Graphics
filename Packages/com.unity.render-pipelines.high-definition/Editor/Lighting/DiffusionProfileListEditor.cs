@@ -57,7 +57,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Get all mesh renderers that are within the current volume
             var diffusionProfiles = new List<DiffusionProfileSettings>();
+            #pragma warning disable CS0618 // Type or member is obsolete
             foreach (var meshRenderer in Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.InstanceID))
+#pragma warning restore CS0618 // Type or member is obsolete
             {
                 var colliders = Physics.OverlapBox(meshRenderer.bounds.center, meshRenderer.bounds.size / 2);
                 if (colliders.Contains(volumeCollider))

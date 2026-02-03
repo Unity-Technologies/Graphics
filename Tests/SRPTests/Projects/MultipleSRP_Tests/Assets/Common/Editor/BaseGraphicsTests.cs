@@ -87,10 +87,10 @@ public class BaseGraphicsTests
 
             yield return new EnterPlayMode();
 
-            var settings = Object.FindFirstObjectByType<CrossPipelineTestsSettings>();
+            var settings = Object.FindAnyObjectByType<CrossPipelineTestsSettings>();
             Assert.IsNotNull(settings, "Invalid test scene, couldn't find CrossPipelineTestsSettings");
 
-            var camera = GameObject.FindFirstObjectByType<Camera>();
+            var camera = GameObject.FindAnyObjectByType<Camera>();
             Assert.IsNotNull(camera, "Missing camera for graphic tests.");
 
             //Adjust camera to be sure that everything required by the test fits in the FOV

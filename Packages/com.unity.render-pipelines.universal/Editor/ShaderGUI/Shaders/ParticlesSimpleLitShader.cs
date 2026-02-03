@@ -59,7 +59,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         {
             m_RenderersUsingThisMaterial.Clear();
 
+            #pragma warning disable CS0618 // Type or member is obsolete
             ParticleSystemRenderer[] renderers = UnityEngine.Object.FindObjectsByType<ParticleSystemRenderer>(FindObjectsSortMode.InstanceID);
+#pragma warning restore CS0618 // Type or member is obsolete
             foreach (ParticleSystemRenderer renderer in renderers)
             {
                 if (renderer.sharedMaterial == material)

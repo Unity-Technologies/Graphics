@@ -301,7 +301,9 @@ namespace UnityEditor.Rendering.HighDefinition
         //[MenuItem("Internal/HDRP/Add \"Additional Light-shadow Data\" (if not present)")]
         static void AddAdditionalLightData()
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             var lights = UnityObject.FindObjectsByType<Light>(FindObjectsSortMode.InstanceID);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             foreach (var light in lights)
             {
@@ -317,7 +319,9 @@ namespace UnityEditor.Rendering.HighDefinition
         //[MenuItem("Internal/HDRP/Add \"Additional Camera Data\" (if not present)")]
         static void AddAdditionalCameraData()
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             var cameras = UnityObject.FindObjectsByType<Camera>(FindObjectsSortMode.InstanceID);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             foreach (var camera in cameras)
             {
@@ -509,8 +513,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Flag that holds
             bool generalErrorFlag = false;
+            #pragma warning disable CS0618 // Type or member is obsolete
             var rendererArray = UnityEngine.GameObject.FindObjectsByType<Renderer>(FindObjectsSortMode.InstanceID);
             var lodGroupArray = UnityEngine.GameObject.FindObjectsByType<LODGroup>(FindObjectsSortMode.InstanceID);
+#pragma warning restore CS0618 // Type or member is obsolete
             List<Material> materialArray = new List<Material>(32);
             ReflectionProbe reflectionProbe = new ReflectionProbe();
 

@@ -103,7 +103,9 @@ namespace UnityEditor.Rendering.HighDefinition
             //Perhaps it is an old scene. Search everywhere
             if (result == null)
             {
+                #pragma warning disable CS0618 // Type or member is obsolete
                 var candidates = GameObject.FindObjectsByType<StaticLightingSky>(FindObjectsSortMode.InstanceID).Where(sls => sls.gameObject.scene == scene);
+#pragma warning restore CS0618 // Type or member is obsolete
                 if (candidates.Count() > 0)
                     result = candidates.First();
             }

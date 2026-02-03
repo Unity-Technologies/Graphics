@@ -486,7 +486,9 @@ namespace UnityEngine.Rendering.UnifiedRayTracing.Tests
         private void AddTerrainToAccelerationStructure(int heightmapResolution)
         {
             Terrain.CreateTerrainGameObject(new TerrainData());
+            #pragma warning disable CS0618 // Type or member is obsolete
             Terrain terrain = GameObject.FindFirstObjectByType<Terrain>();
+#pragma warning restore CS0618 // Type or member is obsolete
             Assert.NotNull(terrain);
 
             // Set terrain texture resolution on terrain data.

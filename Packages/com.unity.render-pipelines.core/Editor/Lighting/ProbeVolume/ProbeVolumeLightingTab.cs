@@ -1222,7 +1222,9 @@ namespace UnityEngine.Rendering
             {
                 if (ProbeReferenceVolume.instance.probeVolumeDebug.realtimeSubdivision)
                 {
+                    #pragma warning disable CS0618 // Type or member is obsolete
                     var probeVolume = GameObject.FindFirstObjectByType<ProbeVolume>();
+#pragma warning restore CS0618 // Type or member is obsolete
                     if (probeVolume != null && probeVolume.isActiveAndEnabled)
                     {
                         var profile = ProbeVolumeBakingSet.GetBakingSetForScene(probeVolume.gameObject.scene);

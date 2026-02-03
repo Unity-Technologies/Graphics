@@ -26,7 +26,7 @@ public class CheckAssignedRenderPipelineAsset : MonoBehaviour
 
     private void SetAllCamerasEnabled(bool enable)
     {
-        Camera[] allCameras = FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        Camera[] allCameras = FindObjectsByType<Camera>(FindObjectsInactive.Include);
         foreach (Camera c in allCameras)
             c.enabled = enable;
     }

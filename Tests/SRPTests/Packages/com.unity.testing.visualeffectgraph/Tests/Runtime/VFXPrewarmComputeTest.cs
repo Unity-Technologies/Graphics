@@ -78,7 +78,7 @@ namespace UnityEngine.VFX.Test
             yield return null;
 
             // Prewarm compute shaders
-            var vfxComponents = Object.FindObjectsByType<VisualEffect>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var vfxComponents = Object.FindObjectsByType<VisualEffect>(FindObjectsInactive.Include);
             foreach (var vfxComponent in vfxComponents)
                 vfxComponent.visualEffectAsset.PrewarmComputeShaders();
 

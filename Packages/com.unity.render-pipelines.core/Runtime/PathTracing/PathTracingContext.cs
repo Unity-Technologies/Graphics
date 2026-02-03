@@ -186,7 +186,7 @@ namespace UnityEngine.Rendering.LiveGI
                 if (settings.lightPickingMethod == LightPickingMethod.Regir ||
                     settings.lightPickingMethod == LightPickingMethod.LightGrid)
                 {
-                    var sceneRenderers = Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None);
+                    var sceneRenderers = Object.FindObjectsByType<Renderer>();
                     foreach (Renderer r in sceneRenderers)
                         sceneBounds.Encapsulate(r.bounds);
                 }
