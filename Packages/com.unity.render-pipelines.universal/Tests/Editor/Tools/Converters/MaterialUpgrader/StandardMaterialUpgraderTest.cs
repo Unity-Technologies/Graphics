@@ -7,77 +7,24 @@ using UnityEditor.Rendering.Universal;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-class StandardMaterialUpgraderTest
+[Category("Graphics Tools")]
+class StandardMaterialUpgraderTest : MaterialUpgraderTestBase<StandardUpgrader>
 {
-    StandardUpgrader m_StandardUpgrader;
-    Material m_Material;
-
     [OneTimeSetUp]
-    public void OneTimeSetup()
+    public override void OneTimeSetUp()
     {
-        m_StandardUpgrader = new StandardUpgrader("Standard"); // creating the upgrader once
+        m_Upgrader = new StandardUpgrader("Standard");
     }
 
-    //run after each test
-    [SetUp]
-    public void Setup()
+    public StandardMaterialUpgraderTest() : base("Standard", "Universal Render Pipeline/Lit")
     {
-        var shader = Shader.Find("Standard");
-        Assume.That(shader, Is.Not.Null, "Built-in Standard shader not found.");
-        m_Material = new Material(shader);
     }
 
-    //run after each test
-    [TearDown]
-    public void Teardown()
+    [Test]
+    [TestCaseSource(nameof(MaterialUpgradeCases))]
+    public void UpgradeParticleStandardUnlitMaterial(MaterialUpgradeTestCase testCase)
     {
-        if (m_Material != null)
-        {
-            UnityEngine.Object.DestroyImmediate(m_Material);
-            m_Material = null;
-        }
-    }
-
-    [OneTimeTearDown]
-    public void OneTimeTearDown()
-    {
-        m_StandardUpgrader = null;
-    }
-
-    public class MaterialUpgradeTestCase
-    {
-        public string name;
-        public Action<Material> setup;
-        public Action<Material> verify;
-        public bool ignore;
-        public String ignoreReason;
-        public override string ToString() => name;
-
-    }
-    [Test][TestCaseSource(nameof(MaterialUpgradeCases))]
-    public void UpgradeStandardMaterial(MaterialUpgradeTestCase testCase)
-    {
-        if (testCase.ignore)
-        {
-            Assert.Ignore(testCase.ignoreReason ?? "Test case ignored.");
-        }
-
-        // checks to avoid null indirect calls
-        Assume.That(testCase.setup, Is.Not.Null, $"Test case '{testCase.name}' has a null setup Action.");
-        Assume.That(testCase.verify, Is.Not.Null, $"Test case '{testCase.name}' has a null verify Action.");
-
-        // Arrange
-        var material = m_Material;
-        testCase.setup(material);
-
-        // Act (common)
-        m_StandardUpgrader.Upgrade(material, MaterialUpgrader.UpgradeFlags.None);
-
-        // Assert common
-        Assert.AreEqual("Universal Render Pipeline/Lit", material.shader.name, $"Shader mismatch in case: {testCase.name}");
-
-        // Assert specific
-        testCase.verify(material);
+        base.UpgradeMaterial(testCase);
     }
 
     private static IEnumerable MaterialUpgradeCases()
