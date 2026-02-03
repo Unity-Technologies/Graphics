@@ -108,6 +108,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal, GraphicsDeviceType.Vulkan }
         )]
         [IgnoreGraphicsTest(
+            "1301_StackLitSG$",
+            "Test fails when running with code coverage instrumentation.",
+            CoverageState.CoverageEnabled
+        )]
+        [IgnoreGraphicsTest(
             "1351_Fabric$",
             "(Intel Mac) Slight divergence on the right-most materials.",
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
