@@ -746,7 +746,7 @@ namespace UnityEngine.Rendering
         /// <returns>The TextureIdentifier, which stores the EntityId of the texture.</returns>
         public TextureIdentifier GetTextureIdentifier(Texture texture)
         {
-            return new TextureIdentifier(texture.GetEntityId().GetRawData());
+            return new TextureIdentifier(EntityId.ToULong(texture.GetEntityId()));
         }
 
 

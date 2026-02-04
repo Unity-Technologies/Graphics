@@ -2027,7 +2027,7 @@ namespace UnityEngine.Rendering
                 {
                     EntityId viewEntityId = cc.viewID.GetEntityId();
                     indirectContextIndex = m_IndirectStorage.TryAllocateContext(viewEntityId);
-                    cullingOutput.customCullingResult[0] = (IntPtr)viewEntityId.GetRawData();
+                    cullingOutput.customCullingResult[0] = (IntPtr)EntityId.ToULong(viewEntityId);
                 }
                 IndirectBufferLimits indirectBufferLimits = m_IndirectStorage.GetLimits(indirectContextIndex);
                 NativeArray<IndirectBufferAllocInfo> indirectBufferAllocInfo = m_IndirectStorage.GetAllocInfoSubArray(indirectContextIndex);
