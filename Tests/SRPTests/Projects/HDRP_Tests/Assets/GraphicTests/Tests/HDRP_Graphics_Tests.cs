@@ -7,6 +7,10 @@ using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
 using UnityEngine.TestTools.Graphics.Platforms;
 
+#if UNITY_EDITOR
+using UnityEditor.TestTools.Graphics;
+#endif
+
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
     // NOTE: Important! IgnoreGraphicsTest uses a pattern to ignore all Unity-scenes found which name matches that pattern.
@@ -57,6 +61,10 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             // Standard resolution for backbuffer capture is 1080p
             Screen.SetResolution(1920, 1080, true);
             SceneManager.LoadScene("GraphicsTestTransitionScene", LoadSceneMode.Single);
+
+            #if UNITY_EDITOR
+            GameViewSize.SetGameViewSize(1920, 1080);
+            #endif
         }
 
         [SetUp]

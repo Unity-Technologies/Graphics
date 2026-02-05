@@ -15,6 +15,9 @@ using Object = UnityEngine.Object;
 #if OCULUS_SDK || OPENXR_SDK
 using UnityEngine.XR;
 #endif
+#if UNITY_EDITOR
+using UnityEditor.TestTools.Graphics;
+#endif
 
 namespace Unity.Rendering.Universal.Tests
 {
@@ -41,6 +44,13 @@ namespace Unity.Rendering.Universal.Tests
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
+            // Standard resolution for backbuffer capture is 1080p
+            Screen.SetResolution(1920, 1080, true);
+
+            #if UNITY_EDITOR
+            GameViewSize.SetGameViewSize(1920, 1080);
+            #endif
+
             SceneManager.LoadScene("GraphicsTestTransitionScene", LoadSceneMode.Single);
         }
 
