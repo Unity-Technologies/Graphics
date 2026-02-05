@@ -32,6 +32,8 @@ namespace UnityEditor.ShaderGraph
 
         // Call after SubTarget parent Target has been deserialized and Subtarget.target has been set to a non-null value.
         internal virtual void OnAfterParentTargetDeserialized() { }
+
+        virtual internal IEnumerable<(string key, string value)> SearchTerms => null;
     }
 
     [GenerationAPI] // TODO: Public

@@ -54,5 +54,8 @@ namespace UnityEditor.ShaderGraph
         public abstract bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline);
 
         virtual public SubTarget activeSubTarget { get; set; }
+
+        // For synonyms, add multiple values for each key.
+        virtual internal IEnumerable<(string key, string value)> SearchTerms => null;        
     }
 }

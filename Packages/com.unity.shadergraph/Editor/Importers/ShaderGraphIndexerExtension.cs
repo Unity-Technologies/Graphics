@@ -6,13 +6,21 @@ namespace UnityEditor.ShaderGraph
 {
     static class ShaderGraphIndexerExtension
     {
-        [CustomObjectIndexer(typeof(Shader), version = 0)]
-        internal static void ShaderGraphImporterIndexer(CustomObjectIndexerTarget context, ObjectIndexer indexer)
+        static void ShaderGraphIndexer(CustomObjectIndexerTarget context, ObjectIndexer indexer)
         {
-            if (ShaderGraphTemplateHelper.TryGetTemplateStatic(context.id, out var template))
+            if (ShaderGraphTemplateHelper.TryGetTemplateStatic(context.id, out var template, out var dataBag))
             {
                 GraphViewIndexerExtension.IndexCommonData<ShaderGraphImporter>(context, indexer, template);
+                GraphViewIndexerExtension.IndexCustomData<ShaderGraphImporter>(context, indexer, dataBag.GetCustomData($"{template.ToolKey}."));
             }
         }
+
+        [CustomObjectIndexer(typeof(ShaderGraphImporter), version = 1)]
+        internal static void ShaderGraphImporterIndexer(CustomObjectIndexerTarget context, ObjectIndexer indexer)
+            => ShaderGraphIndexer(context, indexer);
+
+        [CustomObjectIndexer(typeof(Shader), version = 1)]
+        internal static void ShaderGraphShaderIndexer(CustomObjectIndexerTarget context, ObjectIndexer indexer)
+            => ShaderGraphIndexer(context, indexer);
     }
 }
