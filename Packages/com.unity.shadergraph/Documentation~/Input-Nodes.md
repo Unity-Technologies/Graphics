@@ -39,6 +39,15 @@ Supply shaders with essential data such as constants, mesh attributes, gradients
 | [Gradient](Gradient-Node.md)               | Defines a constant Gradient in the shader.                             |
 | [Sample Gradient](Sample-Gradient-Node.md) | Samples a Gradient given the input of Time.                            |
 
+## Lighting
+
+| **Topic**                                              | **Description**                                                              |
+|--------------------------------------------------------|------------------------------------------------------------------------------|
+| [Ambient](Ambient-Node.md)                             | Provides access to the Scene's Ambient color values.                         |
+| [Baked GI](Baked-GI-Node.md)                           | Provides access to the Baked GI values at the vertex or fragment's position. |
+| [Main Light Direction](Main-Light-Direction-Node.md)   | Provides access to the direction of the main directional light in the scene. |
+| [Reflection Probe](Reflection-Probe-Node.md)           | Provides access to the nearest Reflection Probe to the object.               |
+
 ## Matrix
 
 | **Topic**                                              | **Description**                                                                              |
@@ -72,12 +81,9 @@ Supply shaders with essential data such as constants, mesh attributes, gradients
 
 | **Topic**                                    | **Description**                                                              |
 |----------------------------------------------|------------------------------------------------------------------------------|
-| [Ambient](Ambient-Node.md)                   | Provides access to the Scene's Ambient color values.                         |
 | [Camera](Camera-Node.md)                     | Provides access to various parameters of the current Camera.                 |
 | [Fog](Fog-Node.md)                           | Provides access to the Scene's Fog parameters.                               |
-| [Baked GI](Baked-GI-Node.md)                 | Provides access to the Baked GI values at the vertex or fragment's position. |
 | [Object](Object-Node.md)                     | Provides access to various parameters of the Object.                         |
-| [Reflection Probe](Reflection-Probe-Node.md) | Provides access to the nearest Reflection Probe to the object.               |
 | [Scene Color](Scene-Color-Node.md)           | Provides access to the current Camera's color buffer.                        |
 | [Scene Depth](Scene-Depth-Node.md)           | Provides access to the current Camera's depth buffer.                        |
 | [Screen](Screen-Node.md)                     | Provides access to parameters of the screen.                                 |

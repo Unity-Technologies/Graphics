@@ -13,10 +13,18 @@ namespace UnityEditor.ShaderGraph
         }
 
         public override bool hasPreview { get { return false; } }
+        // Hide the node in the search window as it is deprecated.
+        internal override bool ExposeToSearcher => false;
 
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_ReflectionProbe", BindingFlags.Static | BindingFlags.NonPublic);
+        }
+
+        public override void ValidateNode()
+        {
+            base.ValidateNode();
+            owner.AddValidationError(this.objectId, "Reflection Probe Node is deprecated. Use a Custom Function Node instead.", Rendering.ShaderCompilerMessageSeverity.Warning);
         }
 
         static string Unity_ReflectionProbe(
