@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,6 +7,7 @@ namespace UnityEngine
 #if UNITY_EDITOR
     using UnityEditor;
 
+    [Obsolete("This class is only needed with InputManager which is a legacy system. This class is not used with Input System. #from(6000.5)")]
     public class InputManagerEntry
     {
         public enum Kind
@@ -50,6 +52,7 @@ namespace UnityEngine
         public Joy joystick = Joy.All;
     }
 
+    [Obsolete("This class is only needed with InputManager which is a legacy system. This class is not used with Input System. #from(6000.5)")]
     public static class InputRegistering
     {
         static void CopyEntry(SerializedProperty spAxis, InputManagerEntry entry)
@@ -77,7 +80,7 @@ namespace UnityEngine
 
             int endOfCurrentInputList = spAxes.arraySize;
             spAxes.arraySize = endOfCurrentInputList + newEntries.Count;
-            // Assignment to spAxes.arraySize resizes the spAxes array to at least 1 larger than it used to be, and 
+            // Assignment to spAxes.arraySize resizes the spAxes array to at least 1 larger than it used to be, and
             // therefore it is OK to use endOfCurrentInputList ("one-past-end of previous size") to get the array iterator.
             SerializedProperty spAxis = spAxes.GetArrayElementAtIndex(endOfCurrentInputList);
             for (int i = 0; i < newEntries.Count; ++i, spAxis.Next(false))

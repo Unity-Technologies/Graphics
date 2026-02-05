@@ -99,6 +99,7 @@ namespace UnityEngine.Rendering
 #endif
 
 #if UNITY_EDITOR && !USE_INPUT_SYSTEM
+#pragma warning disable CS0618 // Type or member is obsolete
             List<InputManagerEntry> inputEntries = new List<InputManagerEntry>();
 
             // Add new bindings
@@ -112,6 +113,7 @@ namespace UnityEngine.Rendering
             inputEntries.Add(new InputManagerEntry { name = kSpeedAxis, kind = InputManagerEntry.Kind.Axis, axis = InputManagerEntry.Axis.Seventh, gravity = 1000.0f, deadZone = 0.001f, sensitivity = 1000.0f });
 
             InputRegistering.RegisterInputs(inputEntries);
+#pragma warning restore CS0618 // Type or member is obsolete
 #endif
         }
 

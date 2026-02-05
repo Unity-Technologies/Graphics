@@ -17,8 +17,6 @@ namespace UnityEngine.Rendering
     [AddComponentMenu("")] // Hide from Add Component menu
     class DebugUpdater : MonoBehaviour
     {
-        static DebugUpdater s_Instance = null;
-
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void RuntimeInit()
         {
@@ -38,6 +36,11 @@ namespace UnityEngine.Rendering
 
         static void EnableRuntime()
         {
+#if USE_INPUT_SYSTEM
+            // With Input System, we don't need the DebugUpdater GameObject as we can just use input callbacks.
+            DebugManager.instance.EnableInputCallbacks();
+#else
+            // With old InputManager, we need the DebugUpdater GameObject to poll for input in Update().
             if (s_Instance != null)
                 return;
 
@@ -45,16 +48,14 @@ namespace UnityEngine.Rendering
             s_Instance = go.AddComponent<DebugUpdater>();
 
             DontDestroyOnLoad(go);
-
-            DebugManager.instance.EnableInputActions();
-
-#if USE_INPUT_SYSTEM
-            EnhancedTouchSupport.Enable();
 #endif
         }
 
         static void DisableRuntime()
         {
+#if USE_INPUT_SYSTEM
+            DebugManager.instance.DisableInputCallbacks();
+#else
             DebugManager debugManager = DebugManager.instance;
             debugManager.displayRuntimeUI = false;
             debugManager.displayPersistentRuntimeUI = false;
@@ -64,7 +65,11 @@ namespace UnityEngine.Rendering
                 CoreUtils.Destroy(s_Instance.gameObject);
                 s_Instance = null;
             }
+#endif
         }
+
+#if !USE_INPUT_SYSTEM
+        static DebugUpdater s_Instance = null;
 
         void Update()
         {
@@ -98,9 +103,16 @@ namespace UnityEngine.Rendering
 
                 float moveHorizontal = debugManager.GetAction(DebugAction.MoveHorizontal);
                 if (moveHorizontal != 0.0f)
-                    debugManager.m_RuntimeDebugWindow.ChangeSelectedValue(moveHorizontal);
+                {
+                    bool fast = DebugManager.instance.GetAction(DebugAction.Multiplier) != 0f;
+                    if (moveHorizontal < 0f)
+                        DebugManager.instance.selectedWidget.OnDecrement(fast);
+                    else
+                        DebugManager.instance.selectedWidget.OnIncrement(fast);
+                }
             }
 #endif
         }
+#endif
     }
 }

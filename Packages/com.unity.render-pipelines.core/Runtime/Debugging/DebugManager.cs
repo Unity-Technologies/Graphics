@@ -173,8 +173,7 @@ namespace UnityEngine.Rendering
         DebugManager()
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            RegisterInputs();
-            RegisterActions();
+            RegisterDebugInputs();
 #endif
         }
 

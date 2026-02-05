@@ -265,19 +265,6 @@ namespace UnityEngine.Rendering
             int nextIndex = Mod(index + offset, panels.Count);
             SetSelectedPanel(panels[nextIndex].displayName);
         }
-
-        internal void ChangeSelectedValue(float multiplier)
-        {
-            bool fast = DebugManager.instance.GetAction(DebugAction.Multiplier) != 0f;
-            if (multiplier < 0f)
-            {
-                DebugManager.instance.selectedWidget.OnDecrement(fast);
-            }
-            else
-            {
-                DebugManager.instance.selectedWidget.OnIncrement(fast);
-            }
-        }
     }
 }
 #endif

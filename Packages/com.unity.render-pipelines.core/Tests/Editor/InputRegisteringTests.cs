@@ -4,6 +4,7 @@ using NUnit.Framework;
 
 namespace UnityEngine.Rendering.Tests
 {
+#pragma warning disable CS0618 // Type or member is obsolete
     class InputRegisteringTests
     {
         static TestCaseData[] s_DuplicateTestCaseDatas =
@@ -71,4 +72,5 @@ namespace UnityEngine.Rendering.Tests
                 .Select(e => e.name).ToArray();
         }
     }
+#pragma warning restore CS0618 // Type or member is obsolete
 }
