@@ -294,7 +294,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 var result = new PassDescriptor
                 {
                     // Definition
-                    displayName = "Universal Forward Only",
+                    displayName = "ForwardLit",
                     referenceName = "SHADERPASS_FORWARDONLY",
                     lightMode = "UniversalForwardOnly",
                     useInPreview = true,

@@ -2003,6 +2003,17 @@ namespace ShaderStrippingAndPrefiltering
             helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_WriteRenderingLayers(ref helper.data, ref helper.featureStripTool));
 
             helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.passName = ShaderScriptableStripper.kPassNameUnlit;
+            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.WriteRenderingLayers};
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_WriteRenderingLayers(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.passName = ShaderScriptableStripper.kPassNameUnlit;
+            TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.WriteRenderingLayers};
+            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.WriteRenderingLayers};
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_WriteRenderingLayers(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
             helper.data.passName = ShaderScriptableStripper.kPassNameGBuffer;
             TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.WriteRenderingLayers};
             helper.IsFalse(helper.stripper.StripUnusedFeatures_WriteRenderingLayers(ref helper.data, ref helper.featureStripTool));
@@ -2046,6 +2057,17 @@ namespace ShaderStrippingAndPrefiltering
             helper.IsFalse(helper.stripper.StripUnusedFeatures_WriteRenderingLayers(ref helper.data, ref helper.featureStripTool));
 
             helper = new TestHelper(shader, ShaderFeatures.OpaqueWriteRenderingLayers);
+            helper.data.passName = ShaderScriptableStripper.kPassNameUnlit;
+            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.WriteRenderingLayers};
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_WriteRenderingLayers(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.OpaqueWriteRenderingLayers);
+            helper.data.passName = ShaderScriptableStripper.kPassNameUnlit;
+            TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.WriteRenderingLayers};
+            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.WriteRenderingLayers};
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_WriteRenderingLayers(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.OpaqueWriteRenderingLayers);
             helper.data.passName = ShaderScriptableStripper.kPassNameGBuffer;
             TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.WriteRenderingLayers};
             helper.IsFalse(helper.stripper.StripUnusedFeatures_WriteRenderingLayers(ref helper.data, ref helper.featureStripTool));
@@ -2084,6 +2106,17 @@ namespace ShaderStrippingAndPrefiltering
 
             helper = new TestHelper(shader, ShaderFeatures.GBufferWriteRenderingLayers);
             helper.data.passName = ShaderScriptableStripper.kPassNameForwardLit;
+            TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.WriteRenderingLayers};
+            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.WriteRenderingLayers};
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_WriteRenderingLayers(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.GBufferWriteRenderingLayers);
+            helper.data.passName = ShaderScriptableStripper.kPassNameUnlit;
+            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.WriteRenderingLayers};
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_WriteRenderingLayers(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.GBufferWriteRenderingLayers);
+            helper.data.passName = ShaderScriptableStripper.kPassNameUnlit;
             TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.WriteRenderingLayers};
             TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.WriteRenderingLayers};
             helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_WriteRenderingLayers(ref helper.data, ref helper.featureStripTool));
