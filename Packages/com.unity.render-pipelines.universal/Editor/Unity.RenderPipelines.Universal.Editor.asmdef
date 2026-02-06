@@ -68,6 +68,11 @@
             "name": "com.unity.postprocessing",
             "expression": "0.0.1",
             "define": "PPV2_EXISTS"
+        },
+        {
+            "name": "com.unity.2d.pixelperfect",
+            "expression": "0.0.1",
+            "define": "PIXEL_PERFECT_2D_EXISTS"
         }
     ],
     "noEngineReferences": false
