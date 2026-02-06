@@ -493,12 +493,10 @@ namespace UnityEditor.PathTracing.LightBakerBridge
 
         private static IntegrationSettings GetIntegrationSettings(in BakeInput bakeInput)
         {
-            IntegrationSettings retVal = IntegrationSettings.Default;
-            retVal.Backend = RayTracingBackend.Compute;
-            // TODO(pema.malling)
-            // retVal.Backend =
-            //     bakeInput.lightingSettings.useHardwareRayTracing && RayTracingContext.IsBackendSupported(RayTracingBackend.Hardware) ?
-            //         RayTracingBackend.Hardware : RayTracingBackend.Compute;
+            var retVal = IntegrationSettings.Default;
+            retVal.Backend =
+                bakeInput.lightingSettings.useHardwareRayTracing && RayTracingContext.IsBackendSupported(RayTracingBackend.Hardware) ?
+                    RayTracingBackend.Hardware : RayTracingBackend.Compute;
 
             return retVal;
         }

@@ -262,7 +262,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             visitor.TransferBlittable(ref mixedLightingMode);
             visitor.TransferBoolean(ref aoEnabled);
             visitor.TransferBlittable(ref aoDistance);
-            visitor.TransferBlittable(ref useHardwareRayTracing);
+            visitor.TransferBoolean(ref useHardwareRayTracing);
         }
     }
 
