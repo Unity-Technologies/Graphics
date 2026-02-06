@@ -81,37 +81,6 @@ namespace UnityEditor.PathTracing.LightBakerBridge
         }
     }
 
-    [InitializeOnLoad]
-    internal class SetLightmappingUnifiedBaker
-    {
-        static SetLightmappingUnifiedBaker()
-        {
-            try
-            {
-                var lightmappingType = typeof(UnityEditor.Lightmapping);
-                var unifiedBakerProperty = lightmappingType.GetProperty("UnifiedBaker",
-                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-
-                if (unifiedBakerProperty != null && unifiedBakerProperty.CanWrite)
-                {
-    #if UNIFIED_BAKER
-                    unifiedBakerProperty.SetValue(null, true);
-    #else
-                    unifiedBakerProperty.SetValue(null, false);
-    #endif
-                }
-                else
-                {
-                    UnityEngine.Debug.LogWarning("Could not find or access UnifiedBaker property on Lightmapping class");
-                }
-            }
-            catch (System.Exception ex)
-            {
-                UnityEngine.Debug.LogError($"Failed to set UnifiedBaker property via reflection: {ex.Message}");
-            }
-        }
-    }
-
     internal class LightBakerStrangler
     {
         internal enum Result
