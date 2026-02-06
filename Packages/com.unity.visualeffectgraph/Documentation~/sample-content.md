@@ -30,7 +30,7 @@ The helper scripts this sample includes are:
 - **VFXOutputEventPlayAudio**: When it receives an Output Event with the name you specify, this helper script plays a sound from an AudioSource
 - **VFXOutputEventPrefabSpawn**: When it receives an Output Event with the name you specify, this helper script spawns an invisible Prefab from a pool of Prefabs. It spawns them at a given position and rotation. It also manages the life of the Prefab based on the Event's [lifetime attribute](Reference-Attributes.md). When the Prefabs spawns, you can use **VFXOutputEventPrefabAttributeHandler** scripts to configure the Prefab's child elements. For more information, see [Using VFXOutputEventPrefabSpawn ](#using-vfxoutputeventprefabspawn).
 - **VFXOutputEventRigidBody**: When it receives an Output Event with the name you specify, this helper script applies a force to a [RigidBody](https://docs.unity3d.com/ScriptReference/Rigidbody.html).
-- **VFXOutputEventRigidBody**: When it receives an Output Event with the name you specify, this helper script triggers a [UnityEvent](https://docs.unity3d.com/ScriptReference/Events.UnityEvent.html).
+- **VFXOutputEventUnityEvent**: When it receives an Output Event with the name you specify, this helper script triggers a [UnityEvent](https://docs.unity3d.com/ScriptReference/Events.UnityEvent.html).
 
 ### Using VFXOutputEventPrefabSpawn
 
