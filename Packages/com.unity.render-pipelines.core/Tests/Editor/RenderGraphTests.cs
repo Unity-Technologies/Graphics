@@ -1414,62 +1414,142 @@ namespace UnityEngine.Rendering.Tests
             m_Camera.Render();
         }
 
-        /*
-        // Disabled for now as version management is not exposed to user code
+
         [Test]
-        public void VersionManagement()
+        public void ResourceHandleVersionManagement()
         {
+            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
 
-            TextureHandle texture0;
-            TextureHandle texture0v1;
-            TextureHandle texture0v2;
-            texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+            // Handles are unversioned by default.
+            Assert.IsFalse(texture0.handle.IsVersioned);
+            Assert.AreEqual(-1, texture0.handle.version);
 
-            TextureHandle texture1;
-            texture1 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-
-            // Handles are unversioned by default. Unversioned handles use an implicit version "the latest version" depending on their
-            // usage context.
-            Assert.AreEqual(false, texture0.handle.IsVersioned);
-
-            // Writing bumps the version
-            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass0", out var passData))
+            int iterations = 1000;
+            for (int i = 0; i < iterations; ++i)
             {
-                texture0v1 = builder.UseTexture(texture0, AccessFlags.ReadWrite);
-                Assert.AreEqual(true, texture0v1.handle.IsVersioned);
-                Assert.AreEqual(1, texture0v1.handle.version);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
-            }
-
-            // Writing again bumps again
-            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass1", out var passData))
-            {
-                texture0v2 = builder.UseTexture(texture0, AccessFlags.ReadWrite);
-                Assert.AreEqual(true, texture0v2.handle.IsVersioned);
-                Assert.AreEqual(2, texture0v2.handle.version);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
-            }
-
-            // Reading leaves the version alone
-            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass2", out var passData))
-            {
-                var versioned = builder.UseTexture(texture0, AccessFlags.Read);
-                Assert.AreEqual(true, versioned.handle.IsVersioned);
-                Assert.AreEqual(2, versioned.handle.version);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
-            }
-
-            // Writing to an old version is not supported it would lead to a divergent version timeline for the resource
-            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass2", out var passData))
-            {
-                // If you want do achieve this and avoid copying the move should be used
-                Assert.Throws<System.InvalidOperationException>(() =>
+                int writePassIndex = m_RenderGraph.m_RenderPasses.Count;
+                // Writing bumps version
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPassWrite"+i, out var passData))
                 {
-                    var versioned = builder.UseTexture(texture0v1, AccessFlags.ReadWrite);
-                });
-                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                    builder.SetRenderAttachment(texture0, 0, AccessFlags.Write);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                }
+
+                // Access the versioned handle from the render pass
+                var writePass = m_RenderGraph.m_RenderPasses[writePassIndex];
+                var versionedWriteHandle = writePass.colorBufferAccess[0].textureHandle.handle;
+                Assert.IsTrue(versionedWriteHandle.IsVersioned, $"Write handle should be versioned at iteration {i}");
+                Assert.AreEqual(i + 1, versionedWriteHandle.version, $"Write version should be {i + 1} at iteration {i}");
+
+                int readPassIndex = m_RenderGraph.m_RenderPasses.Count;
+
+                // Reading leaves the version alone
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPassRead"+i, out var passData))
+                {
+                    builder.SetRenderAttachment(texture0, 0, AccessFlags.Read);
+                }
+
+                // Access the versioned handle from the read pass
+                var readPass = m_RenderGraph.m_RenderPasses[readPassIndex];
+                var versionedReadHandle = readPass.colorBufferAccess[0].textureHandle.handle;
+                Assert.IsTrue(versionedReadHandle.IsVersioned, $"Read handle should be versioned at iteration {i}");
+                Assert.AreEqual(i + 1, versionedReadHandle.version, $"Read version should remain {i + 1} at iteration {i}");
             }
-        }*/
+        }
+
+        [Test]
+        public void ResourceHandleValidityBitManagement()
+        {
+            // Reset validityBit hash to execution 0
+            ResourceHandle.NewFrame(0);
+
+            // Create a handle and verify it has the current validity bit
+            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+            Assert.IsTrue(texture0.handle.IsValid(), "Newly created handle should be valid");
+            Assert.IsFalse(texture0.handle.IsNull(), "Newly created handle should not be null");
+
+            const int iterations = 216000; // 216k frames is like 1 hour at 60fps
+            for (int i = 1; i < iterations; ++i)
+            {
+                // Simulate a new frame with a new execution index
+                ResourceHandle.NewFrame(i);
+
+                // The stored handle should now be invalid because the validity bit has changed
+                Assert.IsFalse(texture0.IsValid(), "Handle from previous frame should be invalid");
+            }
+        }
+
+        [Test]
+        public void ResourceHandleCheckValues()
+        {
+            // Check NullHandle
+            TextureHandle nullHandle = TextureHandle.nullHandle;
+            Assert.IsTrue(nullHandle.handle.IsNull(), "TextureHandle.nullHandle should return true to IsNull comparision.");
+
+            // Check a new created texture
+            TextureHandle defaultTexture = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+            // Handles are unversioned by default.
+            Assert.IsTrue(defaultTexture.handle.IsValid(), "Newly created handle should be valid");
+            Assert.IsFalse(defaultTexture.handle.IsNull(), "Newly created handle should not be null");
+            Assert.IsFalse(defaultTexture.handle.IsVersioned, "Newly created handle should not be versioned");
+            Assert.AreEqual(-1, defaultTexture.handle.version, "Newly created handle version should be -1");
+
+
+            /* Check limits for version */
+            // Version has 15 bits, so the max valid number should be 2^15 - 1 =
+            int maxVersion = (int)Math.Pow(2,15) - 1;
+            ResourceHandle resourceVersionMax = new ResourceHandle(defaultTexture.handle, maxVersion);
+            Assert.IsTrue(resourceVersionMax.IsValid());
+            Assert.IsTrue(resourceVersionMax.IsVersioned);
+            Assert.AreEqual(maxVersion, resourceVersionMax.version);
+
+            ResourceHandle resourceVersionMin = new ResourceHandle(defaultTexture.handle, 0);
+            Assert.IsTrue(resourceVersionMin.IsValid());
+            Assert.IsTrue(resourceVersionMin.IsVersioned);
+            Assert.AreEqual(0, resourceVersionMin.version);
+
+            // Testing Out Of Range values makes Yamato jobs to fail.
+            // The test passes because the assert is correctly triggered, but it also fails the job because of the --fail-on-assert command, which is expected to fail the test if any assert is triggered.
+            // Need to comment this checks for now, until this is fixed.
+
+//            ResourceHandle resourceVersionOutOfRangeMax = new ResourceHandle(resourceVersionMax, maxVersion+1);
+//            ResourceHandle resourceVersionOutOfRangeMin = new ResourceHandle(resourceVersionMin, -1);
+//
+//#if UNITY_ASSERTIONS
+//            // If we increase the version to one more it should log an error
+//            LogAssert.Expect(LogType.Assert, "ResourceHandle: Invalid version, values should be >=0 && <32768");
+//            LogAssert.Expect(LogType.Assert, "ResourceHandle: Invalid version, values should be >=0 && <32768");
+//#endif
+
+
+            /* Check limits for index */
+            int maxIndex = (int)Math.Pow(2,16) - 1;
+            ResourceHandle resourceIndexMax = new ResourceHandle(maxIndex, RenderGraphResourceType.Texture, false);
+            Assert.IsTrue(resourceIndexMax.IsValid());
+            Assert.IsFalse(resourceIndexMax.IsVersioned);
+            Assert.AreEqual(maxIndex, resourceIndexMax.index);
+
+            ResourceHandle resourceIndexMin = new ResourceHandle(1, RenderGraphResourceType.Texture, false);
+            Assert.IsTrue(resourceIndexMin.IsValid());
+            Assert.IsFalse(resourceIndexMin.IsVersioned);
+            Assert.AreEqual(1, resourceIndexMin.index);
+
+            // Testing Out Of Range values makes Yamato jobs to fail.
+            // The test passes because the assert is correctly triggered, but it also fails the job because of the --fail-on-assert command, which is expected to fail the test if any assert is triggered.
+            // Need to comment this checks for now, until this is fixed.
+
+//            ResourceHandle resourceIndexOutOfRangeMax = new ResourceHandle(maxIndex+1, RenderGraphResourceType.Texture, false);
+//            ResourceHandle resourceIndexOutOfRange0 = new ResourceHandle(0, RenderGraphResourceType.Texture, false);
+//            ResourceHandle resourceIndexOutOfRangeNegative = new ResourceHandle(-1, RenderGraphResourceType.Texture, false);
+//
+//#if UNITY_ASSERTIONS
+//            // If we increase the version to one more it should log an error
+//            LogAssert.Expect(LogType.Assert, "ResourceHandle: Invalid index, values should be >0 && <65536");
+//            LogAssert.Expect(LogType.Assert, "ResourceHandle: Invalid index, values should be >0 && <65536");
+//            LogAssert.Expect(LogType.Assert, "ResourceHandle: Invalid index, values should be >0 && <65536");
+//#endif
+
+        }
 
         class RenderGraphAsyncRequestTestData
         {
@@ -2620,7 +2700,7 @@ namespace UnityEngine.Rendering.Tests
                     builder.SetRenderFunc(static (UVOriginPassData data, RasterGraphContext context) =>{ });
                     builder.AllowPassCulling(false);
                 }
-                
+
                 var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
                 var passes = result.contextData.GetNativePasses();
 
