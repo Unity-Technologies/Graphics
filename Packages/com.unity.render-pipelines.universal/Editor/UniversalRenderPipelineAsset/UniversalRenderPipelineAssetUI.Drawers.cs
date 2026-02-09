@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using UnityEditor.Inspector.GraphicsSettingsInspectors;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -26,6 +27,20 @@ namespace UnityEditor.Rendering.Universal
 
     internal partial class UniversalRenderPipelineAssetUI
     {
+        private static class GraphicsSettingPanelButton
+        {
+            private const int k_OpenGraphicsSettingsPanelLeftMargin = 18;
+            private static GUIStyle ButtonStylingWithInspectorIndent()
+            {
+                var style = GUI.skin.button;
+                style.margin.left = k_OpenGraphicsSettingsPanelLeftMargin;
+                return style;
+            }
+            public const string k_OpenGraphicsSettingsPanelButtonText = "Open Project Settings > Graphics ...";
+            public const string k_OpenGraphicsSettingsPanelButtonPath = "Project/Graphics";
+            public readonly static Lazy<GUIStyle> s_OpenGraphicsSettingsPanelButtonStyle = new(() => ButtonStylingWithInspectorIndent());
+        }
+
         internal enum Expandable
         {
             Rendering = 1 << 1,
@@ -170,7 +185,13 @@ namespace UnityEditor.Rendering.Universal
                 --EditorGUI.indentLevel;
 
                 if (brgStrippingError)
+                {
                     EditorGUILayout.HelpBox(Styles.brgShaderStrippingErrorMessage.text, MessageType.Warning, true);
+                    if (GUILayout.Button(GraphicsSettingPanelButton.k_OpenGraphicsSettingsPanelButtonText, GraphicsSettingPanelButton.s_OpenGraphicsSettingsPanelButtonStyle.Value))
+                    {
+                        GraphicsSettingsInspectorUtility.OpenAndScrollTo("m_BrgStripping");
+                    }
+                }
                 if (lightingModeError)
                     EditorGUILayout.HelpBox(Styles.lightModeErrorMessage.text, MessageType.Warning, true);
                 if (staticBatchingWarning)
