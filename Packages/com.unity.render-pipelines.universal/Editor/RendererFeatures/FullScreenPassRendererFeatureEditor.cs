@@ -33,6 +33,7 @@ namespace UnityEditor.Rendering.Universal
         static readonly GUIContent k_NewFullscreenMaterialButtonText = EditorGUIUtility.TrTextContent("New", "Creates a new Fullscreen material.");
         static readonly string k_NewBlitShaderText = "SRP Blit Shader";
         static readonly string k_NewSGFullscreenText = "ShaderGraph Fullscreen";
+        static readonly string k_NewSGFullscreenFromTemplateText = "ShaderGraph Fullscreen from Template";
         static readonly string k_BlitShaderTemplatePath = "Packages/com.unity.render-pipelines.core/Editor/ScriptTemplates/BlitSRP.txt";
         static readonly string k_DefaultFullscreenShaderGraphTemplatePath = "Packages/com.unity.render-pipelines.universal/Shaders/FullscreenInvertColors.shadergraph";
 
@@ -105,10 +106,7 @@ namespace UnityEditor.Rendering.Universal
 
             GenericMenu menu = new GenericMenu();
             menu.AddItem(new GUIContent(k_NewSGFullscreenText), false, () => CreateFullscreenMaterialFromTemplate(target as FullScreenPassRendererFeature, k_DefaultFullscreenShaderGraphTemplatePath));
-
-            // For later introduction of SG Filtered Template Browser
-            //menu.AddItem(new GUIContent(k_NewSGFullscreenFromTemplateText), false, () => CreateFullscreenMaterialFromTemplate(target as FullScreenPassRendererFeature));
-
+            menu.AddItem(new GUIContent(k_NewSGFullscreenFromTemplateText), false, () => CreateFullscreenMaterialFromTemplate(target as FullScreenPassRendererFeature));
             menu.AddItem(new GUIContent(k_NewBlitShaderText), false, () => CreateDefaultFullscreenMaterial(target as FullScreenPassRendererFeature));
             menu.DropDown(newFieldRect);
         }
@@ -123,7 +121,9 @@ namespace UnityEditor.Rendering.Universal
                 Selection.activeObject = selection; //restoring selection
             },
             templatePath,
-            $"New {k_NewSGFullscreenText}");
+            $"New {k_NewSGFullscreenText}",
+            null,
+            "shadergraph.material=fullscreen");
         }
 
         internal static void CreateDefaultFullscreenMaterial(FullScreenPassRendererFeature obj)

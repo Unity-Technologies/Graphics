@@ -24,6 +24,7 @@ namespace UnityEditor.Rendering.Universal
         static readonly GUIContent k_NewDecalMaterialButtonText = EditorGUIUtility.TrTextContent("New", "Creates a new Decal material.");
         static readonly string k_NewDecalText = "URP Decal";
         static readonly string k_NewSGDecalText = "ShaderGraph Decal";
+        static readonly string k_NewSGDecalFromTemplateText = "ShaderGraph Decal from Template";
         static readonly string k_DefaultDecalShaderGraphTemplatePath = "Packages/com.unity.render-pipelines.universal/Shaders/Decal.shadergraph";
 
         static Color fullColor
@@ -728,9 +729,7 @@ namespace UnityEditor.Rendering.Universal
 
             menu.AddItem(new GUIContent(k_NewDecalText), false, () => CreateDefaultDecalMaterial(targets));
             menu.AddItem(new GUIContent(k_NewSGDecalText), false, () => CreateDecalMaterialFromTemplate(targets, k_DefaultDecalShaderGraphTemplatePath));
-
-            // For later introduction of SG Filtered Template Browser
-            //menu.AddItem(new GUIContent(k_NewSGDecalFromTemplateText), false, () => CreateDecalMaterialFromTemplate(targets));
+            menu.AddItem(new GUIContent(k_NewSGDecalFromTemplateText), false, () => CreateDecalMaterialFromTemplate(targets));
 
             menu.DropDown(newFieldRect);
         }
@@ -742,7 +741,9 @@ namespace UnityEditor.Rendering.Universal
                 SetDecalMaterial(decalProjectors, material);
             },
             templatePath,
-            $"New {k_NewSGDecalText}");
+            $"New {k_NewSGDecalText}",
+            null,
+            "shadergraph.material=decal");
         }
 
         static void CreateDefaultDecalMaterial(UnityEngine.Object[] decalProjectors)
