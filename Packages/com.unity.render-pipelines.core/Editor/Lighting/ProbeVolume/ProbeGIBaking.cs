@@ -1092,6 +1092,8 @@ namespace UnityEngine.Rendering
             bakeInput.SetProbePositions(newPositions);
             bakeInput.SetOcclusionLightIndices(newOcclusionIndices);
 
+            var ignoreEnvironmentLight = m_BakingSet != null && m_BakingSet.skyOcclusion;
+
             var lightmapParameters = LightmapParameters.GetLightmapParametersForLightingSettings(lightingSettings);
             float pushoff = lightmapParameters != null ? lightmapParameters.pushoff : 0.0001f;
 
@@ -1099,7 +1101,6 @@ namespace UnityEngine.Rendering
             foreach (var bakeJob in s_BakeData.jobs)
             {
                 string probeOutputSubFolder = $"/probeRequest{requestIdx}";
-
                 bakeInput.AddProbeRequest(new ProbeBakeRequest
                 {
                     outputTypes = outputTypes,
@@ -1111,8 +1112,8 @@ namespace UnityEngine.Rendering
                     positionLength = (ulong)bakeJob.probeCount,
                     bakeOutputFolderPath = APVLightBakerOutputFolder + probeOutputSubFolder,
                     postProcessOutputFolderPath = APVLightBakerPostProcessingOutputFolder + probeOutputSubFolder,
-                    ignoreDirectEnvironment = m_BakingSet != null ? m_BakingSet.bakedSkyOcclusion : false,
-                    ignoreIndirectEnvironment = m_BakingSet != null ? m_BakingSet.bakedSkyOcclusion : false,
+                    ignoreDirectEnvironment = ignoreEnvironmentLight,
+                    ignoreIndirectEnvironment = ignoreEnvironmentLight,
                     pushoff = pushoff,
                     indirectScale = bakeJob.indirectScale,
                     dering = true,
