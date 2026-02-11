@@ -64,6 +64,10 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Enumeration that indicates what kind of upscaling filter is being used
     /// </summary>
+    /// 
+#if ENABLE_UPSCALER_FRAMEWORK
+    [Obsolete("ImageUpscalingFilter is no longer used #from(6000.3)")]
+#endif
     internal enum ImageUpscalingFilter
     {
         /// Bilinear filtering
@@ -324,6 +328,9 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public ref float renderScale => ref frameData.Get<UniversalCameraData>().renderScale;
         internal ref ImageScalingMode imageScalingMode => ref frameData.Get<UniversalCameraData>().imageScalingMode;
+#if ENABLE_UPSCALER_FRAMEWORK
+        [Obsolete("upscalingFilter is no longer used #from(6000.3)")]
+#endif
         internal ref ImageUpscalingFilter upscalingFilter => ref frameData.Get<UniversalCameraData>().upscalingFilter;
         internal ref bool fsrOverrideSharpness => ref frameData.Get<UniversalCameraData>().fsrOverrideSharpness;
         internal ref float fsrSharpness => ref frameData.Get<UniversalCameraData>().fsrSharpness;

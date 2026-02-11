@@ -411,7 +411,11 @@ namespace UnityEngine.Rendering.Universal
 
             ref var taa = ref cameraData.taaSettings;
 
-            bool isNewFrame = cameraData.taaHistory.GetAccumulationVersion(multipassId) != Time.frameCount;
+            // Editor can reuse a camera for preview renders. Treat previews as redraws of the same frame.
+            bool isPreview = cameraData.camera.cameraType == CameraType.Preview;
+            // RenderRequests can trigger a single frame render (no history). Treat a render requests as redraws of the same frame.
+            bool isRenderRequest = cameraData.camera.isProcessingRenderRequest;
+            bool isNewFrame = !isPreview && !isRenderRequest && cameraData.taaHistory.GetAccumulationVersion(multipassId) != Time.frameCount;
             float taaInfluence = taa.resetHistoryFrames == 0 ? taa.m_FrameInfluence : 1.0f;
 
             RTHandle accumulationTexture = cameraData.taaHistory.GetAccumulationTexture(multipassId);

@@ -82,6 +82,8 @@ namespace UnityEditor.ShaderGraph
         // Node generations
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
+            string outputVectorVariableName = GetVariableNameForSlot(OutputSlotRGBAId);
+
             var uvName = GetSlotValue(UVInput, generationMode);
             var indexName = GetSlotValue(IndexInputId, generationMode);
 
@@ -89,9 +91,10 @@ namespace UnityEditor.ShaderGraph
             var samplerSlot = FindInputSlot<MaterialSlot>(SamplerInput);
             var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
 
+            // Sample
             var id = GetSlotValue(TextureInputId, generationMode);
             var result = string.Format("$precision4 {0} = {1}({2}.tex, {3}.samplerstate, {4}, {5} {6});"
-                , GetVariableNameForSlot(OutputSlotRGBAId)
+                , outputVectorVariableName
                 , MipSamplingModesUtils.Get2DTextureSamplingMacro(m_MipSamplingMode, usePlatformMacros: !m_EnableGlobalMipBias, isArray: true)
                 , id
                 , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id
@@ -101,10 +104,14 @@ namespace UnityEditor.ShaderGraph
 
             sb.AppendLine(result);
 
-            sb.AppendLine(string.Format("$precision {0} = {1}.r;", GetVariableNameForSlot(OutputSlotRId), GetVariableNameForSlot(OutputSlotRGBAId)));
-            sb.AppendLine(string.Format("$precision {0} = {1}.g;", GetVariableNameForSlot(OutputSlotGId), GetVariableNameForSlot(OutputSlotRGBAId)));
-            sb.AppendLine(string.Format("$precision {0} = {1}.b;", GetVariableNameForSlot(OutputSlotBId), GetVariableNameForSlot(OutputSlotRGBAId)));
-            sb.AppendLine(string.Format("$precision {0} = {1}.a;", GetVariableNameForSlot(OutputSlotAId), GetVariableNameForSlot(OutputSlotRGBAId)));
+            // Decode HDR
+            SampleTexture2DNode.AppendHDRDecodeOperation(sb, outputVectorVariableName, id);
+
+            // Extract components
+            sb.AppendLine(string.Format("$precision {0} = {1}.r;", GetVariableNameForSlot(OutputSlotRId), outputVectorVariableName));
+            sb.AppendLine(string.Format("$precision {0} = {1}.g;", GetVariableNameForSlot(OutputSlotGId), outputVectorVariableName));
+            sb.AppendLine(string.Format("$precision {0} = {1}.b;", GetVariableNameForSlot(OutputSlotBId), outputVectorVariableName));
+            sb.AppendLine(string.Format("$precision {0} = {1}.a;", GetVariableNameForSlot(OutputSlotAId), outputVectorVariableName));
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)

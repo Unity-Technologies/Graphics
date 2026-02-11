@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Decal debug settings.
     /// </summary>
     [Serializable]
-    public class DecalsDebugSettings
+    public class DecalsDebugSettings : ISerializedDebugDisplaySettings
     {
         /// <summary>Display the decal atlas.</summary>
         public bool displayAtlas = false;

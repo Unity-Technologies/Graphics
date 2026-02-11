@@ -102,7 +102,7 @@ namespace UnityEditor.ShaderGraph
 
             int outputLength = _maskInput.Length;
             int inputLength = 1;
-            foreach(var c in _maskInput)
+            foreach(var c in _maskInput.ToLowerInvariant())
             {
                 switch (c)
                 {

@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     internal class HDDebugDisplaySettings : DebugDisplaySettings<HDDebugDisplaySettings>
@@ -36,12 +38,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             base.Reset();
             displayStats = Add(new DebugDisplaySettingsStats<HDProfileId>(new HDDebugDisplayStats()));
-            volumeSettings = Add(new DebugDisplaySettingsVolume());
-            decalSettings = Add(new DebugDisplaySettingsDecal());
-            gpuResidentDrawerSettings = Add(new DebugDisplayGPUResidentDrawer());
-            cameraSettings = Add(new DebugDisplaySettingsCamera());
+            volumeSettings = Add(DebugDisplaySerializer.GetOrCreate<DebugDisplaySettingsVolume>());
+            decalSettings = Add(DebugDisplaySerializer.GetOrCreate<DebugDisplaySettingsDecal>());
+            gpuResidentDrawerSettings = Add(DebugDisplaySerializer.GetOrCreate<DebugDisplayGPUResidentDrawer>());
+            cameraSettings = Add(DebugDisplaySerializer.GetOrCreate<DebugDisplaySettingsCamera>());
 #if ENABLE_VIRTUALTEXTURES
-            vtSettings = Add(new DebugDisplayVirtualTexturing());
+            vtSettings = Add(DebugDisplaySerializer.GetOrCreate<DebugDisplayVirtualTexturing>());
 #endif
         }
 

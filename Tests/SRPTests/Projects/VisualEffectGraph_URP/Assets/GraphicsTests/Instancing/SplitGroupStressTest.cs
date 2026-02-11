@@ -23,7 +23,7 @@ public class SplitGroupStressTest : MonoBehaviour
 
     void Start()
     {
-        m_OriginalVisualEffects = new List<VisualEffect>(FindObjectsByType<VisualEffect>(FindObjectsSortMode.None));
+        m_OriginalVisualEffects = new List<VisualEffect>(FindObjectsByType<VisualEffect>());
         m_VisualEffects = new List<VisualEffect>(MaxInstanceCount);
 
         // To test global texture support

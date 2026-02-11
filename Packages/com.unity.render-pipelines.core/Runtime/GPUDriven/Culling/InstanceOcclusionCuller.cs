@@ -487,7 +487,7 @@ namespace UnityEngine.Rendering
             depthBufferSize = occluderParams.depthSize;
 
             // enable debug counters for cameras when the overlay is enabled
-            bool debugOverlayEnabled = GPUResidentDrawer.GetDebugStats()?.occlusionOverlayEnabled ?? false;
+            bool debugOverlayEnabled = GPUResidentDrawer.debugDisplaySettings?.occlusionTestOverlayEnabled ?? false;
             UpdateMipBounds();
             AllocateTexturesIfNecessary(debugOverlayEnabled);
         }

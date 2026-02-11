@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEditor.AssetImporters;
+using UnityEditor.Experimental.GraphView;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
@@ -76,6 +77,9 @@ Shader ""Hidden/GraphErrorShader2""
         [SerializeField]
         bool m_ExposeTemplateAsShader;
 
+        [SerializeField]
+        ShaderGraphIndexedData m_IndexedData;
+
         public bool UseAsTemplate
         {
             get => m_UseAsTemplate;
@@ -96,6 +100,8 @@ Shader ""Hidden/GraphErrorShader2""
             get => m_Template;
             set => m_Template = value;
         }
+
+        public DataBag AdditionalSearchTerms => m_IndexedData?.AdditionalSeachTerms ?? default;
 
         public static Texture2D GetIcon() => EditorGUIUtility.IconContent(IconBasePath)?.image as Texture2D;
 
@@ -370,6 +376,12 @@ Shader ""Hidden/GraphErrorShader2""
             sgMetadata.categoryDatas = categoryDatas.GenerateMCD();
 
             ctx.AddObjectToAsset("SGInternal:Metadata", sgMetadata);
+
+            m_IndexedData = ScriptableObject.CreateInstance<ShaderGraphIndexedData>();
+            m_IndexedData.AdditionalSeachTerms = ShaderGraphTemplate.GatherSearchTerms(graph);
+            m_IndexedData.name = "Indexed Data";
+            m_IndexedData.hideFlags = HideFlags.HideInHierarchy;
+            ctx.AddObjectToAsset("Metadata", m_IndexedData);
 
             // declare dependencies
             foreach (var asset in assetCollection.assets)

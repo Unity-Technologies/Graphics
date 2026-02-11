@@ -280,6 +280,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     pass.includes.Add(UnlitIncludes.LightingIncludes);
                     pass.keywords.Add(UnlitKeywords.LightingVariants);
                     pass.defines.Add(UnlitDefines.LightingDefine, 1);
+                    pass.lightMode = "UniversalForward";
                 }
             }
 
@@ -304,7 +305,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 var result = new PassDescriptor
                 {
                     // Definition
-                    displayName = "Universal Forward",
+                    displayName = "Unlit",
                     referenceName = "SHADERPASS_UNLIT",
                     useInPreview = true,
 

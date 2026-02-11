@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
         private readonly DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
-        DebugDisplaySettings m_DebugDisplaySettings = new DebugDisplaySettings();
+        DebugDisplaySettings m_DebugDisplaySettings;
 
         /// <summary>
         /// Debug display settings.

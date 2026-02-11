@@ -1,5 +1,8 @@
 # Reflection Probe Node
 
+> [!NOTE]
+> The Reflection Probe node is deprecated. Use the [Custom Function node](Custom-Function-Node.md) instead to replicate the [generated code example](#generated-code-example).
+
 ## Description
 
 Provides access to the nearest **Reflection Probe** to the object. Requires **Normal** and **View Direction** to sample the probe. You can achieve a blurring effect by sampling at a different Level of Detail using the **LOD** input.
@@ -9,7 +12,7 @@ Note: The behavior of this [Node](Node.md) is undefined globally. Shader Graph d
 Different Render Pipelines may produce different results. If you're building a shader in one Render Pipeline that you want to use in both, try checking it in both pipelines before production. A [Node](Node.md) might be defined in one Render Pipeline and undefined in the other. If this [Node](Node.md) is undefined, it returns 0 (black).
 
 #### Unity Render Pipelines Support
-- Universal Render Pipeline
+- Universal Render Pipeline, if you use the Forward or Deferred rendering path. If you use the Forward+ or Deferred+ rendering path, the node returns the skybox instead of the nearest reflection probe.
 
 The High Definition Render Pipeline does **not** support this Node.
 

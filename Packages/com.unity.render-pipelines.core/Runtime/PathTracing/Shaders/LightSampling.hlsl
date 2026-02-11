@@ -143,7 +143,7 @@ bool CastJitteredShadowRay(
 {
     if (shadowRadius > 0.0f)
     {
-        dimsUsed += 2;
+        dimsUsed += 1;
         // jitter the light direction within the shadow radius
         direction = CalculateJitteredLightVec(shadowRadius, uSample, lightVector);
     }
@@ -163,9 +163,10 @@ struct SphQuad
 
 bool SampleRectangularLight(inout PathTracingSampler rngState, uint dimsOffset, out uint dimsUsed, float3 P, PTLight light, inout LightShapeSample lightSample)
 {
-    float u = rngState.GetFloatSample(dimsOffset);
-    float v = rngState.GetFloatSample(dimsOffset+1);
-    dimsUsed = 2;
+    float2 uv = rngState.GetSample2D(dimsOffset);
+    float u = uv.x;
+    float v = uv.y;
+    dimsUsed = 1;
 
 #ifndef SOLID_ANGLE_SAMPLING
     // Area sampling
@@ -302,9 +303,10 @@ bool SampleRectangularLight(inout PathTracingSampler rngState, uint dimsOffset, 
 
 bool SampleDiscLight(inout PathTracingSampler rngState, uint dimsOffset, out uint dimsUsed, float3 P, PTLight light, inout LightShapeSample lightSample)
 {
-    float u = rngState.GetFloatSample(dimsOffset);
-    float v = rngState.GetFloatSample(dimsOffset + 1);
-    dimsUsed = 2;
+    float2 uv = rngState.GetSample2D(dimsOffset);
+    float u = uv.x;
+    float v = uv.y;
+    dimsUsed = 1;
 
     float2 coord = SampleDiskUniform(u, v);
     const float radius = light.width;
@@ -353,17 +355,16 @@ float2 MapUnitSquareToUnitTriangle(float2 unitSquareCoords)
 
 bool SampleEmissiveMesh(StructuredBuffer<UnifiedRT::InstanceData> instanceList, inout PathTracingSampler rngState, uint dimsOffset, out uint dimsUsed, float3 P, PTLight light, inout LightShapeSample lightSample)
 {
-    float r1 = rngState.GetFloatSample(dimsOffset);
-    float r2 = rngState.GetFloatSample(dimsOffset + 1);
-    float r3 = rngState.GetFloatSample(dimsOffset + 2);
-    dimsUsed = 3;
+    float2 r1 = rngState.GetSample2D(dimsOffset);
+    float r2 = rngState.GetSample1D(dimsOffset+1);
+    dimsUsed = 2;
 
     // random point in unit triangle
-    float2 samplePoint = MapUnitSquareToUnitTriangle(float2(r1, r2));
+    float2 samplePoint = MapUnitSquareToUnitTriangle(r1);
 
     int instanceIndex = light.height;
     int numPrimitives = light.attenuation.x;
-    int primitiveIndex = (r3 * numPrimitives) % numPrimitives;
+    int primitiveIndex = (r2 * numPrimitives) % numPrimitives;
 
     // fetch the triangle vertices from the geometry pool
 
@@ -458,8 +459,8 @@ bool SamplePunctualLight(float3 P, PTLight light, out LightShapeSample lightSamp
 bool SampleEnvironmentLight(inout PathTracingSampler rngState, uint dimsOffset, out uint dimsUsed, float3 P, PTLight light, out LightShapeSample lightSample)
 {
     lightSample = (LightShapeSample)0;
-    const float2 rand = float2(rngState.GetFloatSample(dimsOffset), rngState.GetFloatSample(dimsOffset + 1));
-    dimsUsed = 2;
+    const float2 rand = rngState.GetSample2D(dimsOffset);
+    dimsUsed = 1;
 
 #ifdef UNIFORM_ENVSAMPLING
     // Sample the environment with a random direction. Should only be used for reference / ground truth.
@@ -958,7 +959,7 @@ bool SampleLightsRadianceRIS(
 
     for (uint i = 0; i < numLightCandidates; ++i)
     {
-        float pickingSample = rngState.GetFloatSample(RAND_DIM_LIGHT_SELECTION + RAND_SAMPLES_PER_LIGHT * i);
+        float pickingSample = rngState.GetSample1D(RAND_DIM_LIGHT_SELECTION + RAND_SAMPLES_PER_LIGHT * i);
         #ifdef STRATIFIED_LIGHT_PICKING
             pickingSample = (i + pickingSample) / numLightCandidates;
         #endif
@@ -974,7 +975,7 @@ bool SampleLightsRadianceRIS(
 
         lightSample.pdf *= lighPickingPmf;
 
-        float r = rngState.GetFloatSample(RAND_DIM_LIGHT_SELECTION + RAND_SAMPLES_PER_LIGHT * i + 4);
+        float r = rngState.GetSample1D(RAND_DIM_LIGHT_SELECTION + RAND_SAMPLES_PER_LIGHT * i + 3);
         float targetFunc = Luminance(lightSample.radiance);
         float risWeight = targetFunc / lightSample.pdf; // w = targetFunc / sourcePdf
         reservoir.Update(lightSample, risWeight, r);
@@ -993,7 +994,7 @@ bool SampleLightsRadianceRIS(
     // cast a shadow ray
     float3 attenuation = 1.0f;
     uint dimsUsed = 0;
-    float2 shadowSample = float2(rngState.GetFloatSample(RAND_DIM_JITTERED_SHADOW_X), rngState.GetFloatSample(RAND_DIM_JITTERED_SHADOW_Y));
+    float2 shadowSample = rngState.GetSample2D(RAND_DIM_JITTERED_SHADOW);
     bool isShadowed = castShadows && options.receiveShadows && !CastJitteredShadowRay(dispatchInfo, accelStruct, bestSample.shadowRadius, lightType == DIRECTIONAL_LIGHT ? bestSample.lightDirection : bestSample.lightDirection*bestSample.distanceToLight, receiverOrigin, bestSample.lightDirection, bestSample.distanceToLight, options.shadowRayMask, shadowSample, dimsUsed, attenuation);
     if (isShadowed)
         return false;
@@ -1018,7 +1019,7 @@ bool SampleLightsRadianceMC(
     // Find how many lights we will evaluate
     uint numLightCandidates = GetNumLights(receiverOrigin, 1);
 
-    float pickingSample = rngState.GetFloatSample(RAND_DIM_LIGHT_SELECTION);
+    float pickingSample = rngState.GetSample1D(RAND_DIM_LIGHT_SELECTION);
     float lighPickingPmf;
     PTLight light = PickLight(pickingSample, receiverOrigin, lighPickingPmf);
 
@@ -1031,7 +1032,7 @@ bool SampleLightsRadianceMC(
 
     float3 attenuation = 1.0f;
     uint dimsUsed = 0;
-    float2 shadowSample = float2(rngState.GetFloatSample(RAND_DIM_JITTERED_SHADOW_X), rngState.GetFloatSample(RAND_DIM_JITTERED_SHADOW_Y));
+    float2 shadowSample = rngState.GetSample2D(RAND_DIM_JITTERED_SHADOW);
     bool isShadowed = light.castsShadows && options.receiveShadows && !CastJitteredShadowRay(dispatchInfo, accelStruct, light.shadowRadius, light.type == DIRECTIONAL_LIGHT ? lightSample.lightDirection : lightSample.lightDirection*lightSample.distanceToLight, receiverOrigin, lightSample.lightDirection, lightSample.distanceToLight, options.shadowRayMask, shadowSample, dimsUsed, attenuation);
     if (isShadowed)
         return false;
@@ -1099,6 +1100,7 @@ bool IsLightVisibleFromPoint(
     LightShapeSample lightSample;
     if (!SampleLightShape(instanceList, rngState, dimsOffset, dimsUsed, worldPosition, light, lightSample))
         return false;
+    dimsOffset += dimsUsed;
 
     if (light.type != DIRECTIONAL_LIGHT && lightSample.distanceToLight >= light.range)
         return false;
@@ -1107,7 +1109,7 @@ bool IsLightVisibleFromPoint(
 
     if (light.castsShadows && receiveShadows)
     {
-        float2 shadowSample = float2(rngState.GetFloatSample(dimsOffset), rngState.GetFloatSample(dimsOffset+1));
+        float2 shadowSample = rngState.GetSample2D(dimsOffset);
         return CastJitteredShadowRay(dispatchInfo, accelStruct, light.shadowRadius, lightSample.lightVector, worldPosition, lightSample.L, lightSample.distanceToLight, shadowRayMask, shadowSample, dimsUsed, attenuation);
     }
     return true;

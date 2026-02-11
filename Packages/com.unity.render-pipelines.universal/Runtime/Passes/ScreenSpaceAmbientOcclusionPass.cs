@@ -67,21 +67,21 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Structs
-        private struct SSAOMaterialParams
+        private readonly struct SSAOMaterialParams
         {
-            internal bool orthographicCamera;
-            internal bool aoBlueNoise;
-            internal bool aoInterleavedGradient;
-            internal bool sampleCountHigh;
-            internal bool sampleCountMedium;
-            internal bool sampleCountLow;
-            internal bool sourceDepthNormals;
-            internal bool sourceDepthHigh;
-            internal bool sourceDepthMedium;
-            internal bool sourceDepthLow;
-            internal Vector4 ssaoParams;
+            internal readonly bool orthographicCamera;
+            internal readonly bool aoBlueNoise;
+            internal readonly bool aoInterleavedGradient;
+            internal readonly bool sampleCountHigh;
+            internal readonly bool sampleCountMedium;
+            internal readonly bool sampleCountLow;
+            internal readonly bool sourceDepthNormals;
+            internal readonly bool sourceDepthHigh;
+            internal readonly bool sourceDepthMedium;
+            internal readonly bool sourceDepthLow;
+            internal readonly Vector4 ssaoParams;
 
-            internal SSAOMaterialParams(ref ScreenSpaceAmbientOcclusionSettings settings, bool isOrthographic)
+            internal SSAOMaterialParams(ScreenSpaceAmbientOcclusionSettings settings, bool isOrthographic)
             {
                 bool isUsingDepthNormals = settings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
                 float radiusMultiplier = settings.AOMethod == ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise ? 1.5f : 1;
@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.Universal
                 );
             }
 
-            internal bool Equals(ref SSAOMaterialParams other)
+            internal bool Equals(in SSAOMaterialParams other)
             {
                 return orthographicCamera == other.orthographicCamera
                        && aoBlueNoise == other.aoBlueNoise
@@ -116,9 +116,10 @@ namespace UnityEngine.Rendering.Universal
                        && sourceDepthMedium == other.sourceDepthMedium
                        && sourceDepthLow == other.sourceDepthLow
                        && ssaoParams == other.ssaoParams
-                       ;
+                    ;
             }
         }
+
         private SSAOMaterialParams m_SSAOParamsPrev = new SSAOMaterialParams();
 
         internal ScreenSpaceAmbientOcclusionPass()
@@ -126,7 +127,7 @@ namespace UnityEngine.Rendering.Universal
             m_CurrentSettings = new ScreenSpaceAmbientOcclusionSettings();
         }
 
-        internal bool Setup(ref ScreenSpaceAmbientOcclusionSettings featureSettings, ref ScriptableRenderer renderer, ref Material material, ref Texture2D[] blueNoiseTextures)
+        internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings, ScriptableRenderer renderer, Material material, Texture2D[] blueNoiseTextures)
         {
             m_BlueNoiseTextures = blueNoiseTextures;
             m_Material = material;
@@ -135,7 +136,7 @@ namespace UnityEngine.Rendering.Universal
             // RenderPass Event + Source Settings (Depth / Depth&Normals
             if (renderer is UniversalRenderer { usesDeferredLighting: true })
             {
-                renderPassEvent = m_CurrentSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingGbuffer;
+                renderPassEvent = m_CurrentSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingPrePasses;
 
                 m_CurrentSettings.Source = ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
             }
@@ -184,11 +185,11 @@ namespace UnityEngine.Rendering.Universal
 
         private void SetupKeywordsAndParameters(ref ScreenSpaceAmbientOcclusionSettings settings, ref UniversalCameraData cameraData)
         {
-            #if ENABLE_VR && ENABLE_XR_MODULE
-                int eyeCount = cameraData.xr.enabled && cameraData.xr.singlePassEnabled ? 2 : 1;
-            #else
-                int eyeCount = 1;
-            #endif
+#if ENABLE_VR && ENABLE_XR_MODULE
+            int eyeCount = cameraData.xr.enabled && cameraData.xr.singlePassEnabled ? 2 : 1;
+#else
+            int eyeCount = 1;
+#endif
 
             for (int eyeIndex = 0; eyeIndex < eyeCount; eyeIndex++)
             {
@@ -231,11 +232,11 @@ namespace UnityEngine.Rendering.Universal
                 );
 
                 // For testing we use a single blue noise texture and a single set of blue noise params.
-                #if UNITY_INCLUDE_TESTS
-                    noiseTexture = m_BlueNoiseTextures[0];
-                    blueNoiseParams.z = 1;
-                    blueNoiseParams.w = 1;
-                #endif
+#if UNITY_INCLUDE_TESTS
+                noiseTexture = m_BlueNoiseTextures[0];
+                blueNoiseParams.z = 1;
+                blueNoiseParams.w = 1;
+#endif
 
                 m_Material.SetTexture(s_BlueNoiseTextureID, noiseTexture);
                 m_Material.SetVector(s_SSAOBlueNoiseParamsID, blueNoiseParams);
@@ -243,12 +244,13 @@ namespace UnityEngine.Rendering.Universal
 
             // Setting keywords can be somewhat expensive on low-end platforms.
             // Previous params are cached to avoid setting the same keywords every frame.
-            SSAOMaterialParams matParams = new SSAOMaterialParams(ref settings, cameraData.camera.orthographic);
-            bool ssaoParamsDirty = !m_SSAOParamsPrev.Equals(ref matParams);    // Checks if the parameters have changed.
+            SSAOMaterialParams matParams = new SSAOMaterialParams(settings, cameraData.camera.orthographic);
+            bool ssaoParamsDirty = !m_SSAOParamsPrev.Equals(in matParams); // Checks if the parameters have changed.
             bool isParamsPropertySet = m_Material.HasProperty(s_SSAOParamsID); // Checks if the parameters have been set on the material.
             if (!ssaoParamsDirty && isParamsPropertySet)
                 return;
 
+            // @formatter:off
             m_SSAOParamsPrev = matParams;
             CoreUtils.SetKeyword(m_Material, ScreenSpaceAmbientOcclusion.k_OrthographicCameraKeyword,    matParams.orthographicCamera);
             CoreUtils.SetKeyword(m_Material, ScreenSpaceAmbientOcclusion.k_AOBlueNoiseKeyword,           matParams.aoBlueNoise);
@@ -261,6 +263,7 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.SetKeyword(m_Material, ScreenSpaceAmbientOcclusion.k_SourceDepthMediumKeyword,     matParams.sourceDepthMedium);
             CoreUtils.SetKeyword(m_Material, ScreenSpaceAmbientOcclusion.k_SourceDepthLowKeyword,        matParams.sourceDepthLow);
             m_Material.SetVector(s_SSAOParamsID, matParams.ssaoParams);
+            // @formatter:on
         }
 
         /*----------------------------------------------------------------------------------------------------------------------------------------
@@ -271,6 +274,7 @@ namespace UnityEngine.Rendering.Universal
         {
             internal bool afterOpaque;
             internal ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions BlurQuality;
+            internal MaterialPropertyBlock materialPropertyBlock;
             internal Material material;
             internal float directLightingStrength;
             internal TextureHandle cameraColor;
@@ -281,7 +285,24 @@ namespace UnityEngine.Rendering.Universal
             internal UniversalCameraData cameraData;
         }
 
-        private void InitSSAOPassData(ref SSAOPassData data)
+        private class SSAOBlurPassData
+        {
+            internal TextureHandle srcTexture;
+            internal TextureHandle dstTexture;
+            internal MaterialPropertyBlock materialPropertyBlock;
+            internal Material material;
+            internal UniversalCameraData cameraData;
+            internal int pass;
+            internal ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions BlurQuality;
+            internal bool afterOpaque;
+        }
+
+        private class SSAOFinalPassData
+        {
+            internal float directLightingStrength;
+        }
+
+        private void InitSSAOPassData(SSAOPassData data)
         {
             data.material = m_Material;
             data.BlurQuality = m_CurrentSettings.BlurQuality;
@@ -289,25 +310,65 @@ namespace UnityEngine.Rendering.Universal
             data.directLightingStrength = m_CurrentSettings.DirectLightingStrength;
         }
 
-        private static Vector4 ComputeScaleBias(in UnsafeGraphContext context, in TextureHandle source, in TextureHandle destination)
+        private void InitSSAOBlurPassData(SSAOBlurPassData data)
+        {
+            data.material = m_Material;
+            data.BlurQuality = m_CurrentSettings.BlurQuality;
+            data.afterOpaque = m_CurrentSettings.AfterOpaque;
+        }
+
+        private static Vector4 ComputeScaleBias(in TextureHandle source, bool yFlip)
         {
             RTHandle srcRTHandle = source;
             Vector2 viewportScale;
             if (srcRTHandle is { useScaling: true })
             {
-                viewportScale.x = srcRTHandle.rtHandleProperties.rtHandleScale.x;
-                viewportScale.y = srcRTHandle.rtHandleProperties.rtHandleScale.y;
+                var scale = srcRTHandle.rtHandleProperties.rtHandleScale;
+                viewportScale.x = scale.x;
+                viewportScale.y = scale.y;
             }
             else
             {
                 viewportScale = Vector2.one;
             }
 
-            bool yFlip = context.GetTextureUVOrigin(in source) != context.GetTextureUVOrigin(in destination);
             if (yFlip)
                 return new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y);
             else
                 return new Vector4(viewportScale.x, viewportScale.y, 0, 0);
+        }
+
+        private static readonly int _BlitScaleBias = Shader.PropertyToID(nameof(_BlitScaleBias));
+        private static readonly int _BlitTexture = Shader.PropertyToID(nameof(_BlitTexture));
+
+        private void RecordBlurStep(RenderGraph renderGraph, UniversalCameraData cameraData, string blurPassName, in TextureHandle src, in TextureHandle dst, int pass, bool isLastPass)
+        {
+            using (var builder = renderGraph.AddRasterRenderPass<SSAOBlurPassData>(blurPassName, out var passData, m_ProfilingSampler))
+            {
+                // Fill in the Pass data...
+                InitSSAOBlurPassData(passData);
+                passData.srcTexture = src;
+                passData.dstTexture = dst;
+                passData.cameraData = cameraData;
+                passData.pass = pass;
+                passData.materialPropertyBlock ??= new();
+
+                builder.UseTexture(passData.srcTexture);
+
+                AccessFlags finalDstAccess = passData.afterOpaque && isLastPass ? AccessFlags.Write : AccessFlags.WriteAll;
+                builder.SetRenderAttachment(passData.dstTexture, 0, finalDstAccess);
+
+                builder.SetRenderFunc(static (SSAOBlurPassData data, RasterGraphContext ctx) =>
+                {
+                    bool yFlip = ctx.GetTextureUVOrigin(in data.srcTexture) != ctx.GetTextureUVOrigin(in data.dstTexture);
+                    Vector4 viewScaleBias = ComputeScaleBias(data.srcTexture, yFlip);
+
+                    data.materialPropertyBlock.Clear();
+                    data.materialPropertyBlock.SetVector(_BlitScaleBias, viewScaleBias);
+                    data.materialPropertyBlock.SetTexture(_BlitTexture, data.srcTexture);
+                    CoreUtils.DrawFullScreen(ctx.cmd, data.material, data.materialPropertyBlock, data.pass);
+                });
+            }
         }
 
         /// <inheritdoc cref="IRenderGraphRecorder.RecordRenderGraph"/>
@@ -318,11 +379,11 @@ namespace UnityEngine.Rendering.Universal
 
             // Create the texture handles...
             CreateRenderTextureHandles(renderGraph,
-                                       resourceData,
-                                       cameraData,
-                                       out TextureHandle aoTexture,
-                                       out TextureHandle blurTexture,
-                                       out TextureHandle finalTexture);
+                resourceData,
+                cameraData,
+                out TextureHandle aoTexture,
+                out TextureHandle blurTexture,
+                out TextureHandle finalTexture);
 
             // Get the resources
             TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
@@ -331,31 +392,29 @@ namespace UnityEngine.Rendering.Universal
             // Update keywords and other shader params
             SetupKeywordsAndParameters(ref m_CurrentSettings, ref cameraData);
 
-            using (IUnsafeRenderGraphBuilder builder = renderGraph.AddUnsafePass<SSAOPassData>("Blit SSAO", out var passData, m_ProfilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<SSAOPassData>("Blit SSAO", out var passData, m_ProfilingSampler))
             {
                 // Shader keyword changes are considered as global state modifications
                 builder.AllowGlobalStateModification(true);
 
                 // Fill in the Pass data...
-                InitSSAOPassData(ref passData);
+                InitSSAOPassData(passData);
                 passData.cameraColor = resourceData.cameraColor;
                 passData.AOTexture = aoTexture;
                 passData.finalTexture = finalTexture;
                 passData.blurTexture = blurTexture;
                 passData.cameraData = cameraData;
+                passData.materialPropertyBlock ??= new();
 
                 // Declare input textures
-                builder.UseTexture(passData.AOTexture, AccessFlags.ReadWrite);
+                builder.SetRenderAttachment(passData.AOTexture, 0, AccessFlags.WriteAll);
 
                 // TODO: Refactor to eliminate the need for 'UseTexture'.
                 // Currently required only because 'PostProcessUtils.SetSourceSize' allocates an RTHandle,
                 // which expects a valid graphicsResource. Without this call, 'cameraColor.graphicsResource'
                 // may be null if it wasn't initialized in an earlier pass (e.g., DrawOpaque).
-                if (resourceData.cameraColor.IsValid())
-                    builder.UseTexture(resourceData.cameraColor, AccessFlags.Read);
-
-                if (passData.BlurQuality != ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.Low)
-                    builder.UseTexture(passData.blurTexture, AccessFlags.ReadWrite);
+                if (passData.cameraColor.IsValid())
+                    builder.UseTexture(passData.cameraColor, AccessFlags.Read);
 
                 if (cameraDepthTexture.IsValid())
                     builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
@@ -366,63 +425,63 @@ namespace UnityEngine.Rendering.Universal
                     passData.cameraNormalsTexture = cameraNormalsTexture;
                 }
 
-                // The global SSAO texture only needs to be set if After Opaque is disabled...
-                if (!passData.afterOpaque && finalTexture.IsValid())
+                builder.SetRenderFunc(static (SSAOPassData data, RasterGraphContext ctx) =>
                 {
-                    builder.UseTexture(passData.finalTexture, AccessFlags.Write);
-                    builder.SetGlobalTextureAfterPass(finalTexture, s_SSAOFinalTextureID);
-                }
-
-                builder.SetRenderFunc(static (SSAOPassData data, UnsafeGraphContext rgContext) =>
-                {
-                    CommandBuffer cmd = CommandBufferHelpers.GetNativeCommandBuffer(rgContext.cmd);
-                    RenderBufferLoadAction finalLoadAction = data.afterOpaque ? RenderBufferLoadAction.Load : RenderBufferLoadAction.DontCare;
-
                     // Setup
-                    PostProcessUtils.SetGlobalShaderSourceSize(cmd, data.cameraData.cameraTargetDescriptor.width, data.cameraData.cameraTargetDescriptor.height, data.cameraColor);
+                    PostProcessUtils.SetGlobalShaderSourceSize(ctx.cmd, data.cameraData.cameraTargetDescriptor.width, data.cameraData.cameraTargetDescriptor.height, data.cameraColor);
 
                     if (data.cameraNormalsTexture.IsValid())
-                        data.material.SetTexture(s_CameraNormalsTextureID, data.cameraNormalsTexture);
+                        data.materialPropertyBlock.SetTexture(s_CameraNormalsTextureID, data.cameraNormalsTexture);
 
-                    // AO Pass
-                    Blitter.BlitCameraTexture(cmd, data.AOTexture, data.AOTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, data.material,  (int) ShaderPasses.AmbientOcclusion);
+                    Vector4 viewScaleBias = new(1, 1, 0, 0);
 
-                    // Blur passes
-                    Vector4 viewScaleBias;
-                    switch (data.BlurQuality)
-                    {
-                        // Bilateral
-                        case ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.High:
-                            Blitter.BlitCameraTexture(cmd, data.AOTexture, data.blurTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, data.material, (int) ShaderPasses.BilateralBlurHorizontal);
-                            Blitter.BlitCameraTexture(cmd, data.blurTexture, data.AOTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, data.material, (int) ShaderPasses.BilateralBlurVertical);
-                            viewScaleBias = ComputeScaleBias(in rgContext, in data.AOTexture, in data.finalTexture);
-                            Blitter.BlitCameraTexture(cmd, data.AOTexture, data.finalTexture, viewScaleBias, finalLoadAction, RenderBufferStoreAction.Store, data.material, (int) (data.afterOpaque ? ShaderPasses.BilateralAfterOpaque : ShaderPasses.BilateralBlurFinal));
-                            break;
+                    data.materialPropertyBlock.Clear();
+                    data.materialPropertyBlock.SetVector(_BlitScaleBias, viewScaleBias);
 
-                        // Gaussian
-                        case ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.Medium:
-                            Blitter.BlitCameraTexture(cmd, data.AOTexture, data.blurTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, data.material, (int) ShaderPasses.GaussianBlurHorizontal);
-                            viewScaleBias = ComputeScaleBias(in rgContext, in data.blurTexture, in data.finalTexture);
-                            Blitter.BlitCameraTexture(cmd, data.blurTexture, data.finalTexture, viewScaleBias, finalLoadAction, RenderBufferStoreAction.Store, data.material, (int) (data.afterOpaque ? ShaderPasses.GaussianAfterOpaque : ShaderPasses.GaussianBlurVertical));
-                            break;
-
-                        // Kawase
-                        case ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.Low:
-                            viewScaleBias = ComputeScaleBias(in rgContext, in data.AOTexture, in data.finalTexture);
-                            Blitter.BlitCameraTexture(cmd, data.AOTexture, data.finalTexture, viewScaleBias, finalLoadAction, RenderBufferStoreAction.Store, data.material, (int) (data.afterOpaque ? ShaderPasses.KawaseAfterOpaque : ShaderPasses.KawaseBlur));
-                            break;
-
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-
-                    // We only want URP shaders to sample SSAO if After Opaque is disabled...
-                    if (!data.afterOpaque)
-                    {
-                        rgContext.cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceOcclusion, true);
-                        rgContext.cmd.SetGlobalVector(s_AmbientOcclusionParamID, new Vector4(1f, 0f, 0f, data.directLightingStrength));
-                    }
+                    CoreUtils.DrawFullScreen(ctx.cmd, data.material, data.materialPropertyBlock, (int)ShaderPasses.AmbientOcclusion);
                 });
+            }
+
+            switch (m_CurrentSettings.BlurQuality)
+            {
+                case ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.High:
+                    RecordBlurStep(renderGraph, cameraData, "Blur SSAO Horizontal (High)", aoTexture, blurTexture, (int)ShaderPasses.BilateralBlurHorizontal, false);
+                    RecordBlurStep(renderGraph, cameraData, "Blur SSAO Vertical (High)", blurTexture, aoTexture, (int)ShaderPasses.BilateralBlurVertical, false);
+                    RecordBlurStep(renderGraph, cameraData, "Blur SSAO Final (High)", aoTexture, finalTexture, (int)(m_CurrentSettings.AfterOpaque ? ShaderPasses.BilateralAfterOpaque : ShaderPasses.BilateralBlurFinal), true);
+                    break;
+                case ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.Medium:
+                    RecordBlurStep(renderGraph, cameraData, "Blur SSAO Horizontal (Medium)", aoTexture, blurTexture, (int)ShaderPasses.GaussianBlurHorizontal, false);
+                    RecordBlurStep(renderGraph, cameraData, "Blur SSAO Final (Medium)", blurTexture, finalTexture, (int)(m_CurrentSettings.AfterOpaque ? ShaderPasses.GaussianAfterOpaque : ShaderPasses.GaussianBlurVertical), true);
+                    break;
+                case ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.Low:
+                    RecordBlurStep(renderGraph, cameraData, "Blur SSAO (Low)", aoTexture, finalTexture, (int)(m_CurrentSettings.AfterOpaque ? ShaderPasses.KawaseAfterOpaque : ShaderPasses.KawaseBlur), true);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            if (!m_CurrentSettings.AfterOpaque)
+            {
+                // Add cleanup pass to:
+                // - Set global keywords for next passes
+                // - Set global texture as there is a limitation in Render Graph where an input texture cannot be set as a global texture after the pass runs
+                // A Raster pass is used so it can be merged easily with the blur passes.
+                using (var builder = renderGraph.AddRasterRenderPass<SSAOFinalPassData>("Cleanup SSAO", out var passData, m_ProfilingSampler))
+                {
+                    passData.directLightingStrength = m_CurrentSettings.DirectLightingStrength;
+
+                    builder.AllowGlobalStateModification(true);
+
+                    builder.UseTexture(finalTexture, AccessFlags.Read);
+                    builder.SetGlobalTextureAfterPass(finalTexture, s_SSAOFinalTextureID);
+
+                    builder.SetRenderFunc(static (SSAOFinalPassData data, RasterGraphContext ctx) =>
+                    {
+                        // We only want URP shaders to sample SSAO if After Opaque is disabled...
+                        ctx.cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceOcclusion, true);
+                        ctx.cmd.SetGlobalVector(s_AmbientOcclusionParamID, new Vector4(1f, 0f, 0f, data.directLightingStrength));
+                    });
+                }
             }
         }
 

@@ -83,7 +83,7 @@ void TraceNewPath(UnifiedRT::DispatchInfo dispatchInfo, uint sampleIndex, inout 
 {
     UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(g_SceneAccelStruct);
 
-    float2 pixelJitter = g_EnableSubPixelJittering ? float2(rngState.GetFloatSample(RAND_DIM_AA_X), rngState.GetFloatSample(RAND_DIM_AA_Y)) - 0.5 : 0.0;
+    float2 pixelJitter = g_EnableSubPixelJittering ? rngState.GetSample2D(RAND_DIM_AA) - 0.5 : 0.0;
 
     PathIterator pathIter;
     InitPathIterator(pathIter, GeneratePrimaryRay(pixel.coord, pixelJitter, pixel.launchDim));

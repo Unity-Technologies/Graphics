@@ -37,14 +37,17 @@ namespace UnityEngine.VFX.PerformanceTest
             return currentSRP.name;
         }
 
-        public override IEnumerable<GraphicsTestCase> GetTestCases(IMethodInfo method)
+        public override IEnumerable<GraphicsTestCase> GetTestCases(IMethodInfo methodInfo, ITest suite)
         {
-            var testCases = base.GetTestCases(method);
+            var testCases = base.GetTestCases(methodInfo, suite);
 
             foreach (var testCase in testCases)
             {
-                yield return testCase with { Name = GetPrefix() + "." + testCase.Name };
-
+                yield return testCase with 
+                { 
+                    Name = GetPrefix() + "." + testCase.Name,
+                    FullName = testCase.FullName.Replace(testCase.Name, GetPrefix() + "." + testCase.Name),
+                };
             }
         }
     }

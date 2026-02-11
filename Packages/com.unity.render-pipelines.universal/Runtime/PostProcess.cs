@@ -13,7 +13,9 @@ namespace UnityEngine.Rendering.Universal
         DepthOfFieldGaussianPostProcessPass m_DepthOfFieldGaussianPass;
         DepthOfFieldBokehPostProcessPass m_DepthOfFieldBokehPass;
         UpscalerPostProcessPass m_UpscalerPostProcessPass;
+#if !ENABLE_UPSCALER_FRAMEWORK
         StpPostProcessPass m_StpPostProcessPass;
+#endif
         TemporalAntiAliasingPostProcessPass m_TemporalAntiAliasingPass;
         MotionBlurPostProcessPass m_MotionBlurPass;
         PaniniProjectionPostProcessPass m_PaniniProjectionPass;
@@ -50,7 +52,9 @@ namespace UnityEngine.Rendering.Universal
             m_DepthOfFieldGaussianPass = new DepthOfFieldGaussianPostProcessPass(m_Resources.shaders.gaussianDepthOfFieldPS);
             m_DepthOfFieldBokehPass    = new DepthOfFieldBokehPostProcessPass(m_Resources.shaders.bokehDepthOfFieldPS);
             m_UpscalerPostProcessPass  = new UpscalerPostProcessPass(m_Resources.textures.blueNoise16LTex);
+#if !ENABLE_UPSCALER_FRAMEWORK
             m_StpPostProcessPass       = new StpPostProcessPass(m_Resources.textures.blueNoise16LTex);
+#endif
             m_TemporalAntiAliasingPass = new TemporalAntiAliasingPostProcessPass(m_Resources.shaders.temporalAntialiasingPS);
             m_MotionBlurPass           = new MotionBlurPostProcessPass(m_Resources.shaders.cameraMotionBlurPS);
             m_PaniniProjectionPass     = new PaniniProjectionPostProcessPass(m_Resources.shaders.paniniProjectionPS);
@@ -81,7 +85,9 @@ namespace UnityEngine.Rendering.Universal
             m_PaniniProjectionPass?.Dispose();
             m_MotionBlurPass?.Dispose();
             m_TemporalAntiAliasingPass?.Dispose();
+#if !ENABLE_UPSCALER_FRAMEWORK
             m_StpPostProcessPass?.Dispose();
+#endif
             m_UpscalerPostProcessPass.Dispose();
             m_DepthOfFieldBokehPass?.Dispose();
             m_DepthOfFieldGaussianPass?.Dispose();
@@ -152,9 +158,13 @@ namespace UnityEngine.Rendering.Universal
 
             // Temporal Anti Aliasing / Upscaling
 #if ENABLE_UPSCALER_FRAMEWORK
-            m_UpscalerPostProcessPass.RecordRenderGraph(renderGraph, frameData);
-#endif
+            UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
+            bool temporalUpscalerActive = postProcessingData.activeUpscaler != null && postProcessingData.activeUpscaler.isTemporal;
+            if (temporalUpscalerActive)
+                m_UpscalerPostProcessPass.RecordRenderGraph(renderGraph, frameData);
+#else
             m_StpPostProcessPass.RecordRenderGraph(renderGraph, frameData);
+#endif
             m_TemporalAntiAliasingPass.RecordRenderGraph(renderGraph, frameData);
 
             m_MotionBlurPass.RecordRenderGraph(renderGraph, frameData);
@@ -212,6 +222,7 @@ namespace UnityEngine.Rendering.Universal
         public void RenderFinalPostProcessing(RenderGraph renderGraph, ContextContainer frameData, bool enableColorEncodingIfNeeded)
         {
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
 
             // NOTE: Debug handling injects a global state render pass.
             UpdateGlobalDebugHandlerPass(renderGraph, cameraData, true);
@@ -232,12 +243,28 @@ namespace UnityEngine.Rendering.Universal
 
             FinalPostProcessPass.FilteringOperation filteringOperation = FinalPostProcessPass.FilteringOperation.Linear;
 
+            bool isFsr1Enabled = PostProcessUtils.IsFsrEnabled(cameraData);
+#if ENABLE_UPSCALER_FRAMEWORK
+            bool upscalerSupportsSharpening = postProcessingData.activeUpscaler != null && postProcessingData.activeUpscaler.supportsSharpening;
+#endif
+
             // Reuse RCAS pass as an optional standalone post sharpening pass for TAA.
             // This avoids the cost of EASU and is available for other upscaling options.
             // If FSR is enabled then FSR settings override the TAA settings and we perform RCAS only once.
             // If STP is enabled, then TAA sharpening has already been performed inside STP.
-            if(PostProcessUtils.IsTaaSharpeningEnabled(cameraData))
+            bool isTaaSharpeningEnabled = (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f)
+#if ENABLE_UPSCALER_FRAMEWORK
+                // TODO-Volkan: update the comment above w.r.t Upscaling framework support (upscalers with sharpening / avoiding double sharpen).
+                && !upscalerSupportsSharpening;
+#else
+                && !isFsr1Enabled 
+                && !cameraData.IsSTPEnabled();
+#endif
+
+            if (isTaaSharpeningEnabled)
+            {
                 filteringOperation = FinalPostProcessPass.FilteringOperation.TaaSharpening;
+            }
 
             bool applyFxaa = PostProcessUtils.IsFxaaEnabled(cameraData);
 
@@ -250,7 +277,7 @@ namespace UnityEngine.Rendering.Universal
                 // NOTE: An ideal implementation could inline this color conversion logic into the UberPost pass, but the current code structure would make
                 //       this process very complex. Specifically, we'd need to guarantee that the uber post output is always written to a UNORM format render
                 //       target in order to preserve the precision of specially encoded color data.
-                bool isSetupRequired = (applyFxaa || PostProcessUtils.IsFsrEnabled(cameraData));
+                bool isSetupRequired = (applyFxaa || isFsr1Enabled);
 
                 // When FXAA is needed while scaling is active, we must perform it before the scaling takes place.
                 if (isSetupRequired)
@@ -273,6 +300,32 @@ namespace UnityEngine.Rendering.Universal
                 {
                     case ImageScalingMode.Upscaling:
                     {
+#if ENABLE_UPSCALER_FRAMEWORK
+                        bool spatialUpscalerActive = postProcessingData.activeUpscaler != null && !postProcessingData.activeUpscaler.isTemporal;
+                        if (cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_Point)
+                        {
+                            // TAA post sharpening is an RCAS pass, avoid overriding it with point sampling.
+                            if (filteringOperation != FinalPostProcessPass.FilteringOperation.TaaSharpening)
+                                filteringOperation = FinalPostProcessPass.FilteringOperation.Point;
+                        }
+                        else if (spatialUpscalerActive)
+                        {
+                            // Temporal upscalers are handled in RenderPostProcessing. Here we handle Spatial upscalers
+                            m_UpscalerPostProcessPass.RecordRenderGraph(renderGraph, frameData);
+
+                            // FSR1 has a sharpening pass (RCAS), tracked by filteringOperation and applied later in m_FinalPostProcessPass
+                            if (cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_FSR1)
+                            {
+                                // --------------------------------------------------------------------------------
+                                // FSR1 exception: we can't use the IUpscaler interface until we unify HDRP/URP texture binding around the blitter.
+                                // Hence, we schedule FSR1 work the old way here. m_UpscalerPostProcessPass.RecordRenderGraph() is an empty function for FSR1.
+                                m_Fsr1UpscaleFinalPostProcessPass.Setup(upscaledDesc);
+                                m_Fsr1UpscaleFinalPostProcessPass.RecordRenderGraph(renderGraph, frameData);
+                                // --------------------------------------------------------------------------------
+                                filteringOperation = FinalPostProcessPass.FilteringOperation.FsrSharpening;
+                            }
+                        }
+#else
                         switch (cameraData.upscalingFilter)
                         {
                             case ImageUpscalingFilter.Point:
@@ -294,6 +347,7 @@ namespace UnityEngine.Rendering.Universal
                                 break;
                             }
                         }
+#endif
                         break;
                     }
                     case ImageScalingMode.Downscaling:

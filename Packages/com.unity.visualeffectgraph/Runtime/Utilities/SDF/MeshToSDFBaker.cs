@@ -58,14 +58,14 @@ namespace UnityEngine.VFX.SDF
 
         private int m_RayMapUseCounter = 0;
 
-        internal static uint kMaxRecommandedGridSize = 1 << 24;
-        internal static uint kMaxAbsoluteGridSize = 1 << 27;
+        internal const uint kMaxRecommandedGridSize = 1 << 24;
+        internal static readonly uint kMaxAbsoluteGridSize = 1 << 27;
 
         //TODO: Use PLATFORM_UAVS_SEPARATE_TO_RTS (or equivalent) when it will be available
 #if (UNITY_PS4 || UNITY_PS5) && (!UNITY_EDITOR)
-        private static int kNbActualRT = 1;
+        private readonly int kNbActualRT = 1;
 #else
-        private static int kNbActualRT = 0;
+        private readonly int kNbActualRT = 0;
 #endif
 
         internal VFXRuntimeResources m_RuntimeResources;
@@ -1148,77 +1148,71 @@ namespace UnityEngine.VFX.SDF
 
 #endif
 
-
         static class ShaderProperties
         {
-            internal static int indicesBuffer = Shader.PropertyToID("indices");
-            internal static int verticesBuffer = Shader.PropertyToID("vertices");
-            internal static int vertexPositionOffset = Shader.PropertyToID("vertexPositionOffset");
-            internal static int vertexStride = Shader.PropertyToID("vertexStride");
-            internal static int indexStride = Shader.PropertyToID("indexStride");
+            internal static readonly int indicesBuffer = Shader.PropertyToID("indices");
+            internal static readonly int verticesBuffer = Shader.PropertyToID("vertices");
+            internal static readonly int vertexPositionOffset = Shader.PropertyToID("vertexPositionOffset");
+            internal static readonly int vertexStride = Shader.PropertyToID("vertexStride");
+            internal static readonly int indexStride = Shader.PropertyToID("indexStride");
 
-            internal static int coordFlipBuffer = Shader.PropertyToID("coordFlip");
-            internal static int verticesOutBuffer = Shader.PropertyToID("verticesOut");
-            internal static int aabbBuffer = Shader.PropertyToID("aabb");
-            internal static int worldToClip = Shader.PropertyToID("worldToClip");
-            internal static int currentAxis = Shader.PropertyToID("currentAxis");
-            internal static int voxelsBuffer = Shader.PropertyToID("voxelsBuffer");
-            internal static int rw_trianglesUV = Shader.PropertyToID("rw_trianglesUV");
-            internal static int trianglesUV = Shader.PropertyToID("trianglesUV");
-            internal static int voxelsTexture = Shader.PropertyToID("voxels");
-            internal static int voxelsTmpTexture = Shader.PropertyToID("voxelsTmp");
-            internal static int rayMap = Shader.PropertyToID("rayMap");
-            internal static int rayMapTmp = Shader.PropertyToID("rayMapTmp");
-            internal static int rw_rayMapTmp = Shader.PropertyToID("rw_rayMapTmp");
-            internal static int nTriangles = Shader.PropertyToID("nTriangles");
-            internal static int minBoundsExtended = Shader.PropertyToID("minBoundsExtended");
-            internal static int maxBoundsExtended = Shader.PropertyToID("maxBoundsExtended");
-            internal static int maxExtent = Shader.PropertyToID("maxExtent");
-            internal static int upperBoundCount = Shader.PropertyToID("upperBoundCount");
-            internal static int counter = Shader.PropertyToID("counter");
+            internal static readonly int coordFlipBuffer = Shader.PropertyToID("coordFlip");
+            internal static readonly int verticesOutBuffer = Shader.PropertyToID("verticesOut");
+            internal static readonly int aabbBuffer = Shader.PropertyToID("aabb");
+            internal static readonly int worldToClip = Shader.PropertyToID("worldToClip");
+            internal static readonly int currentAxis = Shader.PropertyToID("currentAxis");
+            internal static readonly int voxelsBuffer = Shader.PropertyToID("voxelsBuffer");
+            internal static readonly int rw_trianglesUV = Shader.PropertyToID("rw_trianglesUV");
+            internal static readonly int trianglesUV = Shader.PropertyToID("trianglesUV");
+            internal static readonly int voxelsTexture = Shader.PropertyToID("voxels");
+            internal static readonly int voxelsTmpTexture = Shader.PropertyToID("voxelsTmp");
+            internal static readonly int rayMap = Shader.PropertyToID("rayMap");
+            internal static readonly int rayMapTmp = Shader.PropertyToID("rayMapTmp");
+            internal static readonly int rw_rayMapTmp = Shader.PropertyToID("rw_rayMapTmp");
+            internal static readonly int nTriangles = Shader.PropertyToID("nTriangles");
+            internal static readonly int minBoundsExtended = Shader.PropertyToID("minBoundsExtended");
+            internal static readonly int maxBoundsExtended = Shader.PropertyToID("maxBoundsExtended");
+            internal static readonly int maxExtent = Shader.PropertyToID("maxExtent");
+            internal static readonly int upperBoundCount = Shader.PropertyToID("upperBoundCount");
+            internal static readonly int counter = Shader.PropertyToID("counter");
 
-            internal static int dimX = Shader.PropertyToID("dimX");
-            internal static int dimY = Shader.PropertyToID("dimY");
-            internal static int dimZ = Shader.PropertyToID("dimZ");
-            internal static int size = Shader.PropertyToID("size");
+            internal static readonly int dimX = Shader.PropertyToID("dimX");
+            internal static readonly int dimY = Shader.PropertyToID("dimY");
+            internal static readonly int dimZ = Shader.PropertyToID("dimZ");
+            internal static readonly int size = Shader.PropertyToID("size");
 
             //Prefix sum
-            internal static int inputBuffer = Shader.PropertyToID("Input");
-            internal static int inputCounter = Shader.PropertyToID("inputCounter");
-            internal static int auxBuffer = Shader.PropertyToID("auxBuffer");
-            internal static int resultBuffer = Shader.PropertyToID("Result");
-            internal static int numElem = Shader.PropertyToID("numElem");
-            internal static int exclusive = Shader.PropertyToID("exclusive");
-            internal static int dispatchWidth = Shader.PropertyToID("dispatchWidth");
-
-
-            //Copy kernels
-            internal static int src = Shader.PropertyToID("src");
-            internal static int dest = Shader.PropertyToID("dest");
+            internal static readonly int inputBuffer = Shader.PropertyToID("Input");
+            internal static readonly int inputCounter = Shader.PropertyToID("inputCounter");
+            internal static readonly int auxBuffer = Shader.PropertyToID("auxBuffer");
+            internal static readonly int resultBuffer = Shader.PropertyToID("Result");
+            internal static readonly int numElem = Shader.PropertyToID("numElem");
+            internal static readonly int exclusive = Shader.PropertyToID("exclusive");
+            internal static readonly int dispatchWidth = Shader.PropertyToID("dispatchWidth");
 
             //Sign map
-            internal static int signMap = Shader.PropertyToID("signMap");
-            internal static int threshold = Shader.PropertyToID("threshold");
-            internal static int signMapTmp = Shader.PropertyToID("signMapTmp");
-            internal static int normalizeFactor = Shader.PropertyToID("normalizeFactor");
-            internal static int numNeighbours = Shader.PropertyToID("numNeighbours");
-            internal static int passId = Shader.PropertyToID("passId");
-            internal static int needNormalize = Shader.PropertyToID("needNormalize");
+            internal static readonly int signMap = Shader.PropertyToID("signMap");
+            internal static readonly int threshold = Shader.PropertyToID("threshold");
+            internal static readonly int signMapTmp = Shader.PropertyToID("signMapTmp");
+            internal static readonly int normalizeFactor = Shader.PropertyToID("normalizeFactor");
+            internal static readonly int numNeighbours = Shader.PropertyToID("numNeighbours");
+            internal static readonly int passId = Shader.PropertyToID("passId");
+            internal static readonly int needNormalize = Shader.PropertyToID("needNormalize");
 
             //JFA
-            internal static int offset = Shader.PropertyToID("offset");
+            internal static readonly int offset = Shader.PropertyToID("offset");
 
             //Ray Map
-            internal static int offsetRayMap = Shader.PropertyToID("offsetRayMap");
-            internal static int triangleIDs = Shader.PropertyToID("triangleIDs");
-            internal static int accumCounter = Shader.PropertyToID("accumCounter");
+            internal static readonly int offsetRayMap = Shader.PropertyToID("offsetRayMap");
+            internal static readonly int triangleIDs = Shader.PropertyToID("triangleIDs");
+            internal static readonly int accumCounter = Shader.PropertyToID("accumCounter");
 
             //Distance
-            internal static int distanceTexture = Shader.PropertyToID("distanceTexture");
-            internal static int sdfOffset = Shader.PropertyToID("sdfOffset");
+            internal static readonly int distanceTexture = Shader.PropertyToID("distanceTexture");
+            internal static readonly int sdfOffset = Shader.PropertyToID("sdfOffset");
         }
 
-        internal class Kernels
+        class Kernels
         {
             internal int inBucketSum = -1;
             internal int blockSums = -1;

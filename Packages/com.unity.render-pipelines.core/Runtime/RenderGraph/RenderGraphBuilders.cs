@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
+using static UnityEngine.Rendering.RenderGraphModule.RenderGraphValidationLayer;
 using static UnityEngine.Rendering.RenderGraphModule.RenderGraph;
 
 namespace UnityEngine.Rendering.RenderGraphModule
@@ -13,6 +15,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         RenderGraphPass m_RenderPass;
         RenderGraphResourceRegistry m_Resources;
         RenderGraph m_RenderGraph;
+        RenderGraphValidationLayer m_AdditionalValidationLayer;
         bool m_Disposed;
 
         public RenderGraphBuilders()
@@ -20,10 +23,23 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_RenderPass = null;
             m_Resources = null;
             m_RenderGraph = null;
+            m_AdditionalValidationLayer = null;
             m_Disposed = true;
         }
 
-        public void Setup(RenderGraphPass renderPass, RenderGraphResourceRegistry resources, RenderGraph renderGraph)
+        internal RenderGraphValidationLayer additionalValidationLayer
+        {
+            // By design we don't allow the validation during release. This limits the usage to strictly validation and not actual runtime behavior.
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return (RenderGraph.enableValidityChecks)? m_AdditionalValidationLayer : null; }
+#else
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return null; }
+#endif
+        }
+
+        public void Setup(RenderGraphPass renderPass, RenderGraphResourceRegistry resources, RenderGraph renderGraph, RenderGraphValidationLayer validationLayer)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             // If the object is not disposed yet this is an error as the pass is not finished (only in the dispose we register it with the rendergraph)
@@ -36,6 +52,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_RenderPass = renderPass;
             m_Resources = resources;
             m_RenderGraph = renderGraph;
+            m_AdditionalValidationLayer = validationLayer;  
             m_Disposed = false;
 
             renderPass.useAllGlobalTextures = false;
@@ -44,6 +61,18 @@ namespace UnityEngine.Rendering.RenderGraphModule
             {
                 CommandBuffer.ThrowOnSetRenderTarget = true;
             }
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (additionalValidationLayer != null)
+            {
+                RenderPassInfo info = new()
+                {
+                    type = renderPass.type,
+                    name = renderPass.name
+                };
+                additionalValidationLayer.OnPassAddedBegin(in info);
+            }
+#endif            
         }
 
 
@@ -128,6 +157,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 {
                     m_RenderGraph.RenderGraphState = RenderGraphState.RecordingGraph;
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    additionalValidationLayer?.OnPassAddedDispose();
+#endif
                     // Use all globals simply means this... we do a UseTexture on all globals so the pass has the correct dependencies.
                     // This of course goes to show how bad an idea shader-system wide globals really are dependency/lifetime tracking wise :-)
                     if (m_RenderPass.useAllGlobalTextures)
@@ -156,6 +188,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 m_RenderPass = null;
                 m_Resources = null;
                 m_RenderGraph = null;
+                m_AdditionalValidationLayer = null;
                 m_Disposed = true;
             }
         }
@@ -260,6 +293,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public BufferHandle UseBuffer(in BufferHandle input, AccessFlags flags)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            additionalValidationLayer?.UseBuffer(input, flags);
+#endif
+
             UseResource(input.handle, flags);
             return input;
         }
@@ -307,6 +344,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public void UseTexture(in TextureHandle input, AccessFlags flags)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            additionalValidationLayer?.UseTexture(input, flags);
+#endif
+
             CheckNotUseFragment(input);
             UseResource(input.handle, flags);
 
@@ -323,6 +364,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public void UseGlobalTexture(int propertyId, AccessFlags flags)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            additionalValidationLayer?.UseGlobalTexture(propertyId, flags);
+#endif
+
             var h = m_RenderGraph.GetGlobal(propertyId);
             if (h.IsValid())
             {
@@ -338,11 +383,19 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public void UseAllGlobalTextures(bool enable)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            additionalValidationLayer?.UseAllGlobalTextures(enable);
+#endif
+
             m_RenderPass.useAllGlobalTextures = enable;
         }
 
         public void SetGlobalTextureAfterPass(in TextureHandle input, int propertyId)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            additionalValidationLayer?.SetGlobalTextureAfterPass(input, propertyId);
+#endif
+
             m_RenderPass.setGlobalsList.Add(ValueTuple.Create(input, propertyId));
         }
 
@@ -461,6 +514,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public void SetRenderAttachment(TextureHandle tex, int index, AccessFlags flags, int mipLevel, int depthSlice)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            additionalValidationLayer?.SetRenderAttachment(tex, index, flags, mipLevel, depthSlice);
+#endif
+
             CheckUseFragment(tex, false);
             var versionedTextureHandle = new TextureHandle(UseResource(tex.handle, flags));
             m_RenderPass.SetColorBufferRaw(versionedTextureHandle, index, flags, mipLevel, depthSlice);
@@ -468,6 +525,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public void SetInputAttachment(TextureHandle tex, int index, AccessFlags flags, int mipLevel, int depthSlice)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            additionalValidationLayer?.SetInputAttachment(tex, index, flags, mipLevel, depthSlice);
+#endif
+
             CheckFrameBufferFetchEmulationIsSupported(tex);
 
             CheckUseFragment(tex, false);
@@ -477,6 +538,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public void SetRenderAttachmentDepth(TextureHandle tex, AccessFlags flags, int mipLevel, int depthSlice)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            additionalValidationLayer?.SetRenderAttachmentDepth(tex, flags, mipLevel, depthSlice);
+#endif
+
             CheckUseFragment(tex, true);
             var versionedTextureHandle = new TextureHandle(UseResource(tex.handle, flags));
             m_RenderPass.SetDepthBufferRaw(versionedTextureHandle, flags, mipLevel, depthSlice);

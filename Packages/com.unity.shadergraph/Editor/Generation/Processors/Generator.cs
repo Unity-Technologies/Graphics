@@ -479,9 +479,7 @@ namespace UnityEditor.ShaderGraph
                         {
                             // block doesn't exist (user deleted it)
                             // create a temporary block -- don't add to graph, but use it to gather properties
-                            var block = new BlockNode();
-                            block.Init(blockFieldDesc);
-                            block.owner = graph;
+                            var block = BlockNode.CreateInlineBlockNode(blockFieldDesc, graph);
                             activeNodes.Add(block);
 
                             // We need to make a list of all of the temporary blocks added
@@ -639,9 +637,7 @@ namespace UnityEditor.ShaderGraph
                         // TODO: Can we do the code gen without a node instance?
                         if (block == null)
                         {
-                            block = new BlockNode();
-                            block.Init(blockFieldDescriptor);
-                            block.owner = m_GraphData;
+                            block = BlockNode.CreateInlineBlockNode(blockFieldDescriptor, m_GraphData);
                         }
                         // Dont collect properties from temp nodes
                         else

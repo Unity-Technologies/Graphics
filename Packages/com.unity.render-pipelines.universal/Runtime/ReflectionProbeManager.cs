@@ -40,6 +40,7 @@ namespace UnityEngine.Rendering.Universal
             public Texture texture;
             public int lastUsed;
             public Vector4 hdrData;
+            public ReflectionProbe sourceProbe;
         }
 
         static class ShaderProperties
@@ -116,10 +117,15 @@ namespace UnityEngine.Rendering.Universal
             // Populate list of probes we need to remove to avoid modifying dictionary while iterating.
             foreach (var (id, cachedProbe) in m_Cache)
             {
-                // Evict probe if not used for more than 1 frame, if the texture no longer exists, or if the size changed.
+                // Evict probe if any of the following are true:
+                // - Probe was not used for more than 1 frame
+                // - The texture no longer exists
+                // - The texture size changed
+                // - The cached texture no longer matches the texture of the reflection probe (it was reassigned)
                 if (Math.Abs(cachedProbe.lastUsed - frameIndex) > 1 ||
                     !cachedProbe.texture ||
-                    cachedProbe.size != cachedProbe.texture.width)
+                    cachedProbe.size != cachedProbe.texture.width ||
+                    (cachedProbe.sourceProbe && cachedProbe.texture != cachedProbe.sourceProbe.texture))
                 {
                     m_NeedsRemove.Add(id);
                     for (var i = 0; i < k_MaxMipCount; i++)
@@ -176,6 +182,7 @@ namespace UnityEngine.Rendering.Universal
                     var level = m_AtlasAllocator.levelCount + 2 - mipCount;
                     cachedProbe.mipCount = math.min(mipCount, k_MaxMipCount);
                     cachedProbe.texture = texture;
+                    cachedProbe.sourceProbe = probe.reflectionProbe;
 
                     var mip = 0;
                     for (; mip < cachedProbe.mipCount; mip++)

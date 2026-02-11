@@ -11,7 +11,6 @@
 
 UNIFIED_RT_DECLARE_ACCEL_STRUCT(_AccelStruct);
 
-
 int _SampleCount;
 int _SampleId;
 int _MaxBounces;
@@ -31,19 +30,21 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
 
     int probeId = dispatchInfo.globalThreadIndex;
 
-    QrngSobol rngState;
+    QrngSobol2D rngState;
     rngState.Init(uint2((uint)probeId, 0), _SampleId);
 
-    if (_SampleId==0)
+    float4 skyOcclusionEstimate = 0;
+    float3 skyShadingEstimate = 0;
+    if (_SampleId != 0)
     {
-        _SkyOcclusionOut[probeId] = float4(0,0,0,0);
+        skyOcclusionEstimate = _SkyOcclusionOut[probeId];
         if (_BakeSkyShadingDirection > 0)
-            _SkyShadingOut[probeId] = float3(0,0,0);
+            skyShadingEstimate = _SkyShadingOut[probeId];
     }
 
     UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_AccelStruct);
 
-    float2 u = float2(rngState.GetFloat(0), rngState.GetFloat(1));
+    float2 u = rngState.GetSample(0);
     float3 rayFirstDirection = MapSquareToSphere(u);
 
     float pathWeight = 4.0f * PI; // 1 / SphereSamplePDF
@@ -69,7 +70,7 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
         }
         else
         {
-            u = float2(rngState.GetFloat(2*bounceIndex), rngState.GetFloat(2*bounceIndex+1));
+            u = rngState.GetSample(bounceIndex);
 
             SampleDiffuseBrdf(u, normalWS, ray.direction);
             ray.direction = normalize(ray.direction);
@@ -107,12 +108,12 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
                 rayFirstDirection.y * norm * kSHBasis1,
                 rayFirstDirection.z * norm * kSHBasis1);
 
-            _SkyOcclusionOut[probeId] += tempSH;
-            if(_BakeSkyShadingDirection > 0)
-                _SkyShadingOut[probeId] += ray.direction / _SampleCount;
+            skyOcclusionEstimate += tempSH;
 
-            // break the loop;
-            bounceIndex = _MaxBounces + 2;
+            if(_BakeSkyShadingDirection > 0)
+                skyShadingEstimate += ray.direction / _SampleCount;
+
+            break;
         }
     }
 
@@ -120,34 +121,37 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
     if (_SampleId == _SampleCount - 1)
     {
         // Window L1 coefficients to make sure no value is negative when sampling SH, layout is DC, x, y, z
-        float4 SHData = _SkyOcclusionOut[probeId];
         // find main direction for light
         float3 mainDir;
-        mainDir.x = SHData.y;
-        mainDir.y = SHData.z;
-        mainDir.z = SHData.w;
+        mainDir.x = skyOcclusionEstimate.y;
+        mainDir.y = skyOcclusionEstimate.z;
+        mainDir.z = skyOcclusionEstimate.w;
         mainDir = normalize(mainDir);
 
         // find the value in the opposite direction, which is the lowest value in the SH
         float4 temp2 = float4(kSHBasis0, kSHBasis1 * -mainDir.x, kSHBasis1 * -mainDir.y, kSHBasis1 * -mainDir.z);
-        float value = dot(temp2, SHData);
+        float value = dot(temp2, skyOcclusionEstimate);
         float windowL1 = 1.0f;
 
         if (value < 0.0f)
         {
             // find the L1 factor for this value to be null instead of negative
-            windowL1 = -(temp2.x * SHData.x) / dot(temp2.yzw, SHData.yzw);
+            windowL1 = -(temp2.x * skyOcclusionEstimate.x) / dot(temp2.yzw, skyOcclusionEstimate.yzw);
             windowL1 = saturate(windowL1);
         }
 
-        _SkyOcclusionOut[probeId].yzw *= windowL1;
+        skyOcclusionEstimate.yzw *= windowL1;
 
         float radianceToIrradianceFactor = 2.0f / 3.0f;
         // This is a hacky solution for mitigating the radianceToIrradianceFactor based on the previous windowing operation.
         // The 1.125f exponent comes from experimental testing. It's the value that works the best when trying to match a bake and deringing done with the lightmapper, but it has no theoretical explanation.
         // In the future, we should replace these custom windowing and deringing operations with the ones used in the lightmapper to implement a more academical solution.
-        _SkyOcclusionOut[probeId].yzw *= lerp(1.0f, radianceToIrradianceFactor, pow(windowL1, 1.125f));
+        skyOcclusionEstimate.yzw *= lerp(1.0f, radianceToIrradianceFactor, pow(windowL1, 1.125f));
     }
+
+    _SkyOcclusionOut[probeId] = skyOcclusionEstimate;
+    if(_BakeSkyShadingDirection > 0)
+        _SkyShadingOut[probeId] = skyShadingEstimate;
 }
 
 #ifdef UNIFIED_RT_BACKEND_COMPUTE

@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering
             hash = (hash * 23) + (int)activeMeshLod;
             hash = (hash * 23) + (int)materialID.value;
             hash = (hash * 23) + (int)flags;
-            hash = (hash * 23) + (int)transparentInstanceID.GetRawData();
+            hash = (hash * 23) + (int)EntityId.ToULong(transparentInstanceID);
             hash = (hash * 23) + range.GetHashCode();
             hash = (hash * 23) + archetype.index;
             hash = (hash * 23) + lightmapIndex;
@@ -2216,7 +2216,7 @@ namespace UnityEngine.Rendering
                 cullingJobHandle = ScheduleCompactedVisibilityMaskJob(renderWorld, rendererVisibilityMasks, cullingJobHandle);
 
                 int debugCounterBaseIndex = -1;
-                if (m_DebugStats?.enabled ?? false)
+                if (GPUResidentDrawer.debugDisplaySettings?.displayBatcherStats ?? false)
                 {
                     debugCounterBaseIndex = m_SplitDebugArray.TryAddSplits(context.viewType, context.viewID.GetEntityId(), context.cullingSplits.Length);
                 }
@@ -2238,7 +2238,7 @@ namespace UnityEngine.Rendering
                 if (useOcclusionCulling)
                 {
                     indirectContextIndex = m_IndirectStorage.TryAllocateContext(context.viewID.GetEntityId());
-                    cullingOutput.customCullingResult[0] = (IntPtr)context.viewID.GetEntityId().GetRawData();
+                    cullingOutput.customCullingResult[0] = (IntPtr)EntityId.ToULong(context.viewID.GetEntityId());
                 }
                 IndirectBufferLimits indirectBufferLimits = m_IndirectStorage.GetLimits(indirectContextIndex);
                 NativeArray<IndirectBufferAllocInfo> indirectBufferAllocInfo = m_IndirectStorage.GetAllocInfoSubArray(indirectContextIndex);
@@ -2471,7 +2471,7 @@ namespace UnityEngine.Rendering
 #endif
         public void InstanceOccludersUpdated(EntityId viewID, int subviewMask, OcclusionCullingCommon occlusionCullingCommon)
         {
-            if (m_DebugStats?.enabled ?? false)
+            if (GPUResidentDrawer.debugDisplaySettings?.displayBatcherStats ?? false)
             {
                 bool hasOccluders = occlusionCullingCommon.GetOccluderContext(viewID, out OccluderContext occluderCtx);
                 if (hasOccluders)
@@ -2706,7 +2706,7 @@ namespace UnityEngine.Rendering
                     if (!allocInfo.IsEmpty())
                     {
                         int debugCounterIndex = -1;
-                        if (m_DebugStats?.enabled ?? false)
+                        if (GPUResidentDrawer.debugDisplaySettings?.displayBatcherStats ?? false)
                         {
                             debugCounterIndex = m_OcclusionEventDebugArray.TryAdd(
                                 settings.viewInstanceID,
@@ -2797,7 +2797,7 @@ namespace UnityEngine.Rendering
 
         private void FlushDebugCounters()
         {
-            if (m_DebugStats?.enabled ?? false)
+            if (GPUResidentDrawer.debugDisplaySettings?.displayBatcherStats ?? false)
             {
                 m_SplitDebugArray.MoveToDebugStatsAndClear(m_DebugStats);
                 m_OcclusionEventDebugArray.MoveToDebugStatsAndClear(m_DebugStats);

@@ -3,7 +3,6 @@ using System;
 using System.Reflection;
 using UnityEngine.Rendering.HighDefinition.Attributes;
 using System.Linq;
-using static UnityEngine.Rendering.DebugUI.Widget;
 
 namespace UnityEngine.Rendering.HighDefinition
 {

@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering
             static void UpdateRealtimeSubdivisionDebug()
             {
                 var debugDisplay = ProbeReferenceVolume.instance.probeVolumeDebug;
-                if (!debugDisplay.realtimeSubdivision)
+                if (debugDisplay == null || !debugDisplay.realtimeSubdivision)
                     return;
 
                 // Avoid killing the GPU when Unity is in background and runInBackground is disabled
@@ -42,7 +42,9 @@ namespace UnityEngine.Rendering
 
                 if (Time.realtimeSinceStartupAsDouble - s_LastSubdivisionTime > debugDisplay.subdivisionDelayInSeconds)
                 {
+                    #pragma warning disable CS0618 // Type or member is obsolete
                     var probeVolume = GameObject.FindFirstObjectByType<ProbeVolume>();
+#pragma warning restore CS0618 // Type or member is obsolete
                     if (probeVolume == null || !probeVolume.isActiveAndEnabled)
                         return;
 

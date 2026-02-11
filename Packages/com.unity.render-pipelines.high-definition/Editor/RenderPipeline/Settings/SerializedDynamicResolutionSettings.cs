@@ -72,7 +72,7 @@ namespace UnityEditor.Rendering.HighDefinition
             fsrSharpness = root.Find((GlobalDynamicResolutionSettings s) => s.fsrSharpness);
 
 #if ENABLE_UPSCALER_FRAMEWORK
-            IUpscalerOptions = root.Find((GlobalDynamicResolutionSettings s) => s.IUpscalerOptions);
+            IUpscalerOptions = root.Find((GlobalDynamicResolutionSettings s) => s.upscalerOptions);
 #endif
 
             maxPercentage = root.Find((GlobalDynamicResolutionSettings s) => s.maxPercentage);

@@ -12,14 +12,14 @@ uint g_InstanceHeight;
 [numthreads(8,8,1)]
 void BlitOccupancy(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x >= (uint) g_InstanceWidth || id.y >= (uint)g_InstanceHeight)
-        return;
+    if (id.x < (uint) g_InstanceWidth && id.y < (uint) g_InstanceHeight)
+    {
+        uint2 instanceTexelPos = id.xy;
+        uint2 lightmapTexelPos = uint2(g_InstanceOffsetX, g_InstanceOffsetY) + instanceTexelPos;
 
-    uint2 instanceTexelPos = id.xy;
-    uint2 lightmapTexelPos = uint2(g_InstanceOffsetX, g_InstanceOffsetY) + instanceTexelPos;
+        float4 output = g_LightmapInOut[lightmapTexelPos];
+        float fallback = g_UvFallback[instanceTexelPos].x;
 
-    if (g_UvFallback[instanceTexelPos].x < 0)
-        g_LightmapInOut[lightmapTexelPos] = 0.f;
-    else
-        g_LightmapInOut[lightmapTexelPos] = 1.f;
+        g_LightmapInOut[lightmapTexelPos] = fallback >= 0 ? 1.f : output;
+    }
 }

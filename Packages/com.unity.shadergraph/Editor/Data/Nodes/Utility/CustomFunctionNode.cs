@@ -245,6 +245,10 @@ namespace UnityEditor.ShaderGraph
                     sb.Append(slotVariable);
                     sb.Append(".scaleTranslate = float4(1.0f, 1.0f, 0.0f, 0.0f);");
                     sb.AppendNewLine();
+                    sb.TryAppendIndentation();
+                    sb.Append(slotVariable);
+                    sb.Append(".hdrDecode = float4(0.0f, 0.0f, 0.0f, 0.0f);");
+                    sb.AppendNewLine();
                 }
                 break;
                 case ConcreteSlotValueType.Texture3D:

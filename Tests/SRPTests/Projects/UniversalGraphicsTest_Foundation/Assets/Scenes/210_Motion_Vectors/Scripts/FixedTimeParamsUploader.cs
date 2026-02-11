@@ -11,7 +11,9 @@ public class FixedTimeParamsUploader : MonoBehaviour
 
     void Start()
     {
-        m_MeshRenderers = FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+#pragma warning disable CS0618 // Type or member is obsolete
+        m_MeshRenderers = FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include);
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 
     void Update()

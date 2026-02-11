@@ -3,11 +3,11 @@ using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEditor.PackageManager.Requests;
-using UnityEditor.PackageManager;
 #if SPLINE_PACKAGE_INSTALLED
-    using UnityEditor.Splines;
-    using UnityEngine.Splines;
+    #if UNITY_EDITOR
+        using UnityEditor.Splines;
+    #endif
+using UnityEngine.Splines;
 #endif
 
 [ExecuteInEditMode]
@@ -51,7 +51,7 @@ public class SplineToTexture : MonoBehaviour
 
     void HookCallbacks()
     {
-#if SPLINE_PACKAGE_INSTALLED
+#if SPLINE_PACKAGE_INSTALLED && UNITY_EDITOR
         if (splineContainer != null)
             foreach (Spline spline in splineContainer.Splines)
                 EditorSplineUtility.AfterSplineWasModified += OnAfterSplineWasModified;
@@ -60,7 +60,7 @@ public class SplineToTexture : MonoBehaviour
 
     void UnhookCallbacks()
     {
-#if SPLINE_PACKAGE_INSTALLED
+#if SPLINE_PACKAGE_INSTALLED && UNITY_EDITOR
         if (splineContainer != null)
             foreach (Spline spline in splineContainer.Splines)
                 EditorSplineUtility.AfterSplineWasModified -= OnAfterSplineWasModified;
@@ -308,6 +308,8 @@ public class SplineToTexture : MonoBehaviour
 #endif
         }
     }
+
+#if UNITY_EDITOR
     public void OpenDialogAndSaveCurrentMap()
     {
         var path = EditorUtility.SaveFilePanel("Save current map", "","currentMap","png");
@@ -329,6 +331,7 @@ public class SplineToTexture : MonoBehaviour
         File.WriteAllBytes(path, bytesHeight);
         AssetDatabase.Refresh();
     }
+#endif
 
     public static Texture2D ToTexture2D(RenderTexture rTex)
     {

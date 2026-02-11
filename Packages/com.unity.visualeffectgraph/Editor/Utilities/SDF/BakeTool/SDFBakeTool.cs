@@ -111,8 +111,10 @@ namespace UnityEditor.VFX.SDF
 
 
             EditorGUI.BeginChangeCheck();
-            var newSettings = (SdfBakerSettings)EditorGUILayout.ObjectField(Contents.settingsAsset, m_Settings, typeof(SdfBakerSettings), true, GUILayout.MinWidth(20),
-                GUILayout.MaxWidth(400), GUILayout.ExpandWidth(true));
+            GUILayout.BeginHorizontal();
+            var newSettings = (SdfBakerSettings)EditorGUILayout.ObjectField(Contents.settingsAsset, m_Settings, typeof(SdfBakerSettings), true, GUILayout.MaxWidth(400));
+            GUILayout.EndHorizontal();
+
             if (EditorGUI.EndChangeCheck())
             {
                 if (newSettings != null)
@@ -233,7 +235,9 @@ namespace UnityEditor.VFX.SDF
             }
 
             EditorGUI.BeginChangeCheck();
+            GUILayout.BeginHorizontal();
             modelSource = (ModelSource)EditorGUILayout.EnumPopup(Contents.bakeSource, modelSource);
+            GUILayout.EndHorizontal();
             bool changedSource = EditorGUI.EndChangeCheck();
             needsUpdate |= changedSource;
 
@@ -241,8 +245,9 @@ namespace UnityEditor.VFX.SDF
             {
                 case ModelSource.Mesh:
                     EditorGUI.BeginChangeCheck();
-                    selectedMesh =
-                        (Mesh)EditorGUILayout.ObjectField(Contents.mesh, selectedMesh, typeof(Mesh), false);
+                    GUILayout.BeginHorizontal();
+                    selectedMesh = (Mesh)EditorGUILayout.ObjectField(Contents.mesh, selectedMesh, typeof(Mesh), false);
+                    GUILayout.EndHorizontal();
                     bool meshFieldHasChanged = EditorGUI.EndChangeCheck();
                     needsUpdate |= meshFieldHasChanged;
 
@@ -256,9 +261,9 @@ namespace UnityEditor.VFX.SDF
 
                 case ModelSource.MeshPrefab:
                     EditorGUI.BeginChangeCheck();
-                    meshPrefab =
-                        (GameObject)EditorGUILayout.ObjectField(Contents.meshPrefab, meshPrefab, typeof(GameObject),
-                            false);
+                    GUILayout.BeginHorizontal();
+                    meshPrefab = (GameObject)EditorGUILayout.ObjectField(Contents.meshPrefab, meshPrefab, typeof(GameObject), false);
+                    GUILayout.EndHorizontal();
 
                     meshFieldHasChanged = EditorGUI.EndChangeCheck() || m_PrefabChanged;
                     m_PrefabChanged = false;
@@ -326,7 +331,9 @@ namespace UnityEditor.VFX.SDF
 
             GUI.enabled = true;
 
+            GUILayout.BeginHorizontal();
             previewObject = (PreviewChoice)EditorGUILayout.EnumPopup(Contents.previewChoice, previewObject);
+            GUILayout.EndHorizontal();
             if ((previewObject & PreviewChoice.Mesh) != 0)
             {
                 UpdateMeshPreview();

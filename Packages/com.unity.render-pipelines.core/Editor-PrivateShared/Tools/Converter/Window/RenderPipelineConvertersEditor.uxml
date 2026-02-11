@@ -1,5 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <ui:HelpBox message-type="Warning" text="The Render Pipeline Converter is disabled during Playmode." name="disabledToolHelpBox" style="flex-grow: 1;" />
+    <ui:HelpBox message-type="Warning" text="The Render Pipeline Converter is disabled during Playmode." name="disabledToolHelpBox" class="render-pipeline-converter-helpbox" />
     
     <ui:VisualElement name="converterEditorMainVE" class="converter-editor-main">
         <ui:VisualElement name="topInformationVE" class="converter-top-info">

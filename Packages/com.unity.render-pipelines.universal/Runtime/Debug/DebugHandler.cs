@@ -212,6 +212,10 @@ namespace UnityEngine.Rendering.Universal
         {
             debugFullScreenMode = RenderingSettings.fullScreenDebugMode;
             textureHeightPercent = RenderingSettings.fullScreenDebugModeOutputSizeScreenPercent;
+
+            if (RenderingSettings.blockSTPOverlay)
+                return false;
+
             return debugFullScreenMode != DebugFullScreenMode.None;
         }
 

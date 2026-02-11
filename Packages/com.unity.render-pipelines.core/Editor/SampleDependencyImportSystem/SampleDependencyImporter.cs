@@ -80,7 +80,7 @@ internal class SampleDependencyImporter : IPackageManagerExtension
     const string importButtonClassName = "actionButton";
     const string injectedButtonClassName = "importWithDependenciesButton";
 
-    void RefreshSampleButtons()
+    internal void RefreshSampleButtons()
     {
         if (injectingElement == null || m_PackageInfo == null || m_SampleList == null || panelRoot == null)
             return;
@@ -111,14 +111,38 @@ internal class SampleDependencyImporter : IPackageManagerExtension
             var sampleContainer = sampleContainers[i];
             var injectedButton = sampleContainer.Q<Button>(className: injectedButtonClassName);
 
+            // Get the original import button.
+            Button importButton = null;
+            foreach(var button in sampleContainer.Query<Button>(className: importButtonClassName).ToList())
+            {
+                if (button.text == "Import" || button.text == "Reimport")
+                {
+                    var classes = button.GetClasses();
+                    bool skip = false;
+                    foreach(var c in classes)
+                    {
+                        if (c == injectedButtonClassName)
+                        {
+                            skip = true;
+                            break;
+                        }
+                    }
+                    if (skip)
+                        continue;
+
+                    importButton = button;
+                    break;
+                }
+            }
+
+            if (importButton == null)
+            continue;
+
+            // Hide the original import button.
+            importButton.style.display = DisplayStyle.None;
+
             if (injectedButton == null)
             {
-                // Get and hide the original import button.
-                // WARNING! There are now two buttons - "Import" and "Locate". The Import button is first in the hierarchy
-                // so this happens to work, but it's really brittle so we need to find a better way to do this.
-                var importButton = sampleContainer.Q<Button>(className: importButtonClassName);
-                importButton.style.display = DisplayStyle.None;
-
                 // Create a new button copying the original one with our additional class.
                 injectedButton = new Button();
                 foreach (var c in importButton.GetClasses())
@@ -132,7 +156,8 @@ internal class SampleDependencyImporter : IPackageManagerExtension
                 // Need to copy i for the lambda.
                 var index = i;
                 // On click of the imported button, import the dependencies first then call the original button logic.
-                injectedButton.clicked += () => {
+                injectedButton.clicked += () =>
+                {
                     ImportSampleDependencies(index);
 
                     using (var ev = NavigationSubmitEvent.GetPooled())
@@ -142,7 +167,11 @@ internal class SampleDependencyImporter : IPackageManagerExtension
                     }
                 };
             }
-        };
+            else // We may need to update the button text after the sample import here.
+            {
+                injectedButton.text = importButton.text;
+            }
+        }
     }
 
     public void OnPackageAddedOrUpdated(PackageInfo packageInfo) {}
@@ -333,6 +362,14 @@ internal class SampleDependencyImporter : IPackageManagerExtension
             var newDirectoryPath = Path.Combine(targetPath, child.Name);
             CopyDirectory(child.FullName, newDirectoryPath);
         }
+    }
+}
+
+internal class SampleDependencyImporterPostProcessor : AssetPostprocessor
+{
+    private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+    {
+        SampleDependencyImporter.instance?.RefreshSampleButtons();
     }
 }
 

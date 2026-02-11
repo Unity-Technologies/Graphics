@@ -14,42 +14,37 @@ using UnityEditor;
 #endif
 static class RegisterSTP
 {
-    static RegisterSTP() => UpscalerRegistry.Register<STPIUpscaler, STPOptions>(STPIUpscaler.UPSCALER_NAME);
+    static RegisterSTP() => UpscalerRegistry.Register<STPIUpscaler, STPOptions>(STPIUpscaler.upscalerName);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    static void InitRuntime() => UpscalerRegistry.Register<STPIUpscaler, STPOptions>(STPIUpscaler.UPSCALER_NAME);
+    static void InitRuntime() => UpscalerRegistry.Register<STPIUpscaler, STPOptions>(STPIUpscaler.upscalerName);
 } 
 
 public class STPIUpscaler : AbstractUpscaler
 {
-    public static readonly string UPSCALER_NAME = "STP (IUpscaler)";
+    public static readonly string upscalerName = "Spatial-Temporal Post-Processing";
 
-    STPOptions options; // contains injection point (for HDRP at this time)
-    private const string _UpscaledColorTargetName = "_UpscaledCameraColor";
-    private STP.HistoryContext[] histories; // One history per eye
+    STPOptions m_Options; // contains injection point (for HDRP at this time)
+    private const string k_UpscaledColorTargetName = "_UpscaledCameraColor";
+    private STP.HistoryContext[] m_Histories; // One history per eye
 
     public STPIUpscaler(STPOptions optionsIn)
     {
-        options = optionsIn;
+        m_Options = optionsIn;
 
-        histories = new STP.HistoryContext[2];
-        for (int i = 0; i < histories.Length; i++)
+        m_Histories = new STP.HistoryContext[2];
+        for (int i = 0; i < m_Histories.Length; i++)
         {
-            histories[i] = new STP.HistoryContext();
+            m_Histories[i] = new STP.HistoryContext();
         }
     }
 
-    public override UpscalerOptions GetOptions()
-    {
-        return options;
-    }
+    public override UpscalerOptions options => m_Options;
 
-    public override string GetName()
-    {
-        return UPSCALER_NAME;
-    }
+    public override string name => upscalerName;
 
-    public override bool IsTemporalUpscaler() { return true; }
+    public override bool isTemporal => true;
+    public override bool supportsSharpening => true;
 
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {
@@ -73,7 +68,7 @@ public class STPIUpscaler : AbstractUpscaler
             // STP uses compute shaders so all render textures must enable random writes
             outputDesc.enableRandomWrite = true;
 
-            outputDesc.name = _UpscaledColorTargetName;
+            outputDesc.name = k_UpscaledColorTargetName;
             outputDesc.clearBuffer = false;
             outputDesc.filterMode = FilterMode.Bilinear;
             outputColor = renderGraph.CreateTexture(outputDesc);
@@ -109,7 +104,7 @@ public class STPIUpscaler : AbstractUpscaler
 
             config.destination = outputColor;
 
-            Debug.Assert(io.eyeIndex < histories.Length);
+            Debug.Assert(io.eyeIndex < m_Histories.Length);
             bool hasValidHistory;
             {
                 STP.HistoryUpdateInfo info;
@@ -117,9 +112,9 @@ public class STPIUpscaler : AbstractUpscaler
                 info.postUpscaleSize = io.postUpscaleResolution;
                 info.useHwDrs = io.enableHwDrs;
                 info.useTexArray = io.enableTexArray;
-                hasValidHistory = histories[io.eyeIndex].Update(ref info);
+                hasValidHistory = m_Histories[io.eyeIndex].Update(ref info);
             }
-            config.historyContext = histories[io.eyeIndex];
+            config.historyContext = m_Histories[io.eyeIndex];
             config.enableHwDrs = io.enableHwDrs;
             config.hasValidHistory = !io.resetHistory && hasValidHistory;
 

@@ -23,6 +23,12 @@
             "name": "com.unity.modules.xr",
             "expression": "1.0.0",
             "define": "ENABLE_XR_MODULE"
+        },
+        {
+            "name": "com.unity.modules.uielements",
+            "expression": "1.0.0",
+            "define": "ENABLE_UIELEMENTS_MODULE"
         }
-	]
+    ],
+    "noEngineReferences": false
 }

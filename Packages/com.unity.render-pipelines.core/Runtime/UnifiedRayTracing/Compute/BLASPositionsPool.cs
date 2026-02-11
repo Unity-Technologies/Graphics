@@ -1,9 +1,7 @@
 using System;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
-using UnityEngine.Assertions;
 using UnityEngine.Rendering.RadeonRays;
-using UnityEngine.UIElements;
 
 namespace UnityEngine.Rendering.UnifiedRayTracing
 {

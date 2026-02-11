@@ -513,6 +513,16 @@ namespace UnityEngine.Rendering.HighDefinition
             HDProbeSystem.Parameters = asset.reflectionSystemParameters;
 
             DebugManager.instance.RefreshEditor();
+            m_DebugDisplaySettings = DebugDisplaySerializer.GetOrCreate<DebugDisplaySettings>();
+            m_DebugDisplaySettings.resetAction = () =>
+            {
+                m_DebugDisplaySettings = DebugDisplaySerializer.GetOrCreate<DebugDisplaySettings>();
+
+                // This is not a debug property owned by `DebugData`, it is a static property on `Texture`.
+                // When the user hits reset, we want to make sure texture mip caching is enabled again (regardless of whether the
+                // user toggled this in the Rendering Debugger UI or changed it using the scripting API).
+                Texture.streamingTextureDiscardUnusedMips = false;
+            };
 
             m_ValidAPI = true;
 
@@ -749,7 +759,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             VrsInitializeResources();
 #if ENABLE_UPSCALER_FRAMEWORK
-            upscaling = new Upscaling(asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.IUpscalerOptions);
+            upscaling = new Upscaling(asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.upscalerOptions);
 #endif
 
 #if UNITY_EDITOR
@@ -1454,7 +1464,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     default:
                     {
                         // The upscaler name should be an IUpscaler
-                        IUpscaler optActiveIUpscaler = this.upscaling.GetActiveUpscaler();
+                        IUpscaler optActiveIUpscaler = this.upscaling.activeUpscaler;
 
 
                         // TODO (Apoorva): Make this condition dynamic from the IUpscaler interface, so that an
@@ -1462,7 +1472,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         bool isSupported = ((drsSettings.dynResType == DynamicResolutionType.Hardware) && isHwDrsSupported) || drsSettings.forceResolution;
                         if (isSupported)
                         {
-                            if (optActiveIUpscaler == null || name != optActiveIUpscaler.GetName())
+                            if (optActiveIUpscaler == null || name != optActiveIUpscaler.name)
                             {
                                 // The active upscaler should be an IUpscaler, but it isn't currently set active in the
                                 // upscaling manager.
@@ -1475,7 +1485,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 else
                                 {
                                     // The upscaler was successfully set. Get a handle to it.
-                                    optActiveIUpscaler = this.upscaling.GetActiveUpscaler();
+                                    optActiveIUpscaler = this.upscaling.activeUpscaler;
                                     Debug.Assert(optActiveIUpscaler != null);
                                 }
                             }
@@ -1483,7 +1493,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             if (optActiveIUpscaler != null)
                             {
                                 hdCam.cameraCanRenderIUpscaler = true;
-                                hdCam.cameraIUpscalerIsTemporalUpscaler = optActiveIUpscaler.IsTemporalUpscaler();
+                                hdCam.cameraIUpscalerIsTemporalUpscaler = optActiveIUpscaler.isTemporal;
                                 found = true;
                             }
                         }

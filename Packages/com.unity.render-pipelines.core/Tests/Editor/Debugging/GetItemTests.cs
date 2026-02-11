@@ -22,33 +22,33 @@ namespace UnityEditor.Rendering.Tests
 
         static TestCaseData[] s_TestCaseDatasGetItem =
         {
-            new TestCaseData(new DebugUI.BoolField() { displayName = "element", flags = DebugUI.Flags.FrequentlyUsed }, DebugUI.Flags.FrequentlyUsed)
+            new TestCaseData(new DebugUI.BoolField() { displayName = "element", flags = DebugUI.Flags.RuntimeOnly }, DebugUI.Flags.RuntimeOnly)
                 .SetName("Given a widget with a flag, when looking for items with that flag, then the item is returned")
                 .Returns(new string[] { "element" }),
-            new TestCaseData(new DebugUI.BoolField() { displayName = "element" }, DebugUI.Flags.FrequentlyUsed)
+            new TestCaseData(new DebugUI.BoolField() { displayName = "element" }, DebugUI.Flags.RuntimeOnly)
                 .SetName("Given a widget without flags, when looking for items with a flag, then nothing is returned")
                 .Returns(new string[] { }),
             new TestCaseData(new DebugUI.Foldout()
                 {
                     displayName = "foldout",
-                    flags = DebugUI.Flags.FrequentlyUsed,
+                    flags = DebugUI.Flags.RuntimeOnly,
                     children = { new DebugUI.BoolField() { displayName = "element" } }
-                }, DebugUI.Flags.FrequentlyUsed)
+                }, DebugUI.Flags.RuntimeOnly)
                 .SetName("Given a container widget with children and a flag, when looking for items with a flag, the container is returned")
                 .Returns(new string[] { "foldout" }),
              new TestCaseData(new DebugUI.Foldout()
                 {
                     displayName = "foldout",
-                    flags = DebugUI.Flags.FrequentlyUsed,
-                    children = { new DebugUI.BoolField() { displayName = "element", flags = DebugUI.Flags.FrequentlyUsed, } }
-                }, DebugUI.Flags.FrequentlyUsed)
+                    flags = DebugUI.Flags.RuntimeOnly,
+                    children = { new DebugUI.BoolField() { displayName = "element", flags = DebugUI.Flags.RuntimeOnly, } }
+                }, DebugUI.Flags.RuntimeOnly)
                 .SetName("Given a container and children with a flag, when looking for a flag, then only the container is returned")
                 .Returns(new string[] { "foldout" }),
              new TestCaseData(new DebugUI.Foldout()
                 {
                     displayName = "foldout",
-                    children = { new DebugUI.BoolField() { displayName = "element", flags = DebugUI.Flags.FrequentlyUsed, }, new DebugUI.BoolField() { displayName = "element2", flags = DebugUI.Flags.FrequentlyUsed, } }
-                }, DebugUI.Flags.FrequentlyUsed)
+                    children = { new DebugUI.BoolField() { displayName = "element", flags = DebugUI.Flags.RuntimeOnly, }, new DebugUI.BoolField() { displayName = "element2", flags = DebugUI.Flags.RuntimeOnly, } }
+                }, DebugUI.Flags.RuntimeOnly)
                 .SetName("Given multiple children widgets with a flag, when looking for a flag the item is returned")
                 .Returns(new string[] { "element", "element2" }),
         };
@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.Tests
 
         static TestCaseData[] s_TestCaseDatasGetItemQueryPath =
         {
-            new TestCaseData(new DebugUI.BoolField() { displayName = "element", flags = DebugUI.Flags.FrequentlyUsed }, "Tests -> element")
+            new TestCaseData(new DebugUI.BoolField() { displayName = "element", flags = DebugUI.Flags.RuntimeOnly }, "Tests -> element")
                 .SetName("Given a widget, when looking by it's query path, then the item is found")
                 .Returns("element"),
             new TestCaseData(new DebugUI.BoolField() { displayName = "element" }, "Tests -> element2")
@@ -76,7 +76,7 @@ namespace UnityEditor.Rendering.Tests
             new TestCaseData(new DebugUI.Foldout()
                 {
                     displayName = "foldout",
-                    flags = DebugUI.Flags.FrequentlyUsed,
+                    flags = DebugUI.Flags.RuntimeOnly,
                     children = { new DebugUI.BoolField() { displayName = "element" } }
                 }, "Tests -> foldout -> element")
                 .SetName("Given a query path for a child widget, when using that query path, then the child object is returned")

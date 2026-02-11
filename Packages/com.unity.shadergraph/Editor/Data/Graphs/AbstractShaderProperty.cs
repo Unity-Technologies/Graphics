@@ -70,6 +70,11 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField]
         internal HLSLDeclaration hlslDeclarationOverride;
 
+        [SerializeField]
+        internal bool hideConnector = false;
+
+        internal virtual bool canHideConnector => false;
+
         override internal bool isExposed => base.isExposed && shouldForceExposed;
 
         internal bool shouldForceExposed => (hlslDeclarationOverride == HLSLDeclaration.HybridPerInstance || GetDefaultHLSLDeclaration() == HLSLDeclaration.UnityPerMaterial) && isExposable;

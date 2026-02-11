@@ -12,8 +12,10 @@ namespace UnityEngine.VFX.Test
     public class VFXCameraCullingTest
     {
         Recorder m_VFXSortRecorder;
+        Recorder m_VFXProcessCameraRecorder;
         private const string kScenePath = "Packages/com.unity.testing.visualeffectgraph/Scenes/009_MultiCamera.unity";
         private const int kCameraVisibleCount = 4;
+        private const int kCameraTotalCount = 6;
         //The camera command markers appear twice in the main thread
         //Once in the Render Pipeline preparation, once in the Render Context Submit.
         private const int kMarkerMultiplier = 2;
@@ -26,6 +28,9 @@ namespace UnityEngine.VFX.Test
             m_VFXSortRecorder = Recorder.Get("VFX.SortBuffer");
             m_VFXSortRecorder.FilterToCurrentThread();
             m_VFXSortRecorder.enabled = false;
+            m_VFXProcessCameraRecorder = Recorder.Get("VFX.ProcessCamera");
+            m_VFXProcessCameraRecorder.FilterToCurrentThread();
+            m_VFXProcessCameraRecorder.enabled = false;
             m_PreviousFrameRate = Application.targetFrameRate;
             Application.targetFrameRate = 30;
         }
@@ -45,6 +50,7 @@ namespace UnityEngine.VFX.Test
             var vfxComponents = Resources.FindObjectsOfTypeAll<VisualEffect>();
 
             m_VFXSortRecorder.enabled = true;
+            m_VFXProcessCameraRecorder.enabled = true;
 
             int maxFrame = 8;
             while (vfxComponents[^1].culled && maxFrame-- > 0)
@@ -53,17 +59,18 @@ namespace UnityEngine.VFX.Test
             //Extra wait frame to ensure that the profiler recorder is ready
             yield return new WaitForEndOfFrame();
 
-            int totalSampleCount = 0;
+            bool foundValidFrame = false;
             for (int i = 0; i < kWaitFrameCount; i++)
             {
-                totalSampleCount += m_VFXSortRecorder.sampleBlockCount;
+                if (m_VFXProcessCameraRecorder.sampleBlockCount == kCameraTotalCount * kMarkerMultiplier)
+                {
+                    foundValidFrame = true;
+                    Assert.AreEqual(kCameraVisibleCount * kMarkerMultiplier, m_VFXSortRecorder.sampleBlockCount);
+                    break;
+                }
                 yield return new WaitForEndOfFrame();
             }
-
-            m_VFXSortRecorder.enabled = false;
-            int averageSampleCount = Mathf.RoundToInt((float)totalSampleCount / kWaitFrameCount);
-
-            Assert.AreEqual(kCameraVisibleCount * kMarkerMultiplier, averageSampleCount);
+            Assert.IsTrue(foundValidFrame, $"No valid frame with {kCameraTotalCount * kMarkerMultiplier} VFX.ProcessCamera markers could be found");
         }
     }
 }

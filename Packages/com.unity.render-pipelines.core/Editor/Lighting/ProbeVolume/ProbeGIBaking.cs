@@ -883,7 +883,9 @@ namespace UnityEngine.Rendering
             if (activeSet != null)
                 activeSet.Clear();
 
+            #pragma warning disable CS0618 // Type or member is obsolete
             var probeVolumes = GameObject.FindObjectsByType<ProbeVolume>(FindObjectsSortMode.InstanceID);
+#pragma warning restore CS0618 // Type or member is obsolete
             foreach (var probeVolume in probeVolumes)
                 probeVolume.OnLightingDataAssetCleared();
         }
@@ -1016,7 +1018,9 @@ namespace UnityEngine.Rendering
         static TouchupVolumeWithBoundsList GetAdjustementVolumes()
         {
             // This is slow, but we should have very little amount of touchup volumes.
+#pragma warning disable CS0618 // Type or member is obsolete
             var touchupVolumes = Object.FindObjectsByType<ProbeAdjustmentVolume>(FindObjectsSortMode.InstanceID);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             var touchupVolumesAndBounds = new TouchupVolumeWithBoundsList(touchupVolumes.Length);
             foreach (var touchup in touchupVolumes)
@@ -1067,9 +1071,9 @@ namespace UnityEngine.Rendering
             if (s_BakeData.sortedPositions.Length == 0)
                 return;
 
-            var lsa = ProbeVolumeLightingTab.GetLightingSettings();
+            var lightingSettings = ProbeVolumeLightingTab.GetLightingSettings();
             ProbeBakeRequestOutput outputTypes = ProbeBakeRequestOutput.All;
-            if (lsa.mixedBakeMode == MixedLightingMode.IndirectOnly)
+            if (lightingSettings.mixedBakeMode == MixedLightingMode.IndirectOnly)
                 outputTypes &= ~ProbeBakeRequestOutput.Occlusion;
 
             var extraPos = s_BakeData.sortedPositions.ToArray();
@@ -1087,19 +1091,36 @@ namespace UnityEngine.Rendering
 
             bakeInput.SetProbePositions(newPositions);
             bakeInput.SetOcclusionLightIndices(newOcclusionIndices);
-            bakeInput.AddProbeRequest(new ProbeBakeRequest
+
+            var ignoreEnvironmentLight = m_BakingSet != null && m_BakingSet.skyOcclusion;
+
+            var lightmapParameters = LightmapParameters.GetLightmapParametersForLightingSettings(lightingSettings);
+            float pushoff = lightmapParameters != null ? lightmapParameters.pushoff : 0.0001f;
+
+            int requestIdx = 0;
+            foreach (var bakeJob in s_BakeData.jobs)
             {
-                outputTypes = outputTypes,
-                positionOffset = (ulong)prevProbeCount,
-                positionLength = (ulong)extraPos.Length,
-                bakeOutputFolderPath = APVLightBakerOutputFolder,
-                postProcessOutputFolderPath = APVLightBakerPostProcessingOutputFolder,
-                ignoreDirectEnvironment = m_BakingSet != null ? m_BakingSet.bakedSkyOcclusion : false,
-                ignoreIndirectEnvironment = m_BakingSet != null ? m_BakingSet.bakedSkyOcclusion : false,
-                pushoff = 0.0001f,
-                indirectScale = lsa.indirectScale,
-                dering = true,
-            });
+                string probeOutputSubFolder = $"/probeRequest{requestIdx}";
+                bakeInput.AddProbeRequest(new ProbeBakeRequest
+                {
+                    outputTypes = outputTypes,
+                    directSampleCount = (uint)bakeJob.directSampleCount,
+                    indirectSampleCount = (uint)bakeJob.indirectSampleCount,
+                    environmentSampleCount = (uint)bakeJob.environmentSampleCount,
+                    maxBounces = (uint)bakeJob.maxBounces,
+                    positionOffset = (ulong)bakeJob.startOffset,
+                    positionLength = (ulong)bakeJob.probeCount,
+                    bakeOutputFolderPath = APVLightBakerOutputFolder + probeOutputSubFolder,
+                    postProcessOutputFolderPath = APVLightBakerPostProcessingOutputFolder + probeOutputSubFolder,
+                    ignoreDirectEnvironment = ignoreEnvironmentLight,
+                    ignoreIndirectEnvironment = ignoreEnvironmentLight,
+                    pushoff = pushoff,
+                    indirectScale = bakeJob.indirectScale,
+                    dering = true,
+                });
+
+                requestIdx++;
+            }
 
             s_BakeData.bakeInput = bakeInput;
         }

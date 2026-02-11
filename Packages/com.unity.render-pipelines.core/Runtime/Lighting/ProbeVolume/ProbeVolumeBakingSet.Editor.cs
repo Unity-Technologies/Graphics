@@ -525,7 +525,7 @@ namespace UnityEngine.Rendering
 
         internal void UpdateSceneBounds(Scene scene, string sceneGUID, bool onSceneSave)
         {
-            var volumes = FindObjectsByType<ProbeVolume>(FindObjectsSortMode.None);
+            var volumes = FindObjectsByType<ProbeVolume>();
             float prevBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
             int prevMaxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision();
             Vector3 prevOffset = ProbeReferenceVolume.instance.ProbeOffset();

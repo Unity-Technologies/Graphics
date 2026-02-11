@@ -93,12 +93,12 @@ namespace UnityEngine.Rendering.Universal
             base.Reset();
 
             displayStats = Add(new DebugDisplaySettingsStats<URPProfileId>(new UniversalRenderPipelineDebugDisplayStats()));
-            materialSettings = Add(new DebugDisplaySettingsMaterial());
-            lightingSettings = Add(new DebugDisplaySettingsLighting());
-            renderingSettings = Add(new DebugDisplaySettingsRendering());
-            volumeSettings = Add(new DebugDisplaySettingsVolume());
-            commonSettings = Add(new DebugDisplaySettingsCommon());
-            gpuResidentDrawerSettings = Add(new DebugDisplayGPUResidentDrawer());
+            materialSettings = Add(DebugDisplaySerializer.GetOrCreate<DebugDisplaySettingsMaterial>());
+            lightingSettings = Add(DebugDisplaySerializer.GetOrCreate<DebugDisplaySettingsLighting>());
+            renderingSettings = Add(DebugDisplaySerializer.GetOrCreate<DebugDisplaySettingsRendering>());
+            volumeSettings = Add(DebugDisplaySerializer.GetOrCreate<DebugDisplaySettingsVolume>());
+            commonSettings = Add(DebugDisplaySerializer.GetOrCreate<DebugDisplaySettingsCommon>());
+            gpuResidentDrawerSettings = Add(DebugDisplaySerializer.GetOrCreate<DebugDisplayGPUResidentDrawer>());
 
             // This is not a debug property owned by any `IDebugDisplaySettingsData`, it is a static property on `Texture`.
             // When the user hits reset, we want to make sure texture mip caching is enabled again (regardless of whether the

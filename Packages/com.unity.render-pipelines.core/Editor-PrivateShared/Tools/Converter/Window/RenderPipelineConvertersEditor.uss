@@ -17,6 +17,7 @@
     padding-top: 2px;
     width: auto;
     padding-bottom: 20px;
+    flex-direction: column;
 }
 
 .converter-top-info {
@@ -57,6 +58,8 @@
 .converter-scroll-view {
     flex-grow: 1;
     align-items: stretch;
+    flex-shrink: 1;
+    min-height: 0;
 }
 
 .converter-bottom-buttons {
@@ -82,12 +85,14 @@
     flex-direction: row;
     justify-content: flex-end; /* right align */
     flex-wrap: wrap;           /* allow wrapping */
-    margin-bottom: 10px;
+    margin-top: 10px;
+    flex-shrink: 0;
+    min-height: 40px;
 }
 
 .converter-button {
     flex-shrink: 0;
     min-width: 100px;         /* adjust to your layout */
-    min-height: 20px;
-    margin-top: 10px;
+    align-self: flex-end;
 }
+

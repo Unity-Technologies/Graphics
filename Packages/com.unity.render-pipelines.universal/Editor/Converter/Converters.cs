@@ -10,8 +10,7 @@ namespace UnityEditor.Rendering.Universal
     /// <summary>
     /// Filter for the list of converters used in batch mode.
     /// </summary>
-    /// <seealso cref="Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId, List{UnityEditor.Rendering.Universal.ConverterId}, UnityEditor.Rendering.Universal.ConverterFilter)"/>.)
-    [Obsolete("This enum has been obsoleted, please use the Type of the converter directly. #from(6000.4)")]
+    /// <seealso cref="Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId, List{UnityEditor.Rendering.Universal.ConverterId}, UnityEditor.Rendering.Universal.ConverterFilter)"/>
     public enum ConverterFilter
     {
         /// <summary>
@@ -28,8 +27,7 @@ namespace UnityEditor.Rendering.Universal
     /// <summary>
     /// The container to run in batch mode.
     /// </summary>
-    /// <seealso cref="Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId)"/>.)
-    [Obsolete("This enum has been obsoleted, please use the Type of the converter directly. #from(6000.4)")]
+    /// <seealso cref="Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId)"/>
     public enum ConverterContainerId
     {
         /// <summary>
@@ -54,7 +52,6 @@ namespace UnityEditor.Rendering.Universal
     }
 
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
-    [Obsolete("This attribute has been obsoleted, please use the Type of the converter directly. #from(6000.4)")]
     internal class BatchModeConverterInfo : Attribute
     {
         public Type converterType { get; }
@@ -70,8 +67,7 @@ namespace UnityEditor.Rendering.Universal
     /// <summary>
     /// The converter to run in batch mode.
     /// </summary>
-    /// <seealso cref="Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId, List{UnityEditor.Rendering.Universal.ConverterId}, UnityEditor.Rendering.Universal.ConverterFilter)"/>.)
-    [Obsolete("This enum has been obsoleted, please use the Type of the converter directly. #from(6000.4)")]
+    /// <seealso cref="Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId, List{UnityEditor.Rendering.Universal.ConverterId}, UnityEditor.Rendering.Universal.ConverterFilter)"/>
     public enum ConverterId
     {
         /// <summary>
@@ -83,7 +79,7 @@ namespace UnityEditor.Rendering.Universal
         /// <summary>
         /// Use this for the render settings converters.
         /// </summary>
-        [BatchModeConverterInfo(ConverterContainerId.BuiltInToURP, typeof(RenderSettingsConverter))]
+        [BatchModeConverterInfo(ConverterContainerId.BuiltInToURP, typeof(BuiltInToURP3DRenderSettingsConverter))]
         RenderSettings,
 
         /// <summary>
@@ -103,6 +99,12 @@ namespace UnityEditor.Rendering.Universal
         /// </summary>
         [BatchModeConverterInfo(ConverterContainerId.BuiltInToURP2D, typeof(BuiltInToURP2DReadonlyMaterialConverter))]
         ReadonlyMaterial2D,
+
+        /// <summary>
+        /// Use this for 2D material conversion
+        /// </summary>
+        [BatchModeConverterInfo(ConverterContainerId.BuiltInToURP2D, typeof(BuiltInToURP2DRenderSettingsConverter))]
+        RenderSettings2D,
 
         /// <summary>
         /// Use this for 3D URP material conversion
@@ -148,13 +150,10 @@ namespace UnityEditor.Rendering.Universal
         /// Call this method to run all the converters in a specific container in batch mode.
         /// </summary>
         /// <param name="containerName">The name of the container which will be batched. All Converters in this Container will run if prerequisites are met.</param>
-        [Obsolete("RunInBatchMode will be removed. Please open the Unity Editor and perform the conversion from the Converter UI. #from(6000.4)", false)]
         public static void RunInBatchMode(ConverterContainerId containerName)
         {
             RunInBatchMode(containerName, new List<ConverterId>() { }, ConverterFilter.Exclusive);
         }
-
-        [Obsolete("RunInBatchMode will be removed. Please open the Unity Editor and perform the conversion from the Converter UI. #from(6000.4)", false)]
 
         internal static bool TryGetTypeInContainer(ConverterId value, ConverterContainerId containerName, out Type type)
         {
@@ -178,14 +177,11 @@ namespace UnityEditor.Rendering.Universal
         /// <param name="containerName">The name of the container which will be batched.</param>
         /// <param name="converterList">The list of converters that will be either included or excluded from batching. These converters need to be part of the passed in container for them to run.</param>
         /// <param name="converterFilter">The enum that decide if the list of converters will be included or excluded when batching.</param>
-        [Obsolete("RunInBatchMode will be removed. Please open the Unity Editor and perform the conversion from the Converter UI. #from(6000.4)", false)]
         public static void RunInBatchMode(ConverterContainerId containerName, List<ConverterId> converterList, ConverterFilter converterFilter)
         {
             var types = FilterConverters(containerName, converterList, converterFilter);
             RunInBatchMode(types);
         }
-
-        [Obsolete("RunInBatchMode will be removed. Please open the Unity Editor and perform the conversion from the Converter UI. #from(6000.4)", false)]
 
         internal static List<Type> FilterConverters(ConverterContainerId containerName, List<ConverterId> converterList, ConverterFilter converterFilter)
         {
@@ -213,6 +209,8 @@ namespace UnityEditor.Rendering.Universal
         /// <returns>False if there were errors.</returns>
         internal static bool RunInBatchMode(List<Type> converterTypes)
         {
+            Debug.LogWarning("Using this API can lead to incomplete or unpredictable conversion outcomes. For reliable results, please perform the conversion via the dedicated window: Window > Rendering > Render Pipeline Converter.");
+
             List<IRenderPipelineConverter> convertersToExecute = new();
 
             bool errors = false;
@@ -251,7 +249,7 @@ namespace UnityEditor.Rendering.Universal
         {
             foreach (var converter in converters)
             {
-                var sb = new StringBuilder($"Conversion results for item: {converter}:{Environment.NewLine}");
+                var sb = new StringBuilder();
 
                 converter.Scan(OnConverterCompleteDataCollection);
 
@@ -279,7 +277,9 @@ namespace UnityEditor.Rendering.Universal
                     }
                     converter.AfterConvert();
 
-                    Debug.Log(sb.ToString());
+                    var conversionResult = sb.ToString();
+                    if (!string.IsNullOrEmpty(conversionResult))
+                        Debug.Log(sb.ToString());
                 }
             }
 

@@ -122,6 +122,15 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool ValidateRendererFeatures()
         {
+            if (AssetDatabase.IsAssetImportWorkerProcess())
+            {
+                // UUM-125400 Asset Import Worker Process encounters a race condition when it tries to validate
+                // RendererFeatures. If we're coming from the AssetImportWorkerProcess, exit early and return
+                // true because it's safe to assume that (1) the features are validated by another process and
+                // (2) it shouldn't be the Asset Import Worker's job to validate RendererFeatures.
+                return true;
+            }
+
             // Get all Subassets
             var subassets = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this));
             var linkedIds = new List<long>();

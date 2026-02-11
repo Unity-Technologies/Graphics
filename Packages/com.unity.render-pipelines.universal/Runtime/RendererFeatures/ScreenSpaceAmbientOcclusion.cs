@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.Universal
             Low,    // Kawase
         }
     }
-    
+
     [Serializable]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     [Categorization.CategoryInfo(Name = "R: SSAO Shader", Order = 1000)]
@@ -68,12 +68,12 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         [ResourcePath("Shaders/Utils/ScreenSpaceAmbientOcclusion.shader")]
         Shader m_Shader;
-        
+
         public Shader Shader
         {
             get => m_Shader;
             set => this.SetValueAndNotify(ref m_Shader, value);
-        } 
+        }
 
         public bool isAvailableInPlayerBuild => true;
 
@@ -92,13 +92,13 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         [ResourceFormattedPaths("Textures/BlueNoise256/LDR_LLL1_{0}.png", 0, 7)]
         Texture2D[] m_BlueNoise256Textures;
-        
+
         public Texture2D[] BlueNoise256Textures
         {
             get => m_BlueNoise256Textures;
             set => this.SetValueAndNotify(ref m_BlueNoise256Textures, value);
-        } 
-        
+        }
+
         public bool isAvailableInPlayerBuild => true;
 
         [SerializeField][HideInInspector] private int m_Version = 0;
@@ -138,7 +138,7 @@ namespace UnityEngine.Rendering.Universal
         internal const string k_SampleCountLowKeyword = "_SAMPLE_COUNT_LOW";
         internal const string k_SampleCountMediumKeyword = "_SAMPLE_COUNT_MEDIUM";
         internal const string k_SampleCountHighKeyword = "_SAMPLE_COUNT_HIGH";
-        
+
         /// <inheritdoc/>
         public override void Create()
         {
@@ -171,8 +171,8 @@ namespace UnityEngine.Rendering.Universal
             if (!TryPrepareResources())
                 return;
 
-            bool shouldAdd = m_SSAOPass.Setup(ref m_Settings, ref renderer, ref m_Material, ref m_BlueNoise256Textures);
-            if (shouldAdd) 
+            bool shouldAdd = m_SSAOPass.Setup(m_Settings, renderer, m_Material, m_BlueNoise256Textures);
+            if (shouldAdd)
                 renderer.EnqueuePass(m_SSAOPass);
         }
 
@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering.Universal
                         $"Couldn't find the required resources for the {nameof(ScreenSpaceAmbientOcclusion)} render feature. If this exception appears in the Player, make sure at least one {nameof(ScreenSpaceAmbientOcclusion)} render feature is enabled or adjust your stripping settings.");
                     return false;
                 }
-                
+
                 m_Shader = ssaoPersistentResources.Shader;
             }
 
@@ -208,7 +208,7 @@ namespace UnityEngine.Rendering.Universal
 
                 m_BlueNoise256Textures = ssaoDynamicResources.BlueNoise256Textures;
             }
-            
+
             if (m_Material == null && m_Shader != null)
                 m_Material = CoreUtils.CreateEngineMaterial(m_Shader);
 

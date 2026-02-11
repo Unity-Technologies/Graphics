@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -13,14 +14,7 @@ namespace UnityEditor.Rendering.Tests
     {
         static EntityId CreateTestEntityId(int intValue)
         {
-            EntityId testEntityId;
-            unsafe
-            {
-                UnityEngine.Debug.Assert(sizeof(int) == sizeof(EntityId));
-                testEntityId = *(EntityId*)&intValue;
-            }
-
-            return testEntityId;
+            return EntityId.FromULong((ulong)intValue);
         }
 
         static RenderGraph.DebugData CreateTestDebugData()

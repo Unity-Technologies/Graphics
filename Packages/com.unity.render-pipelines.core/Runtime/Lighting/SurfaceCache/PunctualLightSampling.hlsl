@@ -41,10 +41,10 @@ void SamplePunctualLights(UnifiedRT::DispatchInfo dispatchInfo)
     matPoolParams.atlasTexelSize = _MaterialAtlasTexelSize;
     matPoolParams.albedoBoost = _AlbedoBoost;
 
-    QrngKronecker rng;
+    QrngKronecker2D rng;
     rng.Init(dispatchInfo.globalThreadIndex.x, _FrameIdx);
 
-    const uint spotLightIndex = min(rng.GetFloat(0) * _PunctualLightCount, _PunctualLightCount - 1);
+    const uint spotLightIndex = min(rng.GetSample(0).x * _PunctualLightCount, _PunctualLightCount - 1);
     const PunctualLight light = _PunctualLights[spotLightIndex];
 
     UnifiedRT::Ray ray;
@@ -52,7 +52,8 @@ void SamplePunctualLights(UnifiedRT::DispatchInfo dispatchInfo)
     ray.tMax = FLT_MAX;
     ray.origin = light.position;
     {
-        float3 localDir = SampleConeUniform(rng.GetFloat(1), rng.GetFloat(1), light.cosAngle);
+        float2 coneSample = rng.GetSample(1);
+        float3 localDir = SampleConeUniform(coneSample.x, coneSample.y, light.cosAngle);
         float3x3 spotBasis = OrthoBasisFromVector(light.direction);
         ray.direction = mul(spotBasis, localDir);
     }

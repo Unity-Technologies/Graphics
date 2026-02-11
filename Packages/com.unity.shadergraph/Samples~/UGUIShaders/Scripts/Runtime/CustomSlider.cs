@@ -15,7 +15,7 @@ namespace Unity.UI.Shaders.Sample
     /// A custom Slider.
     /// <para>Unlike a <see cref="Slider"/>, this uses only a single RectTransform.</para>
     /// </summary>
-    [AddComponentMenu("UI/ShaderGraph Samples/Slider")]
+    [AddComponentMenu("UI (Canvas)/ShaderGraph Samples/Slider")]
     [RequireComponent(typeof(Graphic))]
     [DisallowMultipleComponent]
     public class CustomSlider : Selectable, IDragHandler, IInitializePotentialDragHandler, IMaterialModifier
@@ -288,7 +288,7 @@ namespace Unity.UI.Shaders.Sample
         }
 
 #if UNITY_EDITOR
-        [MenuItem("GameObject/UI/ShaderGraph Samples/Slider", false, 30)]
+        [MenuItem("GameObject/UI (Canvas)/ShaderGraph Samples/Slider", false, 30)]
         static void CreateToggleGameObject(MenuCommand command)
         {
             GameObject go = ObjectFactory.CreateGameObject("Slider", new Type[] { typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(RectTransformSize), typeof(CustomSlider) });

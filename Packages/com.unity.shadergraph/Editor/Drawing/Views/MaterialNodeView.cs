@@ -73,7 +73,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     foreach (IControlAttribute attribute in propertyInfo.GetCustomAttributes(typeof(IControlAttribute), false))
                         m_ControlItems.Add(attribute.InstantiateControl(node, propertyInfo));
             }
-            if (m_ControlItems.childCount > 0)
+            if (m_ControlItems.childCount > 0 || inNode is SubGraphNode)
                 contents.Add(controlsContainer);
 
             // Add dropdowns container
@@ -575,6 +575,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     else
                         portContainer.Remove(shaderPort);
                 }
+                else if (allSlots[newSlotIndex].hideConnector && inputSlots)
+                {
+                    portContainer.Remove(shaderPort.parent);
+                }
                 else
                 {
                     var newSlot = allSlots[newSlotIndex];
@@ -611,6 +615,25 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // update existing input and output ports
                     UpdateShaderPortsForSlots(true, slots, slotShaderPorts);
                     UpdateShaderPortsForSlots(false, slots, slotShaderPorts);
+
+                    // Make sure inline slots match what is expected;
+                    List<VisualElement> toRemove = new();
+                    foreach(var item in m_ControlItems.Children())
+                    {
+                        if (item.ClassListContains("SlotAsControl"))
+                        {
+                            var idx = slots.FindIndex(s => s.id == (int)item.userData);
+                            if (idx < 0)
+                                toRemove.Add(item);
+                            else if (!slots[idx].hideConnector)
+                                toRemove.Add(item);
+                            else if (slots[idx].InstantiateControl().GetType() != item.GetType())
+                                toRemove.Add(item);                            
+
+                        }
+                    }
+                    foreach (var item in toRemove)
+                        m_ControlItems.Remove(item);
 
                     // check if there are any new slots that must create new ports
                     for (int i = 0; i < slots.Count; i++)
@@ -650,6 +673,21 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (slot.hidden)
                 return null;
+
+            if (slot.hideConnector)
+            {
+                foreach (var item in m_ControlItems.Children())
+                    if (item.ClassListContains("SlotAsControl") && (int)item.userData == slot.id)
+                        return null;
+
+                var control = slot.InstantiateControl();
+                if (control == null)
+                    return null;
+                control.userData = slot.id;
+                control.AddToClassList("SlotAsControl");
+                m_ControlItems.Add(control);
+                return null;                
+            }
 
             ShaderPort port = ShaderPort.Create(slot, m_ConnectorListener);
             if (slot.isOutputSlot)

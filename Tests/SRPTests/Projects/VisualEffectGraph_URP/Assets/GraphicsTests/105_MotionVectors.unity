@@ -200,6 +200,7 @@ VisualEffect:
   m_StartSeed: 0
   m_ResetSeedOnPlay: 0
   m_AllowInstancing: 1
+  m_ReleaseInstanceOnDisable: 0
   m_ResourceVersion: 1
   m_PropertySheet:
     m_Float:
@@ -5116,6 +5117,51 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
+--- !u!1 &815952495
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 815952497}
+  - component: {fileID: 815952496}
+  m_Layer: 0
+  m_Name: ForceZoomXRFactor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &815952496
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 815952495}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f6457b9aeba46e47bd6f0bf5c9415df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Testing.VisualEffectGraph::ForceZoomXRFactor
+  m_ForceZoomXRFactor: 4.59375
+--- !u!4 &815952497
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 815952495}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1130978035
 GameObject:
   m_ObjectHideFlags: 0
@@ -5294,7 +5340,6 @@ MonoBehaviour:
     IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
     UseBackBuffer: 0
-    ImageResolution: 0
     ActiveImageTests: 1
     ActivePixelTests: -1
   captureFrameRate: 60
@@ -5524,6 +5569,7 @@ VisualEffect:
   m_StartSeed: 0
   m_ResetSeedOnPlay: 0
   m_AllowInstancing: 1
+  m_ReleaseInstanceOnDisable: 0
   m_ResourceVersion: 1
   m_PropertySheet:
     m_Float:
@@ -5627,6 +5673,7 @@ VisualEffect:
   m_StartSeed: 0
   m_ResetSeedOnPlay: 0
   m_AllowInstancing: 1
+  m_ReleaseInstanceOnDisable: 0
   m_ResourceVersion: 1
   m_PropertySheet:
     m_Float:
@@ -5676,3 +5723,4 @@ SceneRoots:
   - {fileID: 1505558167}
   - {fileID: 427587298}
   - {fileID: 768272105}
+  - {fileID: 815952497}

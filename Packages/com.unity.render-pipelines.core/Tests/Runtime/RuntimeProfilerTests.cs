@@ -22,7 +22,9 @@ namespace UnityEngine.Rendering.Tests
                 Assert.Ignore("Frame timing tests are not supported in batch mode, skipping test.");
 
             // HACK #1 - really shouldn't have to do this here, but previous tests are leaking gameobjects
+#pragma warning disable CS0618 // Type or member is obsolete
             var objects = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.InstanceID);
+#pragma warning restore CS0618 // Type or member is obsolete
             foreach (var o in objects)
             {
                 // HACK #2 - must not destroy DebugUpdater

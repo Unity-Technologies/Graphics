@@ -1087,16 +1087,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 // get activeUpscalerName
                 // do we need to read this from currentAsset dynamicResolutionSettings upscalerNames (and find the first IUpscaler?)
                 Debug.Assert(HDRenderPipeline.currentPipeline != null);
-                IUpscaler upscaler = HDRenderPipeline.currentPipeline.upscaling.GetActiveUpscaler();
+                IUpscaler upscaler = HDRenderPipeline.currentPipeline.upscaling.activeUpscaler;
                 Debug.Assert(upscaler != null);
-                string activeUpscalerName = upscaler.GetName();
+                string activeUpscalerName = upscaler.name;
 
                 // return the injection point of matching options
-                foreach (UpscalerOptions options in HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.IUpscalerOptions)
+                foreach (UpscalerOptions options in HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.upscalerOptions)
                 {
-                    if (options.UpscalerName == activeUpscalerName)
+                    if (options.upscalerName == activeUpscalerName)
                     {
-                        return options.InjectionPoint;
+                        return options.injectionPoint;
                     }
                 }
 
@@ -1458,7 +1458,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // An IUpscaler is active. It might want to change the pre-upscale resolution. Negotiate with it.
                 Debug.Assert(HDRenderPipeline.currentPipeline != null);
-                IUpscaler activeUpscaler = HDRenderPipeline.currentPipeline.upscaling.GetActiveUpscaler();
+                IUpscaler activeUpscaler = HDRenderPipeline.currentPipeline.upscaling.activeUpscaler;
                 Debug.Assert(activeUpscaler != null);
                 Vector2Int res = new Vector2Int(actualWidth, actualHeight);
                 activeUpscaler.NegotiatePreUpscaleResolution(ref res,
@@ -2364,7 +2364,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (IsIUpscalerEnabled())
             {
                 Debug.Assert(HDRenderPipeline.currentPipeline != null);
-                IUpscaler upscaler = HDRenderPipeline.currentPipeline.upscaling.GetActiveUpscaler();
+                IUpscaler upscaler = HDRenderPipeline.currentPipeline.upscaling.activeUpscaler;
                 Debug.Assert(upscaler != null); // If we're in this condition, upscaler should be non-null.
                 upscaler.CalculateJitter(taaFrameIndex, out Vector2 jitter, out bool allowScaling);
                 // TODO (Apoorva): Re-examine if this negative sign is needed. It's currently there because URP and HDRP

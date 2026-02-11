@@ -592,7 +592,7 @@ namespace UnityEngine.VFX.Test
             yield return null;
 
             VisualEffect vfxComponent = null;
-            foreach (var component in Object.FindObjectsByType<VisualEffect>(FindObjectsSortMode.None))
+            foreach (var component in Object.FindObjectsByType<VisualEffect>())
             {
                 if (component.visualEffectAsset.name == "024_StripIndirectAndSorting_NoIndirect")
                 {

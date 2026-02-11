@@ -1,0 +1,312 @@
+:root {
+    --widget-focus-color: #81B4FF;
+    --active-tab-underline-color: #46607C;
+    --window-background-color: #000000EA;
+    --persistent-widget-background-color: #000000EA;
+    --tab-background-color: #00000088;
+    --text-color: #BBBBBB;
+    --text-color-inactive: #888888;
+    --widget-background-color: #515151;
+    --widget-background-color-hover: #666666;
+    --widget-border-color: #303030;
+    --toolbar-height: 60px;
+    --checkmark-tint: #888888;
+    --checkmark-background: #00000000;
+    --helpbox-background: #00000000;
+    --scrollbar-tracker-color: #00000000;
+}
+
+VisualElement {
+    font-size: 18px; /* Global font size */
+}
+
+#debug-window {
+    background-color: var(--window-background-color);
+    margin-left: 16px;
+    margin-top: 16px;
+    margin-bottom: 16px;
+    color: var(--text-color);
+}
+
+#debug-window.landscape-orientation {
+    width: 50%;
+    height: 95%;
+}
+
+#debug-window.portrait-orientation {
+    width: 95%;
+    height: 50%;
+}
+
+/* Dropdown popup overrides */
+PanelRootElement > .unity-base-dropdown {
+    color: var(--text-color);
+}
+
+/* Tab bar */
+
+#debug-window-tabview {
+}
+
+#debug-window-tabview .unity-tab-view__content-viewport {
+    max-width: 90%; /* Leave room for reset button */
+    background-color: var(--tab-background-color);
+}
+
+#debug-window-tabview .unity-tab__header:checked > .unity-tab__header-underline {
+    background-color: var(--active-tab-underline-color);
+}
+
+#debug-window-tabview .unity-tab__header {
+    color: var(--text-color-inactive);
+}
+
+#debug-window-tabview .unity-tab__header:checked {
+    color: var(--text-color);
+}
+#debug-window-tabview .unity-tab__header:hover {
+    color: var(--text-color);
+}
+
+#debug-window-tabview .unity-tab__header {
+    background-color: #00000000;
+    height: var(--toolbar-height);
+}
+
+#debug-window-tabview RepeatButton {
+    background-color: var(--tab-background-color);
+    -unity-background-image-tint-color: var(--checkmark-tint);
+}
+
+#debug-window-tabview RepeatButton:hover {
+    background-color: var(--widget-background-color-hover);
+}
+
+.debug-window-header-title {
+    display: none;
+}
+
+/* Toolbar */
+
+#toolbar {
+    position: absolute;
+    width: 10%; /* Note: should match remaining width from #debug-window-tabview .unity-tab-view__content-viewport */
+    height: var(--toolbar-height);
+    background-color: var(--tab-background-color);
+    flex-direction: row;
+    justify-content: flex-end;
+    right: 0;
+}
+
+#btn-reset {
+    position: relative;
+    padding: 6px;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin: 8px;
+    align-content: center;
+    align-self: center;
+    -unity-text-align: middle-center;
+    background-color: var(--widget-background-color);
+    border-color: var(--widget-border-color);
+    border-radius: 4px;
+}
+
+#btn-reset:hover {
+    background-color: var(--widget-background-color-hover);
+}
+
+.debug-window-objectfield {
+    margin-left: 8px;
+}
+
+.debug-window-messagebox {
+    background-color: var(--helpbox-background);
+}
+
+.debug-window-basefield_boolean .unity-base-field__input {
+    margin-left: 4px;
+}
+
+.debug-window-button {
+    -unity-text-align: middle-center;
+    background-color: var(--widget-background-color);
+    border-color: var(--widget-border-color);
+    border-radius: 4px;
+}
+
+.debug-window-stepper-button {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.debug-window-stepper-field > .unity-base-field__input {
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+/* Align content of the foldouts with the text */
+.debug-window-foldout > .unity-foldout__content {
+    margin: 0px 4px 8px 12px;
+}
+
+/* TODO: Need to have highly specific selectors to override default focus styles - figure out how to do this better */
+
+.debug-window-button:enabled:hover {
+    background-color: var(--widget-background-color-hover);
+}
+
+.unity-inspector-element:focus > .unity-label {
+    color: var(--widget-focus-color);
+}
+
+.unity-inspector-element:focus:enabled > .unity-base-field__label {
+    color: var(--widget-focus-color);
+}
+
+.unity-foldout__toggle .unity-toggle__input:focus:enabled > .unity-label {
+    color: var(--widget-focus-color);
+}
+
+/* Persistent widgets */
+
+.debug-window-persistent-root {
+    background-color: var(--persistent-widget-background-color);
+    margin: 8px;
+    flex-direction: column;
+    flex-grow: 0;
+    flex-shrink: 0;
+    align-self: flex-end;
+    color: var(--text-color);
+}
+
+.debug-window-persistent-value-container {
+    flex-direction: row;
+    justify-content: space-between;
+    padding-right: 10px;
+}
+
+.debug-window-persistent-value-name {
+    min-width: 200px;
+}
+
+.debug-window-persistent-value-value {
+    min-width: 100px;
+    -unity-text-align: middle-right;
+}
+
+/* Global overrides for widget styles */
+
+#unity-checkmark {
+    -unity-background-image-tint-color: var(--checkmark-tint);
+    background-color: var(--checkmark-background);
+}
+
+.debug-window-basefield_boolean:hover  #unity-checkmark{
+    border-color: var(--checkmark-tint);
+}
+
+.unity-base-popup-field__input {
+    background-color: var(--widget-background-color);
+    border-color: var(--widget-border-color);
+}
+
+.unity-base-popup-field__input:hover {
+    background-color: var(--widget-background-color-hover);
+}
+
+/* Sometimes popupfield stays in "active" pseudostate after the popup is closed. */
+/* Fix this weird behavior by overriding the active style to be same as the non-active one. */
+.unity-base-popup-field:active:enabled > .unity-base-popup-field__input {
+    background-color: var(--widget-background-color);
+}
+
+.unity-base-popup-field__input .unity-base-popup-field__arrow {
+    -unity-background-image-tint-color: var(--checkmark-tint);
+    background-color: var(--checkmark-background);
+}
+
+.unity-base-dropdown__container-inner {
+    background-color: var(--widget-background-color);
+    border-color: var(--widget-border-color);
+}
+
+.unity-base-field .unity-button {
+    background-color: var(--widget-background-color);
+    border-color: var(--widget-border-color);
+}
+
+.unity-base-field:hover .unity-button {
+    background-color: var(--widget-background-color-hover);
+}
+.unity-base-field .unity-button:hover {
+    background-color: var(--widget-background-color-hover);
+}
+
+.unity-base-text-field__input {
+    background-color: var(--widget-background-color);
+    border-color: var(--widget-border-color);
+}
+
+Scroller #unity-tracker {
+    background-color: var(--scrollbar-tracker-color);
+    border-width: 0;
+}
+
+Scroller #unity-dragger {
+    background-color: var(--widget-background-color);
+}
+
+Scroller #unity-dragger:hover {
+    background-color: var(--widget-background-color-hover);
+}
+
+Scroller #unity-low-button {
+    border-width: 0;
+}
+
+Scroller #unity-high-button {
+    border-width: 0;
+}
+
+/* Style for Vector fields */
+.debug-window-vector2field-runtime,
+.debug-window-vector3field-runtime,
+.debug-window-vector4field-runtime
+{
+    color: var(--text-color);
+}
+
+.debug-window-stepper-field:focus
+{
+    color: var(--widget-focus-color);
+}
+
+.debug-window-stepper-field > .unity-base-field__label
+{
+    min-width:24px;
+}
+
+/* Progress Bar */
+.unity-progress-bar
+{
+    margin: 0px;
+    color: var(--text-color);
+}
+
+.unity-progress-bar__background
+{
+    background-color: var(--widget-border-color);
+    border-width: 0px;
+    border-radius: 4px;
+}
+
+.unity-progress-bar__progress
+{
+    margin: 0px;
+    background-color: var(--widget-focus-color);
+    border-radius: 4px;
+}
+
+
+

@@ -524,6 +524,9 @@ namespace UnityEngine.Rendering.Tests
         [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
         public void TestCPULODCrossfade()
         {
+            if (Coverage.enabled)
+                Assert.Ignore("Test disabled for code coverage runs.");
+                
             var expectedMeshIDs = new List<uint>();
             var expectedFlags = new List<BatchDrawCommandFlags>();
             var expectedDrawCommandCount = new BoxedCounter();
@@ -671,6 +674,9 @@ namespace UnityEngine.Rendering.Tests
         [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
         public void TestGpuDrivenSmallMeshCulling()
         {
+            if (Coverage.enabled)
+                Assert.Ignore("Test disabled for code coverage runs.");
+
             var expectedMeshIDs = new List<int>();
             var expectedFlags = new List<BatchDrawCommandFlags>();
             var expectedDrawCommandCount = new BoxedCounter();

@@ -418,7 +418,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 var result = new PassDescriptor()
                 {
                     // Definition
-                    displayName = "Universal Forward",
+                    displayName = "ForwardLit",
                     referenceName = "SHADERPASS_FORWARD",
                     lightMode = "UniversalForward",
                     useInPreview = true,
@@ -469,7 +469,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 var result = new PassDescriptor
                 {
                     // Definition
-                    displayName = "Universal Forward Only",
+                    displayName = "ForwardLit",
                     referenceName = "SHADERPASS_FORWARDONLY",
                     lightMode = "UniversalForwardOnly",
                     useInPreview = true,

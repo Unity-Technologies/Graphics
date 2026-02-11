@@ -1565,6 +1565,48 @@ namespace UnityEditor.VFX.Test
             yield return null;
         }
 
+        [UnityTest, Description("Repro UUM-131487")]
+        public IEnumerator Convert_To_ShaderGraphOutput()
+        {
+            var vfxGraph = VFXTestCommon.MakeTemporaryGraph();
+            var output = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+            vfxGraph.AddChild(output);
+
+            var window = VFXViewWindow.GetWindow(vfxGraph.visualEffectResource, true, true);
+            Assert.IsNotNull(window);
+            window.LoadResource(vfxGraph.visualEffectResource, null);
+            yield return null;
+
+            var planarPrimitiveController = window.graphView.controller.AllSlotContainerControllers
+                .Single(x => x.model is VFXPlanarPrimitiveOutput);
+            Assert.IsNotNull(planarPrimitiveController);
+
+            var planarPrimitiveControllerUI = window.graphView.Query().OfType<VFXContextUI>().Where(o => o.controller == planarPrimitiveController).ToList().Single();
+            Assert.IsNotNull(planarPrimitiveControllerUI);
+
+            var modelSgDescriptor = VFXLibrary.GetContexts().FirstOrDefault(o => o.model is VFXComposedParticleOutput);
+            Assert.IsNotNull(modelSgDescriptor);
+
+            var fnConvertContext = planarPrimitiveControllerUI.GetType().GetMethod("ConvertContext", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.IsNotNull(fnConvertContext);
+            fnConvertContext.Invoke(planarPrimitiveControllerUI, new object[] { modelSgDescriptor.variant, planarPrimitiveControllerUI.controller.position });
+            yield return null;
+
+            var planarPrimitiveControllerWithSg = window.graphView.controller.AllSlotContainerControllers
+                .Single(x => x.model is VFXComposedParticleOutput);
+            Assert.IsNotNull(planarPrimitiveControllerWithSg);
+
+            var shaderGraphFromConversion = (planarPrimitiveControllerWithSg.model as IVFXShaderGraphOutput).GetShaderGraph();
+            Assert.IsNotNull(shaderGraphFromConversion);
+
+            var otherSgOutput = modelSgDescriptor.CreateInstance();
+            vfxGraph.AddChild(otherSgOutput);
+            var shaderGraphReference = (otherSgOutput as IVFXShaderGraphOutput).GetShaderGraph();
+            Assert.IsNotNull(shaderGraphReference);
+
+            Assert.AreEqual(AssetDatabase.GetAssetPath(shaderGraphReference), AssetDatabase.GetAssetPath(shaderGraphFromConversion));
+        }
+
         [UnityTest, Description("Repro from UUM-84060")]
         public IEnumerator CustomHLSL_Usage_In_Sample_Water_Unexpected_Dirty()
         {

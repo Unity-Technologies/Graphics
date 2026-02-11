@@ -32,6 +32,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
+        internal override bool canHideConnector => true;
 
         [SerializeField]
         internal bool isMainColor = false;

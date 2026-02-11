@@ -311,8 +311,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (panelName != null)
             {
-                var manager = DebugManager.instance;
-                manager.RequestEditorWindowPanelIndex(manager.FindPanelIndex(panelName));
+                DebugManager.instance.RequestEditorWindowPanel(panelName);
             }
         }
 

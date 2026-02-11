@@ -64,7 +64,7 @@ float3 EstimateProbeRadiance(UnifiedRT::DispatchInfo dispatchInfo, UnifiedRT::Ra
         if (bounceIndex >= RUSSIAN_ROULETTE_MIN_BOUNCES)
         {
             float p = max(pathIter.throughput.x, max(pathIter.throughput.y, pathIter.throughput.z));
-            if (rngState.GetFloatSample(RAND_DIM_RUSSIAN_ROULETTE) > p)
+            if (rngState.GetSample1D(RAND_DIM_RUSSIAN_ROULETTE) > p)
                 break;
             else
                 pathIter.throughput /= p;
@@ -87,7 +87,7 @@ void IntegrateIndirectRadiance(UnifiedRT::DispatchInfo dispatchInfo)
     rngState.Init(inProbeIdx, g_SampleOffset + inProbeSampleIdx);
 
     // TODO(pema.malling): This works but that is sort of by accident. Avoid coupling to AA (which is unrelated to probe integration). https://jira.unity3d.com/browse/LIGHT-1687
-    const float3 uniformSphereDir = MapSquareToSphere(float2(rngState.GetFloatSample(RAND_DIM_AA_X), rngState.GetFloatSample(RAND_DIM_AA_Y)));
+    const float3 uniformSphereDir = MapSquareToSphere(rngState.GetSample2D(RAND_DIM_AA));
 
     UnifiedRT::Ray ray;
     ray.origin = g_Positions[inProbeIdx];

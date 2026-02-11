@@ -107,7 +107,9 @@ public class HDRP_TestSettings_Editor : Editor
 
         if (GUILayout.Button("Fix Texts"))
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             TextMeshPixelSize[] texts = FindObjectsByType<TextMeshPixelSize>(FindObjectsSortMode.InstanceID);
+#pragma warning restore CS0618 // Type or member is obsolete
             foreach (TextMeshPixelSize text in texts)
             {
                 text.CorrectPosition();

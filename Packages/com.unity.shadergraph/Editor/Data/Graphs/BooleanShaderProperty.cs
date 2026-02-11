@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
-
+        internal override bool canHideConnector => true;
         internal override string GetPropertyAsArgumentString(string precisionString)
         {
             return $"{concreteShaderValueType.ToShaderString(precisionString)} {referenceName}";

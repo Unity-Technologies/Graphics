@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty renderScale { get; }
         public SerializedProperty upscalingFilter { get; }
 #if ENABLE_UPSCALER_FRAMEWORK
-        public SerializedProperty iUpscalerName { get; }
+        public SerializedProperty selectedUpscalerName { get; }
 
         public SerializedProperty upscalerOptions { get; }
 #endif
@@ -118,7 +118,7 @@ namespace UnityEditor.Rendering.Universal
             renderScale = serializedObject.FindProperty("m_RenderScale");
             upscalingFilter = serializedObject.FindProperty("m_UpscalingFilter");
 #if ENABLE_UPSCALER_FRAMEWORK
-            iUpscalerName = serializedObject.FindProperty("m_IUpscalerName");
+            selectedUpscalerName = serializedObject.FindProperty("m_SelectedUpscalerName");
             upscalerOptions = serializedObject.FindProperty("m_UpscalerOptions");
 #endif
             fsrOverrideSharpness = serializedObject.FindProperty("m_FsrOverrideSharpness");

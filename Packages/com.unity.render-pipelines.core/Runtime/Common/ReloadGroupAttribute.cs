@@ -1,11 +1,9 @@
 using System;
-using UnityEditor;
-using static UnityEngine.Rendering.DebugUI.Table;
 
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Attribute specifying that fields of this type should be inspected in depth by the <see cref="ResourceReloader"/>. 
+    /// Attribute specifying that fields of this type should be inspected in depth by the <see cref="ResourceReloader"/>.
     /// If the associated class instance is null, the system attempts to recreate it using its default constructor.
     /// </summary>
     /// <remarks>

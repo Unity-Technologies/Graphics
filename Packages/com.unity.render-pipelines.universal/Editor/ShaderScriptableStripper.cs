@@ -126,6 +126,7 @@ namespace UnityEditor.Rendering.Universal
         // Pass names
         public static readonly string kPassNameUniversal2D = "Universal2D";
         public static readonly string kPassNameGBuffer = "GBuffer";
+        public static readonly string kPassNameUnlit = "Unlit";
         public static readonly string kPassNameForwardLit = "ForwardLit";
         public static readonly string kPassNameDepthNormals = "DepthNormals";
         public static readonly string kPassNameXRMotionVectors = "XRMotionVectors";
@@ -729,7 +730,7 @@ namespace UnityEditor.Rendering.Universal
                     if (stripTool.StripMultiCompile(m_WriteRenderingLayers, ShaderFeatures.DepthNormalPassRenderingLayers))
                         return true;
                 }
-                if (strippingData.passName == kPassNameForwardLit)
+                if (strippingData.passName == kPassNameForwardLit || strippingData.passName == kPassNameUnlit)
                 {
                     if (stripTool.StripMultiCompile(m_WriteRenderingLayers, ShaderFeatures.OpaqueWriteRenderingLayers))
                         return true;

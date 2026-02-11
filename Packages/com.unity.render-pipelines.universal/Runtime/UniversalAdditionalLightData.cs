@@ -80,11 +80,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns the cached light component associated with the game object that owns this light data.
         /// </summary>
-#if UNITY_EDITOR
-        internal new Light light
-#else
         internal Light light
-#endif
         {
             get
             {

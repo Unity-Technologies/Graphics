@@ -35,8 +35,10 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            if (cameraData.imageScalingMode != ImageScalingMode.Upscaling)
+                return;
 
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             var sourceTexture = resourceData.cameraColor;
             var srcDesc = sourceTexture.GetDescriptor(renderGraph);
 
@@ -67,7 +69,8 @@ namespace UnityEngine.Rendering.Universal
                 motionData = additionalCameraData.motionVectorsPersistentData;
                 Debug.Assert(motionData != null);
             }
-            io.cameraInstanceID = cameraData.camera.GetEntityId();
+
+            io.cameraInstanceID = cameraData.camera.GetEntityId().GetRawData();
             io.nearClipPlane = cameraData.camera.nearClipPlane;
             io.farClipPlane = cameraData.camera.farClipPlane;
             io.fieldOfViewDegrees = cameraData.camera.fieldOfView;

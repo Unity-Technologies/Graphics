@@ -51,9 +51,9 @@
             "define": "ENABLE_PHYSICS_MODULE"
         },
         {
-          "name": "com.unity.ugui",
-          "expression": "1.0.0",
-          "define": "ENABLE_UGUI_PACKAGE"
+            "name": "com.unity.modules.uielements",
+            "expression": "1.0.0",
+            "define": "ENABLE_UIELEMENTS_MODULE"
         }
     ],
     "noEngineReferences": false

@@ -66,6 +66,8 @@ namespace UnityEngine.Rendering
             };
 
             m_Settings.ForEach(onExecute);
+
+            DebugDisplaySerializer.LoadFoldoutStates();
         }
 
         /// <summary>
@@ -73,6 +75,8 @@ namespace UnityEngine.Rendering
         /// </summary>
         public void UnregisterDebug()
         {
+            DebugDisplaySerializer.SaveFoldoutStates();
+
             DebugManager debugManager = DebugManager.instance;
 
             if (m_DisposablePanels != null)

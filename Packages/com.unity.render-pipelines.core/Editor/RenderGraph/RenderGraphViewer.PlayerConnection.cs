@@ -8,19 +8,20 @@ namespace UnityEditor.Rendering
     {
         class PlayerConnection : IDisposable
         {
-            IConnectionState m_ConnectionState;
-
-            bool m_EditorQuitting;
+            public IConnectionState connectionState { get; private set; }
 
             readonly UnityEngine.Events.UnityAction<int> m_OnPlayerConnected;
             readonly UnityEngine.Events.UnityAction<int> m_OnPlayerDisconnected;
 
-            public PlayerConnection(IConnectionState connectionState, UnityEngine.Events.UnityAction<int> onPlayerConnected, UnityEngine.Events.UnityAction<int> onPlayerDisconnected)
+            public PlayerConnection(EditorWindow rgvWindow, UnityEngine.Events.UnityAction<int> onPlayerConnected, UnityEngine.Events.UnityAction<int> onPlayerDisconnected)
             {
-                m_ConnectionState = connectionState;
+                connectionState = PlayerConnectionGUIUtility.GetConnectionState(rgvWindow);
                 m_OnPlayerConnected = onPlayerConnected;
                 m_OnPlayerDisconnected = onPlayerDisconnected;
+            }
 
+            public void Connect()
+            {
                 EditorConnection.instance.Initialize();
                 EditorConnection.instance.RegisterConnection(m_OnPlayerConnected);
                 EditorConnection.instance.RegisterDisconnection(m_OnPlayerDisconnected);
@@ -28,19 +29,19 @@ namespace UnityEditor.Rendering
 
             public void Dispose()
             {
-                if (m_ConnectionState != null)
+                if (connectionState != null)
                 {
                     EditorConnection.instance.UnregisterConnection(m_OnPlayerConnected);
                     EditorConnection.instance.UnregisterDisconnection(m_OnPlayerDisconnected);
 
-                    m_ConnectionState.Dispose();
-                    m_ConnectionState = null;
+                    connectionState.Dispose();
+                    connectionState = null;
                 }
             }
 
             public void OnConnectionDropdownIMGUI()
             {
-                PlayerConnectionGUILayout.ConnectionTargetSelectionDropdown(m_ConnectionState, EditorStyles.toolbarDropDown, 250);
+                PlayerConnectionGUILayout.ConnectionTargetSelectionDropdown(connectionState, EditorStyles.toolbarDropDown, 250);
             }
         }
     }

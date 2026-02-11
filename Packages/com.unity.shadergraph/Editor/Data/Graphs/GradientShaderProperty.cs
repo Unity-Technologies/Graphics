@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph
         internal override bool isExposable => false;
         internal override bool isRenamable => true;
 
+        internal override bool canHideConnector => true;
         internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => false; // disable UI, nothing to choose
 
         internal override void ForeachHLSLProperty(Action<HLSLProperty> action)

@@ -38,7 +38,7 @@ namespace UnityEditor.Rendering.Tests
 
                     public StatsPanel()
                     {
-                        AddWidget(new DebugUI.BoolField() { displayName = "element", flags = DebugUI.Flags.FrequentlyUsed });
+                        AddWidget(new DebugUI.BoolField() { displayName = "element" });
                     }
                 }
 
@@ -58,7 +58,7 @@ namespace UnityEditor.Rendering.Tests
 
                     public StatsPanel()
                     {
-                        AddWidget(new DebugUI.BoolField() { displayName = "element", flags = DebugUI.Flags.FrequentlyUsed });
+                        AddWidget(new DebugUI.BoolField() { displayName = "element" });
                     }
                 }
 
@@ -78,7 +78,7 @@ namespace UnityEditor.Rendering.Tests
 
                     public StatsPanel()
                     {
-                        AddWidget(new DebugUI.BoolField() { displayName = "element", flags = DebugUI.Flags.FrequentlyUsed });
+                        AddWidget(new DebugUI.BoolField() { displayName = "element" });
                     }
                 }
 

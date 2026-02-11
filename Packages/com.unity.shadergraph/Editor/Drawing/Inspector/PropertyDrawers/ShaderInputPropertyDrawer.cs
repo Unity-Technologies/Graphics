@@ -68,6 +68,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         const string m_EnumRefDisallowedPattern = @"(?:[^A-Za-z_0-9_.])";
         const string m_AttributeValueDisallowedPattern = @"(?:[^A-Za-z_0-9._ ])";
 
+        const string kHDRTextureToggleTooltip =
+            "When enabled, any node which samples this texture will automatically decode the sampled value" +
+            " if the texture was stored using an encoded HDR format such as dLDR.";
+
         public ShaderInputPropertyDrawer()
         {
             greyLabel = new GUIStyle(EditorStyles.label);
@@ -156,6 +160,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             BuildDisplayNameField(propertySheet);
             BuildReferenceNameField(propertySheet);
             BuildPromoteField(propertySheet);
+            BuildNoConnectorField(propertySheet);
             BuildPropertyFields(propertySheet);            
             BuildKeywordFields(propertySheet, shaderInput);
             BuildDropdownFields(propertySheet, shaderInput);
@@ -216,6 +221,27 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 "Promote to final Shader",
                 out var promoteToggleVisualElement,
                 tooltip: "Promote this as a material property to the final shader. It will not show up as an input port on the Subgraph Node."));
+        }
+
+        void BuildNoConnectorField(PropertySheet propertySheet)
+        {
+            if (shaderInput is not AbstractShaderProperty property)
+                return;
+            if (!isSubGraph || property.promoteToFinalShader || property.hidden || !property.canHideConnector)
+                return;
+
+            var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
+            propertySheet.Add(toggleDataPropertyDrawer.CreateGUI(
+                evt =>
+                {
+                    this._preChangeValueCallback("Change disable connector toggle");
+                    property.hideConnector = evt.isOn;
+                    this._postChangeValueCallback(true, ModificationScope.Topological);
+                },
+                new ToggleData(property.hideConnector),
+                "Disable connector",
+                out _,
+                tooltip: "Select this to prevent a port from appearing on the subgraph."));
         }
 
         void BuildExposedField(PropertySheet propertySheet)
@@ -617,7 +643,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         void HandleVector1ShaderProperty(PropertySheet propertySheet, Vector1ShaderProperty vector1ShaderProperty)
         {
-            if (shaderInput.isExposed && (!isSubGraph || shaderInput.promoteToFinalShader) && !isCurrentPropertyGlobal)
+            if (shaderInput.isExposed && (!isSubGraph || shaderInput.promoteToFinalShader) && !isCurrentPropertyGlobal || isSubGraph && !shaderInput.promoteToFinalShader)
             {
                 var enumPropertyDrawer = new EnumPropertyDrawer();
                 propertySheet.Add(enumPropertyDrawer.CreateGUI(
@@ -626,33 +652,36 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         this._preChangeValueCallback("Change Vector1 Mode");
                         vector1ShaderProperty.floatType = (FloatType)newValue;
                         this._postChangeValueCallback(true);
+                        this._dropdownChangedCallback();
                     },
                     vector1ShaderProperty.floatType,
                     "Mode",
                     FloatType.Default,
                     out var modePropertyEnumField,
-                    tooltip: "Indicate how this float property should appear in the material inspector UI."));
+                    tooltip: isSubGraph ? "Indicate which editor should appear on the node." : "Indicate how this float property should appear in the material inspector UI."));
             }
 
-            var floatType = (!shaderInput.isExposed || isSubGraph || isCurrentPropertyGlobal) && !shaderInput.promoteToFinalShader ? FloatType.Default : vector1ShaderProperty.floatType;
+            var floatType = vector1ShaderProperty.floatType;
             // Handle vector 1 mode parameters
             switch (floatType)
             {
                 case FloatType.Slider:
-                    var sliderTypePropertyDrawer = new EnumPropertyDrawer();
-                    propertySheet.Add(sliderTypePropertyDrawer.CreateGUI(
-                        newValue =>
-                        {
-                            this._preChangeValueCallback("Change Slider Type");
-                            vector1ShaderProperty.sliderType = (SliderType)newValue;
-                            this._postChangeValueCallback(true);
-                        },
-                        vector1ShaderProperty.sliderType,
-                    "Slider Type",
-                        SliderType.Default,
-                        out var sliderTypePropertyEnumField,
-                        tooltip: "Set the Slider type."));
-
+                    if (!isSubGraph) // slider type isn't supported in subgraphs
+                    {
+                        var sliderTypePropertyDrawer = new EnumPropertyDrawer();
+                        propertySheet.Add(sliderTypePropertyDrawer.CreateGUI(
+                            newValue =>
+                            {
+                                this._preChangeValueCallback("Change Slider Type");
+                                vector1ShaderProperty.sliderType = (SliderType)newValue;
+                                this._postChangeValueCallback(true);
+                            },
+                            vector1ShaderProperty.sliderType,
+                        "Slider Type",
+                            SliderType.Default,
+                            out var sliderTypePropertyEnumField,
+                            tooltip: "Set the Slider type."));
+                    }
                     var floatPropertyDrawer = new FloatPropertyDrawer();
                     // Default field
                     propertySheet.Add(floatPropertyDrawer.CreateGUI(
@@ -785,6 +814,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                             this._preChangeValueCallback("Change Enum Type");
                             vector1ShaderProperty.enumType = (EnumType)newValue;
                             this._postChangeValueCallback(true);
+                            this._dropdownChangedCallback();
                         },
                         (EnumTypeForUI)vector1ShaderProperty.enumType,
                         "Enum Type",
@@ -807,10 +837,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                                     newValue = GetSanitizedEnumRefName(newValue);
                                     vector1ShaderProperty.cSharpEnumString = newValue;
                                     this._postChangeValueCallback(true);
+                                    this._dropdownChangedCallback();
                                 },
                                 vector1ShaderProperty.cSharpEnumString,
                                 "C# Enum Type",
-                                tooltip: "Enter an Enum type."));
+                                tooltip: "Enter a fully qualified enum type name."));
+
+                            if (string.IsNullOrEmpty(vector1ShaderProperty.cSharpEnumString))
+                                propertySheet.Add(new HelpBoxRow($"Type name string is empty, must be a fully qualified enum type name.", MessageType.Error));
+                            else if (vector1ShaderProperty.cSharpEnumType == null)
+                                propertySheet.Add(new HelpBoxRow($"Type of '{vector1ShaderProperty.cSharpEnumString}' could not be found or is not an enum type.", MessageType.Error));
                             break;
                         case EnumType.KeywordEnum:
                         default:
@@ -1020,6 +1056,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     new ToggleData(texture2DProperty.useTexelSize, true),
                     "Use TexelSize",
                     out var texelSizeToggle));
+                    propertySheet.Add(togglePropertyDrawer.CreateGUI(
+                    newValue =>
+                    {
+                        this._preChangeValueCallback("Change Is HDR");
+                        if (texture2DProperty.isHDR == newValue.isOn)
+                            return;
+                        texture2DProperty.isHDR = newValue.isOn;
+                        this._postChangeValueCallback(modificationScope: ModificationScope.Graph);
+                    },
+                    new ToggleData(texture2DProperty.isHDR, true),
+                    "Is HDR",
+                    out var isHDRToggle,
+                    tooltip: kHDRTextureToggleTooltip));
             }
         }
 
@@ -1037,6 +1086,24 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 isCurrentPropertyGlobal ? "Preview Value" : "Default Value",
                 out var texture2DArrayField
             ));
+
+            if (!isSubGraph || shaderInput.promoteToFinalShader)
+            {
+                var togglePropertyDrawer = new ToggleDataPropertyDrawer();
+                propertySheet.Add(togglePropertyDrawer.CreateGUI(
+                newValue =>
+                {
+                    this._preChangeValueCallback("Change Is HDR");
+                    if (texture2DArrayProperty.isHDR == newValue.isOn)
+                        return;
+                    texture2DArrayProperty.isHDR = newValue.isOn;
+                    this._postChangeValueCallback(modificationScope: ModificationScope.Graph);
+                },
+                new ToggleData(texture2DArrayProperty.isHDR, true),
+                "Is HDR",
+                out var isHDRToggle,
+                tooltip: kHDRTextureToggleTooltip));
+            }
         }
 
         #region VT reorderable list handler
@@ -1296,6 +1363,24 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 isCurrentPropertyGlobal ? "Preview Value" : "Default Value",
                 out var texture3DField
             ));
+
+            if (!isSubGraph || shaderInput.promoteToFinalShader)
+            {
+                ToggleDataPropertyDrawer togglePropertyDrawer = new ToggleDataPropertyDrawer();
+                propertySheet.Add(togglePropertyDrawer.CreateGUI(
+                    newValue =>
+                    {
+                        this._preChangeValueCallback("Change Is HDR");
+                        if (texture3DShaderProperty.isHDR == newValue.isOn)
+                            return;
+                        texture3DShaderProperty.isHDR = newValue.isOn;
+                        this._postChangeValueCallback(modificationScope: ModificationScope.Graph);
+                    },
+                    new ToggleData(texture3DShaderProperty.isHDR, true),
+                    "Is HDR",
+                    out var isHDRToggle,
+                    tooltip: kHDRTextureToggleTooltip));
+            }
         }
 
         void HandleCubemapProperty(PropertySheet propertySheet, CubemapShaderProperty cubemapProperty)
@@ -1312,6 +1397,24 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 isCurrentPropertyGlobal ? "Preview Value" : "Default Value",
                 out var propertyCubemapField
             ));
+
+            if (!isSubGraph || shaderInput.promoteToFinalShader)
+            {
+                ToggleDataPropertyDrawer togglePropertyDrawer = new ToggleDataPropertyDrawer();
+                propertySheet.Add(togglePropertyDrawer.CreateGUI(
+                    newValue =>
+                    {
+                        this._preChangeValueCallback("Change Is HDR");
+                        if (cubemapProperty.isHDR == newValue.isOn)
+                            return;
+                        cubemapProperty.isHDR = newValue.isOn;
+                        this._postChangeValueCallback(modificationScope: ModificationScope.Graph);
+                    },
+                    new ToggleData(cubemapProperty.isHDR, true),
+                    "Is HDR",
+                    out var isHDRToggle,
+                    tooltip: kHDRTextureToggleTooltip));
+            }
         }
 
         void HandleBooleanProperty(PropertySheet propertySheet, BooleanShaderProperty booleanProperty)
@@ -1808,6 +1911,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         vector1Property.enumValues[index] = value;
 
                         this._postChangeValueCallback(true);
+                        this._dropdownChangedCallback();
                     }
                 };
 
@@ -1826,6 +1930,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
                     // Update GUI
                     this._postChangeValueCallback(true);
+                    this._dropdownChangedCallback();
                     m_EnumSelectedIndex = list.count - 1;
                 };
 
@@ -1840,6 +1945,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
                     // Rebuild();
                     this._postChangeValueCallback(true);
+                    this._dropdownChangedCallback();
                     m_EnumSelectedIndex = m_EnumSelectedIndex >= list.list.Count - 1 ? list.list.Count - 1 : m_EnumSelectedIndex;
                 };
 
@@ -1878,6 +1984,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     vector1Property.enumNames.Insert(newIndex, name);
                     vector1Property.enumValues.Insert(newIndex, value);
                     this._postChangeValueCallback(true);
+                    this._dropdownChangedCallback();
                 };
             }
         }
@@ -1961,7 +2068,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     else if (int.TryParse(displayName, out int intVal) || float.TryParse(displayName, out float floatVal))
                         Debug.LogWarning("Invalid display name. Display names cannot be valid integer or floating point numbers.");
                     else
-                        keyword.entries[index] = new KeywordEntry(GetFirstUnusedKeywordID(), displayName, referenceName);
+                        keyword.entries[index] = new KeywordEntry(entry.id, displayName, referenceName);
 
                     this._postChangeValueCallback(true);
                 }

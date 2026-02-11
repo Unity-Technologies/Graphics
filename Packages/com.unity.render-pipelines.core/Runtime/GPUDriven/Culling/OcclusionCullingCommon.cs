@@ -247,13 +247,12 @@ namespace UnityEngine.Rendering
         {
             OccluderContext.SetKeyword(cmd, shader.cs, shader.occlusionDebugKeyword, useOcclusionDebug);
 
-            var debugStats = GPUResidentDrawer.GetDebugStats();
-
+            var debugDisplaySettings = GPUResidentDrawer.debugDisplaySettings;
             m_CommonShaderVariables[0] = new OcclusionCullingCommonShaderVariables(
                 in occluderCtx,
                 subviewSettings,
-                debugStats?.occlusionOverlayCountVisible ?? false,
-                debugStats?.overrideOcclusionTestToAlwaysPass ?? false);
+                debugDisplaySettings?.occlusionTestOverlayCountVisible ?? false,
+                debugDisplaySettings?.overrideOcclusionTestToAlwaysPass ?? false);
             cmd.SetBufferData(m_CommonConstantBuffer, m_CommonShaderVariables);
 
             cmd.SetComputeConstantBufferParam(shader.cs, ShaderIDs.OcclusionCullingCommonShaderVariables, m_CommonConstantBuffer, 0, m_CommonConstantBuffer.stride);
@@ -285,7 +284,7 @@ namespace UnityEngine.Rendering
         {
             if (debugSettings == null)
                 return;
-            if (!debugSettings.occlusionTestOverlayEnable)
+            if (!debugSettings.occlusionTestOverlayEnabled)
                 return;
 
             OcclusionCullingDebugOutput debugOutput = GetOcclusionTestDebugOutput(viewID);

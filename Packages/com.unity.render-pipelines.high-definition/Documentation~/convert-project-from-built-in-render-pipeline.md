@@ -8,3 +8,4 @@ The High Definition Render Pipeline (HDRP) uses a new set of shaders and lightin
 | [Convert lighting and shadows](convert-from-built-in-convert-lighting-and-shadows.md) | Convert a project to physical Light units to control the intensity of Lights, instead of the arbitrary units the Built-in Render Pipeline uses. | 
 | [Convert materials and shaders](convert-from-built-in-convert-materials-and-shaders.md) | Upgrade the materials in your scene to HDRP-compatible materials, either automatically or manually. |
 | [Convert project with HDRP wizard](convert-from-built-in-convert-project-with-hdrp-wizard.md) | Add the HDRP package to a Built-in Render Pipeline project and set up HDRP. |
+| [Render Pipeline Converter window reference](rp-converter.md) | Explore the settings in the Render Pipeline Converter. |

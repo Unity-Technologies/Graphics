@@ -19,15 +19,15 @@ using UnityEditor;
 #endif
 static class RegisterFSR2
 {
-    static RegisterFSR2() => UpscalerRegistry.Register<FSR2IUpscaler, FSR2Options>(FSR2IUpscaler.UPSCALER_NAME);
+    static RegisterFSR2() => UpscalerRegistry.Register<FSR2IUpscaler, FSR2Options>(FSR2IUpscaler.upscalerName);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    static void InitRuntime() => UpscalerRegistry.Register<FSR2IUpscaler, FSR2Options>(FSR2IUpscaler.UPSCALER_NAME);
+    static void InitRuntime() => UpscalerRegistry.Register<FSR2IUpscaler, FSR2Options>(FSR2IUpscaler.upscalerName);
 }
 
 public class FSR2IUpscaler : AbstractUpscaler
 {
-    public static readonly string UPSCALER_NAME = "FSR2 (IUpscaler)";
+    public static readonly string upscalerName = "FidelityFX Super Resolution 2";
 
 #region FSR2_UTILITIES
     static bool CheckFSR2FeatureAvailable()
@@ -121,11 +121,9 @@ public class FSR2IUpscaler : AbstractUpscaler
         m_FSR2Ready = true;
     }
 
-    public override string GetName() 
-    {
-        return UPSCALER_NAME;
-    }
-    public override bool IsTemporalUpscaler() { return true; }
+    public override string name => upscalerName;
+    public override bool isTemporal => true;
+    public override bool supportsSharpening => true;
 
     public override void CalculateJitter(int frameIndex, out Vector2 jitter, out bool allowScaling)
     {
@@ -158,11 +156,11 @@ public class FSR2IUpscaler : AbstractUpscaler
 
     public override void NegotiatePreUpscaleResolution(ref Vector2Int preUpscaleResolution, Vector2Int postUpscaleResolution)
     {
-        if (m_Options.FixedResolutionMode)
+        if (m_Options.fixedResolutionMode)
         {
             Debug.Assert(GraphicsDevice.device != null);
 
-            FSR2Quality qualityMode = (FSR2Quality)m_Options.FSR2QualityMode;
+            FSR2Quality qualityMode = (FSR2Quality)m_Options.fsr2QualityMode;
             GraphicsDevice.device.GetRenderResolutionFromQualityMode(qualityMode,
                 (uint)postUpscaleResolution.x,
                 (uint)postUpscaleResolution.y,
@@ -217,8 +215,8 @@ public class FSR2IUpscaler : AbstractUpscaler
             // setup pass data (UpscalingIO --> FSR2GraphData)
             passData.shouldReinitializeContext = ShouldResetFSR2Context(io);
 
-            passData.execData.enableSharpening = m_Options.EnableSharpening ? 1 : 0;
-            passData.execData.sharpness = m_Options.Sharpness;
+            passData.execData.enableSharpening = m_Options.enableSharpening ? 1 : 0;
+            passData.execData.sharpness = m_Options.sharpness;
             passData.execData.MVScaleX = motionVectorSign * motionVectorScaleX;
             passData.execData.MVScaleY = motionVectorSign * motionVectorScaleY;
             passData.execData.renderSizeWidth = (uint)io.preUpscaleResolution.x;

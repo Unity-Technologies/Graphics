@@ -48,12 +48,7 @@ half4 _BlackTex_ST = half4(1,1,0,0);
 
 UnityTexture2D TerrainBuildUnityTexture2DStructInternal(Texture2D tex, SamplerState samplerstate, float4 texelSize, float4 scaleTranslate)
 {
-    UnityTexture2D result;
-    result.tex = tex;
-    result.samplerstate = samplerstate;
-    result.texelSize = texelSize;
-    result.scaleTranslate = scaleTranslate;
-    return result;
+    return UnityBuildTexture2DStructInternal(tex, samplerstate, texelSize, scaleTranslate, float4(0, 0, 0, 0));
 }
 
 #define DEF_TERRAIN_TEXTURE_LOAD(name, defaultName) UnityTexture2D TerrainBuildUnityTexture2DStructInternal##name(int index)     \

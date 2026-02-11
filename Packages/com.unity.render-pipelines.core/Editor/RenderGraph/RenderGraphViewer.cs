@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.Networking.PlayerConnection;
 using UnityEditor.Rendering.Analytics;
-using UnityEditor.Toolbars;
 using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.Networking.PlayerConnection;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Scripting.APIUpdating;
@@ -125,9 +124,6 @@ namespace UnityEditor.Rendering
         bool m_Paused = false;
 
         static EntityId s_EditorWindowEntityId;
-        DateTime m_LastDataCaptureTime = DateTime.MinValue;
-        string m_ConnectedDeviceName = "Local Editor";
-        bool m_IsDeviceConnected = true;
 
         bool HasValidDebugData => m_CurrentDebugData != null && m_CurrentDebugData.valid;
 
@@ -889,7 +885,11 @@ namespace UnityEditor.Rendering
             autoPlayToggle.text = evt.newValue ? L10n.Tr("Auto Update") : L10n.Tr("Pause");
             m_Paused = evt.newValue;
 
-            if (!m_Paused && !m_IsDeviceConnected && m_ConnectedDeviceName != k_EditorName)
+            // When enabling Auto Update, if the current debug data is from a player that is no longer connected,
+            // switch back to Editor target.
+            if (!m_Paused &&
+                RenderGraphDebugSession.currentDebugSession is RenderGraphEditorRemoteDebugSession &&
+                m_PlayerConnection.connectionState.connectedToTarget != ConnectionTarget.Player)
             {
                 ConnectDebugSession<RenderGraphEditorLocalDebugSession>();
             }
@@ -1033,7 +1033,7 @@ namespace UnityEditor.Rendering
             var passFilter = rootVisualElement.Q<ToggleDropdown>(Names.kPassFilterField);
 
             BuildEnumFlagsToggleDropdown(passFilter, m_PassFilter, kPassFilterEditorPrefsKey, val => m_PassFilter = val, true);
-            
+
             passFilter.text = L10n.Tr("Pass Filter");
         }
 
@@ -2010,17 +2010,25 @@ namespace UnityEditor.Rendering
             if (!m_Paused)
                 return;
 
-            string connectionStatus = m_IsDeviceConnected ? "Online" : "Offline";
-
-            bool isEditor = m_ConnectedDeviceName == k_EditorName;
-            string sourceLabel = isEditor ? "Source: Editor" : $"Source: {m_ConnectedDeviceName} ({connectionStatus})";
-
-            bool hasCapture = HasValidDebugData && m_LastDataCaptureTime != DateTime.MinValue;
-            string captureLabel = hasCapture ? $"Captured: {m_LastDataCaptureTime:HH:mm:ss}" : "No data captured";
-
-            string statusText = $"{sourceLabel} | {captureLabel}";
-
-            statusLabel.text = statusText;
+            if (!HasValidDebugData)
+            {
+                statusLabel.text = "No data captured";
+            }
+            else
+            {
+                string sourceLabel;
+                if (RenderGraphDebugSession.currentDebugSession is RenderGraphEditorLocalDebugSession)
+                {
+                    sourceLabel = "Editor";
+                }
+                else
+                {
+                    bool isConnected = m_PlayerConnection.connectionState.connectedToTarget == ConnectionTarget.Player;
+                    string connectionStatus = isConnected ? "Online" : "Offline";
+                    sourceLabel = $"{m_CurrentDebugData.captureSourceString} ({connectionStatus})";
+                }
+                statusLabel.text = $"Source: {sourceLabel} | Captured: {m_CurrentDebugData.captureTimestamp}";
+            }
         }
 
         void UpdateCurrentDebugData(bool force = false)
@@ -2031,10 +2039,6 @@ namespace UnityEditor.Rendering
             if (selectedExecutionItem != null)
             {
                 m_CurrentDebugData = RenderGraphDebugSession.GetDebugData(m_SelectedRenderGraph, selectedExecutionItem.id);
-
-                // Update timestamp when we get valid data, or when forcing an update
-                if (HasValidDebugData || force)
-                    m_LastDataCaptureTime = DateTime.Now;
             }
             else
             {
@@ -2047,8 +2051,6 @@ namespace UnityEditor.Rendering
                     currentGraphDropdown.style.display = DisplayStyle.None;
                 if (currentExecutionToolbarMenu != null)
                     currentExecutionToolbarMenu.style.display = DisplayStyle.None;
-
-                m_LastDataCaptureTime = DateTime.MinValue;
             }
 
             UpdateStatusLabel();
@@ -2090,31 +2092,15 @@ namespace UnityEditor.Rendering
 
             InitializeUI();
 
-            if (m_PlayerConnection == null)
-            {
-                var connectionState = PlayerConnectionGUIUtility.GetConnectionState(this);
-                m_PlayerConnection = new PlayerConnection(connectionState, OnPlayerConnected, OnPlayerDisconnected);
-
-                // Initialize device connection state right here while we have it
-                if (!string.IsNullOrEmpty(connectionState.connectionName))
-                {
-                    m_ConnectedDeviceName = connectionState.connectionName;
-                    m_IsDeviceConnected = true;
-                }
-                else
-                {
-                    m_ConnectedDeviceName = k_EditorName;
-                    m_IsDeviceConnected = true;
-                }
-
-                connectionState.Dispose(); // Dispose it immediately after use
-            }
+            m_PlayerConnection ??= new PlayerConnection(this, OnPlayerConnected, OnPlayerDisconnected);
+            m_PlayerConnection.Connect();
 
             var connectionDropdown = rootVisualElement.Q<IMGUIContainer>(Names.kConnectionDropdown);
             connectionDropdown.onGUIHandler = m_PlayerConnection.OnConnectionDropdownIMGUI;
 
             if (RenderGraphDebugSession.currentDebugSession == null)
                 ConnectDebugSession<RenderGraphEditorLocalDebugSession>();
+
             UpdateStatusLabel();
         }
 
@@ -2137,22 +2123,12 @@ namespace UnityEditor.Rendering
 
         void OnPlayerConnected(int playerID)
         {
-            // Get device name fresh when needed
-            using (var connectionState = PlayerConnectionGUIUtility.GetConnectionState(this))
-            {
-                m_ConnectedDeviceName = connectionState?.connectionName ?? $"Remote Device {playerID}";
-            }
-            m_IsDeviceConnected = true;
-
-
             ConnectDebugSession<RenderGraphEditorRemoteDebugSession>();
+            RenderGraphDebugSession.currentDebugSession.connectionName = m_PlayerConnection.connectionState.connectionName;
         }
 
         void OnPlayerDisconnected(int playerID)
         {
-            m_IsDeviceConnected = false;
-            m_ConnectedDeviceName = k_EditorName;
-
             if (!m_Paused)
             {
                 var autoPlayToggle = rootVisualElement.Q<ToolbarToggle>(Names.kAutoPauseToggle);
@@ -2175,22 +2151,10 @@ namespace UnityEditor.Rendering
         internal void ConnectDebugSession<TSession>()
             where TSession : RenderGraphDebugSession, new()
         {
-            if (typeof(TSession) == typeof(RenderGraphEditorLocalDebugSession))
-            {
-                if (m_ConnectedDeviceName == "Unknown" || m_ConnectedDeviceName == k_EditorName)
-                {
-                    m_ConnectedDeviceName = k_EditorName;
-                    m_IsDeviceConnected = true;
-                }
-            }
-
-            //If we are paused, we need to force update the current debug data once to ensure that the UI is up to date when the
-            //connection changes
+            // If we are paused, we need to force update the current debug data once to ensure that the UI is up to date when the
+            // connection changes
             if (m_Paused)
                 OnRegisteredGraphsChangedInternal(true);
-
-            if (RenderGraphDebugSession.currentDebugSession?.GetType() == typeof(TSession))
-                return;
 
             DisconnectDebugSession();
 
@@ -2210,9 +2174,7 @@ namespace UnityEditor.Rendering
             RenderGraphDebugSession.onRegisteredGraphsChanged -= OnRegisteredGraphsChanged;
             RenderGraphDebugSession.onDebugDataUpdated -= OnDebugDataUpdated;
 
-            m_IsDeviceConnected = false;
             UpdateStatusLabel();
-
             ClearGraphViewerUI();
         }
     }

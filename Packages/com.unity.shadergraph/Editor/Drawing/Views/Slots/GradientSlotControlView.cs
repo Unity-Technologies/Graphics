@@ -24,7 +24,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
         public GradientSlotControlView(GradientInputMaterialSlot slot)
         {
             m_Slot = slot;
-            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/GradientSlotControlView"));
+            if (!slot.hideConnector)
+                styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/GradientSlotControlView"));
+            else styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/GradientControlView"));
 
             m_GradientObject = ScriptableObject.CreateInstance<GradientObject>();
             m_GradientObject.gradient = new Gradient();
@@ -33,7 +35,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
             m_GradientObject.gradient.SetKeys(m_Slot.value.colorKeys, m_Slot.value.alphaKeys);
             m_GradientObject.gradient.mode = m_Slot.value.mode;
 
-            var gradientField = new GradientField() { value = m_GradientObject.gradient, colorSpace = ColorSpace.Linear, hdr = true };
+            var gradientField = new GradientField() { label = m_Slot.hideConnector ? m_Slot.RawDisplayName() : null, value = m_GradientObject.gradient, colorSpace = ColorSpace.Linear, hdr = true };
             gradientField.RegisterValueChangedCallback(OnValueChanged);
             Add(gradientField);
         }

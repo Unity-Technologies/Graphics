@@ -184,7 +184,7 @@ namespace UnityEditor.Rendering
     }
 
     public abstract partial class DefaultVolumeProfileSettingsPropertyDrawer
-    {        
+    {
         /// <summary>
         /// Context menu implementation for Default Volume Profile.
         /// </summary>
@@ -210,7 +210,7 @@ namespace UnityEditor.Rendering
     /// Builtin Drawer for Maskfield Debug Items.
     /// </summary>
     [DebugUIDrawer(typeof(DebugUI.MaskField))]
-    [Obsolete("DebugUI.MaskField has been deprecated and is not longer supported, please use BitField instead. #from(6000.2)")]
+    [Obsolete("DebugUI.MaskField has been deprecated and is not longer supported, please use BitField instead. #from(6000.2)", true)]
     public sealed class DebugUIDrawerMaskField : DebugUIFieldDrawer<uint, DebugUI.MaskField, DebugStateUInt>
     {
         /// <summary>

@@ -85,7 +85,7 @@ namespace UnityEditor.Rendering.Converter
 
         internal List<IRenderPipelineConverterItem> assets = new();
 
-        public RenderPipelineConverterMaterialUpgrader()
+        public void Scan(Action<List<IRenderPipelineConverterItem>> onScanFinish)
         {
             m_UpgradersCache = upgraders;
 
@@ -94,10 +94,7 @@ namespace UnityEditor.Rendering.Converter
                 Debug.Log($"No upgraders specified for this converter ({GetType()}). Skipping Initialization.");
                 return;
             }
-        }
 
-        public void Scan(Action<List<IRenderPipelineConverterItem>> onScanFinish)
-        {
             var materialsGroupByShader = MaterialFinder.GroupAllMaterialsInProject();
             using (HashSetPool<string>.Get(out var destinationShaders))
             {

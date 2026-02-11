@@ -27,9 +27,13 @@ HlslFunctionView > #Row {
     margin-bottom: 0;
 }
 
+.unity-base-text-field {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
 .unity-base-text-field__input {
     flex-direction: column;
-    flex-grow: 1;
     -unity-text-align: upper-left;
     overflow: hidden;
 }

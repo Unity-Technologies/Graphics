@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.Analytics;
 
 namespace UnityEditor.ShaderGraph
@@ -67,6 +68,9 @@ namespace UnityEditor.ShaderGraph
                 {
                     foreach (var target in graph.activeTargets)
                     {
+                        if (target is null or MultiJsonInternal.UnknownTargetType || target.objectIdIsEmpty || target.activeSubTarget is null || target.activeSubTarget.objectIdIsEmpty)
+                            continue;
+
                         switch (target.GetType().Name)
                         {
                             case "HDTarget":
@@ -81,13 +85,23 @@ namespace UnityEditor.ShaderGraph
                             case "BuiltInTarget": builtin_material = target.activeSubTarget?.displayName; break;
                             case "CustomRenderTextureTarget": rt_material = target.activeSubTarget?.displayName; break;
                             case "VFXTarget": vfx_legacy = target.SupportsVFX(); break;
+                            default: continue;
                         }
+
+                        if (target.SearchTerms != null)
+                            foreach (var term in target.SearchTerms)
+                                additional_terms.Add($"{term.key}_{term.value}");
+
+                        if (target.activeSubTarget.SearchTerms != null)
+                            foreach (var term in target.activeSubTarget.SearchTerms)
+                                additional_terms.Add($"{term.key}_{term.value}");
                     }
 
-                    foreach (var subdata in graph.SubDatas)
+                    foreach (var subData in graph.SubDatas)
                     {
-                        if (!string.IsNullOrEmpty(subdata.displayName))
-                            additional_terms.Add(subdata.displayName);
+                        if (subData == null || subData is MultiJsonInternal.UnknownGraphDataExtension || subData.objectIdIsEmpty || string.IsNullOrEmpty(subData.displayName))
+                            continue;
+                        additional_terms.Add(subData.displayName);
                     }
                 }
             }

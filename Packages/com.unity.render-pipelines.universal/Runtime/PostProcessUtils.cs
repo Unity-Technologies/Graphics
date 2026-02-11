@@ -240,20 +240,13 @@ namespace UnityEngine.Rendering.Universal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool IsFsrEnabled(UniversalCameraData cameraData)
         {
-            return ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
-        }
-
-        // TODO: Should these methods be in UniversalCameraData?
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool IsTaaSharpeningEnabled(UniversalCameraData cameraData)
-        {
-            return (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f) && !IsFsrEnabled(cameraData) && !cameraData.IsSTPEnabled() &&
+            return ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) &&
 #if ENABLE_UPSCALER_FRAMEWORK
-                cameraData.upscalingFilter != ImageUpscalingFilter.IUpscaler
+                (cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_FSR1)
 #else
-                true
+                (cameraData.upscalingFilter == ImageUpscalingFilter.FSR)
 #endif
-                ;
+            );
         }
 
 #region HDR Output

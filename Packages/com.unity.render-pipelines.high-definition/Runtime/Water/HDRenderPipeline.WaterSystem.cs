@@ -180,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void Cleanup()
         {
             // Grab all the water surfaces in the scene. Including disabled ones (i.e. not in WaterSurface.instances).
-            var waterSurfaces = Object.FindObjectsByType<WaterSurface>(FindObjectsSortMode.None);
+            var waterSurfaces = Object.FindObjectsByType<WaterSurface>();
             int numWaterSurfaces = waterSurfaces.Length;
 
             // Loop through them and display them

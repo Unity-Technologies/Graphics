@@ -153,7 +153,7 @@ void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
     #endif
 
     #if (EMISSIVE_SAMPLING != LIGHT_SAMPLING)
-    float2 rng = float2(rngState.GetFloatSample(RAND_DIM_SURF_SCATTER_X), rngState.GetFloatSample(RAND_DIM_SURF_SCATTER_Y));
+    float2 rng = rngState.GetSample2D(RAND_DIM_SURF_SCATTER);
     EstimateMISWeightedIrradianceUsingCosineSampling(dispatchInfo, accelStruct, g_AccelStructInstanceList, origin, worldNormal, rng, irradiance, directional);
     #endif
 

@@ -28,9 +28,9 @@ namespace UnityEngine.MultipleSRPGraphicsTest
     {
         private static SRPTestSceneAsset srpTestSceneAsset = Resources.Load<SRPTestSceneAsset>("SRPTestSceneSO");
 
-        public override IEnumerable<GraphicsTestCase> GetTestCases(IMethodInfo method)
+        public override IEnumerable<GraphicsTestCase> GetTestCases(IMethodInfo methodInfo, ITest suite)
         {
-            var testCasesList = base.GetTestCases(method).ToList();
+            var testCasesList = base.GetTestCases(methodInfo, suite).ToList();
             for (int i = 0; i < testCasesList.Count; i++)
             {
                 var testCase = testCasesList[i];
@@ -38,7 +38,11 @@ namespace UnityEngine.MultipleSRPGraphicsTest
 
                 foreach (var srpAsset in srpAssets)
                 {
-                    yield return testCase with { Name = testCase.Name + "_" + srpAsset.name };
+                    yield return testCase with 
+                    {
+                        Name = testCase.Name + "_" + srpAsset.name,
+                        FullName = testCase.FullName + "_" + srpAsset.name,
+                    };
                 }
             }
         }

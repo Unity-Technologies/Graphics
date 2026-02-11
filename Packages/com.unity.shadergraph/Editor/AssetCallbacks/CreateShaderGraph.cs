@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
         /// <param name="callback">Callback to execute with the created shader graph asset.</param>
         /// <param name="templateSourcePath">Shader Graph template file. Use string.Empty for Blank Shader Graph.</param>
         /// <param name="filename">New Shader Graph filename.</param>
-        internal static void CreateFromTemplate(Action<string> callback = null, string templateSourcePath = null, string filename = null)
+        internal static void CreateFromTemplate(Action<string> callback = null, string templateSourcePath = null, string filename = null, string hiddenSearchQuery = null, string initialSearchQuery = null)
         {
             if (!string.IsNullOrEmpty(templateSourcePath))
             {
@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph
 
             if (templateSourcePath == null)
             {
-                GraphViewTemplateWindow.ShowCreateFromTemplate(shaderGraphTemplateHelper, action.CreateAndRenameGraphFromTemplate, showSaveDialog: !projectWindowIsVisible);
+                GraphViewTemplateWindow.ShowCreateFromTemplate(shaderGraphTemplateHelper, action.CreateAndRenameGraphFromTemplate, showSaveDialog: !projectWindowIsVisible, hiddenSearchQuery: hiddenSearchQuery, initialSearchQuery: initialSearchQuery);
             }
             else
             {
@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph
         /// <param name="callback">Callback to execute with the created material.</param>
         /// <param name="templateSourcePath">Shader Graph template file. Use string.Empty for Blank Shader Graph.</param>
         /// /// <param name="filename">New Shader Graph filename.</param>
-        internal static void CreateGraphAndMaterialFromTemplate(Action<Material> callback = null, string templateSourcePath = null, string filename = null)
+        internal static void CreateGraphAndMaterialFromTemplate(Action<Material> callback = null, string templateSourcePath = null, string filename = null, string hiddenSearchQuery = null, string initialSearchQuery = null)
         {
             CreateFromTemplate((template) =>
             {
@@ -113,7 +113,9 @@ namespace UnityEditor.ShaderGraph
                 }
             },
             templateSourcePath,
-            filename);
+            filename,
+            hiddenSearchQuery,
+            initialSearchQuery);
         }
     }
 }

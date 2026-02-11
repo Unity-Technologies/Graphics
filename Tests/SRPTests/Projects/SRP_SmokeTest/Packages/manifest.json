@@ -14,7 +14,8 @@
     "com.unity.test-framework": "file:../../../../../Packages/com.unity.test-framework",
     "com.unity.testframework.graphics": "file:../../../../../Tests/SRPTests/Packages/com.unity.test-framework.graphics",
     "com.unity.testing.common-graphics": "file:../../../Packages/com.unity.testing.common-graphics",
-    "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph"
+    "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
+    "com.unity.modules.uielements": "1.0.0"
   },
   "testables": [
     "com.unity.render-pipelines.core",

@@ -92,6 +92,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
         // Session is considered active when it is collecting debug data
         public abstract bool isActive { get; }
 
+        public string connectionName { get; set; }
+
         DebugDataContainer debugDataContainer { get; }
 
         protected RenderGraphDebugSession()
@@ -198,6 +200,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public static void SetDebugData(string renderGraph, EntityId executionId, DebugData data)
         {
+            data.captureSourceString = s_CurrentDebugSession.connectionName;
+            data.captureTimestamp = $"{DateTime.Now:HH:mm:ss}";
+
             s_CurrentDebugSession.debugDataContainer.SetDebugData(renderGraph, executionId, data);
             onDebugDataUpdated?.Invoke(renderGraph, executionId);
         }

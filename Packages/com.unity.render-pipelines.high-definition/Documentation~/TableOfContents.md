@@ -50,6 +50,7 @@
   * [Convert lighting and shadows](convert-from-built-in-convert-lighting-and-shadows.md)
   * [Convert materials and shaders](convert-from-built-in-convert-materials-and-shaders.md)
   * [Convert project with HDRP wizard](convert-from-built-in-convert-project-with-hdrp-wizard.md)
+  * [Render Pipeline Converter window reference](rp-converter.md)
 * [Lighting](lighting.md)
   * [Understand physical light units](Physical-Light-Units.md)
   * [Light sources](light-sources.md)
@@ -464,4 +465,5 @@
         * [Dynamic Resolution component reference](reference-dynamic-resolution.md)
         * [High Dynamic Range (HDR) tonemapping reference](reference-hdr-tonemapping.md)
         * [Custom Pass reference](custom-pass-reference.md)
+  * [Look Dev window reference](look-dev-reference.md)
   * [HDRP Glossary](Glossary.md)

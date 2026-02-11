@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             targetSettingsLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             element.Add(new PropertyRow(targetSettingsLabel));
 
-            var targetList = new ReorderableListView<JsonData<Target>>(
+            var targetList = new ReorderableTextListView<JsonData<Target>>(
                 graphData.m_ActiveTargets,
                 "Active Targets",
                 false,      // disallow reordering (active list is sorted)
@@ -122,7 +122,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 dataExtensionSettings.style.unityFontStyleAndWeight = FontStyle.Bold;
                 element.Add(new PropertyRow(dataExtensionSettings));
 
-                var extensionList = new ReorderableListView<JsonData<AbstractShaderGraphDataExtension>>(
+                var extensionList = new ReorderableTextListView<JsonData<AbstractShaderGraphDataExtension>>(
                     graphData.m_SubDatas,
                     "Active Data Extensions",
                     false,

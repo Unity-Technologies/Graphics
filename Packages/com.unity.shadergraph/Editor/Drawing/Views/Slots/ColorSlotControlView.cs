@@ -12,9 +12,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 
         public ColorRGBASlotControlView(ColorRGBAMaterialSlot slot)
         {
-            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/ColorRGBASlotControlView"));
+            if (!slot.hideConnector)
+                styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/ColorRGBASlotControlView"));
+            else styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/ColorControlView"));
             m_Slot = slot;
-            var colorField = new ColorField { value = slot.value, showEyeDropper = false };
+            var colorField = new ColorField { label = m_Slot.hideConnector ? m_Slot.RawDisplayName() : null, value = slot.value, showEyeDropper = false };
             colorField.RegisterValueChangedCallback(OnValueChanged);
             Add(colorField);
         }

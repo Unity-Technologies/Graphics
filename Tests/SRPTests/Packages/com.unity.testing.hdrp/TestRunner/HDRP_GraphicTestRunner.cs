@@ -55,9 +55,9 @@ public class HDRP_GraphicTestRunner
         for (int i = 0; i < 5; ++i)
             yield return new WaitForEndOfFrame();
 
-        settings = GameObject.FindFirstObjectByType<HDRP_TestSettings>();
+        settings = GameObject.FindAnyObjectByType<HDRP_TestSettings>();
         camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-        if (camera == null) camera = GameObject.FindFirstObjectByType<Camera>();
+        if (camera == null) camera = GameObject.FindAnyObjectByType<Camera>();
         if (camera == null)
         {
             Assert.Fail("Missing camera for graphic tests.");
@@ -103,9 +103,9 @@ public class HDRP_GraphicTestRunner
             yield return new WaitForEndOfFrame();
 
         // Need to retrieve objects again after scene reload.
-        settings = GameObject.FindFirstObjectByType<HDRP_TestSettings>();
+        settings = GameObject.FindAnyObjectByType<HDRP_TestSettings>();
         camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-        if (camera == null) camera = GameObject.FindFirstObjectByType<Camera>();
+        if (camera == null) camera = GameObject.FindAnyObjectByType<Camera>();
         if (camera == null)
         {
             Assert.Fail("Missing camera for graphic tests.");
@@ -115,7 +115,9 @@ public class HDRP_GraphicTestRunner
         HDCamera hdCamera = HDCamera.GetOrCreate(camera);
 
         //We need to get all the cameras to set accumulation in all of them for tests that uses multiple cameras
+#pragma warning disable CS0618 // Type or member is obsolete
         cameras = GameObject.FindObjectsByType<Camera>(FindObjectsSortMode.InstanceID);
+#pragma warning restore CS0618 // Type or member is obsolete
 
         //Grab the HDCameras
         hdCameras = new HDCamera[cameras.Length];
@@ -158,7 +160,9 @@ public class HDRP_GraphicTestRunner
             settings.ImageComparisonSettings.PerPixelCorrectnessThreshold *= settings.xrThresholdMultiplier;
 
             // Increase number of volumetric slices to compensate for initial half-resolution due to XR single-pass optimization
+#pragma warning disable CS0618 // Type or member is obsolete
             foreach (var volume in GameObject.FindObjectsByType<Volume>(FindObjectsSortMode.InstanceID))
+#pragma warning restore CS0618 // Type or member is obsolete
             {
                 if (volume.profile.TryGet<Fog>(out Fog fog))
                     fog.volumeSliceCount.value *= 2;
@@ -216,7 +220,7 @@ public class HDRP_GraphicTestRunner
         for (int i = 0; i < waitFrames; ++i)
             yield return new WaitForEndOfFrame();
 
-        var settingsSG = (GameObject.FindFirstObjectByType<HDRP_TestSettings>() as HDRP_ShaderGraph_TestSettings);
+        var settingsSG = (GameObject.FindAnyObjectByType<HDRP_TestSettings>() as HDRP_ShaderGraph_TestSettings);
         if (settingsSG == null || !settingsSG.compareSGtoBI)
         {
             // Standard Test

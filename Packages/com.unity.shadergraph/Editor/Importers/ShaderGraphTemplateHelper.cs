@@ -10,9 +10,6 @@ namespace UnityEditor.ShaderGraph
 {
     class ShaderGraphTemplateHelper : ITemplateHelper
     {
-        const string k_TemplateBasePath = "Packages/com.unity.shadergraph/GraphTemplates";
-        const string k_BuiltInTemplatePath = k_TemplateBasePath + "/Default";
-
         class SaveFileDialog : GraphViewTemplateWindow.ISaveFileDialogHelper
         {
             public string OpenSaveFileDialog()
@@ -27,8 +24,8 @@ namespace UnityEditor.ShaderGraph
         public string packageInfoName => "Shader Graph";
         public string learningSampleName => string.Empty;
         public string templateWindowDocUrl => Documentation.GetPageLink("index");
-        public string builtInTemplatePath => k_BuiltInTemplatePath;
-        public string builtInCategory => "Default Shader Graph Templates";
+        public string builtInTemplatePath => string.Empty;
+        public string builtInCategory => string.Empty;
         public Type assetType => typeof(Shader);
         public string createNewAssetTitle => "Create new Shader Graph Asset";
         public string insertTemplateTitle => "Insert a template into current Shader Graph Asset";
@@ -43,11 +40,12 @@ namespace UnityEditor.ShaderGraph
         public void RaiseTemplateUsed(GraphViewTemplateDescriptor usedTemplate) =>
             ShaderGraphAnalytics.SendShaderGraphTemplateEvent(usedTemplate);
 
-        public bool TryGetTemplate(string assetPath, out GraphViewTemplateDescriptor graphViewTemplate) => TryGetTemplateStatic(assetPath, out graphViewTemplate);
-        internal static bool TryGetTemplateStatic(string assetPath, out GraphViewTemplateDescriptor graphViewTemplate)
+        public bool TryGetTemplate(string assetPath, out GraphViewTemplateDescriptor graphViewTemplate) => TryGetTemplateStatic(assetPath, out graphViewTemplate, out _);
+        internal static bool TryGetTemplateStatic(string assetPath, out GraphViewTemplateDescriptor graphViewTemplate, out DataBag dataBag)
         {
             if (FileUtilities.TryGetImporter(assetPath, out var importer))
             {
+                dataBag = importer.AdditionalSearchTerms;
                 var template = importer.Template;
                 if (importer.UseAsTemplate)
                 {
@@ -79,6 +77,7 @@ namespace UnityEditor.ShaderGraph
                     description = graphViewTemplate.description,
                     icon = graphViewTemplate.icon,
                     thumbnail = graphViewTemplate.thumbnail,
+                    order = graphViewTemplate.order,
                 };
                 importer.Template = template;
                 return true;
@@ -86,7 +85,35 @@ namespace UnityEditor.ShaderGraph
             return false;
         }
 
+        internal static bool TryGetTemplateDescriptor(string assetPath, out GraphViewTemplateDescriptor graphViewTemplate)
+        {
+            if (FileUtilities.TryGetImporter(assetPath, out var importer))
+            {
+                var template = importer.Template;
+                if (importer.UseAsTemplate)
+                {
+                    var templateName = !string.IsNullOrEmpty(template.name) ? template.name : Path.GetFileNameWithoutExtension(assetPath);
+                    graphViewTemplate = new GraphViewTemplateDescriptor(ShaderGraphToolKey)
+                    {
+                        name = templateName,
+                        category = template.category,
+                        description = template.description,
+                        icon = template.icon,
+                        thumbnail = template.thumbnail,
+                        order =  template.order,
+                    };
+                    return true;
+                }
+            }
+            graphViewTemplate = default;
+            return false;
+        }
+
         public ITemplateSorter[] GetTemplateSorter() => Array.Empty<ITemplateSorter>();
-        public SearchProposition[] GetSearchPropositions() => Array.Empty<SearchProposition>();
+
+        public SearchProposition[] GetSearchPropositions()
+        {
+            return Array.Empty<SearchProposition>();
+        }
     }
 }

@@ -48,6 +48,8 @@ namespace UnityEditor.ShaderGraph
             set { m_Value = value; }
         }
 
+        internal override bool canHideConnector => true;
+
         public override bool isDefaultValue => value.Equals(defaultValue);
 
         protected override string ConcreteSlotValueAsVariable()

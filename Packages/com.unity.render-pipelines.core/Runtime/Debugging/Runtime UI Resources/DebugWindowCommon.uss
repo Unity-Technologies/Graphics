@@ -1,0 +1,110 @@
+:root {
+}
+
+/* Common */
+
+.debug-window-header-title {
+    font-size: 24px;
+    -unity-font-style: bold;
+}
+
+.unity-base-field > Label {
+    padding-left: 0; /* Remove internal label indentation from the field widgets */
+}
+
+/* Widgets */
+
+.debug-window-valuetuple {
+    flex-direction: row;
+}
+
+.debug-window-value-container {
+    flex-direction: row;
+}
+
+.debug-window-historyenum {
+    flex-direction: row;
+}
+
+.debug-window-historyenum .debug-window-enumfield {
+    margin-top: 2px;
+    padding-right: 10px;
+    margin-bottom: 2px;
+}
+
+.debug-window-historyboolfield {
+    flex-direction: row;
+}
+
+.debug-window-objectfield,
+.debug-window-objectpopupfield,
+.debug-window-enumfield {
+    flex-grow: 0;
+}
+
+/* Remove -12px for toggle for align it when used in fields */
+
+.debug-window-renderinglayerfield__content > .unity-foldout > .unity-foldout__toggle{
+    margin-left: 0px !important;
+}
+
+.debug-window-objectlistfield.unity-foldout > .unity-foldout__toggle{
+    margin-left: 0px !important;
+}
+
+/* Containers */
+
+.debug-window-container-content {
+    margin-left: 8px; /*If modified, modify it in Debug.ToVisualElement. Compensate indentation margin */
+}
+
+.debug-window-container-displayname {
+    -unity-font-style: bold;
+    margin-bottom: 4px;
+    margin-top: 6px;
+    margin-left: 3px;
+}
+
+.debug-window-foldout {
+    margin-left: 8px;
+    margin-right: -3px;
+}
+
+.debug-window-row-alternate {
+    background-color: var(--unity-colors-alternated_rows-background);
+}
+
+.debug-window-table {
+}
+
+.debug-window-table-header-row {
+    -unity-font-style: bold;
+    border-bottom-color: var(--unity-colors-app_toolbar_button-border);
+    border-bottom-width: 1px;
+}
+
+.debug-window-table-header-cell {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.debug-window-table-row {
+    flex-direction: row;
+    min-height: 16px;
+}
+
+.debug-window-table-cell {
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    padding: 2px 2px 4px 2px;
+    border-right-color: var(--unity-colors-app_toolbar_button-border);
+    border-right-width: 0px;
+    min-height: 10px;
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
+.debug-window-colorfield.debug-window-table-cell>.unity-base-field__input {
+    flex-grow: 0;
+}

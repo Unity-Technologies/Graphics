@@ -38,7 +38,7 @@ public class ShaderGraphGraphicsTests
         yield return null;
 
         var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-        var settings = Object.FindFirstObjectByType<ShaderGraphGraphicsTestSettings>();
+        var settings = Object.FindAnyObjectByType<ShaderGraphGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find ShaderGraphGraphicsTestSettings");
         settings.OnTestBegin();
 

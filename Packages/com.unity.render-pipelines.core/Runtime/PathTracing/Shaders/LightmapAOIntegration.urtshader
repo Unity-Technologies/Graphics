@@ -32,7 +32,7 @@ void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
     // now sample occlusion with the gBuffer data
     UnifiedRT::Ray ray;
     float3 origin = OffsetRayOrigin(worldPosition, worldFaceNormal, g_PushOff);
-    float3 direction = CosineSample(float2(rngState.GetFloatSample(RAND_DIM_SURF_SCATTER_X), rngState.GetFloatSample(RAND_DIM_SURF_SCATTER_Y)), worldNormal);
+    float3 direction = CosineSample(rngState.GetSample2D(RAND_DIM_SURF_SCATTER), worldNormal);
     ray.origin = origin;
     ray.direction = direction;
     ray.tMin = 0;

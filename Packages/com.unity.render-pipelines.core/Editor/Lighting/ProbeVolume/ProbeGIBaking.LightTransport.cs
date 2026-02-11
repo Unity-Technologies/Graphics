@@ -5,12 +5,6 @@ using System.Runtime.CompilerServices;
 using Unity.Collections;
 using UnityEditor;
 using UnityEngine.LightTransport;
-using UnityEngine.LightTransport.PostProcessing;
-using UnityEditor.PathTracing.LightBakerBridge;
-using UnityEngine.PathTracing.Core;
-using UnityEngine.PathTracing.Integration;
-using UnityEngine.PathTracing.PostProcessing;
-using UnityEditor.LightBaking;
 using UnityEngine.Rendering.Sampling;
 using UnityEngine.Rendering.UnifiedRayTracing;
 using UnityEngine.SceneManagement;
@@ -153,41 +147,50 @@ namespace UnityEngine.Rendering
 
                 // At this point, the baked data exists on disk. Either the regular LightBaker process wrote it,
                 // or our local BakePipeline wrote it, in case of APV-only bake.
+                for (int requestIdx = 0; requestIdx < s_BakeData.jobs.Length; requestIdx++)
                 {
-                    using NativeArray<byte> shBytes = new(System.IO.File.ReadAllBytes(System.IO.Path.Combine(APVLightBakerPostProcessingOutputFolder, "irradiance.shl2")), Allocator.TempJob);
-                    using NativeArray<SphericalHarmonicsL2> shData = shBytes.GetSubArray(sizeof(ulong), shBytes.Length - sizeof(ulong)).Reinterpret<SphericalHarmonicsL2>(sizeof(byte));
-                    irradiance.CopyFrom(shData);
-                }
-                {
-                    using NativeArray<byte> validityBytes = new(System.IO.File.ReadAllBytes(System.IO.Path.Combine(APVLightBakerOutputFolder, "validity0.float")), Allocator.TempJob);
-                    using NativeArray<float> validityData = validityBytes.GetSubArray(sizeof(ulong), validityBytes.Length - sizeof(ulong)).Reinterpret<float>(sizeof(byte));
-                    validity.CopyFrom(validityData);
-                }
-                if (occlusionResults.IsCreated)
-                {
-                    // Read LightProbeOcclusion structs from disk
-                    using NativeArray<byte> occlusionBytes = new(System.IO.File.ReadAllBytes(System.IO.Path.Combine(APVLightBakerPostProcessingOutputFolder, "occlusion.occ")), Allocator.TempJob);
-                    using NativeArray<LightProbeOcclusion> occlusionData = occlusionBytes.GetSubArray(sizeof(ulong), occlusionBytes.Length - sizeof(ulong)).Reinterpret<LightProbeOcclusion>(sizeof(byte));
+                    BakeJob job = s_BakeData.jobs[requestIdx];
+                    string probeOutputSubFolder = $"/probeRequest{requestIdx}";
+                    string outputFolder = APVLightBakerOutputFolder + probeOutputSubFolder;
+                    string postProcessOutputFolder = APVLightBakerPostProcessingOutputFolder + probeOutputSubFolder;
 
-                    // Create swizzled occlusion buffer which is indexed by shadowmask channel. This the format expected by shader code.
-                    NativeArray<Vector4> swizzledOcclusion = new NativeArray<Vector4>(occlusionData.Length, Allocator.TempJob);
-                    for (int probeIdx = 0; probeIdx < occlusionData.Length; probeIdx++)
                     {
-                        LightProbeOcclusion occlusion = occlusionData[probeIdx];
-                        Vector4 swizzled = Vector4.zero;
-                        for (int lightIdx = 0; lightIdx < 4; lightIdx++)
-                        {
-                            if (occlusionData[probeIdx].GetOcclusionMaskChannel(lightIdx, out sbyte shadowmaskIdx) && shadowmaskIdx >= 0)
-                            {
-                                occlusion.GetOcclusion(lightIdx, out float occlusionFactor);
-                                swizzled[shadowmaskIdx] = occlusionFactor;
-                            }
-                        }
-
-                        swizzledOcclusion[probeIdx] = swizzled;
+                        using NativeArray<byte> shBytes = new(File.ReadAllBytes(Path.Combine(postProcessOutputFolder, "irradiance.shl2")), Allocator.TempJob);
+                        using NativeArray<SphericalHarmonicsL2> shData = shBytes.GetSubArray(sizeof(ulong), shBytes.Length - sizeof(ulong)).Reinterpret<SphericalHarmonicsL2>(sizeof(byte));
+                        irradiance.GetSubArray(job.startOffset, job.probeCount).CopyFrom(shData);
                     }
-                    occlusion.CopyFrom(swizzledOcclusion);
-                    swizzledOcclusion.Dispose();
+                    {
+                        using NativeArray<byte> validityBytes = new(File.ReadAllBytes(Path.Combine(outputFolder, $"validity{requestIdx}.float")), Allocator.TempJob);
+                        using NativeArray<float> validityData = validityBytes.GetSubArray(sizeof(ulong), validityBytes.Length - sizeof(ulong)).Reinterpret<float>(sizeof(byte));
+                        validity.GetSubArray(job.startOffset, job.probeCount).CopyFrom(validityData);
+                    }
+
+                    if (occlusionResults.IsCreated)
+                    {
+                        // Read LightProbeOcclusion structs from disk
+                        using NativeArray<byte> occlusionBytes = new(File.ReadAllBytes(Path.Combine(postProcessOutputFolder, "occlusion.occ")), Allocator.TempJob);
+                        using NativeArray<LightProbeOcclusion> occlusionData = occlusionBytes.GetSubArray(sizeof(ulong), occlusionBytes.Length - sizeof(ulong)).Reinterpret<LightProbeOcclusion>(sizeof(byte));
+
+                        // Create swizzled occlusion buffer which is indexed by shadowmask channel. This the format expected by shader code.
+                        NativeArray<Vector4> swizzledOcclusion = new NativeArray<Vector4>(occlusionData.Length, Allocator.TempJob);
+                        for (int probeIdx = 0; probeIdx < occlusionData.Length; probeIdx++)
+                        {
+                            LightProbeOcclusion probeOcclusionData = occlusionData[probeIdx];
+                            Vector4 swizzled = Vector4.zero;
+                            for (int lightIdx = 0; lightIdx < 4; lightIdx++)
+                            {
+                                if (probeOcclusionData.GetOcclusionMaskChannel(lightIdx, out sbyte shadowmaskIdx) && shadowmaskIdx >= 0)
+                                {
+                                    probeOcclusionData.GetOcclusion(lightIdx, out float occlusionFactor);
+                                    swizzled[shadowmaskIdx] = occlusionFactor;
+                                }
+                            }
+
+                            swizzledOcclusion[probeIdx] = swizzled;
+                        }
+                        occlusion.GetSubArray(job.startOffset, job.probeCount).CopyFrom(swizzledOcclusion);
+                        swizzledOcclusion.Dispose();
+                    }
                 }
 
                 isDone = true;
@@ -218,8 +221,8 @@ namespace UnityEngine.Rendering
 
             public int directSampleCount;
             public int indirectSampleCount;
+            public int environmentSampleCount;
             public int validitySampleCount;
-            public int occlusionSampleCount;
             public int maxBounces;
 
             public int skyOcclusionBakingSamples;
@@ -243,7 +246,7 @@ namespace UnityEngine.Rendering
 #else
                 int indirectSampleCount = Math.Max(lightingSettings.indirectSampleCount, lightingSettings.environmentSampleCount);
 #endif
-                Create(lightingSettings, ignoreEnvironement, lightingSettings.directSampleCount, indirectSampleCount,
+                Create(lightingSettings, ignoreEnvironement, lightingSettings.directSampleCount, indirectSampleCount, lightingSettings.environmentSampleCount,
                     (int)lightingSettings.lightProbeSampleCountMultiplier, lightingSettings.maxBounces);
             }
 
@@ -257,19 +260,19 @@ namespace UnityEngine.Rendering
                 skyOcclusionBakingSamples = touchup.skyOcclusionSampleCount;
                 skyOcclusionBakingBounces = touchup.skyOcclusionMaxBounces;
 
-                Create(lightingSettings, ignoreEnvironement, touchup.directSampleCount, touchup.indirectSampleCount, touchup.sampleCountMultiplier, touchup.maxBounces);
+                Create(lightingSettings, ignoreEnvironement, touchup.directSampleCount, touchup.indirectSampleCount, touchup.indirectSampleCount,touchup.sampleCountMultiplier, touchup.maxBounces);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            void Create(LightingSettings lightingSettings, bool ignoreEnvironement, int directSampleCount, int indirectSampleCount, int sampleCountMultiplier, int maxBounces)
+            void Create(LightingSettings lightingSettings, bool ignoreEnvironement, int directSampleCount, int indirectSampleCount, int environmentSampleCount, int sampleCountMultiplier, int maxBounces)
             {
                 // We could preallocate wrt touchup aabb volume, or total brick count for the global job
                 progress = new BakeProgressState();
 
                 this.directSampleCount = directSampleCount * sampleCountMultiplier;
                 this.indirectSampleCount = indirectSampleCount * sampleCountMultiplier;
+                this.environmentSampleCount = environmentSampleCount * sampleCountMultiplier;
                 this.validitySampleCount = indirectSampleCount * sampleCountMultiplier;
-                this.occlusionSampleCount = directSampleCount * sampleCountMultiplier;
                 this.maxBounces = maxBounces;
 
                 this.indirectScale = lightingSettings.indirectScale;
@@ -297,7 +300,7 @@ namespace UnityEngine.Rendering
             var sceneLights = new Dictionary<Scene, List<Light>>();
 
             // Modify each baked light, take note of which scenes they belong to.
-            var allLights = Object.FindObjectsByType<Light>(FindObjectsSortMode.None);
+            var allLights = Object.FindObjectsByType<Light>();
             foreach (var light in allLights)
             {
                 if (light.lightmapBakeType != LightmapBakeType.Realtime)

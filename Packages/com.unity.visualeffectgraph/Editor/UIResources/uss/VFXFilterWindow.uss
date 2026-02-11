@@ -162,8 +162,14 @@ Label {
 }
 
 .unity-collection-view__item .node-name.highlighted {
-    -unity-font-style: bold;
-    color: #FACA61;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    border-radius: 3px;
+    background-color: #6E99D7;
+}
+
+.dark .unity-collection-view__item .node-name.highlighted {
+    background-color: #3F6EB1;
 }
 /* ---------- */
 
@@ -281,7 +287,7 @@ Label {
     -unity-background-image-tint-color: white;
 }
 
-Label.category {
+.unity-collection-view__item .treenode Label.category {
     align-self: center;
     height: 16px;
     padding-left: 20px;

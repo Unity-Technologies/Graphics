@@ -4,6 +4,9 @@ using System.Runtime.CompilerServices; // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
+#if ENABLE_UPSCALER_FRAMEWORK
+    [Obsolete("StpPostProcessPass is replaced by STPIUpscaler #from(6000.3)")]
+#endif
     internal sealed class StpPostProcessPass : PostProcessPass
     {
         public const string k_UpscaledColorTargetName = "CameraColorUpscaledSTP";

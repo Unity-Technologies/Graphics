@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     throw new InvalidOperationException("No valid payload provided");
 
                 writer.Write(debugDataPayload.graphName);
-                writer.Write(debugDataPayload.executionId.GetRawData());
+                writer.Write(EntityId.ToULong(debugDataPayload.executionId));
                 writer.Write(DebugDataSerialization.ToJson(debugDataPayload.debugData));
             }
             else if (type == MessageType.AnalyticsData)

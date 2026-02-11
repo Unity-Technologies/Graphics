@@ -83,7 +83,7 @@ float3 EstimateLightmapRadiance(UnifiedRT::DispatchInfo dispatchInfo, UnifiedRT:
         if (bounceIndex >= RUSSIAN_ROULETTE_MIN_BOUNCES)
         {
             float p = max(pathIter.throughput.x, max(pathIter.throughput.y, pathIter.throughput.z));
-            if (rngState.GetFloatSample(RAND_DIM_RUSSIAN_ROULETTE) > p)
+            if (rngState.GetSample1D(RAND_DIM_RUSSIAN_ROULETTE) > p)
                 break;
             else
                 pathIter.throughput /= p;
@@ -115,7 +115,7 @@ void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
     rngState.Init(instanceTexelPos, sampleOffset);
     UnifiedRT::Ray ray;
     ray.origin = OffsetRayOrigin(worldPosition, worldFaceNormal, g_PushOff);
-    ray.direction = CosineSample(float2(rngState.GetFloatSample(RAND_DIM_SURF_SCATTER_X), rngState.GetFloatSample(RAND_DIM_SURF_SCATTER_Y)), worldNormal);
+    ray.direction = CosineSample(rngState.GetSample2D(RAND_DIM_SURF_SCATTER), worldNormal);
     ray.tMin = 0;
     ray.tMax = Max_float();
     rngState.NextBounce();

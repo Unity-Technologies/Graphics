@@ -387,3 +387,15 @@ Editor/Resources/unity[[:space:]]editor[[:space:]]resources filter=lfs diff=lfs 
 /Templates/**/*.[tT][gG][aA] filter=lfs diff=lfs merge=lfs -text
 /Templates/**/*.[tT][iI][fF] filter=lfs diff=lfs merge=lfs -text
 /Templates/**/*.[fF][bB][xX] filter=lfs diff=lfs merge=lfs -text
+
+# Netcode Source Generators
+/Packages/com.unity.netcode/**/*.[jJ][pP][gG] filter=lfs diff=lfs merge=lfs -text
+/Packages/com.unity.netcode/**/*.[pP][nN][gG] filter=lfs diff=lfs merge=lfs -text
+/Packages/com.unity.netcode/Runtime/SourceGenerators/**/*.[pP][dD][bB] filter=lfs diff=lfs merge=lfs -text
+
+/Packages/com.unity.transport/**/*.[pP][nN][gG] filter=lfs diff=lfs merge=lfs -text
+
+/Tests/EditModeAndPlayModeTests/NetcodeSamples/**/*.[pP][nN][gG] filter=lfs diff=lfs merge=lfs -text
+/Tests/EditModeAndPlayModeTests/NetcodeSamples/**/*.[jJ][pP][gG] filter=lfs diff=lfs merge=lfs -text
+/Tests/EditModeAndPlayModeTests/NetcodeSamples/**/*.[tT][iI][fF] filter=lfs diff=lfs merge=lfs -text
+/Tests/EditModeAndPlayModeTests/NetcodeSamples/**/*.[fF][bB][xX] filter=lfs diff=lfs merge=lfs -text

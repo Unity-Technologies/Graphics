@@ -909,6 +909,19 @@ namespace UnityEditor.ShaderGraph
             {
                 foundSlot.displayName = slot.RawDisplayName();
                 foundSlot.CopyDefaultValue(slot);
+                if (foundSlot.hideConnector != slot.hideConnector)
+                {
+                    foundSlot.hideConnector = slot.hideConnector; // MARK DIRTY
+                    this.Dirty(ModificationScope.Topological);
+
+                    if (foundSlot.hideConnector && foundSlot.isConnected)
+                    {
+                        List<IEdge> edges = new();
+                        owner.GetEdges(foundSlot, edges);
+                        foreach (var edge in edges)
+                            owner.RemoveEdge(edge);
+                    }
+                }
                 return foundSlot;
             }
 
@@ -944,7 +957,7 @@ namespace UnityEditor.ShaderGraph
             // Remove edges that use this slot
             // no owner can happen after creation
             // but before added to graph
-            if (owner != null)
+            if (owner != null && this.FindSlot<MaterialSlot>(slotId) != null)
             {
                 var edges = owner.GetEdges(GetSlotReference(slotId));
                 owner.RemoveEdges(edges.ToArray());

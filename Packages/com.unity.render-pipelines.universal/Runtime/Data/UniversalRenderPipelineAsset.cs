@@ -324,6 +324,10 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Defines the upscaling filter selected by the user the universal render pipeline asset.
     /// </summary>
+    /// 
+#if ENABLE_UPSCALER_FRAMEWORK
+    [Obsolete("UpscalingFilterSelection is obsolete. #from(6000.3)", false)]
+#endif
     public enum UpscalingFilterSelection
     {
         /// <summary>
@@ -354,11 +358,7 @@ namespace UnityEngine.Rendering.Universal
         /// Unity uses the Spatial-Temporal Post-Processing technique to perform upscaling.
         /// </summary>
         [InspectorName("Spatial-Temporal Post-Processing"), Tooltip("If the target device does not support compute shaders or is running GLES, Unity falls back to the Automatic option.")]
-        STP,
-
-#if ENABLE_UPSCALER_FRAMEWORK
-        IUpscaler // Should always be last
-#endif
+        STP
     }
 
     /// <summary>
@@ -449,11 +449,14 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] HDRColorBufferPrecision m_HDRColorBufferPrecision = HDRColorBufferPrecision._32Bits;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
+#if ENABLE_UPSCALER_FRAMEWORK
+        [Obsolete("m_UpscalingFilter is replaced by m_SelectedUpscalerName #from(6000.3)")]
+#endif
         [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
         // The upscaler name is null if the upscaling filter is coming from a built-in upscaler. It will be non-null if
         // the upscaling filter is coming from an IUpscaler, which can be a separate package, or part of Unity code.
 #if ENABLE_UPSCALER_FRAMEWORK
-        [SerializeField] string m_IUpscalerName = string.Empty;
+        [SerializeField] string m_SelectedUpscalerName = "Bilinear";
 
         [SerializeField]
         [SerializeReference]
@@ -1123,6 +1126,10 @@ namespace UnityEngine.Rendering.Universal
         /// Note: Filter selections differ from actual filters in that they may include "meta-filters" such as
         ///       "Automatic" which resolve to an actual filter at a later time.
         /// </summary>
+
+#if ENABLE_UPSCALER_FRAMEWORK
+        [Obsolete("upscalingFilter is replaced by upscalerName #from(6000.3)", false)]
+#endif
         public UpscalingFilterSelection upscalingFilter
         {
             get => m_UpscalingFilter;
@@ -1136,26 +1143,35 @@ namespace UnityEngine.Rendering.Universal
         public string upscalerName
         {
 #if ENABLE_UPSCALER_FRAMEWORK
-            get => m_IUpscalerName;
+            get => m_SelectedUpscalerName;
+            set => m_SelectedUpscalerName = value;
 #else
             get => string.Empty;
 #endif
         }
 
 #if ENABLE_UPSCALER_FRAMEWORK
-
-        public List<UpscalerOptions> iUpscalerOptions
+        /// <summary>
+        /// Gets the list of configuration options for all registered upscalers.
+        /// These are typically auto-populated as sub-assets within the Render Pipeline Asset.
+        /// </summary>
+        public List<UpscalerOptions> upscalerOptions
         {
             get => m_UpscalerOptions;
         }
 
-        public UpscalerOptions GetIUpscalerOptions(string UpscalerName)
+        /// <summary>
+        /// Retrieves the specific configuration options for an upscaler by its unique name.
+        /// </summary>
+        /// <param name="upscalerName">The unique ID or name of the upscaler (e.g., "DLSS", "FSR2").</param>
+        /// <returns>The matching <see cref="UpscalerOptions"/> asset if found; otherwise, null.</returns>
+        public UpscalerOptions GetUpscalerOptions(string UpscalerName)
         {
             foreach(UpscalerOptions option in m_UpscalerOptions)
             {
                 if (option == null)
                     continue;
-                if (option.UpscalerName == UpscalerName)
+                if (option.upscalerName == UpscalerName)
                     return option;
             }
             return null;
@@ -2041,11 +2057,11 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                return m_UpscalingFilter == UpscalingFilterSelection.STP
 #if ENABLE_UPSCALER_FRAMEWORK
-                || m_UpscalingFilter == UpscalingFilterSelection.IUpscaler
+                return m_SelectedUpscalerName == STPIUpscaler.upscalerName;
+#else
+                return m_UpscalingFilter == UpscalingFilterSelection.STP;
 #endif
-                ;
             }
         }
 

@@ -79,6 +79,12 @@ namespace UnityEditor.Rendering.Converter
             wnd.Show();
         }
 
+        [MenuItem("Window/Rendering/Render Pipeline Converter", true, 50)]
+        public static bool CanShowWindow()
+        {
+            return !EditorApplication.isPlaying;
+        }
+
         internal static void DontSaveToLayout(EditorWindow wnd)
         {
             // Making sure that the window is not saved in layouts.
@@ -182,6 +188,7 @@ namespace UnityEditor.Rendering.Converter
 
                         RenderPipelineConverterVisualElement converterVisualElement = new(element);
                         converterVisualElement.converterSelected += EnableOrDisableConvertButton;
+                        converterVisualElement.converterSelected += EnableOrDisableScanButton;
                         m_ConvertersVisualElements.Add(element, converterVisualElement);
                     }
                 }
@@ -219,9 +226,24 @@ namespace UnityEditor.Rendering.Converter
             });
 
             HideUnhideConverters();
+            EnableOrDisableScanButton();
             EnableOrDisableConvertButton();
 
             UpdateUiForPlayMode(EditorApplication.isPlaying);
+        }
+
+        private bool CanEnableScan()
+        {
+            foreach (var kvp in m_ConvertersVisualElements)
+            {
+                var ve = kvp.Value;
+                if (ve.isSelectedAndEnabled &&
+                    !ve.state.isInitialized)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private bool CanEnableConvert()
@@ -243,6 +265,11 @@ namespace UnityEditor.Rendering.Converter
         private void EnableOrDisableConvertButton()
         {
             m_ConvertButton.SetEnabled(CanEnableConvert());
+        }
+
+        private void EnableOrDisableScanButton()
+        {
+            m_InitButton.SetEnabled(CanEnableScan());
         }
 
         private void HideUnhideConverters()
@@ -298,8 +325,8 @@ namespace UnityEditor.Rendering.Converter
 
         void InitializeAllActiveConverters(ClickEvent evt)
         {
-            if (!SaveCurrentSceneAndContinue())
-                return;
+            if (EditorApplication.isPlaying) return;
+            if (!SaveCurrentSceneAndContinue()) return;
 
             // Gather all the converters that are selected
             var convertersToInitialize = new List<RenderPipelineConverterVisualElement>();
@@ -368,6 +395,7 @@ namespace UnityEditor.Rendering.Converter
                 converterVE.Refresh();
             }
 
+            EnableOrDisableScanButton();
             EnableOrDisableConvertButton();
         }
 
@@ -399,6 +427,7 @@ namespace UnityEditor.Rendering.Converter
 
         void Convert(ClickEvent evt)
         {
+            if (EditorApplication.isPlaying) return;
             if (!ShowIrreversibleChangesDialog()) return;
             // Ask to save save the current open scene and after the conversion is done reload the same scene.
             if (!SaveCurrentSceneAndContinue()) return;

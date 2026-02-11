@@ -30,7 +30,7 @@ void IntegrateValidity(UnifiedRT::DispatchInfo dispatchInfo)
     rngState.Init(inProbeIdx, g_SampleOffset + inProbeSampleIdx);
 
     // TODO(pema.malling): This works but that is sort of by accident. Avoid coupling to AA (which is unrelated to probe integration). https://jira.unity3d.com/browse/LIGHT-1687
-    const float3 uniformSphereDir = MapSquareToSphere(float2(rngState.GetFloatSample(RAND_DIM_AA_X), rngState.GetFloatSample(RAND_DIM_AA_Y)));
+    const float3 uniformSphereDir = MapSquareToSphere(rngState.GetSample2D(RAND_DIM_AA));
 
     UnifiedRT::Ray ray;
     ray.origin = g_Positions[inProbeIdx];
