@@ -50,6 +50,7 @@
   * [Convert lighting and shadows](convert-from-built-in-convert-lighting-and-shadows.md)
   * [Convert materials and shaders](convert-from-built-in-convert-materials-and-shaders.md)
   * [Convert project with HDRP wizard](convert-from-built-in-convert-project-with-hdrp-wizard.md)
+  * [Render Pipeline Converter window reference](rp-converter.md)
 * [Lighting](lighting.md)
   * [Understand physical light units](Physical-Light-Units.md)
   * [Light sources](light-sources.md)
