@@ -86,8 +86,8 @@ namespace UnityEngine.Rendering.Universal
                 if (d == 0)
                 {
                     // Sort by texture ID if "undecided" to batch fetches to the same cookie texture.
-                    var ai = alc.GetEntityId().GetRawData();
-                    var bi = blc.GetEntityId().GetRawData();
+                    var ai = EntityId.ToULong(alc.GetEntityId());
+                    var bi = EntityId.ToULong(blc.GetEntityId());
                     return (int)(ai - bi);
                 }
                 return d;

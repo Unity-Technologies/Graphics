@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEditor;
 using UnityEngine.Rendering.UnifiedRayTracing;
 
@@ -149,7 +150,7 @@ namespace UnityEngine.Rendering
                     Span<bool> perSubMeshOpaqueness = stackalloc bool[subMeshCount];
                     perSubMeshOpaqueness.Fill(true);
 
-                    accelStruct.AddInstance(renderer.component.GetEntityId().GetRawData(), renderer.component, maskAndMatDummy, maskAndMatDummy, perSubMeshOpaqueness, 1);
+                    accelStruct.AddInstance(EntityId.ToULong(renderer.component.GetEntityId()), renderer.component, maskAndMatDummy, maskAndMatDummy, perSubMeshOpaqueness, 1);
                 }
 
                 foreach (var terrain in contributors.terrains)
@@ -157,7 +158,7 @@ namespace UnityEngine.Rendering
                     int layerMask = 1 << terrain.component.gameObject.layer;
                     if ((layerMask & mask) == 0)
                         continue;
-                    accelStruct.AddInstance(terrain.component.GetEntityId().GetRawData(), terrain.component, new uint[1] { 0xFFFFFFFF }, new uint[1] { 0xFFFFFFFF }, new bool[1] { true }, 1);
+                    accelStruct.AddInstance(EntityId.ToULong(terrain.component.GetEntityId()), terrain.component, new uint[1] { 0xFFFFFFFF }, new uint[1] { 0xFFFFFFFF }, new bool[1] { true }, 1);
                 }
 
                 return accelStruct;
@@ -478,8 +479,9 @@ namespace UnityEngine.Rendering
             uint[] matIndices = new uint[submeshCount];
             for (int i = 0; i < matIndices.Length; ++i)
             {
+                Debug.Assert(UnsafeUtility.SizeOf<EntityId>() == sizeof(int), "If this assert is firing, the size of EntityId has changed. This downcase to uint is unsafe.");
                 if (i < renderer.sharedMaterials.Length && renderer.sharedMaterials[i] != null)
-                    matIndices[i] = (uint)renderer.sharedMaterials[i].GetEntityId().GetRawData();
+                    matIndices[i] = (uint)EntityId.ToULong(renderer.sharedMaterials[i].GetEntityId());
                 else
                     matIndices[i] = 0;
             }

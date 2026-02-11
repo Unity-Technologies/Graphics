@@ -2,7 +2,7 @@
 
 ## Description
 
-Adjusts the strength of the normal map defined by input **In** by the amount of input **Strength**. A **Strength** value of 1 will return the input unaltered. A **Strength** value of 0 will return a blank normal map.
+Adjusts the strength of the normal map defined by input **In** by the amount of input **Strength**. A **Strength** value of 1 will return the input unaltered. A **Strength** value of 0 will return a blank (flat) tangent-space normal: vector (0, 0, 1). When encoded as a texture color in the 0–1 range, this corresponds to (0.5, 0.5, 1.0) or 128, 128, 255 in 8-bit.
 
 ## Ports
 

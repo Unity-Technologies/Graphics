@@ -7,7 +7,7 @@ namespace Unity.UI.Shaders.Sample
     /// <summary>
     /// Sets the UI Material's Property to the <see cref="UnityEngine.RectTransform"/>'s screen size.
     /// </summary>
-    [AddComponentMenu("UI/ShaderGraph Samples/RectTransform Size")]
+    [AddComponentMenu("UI (Canvas)/ShaderGraph Samples/RectTransform Size")]
     [ExecuteAlways]
     [RequireComponent(typeof(RectTransform), typeof(Graphic))]
     [DisallowMultipleComponent]

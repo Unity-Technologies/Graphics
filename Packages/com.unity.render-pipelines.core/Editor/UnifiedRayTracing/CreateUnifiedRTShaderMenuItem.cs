@@ -7,11 +7,13 @@ namespace UnityEditor.Rendering.UnifiedRayTracing
 {
     internal class ShaderTemplates
     {
+        internal static readonly Texture2D shaderIcon = EditorGUIUtility.IconContent("d_TextAsset Icon").image as Texture2D;
+
         [MenuItem("Assets/Create/Shader/Unified Ray Tracing Shader", false, 1)]
         internal static void CreateNewUnifiedRayTracingShader()
         {
             var action = ScriptableObject.CreateInstance<DoCreateUnifiedRayTracingShader>();
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(EntityId.None, action, "NewUnifiedRayTracingShader.urtshader", null, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(EntityId.None, action, "NewUnifiedRayTracingShader.urtshader", shaderIcon, null);
         }
 
         internal class DoCreateUnifiedRayTracingShader : AssetCreationEndAction

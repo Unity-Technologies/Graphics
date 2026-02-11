@@ -17,7 +17,7 @@ namespace Unity.UI.Shaders.Sample
     /// <see cref="Selectable.DoStateTransition(Selectable.SelectionState, bool)"/> is called.
     /// <para>Implemented as a <see cref="Selectable"/>.</para>
     /// </summary>
-    [AddComponentMenu("UI/ShaderGraph Samples/Button")]
+    [AddComponentMenu("UI (Canvas)/ShaderGraph Samples/Button")]
     public class CustomButton : Selectable, IPointerClickHandler, ISubmitHandler /*Button*/, IMaterialModifier
     {
         public UnityEvent onClick;
@@ -105,7 +105,7 @@ namespace Unity.UI.Shaders.Sample
         }
 
 #if UNITY_EDITOR
-        [MenuItem("GameObject/UI/ShaderGraph Samples/Button", false, 30)]
+        [MenuItem("GameObject/UI (Canvas)/ShaderGraph Samples/Button", false, 30)]
         static void CreateButtonGameObject(MenuCommand command)
         {
             GameObject go = ObjectFactory.CreateGameObject("SG Button", new Type[] { typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(CustomButton) });
