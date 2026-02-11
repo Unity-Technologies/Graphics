@@ -46,6 +46,9 @@ namespace UnityEditor.Rendering.HighDefinition
         [VFXSetting(VFXSettingAttribute.VisibleFlags.Default)]
         [Tooltip("Specifies if the search should sample the current map.")]
         protected bool includeCurrent = false;
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.Default)]
+        [Tooltip("Specifies if the system use mask and current water decal workflow. This has to be set in accordance with the same checkbox in the Graphics Settings.")]
+        protected bool useMaskAndCurrentWaterDecalsWorkflow = false;
 
         public class InputProperties
         {
@@ -106,6 +109,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (!includeDeformation) baseCode += "#define IGNORE_WATER_DEFORMATION\n";
             if (includeCurrent) baseCode += "#define WATER_LOCAL_CURRENT\n";
+
+            // We need this because water decals can attenuate frequency bands using a water mask when Mask and Current Water Decals workflow is enabled.
+            if (useMaskAndCurrentWaterDecalsWorkflow)   baseCode += "#define WATER_DECAL_COMPLETE\n";
 
             baseCode += $"#include \"{m_SampleWaterSurface}\"\n";
 

@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeShaders>(
+                if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeTerrainShaders>(
                         out var shadersResources))
                 {
                     return shadersResources.terrainDetailLitShader;
@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeShaders>(
+                if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeTerrainShaders>(
                         out var shadersResources))
                 {
                     return shadersResources.terrainDetailGrassShader;
@@ -178,7 +178,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeShaders>(
+                if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeTerrainShaders>(
                         out var shadersResources))
                 {
                     return shadersResources.terrainDetailGrassBillboardShader;

@@ -32,10 +32,6 @@ namespace UnityEngine.Rendering
         /// <param name="settings"><see cref="IDebugDisplaySettings"/> to be registered</param>
         public void RegisterDebug(IDebugDisplaySettings settings)
         {
-#if UNITY_EDITOR
-            if (UnityEditor.BuildPipeline.isBuildingPlayer)
-                return;
-#endif
             DebugManager debugManager = DebugManager.instance;
             List<IDebugDisplaySettingsPanelDisposable> panels = new List<IDebugDisplaySettingsPanelDisposable>();
 

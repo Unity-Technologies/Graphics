@@ -17,7 +17,7 @@
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
     "com.unity.timeline": "1.8.8",
     "com.unity.ugui": "2.0.0",
-    "com.unity.ui.test-framework": "file:../../../../../Packages/com.unity.ui.test-framework",
+    "com.unity.ui.test-framework": "6.3.0",
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
     "local.gtf.references": "file:../../../Packages/local.gtf.references",
     "com.unity.test-framework": "file:../../../../../Packages/com.unity.test-framework",

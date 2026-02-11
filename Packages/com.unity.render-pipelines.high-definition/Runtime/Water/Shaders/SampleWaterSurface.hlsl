@@ -579,7 +579,7 @@ TapData EvaluateDisplacementData(float3 currentLocation, float3 referencePositio
     EvaluateSimulationDisplacement(currentLocation, data.horizontalDisplacement, data.verticalDisplacements);
 
     // Evaluate the distance to the reference point
-    data.offset = (currentLocation.xz + data.horizontalDisplacement) - referencePosition.xz;
+    data.offset = currentLocation.xz - referencePosition.xz;
     data.distance = length(data.offset);
 
     return data;

@@ -343,7 +343,7 @@ namespace UnityEngine.Rendering.HighDefinition
             EvaluateSimulationDisplacement(wsd, currentLocation, includeSimulation, out data.horizontalDisplacement, out data.direction, out data.verticalDisplacements);
 
             // Evaluate the distance to the reference point
-            data.offset = (currentLocation.xz + data.horizontalDisplacement) - referencePosition.xz;
+            data.offset = currentLocation.xz - referencePosition.xz;
             data.distance = length(data.offset);
 
             return data;
