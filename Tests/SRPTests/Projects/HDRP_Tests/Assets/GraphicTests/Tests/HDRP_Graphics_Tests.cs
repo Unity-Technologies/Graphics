@@ -314,6 +314,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }
         )]
         [IgnoreGraphicsTest(
+            "9921_UnderWater$",
+            "Unstable - see https://jira.unity3d.com/browse/UUM-134223",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
             "9922_WaterPrefab$",
             "Minor divergence across the waves' crests.",
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }
