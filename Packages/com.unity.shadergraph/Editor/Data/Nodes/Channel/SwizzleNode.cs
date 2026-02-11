@@ -100,8 +100,36 @@ namespace UnityEditor.ShaderGraph
             if (_maskInput == null)
                 _maskInput = "xxxx";
 
-            AddSlot(new DynamicVectorMaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input, Vector4.zero));
-            switch (_maskInput.Length)
+            int outputLength = _maskInput.Length;
+            int inputLength = 1;
+            foreach(var c in _maskInput.ToLowerInvariant())
+            {
+                switch (c)
+                {
+                    case 'g': case 'y': inputLength = Mathf.Max(2, inputLength); break;
+                    case 'b': case 'z': inputLength = Mathf.Max(3, inputLength); break;
+                    case 'a': case 'w': inputLength = Mathf.Max(4, inputLength); break;
+                    default: break;
+                }
+            }
+
+            switch (inputLength)
+            {
+                case 1:
+                    AddSlot(new Vector1MaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input, 0));
+                    break;
+                case 2:
+                    AddSlot(new Vector2MaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input, Vector2.zero));
+                    break;
+                case 3:
+                    AddSlot(new Vector3MaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input, Vector3.zero));
+                    break;
+                default:
+                    AddSlot(new Vector4MaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input, Vector4.zero));
+                    break;
+            }
+
+            switch (outputLength)
             {
                 case 1:
                     AddSlot(new Vector1MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, 0));
@@ -131,12 +159,6 @@ namespace UnityEditor.ShaderGraph
             {
                 sb.AppendLine(string.Format("{0} {1} = 0;", outputSlotType, outputName));
             }
-            else if(!FindInputSlot<MaterialSlot>(InputSlotId).isConnected)
-            {
-                // cannot swizzle off of a float literal, so if there is no upstream connection, it means we have defaulted to a float,
-                // and the node's initial base case will generate invalid code.
-                sb.AppendLine("{0} {1} = $precision({2}).{3};", outputSlotType, outputName, inputValue, convertedMask);
-            }
             else
             {
                 sb.AppendLine("{0} {1} = {2}.{3};", outputSlotType, outputName, inputValue, convertedMask);
@@ -146,12 +168,17 @@ namespace UnityEditor.ShaderGraph
         public override void ValidateNode()
         {
             base.ValidateNode();
+            var inputSlot = FindInputSlot<MaterialSlot>(InputSlotId);
+            int InputValueSize = GetInputLength(inputSlot);
+            int ExpectedInputSize = SlotValueHelper.GetChannelCount(inputSlot.concreteValueType);
 
-            var inputValueType = FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType;
-            var InputValueSize = SlotValueHelper.GetChannelCount(inputValueType);
             if (!ValidateMaskInput(InputValueSize))
             {
-                owner.AddValidationError(objectId, "Invalid mask for a Vector" + InputValueSize + " input.", ShaderCompilerMessageSeverity.Error);
+                owner.AddValidationError(objectId, "Invalid mask for a 'Vector" + InputValueSize + "' input.", ShaderCompilerMessageSeverity.Error);
+            }
+            else if ( InputValueSize < ExpectedInputSize)
+            {
+                owner.AddValidationError(objectId, $"Connected input 'Vector{InputValueSize}' is smaller than expected input 'Vector{ExpectedInputSize}'.", ShaderCompilerMessageSeverity.Warning);
             }
         }
 
@@ -198,6 +225,20 @@ namespace UnityEditor.ShaderGraph
                 JsonUtility.FromJsonOverwrite(json, legacySwizzleChannelData);
                 node._maskInput = s_ComponentList[legacySwizzleChannelData.m_RedChannel] + s_ComponentList[legacySwizzleChannelData.m_GreenChannel] + s_ComponentList[legacySwizzleChannelData.m_BlueChannel] + s_ComponentList[legacySwizzleChannelData.m_AlphaChannel];
             }
+        }
+
+        private static int GetInputLength(MaterialSlot slot)
+        {
+            if (!slot.isConnected)
+                return SlotValueHelper.GetChannelCount(slot.concreteValueType);
+
+            var graph = slot.owner.owner; //slot.isConnected null checks this already;
+            var edges = graph.GetEdges(slot.slotReference);
+            foreach(var edge in edges)
+                return SlotValueHelper.GetChannelCount(edge.outputSlot.slot.concreteValueType);
+
+            // this shouldn't be reached, but we fall back to the slot's original concrete length.
+            return SlotValueHelper.GetChannelCount(slot.concreteValueType);
         }
     }
 }

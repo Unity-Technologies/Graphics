@@ -93,7 +93,8 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 20201, guid: 0000000000000000f000000000000000, type: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: aed614ae2733946a781b2a9d46c27792,
+    type: 2}
   m_LightingSettings: {fileID: 0}
 --- !u!196 &4
 NavMeshSettings:
@@ -1126,27 +1127,13 @@ MonoBehaviour:
   m_IsGlobal: 1
   fadeRadius: 0
   priority: 0
-  customPasses:
-  - rid: 4053996775330807882
+  customPasses: []
   injectionPoint: 2
   m_TargetCamera: {fileID: 0}
   useTargetCamera: 0
   references:
     version: 2
-    RefIds:
-    - rid: 4053996775330807882
-      type: {class: DrawRenderersFromPostProcess, ns: , asm: Assembly-CSharp}
-      data:
-        m_Name: Custom Pass
-        enabled: 1
-        targetColorBuffer: 0
-        targetDepthBuffer: 0
-        clearFlags: 0
-        passFoldout: 0
-        m_Version: 0
-        layerMask:
-          serializedVersion: 2
-          m_Bits: 536870912
+    RefIds: []
 --- !u!1 &160230666
 GameObject:
   m_ObjectHideFlags: 0
@@ -2278,7 +2265,6 @@ MonoBehaviour:
   fadeRadius: 0
   priority: 0
   customPasses:
-  - rid: 6927990985548628042
   - rid: 4053996775330807880
   injectionPoint: 3
   m_TargetCamera: {fileID: 0}
@@ -2323,16 +2309,6 @@ MonoBehaviour:
         stencilFailOperation: 0
         stencilDepthFailOperation: 0
         shaderPass: 0
-    - rid: 6927990985548628042
-      type: {class: CopyColorToCustom_9703, ns: , asm: Assembly-CSharp}
-      data:
-        m_Name: Custom Pass
-        enabled: 1
-        targetColorBuffer: 1
-        targetDepthBuffer: 1
-        clearFlags: -1
-        passFoldout: 0
-        m_Version: 0
 --- !u!1 &353016900
 GameObject:
   m_ObjectHideFlags: 0
@@ -5474,7 +5450,6 @@ MonoBehaviour:
   fadeRadius: 0
   priority: 0
   customPasses:
-  - rid: 6927990985548628041
   - rid: 4053996775330807880
   injectionPoint: 6
   m_TargetCamera: {fileID: 0}
@@ -5519,16 +5494,6 @@ MonoBehaviour:
         stencilFailOperation: 0
         stencilDepthFailOperation: 0
         shaderPass: 0
-    - rid: 6927990985548628041
-      type: {class: CopyColorToCustom_9703, ns: , asm: Assembly-CSharp}
-      data:
-        m_Name: Custom Pass
-        enabled: 1
-        targetColorBuffer: 1
-        targetDepthBuffer: 1
-        clearFlags: -1
-        passFoldout: 0
-        m_Version: 0
 --- !u!1 &760292656
 GameObject:
   m_ObjectHideFlags: 0
@@ -9303,27 +9268,13 @@ MonoBehaviour:
   m_IsGlobal: 1
   fadeRadius: 0
   priority: 0
-  customPasses:
-  - rid: 4053996775330807881
+  customPasses: []
   injectionPoint: 2
   m_TargetCamera: {fileID: 0}
   useTargetCamera: 0
   references:
     version: 2
-    RefIds:
-    - rid: 4053996775330807881
-      type: {class: DrawRenderersFromPostProcess, ns: , asm: Assembly-CSharp}
-      data:
-        m_Name: Custom Pass
-        enabled: 1
-        targetColorBuffer: 0
-        targetDepthBuffer: 0
-        clearFlags: 0
-        passFoldout: 0
-        m_Version: 0
-        layerMask:
-          serializedVersion: 2
-          m_Bits: 16384
+    RefIds: []
 --- !u!1 &1231579345
 GameObject:
   m_ObjectHideFlags: 0

@@ -117,9 +117,13 @@ namespace UnityEditor.ShaderGraph
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {
-            var slot = foundSlot as Vector3MaterialSlot;
-            if (slot != null)
-                value = slot.value;
+            switch (foundSlot)
+            {
+                case IMaterialSlotHasValue<float> slot1: value = new Vector3(slot1.value, slot1.value, slot1.value); break;
+                case IMaterialSlotHasValue<Vector2> slot2: value = new Vector3(slot2.value.x, slot2.value.y); break;
+                case IMaterialSlotHasValue<Vector3> slot3: value = slot3.value; break;
+                case IMaterialSlotHasValue<Vector4> slot4: value = new Vector3(slot4.value.x, slot4.value.y, slot4.value.z); break;
+            }
         }
 
         public override void CopyDefaultValue(MaterialSlot other)

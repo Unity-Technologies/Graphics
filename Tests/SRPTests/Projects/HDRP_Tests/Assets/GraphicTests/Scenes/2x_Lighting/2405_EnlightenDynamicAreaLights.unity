@@ -13,7 +13,7 @@ OcclusionCullingSettings:
 --- !u!104 &2
 RenderSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 9
+  serializedVersion: 10
   m_Fog: 0
   m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_FogMode: 3
@@ -38,13 +38,12 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
-  m_GIWorkflowMode: 1
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -67,9 +66,6 @@ LightmapSettings:
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
     m_TextureCompression: 1
-    m_FinalGather: 0
-    m_FinalGatherFiltering: 1
-    m_FinalGatherRayCount: 256
     m_ReflectionCompression: 2
     m_MixedBakeMode: 2
     m_BakeBackend: 1
@@ -97,7 +93,8 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: f6aa0725757b34f40bf32437eafa8df0,
+    type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 79ad0ba9c83aab84489447ac69ca084a,
     type: 2}
 --- !u!196 &4
@@ -105,7 +102,7 @@ NavMeshSettings:
   serializedVersion: 2
   m_ObjectHideFlags: 0
   m_BuildSettings:
-    serializedVersion: 2
+    serializedVersion: 3
     agentTypeID: 0
     agentRadius: 0.5
     agentHeight: 2
@@ -118,7 +115,7 @@ NavMeshSettings:
     cellSize: 0.16666667
     manualTileSize: 0
     tileSize: 256
-    accuratePlacement: 0
+    buildHeightMesh: 0
     maxJobWorkers: 0
     preserveTilesOutsideBounds: 0
     debug:
@@ -129,8 +126,14 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3946273413854997534, guid: 6a0ac56780970b245a10530bad74c665,
+        type: 3}
+      propertyPath: m_Version
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: 5014687273622120528, guid: 6a0ac56780970b245a10530bad74c665,
         type: 3}
       propertyPath: m_Color.b
@@ -262,14 +265,23 @@ PrefabInstance:
       value: 885-cornellbox up
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6a0ac56780970b245a10530bad74c665, type: 3}
 --- !u!1001 &1056211049
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3946273413854997534, guid: 6a0ac56780970b245a10530bad74c665,
+        type: 3}
+      propertyPath: m_Version
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: 5014687273622120528, guid: 6a0ac56780970b245a10530bad74c665,
         type: 3}
       propertyPath: m_Type
@@ -328,7 +340,7 @@ PrefabInstance:
     - target: {fileID: 5014687273622120528, guid: 6a0ac56780970b245a10530bad74c665,
         type: 3}
       propertyPath: m_UseBoundingSphereOverride
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5014687273622120529, guid: 6a0ac56780970b245a10530bad74c665,
         type: 3}
@@ -431,6 +443,9 @@ PrefabInstance:
       value: 885-cornellbox left
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6a0ac56780970b245a10530bad74c665, type: 3}
 --- !u!1 &1155822453
 GameObject:
@@ -464,6 +479,8 @@ MonoBehaviour:
   m_Profile: {fileID: 0}
   m_StaticLightingSkyUniqueID: 0
   m_StaticLightingCloudsUniqueID: 0
+  m_StaticLightingVolumetricClouds: 0
+  bounces: 1
 --- !u!4 &1155822455
 Transform:
   m_ObjectHideFlags: 1
@@ -471,20 +488,27 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1155822453}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1272152050
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3946273413854997534, guid: 6a0ac56780970b245a10530bad74c665,
+        type: 3}
+      propertyPath: m_Version
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: 5014687273622120528, guid: 6a0ac56780970b245a10530bad74c665,
         type: 3}
       propertyPath: m_Color.b
@@ -533,7 +557,7 @@ PrefabInstance:
     - target: {fileID: 5014687273622120528, guid: 6a0ac56780970b245a10530bad74c665,
         type: 3}
       propertyPath: m_UseBoundingSphereOverride
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5014687273622120529, guid: 6a0ac56780970b245a10530bad74c665,
         type: 3}
@@ -641,14 +665,23 @@ PrefabInstance:
       value: 885-cornellbox right
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6a0ac56780970b245a10530bad74c665, type: 3}
 --- !u!1001 &1704371916
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3946273413854997534, guid: 6a0ac56780970b245a10530bad74c665,
+        type: 3}
+      propertyPath: m_Version
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: 5014687273622120528, guid: 6a0ac56780970b245a10530bad74c665,
         type: 3}
       propertyPath: m_Color.b
@@ -697,7 +730,7 @@ PrefabInstance:
     - target: {fileID: 5014687273622120528, guid: 6a0ac56780970b245a10530bad74c665,
         type: 3}
       propertyPath: m_UseBoundingSphereOverride
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5014687273622120529, guid: 6a0ac56780970b245a10530bad74c665,
         type: 3}
@@ -790,14 +823,23 @@ PrefabInstance:
       value: 885-cornellbox back
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6a0ac56780970b245a10530bad74c665, type: 3}
 --- !u!1001 &1782280099
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3946273413854997534, guid: 6a0ac56780970b245a10530bad74c665,
+        type: 3}
+      propertyPath: m_Version
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: 5014687273622120528, guid: 6a0ac56780970b245a10530bad74c665,
         type: 3}
       propertyPath: m_Color.b
@@ -841,7 +883,7 @@ PrefabInstance:
     - target: {fileID: 5014687273622120528, guid: 6a0ac56780970b245a10530bad74c665,
         type: 3}
       propertyPath: m_UseBoundingSphereOverride
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5014687273622120529, guid: 6a0ac56780970b245a10530bad74c665,
         type: 3}
@@ -939,14 +981,23 @@ PrefabInstance:
       value: 885-cornellbox front
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6a0ac56780970b245a10530bad74c665, type: 3}
 --- !u!1001 &1859030393
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3946273413854997534, guid: 6a0ac56780970b245a10530bad74c665,
+        type: 3}
+      propertyPath: m_Version
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: 5014687273622120528, guid: 6a0ac56780970b245a10530bad74c665,
         type: 3}
       propertyPath: m_Color.b
@@ -1033,12 +1084,16 @@ PrefabInstance:
       value: 885-cornellbox down
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6a0ac56780970b245a10530bad74c665, type: 3}
 --- !u!1001 &1950565745
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1132393308280272, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
@@ -1096,6 +1151,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
+      propertyPath: m_Version
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
       propertyPath: backgroundColorHDR.b
       value: 0
       objectReference: {fileID: 0}
@@ -1115,4 +1175,19 @@ PrefabInstance:
       value: 30
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
+--- !u!1660057539 &9223372036854775807
+SceneRoots:
+  m_ObjectHideFlags: 0
+  m_Roots:
+  - {fileID: 1859030393}
+  - {fileID: 1155822455}
+  - {fileID: 469929833}
+  - {fileID: 1704371916}
+  - {fileID: 1056211049}
+  - {fileID: 1272152050}
+  - {fileID: 1782280099}
+  - {fileID: 1950565745}
