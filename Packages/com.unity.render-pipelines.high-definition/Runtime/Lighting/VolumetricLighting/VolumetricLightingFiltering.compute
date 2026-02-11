@@ -29,52 +29,65 @@ RW_TEXTURE3D(float4, _VBufferLightingFiltered);
 RW_TEXTURE3D(float4, _VBufferLighting);
 #endif
 
-#define GAUSSIAN_SIGMA 1.0
-#define GROUP_SIZE_1D_XY 8
-#define GROUP_SIZE_1D_Z 1
+#define GAUSSIAN_SIGMA      1.0
+#define GROUP_SIZE_1D_XY    8
+#define GROUP_SIZE_1D_Z     1
+#define NR_THREADS          (GROUP_SIZE_1D_XY * GROUP_SIZE_1D_XY * GROUP_SIZE_1D_Z)
 
-#define FILTER_SIZE_1D (GROUP_SIZE_1D_XY + 2) // With a 8x8 group, we have a 10x10 working area
-#define LDS_SIZE FILTER_SIZE_1D * FILTER_SIZE_1D
+// Some platforms benefit from not using the split cache
+#define USE_SPLIT_CACHE     (!defined(SHADER_API_SWITCH) && !defined(SHADER_API_SWITCH2))
+
+#define FILTER_SIZE_1D      (GROUP_SIZE_1D_XY + 2) // With a 8x8 group, we have a 10x10 working area
+#define LDS_SIZE            FILTER_SIZE_1D * FILTER_SIZE_1D
+
+#define DIV_ROUND_UP(N, D)  (((N) + ((D) - 1)) / (D)) // No division by 0 checks
 
 // TODO: May use 1 uint for 2 pixels
+#if USE_SPLIT_CACHE
 groupshared float gs_cacheR[LDS_SIZE];
 groupshared float gs_cacheG[LDS_SIZE];
 groupshared float gs_cacheB[LDS_SIZE];
 groupshared float gs_cacheA[LDS_SIZE];
+#else
+groupshared float4 gs_cache[LDS_SIZE];
+#endif // USE_SPLIT_CACHE
 
 float4 GetSample(uint index)
 {
     float4 outVal;
+#if USE_SPLIT_CACHE
     outVal.r = gs_cacheR[index];
     outVal.g = gs_cacheG[index];
     outVal.b = gs_cacheB[index];
     outVal.a = gs_cacheA[index];
-
+#else
+    outVal = gs_cache[index];
+#endif // USE_SPLIT_CACHE
     return outVal;
 }
 
-void PrefetchData(uint groupIndex, uint2 groupOrigin, uint sliceIndex)
+void PrefetchData(uint sampleID, uint2 groupOrigin, uint sliceIndex)
 {
-    int2 originXY = groupOrigin - int2(1, 1);
+    int2 originXY = int2(groupOrigin) - 1;
 
-    for (int i = 0; i < 2; ++i)
-    {
-        uint sampleID = i + (groupIndex * 2);
-        int offsetX = sampleID % FILTER_SIZE_1D;
-        int offsetY = sampleID / FILTER_SIZE_1D;
+    int offsetX = sampleID % FILTER_SIZE_1D;
+    int offsetY = sampleID / FILTER_SIZE_1D;
 
-        int3 sampleCoord = int3(clamp(originXY.x + offsetX, 0, _VBufferViewportSize.x - 1),
-                                clamp(originXY.y + offsetY, 0, _VBufferViewportSize.y - 1),
-                                sliceIndex);
+    uint3 sampleCoord = uint3(clamp(originXY.x + offsetX, 0, max(0, _VBufferViewportSize.x - 1)),
+                              clamp(originXY.y + offsetY, 0, max(0, _VBufferViewportSize.y - 1)),
+                              sliceIndex);
 
-        float4 sampleVal = _VBufferLighting[sampleCoord];
+    float4 sampleVal = _VBufferLighting[sampleCoord];
 
-        int LDSIndex = offsetX + offsetY * FILTER_SIZE_1D;
-        gs_cacheR[LDSIndex] = sampleVal.r;
-        gs_cacheG[LDSIndex] = sampleVal.g;
-        gs_cacheB[LDSIndex] = sampleVal.b;
-        gs_cacheA[LDSIndex] = sampleVal.a;
-    }
+    uint LDSIndex = offsetX + offsetY * FILTER_SIZE_1D;
+#if USE_SPLIT_CACHE
+    gs_cacheR[LDSIndex] = sampleVal.r;
+    gs_cacheG[LDSIndex] = sampleVal.g;
+    gs_cacheB[LDSIndex] = sampleVal.b;
+    gs_cacheA[LDSIndex] = sampleVal.a;
+#else
+    gs_cache[LDSIndex] = sampleVal;
+#endif // USE_SPLIT_CACHE
 }
 
 void WriteOutput(uint3 voxelCoord, float4 value)
@@ -94,9 +107,9 @@ float Gaussian(float radius, float sigma)
 
 [numthreads(GROUP_SIZE_1D_XY, GROUP_SIZE_1D_XY, GROUP_SIZE_1D_Z)]
 void FilterVolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
-                                int   groupIndex       : SV_GroupIndex,
-                                uint2 groupId          : SV_GroupID,
-                                uint2 groupThreadId    : SV_GroupThreadID)
+                              uint  groupIndex       : SV_GroupIndex,
+                              uint2 groupId          : SV_GroupID,
+                              uint2 groupThreadId    : SV_GroupThreadID)
 {
     // Compute the coordinate that this thread needs to process
     uint2 currentCoord  = groupId * GROUP_SIZE_1D_XY + groupThreadId;
@@ -105,10 +118,11 @@ void FilterVolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
     // Compute the output voxel coordinate
     uint3 voxelCoord = uint3(currentCoord, currentSlice);
 
-    if (groupIndex < 50)
+    // Preload data
+    UNITY_UNROLLX(DIV_ROUND_UP(LDS_SIZE, NR_THREADS))
+    for (uint i = groupIndex; i < LDS_SIZE; i += NR_THREADS)
     {
-        // Load 2 values per thread.
-        PrefetchData(groupIndex, groupId * GROUP_SIZE_1D_XY, voxelCoord.z);
+        PrefetchData(i, groupId * GROUP_SIZE_1D_XY, voxelCoord.z);
     }
 
     // Make sure all values are loaded in LDS by now.
@@ -120,15 +134,14 @@ void FilterVolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     const int radius = 1;
 
+    UNITY_UNROLL
     for (int idx = -radius; idx <= radius; ++idx)
     {
+        UNITY_UNROLL
         for (int idx2 = -radius; idx2 <= radius; ++idx2)
         {
-            // Compute the next tapping coordinate
-            const int3 tapCoord = int3(voxelCoord.x, voxelCoord.y, voxelCoord.z) + int3(idx2, idx, 0);
-
             // Tap from LDS
-            int2 tapAddress = (groupThreadId + 1) + int2(idx2, idx);
+            int2 tapAddress = (int2(groupThreadId) + 1) + int2(idx2, idx);
             uint ldsTapAddress = uint(tapAddress.x) % FILTER_SIZE_1D + tapAddress.y * FILTER_SIZE_1D;
             float4 currentValue = GetSample(ldsTapAddress);
 
@@ -139,7 +152,6 @@ void FilterVolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
             value += currentValue * weight;
             sumW += weight;
         }
-
     }
 
     WriteOutput(voxelCoord, value / sumW);
