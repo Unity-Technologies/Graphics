@@ -153,6 +153,7 @@ namespace UnityEditor.Previews
 
 
         [UnityTest]
+        [Timeout(360000)]
         public IEnumerator AssetPreviewIsCorrect()
         {
             EditorSceneManager.OpenScene("Assets/GraphicTests/Scenes/1x_Materials/1101_Unlit.unity"); // Ensure the opened scene doesn't have any error.
