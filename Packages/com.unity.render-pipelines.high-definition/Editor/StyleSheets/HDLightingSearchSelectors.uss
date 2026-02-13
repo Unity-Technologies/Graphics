@@ -1,0 +1,6 @@
+/* HDRP Lighting Search Selectors Styles */
+
+/* Light Shape Field */
+.hdrp-lighting-search-light-shape {
+    flex-grow: 1;
+}
