@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Class <c>ShadowShape2D</c> stores outline geometry for use with a shadow caster.
     /// </summary>
+    [Serializable]
     public abstract class ShadowShape2D
     {
         /// <summary>

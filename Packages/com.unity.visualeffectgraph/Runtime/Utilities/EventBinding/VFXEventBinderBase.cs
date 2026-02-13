@@ -10,7 +10,6 @@ namespace UnityEngine.VFX.Utility
         protected VisualEffect target;
         public string EventName = "Event";
 
-        [SerializeField, HideInInspector]
         protected VFXEventAttribute eventAttribute;
 
         protected virtual void OnEnable()

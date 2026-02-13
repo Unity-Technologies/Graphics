@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering
             /// <summary>Offscreen shading pass index.</summary>
             public int offscreenShadingPass;
             /// <summary>Handle to the line topology's index buffer resource.</summary>
-            public BufferHandle indexBuffer;
+            public BufferHandle indexBuffer { get; set; }
             /// <summary>Distance to camera for sorting purposes.</summary>
             public float distanceToCamera;
             /// <summary>The number of lines in the mesh.</summary>
@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering
             /// <summary>The number of segments-per-line.</summary>
             public int segmentsPerLine;
             /// <summary>Handle to a buffer for computing level of detail.</summary>
-            public BufferHandle lodBuffer;
+            public BufferHandle lodBuffer { get; set; }
             /// <summary>Level of detail mode.</summary>
             public RendererLODMode lodMode;
             /// <summary>Percentage of strands to render.</summary>

@@ -53,9 +53,7 @@ namespace UnityEditor.VFX
 
         static bool s_Visible;
 
-        [SerializeField]
         static string m_CustomEvent = "CustomEvent";
-        [SerializeField]
         static List<EventAttribute> m_Attributes;
 
         static VisualEffect[] m_Effects;
@@ -145,7 +143,6 @@ namespace UnityEditor.VFX
             m_Attributes.Add(new EventAttribute(name as string, EventAttributeType.Color, Color.white));
         }
 
-        [System.Serializable]
         enum EventAttributeType
         {
             Float = 0,
@@ -155,7 +152,6 @@ namespace UnityEditor.VFX
             Bool = 4
         }
 
-        [System.Serializable]
         class EventAttribute
         {
             public string name;

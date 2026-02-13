@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         // AOVs
         [SerializeField] MaterialSharedProperty m_AOVBitmask = 0;
 
-        [SerializeField] Dictionary<string, int> m_AOVMap;
+        Dictionary<string, int> m_AOVMap;
 
         List<RTHandle> m_AOVHandles;
 
@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         [SerializeField] RenderTexture m_RenderTarget;
 
-        [SerializeField] RTHandle m_AOVTmpRTHandle;
+        RTHandle m_AOVTmpRTHandle;
 
         public bool clearsBackGround
         {

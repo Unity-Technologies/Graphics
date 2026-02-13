@@ -274,7 +274,8 @@ namespace UnityEditor.VFX
             }
         }
 
-        public IEnumerable<string> rayTracingDefines = null;
+        public IEnumerable<string> rayTracingDefines { get; set; } = null;
+
         public override IEnumerable<string> additionalDefines
         {
             get

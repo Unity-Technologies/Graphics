@@ -315,7 +315,6 @@ namespace UnityEditor.ShaderAnalysis
         [SerializeField]
         List<PerformanceUnit> m_PerformanceUnit = new List<PerformanceUnit>();
 
-        [SerializeField]
         Dictionary<int, string> m_SkippedPasses = new Dictionary<int, string>();
 
         Dictionary<int, Dictionary<int, int>> m_ProgramCompileUnits = new Dictionary<int, Dictionary<int, int>>();

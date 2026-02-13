@@ -53,6 +53,7 @@ namespace UnityEditor.Rendering
         /// An element from the filtered list or tree.
         /// </summary>
         /// <seealso cref="GroupElement"/>
+        [Serializable]
         public class Element : IComparable
         {
             /// <summary>

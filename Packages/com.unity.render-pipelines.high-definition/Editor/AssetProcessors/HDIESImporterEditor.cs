@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// IES Importer Editor, common to Core and HDRP
         /// </summary>
-        public UnityEditor.Rendering.IESImporterEditor iesImporterEditor = new UnityEditor.Rendering.IESImporterEditor();
+        public UnityEditor.Rendering.IESImporterEditor iesImporterEditor { get; set; } = new UnityEditor.Rendering.IESImporterEditor();
 
         internal void SetupRenderPipelinePreviewCamera(Camera camera)
         {

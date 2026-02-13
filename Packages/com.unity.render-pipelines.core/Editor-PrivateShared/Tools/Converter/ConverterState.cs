@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.Converter
         public IRenderPipelineConverter converter;
 
         public DisplayFilter currentFilter = DisplayFilter.All;
-        public IList<TreeViewItemData<ConverterItemState>> filteredItems = new List<TreeViewItemData<ConverterItemState>>();
+        public IList<TreeViewItemData<ConverterItemState>> filteredItems {get; private set; } = new List<TreeViewItemData<ConverterItemState>>();
 
         private int CountItemWithFlag(Status status)
         {

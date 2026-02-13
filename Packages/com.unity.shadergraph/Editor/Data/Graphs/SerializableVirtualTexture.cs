@@ -18,7 +18,6 @@ namespace UnityEditor.ShaderGraph.Internal
         public string layerRefName;
         public SerializableTexture layerTexture;
         public LayerTextureType layerTextureType;
-        [SerializeField]
         private Guid guid;
 
         public SerializableVirtualTextureLayer(string name, string refName, SerializableTexture texture)

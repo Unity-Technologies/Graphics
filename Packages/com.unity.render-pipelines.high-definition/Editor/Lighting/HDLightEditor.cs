@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     sealed partial class HDLightEditor : LightEditor
     {
-        public SerializedHDLight m_SerializedHDLight;
+        public SerializedHDLight m_SerializedHDLight { get; set; }
 
         HDAdditionalLightData[] m_AdditionalLightDatas;
 
