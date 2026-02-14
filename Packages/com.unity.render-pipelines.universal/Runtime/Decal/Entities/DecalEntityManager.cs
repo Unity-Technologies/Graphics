@@ -343,7 +343,13 @@ namespace UnityEngine.Rendering.Universal
             float endAngleFade = decalProjector.endAngleFade;
             Vector4 uvScaleBias = decalProjector.uvScaleBias;
             int layerMask = decalProjector.gameObject.layer;
+#if UNITY_EDITOR
+            // instead of removing decal altogether, set scene culling mask to game view only if !visibleInScene
+            ulong sceneLayerMask = decalProjector.visibleInScene ? decalProjector.gameObject.sceneCullingMask : 
+                                                                UnityEditor.SceneManagement.SceneCullingMasks.GameViewObjects;
+#else
             ulong sceneLayerMask = decalProjector.gameObject.sceneCullingMask;
+#endif
             float fadeFactor = decalProjector.fadeFactor;
 
             cachedChunk.drawDistances[arrayIndex] = new Vector2(drawDistance, fadeScale);
