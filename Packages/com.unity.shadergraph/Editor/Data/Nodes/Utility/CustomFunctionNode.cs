@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
 {
     [HasDependencies(typeof(MinimalCustomFunctionNode))]
     [Title("Utility", "Custom Function")]
-    class CustomFunctionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireTransform
+    class CustomFunctionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireTransform, IHasAssetDependencies
     {
         // 0 original version
         // 1 differentiate between struct-based UnityTexture2D and bare Texture2D resources (for all texture and samplerstate resources)

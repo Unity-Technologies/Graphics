@@ -2,3 +2,6 @@ apiRules:
   - exclude:
       uidRegex: ^UnityEditor\.ShaderGraph\.Internal\.UVChannel$
       type: Enum
+  - exclude:
+      uidRegex: ^UnityEditor\.ShaderGraph\.Internal\.PropertyType$
+      type: Enum

@@ -337,6 +337,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                     evt.menu.AppendSeparator();
                     evt.menu.AppendAction("Open Sub Graph", OpenSubGraph, (a) => DropdownMenuAction.Status.Normal);
                 }
+                if (selection.OfType<IShaderNodeView>().Count() == 1 && selection.OfType<IShaderNodeView>().First().node is ProviderSystem.ProviderNode providerNode && providerNode.isValid)
+                {
+                    evt.menu.AppendSeparator();
+
+                    void PingSource(DropdownMenuAction action)
+                    {
+                        var asset = AssetDatabase.LoadAssetByGUID<Object>(providerNode.Provider.AssetID);
+                        EditorGUIUtility.PingObject(asset);
+                    }
+                    evt.menu.AppendAction("Show Source in Project", PingSource, (a) => DropdownMenuAction.Status.Normal);
+                }
             }
             evt.menu.AppendSeparator();
             if (evt.target is StickyNote)

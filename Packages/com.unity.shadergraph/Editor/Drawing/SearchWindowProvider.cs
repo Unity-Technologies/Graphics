@@ -1,17 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
-using UnityEditor.UIElements;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using UnityEditor.Searcher;
 using UnityEngine.Profiling;
 using UnityEngine.Pool;
 using Object = UnityEngine.Object;
+using UnityEditor.ShaderGraph.ProviderSystem;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -205,6 +204,26 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             Profiler.EndSample();
 
+            Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateProviders");
+            HashSet<string> providerCollisions = new();
+            foreach (var provider in ProviderLibrary.Instance.AllProvidersByType<IShaderFunction>())
+            {
+                var node = new ProviderNode();
+                node.InitializeFromProvider(provider);
+                var header = node.Header;
+
+                string rawTitle = $"{header.category}/{header.uniqueName}";
+
+                int orderFound = 0;
+                while (providerCollisions.Contains(rawTitle))
+                    rawTitle += $", ({++orderFound})";
+
+                providerCollisions.Add(rawTitle);
+
+                var title = new List<string>(rawTitle.Split('/'));
+                AddEntries(node, title.ToArray(), nodeEntries);
+            }
+            Profiler.EndSample();
 
             Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateGraphInputs");
             foreach (var property in m_Graph.properties)
@@ -454,6 +473,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (ShaderGraphPreferences.allowDeprecatedBehaviors && oldNode.sgVersion != newNode.sgVersion)
             {
                 newNode.ChangeVersion(oldNode.sgVersion);
+            }
+            if (newNode is ProviderNode providerNode)
+            {
+                providerNode.InitializeFromProvider(((ProviderNode)oldNode).Provider);
             }
             if (newNode is SubGraphNode subgraphNode)
             {

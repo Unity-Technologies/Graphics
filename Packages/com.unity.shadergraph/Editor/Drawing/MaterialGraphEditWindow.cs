@@ -323,12 +323,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
                     }
 
-                    var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
-                    foreach (var subGraphNode in subGraphNodes)
+                    var nodesWithDependencies = graphObject.graph.GetNodes<IHasAssetDependencies>();
+                    foreach (var node in nodesWithDependencies)
                     {
-                        var reloaded = subGraphNode.Reload(m_ChangedFileDependencyGUIDs);
+                        var reloaded = node.Reload(m_ChangedFileDependencyGUIDs);
                         reloadedSomething |= reloaded;
                     }
+
+                    var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
                     if (subGraphNodes.Count() > 0)
                     {
                         // Keywords always need to be updated to test against variant limit
@@ -338,11 +340,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                         UpdateDropdownEntries();
                         materialGraph.OnDropdownChanged();
-                    }
-                    foreach (var customFunctionNode in graphObject.graph.GetNodes<CustomFunctionNode>())
-                    {
-                        var reloaded = customFunctionNode.Reload(m_ChangedFileDependencyGUIDs);
-                        reloadedSomething |= reloaded;
                     }
 
                     // reloading files may change serialization
@@ -402,6 +399,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_ChangedFileDependencyGUIDs.Add(changedFileGUID);
             }
+        }
+
+        public void NotifyDependencyUpdated(IEnumerable<GUID> guids)
+        {
+            foreach (var guid in guids)
+                m_ChangedFileDependencyGUIDs.Add(guid.ToString());
         }
 
         void UpdateDropdownEntries()

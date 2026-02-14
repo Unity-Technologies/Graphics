@@ -13,7 +13,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 
         public ColorRGBSlotControlView(ColorRGBMaterialSlot slot)
         {
-            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/ColorRGBSlotControlView"));
+            if (!slot.hideConnector)
+                styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/ColorRGBSlotControlView"));
+            else styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/ColorControlView"));
+
             m_Slot = slot;
             var colorField = new ColorField
             {
@@ -22,6 +25,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
                 showAlpha = false,
                 hdr = (slot.colorMode == ColorMode.HDR)
             };
+
+            if (slot.hideConnector)
+                colorField.label = slot.RawDisplayName();
+
             colorField.RegisterValueChangedCallback(OnValueChanged);
             Add(colorField);
         }

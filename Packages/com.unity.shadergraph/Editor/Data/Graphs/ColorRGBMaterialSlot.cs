@@ -34,6 +34,8 @@ namespace UnityEditor.ShaderGraph
             m_DefaultColor = value;
         }
 
+        internal override bool canHideConnector => true;
+
         public ColorMode colorMode
         {
             get { return m_ColorMode; }

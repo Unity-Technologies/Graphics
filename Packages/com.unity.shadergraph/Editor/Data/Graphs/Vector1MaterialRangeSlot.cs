@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
@@ -19,6 +20,21 @@ namespace UnityEditor.ShaderGraph
         float m_SliderPower = 3.0f;
 
         internal Vector1MaterialRangeSlot() { }
+
+        public Vector1MaterialRangeSlot(
+            int slotId,
+            string displayName,
+            string shaderOutputName,
+            SlotType slotType,
+            float value,
+            Vector2 range,
+            ShaderStageCapability stageCapability = ShaderStageCapability.All,
+            bool hidden = false)
+            : base(slotId, displayName, shaderOutputName, slotType, value, stageCapability: stageCapability, hidden: hidden)
+        {
+            this.m_sliderRange = range;
+        }
+
 
         internal Vector1MaterialRangeSlot(int slotId, Vector1ShaderProperty fromProperty)
             : base(slotId, fromProperty)
@@ -55,6 +71,8 @@ namespace UnityEditor.ShaderGraph
                 var sliderField = slot.hideConnector
                     ? new Slider(m_Slot.RawDisplayName(), m_Slot.m_sliderRange.x, m_Slot.m_sliderRange.y)
                     : new Slider(m_Slot.m_sliderRange.x, m_Slot.m_sliderRange.y);
+
+                sliderField.value = slot.value;
 
                 sliderField.RegisterValueChangedCallback(OnValueChange);
 

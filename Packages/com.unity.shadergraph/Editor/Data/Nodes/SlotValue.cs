@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph
         Boolean,
         VirtualTexture,
         PropertyConnectionState,
+        External
     }
 
     enum ConcreteSlotValueType
@@ -45,7 +46,8 @@ namespace UnityEditor.ShaderGraph
         Vector1,
         Boolean,
         VirtualTexture,
-        PropertyConnectionState
+        PropertyConnectionState,
+        External
     }
 
     // This enum must match ConcreteSlotValueType enum and is used to give friendly name in the enum popup used for custom function
@@ -221,6 +223,7 @@ namespace UnityEditor.ShaderGraph
                     {ConcreteSlotValueType.SamplerState, new List<SlotValueType>() {SlotValueType.SamplerState}},
                     {ConcreteSlotValueType.Gradient, new List<SlotValueType>() {SlotValueType.Gradient}},
                     {ConcreteSlotValueType.VirtualTexture, new List<SlotValueType>() {SlotValueType.VirtualTexture}},
+                    {ConcreteSlotValueType.External, new List<SlotValueType>() {SlotValueType.External}},
                 };
             }
 
