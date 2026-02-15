@@ -250,7 +250,7 @@ namespace UnityEngine.Rendering
         private int m_Height;
         private AtlasNodePool m_Pool;
         private Int16 m_Root;
-        private Dictionary<int, Int16> m_NodeFromID;
+        private Dictionary<TextureId, Int16> m_NodeFromID;
 
         public AtlasAllocatorDynamic(int width, int height, int capacityAllocations)
         {
@@ -259,7 +259,7 @@ namespace UnityEngine.Rendering
             Debug.Assert(capacityNodes < (1 << 16), "Error: AtlasAllocatorDynamic: Attempted to allocate a capacity of " + capacityNodes + ", which is greater than our 16-bit indices can support. Please request a capacity <=" + (1 << 16));
             m_Pool = new AtlasNodePool((Int16)capacityNodes);
 
-            m_NodeFromID = new Dictionary<int, Int16>(capacityAllocations);
+            m_NodeFromID = new Dictionary<TextureId, Int16>(capacityAllocations);
 
             Int16 rootParent = -1;
             m_Root = m_Pool.AtlasNodeCreate(rootParent);
@@ -272,7 +272,7 @@ namespace UnityEngine.Rendering
             // Debug.Log("Allocating atlas = " + debug);
         }
 
-        public bool Allocate(out Vector4 result, int key, int width, int height)
+        public bool Allocate(out Vector4 result, TextureId key, int width, int height)
         {
             Int16 node = m_Pool.m_Nodes[m_Root].Allocate(m_Pool, width, height);
             if (node >= 0)
@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public void Release(int key)
+        public void Release(TextureId key)
         {
             if (m_NodeFromID.TryGetValue(key, out Int16 node))
             {
@@ -333,6 +333,35 @@ namespace UnityEngine.Rendering
         }
     }
 
+
+
+    struct TextureId : IEquatable<TextureId>
+    {
+        EntityId m_EntityId;
+        int m_TextureSize;
+
+        public TextureId(EntityId entityId, int textureSize)
+        {
+            this.m_EntityId = entityId;
+            this.m_TextureSize = textureSize;
+        }
+
+        public bool Equals(TextureId other)
+        {
+            return m_EntityId.Equals(other.m_EntityId) && m_TextureSize == other.m_TextureSize;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is TextureId other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(m_EntityId, m_TextureSize);
+        }
+    }
+
     /// <summary>
     /// A generic Atlas texture of 2D textures.
     /// An atlas texture is a texture collection that collects multiple sub-textures into a single big texture.
@@ -340,13 +369,14 @@ namespace UnityEngine.Rendering
     /// </summary>
     internal class Texture2DAtlasDynamic
     {
+
         private RTHandle m_AtlasTexture = null;
         private bool isAtlasTextureOwner = false;
         private int m_Width;
         private int m_Height;
         private GraphicsFormat m_Format;
         private AtlasAllocatorDynamic m_AtlasAllocator = null;
-        private Dictionary<int, Vector4> m_AllocationCache;
+        private Dictionary<TextureId, Vector4> m_AllocationCache;
 
         /// <summary>
         /// Handle to the texture of the atlas.
@@ -393,7 +423,7 @@ namespace UnityEngine.Rendering
             isAtlasTextureOwner = true;
 
             m_AtlasAllocator = new AtlasAllocatorDynamic(width, height, capacity);
-            m_AllocationCache = new Dictionary<int, Vector4>(capacity);
+            m_AllocationCache = new Dictionary<TextureId, Vector4>(capacity);
         }
 
         /// <summary>
@@ -412,7 +442,7 @@ namespace UnityEngine.Rendering
             isAtlasTextureOwner = false;
 
             m_AtlasAllocator = new AtlasAllocatorDynamic(width, height, capacity);
-            m_AllocationCache = new Dictionary<int, Vector4>(capacity);
+            m_AllocationCache = new Dictionary<TextureId, Vector4>(capacity);
         }
 
         /// <summary>
@@ -442,9 +472,7 @@ namespace UnityEngine.Rendering
         /// <returns>Returns True if Unity successfully adds the texture.</returns>
         public bool AddTexture(CommandBuffer cmd, out Vector4 scaleOffset, Texture texture)
         {
-#pragma warning disable 618 // Todo(@daniel.andersen): Potentially use GetRawData or sometin'
-            int key = texture.GetEntityId();
-#pragma warning restore 618
+            TextureId key = new TextureId(texture.GetEntityId(),texture.width);
             if (!m_AllocationCache.TryGetValue(key, out scaleOffset))
             {
                 int width = texture.width;
@@ -474,7 +502,7 @@ namespace UnityEngine.Rendering
         /// <param name="scaleOffset">The texture rectangle coordinates in the atlas.</param>
         /// <param name="key">The key that identifies the texture.</param>
         /// <returns>Returns True if the texture is cached.</returns>
-        public bool IsCached(out Vector4 scaleOffset, int key)
+        public bool IsCached(out Vector4 scaleOffset, TextureId key)
         {
             return m_AllocationCache.TryGetValue(key, out scaleOffset);
         }
@@ -488,7 +516,7 @@ namespace UnityEngine.Rendering
         /// <param name="width">Width of the texture.</param>
         /// <param name="height">Height of the texture.</param>
         /// <returns>Returns True if Unity successfully allocates the slot.</returns>
-        public bool EnsureTextureSlot(out bool isUploadNeeded, out Vector4 scaleOffset, int key, int width, int height)
+        public bool EnsureTextureSlot(out bool isUploadNeeded, out Vector4 scaleOffset, TextureId key, int width, int height)
         {
             isUploadNeeded = false;
             if (m_AllocationCache.TryGetValue(key, out scaleOffset)) { return true; }
@@ -507,7 +535,7 @@ namespace UnityEngine.Rendering
         /// Release allocated space from the atlas.
         /// </summary>
         /// <param name="key">The key that identifies the texture.</param>
-        public void ReleaseTextureSlot(int key)
+        public void ReleaseTextureSlot(TextureId key)
         {
             m_AtlasAllocator.Release(key);
             m_AllocationCache.Remove(key);
