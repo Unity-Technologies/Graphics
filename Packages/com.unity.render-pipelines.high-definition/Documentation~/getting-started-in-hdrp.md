@@ -10,4 +10,3 @@ Set up a project to use the High Definition Render Pipeline (HDRP), and use Volu
 ## Additional resources
 
 - [HDRP overview](HDRP-Features.md)
-- [Achieving High Fidelity Graphics for Games with HDRP](https://resources.unity.com/unitenow/onlinesessions/achieving-high-fidelity-graphics-for-games-with-hdrp)
