@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering
         [SerializeField, HideInInspector] private int version = 1;
 
         int IRenderPipelineGraphicsSettings.version => version;
+        bool IRenderPipelineGraphicsSettings.isAvailableInPlayerBuild => true;
 
         [SerializeField, Tooltip("Use ReflectionProbe rotation. Enabling this will improve the appearance of reflections when the ReflectionProbe isn't axis aligned, but may worsen performance on lower end platforms.")]
         private bool useReflectionProbeRotation = true;
