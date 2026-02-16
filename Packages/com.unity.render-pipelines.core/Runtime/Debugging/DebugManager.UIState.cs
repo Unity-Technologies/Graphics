@@ -1,6 +1,9 @@
 #if ENABLE_UIELEMENTS_MODULE && (UNITY_EDITOR || DEVELOPMENT_BUILD)
 #define ENABLE_RENDERING_DEBUGGER_UI
 #endif
+#if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
+#define USE_INPUT_SYSTEM
+#endif
 
 using System;
 
@@ -99,6 +102,9 @@ namespace UnityEngine.Rendering
                         m_RuntimeDebugWindow = go.AddComponent<RuntimeDebugWindow>();
                         go.SetActive(true);
                     }
+#if USE_INPUT_SYSTEM
+                    m_DebugMenuActions.Enable();
+#endif
                 }
                 else
                 {
@@ -107,6 +113,9 @@ namespace UnityEngine.Rendering
                         CoreUtils.Destroy(m_RuntimeDebugWindow.gameObject);
                         m_RuntimeDebugWindow = null;
                     }
+#if USE_INPUT_SYSTEM
+                    m_DebugMenuActions.Disable();
+#endif
                 }
 
                 onDisplayRuntimeUIChanged(value);

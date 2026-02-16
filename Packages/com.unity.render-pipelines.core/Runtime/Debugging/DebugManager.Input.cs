@@ -23,24 +23,25 @@ namespace UnityEngine.Rendering
 #if USE_INPUT_SYSTEM
         const string k_AnyTouch = "Any Touch";
 
-        readonly InputActionMap m_DebugActionMap = new InputActionMap("Debug Menu");
+        readonly InputActionMap m_DebugMenuEnableActions = new InputActionMap("Debug Menu Enable Actions");
+        readonly InputActionMap m_DebugMenuActions = new InputActionMap("Debug Menu Actions");
         InputAction m_MultiplierAction;
 
         internal void EnableInputCallbacks()
         {
-            m_DebugActionMap.Enable();
+            m_DebugMenuEnableActions.Enable();
         }
 
         internal void DisableInputCallbacks()
         {
-            m_DebugActionMap.Disable();
+            m_DebugMenuEnableActions.Disable();
         }
 
         void ToggleRuntimeUI() => displayRuntimeUI = !displayRuntimeUI;
 
         void RegisterDebugInputs()
         {
-            var enableAction = m_DebugActionMap.AddAction(k_EnableDebug, type: InputActionType.Button);
+            var enableAction = m_DebugMenuEnableActions.AddAction(k_EnableDebug, type: InputActionType.Button);
             enableAction.AddCompositeBinding("ButtonWithOneModifier")
                 .With("Modifier", "<Gamepad>/rightStickPress")
                 .With("Button", "<Gamepad>/leftStickPress")
@@ -48,7 +49,7 @@ namespace UnityEngine.Rendering
                 .With("Button", "<Keyboard>/backspace");
             enableAction.performed += _ => ToggleRuntimeUI();
 
-            var anyTouchAction = m_DebugActionMap.AddAction(k_AnyTouch, type: InputActionType.Button);
+            var anyTouchAction = m_DebugMenuEnableActions.AddAction(k_AnyTouch, type: InputActionType.Button);
             anyTouchAction.AddBinding("<Touchscreen>/touch2/tap"); // touch2 means "third finger"
             anyTouchAction.performed += ctx =>
             {
@@ -63,7 +64,7 @@ namespace UnityEngine.Rendering
             };
 
 #if ENABLE_RENDERING_DEBUGGER_UI
-            var resetAction = m_DebugActionMap.AddAction(k_ResetBtn, type: InputActionType.Button);
+            var resetAction = m_DebugMenuActions.AddAction(k_ResetBtn, type: InputActionType.Button);
             resetAction.AddCompositeBinding("ButtonWithOneModifier")
                 .With("Modifier", "<Gamepad>/rightStickPress")
                 .With("Button", "<Gamepad>/b")
@@ -71,26 +72,26 @@ namespace UnityEngine.Rendering
                 .With("Button", "<Keyboard>/backspace");
             resetAction.performed += _ => { Reset(); };
 
-            var next = m_DebugActionMap.AddAction(k_DebugNextBtn, type: InputActionType.Button);
+            var next = m_DebugMenuActions.AddAction(k_DebugNextBtn, type: InputActionType.Button);
             next.AddBinding("<Keyboard>/pageDown");
             next.AddBinding("<Gamepad>/rightShoulder");
             next.performed += _ => { m_RuntimeDebugWindow.SelectNextPanel(); };
 
-            var previous = m_DebugActionMap.AddAction(k_DebugPreviousBtn, type: InputActionType.Button);
+            var previous = m_DebugMenuActions.AddAction(k_DebugPreviousBtn, type: InputActionType.Button);
             previous.AddBinding("<Keyboard>/pageUp");
             previous.AddBinding("<Gamepad>/leftShoulder");
             previous.performed += _ => { m_RuntimeDebugWindow.SelectPreviousPanel(); };
 
-            var persistentAction = m_DebugActionMap.AddAction(k_PersistentBtn, type: InputActionType.Button);
+            var persistentAction = m_DebugMenuActions.AddAction(k_PersistentBtn, type: InputActionType.Button);
             persistentAction.AddBinding("<Keyboard>/rightShift");
             persistentAction.AddBinding("<Gamepad>/x");
             persistentAction.performed += _ => { TogglePersistent(); };
 
-            m_MultiplierAction = m_DebugActionMap.AddAction(k_MultiplierBtn, type: InputActionType.Value);
+            m_MultiplierAction = m_DebugMenuActions.AddAction(k_MultiplierBtn, type: InputActionType.Value);
             m_MultiplierAction.AddBinding("<Keyboard>/leftShift");
             m_MultiplierAction.AddBinding("<Gamepad>/y");
 
-            var moveHorizontalAction = m_DebugActionMap.AddAction(k_DPadHorizontal);
+            var moveHorizontalAction = m_DebugMenuActions.AddAction(k_DPadHorizontal);
             moveHorizontalAction.AddCompositeBinding("1DAxis")
                 .With("Positive", "<Gamepad>/dpad/right")
                 .With("Negative", "<Gamepad>/dpad/left")
@@ -102,11 +103,11 @@ namespace UnityEngine.Rendering
                 bool increment = ctx.ReadValue<float>() > 0.0f;
                 if (increment)
                 {
-                    selectedWidget.OnIncrement(multiplierPressed);
+                    selectedWidget?.OnIncrement(multiplierPressed);
                 }
                 else
                 {
-                    selectedWidget.OnDecrement(multiplierPressed);
+                    selectedWidget?.OnDecrement(multiplierPressed);
                 }
             };
 #endif
