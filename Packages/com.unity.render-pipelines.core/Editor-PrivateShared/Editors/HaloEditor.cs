@@ -5,16 +5,10 @@ using UnityEngine.Rendering;
 namespace UnityEditor
 {
 #pragma warning disable CS0618  // Type or member is obsolete
-    /// <summary>
-    /// Editor for Lens Flare (builtin): Editor to show an error message
-    /// </summary>
-    [CustomEditor(typeof(LensFlare))]
+    [CustomEditor(typeof(Halo))]
     [CanEditMultipleObjects]
-    class LensFlareEditor : Editor
+    class HaloEditor : Editor
     {
-        /// <summary>
-        /// Implement this function to make a custom inspector
-        /// </summary>
         public override void OnInspectorGUI()
         {
             if (GraphicsSettings.isScriptableRenderPipelineEnabled)
@@ -24,10 +18,10 @@ namespace UnityEditor
                 buttonRect.x -= offsetToMatchWarning;
                 buttonRect.width += offsetToMatchWarning;
 
-                if (GUI.Button(buttonRect, "Add Lens Flare (SRP) component") && serializedObject.targetObject is LensFlare lensFlare)
+                if (GUI.Button(buttonRect, "Add Lens Flare (SRP) component") && serializedObject.targetObject is Halo halo)
                 {
-                    lensFlare.gameObject.AddComponent<LensFlareComponentSRP>();
-                    EditorSceneManager.MarkSceneDirty(lensFlare.gameObject.scene);
+                    halo.gameObject.AddComponent<LensFlareComponentSRP>();
+                    EditorSceneManager.MarkSceneDirty(halo.gameObject.scene);
                 }
             }
 

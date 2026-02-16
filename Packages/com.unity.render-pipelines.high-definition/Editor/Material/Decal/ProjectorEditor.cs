@@ -1,32 +1,27 @@
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor
+namespace UnityEditor.Rendering
 {
 #pragma warning disable CS0618  // Type or member is obsolete
-    /// <summary>
-    /// Editor for Lens Flare (builtin): Editor to show an error message
-    /// </summary>
-    [CustomEditor(typeof(LensFlare))]
+    [CustomEditor(typeof(Projector))]
     [CanEditMultipleObjects]
-    class LensFlareEditor : Editor
+    class ProjectorEditor : Editor
     {
-        /// <summary>
-        /// Implement this function to make a custom inspector
-        /// </summary>
         public override void OnInspectorGUI()
         {
-            if (GraphicsSettings.isScriptableRenderPipelineEnabled)
+            if (GraphicsSettings.currentRenderPipelineAssetType == typeof(HDRenderPipelineAsset))
             {
                 const int offsetToMatchWarning = 16;
                 Rect buttonRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
                 buttonRect.x -= offsetToMatchWarning;
                 buttonRect.width += offsetToMatchWarning;
 
-                if (GUI.Button(buttonRect, "Add Lens Flare (SRP) component") && serializedObject.targetObject is LensFlare lensFlare)
+                if (GUI.Button(buttonRect,"Add HDRP Decal Projector component") && serializedObject.targetObject is Projector lensFlare)
                 {
-                    lensFlare.gameObject.AddComponent<LensFlareComponentSRP>();
+                    lensFlare.gameObject.AddComponent<DecalProjector>();
                     EditorSceneManager.MarkSceneDirty(lensFlare.gameObject.scene);
                 }
             }
