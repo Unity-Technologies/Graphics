@@ -41,13 +41,12 @@ void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
             continue;
         if (light.type == EMISSIVE_MESH || light.type == ENVIRONMENT_LIGHT) // Shadowmask only makes sense for punctual lights
             continue;
-        uint dimsUsed = 0;
 
         float3 origin = OffsetRayOrigin(worldPosition, worldFaceNormal, g_PushOff);
 
         float3 attenuation = 1.0f;
-        float isVisible = IsLightVisibleFromPoint(dispatchInfo, accelStruct, g_AccelStructInstanceList, ShadowRayMask(), origin, rngState, dimsOffset, dimsUsed, light, g_ReceiveShadows, attenuation) ? dot(float3(1.0f, 1.0f, 1.0f), attenuation)/3.0f : 0.0f;
-        dimsOffset += dimsUsed;
+        float isVisible = IsLightVisibleFromPoint(dispatchInfo, accelStruct, g_AccelStructInstanceList, ShadowRayMask(), origin, rngState, dimsOffset, light, g_ReceiveShadows, attenuation) ? dot(float3(1.0f, 1.0f, 1.0f), attenuation)/3.0f : 0.0f;
+        dimsOffset += 3; // 2 dimensions for sampling the light, 1 dimension for jittering the shadow ray
         if (light.shadowMaskChannel < 0 || light.shadowMaskChannel >= 4)
             continue;
         visibility[light.shadowMaskChannel] += isVisible;

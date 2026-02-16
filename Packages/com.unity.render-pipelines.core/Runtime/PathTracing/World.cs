@@ -276,6 +276,18 @@ namespace UnityEngine.PathTracing.Core
         public int NonMeshLightCount => _lightState.LightHandleToLightListEntry.Count;
         public int MeshLightCount => _lightState.MeshLights.Count;
         public int EnvLightCount => _lightState.HasEnvironmentLight ? 1 : 0;
+        public int MaxLightsInAnyCell
+        {
+            get
+            {
+                switch (_lightState.lightPickingMethod)
+                {
+                    case LightPickingMethod.LightGrid: return _conservativeLightGrid.MaxLightsInAnyCell;
+                    case LightPickingMethod.Regir: return _reservoirGrid.MaxLightsInAnyCell;
+                    default: return LightCount;
+                }
+            }
+        }
 
         public List<PTLight> LightList => _lightState.LightList;
         public Dictionary<LightHandle, int> LightHandleToLightListIndex => _lightState.LightHandleToLightListIndex;

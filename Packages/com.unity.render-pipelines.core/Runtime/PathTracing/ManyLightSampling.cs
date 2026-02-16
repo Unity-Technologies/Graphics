@@ -57,6 +57,17 @@ namespace UnityEngine.PathTracing.Core
             Debug.Assert(gridDims.x * gridDims.y * gridDims.z <= maxLightGridCellCount);
             return gridDims;
         }
+
+        public static int ComputeMaxLightsInAnyCell(int2[] grid, Vector3Int gridDims)
+        {
+            int maxLightsInAnyCell = 0;
+            for (int i = 0; i < gridDims.x * gridDims.y * gridDims.z; i++)
+            {
+                int lightCount = grid[i].y;
+                maxLightsInAnyCell = Math.Max(maxLightsInAnyCell, lightCount);
+            }
+            return maxLightsInAnyCell;
+        }
     }
 
 
@@ -67,6 +78,7 @@ namespace UnityEngine.PathTracing.Core
         public int MaxLightsPerCell = 64; // Only used with GridMemLayout.Dense
         public GridSizingStrategy LightGridSizingStrategy = GridSizingStrategy.FitToSceneBounds;
         public GridMemLayout GridMemLayout = GridMemLayout.Sparse;
+        public int MaxLightsInAnyCell => _maxLightsInAnyCell;
 
         public ConservativeLightGrid(ComputeShader shader)
         {
@@ -168,6 +180,11 @@ namespace UnityEngine.PathTracing.Core
             // Build the grid
             cmd.SetComputeBufferParam(_shader, _buildLightGridlKernel, ShaderProperties.LightGridCellsData, _lightGridCellsDataBuffer);
             DispatchBuild(cmd, 1);
+
+            GraphicsHelpers.Flush(cmd);
+            int2[] grid = new int2[_lightGridBuffer.count];
+            _lightGridBuffer.GetData(grid);
+            _maxLightsInAnyCell = LightGridUtils.ComputeMaxLightsInAnyCell(grid, _lightGridDims);
         }
 
         public void Bind(CommandBuffer cmd, IRayTracingShader shader)
@@ -226,6 +243,7 @@ namespace UnityEngine.PathTracing.Core
         Vector4 _cellSize;
         Vector4 _invCellSize;
         Vector3Int _lightGridDims;
+        int _maxLightsInAnyCell;
     }
 
     internal class RegirLightGrid : IManyLightSampling
@@ -235,6 +253,7 @@ namespace UnityEngine.PathTracing.Core
         public int MaxLightsPerCell = 64;
         public int NumCandidates = -1; // -1 means we iterate over all the lights
         public GridSizingStrategy LightGridSizingStrategy = GridSizingStrategy.Uniform;
+        public int MaxLightsInAnyCell => _maxLightsInAnyCell;
 
         public RegirLightGrid(ComputeShader shader)
         {
@@ -308,6 +327,11 @@ namespace UnityEngine.PathTracing.Core
                 GraphicsHelpers.DivUp(_lightGridDims.x, groupDim),
                 GraphicsHelpers.DivUp(_lightGridDims.y, groupDim),
                 GraphicsHelpers.DivUp(_lightGridDims.z, groupDim));
+
+            GraphicsHelpers.Flush(cmd);
+            int2[] grid = new int2[_lightGridBuffer.count];
+            _lightGridBuffer.GetData(grid);
+            _maxLightsInAnyCell = LightGridUtils.ComputeMaxLightsInAnyCell(grid, _lightGridDims);
         }
 
         public void Bind(CommandBuffer cmd, IRayTracingShader shader)
@@ -354,5 +378,6 @@ namespace UnityEngine.PathTracing.Core
         Vector4 _cellSize;
         Vector4 _invCellSize;
         Vector3Int _lightGridDims;
+        int _maxLightsInAnyCell;
     }
 }

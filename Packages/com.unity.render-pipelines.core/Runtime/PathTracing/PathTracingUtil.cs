@@ -129,7 +129,7 @@ namespace UnityEngine.PathTracing.Core
             CommandBuffer cmd,
             IRayTracingShader shader,
             bool countNEERayAsPathSegment,
-            uint lightEvaluationsPerBounce,
+            uint risCandidateCount,
             bool preExpose,
             int bounces,
             float environmentIntensityMultiplier,
@@ -137,7 +137,7 @@ namespace UnityEngine.PathTracing.Core
             SamplingResources samplingResources,
             RTHandle emptyTexture)
         {
-            shader.SetIntParam(cmd, ShaderProperties.LightEvaluations, (int)lightEvaluationsPerBounce);
+            shader.SetIntParam(cmd, ShaderProperties.LightEvaluations, (int)risCandidateCount);
             shader.SetIntParam(cmd, ShaderProperties.PathtracerAsGiPreviewMode, 0);
             shader.SetIntParam(cmd, ShaderProperties.CountNEERayAsPathSegment, countNEERayAsPathSegment ? 1 : 0);
             shader.SetIntParam(cmd, ShaderProperties.RenderedInstances, (int)renderedGameObjectsFilter);

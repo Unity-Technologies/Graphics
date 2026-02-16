@@ -18,28 +18,20 @@
 
 struct PathTracingSampler
 {
-    #if defined(QRNG_METHOD_SOBOL)
-        QrngSobol2D generator;
-    #elif defined(QRNG_METHOD_SOBOL_BLUE_NOISE)
-        QrngSobolBlueNoise2D generator;
-    #elif defined(QRNG_METHOD_GLOBAL_SOBOL_BLUE_NOISE)
-        QrngGlobalSobolBlueNoise2D generator;
-    #elif defined(QRNG_METHOD_KRONECKER)
-        QrngKronecker2D generator;
-    #elif defined(QRNG_METHOD_RANDOM_XOR_SHIFT)
-        QrngXorShift generator;
-    #elif defined(QRNG_METHOD_RANDOM_PCG_4D)
-        QrngPcg4D generator;
-    #endif
+    QRNG_TYPE generator;
+    int pathIndex;
     int bounceIndex;
+    uint2 pixelCoord;
 
-    void Init(uint2 pixelCoord, uint startPathIndex, uint perPixelPathCount = 256)
+    void Init(uint2 startPixelCoord, uint startPathIndex, uint perPixelPathCount = 256)
     {
         #if defined(QRNG_METHOD_GLOBAL_SOBOL_BLUE_NOISE)
-            generator.Init(pixelCoord, startPathIndex, perPixelPathCount);
+            generator.Init(startPixelCoord, startPathIndex, perPixelPathCount);
         #else
-            generator.Init(pixelCoord, startPathIndex);
+            generator.Init(startPixelCoord, startPathIndex);
         #endif
+        pixelCoord = startPixelCoord;
+        pathIndex = startPathIndex;
         bounceIndex = 0;
     }
 
