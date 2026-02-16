@@ -84,6 +84,11 @@ public class HDRP_Runtime_Graphics_Tests
         architectures: new Architecture[] { Architecture.X64 }
     )]
     [IgnoreGraphicsTest(
+        "010-BRG-Simple",
+        "Unstable: https://jira.unity3d.com/browse/UUM-134572",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.PS5 }
+    )]
+    [IgnoreGraphicsTest(
         "012-SVL_Check$",
         "https://jira.unity3d.com/browse/UUM-70791",
         runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.PS4, RuntimePlatform.PS5, RuntimePlatform.Switch, RuntimePlatform.Switch2 }
