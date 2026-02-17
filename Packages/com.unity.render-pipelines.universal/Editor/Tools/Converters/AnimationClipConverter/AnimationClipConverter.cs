@@ -40,6 +40,7 @@ namespace UnityEditor.Rendering.Universal
     [Serializable]
     [URPHelpURL("features/rp-converter")]
     [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
+    [BatchModeConverterClassInfo("BuiltInToURP", "AnimationClip")]
     [ElementInfo(Name = "Animation Clip",
                  Order = 110,
                  Description = "Updates animation clips that reference material properties to work with URP shaders.\nEnsures material animations continue working after converting Materials from Built-in RP to URP.")]
