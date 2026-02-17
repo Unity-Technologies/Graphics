@@ -315,7 +315,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         if (preset == UnityEngine.NVIDIA.DLSSPreset.Preset_Default)
                         {
-                            labels[(int)quality][iWrite++] = "Default Preset";
+                            labels[(int)quality][iWrite++] = "Default Preset" + " - " + UnityEngine.NVIDIA.GraphicsDevice.GetDLSSPresetExplanation(preset);
                             continue;
                         }
 
