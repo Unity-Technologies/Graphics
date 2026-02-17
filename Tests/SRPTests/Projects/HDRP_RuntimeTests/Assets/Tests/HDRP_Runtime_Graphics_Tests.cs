@@ -13,6 +13,13 @@ public class HDRP_Runtime_Graphics_Tests
     : IPrebuildSetup
 #endif
 {
+    [OneTimeSetUp]
+    public void SetDefaultResolution()
+    {
+        // Standard resolution for backbuffer capture is 1080p
+        Screen.SetResolution(1920, 1080, true);
+    }
+
     [UnityTest]
     [SceneGraphicsTest(@"Assets/Scenes/^[0-9]+")]
     [Timeout(450 * 1000)] // Set timeout to 450 sec. to handle complex scenes with many shaders (previous timeout was 300s)
@@ -43,6 +50,11 @@ public class HDRP_Runtime_Graphics_Tests
         "002-HDMaterials$",
         "",
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal }
+    )]
+    [IgnoreGraphicsTest(
+        "011-HighQualityLines",
+        "https://jira.unity3d.com/browse/UUM-132442",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch }
     )]
     [IgnoreGraphicsTest(
         "004-CloudsFlaresDecals$",

@@ -92,6 +92,13 @@ namespace UnityEngine.Rendering.HighDefinition.DXR_Tests
             yield return HDRP_GraphicTestRunner.Run(testCase);
         }
 
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            // Standard resolution for backbuffer capture is 1080p
+            Screen.SetResolution(1920, 1080, true);
+        }
+
 #if UNITY_EDITOR
 
         public void Setup()
@@ -143,6 +150,8 @@ namespace UnityEngine.Rendering.HighDefinition.DXR_Tests
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
+            // Standard resolution for backbuffer capture is 1080p
+            Screen.SetResolution(1920, 1080, true);
             SceneManager.LoadScene("GraphicsTestTransitionScene", LoadSceneMode.Single);
         }
 
