@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="open">State of the debug window.</param>
         [Obsolete("Use DebugManager.instance.displayEditorUI property instead. #from(2023.1)")]
-        public void ToggleEditorUI(bool open) => editorUIState.open = open;
+        public void ToggleEditorUI(bool open) => m_EditorUIState.open = open;
 
         /// <summary>
         /// Get hashcode state of the Debug Window.
