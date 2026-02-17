@@ -83,7 +83,7 @@ namespace UnityEditor.Rendering.Tests
         {
             // To simplify the test, we use square brackets "[]" to indicate search match highlight.
             string FormatWithSearchTag(string str) =>
-                str.Replace("[", RenderGraphViewer.k_SelectionColorBeginTag).Replace("]", RenderGraphViewer.k_SelectionColorEndTag);
+                str.Replace("[", UIElementSearchFilter.k_SelectionColorBeginTag).Replace("]", UIElementSearchFilter.k_SelectionColorEndTag);
 
             TestCaseData MakeTestCase(string content, string searchString, string result, bool isMatch)
             {

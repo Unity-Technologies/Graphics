@@ -2,6 +2,7 @@
     engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
     <uie:Toolbar class="top-toolbar">
         <uie:ToolbarSpacer style="flex-grow: 1" />
+        <uie:ToolbarSearchField name="search-field"/>
         <uie:ToolbarButton text="Reset" name="btn-reset" focusable="false" />
     </uie:Toolbar>
     <ui:TwoPaneSplitView fixed-pane-index="0" fixed-pane-initial-dimension="225" view-data-key="debug-window-split-view">

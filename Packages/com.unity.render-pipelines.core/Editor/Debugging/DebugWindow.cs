@@ -290,6 +290,9 @@ namespace UnityEditor.Rendering
                 // The schedulers themselves are created in AttachToPanelEvent so we need to delay to ensure this has happened.
                 EditorApplication.delayCall += () => SetSelectedPanel(m_SelectedPanelName);
             });
+
+            BuildSearchCache();
+            InitializeSearchField();
         }
 
         void ResetClicked()

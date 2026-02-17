@@ -218,12 +218,23 @@ namespace UnityEngine.Rendering
             /// </summary>
             internal bool keepLayoutWhenHidden { private get; set; }
 
+            internal bool m_IsHiddenBySearchFilter;
+
+            internal string m_AdditionalSearchText = string.Empty;
+
             protected internal bool m_RequiresLegacyStateHandling = false;
 
             void UpdateElementVisibility()
             {
+                if (m_IsHiddenBySearchFilter)
+                {
+                    m_VisualElement.style.display = DisplayStyle.None;
+                    return;
+                }
+
                 if (keepLayoutWhenHidden)
                 {
+                    m_VisualElement.style.display = DisplayStyle.Flex;
                     m_VisualElement.style.visibility = isHidden ? Visibility.Hidden : Visibility.Visible;
                 }
                 else
@@ -550,6 +561,7 @@ namespace UnityEngine.Rendering
                     text = displayName
                 };
                 button.AddToClassList("debug-window-button");
+                button.AddToClassList("debug-window-search-filter-target");
                 button.clicked += () => action();
                 return button;
             }
@@ -580,6 +592,7 @@ namespace UnityEngine.Rendering
 
                 var nameLabel = new Label() { text = displayName };
                 nameLabel.AddToClassList("debug-window-value-name");
+                nameLabel.AddToClassList("debug-window-search-filter-target");
 
                 var valueLabel = new Label() { text = FormatString(GetValue()) };
                 valueLabel.AddToClassList("debug-window-value-value");
@@ -737,6 +750,7 @@ namespace UnityEngine.Rendering
                 valueContainer.AddToClassList("debug-window-valuetuple");
 
                 var label = new Label(displayName) { style = { minWidth = ValueTuple.GetLabelWidth(m_Context) }, };
+                label.AddToClassList("debug-window-search-filter-target");
 
                 if (isHeader)
                     label.style.unityFontStyleAndWeight = FontStyle.Bold;
