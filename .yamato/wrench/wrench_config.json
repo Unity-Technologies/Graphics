@@ -1,0 +1,38 @@
+{
+  "schema_version": 0.7,
+  "packages": {
+    "com.unity.postprocessing": {
+      "directory": "com.unity.postprocessing/",
+      "prePackCommands": [],
+      "preTestCommands": {
+        "MacOS": [],
+        "Ubuntu": [],
+        "Windows": []
+      },
+      "InternalOnly": false,
+      "NeverPublish": false,
+      "MaxEditorVersion": "",
+      "coverageEnabled": false,
+      "coverageCommands": [
+        "generateAdditionalMetrics;generateHtmlReport;assemblyFilters:ASSEMBLY_NAME;pathReplacePatterns:@*,,**/PackageCache/,;sourcePaths:YAMATO_SOURCE_DIR/Packages;"
+      ],
+      "dependantsToIgnoreInPreviewApv": {},
+      "postPackCommands": []
+    }
+  },
+  "releasing_packages": [
+    "com.unity.postprocessing"
+  ],
+  "jobs_to_monitor": {
+    "com.unity.postprocessing": [
+      ".yamato/wrench/api-validation-jobs.yml#api_validation_-_postprocessing_-_2019_4_-_windows",
+      ".yamato/wrench/preview-a-p-v.yml#all_preview_apv_jobs",
+      ".yamato/wrench/promotion-jobs.yml#publish_dry_run_postprocessing"
+    ]
+  },
+  "publishing_job": ".yamato/wrench/promotion-jobs.yml#publish_postprocessing",
+  "branch_pattern": "ReleaseSlash",
+  "wrench_version": "1.4.3.0",
+  "pvp_exemption_path": ".yamato/wrench/pvp-exemptions.json",
+  "cs_project_path": "Tools/CI/Graphics.Cookbook.csproj"
+}
