@@ -55,7 +55,7 @@ void Lookup(uint2 lowResPixelPos : SV_DispatchThreadID)
     const float3 worldPos = ComputeWorldSpacePosition(uv, ndcDepth, _ClipToWorldTransform);
     const float3 worldNormal = _ScreenFlatNormals[fullResPixelPos];
 
-    QrngKronecker rng;
+    QrngKronecker2D rng;
     rng.Init(lowResPixelPos, 0);
 
     const int cascadeResolution = PatchUtil::ResolveCascadeIndex(_VolumeTargetPos, worldPos, _VolumeSpatialResolution, _CascadeCount, _VolumeVoxelMinSize);
@@ -77,10 +77,10 @@ void Lookup(uint2 lowResPixelPos : SV_DispatchThreadID)
     const float3x3 orthoBasis = OrthoBasisFromVector(worldNormal);
     for (uint sampleIdx = 0; sampleIdx < _SampleCount; ++sampleIdx)
     {
-        float2 jitter = float2(rng.GetFloat(0), rng.GetFloat(1)) * 2.0f - 1.0f;
+        float2 jitter = rng.GetSample(0) * 2.0f - 1.0f;
         const float3 jitteredWorldPos = worldPos + (orthoBasis[0] * jitter.x + orthoBasis[1] * jitter.y) * voxelSize;
 
-        jitter = float2(rng.GetFloat(2), rng.GetFloat(3));
+        jitter = rng.GetSample(1);
         const float cosSpread = 0.9f; // This constant was empirically determined.
         const float3 localJitteredDirection = SampleConeUniform(jitter.x, jitter.y, cosSpread);
         const float3 jitteredWorldDir = mul(orthoBasis, localJitteredDirection);
