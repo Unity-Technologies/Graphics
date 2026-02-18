@@ -3,7 +3,7 @@ Shader "Hidden/Core/DebugOccluder"
     HLSLINCLUDE
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2 webgpu
-        //#pragma enable_d3d11_debug_symbols
+        //#pragma enable_debug_symbols
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 

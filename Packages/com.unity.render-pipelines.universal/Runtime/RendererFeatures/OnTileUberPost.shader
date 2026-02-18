@@ -207,7 +207,7 @@ Shader "OnTileUberPost"
                 #pragma vertex Vert
                 #pragma fragment FragUberPostTextureReadVersion
                 #pragma target 5.0
-                #pragma enable_d3d11_debug_symbols
+                #pragma enable_debug_symbols
                 #pragma debug
 
                 // Fallback shader to use when we can't keep things on tile, so usually in the editor when dealing with

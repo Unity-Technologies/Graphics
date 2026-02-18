@@ -10,7 +10,7 @@ Shader "Hidden/Core/VrsVisualization"
             Cull Off
 
             HLSLPROGRAM
-            //#pragma enable_d3d11_debug_symbols
+            //#pragma enable_debug_symbols
 
             #pragma exclude_renderers glcore gles3
 

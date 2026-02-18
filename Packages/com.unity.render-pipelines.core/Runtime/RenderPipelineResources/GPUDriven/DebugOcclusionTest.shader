@@ -16,7 +16,7 @@ Shader "Hidden/Core/DebugOcclusionTest"
 
             #pragma vertex Vert
             #pragma fragment Frag
-            //#pragma enable_d3d11_debug_symbols
+            //#pragma enable_debug_symbols
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"

@@ -5,7 +5,7 @@ Shader "Hidden/HDRP/AOResolve"
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-        //#pragma enable_d3d11_debug_symbols
+        //#pragma enable_debug_symbols
 
         // Target multivalues textures
         TEXTURE2D_X(_DepthValuesTexture);

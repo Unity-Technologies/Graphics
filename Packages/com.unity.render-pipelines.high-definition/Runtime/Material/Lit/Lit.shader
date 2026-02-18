@@ -225,7 +225,7 @@ Shader "HDRP/Lit"
     HLSLINCLUDE
 
     #pragma target 4.5
-    //#pragma enable_d3d11_debug_symbols
+    //#pragma enable_debug_symbols
 
     //-------------------------------------------------------------------------------------
     // Variant
