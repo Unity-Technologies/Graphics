@@ -101,6 +101,14 @@ namespace UnityEngine.Rendering.HighDefinition.DXR_Tests
 			"Disabled for Instability ",
 			runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.GameCoreXboxSeries }
 		)]
+        [IgnoreGraphicsTest(
+            "10002_TerrainReflectionQuality",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-134774",
+            runtimePlatforms: new RuntimePlatform[]
+            {
+                RuntimePlatform.GameCoreXboxSeries
+            }
+        )]
         public IEnumerator Run(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);
