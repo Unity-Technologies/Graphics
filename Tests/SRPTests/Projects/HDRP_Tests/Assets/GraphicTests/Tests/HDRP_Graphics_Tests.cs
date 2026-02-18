@@ -419,6 +419,12 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D11 },
             runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
         )]
+        [IgnoreGraphicsTest(
+            "3004_QuadOverdraw",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-134754",
+            runtimePlatforms: new [] { RuntimePlatform.WindowsEditor },
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12 }
+        )]
         public IEnumerator Run(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);
