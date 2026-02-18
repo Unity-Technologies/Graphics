@@ -1604,7 +1604,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         return;
                     keyword.keywordDefinition = (KeywordDefinition)newValue;
                     UpdateEnableState();
-                    this._postChangeValueCallback(true, ModificationScope.Nothing);
+                    this._postChangeValueCallback(true);
+                    this._keywordChangedCallback();
                 },
                 keyword.keywordDefinition,
                 "Definition",
@@ -1964,6 +1965,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         keyword.entries[index] = new KeywordEntry(entry.id, displayName, referenceName);
 
                     this._postChangeValueCallback(true);
+                    this._keywordChangedCallback();
                 }
             };
 
@@ -2070,6 +2072,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             this._preChangeValueCallback("Reorder Keyword Entry");
             this._postChangeValueCallback(true);
+            this._keywordChangedCallback();
+
         }
 
         public string GetDuplicateSafeEnumDisplayName(int id, string name)
