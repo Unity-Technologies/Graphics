@@ -147,6 +147,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
 #if defined(UNITY_PLATFORM_META_QUEST)
             #pragma multi_compile _ META_QUEST_ORTHO_PROJ
+            #pragma multi_compile _ META_QUEST_NO_SPOTLIGHTS_LIGHT_LOOP
 #endif
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl"

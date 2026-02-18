@@ -987,6 +987,7 @@ namespace UnityEngine.Rendering.Universal
 #if (UNITY_META_QUEST)
         public static GlobalKeyword META_QUEST_ORTHO_PROJ;
         public static GlobalKeyword META_QUEST_LIGHTUNROLL;
+        public static GlobalKeyword META_QUEST_NO_SPOTLIGHTS_LIGHT_LOOP;
 #endif
 
         // TODO: Move following keywords to Local keywords?
@@ -1105,6 +1106,7 @@ namespace UnityEngine.Rendering.Universal
 #if (UNITY_META_QUEST)
             ShaderGlobalKeywords.META_QUEST_ORTHO_PROJ = GlobalKeyword.Create(ShaderKeywordStrings.META_QUEST_ORTHO_PROJ);
             ShaderGlobalKeywords.META_QUEST_LIGHTUNROLL = GlobalKeyword.Create(ShaderKeywordStrings.META_QUEST_LIGHTUNROLL);
+            ShaderGlobalKeywords.META_QUEST_NO_SPOTLIGHTS_LIGHT_LOOP = GlobalKeyword.Create(ShaderKeywordStrings.META_QUEST_NO_SPOTLIGHTS_LIGHT_LOOP);            
 #endif
 
         }
@@ -1440,11 +1442,14 @@ namespace UnityEngine.Rendering.Universal
         internal const string ForwardPlus = "_FORWARD_PLUS"; // Backward compatibility. Deprecated in 6.1.
 
 #if (UNITY_META_QUEST)
-        /// <summary> Used to statically branch when checking for projection type on Meta Quest device . </summary>
+        /// <summary> Used to statically branch when checking for projection type on Meta Quest device. </summary>
         internal const string META_QUEST_ORTHO_PROJ = "META_QUEST_ORTHO_PROJ";
 
-        /// <summary> Unroll light loop if there is only one additional light on Meta Quest device . </summary>
+        /// <summary> Unroll light loop if there is only one additional light on Meta Quest device. </summary>
         internal const string META_QUEST_LIGHTUNROLL = "META_QUEST_LIGHTUNROLL";
+
+        /// <summary> Use light loop optimized for point lights only on Meta Quest device, the evaluation of whether this optimization can be enabled is performed per batch. </summary>
+        internal const string META_QUEST_NO_SPOTLIGHTS_LIGHT_LOOP = "META_QUEST_NO_SPOTLIGHTS_LIGHT_LOOP";
 #endif
 
         /// <summary> Keyword used for Multi Sampling Anti-Aliasing (MSAA) with 2 per pixel sample count. </summary>
