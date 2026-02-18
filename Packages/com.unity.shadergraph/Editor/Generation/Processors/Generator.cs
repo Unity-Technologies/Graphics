@@ -597,10 +597,7 @@ namespace UnityEditor.ShaderGraph
                     List<AbstractMaterialNode> nodeList, List<MaterialSlot> slotList)
                 {
                     if (passBlockMask == null)
-                    {
-                        Profiler.EndSample();
                         return;
-                    }
 
                     Profiler.BeginSample("ProcessStackForPass");
                     foreach (var blockFieldDescriptor in passBlockMask)
@@ -832,7 +829,6 @@ namespace UnityEditor.ShaderGraph
             // Generated structs and Packing code
             Profiler.BeginSample("StructsAndPacking");
             var interpolatorBuilder = new ShaderStringBuilder(humanReadable: m_HumanReadable);
-
             if (passStructs != null)
             {
                 var packedStructs = new List<StructDescriptor>();

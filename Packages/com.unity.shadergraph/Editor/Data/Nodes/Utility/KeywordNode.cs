@@ -154,8 +154,9 @@ namespace UnityEditor.ShaderGraph
                         sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)};"));
                         for(int i = 0; i < keyword.entries.Count; ++i)
                         {
-                            string keywordName = $"{keyword.referenceName}_{keyword.entries[i].referenceName}";
-                            var value = GetSlotValue(i + 1, generationMode);
+                            var keywordEntry = keyword.entries[i];
+                            string keywordName = $"{keyword.referenceName}_{keywordEntry.referenceName}";
+                            var value = GetSlotValue(keywordEntry.id, generationMode);
                             sb.AppendLine(string.Format($"{(i != 0 ? "else" : "")} if({keywordName}) {GetVariableNameForSlot(OutputSlotId)} = {value};"));
                         }
                         break;
