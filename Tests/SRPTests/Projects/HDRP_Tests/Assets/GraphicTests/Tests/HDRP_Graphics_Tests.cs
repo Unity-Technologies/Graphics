@@ -413,6 +413,12 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan },
             runtimePlatforms: new[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer }
         )]
+        [IgnoreGraphicsTest(
+            "3009_MaterialOverrides",
+            "https://jira.unity3d.com/browse/UUM-134370 - Weird artifacts on NVIDIA A10",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D11 },
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
         public IEnumerator Run(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);
