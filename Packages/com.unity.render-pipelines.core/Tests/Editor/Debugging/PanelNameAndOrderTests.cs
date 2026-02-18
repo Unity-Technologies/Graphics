@@ -112,6 +112,7 @@ namespace UnityEditor.Rendering.Tests
         {
             var debugDisplaySettingsUI = new DebugDisplaySettingsUI();
             debugDisplaySettingsUI.RegisterDebug(TestDebugDisplaySettings.Instance);
+            debugDisplaySettingsUI.InitializeDebugUI();
 
             var panelTest1Index = DebugManager.instance.PanelIndex("Test 1");
             Assert.IsTrue(panelTest1Index >= 0);

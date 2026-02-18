@@ -36,8 +36,8 @@ namespace UnityEngine.Rendering
         {
             public UIMode mode;
 
-            [SerializeField]
-            private bool m_Open;
+            bool m_Open;
+
             public bool open
             {
                 get => m_Open;
@@ -53,18 +53,18 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private UIState editorUIState = new UIState() { mode = UIMode.EditorMode };
+        readonly UIState m_EditorUIState = new UIState() { mode = UIMode.EditorMode };
 
         /// <summary>
         /// Is the debug editor window open.
         /// </summary>
         public bool displayEditorUI
         {
-            get => editorUIState.open;
-            set => editorUIState.open = value;
+            get => m_EditorUIState.open;
+            set => m_EditorUIState.open = value;
         }
 
-        private bool m_EnableRuntimeUI = true;
+        bool m_EnableRuntimeUI = true;
 
         /// <summary>
         /// Controls whether runtime UI can be enabled. When this is set to false, there will be no overhead
@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private UIState runtimeUIState = new UIState() { mode = UIMode.RuntimeMode };
+        readonly UIState m_RuntimeUIState = new UIState() { mode = UIMode.RuntimeMode };
 
         /// <summary>
         /// Displays the runtime version of the debug window.
@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering
 
                 onDisplayRuntimeUIChanged(value);
 
-                runtimeUIState.open = m_RuntimeDebugWindow != null && m_RuntimeDebugWindow.gameObject.activeInHierarchy;
+                m_RuntimeUIState.open = m_RuntimeDebugWindow != null && m_RuntimeDebugWindow.gameObject.activeInHierarchy;
             }
 #else
             get => false;
