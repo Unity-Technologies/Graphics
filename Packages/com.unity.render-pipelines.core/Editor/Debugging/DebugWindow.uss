@@ -1,7 +1,9 @@
 :root {
 }
 
-/* Lateral Tab Panel */
+.top-toolbar {
+    height: 22px;
+}
 
 #debug-window-tab-panel {
     align-items: stretch;

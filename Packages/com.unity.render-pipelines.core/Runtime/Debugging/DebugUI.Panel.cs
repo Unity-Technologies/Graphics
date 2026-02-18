@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering
 
                 var label = container.Q<Label>(className:"unity-group-box__label");
                 label.AddToClassList("debug-window-header-title");
+                label.AddToClassList("debug-window-search-filter-target");
                 container.AddToClassList("debug-window-tab-content");
                 container.AddToClassList("unity-inspector-element");
 

@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering
                 {
                     var label = new Label(displayName);
                     label.AddToClassList("debug-window-container-displayname");
+                    label.AddToClassList("debug-window-search-filter-target");
                     container.Add(label);
                 }
 
@@ -246,6 +247,7 @@ namespace UnityEngine.Rendering
 
                 // Add special classes for styles
                 container.AddToClassList("debug-window-foldout");
+                container.Q(className: "unity-foldout__text").AddToClassList("debug-window-search-filter-target");
 
                 // Update UI to match object's initial state
                 container.SetValueWithoutNotify(GetValue());
@@ -595,7 +597,10 @@ namespace UnityEngine.Rendering
                                 if (i == 0)
                                     child.style.display = displayRowNames ? DisplayStyle.Flex : DisplayStyle.None;
                                 else
+                                {
                                     child.style.width = width;
+                                    child.style.display = DisplayStyle.Flex;
+                                }
                                 ++i;
                             }
                         }
@@ -629,6 +634,7 @@ namespace UnityEngine.Rendering
 
                     var label = new Label(displayName) { style = { width = ValueTuple.GetLabelWidth(m_Context) }, };
                     label.AddToClassList("debug-window-table-row-displayname");
+                    label.AddToClassList("debug-window-search-filter-target");
                     rowContainer.Add(label);
 
                     foreach (var c in children)

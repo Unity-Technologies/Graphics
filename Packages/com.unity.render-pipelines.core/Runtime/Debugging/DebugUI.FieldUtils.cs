@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering
                 field.label = widget.displayName;
                 field.style.flexGrow = 0f;
                 field.AddToClassList($"debug-window-basefield_{typeof(T).Name.ToLower()}");
+                field.labelElement.AddToClassList("debug-window-search-filter-target");
 
                 field.RegisterCallback<ChangeEvent<T>>(evt => widget.SetValue(evt.newValue));
 
