@@ -1,7 +1,8 @@
 // Forward pass
 Pass
 {
-    Tags { "LightMode"="${VFXURPForwardPassName}" }
+    Name "ForwardLit"
+    Tags { "LightMode"="${VFXURPForwardPassLightMode}" }
 
     ${VFXStencilForward}
 
