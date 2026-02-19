@@ -3,15 +3,15 @@
 all_api_validation_jobs:
   name: All API Validation Jobs
   dependencies:
-  - path: .yamato/wrench/api-validation-jobs.yml#api_validation_-_postprocessing_-_2019_4_-_windows
+  - path: .yamato/wrench/api-validation-jobs.yml#api_validation_-_postprocessing_-_2019_4_-_win10
 
-# upm-ci validation tests for API Validation - postprocessing - 2019.4 - windows (2019.4 - Windows).
-api_validation_-_postprocessing_-_2019_4_-_windows:
-  name: API Validation - postprocessing - 2019.4 - windows
+# upm-ci validation tests for API Validation - postprocessing - 2019.4 - win10 (2019.4 - Windows).
+api_validation_-_postprocessing_-_2019_4_-_win10:
+  name: API Validation - postprocessing - 2019.4 - win10
   agent:
-    image: package-ci/win10:default
+    image: package-ci/win10:v4
     type: Unity::VM
-    flavor: b1.large
+    flavor: b1.xlarge
   commands:
   - command: curl https://artifactory.prd.it.unity3d.com/artifactory/stevedore-unity-internal/wrench-localapv/1-3-0_3978eda62a03e3dbc469ab77590d20f8832032d8e0b586550597b7f590baefec.zip -o wrench-localapv.zip
   - command: 7z x -aoa wrench-localapv.zip
@@ -55,8 +55,8 @@ api_validation_-_postprocessing_-_2019_4_-_windows:
     UNITY_LICENSING_SERVER_DELETE_NUL: 0
     UNITY_LICENSING_SERVER_DELETE_ULF: 0
     UNITY_LICENSING_SERVER_TOOLSET: pro
-    UPMPVP_CONTEXT_WRENCH: 1.4.3.0
+    UPMPVP_CONTEXT_WRENCH: 2.1.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 1.4.3.0
+    Wrench: 2.1.1.0
 

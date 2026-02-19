@@ -5,7 +5,7 @@
 test_-_wrench_jobs_up_to_date:
   name: Test - Wrench Jobs up to date
   agent:
-    image: package-ci/ubuntu-20.04:default
+    image: package-ci/ubuntu-20.04:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -26,5 +26,5 @@ test_-_wrench_jobs_up_to_date:
     cancel_old_ci: true
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 1.4.3.0
+    Wrench: 2.1.1.0
 

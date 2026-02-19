@@ -5,9 +5,216 @@
       "directory": "com.unity.postprocessing/",
       "prePackCommands": [],
       "preTestCommands": {
-        "MacOS": [],
-        "Ubuntu": [],
-        "Windows": []
+        "MacOs13": [],
+        "MacOs13Arm": [],
+        "Ubuntu1804": [],
+        "Ubuntu2004": [],
+        "Ubuntu2204": [],
+        "Win10": [],
+        "Win10GPU": [],
+        "Win11": [],
+        "Win11Arm": [],
+        "Win11GPU": []
+      },
+      "InternalOnly": false,
+      "NeverPublish": false,
+      "MaxEditorVersion": "",
+      "coverageEnabled": false,
+      "coverageCommands": [
+        "generateAdditionalMetrics;generateHtmlReport;assemblyFilters:ASSEMBLY_NAME;pathReplacePatterns:@*,,**/PackageCache/,;sourcePaths:YAMATO_SOURCE_DIR/Packages;"
+      ],
+      "dependantsToIgnoreInPreviewApv": {},
+      "postPackCommands": []
+    },
+    "com.unity.render-pipelines.core": {
+      "directory": "Packages/com.unity.render-pipelines.core/",
+      "prePackCommands": [],
+      "preTestCommands": {
+        "MacOs13": [],
+        "MacOs13Arm": [],
+        "Ubuntu1804": [],
+        "Ubuntu2004": [],
+        "Ubuntu2204": [],
+        "Win10": [],
+        "Win10GPU": [],
+        "Win11": [],
+        "Win11Arm": [],
+        "Win11GPU": []
+      },
+      "InternalOnly": false,
+      "NeverPublish": false,
+      "MaxEditorVersion": "",
+      "coverageEnabled": false,
+      "coverageCommands": [
+        "generateAdditionalMetrics;generateHtmlReport;assemblyFilters:ASSEMBLY_NAME;pathReplacePatterns:@*,,**/PackageCache/,;sourcePaths:YAMATO_SOURCE_DIR/Packages;"
+      ],
+      "dependantsToIgnoreInPreviewApv": {},
+      "postPackCommands": []
+    },
+    "com.unity.render-pipelines.high-definition": {
+      "directory": "Packages/com.unity.render-pipelines.high-definition/",
+      "prePackCommands": [],
+      "preTestCommands": {
+        "MacOs13": [],
+        "MacOs13Arm": [],
+        "Ubuntu1804": [],
+        "Ubuntu2004": [],
+        "Ubuntu2204": [],
+        "Win10": [],
+        "Win10GPU": [],
+        "Win11": [],
+        "Win11Arm": [],
+        "Win11GPU": []
+      },
+      "InternalOnly": false,
+      "NeverPublish": false,
+      "MaxEditorVersion": "",
+      "coverageEnabled": false,
+      "coverageCommands": [
+        "generateAdditionalMetrics;generateHtmlReport;assemblyFilters:ASSEMBLY_NAME;pathReplacePatterns:@*,,**/PackageCache/,;sourcePaths:YAMATO_SOURCE_DIR/Packages;"
+      ],
+      "dependantsToIgnoreInPreviewApv": {},
+      "postPackCommands": []
+    },
+    "com.unity.render-pipelines.high-definition-config": {
+      "directory": "Packages/com.unity.render-pipelines.high-definition-config/",
+      "prePackCommands": [],
+      "preTestCommands": {
+        "MacOs13": [],
+        "MacOs13Arm": [],
+        "Ubuntu1804": [],
+        "Ubuntu2004": [],
+        "Ubuntu2204": [],
+        "Win10": [],
+        "Win10GPU": [],
+        "Win11": [],
+        "Win11Arm": [],
+        "Win11GPU": []
+      },
+      "InternalOnly": false,
+      "NeverPublish": false,
+      "MaxEditorVersion": "",
+      "coverageEnabled": false,
+      "coverageCommands": [
+        "generateAdditionalMetrics;generateHtmlReport;assemblyFilters:ASSEMBLY_NAME;pathReplacePatterns:@*,,**/PackageCache/,;sourcePaths:YAMATO_SOURCE_DIR/Packages;"
+      ],
+      "dependantsToIgnoreInPreviewApv": {},
+      "postPackCommands": []
+    },
+    "com.unity.render-pipelines.universal": {
+      "directory": "Packages/com.unity.render-pipelines.universal/",
+      "prePackCommands": [],
+      "preTestCommands": {
+        "MacOs13": [],
+        "MacOs13Arm": [],
+        "Ubuntu1804": [],
+        "Ubuntu2004": [],
+        "Ubuntu2204": [],
+        "Win10": [],
+        "Win10GPU": [],
+        "Win11": [],
+        "Win11Arm": [],
+        "Win11GPU": []
+      },
+      "InternalOnly": false,
+      "NeverPublish": false,
+      "MaxEditorVersion": "",
+      "coverageEnabled": false,
+      "coverageCommands": [
+        "generateAdditionalMetrics;generateHtmlReport;assemblyFilters:ASSEMBLY_NAME;pathReplacePatterns:@*,,**/PackageCache/,;sourcePaths:YAMATO_SOURCE_DIR/Packages;"
+      ],
+      "dependantsToIgnoreInPreviewApv": {},
+      "postPackCommands": []
+    },
+    "com.unity.render-pipelines.universal-config": {
+      "directory": "Packages/com.unity.render-pipelines.universal-config/",
+      "prePackCommands": [],
+      "preTestCommands": {
+        "MacOs13": [],
+        "MacOs13Arm": [],
+        "Ubuntu1804": [],
+        "Ubuntu2004": [],
+        "Ubuntu2204": [],
+        "Win10": [],
+        "Win10GPU": [],
+        "Win11": [],
+        "Win11Arm": [],
+        "Win11GPU": []
+      },
+      "InternalOnly": false,
+      "NeverPublish": false,
+      "MaxEditorVersion": "",
+      "coverageEnabled": false,
+      "coverageCommands": [
+        "generateAdditionalMetrics;generateHtmlReport;assemblyFilters:ASSEMBLY_NAME;pathReplacePatterns:@*,,**/PackageCache/,;sourcePaths:YAMATO_SOURCE_DIR/Packages;"
+      ],
+      "dependantsToIgnoreInPreviewApv": {},
+      "postPackCommands": []
+    },
+    "com.unity.shaderanalysis": {
+      "directory": "Packages/com.unity.shaderanalysis/",
+      "prePackCommands": [],
+      "preTestCommands": {
+        "MacOs13": [],
+        "MacOs13Arm": [],
+        "Ubuntu1804": [],
+        "Ubuntu2004": [],
+        "Ubuntu2204": [],
+        "Win10": [],
+        "Win10GPU": [],
+        "Win11": [],
+        "Win11Arm": [],
+        "Win11GPU": []
+      },
+      "InternalOnly": false,
+      "NeverPublish": false,
+      "MaxEditorVersion": "",
+      "coverageEnabled": false,
+      "coverageCommands": [
+        "generateAdditionalMetrics;generateHtmlReport;assemblyFilters:ASSEMBLY_NAME;pathReplacePatterns:@*,,**/PackageCache/,;sourcePaths:YAMATO_SOURCE_DIR/Packages;"
+      ],
+      "dependantsToIgnoreInPreviewApv": {},
+      "postPackCommands": []
+    },
+    "com.unity.shadergraph": {
+      "directory": "Packages/com.unity.shadergraph/",
+      "prePackCommands": [],
+      "preTestCommands": {
+        "MacOs13": [],
+        "MacOs13Arm": [],
+        "Ubuntu1804": [],
+        "Ubuntu2004": [],
+        "Ubuntu2204": [],
+        "Win10": [],
+        "Win10GPU": [],
+        "Win11": [],
+        "Win11Arm": [],
+        "Win11GPU": []
+      },
+      "InternalOnly": false,
+      "NeverPublish": false,
+      "MaxEditorVersion": "",
+      "coverageEnabled": false,
+      "coverageCommands": [
+        "generateAdditionalMetrics;generateHtmlReport;assemblyFilters:ASSEMBLY_NAME;pathReplacePatterns:@*,,**/PackageCache/,;sourcePaths:YAMATO_SOURCE_DIR/Packages;"
+      ],
+      "dependantsToIgnoreInPreviewApv": {},
+      "postPackCommands": []
+    },
+    "com.unity.visualeffectgraph": {
+      "directory": "Packages/com.unity.visualeffectgraph/",
+      "prePackCommands": [],
+      "preTestCommands": {
+        "MacOs13": [],
+        "MacOs13Arm": [],
+        "Ubuntu1804": [],
+        "Ubuntu2004": [],
+        "Ubuntu2204": [],
+        "Win10": [],
+        "Win10GPU": [],
+        "Win11": [],
+        "Win11Arm": [],
+        "Win11GPU": []
       },
       "InternalOnly": false,
       "NeverPublish": false,
@@ -25,14 +232,14 @@
   ],
   "jobs_to_monitor": {
     "com.unity.postprocessing": [
-      ".yamato/wrench/api-validation-jobs.yml#api_validation_-_postprocessing_-_2019_4_-_windows",
+      ".yamato/wrench/api-validation-jobs.yml#api_validation_-_postprocessing_-_2019_4_-_win10",
       ".yamato/wrench/preview-a-p-v.yml#all_preview_apv_jobs",
       ".yamato/wrench/promotion-jobs.yml#publish_dry_run_postprocessing"
     ]
   },
   "publishing_job": ".yamato/wrench/promotion-jobs.yml#publish_postprocessing",
   "branch_pattern": "ReleaseSlash",
-  "wrench_version": "1.4.3.0",
+  "wrench_version": "2.1.1.0",
   "pvp_exemption_path": ".yamato/wrench/pvp-exemptions.json",
   "cs_project_path": "Tools/CI/Graphics.Cookbook.csproj"
 }

@@ -7,7 +7,7 @@ namespace Graphics.Cookbook.Settings;
 public class GraphicsSettings : AnnotatedSettingsBase
 {
     // Path from the root of the repository where packages are located.
-    readonly string[] PackagesRootPaths = {"."};
+    readonly string[] PackagesRootPaths = {".", "Packages"};
 
     // update this to list all packages in this repo that you want to release.
     Dictionary<string, PackageOptions> PackageOptions = new()
