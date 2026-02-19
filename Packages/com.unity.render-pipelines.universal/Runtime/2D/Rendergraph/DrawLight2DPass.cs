@@ -108,6 +108,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (LightBatch.isBatchingSupported)
                 {
+
                     RendererLighting.lightBatch.AddBatch(light, lightMaterial, light.GetMatrix(), lightMesh, 0, lightHash, index);
                     RendererLighting.lightBatch.Flush(cmd);
                 }

@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.Universal
                         ExecuteShadowPass(cmd, data, light, i);
                     }
                 });
-            }
+            }                                                                                                                                                                                                                                                                                                                                                       
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -9,6 +10,39 @@ namespace UnityEditor.Rendering.Universal
         static Material s_TexCapMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Internal-GUITexture"));
         static Mesh k_MeshQuad_Cache;
         static Mesh k_MeshQuad => k_MeshQuad_Cache == null || k_MeshQuad_Cache.Equals(null) ? (k_MeshQuad_Cache = Resources.GetBuiltinResource<Mesh>("Quad.fbx")) : k_MeshQuad_Cache;
+
+        static internal bool ContainsVisibleInspectorProperites(Provider2D provider)
+        {
+            Debug.Assert(provider != null);
+            var type = provider.GetType();
+            return type.GetFields(BindingFlags.Instance | BindingFlags.Public).Length > 0;
+        }
+
+        static internal void DrawHeaderFoldoutWithToggle(GUIContent title, SavedBool foldoutState, SerializedProperty toggleState, string documentationURL = "")
+        {
+            const float height = 17f;
+            var backgroundRect = GUILayoutUtility.GetRect(0, 0);
+            float xMin = backgroundRect.xMin;
+
+            var labelRect = backgroundRect;
+            labelRect.yMax += height;
+            labelRect.xMin += 16f;
+            labelRect.xMax -= 20f;
+
+            bool newToggleState = GUI.Toggle(labelRect, toggleState.boolValue, " ");  // Needs a space because the checkbox won't have a proper outline if we don't make a space here
+            bool newFoldoutState = CoreEditorUtils.DrawHeaderFoldout("", foldoutState.value);
+
+            if (newToggleState != toggleState.boolValue)
+                toggleState.boolValue = newToggleState;
+
+            if (newFoldoutState != foldoutState.value)
+                foldoutState.value = newFoldoutState;
+
+
+            labelRect.xMin += 20;
+            EditorGUI.LabelField(labelRect, title, EditorStyles.boldLabel);
+        }
+
 
         static internal void GUITextureCap(int controlID, Texture texture, Vector3 position, Quaternion rotation, float size, EventType eventType, bool isAngleHandle)
         {
