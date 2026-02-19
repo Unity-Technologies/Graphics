@@ -9,15 +9,15 @@ Two output value options for this node, **Inverse Projection** and **Inverse Vie
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| Out | Output      |    Matrix 4 | None | Output value |
+| Name | Direction | Type | Binding | Description |
+|:--- |:---|:---|:---|:---|
+| Out | Output | Matrix 4 | None | Output value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-|  | Dropdown | Model, InverseModel, View, InverseView, Projection, InverseProjection, ViewProjection, InverseViewProjection | Sets output value |
+| Control | Description |
+|:--- |:---|
+| (Dropdown) | Sets the output value. The options are: <ul><li>**Model**</li><li>**InverseModel**</li><li>**View**</li><li>**InverseView**</li><li>**Projection**</li><li>**InverseProjection**</li><li>**ViewProjection**</li><li>**InverseViewProjection**</li></ul> |
 
 ## Generated Code Example
 

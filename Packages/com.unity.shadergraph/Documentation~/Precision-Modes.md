@@ -23,7 +23,7 @@ To visualize data precision in a graph, set the [**Color Mode**](Color-Modes.md)
 * **Half** nodes are red
 * **Switchable** nodes are Green.
 
-![](images/Color-Mode-Precision.png)
+![A graph showing nodes with different colors according to their data precision.](images/Color-Mode-Precision.png)
 
 ### Setting graph Precision
 To set the default precision for the entire graph to **Single** or **Half**, open the **Graph Settings** and set the Precision property. Newly-created nodes in a graph default to the **Inherit** precision mode, and inherit the graph's precision.
@@ -51,7 +51,7 @@ Simple inheritance refers to the inheritance behaviour of a node with only one p
 
 In the figure below, Node A has the **Inherit** mode. Because it has no incoming edge, it takes the **Graph Precision**, which is **Half**. Node B also has the **Inherit** mode, so it inherits the **Half** precision mode from Node A.
 
-![](images/precisionmodes1.png)
+![Diagram showing a simple precision inheritance.](images/precisionmodes1.png)
 
 #### Complex inheritance
 
@@ -61,7 +61,7 @@ A node reads precision settings from each input port. If you connect a node to s
 
 In the figure below, node D has the **Inherit** mode. It receives input from the adjacent edges via inputs 1 and 2. Node B passes the **Half** mode through input 1. Node C passes the **Single** mode through input 2. Because **Single** is 32-bit and **Half** only 16-bit, **Single** takes precedence, so Node D uses **Single** precision.
 
-![](images/precisionmodes2.png)
+![Diagram showing a complex precision inheritance.](images/precisionmodes2.png)
 
 #### Mixed inheritance
 
@@ -69,13 +69,13 @@ Mixed inheritance refers to the inheritance behaviour on a node with both simple
 
 Nodes with no input ports, such as [Input nodes](Input-Nodes.md), inherit the **Graph Precision**. However, complex inheritance rules still affect other nodes in the same group, as illustrated in the figure below.
 
-![](images/precisionmodes3.png)
+![Diagram showing a mixed precision inheritance.](images/precisionmodes3.png)
 
 ### Switchable precision
 
 The **Switchable** mode overrides **Half** mode but not **Single**.
 
-![](images/precisionmodes4.png)
+![Diagram showing precision inheritance with the Switchable mode.](images/precisionmodes4.png)
 
 
 ### Sub Graph precision

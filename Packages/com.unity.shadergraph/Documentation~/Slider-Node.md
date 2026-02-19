@@ -6,17 +6,17 @@ Defines a constant **Float** value in the shader using a **Slider** field. Can b
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| Out | Output      |    Float    | None | Output value |
+| Name | Direction | Type | Binding | Description |
+|:--- |:---|:---|:---|:---|
+| Out | Output | Float | None | Output value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-|       | Slider |  | Defines the output value. |
-| Min   | Float    |  | Defines the slider parameter's minimum value. |
-| Max   | Float    |  | Defines the slider parameter's maximum value. |
+| Name | Type | Options | Description |
+|:--- |:---|:---|:---|
+| | Slider | | Defines the output value. |
+| Min | Float | | Defines the slider parameter's minimum value. |
+| Max | Float | | Defines the slider parameter's maximum value. |
 
 ## Generated Code Example
 
