@@ -179,6 +179,7 @@ namespace UnityEngine.Rendering.Universal
     [DisallowMultipleRendererFeature("Decal")]
     [Tooltip("With this Renderer Feature, Unity can project specific Materials (decals) onto other objects in the Scene.")]
     [URPHelpURL("renderer-feature-decal")]
+    [Icon("Packages/com.unity.render-pipelines.core/Editor/Icons/Processed/DecalProjector Icon.asset")]
     public partial class DecalRendererFeature : ScriptableRendererFeature
     {
         private static SharedDecalEntityManager sharedDecalEntityManager { get; } = new SharedDecalEntityManager();

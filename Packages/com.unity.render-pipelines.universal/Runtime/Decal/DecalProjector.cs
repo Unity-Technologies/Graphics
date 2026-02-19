@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.Universal
     [CanEditMultipleObjects]
 #endif
     [AddComponentMenu("Rendering/URP Decal Projector")]
+    [Icon("Packages/com.unity.render-pipelines.core/Editor/Icons/Processed/DecalProjector Icon.asset")]
     public partial class DecalProjector : MonoBehaviour, ISerializationCallbackReceiver
     {
         internal delegate void DecalProjectorAction(DecalProjector decalProjector);
