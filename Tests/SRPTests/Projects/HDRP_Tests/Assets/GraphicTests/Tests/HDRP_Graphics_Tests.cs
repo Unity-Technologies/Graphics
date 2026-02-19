@@ -2,6 +2,7 @@ using System.Collections;
 using System.Runtime.InteropServices;
 using NUnit.Framework;
 using UnityEngine.SceneManagement;
+using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
@@ -412,6 +413,12 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             isInclusive: true,
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan },
             runtimePlatforms: new[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer }
+        )]
+        [IgnoreGraphicsTest(
+            "3004_QuadOverdraw",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-134754",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor },
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12 }
         )]
         public IEnumerator Run(SceneGraphicsTestCase testCase)
         {
