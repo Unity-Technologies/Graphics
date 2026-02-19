@@ -422,9 +422,9 @@ namespace UnityEngine.PathTracing.Tests
             mesh.uv = new[]
             {
                 new Vector2(0, 0),
-                new Vector2(0.501f, 0), // Cover the 2 rightmost texels by only a tiny amount
+                new Vector2(0.51f, 0), // Cover the 2 rightmost texels by only a tiny amount (must exceed INSIDE_EPS in screen-space units)
                 new Vector2(0, 1),
-                new Vector2(0.501f, 1)
+                new Vector2(0.51f, 1)
             };
 
             UVFallbackBufferResources.GetUVFallbackBuffer(_resources, mesh, buildFlags, width, height, out Color[] fallbackData);

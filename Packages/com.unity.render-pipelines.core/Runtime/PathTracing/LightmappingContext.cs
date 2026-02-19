@@ -130,7 +130,7 @@ namespace UnityEngine.PathTracing.Lightmapping
             return true;
         }
 
-        internal bool Initialize(UnityComputeDeviceContext deviceContext, int width, int height, UnityComputeWorld world, uint maxIndexCount, LightmapResourceLibrary resources)
+        internal bool Initialize(UnityComputeDeviceContext deviceContext, int width, int height, UnityComputeWorld world, uint maxIndexCount, uint maxVertexCount, LightmapResourceLibrary resources)
         {
             _deviceContext = deviceContext;
             World = world;
@@ -138,7 +138,7 @@ namespace UnityEngine.PathTracing.Lightmapping
             ResourceCache = new LightmapIntegrationResourceCache();
 
             ChartRasterizer = new ChartRasterizer(resources.SoftwareChartRasterizationShader, resources.HardwareChartRasterizationShader);
-            InitializeChartRasterizationBuffers(maxIndexCount);
+            InitializeChartRasterizationBuffers(maxIndexCount, maxVertexCount);
 
             return SetOutputResolution(width, height);
         }
@@ -189,7 +189,7 @@ namespace UnityEngine.PathTracing.Lightmapping
             }
         }
 
-        private void InitializeChartRasterizationBuffers(uint maxIndexCount)
+        private void InitializeChartRasterizationBuffers(uint maxIndexCount, uint maxVertexCount)
         {
             ChartRasterizerBuffers.vertex?.Dispose();
             ChartRasterizerBuffers.vertex = null;
@@ -198,10 +198,11 @@ namespace UnityEngine.PathTracing.Lightmapping
             ChartRasterizerBuffers.vertexToChartID?.Dispose();
             ChartRasterizerBuffers.vertexToChartID = null;
 
-            // We base the size of the temporary buffers on the triangle count of the mesh with the most triangles, to avoid constant reallocations.
-            ChartRasterizerBuffers.vertex = new GraphicsBuffer(GraphicsBuffer.Target.Structured, (int)maxIndexCount, UnsafeUtility.SizeOf<Vector2>());
-            ChartRasterizerBuffers.vertexToOriginalVertex = new GraphicsBuffer(GraphicsBuffer.Target.Structured, (int)maxIndexCount, sizeof(uint));
-            ChartRasterizerBuffers.vertexToChartID = new GraphicsBuffer(GraphicsBuffer.Target.Structured, (int)maxIndexCount, sizeof(uint));
+            // We base the size of the temporary buffers on the vertex count or index count of the mesh with the most vertices / indices, to avoid constant reallocations.
+            uint maxCount = Math.Max(maxIndexCount, maxVertexCount);
+            ChartRasterizerBuffers.vertex = new GraphicsBuffer(GraphicsBuffer.Target.Structured, (int)maxCount, UnsafeUtility.SizeOf<Vector2>());
+            ChartRasterizerBuffers.vertexToOriginalVertex = new GraphicsBuffer(GraphicsBuffer.Target.Structured, (int)maxCount, sizeof(uint));
+            ChartRasterizerBuffers.vertexToChartID = new GraphicsBuffer(GraphicsBuffer.Target.Structured, (int)maxCount, sizeof(uint));
         }
 
         public CommandBuffer GetCommandBuffer()

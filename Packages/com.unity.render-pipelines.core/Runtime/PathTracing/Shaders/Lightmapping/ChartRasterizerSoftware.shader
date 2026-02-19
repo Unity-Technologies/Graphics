@@ -11,6 +11,8 @@ Shader "Hidden/ChartRasterizerSoftware"
             #pragma fragment frag
             #include "GeometryUtils.hlsl"
 
+            #define PARALLEL_EPS    1e-6f
+
             struct v2f
             {
                 float4 vertex : SV_POSITION;
@@ -34,7 +36,7 @@ Shader "Hidden/ChartRasterizerSoftware"
                 uint2 resolution = uint2(g_Width, g_Height);
                 float2 tri[3];
                 ReadParentTriangle(g_VertexBuffer, vertexId, g_ScaleAndOffset, tri);
-                ExpandTriangleForConservativeRasterization(resolution, tri, vertexId, o.aabb, o.vertex);
+                ExpandTriangleForConservativeRasterization(resolution, tri, vertexId, o.aabb, o.vertex, PARALLEL_EPS);
 
                 // Get the chart index.
                 uint originalVertexId = g_VertexToOriginalVertex[vertexId];
