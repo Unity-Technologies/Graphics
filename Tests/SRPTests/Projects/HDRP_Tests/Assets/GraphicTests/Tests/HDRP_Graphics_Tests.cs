@@ -415,6 +415,14 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             runtimePlatforms: new[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer }
         )]
         [IgnoreGraphicsTest(
+            "4075_PhysicalCamera-gateFit|4111_DRS-DLSS-With-CustomPass",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-134786",
+            runtimePlatforms: new RuntimePlatform[]
+            {
+                RuntimePlatform.WindowsEditor
+            }
+        )]
+        [IgnoreGraphicsTest(
             "3004_QuadOverdraw",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-134754",
             runtimePlatforms: new[] { RuntimePlatform.WindowsEditor },
