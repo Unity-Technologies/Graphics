@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph
             get { return _maskInput; }
             set
             {
-                if (_maskInput.Equals(value))
+                if (value == null || _maskInput.Equals(value))
                     return;
                 _maskInput = value;
                 UpdateNodeAfterDeserialization();
