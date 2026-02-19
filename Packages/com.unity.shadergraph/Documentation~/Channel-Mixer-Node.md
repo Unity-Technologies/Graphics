@@ -6,19 +6,19 @@ Controls the amount each of the channels of input **In** contribute to each of t
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| In      | Input | Vector 3 | None | Input value |
-| Out | Output      |    Vector 3 | None | Output value |
+| Name | Direction | Type | Binding | Description |
+|:---|:---|:---|:---|:---|
+| In | Input | Vector 3 | None | Input value |
+| Out | Output | Vector 3 | None | Output value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-|       | Toggle Button Array | R, G, B | Selects the output channel to edit. |
-| R      | Slider |  | Controls contribution of input red channel to selected output channel. |
-| G      | Slider |  | Controls contribution of input green channel to selected output channel. |
-| B      | Slider |  | Controls contribution of input blue channel to selected output channel. |
+| Control | Description |
+|:---|:---|
+| **R**, **G**, **B** (toggle buttons) | Selects the output channel to edit with the sliders. |
+| **R** (slider) | Controls the contribution of the input red channel to the selected output channel. |
+| **G** (slider) | Controls the contribution of the input green channel to the selected output channel. |
+| **B** (slider) | Controls the contribution of the input blue channel to the selected output channel. |
 
 ## Shader Function
 

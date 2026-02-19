@@ -26,131 +26,30 @@ The ThreadMapDetail node is under the **Utility** &gt; **High Definition Render 
 
 [!include[nodes-inputs](./snippets/nodes-inputs.md)]
 
-<table>
-    <thead>
-        <tr>
-            <th><strong>Name</strong></th>
-            <th><strong>Type</strong></th>
-            <th><strong>Binding</strong></th>
-            <th><strong>Description</strong></th>
-         </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td><strong>Use Thread Map</strong></td>
-            <td>Boolean</td>
-            <td>None</td>
-            <td>Use the port's default input to enable or disable the ThreadMapDetail node. You can also connect a node that outputs a Boolean to choose when to enable or disable the thread map.</td>
-        </tr>
-        <tr>
-            <td><strong>ThreadMap</strong></td>
-            <td>Texture 2D</td>
-            <td>None</td>
-            <td>The texture that contains the detailed information of a fabric's thread pattern. The texture should contain 4 channels:
-                <ul>
-                    <li>R - The ambient occlusion</li>
-                    <li>G - The normal Y-axis</li>
-                    <li>B - The smoothness</li>
-                    <li>A - The normal X-axis</li>
-                </ul>
-            </td>
-        </tr>
-        <tr>
-            <td><strong>UV</strong></td>
-            <td>Vector 2</td>
-            <td>UV</td>
-            <td>The UV coordinates the ThreadMapDetail node should use to map the ThreadMap texture on the geometry.</td>
-        </tr>
-        <tr>
-            <td><strong>Normals</strong></td>
-            <td>Vector 3</td>
-            <td>None</td>
-            <td>The base normal map that you want your Shader Graph to apply to the geometry before it applies the thread map.</td>
-    </tr>
-    <tr>
-        <td><strong>Smoothness</strong></td>
-        <td>Float</td>
-        <td>None</td>
-        <td>The base smoothness value that you want your Shader Graph to apply to the geometry before it applies the thread map.</td>
-    </tr>
-    <tr>
-<td><strong>Alpha</strong></td>
-<td>Float</td>
-<td>None</td>
-<td>The base alpha value that you want your Shader Graph to apply to the geometry before it applies the thread map.</td>
-</tr>
-<tr>
-<td><strong>Ambient Occlusion</strong></td>
-<td>Float</td>
-<td>None</td>
-<td>The base ambient occlusion value that you want your Shader Graph to apply to the geometry before it applies the thread map.</td>
-</tr>
-<tr>
-<td><strong>Thread AO Strength</strong></td>
-<td>Float</td>
-<td>None</td>
-<td>Specify a value of <code>0</code> or <code>1</code> to determine how the <strong>ThreadMap</strong>'s ambient occlusion should impact the final shader result:
-<ul>
-<li>If you provide a value of <code>0</code>, the <strong>ThreadMap</strong>'s ambient occlusion has no effect on the final output of the shader.</li>
-<li>If you provide a value of <code>1</code>, Shader Graph multiplies your base <strong>Ambient Occlusion</strong> value by the ambient occlusion value specified in your <strong>ThreadMap</strong> to determine the final output of the shader.</li></ul></td>
-</tr>
-<tr>
-<td><strong>Thread Normal Strength</strong></td>
-<td>Float</td>
-<td>None</td>
-<td>Specify a value of <code>0</code> or <code>1</code> to determine how the <strong>ThreadMap</strong>'s normal should impact the final shader result:
-<ul>
-<li>If you provide a value of <code>0</code>, the <strong>ThreadMap</strong>'s normal has no effect on the final output of the shader.</li>
-<li>If you provide a value of <code>1</code>, Shader Graph blends the values from your base <strong>Normals</strong> with the normal specified in your <strong>ThreadMap</strong> to determine the final output of the shader.</li></ul></td>
-</tr>
-<tr>
-<td><strong>Thread Smoothness Strength</strong></td>
-<td>Float</td>
-<td>None</td>
-<td>Specify a value of <code>0</code> or <code>1</code> to determine how the <strong>ThreadMap</strong>'s smoothness should impact the final shader result:
-<ul>
-<li>If you provide a value of <code>0</code>, the <strong>ThreadMap</strong>'s smoothness value has no effect on the final output of the shader.</li>
-<li>If you provide a value of <code>1</code>, Shader Graph adds the smoothness value specified in your <strong>ThreadMap</strong> to your base <strong>Smoothness</strong> value to determine the final output of the shader. For this calculation, Shader Graph remaps the value of your <strong>ThreadMap</strong>'s smoothness from (0,1) to (-1, 1).</li></ul></td>
-</tr>
-</tbody>
-</table>
+| **Name** | **Type** | **Binding** | **Description** |
+| :--- | :--- | :--- | :--- |
+| **Use Thread Map** | Boolean | None | Use the port's default input to enable or disable the ThreadMapDetail node. You can also connect a node that outputs a Boolean to choose when to enable or disable the thread map. |
+| **ThreadMap** | Texture 2D | None | The texture that contains the detailed information of a fabric's thread pattern. The texture should contain 4 channels:<ul><li>R - The ambient occlusion</li><li>G - The normal Y-axis</li><li>B - The smoothness</li><li>A - The normal X-axis |
+| **UV** | Vector 2 | UV  | The UV coordinates the ThreadMapDetail node should use to map the ThreadMap texture on the geometry. |
+| **Normals** | Vector 3 | None | The base normal map that you want your Shader Graph to apply to the geometry before it applies the thread map. |
+| **Smoothness** | Float | None | The base smoothness value that you want your Shader Graph to apply to the geometry before it applies the thread map. |
+| **Alpha** | Float | None | The base alpha value that you want your Shader Graph to apply to the geometry before it applies the thread map. |
+| **Ambient Occlusion** | Float | None | The base ambient occlusion value that you want your Shader Graph to apply to the geometry before it applies the thread map. |
+| **Thread AO Strength** | Float | None | Specify a value of `0` or `1` to determine how the **ThreadMap**'s ambient occlusion should impact the final shader result:<ul><li>If you provide a value of `0`, the **ThreadMap**'s ambient occlusion has no effect on the final output of the shader.</li><li>If you provide a value of `1`, Shader Graph multiplies your base **Ambient Occlusion** value by the ambient occlusion value specified in your **ThreadMap** to determine the final output of the shader.</li></ul> |
+| **Thread Normal Strength** | Float | None | Specify a value of `0` or `1` to determine how the **ThreadMap**'s normal should impact the final shader result:<ul><li>If you provide a value of `0`, the **ThreadMap**'s normal has no effect on the final output of the shader.</li><li>If you provide a value of `1`, Shader Graph blends the values from your base **Normals** with the normal specified in your **ThreadMap** to determine the final output of the shader.</li></ul> |
+| **Thread Smoothness Strength** | Float | None | Specify a value of `0` or `1` to determine how the **ThreadMap**'s smoothness should impact the final shader result:<ul><li>If you provide a value of `0`, the **ThreadMap**'s smoothness value has no effect on the final output of the shader.</li><li>If you provide a value of `1`, Shader Graph adds the smoothness value specified in your **ThreadMap** to your base **Smoothness** value to determine the final output of the shader. For this calculation, Shader Graph remaps the value of your **ThreadMap**'s smoothness from (0,1) to (-1, 1).</li></ul> |
+
 
 ## Outputs
 
 [!include[nodes-outputs](./snippets/nodes-outputs.md)]
 
-<table>
-<thead>
-<tr>
-<th><strong>Name</strong></th>
-<th><strong>Type</strong></th>
-<th><strong>Description</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Normal</strong></td>
-<td>Vector 3</td>
-<td>The final normal output of the thread map.</td>
-</tr>
-<tr>
-<td><strong>Smoothness</strong></td>
-<td>Float</td>
-<td>The final smoothness output of the thread map.</td>
-</tr>
-<tr>
-<td><strong>Ambient Occlusion</strong></td>
-<td>Float</td>
-<td>The final ambient occlusion output of the thread map.</td>
-</tr>
-<tr>
-<td><strong>Alpha</strong></td>
-<td>Float</td>
-<td>The final alpha output of the thread map. Shader Graph calculates this alpha value by multiplying the input <strong>Alpha</strong> value by the <strong>Thread AO Strength</strong> value.</td>
-</tr>
-</tbody>
-</table>
-
+| **Name** | **Type** | **Description** |
+| :--- | :--- | :--- |
+| **Normal** | Vector 3 | The final normal output of the thread map. |
+| **Smoothness** | Float | The final smoothness output of the thread map. |
+| **Ambient Occlusion** | Float | The final ambient occlusion output of the thread map. |
+| **Alpha** | Float | The final alpha output of the thread map. Shader Graph calculates this alpha value by multiplying the input **Alpha** value by the **Thread AO Strength** value. |
 
 ## Example graph usage
 
