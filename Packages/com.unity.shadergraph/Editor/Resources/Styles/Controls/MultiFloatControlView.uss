@@ -14,8 +14,7 @@ MultiFloatControlView > #dummy > Label {
 
 
 .unity-base-field {
-    min-width: 30px;
-    flex-grow: 1;
+    width: 30px;
     margin-top: 1px;
     margin-bottom: 1px;
     margin-left: 0;

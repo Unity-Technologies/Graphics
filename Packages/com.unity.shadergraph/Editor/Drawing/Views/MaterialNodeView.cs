@@ -196,11 +196,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             IconBadge badge;
             if (severity == ShaderCompilerMessageSeverity.Error)
             {
-                badge = IconBadge.CreateError(errString);
+                badge = InternalBridge.IconBadge.CreateError(errString);
             }
             else
             {
-                badge = IconBadge.CreateComment(errString);
+                badge = InternalBridge.IconBadge.CreateComment(errString);
             }
 
             Add(badge);
