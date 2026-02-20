@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.Graphing;
 using UnityEditor.Rendering.UITK.ShaderGraph;
 using UnityEngine;
@@ -6,7 +7,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Title("UI", "Sample Element Texture")]
     [SubTargetFilter(typeof(IUISubTarget))]
-    class SampleElementTextureNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireUITK
+    class SampleElementTextureNode : AbstractMaterialNode, IGeneratesFunction, IGeneratesBodyCode, IMayRequireUITK
     {
 
         public const int UV0Id = 0;
@@ -61,6 +62,24 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
+        {
+            registry.ProvideFunction("UIE_SAMPLE4", sb =>
+            {
+                sb.AppendLine(@"#define UIE_SAMPLE4(index) \");
+                sb.AppendLine(@"    c0 = UNITY_SAMPLE_TEX2D(_Texture##index, uv0); \");
+                sb.AppendLine(@"    c1 = UNITY_SAMPLE_TEX2D(_Texture##index, uv1); \");
+                sb.AppendLine(@"    c2 = UNITY_SAMPLE_TEX2D(_Texture##index, uv2); \");
+                sb.AppendLine(@"    c3 = UNITY_SAMPLE_TEX2D(_Texture##index, uv3);");
+                sb.AppendLine("");
+                sb.AppendLine("void SampleTextureSlot4(half index, float2 uv0, float2 uv1, float2 uv2, float2 uv3, out float4 c0, out float4 c1, out float4 c2, out float4 c3)");
+                using (sb.BlockScope())
+                {
+                    sb.AppendLine("UIE_BRANCH(UIE_SAMPLE4)");
+                }
+            });
+        }
+
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             sb.AppendLine("$precision4 {0};", GetVariableNameForSlot(Color0SlotId));
@@ -68,15 +87,19 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("$precision4 {0};", GetVariableNameForSlot(Color2SlotId));
             sb.AppendLine("$precision4 {0};", GetVariableNameForSlot(Color3SlotId));
 
-            sb.Append("#define UIE_SAMPLEX(index) ");
-            sb.Append("{0} = UNITY_SAMPLE_TEX2D(_Texture##index, {1});", GetVariableNameForSlot(Color0SlotId), GetSlotValue(UV0Id, generationMode));
-            sb.Append("{0} = UNITY_SAMPLE_TEX2D(_Texture##index, {1});", GetVariableNameForSlot(Color1SlotId), GetSlotValue(UV1Id, generationMode));
-            sb.Append("{0} = UNITY_SAMPLE_TEX2D(_Texture##index, {1});", GetVariableNameForSlot(Color2SlotId), GetSlotValue(UV2Id, generationMode));
-            sb.Append("{0} = UNITY_SAMPLE_TEX2D(_Texture##index, {1});", GetVariableNameForSlot(Color3SlotId), GetSlotValue(UV3Id, generationMode));
-            sb.AppendLine("");
-
-            sb.AppendLine("half index = IN.typeTexSettings.y;");
-            sb.AppendLine("UIE_BRANCH(UIE_SAMPLEX)");
+            using (sb.BlockScope())
+            {
+                sb.AppendLine("half Unity_UIE_TextureSlotIndex = IN.typeTexSettings.y;");
+                sb.AppendLine("SampleTextureSlot4(Unity_UIE_TextureSlotIndex, {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7});",
+                    GetSlotValue(UV0Id, generationMode),
+                    GetSlotValue(UV1Id, generationMode),
+                    GetSlotValue(UV2Id, generationMode),
+                    GetSlotValue(UV3Id, generationMode),
+                    GetVariableNameForSlot(Color0SlotId),
+                    GetVariableNameForSlot(Color1SlotId),
+                    GetVariableNameForSlot(Color2SlotId),
+                    GetVariableNameForSlot(Color3SlotId));
+            }
         }
 
         public bool RequiresUITK(ShaderStageCapability stageCapability)
