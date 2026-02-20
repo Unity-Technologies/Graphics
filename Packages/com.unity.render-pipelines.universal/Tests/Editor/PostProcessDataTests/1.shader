@@ -1,4 +1,4 @@
-Shader "Custom/Test Shader"
+Shader "Hidden/Custom/Test Shader"
 {
     Properties
     {
