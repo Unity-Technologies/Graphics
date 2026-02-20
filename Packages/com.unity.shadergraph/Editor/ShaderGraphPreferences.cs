@@ -35,6 +35,22 @@ namespace UnityEditor.ShaderGraph
             internal const string newNodesPreview = "UnityEditor.ShaderGraph.NewNodesPreview";
         }
 
+        // Note that GUIContent in this class is used to generate search keywords for the preferences window
+        class Labels
+        {
+            public static GUIContent previewVariantLimit = new GUIContent("Preview Variant Limit");
+            public static GUIContent autoAddRemoveBlocks = new GUIContent("Automatically Add and Remove Block Nodes");
+            public static GUIContent allowDeprecatedBehaviors = new GUIContent("Enable Deprecated Nodes");
+            public static GUIContent zoomStepSize = new GUIContent("Zoom Step Size", "Default is 0.5");
+            public static GUIContent graphTemplateWorkflow = new GUIContent("Graph Template Workflow",
+                "When creating a new Shadergraph asset from specific menu items, determine if a reference should use a"
+                + " variant of the newly created material sub-asset or the shader itself.");
+            public static GUIContent openNewGraphOnCreation = new GUIContent("Open new Shader Graphs automatically",
+                "Choose whether new ShaderGraph assets should automatically open for editing.");
+            public static GUIContent newNodesPreview = new GUIContent("Expand Node Preview on Node creation",
+                "Choose whether newly added Nodes' Previews should be expanded.");
+        }
+
         static bool m_Loaded = false;
         internal delegate void PreferenceChangedDelegate();
 
@@ -142,7 +158,8 @@ namespace UnityEditor.ShaderGraph
         {
             return new SettingsProvider("Preferences/Shader Graph", SettingsScope.User)
             {
-                guiHandler = searchContext => OpenGUI()
+                guiHandler = searchContext => OpenGUI(),
+                keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<Labels>(),
             };
         }
 
@@ -159,8 +176,8 @@ namespace UnityEditor.ShaderGraph
                 var willPreviewVariantBeIgnored = ShaderGraphPreferences.previewVariantLimit > actualLimit || ShaderGraphProjectSettings.instance.overrideShaderVariantLimit;
 
                 var variantLimitLabel = willPreviewVariantBeIgnored
-                    ? new GUIContent("Preview Variant Limit", EditorGUIUtility.IconContent("console.infoicon").image, $"The Preview Variant Limit is higher than the Shader Variant Limit in Project Settings: {actualLimit}. The Preview Variant Limit will be ignored.")
-                    : new GUIContent("Preview Variant Limit");
+                    ? new GUIContent(Labels.previewVariantLimit.text, EditorGUIUtility.IconContent("console.infoicon").image, $"The Preview Variant Limit is higher than the Shader Variant Limit in Project Settings: {actualLimit}. The Preview Variant Limit will be ignored.")
+                    : Labels.previewVariantLimit;
 
                 EditorGUI.BeginChangeCheck();
                 var variantLimitValue = EditorGUILayout.DelayedIntField(variantLimitLabel, previewVariantLimit);
@@ -171,42 +188,42 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 EditorGUI.BeginChangeCheck();
-                var autoAddRemoveBlocksValue = EditorGUILayout.Toggle("Automatically Add and Remove Block Nodes", autoAddRemoveBlocks);
+                var autoAddRemoveBlocksValue = EditorGUILayout.Toggle(Labels.autoAddRemoveBlocks, autoAddRemoveBlocks);
                 if (EditorGUI.EndChangeCheck())
                 {
                     autoAddRemoveBlocks = autoAddRemoveBlocksValue;
                 }
 
                 EditorGUI.BeginChangeCheck();
-                var allowDeprecatedBehaviorsValue = EditorGUILayout.Toggle("Enable Deprecated Nodes", allowDeprecatedBehaviors);
+                var allowDeprecatedBehaviorsValue = EditorGUILayout.Toggle(Labels.allowDeprecatedBehaviors, allowDeprecatedBehaviors);
                 if (EditorGUI.EndChangeCheck())
                 {
                     allowDeprecatedBehaviors = allowDeprecatedBehaviorsValue;
                 }
 
                 EditorGUI.BeginChangeCheck();
-                var zoomStepSizeValue = EditorGUILayout.Slider(new GUIContent("Zoom Step Size", $"Default is 0.5"), zoomStepSize, 0.0f, 1f);
+                var zoomStepSizeValue = EditorGUILayout.Slider(Labels.zoomStepSize.text, zoomStepSize, 0.0f, 1f);
                 if (EditorGUI.EndChangeCheck())
                 {
                     zoomStepSize = zoomStepSizeValue;
                 }
 
                 EditorGUI.BeginChangeCheck();
-                var graphTemplateWorkflowValue = EditorGUILayout.EnumPopup(new GUIContent("Graph Template Workflow", "When creating a new Shadergraph asset from specific menu items, determine if a reference should use a variant of the newly created material sub-asset or the shader itself."), graphTemplateWorkflow);
+                var graphTemplateWorkflowValue = EditorGUILayout.EnumPopup(Labels.graphTemplateWorkflow, graphTemplateWorkflow);
                 if (EditorGUI.EndChangeCheck())
                 {
                     graphTemplateWorkflow = (GraphTemplateWorkflow)graphTemplateWorkflowValue;
                 }
 
                 EditorGUI.BeginChangeCheck();
-                var openNewGraphOnCreationValue = EditorGUILayout.Toggle(new GUIContent("Open new Shader Graphs automatically", "Choose whether new ShaderGraph assets should automatically open for editing."), openNewGraphOnCreation);
+                var openNewGraphOnCreationValue = EditorGUILayout.Toggle(Labels.openNewGraphOnCreation, openNewGraphOnCreation);
                 if (EditorGUI.EndChangeCheck())
                 {
                     openNewGraphOnCreation = openNewGraphOnCreationValue;
                 }
 
                 EditorGUI.BeginChangeCheck();
-                var newNodesPreviewValue = EditorGUILayout.Toggle(new GUIContent("Expand Node Preview on Node creation", "Choose whether newly added Nodes' Previews should be expanded."), newNodesPreview);
+                var newNodesPreviewValue = EditorGUILayout.Toggle(Labels.newNodesPreview, newNodesPreview);
                 if (EditorGUI.EndChangeCheck())
                 {
                     newNodesPreview = newNodesPreviewValue;
