@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
             foreach (var func in functionsToTest)
             {
                 lookup.Add(ShaderObjectUtils.EvaluateProviderKey(func), func);
-                sb.AppendLine(TestUtils.GenerateCode(func));
+                sb.AppendLine(ShaderObjectUtils.GenerateCode(func));
             }
             FileUtilities.WriteToDisk(kTestPath, sb.ToString());
 

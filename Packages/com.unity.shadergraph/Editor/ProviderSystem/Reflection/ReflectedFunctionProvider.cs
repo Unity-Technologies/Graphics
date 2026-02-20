@@ -10,6 +10,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
     {
         public string ProviderKey => m_providerKey;
         public GUID AssetID => m_sourceAssetId;
+        public bool RequiresGeneration => false; // TODO: Becomes true with dynamic/precision.
+
         public IShaderFunction Definition
         {
             get

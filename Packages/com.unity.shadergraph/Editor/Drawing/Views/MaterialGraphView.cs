@@ -337,7 +337,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     evt.menu.AppendSeparator();
                     evt.menu.AppendAction("Open Sub Graph", OpenSubGraph, (a) => DropdownMenuAction.Status.Normal);
                 }
-                if (selection.OfType<IShaderNodeView>().Count() == 1 && selection.OfType<IShaderNodeView>().First().node is ProviderSystem.ProviderNode providerNode && providerNode.isValid)
+                if (selection.OfType<IShaderNodeView>().Count() == 1
+                    && selection.OfType<IShaderNodeView>().First().node is ProviderSystem.ProviderNode providerNode
+                    && providerNode.isValid
+                    && (providerNode.Provider?.IsValid ?? false)
+                    && providerNode.Provider.AssetID != default)
                 {
                     evt.menu.AppendSeparator();
 

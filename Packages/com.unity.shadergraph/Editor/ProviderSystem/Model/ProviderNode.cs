@@ -9,6 +9,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
     // This Model object can work with any sort of function provider, interpret the function definition,
     // and generate a valid model representation of that object. This abstracts the need for node definitions
     // to be aware of how the model functions.
+    [Serializable]
     [HasDependencies(typeof(MinimalProviderNode))]
     internal class ProviderNode : AbstractMaterialNode, IHasAssetDependencies, IGeneratesBodyCode, IGeneratesFunction
     {
@@ -43,6 +44,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
         internal override bool ExposeToSearcher => false;
 
+        internal virtual bool requiresGeneration => false;
+
         public ProviderNode()
         {
             name = "Provider Based Node";
@@ -57,7 +60,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         public override void UpdateNodeAfterDeserialization()
         {
             base.UpdateNodeAfterDeserialization();
-            UpdateModel();
+            Refresh();
         }
 
         public override void Concretize()
@@ -70,15 +73,18 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         {
             if (changedAssetGuids.Contains(Provider.AssetID.ToString()))
             {
-                Provider?.Reload();
-                UpdateModel();
-                owner.ClearErrorsForNode(this);
-                ValidateNode();
-                Dirty(ModificationScope.Topological);
-                Dirty(ModificationScope.Graph);
+                Refresh();
                 return true;
             }
             return false;
+        }
+
+        protected void Refresh()
+        {
+            Provider?.Reload();
+            UpdateModel();
+            ValidateNode();
+            Dirty(ModificationScope.Graph);
         }
 
         internal void UpdateModel()
@@ -250,8 +256,18 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            var includePath = AssetDatabase.GUIDToAssetPath(Provider.AssetID);
-            registry.RequiresIncludePath(includePath, false);
+            if (Provider.AssetID != default)
+            {
+                var includePath = AssetDatabase.GUIDToAssetPath(Provider.AssetID);
+                registry.RequiresIncludePath(includePath, false);
+            }
+
+            if (requiresGeneration)
+            {
+                var func = Provider.Definition;
+                string code = ShaderObjectUtils.GenerateCode(func, false, false);
+                registry.ProvideFunction(func.Name, s => s.AppendLine(code));
+            }
         }
 
         public override void ValidateNode()

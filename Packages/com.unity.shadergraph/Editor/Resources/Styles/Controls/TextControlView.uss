@@ -22,9 +22,10 @@ TextCotrolView > #container > Label {
 .unity-base-field {
     width: 60px;
     flex-grow: 1;
-    margin-left: 20%;
+    flex-shrink: 0;
+    margin-left: 0;
     margin-right: 0;
-    padding-right: 10;
+    padding-right: 0;
 }
 
 .unity-base-field__input {

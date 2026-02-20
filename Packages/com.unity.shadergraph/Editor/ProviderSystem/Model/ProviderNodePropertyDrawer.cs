@@ -1,7 +1,7 @@
 using System;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.ProviderSystem;
-
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
@@ -20,13 +20,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             string providerKey = provider.ProviderKey;
             string qualifiedSignature = ShaderObjectUtils.QualifySignature(node.Provider.Definition, true, true);
             bool hasProviderKey = definition?.Hints?.ContainsKey(Hints.Func.kProviderKey) ?? false;
-            bool isAnAsset = provider?.AssetID != default;
-
 
             if (provider == null)
             {
                 parentElement.Add(new HelpBoxRow("Provider node is in an invalid and irrecoverable state.", MessageType.Error));
+                return;
             }
+
+            bool isAnAsset = provider.AssetID != default;
 
             if (!isAnAsset)
                 return;
