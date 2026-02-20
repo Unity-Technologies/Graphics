@@ -88,7 +88,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 contents.Add(dropdownContainer);
             }
 
-            if (node.hasPreview && IsPreviewable(node))
+            if (node.hasPreview)
             {
                 // Add actual preview which floats on top of the node
                 m_PreviewContainer = new VisualElement

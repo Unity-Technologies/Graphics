@@ -39,7 +39,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         string ProviderKey { get; }
         GUID AssetID { get; }
         bool IsValid { get; }
-        void Reload();
+
+        void Reload() { }
         IProvider Clone();
     }
 

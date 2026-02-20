@@ -208,7 +208,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             HashSet<string> providerCollisions = new();
             foreach (var provider in ProviderLibrary.Instance.AllProvidersByType<IShaderFunction>())
             {
-                var node = new ProviderNode();
+                if (!ProviderTypeCache.TryCreateModel(provider.ProviderKey, out var model) || model is not ProviderNode node)
+                    node = new ProviderNode();
+
                 node.InitializeFromProvider(provider);
                 var header = node.Header;
 

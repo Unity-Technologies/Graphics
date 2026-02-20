@@ -49,16 +49,24 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             if (!func.Hints.TryGetValue(Hints.Func.kSearchName, out uniqueName))
                 uniqueName = ShaderObjectUtils.QualifySignature(func, false, true);
 
-            if (func.Hints.TryGetValue(Hints.Func.kCategory, out category)) { }
-            else if (func.Namespace != null)
+
+            if (!func.Hints.TryGetValue(Hints.Func.kCategory, out category))
             {
-                category = "Reflected by Namespace";
+                // try to use a namespace if a user didn't provide a category.
+                bool hasNamespace = false;
                 foreach (var name in func.Namespace)
+                {
+                    if (!hasNamespace)
+                        category = "Reflected by Namespace";
+                    hasNamespace = true;
                     category += $"/{name}";
-            }
-            else
-            {
-                category = $"Reflected by Path/{path}";
+                }
+                // if there was no namespace, use the file path instead.
+                if (!hasNamespace)
+                {
+                    category = $"Reflected by Path/{path}";
+                }
+
             }
 
             if (func.Hints.TryGetValue(Hints.Func.kSearchName, out var terms))

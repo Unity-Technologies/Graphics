@@ -90,6 +90,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             }
 
             this.shaderType = shaderType;
+            this.externalQualifiedTypeName = shaderType.Name;
             this.referenceName = referenceName;
             this.displayName = referenceName;
             this.tooltip = tooltip;
