@@ -8,18 +8,18 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** [Shader Stage](S
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| UV      | Input | Vector 2 | UV | Input UV value |
-| Width      | Input | Float    | None | Rectangle width |
-| Height      | Input | Float    | None | Rectangle height |
-| Out | Output      |    Float    | None | Output value |
+| Name | Direction | Type | Binding | Description |
+|:--- |:---|:---|:---|:---|
+| UV | Input | Vector 2 | UV | Input UV value |
+| Width | Input | Float | None | Rectangle width |
+| Height | Input | Float | None | Rectangle height |
+| Out | Output | Float | None | Output value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-|      | Dropdown | Fastest, Nicest | Robustness of computation |
+| Control | Description |
+|:---|:---|
+| (Dropdown) | Select the robustness of computation. The options are:<ul><li>**Fastest**</li><li>**Nicest**</li></ul> |
 
 ## Generated Code Example
 
