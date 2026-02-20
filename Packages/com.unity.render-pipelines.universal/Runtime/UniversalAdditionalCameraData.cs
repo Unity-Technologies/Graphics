@@ -330,12 +330,7 @@ namespace UnityEngine.Rendering.Universal
             layerMask = 1; // "Default"
             trigger = camera.transform;
 
-            if (cameraData != null)
-            {
-                layerMask = cameraData.volumeLayerMask;
-                trigger = (cameraData.volumeTrigger != null) ? cameraData.volumeTrigger : trigger;
-            }
-            else if (camera.cameraType == CameraType.SceneView)
+            if (camera.cameraType == CameraType.SceneView)
             {
                 // Try to mirror the MainCamera volume layer mask for the scene view - do not mirror the target
                 var mainCamera = Camera.main;
@@ -347,6 +342,11 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 trigger = (mainAdditionalCameraData != null && mainAdditionalCameraData.volumeTrigger != null) ? mainAdditionalCameraData.volumeTrigger : trigger;
+            }
+            else if (cameraData != null)
+            {
+                layerMask = cameraData.volumeLayerMask;
+                trigger = (cameraData.volumeTrigger != null) ? cameraData.volumeTrigger : trigger;
             }
         }
     }

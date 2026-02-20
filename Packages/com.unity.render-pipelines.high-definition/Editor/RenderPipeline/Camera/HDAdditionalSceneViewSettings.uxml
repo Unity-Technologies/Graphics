@@ -1,0 +1,8 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Label text="Rendering (HD Render Pipeline)" class="header"/>
+    <ui:EnumField name="AntiAliasing" label="Anti-aliasing" tooltip="The anti-aliasing mode used by the Scene View camera." type="UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData+AntialiasingMode, Unity.RenderPipelines.HighDefinition.Runtime" />
+    <ui:HelpBox name="TAAWarning" text="Temporal anti-aliasing in the Scene View is only supported when Always Refresh is enabled." message-type="Info"/>
+    <ui:Toggle name="StopNaNs" label="Stop NaNs" tooltip="When enabled, any NaNs in the Scene View camera’s color buffer are suppressed."/>
+    <ui:Toggle name="OverrideExposure" label="Override Exposure" tooltip="When enabled, the Scene View exposure is overridden with the selected value."/>
+    <ui:Slider name="ExposureValue" label="Scene Exposure" tooltip="The value of the overridden exposure." high-value="16" low-value="-11" class="indent"/>
+</ui:UXML>
