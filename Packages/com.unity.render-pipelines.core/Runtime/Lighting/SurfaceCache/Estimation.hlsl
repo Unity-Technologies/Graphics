@@ -85,14 +85,12 @@ void ProjectAndAccumulate(inout SphericalHarmonics::RGBL1 accumulator, float3 sa
 
 void SamplePunctualLightBounceRadiance(
     inout QrngKronecker2D rng,
-    uint patchIdx,
     UnifiedRT::RayTracingAccelStruct accelStruct,
     UnifiedRT::DispatchInfo dispatchInfo,
     PatchUtil::PatchGeometry patchGeo,
     inout SphericalHarmonics::RGBL1 accumulator,
     inout bool gotValidSamples)
 {
-    rng.Init(patchIdx, _FrameIdx * _SampleCount);
     SphericalHarmonics::RGBL1 radianceAccumulator = (SphericalHarmonics::RGBL1)0;
 
     uint validSampleCount = 0;
@@ -126,7 +124,6 @@ void SamplePunctualLightBounceRadiance(
 
 void SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
     inout QrngKronecker2D rng,
-    uint patchIdx,
     UnifiedRT::RayTracingAccelStruct accelStruct,
     UnifiedRT::DispatchInfo dispatchInfo,
     MaterialPoolParamSet matPoolParams,
@@ -134,8 +131,6 @@ void SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
     inout SphericalHarmonics::RGBL1 accumulator,
     inout bool gotValidSamples)
 {
-    rng.Init(patchIdx, _FrameIdx * _SampleCount);
-
     UnifiedRT::Ray ray;
     ray.origin = OffsetRayOrigin(patchGeo.position, patchGeo.normal);
     ray.tMin = 0;
@@ -209,9 +204,12 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
     SphericalHarmonics::RGBL1 radianceSampleMean = (SphericalHarmonics::RGBL1)0;
     bool gotValidSamples = false;
 
+    const uint patchIdxHash = LowBiasHash32(patchIdx);
+    const uint sampleOffset = _FrameIdx * _SampleCount;
+
+    rng.Init(patchIdxHash, sampleOffset);
     SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
         rng,
-        patchIdx,
         accelStruct,
         dispatchInfo,
         matPoolParams,
@@ -221,9 +219,9 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
 
     if (_PunctualLightCount != 0)
     {
+        rng.Init(patchIdxHash, sampleOffset);
         SamplePunctualLightBounceRadiance(
             rng,
-            patchIdx,
             accelStruct,
             dispatchInfo,
             patchGeo,
