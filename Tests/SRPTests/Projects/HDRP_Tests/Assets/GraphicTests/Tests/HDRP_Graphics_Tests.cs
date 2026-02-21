@@ -425,6 +425,14 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             runtimePlatforms: new [] { RuntimePlatform.WindowsEditor },
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12 }
         )]
+        [IgnoreGraphicsTest(
+            "4075_PhysicalCamera-gateFit|4111_DRS-DLSS-With-CustomPass",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-134786",
+            runtimePlatforms: new RuntimePlatform[]
+            {
+                RuntimePlatform.WindowsEditor
+            }
+        )]
         public IEnumerator Run(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);
