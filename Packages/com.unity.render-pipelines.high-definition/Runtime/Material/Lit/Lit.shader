@@ -912,7 +912,7 @@ Shader "HDRP/Lit"
             #pragma shader_feature_local _DISABLE_SSR_TRANSPARENT
             #pragma shader_feature_local_fragment _ _REFRACTION_PLANE _REFRACTION_SPHERE _REFRACTION_THIN
 
-            #pragma switch2_extended_structured_buffer_bindings
+            #pragma extended_structured_buffer_bindings
 
             #ifndef SHADER_STAGE_FRAGMENT
             #define SHADOW_LOW
@@ -1046,7 +1046,7 @@ Shader "HDRP/Lit"
 
             #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
-            #pragma switch2_extended_structured_buffer_bindings
+            #pragma extended_structured_buffer_bindings
 
             #ifndef SHADER_STAGE_FRAGMENT
             #define SHADOW_LOW
