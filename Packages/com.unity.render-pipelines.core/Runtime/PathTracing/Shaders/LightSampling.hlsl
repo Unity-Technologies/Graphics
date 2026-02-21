@@ -426,8 +426,32 @@ float2 PunctualLightCookieUVs(float3 L, PTLight light)
 
 bool SamplePunctualLight(float3 P, PTLight light, out LightShapeSample lightSample)
 {
-    lightSample.lightVector = light.type == DIRECTIONAL_LIGHT ? -light.forward : light.position - P;
-    lightSample.distanceToLight = light.type == DIRECTIONAL_LIGHT ? K_T_MAX : length(lightSample.lightVector);
+    if (light.type == DIRECTIONAL_LIGHT)
+    {
+        lightSample.lightVector = -light.forward ;
+        lightSample.distanceToLight = K_T_MAX;
+    }
+    else if (light.type != BOX_LIGHT) // SPOT_LIGHT or POINT_LIGHT
+    {
+        lightSample.lightVector = light.position - P;
+        lightSample.distanceToLight = length(lightSample.lightVector);
+    }
+    else // BOX_LIGHT
+    {
+        float distanceToLight = dot(-light.forward, light.position - P);
+        float3 v = light.position - P;
+
+        float x = abs(dot(v, light.right));
+        float y = abs(dot(v, light.up));
+        float2 sideLimits = float2(light.width, light.height) * 0.5;
+
+        if (distanceToLight < 0 || distanceToLight > light.range || x >= sideLimits.x || y >= sideLimits.y)
+            return false;
+
+        lightSample.lightVector = -light.forward * distanceToLight;
+        lightSample.distanceToLight = distanceToLight;
+    }
+
     lightSample.L = normalize(lightSample.lightVector);
     lightSample.weight = 1.0f;
     lightSample.materialIndex = -1;
@@ -605,14 +629,19 @@ float PunctualLightAngleAttenuation(float4 distances, float rangeAttenuationScal
 
 float GetPunctualAttenuation(PTLight light, LightShapeSample lightSample)
 {
-    float x = abs(dot(lightSample.lightVector, 2 * light.right / light.width));
-    float y = abs(dot(lightSample.lightVector, 2 * light.up / light.height));
-    float z = abs(dot(lightSample.lightVector, light.forward));
-
     if (light.type == BOX_LIGHT)
+        return 1.0;
+
+    if (light.type == PYRAMID_LIGHT)
     {
-        // box attenuation
-        return ((z > 0) && (x < 1.0 && y < 1.0)) ? 1.0 : 0.0;
+        // compute lit position in light basis
+        float x = abs(dot(lightSample.lightVector, light.right));
+        float y = abs(dot(lightSample.lightVector, light.up));
+        float z = abs(dot(lightSample.lightVector, light.forward));
+
+        float2 sideLimits = float2(light.width, light.height) * 0.5 * z;
+        if (x >= sideLimits.x || y >= sideLimits.y)
+            return 0.0f;
     }
 
     // Punctual attenuation
@@ -666,7 +695,7 @@ float3 AreaCookieAttenuation(PTLight light, LightShapeSample lightSample)
 
 float3 PunctualCookieAttenuation(PTLight light, LightShapeSample lightSample)
 {
-    if (light.type == SPOT_LIGHT || light.type == BOX_LIGHT)
+    if (light.type == SPOT_LIGHT || light.type == BOX_LIGHT || light.type == PYRAMID_LIGHT)
         return LightCookie(light, lightSample);
     else if (light.type == POINT_LIGHT)
         return PointLightCookie(light, lightSample);
@@ -768,7 +797,7 @@ float3 GetEmission(PTLight light, LightShapeSample lightSample)
     {
         emission = GetDirectionalEmission(light, lightSample);
     }
-    else if (light.type == SPOT_LIGHT || light.type == POINT_LIGHT || light.type == BOX_LIGHT)
+    else if (light.type == POINT_LIGHT || light.type == SPOT_LIGHT || light.type == BOX_LIGHT || light.type == PYRAMID_LIGHT)
     {
         emission = GetPunctualEmission(light, lightSample);
     }
@@ -1149,7 +1178,7 @@ bool IsLightVisibleFromPoint(
 
     if (light.type != DIRECTIONAL_LIGHT && lightSample.distanceToLight >= light.range)
         return false;
-    if (light.type == SPOT_LIGHT && GetPunctualAttenuation(light, lightSample) < 0.000001f)
+    if ((light.type == SPOT_LIGHT || light.type == BOX_LIGHT || light.type == PYRAMID_LIGHT) && GetPunctualAttenuation(light, lightSample) < 0.000001f)
         return false;
 
     if (light.castsShadows && receiveShadows)

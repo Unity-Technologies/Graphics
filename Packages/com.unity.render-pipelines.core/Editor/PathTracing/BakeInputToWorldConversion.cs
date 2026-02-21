@@ -110,6 +110,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 case LightBakerBridge.LightType.Rectangle: return UnityEngine.LightType.Rectangle;
                 case LightBakerBridge.LightType.Disc: return UnityEngine.LightType.Disc;
                 case LightBakerBridge.LightType.SpotBoxShape: return UnityEngine.LightType.Box;
+                case LightBakerBridge.LightType.SpotPyramidShape: return UnityEngine.LightType.Pyramid;
                 default: throw new ArgumentException("Unknown light type");
             }
         }
@@ -172,7 +173,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 lightDescriptor.ShadowMaskChannel = (lightData.shadowMaskChannel < 4) ? (int)lightData.shadowMaskChannel : -1;
                 lightDescriptor.UseColorTemperature = false;
                 lightDescriptor.FalloffType = LightBakerFalloffTypeToUnityFalloffType(lightData.falloff);
-                lightDescriptor.ShadowRadius = Util.IsPunctualLightType(lightDescriptor.Type) ? lightData.shape0 : 0.0f;
+                lightDescriptor.ShadowRadius = GetLightShadowRadius(lightDescriptor.Type, lightData);
                 lightDescriptor.CookieSize = lightData.cookieScale;
                 lightDescriptor.CookieTexture = Util.IsCookieValid(lightData.cookieTextureIndex) ? CreateTextureFromCookieData(in bakeInput.cookieData[lightData.cookieTextureIndex]) : null;
                 if (lightDescriptor.CookieTexture != null)
@@ -183,6 +184,10 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                     case UnityEngine.LightType.Box:
                     case UnityEngine.LightType.Rectangle:
                         lightDescriptor.AreaSize = new Vector2(lightData.shape0, lightData.shape1);
+                        break;
+
+                    case UnityEngine.LightType.Pyramid:
+                        lightDescriptor.AreaSize = GetPyramidLightRect(lightData.coneAngle, lightData.shape0);
                         break;
 
                     case UnityEngine.LightType.Disc:
@@ -205,6 +210,22 @@ namespace UnityEditor.PathTracing.LightBakerBridge
 
             world.lightPickingMethod = LightPickingMethod.LightGrid;
             lightHandles = world.AddLights(lights, false, autoEstimateLUTRange, bakeInput.lightingSettings.mixedLightingMode);
+        }
+
+        static Vector2 GetPyramidLightRect(float coneAngleInRads, float pyramidAspectRadio)
+        {
+            float ar = pyramidAspectRadio;
+            float h = 2.0f * Mathf.Tan(coneAngleInRads * 0.5f);
+
+            float width = ar >= 1.0f ? (h * ar) : h;
+            float height = ar >= 1.0f ? h : (h / ar);
+
+            return new Vector2(width, height);
+        }
+
+        static float GetLightShadowRadius(UnityEngine.LightType lightType, in LightData lightData)
+        {
+            return (Util.IsPunctualLightType(lightType) && lightType != UnityEngine.LightType.Pyramid && lightType != UnityEngine.LightType.Box) ? lightData.shape0 : 0.0f;
         }
 
         internal static void InjectEnvironmentLight(

@@ -207,6 +207,72 @@ bool IntersectSphereAABB(float3 position, float radius, float3 aabbMin, float3 a
   return distance2 < radius * radius;
 }
 
+bool IntersectFrustumPlanesAABB(float4 frustumPlanes[6], float3 aabbCenter, float3 aabbExtent)
+{
+    float3 m = aabbCenter;
+    float3 extent = aabbExtent;
+
+    for (int i = 0; i < 6; ++i)
+    {
+        float4 p = frustumPlanes[i];
+        float3 normal = p.xyz;
+        float dist = dot(normal, m) + p.w;
+        float radius = dot(extent, abs(normal));
+
+        if (dist + radius < 0)
+            return false; // AABB completely outside of half-space delimited by current frustum plane
+    }
+
+    return true; // AABB intersects frustum
+}
+
+// Spherical cone VS Sphere Intersection test. https://www.desmos.com/calculator/hmtevaudpn
+// The core idea is to compute the direction and angle of the spherical sector that is spanned by the sphere. (https://en.wikipedia.org/wiki/Spherical_sector)
+// It can then easily be intersected against the cone's spherical sector.
+bool IntersectSphericalConeWithSphere(float3 coneOrigin, float3 coneForward, float coneRange, float coneCosHalfAngle, float coneSinHalfAngle, float4 sphere)
+{
+    const float Cr = coneRange;
+    const float Sr = sphere.w;
+    const float Cr2 = Cr * Cr;
+    const float Sr2 = Sr * Sr;
+    const float3 V = sphere.xyz - coneOrigin;
+    const float d2 = dot(V, V);
+
+    // Sphere outside of cone's bounding sphere
+    if (d2 >= (Cr + Sr) * (Cr + Sr))
+        return false;
+
+    // Cone center is inside the sphere
+    if (d2 < Sr2)
+        return true;
+
+    // Compute the half angle β of the spherical sector that is spanned by the sphere
+    float cosBetaMultD, sinBetaMultD;
+    if (d2 < Sr2 + Cr2)
+    {
+        // Sphere is close to the cone's origin, the spherical sector encompasses the whole sphere
+        sinBetaMultD = Sr;
+        cosBetaMultD = sqrt(d2 - sinBetaMultD * sinBetaMultD);
+    }
+    else
+    {
+        // The sphere is further away, the sector is defined by the sphere-sphere intersection between the the sphere and the cone bounding's sphere
+        // (https ://mathworld.wolfram.com/Sphere-SphereIntersection.html)
+        cosBetaMultD = (d2 - Sr2 + Cr2) * 0.5f / Cr;
+        sinBetaMultD = sqrt(d2 - cosBetaMultD * cosBetaMultD);
+    }
+
+    const float cosGammaMultD = dot(V, coneForward); // Angle γ between the sphere direction and the cone direction
+    const float cosAlpha = coneCosHalfAngle;
+    const float sinAlpha = coneSinHalfAngle;
+
+    // The spherical sectors intersect if:
+    // (α + β) > γ
+    // d.cos(α + β) < d.cos(γ)
+    // cos(α)cos(β)d - sin(α)sin(β)d < cos(γ)d
+    return (cosAlpha * cosBetaMultD - sinAlpha * sinBetaMultD) < cosGammaMultD;
+}
+
 //-----------------------------------------------------------------------------
 // Miscellaneous functions
 //-----------------------------------------------------------------------------

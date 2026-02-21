@@ -26,7 +26,8 @@
 #define POINT_LIGHT 2
 #define RECTANGULAR_LIGHT 3
 #define DISC_LIGHT 4
-#define BOX_LIGHT 5
+#define PYRAMID_LIGHT 5
+#define BOX_LIGHT 6
 #define EMISSIVE_MESH 8 // Must match the variable in UnityEngine.PathTracing.Core.World
 #define ENVIRONMENT_LIGHT 9 // Must match the variable in UnityEngine.PathTracing.Core.World
 

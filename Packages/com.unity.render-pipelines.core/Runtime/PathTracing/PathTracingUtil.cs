@@ -187,7 +187,7 @@ namespace UnityEngine.PathTracing.Core
 
         internal static bool IsPunctualLightType(LightType lightType)
         {
-            return lightType == LightType.Directional || lightType == LightType.Spot || lightType == LightType.Point || lightType == LightType.Box;
+            return lightType == LightType.Directional || lightType == LightType.Spot || lightType == LightType.Point || lightType == LightType.Box || lightType == LightType.Pyramid;
         }
 
         // Our old baker, LightBaker, multiplied intensities of punctual lights by PI. This isn't quite correct, but it was never changed as it would be breaking.

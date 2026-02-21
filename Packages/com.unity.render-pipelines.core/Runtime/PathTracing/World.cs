@@ -841,7 +841,7 @@ namespace UnityEngine.PathTracing.Core
                     newLight.height = frustumHeight;
                 }
 
-                if (light.Type == LightType.Spot || light.Type == LightType.Point)
+                if (light.Type == LightType.Spot || light.Type == LightType.Point || light.Type == LightType.Pyramid)
                 {
                     Debug.Assert(light.FalloffType != Experimental.GlobalIllumination.FalloffType.Undefined);
 
