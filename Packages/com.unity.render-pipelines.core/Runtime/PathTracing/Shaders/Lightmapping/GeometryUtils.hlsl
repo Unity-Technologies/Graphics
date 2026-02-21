@@ -16,7 +16,7 @@ void OffsetEdge(float2 v1, float2 v2, float2 pixelSize, out float2 v1Offset, out
 }
 
 // Given 2 lines defined by 2 points each, find the intersection point.
-float2 LineIntersect(float2 p1, float2 p2, float2 p3, float2 p4)
+float2 LineIntersect(float2 p1, float2 p2, float2 p3, float2 p4, float eps = 0.0f)
 {
     // Line p1p2 represented as a1x + b1y = c1
     float a1 = p2.y - p1.y;
@@ -29,7 +29,7 @@ float2 LineIntersect(float2 p1, float2 p2, float2 p3, float2 p4)
     float c2 = a2 * p3.x + b2 * p3.y;
 
     float determinant = a1 * b2 - a2 * b1;
-    if (determinant == 0) // Parallel lines - return any valid point.
+    if (abs(determinant) <= eps) // Parallel lines - return any valid point.
         return p1;
 
     float x = b2 * c1 - b1 * c2;
@@ -46,7 +46,7 @@ bool IsInside(float2 p, float2 cp1, float2 cp2, float eps = 0.0f)
 
 // Clip a polygon with a line defined by two points, in place.
 // https://en.wikipedia.org/wiki/Sutherland-Hodgman_algorithm
-void ClipPolygonWithLine(inout float2 polygon[6], inout uint polygonLength, float2 cp1, float2 cp2)
+void ClipPolygonWithLine(inout float2 polygon[6], inout uint polygonLength, float2 cp1, float2 cp2, float inside_eps = 0.0f, float parallel_eps = 0.0f)
 {
     float2 result[6];
     uint resultLength = 0;
@@ -56,19 +56,19 @@ void ClipPolygonWithLine(inout float2 polygon[6], inout uint polygonLength, floa
         float2 s = polygon[i];
         float2 e = polygon[(i + 1) % polygonLength];
 
-        if (IsInside(e, cp1, cp2)) // At least one endpoint is inside
+        if (IsInside(e, cp1, cp2, inside_eps)) // At least one endpoint is inside
         {
-            if (!IsInside(s, cp1, cp2)) // Only the end point is inside, add the intersection
+            if (!IsInside(s, cp1, cp2, inside_eps)) // Only the end point is inside, add the intersection
             {
-                result[resultLength] = LineIntersect(cp1, cp2, s, e);
+                result[resultLength] = LineIntersect(cp1, cp2, s, e, parallel_eps);
                 resultLength++;
             }
             result[resultLength] = e;
             resultLength++;
         }
-        else if (IsInside(s, cp1, cp2)) // Only the start point is inside, add the intersection
+        else if (IsInside(s, cp1, cp2, inside_eps)) // Only the start point is inside, add the intersection
         {
-            result[resultLength] = LineIntersect(cp1, cp2, s, e);
+            result[resultLength] = LineIntersect(cp1, cp2, s, e, parallel_eps);
             resultLength++;
         }
     }
@@ -79,7 +79,7 @@ void ClipPolygonWithLine(inout float2 polygon[6], inout uint polygonLength, floa
 }
 
 // Clip a polygon to the bounding box of a texel at the given position
-bool ClipPolygonWithTexel(float2 texelPosition, inout float2 polygon[6], inout uint polygonLength)
+bool ClipPolygonWithTexel(float2 texelPosition, inout float2 polygon[6], inout uint polygonLength, float inside_eps = 0.0f, float parallel_eps = 0.0f)
 {
     // Get the bounding box of the texel to clip with.
     float2 clipPolygon[4] =
@@ -93,7 +93,7 @@ bool ClipPolygonWithTexel(float2 texelPosition, inout float2 polygon[6], inout u
     // Clip to each edge of the quad
     for (uint edge = 0; edge < 4; edge++)
     {
-        ClipPolygonWithLine(polygon, polygonLength, clipPolygon[edge], clipPolygon[(edge + 1) % 4]);
+        ClipPolygonWithLine(polygon, polygonLength, clipPolygon[edge], clipPolygon[(edge + 1) % 4], inside_eps, parallel_eps);
     }
 
     return polygonLength > 0;
@@ -128,7 +128,8 @@ void ExpandTriangleForConservativeRasterization(
     float2 tri[3],
     uint vertexId,
     out float4 triangleAABB,
-    out float4 vertex)
+    out float4 vertex,
+    float eps = 0.0f)
 {
     float2 pixelSize = (1.0 / resolution);
 
@@ -146,9 +147,9 @@ void ExpandTriangleForConservativeRasterization(
     OffsetEdge(tri[2], tri[0], pixelSize, v3Off3, v1Off3);
 
     // Find their intersections. This is the new triangle
-    tri[0] = LineIntersect(v1Off1, v2Off1, v3Off3, v1Off3);
-    tri[1] = LineIntersect(v2Off2, v3Off2, v1Off1, v2Off1);
-    tri[2] = LineIntersect(v3Off3, v1Off3, v2Off2, v3Off2);
+    tri[0] = LineIntersect(v1Off1, v2Off1, v3Off3, v1Off3, eps);
+    tri[1] = LineIntersect(v2Off2, v3Off2, v1Off1, v2Off1, eps);
+    tri[2] = LineIntersect(v3Off3, v1Off3, v2Off2, v3Off2, eps);
     vertex = float4(tri[vertexId % 3]*2-1, 0, 1);
     #if UNITY_UV_STARTS_AT_TOP
     vertex.y = -vertex.y;
