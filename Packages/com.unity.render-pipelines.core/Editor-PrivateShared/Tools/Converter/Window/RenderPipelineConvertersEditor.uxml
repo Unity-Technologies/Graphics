@@ -14,7 +14,7 @@
             </ui:VisualElement>
         </ui:VisualElement>
         
-        <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" name="convertersScrollView" horizontal-scroller-visibility="Hidden" vertical-scroller-visibility="Auto" class="converter-scroll-view" />
+        <ui:ScrollView scroll-deceleration-rate="0.135" elasticity="0.1" name="convertersScrollView" horizontal-scroller-visibility="Hidden" vertical-scroller-visibility="Auto" class="converter-scroll-view" />
         
         <ui:VisualElement name="bottomButtonVE" class="converter-bottom-row">
             <ui:Button text="Scan" name="initializeButton" tooltip="Executes a project scanning based on the selected converters" class="converter-button"/>
