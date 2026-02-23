@@ -15,7 +15,7 @@
     "com.unity.testing.common-graphics": "file:../../../Packages/com.unity.testing.common-graphics",
     "com.unity.testing.visualeffectgraph": "file:../../../Packages/com.unity.testing.visualeffectgraph",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
-    "com.unity.timeline": "1.8.8",
+    "com.unity.timeline": "1.8.9",
     "com.unity.ugui": "2.0.0",
     "com.unity.ui.test-framework": "6.6.0",
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
