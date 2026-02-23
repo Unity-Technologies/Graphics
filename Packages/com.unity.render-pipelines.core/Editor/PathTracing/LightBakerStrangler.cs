@@ -1049,6 +1049,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                                 // now perform the normal generation for the chunk
                                 // geometry pool bindings
                                 Util.BindAccelerationStructure(cmd, normalShader, world.PathTracingWorld.GetAccelerationStructure());
+                                Util.BindMaterialsAndTextures(cmd, normalShader, world.PathTracingWorld);
 
                                 var requiredSizeInBytes = normalShader.GetTraceScratchBufferRequiredSizeInBytes((uint)chunkSize, 1, 1);
                                 if (requiredSizeInBytes > 0)
