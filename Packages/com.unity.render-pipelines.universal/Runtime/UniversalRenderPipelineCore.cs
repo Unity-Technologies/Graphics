@@ -1999,21 +1999,39 @@ namespace UnityEngine.Rendering.Universal
     internal static class PlatformAutoDetect
     {
         /// <summary>
-        /// Detect and cache runtime platform information. This function should only be called once when creating the URP.
+        /// Detect and cache runtime platform information.
+        /// Lazy initialized for situations where platform detection is required before URP is initialized (UUM-134298)
         /// </summary>
+        private sealed class PlatformDetectionCache
+        {
+            public readonly bool isXRMobile;
+            public readonly bool isShaderAPIMobileDefined;
+            public readonly bool isSwitch;
+            public readonly bool isSwitch2;
+            public readonly bool isRunningOnPowerVRGPU;
+
+            public PlatformDetectionCache()
+            {
+                bool isRunningMobile = false;
+                #if ENABLE_VR && ENABLE_XR_MODULE
+                    #if PLATFORM_WINRT || PLATFORM_ANDROID
+                        isRunningMobile = IsRunningXRMobile();
+                    #endif
+                #endif
+
+                isXRMobile = isRunningMobile;
+                isShaderAPIMobileDefined = GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.SHADER_API_MOBILE);
+                isSwitch = Application.platform == RuntimePlatform.Switch;
+                isSwitch2 = Application.platform == RuntimePlatform.Switch2;
+                isRunningOnPowerVRGPU = SystemInfo.graphicsDeviceName.Contains("PowerVR");
+            }
+        }
+
+        private static readonly Lazy<PlatformDetectionCache> platformCache = new(() => new PlatformDetectionCache(), true);
+
         internal static void Initialize()
         {
-            bool isRunningMobile = false;
-            #if ENABLE_VR && ENABLE_XR_MODULE
-                #if PLATFORM_WINRT || PLATFORM_ANDROID
-                    isRunningMobile = IsRunningXRMobile();
-                #endif
-            #endif
-
-            isXRMobile = isRunningMobile;
-            isShaderAPIMobileDefined = GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.SHADER_API_MOBILE);
-            isSwitch = Application.platform == RuntimePlatform.Switch;
-            isSwitch2 = Application.platform == RuntimePlatform.Switch2;
+            _ = platformCache.Value;
         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -2042,19 +2060,21 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// If true, the runtime platform is an XR mobile platform.
         /// </summary>
-        internal static bool isXRMobile { get; private set; } = false;
+        internal static bool isXRMobile => platformCache.Value.isXRMobile;
 
         /// <summary>
         /// If true, then SHADER_API_MOBILE has been defined in URP Shaders.
         /// </summary>
-        internal static bool isShaderAPIMobileDefined { get; private set; } = false;
+        internal static bool isShaderAPIMobileDefined => platformCache.Value.isShaderAPIMobileDefined;
 
         /// <summary>
         /// If true, then the runtime platform is set to Switch.
         /// </summary>
-        internal static bool isSwitch { get; private set; } = false;
+        internal static bool isSwitch => platformCache.Value.isSwitch;
 
-        internal static bool isSwitch2 { get; private set; } = false;
+        internal static bool isSwitch2 => platformCache.Value.isSwitch2;
+
+        internal static bool isRunningOnPowerVRGPU => platformCache.Value.isRunningOnPowerVRGPU;
 
         /// <summary>
         /// Gives the SH evaluation mode when set to automatically detect.
@@ -2073,7 +2093,5 @@ namespace UnityEngine.Rendering.Universal
 
             return mode;
         }
-
-        internal static bool isRunningOnPowerVRGPU = SystemInfo.graphicsDeviceName.Contains("PowerVR");
     }
 }
