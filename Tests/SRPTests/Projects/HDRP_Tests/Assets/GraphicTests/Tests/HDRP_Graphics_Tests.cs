@@ -215,14 +215,69 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             runtimePlatforms: new[] { RuntimePlatform.LinuxEditor }
         )]
         [IgnoreGraphicsTest(
+            "4088_DRS-DLSS-Hardware",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135194",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4089_DRS-DLSS-Software",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135194",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4090_DRS-Hardware",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135195",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4091_DRS-Software",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135195",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
             "4096_DRS-TAAU-Hardware$",
             "Very small fringing across edges. Maybe a sampling artifact?",
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }
         )]
         [IgnoreGraphicsTest(
+            "4096_DRS-TAAU-Hardware",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135200",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4097_DRS-TAAU-Software",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135200",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4099_DRS-STP-Software",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135197",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4100_DRS-STP-Hardware",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135197",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
             "4101_FP16Alpha$",
             "Outdated ref-image.",
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }
+        )]
+        [IgnoreGraphicsTest(
+            "4102_DRS-CAS-AfterPost",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135195",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4103_DRS-DLSS-AfterPost",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135195",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4104_DRS-STP-AfterPost",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135197",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
         )]
         [IgnoreGraphicsTest(
             "4105_LensFlareScreenSpace$",
@@ -231,9 +286,34 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             architectures: new[] { Architecture.X64 }
         )]
         [IgnoreGraphicsTest(
+            "4106_DRS-TAAU-AfterPost",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135200",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
             "4106_DRS-TAAU-AfterPost$",
             "Very small fringing across edges. Maybe a sampling artifact?",
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }
+        )]
+        [IgnoreGraphicsTest(
+            "4107_DRS-FSR2-Hardware",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135188",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4108_DRS-FSR2-Software",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135188",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4109_DRS-FSR2-AfterPost",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135188",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4111_DRS-DLSS-With-CustomPass",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135188",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
         )]
         [IgnoreGraphicsTest(
             "5006_Pbr_Sky_Low_Altitude$",
