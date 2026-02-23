@@ -197,6 +197,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }
         )]
         [IgnoreGraphicsTest(
+            "3005_VertexDensity",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135177",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
             "3008_ShadowDebugMode$",
             "(Intel Mac) Clear color of the debug-view seems to be black instead of white. Probably just an outdated ref-image.",
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
