@@ -1,3 +1,7 @@
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#define PROBEREFERENCEVOLUME_DEBUG
+#endif
+
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
@@ -1045,7 +1049,9 @@ namespace UnityEngine.Rendering
             // For now this condition is redundant with m_SupportDiskStreaming but we plan to support disk streaming without compute in the future.
             // So we need to split the conditions to plan for that.
             m_DiskStreamingUseCompute = SystemInfo.supportsComputeShaders && streamingUploadCS != null && streamingUploadL2CS != null;
+#if PROBEREFERENCEVOLUME_DEBUG
             InitializeDebug();
+#endif
             ProbeVolumeConstantRuntimeResources.Initialize();
             ProbeBrickPool.Initialize();
             ProbeBrickBlendingPool.Initialize();
@@ -1131,7 +1137,9 @@ namespace UnityEngine.Rendering
             }
 
             CleanupLoadedData();
+#if PROBEREFERENCEVOLUME_DEBUG
             CleanupDebug();
+#endif
             CleanupStreaming();
             DeinitProbeReferenceVolume();
             m_IsInitialized = false;
@@ -1675,13 +1683,14 @@ namespace UnityEngine.Rendering
 
                 m_NeedLoadAsset = true;
             }
-
+#if PROBEREFERENCEVOLUME_DEBUG
             // Refresh debug menu
             if (DebugManager.instance.GetPanel(k_DebugPanelName, false) != null)
             {
                 instance.UnregisterDebug(false);
                 instance.RegisterDebug();
             }
+#endif
         }
 
         ProbeReferenceVolume()

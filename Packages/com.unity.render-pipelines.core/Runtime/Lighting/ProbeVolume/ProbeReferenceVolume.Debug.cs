@@ -1,3 +1,7 @@
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#define PROBEREFERENCEVOLUME_DEBUG
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -261,6 +265,7 @@ namespace UnityEngine.Rendering
         /// <param name="exposureTexture">Texture containing the exposure value for this frame.</param>
         public void RenderDebug(Camera camera, ProbeVolumesOptions options, Texture exposureTexture)
         {
+#if PROBEREFERENCEVOLUME_DEBUG
             if (camera.cameraType != CameraType.Reflection && camera.cameraType != CameraType.Preview)
             {
                 if (options != null)
@@ -268,6 +273,7 @@ namespace UnityEngine.Rendering
 
                 DrawProbeDebug(camera, exposureTexture);
             }
+#endif
         }
 
         /// <summary>
@@ -360,6 +366,7 @@ namespace UnityEngine.Rendering
         }
 #endif
 
+#if PROBEREFERENCEVOLUME_DEBUG
         bool TryCreateDebugRenderData()
         {
             if (!GraphicsSettings.TryGetRenderPipelineSettings<ProbeVolumeDebugResources>(out var debugResources))
@@ -434,11 +441,6 @@ namespace UnityEngine.Rendering
             UnityEditor.Lightmapping.lightingDataCleared -= OnClearLightingdata;
             SceneView.duringSceneGui -= SceneGUI;
 #endif
-        }
-
-        void DebugCellIndexChanged<T>(DebugUI.Field<T> field, T value)
-        {
-            ClearDebugData();
         }
 
         void RegisterDebug()
@@ -807,6 +809,8 @@ namespace UnityEngine.Rendering
                 DebugManager.instance.GetPanel(k_DebugPanelName, false).children.Remove(m_DebugItems);
         }
 
+#endif // PROBEREFERENCEVOLUME_DEBUG
+
         class RenderFragmentationOverlayPassData
         {
             public Material debugFragmentationMaterial;
@@ -856,6 +860,7 @@ namespace UnityEngine.Rendering
             }
         }
 
+#if PROBEREFERENCEVOLUME_DEBUG
         bool ShouldCullCell(Vector3 cellPosition, Transform cameraTransform, Plane[] frustumPlanes)
         {
             var volumeAABB = GetCellBounds(cellPosition);
@@ -1082,6 +1087,7 @@ namespace UnityEngine.Rendering
                 }
             }
         }
+#endif // PROBEREFERENCEVOLUME_DEBUG
 
         internal void ResetDebugViewToMaxSubdiv()
         {
