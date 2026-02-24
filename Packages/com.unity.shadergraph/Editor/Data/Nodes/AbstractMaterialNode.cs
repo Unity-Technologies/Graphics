@@ -913,11 +913,15 @@ namespace UnityEditor.ShaderGraph
             // Try to keep the existing instance to avoid unnecessary changes to file
             if (attemptToModifyExistingInstance && foundSlot != null && slot.GetType() == foundSlot.GetType())
             {
-                foundSlot.displayName = slot.RawDisplayName();
+                if (foundSlot.RawDisplayName() != slot.RawDisplayName())
+                {
+                    foundSlot.displayName = slot.RawDisplayName();
+                    this.Dirty(ModificationScope.Topological);
+                }
                 foundSlot.CopyDefaultValue(slot);
                 if (foundSlot.hideConnector != slot.hideConnector)
                 {
-                    foundSlot.hideConnector = slot.hideConnector; // MARK DIRTY
+                    foundSlot.hideConnector = slot.hideConnector;
                     this.Dirty(ModificationScope.Topological);
 
                     if (foundSlot.hideConnector && foundSlot.isConnected)
