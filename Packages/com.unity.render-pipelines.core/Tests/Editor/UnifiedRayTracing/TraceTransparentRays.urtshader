@@ -5,7 +5,6 @@
 #define UNIFIED_RT_RAYGEN_FUNC RayGenExecute
 #define UNIFIED_RT_CLOSESTHIT_FUNC ClosestHitExecute
 #define UNIFIED_RT_ANYHIT_FUNC AnyHitExecute
-#pragma exclude_renderers webgpu
 
 struct RayPayload
 {
