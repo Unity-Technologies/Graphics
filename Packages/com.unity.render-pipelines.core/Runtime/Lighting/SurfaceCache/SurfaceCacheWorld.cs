@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering
 
         public void RemoveInstance(InstanceHandle instance)
         {
-            _rayTracingAccelerationStructure.RemoveInstance(instance.ToInt());
+            _rayTracingAccelerationStructure.RemoveInstance(instance.Value);
             _instanceHandleSet.Remove(instance);
         }
 
@@ -193,18 +193,18 @@ namespace UnityEngine.Rendering
             }
 
             InstanceHandle instance = _instanceHandleSet.Add();
-            _rayTracingAccelerationStructure.AddInstance(instance.ToInt(), mesh, localToWorldMatrix, masks, materialIndices, isOpaque, 0);
+            _rayTracingAccelerationStructure.AddInstance(instance.Value, mesh, localToWorldMatrix, masks, materialIndices, isOpaque, 0);
             return instance;
         }
 
         public void UpdateInstanceTransform(InstanceHandle instance, Matrix4x4 localToWorldMatrix)
         {
-            _rayTracingAccelerationStructure.UpdateInstanceTransform(instance.ToInt(), localToWorldMatrix);
+            _rayTracingAccelerationStructure.UpdateInstanceTransform(instance.Value, localToWorldMatrix);
         }
 
         public void UpdateInstanceMask(InstanceHandle instance, Span<uint> perSubMeshMask)
         {
-            _rayTracingAccelerationStructure.UpdateInstanceMask(instance.ToInt(), perSubMeshMask);
+            _rayTracingAccelerationStructure.UpdateInstanceMask(instance.Value, perSubMeshMask);
         }
 
         public void UpdateInstanceMaterials(InstanceHandle instance, Span<MaterialHandle> materials)
@@ -215,7 +215,7 @@ namespace UnityEngine.Rendering
                 _materialPool.GetMaterialInfo(materials[i].Value, out materialIndices[i], out bool isTransmissive);
             }
 
-            _rayTracingAccelerationStructure.UpdateInstanceMaterialIDs(instance.ToInt(), materialIndices);
+            _rayTracingAccelerationStructure.UpdateInstanceMaterialIDs(instance.Value, materialIndices);
         }
 
         public LightHandle[] AddLights(Span<LightDescriptor> lightDescs)

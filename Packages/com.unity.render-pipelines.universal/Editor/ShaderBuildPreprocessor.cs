@@ -867,7 +867,7 @@ namespace UnityEditor.Rendering.Universal
 
 #if SURFACE_CACHE
                 // Surface Cache GI...
-                SurfaceCacheGlobalIlluminationRendererFeature surfaceCacheFeature = rendererFeature as SurfaceCacheGlobalIlluminationRendererFeature;
+                SurfaceCacheGIRendererFeature surfaceCacheFeature = rendererFeature as SurfaceCacheGIRendererFeature;
                 if(surfaceCacheFeature != null)
                 {
                     shaderFeatures |= ShaderFeatures.SurfaceCache;
