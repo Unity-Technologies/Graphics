@@ -6,6 +6,9 @@ Defines a constant **Matrix 4x4** value for a common **Transformation Matrix** i
 
 Two output value options for this node, **Inverse Projection** and **Inverse View Projection**, are not compatible with the Built-In Render Pipeline target. When you choose either of these options and target the Built-In Render Pipeline, this node produces an entirely black result.
 
+> [!WARNING]
+> Built-In Render Pipeline (BiRP) support in Shader Graph is deprecated and will be removed in a future version. Unity recommends using Shader Graph with the [Universal Render Pipeline (URP)](https://docs.unity3d.com/Manual/urp/urp-introduction.html) or the [High Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) instead.
+
 
 ## Ports
 

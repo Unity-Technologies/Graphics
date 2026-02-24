@@ -241,6 +241,9 @@ This section illustrates two ways to branch your shader.
 #### Branch On Render Pipeline
 Shader Graph allows you to create shaders that can be used in multiple render pipelines- Built-In, URP, and HDRP.  This can be done by opening the shader in Shader Graph and adding the targets for all of the pipelines you want the shader to support in the Active Targets section under Graph Settings in the Graph Inspector window.
 
+> [!WARNING]
+> Built-In Render Pipeline (BiRP) support in Shader Graph is deprecated and will be removed in a future version. Unity recommends using Shader Graph with the [Universal Render Pipeline (URP)](https://docs.unity3d.com/Manual/urp/urp-introduction.html) or the [High Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) instead.
+
 When supporting multiple render pipelines, it’s occasionally necessary to do different things in the graph depending on which pipeline is being used.  In order to do that, you need to branch the shader based on the active render pipeline.  There isn’t an official node in Shader Graph for performing that branching operation, but it is possible to create a subgraph that contains a Custom Function node that does the branch.
 
 In this example, we use that Branch On RP to create a different outcome depending which render pipeline is active.  In our simple example, we just make the cube a different color - green for URP, blue for HDRP, and yellow for the Built-In render pipeline - but you can do much more complex operations that are specific to each render pipeline using this same technique.

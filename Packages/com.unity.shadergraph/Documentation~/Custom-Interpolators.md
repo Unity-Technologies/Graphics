@@ -9,6 +9,9 @@ There are two target audiences for custom interpolators:
 
 **Note:** If you use the Built-In Render Pipeline, refer to [Input vertex data into a shader](https://docs.unity3d.com/Manual/SL-VertexProgramInputs.html) instead.
 
+> [!WARNING]
+> Built-In Render Pipeline (BiRP) support in Shader Graph is deprecated and will be removed in a future version. Unity recommends using Shader Graph with the [Universal Render Pipeline (URP)](https://docs.unity3d.com/Manual/urp/urp-introduction.html) or the [High Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) instead.
+
 ## Supported data types
 
 Custom interpolators support float, vector 2, vector 3, and vector 4 types.

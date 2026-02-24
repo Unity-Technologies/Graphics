@@ -23,6 +23,9 @@ Shader Graph supports the following target types:
 * **Universal**: Shaders for the [Universal Render Pipeline (URP)](xref:um-universal-render-pipeline), available only if your project uses URP.
 * **HDRP**: Shaders for the [High Definition Render Pipeline (HDRP)](xref:high-definition-render-pipeline), available only if your project uses HDRP.
 
+> [!WARNING]
+> Built-In Render Pipeline (BiRP) support in Shader Graph is deprecated and will be removed in a future version. Unity recommends using the [Universal Render Pipeline (URP)](https://docs.unity3d.com/Manual/urp/urp-introduction.html) or the [High Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) instead.
+
 ### Target properties
 
 Each graph target added in the list of **Active Targets** has its own set of properties.

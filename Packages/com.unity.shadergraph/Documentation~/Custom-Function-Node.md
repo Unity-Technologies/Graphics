@@ -160,6 +160,9 @@ However, be aware of the following:
 
 * Your project must include the library that contains the shader code functions you need to call. To prevent errors, you should always isolate the code with an `#if defined()` condition according to the library you're using, and define fallback values for the variables. The usual keywords that identify Unity shader code libraries are the following:
   * For the [Built-In Render Pipeline (BiRP)](https://docs.unity3d.com/Manual/use-built-in-shader-methods-birp.html) library, use `#if defined(BUILTIN_PIPELINE_CORE_INCLUDED)`.
+
+> [!WARNING]
+> Built-In Render Pipeline (BiRP) support in Shader Graph is deprecated and will be removed in a future version. Unity recommends using Shader Graph with the [Universal Render Pipeline (URP)](https://docs.unity3d.com/Manual/urp/urp-introduction.html) or the [High Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) instead.
   * For the [Universal Render Pipeline (URP)](https://docs.unity3d.com/Manual/urp/use-built-in-shader-methods.html) library, use `#if defined(UNIVERSAL_PIPELINE_CORE_INCLUDED)`.
   * For the [High-Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Manual/high-definition-render-pipeline.html) library, use `#if defined(UNITY_HEADER_HD_INCLUDED)`.
 * The Shader Graph node and main previews can't access Unity's Render Pipeline libraries in the Editor. This generates compile errors in the Editor even though the shader works correctly in your project. To prevent this issue, you have to isolate the code with an `#ifdef SHADERGRAPH_PREVIEW` condition and also define default values for the variables in the Shader Graph preview context.

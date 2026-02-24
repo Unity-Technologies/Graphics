@@ -14,6 +14,9 @@ Unless you intend to modify Shader Graph or want to try out the latest and unsup
     - To use Shader Graph and the [High Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest), select **High Definition RP**.
     - To use Shader Graph with Unity's [Built-In Render Pipeline](https://docs.unity3d.com/2020.3/Documentation/Manual/built-in-render-pipeline.html), select **Shader Graph**.
 
+> [!WARNING]
+> Built-In Render Pipeline (BiRP) support in Shader Graph is deprecated and will be removed in a future version. Unity recommends using Shader Graph with URP or HDRP instead.
+
 Unity recommends using Shader Graph with URP or HDRP.
 
 ## Instructions

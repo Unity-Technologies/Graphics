@@ -12,6 +12,9 @@ Typically, each Target you select generates a valid subshader from the graph. Fo
 
 Shader Graph supports three targets: the [Universal Render Pipeline](https://docs.unity3d.com/Manual/urp/urp-introduction.html), the [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/), and the [Built-In Render Pipeline](https://docs.unity3d.com/Documentation/Manual/built-in-render-pipeline.html).
 
+> [!WARNING]
+> Built-In Render Pipeline (BiRP) support in Shader Graph is deprecated and will be removed in a future version. Unity recommends using Shader Graph with the [Universal Render Pipeline (URP)](https://docs.unity3d.com/Manual/urp/urp-introduction.html) or the [High Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) instead.
+
 Not all blocks are compatible with all targets. If a block in your graph becomes inactive when you choose a target, that block is not compatible with that target.
 
 The visual results of a graph are not the same in all render pipelines. This is because of the technical differences between URP, Built-In, and HDRP.

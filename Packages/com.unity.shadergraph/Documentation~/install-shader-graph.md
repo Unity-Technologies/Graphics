@@ -11,6 +11,9 @@ Use Shader Graph with either of the Scriptable Render Pipelines (SRPs) available
 
 As of Unity version 2021.2, you can also use Shader Graph with the [Built-In Render Pipeline](https://docs.unity3d.com/Documentation/Manual/built-in-render-pipeline.html).
 
+> [!WARNING]
+> Built-In Render Pipeline (BiRP) support in Shader Graph is deprecated and will be removed in a future version. Unity recommends using Shader Graph with the [Universal Render Pipeline (URP)](https://docs.unity3d.com/Manual/urp/urp-introduction.html) or the [High Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) instead.
+
 > [!NOTE]
 > - Shader Graph support for the Built-In Render Pipeline is for compatibility purposes only. Shader Graph doesn't receive updates for Built-In Render Pipeline support, aside from bug fixes for existing features. It's recommended to use Shader Graph with the Scriptable Render Pipelines.
 > - In the Built-In Render Pipeline, Shader Graph doesn't support XR.
