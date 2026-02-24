@@ -155,6 +155,12 @@ struct UnityTexture3D
     TEXTURE3D(tex);
     SAMPLER(samplerstate);
 
+    // This dummy field is unused in Unity 6.4 and earlier. Here, the field is added strictly as a dummy to work around UUM-133088
+    // Without this additional field, UnityTexture3D and sampler3D_f have the exact same structure, which will cause DXC to consider
+    // them as the same type. This causes to compilation errors due to the corresponding overloads of tex3D being considered ambiguous
+    // by DXC. Adding the field resolves this. Starting from Unity 6.5, the field is actually used in code.
+    float4 hdrDecode;
+
     // these functions allows users to convert code using Texture3D to UnityTexture3D by simply changing the type of the variable
     // the existing texture macros will call these functions, which will forward the call to the texture appropriately
     float4 Sample(UnitySamplerState s, float3 uvw)                      { return SAMPLE_TEXTURE3D(tex, s.samplerstate, uvw); }
