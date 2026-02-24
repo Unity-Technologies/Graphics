@@ -75,12 +75,12 @@ void ProcessAndStoreRadianceSample(RWStructuredBuffer<SphericalHarmonics::RGBL1>
     patchStatistics[patchIdx] = newStats;
 }
 
-void ProjectAndAccumulate(inout SphericalHarmonics::RGBL1 accumulator, float3 sample, float3 direction)
+void ProjectAndAccumulate(inout SphericalHarmonics::RGBL1 accumulator, float3 sampleRadiance, float3 sampleDirection)
 {
-    accumulator.l0 += sample * SphericalHarmonics::y0;
-    accumulator.l1s[0] += sample * SphericalHarmonics::y1Constant * direction.y;
-    accumulator.l1s[1] += sample * SphericalHarmonics::y1Constant * direction.z;
-    accumulator.l1s[2] += sample * SphericalHarmonics::y1Constant * direction.x;
+    accumulator.l0 += sampleRadiance * SphericalHarmonics::y0;
+    accumulator.l1s[0] += sampleRadiance * SphericalHarmonics::y1Constant * sampleDirection.y;
+    accumulator.l1s[1] += sampleRadiance * SphericalHarmonics::y1Constant * sampleDirection.z;
+    accumulator.l1s[2] += sampleRadiance * SphericalHarmonics::y1Constant * sampleDirection.x;
 }
 
 void SamplePunctualLightBounceRadiance(
@@ -96,7 +96,8 @@ void SamplePunctualLightBounceRadiance(
     uint validSampleCount = 0;
     for(uint sampleIdx = 0; sampleIdx < _SampleCount; ++sampleIdx)
     {
-        PunctualLightBounceRadianceSample sample = SamplePunctualLightBounceRadiance(
+        // Using `sample` as a variable name causes compilation errors on PS5.
+        PunctualLightBounceRadianceSample sample_ = SamplePunctualLightBounceRadiance(
             dispatchInfo,
             accelStruct,
             _PunctualLightSamples,
@@ -105,11 +106,11 @@ void SamplePunctualLightBounceRadiance(
             patchGeo.position,
             patchGeo.normal);
 
-        if (!sample.IsValid())
+        if (!sample_.IsValid())
             continue;
 
         validSampleCount++;
-        ProjectAndAccumulate(radianceAccumulator, sample.radianceOverDensity, sample.direction);
+        ProjectAndAccumulate(radianceAccumulator, sample_.radianceOverDensity, sample_.direction);
 
         rng.NextSample();
     }
