@@ -1589,7 +1589,11 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns true if the Render Pipeline Asset supports rendering layers for lights, false otherwise.
         /// </summary>
-        public bool useRenderingLayers => m_SupportsLightLayers;
+        public bool useRenderingLayers
+        {
+            get => m_SupportsLightLayers;
+            internal set => m_SupportsLightLayers = value;
+        }
 
         /// <summary>
         /// Returns the selected update mode for volumes.
