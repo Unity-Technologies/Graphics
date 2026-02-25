@@ -1094,17 +1094,7 @@ namespace UnityEditor.VFX
 
             public HashSet<string> sourceDependencies;
 
-            public VFXExpressionSheet sheet;
-            public VFXEditorSystemDesc[] systemDesc;
-            public VFXEventDesc[] eventDesc;
-            public VFXGPUBufferDesc[] gpuBufferDesc;
-            public VFXCPUBufferDesc[] cpuBufferDesc;
-            public VFXTemporaryGPUBufferDesc[] temporaryBufferDesc;
-            public VFXShaderSourceDesc[] shaderSourceDesc;
-            public VFXRendererSettings rendererSettings;
-            public VFXInstancingDisabledReason instancingDisabledReason;
-
-            public uint version;
+            public VisualEffectAssetDesc assetDesc;
         }
 
         public VFXCompileOutput Compile(VFXCompilationMode compilationMode, bool enableShaderDebugSymbols, VFXAnalytics analytics)
@@ -1125,8 +1115,8 @@ namespace UnityEditor.VFX
             if (m_Graph.children.Count() == 0)
             {
                 output.success = true;
-                output.version = compiledVersion;
-                output.systemDesc = Array.Empty<VFXEditorSystemDesc>();
+                output.assetDesc.version = compiledVersion;
+                output.assetDesc.systemDesc = Array.Empty<VFXEditorSystemDesc>();
                 return output;
             }
 
@@ -1351,16 +1341,17 @@ namespace UnityEditor.VFX
 
                 output.success = true;
 
-                output.sheet = expressionSheet;
-                output.systemDesc = systemDescs.ToArray();
-                output.eventDesc = vfxEventDesc;
-                output.gpuBufferDesc = bufferDescs.ToArray();
-                output.cpuBufferDesc = cpuBufferDescs.ToArray();
-                output.temporaryBufferDesc = temporaryBufferDescs.ToArray();
-                output.shaderSourceDesc = shaderSources;
-                output.rendererSettings = new() { shadowCastingMode = shadowCastingMode, motionVectorGenerationMode = motionVectorGenerationMode };
-                output.instancingDisabledReason = instancingDisabledReason;
-                output.version = compiledVersion;
+                output.assetDesc.sheet = expressionSheet;
+                output.assetDesc.systemDesc = systemDescs.ToArray();
+                output.assetDesc.eventDesc = vfxEventDesc;
+                output.assetDesc.gpuBufferDesc = bufferDescs.ToArray();
+                output.assetDesc.cpuBufferDesc = cpuBufferDescs.ToArray();
+                output.assetDesc.temporaryBufferDesc = temporaryBufferDescs.ToArray();
+                output.assetDesc.shaderSourceDesc = shaderSources;
+                output.assetDesc.rendererSettings = new() { shadowCastingMode = shadowCastingMode, motionVectorGenerationMode = motionVectorGenerationMode };
+                output.assetDesc.instancingDisabledReason = instancingDisabledReason;
+                output.assetDesc.compilationMode = compilationMode;
+                output.assetDesc.version = compiledVersion;
 
                 m_ExpressionValues = expressionSheet.values;
             }

@@ -257,6 +257,11 @@ namespace UnityEditor.VFX
             }
         }
 
+        public static Unity.GraphCommon.LowLevel.Editor.Attribute ConvertToNewCompiler(VFXAttribute vfxAttribute)
+        {
+            return new Unity.GraphCommon.LowLevel.Editor.Attribute(vfxAttribute.name, vfxAttribute.value.GetContent());
+        }
+
         /****************************************************************/
 
         public static IEnumerable<VFXAttribute> LocalOnlyAttributes => s_LocalOnlyAttributes;
