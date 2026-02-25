@@ -1,6 +1,6 @@
 # Deep learning super sampling (DLSS)
 
-[NVIDIA Deep Learning Super Sampling (DLSS)](https://www.nvidia.com/en-us/geforce/technologies/dlss/) is a rendering technology that uses artificial intelligence to increase graphics performance. The High Definition Render Pipeline (HDRP) natively supports DLSS 4 Super Resolution.
+[NVIDIA Deep Learning Super Sampling (DLSS)](https://www.nvidia.com/en-us/geforce/technologies/dlss/) is a rendering technology that uses artificial intelligence to increase graphics performance. The High Definition Render Pipeline (HDRP) natively supports DLSS 4.5 Super Resolution.
 
 ## Requirements and compatibility
 
@@ -82,18 +82,20 @@ Available presets are marked as '1' in the table below.
 
 | Render Preset | Maximum Quality | Balanced | Maximum Performance | Ultra Performance | DLAA | Explanation | AI Model |
 |- |- |- |- |- |- |- |- |
-| Preset F |   |   |  | 1 | 1 | Provides the highest image stability. Default value for UltraPerformance. | CNN |
-| Preset J | 1 | 1 | 1|   | 1 | Slightly lowers ghosting but increases flickering.<br/>NVIDIA recommends using **Preset K** instead of **Preset J**. | Transformer |
-| Preset K | 1 | 1 | 1|   | 1 |  Provides the highest image quality. | Transformer |
+| Preset F |   |   |  | 1 | 1 | Marked for deprecation in upcoming DLSS releases. Don't use for new projects. | CNN |
+| Preset J | 1 | 1 | 1| 1 | 1 | Slightly lowers ghosting but increases flickering.<br/>NVIDIA recommends using **Preset K** instead of **Preset J**. | Transformer |
+| Preset K | 1 | 1 | 1| 1 | 1 | Default preset for DLAA/Balanced/Quality modes. Requires fewer resources than Preset L. | Transformer |
+| Preset L |   |   |  | 1 |   | Delivers a sharper, more stable image with less ghosting than Preset J, K, but lowers performance. Recommended for RTX 40 Series GPUs and above. | Transformer Gen 2 |
+Provides about the same image quality as **Preset L**. This preset is slower than presets **J** and **K**, but faster than preset **L**. Recommended for RTX 40 Series GPUs and above.
 
 The defaults for each quality mode are:
 
 | **Quality mode** | **Default render preset** |
 |- |- |
-| **Maximum Quality** | Preset K 
-| **Balanced** | Preset K 
-| **Maximum Performance** | Preset K 
-| **Ultra Performance** | Preset F 
+| **Maximum Quality** | Preset K |
+| **Balanced** | Preset K |
+| **Maximum Performance** | Preset M |
+| **Ultra Performance** | Preset L |
 | **DLAA** | Preset K |
 
 DLSS render presets are project-specific. Presets are available only from the HDRP Asset settings. You can't override presets on a per-camera basis.
