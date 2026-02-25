@@ -62,7 +62,7 @@ public class HDRP_Runtime_Graphics_Tests
     [IgnoreGraphicsTest(
         "003-VirtualTexturing$",
         "https://jira.unity3d.com/browse/UUM-131182 Both Switches fail on MultiThreaded (pass on Native Jobs)",
-        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch, RuntimePlatform.Switch2 },
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch, RuntimePlatform.Switch2, RuntimePlatform.PS4 }, // Also unstable on PS4: https://jira.unity3d.com/browse/UUM-135501
         renderingThreadingModes: new RenderingThreadingMode[] { RenderingThreadingMode.MultiThreaded }
     )]
     [IgnoreGraphicsTest(
