@@ -2,9 +2,6 @@
 #error SHADERPASS_CUSTOM_UI_is_not_correctly_defined
 #endif
 
-
-#define UIE_NOINTERPOLATION nointerpolation
-
 PackedVaryings uie_custom_vert(Attributes input)
 {
     appdata_t uieInput = (appdata_t)0;
