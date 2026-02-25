@@ -7,6 +7,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
     internal class ProviderLibrary
     {
         static ProviderLibrary s_instance;
+
+        internal static bool IsInstanceInitialized => s_instance != null;
         internal static ProviderLibrary Instance
         {
             get

@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor.ShaderApiReflection;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Drawing;
+using System.IO;
 
 namespace UnityEditor.ShaderGraph.ProviderSystem
 {
@@ -9,9 +10,15 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
     {
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths, bool didDomainReload)
         {
+            if (!ProviderLibrary.IsInstanceInitialized)
+                return;
+
             List<GUID> modifiedFiles = new();
             foreach (string path in importedAssets)
             {
+                if (Path.GetExtension(path).ToLower() != ".hlsl")
+                    continue;
+
                 var assetID = AssetDatabase.GUIDFromAssetPath(path);
                 if (ProviderLibrary.Instance.AnalyzeFile(assetID))
                 {
@@ -31,7 +38,5 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                 editor.NotifyDependencyUpdated(modifiedFiles);
             }
         }
-
-
     }
 }
