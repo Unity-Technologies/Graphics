@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.Universal
 {
     internal class ShapeProviderUtility
     {
-        static public void CallOnBeforeRender(ShadowShape2DProvider shapeProvider, Component component, ShadowMesh2D shadowMesh, Bounds bounds)
+        static public void CallOnBeforeRender(ShadowCaster2DProvider shapeProvider, Component component, ShadowMesh2D shadowMesh, Bounds bounds)
         {
             if (component != null)
             {
@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static public void PersistantDataCreated(ShadowShape2DProvider shapeProvider, Component component, ShadowMesh2D shadowMesh)
+        static public void PersistantDataCreated(ShadowCaster2DProvider shapeProvider, Component component, ShadowMesh2D shadowMesh)
         {
             if (component != null)
             {
@@ -34,20 +34,20 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #if UNITY_EDITOR
-        static public void TryGetDefaultShadowShapeProviderSource(GameObject go, out Component outSource, out ShadowShape2DProvider outProvider)
+        static public void TryGetDefaultShadowShapeProviderSource(GameObject go, out Component outSource, out ShadowCaster2DProvider outProvider)
         {
             outSource = null;
             outProvider = null;
 
             // Create some providers to check against.
-            var providerTypes = TypeCache.GetTypesDerivedFrom<ShadowShape2DProvider>();
-            var providers = new List<ShadowShape2DProvider>(providerTypes.Count);
+            var providerTypes = TypeCache.GetTypesDerivedFrom<ShadowCaster2DProvider>();
+            var providers = new List<ShadowCaster2DProvider>(providerTypes.Count);
             foreach (Type providerType in providerTypes)
             {
                 if (providerType.IsAbstract)
                     continue;
 
-                providers.Add(Activator.CreateInstance(providerType) as ShadowShape2DProvider);
+                providers.Add(Activator.CreateInstance(providerType) as ShadowCaster2DProvider);
             }
 
             // Fetch the components to check.

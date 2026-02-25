@@ -5,13 +5,15 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.U2D;
 using UnityEngine.U2D.Animation;
 
 namespace UnityEngine.Rendering.Universal
 {
     [Serializable]
-    class ShadowShape2DProvider_SpriteSkin : ShadowShape2DProvider
+    [MovedFrom(true, "UnityEngine.Rendering.Universal", "Unity.RenderPipelines.Universal.2D.Runtime", "ShadowShape2DProvider_SpriteSkin")]
+    class ShadowCaster2DProvider_SpriteSkin : ShadowCaster2DProvider
     {
         const float k_InitialTrim = 0.05f;
 

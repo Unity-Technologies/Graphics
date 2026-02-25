@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] int m_InstanceId;
         [SerializeField] Component m_ShadowShape2DComponent;
-        [SerializeReference] ShadowShape2DProvider m_ShadowShape2DProvider;
+        [SerializeReference] ShadowCaster2DProvider m_ShadowShape2DProvider;
         [SerializeField] ShadowCastingSources m_ShadowCastingSource = (ShadowCastingSources)(-1);
 
         [SerializeReference] internal ShadowMesh2D m_ShadowMesh;
@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Make this public if possible...
         internal Component shadowShape2DComponent { get { return m_ShadowShape2DComponent; } set { m_ShadowShape2DComponent = value; } }
-        internal ShadowShape2DProvider shadowShape2DProvider { get { return m_ShadowShape2DProvider; } set { m_ShadowShape2DProvider = value; } }
+        internal ShadowCaster2DProvider shadowShape2DProvider { get { return m_ShadowShape2DProvider; } set { m_ShadowShape2DProvider = value; } }
 
         int m_PreviousShadowGroup = 0;
         bool m_PreviousCastsShadows = true;

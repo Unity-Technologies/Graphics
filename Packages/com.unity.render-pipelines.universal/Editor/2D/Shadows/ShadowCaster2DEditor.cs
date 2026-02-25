@@ -217,7 +217,7 @@ namespace UnityEditor.Rendering.Universal
 #endif
 
             ShadowCaster2D shadowCaster2D = target as ShadowCaster2D;
-            ShadowShape2DProvider provider = m_ShadowShape2DProvider.boxedValue as ShadowShape2DProvider;
+            ShadowCaster2DProvider provider = m_ShadowShape2DProvider.boxedValue as ShadowCaster2DProvider;
             if (provider != null && shadowCaster2D.shadowCastingSource == ShadowCaster2D.ShadowCastingSources.ShapeProvider)
             {
                 // Draw the fold out for non

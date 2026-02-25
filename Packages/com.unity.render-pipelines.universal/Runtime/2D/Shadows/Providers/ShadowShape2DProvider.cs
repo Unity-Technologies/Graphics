@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -9,11 +10,16 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.Universal
 {
-    /// <summary>
-    /// Class <c>ShadowShape2DProvider</c> has methods called by a <c>ShadowCaster2D</c> to determine if it should be listed as a Casting Option, and to provide geometry if it is the active <c>ShadowShape2DProvider</c>
-    /// </summary>
+
+    [System.Obsolete("Use ShadowCaster2DProvider instead.")]
+    public abstract class ShadowShape2DProvider : ShadowCaster2DProvider { }
+
+        /// <summary>
+        /// Class <c>ShadowShape2DProvider</c> has methods called by a <c>ShadowCaster2D</c> to determine if it should be listed as a Casting Option, and to provide geometry if it is the active <c>ShadowShape2DProvider</c>
+        /// </summary>
     [Serializable]
-    public abstract class ShadowShape2DProvider : Provider2D
+    [MovedFrom(true, "UnityEngine.Rendering.Universal", "Unity.RenderPipelines.Universal.2D.Runtime", "ShadowShape2DProvider")]
+    public abstract class ShadowCaster2DProvider : Provider2D
     {
         /// <summary>
         /// Gets the name to be listed in the <c>ShadowCaster2D</c> Casting Option drop down.

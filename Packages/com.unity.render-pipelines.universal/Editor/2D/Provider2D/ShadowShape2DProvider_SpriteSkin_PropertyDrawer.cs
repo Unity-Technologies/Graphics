@@ -7,14 +7,14 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [CustomPropertyDrawer(typeof(ShadowShape2DProvider_SpriteSkin))]
+    [CustomPropertyDrawer(typeof(ShadowCaster2DProvider_SpriteSkin))]
     internal class ShadowShape2DProvider_SpriteSkin_PropertyDrawer : Provider2D_ProperyDrawer
     {
         public static string k_GPUSkinningError = "Shadow Caster 2D is not compatible with GPU skinning.";
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            ShadowShape2DProvider_SpriteSkin provider = property.managedReferenceValue as ShadowShape2DProvider_SpriteSkin;
+            ShadowCaster2DProvider_SpriteSkin provider = property.managedReferenceValue as ShadowCaster2DProvider_SpriteSkin;
             base.OnGUI(position, property, label);
 
             if (PlayerSettings.gpuSkinning)
