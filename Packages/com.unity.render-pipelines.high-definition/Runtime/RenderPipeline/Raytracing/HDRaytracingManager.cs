@@ -1,8 +1,12 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.VFX;
+
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.Build;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -907,16 +911,84 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Ray Tracing is supported if the asset setting supports it and the platform supports it
         static internal bool PipelineSupportsRayTracing(RenderPipelineSettings rpSetting)
-            => rpSetting.supportRayTracing && currentSystemSupportsRayTracing;
+            => rpSetting.supportRayTracing && IsSupportedRayTracingTarget();
 
-        static internal bool currentSystemSupportsRayTracing => SystemInfo.supportsRayTracing
+        static internal bool IsSupportedRayTracingTarget()
+        {
+            bool supported = SystemInfo.supportsRayTracing;
 #if UNITY_EDITOR
-            && (UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64
-                || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows
-                || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.GameCoreXboxSeries
-                || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.PS5);
-#else
-            ;
+            supported &= IsSupportedRayTracingTarget(EditorUserBuildSettings.activeBuildTarget);
+#endif
+            return supported;
+        }
+
+#if UNITY_EDITOR
+        static internal bool IsSupportedRayTracingTarget(BuildTarget buildTarget)
+        {
+            switch (buildTarget)
+            {
+                case BuildTarget.StandaloneWindows64:
+                case BuildTarget.StandaloneWindows:
+                case BuildTarget.GameCoreXboxSeries:
+                case BuildTarget.PS5:
+                case BuildTarget.Switch2:
+                    return true;
+            }
+
+            return false;
+        }
+
+        static internal bool PlatformHasRaytracingIssues(BuildTarget buildTarget, out string message)
+        {
+            message = string.Empty;
+
+            var currentBuildTarget = EditorUserBuildSettings.activeBuildTarget;
+
+            // PS5 and Xbox Series fully support ray tracing - no warning needed
+            if (currentBuildTarget == BuildTarget.PS5 || currentBuildTarget == BuildTarget.GameCoreXboxSeries)
+                return false;
+
+            // Check if platform supports ray tracing
+            if (!IsSupportedRayTracingTarget(currentBuildTarget))
+            {
+                var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(currentBuildTarget);
+                var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(activeBuildTargetGroup);
+                message = $"The {namedBuildTarget.TargetName} platform does not support Ray Tracing. Consider disabling it or switch to a platform that supports it.";
+                return true;
+            }
+
+            // Switch 2 supports ray tracing but with performance impact - show performance warning
+            if (currentBuildTarget == BuildTarget.Switch2)
+            {
+                var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(BuildTarget.Switch2);
+                var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(activeBuildTargetGroup);
+                message = $"Ray Tracing is enabled for {namedBuildTarget.TargetName}. This may significantly impact performance and is not recommended for this platform.";
+                return true;
+            }
+
+            // Windows Standalone: Check auto graphics API and DX12
+            bool autoGraphicsAPIEnabled = PlayerSettings.GetUseDefaultGraphicsAPIs(currentBuildTarget);
+            bool dx12IsFirst = false;
+
+            if (!autoGraphicsAPIEnabled)
+            {
+                var graphicsAPIs = PlayerSettings.GetGraphicsAPIs(currentBuildTarget);
+                dx12IsFirst = graphicsAPIs.Length > 0 && graphicsAPIs[0] == GraphicsDeviceType.Direct3D12;
+            }
+
+            if (autoGraphicsAPIEnabled)
+            {
+                message = "Ray tracing requires DX12 on Windows. Auto Graphics API is enabled. Disable Auto Graphics API and set Direct3D 12 as the first Graphics API in Player Settings.";
+                return true;
+            }
+            else if (!dx12IsFirst)
+            {
+                message = "Ray tracing requires DX12 on Windows. Direct3D 12 is not the first Graphics API. Set Direct3D 12 as the first Graphics API in Player Settings.";
+                return true;
+            }
+
+            return false;
+        }
 #endif
 
         internal BlueNoise GetBlueNoiseManager()

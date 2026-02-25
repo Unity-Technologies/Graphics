@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEditor.Build;
 using UnityEditor.Inspector.GraphicsSettingsInspectors;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.UIElements;
-using RenderingLayerMask = UnityEngine.RenderingLayerMask;
-using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -435,6 +435,41 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Shows a platform-specific performance warning help box for a given feature.
+        /// </summary>
+        /// <param name="targetPlatform">The build target platform to check and display</param>
+        /// <param name="featureName">The name of the feature (e.g., "Ray Tracing", "Film Grain")</param>
+        /// <param name="recommendation">Optional recommendation text. If null, uses default "is not recommended for this platform"</param>
+        internal static void ShowPlatformPerformanceWarning(BuildTarget targetPlatform, string featureName, string recommendation = null)
+        {
+            if (EditorUserBuildSettings.activeBuildTarget != targetPlatform)
+                return;
+
+            var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(targetPlatform);
+            var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(activeBuildTargetGroup);
+
+            string message = $"{featureName} is enabled for {namedBuildTarget.TargetName}. ";
+
+            if (!string.IsNullOrEmpty(recommendation))
+            {
+                message += recommendation;
+            }
+            else
+            {
+                message += "This may significantly impact performance and is not recommended for this platform.";
+            }
+
+            EditorGUILayout.HelpBox(message, MessageType.Warning, wide: true);
+        }
+
+        internal static bool IsInTestSuiteOrBatchMode()
+        {
+            string commandLineOptions = System.Environment.CommandLine;
+            bool inTestSuite = commandLineOptions.Contains("-testResults");
+            return inTestSuite || Application.isBatchMode;
         }
     }
 

@@ -43,8 +43,70 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 LogIncludedAssets(m_BuildData.renderPipelineAssets);
 
+                if (!IsConfigurationValid())
+                {
+                    if(!ProceedWithBuild())
+                        throw new BuildFailedException("Build canceled by user due to HDRP configuration issues.");
+                }
+                    
+
                 GatherShaderFeatures();
             }
+        }
+
+        private static bool IsConfigurationValid()
+        {
+            // Validate the configuration of the HDRP assets for the current build target. We want to make sure that users are aware of potential performance issues or unsupported features before building.
+            // We still want to build the player even if the configuration is not optimal, but we log warnings to inform users about potential issues.
+            // Note that we validate the configuration of all HDRP assets included in the build, not just the one assigned in Graphics Settings.
+            // This is because users can have multiple HDRP assets in their project and switch between them at runtime, so we want to make sure that all of them are correctly configured for the target platform.
+
+            // We must log all the warnings, and avoid doing validConfiguration &= ValidationXXX, that will avoid logging all the warnings, and only log the first one that fails.
+            // This way users will have a complete overview of all the potential issues with their configuration, and can fix them all at once, instead of having to go through multiple build iterations to fix each issue one by one.
+            // So be carefull when you edit this code, and make sure to log all the warnings, even if one of the validation fails.
+            bool validConfiguration = true;
+
+            {
+                bool config = ValidateRayTracingConfiguration(m_BuildData.renderPipelineAssets);
+                validConfiguration &= config;
+            }
+
+            {
+                bool config = ValidateSubsurfaceScatteringConfiguration(m_BuildData.renderPipelineAssets);
+                validConfiguration &= config;
+            }
+
+            {
+                bool config = ValidateFilmGrainConfiguration(m_BuildData.renderPipelineAssets);
+                validConfiguration &= config;
+            }
+
+            return validConfiguration;
+        }
+
+        internal static string k_DialogKey = $"{nameof(UnityEditor)}.{nameof(Rendering)}.{nameof(HighDefinition)}.{nameof(HDRPPreprocessBuild)}.{nameof(ProceedWithBuild)}";
+
+        private bool ProceedWithBuild()
+        {
+            if(HDEditorUtils.IsInTestSuiteOrBatchMode())
+                return true;
+
+            var title = "Build Configuration Issues Detected";
+            var body = new StringBuilder();
+
+            body.AppendLine("HDRP identified settings that may impact performance or enable unsupported features for the current build target.");
+            body.AppendLine("Review the Console for details (look for messages tagged 'HDRP Build Validation').");
+            body.AppendLine();
+            body.Append("Do you want to continue building?");
+
+            return EditorUtility.DisplayDialog(
+                title,
+                body.ToString(),
+                "Proceed",
+                "Cancel",
+                DialogOptOutDecisionType.ForThisMachine,
+                k_DialogKey
+            );
         }
 
         internal static void LogIncludedAssets(List<HDRenderPipelineAsset> assetsList)
@@ -62,6 +124,104 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 Debug.Log(assetsIncluded);
             }
+        }
+
+        internal static bool ValidateRayTracingConfiguration(List<HDRenderPipelineAsset> assetsList)
+        {
+            // Check if any asset has ray tracing enabled
+            bool anyAssetHasRayTracingEnabled = false;
+            foreach (var hdrpAsset in assetsList)
+            {
+                if (hdrpAsset != null && hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
+                {
+                    anyAssetHasRayTracingEnabled = true;
+                    break;
+                }
+            }
+
+            if (!anyAssetHasRayTracingEnabled)
+                return true; // No ray tracing enabled, skip validation
+
+            var currentBuildTarget = EditorUserBuildSettings.activeBuildTarget;
+            if (HDRenderPipeline.PlatformHasRaytracingIssues(currentBuildTarget, out var warning))
+            {
+                Debug.LogWarning($"HDRP Build Validation - Ray Tracing:{warning}");
+                return false;
+            }
+
+            return true;
+        }
+
+        internal static bool ValidateSubsurfaceScatteringConfiguration(List<HDRenderPipelineAsset> assetsList)
+        {
+            var currentBuildTarget = EditorUserBuildSettings.activeBuildTarget;
+
+            // Only validate for Switch 2
+            if (currentBuildTarget != BuildTarget.Switch2)
+                return true;
+
+            // Check if any asset has Subsurface Scattering enabled
+            bool anyAssetHasSSSEnabled = false;
+            foreach (var hdrpAsset in assetsList)
+            {
+                if (hdrpAsset != null && hdrpAsset.currentPlatformRenderPipelineSettings.supportSubsurfaceScattering)
+                {
+                    anyAssetHasSSSEnabled = true;
+                    break;
+                }
+            }
+
+            if (!anyAssetHasSSSEnabled)
+                return true; // No SSS enabled, skip validation
+
+            var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(BuildTarget.Switch2);
+            var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(activeBuildTargetGroup);
+            Debug.LogWarning($"HDRP Build Validation - Subsurface Scattering: Subsurface Scattering is enabled for {namedBuildTarget.TargetName}. For optimal performance, set the Downsample Level to the maximum value (2) for this platform.");
+            return false;
+        }
+
+        internal static bool ValidateFilmGrainConfiguration(List<HDRenderPipelineAsset> assetsList)
+        {
+            var currentBuildTarget = EditorUserBuildSettings.activeBuildTarget;
+
+            // Only validate for Switch 2
+            if (currentBuildTarget != BuildTarget.Switch2)
+                return true;
+
+            // Check default volume profile from HDRP Global Settings
+            bool foundFilmGrain = false;
+            var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
+            if (defaultVolumeProfileSettings?.volumeProfile != null)
+            {
+                if (defaultVolumeProfileSettings.volumeProfile.TryGet<FilmGrain>(out var filmGrain) && filmGrain.intensity.value > 0)
+                {
+                    foundFilmGrain = true;
+                }
+            }
+
+            // Check volume profiles in each HDRP asset
+            if (!foundFilmGrain)
+            {
+                foreach (var hdrpAsset in assetsList)
+                {
+                    if (hdrpAsset != null && hdrpAsset.volumeProfile != null)
+                    {
+                        if (hdrpAsset.volumeProfile.TryGet<FilmGrain>(out var filmGrain) && filmGrain.intensity.value > 0)
+                        {
+                            foundFilmGrain = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!foundFilmGrain)
+                return true; // No Film Grain with intensity > 0, skip validation
+
+            var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(BuildTarget.Switch2);
+            var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(activeBuildTargetGroup);
+            Debug.LogWarning($"HDRP Build Validation - Film Grain: Film Grain is enabled for {namedBuildTarget.TargetName}. This may significantly impact performance and should be disabled for this platform.");
+            return false;
         }
 
         internal static void ConfigureMinimumMaxLoDValueForAllQualitySettings()
