@@ -15,7 +15,7 @@ xr:
   when:
     path:
       - ^.*XRUtils?.*$
-  area: SRP XR
+  area: Graphics XR
 
 camera:
   when:

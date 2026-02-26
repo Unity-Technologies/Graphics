@@ -231,6 +231,8 @@ namespace UnityEditor.ShaderGraph
                     return new BooleanMaterialSlot(slotId, displayName, shaderOutputName, slotType, false, shaderStageCapability, hidden);
                 case SlotValueType.PropertyConnectionState:
                     return new PropertyConnectionStateMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStageCapability, hidden);
+                case SlotValueType.External:
+                    return new ProviderSystem.ExternalMaterialSlot(slotId, displayName, shaderOutputName, "ERROR_TYPE", slotType);
             }
 
             throw new ArgumentOutOfRangeException("type", type, null);
@@ -352,6 +354,11 @@ namespace UnityEditor.ShaderGraph
                 res = this is IMaterialSlotSupportsLiteralMode { LiteralMode: true };
             }
             requiresLiteralMode = !res;
+
+            if (res && (this is ProviderSystem.INeedsExplicitCompatibilityTest || otherSlot is ProviderSystem.INeedsExplicitCompatibilityTest))
+            {
+                res = ProviderSystem.INeedsExplicitCompatibilityTest.TestExplicitCompatibility(this, otherSlot);
+            }
             return res;
         }
 

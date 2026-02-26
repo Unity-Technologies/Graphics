@@ -916,9 +916,9 @@ namespace ShaderStrippingAndPrefiltering
 #if SURFACE_CACHE
         // Surface Cache Global Illumination...
         [Test]
-        public void TestGetSupportedShaderFeaturesFromRendererFeatures_SurfaceCacheGlobalIllumination()
+        public void TestGetSupportedShaderFeaturesFromRendererFeatures_SurfaceCacheGI()
         {
-            SurfaceCacheGlobalIlluminationRendererFeature surfaceCacheFeature = ScriptableObject.CreateInstance<SurfaceCacheGlobalIlluminationRendererFeature>();
+            SurfaceCacheGIRendererFeature surfaceCacheFeature = ScriptableObject.CreateInstance<SurfaceCacheGIRendererFeature>();
             m_TestHelper.rendererFeatures.Add(surfaceCacheFeature);
 
             // Enabled feature

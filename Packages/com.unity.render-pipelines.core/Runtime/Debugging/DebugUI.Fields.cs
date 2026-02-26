@@ -193,10 +193,12 @@ namespace UnityEngine.Rendering
             {
                 var valueContainer = new UIElements.VisualElement();
                 valueContainer.AddToClassList("debug-window-historyboolfield");
-                valueContainer.Add(new Label(displayName)
+                var label = new Label(displayName)
                 {
                     style = { width = ValueTuple.GetLabelWidth(m_Context) }
-                });
+                };
+                label.AddToClassList("debug-window-search-filter-target");
+                valueContainer.Add(label);
 
                 var boolField = new DebugUI.BoolField()
                 {
@@ -583,6 +585,7 @@ namespace UnityEngine.Rendering
             protected override VisualElement Create()
             {
                 var maskField = new UIElements.MaskField(displayName, new List<string>(m_RenderingLayersNames), 0);
+                maskField.labelElement.AddToClassList("debug-window-search-filter-target");
                 maskField.RegisterCallback<ChangeEvent<int>>(evt =>
                 {
                     SetValue(evt.newValue);
@@ -733,6 +736,7 @@ namespace UnityEngine.Rendering
                     choices = enumNames.Select(e => e.text).ToList()
                 };
                 field.AddToClassList("debug-window-enumfield");
+                field.labelElement.AddToClassList("debug-window-search-filter-target");
                 field.AddToClassList(UIElements.BaseField<int>.alignedFieldUssClassName);
 
                 this.ScheduleTracked(field, () => field.schedule.Execute(() =>
@@ -748,6 +752,8 @@ namespace UnityEngine.Rendering
                         }
                     }
                 }).Every(100));
+
+                m_AdditionalSearchText = string.Join(",", field.choices);
 
                 return field;
             }
@@ -850,6 +856,7 @@ namespace UnityEngine.Rendering
                     choices = enumNames.Select(e => e.text).ToList()
                 };
                 field.AddToClassList("debug-window-enumfield");
+                field.labelElement.AddToClassList("debug-window-search-filter-target");
                 field.AddToClassList(UIElements.BaseField<int>.alignedFieldUssClassName);
 
                 HackPopupHoverColor(field, m_Context);
@@ -871,6 +878,8 @@ namespace UnityEngine.Rendering
                     if (currentIndex >= 0 && currentIndex < enumNames.Length)
                         field.SetValueWithoutNotify(enumNames[currentIndex].text);
                 }).Every(100));
+
+                m_AdditionalSearchText = string.Join(",", field.choices);
 
                 return field;
             }
@@ -990,6 +999,7 @@ namespace UnityEngine.Rendering
                 };
 
                 field.AddToClassList("debug-window-objectpopupfield");
+                field.labelElement.AddToClassList("debug-window-search-filter-target");
                 HackPopupHoverColor(field, m_Context);
 
                 field.RegisterCallback<ChangeEvent<UnityEngine.Object>>(evt =>
@@ -1080,10 +1090,13 @@ namespace UnityEngine.Rendering
             {
                 var valueContainer = new UIElements.VisualElement();
                 valueContainer.AddToClassList("debug-window-historyenum");
-                valueContainer.Add(new Label(displayName)
+
+                var label = new Label(displayName)
                 {
                     style = { width = ValueTuple.GetLabelWidth(m_Context) }
-                });
+                };
+                label.AddToClassList("debug-window-search-filter-target");
+                valueContainer.Add(label);
 
                 var enumField = new DebugUI.EnumField()
                 {
@@ -1116,6 +1129,8 @@ namespace UnityEngine.Rendering
                     field.SetEnabled(false);
                     valueContainer.Add(field);
                 }
+                var enumNameStrings = enumNames.Select(e => e.text).ToList();
+                m_AdditionalSearchText = string.Join(",", enumNameStrings);
 
                 return valueContainer;
             }
@@ -1154,8 +1169,10 @@ namespace UnityEngine.Rendering
             /// <inheritdoc/>
             protected override VisualElement Create()
             {
-                var maskField = new UIElements.MaskField(displayName, enumNames.Select(e => e.text).ToList(), 0);
+                var enumNameStrings = enumNames.Select(e => e.text).ToList();
+                var maskField = new UIElements.MaskField(displayName, enumNameStrings, 0);
                 maskField.AddToClassList("debug-window-bitfield");
+                maskField.labelElement.AddToClassList("debug-window-search-filter-target");
                 HackPopupHoverColor(maskField, m_Context);
 
                 maskField.RegisterCallback<ChangeEvent<int>>(evt =>
@@ -1172,6 +1189,9 @@ namespace UnityEngine.Rendering
                 .Every(100));
 
                 maskField.AddToClassList(UIElements.BaseField<int>.alignedFieldUssClassName);
+
+                m_AdditionalSearchText = string.Join(",", enumNameStrings);
+
                 return maskField;
             }
 #endif
@@ -1295,6 +1315,7 @@ namespace UnityEngine.Rendering
                 if (field != null)
                 {
                     field.AddToClassList("debug-window-colorfield");
+                    field.labelElement.AddToClassList("debug-window-search-filter-target");
                     field.AddToClassList(UIElements.BaseField<Color>.alignedFieldUssClassName);
                     field.RegisterCallback<ChangeEvent<Color>>(evt => SetValue(evt.newValue));
                     this.ScheduleTracked(field, () => field.schedule.Execute(() =>
@@ -1700,6 +1721,7 @@ namespace UnityEngine.Rendering
                 }
 
                 field.AddToClassList("debug-window-objectfield");
+                field.labelElement.AddToClassList("debug-window-search-filter-target");
                 field.AddToClassList(UIElements.BaseField<Object>.alignedFieldUssClassName);
                 field.RegisterCallback<ChangeEvent<Object>>(evt => SetValue(evt.newValue));
                 this.ScheduleTracked(field, () => field.schedule.Execute(() =>
@@ -1732,6 +1754,7 @@ namespace UnityEngine.Rendering
                     text = displayName
                 };
                 container.AddToClassList("debug-window-objectlistfield");
+                container.Q(className: "unity-foldout__text").AddToClassList("debug-window-search-filter-target");
 
                 // TODO: Allow selection
                 foreach (var o in GetValue())
@@ -1760,6 +1783,7 @@ namespace UnityEngine.Rendering
             {
                 var helpBox = new HelpBox(displayName, (HelpBoxMessageType)style);
                 helpBox.text = message;
+                helpBox.Q(className: "unity-help-box__label").AddToClassList("debug-window-search-filter-target");
                 helpBox.AddToClassList("debug-window-messagebox");
 
                 if (messageCallback != null)

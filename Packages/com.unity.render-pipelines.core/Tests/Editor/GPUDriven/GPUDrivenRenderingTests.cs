@@ -522,6 +522,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
+        [Ignore("Unstable - see https://jira.unity3d.com/browse/UUM-134437")]
         public void TestCPULODCrossfade()
         {
             if (Coverage.enabled)
@@ -672,6 +673,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
+        [Ignore("Unstable - see https://jira.unity3d.com/browse/UUM-134437")]
         public void TestGpuDrivenSmallMeshCulling()
         {
             if (Coverage.enabled)

@@ -185,7 +185,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportRaytracing = EditorGUIUtility.TrTextContent("Realtime Raytracing");
             public static readonly GUIContent supportedRayTracingMode = EditorGUIUtility.TrTextContent("Supported Ray Tracing Mode");
             public static readonly GUIContent supportVFXRayTracing = EditorGUIUtility.TrTextContent("Visual Effects Ray Tracing", "When enabled, Visual Effects Outputs which have Enable Ray Tracing on will be accounted for in Ray-traced effects.");
-            public static readonly GUIContent rayTracingRestrictionOnlyWarning = EditorGUIUtility.TrTextContent("Ray tracing is currently only supported on DX12, Playstation 5 and Xbox Series X.", null, CoreEditorStyles.iconWarn);
+            public static readonly GUIContent rayTracingRestrictionOnlyWarning = EditorGUIUtility.TrTextContent("Ray tracing requires DX12 on Windows. Disable Auto Graphics API and set Direct3D 12 as the first Graphics API in Player Settings. You can use the HDRP Wizard to configure these settings.", null, CoreEditorStyles.iconWarn);
+            public static string rayTracingNotSupportedBuildTarget = L10n.Tr("The {0} does not support Ray tracing. Consider disabling it or switch to a platform that supports it.");
             public static readonly GUIContent rayTracingMSAAUnsupported = EditorGUIUtility.TrTextContent("When Ray tracing is enabled in asset, MSAA is not supported. Please refer to the documentation.");
             public static readonly GUIContent waterMSAAUnsupported = EditorGUIUtility.TrTextContent("When Water is enabled in asset, MSAA is not supported. Please refer to the documentation.");
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
@@ -315,7 +316,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         if (preset == UnityEngine.NVIDIA.DLSSPreset.Preset_Default)
                         {
-                            labels[(int)quality][iWrite++] = "Default Preset";
+                            labels[(int)quality][iWrite++] = "Default Preset" + " - " + UnityEngine.NVIDIA.GraphicsDevice.GetDLSSPresetExplanation(preset);
                             continue;
                         }
 

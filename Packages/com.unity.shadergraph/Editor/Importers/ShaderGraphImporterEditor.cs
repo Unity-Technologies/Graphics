@@ -25,6 +25,9 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnInspectorGUI()
         {
+            var hasFocus = EditorWindow.focusedWindow is InspectorWindow;
+
+            serializedObject.Update();
             GraphData GetGraphData(AssetImporter importer)
             {
                 var textGraph = File.ReadAllText(importer.assetPath, Encoding.UTF8);
@@ -140,7 +143,7 @@ namespace UnityEditor.ShaderGraph
             EditorGUILayout.Space();
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serializedObject.FindProperty(ShaderGraphImporter.UseAsTemplateFieldName));
-            needsReimport |= EditorGUI.EndChangeCheck();
+            needsSaveMetaFile |= EditorGUI.EndChangeCheck();
             using (new EditorGUI.IndentLevelScope(1))
             using (new EditorGUI.DisabledScope(!(target as ShaderGraphImporter)?.UseAsTemplate ?? true))
             {
@@ -153,8 +156,6 @@ namespace UnityEditor.ShaderGraph
                 needsSaveMetaFile |= EditorGUI.EndChangeCheck();
             }
 
-            ApplyRevertGUI();
-
             if (materialEditor)
             {
                 EditorGUILayout.Space();
@@ -162,28 +163,18 @@ namespace UnityEditor.ShaderGraph
                 using (new EditorGUI.DisabledGroupScope(true))
                     materialEditor.OnInspectorGUI();
             }
-        }
 
-        protected override void Apply()
-        {
-            base.Apply();
-            var importer = (AssetImporter)target;
-            if (needsSaveMetaFile)
+            serializedObject.ApplyModifiedProperties();
+            if (!hasFocus)
             {
-                AssetDatabase.ForceReserializeAssets(new []{ importer.assetPath }, ForceReserializeAssetsOptions.ReserializeMetadata);
+                ApplyChanges();
             }
-            if (needsReimport)
-            {
-                AssetDatabase.ImportAsset(importer.assetPath);
-            }
-            needsSaveMetaFile = false;
-            needsReimport = false;
         }
 
         public override void OnEnable()
         {
             base.OnEnable();
-            AssetImporter importer = target as AssetImporter;
+            AssetImporter importer = (AssetImporter)target;
             var material = AssetDatabase.LoadAssetAtPath<Material>(importer.assetPath);
             if (material)
                 materialEditor = (MaterialEditor)CreateEditor(material);
@@ -231,6 +222,21 @@ namespace UnityEditor.ShaderGraph
         {
             var path = AssetDatabase.GetAssetPath(entityId);
             return ShowGraphEditWindow(path);
+        }
+
+        void ApplyChanges()
+        {
+            var importer = (AssetImporter)target;
+            if (needsSaveMetaFile)
+            {
+                AssetDatabase.ForceReserializeAssets(new []{ importer.assetPath }, ForceReserializeAssetsOptions.ReserializeMetadata);
+            }
+            if (needsReimport || needsSaveMetaFile)
+            {
+                AssetDatabase.ImportAsset(importer.assetPath);
+            }
+            needsSaveMetaFile = false;
+            needsReimport = false;
         }
     }
 }

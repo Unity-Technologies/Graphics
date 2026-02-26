@@ -272,12 +272,20 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUI.BeginChangeCheck();
                 GUI.enabled = UniversalRenderPipeline.asset.useRenderingLayers;
-                EditorGUILayout.PropertyField(serializedLight.renderingLayers, UniversalRenderPipeline.asset.useRenderingLayers ? Styles.RenderingLayers : Styles.RenderingLayersDisabled);
+                EditorGUILayout.PropertyField(serializedLight.renderingLayers, Styles.RenderingLayers);
                 GUI.enabled = true;
                 if (EditorGUI.EndChangeCheck())
                 {
                     if (!serializedLight.customShadowLayers.boolValue)
                         SyncLightAndShadowLayers(serializedLight, serializedLight.renderingLayers);
+                }
+                if (!UniversalRenderPipeline.asset.useRenderingLayers)
+                {
+                    CoreEditorUtils.DrawFixMeBox(Styles.RenderingLayersHelpBox, () =>
+                    {
+                        UniversalRenderPipeline.asset.useRenderingLayers = true;
+                        EditorUtility.SetDirty(UniversalRenderPipeline.asset);
+                    });
                 }
             }
 

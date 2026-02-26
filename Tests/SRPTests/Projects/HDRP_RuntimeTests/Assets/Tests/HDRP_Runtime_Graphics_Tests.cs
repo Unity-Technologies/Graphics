@@ -62,7 +62,7 @@ public class HDRP_Runtime_Graphics_Tests
     [IgnoreGraphicsTest(
         "003-VirtualTexturing$",
         "https://jira.unity3d.com/browse/UUM-131182 Both Switches fail on MultiThreaded (pass on Native Jobs)",
-        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch, RuntimePlatform.Switch2 },
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch, RuntimePlatform.Switch2, RuntimePlatform.PS4 }, // Also unstable on PS4: https://jira.unity3d.com/browse/UUM-135501
         renderingThreadingModes: new RenderingThreadingMode[] { RenderingThreadingMode.MultiThreaded }
     )]
     [IgnoreGraphicsTest(
@@ -82,6 +82,11 @@ public class HDRP_Runtime_Graphics_Tests
         "https://jira.unity3d.com/browse/UUM-54029",
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal },
         architectures: new Architecture[] { Architecture.X64 }
+    )]
+    [IgnoreGraphicsTest(
+        "010-BRG-Simple",
+        "Unstable: https://jira.unity3d.com/browse/UUM-134572",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.PS5 }
     )]
     [IgnoreGraphicsTest(
         "012-SVL_Check$",

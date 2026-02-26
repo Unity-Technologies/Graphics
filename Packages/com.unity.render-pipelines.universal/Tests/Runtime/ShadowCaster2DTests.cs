@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.Universal.Tests
 
 // ShadowCaster2D.shadowShape2DProvider is always null on Standalone.
 #if UNITY_EDITOR
-            Assert.That(shadowCaster2D.shadowShape2DProvider, Is.TypeOf(typeof(ShadowShape2DProvider_SpriteSkin)));
+            Assert.That(shadowCaster2D.shadowShape2DProvider, Is.TypeOf(typeof(ShadowCaster2DProvider_SpriteSkin)));
 #else
             Assert.That(shadowCaster2D.shadowShape2DProvider, Is.Null);
 #endif
@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             m_Obj.SetActive(true);
 // ShadowCaster2D.shadowShape2DProvider is always null on Standalone.
 #if UNITY_EDITOR
-            Assert.That(shadowCaster2D.shadowShape2DProvider, Is.TypeOf(typeof(ShadowShape2DProvider_SpriteSkin)));
+            Assert.That(shadowCaster2D.shadowShape2DProvider, Is.TypeOf(typeof(ShadowCaster2DProvider_SpriteSkin)));
 #else
             Assert.That(shadowCaster2D.shadowShape2DProvider, Is.Null);
 #endif

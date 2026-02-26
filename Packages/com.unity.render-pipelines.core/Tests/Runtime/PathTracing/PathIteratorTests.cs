@@ -118,6 +118,7 @@ namespace UnityEngine.PathTracing.Tests
         [TestCase(10, 20, 30, 8u)]
         [TestCase(0, 42, 0, 1u)]
         [TestCase(0, 42, 0, 8u)]
+        [Ignore("Unstable: https://jira.unity3d.com/browse/UUM-134752")]
         public void EmptyWorldWithEnvironmentLight_ShouldOutputEnvironmentLight(float envRed, float envGreen, float envBlue, uint sampleCount)
         {
             using var deviceInputBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, Marshal.SizeOf<TestRay>());

@@ -10,7 +10,7 @@ Shader "Hidden/HDRP/CopyStencilBuffer"
 
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
-    // #pragma enable_d3d11_debug_symbols
+    // #pragma enable_debug_symbols
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"

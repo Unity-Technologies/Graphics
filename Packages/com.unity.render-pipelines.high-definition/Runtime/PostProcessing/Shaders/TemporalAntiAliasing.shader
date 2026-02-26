@@ -18,7 +18,7 @@ Shader "Hidden/HDRP/TemporalAA"
         #pragma multi_compile_local_fragment LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY TAA_UPSAMPLE POST_DOF
 
         #pragma editor_sync_compilation
-       // #pragma enable_d3d11_debug_symbols
+       // #pragma enable_debug_symbols
 
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

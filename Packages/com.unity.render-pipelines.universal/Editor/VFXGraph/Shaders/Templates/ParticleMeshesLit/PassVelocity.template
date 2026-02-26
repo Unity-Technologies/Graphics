@@ -1,5 +1,6 @@
 Pass
 {
+    Name "MotionVectors"
     Tags { "LightMode"="MotionVectors" }
 
     ZWrite On

@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [17.5.0] - 2026-02-18
+
+This version is compatible with Unity 6000.6.0a7.
+
+For the release notes, refer to the [Unity download archive](https://unity.com/releases/editor/archive).
+
 ## [17.4.0] - 2025-10-22
 
 This version is compatible with Unity 6000.4.0a4.

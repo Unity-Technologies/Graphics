@@ -14,6 +14,7 @@ namespace UnityEditor.ShaderGraph
         , IGeneratesBodyCode
         , IOnAssetEnabled
         , IGeneratesFunction
+        , IHasAssetDependencies
         , IMayRequireNormal
         , IMayRequireTangent
         , IMayRequireBitangent

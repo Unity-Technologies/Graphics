@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.Universal
 
     [Serializable]
     [PipelineTools]
+    [BatchModeConverterClassInfo("UpgradeURP2DAssets", "ParametricToFreeformLight")]
     [ElementInfo(Name = "Parametric to Freeform Light Upgrade",
              Order = 100,
              Description = "This will upgrade all parametric lights to freeform lights.")]

@@ -4,6 +4,7 @@
 #include "PathTracingCommon.hlsl"
 #include "PathTracingMaterials.hlsl"
 #include "PathTracingLightGrid.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/PseudoRandom.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
@@ -11,14 +12,9 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Environment/EnvironmentImportanceSampling.hlsl"
 
 #define SOLID_ANGLE_SAMPLING
-#define RESAMPLED_IMPORTANCE_SAMPLING
 #define TRANSMISSION_IN_SHADOW_RAYS
 #define USE_DISTANCE_ATTENUATION_LUT
 
-#ifndef QRNG_METHOD_GLOBAL_SOBOL_BLUE_NOISE
-// Unless we use global sobol, stratification improves light selection
-#define STRATIFIED_LIGHT_PICKING
-#endif
 TextureCube<float4>             g_EnvTex;
 SamplerState                    sampler_g_EnvTex;
 float                           g_EnvIntensityMultiplier;
@@ -138,12 +134,10 @@ bool CastJitteredShadowRay(
     float distance,
     uint shadowRayMask,
     float2 uSample,
-    inout uint dimsUsed,
     out float3 attenuation)
 {
     if (shadowRadius > 0.0f)
     {
-        dimsUsed += 1;
         // jitter the light direction within the shadow radius
         direction = CalculateJitteredLightVec(shadowRadius, uSample, lightVector);
     }
@@ -161,12 +155,10 @@ struct SphQuad
     float S;
 };
 
-bool SampleRectangularLight(inout PathTracingSampler rngState, uint dimsOffset, out uint dimsUsed, float3 P, PTLight light, inout LightShapeSample lightSample)
+bool SampleRectangularLight(float2 rng, float3 P, PTLight light, inout LightShapeSample lightSample)
 {
-    float2 uv = rngState.GetSample2D(dimsOffset);
-    float u = uv.x;
-    float v = uv.y;
-    dimsUsed = 1;
+    float u = rng.x;
+    float v = rng.y;
 
 #ifndef SOLID_ANGLE_SAMPLING
     // Area sampling
@@ -301,12 +293,10 @@ bool SampleRectangularLight(inout PathTracingSampler rngState, uint dimsOffset, 
 #endif
 }
 
-bool SampleDiscLight(inout PathTracingSampler rngState, uint dimsOffset, out uint dimsUsed, float3 P, PTLight light, inout LightShapeSample lightSample)
+bool SampleDiscLight(float2 rng, float3 P, PTLight light, inout LightShapeSample lightSample)
 {
-    float2 uv = rngState.GetSample2D(dimsOffset);
-    float u = uv.x;
-    float v = uv.y;
-    dimsUsed = 1;
+    float u = rng.x;
+    float v = rng.y;
 
     float2 coord = SampleDiskUniform(u, v);
     const float radius = light.width;
@@ -353,18 +343,14 @@ float2 MapUnitSquareToUnitTriangle(float2 unitSquareCoords)
     return unitSquareCoords;
 }
 
-bool SampleEmissiveMesh(StructuredBuffer<UnifiedRT::InstanceData> instanceList, inout PathTracingSampler rngState, uint dimsOffset, out uint dimsUsed, float3 P, PTLight light, inout LightShapeSample lightSample)
+bool SampleEmissiveMesh(StructuredBuffer<UnifiedRT::InstanceData> instanceList, float2 rand0, float2 rand1, float3 P, PTLight light, inout LightShapeSample lightSample)
 {
-    float2 r1 = rngState.GetSample2D(dimsOffset);
-    float r2 = rngState.GetSample1D(dimsOffset+1);
-    dimsUsed = 2;
-
     // random point in unit triangle
-    float2 samplePoint = MapUnitSquareToUnitTriangle(r1);
+    float2 samplePoint = MapUnitSquareToUnitTriangle(rand0);
 
     int instanceIndex = light.height;
     int numPrimitives = light.attenuation.x;
-    int primitiveIndex = (r2 * numPrimitives) % numPrimitives;
+    int primitiveIndex = (rand1.x * numPrimitives) % numPrimitives;
 
     // fetch the triangle vertices from the geometry pool
 
@@ -440,8 +426,32 @@ float2 PunctualLightCookieUVs(float3 L, PTLight light)
 
 bool SamplePunctualLight(float3 P, PTLight light, out LightShapeSample lightSample)
 {
-    lightSample.lightVector = light.type == DIRECTIONAL_LIGHT ? -light.forward : light.position - P;
-    lightSample.distanceToLight = light.type == DIRECTIONAL_LIGHT ? K_T_MAX : length(lightSample.lightVector);
+    if (light.type == DIRECTIONAL_LIGHT)
+    {
+        lightSample.lightVector = -light.forward ;
+        lightSample.distanceToLight = K_T_MAX;
+    }
+    else if (light.type != BOX_LIGHT) // SPOT_LIGHT or POINT_LIGHT
+    {
+        lightSample.lightVector = light.position - P;
+        lightSample.distanceToLight = length(lightSample.lightVector);
+    }
+    else // BOX_LIGHT
+    {
+        float distanceToLight = dot(-light.forward, light.position - P);
+        float3 v = light.position - P;
+
+        float x = abs(dot(v, light.right));
+        float y = abs(dot(v, light.up));
+        float2 sideLimits = float2(light.width, light.height) * 0.5;
+
+        if (distanceToLight < 0 || distanceToLight > light.range || x >= sideLimits.x || y >= sideLimits.y)
+            return false;
+
+        lightSample.lightVector = -light.forward * distanceToLight;
+        lightSample.distanceToLight = distanceToLight;
+    }
+
     lightSample.L = normalize(lightSample.lightVector);
     lightSample.weight = 1.0f;
     lightSample.materialIndex = -1;
@@ -456,15 +466,13 @@ bool SamplePunctualLight(float3 P, PTLight light, out LightShapeSample lightSamp
     return true;
 }
 
-bool SampleEnvironmentLight(inout PathTracingSampler rngState, uint dimsOffset, out uint dimsUsed, float3 P, PTLight light, out LightShapeSample lightSample)
+bool SampleEnvironmentLight(float2 rng, float3 P, PTLight light, out LightShapeSample lightSample)
 {
     lightSample = (LightShapeSample)0;
-    const float2 rand = rngState.GetSample2D(dimsOffset);
-    dimsUsed = 1;
 
 #ifdef UNIFORM_ENVSAMPLING
     // Sample the environment with a random direction. Should only be used for reference / ground truth.
-    lightSample.lightVector = SampleSphereUniform(rand.x, rand.y);
+    lightSample.lightVector = SampleSphereUniform(rng.x, rng.y);
     lightSample.weight = 4 * PI;
 #else
     float normalizationFactor = GetSkyPDFNormalizationFactor(_EnvironmentCdfMarginalBuffer);
@@ -476,7 +484,7 @@ bool SampleEnvironmentLight(inout PathTracingSampler rngState, uint dimsOffset, 
         return false;
 
     const float2 u = SampleSky(
-        rand,
+        rng,
         _EnvironmentCdfMarginalResolution,
         _EnvironmentCdfMarginalBuffer,
         _EnvironmentCdfConditionalResolution,
@@ -499,26 +507,25 @@ bool SampleEnvironmentLight(inout PathTracingSampler rngState, uint dimsOffset, 
     return true;
 }
 
-bool SampleLightShape(StructuredBuffer<UnifiedRT::InstanceData> instanceList, inout PathTracingSampler rngState, uint dimsOffset, out uint dimsUsed, float3 P, PTLight light, out LightShapeSample lightSample)
+bool SampleLightShape(StructuredBuffer<UnifiedRT::InstanceData> instanceList, float2 rand0, float2 rand1, float3 P, PTLight light, out LightShapeSample lightSample)
 {
-    dimsUsed = 0;
     lightSample = (LightShapeSample)0;
     bool result = false;
     if (light.type == RECTANGULAR_LIGHT)
     {
-        result = SampleRectangularLight(rngState, dimsOffset, dimsUsed, P, light, lightSample);
+        result = SampleRectangularLight(rand0, P, light, lightSample);
     }
     else if (light.type == DISC_LIGHT)
     {
-        result = SampleDiscLight(rngState, dimsOffset, dimsUsed, P, light, lightSample);
+        result = SampleDiscLight(rand0, P, light, lightSample);
     }
     else if (light.type == EMISSIVE_MESH)
     {
-        result = SampleEmissiveMesh(instanceList, rngState, dimsOffset, dimsUsed, P, light, lightSample);
+        result = SampleEmissiveMesh(instanceList, rand0, rand1, P, light, lightSample);
     }
     else if (light.type == ENVIRONMENT_LIGHT)
     {
-        result = SampleEnvironmentLight(rngState, dimsOffset, dimsUsed, P, light, lightSample);
+        result = SampleEnvironmentLight(rand0, P, light, lightSample);
     }
     else
     {
@@ -622,14 +629,19 @@ float PunctualLightAngleAttenuation(float4 distances, float rangeAttenuationScal
 
 float GetPunctualAttenuation(PTLight light, LightShapeSample lightSample)
 {
-    float x = abs(dot(lightSample.lightVector, 2 * light.right / light.width));
-    float y = abs(dot(lightSample.lightVector, 2 * light.up / light.height));
-    float z = abs(dot(lightSample.lightVector, light.forward));
-
     if (light.type == BOX_LIGHT)
+        return 1.0;
+
+    if (light.type == PYRAMID_LIGHT)
     {
-        // box attenuation
-        return ((z > 0) && (x < 1.0 && y < 1.0)) ? 1.0 : 0.0;
+        // compute lit position in light basis
+        float x = abs(dot(lightSample.lightVector, light.right));
+        float y = abs(dot(lightSample.lightVector, light.up));
+        float z = abs(dot(lightSample.lightVector, light.forward));
+
+        float2 sideLimits = float2(light.width, light.height) * 0.5 * z;
+        if (x >= sideLimits.x || y >= sideLimits.y)
+            return 0.0f;
     }
 
     // Punctual attenuation
@@ -683,7 +695,7 @@ float3 AreaCookieAttenuation(PTLight light, LightShapeSample lightSample)
 
 float3 PunctualCookieAttenuation(PTLight light, LightShapeSample lightSample)
 {
-    if (light.type == SPOT_LIGHT || light.type == BOX_LIGHT)
+    if (light.type == SPOT_LIGHT || light.type == BOX_LIGHT || light.type == PYRAMID_LIGHT)
         return LightCookie(light, lightSample);
     else if (light.type == POINT_LIGHT)
         return PointLightCookie(light, lightSample);
@@ -725,7 +737,7 @@ float3 GetDiscLightEmission(PTLight light, LightShapeSample lightSample)
     }
 }
 
-float3 GetEmissiveMeshEmission(PTLight light, LightShapeSample lightSample)
+float3 GetEmissiveMeshEmission(LightShapeSample lightSample)
 {
     PTMaterial matInfo = g_MaterialList[lightSample.materialIndex];
 
@@ -737,6 +749,14 @@ float3 GetEmissiveMeshEmission(PTLight light, LightShapeSample lightSample)
     else
     {
         emission = matInfo.emissionColor;
+    }
+
+    // To match the behavior of the old baker, emission should be attenuated by transmission.
+    // Think about a mesh with a cutout shader - the portions that are cut out should obviously not emit light.
+    if (matInfo.transmissionTextureIndex != -1)
+    {
+        float3 transmission = SampleAtlas(g_TransmissionTextures, sampler_g_TransmissionTextures, matInfo.transmissionTextureIndex, lightSample.uv, matInfo.transmissionScale, matInfo.transmissionOffset, false).rgb;
+        emission *= 1.0-transmission;
     }
 
     return emission;
@@ -777,7 +797,7 @@ float3 GetEmission(PTLight light, LightShapeSample lightSample)
     {
         emission = GetDirectionalEmission(light, lightSample);
     }
-    else if (light.type == SPOT_LIGHT || light.type == POINT_LIGHT || light.type == BOX_LIGHT)
+    else if (light.type == POINT_LIGHT || light.type == SPOT_LIGHT || light.type == BOX_LIGHT || light.type == PYRAMID_LIGHT)
     {
         emission = GetPunctualEmission(light, lightSample);
     }
@@ -791,7 +811,7 @@ float3 GetEmission(PTLight light, LightShapeSample lightSample)
     }
     else if (light.type == EMISSIVE_MESH)
     {
-        emission = GetEmissiveMeshEmission(light, lightSample);
+        emission = GetEmissiveMeshEmission(lightSample);
     }
     else if (light.type == ENVIRONMENT_LIGHT)
     {
@@ -877,19 +897,32 @@ struct Reservoir
     }
 };
 
-uint GetNumLights(float3 origin, uint maxLightEvaluations)
+uint GetNumLights(float3 origin)
 {
     if (g_LightPickingMethod == LIGHT_PICKING_METHOD_RESERVOIR_GRID  || g_LightPickingMethod == LIGHT_PICKING_METHOD_LIGHT_GRID)
     {
         uint cellIndex = GetCellIndexFromPosition(origin);
         uint numReservoirs = g_LightGrid[cellIndex].y;
-        return min(numReservoirs, maxLightEvaluations);
+        return numReservoirs;
     }
 
-    return min(maxLightEvaluations, g_NumLights);
+    return g_NumLights;
 }
 
-bool SampleLight(PTLight light, float3 shadowRayOrigin, float3 normal, bool isDirect, uint enabledLightsLayerMask, StructuredBuffer<UnifiedRT::InstanceData> instanceList, uint dimsOffset, inout PathTracingSampler rngState, out ReservoirLightSample lightSample)
+PTLight GetLightInCell(float3 origin, uint lightIndex)
+{
+    if (g_LightPickingMethod == LIGHT_PICKING_METHOD_RESERVOIR_GRID  || g_LightPickingMethod == LIGHT_PICKING_METHOD_LIGHT_GRID)
+    {
+        uint cellIndex = GetCellIndexFromPosition(origin);
+        uint firstReservoir = g_LightGrid[cellIndex].x;
+        ThinReservoir reservoir = g_LightGridCellsData[firstReservoir + lightIndex];
+        lightIndex = reservoir.lightIndex;
+    }
+
+    return FetchLight(lightIndex);
+}
+
+bool SampleLight(PTLight light, float3 shadowRayOrigin, float3 normal, bool isDirect, uint enabledLightsLayerMask, StructuredBuffer<UnifiedRT::InstanceData> instanceList, float2 rand0, float2 rand1, out ReservoirLightSample lightSample)
 {
     lightSample = (ReservoirLightSample)0;
 
@@ -903,8 +936,7 @@ bool SampleLight(PTLight light, float3 shadowRayOrigin, float3 normal, bool isDi
 
     LightShapeSample lightShapeSample;
 
-    uint dimsUsed = 0;
-    if (!SampleLightShape(instanceList, rngState, dimsOffset, dimsUsed, shadowRayOrigin, light, lightShapeSample))
+    if (!SampleLightShape(instanceList, rand0, rand1, shadowRayOrigin, light, lightShapeSample))
         return false;
 
     float3 emission = GetEmission(light, lightShapeSample);
@@ -936,13 +968,13 @@ struct SampleLightsOptions
     uint numLightCandidates;
 };
 
-PTLight PickLight(float pickingSample, float3 receiverOrigin, out float lighPickingPmf)
+PTLight PickLight(float pickingSample, float3 receiverOrigin, out float lightPickingPmf)
 {
     uint lightIndex;
     if (g_LightPickingMethod == LIGHT_PICKING_METHOD_RESERVOIR_GRID || g_LightPickingMethod == LIGHT_PICKING_METHOD_LIGHT_GRID)
-        PickLightFromGrid(pickingSample, receiverOrigin, lightIndex, lighPickingPmf);
+        PickLightFromGrid(pickingSample, receiverOrigin, lightIndex, lightPickingPmf);
     else
-        PickLightUniformly(pickingSample, lightIndex, lighPickingPmf);
+        PickLightUniformly(pickingSample, lightIndex, lightPickingPmf);
 
     return FetchLight(lightIndex);
 }
@@ -952,33 +984,45 @@ bool SampleLightsRadianceRIS(
     float3 receiverOrigin, float3 receiverNormal, SampleLightsOptions options, inout PathTracingSampler rngState, out LightSample resLightSample)
 {
     resLightSample = (LightSample)0;
+
     // Find how many lights we will evaluate
-    uint numLightCandidates = GetNumLights(receiverOrigin, options.numLightCandidates);
+    uint numLightCandidates = min(GetNumLights(receiverOrigin), options.numLightCandidates);
+
+    // We want to seed the 2 RNGs below with the pixel coordinate and sample index. To avoid calculating a 3D hash,
+    // we just offset the sequence using the sample index. The constant added to the pixel coord is to decorrelate
+    // them from the main RNG used elsewhere in the path tracer, and from each other.
+
+    // RNG for generating samples.
+    QRNG_TYPE sampleGenerationRng;
+    sampleGenerationRng.Init(rngState.pixelCoord+3141, rngState.pathIndex * numLightCandidates);
+
+    // RNG for selecting the RIS winner. Use white instead of blue noise for this one.
+    QrngPcg4D winnerSelectionRng;
+    winnerSelectionRng.Init(rngState.pixelCoord+2718, rngState.pathIndex * numLightCandidates);
 
     Reservoir reservoir = (Reservoir) 0;
-
     for (uint i = 0; i < numLightCandidates; ++i)
     {
-        float pickingSample = rngState.GetSample1D(RAND_DIM_LIGHT_SELECTION + RAND_SAMPLES_PER_LIGHT * i);
-        #ifdef STRATIFIED_LIGHT_PICKING
-            pickingSample = (i + pickingSample) / numLightCandidates;
-        #endif
+        float pickingSample = sampleGenerationRng.GetSample(RAND_DIM_LIGHT_SELECTION).x;
+        float winnerSample = winnerSelectionRng.GetSample();
 
-        float lighPickingPmf;
-        PTLight light = PickLight(pickingSample, receiverOrigin, lighPickingPmf);
-
-        uint dimsOffset = RAND_DIM_LIGHT_SELECTION + RAND_SAMPLES_PER_LIGHT * i + 1;
+        float lightPickingPmf;
+        PTLight light = PickLight(pickingSample, receiverOrigin, lightPickingPmf);
 
         ReservoirLightSample lightSample;
-        if (!SampleLight(light, receiverOrigin, receiverNormal, options.isDirect, options.lightsRenderingLayerMask, instanceList, dimsOffset, rngState, lightSample))
-            continue;
+        float2 sampleRand0 = sampleGenerationRng.GetSample(RAND_DIM_LIGHT_SELECTION + 1);
+        float2 sampleRand1 = sampleGenerationRng.GetSample(RAND_DIM_LIGHT_SELECTION + 2);
+        if (SampleLight(light, receiverOrigin, receiverNormal, options.isDirect, options.lightsRenderingLayerMask, instanceList, sampleRand0, sampleRand1, lightSample))
+        {
+            lightSample.pdf *= lightPickingPmf;
 
-        lightSample.pdf *= lighPickingPmf;
+            float targetFunc = Luminance(lightSample.radiance);
+            float risWeight = targetFunc / lightSample.pdf; // w = targetFunc / sourcePdf
+            reservoir.Update(lightSample, risWeight, winnerSample);
+        }
 
-        float r = rngState.GetSample1D(RAND_DIM_LIGHT_SELECTION + RAND_SAMPLES_PER_LIGHT * i + 3);
-        float targetFunc = Luminance(lightSample.radiance);
-        float risWeight = targetFunc / lightSample.pdf; // w = targetFunc / sourcePdf
-        reservoir.Update(lightSample, risWeight, r);
+        sampleGenerationRng.NextSample();
+        winnerSelectionRng.NextSample();
     }
 
     float sampleTargetFuncEval = Luminance(reservoir.bestSample.radiance);
@@ -993,9 +1037,8 @@ bool SampleLightsRadianceRIS(
 
     // cast a shadow ray
     float3 attenuation = 1.0f;
-    uint dimsUsed = 0;
     float2 shadowSample = rngState.GetSample2D(RAND_DIM_JITTERED_SHADOW);
-    bool isShadowed = castShadows && options.receiveShadows && !CastJitteredShadowRay(dispatchInfo, accelStruct, bestSample.shadowRadius, lightType == DIRECTIONAL_LIGHT ? bestSample.lightDirection : bestSample.lightDirection*bestSample.distanceToLight, receiverOrigin, bestSample.lightDirection, bestSample.distanceToLight, options.shadowRayMask, shadowSample, dimsUsed, attenuation);
+    bool isShadowed = castShadows && options.receiveShadows && !CastJitteredShadowRay(dispatchInfo, accelStruct, bestSample.shadowRadius, lightType == DIRECTIONAL_LIGHT ? bestSample.lightDirection : bestSample.lightDirection*bestSample.distanceToLight, receiverOrigin, bestSample.lightDirection, bestSample.distanceToLight, options.shadowRayMask, shadowSample, attenuation);
     if (isShadowed)
         return false;
 
@@ -1016,24 +1059,22 @@ bool SampleLightsRadianceMC(
     float3 receiverOrigin, float3 receiverNormal, SampleLightsOptions options, inout PathTracingSampler rngState, out LightSample resLightSample)
 {
     resLightSample = (LightSample)0;
-    // Find how many lights we will evaluate
-    uint numLightCandidates = GetNumLights(receiverOrigin, 1);
 
     float pickingSample = rngState.GetSample1D(RAND_DIM_LIGHT_SELECTION);
-    float lighPickingPmf;
-    PTLight light = PickLight(pickingSample, receiverOrigin, lighPickingPmf);
+    float lightPickingPmf;
+    PTLight light = PickLight(pickingSample, receiverOrigin, lightPickingPmf);
 
-    uint dimsOffset = RAND_DIM_LIGHT_SELECTION + 1;
     ReservoirLightSample lightSample;
-    if (!SampleLight(light, receiverOrigin, receiverNormal, options.isDirect, options.lightsRenderingLayerMask, instanceList, dimsOffset, rngState, lightSample))
+    float2 sampleRand0 = rngState.GetSample2D(RAND_DIM_LIGHT_SELECTION + 1);
+    float2 sampleRand1 = rngState.GetSample2D(RAND_DIM_LIGHT_SELECTION + 2);
+    if (!SampleLight(light, receiverOrigin, receiverNormal, options.isDirect, options.lightsRenderingLayerMask, instanceList, sampleRand0, sampleRand1, lightSample))
         return false;
 
-    lightSample.pdf *= lighPickingPmf;
+    lightSample.pdf *= lightPickingPmf;
 
     float3 attenuation = 1.0f;
-    uint dimsUsed = 0;
     float2 shadowSample = rngState.GetSample2D(RAND_DIM_JITTERED_SHADOW);
-    bool isShadowed = light.castsShadows && options.receiveShadows && !CastJitteredShadowRay(dispatchInfo, accelStruct, light.shadowRadius, light.type == DIRECTIONAL_LIGHT ? lightSample.lightDirection : lightSample.lightDirection*lightSample.distanceToLight, receiverOrigin, lightSample.lightDirection, lightSample.distanceToLight, options.shadowRayMask, shadowSample, dimsUsed, attenuation);
+    bool isShadowed = light.castsShadows && options.receiveShadows && !CastJitteredShadowRay(dispatchInfo, accelStruct, light.shadowRadius, light.type == DIRECTIONAL_LIGHT ? lightSample.lightDirection : lightSample.lightDirection*lightSample.distanceToLight, receiverOrigin, lightSample.lightDirection, lightSample.distanceToLight, options.shadowRayMask, shadowSample, attenuation);
     if (isShadowed)
         return false;
 
@@ -1045,6 +1086,39 @@ bool SampleLightsRadianceMC(
     return true;
 }
 
+// Sample incoming radiance from a specific light.
+bool SampleLightRadiance(
+    UnifiedRT::DispatchInfo dispatchInfo, UnifiedRT::RayTracingAccelStruct accelStruct, StructuredBuffer<UnifiedRT::InstanceData> instanceList,
+    float3 receiverOrigin, float3 receiverNormal, SampleLightsOptions options, PTLight light, inout PathTracingSampler rngState, out LightSample resLightSample)
+{
+    resLightSample = (LightSample)0;
+
+    uint numLights = GetNumLights(receiverOrigin);
+    float lightPickingPmf = rcp(numLights);
+
+    ReservoirLightSample lightSample;
+    float2 sampleRand0 = rngState.GetSample2D(RAND_DIM_LIGHT_SELECTION + 1);
+    float2 sampleRand1 = rngState.GetSample2D(RAND_DIM_LIGHT_SELECTION + 2);
+    if (!SampleLight(light, receiverOrigin, receiverNormal, options.isDirect, options.lightsRenderingLayerMask, instanceList, sampleRand0, sampleRand1, lightSample))
+        return false;
+
+    lightSample.pdf *= lightPickingPmf;
+
+    float3 attenuation = 1.0f;
+    float2 shadowSample = rngState.GetSample2D(RAND_DIM_JITTERED_SHADOW);
+    bool isShadowed = light.castsShadows && options.receiveShadows && !CastJitteredShadowRay(dispatchInfo, accelStruct, light.shadowRadius, light.type == DIRECTIONAL_LIGHT ? lightSample.lightDirection : lightSample.lightDirection*lightSample.distanceToLight, receiverOrigin, lightSample.lightDirection, lightSample.distanceToLight, options.shadowRayMask, shadowSample, attenuation);
+    if (isShadowed)
+        return false;
+
+    resLightSample.radiance = attenuation * lightSample.radiance / lightSample.pdf;
+    resLightSample.direction = lightSample.lightDirection;
+    resLightSample.risSourcePdf = lightSample.pdf;
+    resLightSample.lightType = light.type;
+
+    return true;
+}
+
+// Sample incoming radiance from a random light, picked using either RIS or raw monte carlo.
 bool SampleLightsRadiance(
     UnifiedRT::DispatchInfo dispatchInfo, UnifiedRT::RayTracingAccelStruct accelStruct, StructuredBuffer<UnifiedRT:: InstanceData> instanceList,
     float3 receiverOrigin, float3 receiverNormal, SampleLightsOptions options, inout PathTracingSampler rngState, out LightSample resLightSample)
@@ -1090,7 +1164,6 @@ bool IsLightVisibleFromPoint(
     float3 worldPosition,
     inout PathTracingSampler rngState,
     uint dimsOffset,
-    out uint dimsUsed,
     PTLight light,
     bool receiveShadows,
     out float3 attenuation)
@@ -1098,19 +1171,20 @@ bool IsLightVisibleFromPoint(
     attenuation = 1.0f;
 
     LightShapeSample lightSample;
-    if (!SampleLightShape(instanceList, rngState, dimsOffset, dimsUsed, worldPosition, light, lightSample))
+    float2 sampleRand0 = rngState.GetSample2D(dimsOffset);
+    float2 sampleRand1 = rngState.GetSample2D(dimsOffset+1);
+    if (!SampleLightShape(instanceList, sampleRand0, sampleRand1, worldPosition, light, lightSample))
         return false;
-    dimsOffset += dimsUsed;
 
     if (light.type != DIRECTIONAL_LIGHT && lightSample.distanceToLight >= light.range)
         return false;
-    if (light.type == SPOT_LIGHT && GetPunctualAttenuation(light, lightSample) < 0.000001f)
+    if ((light.type == SPOT_LIGHT || light.type == BOX_LIGHT || light.type == PYRAMID_LIGHT) && GetPunctualAttenuation(light, lightSample) < 0.000001f)
         return false;
 
     if (light.castsShadows && receiveShadows)
     {
-        float2 shadowSample = rngState.GetSample2D(dimsOffset);
-        return CastJitteredShadowRay(dispatchInfo, accelStruct, light.shadowRadius, lightSample.lightVector, worldPosition, lightSample.L, lightSample.distanceToLight, shadowRayMask, shadowSample, dimsUsed, attenuation);
+        float2 shadowSample = rngState.GetSample2D(dimsOffset+2);
+        return CastJitteredShadowRay(dispatchInfo, accelStruct, light.shadowRadius, lightSample.lightVector, worldPosition, lightSample.L, lightSample.distanceToLight, shadowRayMask, shadowSample, attenuation);
     }
     return true;
 }

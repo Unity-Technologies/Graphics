@@ -1,3 +1,7 @@
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#define PROBEREFERENCEVOLUME_DEBUG
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -261,6 +265,7 @@ namespace UnityEngine.Rendering
         /// <param name="exposureTexture">Texture containing the exposure value for this frame.</param>
         public void RenderDebug(Camera camera, ProbeVolumesOptions options, Texture exposureTexture)
         {
+#if PROBEREFERENCEVOLUME_DEBUG
             if (camera.cameraType != CameraType.Reflection && camera.cameraType != CameraType.Preview)
             {
                 if (options != null)
@@ -268,6 +273,7 @@ namespace UnityEngine.Rendering
 
                 DrawProbeDebug(camera, exposureTexture);
             }
+#endif
         }
 
         /// <summary>
@@ -360,6 +366,7 @@ namespace UnityEngine.Rendering
         }
 #endif
 
+#if PROBEREFERENCEVOLUME_DEBUG
         bool TryCreateDebugRenderData()
         {
             if (!GraphicsSettings.TryGetRenderPipelineSettings<ProbeVolumeDebugResources>(out var debugResources))
@@ -434,11 +441,6 @@ namespace UnityEngine.Rendering
             UnityEditor.Lightmapping.lightingDataCleared -= OnClearLightingdata;
             SceneView.duringSceneGui -= SceneGUI;
 #endif
-        }
-
-        void DebugCellIndexChanged<T>(DebugUI.Field<T> field, T value)
-        {
-            ClearDebugData();
         }
 
         void RegisterDebug()
@@ -807,6 +809,8 @@ namespace UnityEngine.Rendering
                 DebugManager.instance.GetPanel(k_DebugPanelName, false).children.Remove(m_DebugItems);
         }
 
+#endif // PROBEREFERENCEVOLUME_DEBUG
+
         class RenderFragmentationOverlayPassData
         {
             public Material debugFragmentationMaterial;
@@ -856,6 +860,7 @@ namespace UnityEngine.Rendering
             }
         }
 
+#if PROBEREFERENCEVOLUME_DEBUG
         bool ShouldCullCell(Vector3 cellPosition, Transform cameraTransform, Plane[] frustumPlanes)
         {
             var volumeAABB = GetCellBounds(cellPosition);
@@ -1056,7 +1061,7 @@ namespace UnityEngine.Rendering
                         var probeBuffer = debug.probeBuffers[i];
                         m_DebugMaterial.SetInt("_DebugProbeVolumeSampling", 0);
                         m_DebugMaterial.SetBuffer("_positionNormalBuffer", probeSamplingDebugData.positionNormalBuffer);
-                        Graphics.DrawMeshInstanced(debugMesh, 0, m_DebugMaterial, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
+                        Graphics.DrawMeshInstanced(debugMesh, 0, m_DebugMaterial, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off);
                     }
 
                     if (probeVolumeDebug.drawProbeSamplingDebug)
@@ -1068,7 +1073,7 @@ namespace UnityEngine.Rendering
                         props.SetInt("_DebugSamplingNoise", Convert.ToInt32(probeVolumeDebug.debugWithSamplingNoise));
                         props.SetInt("_RenderingLayerMask", (int)probeVolumeDebug.samplingRenderingLayer);
                         m_ProbeSamplingDebugMaterial02.SetBuffer("_positionNormalBuffer", probeSamplingDebugData.positionNormalBuffer);
-                        Graphics.DrawMeshInstanced(debugMesh, 0, m_ProbeSamplingDebugMaterial02, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
+                        Graphics.DrawMeshInstanced(debugMesh, 0, m_ProbeSamplingDebugMaterial02, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off);
                     }
 
                     if (probeVolumeDebug.drawVirtualOffsetPush)
@@ -1077,11 +1082,12 @@ namespace UnityEngine.Rendering
                         m_DebugOffsetMaterial.SetInt("_AdjustmentVolumeCount", probeVolumeDebug.isolationProbeDebug ? adjustmentVolumeCount : 0);
 
                         var offsetBuffer = debug.offsetBuffers[i];
-                        Graphics.DrawMeshInstanced(m_DebugOffsetMesh, 0, m_DebugOffsetMaterial, offsetBuffer, offsetBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
+                        Graphics.DrawMeshInstanced(m_DebugOffsetMesh, 0, m_DebugOffsetMaterial, offsetBuffer, offsetBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off);
                     }
                 }
             }
         }
+#endif // PROBEREFERENCEVOLUME_DEBUG
 
         internal void ResetDebugViewToMaxSubdiv()
         {

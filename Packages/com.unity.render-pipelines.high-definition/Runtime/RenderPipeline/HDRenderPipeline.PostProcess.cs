@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
-using UnityEngine.Rendering.HighDefinition.Compositor;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -1219,11 +1217,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Optional NaN killer before post-processing kicks in
             bool stopNaNs = hdCamera.stopNaNs && m_StopNaNFS;
-
 #if UNITY_EDITOR
-            bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
-            if (isSceneView)
-                stopNaNs = HDAdditionalSceneViewSettings.sceneViewStopNaNs;
+            if (hdCamera.camera.cameraType == CameraType.SceneView)
+                stopNaNs = hdCamera.stopNaNs; //no PP / FS check for SceneView Camera
 #endif
             if (stopNaNs)
             {
@@ -1272,7 +1268,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         bool IsExposureFixed(HDCamera camera) => m_Exposure.mode.value == ExposureMode.Fixed || m_Exposure.mode.value == ExposureMode.UsePhysicalCamera
 #if UNITY_EDITOR
-        || (camera.camera.cameraType == CameraType.SceneView && HDAdditionalSceneViewSettings.sceneExposureOverriden)
+        || camera.isSceneViewCameraWithExposureOverride
         || (UnityEditor.SceneView.lastActiveSceneView != null && UnityEditor.SceneView.lastActiveSceneView.isUsingSceneFiltering)
 #endif
         ;
@@ -1381,16 +1377,16 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector4 exposureParams2 = new Vector4(0.0f, 0.0f, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant);
             if (m_Exposure.mode.value == ExposureMode.Fixed
 #if UNITY_EDITOR
-                || HDAdditionalSceneViewSettings.sceneExposureOverriden && hdCamera.camera.cameraType == CameraType.SceneView
+                || hdCamera.isSceneViewCameraWithExposureOverride
 #endif
             )
             {
                 kernel = cs.FindKernel("KFixedExposure");
                 exposureParams = new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.fixedExposure.value, 0f, 0f);
 #if UNITY_EDITOR
-                if (HDAdditionalSceneViewSettings.sceneExposureOverriden && hdCamera.camera.cameraType == CameraType.SceneView)
+                if (hdCamera.isSceneViewCameraWithExposureOverride)
                 {
-                    exposureParams = new Vector4(0.0f, HDAdditionalSceneViewSettings.sceneExposure, 0f, 0f);
+                    exposureParams = new Vector4(0.0f, hdCamera.sceneViewExposureOverride, 0f, 0f);
                 }
 #endif
             }

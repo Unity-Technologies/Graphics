@@ -1,0 +1,48 @@
+/* Core RP Lighting Search Selectors Styles */
+
+/* Light Shape Field */
+.core-lighting-search-light-shape {
+    flex-grow: 1;
+}
+
+/* Override Subdivision Levels Field */
+.core-lighting-search-subdivision-levels {
+    flex-direction: row;
+    align-items: center;
+    height: 20px;
+}
+
+.core-lighting-search-subdivision-levels__toggle {
+    margin-right: 5px;
+    width: 20px;
+}
+
+.core-lighting-search-subdivision-levels__min-field {
+    flex-grow: 1;
+    margin-right: 2px;
+}
+
+.core-lighting-search-subdivision-levels__max-field {
+    flex-grow: 1;
+}
+
+/* Sky Occlusion Baking Samples Field */
+.core-lighting-search-baking-samples {
+    flex-direction: row;
+    align-items: center;
+    height: 20px;
+}
+
+.core-lighting-search-baking-samples__slider {
+    flex-grow: 1;
+    margin-right: 5px;
+}
+
+.core-lighting-search-baking-samples__text-field {
+    min-width: 50px;
+}
+
+/* Volume Profile Field */
+.core-lighting-search-volume-profile {
+    flex-grow: 1;
+}

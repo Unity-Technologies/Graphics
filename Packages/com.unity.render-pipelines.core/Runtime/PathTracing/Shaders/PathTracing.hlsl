@@ -78,16 +78,6 @@ float ComputeEmissiveTriangleDensity(StructuredBuffer<UnifiedRT::InstanceData> i
     return weight;
 }
 
-float ComputeMeshLightDensity(StructuredBuffer<UnifiedRT::InstanceData> instanceList, PTHitGeom hitGeom, int instanceIndex, float3 rayOrigin)
-{
-    float weight = ComputeEmissiveTriangleDensity(instanceList, hitGeom, instanceIndex, rayOrigin);
-
-    // pdf to select the light source
-    weight /= g_NumLights;
-
-    return weight;
-}
-
 bool ShouldTreatAsBackface(UnifiedRT::Hit hitResult, MaterialProperties material)
 {
     // Have we hit something that is considered a backface when double sided GI is taken into account?
@@ -201,7 +191,7 @@ void AddEnvironmentRadiance(inout PathIterator iterator, bool applyIndirectScale
     float envPdf;
     if (GetEnvironmentLightEmissionAndDensity(iterator.ray.direction, envRadiance, envPdf))
     {
-        envPdf /= g_NumLights;
+        envPdf /= GetNumLights(iterator.ray.origin);
 
         if (applyIndirectScale)
             envRadiance *= g_IndirectScale;
@@ -213,7 +203,9 @@ void AddEnvironmentRadiance(inout PathIterator iterator, bool applyIndirectScale
 // Add radiance due to a hit emissive surface.
 void AddEmissionRadiance(inout PathIterator iterator, UnifiedRT::RayTracingAccelStruct accelStruct, StructuredBuffer<UnifiedRT::InstanceData> instanceList, bool applyIndirectScale)
 {
-    float lightDensity = ComputeMeshLightDensity(instanceList, iterator.hitGeo, iterator.hitResult.instanceID, iterator.ray.origin);
+    float lightDensity = ComputeEmissiveTriangleDensity(instanceList, iterator.hitGeo, iterator.hitResult.instanceID, iterator.ray.origin);
+    lightDensity /= GetNumLights(iterator.ray.origin);
+
     float3 emission = iterator.material.emissive;
     if (applyIndirectScale)
         emission *= g_IndirectScale;

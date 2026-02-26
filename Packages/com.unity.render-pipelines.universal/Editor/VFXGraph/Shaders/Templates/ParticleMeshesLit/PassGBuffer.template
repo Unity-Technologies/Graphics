@@ -1,5 +1,6 @@
 Pass
 {
+    Name "GBuffer"
     Tags { "LightMode"="UniversalGBuffer" }
 
     ${VFXStencilGBuffer}

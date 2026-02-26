@@ -21,6 +21,7 @@ namespace UnityEditor.VFX
             public DependencyCollection fieldDependencies;
             public (PragmaDescriptor oldDesc, PragmaDescriptor newDesc)[] pragmasReplacement;
             public (KeywordDescriptor oldDesc, KeywordDescriptor newDesc)[] keywordsReplacement;
+            public (KeywordDescriptor oldDesc, int value)[] keywordsToDefines;
             public bool useFragInputs;
         }
 
@@ -108,6 +109,11 @@ namespace UnityEditor.VFX
             return new ShaderGraphBinder();
         }
 
+        public virtual List<PassCollection.Item> FilterOutPasses(PassCollection passes, VFXContext context)
+        {
+            return passes.ToList();
+        }
+
         public virtual IEnumerable<GraphicsDeviceType> GetSupportedGraphicDevices()
         {
             yield return GraphicsDeviceType.Direct3D11;
@@ -124,5 +130,7 @@ namespace UnityEditor.VFX
             yield return GraphicsDeviceType.Switch2;
             yield return GraphicsDeviceType.WebGPU;
         }
+
+
     }
 }

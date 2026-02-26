@@ -22,6 +22,7 @@ namespace UnityEditor.Rendering.Converter
             }
         }
         public IRenderPipelineConverterItem item;
+        [NonSerialized]
         public (Status Status, string Message) conversionResult = (Status.Pending, string.Empty);
         internal bool hasConverted => conversionResult.Status != Status.Pending;
 

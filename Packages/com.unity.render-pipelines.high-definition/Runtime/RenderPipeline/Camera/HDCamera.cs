@@ -1937,6 +1937,19 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             allowRayTracingCullingOverride = allow;
         }
+
+#if UNITY_EDITOR
+        internal bool isSceneViewCameraWithExposureOverride
+            => camera.cameraType == CameraType.SceneView
+            && m_AdditionalCameraData != null
+            && m_AdditionalCameraData.doesSceneViewOverrideExposure;
+
+        internal float sceneViewExposureOverride
+            => m_AdditionalCameraData == null 
+            ? 10f 
+            : m_AdditionalCameraData.sceneViewOverrideExposureValue;
+#endif
+
         #endregion
 
 
@@ -1999,7 +2012,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
                 else if (camera.cameraType == CameraType.SceneView)
                 {
-                    var mode = HDAdditionalSceneViewSettings.sceneViewAntialiasing;
+                    var mode = m_AdditionalCameraData?.antialiasing ?? AntialiasingMode.None;
 
                     if (mode == AntialiasingMode.TemporalAntialiasing && !animateMaterials)
                         antialiasing = AntialiasingMode.None;

@@ -30,7 +30,7 @@ Shader "Hidden/HDRP/CopyDepthBuffer"
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             #pragma fragment Frag
             #pragma vertex Vert
-            //#pragma enable_d3d11_debug_symbols
+            //#pragma enable_debug_symbols
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"

@@ -1,4 +1,3 @@
-using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -25,6 +24,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnInspectorGUI()
         {
             HDEditorUtils.EnsureFrameSetting(FrameSettingsField.FilmGrain);
+
+            if (m_Intensity.value.floatValue > 0)
+                HDEditorUtils.ShowPlatformPerformanceWarning(BuildTarget.Switch2, "Film Grain");
 
             PropertyField(m_Type);
 

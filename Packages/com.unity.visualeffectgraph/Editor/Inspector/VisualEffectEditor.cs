@@ -1403,12 +1403,14 @@ namespace UnityEditor.VFX
                                 m_LightProbeUsage.intValue = (int)(LightProbeUsage)newValue;
                             EditorGUI.EndProperty();
 
+#pragma warning disable CS0618
                             if (!m_LightProbeUsage.hasMultipleDifferentValues && m_LightProbeUsage.intValue == (int)LightProbeUsage.UseProxyVolume)
                             {
                                 if (!LightProbeProxyVolume.isFeatureSupported || !SupportedRenderingFeatures.active.lightProbeProxyVolumes)
                                     EditorGUILayout.HelpBox(Contents.lightProbeVolumeUnsupportedNote.text, MessageType.Warning);
                                 EditorGUILayout.PropertyField(m_LightProbeVolumeOverride, Contents.lightProbeVolumeOverrideStyle);
                             }
+#pragma warning restore CS0618
                         }
 
                         bool useReflectionProbes = m_ReflectionProbeUsage != null && !m_ReflectionProbeUsage.hasMultipleDifferentValues && (ReflectionProbeUsage)m_ReflectionProbeUsage.intValue != ReflectionProbeUsage.Off;

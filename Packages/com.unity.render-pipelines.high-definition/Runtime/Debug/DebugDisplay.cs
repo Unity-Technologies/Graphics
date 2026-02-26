@@ -329,7 +329,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public DecalsDebugSettings decalsDebugSettings;
 
             /// <summary>Current transparency debug settings.</summary>
-            public TransparencyDebugSettings transparencyDebugSettings = new TransparencyDebugSettings();
+            public TransparencyDebugSettings transparencyDebugSettings { get; set; }= new TransparencyDebugSettings();
             /// <summary>Index of screen space shadow to display.</summary>
             public uint screenSpaceShadowIndex = 0;
             /// <summary>Max quad cost for quad overdraw display.</summary>
@@ -2114,7 +2114,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void RegisterDebug()
         {
             InitializeDebugEnums();
-            
+
             RegisterMaterialDebug();
             RegisterLightingDebug();
             RegisterRenderingDebug();

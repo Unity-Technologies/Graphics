@@ -33,10 +33,11 @@ namespace UnityEngine.Rendering.Universal
             Version_2 = 2,
             Version_3 = 3,
             Version_4 = 4,
-            Version_5 = 5
+            Version_5 = 5,
+            Version_6 = 6,
         }
 
-        const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_5;
+        const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_6;
         [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
 
         internal enum ShadowCastingSources
@@ -91,16 +92,20 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] int m_InstanceId;
         [SerializeField] Component m_ShadowShape2DComponent;
-        [SerializeReference] ShadowShape2DProvider m_ShadowShape2DProvider;
+        [SerializeReference] ShadowCaster2DProvider m_ShadowShape2DProvider;
         [SerializeField] ShadowCastingSources m_ShadowCastingSource = (ShadowCastingSources)(-1);
 
-        [SerializeField] internal ShadowMesh2D m_ShadowMesh;
+        [SerializeReference] internal ShadowMesh2D m_ShadowMesh;
         [SerializeField] ShadowCastingOptions m_CastingOption = ShadowCastingOptions.CastShadow;
 
         [SerializeField] internal float m_PreviousTrimEdge = 0;
         [SerializeField] internal int m_PreviousEdgeProcessing;
         [SerializeField] internal int m_PreviousShadowCastingSource;
         [SerializeField] internal Component m_PreviousShadowShape2DSource = null;
+
+#if UNITY_EDITOR
+        [SerializeReference] internal Shadow2DProviderSources m_SelectionSources = new Shadow2DProviderSources();
+#endif
 
         internal ShadowCasterGroup2D m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D m_PreviousShadowCasterGroup = null;
@@ -153,7 +158,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Make this public if possible...
         internal Component shadowShape2DComponent { get { return m_ShadowShape2DComponent; } set { m_ShadowShape2DComponent = value; } }
-        internal ShadowShape2DProvider shadowShape2DProvider { get { return m_ShadowShape2DProvider; } set { m_ShadowShape2DProvider = value; } }
+        internal ShadowCaster2DProvider shadowShape2DProvider { get { return m_ShadowShape2DProvider; } set { m_ShadowShape2DProvider = value; } }
 
         int m_PreviousShadowGroup = 0;
         bool m_PreviousCastsShadows = true;
@@ -379,15 +384,7 @@ namespace UnityEngine.Rendering.Universal
                 SetShadowShape(newShadowMesh);
                 m_ShadowMesh = newShadowMesh;
             }
-#if UNITY_EDITOR
-            // This step is required in case of copy/pasting an object with a shadow caster.
-            else
-            {
-                ShadowMesh2D newShadowMesh = new ShadowMesh2D();
-                newShadowMesh.CopyFrom(m_ShadowMesh);
-                m_ShadowMesh = newShadowMesh;
-            }
-#endif
+
 
 #if USING_PHYSICS2D_MODULE
             else
@@ -404,7 +401,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         protected void OnEnable()
         {
-            if (m_ShadowShape2DProvider != null)
+            if (m_ShadowShape2DProvider != null && m_ShadowShape2DComponent != null)
                 m_ShadowShape2DProvider.Enabled(m_ShadowShape2DComponent, m_ShadowMesh);
 
             m_ShadowCasterGroup = null;
@@ -422,7 +419,7 @@ namespace UnityEngine.Rendering.Universal
         {
             ShadowCasterGroup2DManager.RemoveFromShadowCasterGroup(this, m_ShadowCasterGroup);
 
-            if (m_ShadowShape2DProvider != null)
+            if (m_ShadowShape2DProvider != null && m_ShadowShape2DComponent != null)
                 m_ShadowShape2DProvider.Disabled(m_ShadowShape2DComponent, m_ShadowMesh);
 
 #if UNITY_EDITOR
@@ -589,10 +586,14 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
 
+
         /// <inheritdoc/>
         public void OnBeforeSerialize()
         {
             m_ComponentVersion = k_CurrentComponentVersion;
+
+            if (m_ShadowMesh != null)
+                m_ShadowMesh.OnBeforeSerialize();
         }
 
         /// <inheritdoc/>
@@ -617,11 +618,24 @@ namespace UnityEngine.Rendering.Universal
                 else
                     m_CastingOption = ShadowCastingOptions.NoShadow;
             }
-            if(m_ComponentVersion < ComponentVersions.Version_3)
+            if (m_ComponentVersion < ComponentVersions.Version_3)
             {
                 m_ShadowMesh = null;
                 m_ForceShadowMeshRebuild = true;
             }
+
+            if (m_ComponentVersion < ComponentVersions.Version_6)
+            {
+#if UNITY_EDITOR
+                if (m_ShadowCastingSource == ShadowCastingSources.ShapeProvider)
+                    m_SelectionSources.selectedHashCode = LightUtility.ProviderToHash(shadowShape2DProvider, shadowShape2DComponent);
+                else
+                    m_SelectionSources.selectedHashCode = (int)m_ShadowCastingSource;
+#endif
+            }
+
+            if(m_ShadowMesh != null)
+                m_ShadowMesh.OnAfterDeserialize();
         }
     }
 }

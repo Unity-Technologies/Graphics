@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.Tests
         {
             public Action<ScriptableRenderContext, Camera, CommandBuffer> recordRenderGraphBody;
 
-            public RenderGraph renderGraph;
+            public RenderGraph renderGraph { get; private set; }
 
             public RenderTextureUVOriginStrategy renderTextureUVOriginStrategy;
 

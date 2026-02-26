@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering
     /// <seealso cref="VolumeParameter{T}"/>
     /// <seealso cref="ICloneable"/>
     /// <seealso cref="VolumeStack"/>
+    [Serializable]
     public abstract class VolumeParameter : ICloneable
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

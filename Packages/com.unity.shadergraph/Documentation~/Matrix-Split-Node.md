@@ -15,19 +15,19 @@ For example, connecting **Matrix 2x2** type to input **In** will return the corr
 
 ## Ports
 
-| Name        | Direction           | Type  | Description |
-|:------------ |:-------------|:-----|:---|
-| In      | Input | Dynamic Matrix | Input value |
-| M0 | Output      |    Dynamic Vector | First row or column |
-| M1 | Output      |    Dynamic Vector | Second row or column |
-| M2 | Output      |    Dynamic Vector | Third row or column |
-| M3 | Output      |    Dynamic Vector | Fourth row or column |
+| Name | Direction | Type | Description |
+|:--- |:---|:---|:---|
+| In | Input | Dynamic Matrix | Input value |
+| M0 | Output | Dynamic Vector | First row or column |
+| M1 | Output | Dynamic Vector | Second row or column |
+| M2 | Output | Dynamic Vector | Third row or column |
+| M3 | Output | Dynamic Vector | Fourth row or column |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-|      | Dropdown | Row, Column | Selects how the output vectors should be filled |
+| Control | Description |
+|:---|:---|
+| (Dropdown) | Selects how the output vectors should be filled. The options are:<ul><li>**Row**: Output vectors are composed of matrix rows from top to bottom.</li><li>**Column**: Output vectors are composed of matrix columns from left to right.</li></ul> |
 
 ## Generated Code Example
 

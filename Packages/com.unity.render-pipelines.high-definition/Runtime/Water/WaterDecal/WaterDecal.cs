@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [HDRPHelpURL("water-decals-and-masking-in-the-water-system")]
     [ExecuteInEditMode]
+    [Icon("Packages/com.unity.render-pipelines.core/Editor/Icons/Processed/DecalProjector Icon.asset")]
     public partial class WaterDecal : MonoBehaviour
     {
         internal enum PassType

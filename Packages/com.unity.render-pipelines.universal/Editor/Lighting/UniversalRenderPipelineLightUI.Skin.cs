@@ -59,14 +59,14 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUIUtility.TrTextContent("Use settings from Render Pipeline Asset")
             };
 
-            public static readonly GUIContent customShadowLayers = EditorGUIUtility.TrTextContent("Custom Shadow Layers", "When enabled, you can use the Layer property below to specify the layers for shadows seperately to lighting. When disabled, the Light Layer property in the General section specifies the layers for both lighting and for shadows.");
+            public static readonly GUIContent customShadowLayers = EditorGUIUtility.TrTextContent("Custom Shadow Layers", "When enabled, you can use the Layer property below to specify the layers for shadows separately to lighting. When disabled, the Light Layer property in the General section specifies the layers for both lighting and for shadows.");
             public static readonly GUIContent ShadowLayer = EditorGUIUtility.TrTextContent("Layer", "Specifies the light layer to use for shadows.");
 
             public static readonly GUIContent LightCookieSize = EditorGUIUtility.TrTextContent("Cookie Size", "Controls the size of the cookie mask currently assigned to the light.");
             public static readonly GUIContent LightCookieOffset = EditorGUIUtility.TrTextContent("Cookie Offset", "Controls the offset of the cookie mask currently assigned to the light.");
             /// <summary>Title with "Rendering Layer"</summary>
             public static readonly GUIContent RenderingLayers = EditorGUIUtility.TrTextContent("Rendering Layers", "Select the Rendering Layers that the Light affects. This Light affects objects where at least one Rendering Layer value matches.");
-            public static readonly GUIContent RenderingLayersDisabled = EditorGUIUtility.TrTextContent("Rendering Layers", "Rendering Layers are disabled because they have a small GPU performance cost. To enable this setting, go to the active Universal Render Pipeline Asset, and enable Lighting -> Use Rendering Layers.");
+            public static readonly GUIContent RenderingLayersHelpBox = EditorGUIUtility.TrTextContentWithIcon($"Rendering Layers are disabled by default because they have a small GPU performance cost. Enable them in the active Universal Render Pipeline Asset, under Lighting -> Use Rendering Layers.", CoreEditorStyles.GetMessageTypeIcon(MessageType.Info));
         }
     }
 }

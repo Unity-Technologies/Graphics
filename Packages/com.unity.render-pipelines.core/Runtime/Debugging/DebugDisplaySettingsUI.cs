@@ -32,42 +32,55 @@ namespace UnityEngine.Rendering
         /// <param name="settings"><see cref="IDebugDisplaySettings"/> to be registered</param>
         public void RegisterDebug(IDebugDisplaySettings settings)
         {
-            DebugManager debugManager = DebugManager.instance;
-            List<IDebugDisplaySettingsPanelDisposable> panels = new List<IDebugDisplaySettingsPanelDisposable>();
-
-            debugManager.RegisterData(this);
-
+            DebugManager.instance.RegisterData(this);
             m_Settings = settings;
-            m_DisposablePanels = panels;
-
             m_Settings.Add(new DebugDisplaySettingsRenderGraph());
 
-            Action<IDebugDisplaySettingsData> onExecute = (data) =>
+            // Don't initialize the UI immediately to avoid unnecessary work at pipeline init time. Instaed,
+            // initialize UI when any debug UI is opened (or if the editor window is already open)
+            DebugManager.windowStateChanged += DebugUIOpened;
+            if (DebugManager.instance.isAnyDebugUIActive)
+                InitializeDebugUI();
+        }
+
+        void DebugUIOpened(DebugManager.UIMode uiMode, bool isOpen)
+        {
+            InitializeDebugUI();
+        }
+
+        internal void InitializeDebugUI()
+        {
+            if (m_DisposablePanels == null)
             {
-                IDebugDisplaySettingsPanelDisposable disposableSettingsPanel = data.CreatePanel();
+                var panels = new List<IDebugDisplaySettingsPanelDisposable>();
 
-                DebugUI.Widget[] panelWidgets = disposableSettingsPanel.Widgets;
+                Action<IDebugDisplaySettingsData> onExecute = (data) =>
+                {
+                    IDebugDisplaySettingsPanelDisposable disposableSettingsPanel = data.CreatePanel();
 
-                DebugUI.Panel panel = debugManager.GetPanel(
-                    displayName: disposableSettingsPanel.PanelName,
-                    createIfNull: true,
-                    groupIndex: (disposableSettingsPanel is DebugDisplaySettingsPanel debugDisplaySettingsPanel) ? debugDisplaySettingsPanel.Order : 0);
+                    DebugUI.Widget[] panelWidgets = disposableSettingsPanel.Widgets;
+
+                    DebugUI.Panel panel = DebugManager.instance.GetPanel(
+                        displayName: disposableSettingsPanel.PanelName,
+                        createIfNull: true,
+                        groupIndex: (disposableSettingsPanel is DebugDisplaySettingsPanel debugDisplaySettingsPanel) ? debugDisplaySettingsPanel.Order : 0);
 #if UNITY_EDITOR
-
-                if (DocumentationUtils.TryGetHelpURL(disposableSettingsPanel.GetType(), out var documentationUrl))
-                    panel.documentationUrl = documentationUrl;
+                    if (DocumentationUtils.TryGetHelpURL(disposableSettingsPanel.GetType(), out var documentationUrl))
+                        panel.documentationUrl = documentationUrl;
 #endif
 
-                ObservableList<DebugUI.Widget> panelChildren = panel.children;
+                    ObservableList<DebugUI.Widget> panelChildren = panel.children;
 
-                panel.flags = disposableSettingsPanel.Flags;
-                panels.Add(disposableSettingsPanel);
-                panelChildren.Add(panelWidgets);
-            };
+                    panel.flags = disposableSettingsPanel.Flags;
+                    panels.Add(disposableSettingsPanel);
+                    panelChildren.Add(panelWidgets);
+                };
 
-            m_Settings.ForEach(onExecute);
+                m_Settings.ForEach(onExecute);
+                m_DisposablePanels = panels;
 
-            DebugDisplaySerializer.LoadFoldoutStates();
+                DebugDisplaySerializer.LoadFoldoutStates();
+            }
         }
 
         /// <summary>
@@ -96,6 +109,8 @@ namespace UnityEngine.Rendering
             }
 
             debugManager.UnregisterData(this);
+
+            DebugManager.windowStateChanged -= DebugUIOpened;
         }
 
         #region IDebugData

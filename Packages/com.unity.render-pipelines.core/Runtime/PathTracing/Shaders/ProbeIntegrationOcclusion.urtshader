@@ -30,6 +30,7 @@ void IntegrateOcclusion(UnifiedRT::DispatchInfo dispatchInfo)
     // Which probe in the expanded g_Occlusion buffer are we in?
     const uint outProbeIdx = inProbeIdx * g_SampleCount + inProbeSampleIdx;
 
+    uint dimsOffset = 0;
     for (uint indirectLightIndex = 0; indirectLightIndex < g_MaxLightsPerProbe; indirectLightIndex++)
     {
         // Which light in the expanded g_Occlusion buffer are we in?
@@ -48,10 +49,9 @@ void IntegrateOcclusion(UnifiedRT::DispatchInfo dispatchInfo)
             PTLight light = FetchLight(lightIndex);
             if (light.type == SPOT_LIGHT || light.type == POINT_LIGHT || light.type == DIRECTIONAL_LIGHT)
             {
-                uint dimsOffset = 0;
-                uint dimsUsed = 0;
                 float3 attenuation = 1.0f;
-                bool isVisible = IsLightVisibleFromPoint(dispatchInfo, accelStruct, g_AccelStructInstanceList, SHADOW_RAY_VIS_MASK, worldPosition, rngState, dimsOffset, dimsUsed, light, true, attenuation);
+                bool isVisible = IsLightVisibleFromPoint(dispatchInfo, accelStruct, g_AccelStructInstanceList, SHADOW_RAY_VIS_MASK, worldPosition, rngState, dimsOffset, light, true, attenuation);
+                dimsOffset += 3; // 2 dimensions for sampling the light, 1 dimension for jittering the shadow ray
                 if (isVisible)
                 {
                     g_Occlusion[outOcclusionValueIdx] = 1.0f / g_SampleCount;

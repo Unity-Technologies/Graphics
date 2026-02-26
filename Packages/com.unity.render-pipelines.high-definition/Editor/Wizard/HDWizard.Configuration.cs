@@ -204,7 +204,7 @@ namespace UnityEditor.Rendering.HighDefinition
             });
 
             var currentBuildTarget = CalculateSelectedBuildTarget();
-            if ((currentBuildTarget == BuildTarget.PS5) || (currentBuildTarget == BuildTarget.GameCoreXboxSeries))
+            if ((currentBuildTarget == BuildTarget.PS5) || (currentBuildTarget == BuildTarget.GameCoreXboxSeries) || (currentBuildTarget == BuildTarget.Switch2))
             {
                 entryList.AddRange(new[]
                 {

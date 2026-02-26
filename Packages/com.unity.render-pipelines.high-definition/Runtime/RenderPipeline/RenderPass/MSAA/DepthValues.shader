@@ -7,7 +7,7 @@ Shader "Hidden/HDRP/DepthValues"
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-        // #pragma enable_d3d11_debug_symbols
+        // #pragma enable_debug_symbols
 
         // Target multisampling textures
         TEXTURE2D_X_MSAA(float, _DepthTextureMS);

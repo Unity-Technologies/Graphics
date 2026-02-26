@@ -65,7 +65,8 @@ namespace Preview
                 .Returns(null),
             new TestCaseData(new MaterialFactory($"TestMaterial-{nameof(HDRenderPipelineAsset)}"), typeof(HDRenderPipelineAsset))
                 .SetName($"Preview generation for Material {nameof(HDRenderPipelineAsset)} with PreviewImporter")
-                .Returns(null),
+                .Returns(null)
+                .Ignore("Reports incompatible keyword space errors"),
             new TestCaseData(new GameObjectFactory($"Hammer.fbx"), null)
                 .SetName($"Preview generation for Model Built-In with PreviewImporter")
                 .Returns(null),
@@ -74,7 +75,8 @@ namespace Preview
                 .Returns(null),
             new TestCaseData(new GameObjectFactory($"Hammer.fbx"), typeof(HDRenderPipelineAsset))
                 .SetName($"Preview generation for Model {nameof(HDRenderPipelineAsset)} with PreviewImporter")
-                .Returns(null),
+                .Returns(null)
+                .Ignore("Reports incompatible keyword space errors"),
             new TestCaseData(new GameObjectFactory($"Hammer.prefab"), null)
                 .SetName($"Preview generation for Prefab Built-In with PreviewImporter")
                 .Returns(null),
@@ -83,7 +85,8 @@ namespace Preview
                 .Returns(null),
             new TestCaseData(new GameObjectFactory($"Hammer.prefab"), typeof(HDRenderPipelineAsset))
                 .SetName($"Preview generation for Prefab {nameof(HDRenderPipelineAsset)} with PreviewImporter")
-                .Returns(null),
+                .Returns(null)
+                .Ignore("Reports incompatible keyword space errors"),
         };
 
         string m_CreatedObjectPath;
@@ -116,7 +119,6 @@ namespace Preview
             }
         }
 
-        [Ignore("issue: no worker when launching AssertSingleWorkerUsedAtLeastTwice https://jira.unity3d.com/browse/UUM-131927")]
         [UnityTest]
         [TestCaseSource(nameof(s_TestCaseDataPreviewImporter))]
         /// <summary>

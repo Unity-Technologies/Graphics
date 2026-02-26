@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph.Internal
     [Serializable]
     public struct ShaderGraphRequirements
     {
-        [SerializeField] List<NeededTransform> m_RequiresTransforms;
+        List<NeededTransform> m_RequiresTransforms;
         [SerializeField] NeededCoordinateSpace m_RequiresNormal;
         [SerializeField] NeededCoordinateSpace m_RequiresBitangent;
         [SerializeField] NeededCoordinateSpace m_RequiresTangent;

@@ -15,6 +15,23 @@ namespace UnityEditor.ShaderGraph
 
         internal Vector1MaterialIntegerSlot(int slotId, Vector1ShaderProperty property) : base(slotId, property) { }
 
+        [SerializeField]
+        bool m_unsigned = false;
+
+        public Vector1MaterialIntegerSlot(
+            int slotId,
+            string displayName,
+            string shaderOutputName,
+            SlotType slotType,
+            float value,
+            ShaderStageCapability stageCapability = ShaderStageCapability.All,
+            bool hidden = false,
+            bool unsigned = false)
+            : base(slotId, displayName, shaderOutputName, slotType, value, stageCapability: stageCapability, hidden: hidden)
+        {
+            m_unsigned = unsigned;
+        }
+
         public override VisualElement InstantiateControl()
         {
             return new IntegerSlotControlView(this);
@@ -47,7 +64,7 @@ namespace UnityEditor.ShaderGraph
                 if (evt.newValue != m_Slot.value)
                 {
                     m_Slot.owner.owner.owner.RegisterCompleteObjectUndo("Integer Change");
-                    m_Slot.value = evt.newValue;
+                    m_Slot.value = m_Slot.m_unsigned ? (uint)evt.newValue : (int)evt.newValue;
                     m_Slot.owner.Dirty(ModificationScope.Node);
                 }
             }

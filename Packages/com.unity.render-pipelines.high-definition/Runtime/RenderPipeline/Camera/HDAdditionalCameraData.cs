@@ -818,5 +818,12 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 return null;
         }
+
+#if UNITY_EDITOR
+        [NonSerialized, ExcludeCopy]
+        internal bool doesSceneViewOverrideExposure = false;
+        [NonSerialized, ExcludeCopy]
+        internal float sceneViewOverrideExposureValue = 10f;
+#endif
     }
 }

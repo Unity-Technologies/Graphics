@@ -17,4 +17,4 @@ xr:
   when:
     path:
       - ^.*XRSubsystem.*$
-  area: SRP XR
+  area: Graphics XR

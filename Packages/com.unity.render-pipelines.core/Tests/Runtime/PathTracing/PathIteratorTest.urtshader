@@ -4,7 +4,7 @@
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/PathTracing.hlsl"
 
-#pragma exclude_renderers switch switch2
+#pragma exclude_renderers switch switch2 webgpu
 
 uint g_SampleCount;
 

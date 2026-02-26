@@ -25,9 +25,9 @@ The Refract node uses the principles described in [Snell's Law](https://en.wikip
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-| Mode      | Dropdown | &#8226; **Safe:** Returns a null vector result instead of a NaN result at the point of critical angle refraction. <br/>&#8226; **CriticalAngle:** Avoids the **Safe** check for a potential NaN result. ||
+| Control | Description |
+|:---|:---|
+| **Mode** | Select a mode to handle results at the point of critical angle refraction. The options are: <ul><li>**Safe:** Returns a null vector result instead of a NaN result at the point of critical angle refraction.</li><li>**CriticalAngle:** Avoids the **Safe** check for a potential NaN result.</li></ul>|
 
 ## Generated Code Example
 

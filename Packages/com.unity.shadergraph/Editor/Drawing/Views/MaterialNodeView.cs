@@ -6,13 +6,10 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing.Controls;
-using UnityEngine.Rendering;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
 using Node = UnityEditor.Experimental.GraphView.Node;
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -73,7 +70,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     foreach (IControlAttribute attribute in propertyInfo.GetCustomAttributes(typeof(IControlAttribute), false))
                         m_ControlItems.Add(attribute.InstantiateControl(node, propertyInfo));
             }
-            if (m_ControlItems.childCount > 0 || inNode is SubGraphNode)
+            if (m_ControlItems.childCount > 0 || inNode is SubGraphNode || inNode is ProviderSystem.ProviderNode)
                 contents.Add(controlsContainer);
 
             // Add dropdowns container
@@ -91,7 +88,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 contents.Add(dropdownContainer);
             }
 
-            if (node.hasPreview && IsPreviewable(node))
+            if (node.hasPreview)
             {
                 // Add actual preview which floats on top of the node
                 m_PreviewContainer = new VisualElement
@@ -153,6 +150,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     RegisterCallback<MouseDownEvent>(OnSubGraphDoubleClick);
                     m_UnregisterAll += () => { UnregisterCallback<MouseDownEvent>(OnSubGraphDoubleClick); };
                     break;
+                case ProviderSystem.ProviderNode:
+                    RegisterCallback<MouseDownEvent>(OnProviderDoubleClick);
+                    m_UnregisterAll += () => { UnregisterCallback<MouseDownEvent>(OnProviderDoubleClick); };
+                    break;
             }
 
             m_TitleContainer = this.Q("title");
@@ -195,11 +196,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             IconBadge badge;
             if (severity == ShaderCompilerMessageSeverity.Error)
             {
-                badge = IconBadge.CreateError(errString);
+                badge = InternalBridge.IconBadge.CreateError(errString);
             }
             else
             {
-                badge = IconBadge.CreateComment(errString);
+                badge = InternalBridge.IconBadge.CreateComment(errString);
             }
 
             Add(badge);
@@ -335,6 +336,21 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var path = AssetDatabase.GUIDToAssetPath(subgraphNode.subGraphGuid);
                 ShaderGraphImporterEditor.ShowGraphEditWindow(path);
 
+                // Stop the double click event from starting a drag action on the node
+                evt.StopImmediatePropagation();
+            }
+        }
+
+        void OnProviderDoubleClick(MouseDownEvent evt)
+        {
+            if (evt.clickCount == 2 && evt.button == 0)
+            {
+                var providerNode = node as ProviderSystem.ProviderNode;
+                if (providerNode.Provider.IsValid && providerNode.Provider.AssetID != default)
+                {
+                    var path = AssetDatabase.GUIDToAssetPath(providerNode.Provider.AssetID);
+                    GraphUtil.OpenFile(path);
+                }
                 // Stop the double click event from starting a drag action on the node
                 evt.StopImmediatePropagation();
             }
@@ -485,7 +501,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return !(node is BlockNode) && m_CollapseButton.enabledInHierarchy;
         }
 
-        static bool IsPreviewable(AbstractMaterialNode node)
+        internal static bool IsPreviewable(AbstractMaterialNode node)
         {
             // only the first output slot is considered.
             foreach (var slot in node.GetOutputSlots<MaterialSlot>())

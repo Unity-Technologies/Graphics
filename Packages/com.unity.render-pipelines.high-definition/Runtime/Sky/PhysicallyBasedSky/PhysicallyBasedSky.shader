@@ -4,7 +4,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
     #pragma vertex Vert
 
-    // #pragma enable_d3d11_debug_symbols
+    // #pragma enable_debug_symbols
     #pragma editor_sync_compilation
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2

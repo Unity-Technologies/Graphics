@@ -92,10 +92,11 @@ The Detailed Stats section displays the amount of time in milliseconds that each
 
 | **Property**                     | **Description**                                                                                                                                            |
 |----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Update every second with average | Calculate average values over one second and update every second.                                                                                          |
-| Hide empty scopes                | Hide profiling scopes that use 0.00ms of processing time on the CPU and GPU.                                                                               |
-| Count Rays                       | Count the number of traced rays for each effect (in MRays / frame). This mode only appears when you enable ray tracing.                                    |
-| Debug XR Layout                  | Enable to display debug information for [XR](https://docs.unity3d.com/Manual/XR.html) passes. This mode only appears in the editor and development builds. |
+| **Update every second with average** | Calculates the average values over one second and updates every second.                                                                                          |
+| **Hide empty scopes**                | Hides any profiling scopes that use 0.00 ms of processing time on the CPU and GPU.                                                                               |
+| **Count Rays**                       | Counts the number of traced rays for each effect (in MRays / frame). This mode only appears when you enable ray tracing.                                    |
+| **Debug XR Layout**                  | Displays debug information for [XR](https://docs.unity3d.com/Manual/XR.html) passes. This mode only appears in the Editor and development builds. |
+| **Profiling Scopes**                 | Displays each rendering step and the amount of milliseconds it takes to execute on the following:<ul><li>**CPU**: CPU time for executing command buffers on the render thread.</li><li>**CPUInline**: CPU time for code executed immediately on the main thread.</li><li>**GPU**: GPU execution time.</li></ul>|
 
 <a name="MaterialPanel"></a>
 

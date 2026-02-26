@@ -20,6 +20,23 @@ namespace UnityEditor.ShaderGraph
 
         internal Vector1MaterialEnumSlot() { }
 
+        public Vector1MaterialEnumSlot(
+            int slotId,
+            string displayName,
+            string shaderOutputName,
+            SlotType slotType,
+            IEnumerable<string> options,
+            float value, // should match a value in the options.
+            ShaderStageCapability stageCapability = ShaderStageCapability.All,
+            bool hidden = false)
+            : base(slotId, displayName, shaderOutputName, slotType, value, stageCapability: stageCapability, hidden: hidden)
+        {
+            this.options = new(options);
+            this.values = new();
+            for (int i = 0; i < this.options.Count; ++i)
+                values.Add(i);
+        }
+
         internal Vector1MaterialEnumSlot(int slotId, Vector1ShaderProperty fromProperty)
             : base(slotId, fromProperty)
         {
@@ -50,9 +67,13 @@ namespace UnityEditor.ShaderGraph
             {
                 m_Slot = slot;
 
+                int idx = m_Slot.values.FindIndex(e => e == (int)slot.value);
+                if (idx < 0 || idx >= slot.options.Count)
+                    idx = 0;
+
                 var dropdownField = slot.hideConnector
-                    ? new DropdownField(slot.RawDisplayName(), slot.options, 0)
-                    : new DropdownField(slot.options, 0);
+                    ? new DropdownField(slot.RawDisplayName(), slot.options, idx)
+                    : new DropdownField(slot.options, idx);
 
                 dropdownField.RegisterValueChangedCallback(OnValueChange);
                 Add(dropdownField);

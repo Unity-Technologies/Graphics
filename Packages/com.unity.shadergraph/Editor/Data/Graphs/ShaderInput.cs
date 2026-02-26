@@ -8,6 +8,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
+    [Serializable]
     public abstract class ShaderInput : JsonObject
     {
         [SerializeField]

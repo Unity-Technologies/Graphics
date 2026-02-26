@@ -147,9 +147,8 @@ struct QrngKronecker2D
 
     void Init(uint seed, uint startSampleIndex)
     {
-        uint hash = seed;
-        cranleyPattersonSeed = hash;
-        uint shuffledStartIndex = (startSampleIndex + hash) % (1 << 20);
+        cranleyPattersonSeed = seed;
+        uint shuffledStartIndex = (startSampleIndex + seed) % (1 << 20);
         shuffledSampleIndex = shuffledStartIndex;
 #ifdef QRNG_KRONECKER_ENHANCED_QUALITY
         sampleIndex = startSampleIndex+1;

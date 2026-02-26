@@ -75,7 +75,7 @@ namespace Framework
                 return snapshot;
             }
 
-            var logFiles = Directory.GetFiles(logsDirectory, "AssetImportWorker*.log")
+            var logFiles = Directory.GetFiles(logsDirectory, "AssetImportWorkerHW*.log")
                 .Where(f => !Path.GetFileName(f).Contains("-prev")) // Ignore previous run logs
                 .ToArray();
 
@@ -103,7 +103,7 @@ namespace Framework
         private static int ExtractWorkerIdFromFilename(string logFilePath)
         {
             var filename = Path.GetFileName(logFilePath);
-            var match = Regex.Match(filename, @"AssetImportWorker(\d+)\.log");
+            var match = Regex.Match(filename, @"AssetImportWorkerHW(\d+)\.log");
             return match.Success ? int.Parse(match.Groups[1].Value) : -1;
         }
 
@@ -124,45 +124,12 @@ namespace Framework
                 return 0;
 
             int count = 0;
-            try
+            const int maxRetries = 2;
+            for (int attempt = 0; attempt < maxRetries; attempt++)
             {
-                // Use FileStream with FileShare.ReadWrite to allow reading while the worker has the file open for writing
-                using (var fileStream = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                using (var reader = new StreamReader(fileStream))
-                {
-                    var lines = new List<string>();
-                    string line;
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        lines.Add(line);
-                    }
-
-                    for (int i = 0; i < lines.Count; i++)
-                    {
-                        // Look for the "Received Import Request." line
-                        if (lines[i].Contains("Received Import Request."))
-                        {
-                            // Check the next few lines for the path
-                            for (int j = i + 1; j < Math.Min(i + 5, lines.Count); j++)
-                            {
-                                if (lines[j].Contains($"path: {assetPath}"))
-                                {
-                                    count++;
-                                    break; // Found the path, move to next import request
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (IOException ex) when (ex.Message.Contains("sharing violation") || ex.Message.Contains("being used by another process"))
-            {
-                Debug.LogWarning($"Worker log {logFilePath} is currently in use by another process. Retrying...");
-
-                // Retry after a short delay - the worker might have just finished writing
-                System.Threading.Thread.Sleep(100);
                 try
                 {
+                    // Use FileStream with FileShare.ReadWrite to allow reading while the worker has the file open for writing
                     using (var fileStream = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     using (var reader = new StreamReader(fileStream))
                     {
@@ -175,28 +142,34 @@ namespace Framework
 
                         for (int i = 0; i < lines.Count; i++)
                         {
+                            // Look for the "Received Import Request." line
                             if (lines[i].Contains("Received Import Request."))
                             {
+                                // Check the next few lines for the path
                                 for (int j = i + 1; j < Math.Min(i + 5, lines.Count); j++)
                                 {
-                                    if (lines[j].Contains($"path: {assetPath}"))
+                                    if (lines[j].Contains($"Path: {assetPath}"))
                                     {
                                         count++;
-                                        break;
+                                        break; // Found the path, move to next import request
                                     }
                                 }
                             }
                         }
                     }
+                    break; // Success, exit retry loop
                 }
-                catch (Exception retryEx)
+                catch (IOException ex) when ((ex.Message.Contains("sharing violation") || ex.Message.Contains("being used by another process")) && attempt < maxRetries - 1)
                 {
-                    Debug.LogWarning($"Failed to read worker log {logFilePath} after retry: {retryEx.Message}");
+                    Debug.LogWarning($"Worker log {logFilePath} is currently in use by another process. Retrying...");
+                    // Retry after a short delay - the worker might have just finished writing
+                    System.Threading.Thread.Sleep(100);
                 }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogWarning($"Failed to read worker log {logFilePath}: {ex.Message}");
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Failed to read worker log {logFilePath}{(attempt > 0 ? " after retry" : "")}: {ex.Message}");
+                    break; // Non-retryable exception, exit loop
+                }
             }
 
             return count;
@@ -222,29 +195,6 @@ namespace Framework
             var sumImports = workersWithImports.Sum(kvp => kvp.Value);
             Assert.AreEqual(expectedImports, sumImports,
                 $"Expected a total of {expectedImports} imports for {assetPath}, but found {sumImports} imports across all workers");
-        }
-
-        /// <summary>
-        /// Asserts that all imports in the difference snapshot occurred on a single worker
-        /// without checking the exact count (useful when the expected count is unknown).
-        /// </summary>
-        /// <param name="importDifference">The difference snapshot showing new imports</param>
-        /// <param name="assetPath">The asset path being imported</param>
-        /// <returns>The worker ID that performed all imports</returns>
-        public static int AssertSingleWorkerUsed(WorkerLogSnapshot importDifference, string assetPath)
-        {
-            var workersWithImports = importDifference.WorkerImportCounts.Where(kvp => kvp.Value > 0).ToList();
-
-            Assert.IsTrue(workersWithImports.Count > 0,
-                $"Expected at least one worker to have processed imports for {assetPath}, but found none");
-
-            Assert.AreEqual(1, workersWithImports.Count,
-                $"Expected all imports for {assetPath} to occur on a single worker, but found imports on {workersWithImports.Count} workers: {string.Join(", ", workersWithImports.Select(kvp => $"Worker{kvp.Key}({kvp.Value} imports)"))}");
-
-            var singleWorker = workersWithImports.First();
-            Debug.Log($"✓ All {singleWorker.Value} imports for {assetPath} occurred on Worker{singleWorker.Key} as expected");
-
-            return singleWorker.Key;
         }
     }
 }

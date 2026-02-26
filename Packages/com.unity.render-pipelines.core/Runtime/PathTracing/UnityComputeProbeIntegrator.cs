@@ -15,8 +15,8 @@ namespace UnityEngine.PathTracing.Integration
         private readonly ProbeIntegrator _probeIntegrator;
         private UnityComputeWorld _world;
         private uint _bounceCount;
-        private uint _directLightingEvaluationCount;
-        private uint _numIndirectLightingEvaluations;
+        private uint _directRISCandidateCount = 4;
+        private uint _indirectRISCandidateCount = 1;
         private uint _basePositionsOffset;
 
         private static class ShaderProperties
@@ -66,7 +66,8 @@ namespace UnityEngine.PathTracing.Integration
                 (uint)positionCount,
                 sampleOffset,
                 (uint)sampleCount,
-                _directLightingEvaluationCount,
+                _directRISCandidateCount,
+                (uint)_world.PathTracingWorld.MaxLightsInAnyCell,
                 ignoreEnvironment,
                 unifiedContext.GetComputeBuffer(radianceEstimateOut.Id),
                 (uint)radianceEstimateOut.Offset,
@@ -96,7 +97,8 @@ namespace UnityEngine.PathTracing.Integration
                 _bounceCount,
                 sampleOffset,
                 (uint)sampleCount,
-                _numIndirectLightingEvaluations,
+                _indirectRISCandidateCount,
+                (uint)_world.PathTracingWorld.MaxLightsInAnyCell,
                 ignoreEnvironment,
                 unifiedContext.GetComputeBuffer(radianceEstimateOut.Id),
                 (uint)radianceEstimateOut.Offset,
@@ -191,11 +193,14 @@ namespace UnityEngine.PathTracing.Integration
             return new IProbeIntegrator.Result(IProbeIntegrator.ResultType.Success, string.Empty);
         }
 
-        public void Prepare(IDeviceContext context, IWorld world, BufferSlice<Vector3> positions, float pushoff, int bounceCount)
+        public void Prepare(
+            IDeviceContext context,
+            IWorld world,
+            BufferSlice<Vector3> positions,
+            float pushoff,
+            int bounceCount)
         {
             _bounceCount = (uint)bounceCount;
-            _directLightingEvaluationCount = 4;
-            _numIndirectLightingEvaluations = 1;
 
             _world = world as UnityComputeWorld;
             Debug.Assert(world != null);

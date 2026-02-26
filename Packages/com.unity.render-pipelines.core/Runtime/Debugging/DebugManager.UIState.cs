@@ -1,6 +1,9 @@
 #if ENABLE_UIELEMENTS_MODULE && (UNITY_EDITOR || DEVELOPMENT_BUILD)
 #define ENABLE_RENDERING_DEBUGGER_UI
 #endif
+#if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
+#define USE_INPUT_SYSTEM
+#endif
 
 using System;
 
@@ -33,8 +36,8 @@ namespace UnityEngine.Rendering
         {
             public UIMode mode;
 
-            [SerializeField]
-            private bool m_Open;
+            bool m_Open;
+
             public bool open
             {
                 get => m_Open;
@@ -50,18 +53,18 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private UIState editorUIState = new UIState() { mode = UIMode.EditorMode };
+        readonly UIState m_EditorUIState = new UIState() { mode = UIMode.EditorMode };
 
         /// <summary>
         /// Is the debug editor window open.
         /// </summary>
         public bool displayEditorUI
         {
-            get => editorUIState.open;
-            set => editorUIState.open = value;
+            get => m_EditorUIState.open;
+            set => m_EditorUIState.open = value;
         }
 
-        private bool m_EnableRuntimeUI = true;
+        bool m_EnableRuntimeUI = true;
 
         /// <summary>
         /// Controls whether runtime UI can be enabled. When this is set to false, there will be no overhead
@@ -80,7 +83,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private UIState runtimeUIState = new UIState() { mode = UIMode.RuntimeMode };
+        readonly UIState m_RuntimeUIState = new UIState() { mode = UIMode.RuntimeMode };
 
         /// <summary>
         /// Displays the runtime version of the debug window.
@@ -99,6 +102,9 @@ namespace UnityEngine.Rendering
                         m_RuntimeDebugWindow = go.AddComponent<RuntimeDebugWindow>();
                         go.SetActive(true);
                     }
+#if USE_INPUT_SYSTEM
+                    m_DebugMenuActions.Enable();
+#endif
                 }
                 else
                 {
@@ -107,11 +113,14 @@ namespace UnityEngine.Rendering
                         CoreUtils.Destroy(m_RuntimeDebugWindow.gameObject);
                         m_RuntimeDebugWindow = null;
                     }
+#if USE_INPUT_SYSTEM
+                    m_DebugMenuActions.Disable();
+#endif
                 }
 
                 onDisplayRuntimeUIChanged(value);
 
-                runtimeUIState.open = m_RuntimeDebugWindow != null && m_RuntimeDebugWindow.gameObject.activeInHierarchy;
+                m_RuntimeUIState.open = m_RuntimeDebugWindow != null && m_RuntimeDebugWindow.gameObject.activeInHierarchy;
             }
 #else
             get => false;

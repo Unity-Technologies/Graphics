@@ -10,6 +10,7 @@ namespace UnityEditor.Rendering.Universal
 {
     [Serializable]
     [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
+    [BatchModeConverterClassInfo("BuiltInToURP", "ReadonlyMaterial")]
     [ElementInfo(Name = "Material Reference Converter",
                  Order = 100,
                  Description = "Converts references to Built-In readonly materials to URP readonly materials.")]

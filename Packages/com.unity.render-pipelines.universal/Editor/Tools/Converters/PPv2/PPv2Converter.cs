@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.Universal
     [URPHelpURL("features/rp-converter")]
     [Serializable]
     [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
+    [BatchModeConverterClassInfo("BuiltInToURP", "PPv2")]
     [ElementInfo(Name = "Post-Processing Stack v2",
                  Order = int.MaxValue,
                  Description = "This converter creates Universal Render Pipeline (URP) assets and corresponding Renderer assets, configuring their settings to match the equivalent settings from the Built-in Render Pipeline.")]

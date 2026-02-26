@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using UnityEngine;
 using Unity.Mathematics;
+using UnityEditorInternal;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEditorInternal;
 using static UnityEngine.Rendering.HighDefinition.RenderPipelineSettings;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -1442,12 +1442,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static void DisplayRayTracingSupportBox()
         {
-            CoreEditorUtils.DrawFixMeBox(Styles.rayTracingRestrictionOnlyWarning, "Open", () =>
+            var currentBuildTarget = EditorUserBuildSettings.activeBuildTarget;
+            if (HDRenderPipeline.PlatformHasRaytracingIssues(currentBuildTarget, out var warning))
             {
-                HDUserSettings.SetOpen(InclusiveMode.DXROptional, true); // Make sure DXR is open
-                HDWizard.OpenWindow();
-            });
-
+                EditorGUILayout.HelpBox(warning, MessageType.Warning);
+            }
         }
 
         static void Drawer_SectionRenderingUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)
@@ -1509,19 +1508,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
 
+            // If ray tracing is enabled by the asset but the current system does not support it display a warning
+            if (serialized.renderPipelineSettings.supportRayTracing.boolValue)
+            {
+                DisplayRayTracingSupportBox();
+            }
+
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportRayTracing.boolValue))
             {
                 ++EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportedRayTracingMode, Styles.supportedRayTracingMode);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVFXRayTracing,
                     Styles.supportVFXRayTracing);
-
-                // If ray tracing is enabled by the asset but the current system does not support it display a warning
-                if (!HDRenderPipeline.currentSystemSupportsRayTracing)
-                {
-                    if (serialized.renderPipelineSettings.supportRayTracing.boolValue)
-                        DisplayRayTracingSupportBox();
-                }
                 --EditorGUI.indentLevel;
             }
 
@@ -1601,6 +1599,9 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDistortion, Styles.supportDistortion);
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSubsurfaceScattering, Styles.supportedSSSContent);
+            if (serialized.renderPipelineSettings.supportSubsurfaceScattering.boolValue)
+                HDEditorUtils.ShowPlatformPerformanceWarning(BuildTarget.Switch2, "Subsurface Scattering");
+
             using (new EditorGUI.DisabledScope(serialized.renderPipelineSettings.supportSubsurfaceScattering.hasMultipleDifferentValues
                 || !serialized.renderPipelineSettings.supportSubsurfaceScattering.boolValue))
             {

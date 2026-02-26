@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Project-wide shader configuration options.
     /// </summary>
     /// <remarks>This enum will generate the proper shader defines.</remarks>
-    ///<seealso cref="ShaderConfig"/>
+    /// <seealso cref="ShaderConfig"/>
     [GenerateHLSL(PackingRules.Exact)]
     public enum ShaderOptions
     {

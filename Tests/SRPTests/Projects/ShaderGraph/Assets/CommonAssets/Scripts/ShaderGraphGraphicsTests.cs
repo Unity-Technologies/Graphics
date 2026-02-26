@@ -9,6 +9,7 @@ using UnityEngine.Rendering;
 public class ShaderGraphGraphicsTests
 {
     [IgnoreGraphicsTest("InputNodes|SamplerStateTests|UVNodes", "GLES3 renders these tests incorrectly (FB: 1354427)", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Android }, graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.OpenGLES3 })]
+    [IgnoreGraphicsTest("InputNodes", "UUM-134140", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsEditor }, graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Direct3D12 })]
     [IgnoreGraphicsTest("InstanceIDWithKeywords", "Platform Independent", graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.OpenGLES3 })]
     [IgnoreGraphicsTest("InstanceIDWithKeywords", "Platform Independent", graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.PlayStation4 })]
     [IgnoreGraphicsTest("InstanceIDWithKeywords", "Platform Independent", graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.XboxOne })]

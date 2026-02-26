@@ -253,7 +253,7 @@ namespace UnityEngine.PathTracing.Lightmapping
                     string sampleOutput = new("");
                     foreach (var sample in uvSampleData)
                         sampleOutput += string.Format(System.Globalization.CultureInfo.InvariantCulture, "float2({0}, {1})\n", sample.x, sample.y);
-                    
+
                     System.Console.WriteLine(sampleOutput);
                 }
 
@@ -332,6 +332,7 @@ namespace UnityEngine.PathTracing.Lightmapping
                             instance.ReceiveShadows,
                             lightmapBakeSettings.PushOff,
                             lightmapBakeSettings.DirectLightingEvaluationCount,
+                            (uint)lightmappingContext.World.PathTracingWorld.MaxLightsInAnyCell,
                             newChunkStarted
                         );
                         break;
@@ -384,7 +385,6 @@ namespace UnityEngine.PathTracing.Lightmapping
                             lightmappingContext.IntegratorContext.CompactedGBufferLength,
                             instance.ReceiveShadows,
                             lightmapBakeSettings.PushOff,
-                            lightmapBakeSettings.DirectLightingEvaluationCount,
                             newChunkStarted
                         );
                         break;

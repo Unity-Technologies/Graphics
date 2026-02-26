@@ -24,6 +24,7 @@ namespace UnityEditor.VFX
         private static VFXMainCameraBufferFallback m_CameraBuffersFallback = VFXMainCameraBufferFallback.PreferMainCamera;
         private static bool m_MultithreadUpdateEnabled = true;
         private static bool m_InstancingEnabled = true;
+        private static bool m_UseNewCompiler = false;
         private static bool m_ShowPackageIndexingBanner = true;
         private static int m_AuthoringPrewarmStepCountPerSeconds = kAuthoringPrewarmStepCountPerSecondsDefault;
         private static float m_AuthoringPrewarmMaxTime = kAuthoringPrewarmMaxTimeDefault;
@@ -101,6 +102,15 @@ namespace UnityEditor.VFX
             }
         }
 
+        internal static bool useNewCompiler
+        {
+            get
+            {
+                LoadIfNeeded();
+                return m_UseNewCompiler;
+            }
+        }
+
         public static bool showPackageIndexingBanner
         {
             get
@@ -156,6 +166,7 @@ namespace UnityEditor.VFX
         public const string cameraBuffersFallbackKey = "VFX.CameraBuffersFallback";
         public const string multithreadUpdateEnabledKey = "VFX.MultithreadUpdateEnabled";
         public const string instancingEnabledKey = "VFX.InstancingEnabled";
+        public const string useNewCompilerKey = "VFX.UseNewCompiler";
         public const string showPackageIndexingBannerKey = "VFX.ShowPackageIndexingBanner";
         public const string authoringPrewarmStepCountPerSecondsKey = "VFX.AuthoringPrewarmStepCountPerSeconds";
         public const string authoringPrewarmMaxTimeKey = "VFX.AuthoringPrewarmMaxTimeKey";
@@ -172,8 +183,12 @@ namespace UnityEditor.VFX
                 m_GenerateShadersWithDebugSymbols = EditorPrefs.GetBool(generateShadersWithDebugSymbolsKey, false);
                 m_AdvancedLogs = EditorPrefs.GetBool(advancedLogsKey, false);
                 m_CameraBuffersFallback = (VFXMainCameraBufferFallback)EditorPrefs.GetInt(cameraBuffersFallbackKey, (int)VFXMainCameraBufferFallback.PreferMainCamera);
+
                 m_MultithreadUpdateEnabled = EditorPrefs.GetBool(multithreadUpdateEnabledKey, true);
                 m_InstancingEnabled = EditorPrefs.GetBool(instancingEnabledKey, true);
+
+                m_UseNewCompiler = EditorPrefs.GetBool(useNewCompilerKey, false);
+
                 m_ShowPackageIndexingBanner = EditorPrefs.GetBool(showPackageIndexingBannerKey, true);
 
                 m_AuthoringPrewarmStepCountPerSeconds = EditorPrefs.GetInt(authoringPrewarmStepCountPerSecondsKey, kAuthoringPrewarmStepCountPerSecondsDefault);
@@ -249,6 +264,7 @@ namespace UnityEditor.VFX
                     {
                         m_MultithreadUpdateEnabled = EditorGUILayout.Toggle(new GUIContent("Multithread Update Enabled", "When enabled, visual effects will be updated in parallel when possible."), m_MultithreadUpdateEnabled);
                         m_InstancingEnabled = EditorGUILayout.Toggle(new GUIContent("Instancing Enabled", "When enabled, visual effects will be processed in batches when possible."), m_InstancingEnabled);
+                        m_UseNewCompiler = EditorGUILayout.Toggle(new GUIContent("Use new VFX Graph compiler", "When enabled, the new VFX Graph compiler will be used for any newly compiled VFX."), m_UseNewCompiler);
                     }
 #endif
 
@@ -271,6 +287,9 @@ namespace UnityEditor.VFX
                         EditorPrefs.SetInt(cameraBuffersFallbackKey, (int)m_CameraBuffersFallback);
                         EditorPrefs.SetBool(multithreadUpdateEnabledKey, m_MultithreadUpdateEnabled);
                         EditorPrefs.SetBool(instancingEnabledKey, m_InstancingEnabled);
+
+                        EditorPrefs.SetBool(useNewCompilerKey, m_UseNewCompiler);
+
                         EditorPrefs.SetBool(showPackageIndexingBannerKey, m_ShowPackageIndexingBanner);
 
                         m_AuthoringPrewarmStepCountPerSeconds = Mathf.Clamp(m_AuthoringPrewarmStepCountPerSeconds, 0, kAuthoringPrewarmStepCountPerSecondsMax);

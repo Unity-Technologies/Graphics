@@ -13,8 +13,6 @@ To create a Sticky Note, right-click an empty space in the graph view and, in th
 * **Title**: The text area at the top of the Sticky Note is the title. You can use it to concisely describe what information the Sticky Note contains.
 * **Body**: The larger text area below the title area is the body. You can write the full contents of the note here.
 
-![](images/StickyNote.png)
-
 ### Editing text
 
 To edit text on a Sticky Note, double-click on a text area. This also selects the entire text area, so be sure to move the cursor before you edit the text.

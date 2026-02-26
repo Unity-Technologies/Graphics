@@ -22,6 +22,24 @@
 
 // The number of dimensions used per bounce (depends on the number of light evaluations)
 #define QRNG_SAMPLES_PER_BOUNCE (RAND_DIM_LIGHT_SELECTION + RAND_SAMPLES_PER_LIGHT * MAX_LIGHT_EVALUATIONS)
+
+// Which RNG to use for most of our path tracing code.
 #define QRNG_METHOD_SOBOL
 #define QRNG_SOBOL_02
+
+// Define an alias for the RNG type we have chosen.
+#if defined(QRNG_METHOD_SOBOL)
+    #define QRNG_TYPE QrngSobol2D
+#elif defined(QRNG_METHOD_SOBOL_BLUE_NOISE)
+    #define QRNG_TYPE QrngSobolBlueNoise2D
+#elif defined(QRNG_METHOD_GLOBAL_SOBOL_BLUE_NOISE)
+    #define QRNG_TYPE QrngGlobalSobolBlueNoise2D
+#elif defined(QRNG_METHOD_KRONECKER)
+    #define QRNG_TYPE QrngKronecker2D
+#elif defined(QRNG_METHOD_RANDOM_XOR_SHIFT)
+    #define QRNG_TYPE QrngXorShift
+#elif defined(QRNG_METHOD_RANDOM_PCG_4D)
+    #define QRNG_TYPE QrngPcg4D
+#endif
+
 #include "PathTracingSampler.hlsl"

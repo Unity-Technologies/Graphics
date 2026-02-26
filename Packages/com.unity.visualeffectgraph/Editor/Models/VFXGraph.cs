@@ -1443,7 +1443,12 @@ namespace UnityEditor.VFX
 
         internal VFXGraphCompiledData.VFXCompileOutput Compile()
         {
-            return compiledData.Compile(m_CompilationMode, VFXViewPreference.generateShadersWithDebugSymbols || m_ForceShaderDebugSymbols, VFXAnalytics.GetInstance());
+            bool generateShadersDebugSymbols = VFXViewPreference.generateShadersWithDebugSymbols || m_ForceShaderDebugSymbols;
+
+            if (VFXViewPreference.useNewCompiler)
+                return m_NewCompiler.Compile(this, m_CompilationMode, generateShadersDebugSymbols);
+            else
+                return compiledData.Compile(m_CompilationMode, generateShadersDebugSymbols, VFXAnalytics.GetInstance());
         }
 
         private static System.Reflection.PropertyInfo kGetAllowLocking = typeof(Material).GetProperty("allowLocking", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
@@ -1473,7 +1478,7 @@ namespace UnityEditor.VFX
                 bool instancingEnabled = asset.instancingMode != VFXInstancingMode.Disabled;
 
                 var overridenSystemDesc = new List<VFXEditorSystemDesc>();
-                foreach (var system in compilationOutput.systemDesc)
+                foreach (var system in compilationOutput.assetDesc.systemDesc)
                 {
                     var overridenTask = new List<VFXEditorTaskDesc>();
                     if (system.tasks != null) foreach (var task in system.tasks)
@@ -1481,7 +1486,7 @@ namespace UnityEditor.VFX
                         UnityObject currentProcessor = null;
                         if (task.shaderSourceIndex >= 0)
                         {
-                            var shaderSource = compilationOutput.shaderSourceDesc[task.shaderSourceIndex];
+                            var shaderSource = compilationOutput.assetDesc.shaderSourceDesc[task.shaderSourceIndex];
                             if (shaderSource.compute)
                             {
                                 currentProcessor = ShaderUtil.CreateComputeShaderAsset(shaderSource.source);
@@ -1558,21 +1563,21 @@ namespace UnityEditor.VFX
                     overridenSystemDesc.Add(newSystem);
                 }
 
-                if (compilationOutput.systemDesc.Length != overridenSystemDesc.Count)
+                if (compilationOutput.assetDesc.systemDesc.Length != overridenSystemDesc.Count)
                     throw new InvalidOperationException("Unexpected copy of system");
 
                 var desc = new VisualEffectAssetDesc()
                 {
-                    sheet = compilationOutput.sheet,
+                    sheet = compilationOutput.assetDesc.sheet,
                     systemDesc = overridenSystemDesc.ToArray(),
-                    eventDesc = compilationOutput.eventDesc,
-                    gpuBufferDesc = compilationOutput.gpuBufferDesc,
-                    cpuBufferDesc = compilationOutput.cpuBufferDesc,
-                    temporaryBufferDesc = compilationOutput.temporaryBufferDesc,
-                    shaderSourceDesc = compilationOutput.shaderSourceDesc,
-                    rendererSettings = compilationOutput.rendererSettings,
+                    eventDesc = compilationOutput.assetDesc.eventDesc,
+                    gpuBufferDesc = compilationOutput.assetDesc.gpuBufferDesc,
+                    cpuBufferDesc = compilationOutput.assetDesc.cpuBufferDesc,
+                    temporaryBufferDesc = compilationOutput.assetDesc.temporaryBufferDesc,
+                    shaderSourceDesc = compilationOutput.assetDesc.shaderSourceDesc,
+                    rendererSettings = compilationOutput.assetDesc.rendererSettings,
                     compilationMode = m_CompilationMode,
-                    version = compilationOutput.version
+                    version = compilationOutput.assetDesc.version
                 };
 
                 VisualEffectAssetUtility.SetVisualEffectAssetDesc(asset, desc);
@@ -1608,18 +1613,18 @@ namespace UnityEditor.VFX
                 if (compilationOutput.success)
                 {
                     resource.SetRuntimeData(
-                        compilationOutput.sheet,
-                        compilationOutput.systemDesc,
-                        compilationOutput.eventDesc,
-                        compilationOutput.gpuBufferDesc,
-                        compilationOutput.cpuBufferDesc,
-                        compilationOutput.temporaryBufferDesc,
-                        compilationOutput.shaderSourceDesc,
-                        compilationOutput.rendererSettings.shadowCastingMode,
-                        compilationOutput.rendererSettings.motionVectorGenerationMode,
-                        compilationOutput.instancingDisabledReason,
-                        m_CompilationMode,
-                        compilationOutput.version);
+                        compilationOutput.assetDesc.sheet,
+                        compilationOutput.assetDesc.systemDesc,
+                        compilationOutput.assetDesc.eventDesc,
+                        compilationOutput.assetDesc.gpuBufferDesc,
+                        compilationOutput.assetDesc.cpuBufferDesc,
+                        compilationOutput.assetDesc.temporaryBufferDesc,
+                        compilationOutput.assetDesc.shaderSourceDesc,
+                        compilationOutput.assetDesc.rendererSettings.shadowCastingMode,
+                        compilationOutput.assetDesc.rendererSettings.motionVectorGenerationMode,
+                        compilationOutput.assetDesc.instancingDisabledReason,
+                        compilationOutput.assetDesc.compilationMode,
+                        compilationOutput.assetDesc.version);
 
                     resource.ClearSourceDependencies();
                     foreach (var dependency in compilationOutput.sourceDependencies)
@@ -1721,6 +1726,7 @@ namespace UnityEditor.VFX
         private bool m_CustomAttributesDirty = false;
 
         private VFXGraphCompiledData m_CompiledData;
+        private VfxGraphCompiler m_NewCompiler = new();
 
         private VFXCompilationMode m_CompilationMode = VFXCompilationMode.Runtime;
         private bool m_ForceShaderDebugSymbols = false;

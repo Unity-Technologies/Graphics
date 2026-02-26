@@ -197,6 +197,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }
         )]
         [IgnoreGraphicsTest(
+            "3005_VertexDensity",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135177",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
             "3008_ShadowDebugMode$",
             "(Intel Mac) Clear color of the debug-view seems to be black instead of white. Probably just an outdated ref-image.",
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
@@ -210,14 +215,69 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             runtimePlatforms: new[] { RuntimePlatform.LinuxEditor }
         )]
         [IgnoreGraphicsTest(
+            "4088_DRS-DLSS-Hardware",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135194",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4089_DRS-DLSS-Software",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135194",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4090_DRS-Hardware",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135195",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4091_DRS-Software",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135195",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
             "4096_DRS-TAAU-Hardware$",
             "Very small fringing across edges. Maybe a sampling artifact?",
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }
         )]
         [IgnoreGraphicsTest(
+            "4096_DRS-TAAU-Hardware",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135200",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4097_DRS-TAAU-Software",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135200",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4099_DRS-STP-Software",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135197",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4100_DRS-STP-Hardware",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135197",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
             "4101_FP16Alpha$",
             "Outdated ref-image.",
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }
+        )]
+        [IgnoreGraphicsTest(
+            "4102_DRS-CAS-AfterPost",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135195",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4103_DRS-DLSS-AfterPost",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135195",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4104_DRS-STP-AfterPost",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135197",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
         )]
         [IgnoreGraphicsTest(
             "4105_LensFlareScreenSpace$",
@@ -226,9 +286,34 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             architectures: new[] { Architecture.X64 }
         )]
         [IgnoreGraphicsTest(
+            "4106_DRS-TAAU-AfterPost",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135200",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
             "4106_DRS-TAAU-AfterPost$",
             "Very small fringing across edges. Maybe a sampling artifact?",
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }
+        )]
+        [IgnoreGraphicsTest(
+            "4107_DRS-FSR2-Hardware",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135188",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4108_DRS-FSR2-Software",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135188",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4109_DRS-FSR2-AfterPost",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135188",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4111_DRS-DLSS-With-CustomPass",
+            "Unstable: https://jira.unity3d.com/browse/UUM-135188",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
         )]
         [IgnoreGraphicsTest(
             "5006_Pbr_Sky_Low_Altitude$",
@@ -314,6 +399,21 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }
         )]
         [IgnoreGraphicsTest(
+            "9921_UnderWater",
+            "Unstable - see https://jira.unity3d.com/browse/UUM-134223",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "9921_UnderWater_Back",
+            "Unstable - see https://jira.unity3d.com/browse/UUM-134223",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "9922_WaterPrefab",
+            "Unstable - see https://jira.unity3d.com/browse/UUM-134223",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
             "9922_WaterPrefab$",
             "Minor divergence across the waves' crests.",
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }
@@ -397,6 +497,26 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             isInclusive: true,
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan },
             runtimePlatforms: new[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer }
+        )]
+        [IgnoreGraphicsTest(
+            "3009_MaterialOverrides",
+            "https://jira.unity3d.com/browse/UUM-134370 - Weird artifacts on NVIDIA A10",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D11 },
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "3004_QuadOverdraw",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-134754",
+            runtimePlatforms: new [] { RuntimePlatform.WindowsEditor },
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12 }
+        )]
+        [IgnoreGraphicsTest(
+            "4075_PhysicalCamera-gateFit|4111_DRS-DLSS-With-CustomPass",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-134786",
+            runtimePlatforms: new RuntimePlatform[]
+            {
+                RuntimePlatform.WindowsEditor
+            }
         )]
         public IEnumerator Run(SceneGraphicsTestCase testCase)
         {

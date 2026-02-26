@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.Test
                 get { return attributeInfos; }
             }
 
-            public List<VFXAttributeInfo> attributeInfos = new List<VFXAttributeInfo>();
+            public List<VFXAttributeInfo> attributeInfos { get; } = new List<VFXAttributeInfo>();
         }
 
         private class ContextTestInit : ContextTest

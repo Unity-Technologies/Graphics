@@ -75,30 +75,29 @@ void ProcessAndStoreRadianceSample(RWStructuredBuffer<SphericalHarmonics::RGBL1>
     patchStatistics[patchIdx] = newStats;
 }
 
-void ProjectAndAccumulate(inout SphericalHarmonics::RGBL1 accumulator, float3 sample, float3 direction)
+void ProjectAndAccumulate(inout SphericalHarmonics::RGBL1 accumulator, float3 sampleRadiance, float3 sampleDirection)
 {
-    accumulator.l0 += sample * SphericalHarmonics::y0;
-    accumulator.l1s[0] += sample * SphericalHarmonics::y1Constant * direction.y;
-    accumulator.l1s[1] += sample * SphericalHarmonics::y1Constant * direction.z;
-    accumulator.l1s[2] += sample * SphericalHarmonics::y1Constant * direction.x;
+    accumulator.l0 += sampleRadiance * SphericalHarmonics::y0;
+    accumulator.l1s[0] += sampleRadiance * SphericalHarmonics::y1Constant * sampleDirection.y;
+    accumulator.l1s[1] += sampleRadiance * SphericalHarmonics::y1Constant * sampleDirection.z;
+    accumulator.l1s[2] += sampleRadiance * SphericalHarmonics::y1Constant * sampleDirection.x;
 }
 
 void SamplePunctualLightBounceRadiance(
     inout QrngKronecker2D rng,
-    uint patchIdx,
     UnifiedRT::RayTracingAccelStruct accelStruct,
     UnifiedRT::DispatchInfo dispatchInfo,
     PatchUtil::PatchGeometry patchGeo,
     inout SphericalHarmonics::RGBL1 accumulator,
     inout bool gotValidSamples)
 {
-    rng.Init(patchIdx, _FrameIdx * _SampleCount);
     SphericalHarmonics::RGBL1 radianceAccumulator = (SphericalHarmonics::RGBL1)0;
 
     uint validSampleCount = 0;
     for(uint sampleIdx = 0; sampleIdx < _SampleCount; ++sampleIdx)
     {
-        PunctualLightBounceRadianceSample sample = SamplePunctualLightBounceRadiance(
+        // Using `sample` as a variable name causes compilation errors on PS5.
+        PunctualLightBounceRadianceSample sample_ = SamplePunctualLightBounceRadiance(
             dispatchInfo,
             accelStruct,
             _PunctualLightSamples,
@@ -107,11 +106,11 @@ void SamplePunctualLightBounceRadiance(
             patchGeo.position,
             patchGeo.normal);
 
-        if (!sample.IsValid())
+        if (!sample_.IsValid())
             continue;
 
         validSampleCount++;
-        ProjectAndAccumulate(radianceAccumulator, sample.radianceOverDensity, sample.direction);
+        ProjectAndAccumulate(radianceAccumulator, sample_.radianceOverDensity, sample_.direction);
 
         rng.NextSample();
     }
@@ -126,7 +125,6 @@ void SamplePunctualLightBounceRadiance(
 
 void SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
     inout QrngKronecker2D rng,
-    uint patchIdx,
     UnifiedRT::RayTracingAccelStruct accelStruct,
     UnifiedRT::DispatchInfo dispatchInfo,
     MaterialPoolParamSet matPoolParams,
@@ -134,8 +132,6 @@ void SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
     inout SphericalHarmonics::RGBL1 accumulator,
     inout bool gotValidSamples)
 {
-    rng.Init(patchIdx, _FrameIdx * _SampleCount);
-
     UnifiedRT::Ray ray;
     ray.origin = OffsetRayOrigin(patchGeo.position, patchGeo.normal);
     ray.tMin = 0;
@@ -209,9 +205,12 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
     SphericalHarmonics::RGBL1 radianceSampleMean = (SphericalHarmonics::RGBL1)0;
     bool gotValidSamples = false;
 
+    const uint patchIdxHash = LowBiasHash32(patchIdx);
+    const uint sampleOffset = _FrameIdx * _SampleCount;
+
+    rng.Init(patchIdxHash, sampleOffset);
     SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
         rng,
-        patchIdx,
         accelStruct,
         dispatchInfo,
         matPoolParams,
@@ -221,9 +220,9 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
 
     if (_PunctualLightCount != 0)
     {
+        rng.Init(patchIdxHash, sampleOffset);
         SamplePunctualLightBounceRadiance(
             rng,
-            patchIdx,
             accelStruct,
             dispatchInfo,
             patchGeo,

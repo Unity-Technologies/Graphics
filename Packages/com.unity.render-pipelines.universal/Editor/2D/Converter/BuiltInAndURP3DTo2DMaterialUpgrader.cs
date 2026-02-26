@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.Universal
 {
     [Serializable]
     [PipelineTools]
+    [BatchModeConverterClassInfo("UpgradeURP2DAssets", "URPToReadonlyMaterial2D")]
     [ElementInfo(Name = "Convert Built-in and URP ( Universal Renderer ) Materials to Mesh2D-Lit-Default",
                  Order = 300,
                  Description = "This will upgrade/crossgrade all 3D materials and 3D material references for URP 2D.")]

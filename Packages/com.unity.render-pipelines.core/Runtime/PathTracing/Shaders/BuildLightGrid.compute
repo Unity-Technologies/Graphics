@@ -1,7 +1,7 @@
 #pragma only_renderers d3d11 vulkan metal glcore
 #pragma multi_compile _ SPARSE_GRID
-
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
 
 #include "PathTracingCommon.hlsl"
@@ -39,88 +39,109 @@ RWStructuredBuffer<ThinReservoir>   g_LightGridCellsData;
 RWStructuredBuffer<uint2>           g_LightGrid;
 RWStructuredBuffer<uint>            g_TotalLightsInGridCount;
 
-// Source: https://bartwronski.com/2017/04/13/cull-that-cone/
-bool TestConeVsSphere(in float3 origin, in float3 forward, in float size, in float angle, in float4 testSphere)
+float4 PlaneFromNormalAndPosition(float3 normal, float3 pos)
 {
-    const float3 V = testSphere.xyz - origin;
-    const float VlenSq = dot(V, V);
-    const float V1len = dot(V, forward);
-    const float distanceClosestPoint = cos(angle) * sqrt(VlenSq - V1len * V1len) - V1len * sin(angle);
+    return float4(normal, -dot(normal, pos));
+}
 
-    const bool angleCull = distanceClosestPoint > testSphere.w;
-    const bool frontCull = V1len > testSphere.w + size;
-    const bool backCull = V1len < -testSphere.w;
-    return !(angleCull || frontCull || backCull);
+void GetBoxLightFrustumPlanes(float3 lightOrigin, float3 lightBasisX, float3 lightBasisY, float3 lightBasisZ, float halfSizeX, float halfSizeY, float range, out float4 frustumPlanes[6])
+{
+    // sides along X
+    frustumPlanes[0] = PlaneFromNormalAndPosition(-lightBasisX, lightOrigin + lightBasisX * halfSizeX);
+    frustumPlanes[1] = PlaneFromNormalAndPosition(lightBasisX, lightOrigin - lightBasisX * halfSizeX);
+    // sides along Y
+    frustumPlanes[2] = PlaneFromNormalAndPosition(-lightBasisY, lightOrigin + lightBasisY * halfSizeY);
+    frustumPlanes[3] = PlaneFromNormalAndPosition(lightBasisY, lightOrigin - lightBasisY * halfSizeY);
+    // sides along Z
+    frustumPlanes[4] = PlaneFromNormalAndPosition(lightBasisZ, lightOrigin);
+    frustumPlanes[5] = PlaneFromNormalAndPosition(-lightBasisZ, lightOrigin + lightBasisZ * range);
+}
+
+void GetPyramidLightFrustumPlanes(float3 lightOrigin, float3 lightBasisX, float3 lightBasisY, float3 lightBasisZ, float halfSizeX, float halfSizeY, float range, out float4 frustumPlanes[6])
+{
+    float2 nX = normalize(float2(1.0, halfSizeX));
+    float2 nY = normalize(float2(1.0, halfSizeY));
+
+    // the plane's normals point towards the interior of the frustum
+
+    // Pyramid sides along X
+    frustumPlanes[0] = PlaneFromNormalAndPosition(nX.y * lightBasisZ + nX.x * lightBasisX, lightOrigin);
+    frustumPlanes[1] = PlaneFromNormalAndPosition(nX.y * lightBasisZ - nX.x * lightBasisX, lightOrigin);
+    // Pyramid sides along Y
+    frustumPlanes[2] = PlaneFromNormalAndPosition(nY.y * lightBasisZ + nY.x * lightBasisY, lightOrigin);
+    frustumPlanes[3] = PlaneFromNormalAndPosition(nY.y * lightBasisZ - nY.x * lightBasisY, lightOrigin);
+    // Pyramid near and far planes
+    frustumPlanes[4] = PlaneFromNormalAndPosition(lightBasisZ, lightOrigin);
+    frustumPlanes[5] = PlaneFromNormalAndPosition(-lightBasisZ, lightOrigin + lightBasisZ * range);
 }
 
 // Estimate the maximum emission in a voxel / Target function for RIS
 float3 EstimateEmission(PTLight light, float3 worldPosition)
 {
-    const float Deg2Rad = PI * 2.0f / 360.0f;
-    float3 emission = float3(1.0f, 1.0f, 1.0f);
-
-    if (light.type == DIRECTIONAL_LIGHT)
-        // Directional lights affect all cells
-        emission = light.intensity;
-    else if (light.type == ENVIRONMENT_LIGHT)
-         // Environment light affects all cells
-         // For conservtive culling, returning any positive value is enough, but for ReGIR we can improve the sampling with a better estimate
-        emission = float3(1.0f, 1.0f, 1.0f);
-    else if ((light.type == POINT_LIGHT) || (light.type == SPOT_LIGHT))
+    // Evaluate the light's distance attenuation
+    float distAttenuation = 1.0;
+    if (light.type != DIRECTIONAL_LIGHT && light.type != ENVIRONMENT_LIGHT && light.type != BOX_LIGHT && light.type != EMISSIVE_MESH)
     {
         // First compute the point light attenuation
         float d = length(light.position - worldPosition);
 
-        // To be conservative on the attenuation, we substruct the cell radius of the grid
-        d = max(0.01f, d - GetCellSize());
-
-        // Analytical range attenuation from SRP core
-        float attenuation = SmoothWindowedDistanceAttenuation(d * d, rcp(d), light.attenuation.x, light.attenuation.y);
-
-        if (light.type == SPOT_LIGHT)
-        {
-            // For spotlights, we also do a conservative anglular atenuation: 0 if the spotlight cone does not intersect the voxel, 1 otherwise.
-            float4 bSphere = float4(worldPosition, 0.5 * GetCellSize());
-            bool intersection = TestConeVsSphere(light.position, light.forward, light.range, 0.5 * light.spotAngle.x * Deg2Rad, bSphere);
-            attenuation = intersection ? attenuation : 0.0f;
-        }
-
-        emission = attenuation * light.intensity;
-    }
-    else if (light.type == RECTANGULAR_LIGHT || light.type == DISC_LIGHT)
-    {
-         // First compute the point light attenuation
-        float d = length(light.position - worldPosition);
-
         // To be conservative on the attenuation, we substruct the cell radius of the grid.
         // We also substract the radius (of the bounding sphere) of the light
-        float r = light.type == DISC_LIGHT ? light.width : 0.5f * sqrt(light.width * light.width + light.height * light.height);
+        float r = 0.0f;
+        if (light.type == DISC_LIGHT)
+            r = light.width;
+        if (light.type == RECTANGULAR_LIGHT)
+            r = 0.5f * sqrt(light.width * light.width + light.height * light.height);
+
+        // To be conservative on the attenuation, we substruct the cell radius of the grid
         d = max(0.01f, d - GetCellSize() - r);
 
-        // Analytical range attenuation from SRP core
-        float attenuation = SmoothWindowedDistanceAttenuation(d * d, rcp(d), light.attenuation.x, light.attenuation.y);
-
-        // The analytical lights are single sided. To properly do the conservative culling, we re-use the spotlight culling code
-        float4 bSphere = float4(worldPosition, 0.5 * GetCellSize());
-        const float angle = 0.5f * 180.0f * Deg2Rad;
-        bool intersection = TestConeVsSphere(light.position, light.forward, light.range, angle, bSphere);
-        attenuation = intersection ? attenuation : 0.0f;
-
-        emission = attenuation * light.intensity;
+        distAttenuation = SmoothWindowedDistanceAttenuation(d * d, rcp(d), light.attenuation.x, light.attenuation.y);
     }
-    else if (light.type == BOX_LIGHT)
+
+    // Evaluate the lights's emission + culling by light's bounding shape
+    const float Deg2Rad = PI * 2.0f / 360.0f;
+    float3 emission = float3(1.0f, 1.0f, 1.0f);
+    if (light.type == DIRECTIONAL_LIGHT || light.type == POINT_LIGHT)
     {
-        // For box ligths we only do some basic culling based on the bounding sphere of the cell and the near/far plane, reusing the existing code
-        // Note: box lights/projectors don't have range attenuation
-        float4 bSphere = float4(worldPosition, 0.5 * GetCellSize());
-        const float angle = 0.5f * 180.0f * Deg2Rad;
-        bool intersection = TestConeVsSphere(light.position, light.forward, light.range, angle, bSphere);
-        float attenuation = intersection ? 1.0f : 0.0f;
+        emission = light.intensity;
+    }
+    else if (light.type == ENVIRONMENT_LIGHT || light.type == EMISSIVE_MESH)
+    {
+        emission = float3(1.0f, 1.0f, 1.0f);
+    }
+    else if (light.type == BOX_LIGHT) // Frustum vs cell AABB culling
+    {
+        float4 frustumPlanes[6];
+        GetBoxLightFrustumPlanes(light.position, light.right, light.up, light.forward, 0.5 * light.width, 0.5 * light.height, light.range, frustumPlanes);
 
-        emission = attenuation * light.intensity;
+        float3 aabbCenter = worldPosition;
+        float3 aabbExtent = 0.5 * GetCellSize();
+        bool intersection = IntersectFrustumPlanesAABB(frustumPlanes, aabbCenter, aabbExtent);
+
+        emission = intersection ? light.intensity : 0.0f;
+    }
+    else if (light.type == PYRAMID_LIGHT) // Frustum vs cell AABB culling
+    {
+        float4 frustumPlanes[6];
+        GetPyramidLightFrustumPlanes(light.position, light.right, light.up, light.forward, 0.5 * light.width, 0.5 * light.height, light.range, frustumPlanes);
+
+        float3 aabbCenter = worldPosition;
+        float3 aabbExtent = 0.5 * GetCellSize();
+        bool intersection = IntersectFrustumPlanesAABB(frustumPlanes, aabbCenter, aabbExtent);
+
+        emission = intersection ? light.intensity : 0.0f;
+    }
+    else // SPOT_LIGHT || RECTANGULAR_LIGHT || DISC_LIGHT (cone vs cell's bounding sphere culling)
+    {
+        float coneAngle = (light.type == SPOT_LIGHT) ? 0.5 * light.spotAngle.x * Deg2Rad : 0.5f * 180.0f * Deg2Rad;
+        float4 bSphere = float4(worldPosition, 0.5 * GetCellSize());
+        bool intersection = IntersectSphericalConeWithSphere(light.position, light.forward, light.range, cos(coneAngle), sin(coneAngle), bSphere);
+
+        emission = intersection ? light.intensity : 0.0f;
     }
 
-    return emission;
+    return distAttenuation * emission;
 }
 
 

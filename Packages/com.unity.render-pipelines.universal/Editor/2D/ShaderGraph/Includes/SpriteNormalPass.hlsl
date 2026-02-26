@@ -19,6 +19,8 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     UNITY_SETUP_INSTANCE_ID(unpacked);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
 
+    SetUpSpriteInstanceProperties();
+    
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
 #ifdef UNIVERSAL_USELEGACYSPRITEBLOCKS

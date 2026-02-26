@@ -126,6 +126,9 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             half4 NormalsRenderingFragment(Varyings input) : SV_Target
             {
+                // Setup instancing for SpriteFlip is used in NormalsRenderingShared
+                SetUpSpriteInstanceProperties();
+
                 return CommonNormalsFragment(input, input.color);
             }
             ENDHLSL

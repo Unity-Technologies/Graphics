@@ -23,7 +23,7 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
             #pragma vertex TerrainVert
             #pragma fragment TerrainFrag
             #pragma require randomwrite
-            // #pragma enable_d3d11_debug_symbols
+            // #pragma enable_debug_symbols
 
             #include "Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/VoxelizeScene.hlsl"
 

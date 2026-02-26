@@ -904,14 +904,24 @@ namespace UnityEditor.ShaderGraph
             if (slot == foundSlot)
                 return foundSlot;
 
+            // cache the known outgoing edges for this slot, incase downstream dynamic slots
+            // need updating or downstream on-connect events need to retrigger.
+            List<IEdge> downstream = new();
+            if (foundSlot is not null && foundSlot.isOutputSlot && foundSlot.isConnected)
+                owner.GetEdges(foundSlot, downstream);
+
             // Try to keep the existing instance to avoid unnecessary changes to file
             if (attemptToModifyExistingInstance && foundSlot != null && slot.GetType() == foundSlot.GetType())
             {
-                foundSlot.displayName = slot.RawDisplayName();
+                if (foundSlot.RawDisplayName() != slot.RawDisplayName())
+                {
+                    foundSlot.displayName = slot.RawDisplayName();
+                    this.Dirty(ModificationScope.Topological);
+                }
                 foundSlot.CopyDefaultValue(slot);
                 if (foundSlot.hideConnector != slot.hideConnector)
                 {
-                    foundSlot.hideConnector = slot.hideConnector; // MARK DIRTY
+                    foundSlot.hideConnector = slot.hideConnector;
                     this.Dirty(ModificationScope.Topological);
 
                     if (foundSlot.hideConnector && foundSlot.isConnected)
@@ -948,6 +958,17 @@ namespace UnityEditor.ShaderGraph
             // I think this is to support casting if implemented in CopyValuesFrom ?
             slot.CopyValuesFrom(foundSlot);
             foundSlot.owner = null;
+
+
+            // If the new slot is a different type, the downstream slots/nodes may need to be notified;
+            // we can do this by treating them as a new connection.
+            // Connect is expensive because it triggers graph validation, but this case is rare.
+            // If it is a problem, we should add a 'ValidationScope' to GraphData,
+            // which doesn't trigger validation until the scope ends.
+            foreach (var edge in downstream)
+            {
+                owner.Connect(slot.slotReference, edge.inputSlot);
+            }
 
             return slot;
         }

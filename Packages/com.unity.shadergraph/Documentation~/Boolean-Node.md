@@ -6,15 +6,15 @@ Defines a constant **Boolean** value in the [Shader Graph](index.md), although i
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| Out | Output      |    Boolean | None | Output value |
+| Name | Direction | Type | Binding | Description |
+|:--- |:---|:---|:---|:---|
+| Out | Output | Boolean | None | Output value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-|       | Toggle |  | Defines the output value. |
+| Control | Description |
+|:---|:---|
+| (Checkbox) | Defines the output value. |
 
 ## Generated Code Example
 

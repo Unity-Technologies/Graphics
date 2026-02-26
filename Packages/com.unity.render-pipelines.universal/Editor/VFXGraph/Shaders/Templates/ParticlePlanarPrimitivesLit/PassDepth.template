@@ -1,5 +1,6 @@
 Pass
 {
+    Name "DepthOnly"
     Tags { "LightMode"="DepthOnly" }
 
     ZWrite On

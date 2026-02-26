@@ -42,6 +42,8 @@ namespace UnityEditor.ShaderGraph
                     return SlotValueType.VirtualTexture;
                 case ConcreteSlotValueType.PropertyConnectionState:
                     return SlotValueType.PropertyConnectionState;
+                case ConcreteSlotValueType.External:
+                    return SlotValueType.External;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -124,6 +126,8 @@ namespace UnityEditor.ShaderGraph
                     return PropertyType.VirtualTexture;
                 case ConcreteSlotValueType.PropertyConnectionState:
                     return PropertyType.PropertyConnectionState;
+                case ConcreteSlotValueType.External:
+                    return PropertyType.External;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -196,7 +200,8 @@ namespace UnityEditor.ShaderGraph
             "typeFloat1",
             "typeBoolean",
             "typeVirtualTexture",
-            "typePropertyConnectionState"
+            "typePropertyConnectionState",
+            "typeExternal"
         };
     }
 }

@@ -77,13 +77,7 @@ struct APVResources
 
 struct APVResourcesRW
 {
-#ifdef SHADER_API_METAL
-    // We need to use float4 on Metal, since HLSLcc will generate invalid MSL otherwise.
-    // See https://jira.unity3d.com/browse/UUM-127198
-    RWTexture3D<float4> L0_L1Rx;
-#else
     RWTexture3D<half4> L0_L1Rx;
-#endif
     RWTexture3D<unorm float4> L1G_L1Ry;
     RWTexture3D<unorm float4> L1B_L1Rz;
     RWTexture3D<unorm float4> L2_0;

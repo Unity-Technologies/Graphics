@@ -96,22 +96,41 @@ void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
         float validityFactor = 1.0;
 
         #ifdef WITH_REJECTION
+        
+        bool currentIsSky = currentSceneDepth == UNITY_RAW_FAR_CLIP_VALUE;
+
         float4 lightingMin = float4(FLT_MAX, FLT_MAX, FLT_MAX, 1.0);
         float4 lightingMax = float4(0, 0, 0, 0.0);
-        for (int y = -1; y <= 1; ++y)
+
+        int skySampleCount = 0;
+        if(currentIsSky)
         {
-            for (int x = -1; x <= 1; ++x)
+            for (int y = -1; y <= 1; ++y)
             {
-                CloudReprojectionData data = GetCloudReprojectionDataSample(threadCoord, int2(x, y));
-                if ((data.pixelDepth == UNITY_RAW_FAR_CLIP_VALUE) == (currentSceneDepth == UNITY_RAW_FAR_CLIP_VALUE))
+                for (int x = -1; x <= 1; ++x)
                 {
-                    lightingMin = min(lightingMin, data.cloudLighting);
-                    lightingMax = max(lightingMax, data.cloudLighting);
+                    CloudReprojectionData data = GetCloudReprojectionDataSample(threadCoord, int2(x, y));
+                    bool sampleIsSky = data.pixelDepth == UNITY_RAW_FAR_CLIP_VALUE;
+
+                    if (sampleIsSky)
+                    {
+                        lightingMin = min(lightingMin, data.cloudLighting);
+                        lightingMax = max(lightingMax, data.cloudLighting);
+                        skySampleCount++;
+                    }
                 }
+            }
+
+            // Only apply clamping if we have enough sky samples (at least 5 out of 9)
+            if (skySampleCount >= 5)
+            {
+                // Modulate validity factor based on sky sample ratio, the more samples are sky, the more ghosting reduction
+                float skyRatio = skySampleCount / 9.0;
+                previousColor = ClipCloudsToRegion(previousColor, lightingMin, lightingMax, skyRatio);
+                validityFactor *= skyRatio;
             }
         }
 
-        previousColor = ClipCloudsToRegion(previousColor, lightingMin, lightingMax, validityFactor);
         #endif
 
         if (validTracing)

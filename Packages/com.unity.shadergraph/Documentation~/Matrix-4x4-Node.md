@@ -6,15 +6,15 @@ Defines a constant **Matrix 4x4** value in the shader.
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| Out | Output      |    Matrix 4 | None | Output value |
+| Name | Direction | Type | Binding | Description |
+|:--- |:---|:---|:---|:---|
+| Out | Output | Matrix 4 | None | Output value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-|  | Matrix 4x4 |  | Sets output value |
+| Control | Description |
+|:---|:---|
+| (Matrix 4x4) | Sets the matrix 4x4 output value. |
 
 ## Generated Code Example
 

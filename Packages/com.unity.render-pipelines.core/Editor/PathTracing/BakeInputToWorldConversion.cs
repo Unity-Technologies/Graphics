@@ -110,6 +110,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 case LightBakerBridge.LightType.Rectangle: return UnityEngine.LightType.Rectangle;
                 case LightBakerBridge.LightType.Disc: return UnityEngine.LightType.Disc;
                 case LightBakerBridge.LightType.SpotBoxShape: return UnityEngine.LightType.Box;
+                case LightBakerBridge.LightType.SpotPyramidShape: return UnityEngine.LightType.Pyramid;
                 default: throw new ArgumentException("Unknown light type");
             }
         }
@@ -172,7 +173,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 lightDescriptor.ShadowMaskChannel = (lightData.shadowMaskChannel < 4) ? (int)lightData.shadowMaskChannel : -1;
                 lightDescriptor.UseColorTemperature = false;
                 lightDescriptor.FalloffType = LightBakerFalloffTypeToUnityFalloffType(lightData.falloff);
-                lightDescriptor.ShadowRadius = Util.IsPunctualLightType(lightDescriptor.Type) ? lightData.shape0 : 0.0f;
+                lightDescriptor.ShadowRadius = GetLightShadowRadius(lightDescriptor.Type, lightData);
                 lightDescriptor.CookieSize = lightData.cookieScale;
                 lightDescriptor.CookieTexture = Util.IsCookieValid(lightData.cookieTextureIndex) ? CreateTextureFromCookieData(in bakeInput.cookieData[lightData.cookieTextureIndex]) : null;
                 if (lightDescriptor.CookieTexture != null)
@@ -183,6 +184,10 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                     case UnityEngine.LightType.Box:
                     case UnityEngine.LightType.Rectangle:
                         lightDescriptor.AreaSize = new Vector2(lightData.shape0, lightData.shape1);
+                        break;
+
+                    case UnityEngine.LightType.Pyramid:
+                        lightDescriptor.AreaSize = GetPyramidLightRect(lightData.coneAngle, lightData.shape0);
                         break;
 
                     case UnityEngine.LightType.Disc:
@@ -205,6 +210,22 @@ namespace UnityEditor.PathTracing.LightBakerBridge
 
             world.lightPickingMethod = LightPickingMethod.LightGrid;
             lightHandles = world.AddLights(lights, false, autoEstimateLUTRange, bakeInput.lightingSettings.mixedLightingMode);
+        }
+
+        static Vector2 GetPyramidLightRect(float coneAngleInRads, float pyramidAspectRadio)
+        {
+            float ar = pyramidAspectRadio;
+            float h = 2.0f * Mathf.Tan(coneAngleInRads * 0.5f);
+
+            float width = ar >= 1.0f ? (h * ar) : h;
+            float height = ar >= 1.0f ? h : (h / ar);
+
+            return new Vector2(width, height);
+        }
+
+        static float GetLightShadowRadius(UnityEngine.LightType lightType, in LightData lightData)
+        {
+            return (Util.IsPunctualLightType(lightType) && lightType != UnityEngine.LightType.Pyramid && lightType != UnityEngine.LightType.Box) ? lightData.shape0 : 0.0f;
         }
 
         internal static void InjectEnvironmentLight(
@@ -375,6 +396,22 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             return outMesh;
         }
 
+        private static Bounds CalculateMeshBounds(Vector3[] vertices, Matrix4x4 localToWorldMatrix4x4, out Vector3 meshMinVertex, out Vector3 meshMaxVertex)
+        {
+            meshMinVertex = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+            meshMaxVertex = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+            foreach (Vector3 vert in vertices)
+            {
+                // TODO: transform the bounding box instead of looping verts (https://jira.unity3d.com/browse/GFXFEAT-667)
+                Vector3 v = localToWorldMatrix4x4.MultiplyPoint(vert);
+                meshMinVertex = Vector3.Min(v, meshMinVertex);
+                meshMaxVertex = Vector3.Max(v, meshMaxVertex);
+            }
+            Bounds meshBounds = new Bounds();
+            meshBounds.SetMinMax(meshMinVertex, meshMaxVertex);
+            return meshBounds;
+        }
+
         internal static void ConvertInstancesAndMeshes(
             World world,
             in BakeInput bakeInput,
@@ -386,8 +423,6 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             List<UnityEngine.Object> allocatedObjects,
             uint renderingObjectLayer)
         {
-            sceneBounds = new Bounds();
-
             // Extract meshes
             meshes = new Mesh[bakeInput.meshData.Length + bakeInput.terrainData.Length];
             int meshIndex = 0;
@@ -423,6 +458,9 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             RenderedGameObjectsFilter filter = RenderedGameObjectsFilter.OnlyStatic;
             const bool isStatic = true;
 
+            Vector3 sceneMinVertex = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+            Vector3 sceneMaxVertex = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+
             // Extract instances
             List<FatInstance> fatInstanceList = new();
             for (int i = 0; i < bakeInput.instanceData.Length; i++)
@@ -444,17 +482,11 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 Vector2 uvBoundsOffset = uvBoundsOffsets[globalMeshIndex];
 
                 // Calculate bounds
-                var bounds = new Bounds();
-                foreach (Vector3 vert in mesh.vertices)
-                {
-                    bounds.Encapsulate(localToWorldMatrix4x4.MultiplyPoint(vert)); // TODO: transform the bounding box instead of looping verts (https://jira.unity3d.com/browse/GFXFEAT-667)
-                }
+                Bounds meshBounds = CalculateMeshBounds(mesh.vertices, localToWorldMatrix4x4, out Vector3 meshMinVertex, out Vector3 meshMaxVertex);
 
                 // Keep track of scene bounds as we go
-                if (i == 0)
-                    sceneBounds = bounds;
-                else
-                    sceneBounds.Encapsulate(bounds);
+                sceneMinVertex = Vector3.Min(sceneMinVertex, meshMinVertex);
+                sceneMaxVertex = Vector3.Max(sceneMaxVertex, meshMaxVertex);
 
                 // Get masks
                 uint[] subMeshMasks = new uint[mesh.subMeshCount];
@@ -477,7 +509,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                     Materials = materials,
                     SubMeshMasks = subMeshMasks,
                     LocalToWorldMatrix = localToWorldMatrix4x4,
-                    Bounds = bounds,
+                    Bounds = meshBounds,
                     IsStatic = isStatic,
                     LodIdentifier = lodIdentifier,
                     ReceiveShadows = instanceData.receiveShadows,
@@ -489,6 +521,9 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             }
             fatInstances = fatInstanceList.ToArray();
             Debug.Assert(fatInstances.Length == bakeInput.instanceData.Length);
+
+            sceneBounds = new Bounds();
+            sceneBounds.SetMinMax(sceneMinVertex, sceneMaxVertex);
         }
 
         internal static void PopulateWorld(InputExtraction.BakeInput input, UnityComputeWorld world, SamplingResources samplingResources, CommandBuffer cmd, bool autoEstimateLUTRange)
