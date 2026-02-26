@@ -22,63 +22,18 @@ The UVCombine node is under the **Utility** &gt; **High Definition Render Pipeli
 
 [!include[nodes-inputs](./snippets/nodes-inputs.md)]
 
-<table>
-<thead>
-<tr>
-<th><strong>Name</strong></th>
-<th><strong>Type</strong></th>
-<th><strong>Description</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>UV Channel Mask</strong></td>
-<td>Vector 4</td>
-<td>Select which UV channel you want to use for your UV coordinates by entering a <code>1</code> in the corresponding default input on the port:
-<ul>
-<li><strong>X</strong>: UV channel 0</li>
-<li><strong>Y</strong>: UV channel 1</li>
-<li><strong>Z</strong>: UV channel 2</li>
-<li><strong>W</strong>: UV channel 3</li>
-</ul>
-Set all other default inputs to <code>0</code>. You can also connect a node that outputs a Vector 4.</td>
-</tr>
-<tr>
-<td><strong>UV Tile and Offset</strong></td>
-<td>Vector 4</td>
-<td>Use the port's default input to specify the amount of offset or tiling that you want to apply to your shader's UV coordinates:
-<ul>
-<li>Use <strong>X</strong> and <strong>Y</strong> to specify the tiling.</li>
-<li>Use <strong>W</strong> and <strong>Z</strong> to specify the offset.</li>
-</ul>
-You can also connect a node that outputs a Vector 4.</td>
-</tr>
-</tbody>
-</table>
-
+| **Name** | **Type** | **Description** |
+| :--- | :--- | :--- |
+| **UV Channel Mask** | Vector 4 | Select which UV channel you want to use for your UV coordinates by entering a `1` in the corresponding default input on the port:<ul><li>**X**: UV channel 0</li><li>**Y**: UV channel 1</li><li>**Z**: UV channel 2</li><li>**W**: UV channel 3</li></ul>Set all other default inputs to `0`. You can also connect a node that outputs a Vector 4. |
+| **UV Tile and Offset** | Vector 4 | Use the port's default input to specify the amount of offset or tiling that you want to apply to your shader's UV coordinates:<ul><li>Use **X** and **Y** to specify the tiling.</li><li>Use **W** and **Z** to specify the offset.</li></ul>You can also connect a node that outputs a Vector 4. |
 
 ## Outputs
 
 [!include[nodes-single-output](./snippets/nodes-single-output.md)] <!-- SINGLE OUTPUT PORT INCLUDE -->
 
-<table>
-<thead>
-<tr>
-<th><strong>Name</strong></th>
-<th><strong>Type</strong></th>
-<th><strong>Binding</strong></th>
-<th><strong>Description</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>UV</strong></td>
-<td>Vector 2</td>
-<td>UV</td>
-<td>The final UV output, after selecting a UV channel and, if specified, any tiling or offset.</td>
-</tr>
-</tbody>
-</table>
+| **Name** | **Type** | **Binding** | **Description** |
+| :--- | :--- | :--- | :--- |
+| **UV** | Vector 2 | UV  | The final UV output, after selecting a UV channel and, if specified, any tiling or offset. |
 
 ## Example graph usage
 

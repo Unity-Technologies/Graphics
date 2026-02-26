@@ -6,15 +6,15 @@ Defines a constant **Gradient** for use in [Shader Graph](index.md), although in
 
 ## Ports
 
-| Name        | Direction           | Type  | Description |
-|:------------ |:-------------|:-----|:---|
-| Out | Output      |    Gradient | Output value |
+| Name | Direction | Type | Description |
+|:--- |:---|:---|:---|
+| Out | Output | Gradient | Output value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-|      | Gradient Field |  | Defines the gradient. |
+| Control | Description |
+|:---|:---|
+| (Gradient Field) | Defines the gradient. |
 
 ## Generated Code Example
 

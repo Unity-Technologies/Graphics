@@ -8,16 +8,16 @@ NOTE: In versions prior to 10.0, Shader Graph assumed that HDR colors from the C
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| Out | Output      |    Vector 4 | None | Output value |
+| Name | Direction | Type | Binding | Description |
+|:--- |:---|:---|:---|:---|
+| Out | Output | Vector 4 | None | Output value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-|       | Color |  | Defines the output value. |
-| Mode  | Dropdown | Default, HDR | Sets properties of the Color field |
+| Control | Description |
+|:---|:---|
+| (Color) | Defines the output value. |
+| **Mode** | Sets properties of the Color field. The options are:<ul><li>**Default**</li><li>**HDR**</li></ul> |
 
 ## Generated Code Example
 

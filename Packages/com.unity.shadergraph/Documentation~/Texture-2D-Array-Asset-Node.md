@@ -6,15 +6,15 @@ Defines a constant **Texture 2D Array Asset** for use in the shader. To sample t
 
 ## Ports
 
-| Name        | Direction           | Type  | Description |
-|:------------ |:-------------|:-----|:---|
-| Out | Output      |    Texture 2D Array | Output value |
+| Name | Direction | Type | Description |
+|:--- |:---|:---|:---|
+| Out | Output | Texture 2D Array | Output value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-|      | Object Field (Texture 2D Array) |  | Defines the texture 2D array asset from the project. |
+| Control | Description |
+|:--- |:---|
+| (Texture 2D Array) | Defines the texture 2D array asset from the project. |
 
 ## Generated Code Example
 

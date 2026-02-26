@@ -10,29 +10,29 @@ When you open a Shader Graph, the **Graph Inspector** displays the **[Graph Sett
 
 Select a node in the graph to display settings available for that node in the **Graph Inspector**. Settings available for that node appear in the **Node Settings** tab of the Graph Inspector. For example, if you select a Property node either in the graph or the [Blackboard](Blackboard.md), the **Node Settings** tab displays attributes of the Property that you can edit.
 
-![](images/InternalInspectorBlackboardProperty.png)
+![The Blackboard with a property selected, and the Graph Inspector showing the property settings.](images/InternalInspectorBlackboardProperty.png)
 
 Graph elements that currently work with the Graph Inspector:
 
 - [Properties](https://docs.unity3d.com/Manual/SL-Properties.html)
 
-    ![](images/InternalInspectorGraphProperty.png)
+    ![A property selected in the workspace, and the Graph Inspector showing the property settings.](images/InternalInspectorGraphProperty.png)
 
 - [Keywords](Keywords.md)
 
-    ![](images/keywords_enum.png)
+    ![The Blackboard with a keyword selected, and the Graph Inspector showing the keyword settings.](images/keywords_enum.png)
 
 - [Custom Function nodes](Custom-Function-Node.md)
 
-    ![](images/Custom-Function-Node-File.png)
+    ![A Custom Function node selected in the workspace, and the Graph Inspector showing the node settings.](images/Custom-Function-Node-File.png)
 
 - [Subgraph Output nodes](Sub-graph.md)
 
-    ![](images/Inspector-SubgraphOutput.png)
+    ![A subgraph output node selected in the workspace, and the Graph Inspector showing the node settings.](images/Inspector-SubgraphOutput.png)
 
 - [Per-node precision](Precision-Modes.md)
 
-    ![](images/Inspector-PerNodePrecision.png)
+    ![A node selected in the workspace, and the Graph Inspector showing the Precision setting.](images/Inspector-PerNodePrecision.png)
 
 
 Graph elements that currently do not work with the Graph Inspector:
@@ -44,7 +44,3 @@ Graph elements that currently do not work with the Graph Inspector:
 ## Material Override
 
 Enabling the [Allow Material Override](surface-options.md) option in the Graph Settings makes it possible for you to override certain graph properties via the Material Inspector.
-
-![](images/materialoverride1.PNG)
-
-![](images/materialoverride2.PNG)
