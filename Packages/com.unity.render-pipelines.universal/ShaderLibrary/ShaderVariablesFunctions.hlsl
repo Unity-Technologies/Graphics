@@ -495,7 +495,8 @@ uint Select4(uint4 v, uint i)
         (((v.y & mask0) | (v.x & ~mask0)) & ~mask1);
 }
 
-#if SHADER_TARGET < 45
+#if SHADER_TARGET < 45 && !defined UNITY_COMPILER_DXC
+// Workaround is only technically required for GL Core <4.0 and GLES <3.1
 uint URP_FirstBitLow(uint m)
 {
     // http://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightFloatCast
