@@ -12,6 +12,7 @@ TEXTURE2D_SAMPLER2D(_CameraDepthTexture, sampler_CameraDepthTexture);
 TEXTURE2D_SAMPLER2D(_CameraMotionVectorsTexture, sampler_CameraMotionVectorsTexture);
 
 TEXTURE2D_SAMPLER2D(_CoCTex, sampler_CoCTex);
+TEXTURE2D_SAMPLER2D(_MaxCoCTex, sampler_MaxCoCTex);
 
 TEXTURE2D_SAMPLER2D(_DepthOfFieldTex, sampler_DepthOfFieldTex);
 float4 _DepthOfFieldTex_TexelSize;
@@ -19,9 +20,16 @@ float4 _DepthOfFieldTex_TexelSize;
 // Camera parameters
 float _Distance;
 float _LensCoeff;  // f^2 / (N * (S1 - f) * film_width * 2)
+half4 _CoCKernelLimits;
+// MaxCoC texture is padded with a bit of empty space for alignment reasons (right&bottom sides) so we need some uv scale to sample it
+float4 _MaxCoCTexScale;
+half3 _KernelScale;
+half2 _MarginFactors;
 float _MaxCoC;
 float _RcpMaxCoC;
 float _RcpAspect;
+float _FgAlphaFactor; // 1 / sampleCount of either the first and/or second ring
+int _MaxRingIndex;
 half3 _TaaParams; // Jitter.x, Jitter.y, Blending
 
 // CoC calculation
@@ -147,52 +155,304 @@ half4 FragPrefilter(VaryingsDefault i) : SV_Target
     return half4(avg, coc);
 }
 
-// Bokeh filter with disk-shaped kernels
-half4 FragBlur(VaryingsDefault i) : SV_Target
+VaryingsDefault VertDownsampleMaxCoC(AttributesDefault v)
+{
+    VaryingsDefault o;
+    o.vertex = float4(v.vertex.xy, 0.0, 1.0);
+    o.texcoord = TransformTriangleVertexToUV(v.vertex.xy);
+#if defined(INITIAL_COC)
+    o.texcoord *= _MaxCoCTexScale.xy;
+#endif
+
+#if UNITY_UV_STARTS_AT_TOP
+    o.texcoord = o.texcoord * float2(1.0, -1.0) + float2(0.0, 1.0);
+#endif
+
+    o.texcoordStereo = TransformStereoScreenSpaceTex(o.texcoord, 1.0);
+
+    return o;
+}
+
+half4 FragDownsampleMaxCoC(VaryingsDefault i) : SV_Target
+{
+#if UNITY_GATHER_SUPPORTED
+    // Sample source colors
+    half4 cocs = GATHER_RED_TEXTURE2D(_MainTex, sampler_MainTex, i.texcoordStereo);
+#else
+    // TODO implement gather version
+
+    float3 duv = _MainTex_TexelSize.xyx * float3(0.5, 0.5, -0.5);
+    float2 uv0 = UnityStereoTransformScreenSpaceTex(i.texcoord - duv.xy);
+    float2 uv1 = UnityStereoTransformScreenSpaceTex(i.texcoord - duv.zy);
+    float2 uv2 = UnityStereoTransformScreenSpaceTex(i.texcoord + duv.zy);
+    float2 uv3 = UnityStereoTransformScreenSpaceTex(i.texcoord + duv.xy);
+
+    // Sample CoCs
+    half4 cocs;
+    cocs.x = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv0).r;
+    cocs.y = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv1).r;
+    cocs.z = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv2).r;
+    cocs.w = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv3).r;
+#endif
+
+#if defined(INITIAL_COC)
+    // Storing the absolute normalized CoC is enough.
+    cocs = cocs * 2.0 - 1.0;
+#endif
+    cocs = abs(cocs);
+
+    half maxCoC = max(cocs.x, Max3(cocs.y, cocs.z, cocs.w));
+    return half4(maxCoC, 0.0, 0.0, 0.0);
+}
+
+half4 FragNeighborMaxCoC(VaryingsDefault i) : SV_Target
+{
+    float tx = _MainTex_TexelSize.x;
+    float ty = _MainTex_TexelSize.y;
+
+#if UNITY_GATHER_SUPPORTED
+    float2 uvA = UnityStereoTransformScreenSpaceTex(i.texcoord + _MainTex_TexelSize.xy * float2(-0.5, -0.5));
+    float2 uvB = UnityStereoTransformScreenSpaceTex(i.texcoord + _MainTex_TexelSize.xy * float2( 0.5, -0.5));
+    float2 uvC = UnityStereoTransformScreenSpaceTex(i.texcoord + _MainTex_TexelSize.xy * float2(-0.5,  0.5));
+    float2 uvD = UnityStereoTransformScreenSpaceTex(i.texcoord + _MainTex_TexelSize.xy * float2( 0.5,  0.5));
+
+    half4 cocsA = GATHER_RED_TEXTURE2D(_MainTex, sampler_MainTex, uvA);
+    half4 cocsB = GATHER_RED_TEXTURE2D(_MainTex, sampler_MainTex, uvB);
+    half4 cocsC = GATHER_RED_TEXTURE2D(_MainTex, sampler_MainTex, uvC);
+    half4 cocsD = GATHER_RED_TEXTURE2D(_MainTex, sampler_MainTex, uvD);
+    half coc0 = cocsA.x;
+    half coc1 = cocsA.y;
+    half coc2 = cocsB.x;
+    half coc3 = cocsA.z;
+    half coc4 = cocsA.w;
+    half coc5 = cocsB.z;
+    half coc6 = cocsC.x;
+    half coc7 = cocsC.y;
+    half coc8 = cocsD.w;
+#else
+    float2 uv0 = UnityStereoTransformScreenSpaceTex(i.texcoord);
+    float2 uv1 = UnityStereoTransformScreenSpaceTex(i.texcoord + float2( tx,  0));
+    float2 uv2 = UnityStereoTransformScreenSpaceTex(i.texcoord + float2( tx, ty));
+    float2 uv3 = UnityStereoTransformScreenSpaceTex(i.texcoord + float2(  0, ty));
+    float2 uv4 = UnityStereoTransformScreenSpaceTex(i.texcoord + float2(-tx, ty));
+    float2 uv5 = UnityStereoTransformScreenSpaceTex(i.texcoord + float2(-tx,  0));
+    float2 uv6 = UnityStereoTransformScreenSpaceTex(i.texcoord + float2(-tx,-ty));
+    float2 uv7 = UnityStereoTransformScreenSpaceTex(i.texcoord + float2(  0,-ty));
+    float2 uv8 = UnityStereoTransformScreenSpaceTex(i.texcoord + float2( tx,-ty));
+
+    half coc0 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv0).r;
+    half coc1 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv1).r;
+    half coc2 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv2).r;
+    half coc3 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv3).r;
+    half coc4 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv4).r;
+    half coc5 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv5).r;
+    half coc6 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv6).r;
+    half coc7 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv7).r;
+    half coc8 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv8).r;
+#endif
+
+    half maxCoC = Max3(Max3(coc0, coc1, coc2), Max3(coc3, coc4, coc5), Max3(coc6, coc7, coc8));
+    return half4(maxCoC, 0.0, 0.0, 0.0);
+}
+
+void AccumSample(int si, half4 samp0, float2 texcoord, inout half4 bgAcc, inout half4 fgAcc)
+{
+#if defined(KERNEL_SMALL)
+    half2 disp = kSmallDiskKernel[si].xy * _KernelScale.xy;
+    half dist = kSmallDiskKernel[si].z * _KernelScale.z;
+#else
+    half2 disp = kDiskAllKernels[si].xy * _KernelScale.xy;
+    half dist = kDiskAllKernels[si].z * _KernelScale.z;
+#endif
+    half2 duv = disp;
+
+    half4 samp = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, UnityStereoTransformScreenSpaceTex(texcoord + duv));
+
+    // BG: Compare CoC of the current sample and the center sample
+    // and select smaller one.
+    half bgCoC = max(min(samp0.a, samp.a), 0.0);
+
+    // Compare the CoC to the sample distance.
+    // Add a small margin to smooth out.
+    half bgWeight = saturate((bgCoC - dist + _MarginFactors.x) * _MarginFactors.y);
+    half fgWeight = saturate((-samp.a - dist + _MarginFactors.x) * _MarginFactors.y);
+
+    // Cut influence from focused areas because they're darkened by CoC
+    // premultiplying. This is only needed for near field.
+    fgWeight *= step(_MainTex_TexelSize.y, -samp.a);
+
+    // Accumulation
+    bgAcc += half4(samp.rgb, 1.0) * bgWeight;
+    fgAcc += half4(samp.rgb, 1.0) * fgWeight;
+}
+
+half4 FragBlurSmallBokeh (VaryingsDefault i) : SV_Target
 {
     half4 samp0 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.texcoordStereo);
 
     half4 bgAcc = 0.0; // Background: far field bokeh
     half4 fgAcc = 0.0; // Foreground: near field bokeh
 
-    UNITY_LOOP
-    for (int si = 0; si < kSampleCount; si++)
+    AccumSample(0, samp0, i.texcoord, bgAcc, fgAcc);
+    AccumSample(1, samp0, i.texcoord, bgAcc, fgAcc);
+    AccumSample(2, samp0, i.texcoord, bgAcc, fgAcc);
+    AccumSample(3, samp0, i.texcoord, bgAcc, fgAcc);
+    AccumSample(4, samp0, i.texcoord, bgAcc, fgAcc);
+    AccumSample(5, samp0, i.texcoord, bgAcc, fgAcc);
+    AccumSample(6, samp0, i.texcoord, bgAcc, fgAcc);
+    AccumSample(7, samp0, i.texcoord, bgAcc, fgAcc);
+    AccumSample(8, samp0, i.texcoord, bgAcc, fgAcc);
+    AccumSample(9, samp0, i.texcoord, bgAcc, fgAcc);
+    AccumSample(10, samp0, i.texcoord, bgAcc, fgAcc);
+    AccumSample(11, samp0, i.texcoord, bgAcc, fgAcc);
+    AccumSample(12, samp0, i.texcoord, bgAcc, fgAcc);
+    AccumSample(13, samp0, i.texcoord, bgAcc, fgAcc);
+    AccumSample(14, samp0, i.texcoord, bgAcc, fgAcc);
+    AccumSample(15, samp0, i.texcoord, bgAcc, fgAcc);
+
+    // Get the weighted average.
+    bgAcc.rgb /= bgAcc.a + (bgAcc.a == 0.0); // zero-div guard
+    fgAcc.rgb /= fgAcc.a + (fgAcc.a == 0.0);
+
+    // FG: Normalize the total of the weights.
+    fgAcc.a *= PI / kSmallSampleCount;
+
+    // Alpha premultiplying
+    half alpha = saturate(fgAcc.a);
+    half3 rgb = lerp(bgAcc.rgb, fgAcc.rgb, alpha);
+
+    return half4(rgb, alpha);
+}
+
+// Bokeh filter with disk-shaped kernels
+half4 FragBlurDynamic(VaryingsDefault i) : SV_Target
+{
+    half4 samp0 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.texcoordStereo);
+    // normalized value in range [0, 1]
+    half maxCoC = SAMPLE_TEXTURE2D(_MaxCoCTex, sampler_MaxCoCTex, i.texcoordStereo * _MaxCoCTexScale.zw).r;
+
+    int kernelRingIndex;
+
+    // margin adjustment +1 in the shader code artifically expand bokeh by 4px in fullscreen units (1 extra ring), we cannot have small bokeh as a result!
+    if (maxCoC < _CoCKernelLimits[0])
+        kernelRingIndex = 0;
+    else if (maxCoC < _CoCKernelLimits[1])
+        kernelRingIndex = 1 + 1;
+    else if (maxCoC < _CoCKernelLimits[2])
+        kernelRingIndex = 2 + 1;
+    else if (maxCoC < _CoCKernelLimits[3])
+        kernelRingIndex = 3 + 1;
+    else
+        kernelRingIndex = 4;
+
+    kernelRingIndex = min(_MaxRingIndex, kernelRingIndex);
+
+    int sampleCount = kDiskAllKernelSizes[kernelRingIndex];
+    half sampleCountRcp = kDiskAllKernelRcpSizes[kernelRingIndex];
+
+    half4 bgAcc = 0.0; // Background: far field bokeh
+    half4 fgAcc = 0.0; // Foreground: near field bokeh
+
+    AccumSample(0, samp0, i.texcoord, bgAcc, fgAcc);
+
+    UNITY_BRANCH if (kernelRingIndex >= 1)
     {
-        float2 disp = kDiskKernel[si] * _MaxCoC;
-        float dist = length(disp);
+        AccumSample(1, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(2, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(3, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(4, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(5, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(6, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(7, samp0, i.texcoord, bgAcc, fgAcc);
+    }
 
-        float2 duv = float2(disp.x * _RcpAspect, disp.y);
-        half4 samp = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, UnityStereoTransformScreenSpaceTex(i.texcoord + duv));
+    UNITY_BRANCH if (kernelRingIndex >= 2)
+    {
+        AccumSample(8, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(9, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(10, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(11, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(12, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(13, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(14, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(15, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(16, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(17, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(18, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(19, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(20, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(21, samp0, i.texcoord, bgAcc, fgAcc);
+    }
 
-        // BG: Compare CoC of the current sample and the center sample
-        // and select smaller one.
-        half bgCoC = max(min(samp0.a, samp.a), 0.0);
+    UNITY_BRANCH if (kernelRingIndex >= 3)
+    {
+        AccumSample(22, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(23, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(24, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(25, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(26, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(27, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(28, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(29, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(30, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(31, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(32, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(33, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(34, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(35, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(36, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(37, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(38, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(39, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(40, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(41, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(42, samp0, i.texcoord, bgAcc, fgAcc);
+    }
 
-        // Compare the CoC to the sample distance.
-        // Add a small margin to smooth out.
-        const half margin = _MainTex_TexelSize.y * 2;
-        half bgWeight = saturate((bgCoC   - dist + margin) / margin);
-        half fgWeight = saturate((-samp.a - dist + margin) / margin);
-
-        // Cut influence from focused areas because they're darkened by CoC
-        // premultiplying. This is only needed for near field.
-        fgWeight *= step(_MainTex_TexelSize.y, -samp.a);
-
-        // Accumulation
-        bgAcc += half4(samp.rgb, 1.0) * bgWeight;
-        fgAcc += half4(samp.rgb, 1.0) * fgWeight;
+    UNITY_BRANCH if (kernelRingIndex >= 4)
+    {
+        AccumSample(43, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(44, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(45, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(46, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(47, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(48, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(49, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(50, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(51, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(52, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(53, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(54, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(55, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(56, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(57, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(58, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(59, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(60, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(61, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(62, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(63, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(64, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(65, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(66, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(67, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(68, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(69, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(70, samp0, i.texcoord, bgAcc, fgAcc);
     }
 
     // Get the weighted average.
     bgAcc.rgb /= bgAcc.a + (bgAcc.a == 0.0); // zero-div guard
     fgAcc.rgb /= fgAcc.a + (fgAcc.a == 0.0);
 
-    // BG: Calculate the alpha value only based on the center CoC.
-    // This is a rather aggressive approximation but provides stable results.
-    bgAcc.a = smoothstep(_MainTex_TexelSize.y, _MainTex_TexelSize.y * 2.0, samp0.a);
-
-    // FG: Normalize the total of the weights.
-    fgAcc.a *= PI / kSampleCount;
+    // FG: fgAcc roughly represents the number of samples in the foreground which bleed into the pixel being processed.
+    // We can use this value to gradually blend-in the DoF texture into the original source image. We use the number
+    // of samples on the first or second ring as threshold to full-blend the DoF texture (when other outer rings are sampled,
+    // we are already at full-blend).
+    // The choice of first or second ring is arbitrary and decided to closely reproduce the original algorithm result.
+    // The original algorithm produces unnatural (physically inaccurate) blending that varies with "MaxBlurSize" parameter,
+    // so there is no good fix for it.
+    fgAcc.a *= max(sampleCountRcp, _FgAlphaFactor);
 
     // Alpha premultiplying
     half alpha = saturate(fgAcc.a);
