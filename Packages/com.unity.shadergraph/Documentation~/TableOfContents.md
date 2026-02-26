@@ -121,7 +121,7 @@
             * [Gradient](Gradient-Node.md)
             * [Sample Gradient](Sample-Gradient-Node.md)
         * High Definition Render Pipeline
-            * [Custom Color Buffer](HD-Custom-Color-Node.md)
+            * [Custom Color Buffer](Custom-Color-Buffer-Node.md)
             * [Custom Depth Buffer](HD-Custom-Depth-Node.md)
             * [Diffusion Profile](Diffusion-Profile-Node.md)
             * [Exposure](Exposure-Node.md)

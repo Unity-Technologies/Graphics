@@ -47,7 +47,7 @@ In HDRP, settings from the PBR and Unlit Master Nodes are not the same as the HD
 
 Previously, you could right-click the Master Node to bring up a context menu, and select **View Generated Shader** to preview the generated shader. In 10.0, you must now use the Unity Inspector, and click the **View Generated Shader** button on the Shader Graph asset.
 
-![image](images/GeneratedShaderButton.png)
+![The Inspector window showing the View Generated Shader button among other options.](images/GeneratedShaderButton.png)
 
 ## Settings in Graph Inspector
 
@@ -89,14 +89,14 @@ Previously, some nodes and properties such as the [Color Node](Color-Node.md) di
 
 For deprecated nodes, **(Deprecated)** appears after the node title in the main graph view.
 
-![image](images/DeprecatedColorNode.png)
+![The deprecated Color node, as an example.](images/DeprecatedColorNode.png)
 
 For deprecated properties, **(Deprecated)** appears after the property name in the [Blackboard](Blackboard.md).
 
-![image](images/DeprecatedColorProperty.png)
+![The deprecated Color property in the blackboard, as an example.](images/DeprecatedColorProperty.png)
 
-When you select a deprecated node or property, a warning appears in the [Internal Inspector](Internal-Inspector.md) along with an **Update** button that allows you to upgrade the selection. You can use undo/redo to reverse this upgrade process.
+When you select a deprecated node or property, a warning appears in the [Graph Inspector](Internal-Inspector.md) along with an **Update** button that allows you to upgrade the selection. You can use undo/redo to reverse this upgrade process.
 
-![image](images/DeprecatedWarning.png)
+![The deprecation message as it appears in the Graph Inspector.](images/DeprecatedWarning.png)
 
 If you enable **Allow Deprecated Behaviors** in [Shader Graph Preferences](Shader-Graph-Preferences.md), Shader Graph displays the version of the deprecated node or property, and doesn't display any warnings even though the **Update** button appears. You can also use the Blackboard or Searcher to create deprecated nodes and properties.

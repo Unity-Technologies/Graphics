@@ -24,22 +24,22 @@ namespace UnityEngine.Rendering.Universal
 
         int IRenderPipelineGraphicsSettings.version => m_Version;
 
-        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/FallbackMaterial.mat")]
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGIRendererFeature/FallbackMaterial.mat")]
         public Material m_FallbackMaterial;
 
-        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/PatchAllocation.compute")]
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGIRendererFeature/PatchAllocation.compute")]
         public ComputeShader m_AllocationShader;
 
-        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/ScreenResolveLookup.compute")]
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGIRendererFeature/ScreenResolveLookup.compute")]
         public ComputeShader m_ScreenResolveLookupShader;
 
-        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/ScreenResolveUpsampling.compute")]
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGIRendererFeature/ScreenResolveUpsampling.compute")]
         public ComputeShader m_ScreenResolveUpsamplingShader;
 
-        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/Debug.compute")]
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGIRendererFeature/Debug.compute")]
         public ComputeShader m_DebugShader;
 
-        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/FlatNormalResolution.compute")]
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGIRendererFeature/FlatNormalResolution.compute")]
         public ComputeShader m_FlatNormalResolutionShader;
 
         public Material fallbackMaterial
@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [DisallowMultipleRendererFeature("Surface Cache Global Illumination")]
-    public class SurfaceCacheGlobalIlluminationRendererFeature : ScriptableRendererFeature
+    public class SurfaceCacheGIRendererFeature : ScriptableRendererFeature
     {
         public enum DebugViewMode_
         {

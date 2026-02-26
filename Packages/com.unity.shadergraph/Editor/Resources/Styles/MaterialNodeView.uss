@@ -41,6 +41,11 @@ MaterialNodeView #controls > #items {
     padding-bottom: 4px;
 }
 
+/* Stop dropdown properties from overflowing the node's container */
+MaterialNodeView PropertyRow > #container > #label {
+    min-width: 92px;
+}
+
 MaterialNodeView #title {
     padding-top: 8px;
     border-bottom-width: 8px;
