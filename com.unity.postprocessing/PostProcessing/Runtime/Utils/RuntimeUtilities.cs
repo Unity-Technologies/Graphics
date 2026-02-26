@@ -561,6 +561,34 @@ namespace UnityEngine.Rendering.PostProcessing
         }
 
         /// <summary>
+        /// Blits procedural geometry using a given material.
+        /// </summary>
+        /// <param name="cmd">The command buffer to use</param>
+        /// <param name="source">The source render target</param>
+        /// <param name="destination">The destination render target</param>
+        /// <param name="propertySheet">The property sheet to use</param>
+        /// <param name="pass">The pass from the material to use</param>
+        /// <param name="instanceCount">The number of instances to render</param>
+        /// <param name="clear">Should the destination target be cleared?</param>
+        /// <param name="viewport">An optional viewport to consider for the blit</param>
+        /// <param name="preserveDepth">Should the depth buffer be preserved?</param>
+        public static void BlitProcedural(this CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, PropertySheet propertySheet, int pass, int vertexCount, int instanceCount, bool clear = false, Rect? viewport = null, bool preserveDepth = false)
+        {
+            cmd.SetGlobalTexture(ShaderIDs.MainTex, source);
+            var loadAction = viewport == null ? LoadAction.DontCare : LoadAction.Load;
+            cmd.SetRenderTargetWithLoadStoreAction(destination, loadAction, StoreAction.Store, preserveDepth ? LoadAction.Load : loadAction, StoreAction.Store);
+
+            if (viewport != null)
+                cmd.SetViewport(viewport.Value);
+
+            if (clear)
+                cmd.ClearRenderTarget(true, true, Color.clear);
+
+            // TODO: detect which platforms support quads
+            cmd.DrawProcedural(Matrix4x4.identity, propertySheet.material, pass, MeshTopology.Triangles, vertexCount, instanceCount, propertySheet.properties);
+        }
+
+        /// <summary>
         /// Blits a fullscreen triangle from a double-wide source.
         /// </summary>
         /// <param name="cmd">The command buffer to use</param>
