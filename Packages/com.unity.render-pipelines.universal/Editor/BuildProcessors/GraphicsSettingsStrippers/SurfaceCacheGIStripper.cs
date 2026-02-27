@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering
 
                     foreach (var rendererFeature in rendererData.rendererFeatures)
                     {
-                        if (rendererFeature is SurfaceCacheGlobalIlluminationRendererFeature { isActive: true })
+                        if (rendererFeature is SurfaceCacheGIRendererFeature { isActive: true })
                             return true;
                     }
                 }

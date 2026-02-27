@@ -6,8 +6,8 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [CustomEditor(typeof(SurfaceCacheGlobalIlluminationRendererFeature))]
-    internal class SurfaceCacheGlobalIlluminationEditor : Editor
+    [CustomEditor(typeof(SurfaceCacheGIRendererFeature))]
+    internal class SurfaceCacheGIEditor : Editor
     {
         private bool m_IsInitialized;
 
