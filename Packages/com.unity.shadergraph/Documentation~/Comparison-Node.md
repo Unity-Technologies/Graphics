@@ -6,17 +6,17 @@ Compares the two input values **A** and **B** based on the condition selected on
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| A      | Input | Float    | None | First input value |
-| B      | Input | Float    | None | Second input value |
-| Out  | Output  | Boolean  | None | Output value |
+| Name | Direction | Type | Binding | Description |
+|:--- |:---|:---|:---|:---|
+| A | Input | Float | None | First input value |
+| B | Input | Float | None | Second input value |
+| Out | Output | Boolean | None | Output value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-|      | Dropdown | Equal, NotEqual, Less, LessOrEqual, Greater, GreaterOrEqual | Condition for comparison |
+| Control | Description |
+|:---|:---|
+| (Dropdown) | Select the condition for comparison between A and B. The options are:<ul><li>**Equal**</li><li>**NotEqual**</li><li>**Less**</li><li>**LessOrEqual**</li><li>**Greater**</li><li>**GreaterOrEqual**</li></ul> |
 
 ## Generated Code Example
 

@@ -6,15 +6,15 @@ Defines a constant **Texture 2D Asset** for use in the shader. To sample the **T
 
 ## Ports
 
-| Name        | Direction           | Type  | Description |
-|:------------ |:-------------|:-----|:---|
-| Out | Output      |    Texture 2D | Output value |
+| Name | Direction | Type | Description |
+|:--- |:---|:---|:---|
+| Out | Output | Texture 2D | Output value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-|      | Object Field (Texture) |  | Defines the texture 3D asset from the project. |
+| Control |  Description |
+|:--- |:---|
+| (Texture) | Defines the texture 3D asset from the project. |
 
 ## Generated Code Example
 

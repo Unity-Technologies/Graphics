@@ -7,7 +7,7 @@ This node outputs the texture with its tiling set to (0,0) and scale set to (1,1
 
 Another term you may hear for tiling in this context is scale. Both terms refer to the size of the texture tiles.
 
-![](images/node-splittexturetransform.png)
+![The Split Texture Transform node](images/node-splittexturetransform.png)
 
 ### Ports
 

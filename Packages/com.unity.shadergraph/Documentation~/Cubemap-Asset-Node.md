@@ -6,12 +6,12 @@ Defines a constant **Cubemap Asset** for use in the shader. To sample the **Cube
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| Out | Output      |    Cubemap | None | Output value |
+| Name | Direction | Type | Binding | Description |
+|:--- |:---|:---|:---|:---|
+| Out | Output | Cubemap | None | Output value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-|       | Object Field (Cubemap) | | Defines the cubemap asset from the project. |
+| Control | Description |
+|:--- |:---|
+| (Cubemap)| Defines the cubemap asset from the project. |
