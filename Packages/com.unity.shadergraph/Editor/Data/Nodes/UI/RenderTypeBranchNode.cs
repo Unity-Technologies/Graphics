@@ -95,7 +95,7 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine("{0} = Unity_UIE_RenderTypeSwitchNode_Output.color.a;", outputVarNameAlpha);
                 }
             }
-            sb.AppendLine("else [branch] if ((_UIE_RENDER_TYPE_TEXT || _UIE_RENDER_TYPE_ANY) && TestType(IN.typeTexSettings.x, k_FragTypeText))");
+            sb.AppendLine("else [branch] if (_UIE_RENDER_TYPE_TEXT || _UIE_RENDER_TYPE_ANY && TestType(IN.typeTexSettings.x, k_FragTypeText))");
             using (sb.BlockScope())
             {
                 sb.AppendLine("[branch] if (GetTextureInfo(IN.typeTexSettings.y).sdfScale > 0.0)");
