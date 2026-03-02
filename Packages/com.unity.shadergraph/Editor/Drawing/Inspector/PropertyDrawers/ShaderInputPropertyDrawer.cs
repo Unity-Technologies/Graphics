@@ -68,6 +68,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         const string m_EnumRefDisallowedPattern = @"(?:[^A-Za-z_0-9_.])";
         const string m_AttributeValueDisallowedPattern = @"(?:[^A-Za-z_0-9._ ])";
 
+        const string kHDRTextureToggleTooltip =
+            "When enabled, any node which samples this texture will automatically decode the sampled value" +
+            " if the texture was stored using an encoded HDR format such as dLDR.";
+
         public ShaderInputPropertyDrawer()
         {
             greyLabel = new GUIStyle(EditorStyles.label);
@@ -1020,6 +1024,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     new ToggleData(texture2DProperty.useTexelSize, true),
                     "Use TexelSize",
                     out var texelSizeToggle));
+                    propertySheet.Add(togglePropertyDrawer.CreateGUI(
+                    newValue =>
+                    {
+                        this._preChangeValueCallback("Change Is HDR");
+                        if (texture2DProperty.isHDR == newValue.isOn)
+                            return;
+                        texture2DProperty.isHDR = newValue.isOn;
+                        this._postChangeValueCallback(modificationScope: ModificationScope.Graph);
+                    },
+                    new ToggleData(texture2DProperty.isHDR, true),
+                    "Is HDR",
+                    out var isHDRToggle,
+                    tooltip: kHDRTextureToggleTooltip));
             }
         }
 
@@ -1037,6 +1054,24 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 isCurrentPropertyGlobal ? "Preview Value" : "Default Value",
                 out var texture2DArrayField
             ));
+
+            if (!isSubGraph || shaderInput.promoteToFinalShader)
+            {
+                var togglePropertyDrawer = new ToggleDataPropertyDrawer();
+                propertySheet.Add(togglePropertyDrawer.CreateGUI(
+                newValue =>
+                {
+                    this._preChangeValueCallback("Change Is HDR");
+                    if (texture2DArrayProperty.isHDR == newValue.isOn)
+                        return;
+                    texture2DArrayProperty.isHDR = newValue.isOn;
+                    this._postChangeValueCallback(modificationScope: ModificationScope.Graph);
+                },
+                new ToggleData(texture2DArrayProperty.isHDR, true),
+                "Is HDR",
+                out var isHDRToggle,
+                tooltip: kHDRTextureToggleTooltip));
+            }
         }
 
         #region VT reorderable list handler
@@ -1296,6 +1331,24 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 isCurrentPropertyGlobal ? "Preview Value" : "Default Value",
                 out var texture3DField
             ));
+
+            if (!isSubGraph || shaderInput.promoteToFinalShader)
+            {
+                ToggleDataPropertyDrawer togglePropertyDrawer = new ToggleDataPropertyDrawer();
+                propertySheet.Add(togglePropertyDrawer.CreateGUI(
+                    newValue =>
+                    {
+                        this._preChangeValueCallback("Change Is HDR");
+                        if (texture3DShaderProperty.isHDR == newValue.isOn)
+                            return;
+                        texture3DShaderProperty.isHDR = newValue.isOn;
+                        this._postChangeValueCallback(modificationScope: ModificationScope.Graph);
+                    },
+                    new ToggleData(texture3DShaderProperty.isHDR, true),
+                    "Is HDR",
+                    out var isHDRToggle,
+                    tooltip: kHDRTextureToggleTooltip));
+            }
         }
 
         void HandleCubemapProperty(PropertySheet propertySheet, CubemapShaderProperty cubemapProperty)
@@ -1312,6 +1365,24 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 isCurrentPropertyGlobal ? "Preview Value" : "Default Value",
                 out var propertyCubemapField
             ));
+
+            if (!isSubGraph || shaderInput.promoteToFinalShader)
+            {
+                ToggleDataPropertyDrawer togglePropertyDrawer = new ToggleDataPropertyDrawer();
+                propertySheet.Add(togglePropertyDrawer.CreateGUI(
+                    newValue =>
+                    {
+                        this._preChangeValueCallback("Change Is HDR");
+                        if (cubemapProperty.isHDR == newValue.isOn)
+                            return;
+                        cubemapProperty.isHDR = newValue.isOn;
+                        this._postChangeValueCallback(modificationScope: ModificationScope.Graph);
+                    },
+                    new ToggleData(cubemapProperty.isHDR, true),
+                    "Is HDR",
+                    out var isHDRToggle,
+                    tooltip: kHDRTextureToggleTooltip));
+            }
         }
 
         void HandleBooleanProperty(PropertySheet propertySheet, BooleanShaderProperty booleanProperty)
