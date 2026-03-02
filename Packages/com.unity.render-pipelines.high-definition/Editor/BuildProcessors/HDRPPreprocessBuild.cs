@@ -41,6 +41,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 ConfigureMinimumMaxLoDValueForAllQualitySettings();
 
+                if (HDRenderPipelineGlobalSettings.instance.TryInitializeDefaultVolumeProfile(out var defaultVolumeProfileSettings) ||
+                    VolumeProfileUtils.TryEnsureAllOverridesForDefaultProfile(defaultVolumeProfileSettings?.volumeProfile))
+                {
+                    Debug.Log("Default Volume Profile has been modified to ensure all overrides are present. This is required to avoid missing overrides at runtime which can lead to unexpected rendering issues. Please save these changes to avoid this message in the future.");
+                }
+
                 LogIncludedAssets(m_BuildData.renderPipelineAssets);
 
                 if (!IsConfigurationValid())
@@ -48,7 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if(!ProceedWithBuild())
                         throw new BuildFailedException("Build canceled by user due to HDRP configuration issues.");
                 }
-                    
+
 
                 GatherShaderFeatures();
             }

@@ -91,14 +91,28 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             SetUpRPAssetIncluded();
 
-            TryGet(typeof(HDRenderPipelineEditorAssets), out var editorAssets);
-            var assets = editorAssets as HDRenderPipelineEditorAssets;
-
-            if (TryGet(typeof(HDRPDefaultVolumeProfileSettings), out var defaultSettings) &&
-                defaultSettings is HDRPDefaultVolumeProfileSettings defaultVolumeProfileSettings)
+            InitializeDefaultVolumeProfile();
+        }
+        internal HDRPDefaultVolumeProfileSettings InitializeDefaultVolumeProfile()
+        {
+            TryInitializeDefaultVolumeProfile(out var defaultVolumeProfileSettings);
+            return defaultVolumeProfileSettings;
+        }
+        internal bool TryInitializeDefaultVolumeProfile(out HDRPDefaultVolumeProfileSettings defaultVolumeProfileSettings)
+        {
+            defaultVolumeProfileSettings = null;
+            var changed = false;
+            if (TryGet(typeof(HDRenderPipelineEditorAssets), out var editorAssets) &&
+                TryGet(typeof(HDRPDefaultVolumeProfileSettings), out var defaultSettings) &&
+                defaultSettings is HDRPDefaultVolumeProfileSettings settings &&
+                editorAssets is HDRenderPipelineEditorAssets assets)
             {
+                defaultVolumeProfileSettings = settings;
                 if (defaultVolumeProfileSettings.volumeProfile == null && assets != null)
+                {
+                    changed = true;
                     defaultVolumeProfileSettings.volumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(assets.defaultVolumeProfile);
+                }
 
                 // Initialize the Volume Profile with the default diffusion profiles
                 var diffusionProfileList = VolumeUtils.GetOrCreateDiffusionProfileList(defaultVolumeProfileSettings.volumeProfile);
@@ -107,8 +121,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     diffusionProfileList.diffusionProfiles.value = VolumeUtils.CreateArrayWithDefaultDiffusionProfileSettingsList(assets);
                     EditorUtility.SetDirty(diffusionProfileList);
+                    changed = true;
                 }
             }
+            return changed;
         }
 
         void SetUpRPAssetIncluded()

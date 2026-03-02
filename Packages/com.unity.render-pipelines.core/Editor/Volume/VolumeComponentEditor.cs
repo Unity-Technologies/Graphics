@@ -196,7 +196,6 @@ namespace UnityEditor.Rendering
 
         static Dictionary<Type, VolumeParameterDrawer> s_ParameterDrawers;
         SupportedOnRenderPipelineAttribute m_SupportedOnRenderPipelineAttribute;
-        Type[] m_LegacyPipelineTypes;
 
         static VolumeComponentEditor()
         {
@@ -274,11 +273,6 @@ namespace UnityEditor.Rendering
 
             var volumeComponentType = volumeComponent.GetType();
             m_SupportedOnRenderPipelineAttribute = volumeComponentType.GetCustomAttribute<SupportedOnRenderPipelineAttribute>();
-
-#pragma warning disable CS0618
-            var supportedOn = volumeComponentType.GetCustomAttribute<VolumeComponentMenuForRenderPipeline>();
-            m_LegacyPipelineTypes = supportedOn != null ? supportedOn.pipelineTypes : Array.Empty<Type>();
-#pragma warning restore CS0618
         }
 
         internal void DetermineVisibility(Type renderPipelineAssetType, Type renderPipelineType)
@@ -292,12 +286,6 @@ namespace UnityEditor.Rendering
             if (m_SupportedOnRenderPipelineAttribute != null)
             {
                 visible = m_SupportedOnRenderPipelineAttribute.GetSupportedMode(renderPipelineAssetType) != SupportedOnRenderPipelineAttribute.SupportedMode.Unsupported;
-                return;
-            }
-
-            if (renderPipelineType != null && m_LegacyPipelineTypes.Length > 0)
-            {
-                visible = m_LegacyPipelineTypes.Contains(renderPipelineType);
                 return;
             }
 
@@ -451,12 +439,12 @@ namespace UnityEditor.Rendering
             var displayInfo = volumeComponentType.GetCustomAttribute<DisplayInfoAttribute>();
             if (displayInfo != null && !string.IsNullOrWhiteSpace(displayInfo.name))
                 return EditorGUIUtility.TrTextContent(displayInfo.name, string.Empty);
-            
+
             #pragma warning disable CS0618
             if (!string.IsNullOrWhiteSpace(volumeComponent.displayName))
                 return EditorGUIUtility.TrTextContent(volumeComponent.displayName, string.Empty);
             #pragma warning restore CS0618
-            
+
             return EditorGUIUtility.TrTextContent(ObjectNames.NicifyVariableName(volumeComponentType.Name) , string.Empty);
         }
 

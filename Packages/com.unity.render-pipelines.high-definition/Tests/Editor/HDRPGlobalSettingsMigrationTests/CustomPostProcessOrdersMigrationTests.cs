@@ -7,9 +7,9 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition.Test.GlobalSettingsMigration
 {
     class CustomPostProcessOrdersMigrationTests : RenderPipelineGraphicsSettingsMigrationTestBase<CustomPostProcessOrdersSettings>
-
     {
         [Serializable, HideInInspector]
+        [Obsolete("Obsolete to strip from builds")]
         class CustomPostProcessesTestComponent : CustomPostProcessVolumeComponent, IPostProcessComponent
         {
             // For testing purposes we do not have a correct injection point for each setting as is not checked.
@@ -34,9 +34,9 @@ namespace UnityEditor.Rendering.HighDefinition.Test.GlobalSettingsMigration
         {
             public void SetUp(HDRenderPipelineGlobalSettings globalSettingsAsset, HDRenderPipelineAsset renderPipelineAsset)
             {
+#pragma warning disable 618 // Type or member is obsolete
                 var type = typeof(CustomPostProcessesTestComponent).AssemblyQualifiedName;
 
-#pragma warning disable 618 // Type or member is obsolete
                 globalSettingsAsset.beforePostProcessCustomPostProcesses.Add(type);
                 globalSettingsAsset.beforeTransparentCustomPostProcesses.Add(type);
                 globalSettingsAsset.afterPostProcessBlursCustomPostProcesses.Add(type);
@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition.Test.GlobalSettingsMigration
                 message = string.Empty;
 
                 bool isMigrationCorrect = true;
-
+#pragma warning disable 618
                 isMigrationCorrect &= settings.beforePostProcessCustomPostProcesses.Contains<CustomPostProcessesTestComponent>();
                 isMigrationCorrect &= settings.beforeTransparentCustomPostProcesses.Contains<CustomPostProcessesTestComponent>();
                 isMigrationCorrect &= settings.afterPostProcessBlursCustomPostProcesses.Contains<CustomPostProcessesTestComponent>();
@@ -62,6 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition.Test.GlobalSettingsMigration
                 if (!isMigrationCorrect)
                     message = $"{nameof(CustomPostProcessesTestComponent)} has not been found in some list";
                 return isMigrationCorrect;
+#pragma warning restore 618
             }
         }
 

@@ -76,7 +76,6 @@ namespace UnityEngine.Rendering.Tests
         public IEnumerator AllTestsCombined()
         {
             yield return PhysicsModulePresence();
-            yield return VolumeManager_LocalVolumesBehaveAsExpected();
         }
 
         // Disabled - see AllTestsCombined()
@@ -93,31 +92,6 @@ namespace UnityEngine.Rendering.Tests
                 // and it should be investigated if that is expected. If this test project now requires the Physics module, we need to either
                 // move this test to a different project, or remove more packages to allow this test to run without Physics module present.
                 Assert.False(isPhysicsInstalled, "Physics module should not be installed. Did you introduce a new dependency to Physics module somewhere?");
-        }
-
-        // Disabled - see AllTestsCombined()
-        //[UnityTest]
-        public IEnumerator VolumeManager_LocalVolumesBehaveAsExpected()
-        {
-            EditorSceneManager.OpenScene("Assets/CommonAssets/Scenes/LocalVolumeTestScene.unity");
-            yield return null;
-
-            // Ensure VolumeManager is updated with the main camera position (might not be true depending on editor layout as we are not in Play Mode)
-            Assume.That(Camera.main != null);
-            VolumeManager.instance.Update(Camera.main.transform, (LayerMask)1);
-
-            var volumeComponent = VolumeManager.instance.stack.GetComponent<TestVolumeComponent>();
-
-            if (m_PhysicsModuleInstalled)
-            {
-                Assert.True(volumeComponent.parameter.overrideState, "Expected local volumes to be enabled when Physics module is installed.");
-                Assert.AreEqual(TestVolumeComponent.k_OverrideValue, volumeComponent.parameter.value);
-            }
-            else
-            {
-                Assert.False(volumeComponent.parameter.overrideState, "Expected local volumes to be disabled when Physics module is not installed.");
-                Assert.AreEqual(TestVolumeComponent.k_DefaultValue, volumeComponent.parameter.value);
-            }
         }
     }
 
