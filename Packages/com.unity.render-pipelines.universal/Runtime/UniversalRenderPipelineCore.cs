@@ -1968,7 +1968,7 @@ namespace UnityEngine.Rendering.Universal
             public PlatformDetectionCache()
             {
                 bool isRunningMobile = false;
-                #if ENABLE_VR && ENABLE_XR_MODULE
+                #if ENABLE_VR && ENABLE_VR_MODULE
                     #if PLATFORM_WINRT || PLATFORM_ANDROID
                         isRunningMobile = IsRunningXRMobile();
                     #endif
