@@ -7,22 +7,23 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    static class HDLightingSearchSelectors
+    static class HDLightingSearchColumnProviders
     {
         internal const string k_SceneProvider = "scene";
         internal const string k_LightPath = "Light/";
-        internal const string k_LightShapePath = k_LightPath + "Shape";
+        internal const string k_LightShapePath = k_LightPath + "ShapeHDRP";
         internal const string k_LightIntensityPath = k_LightPath + "Intensity";
         internal const string k_LightIntensityUnitPath = k_LightPath + "IntensityUnit";
+        internal const string k_LightModePath = k_LightPath + "ModeHDRP";
         internal const string k_ContactShadowsPath = k_LightPath + "ContactShadows";
         internal const string k_ShadowResolutionPath = k_LightPath + "ShadowResolution";
         internal const string k_ReflectionProbePath = "ReflectionProbe/";
         internal const string k_ReflectionProbeResolutionPath = k_ReflectionProbePath + "Resolution";
-        internal const string k_MeshRendererPath = "Renderer/MeshRenderer/";
+        internal const string k_MeshRendererPath = "MeshRenderer/";
         internal const string k_RayTracingModeFilter = "RayTracingMode";
         internal const string k_RayTracingModePath = k_MeshRendererPath + "RayTracingMode";
 
-        const string k_StyleSheetPath = "StyleSheets/HDLightingSearchSelectors.uss";
+        const string k_StyleSheetPath = "StyleSheets/HDLightingSearchColumnProviders.uss";
         const float k_FlexGrowDefault = 1f;
         const float k_ImguiContainerHeight = 20f;
         const float k_RectLeftWidthRatio = 0.3f;
@@ -187,16 +188,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
             };
-        }
-
-        [SearchSelector(k_RayTracingModePath, provider: k_SceneProvider, priority: 99)]
-        static object RayTracingModeSearchSelector(SearchSelectorArgs args)
-        {
-            var go = args.current.ToObject<GameObject>();
-            if (go == null)
-                return null;
-
-            return HDLightingSearchDataAccessors.GetRayTracingMode(go);
         }
 
         [SearchColumnProvider(k_RayTracingModePath)]
@@ -547,6 +538,48 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         }
 
+        [SearchColumnProvider(k_LightModePath)]
+        public static void LightModeSearchColumnProvider(SearchColumn column)
+        {
+            column.getter = args =>
+            {
+                var go = args.item.data as GameObject ?? args.item.ToObject<GameObject>();
+                if (go == null)
+                    return null;
+                return HDLightingSearchDataAccessors.GetLightMode(go);
+            };
+            column.setter = args =>
+            {
+                if (args.value == null || !args.value.GetType().IsEnum)
+                    return;
+                var go = args.item.data as GameObject ?? args.item.ToObject<GameObject>();
+                if (go == null)
+                    return;
+                HDLightingSearchDataAccessors.SetLightMode(go, (LightmapBakeType)args.value);
+            };
+            column.cellCreator = _ => new EnumField(LightmapBakeType.Realtime) { style = { flexGrow = k_FlexGrowDefault } };
+            column.binder = (args, ve) =>
+            {
+                var field = (EnumField)ve;
+                var go = args.item.data as GameObject ?? args.item.ToObject<GameObject>();
+                if (go == null || !go.TryGetComponent<Light>(out var light))
+                {
+                    field.visible = false;
+                    return;
+                }
+                if (args.value is LightmapBakeType bakeType)
+                {
+                    field.visible = true;
+                    field.SetValueWithoutNotify(bakeType);
+                    field.SetEnabled(!HDLightingSearchDataAccessors.IsLightModeLocked(light.type));
+                }
+                else
+                {
+                    field.visible = false;
+                }
+            };
+        }
+
         static VisualElement CreateImguiContainer()
         {
             var visualElement = new VisualElement() { style = { height = k_ImguiContainerHeight } };
@@ -735,6 +768,32 @@ namespace UnityEditor.Rendering.HighDefinition
                 meshRenderer.rayTracingMode = value;
             }
 
+            internal static LightmapBakeType? GetLightMode(GameObject go)
+            {
+                if (!go.TryGetComponent<Light>(out var light))
+                    return null;
+                if (light.type == LightType.Tube)
+                    return LightmapBakeType.Realtime;
+                if (light.type == LightType.Disc)
+                    return LightmapBakeType.Baked;
+                return light.lightmapBakeType;
+            }
+
+            internal static void SetLightMode(GameObject go, LightmapBakeType value)
+            {
+                if (!go.TryGetComponent<Light>(out var light))
+                    return;
+                if (light.type == LightType.Tube || light.type == LightType.Disc)
+                    return;
+                light.lightmapBakeType = value;
+                EditorUtility.SetDirty(light);
+            }
+
+            internal static bool IsLightModeLocked(LightType type)
+            {
+                return type == LightType.Tube || type == LightType.Disc;
+            }
+
             internal static LightType? GetLightShape(GameObject go)
             {
                 if (!go.TryGetComponent<Light>(out var light))
@@ -753,19 +812,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     light.type = value;
 
                     if (!LightUnitUtils.IsLightUnitSupported(value, light.lightUnit))
-                    {
                         light.lightUnit = LightUnitUtils.GetNativeLightUnit(value);
-                    }
 
-                    // Mark the light component as dirty so the intensity and unit columns refresh
-                    // when the light type changes.
                     EditorUtility.SetDirty(light);
                 }
             }
 
             internal static bool IsLightShapeApplicable(LightType lightType)
             {
-                return IsAreaLight(lightType) || IsSpotLight(lightType);
+                return IsSpotLight(lightType) || lightType is LightType.Rectangle or LightType.Disc or LightType.Tube;
             }
 
             internal static bool IsSpotLight(LightType lightType)
@@ -823,7 +878,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     Init((SpotLightShape)m_Value);
                 }
-                else
+                else if (HDLightingSearchDataAccessors.IsAreaLight(m_Value))
                 {
                     Init((AreaLightShape)m_Value);
                 }

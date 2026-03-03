@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.Lighting
 {
-    static class CoreLightingSearchSelectors
+    static class CoreLightingSearchColumnProviders
     {
         internal const string k_SceneProvider = "scene";
         internal const string k_BakingSetPath = "BakingSets/";
@@ -18,8 +18,7 @@ namespace UnityEditor.Lighting
         internal const string k_VolumeModePath = k_VolumePath + "Mode";
         internal const string k_VolumeProfilePath = k_VolumePath + "Profile";
 
-        const string k_StyleSheetPath = "StyleSheets/LightingSearchSelectors.uss";
-        const int k_DefaultSearchSelectorPriority = 99;
+        const string k_StyleSheetPath = "StyleSheets/LightingSearchColumnProviders.uss";
         const int k_MinBakingSamples = 1;
         const int k_MaxBakingSamples = 8192;
         static StyleSheet s_StyleSheet;
@@ -31,26 +30,6 @@ namespace UnityEditor.Lighting
                 s_StyleSheet = EditorGUIUtility.Load(k_StyleSheetPath) as StyleSheet;
             }
             return s_StyleSheet;
-        }
-
-        [SearchSelector(k_VolumeModePath, provider: k_SceneProvider, priority: k_DefaultSearchSelectorPriority)]
-        static object VolumeModeSearchSelector(SearchSelectorArgs args)
-        {
-            var go = args.current.ToObject<GameObject>();
-            if (go == null)
-                return null;
-
-            return LightingSearchDataAccessors.GetVolumeMode(go);
-        }
-
-        [SearchSelector(k_VolumeProfilePath, provider: k_SceneProvider, priority: k_DefaultSearchSelectorPriority)]
-        static object VolumeProfileSearchSelector(SearchSelectorArgs args)
-        {
-            var go = args.current.ToObject<GameObject>();
-            if (go == null)
-                return null;
-
-            return LightingSearchDataAccessors.GetVolumeProfile(go);
         }
 
         [SearchColumnProvider(k_BakingModePath)]
@@ -396,7 +375,7 @@ namespace UnityEditor.Lighting
 
         internal static bool IsLightShapeApplicable(LightType lightType)
         {
-            return IsAreaLight(lightType);
+            return lightType is LightType.Rectangle or LightType.Disc;
         }
 
         static bool IsAreaLight(LightType lightType)
@@ -407,8 +386,7 @@ namespace UnityEditor.Lighting
         enum AreaLightShape
         {
             Rectangle = LightType.Rectangle,
-            Disc = LightType.Disc,
-            Tube = LightType.Tube
+            Disc = LightType.Disc
         }
 
         class LightShapeField : EnumField
@@ -452,7 +430,9 @@ namespace UnityEditor.Lighting
             {
                 if (IsAreaLight(m_Value))
                 {
-                    Init((AreaLightShape)m_Value, false);
+                    // Tube is not offered as an option; display as Rectangle
+                    var displayType = m_Value == LightType.Tube ? LightType.Rectangle : m_Value;
+                    Init((AreaLightShape)displayType, false);
                 }
             }
         }

@@ -8,11 +8,14 @@ using UnityEngine.UIElements;
 namespace UnityEditor.Rendering.Tests
 {
     [TestFixture]
-    class CoreLightingSearchSelectorsTests
+    class CoreLightingSearchColumnProvidersTests
     {
         GameObject m_TestGameObject;
         Volume m_Volume;
         ProbeVolumeBakingSet m_BakingSet;
+        SearchProvider m_SceneProvider;
+        SearchContext m_Context;
+        SearchItem m_SearchItem;
 
         [SetUp]
         public void Setup()
@@ -20,6 +23,10 @@ namespace UnityEditor.Rendering.Tests
             m_TestGameObject = new GameObject("TestCoreLightingObject");
             m_Volume = m_TestGameObject.AddComponent<Volume>();
             m_BakingSet = ScriptableObject.CreateInstance<ProbeVolumeBakingSet>();
+
+            m_SceneProvider = UnityEditor.Search.SearchService.GetProvider("scene");
+            m_Context = UnityEditor.Search.SearchService.CreateContext("scene");
+            m_SearchItem = CreateSearchItem(m_TestGameObject);
         }
 
         [TearDown]
@@ -36,13 +43,35 @@ namespace UnityEditor.Rendering.Tests
             }
         }
 
+        SearchItem CreateSearchItem(GameObject go)
+        {
+            var searchItem = m_SceneProvider.CreateItem(m_Context, $"scene:{go.GetEntityId().ToString()}");
+            searchItem.data = go;
+            return searchItem;
+        }
+
+        SearchColumn CreateColumn(string path, System.Action<SearchColumn> columnProvider)
+        {
+            var column = new SearchColumn("test", path, "scene");
+            columnProvider(column);
+            return column;
+        }
+
+        SearchColumnEventArgs CreateColumnEventArgs(SearchItem item, SearchColumn column, object value = null)
+        {
+            var args = new SearchColumnEventArgs(item, m_Context, column);
+            if (value != null)
+                args.value = value;
+            return args;
+        }
+
         #region Baking Set Tests
 
         [Test]
         public void BakingMode_Column_CellCreator_CreatesValidElement()
         {
             var column = new SearchColumn("test", "test", "test");
-            CoreLightingSearchSelectors.BakingModeSearchColumnProvider(column);
+            CoreLightingSearchColumnProviders.BakingModeSearchColumnProvider(column);
 
             var element = column.cellCreator(column);
             Assert.IsNotNull(element, "Cell creator should return a valid element");
@@ -58,7 +87,7 @@ namespace UnityEditor.Rendering.Tests
         public void SkyOcclusionBakingSamples_Column_CellCreator_CreatesValidElement()
         {
             var column = new SearchColumn("test", "test", "test");
-            CoreLightingSearchSelectors.SkyOcclusionBakingSamplesSearchColumnProvider(column);
+            CoreLightingSearchColumnProviders.SkyOcclusionBakingSamplesSearchColumnProvider(column);
 
             var element = column.cellCreator(column);
             Assert.IsNotNull(element, "Cell creator should return a valid element");
@@ -80,21 +109,14 @@ namespace UnityEditor.Rendering.Tests
         {
             m_Volume.isGlobal = true;
 
-            var sceneProvider = UnityEditor.Search.SearchService.GetProvider("scene");
-            var context = UnityEditor.Search.SearchService.CreateContext("scene");
-            var searchItem = sceneProvider.CreateItem(context, $"scene:{m_TestGameObject.GetEntityId().ToString()}");
-            searchItem.data = m_TestGameObject;
+            var column = CreateColumn("test", CoreLightingSearchColumnProviders.VolumeModeSearchColumnProvider);
+            var args = CreateColumnEventArgs(m_SearchItem, column);
 
-            var column = new SearchColumn("test", "test", "scene");
-            CoreLightingSearchSelectors.VolumeModeSearchColumnProvider(column);
-
-            var searchColumnEventArgs = new SearchColumnEventArgs(searchItem, context, column);
-            var getterResult = column.getter(searchColumnEventArgs);
+            var getterResult = column.getter(args);
             Assert.IsNotNull(getterResult, "Getter should return a value");
             Assert.AreEqual("Global", getterResult, "Getter should return 'Global'");
 
-            var setterArgs = new SearchColumnEventArgs(searchItem, context, column);
-            setterArgs.value = "Local";
+            var setterArgs = CreateColumnEventArgs(m_SearchItem, column, "Local");
             column.setter(setterArgs);
             Assert.IsFalse(m_Volume.isGlobal, "Volume should be local after setting");
 
@@ -107,7 +129,7 @@ namespace UnityEditor.Rendering.Tests
         public void VolumeMode_Column_CellCreator_CreatesValidElement()
         {
             var column = new SearchColumn("test", "test", "test");
-            CoreLightingSearchSelectors.VolumeModeSearchColumnProvider(column);
+            CoreLightingSearchColumnProviders.VolumeModeSearchColumnProvider(column);
 
             var element = column.cellCreator(column);
             Assert.IsNotNull(element, "Cell creator should return a valid element");
@@ -124,21 +146,13 @@ namespace UnityEditor.Rendering.Tests
         {
             var testProfile = ScriptableObject.CreateInstance<VolumeProfile>();
 
-            var sceneProvider = UnityEditor.Search.SearchService.GetProvider("scene");
-            var context = UnityEditor.Search.SearchService.CreateContext("scene");
-            var searchItem = sceneProvider.CreateItem(context, $"scene:{m_TestGameObject.GetEntityId().ToString()}");
-            searchItem.data = m_TestGameObject;
+            var column = CreateColumn("test", CoreLightingSearchColumnProviders.VolumeProfileSearchColumnProvider);
+            var args = CreateColumnEventArgs(m_SearchItem, column);
 
-            var column = new SearchColumn("test", "test", "scene");
-            CoreLightingSearchSelectors.VolumeProfileSearchColumnProvider(column);
-
-            var searchColumnEventArgs = new SearchColumnEventArgs(searchItem, context, column);
-
-            var setterArgs = new SearchColumnEventArgs(searchItem, context, column);
-            setterArgs.value = testProfile;
+            var setterArgs = CreateColumnEventArgs(m_SearchItem, column, testProfile);
             column.setter(setterArgs);
 
-            var getterResult = column.getter(searchColumnEventArgs);
+            var getterResult = column.getter(args);
             Assert.IsNotNull(getterResult, "Getter should return a value");
             Assert.AreEqual(testProfile, getterResult, "Getter should return the VolumeProfile that was set");
 
@@ -149,7 +163,7 @@ namespace UnityEditor.Rendering.Tests
         public void VolumeProfile_Column_CellCreator_CreatesValidElement()
         {
             var column = new SearchColumn("test", "test", "test");
-            CoreLightingSearchSelectors.VolumeProfileSearchColumnProvider(column);
+            CoreLightingSearchColumnProviders.VolumeProfileSearchColumnProvider(column);
 
             var element = column.cellCreator(column);
             Assert.IsNotNull(element, "Cell creator should return a valid element");
@@ -170,15 +184,10 @@ namespace UnityEditor.Rendering.Tests
             var light = m_TestGameObject.AddComponent<Light>();
             light.type = LightType.Rectangle;
 
-            var sceneProvider = UnityEditor.Search.SearchService.GetProvider("scene");
-            var context = UnityEditor.Search.SearchService.CreateContext("scene");
-            var searchItem = sceneProvider.CreateItem(context, $"scene:{m_TestGameObject.GetEntityId().ToString()}");
-            searchItem.data = m_TestGameObject;
+            var column = CreateColumn(CoreLightingSearchColumnProviders.k_LightShapePath, CoreLightingSearchColumnProviders.LightShapeSearchColumnProvider);
+            var args = CreateColumnEventArgs(m_SearchItem, column);
 
-            var column = new SearchColumn("test", CoreLightingSearchSelectors.k_LightShapePath, "scene");
-            var searchColumnEventArgs = new SearchColumnEventArgs(searchItem, context, column);
-            CoreLightingSearchSelectors.LightShapeSearchColumnProvider(column);
-            var getterResult = column.getter(searchColumnEventArgs);
+            var getterResult = column.getter(args);
             Assert.IsNotNull(getterResult, "Getter should return a value");
             Assert.AreEqual(LightType.Rectangle, getterResult, "Getter should return Rectangle");
         }
@@ -186,15 +195,10 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void LightShape_Column_Getter_WithoutLight_ReturnsNull()
         {
-            var sceneProvider = UnityEditor.Search.SearchService.GetProvider("scene");
-            var context = UnityEditor.Search.SearchService.CreateContext("scene");
-            var searchItem = sceneProvider.CreateItem(context, $"scene:{m_TestGameObject.GetEntityId().ToString()}");
-            searchItem.data = m_TestGameObject;
+            var column = CreateColumn(CoreLightingSearchColumnProviders.k_LightShapePath, CoreLightingSearchColumnProviders.LightShapeSearchColumnProvider);
+            var args = CreateColumnEventArgs(m_SearchItem, column);
 
-            var column = new SearchColumn("test", CoreLightingSearchSelectors.k_LightShapePath, "scene");
-            var searchColumnEventArgs = new SearchColumnEventArgs(searchItem, context, column);
-            CoreLightingSearchSelectors.LightShapeSearchColumnProvider(column);
-            var getterResult = column.getter(searchColumnEventArgs);
+            var getterResult = column.getter(args);
             Assert.IsNull(getterResult, "Getter should return null for GameObject without Light component");
         }
 
@@ -204,16 +208,9 @@ namespace UnityEditor.Rendering.Tests
             var light = m_TestGameObject.AddComponent<Light>();
             light.type = LightType.Point;
 
-            var sceneProvider = UnityEditor.Search.SearchService.GetProvider("scene");
-            var context = UnityEditor.Search.SearchService.CreateContext("scene");
-            var searchItem = sceneProvider.CreateItem(context, $"scene:{m_TestGameObject.GetEntityId().ToString()}");
-            searchItem.data = m_TestGameObject;
+            var column = CreateColumn(CoreLightingSearchColumnProviders.k_LightShapePath, CoreLightingSearchColumnProviders.LightShapeSearchColumnProvider);
+            var setterArgs = CreateColumnEventArgs(m_SearchItem, column, LightType.Rectangle);
 
-            var column = new SearchColumn("test", CoreLightingSearchSelectors.k_LightShapePath, "scene");
-            CoreLightingSearchSelectors.LightShapeSearchColumnProvider(column);
-
-            var setterArgs = new SearchColumnEventArgs(searchItem, context, column);
-            setterArgs.value = LightType.Rectangle;
             column.setter(setterArgs);
             Assert.AreEqual(LightType.Rectangle, light.type, "Light should have type Rectangle after setting");
         }
@@ -224,16 +221,9 @@ namespace UnityEditor.Rendering.Tests
             var light = m_TestGameObject.AddComponent<Light>();
             light.type = LightType.Rectangle;
 
-            var sceneProvider = UnityEditor.Search.SearchService.GetProvider("scene");
-            var context = UnityEditor.Search.SearchService.CreateContext("scene");
-            var searchItem = sceneProvider.CreateItem(context, $"scene:{m_TestGameObject.GetEntityId().ToString()}");
-            searchItem.data = m_TestGameObject;
+            var column = CreateColumn(CoreLightingSearchColumnProviders.k_LightShapePath, CoreLightingSearchColumnProviders.LightShapeSearchColumnProvider);
+            var setterArgs = CreateColumnEventArgs(m_SearchItem, column, LightType.Spot);
 
-            var column = new SearchColumn("test", CoreLightingSearchSelectors.k_LightShapePath, "scene");
-            CoreLightingSearchSelectors.LightShapeSearchColumnProvider(column);
-
-            var setterArgs = new SearchColumnEventArgs(searchItem, context, column);
-            setterArgs.value = LightType.Spot;
             column.setter(setterArgs);
             Assert.AreEqual(LightType.Rectangle, light.type, "Light type should not change when setting non-applicable type");
         }
@@ -241,8 +231,8 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void LightShape_Column_CellCreator_CreatesValidElement()
         {
-            var column = new SearchColumn("test", CoreLightingSearchSelectors.k_LightShapePath, "test");
-            CoreLightingSearchSelectors.LightShapeSearchColumnProvider(column);
+            var column = new SearchColumn("test", CoreLightingSearchColumnProviders.k_LightShapePath, "test");
+            CoreLightingSearchColumnProviders.LightShapeSearchColumnProvider(column);
 
             var element = column.cellCreator(column);
             Assert.IsNotNull(element, "Cell creator should return a valid element");
@@ -255,19 +245,12 @@ namespace UnityEditor.Rendering.Tests
             var light = m_TestGameObject.AddComponent<Light>();
             light.type = LightType.Rectangle;
 
-            var sceneProvider = UnityEditor.Search.SearchService.GetProvider("scene");
-            var context = UnityEditor.Search.SearchService.CreateContext("scene");
-            var searchItem = sceneProvider.CreateItem(context, $"scene:{m_TestGameObject.GetEntityId().ToString()}");
-            searchItem.data = m_TestGameObject;
+            var column = CreateColumn(CoreLightingSearchColumnProviders.k_LightShapePath, CoreLightingSearchColumnProviders.LightShapeSearchColumnProvider);
+            var args = CreateColumnEventArgs(m_SearchItem, column);
 
-            var column = new SearchColumn("test", CoreLightingSearchSelectors.k_LightShapePath, "scene");
-            CoreLightingSearchSelectors.LightShapeSearchColumnProvider(column);
-
-            var searchColumnEventArgs = new SearchColumnEventArgs(searchItem, context, column);
-            var getterResult = column.getter(searchColumnEventArgs);
-
+            var getterResult = column.getter(args);
             var element = column.cellCreator(column);
-            var binderArgs = new SearchColumnEventArgs(searchItem, context, column) { value = getterResult };
+            var binderArgs = CreateColumnEventArgs(m_SearchItem, column, getterResult);
             Assert.DoesNotThrow(() => column.binder(binderArgs, element), "Binder should not throw for applicable light types");
         }
 
@@ -277,19 +260,12 @@ namespace UnityEditor.Rendering.Tests
             var light = m_TestGameObject.AddComponent<Light>();
             light.type = LightType.Spot;
 
-            var sceneProvider = UnityEditor.Search.SearchService.GetProvider("scene");
-            var context = UnityEditor.Search.SearchService.CreateContext("scene");
-            var searchItem = sceneProvider.CreateItem(context, $"scene:{m_TestGameObject.GetEntityId().ToString()}");
-            searchItem.data = m_TestGameObject;
+            var column = CreateColumn(CoreLightingSearchColumnProviders.k_LightShapePath, CoreLightingSearchColumnProviders.LightShapeSearchColumnProvider);
+            var args = CreateColumnEventArgs(m_SearchItem, column);
 
-            var column = new SearchColumn("test", CoreLightingSearchSelectors.k_LightShapePath, "scene");
-            CoreLightingSearchSelectors.LightShapeSearchColumnProvider(column);
-
-            var searchColumnEventArgs = new SearchColumnEventArgs(searchItem, context, column);
-            var getterResult = column.getter(searchColumnEventArgs);
-
+            var getterResult = column.getter(args);
             var element = column.cellCreator(column);
-            var binderArgs = new SearchColumnEventArgs(searchItem, context, column) { value = getterResult };
+            var binderArgs = CreateColumnEventArgs(m_SearchItem, column, getterResult);
             column.binder(binderArgs, element);
 
             Assert.IsFalse(element.visible, "Element should be hidden for non-applicable light types (Spot)");
@@ -304,11 +280,11 @@ namespace UnityEditor.Rendering.Tests
         {
             var columnTypes = new[]
             {
-                CoreLightingSearchSelectors.k_BakingModePath,
-                CoreLightingSearchSelectors.k_SkyOcclusionBakingSamplesPath,
-                CoreLightingSearchSelectors.k_VolumeModePath,
-                CoreLightingSearchSelectors.k_VolumeProfilePath,
-                CoreLightingSearchSelectors.k_LightShapePath
+                CoreLightingSearchColumnProviders.k_BakingModePath,
+                CoreLightingSearchColumnProviders.k_SkyOcclusionBakingSamplesPath,
+                CoreLightingSearchColumnProviders.k_VolumeModePath,
+                CoreLightingSearchColumnProviders.k_VolumeProfilePath,
+                CoreLightingSearchColumnProviders.k_LightShapePath
             };
 
             foreach (var columnType in columnTypes)
@@ -320,19 +296,19 @@ namespace UnityEditor.Rendering.Tests
                     switch (columnType)
                     {
                         case "BakingSets/BakingMode":
-                            CoreLightingSearchSelectors.BakingModeSearchColumnProvider(column);
+                            CoreLightingSearchColumnProviders.BakingModeSearchColumnProvider(column);
                             break;
                         case "BakingSets/SkyOcclusionBakingSamples":
-                            CoreLightingSearchSelectors.SkyOcclusionBakingSamplesSearchColumnProvider(column);
+                            CoreLightingSearchColumnProviders.SkyOcclusionBakingSamplesSearchColumnProvider(column);
                             break;
                         case "Volume/Mode":
-                            CoreLightingSearchSelectors.VolumeModeSearchColumnProvider(column);
+                            CoreLightingSearchColumnProviders.VolumeModeSearchColumnProvider(column);
                             break;
                         case "Volume/Profile":
-                            CoreLightingSearchSelectors.VolumeProfileSearchColumnProvider(column);
+                            CoreLightingSearchColumnProviders.VolumeProfileSearchColumnProvider(column);
                             break;
                         case "Light/Shape":
-                            CoreLightingSearchSelectors.LightShapeSearchColumnProvider(column);
+                            CoreLightingSearchColumnProviders.LightShapeSearchColumnProvider(column);
                             break;
                     }
                 }, $"Column initialization for {columnType} should not throw");
