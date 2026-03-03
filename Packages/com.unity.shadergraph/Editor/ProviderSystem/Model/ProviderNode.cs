@@ -34,6 +34,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
         internal FunctionHeader Header { get; private set; }
 
+        internal List<ParameterHeader> ParamHeaders { get; private set; }
+
         internal IProvider<IShaderFunction> Provider => m_provider;
 
         const int kReservedOutputSlot = 0;
@@ -49,6 +51,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         public ProviderNode()
         {
             name = "Provider Based Node";
+            Header = new();
         }
 
         internal void InitializeFromProvider(IProvider<IShaderFunction> provider)
@@ -89,10 +92,11 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
         internal void UpdateModel()
         {
-            if (Provider == null || Provider.Definition == null)
+            if (Provider == null || Provider.Definition == null || !Provider.IsValid)
                 return;
 
-            Header = new FunctionHeader(Provider);
+            Header.Process(Provider.Definition, Provider);
+
             var header = Header;
             this.name = header.displayName;
             this.synonyms = header.searchTerms;
@@ -116,23 +120,22 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                 oldSlotMap[oldSlot.shaderOutputName] = idTuple;
             }
 
-            List<ParameterHeader> paramHeaders = new();
+            ParamHeaders = new();
             List<int> desiredSlotOrder = new();
 
             // return type is a special case, because it has no parameter but still needs a slot
             // we reserve the 0 slotId for this and always make sure it's added first/at the top.
-            if (header.hasReturnType)
+            if (header.hasReturnValueType)
             {
-                var returnParam = new ParameterHeader(header.returnDisplayName, header.returnType, header.tooltip);
                 usedSlotIds.Add(kReservedOutputSlot);
                 desiredSlotOrder.Add(kReservedOutputSlot);
-                AddSlotFromParameter(returnParam, kReservedOutputSlot, SlotType.Output);
+                AddSlotFromParameter(header.returnHeader, kReservedOutputSlot, SlotType.Output);
             }
 
             // build the header data for our parameters and mark which slot ids are being reused.
             foreach(var param in parameters)
             {
-                paramHeaders.Add(new ParameterHeader(param, Provider.Definition));
+                ParamHeaders.Add(new ParameterHeader(param, Provider));
                 if (oldSlotMap.TryGetValue(param.Name, out var idTuple))
                 {
                     if (idTuple.inputId > -1) usedSlotIds.Add(idTuple.inputId);
@@ -142,7 +145,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
             // walk through our header data and build the actual slots.
             int nextSlot = kReservedOutputSlot;
-            foreach (var paramHeader in paramHeaders)
+            foreach (var paramHeader in ParamHeaders)
             {
                 if (!oldSlotMap.TryGetValue(paramHeader.referenceName, out var idTuple))
                     idTuple = (-1, -1);
@@ -275,24 +278,26 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             base.ValidateNode();
             if (Provider == null)
             {
-                owner.AddSetupError(this.objectId, "Node is in an invalid state and cannot recover.");
+                owner?.AddSetupError(this.objectId, "Node is in an invalid state and cannot recover.");
                 return;
             }
             else if (Provider.AssetID != default && (Provider.Definition == null || !Provider.Definition.IsValid))
             {
                 var path = AssetDatabase.GUIDToAssetPath(Provider.AssetID);
-                owner.AddSetupError(this.objectId, $"Data for '{Provider.ProviderKey}' expected in '{path}'.");
+                owner?.AddSetupError(this.objectId, $"Data for '{Provider.ProviderKey}' expected in '{path}'.");
                 return;
             }
             else
             {
-                foreach(var param in Provider.Definition.Parameters)
+                foreach(var msg in Header.Messages)
                 {
-                    var header = new ParameterHeader(param, Provider.Definition);
-                    if (!string.IsNullOrWhiteSpace(header.knownIssue))
+                    owner?.AddValidationError(this.objectId, msg, Rendering.ShaderCompilerMessageSeverity.Warning);
+                }
+                foreach(var param in ParamHeaders)
+                {
+                    foreach(var msg in param.Messages)
                     {
-                        owner.AddValidationError(this.objectId, header.knownIssue, Rendering.ShaderCompilerMessageSeverity.Warning);
-                        break; // We can only show one error badge at a time.
+                        owner?.AddValidationError(this.objectId, msg, Rendering.ShaderCompilerMessageSeverity.Warning);
                     }
                 }
             }

@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -13,7 +12,6 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         public ProviderModelAttribute(string providerKey) { ProviderKey = providerKey; }
     }
 
-    // This marks a provider to be included in the ProviderLibrary
     internal class ScriptedProviderAttribute : Attribute { }
 
     internal static class ProviderTypeCache
@@ -28,19 +26,16 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                 s_providerModels = new();
                 s_scriptedProviders = new();
 
-                foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+                foreach(var type in TypeCache.GetTypesWithAttribute<ProviderModelAttribute>())
                 {
-                    foreach (Type type in assembly.GetTypes())
-                    {
-                        var providerKey = type.GetCustomAttribute<ProviderModelAttribute>()?.ProviderKey ?? null;
-                        if (providerKey != null)
-                            if (!s_providerModels.TryAdd(providerKey, type))
-                                Debug.LogError($"Attempted to register '{type.Name}' with provider key '{providerKey}', but key is already registered to '{s_providerModels[providerKey]}'.");
-
-                        if (type.GetCustomAttribute<ScriptedProviderAttribute>() != null)
-                            s_scriptedProviders.Add(type);
-                    }
+                    var providerKey = type.GetCustomAttribute<ProviderModelAttribute>()?.ProviderKey ?? null;
+                    if (providerKey != null)
+                        if (!s_providerModels.TryAdd(providerKey, type))
+                            Debug.LogError($"Attempted to register '{type.Name}' with provider key '{providerKey}', but key is already registered to '{s_providerModels[providerKey]}'.");
                 }
+
+                foreach (var type in TypeCache.GetTypesWithAttribute<ScriptedProviderAttribute>())
+                    s_scriptedProviders.Add(type);
             }
         }
 

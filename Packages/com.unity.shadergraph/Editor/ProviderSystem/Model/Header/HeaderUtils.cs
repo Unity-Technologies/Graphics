@@ -4,66 +4,6 @@ using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph.ProviderSystem
 {
-    internal static class Hints
-    {
-        internal static class Common
-        {
-            internal const string kDisplayName = "sg:DisplayName";
-
-            // Not yet implemented.
-            internal const string kTooltip = "sg:Tooltip"; // SG doesn't have tooltips
-        }
-        internal static class Func
-        {
-            internal const string kProviderKey = "sg:ProviderKey";
-
-            internal const string kReturnDisplayName = "sg:ReturnDisplayName";
-
-            internal const string kSearchTerms = "sg:SearchTerms";
-            internal const string kSearchName = "sg:SearchName";
-            internal const string kCategory = "sg:SearchCategory";
-
-            // Not yet implemented.
-            internal const string kGroupKey = "sg:GroupKey";
-            internal const string kReturnTooltip = "sg:ReturnTooltip";
-            internal const string kDocumentationLink = "sg:HelpURL";
-
-            // ProviderKey associated hints, Not yet implemented.
-            internal const string kDeprecated = "sg:Deprecated";
-            internal const string kObsolete = "sg:Obsolete";
-            internal const string kVersion = "sg:Version";
-        }
-
-        internal static class Param
-        {
-            internal const string kStatic = "sg:Static";
-            internal const string kLocal = "sg:Local";
-            internal const string kLiteral = "sg:Literal";
-            internal const string kColor = "sg:Color";
-            internal const string kRange = "sg:Range";
-            internal const string kDropdown = "sg:Dropdown";
-            internal const string kDefault = "sg:Default";
-
-            // Not yet implemented.
-            internal const string kSetting = "sg:Setting";
-            internal const string kLinkage = "sg:Linkage";
-            internal const string kPrecision = "sg:Precision";
-            internal const string kDynamic = "sg:Dynamic";
-            internal const string kReferable = "sg:Referable";
-            internal const string kExternal = "sg:External";
-
-            // Hard coded referables, not yet implemented.
-            internal const string kUV = "sg:ref:UV";
-            internal const string kPosition = "sg:ref:Position";
-            internal const string kNormal = "sg:ref:Normal";
-            internal const string kBitangent = "sg:ref:Bitangent";
-            internal const string kTangent = "sg:ref:Tangent";
-            internal const string kViewDirection = "sg:ref:ViewDirection";
-            internal const string kScreenPosition = "sg:ref:ScreenPosition";
-            internal const string kVertexColor = "sg:VertexColor";
-        }
-    }
-
     internal static class HeaderUtils
     {
         internal static string ToShaderType(this MaterialSlot slot)

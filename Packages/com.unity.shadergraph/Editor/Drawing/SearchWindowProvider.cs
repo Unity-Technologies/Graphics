@@ -214,7 +214,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.InitializeFromProvider(provider);
                 var header = node.Header;
 
-                string rawTitle = $"{header.category}/{header.uniqueName}";
+                string rawTitle = $"{header.searchCategory}/{header.searchName}";
 
                 int orderFound = 0;
                 while (providerCollisions.Contains(rawTitle))

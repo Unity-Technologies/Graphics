@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             { Hints.Common.kDisplayName, "Expression" },
             { Hints.Func.kProviderKey,  kExpressionProviderKey },
             { Hints.Func.kSearchName, "Expression" },
-            { Hints.Func.kCategory, "Utility" },
+            { Hints.Func.kSearchCategory, "Utility" },
             { Hints.Func.kSearchTerms, "equation, calculation, inline, code" }
         };
 

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.ProviderSystem;
-using UnityEngine;
+using System.Text;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
@@ -14,37 +14,65 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             node = nodeBase as ProviderNode;
             var provider = node.Provider;
-            var definition = node.Provider.Definition;
             string sourcePath = AssetDatabase.GUIDToAssetPath(node.Provider.AssetID);
-
             string providerKey = provider.ProviderKey;
-            string qualifiedSignature = ShaderObjectUtils.QualifySignature(node.Provider.Definition, true, true);
-            bool hasProviderKey = definition?.Hints?.ContainsKey(Hints.Func.kProviderKey) ?? false;
 
-            if (provider == null)
-            {
-                parentElement.Add(new HelpBoxRow("Provider node is in an invalid and irrecoverable state.", MessageType.Error));
-                return;
-            }
-
-            bool isAnAsset = provider.AssetID != default;
-
-            if (!isAnAsset)
-                return;
-
-            else if (!provider.IsValid)
+            if (!provider.IsValid)
             {
                 parentElement.Add(new HelpBoxRow($"Could not find '{providerKey}' in '{sourcePath}'.", MessageType.Error));
+                // TODO: When this happens, we should offer to update the AssetID if it's found elsewhere in the provider library.
+                // This should be a consideration for API Management Hints (SVFXG-865).
+                return;
             }
-            else if (!hasProviderKey)
+
+            // TODO: We could show this for all ProviderNodes, but the inspector isn't currently refreshed on topological changes.
+            if (provider.AssetID != default)
             {
-                parentElement.Add(new HelpBoxRow($"'{providerKey}' in '{sourcePath}' does not have a 'ProviderKey' hint. If the namespace, name, or parameter list changes- this node instance will become invalidated.", MessageType.Warning));
+                parentElement.Add(new Label("Provider Key"));
+                parentElement.Add(new HelpBoxRow(providerKey, MessageType.None));
+
+                parentElement.Add(new Label("Source Path"));
+                parentElement.Add(new HelpBoxRow(sourcePath, MessageType.None));
+
+                string qualifiedSignature = ShaderObjectUtils.QualifySignature(node.Provider.Definition, true, true);
+                parentElement.Add(new Label("Qualified Signature"));
+                parentElement.Add(new HelpBoxRow(qualifiedSignature, MessageType.None));
+
+                string code = ShaderObjectUtils.GenerateCode(provider.Definition, false, false, false);
+                parentElement.Add(new Label("Expected Definition"));
+                parentElement.Add(new HelpBoxRow(code, MessageType.None));
             }
-            else
+
+            StringBuilder sb = new();
+            bool hasMsg = false;
+
+            // Function
+            foreach (var msg in node.Header.Messages)
             {
-                parentElement.Add(new HelpBoxRow($"Provider Key '{providerKey}' for \n" +
-                                                 $"Function Signature '{qualifiedSignature}' found in \n" +
-                                                 $"File Path '{sourcePath}'.", MessageType.Info));
+                hasMsg = true;
+                sb.AppendLine(msg);
+            }
+            if (hasMsg)
+            {
+                parentElement.Add(new Label("Function Hint Messages"));
+                parentElement.Add(new HelpBoxRow(sb.ToString(), MessageType.Warning));
+            }
+
+            // Parameters
+            foreach (var paramHeader in node.ParamHeaders)
+            {
+                hasMsg = false;
+                sb.Clear();
+                foreach(var msg in paramHeader.Messages)
+                {
+                    hasMsg = true;
+                    sb.AppendLine(msg);
+                }
+                if (hasMsg)
+                {
+                    parentElement.Add(new Label($"Parameter '{paramHeader.referenceName}' Hint Messages"));
+                    parentElement.Add(new HelpBoxRow(sb.ToString(), MessageType.Warning));
+                }
             }
         }
     }
