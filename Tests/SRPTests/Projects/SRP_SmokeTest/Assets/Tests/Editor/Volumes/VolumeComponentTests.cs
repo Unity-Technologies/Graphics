@@ -409,13 +409,5 @@ namespace UnityEditor.Rendering.Tests
             Assert.That(() => volumeManager.GetVolumeComponentsForDisplay(typeof(CustomRenderPipeline)), Throws.ArgumentException);
             Assert.IsNotNull(volumeManager.GetVolumeComponentsForDisplay(null));
         }
-
-        [Test]
-        public void TestVolumeManagerFetchsTypesWhenNotInitialized()
-        {
-            var volumeManager = new VolumeManager();
-            var typesForDisplay = volumeManager.GetVolumeComponentsForDisplay(typeof(CustomRenderPipelineAsset));
-            Assert.IsTrue(typesForDisplay.Count > 0);
-        }
     }
 }

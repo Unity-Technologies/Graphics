@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.Tests
         public void TestVolumeManagerSupportedOnFiltering(Type renderPipelineAssetType, Type[] expectedTypes, Type[] notExpectedTypes)
         {
             var volumeManager = new VolumeManager();
-            volumeManager.LoadBaseTypes(renderPipelineAssetType);
+            volumeManager.LoadBaseTypesByReflection(renderPipelineAssetType);
             volumeManager.InitializeInternal();
 
             foreach (var expectedType in expectedTypes)
