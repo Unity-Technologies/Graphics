@@ -77,6 +77,8 @@ Varyings BuildVaryings(Attributes input)
             float4 clampedRect = clamp(_ClipRect, -2e10, 2e10);
             float2 maskUV = (input.positionOS.xy - clampedRect.xy) / (clampedRect.zw - clampedRect.xy);
             output.texCoord1 = float4(input.positionOS.xy * 2 - clampedRect.xy - clampedRect.zw, 0.25 / (0.25 * half2(_UIMaskSoftnessX, _UIMaskSoftnessY) + abs(pixelSize.xy)));
+        #else
+            output.texCoord1 = input.uv1;
         #endif
     #endif
 
