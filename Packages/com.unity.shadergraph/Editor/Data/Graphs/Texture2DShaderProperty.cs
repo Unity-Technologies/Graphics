@@ -49,13 +49,17 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField]
         internal bool useTilingAndOffset = false;
 
+        [SerializeField]
+        internal bool isHDR = false;
+
         internal string useSTString => useTilingAndOffset ? "" : "[NoScaleOffset]";
+        internal string isHDRString => isHDR ? "[HDR]" : "";
         internal string mainTextureString => isMainTexture ? "[MainTexture]" : "";
 
         internal override string GetPropertyBlockString()
         {
             var normalTagString = (defaultType == DefaultType.NormalMap) ? "[Normal]" : "";
-            return $"{hideTagString}{modifiableTagString}{normalTagString}{mainTextureString}{useSTString}{referenceName}(\"{displayName}\", 2D) = \"{ToShaderLabString(defaultType)}\" {{}}";
+            return $"{hideTagString}{modifiableTagString}{normalTagString}{mainTextureString}{useSTString}{isHDRString}{referenceName}(\"{displayName}\", 2D) = \"{ToShaderLabString(defaultType)}\" {{}}";
         }
 
         // Texture2D properties cannot be set via Hybrid path at the moment; disallow that choice
@@ -71,6 +75,10 @@ namespace UnityEditor.ShaderGraph.Internal
             if (useTilingAndOffset)
             {
                 action(new HLSLProperty(HLSLType._float4, referenceName + "_ST", decl));
+            }
+            if (isHDR)
+            {
+                action(new HLSLProperty(HLSLType._float4, referenceName + "_HDR", decl));
             }
         }
 
@@ -88,17 +96,13 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             if (isSubgraphProperty)
                 return referenceName;
-            else
-            {
-                if (useTilingAndOffset)
-                {
-                    return $"UnityBuildTexture2DStruct({referenceName})";
-                }
-                else
-                {
-                    return $"UnityBuildTexture2DStructNoScale({referenceName})";
-                }
-            }
+
+            string nameArg = referenceName;
+            string samplerArg = $"sampler{referenceName}";
+            string texelSizeArg = $"{referenceName}_TexelSize";
+            string scaleTranslateArg = useTilingAndOffset ? $"{referenceName}_ST" : "float4(1, 1, 0, 0)";
+            string hdrDecodeArg = isHDR ? $"{referenceName}_HDR" : "float4(0, 0, 0, 0)";
+            return $"UnityBuildTexture2DStructInternal({nameArg}, {samplerArg}, {texelSizeArg}, {scaleTranslateArg}, {hdrDecodeArg})";
         }
 
         [SerializeField]
