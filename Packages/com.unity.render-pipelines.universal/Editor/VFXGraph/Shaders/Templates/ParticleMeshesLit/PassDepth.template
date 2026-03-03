@@ -1,10 +1,11 @@
 Pass
 {
+    Name "DepthOnly"
     Tags { "LightMode"="DepthOnly" }
 
     ZWrite On
     Blend Off
-    
+
     HLSLPROGRAM
     #define VFX_PASSDEPTH VFX_PASSDEPTH_ACTUAL
     ${VFXPassDepthAdditionalPragma}

@@ -1,5 +1,6 @@
 Pass
 {
+    Name "DepthNormals"
     Tags { "LightMode"="DepthNormals" }
 
     ZWrite On
