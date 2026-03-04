@@ -295,6 +295,18 @@ namespace UnityEditor.Rendering.HighDefinition
             HDEditorUtils.EnsureVolume((WaterRendering water) => !water.enable.value ? "This Water Surface cannot render properly because Water Rendering override state property in the Volume System is either set to disabled or the current camera is currently not rendering." : null);
             HDEditorUtils.EnsureFrameSetting(FrameSettingsField.Water);
 
+            if (m_Tessellation.boolValue)
+                HDEditorUtils.ShowPlatformPerformanceWarning(BuildTarget.Switch2, "Water Tessellation");
+
+            if (m_ScriptInteractions.boolValue)
+                HDEditorUtils.ShowPlatformPerformanceWarning(BuildTarget.Switch2, "Water Script Interactions");
+
+            if (m_Caustics.boolValue)
+                HDEditorUtils.ShowPlatformPerformanceWarning(BuildTarget.Switch2, "Water Caustics");
+
+            if (m_UnderWater.boolValue)
+                HDEditorUtils.ShowPlatformPerformanceWarning(BuildTarget.Switch2, "Underwater");
+
             if (target is WaterSurface surface && surface.surfaceIndex == -1)
             {
                 EditorGUILayout.HelpBox("Only up to 16 water surfaces are supported simultaneously. This surface will not be rendered.", MessageType.Warning);
