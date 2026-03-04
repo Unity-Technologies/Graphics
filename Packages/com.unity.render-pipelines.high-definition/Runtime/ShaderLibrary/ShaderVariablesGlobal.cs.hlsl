@@ -182,6 +182,10 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _VolumetricCloudsShadowOriginToggle;
     float4 _ColorPyramidUvScaleAndLimitCurrentFrame;
     float4 _ColorPyramidUvScaleAndLimitPrevFrame;
+    uint _ContactShadowDirectionalOnly;
+    uint _ContactShadowHalfResolution;
+    uint _GlobalPadding0;
+    uint _GlobalPadding1;
 CBUFFER_END
 
 

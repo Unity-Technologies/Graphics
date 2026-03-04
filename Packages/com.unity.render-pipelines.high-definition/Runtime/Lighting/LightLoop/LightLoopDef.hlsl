@@ -17,6 +17,11 @@
 #define CUBE_SCALE_OFFSET _CubeScaleOffset
 #endif
 
+// Disable contact shadows if turned off
+#ifdef CONTACT_SHADOWS_OFF
+#define LIGHTLOOP_DISABLE_CONTACT_SHADOWS
+#endif
+
 // Some file may not required HD shadow context at all. In this case provide an empty one
 // Note: if a double defintion error occur it is likely have include HDShadow.hlsl (and so HDShadowContext.hlsl) after lightloopdef.hlsl
 #ifndef HAVE_HD_SHADOW_CONTEXT
@@ -411,15 +416,44 @@ EnvLightData FetchEnvLight(uint index)
 //By default its 8 bits for the fade and 24 for the mask, please check the LightLoop.cs definitions.
 void UnpackContactShadowData(uint contactShadowData, out float fade, out uint mask)
 {
-    fade = float(contactShadowData >> CONTACT_SHADOW_MASK_BITS) / ((float)CONTACT_SHADOW_FADE_MASK);
-    mask = contactShadowData & CONTACT_SHADOW_MASK_MASK; // store only the first 24 bits which represent
+    if (_ContactShadowDirectionalOnly == 1)
+    {
+        fade = contactShadowData / ((float)CONTACT_SHADOW_FADE_MASK);
+        mask = 0x1u;
+    }
+    else
+    {
+        fade = float(contactShadowData >> CONTACT_SHADOW_MASK_BITS) / ((float)CONTACT_SHADOW_FADE_MASK);
+        mask = contactShadowData & CONTACT_SHADOW_MASK_MASK; // store only the first 24 bits which represent
+    }
+}
+
+void UnpackContactShadowData(uint4 contactShadowData, out float4 fade, out uint4 mask)
+{
+    if (_ContactShadowDirectionalOnly == 1)
+    {
+        fade = contactShadowData / ((float4)CONTACT_SHADOW_FADE_MASK);
+        mask = (uint4)0x1u;
+    }
+    else
+    {
+        fade = float4(contactShadowData >> (uint4)CONTACT_SHADOW_MASK_BITS) / ((float4)CONTACT_SHADOW_FADE_MASK);
+        mask = contactShadowData & (uint4)CONTACT_SHADOW_MASK_MASK; // store only the first 24 bits which represent
+    }
 }
 
 uint PackContactShadowData(float fade, uint mask)
 {
-    uint fadeAsByte = (uint(saturate(fade) * CONTACT_SHADOW_FADE_MASK) << CONTACT_SHADOW_MASK_BITS);
+    if (_ContactShadowDirectionalOnly == 1)
+    {
+        return uint(saturate(fade) * CONTACT_SHADOW_FADE_MASK);
+    }
+    else
+    {
+        uint fadeAsByte = (uint(saturate(fade) * CONTACT_SHADOW_FADE_MASK) << CONTACT_SHADOW_MASK_BITS);
 
-    return fadeAsByte | mask;
+        return fadeAsByte | mask;
+    }
 }
 
 // We always fetch the screen space shadow texture to reduce the number of shader variant, overhead is negligible,
@@ -427,11 +461,42 @@ uint PackContactShadowData(float fade, uint mask)
 // We perform a single featch a the beginning of the lightloop
 void InitContactShadow(PositionInputs posInput, inout LightLoopContext context)
 {
+#ifdef LIGHTLOOP_DISABLE_CONTACT_SHADOWS
+    context.contactShadowFade = 0.0;
+    context.contactShadow = 0;
+#else
     // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
     // We use this property to have a neutral value for contact shadows that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
     // We store inverse contact shadow so neutral is white. So either we sample inside or outside the texture it return 1 in case of neutral
-    uint packedContactShadow = LOAD_TEXTURE2D_X(_ContactShadowTexture, posInput.positionSS).x;
-    UnpackContactShadowData(packedContactShadow, context.contactShadowFade, context.contactShadow);
+
+    // If the contact shadow directional flag is on, then we can interpolate safely the data.
+    // We interpolate only for upsampling the contact shadow data for the lighting.
+    if (_ContactShadowHalfResolution == 1)
+    {
+        uint2 p = posInput.positionSS / 2u;
+
+        // TODO: replace that with a bilinear sample, but it require a float texture instead of uint which is a different resource type
+        // we're limited by the number of resources to bind, so maybe we could switch to an 8888 UNorm target instead?
+        uint4 contactShadowData;
+        contactShadowData.x = LOAD_TEXTURE2D_X(_ContactShadowTexture, p + uint2(0, 0)).x;
+        contactShadowData.y = LOAD_TEXTURE2D_X(_ContactShadowTexture, p + uint2(1, 0)).x;
+        contactShadowData.z = LOAD_TEXTURE2D_X(_ContactShadowTexture, p + uint2(0, 1)).x;
+        contactShadowData.w = LOAD_TEXTURE2D_X(_ContactShadowTexture, p + uint2(1, 1)).x;
+
+        float4 fade;
+        uint4 mask;
+
+        UnpackContactShadowData(contactShadowData, fade, mask);
+
+        context.contactShadowFade = dot(fade, (float4)0.25);
+        context.contactShadow = mask.x | mask.y | mask.z | mask.w; 
+    }
+    else
+    {
+        uint contactShadowData = LOAD_TEXTURE2D_X(_ContactShadowTexture, posInput.positionSS).x;
+        UnpackContactShadowData(contactShadowData, context.contactShadowFade, context.contactShadow);
+    }
+#endif // LIGHTLOOP_DISABLE_CONTACT_SHADOWS
 }
 
 void InvalidateConctactShadow(PositionInputs posInput, inout LightLoopContext context)
@@ -442,8 +507,23 @@ void InvalidateConctactShadow(PositionInputs posInput, inout LightLoopContext co
 
 float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowMask, float rayTracedShadow)
 {
-    bool occluded = (lightLoopContext.contactShadow & contactShadowMask) != 0;
+#ifdef LIGHTLOOP_DISABLE_CONTACT_SHADOWS
+    return 1.0;
+#else
+    bool occluded;
+
+    // Low mode, directional contact shadow only
+    if (_ContactShadowDirectionalOnly == 1)
+    {
+        occluded = contactShadowMask & 1; // In low mode, only directional lights have a mask, we can use the first bit set as the sun light.
+    }
+    else
+    {
+        occluded = (lightLoopContext.contactShadow & contactShadowMask) != 0;
+    }
+
     return 1.0 - occluded * lerp(lightLoopContext.contactShadowFade, 1.0, rayTracedShadow) * _ContactShadowOpacity;
+#endif // LIGHTLOOP_DISABLE_CONTACT_SHADOWS
 }
 
 float GetScreenSpaceShadow(PositionInputs posInput, uint shadowIndex)

@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_MSAA = new ShaderKeyword("ENABLE_MSAA");
         protected ShaderKeyword m_ScreenSpaceShadowOFFKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_OFF");
         protected ShaderKeyword m_ScreenSpaceShadowONKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_ON");
+        protected ShaderKeyword m_ContactShadowsOFFKeyword = new ShaderKeyword("CONTACT_SHADOWS_OFF");
         protected ShaderKeyword m_ProbeVolumesL1 = new ShaderKeyword("PROBE_VOLUMES_L1");
         protected ShaderKeyword m_ProbeVolumesL2 = new ShaderKeyword("PROBE_VOLUMES_L2");
         protected ShaderKeyword m_WaterAbsorption = new ShaderKeyword("SUPPORT_WATER_ABSORPTION");
@@ -134,6 +135,13 @@ namespace UnityEditor.Rendering.HighDefinition
             if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowOFFKeywords) && shadowInitParams.supportScreenSpaceShadows)
                 return true;
 
+            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowONKeywords) && !shadowInitParams.supportScreenSpaceShadows)
+                return true;
+
+            // Remove contact shadow shaders when they are not supported.
+            if (inputData.shaderKeywordSet.IsEnabled(m_ContactShadowsOFFKeyword) && shadowInitParams.supportContactShadows)
+                return true;
+
             // In forward only, strip deferred shaders
             if (settings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
             {
@@ -149,9 +157,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 return true;
             }
-
-            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowONKeywords) && !shadowInitParams.supportScreenSpaceShadows)
-                return true;
 
             if (inputData.shaderKeywordSet.IsEnabled(m_EnableAlpha) && !settings.SupportsAlpha())
             {

@@ -17,6 +17,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public BoolParameter enable = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
         /// <summary>
+        /// When enabled, contact shadows are only evaluated for the main directional light with shadows in the scene.
+        /// </summary>
+        public BoolParameter directionalOnly = new BoolParameter(false, BoolParameter.DisplayType.Checkbox);
+        /// <summary>
+        /// When enabled, contact shadows are evaluated at half resolution.
+        /// </summary>
+        public BoolParameter halfResolution = new BoolParameter(false, BoolParameter.DisplayType.Checkbox);
+        /// <summary>
         /// Controls the length of the rays HDRP uses to calculate Contact Shadows. It is in meters, but it gets scaled by a factor depending on Distance Scale Factor
         /// and the depth of the point from where the contact shadow ray is traced.
         /// </summary>

@@ -389,6 +389,7 @@ namespace UnityEngine.Rendering.HighDefinition
             directionalShadowFilteringQuality = HDShadowFilteringQuality.Medium,
             areaShadowFilteringQuality = HDAreaShadowFilteringQuality.Medium,
             supportScreenSpaceShadows = false,
+            supportContactShadows = true,
             maxScreenSpaceShadowSlots = 4,
             screenSpaceShadowBufferFormat = ScreenSpaceShadowFormat.R16G16B16A16,
             maxDirectionalShadowMapResolution = 2048,
@@ -459,6 +460,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // [ShaderKeywordFilter.RemoveIf(false, keywordNames: "SCREEN_SPACE_SHADOWS_ON")]
 #endif
         public bool supportScreenSpaceShadows;
+        /// <summary>Enable support for contact shadows.</summary>
+        public bool supportContactShadows;
         /// <summary>Maximum number of screen space shadows.</summary>
         public int maxScreenSpaceShadowSlots;
         /// <summary>Format for screen space shadows.</summary>

@@ -217,7 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // The first rendered 24 lights that have contact shadow enabled have a mask used to select the bit that contains
         // the contact shadow shadowed information (occluded or not). Otherwise -1 is written
-        private void GetContactShadowMask(HDAdditionalLightData hdAdditionalLightData, BoolScalableSetting contactShadowEnabled, HDCamera hdCamera, ref int contactShadowMask, ref float rayTracingShadowFlag)
+        private void GetContactShadowMask(HDAdditionalLightData hdAdditionalLightData, BoolScalableSetting contactShadowEnabled, HDCamera hdCamera, bool directionalContactShadowOnly, ref int contactShadowMask, ref float rayTracingShadowFlag)
         {
             contactShadowMask = 0;
             rayTracingShadowFlag = 0.0f;
@@ -225,6 +225,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // or this is not rasterization
             if ((!hdAdditionalLightData.useContactShadow.Value(contactShadowEnabled))
                 || m_ContactShadowIndex >= LightDefinitions.s_ContactShadowMaskMask)
+                return;
+
+            if (directionalContactShadowOnly && hdAdditionalLightData.legacyLight.type != LightType.Directional)
                 return;
 
             // Evaluate the contact shadow index of this light
@@ -251,7 +254,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void CalculateDirectionalLightDataTextureInfo(
             ref DirectionalLightData lightData, CommandBuffer cmd, in VisibleLight light, in Light lightComponent, in HDAdditionalLightData additionalLightData,
-            HDCamera hdCamera, HDProcessedVisibleLightsBuilder.ShadowMapFlags shadowFlags, int lightDataIndex, int shadowIndex)
+            HDCamera hdCamera, HDProcessedVisibleLightsBuilder.ShadowMapFlags shadowFlags, int lightDataIndex, int shadowIndex, bool directionalContactShadowOnly)
         {
             if (shadowIndex != -1)
             {
@@ -335,7 +338,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, ref lightData.contactShadowMask, ref lightData.isRayTracedContactShadow);
+            GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, directionalContactShadowOnly, ref lightData.contactShadowMask, ref lightData.isRayTracedContactShadow);
 
             lightData.shadowIndex = shadowIndex;
             additionalLightData.shadowIndex = shadowIndex;
@@ -344,7 +347,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private void CalculateLightDataTextureInfo(
             ref LightData lightData, CommandBuffer cmd, in Light lightComponent, HDAdditionalLightData additionalLightData, in HDShadowInitParameters shadowInitParams,
             in HDCamera hdCamera, BoolScalableSetting contactShadowScalableSetting,
-            LightType lightType, HDProcessedVisibleLightsBuilder.ShadowMapFlags shadowFlags, bool rayTracingEnabled, int lightDataIndex, int shadowIndex)
+            LightType lightType, HDProcessedVisibleLightsBuilder.ShadowMapFlags shadowFlags, bool rayTracingEnabled, int lightDataIndex, int shadowIndex, bool directionalContactShadowOnly)
         {
             ProcessLightDataShadowIndex(
                 cmd,
@@ -355,7 +358,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowIndex,
                 ref lightData);
 
-            GetContactShadowMask(additionalLightData, contactShadowScalableSetting, hdCamera, ref lightData.contactShadowMask, ref lightData.isRayTracedContactShadow);
+            GetContactShadowMask(additionalLightData, contactShadowScalableSetting, hdCamera, directionalContactShadowOnly, ref lightData.contactShadowMask, ref lightData.isRayTracedContactShadow);
 
             // If there is still a free slot in the screen space shadow array and this needs to render a screen space shadow
             if (rayTracingEnabled
@@ -418,6 +421,8 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateShadowRequestsAndCalculateShadowIndices(hdCamera, in cullResults, visibleLights, lightEntities, hdShadowSettings, debugDisplaySettings,
                 m_ShadowManager, m_Asset, shadowIndexResults, ref m_DebugSelectedLightShadowIndex, ref m_DebugSelectedLightShadowCount);
 
+            bool directionalContactShadowOnly = hdCamera.volumeStack.GetComponent<ContactShadows>().directionalOnly.value;
+
             using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.CalculateLightDataTextureInfo)))
             {
                 for (int sortKeyIndex = 0; sortKeyIndex < lightCounts; ++sortKeyIndex)
@@ -454,7 +459,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ref DirectionalLightData lightData = ref UnsafeUtility.AsRef<DirectionalLightData>(lightDataPtr);
                         CalculateDirectionalLightDataTextureInfo(
                             ref lightData, cmd, light, lightComponent, additionalLightData,
-                            hdCamera, processedEntity.shadowMapFlags, directionalLightDataIndex, shadowIndex);
+                            hdCamera, processedEntity.shadowMapFlags, directionalLightDataIndex, shadowIndex, directionalContactShadowOnly);
                     }
                     else
                     {
@@ -464,7 +469,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         CalculateLightDataTextureInfo(
                             ref lightData, cmd, lightComponent, additionalLightData, shadowInitParams,
                             hdCamera, contactShadowScalableSetting,
-                            lightType, processedEntity.shadowMapFlags, rayTracingEnabled, lightDataIndex, shadowIndex);
+                            lightType, processedEntity.shadowMapFlags, rayTracingEnabled, lightDataIndex, shadowIndex, directionalContactShadowOnly);
                     }
                 }
             }

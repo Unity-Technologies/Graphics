@@ -249,9 +249,11 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent mediumQualityContent = EditorGUIUtility.TrTextContent("Medium", "Specifies the resolution of the shadows set to medium quality.");
             public static readonly GUIContent highQualityContent = EditorGUIUtility.TrTextContent("High", "Specifies the resolution of the shadows set to high quality.");
             public static readonly GUIContent veryHighQualityContent = EditorGUIUtility.TrTextContent("Very High", "Specifies the resolution of the shadows set to very high quality.");
-            public static readonly GUIContent allowMixedCachedCascadeShadows = EditorGUIUtility.TrTextContent("Allow Mixed Cached Shadows", "Allow mixed cached shadows for directional lights, it will incurr in further memory cost.");
+            public static readonly GUIContent allowMixedCachedCascadeShadows = EditorGUIUtility.TrTextContent("Allow Mixed Cached Shadows", "Allow mixed cached shadows for directional lights, it will incur in further memory cost.");
 
+            public static readonly GUIContent supportContactShadows = EditorGUIUtility.TrTextContent("Contact Shadows", "Enables the support of contact shadows in HDRP.");
             public static readonly GUIContent useContactShadows = EditorGUIUtility.TrTextContent("Use Contact Shadows", "Use contact shadows for lights.");
+
             public static readonly GUIContent supportScreenSpaceShadows = EditorGUIUtility.TrTextContent("Screen Space Shadows", "Enables the support of screen space shadows in HDRP.");
             public static readonly GUIContent maxScreenSpaceShadowSlots = EditorGUIUtility.TrTextContent("Maximum", "Sets the maximum number of screen space shadows slots HDRP can handle on screen at once. Monochrome (Opaque/Transparent) shadows requires one slot, colored shadows requires three and area lights shadows require two.");
             public static readonly GUIContent screenSpaceShadowFormat = EditorGUIUtility.TrTextContent("Buffer Format", "Defines the format of the buffer used for screen space shadows. The buffer format can be R8G8B8A8 or R16G16B16A16.");

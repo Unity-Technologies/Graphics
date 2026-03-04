@@ -481,7 +481,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.clearLightLists = true;
                 tileAndClusterData.listsAreInitialized = true;
             }
-			
+
             // Always build the light list in XR mode to avoid issues with multi-pass
             if (hdCamera.xr.enabled)
             {
@@ -1469,11 +1469,19 @@ namespace UnityEngine.Rendering.HighDefinition
             public int actualWidth;
             public int actualHeight;
             public int depthTextureParameterName;
+            public int numTilesFPTL;
+            public int numTilesFPTLX;
+            public int numTilesFPTLY;
+            public bool directionalOnly;
+            public bool halfResolution;
+            public bool msaa;
 
             public LightLoopLightData lightLoopLightData;
             public TextureHandle depthTexture;
             public TextureHandle contactShadowsTexture;
             public BufferHandle lightList;
+            public ComputeBuffer depthPyramidMipLevelOffsets;
+            public BufferHandle tileFeatureFlags;
         }
 
         TextureHandle RenderContactShadows(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthTexture, in BuildGPULightListOutput lightLists, int firstMipOffsetY)
@@ -1488,14 +1496,31 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Avoid garbage when visualizing contact shadows.
                 bool clearBuffer = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ContactShadows;
-                bool msaa = hdCamera.msaaEnabled;
 
+                passData.directionalOnly = m_ContactShadows.directionalOnly.value;
+                passData.halfResolution = m_ContactShadows.halfResolution.value;
                 passData.contactShadowsCS = contactShadowComputeShader;
+                passData.msaa = hdCamera.msaaEnabled;
+
                 passData.contactShadowsCS.shaderKeywords = null;
-                if (msaa)
-                {
+                if (passData.directionalOnly)
+                    passData.contactShadowsCS.EnableKeyword("DIRECTIONAL_ONLY");
+                if (passData.halfResolution)
+                    passData.contactShadowsCS.EnableKeyword("HALF_RESOLUTION");
+                if (passData.msaa)
                     passData.contactShadowsCS.EnableKeyword("ENABLE_MSAA");
-                }
+                if (GetFeatureVariantsEnabled(hdCamera.frameSettings))
+                    passData.contactShadowsCS.EnableKeyword("USE_FEATURE_FLAGS");
+
+                passData.numTilesFPTLX = GetNumTileFtplX(hdCamera);
+                passData.numTilesFPTLY = GetNumTileFtplY(hdCamera);
+                passData.numTilesFPTL = passData.numTilesFPTLX * passData.numTilesFPTLY;
+
+                passData.tileFeatureFlags = lightLists.tileFeatureFlags;
+                builder.UseBuffer(passData.tileFeatureFlags);
+
+                int width = passData.halfResolution ? Mathf.CeilToInt(hdCamera.actualWidth * 0.5f) : hdCamera.actualWidth;
+                int height = passData.halfResolution ? Mathf.CeilToInt(hdCamera.actualHeight * 0.5f) : hdCamera.actualHeight;
 
                 passData.rayTracingEnabled = RayTracedContactShadowsRequired() && GetRayTracingState();
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
@@ -1503,8 +1528,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.contactShadowsRTS = rayTracingResources.contactShadowRayTracingRT;
                     passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
 
-                    passData.actualWidth = hdCamera.actualWidth;
-                    passData.actualHeight = hdCamera.actualHeight;
+                    passData.actualWidth = width;
+                    passData.actualHeight = height;
                 }
 
                 passData.kernel = s_deferredContactShadowKernel;
@@ -1520,20 +1545,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.params2 = new Vector4(firstMipOffsetY, contactShadowMinDist, contactShadowFadeIn, m_ContactShadows.rayBias.value * 0.01f);
                 passData.params3 = new Vector4(m_ContactShadows.sampleCount, m_ContactShadows.thicknessScale.value * 10.0f, 0.0f, 0.0f);
 
-                int deferredShadowTileSize = 8; // Must match ContactShadows.compute
-                passData.numTilesX = (hdCamera.actualWidth + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
-                passData.numTilesY = (hdCamera.actualHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
+                const int kDeferredShadowTileSize = 8; // Must match ContactShadows.compute
+                passData.numTilesX = HDUtils.DivRoundUp(width,  kDeferredShadowTileSize);
+                passData.numTilesY = HDUtils.DivRoundUp(height, kDeferredShadowTileSize);
                 passData.viewCount = hdCamera.viewCount;
 
-                passData.depthTextureParameterName = msaa ? HDShaderIDs._CameraDepthValuesTexture : HDShaderIDs._CameraDepthTexture;
+                passData.depthTextureParameterName = passData.msaa ? HDShaderIDs._CameraDepthValuesTexture : HDShaderIDs._CameraDepthTexture;
 
                 passData.lightLoopLightData = m_LightLoopLightData;
                 passData.lightList = lightLists.lightList;
                 builder.UseBuffer(passData.lightList, AccessFlags.Read);
+
                 passData.depthTexture = depthTexture;
+                passData.depthPyramidMipLevelOffsets = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
                 builder.UseTexture(passData.depthTexture, AccessFlags.Read);
-                passData.contactShadowsTexture = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { format = GraphicsFormat.R32_UInt, enableRandomWrite = true, clearBuffer = clearBuffer, clearColor = Color.clear, name = "ContactShadowsBuffer" });
+
+                GraphicsFormat contactShadowFormat = passData.directionalOnly ? GraphicsFormat.R8_UInt : GraphicsFormat.R32_UInt;
+                Vector2 resolution = passData.halfResolution ? Vector2.one * 0.5f : Vector2.one;
+                passData.contactShadowsTexture = renderGraph.CreateTexture(new TextureDesc(resolution, true, true)
+                { format = contactShadowFormat, enableRandomWrite = true, clearBuffer = clearBuffer, clearColor = Color.clear, name = "ContactShadowsBuffer" });
                 builder.UseTexture(passData.contactShadowsTexture, AccessFlags.Write);
 
                 result = passData.contactShadowsTexture;
@@ -1541,6 +1571,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     static (RenderContactShadowPassData data, ComputeGraphContext ctx) =>
                     {
+                        ctx.cmd.SetComputeBufferParam(data.contactShadowsCS, s_BuildIndirectKernel, HDShaderIDs.g_TileFeatureFlags, data.tileFeatureFlags);
+                        ctx.cmd.SetComputeIntParam(data.contactShadowsCS, HDShaderIDs.g_NumTiles, data.numTilesFPTL);
+                        ctx.cmd.SetComputeIntParam(data.contactShadowsCS, HDShaderIDs.g_NumTilesX, data.numTilesFPTLX);
+
                         ctx.cmd.SetComputeVectorParam(data.contactShadowsCS, HDShaderIDs._ContactShadowParamsParameters, data.params1);
                         ctx.cmd.SetComputeVectorParam(data.contactShadowsCS, HDShaderIDs._ContactShadowParamsParameters2, data.params2);
                         ctx.cmd.SetComputeVectorParam(data.contactShadowsCS, HDShaderIDs._ContactShadowParamsParameters3, data.params3);
@@ -1552,6 +1586,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         ctx.cmd.SetComputeTextureParam(data.contactShadowsCS, data.kernel, data.depthTextureParameterName, data.depthTexture);
                         ctx.cmd.SetComputeTextureParam(data.contactShadowsCS, data.kernel, HDShaderIDs._ContactShadowTextureUAV, data.contactShadowsTexture);
+                        ctx.cmd.SetComputeBufferParam(data.contactShadowsCS, data.kernel, HDShaderIDs._DepthPyramidMipLevelOffsets, data.depthPyramidMipLevelOffsets);
 
                         ctx.cmd.DispatchCompute(data.contactShadowsCS, data.kernel, data.numTilesX, data.numTilesY, data.viewCount);
 

@@ -8,6 +8,8 @@ namespace UnityEditor.Rendering.HighDefinition
     class ContactShadowsEditor : VolumeComponentWithQualityEditor
     {
         SerializedDataParameter m_Enable;
+        SerializedDataParameter m_DirectionalOnly;
+        SerializedDataParameter m_HalfResolution;
         SerializedDataParameter m_Length;
         SerializedDataParameter m_DistanceScaleFactor;
         SerializedDataParameter m_MaxDistance;
@@ -24,6 +26,8 @@ namespace UnityEditor.Rendering.HighDefinition
             var o = new PropertyFetcher<ContactShadows>(serializedObject);
 
             m_Enable = Unpack(o.Find(x => x.enable));
+            m_DirectionalOnly = Unpack(o.Find(x => x.directionalOnly));
+            m_HalfResolution = Unpack(o.Find(x => x.halfResolution));
             m_Length = Unpack(o.Find(x => x.length));
             m_DistanceScaleFactor = Unpack(o.Find(x => x.distanceScaleFactor));
             m_MaxDistance = Unpack(o.Find(x => x.maxDistance));
@@ -46,6 +50,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (!m_Enable.value.hasMultipleDifferentValues)
             {
+                PropertyField(m_DirectionalOnly, EditorGUIUtility.TrTextContent("Directional Only", "Only cast contact shadow on the main directional light of the scene. Enabling this option accelerate the evaluation of contact shadow and reduces the memory overhead."));
+                PropertyField(m_HalfResolution, EditorGUIUtility.TrTextContent("Half Resolution", "Evaluate the contact shadow using half the resolution of the screen. Reduces the memory consumption and increases performance at the cost of shadow sharpness."));
                 PropertyField(m_Length, EditorGUIUtility.TrTextContent("Length", "Controls the length of the rays HDRP uses to calculate Contact Shadows. Uses meters."));
                 PropertyField(m_DistanceScaleFactor, EditorGUIUtility.TrTextContent("Distance Scale Factor", "Dampens the scale up effect HDRP process with distance from the Camera."));
                 m_MinDistance.value.floatValue = Mathf.Clamp(m_MinDistance.value.floatValue, 0.0f, m_MaxDistance.value.floatValue);

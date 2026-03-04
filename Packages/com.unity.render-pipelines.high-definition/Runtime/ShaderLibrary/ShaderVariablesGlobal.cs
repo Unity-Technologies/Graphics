@@ -305,5 +305,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _VolumetricCloudsShadowOriginToggle;
         public Vector4 _ColorPyramidUvScaleAndLimitCurrentFrame;
         public Vector4 _ColorPyramidUvScaleAndLimitPrevFrame;
+
+        public uint _ContactShadowDirectionalOnly;
+        public uint _ContactShadowHalfResolution;
+        public uint _GlobalPadding0;
+        public uint _GlobalPadding1;
     }
 }

@@ -396,14 +396,19 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUI.DisabledGroupScope(!serialized.renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows.boolValue))
             {
                 ++EditorGUI.indentLevel;
-                EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots, Styles.maxScreenSpaceShadowSlots);
                 serialized.renderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots.intValue = Mathf.Max(serialized.renderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots.intValue, 4);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.screenSpaceShadowBufferFormat, Styles.screenSpaceShadowFormat);
                 --EditorGUI.indentLevel;
             }
 
-            SerializedScalableSettingUI.ValueGUI<bool>(serialized.renderPipelineSettings.lightSettings.useContactShadows, Styles.useContactShadows);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.supportContactShadows, Styles.supportContactShadows);
+            using (new EditorGUI.DisabledGroupScope(!serialized.renderPipelineSettings.hdShadowInitParams.supportContactShadows.boolValue))
+            {
+                ++EditorGUI.indentLevel;
+                SerializedScalableSettingUI.ValueGUI<bool>(serialized.renderPipelineSettings.lightSettings.useContactShadows, Styles.useContactShadows);
+                --EditorGUI.indentLevel;
+            }
         }
 
         static void DrawLightShadow(
