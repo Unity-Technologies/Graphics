@@ -82,7 +82,16 @@ namespace UnityEditor.Rendering.Converter
         [MenuItem("Window/Rendering/Render Pipeline Converter", true, 50)]
         public static bool CanShowWindow()
         {
-            return !EditorApplication.isPlaying;
+            if (EditorApplication.isPlaying)
+                return false;
+
+            foreach (var converterType in TypeCache.GetTypesDerivedFrom<IRenderPipelineConverter>())
+            {
+                if (!converterType.IsAbstract && !converterType.IsInterface)
+                    return true;
+            }
+
+            return false;
         }
 
         internal static void DontSaveToLayout(EditorWindow wnd)
