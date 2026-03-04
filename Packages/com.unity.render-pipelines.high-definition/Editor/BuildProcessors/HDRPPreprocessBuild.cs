@@ -87,6 +87,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 validConfiguration &= config;
             }
 
+            {
+                bool config = ValidateVolumetricFogConfiguration(m_BuildData.renderPipelineAssets);
+                validConfiguration &= config;
+            }
+
             return validConfiguration;
         }
 
@@ -228,6 +233,76 @@ namespace UnityEditor.Rendering.HighDefinition
             var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(activeBuildTargetGroup);
             Debug.LogWarning($"HDRP Build Validation - Film Grain: Film Grain is enabled for {namedBuildTarget.TargetName}. This may significantly impact performance and should be disabled for this platform.");
             return false;
+        }
+
+        internal static bool ValidateVolumetricFogConfiguration(List<HDRenderPipelineAsset> assetsList)
+        {
+            bool CheckVolumeProfileValid(VolumeProfile volumeProfile, ref bool foundFogHighSetting, ref bool fogNeedsDensityCutoff)
+            {
+                if (volumeProfile.TryGet<Fog>(out var fog))
+                {
+                    if (fog.quality.value > 1)
+                    {
+                        foundFogHighSetting = true;
+                    }
+
+                    if (fog.quality.value > 0 && fog.volumetricLightingDensityCutoff.value <= 0.0f)
+                    {
+                        fogNeedsDensityCutoff = true;
+                    }
+                }
+
+                if (foundFogHighSetting)
+                {
+                    var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(BuildTarget.Switch2);
+                    var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(activeBuildTargetGroup);
+                    string assetPath = AssetDatabase.GetAssetPath(volumeProfile);
+                    Debug.LogWarning($"HDRP Build Validation [{volumeProfile.name}] - Volumetric Fog: Tier = High {namedBuildTarget.TargetName}. This will have a significant performance impact. It is recommended to either disable this feature, or lower the quality tier to Low/Medium.\nAsset: {assetPath}", volumeProfile);
+                }
+
+                if (fogNeedsDensityCutoff)
+                {
+                    var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(BuildTarget.Switch2);
+                    var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(activeBuildTargetGroup);
+                    string assetPath = AssetDatabase.GetAssetPath(volumeProfile);
+                    Debug.LogWarning($"HDRP Build Validation [{volumeProfile.name}]- Volumetric Fog: Density Cutoff = 0 with Tier > Low for {namedBuildTarget.TargetName}. This may impact performance. It is recommended to use Density cutoff when using Medium/High tier.\nAsset: {assetPath}", volumeProfile);
+                }
+
+                return !(foundFogHighSetting || fogNeedsDensityCutoff);
+            }
+
+            var currentBuildTarget = EditorUserBuildSettings.activeBuildTarget;
+
+            // Only validate for Switch 2
+            if (currentBuildTarget != BuildTarget.Switch2)
+                return true;
+
+            // Check default volume profile from HDRP Global Settings
+            bool isValidConfiguration = true;
+            bool foundFogHighSetting = false;
+            bool fogNeedsDensityCutoff = false;
+            var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
+            if (defaultVolumeProfileSettings?.volumeProfile != null)
+            {
+                isValidConfiguration &= CheckVolumeProfileValid(defaultVolumeProfileSettings.volumeProfile, ref foundFogHighSetting, ref fogNeedsDensityCutoff);
+            }
+
+            // Check volume profiles in each HDRP asset
+            if (!foundFogHighSetting || !fogNeedsDensityCutoff)
+            {
+                foreach (var hdrpAsset in assetsList)
+                {
+                    if (hdrpAsset != null && hdrpAsset.volumeProfile != null)
+                    {
+                        if (foundFogHighSetting || fogNeedsDensityCutoff)
+                            break;
+
+                        isValidConfiguration &= CheckVolumeProfileValid(hdrpAsset.volumeProfile, ref foundFogHighSetting, ref fogNeedsDensityCutoff);
+                    }
+                }
+            }
+
+            return isValidConfiguration;
         }
 
         internal static void ConfigureMinimumMaxLoDValueForAllQualitySettings()

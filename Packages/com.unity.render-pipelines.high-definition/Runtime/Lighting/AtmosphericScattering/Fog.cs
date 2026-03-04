@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Indicates at which fog density the lighting should be ignored. Every voxel containing less fog density than this value will be ignored by the volumetric lighting.</summary>
         [Tooltip("Improves performance by skipping the lighting evaluation in areas with low-density fog. When the value is above 0, HDRP skips calculating volumetric lighting in areas where the fog density is below this value.")]
-        public FloatParameter volumetricLightingDensityCutoff = new(0.0f);
+        public FloatParameter volumetricLightingDensityCutoff = new MinFloatParameter(0.0f, 0.0f);
 
         internal static bool IsFogEnabled(HDCamera hdCamera)
         {
