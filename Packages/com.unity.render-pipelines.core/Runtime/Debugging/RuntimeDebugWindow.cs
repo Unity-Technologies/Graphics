@@ -11,7 +11,8 @@ namespace UnityEngine.Rendering
     [AddComponentMenu("")] // Hide from Add Component menu
     class RuntimeDebugWindow : MonoBehaviour
     {
-        UIDocument m_Document;
+        PanelRenderer m_PanelRenderer;
+        VisualElement m_RootVisualElement;
         VisualElement m_PanelRootElement;
         TabView m_TabViewElement;
 
@@ -24,29 +25,47 @@ namespace UnityEngine.Rendering
             DebugManager.instance.onSetDirty -= RequestRecreateGUI;
             DebugManager.instance.onSetDirty += RequestRecreateGUI;
 
-            RecreateGUI();
+            if (m_PanelRenderer == null)
+            {
+                m_PanelRenderer = gameObject.AddComponent<PanelRenderer>();
+                if (GraphicsSettings.TryGetRenderPipelineSettings<RenderingDebuggerRuntimeResources>(out var resources))
+                {
+                    m_PanelRenderer.panelSettings = resources.panelSettings;
+                    m_PanelRenderer.visualTreeAsset = resources.visualTreeAsset;
+                }
+            }
+
+            m_PanelRenderer.RegisterUIReloadCallback(OnUIReload);
         }
 
-        internal void RecreateGUI()
+        internal void OnUIReload(PanelRenderer renderer, VisualElement rootElement)
         {
-            var resources = GraphicsSettings.GetRenderPipelineSettings<RenderingDebuggerRuntimeResources>();
-            if (m_Document == null)
-                m_Document = gameObject.AddComponent<UIDocument>();
-            m_Document.panelSettings = resources.panelSettings;
-            m_Document.visualTreeAsset = resources.visualTreeAsset;
+            // Called on initial load AND on any asset change
+            if (rootElement == null || rootElement.childCount == 0)
+                return;
 
-            var rootVisualElement = m_Document.rootVisualElement;
-            m_PanelRootElement = rootVisualElement.panel.visualTree;
+            m_PanelRootElement = rootElement;
+            m_RootVisualElement = rootElement[0];
+
+            var resources = GraphicsSettings.GetRenderPipelineSettings<RenderingDebuggerRuntimeResources>();
             var styleSheets = resources.styleSheets;
             foreach (var uss in styleSheets)
                 m_PanelRootElement.styleSheets.Add(uss);
 
+            BuildDebugUI();
+        }
+
+        void BuildDebugUI()
+        {
+            if (m_RootVisualElement == null)
+                return;
+
             UpdateOrientation(forceUpdate: true);
 
-            m_TabViewElement = rootVisualElement.Q<TabView>(name: "debug-window-tabview");
+            m_TabViewElement = m_RootVisualElement.Q<TabView>(name: "debug-window-tabview");
             m_TabViewElement.Clear();
 
-            var resetButton = rootVisualElement.Q<Button>(name: "btn-reset");
+            var resetButton = m_RootVisualElement.Q<Button>(name: "btn-reset");
             resetButton.clicked -= ResetClicked;
             resetButton.clicked += ResetClicked;
 
@@ -74,8 +93,8 @@ namespace UnityEngine.Rendering
             }
 
             bool hasDebugItems = activePanels.Count > 0;
-            m_Document.rootVisualElement.Q<HelpBox>(name: "no-debug-items-message").style.display = hasDebugItems ? DisplayStyle.None : DisplayStyle.Flex;
-            m_Document.rootVisualElement.Q<VisualElement>(name: "content-container").style.display = hasDebugItems ? DisplayStyle.Flex : DisplayStyle.None;
+            m_RootVisualElement.Q<HelpBox>(name: "no-debug-items-message").style.display = hasDebugItems ? DisplayStyle.None : DisplayStyle.Flex;
+            m_RootVisualElement.Q<VisualElement>(name: "content-container").style.display = hasDebugItems ? DisplayStyle.Flex : DisplayStyle.None;
 
             if (!hasDebugItems)
                 return;
@@ -113,15 +132,25 @@ namespace UnityEngine.Rendering
 
         void OnDestroy()
         {
-            // Need to unregister here as well because when the UI is closed and reopened, it is a different object so the member
-            // function will be a different object and the Unregister call in RecreateGUI does nothing.
-            m_PanelRootElement.UnregisterCallback<NavigationMoveEvent>(ConvertNavigationMoveEvents, TrickleDown.TrickleDown);
+            if (m_PanelRenderer != null)
+            {
+                // Unregister the UI reload callback
+                m_PanelRenderer.UnregisterUIReloadCallback(OnUIReload);
+
+                // Need to unregister here as well because when the UI is closed and reopened, it is a different object so the member
+                // function will be a different object and the Unregister call in RecreateGUI does nothing.
+                m_PanelRootElement.UnregisterCallback<NavigationMoveEvent>(ConvertNavigationMoveEvents, TrickleDown.TrickleDown);               
+            }
 
             DebugManager.instance.displayRuntimeUI = false;
+            DebugManager.instance.onSetDirty -= RequestRecreateGUI;
         }
 
         void ConvertNavigationMoveEvents(NavigationMoveEvent evt)
         {
+            if (m_PanelRootElement == null)
+                return;
+
             if (IsPopupOpen())
                 return; // Popup navigation uses up/down normally
 
@@ -155,7 +184,7 @@ namespace UnityEngine.Rendering
             if (m_IsDirty)
             {
                 m_IsDirty = false;
-                RecreateGUI();
+                BuildDebugUI();
             }
         }
 
@@ -171,7 +200,10 @@ namespace UnityEngine.Rendering
                 const string portraitClassName = "portrait-orientation";
                 const string landscapeClassName = "landscape-orientation";
 
-                var debugWindowElement = m_PanelRootElement.Q("debug-window");
+                var debugWindowElement = m_PanelRootElement?.Q("debug-window");
+                if (debugWindowElement == null)
+                    return;
+
                 debugWindowElement.RemoveFromClassList(portraitClassName);
                 debugWindowElement.RemoveFromClassList(landscapeClassName);
 
