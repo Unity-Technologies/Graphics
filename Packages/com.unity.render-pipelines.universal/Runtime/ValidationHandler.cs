@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.Universal
     internal class ValidationHandler
     {
         OnTileValidationLayer m_OnTileValidationLayer;
+        public bool active { get; set; }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         public void OnBeginRenderGraphFrame(bool onTileValidation)
@@ -26,9 +27,10 @@ namespace UnityEngine.Rendering.Universal
         public void OnBeforeRendering(RenderGraph renderGraph, UniversalResourceData resourceData)
         {
             // Will be null and therefor remove the validation layer when onTileValidation is off
-            InternalRenderGraphValidation.SetAdditionalValidationLayer(renderGraph, m_OnTileValidationLayer);
+            InternalRenderGraphValidation.SetAdditionalValidationLayer(renderGraph,
+                active? m_OnTileValidationLayer : null);
 
-            if (m_OnTileValidationLayer != null)
+            if (m_OnTileValidationLayer != null && active)
             {
                 m_OnTileValidationLayer.renderGraph = renderGraph;
 
@@ -41,7 +43,7 @@ namespace UnityEngine.Rendering.Universal
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         public void OnBeforeGBuffers(RenderGraph renderGraph, UniversalResourceData resourceData)
         {
-            if (m_OnTileValidationLayer != null)
+            if (m_OnTileValidationLayer != null && active)
             {
                 foreach (TextureHandle handle in resourceData.gBuffer)
                 {

@@ -815,6 +815,50 @@ namespace UnityEngine.Rendering.Universal
             return scaleBias;
         }
 
+        /// <summary>
+        /// Returns the TextureUVOrigin of the real backbuffer for the current graphics API. In modern graphics APIs like
+        /// Vulkan or Metal, this will return TopLeft. For OpenGL, WebGL, GLES, this will return BottomLeft.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static TextureUVOrigin GetRealBackBufferUVOrientation()
+        {
+            return SystemInfo.graphicsUVStartsAtTop ? TextureUVOrigin.TopLeft : TextureUVOrigin.BottomLeft;
+        }
+
+        /// <summary>
+        /// Returns the TextureUVOrigin of the UniversalResourceData.backBuffer. This resource is not always the real backbuffer.
+        /// To get the TextureUVOrigin of the real backbuffer, use GetRealBackBufferUVOrientation().
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static TextureUVOrigin GetBackBufferUVOrientation(UniversalCameraData cameraData)
+        {
+            // Backbuffer orientation is used for either the actual backbuffer (not a texture), or in XR for the eye texture.
+            bool useRealBackbufferOrientation = !cameraData.isSceneViewCamera && !cameraData.isPreviewCamera && cameraData.targetTexture == null;
+            return useRealBackbufferOrientation ? RenderingUtils.GetRealBackBufferUVOrientation() : TextureUVOrigin.BottomLeft;
+        }
+        /// <summary>
+        /// Returns the TextureUVOrigin of the camera targets. These include the intermediate textures (UniversalResourceData.cameraColor, cameraDepth),
+        /// the Gbuffers (UniversalResourceData.gbuffer) and any copy of those. Since these are all textures, they normally are all using the
+        /// Unity texture convention of BottomLeft. However, in the On-Tile Renderer, these can adopt the backbuffer UV orientation. 
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static TextureUVOrigin GetCameraTargetsUVOrientation(UniversalCameraData cameraData)
+        {
+            var universalRenderer = cameraData.renderer as UniversalRenderer;
+            bool onTileRenderer = (universalRenderer == null) ? false : universalRenderer.onTileValidation;
+
+            if (onTileRenderer)
+            {
+                // The On-Tile renderer guarantees that the backbuffer orientation is propagated to
+                // the camera targets. 
+                return GetBackBufferUVOrientation(cameraData);
+            }
+            else
+            {
+                return TextureUVOrigin.BottomLeft;
+            }
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static RTHandleAllocInfo CreateRTHandleAllocInfo(in RenderTextureDescriptor descriptor, FilterMode filterMode, TextureWrapMode wrapMode, int anisoLevel, float mipMapBias, string name)
         {

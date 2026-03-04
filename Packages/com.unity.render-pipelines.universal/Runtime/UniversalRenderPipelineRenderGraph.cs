@@ -5,8 +5,12 @@ namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class UniversalRenderPipeline
     {
-        static void RecordAndExecuteRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ScriptableRenderer renderer, CommandBuffer cmd, Camera camera, RenderTextureUVOriginStrategy uvOriginStrategy)
+        static void RecordAndExecuteRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ScriptableRenderer renderer, CommandBuffer cmd, Camera camera)
         {
+            var universalRenderer = renderer as UniversalRenderer;
+            var renderTextureUVOriginStrategy = (universalRenderer != null && universalRenderer.onTileValidation) ?
+                RenderTextureUVOriginStrategy.PropagateAttachmentOrientation : RenderTextureUVOriginStrategy.BottomLeft;
+
             RenderGraphParameters rgParams = new RenderGraphParameters
             {
                 executionId = camera.GetEntityId(),
@@ -14,7 +18,7 @@ namespace UnityEngine.Rendering.Universal
                 commandBuffer = cmd,
                 scriptableRenderContext = context,
                 currentFrameIndex = Time.frameCount,
-                renderTextureUVOriginStrategy = uvOriginStrategy,
+                renderTextureUVOriginStrategy = renderTextureUVOriginStrategy,
             };
 
             try

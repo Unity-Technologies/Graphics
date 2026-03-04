@@ -251,8 +251,7 @@ namespace UnityEngine.Rendering.Universal
 
             bool isBuiltInTexture = cameraData.targetTexture == null;
 
-            bool useActualBackbufferOrienation = !cameraData.isSceneViewCamera && !cameraData.isPreviewCamera && cameraData.targetTexture == null;
-            TextureUVOrigin backbufferTextureUVOrigin = useActualBackbufferOrienation ? (SystemInfo.graphicsUVStartsAtTop ? TextureUVOrigin.TopLeft : TextureUVOrigin.BottomLeft) : TextureUVOrigin.BottomLeft;
+            TextureUVOrigin backbufferTextureUVOrigin = RenderingUtils.GetBackBufferUVOrientation(cameraData);
 
             output.backBufferColorParams.textureUVOrigin = backbufferTextureUVOrigin;
             output.backBufferDepthParams.textureUVOrigin = backbufferTextureUVOrigin;

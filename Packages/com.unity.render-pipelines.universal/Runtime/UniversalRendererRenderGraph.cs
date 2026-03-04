@@ -589,59 +589,7 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             resourceData.InitFrame();
-        }
-
-        static void ApplyConstraints(bool onTileValidation, UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalPostProcessingData postProcessingData, List<ScriptableRenderPass> activeRenderPassQueue, ref RenderingMode renderingMode, ref DepthPrimingMode depthPrimingMode)
-        {
-            if (!onTileValidation)
-                return;
-
-            cameraData.requiresOpaqueTexture = false;
-            cameraData.requiresDepthTexture = false;
-
-            cameraData.postProcessEnabled = false;
-            cameraData.stackAnyPostProcessingEnabled = false;
-            postProcessingData.isEnabled = false;
-
-            cameraData.useGPUOcclusionCulling = false;
-            cameraData.isHdrEnabled = false;
-
-            if (!PlatformAutoDetect.isXRMobile)
-            {
-                cameraData.renderScale = 1.0f;
-                cameraData.imageScalingMode = ImageScalingMode.None;
-            }
-
-            if (renderingData.renderingMode == RenderingMode.DeferredPlus)
-                renderingData.renderingMode = RenderingMode.ForwardPlus;
-
-            if (renderingMode == RenderingMode.DeferredPlus)
-                renderingMode = RenderingMode.ForwardPlus;
-
-            if (renderingData.renderingMode == RenderingMode.Deferred)
-                renderingData.renderingMode = RenderingMode.Forward;
-
-            if (renderingMode == RenderingMode.Deferred)
-                renderingMode = RenderingMode.Forward;
-
-            if (cameraData.baseCamera != null && cameraData.baseCamera != cameraData.camera)
-                throw new ArgumentException("The active URP Renderer has 'On Tile Validation' on. This currently does not allow Camera Stacking usage. Check your scene and remove all overlay Cameras.");
-
-            if (activeRenderPassQueue.Count > 0)
-                throw new ArgumentException("The active URP Renderer has 'On Tile Validation' on. This currently does not allow any ScriptableRenderFeature enabled, and it does not allow enqueuing any ScriptableRenderPass. Check your Renderer asset and disable all Renderer Features. Also, ensure that no C# script enqueus any passes on the renderer.");
-        }
-
-        //Catches mistakes by Unity devs with regards to clearing the settings
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        static void ValidateCorrectnessOfConstraints(bool onTileValidation, in RenderPassInputSummary renderPassInputs, bool requireIntermediateTextures)
-        {
-            if (!onTileValidation)
-                return;
-
-            if (renderPassInputs is { requiresColorTexture: false, requiresDepthTexture: false, requiresMotionVectors: false, requiresNormalsTexture: false} && !requireIntermediateTextures)
-                return;
-
-            throw new ArgumentException("On Tile Validation is on but certain features still added requirements that would validate this.");
+            m_ValidationHandler.OnBeginRenderGraphFrame(onTileValidation);
         }
 
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context)
@@ -652,8 +600,6 @@ namespace UnityEngine.Rendering.Universal
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
             UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
 
-            ApplyConstraints(onTileValidation, renderingData, cameraData, postProcessingData,activeRenderPassQueue, ref m_RenderingMode, ref m_DepthPrimingMode);
-
             MotionVectorRenderPass.SetRenderGraphMotionVectorGlobalMatrices(renderGraph, cameraData);
 
             SetupRenderGraphLights(renderGraph, renderingData, cameraData, lightData);
@@ -661,7 +607,7 @@ namespace UnityEngine.Rendering.Universal
             SetupRenderingLayers(cameraData.cameraTargetDescriptor.msaaSamples);
 
             bool isCameraTargetOffscreenDepth = cameraData.camera.targetTexture != null && cameraData.camera.targetTexture.format == RenderTextureFormat.Depth;
-            bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcess != null;
+            bool applyPostProcessing = cameraData.postProcessEnabled && this.postProcessEnabled;
 
             //First get the input requirements for the the ScriptableRenderPasses. These are all user passes plus potentially some that URP adds.
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(activeRenderPassQueue);
@@ -684,9 +630,10 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.renderType == CameraRenderType.Base)
                 s_RequiresIntermediateAttachments = RequiresIntermediateAttachments(cameraData, in renderPassInputs, requireCopyFromDepth, applyPostProcessing);
 
-            ValidateCorrectnessOfConstraints(onTileValidation, renderPassInputs, s_RequiresIntermediateAttachments);
-
             CreateRenderGraphCameraRenderTargets(renderGraph, isCameraTargetOffscreenDepth, s_RequiresIntermediateAttachments, depthTextureIsDepthFormat);
+
+            m_ValidationHandler.active = cameraData.cameraType == CameraType.Game;
+            m_ValidationHandler.OnBeforeRendering(renderGraph, resourceData);
 
             if (DebugHandler != null)
                 DebugHandler.Setup(renderGraph, cameraData.isPreviewCamera);
@@ -743,6 +690,9 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
+                if (!supportedRenderingFeatures.gpuOcclusionCulling)
+                    return false;
+
                 // UUM-82677: GRD GPU Occlusion Culling on Vulkan breaks rendering on some mobile GPUs
                 //
                 // We currently disable gpu occlusion culling when running on Qualcomm GPUs due to suspected driver issues.
@@ -821,7 +771,7 @@ namespace UnityEngine.Rendering.Universal
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingShadows);
 
-            bool requiredColorGradingLutPass = cameraData.postProcessEnabled && m_PostProcess != null;
+            bool requiredColorGradingLutPass = cameraData.postProcessEnabled && this.postProcessEnabled;
             if (requiredColorGradingLutPass)
             {
                 m_ColorGradingLutPassRenderGraph.RecordRenderGraph(renderGraph, frameData);
@@ -1154,6 +1104,8 @@ namespace UnityEngine.Rendering.Universal
                 // Subtractive mixed lighting requires shadowMask output, which is actually used to store unity_ProbesOcclusion values.
                 m_DeferredLights.CreateGbufferTextures(renderGraph, resourceData, isDepthNormalPrepass);
 
+                m_ValidationHandler.OnBeforeGBuffers(renderGraph, resourceData);
+
                 RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingGbuffer);
 
                 bool needsOccluderUpdate = occluderPass == OccluderPass.GBuffer;
@@ -1368,7 +1320,7 @@ namespace UnityEngine.Rendering.Universal
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingPostProcessing);
 
             // There's at least a camera in the camera stack that applies post-processing
-            bool anyPostProcessing = postProcessingData.isEnabled && m_PostProcess != null;
+            bool anyPostProcessing = postProcessingData.isEnabled && this.postProcessEnabled;
 
 #if ENABLE_UPSCALER_FRAMEWORK
             bool fsr1Enabled = cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_FSR1;
@@ -1469,6 +1421,8 @@ namespace UnityEngine.Rendering.Universal
             //Checking resourceData.isActiveTargetBackBuffer is a robust way to check if this has happened, by our own code or by the user.
             if (!resourceData.isActiveTargetBackBuffer && cameraData.resolveFinalTarget)
             {
+                Debug.Assert(!onTileValidation, "Adding the final blit pass when On-Tile Validation is on. This is not valid and will throw an exception. Likely, an On-Tile Feature has requested the intermediate textures but did not correctly copy the data to the backbuffer.");
+
                 debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, !resolveToDebugScreen);
 
                 //Will swap the active camera targets to backbuffer (resourceData.SwitchActiveTexturesToBackbuffer)
@@ -1476,14 +1430,40 @@ namespace UnityEngine.Rendering.Universal
             }
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRendering);
-
+            
             // We can explicitely render the overlay UI from URP when HDR output is not enabled.
             // SupportedRenderingFeatures.active.rendersUIOverlay should also be set to true.
             bool shouldRenderUI = cameraData.rendersOverlayUI && cameraData.isLastBaseCamera;
             bool outputToHDR = cameraData.isHDROutputActive;
             if (shouldRenderUI && !outputToHDR)
             {
-                m_DrawOverlayUIPass.RenderOverlay(renderGraph, frameData, resourceData.activeColorTexture, resourceData.activeDepthTexture);
+                var color = resourceData.activeColorTexture;
+                var cameraDepth = resourceData.cameraDepth;
+                
+                TextureHandle depth;
+
+                if (cameraDepth.IsValid() && SystemInfo.supportsBackbufferInMultipleRenderTargets)  
+                {
+                    var backbufferInfo = renderGraph.GetRenderTargetInfo(resourceData.backBufferDepth);
+                    var cameraDepthDesc = renderGraph.GetTextureDesc(in cameraDepth);
+
+                    bool matchingDimensions = backbufferInfo.msaaSamples == (int) cameraDepthDesc.msaaSamples
+                        && backbufferInfo.width == cameraDepthDesc.width && backbufferInfo.height == cameraDepthDesc.height
+                        && backbufferInfo.volumeDepth == cameraDepthDesc.slices;
+
+                    // Using the cameraDepth avoids switching the depth target, that would break the native render pass. 
+                    depth = (matchingDimensions) ? cameraDepth : resourceData.activeDepthTexture;
+                }
+                else
+                {
+                    depth = resourceData.activeDepthTexture;
+                }
+
+                m_DrawOverlayUIPass.RenderOverlayUIToolkitAndUGUI(renderGraph, frameData, in color, in depth);
+
+                // IMGUI uses an Unsafe pass and is therefore not supported by the on-tile renderer.
+                if(!(onTileValidation && cameraData.cameraType == CameraType.Game))
+                    m_DrawOverlayUIPass.RenderOverlayIMGUI(renderGraph, frameData, in color, in depth);
             }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -1625,13 +1605,16 @@ namespace UnityEngine.Rendering.Universal
             // We cannot use directly !cameraData.rendersOverlayUI but this is similar logic
             bool isNativeUIOverlayRenderingAfterURP = !SupportedRenderingFeatures.active.rendersUIOverlay && cameraData.resolveToScreen;
             bool isNativeRenderingAfterURP = UnityEngine.Rendering.Watermark.IsVisible() || isNativeUIOverlayRenderingAfterURP;
-            // If MSAA > 1, no extra native rendering after SRP and we target the BB directly (!m_RequiresIntermediateAttachments)
-            // then we can discard MSAA buffers and only resolve, otherwise we must store and resolve
-            bool noStoreOnlyResolveBBColor = !s_RequiresIntermediateAttachments && !isNativeRenderingAfterURP && (cameraData.cameraTargetDescriptor.msaaSamples > 1);
 
-            //Backbuffer orientation is used for either the actual backbuffer (not a texture), or in XR for the eye texture.
-            bool useActualBackbufferOrienation = !cameraData.isSceneViewCamera && !cameraData.isPreviewCamera && cameraData.targetTexture == null;
-            TextureUVOrigin backbufferTextureUVOrigin = useActualBackbufferOrienation ? (SystemInfo.graphicsUVStartsAtTop ? TextureUVOrigin.TopLeft : TextureUVOrigin.BottomLeft) : TextureUVOrigin.BottomLeft;
+            // If MSAA > 1, no extra native rendering after SRP and we target the BB directly
+            // then we can discard MSAA buffers and only resolve, otherwise we must store and resolve.
+            // To target the BB directly, either we don't render to the intermediate textures, or we render with the on-tile renderer.
+            // The on-tile renderer guarantees a single native render pass for the draw passes to the backbuffer, even though
+            // it potentially uses the intermediate textures as temporary attachments inside of the NRP.
+            bool intermediateTexturesAreSampledAsTextures = s_RequiresIntermediateAttachments && !onTileValidation;
+            bool noStoreOnlyResolveBBColor = !intermediateTexturesAreSampledAsTextures && !isNativeRenderingAfterURP && (cameraData.cameraTargetDescriptor.msaaSamples > 1);
+
+            TextureUVOrigin backbufferTextureUVOrigin = RenderingUtils.GetBackBufferUVOrientation(cameraData);
 
             ImportResourceParams importBackbufferColorParams = new ImportResourceParams();
             importBackbufferColorParams.clearOnFirstUse = clearBackbufferOnFirstUse;
@@ -1682,7 +1665,18 @@ namespace UnityEngine.Rendering.Universal
             {
                 // Backbuffer is the final render target, we obtain its number of MSAA samples through Screen API
                 // in some cases we disable multisampling for optimization purpose
-                int numSamples = AdjustAndGetScreenMSAASamples(renderGraph, s_RequiresIntermediateAttachments);
+                //int numSamples = AdjustAndGetScreenMSAASamples(renderGraph, intermediateTexturesAreSampledAsTextures);
+
+                // We need to fix an issue where the MSAA samples are never set back to the Quality setting.
+                // The MSAA samples only seem to be set when the URP asset is changed. The optimization
+                // in this function seems fragile, because different renderers can be used, even
+                // in a single frame. If we change a renderer from rendering to the backbuffer (or on-tile),
+                // to a renderer that renders to the intermediate textures then they render without MSAA,
+                // without the user knowing. This is a functional/visual bug.
+                // https://jira.unity3d.com/browse/UUM-134600
+                // This optimization is temporarely disabled until we fix this functional issue.
+                int numSamples = (!SystemInfo.supportsMultisampledBackBuffer) ? 1 : Mathf.Max(Screen.msaaSamples, 1);
+
 
                 //BuiltinRenderTextureType.CameraTarget so this is either system render target or camera.targetTexture if non null
                 //NOTE: Careful what you use here as many of the properties bake-in the camera rect so for example
@@ -1749,6 +1743,7 @@ namespace UnityEngine.Rendering.Universal
             desc.autoGenerateMips = false;
             desc.filterMode = FilterMode.Bilinear;
             desc.wrapMode = TextureWrapMode.Clamp;
+            desc.bindTextureMS = onTileValidation && desc.msaaSamples != MSAASamples.None; //Needed for GLES fallback
 
             // When there's a single camera setup, there's no need to do the double buffer technique with attachment A/B, in order to save memory allocation
             // and simplify the workflow by using a RenderGraph texture directly.

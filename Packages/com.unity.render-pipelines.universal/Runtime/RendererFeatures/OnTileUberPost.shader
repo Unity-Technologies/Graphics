@@ -110,6 +110,20 @@ Shader "OnTileUberPost"
         return half4(color, 1);
 #endif
     }
+
+    // Fallback shader to use when we can't keep things on tile, so usually in the editor when dealing with
+    // MSAA source targets to a non MSAA destination we can't perform a software resolve in the shader and
+    // so have to fall back to resolving the color target and reading it in as a texture.
+    // Where we have a MSAA destination we can avoid this.
+    half4 FragUberPostTextureSample(Varyings input) : SV_Target0
+    {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+        float2 uv = SCREEN_COORD_APPLY_SCALEBIAS(UnityStereoTransformScreenSpaceTex(input.texcoord));
+        half4 inputColor = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv);
+        return UberPost(inputColor, uv);
+    }   
+
     ENDHLSL
 
     SubShader
@@ -199,29 +213,13 @@ Shader "OnTileUberPost"
 
         Pass
         {
-            Name "OnTileUberPostTextureReadVersion"
+            Name "OnTileUberPostTextureSample"
             LOD 100
             ZTest Always ZWrite Off Cull Off
 
             HLSLPROGRAM
                 #pragma vertex Vert
-                #pragma fragment FragUberPostTextureReadVersion
-                #pragma target 5.0
-                #pragma enable_d3d11_debug_symbols
-                #pragma debug
-
-                // Fallback shader to use when we can't keep things on tile, so usually in the editor when dealing with
-                // MSAA source targets to a non MSAA destination we can't perform a software resolve in the shader and
-                // so have to fall back to resolving the color target and reading it in as a texture.
-                // Where we have a MSAA destination we can avoid this.
-                half4 FragUberPostTextureReadVersion(Varyings input) : SV_Target0
-                {
-                    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-                    float2 uv = SCREEN_COORD_APPLY_SCALEBIAS(UnityStereoTransformScreenSpaceTex(input.texcoord));
-                    half4 inputColor = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv);
-                    return UberPost(inputColor, uv);
-                }
+                #pragma fragment FragUberPostTextureSample
             ENDHLSL
         }
 
@@ -311,29 +309,33 @@ Shader "OnTileUberPost"
 
         Pass
         {
-            Name "OnTileUberPostTextureReadVersionVisMesh"
+            Name "OnTileUberPostTextureSampleVisMesh"
             LOD 100
             ZTest Always ZWrite Off Cull Off
 
             HLSLPROGRAM
                 #include "Packages/com.unity.render-pipelines.universal/Shaders/XR/XRVisibilityMeshHelper.hlsl"
                 #pragma vertex VertVisibilityMeshXR
-                #pragma fragment FragUberPostTextureReadVersion
+                #pragma fragment FragUberPostTextureSample
                 #pragma target 5.0
-                #pragma debug
+            ENDHLSL
+        }
+    }
 
-                // Fallback shader to use when we can't keep things on tile, so usually in the editor when dealing with
-                // MSAA source targets to a non MSAA destination we can't perform a software resolve in the shader and
-                // so have to fall back to resolving the color target and reading it in as a texture.
-                // Where we have a MSAA destination we can avoid this.
-                half4 FragUberPostTextureReadVersion(Varyings input) : SV_Target0
-                {
-                    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+    //Supported subshader for WebGL
+    SubShader
+    {
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
 
-                    float2 uv = SCREEN_COORD_APPLY_SCALEBIAS(UnityStereoTransformScreenSpaceTex(input.texcoord));
-                    half4 inputColor = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv);
-                    return UberPost(inputColor, uv);
-                }
+        Pass
+        {
+            Name "OnTileUberPostTextureSample"
+            LOD 100
+            ZTest Always ZWrite Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex Vert
+                #pragma fragment FragUberPostTextureSample
             ENDHLSL
         }
     }

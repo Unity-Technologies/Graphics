@@ -126,9 +126,15 @@ namespace UnityEngine.Rendering.Universal
 
         internal void RenderOverlay(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle colorBuffer, in TextureHandle depthBuffer)
         {
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-            UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
+            RenderOverlayUIToolkitAndUGUI(renderGraph, frameData, in colorBuffer, in depthBuffer);
+            RenderOverlayIMGUI(renderGraph, frameData, in colorBuffer, in depthBuffer);
+        }
+
+        internal void RenderOverlayUIToolkitAndUGUI(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle colorBuffer, in TextureHandle depthBuffer)
+        {
+            var cameraData = frameData.Get<UniversalCameraData>();
+            var resourceData = frameData.Get<UniversalResourceData>();
+            var renderer = cameraData.renderer as UniversalRenderer;
 
             // Render uGUI and UIToolkit overlays
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw UIToolkit/uGUI Overlay", out var passData, profilingSampler))
@@ -147,6 +153,12 @@ namespace UnityEngine.Rendering.Universal
                     ExecutePass(context.cmd, data, data.rendererList);
                 });
             }
+        }
+
+        internal void RenderOverlayIMGUI(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle colorBuffer, in TextureHandle depthBuffer)
+        {
+            var cameraData = frameData.Get<UniversalCameraData>();
+
             // Render IMGUI overlay and software cursor in a UnsafePass
             // Doing so allow us to safely cover cases when graphics commands called through onGUI() in user scripts are not supported by RenderPass API
             // Besides, Vulkan backend doesn't support SetSRGWrite() in RenderPass API and we have some of them at IMGUI levels

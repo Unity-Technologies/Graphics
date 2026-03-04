@@ -1,5 +1,4 @@
 using System;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -123,5 +122,7 @@ namespace UnityEngine.Rendering.Universal
         protected virtual void Dispose(bool disposing)
         {
         }
+
+        internal ScriptableRenderer.RenderingFeatures supportedRenderingFeatures { get; set; } = new ScriptableRenderer.RenderingFeatures();
     }
 }

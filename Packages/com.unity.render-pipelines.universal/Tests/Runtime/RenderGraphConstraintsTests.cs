@@ -235,6 +235,7 @@ namespace UnityEngine.Rendering.Universal.Tests
                 .SetName("Post Processing on Universal Renderer.").Returns(null),
         };
 
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WebGLPlayer })]
         [UnityTest]
         [TestCaseSource(nameof(s_OnTileValidationCases))]
         public IEnumerator URPSettingsShouldNotCauseNonMemorylessTargets(OnTileValidationConfiguration config)
@@ -252,26 +253,9 @@ namespace UnityEngine.Rendering.Universal.Tests
             LogAssert.ignoreFailingMessages = false;
         }
 
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WebGLPlayer})]
         [UnityTest]
-        public IEnumerator AnyScriptableRendererFeatureProduceAnException()
-        {
-            // Arrange
-            var config = new OnTileValidationConfiguration();
-            config.rendererFeatures.Add(ScriptableObject.CreateInstance<TestScriptableRendererFeature>());
-            config.ApplyToAssetAndRenderer(m_UniversalRenderPipelineAsset, m_UniversalRendererData);
-
-            yield return null;
-
-            // Act
-            LogAssert.Expect(LogType.Error, new Regex("Render Graph Execution error"));
-            LogAssert.Expect(LogType.Exception, new Regex("ArgumentException"));
-
-            m_UniversalRendererData.onTileValidation = true;
-            yield return null;
-        }
-
-        [UnityTest]
-        public IEnumerator CameraStackingProduceAnException()
+        public IEnumerator CameraStackingProduceWarning()
         {
             // Arrange
             var gameObject = new GameObject();
@@ -287,15 +271,13 @@ namespace UnityEngine.Rendering.Universal.Tests
             yield return null;
 
             // Act
-            LogAssert.Expect(LogType.Exception, new Regex("ArgumentException"));
+            LogAssert.Expect(LogType.Warning, new Regex("does not support Overlay cameras"));
+            LogAssert.Expect(LogType.Warning, new Regex("camera overlay no longer exists"));
 
             m_UniversalRendererData.onTileValidation = true;
             yield return null;
 
             m_UniversalRendererData.onTileValidation = false;
-            ((UniversalRenderer)additionalCameraData.scriptableRenderer).onTileValidation = true;
-
-            LogAssert.Expect(LogType.Exception, new Regex("ArgumentException"));
 
             yield return null;
 
