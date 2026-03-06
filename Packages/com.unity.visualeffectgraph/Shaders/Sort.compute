@@ -112,6 +112,8 @@ void LoadFromMemory(uint3 groupId, uint ldsIndex)
     uint memIndex = DST_INDEX(groupId, ldsIndex);
 
     KVP kvp = { REJECTED_VALUE, 0xFFFFFFFF };
+
+    UNITY_BRANCH
     if (instanceDstIndex < GetElementCount(groupId.z))
         kvp = inputSequence[totalInstanceCount + memIndex];
 
@@ -245,6 +247,7 @@ void MERGE_PASS(uint3 groupId           : SV_GroupID,
     const int arrayStart = arraySize * (id / arraySize);
 
     // If the current array considered is less than one half filled (due to element count), we can copy it directly as it is already sorted
+    UNITY_BRANCH
     if (GetElementCount(groupId.z) - (uint)arrayStart <= subArraySize)
     {
 #if FINAL_PASS
