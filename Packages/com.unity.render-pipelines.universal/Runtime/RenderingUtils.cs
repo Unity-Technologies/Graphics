@@ -809,7 +809,9 @@ namespace UnityEngine.Rendering.Universal
         {
             RTHandle srcRTHandle = source;
             Vector2 scale = srcRTHandle is { useScaling: true } ? new Vector2(srcRTHandle.rtHandleProperties.rtHandleScale.x, srcRTHandle.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+
             var yflip = renderGraphContext.GetTextureUVOrigin(in source) != renderGraphContext.GetTextureUVOrigin(in destination);
+
             Vector4 scaleBias = yflip ? new Vector4(scale.x, -scale.y, 0, scale.y) : new Vector4(scale.x, scale.y, 0, 0);
 
             return scaleBias;
@@ -845,7 +847,7 @@ namespace UnityEngine.Rendering.Universal
         internal static TextureUVOrigin GetCameraTargetsUVOrientation(UniversalCameraData cameraData)
         {
             var universalRenderer = cameraData.renderer as UniversalRenderer;
-            bool onTileRenderer = (universalRenderer == null) ? false : universalRenderer.onTileValidation;
+            bool onTileRenderer = (universalRenderer == null) ? false : universalRenderer.useTileOnlyMode;
 
             if (onTileRenderer)
             {

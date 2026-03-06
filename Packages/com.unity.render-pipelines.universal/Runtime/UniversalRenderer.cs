@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering.Universal
 
         // A Renderer cannot be switched from On-Tile to not On-Tile.
         // We make assumptions in the constructor to create the passes.
-        internal bool onTileValidation { get; }
+        internal bool useTileOnlyMode { get; }
 
         internal GraphicsFormat cameraDepthTextureFormat { get => (m_CameraDepthTextureFormat != DepthFormat.Default) ? (GraphicsFormat)m_CameraDepthTextureFormat : CoreUtils.GetDefaultDepthStencilFormat(); }
         internal GraphicsFormat cameraDepthAttachmentFormat { get => (m_CameraDepthAttachmentFormat != DepthFormat.Default) ? (GraphicsFormat)m_CameraDepthAttachmentFormat : CoreUtils.GetDefaultDepthStencilFormat(); }
@@ -263,15 +263,15 @@ namespace UnityEngine.Rendering.Universal
             transparentLayerMask = data.transparentLayerMask;
             shadowTransparentReceive = data.shadowTransparentReceive;
 
-            onTileValidation = data.onTileValidation;
+            useTileOnlyMode = data.tileOnlyMode;
 
             // The On-Tile Renderer does not support WebGL. 
-            if (onTileValidation && IsWebGL())
+            if (useTileOnlyMode && IsWebGL())
             {
-                onTileValidation = false;
+                useTileOnlyMode = false;
             }
 
-            m_ValidationHandler = new ValidationHandler();
+            m_ValidationHandler = new ValidationHandler(useTileOnlyMode);
 
             var asset = UniversalRenderPipeline.asset;
             if (asset != null && asset.supportsLightCookies)
@@ -309,12 +309,27 @@ namespace UnityEngine.Rendering.Universal
 
             UpdateSupportedRenderingFeatures();
 
-            if (onTileValidation)
+            // We log warnings to nudge users towards fixing the settings. Although we automatically fix these, its bad for the user to keep
+            // incompatible settings. The reason is that this automatic fixing has downsides for the users: if they toggle the Tile-Only
+            // setting, they get a different mix of settings with different visual results. Also the URP asset can have incompabitle settings.
+            // However, because these can be shared between different renderers, we can't log warnings. We also have warnings in the
+            // Inspector UI but these can easily be missed by the user. 
+            if (useTileOnlyMode)
             {
-                // We don't change the camera setting. Extensions like our own On-Tile Post Processing
-                // use this as well. We just make sure we disable the internal post processing on the
-                // renderer because this is not on-tile compatible currently.
-                postProcessEnabled = false;
+                if (postProcessEnabled)
+                {
+                    Debug.LogWarning($"The built-in Post Processing on the URP Renderer '{data.name}' is not compatible with the enabled Tile-Only Mode setting. Disable the post processing on the renderer asset.");
+
+                    // We don't change the camera setting. Extensions like our own On-Tile Post Processing
+                    // use this as well. We just make sure we disable the internal post processing on the
+                    // renderer because this is not on-tile compatible currently.
+                    postProcessEnabled = false;
+                }
+
+                if (renderingModeRequested == RenderingMode.Deferred || renderingModeRequested == RenderingMode.DeferredPlus)
+                {
+                    Debug.LogWarning($"Rendering path Deferred on the URP Renderer '{data.name}' is not compatible with the enabled Tile-Only Mode setting. Change this to Forward(+) on the renderer asset.");
+                }                
             }
 
             // Note: Since all custom render passes inject first and we have stable sort,
@@ -418,7 +433,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal override void UpdateSupportedRenderingFeatures()
         {
-            if (onTileValidation)
+            if (useTileOnlyMode)
             {                
                 supportedRenderingFeatures.supportsHDR = false;         // We need a blit pass to support hdr.
                 supportedRenderingFeatures.postProcessing = false;      // Internal pp does not support on-tile.

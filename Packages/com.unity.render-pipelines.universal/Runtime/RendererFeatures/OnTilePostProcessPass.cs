@@ -107,6 +107,9 @@ public class OnTilePostProcessPass : ScriptableRenderPass
         // The code below can then also use resourceData.isActiveTargetBackBuffer correctly for robustness.
         resourceData.SwitchActiveTexturesToBackbuffer();
 
+        // Reset keywords
+        m_OnTileUberMaterial.shaderKeywords = null;
+
         SetupVignette(m_OnTileUberMaterial, cameraData.xr, srcDesc.width, srcDesc.height, vignette);
         SetupLut(m_OnTileUberMaterial, colorLookup, colorAdjustments, lutSize);
         SetupTonemapping(m_OnTileUberMaterial, tonemapping, isHdrGrading: postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange);

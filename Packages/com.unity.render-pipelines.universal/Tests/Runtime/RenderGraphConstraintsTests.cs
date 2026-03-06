@@ -160,7 +160,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             public bool occlusionCulling { get; set; } = false;
             public float renderScale { get; set; } = 1.0f;
             public bool postProcessingEnabled { get; set; } = false;
-            public bool onTileValidation { get; set; } = false;
+            public bool tileOnlyMode { get; set; } = false;
 
             public List<ScriptableRendererFeature> rendererFeatures { get; set; } = new();
 
@@ -187,7 +187,7 @@ namespace UnityEngine.Rendering.Universal.Tests
                 }
 
                 // Apply renderer settings
-                rendererData.onTileValidation = onTileValidation;
+                rendererData.tileOnlyMode = tileOnlyMode;
 
                 if (renderingMode != RenderingMode.Forward && !s_RenderingModes.Contains(renderingMode))
                     return false;
@@ -245,7 +245,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             config.ApplyToAssetAndRenderer(m_UniversalRenderPipelineAsset, m_UniversalRendererData);
 
             // Act
-            m_UniversalRendererData.onTileValidation = true;
+            m_UniversalRendererData.tileOnlyMode = true;
 
             yield return null;
 
@@ -274,10 +274,10 @@ namespace UnityEngine.Rendering.Universal.Tests
             LogAssert.Expect(LogType.Warning, new Regex("does not support Overlay cameras"));
             LogAssert.Expect(LogType.Warning, new Regex("camera overlay no longer exists"));
 
-            m_UniversalRendererData.onTileValidation = true;
+            m_UniversalRendererData.tileOnlyMode = true;
             yield return null;
 
-            m_UniversalRendererData.onTileValidation = false;
+            m_UniversalRendererData.tileOnlyMode = false;
 
             yield return null;
 

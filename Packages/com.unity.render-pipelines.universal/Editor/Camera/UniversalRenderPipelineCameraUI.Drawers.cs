@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.Universal
         public static readonly CED.IDrawer[] Inspector =
         {
             CED.Group(
-                PrepareOnTileValidationWarning,
+                PrepareTileOnlyModeWarning,
                 DrawerCameraType
                 ),
             SectionProjectionSettings,
@@ -113,16 +113,16 @@ namespace UnityEditor.Rendering.Universal
             if (owner is UniversalRenderPipelineCameraEditor cameraEditor)
             {
                 cameraEditor.DrawStackSettings();
-                DisplayOnTileValidationWarning(p.cameras, p => p.arraySize != 0, Styles.cameraStackLabelForOnTileValidation, p);
+                DisplayTileOnlyModeWarning(p.cameras, p => p.arraySize != 0, Styles.cameraStackLabelForTileOnlyMode, p);
             }
         }
 
-        struct OnTileValidationInfos
+        struct TileOnlyModeInfos
         {
             public readonly bool enabled;
             public readonly string rendererName;
             public readonly ScriptableRendererData assetToOpen;
-            public OnTileValidationInfos(string rendererName, ScriptableRendererData assetToOpen)
+            public TileOnlyModeInfos(string rendererName, ScriptableRendererData assetToOpen)
             {
                 enabled = true;
                 this.rendererName = rendererName;
@@ -130,27 +130,27 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        static OnTileValidationInfos lastOnTileValidationInfos;
+        static TileOnlyModeInfos lastTileOnlyModeInfos;
 
-        static void PrepareOnTileValidationWarning(UniversalRenderPipelineSerializedCamera serialized, Editor owner)
+        static void PrepareTileOnlyModeWarning(UniversalRenderPipelineSerializedCamera serialized, Editor owner)
         {
             // Rules:
-            //   - mono selection: Display warning if RendererData's OnTileValidation is enabled (with 'Open' behaviour)
+            //   - mono selection: Display warning if RendererData's Tile-Only Mode is enabled (with 'Open' behaviour)
             //   - multi selection:
-            //      - Display warning if all RendererData's OnTileValidation are enabled
+            //      - Display warning if Tile-Only Mode is enabled on all RendererData's
             //      - Only have 'Open' behaviour if all RendererData are the same
             
-            lastOnTileValidationInfos = default;
+            lastTileOnlyModeInfos = default;
 
             // Note: UniversalRenderPipeline.asset should not be null or this inspector would not be shown.
             // Just in case off though:
             if (UniversalRenderPipeline.asset == null)
                 return;
 
-            bool HasOnTileValidationAtIndex(int index, out ScriptableRendererData rendererData)
+            bool HasTileOnlyModeAtIndex(int index, out ScriptableRendererData rendererData)
                 =>  UniversalRenderPipeline.asset.TryGetRendererData(index, out rendererData)
                     && rendererData is UniversalRendererData universalData 
-                    && universalData.onTileValidation;
+                    && universalData.tileOnlyMode;
 
             // If impacted section are not opened, early exit
             if (!(k_ExpandedState[Expandable.Rendering] || k_ExpandedState[Expandable.Stack]))
@@ -160,16 +160,16 @@ namespace UnityEditor.Rendering.Universal
 
             if (!serialized.renderer.hasMultipleDifferentValues)
             {
-                if (!HasOnTileValidationAtIndex(serialized.renderer.intValue, out rendererData))
+                if (!HasTileOnlyModeAtIndex(serialized.renderer.intValue, out rendererData))
                     return;
 
-                lastOnTileValidationInfos = new OnTileValidationInfos($"'{rendererData.name}'", assetToOpen: rendererData);
+                lastTileOnlyModeInfos = new TileOnlyModeInfos($"'{rendererData.name}'", assetToOpen: rendererData);
                 return;
             }
 
             bool targetSameAsset = true;
             var firstAdditionalData = (UniversalAdditionalCameraData)serialized.serializedAdditionalDataObject.targetObjects[0];
-            if (!HasOnTileValidationAtIndex(firstAdditionalData.rendererIndex, out rendererData))
+            if (!HasTileOnlyModeAtIndex(firstAdditionalData.rendererIndex, out rendererData))
                 return;
 
             using var o = StringBuilderPool.Get(out var sb);
@@ -179,7 +179,7 @@ namespace UnityEditor.Rendering.Universal
             for (int i = 1; i < serialized.serializedAdditionalDataObject.targetObjects.Length; ++i)
             {
                 var additionalCameraData = (UniversalAdditionalCameraData)serialized.serializedAdditionalDataObject.targetObjects[i];
-                if (!HasOnTileValidationAtIndex(additionalCameraData.rendererIndex, out var otherRenderer))
+                if (!HasTileOnlyModeAtIndex(additionalCameraData.rendererIndex, out var otherRenderer))
                     return;
 
                 targetSameAsset &= rendererData == otherRenderer;
@@ -188,27 +188,27 @@ namespace UnityEditor.Rendering.Universal
                 sb.Append("'");
             }
 
-            lastOnTileValidationInfos = new OnTileValidationInfos(sb.ToString(), assetToOpen: targetSameAsset ? rendererData : null);
+            lastTileOnlyModeInfos = new TileOnlyModeInfos(sb.ToString(), assetToOpen: targetSameAsset ? rendererData : null);
         }
 
-        static void DisplayOnTileValidationWarning(SerializedProperty prop, Func<SerializedProperty, bool> shouldDisplayWarning, GUIContent label, UniversalRenderPipelineSerializedCamera serialized)
+        static void DisplayTileOnlyModeWarning(SerializedProperty prop, Func<SerializedProperty, bool> shouldDisplayWarning, GUIContent label, UniversalRenderPipelineSerializedCamera serialized)
         {
-            if (!lastOnTileValidationInfos.enabled
+            if (!lastTileOnlyModeInfos.enabled
                 || prop == null 
                 || shouldDisplayWarning == null 
                 || prop.hasMultipleDifferentValues 
                 || !shouldDisplayWarning(prop))
                 return;
 
-            if (lastOnTileValidationInfos.assetToOpen != null)
+            if (lastTileOnlyModeInfos.assetToOpen != null)
                 CoreEditorUtils.DrawFixMeBox(
-                    string.Format(Styles.formaterOnTileValidation, label == null ? prop.displayName : label.text, lastOnTileValidationInfos.rendererName),
+                    string.Format(Styles.formatterTileOnlyMode, label == null ? prop.displayName : label.text, lastTileOnlyModeInfos.rendererName),
                     MessageType.Warning,
                     "Open",
-                    () => AssetDatabase.OpenAsset(lastOnTileValidationInfos.assetToOpen));
+                    () => AssetDatabase.OpenAsset(lastTileOnlyModeInfos.assetToOpen));
             else
                 EditorGUILayout.HelpBox(
-                    string.Format(Styles.formaterOnTileValidation, label == null ? prop.displayName : label.text, lastOnTileValidationInfos.rendererName),
+                    string.Format(Styles.formatterTileOnlyMode, label == null ? prop.displayName : label.text, lastTileOnlyModeInfos.rendererName),
                     MessageType.Warning);
         }
     }

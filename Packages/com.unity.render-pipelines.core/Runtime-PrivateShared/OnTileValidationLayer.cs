@@ -75,9 +75,8 @@ namespace Unity.RenderPipelines.Core.Runtime.Shared
         // >0 = tracked, and used in a raster pass, with the the state being the number of the pass
         DynamicArray<int> m_HandleStates;
 
-        const string m_ErrorMessageValidationIssue = "The On Tile Validation layer has detected an issue: ";
-        const string m_ErrorMessageHowToResolve = "The On Tile Validation layer is activated with the setting 'On Tile Validation' on the URP Renderer. When activated, it is not allowed to sample (RenderGraph.UseTexture) the cameraColor or cameraDepth (intermediate) textures or the GBuffers or any copies of those." +
-                "You need to disable any of the following that could cause the issue: a URP setting that would break the native render pass, a ScriptableRenderPass that is enqueued from script, or a ScriptableRenderFeature that is installed on your URP Renderer.\n";
+        const string k_ErrorMessageValidationIssue = "The On-Tile Validation layer has detected an issue: ";
+        const string k_ErrorMessageHowToResolveDefault = "Disable the On-Tile Validation Layer or ensure that all render passes meet the constraints of this layer.\n";
 
         public OnTileValidationLayer()
         {
@@ -87,7 +86,11 @@ namespace Unity.RenderPipelines.Core.Runtime.Shared
             m_CurrentPass.Init();
 
             Clear();
+
+            errorMessageHowToResolve = k_ErrorMessageHowToResolveDefault;
         }
+
+        public string errorMessageHowToResolve { get; set; }
 
         //Assumes input is valid and tracked as on tile.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -107,23 +110,23 @@ namespace Unity.RenderPipelines.Core.Runtime.Shared
         void ThrowNoNonRasterPassInBetween(in TextureHandle input)
         {
             var resourceName = renderGraph.GetTextureName(in input);
-            throw new InvalidOperationException($"{m_ErrorMessageValidationIssue} render pass '{m_CurrentPass.info.name}'" +
+            throw new InvalidOperationException($"{k_ErrorMessageValidationIssue} render pass '{m_CurrentPass.info.name}'" +
                 $" results in a load action for resource '{resourceName}' due to a previous Unsafe or Compute render pass '{m_LastNonRasterPassInfo.name}'. " +
-                $"These can't be merged.\n{m_ErrorMessageHowToResolve}");
+                $"These can't be merged.\n{errorMessageHowToResolve}");
         }
         
         void ThrowTextureSamplingException(in TextureHandle input, string methodName)
         {
             var resourceName = renderGraph.GetTextureName(in input);
-            throw new InvalidOperationException($"{m_ErrorMessageValidationIssue} render pass '{m_CurrentPass.info.name}' calls '{methodName}' with resource '{resourceName}'.\n{m_ErrorMessageHowToResolve}");            
+            throw new InvalidOperationException($"{k_ErrorMessageValidationIssue} render pass '{m_CurrentPass.info.name}' calls '{methodName}' with resource '{resourceName}'.\n{errorMessageHowToResolve}");            
         }
 
         void ThrowNotRasterPassException(in TextureHandle input, string methodName)
         {
             var resourceName = renderGraph.GetTextureName(in input);
-            throw new InvalidOperationException($"{m_ErrorMessageValidationIssue} render pass '{m_CurrentPass.info.name}' calls '{methodName}' with resource '{resourceName}'. " +
+            throw new InvalidOperationException($"{k_ErrorMessageValidationIssue} render pass '{m_CurrentPass.info.name}' calls '{methodName}' with resource '{resourceName}'. " +
                 $"Unsafe and Compute render passes can't be merged. Use a Raster render pass and ensure that no load/store action will be performed." +
-                $"\n{m_ErrorMessageHowToResolve}");
+                $"\n{errorMessageHowToResolve}");
         }
 
         const string k_UseTexture = "UseTexture";

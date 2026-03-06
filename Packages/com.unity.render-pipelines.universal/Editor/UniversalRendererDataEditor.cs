@@ -14,7 +14,6 @@ namespace UnityEditor.Rendering.Universal
     {
         private static class Styles
         {
-            public static readonly GUIContent RendererTitle = EditorGUIUtility.TrTextContent("Universal Renderer", "Custom Universal Renderer for Universal RP.");
             public static readonly GUIContent PostProcessIncluded = EditorGUIUtility.TrTextContent("Enabled", "Enables the use of post processing effects within the scene. If disabled, Unity excludes post processing renderer Passes, shaders and textures from the build.");
             public static readonly GUIContent PostProcessLabel = EditorGUIUtility.TrTextContent("Data", "The asset containing references to shaders and Textures that the Renderer uses for post-processing.");
             public static readonly GUIContent FilteringSectionLabel = EditorGUIUtility.TrTextContent("Filtering", "Settings that controls and define which layers the renderer draws.");
@@ -30,9 +29,6 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent CopyDepthModeLabel = EditorGUIUtility.TrTextContent("Depth Texture Mode", "Controls after which pass URP copies the scene depth. It has a significant impact on mobile devices bandwidth usage. It also allows to force a depth prepass to generate it.");
             public static readonly GUIContent DepthAttachmentFormat = EditorGUIUtility.TrTextContent("Depth Attachment Format", "Which format to use (if it is supported) when creating _CameraDepthAttachment.");
             public static readonly GUIContent DepthTextureFormat = EditorGUIUtility.TrTextContent("Depth Texture Format", "Which format to use (if it is supported) when creating _CameraDepthTexture.");
-            public static readonly GUIContent RenderPassLabel = EditorGUIUtility.TrTextContent("Native RenderPass", "Enables URP to use RenderPass API.");
-
-            public static readonly GUIContent RenderPassSectionLabel = EditorGUIUtility.TrTextContent("RenderPass", "This section contains properties related to render passes.");
             public static readonly GUIContent ShadowsSectionLabel = EditorGUIUtility.TrTextContent("Shadows", "This section contains properties related to rendering shadows.");
             public static readonly GUIContent PostProcessingSectionLabel = EditorGUIUtility.TrTextContent("Post-processing", "This section contains properties related to rendering post-processing.");
 
@@ -44,12 +40,11 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent invalidStencilOverride = EditorGUIUtility.TrTextContent("Error: When using the deferred rendering path, the Renderer requires the control over the 4 highest bits of the stencil buffer to store Material types. The current combination of the stencil override options prevents the Renderer from controlling the required bits. Try changing one of the options to Replace.");
             public static readonly GUIContent intermediateTextureMode = EditorGUIUtility.TrTextContent("Intermediate Texture (Obsolete)", "Should be set to Auto. Controls when URP renders via an intermediate texture.");
             public static readonly GUIContent warningIntermediateTextureMode = EditorGUIUtility.TrTextContent("'Always' is Obsolete. Change it to Auto. This can improve performance. The setting will disappear once it is corrected to 'Auto'.");
-            public static readonly GUIContent deferredPlusIncompatibleWarning = EditorGUIUtility.TrTextContent("Deferred+ is only available with Render Graph. In compatibility mode, Deferred+ falls back to Forward+.");
-            public static readonly GUIContent onTileValidation = EditorGUIUtility.TrTextContent("On-Tile Validation", "Enables the feature validation to prevent going off tile. This is mainly useful for tile based architectures.");
-            public static readonly string onTileValidationWarning = L10n.Tr("On-Tile validation is enabled. ScriptableRendererFeatures and ScriptableRenderPasses that would trigger a GPU memory store/load action of the main render targets are not allowed.");
-            public static readonly string deferredOnTileValidationWarning = L10n.Tr("Deferred rendering path is incompatible with the enabled 'On-Tile Validation' and will fallback to Forward.");
-            public static readonly string deferredPlusOnTileValidationWarning = L10n.Tr("Deferred+ rendering path is incompatible with the enabled 'On-Tile Validation' and will fallback to Forward+.");
-            public static readonly string postProcessingOnTileValidationWarning = L10n.Tr("'Post-processing' will be skipped because it is incompatible with the enabled 'On-Tile Validation'.");
+            public static readonly GUIContent tileOnlyMode = EditorGUIUtility.TrTextContent("Tile-Only Mode", "Restricts render passes to avoid memory load/store of main camera targets, keeping them in on‑chip tile memory. This is a potential GPU performance optimization on Tile-Based GPU architectures. It activates additional RenderGaph validation. Some features may be disabled or fall back. See docs for details.");
+            public static readonly string tileOnlyModeWarning = L10n.Tr("Tile-Only mode will disable or block features, including Renderer Features and Render Passes, that would trigger GPU memory store/load actions.");
+            public static readonly string deferredTileOnlyModeWarning = L10n.Tr("Deferred rendering path is incompatible with the enabled 'Tile-Only Mode'. Change this to Forward.");
+            public static readonly string deferredPlusTileOnlyModeWarning = L10n.Tr("Deferred+ rendering path is incompatible with the enabled 'Tile-Only Mode'. Change this to Forward+.");
+            public static readonly string postProcessingTileOnlyModeWarning = L10n.Tr("'Post-processing' is incompatible with the enabled 'Tile-Only Mode'. Disable this setting. Renderer Features can add On-Tile Post Processing.");
         }
 
         SerializedProperty m_PrepassLayerMask;
@@ -66,7 +61,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_Shaders;
         SerializedProperty m_ShadowTransparentReceiveProp;
         SerializedProperty m_IntermediateTextureMode;
-        SerializedProperty m_OnTileValidation;
+        SerializedProperty m_TileOnlyMode;
 
         List<string> m_DepthFormatStrings = new List<string>();
 
@@ -86,7 +81,7 @@ namespace UnityEditor.Rendering.Universal
             m_Shaders = serializedObject.FindProperty("shaders");
             m_ShadowTransparentReceiveProp = serializedObject.FindProperty("m_ShadowTransparentReceive");
             m_IntermediateTextureMode = serializedObject.FindProperty("m_IntermediateTextureMode");
-            m_OnTileValidation = serializedObject.FindProperty("m_OnTileValidation");
+            m_TileOnlyMode = serializedObject.FindProperty("m_TileOnlyMode");
         }
 
         private void PopulateCompatibleDepthFormats(int renderingMode)
@@ -189,15 +184,15 @@ namespace UnityEditor.Rendering.Universal
                 depthFormatIndex = GetDepthFormatIndex((DepthFormat)m_DepthAttachmentFormat.intValue, m_RenderingMode.intValue);
             }
             
-            if (m_OnTileValidation.boolValue)
+            if (m_TileOnlyMode.boolValue)
             {
                 switch ((RenderingMode)m_RenderingMode.intValue)
                 {
                     case RenderingMode.Deferred:
-                        EditorGUILayout.HelpBox(Styles.deferredOnTileValidationWarning, MessageType.Warning);
+                        EditorGUILayout.HelpBox(Styles.deferredTileOnlyModeWarning, MessageType.Error);
                         break;
                     case RenderingMode.DeferredPlus:
-                        EditorGUILayout.HelpBox(Styles.deferredPlusOnTileValidationWarning, MessageType.Warning);
+                        EditorGUILayout.HelpBox(Styles.deferredPlusTileOnlyModeWarning, MessageType.Error);
                         break;
                 }
             }
@@ -236,9 +231,9 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.PropertyField(m_DepthTextureFormat, Styles.DepthTextureFormat);
             
-            EditorGUILayout.PropertyField(m_OnTileValidation, Styles.onTileValidation);
-            if (m_OnTileValidation.boolValue)
-                EditorGUILayout.HelpBox(Styles.onTileValidationWarning, MessageType.Warning);
+            EditorGUILayout.PropertyField(m_TileOnlyMode, Styles.tileOnlyMode);
+            if (m_TileOnlyMode.boolValue)
+                EditorGUILayout.HelpBox(Styles.tileOnlyModeWarning, MessageType.Info);
 
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
@@ -256,8 +251,8 @@ namespace UnityEditor.Rendering.Universal
             {
                 m_PostProcessData.objectReferenceValue = postProcessIncluded ? PostProcessData.GetDefaultPostProcessData() : null;
             }
-            if (postProcessIncluded && m_OnTileValidation.boolValue)
-                EditorGUILayout.HelpBox(Styles.postProcessingOnTileValidationWarning, MessageType.Warning);
+            if (postProcessIncluded && m_TileOnlyMode.boolValue)
+                EditorGUILayout.HelpBox(Styles.postProcessingTileOnlyModeWarning, MessageType.Error);
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_PostProcessData, Styles.PostProcessLabel);
             EditorGUI.indentLevel--;

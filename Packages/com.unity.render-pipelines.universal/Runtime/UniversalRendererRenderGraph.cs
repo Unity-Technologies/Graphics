@@ -589,7 +589,7 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             resourceData.InitFrame();
-            m_ValidationHandler.OnBeginRenderGraphFrame(onTileValidation);
+            m_ValidationHandler.OnBeginRenderGraphFrame();
         }
 
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context)
@@ -1421,7 +1421,7 @@ namespace UnityEngine.Rendering.Universal
             //Checking resourceData.isActiveTargetBackBuffer is a robust way to check if this has happened, by our own code or by the user.
             if (!resourceData.isActiveTargetBackBuffer && cameraData.resolveFinalTarget)
             {
-                Debug.Assert(!onTileValidation, "Adding the final blit pass when On-Tile Validation is on. This is not valid and will throw an exception. Likely, an On-Tile Feature has requested the intermediate textures but did not correctly copy the data to the backbuffer.");
+                Debug.Assert(!useTileOnlyMode, "Adding the final blit pass when Tile-Only Mode is on. This is not valid and will throw an exception. Likely, an On-Tile Feature has requested the intermediate textures but did not correctly copy the data to the backbuffer.");
 
                 debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, !resolveToDebugScreen);
 
@@ -1462,7 +1462,7 @@ namespace UnityEngine.Rendering.Universal
                 m_DrawOverlayUIPass.RenderOverlayUIToolkitAndUGUI(renderGraph, frameData, in color, in depth);
 
                 // IMGUI uses an Unsafe pass and is therefore not supported by the on-tile renderer.
-                if(!(onTileValidation && cameraData.cameraType == CameraType.Game))
+                if(!(useTileOnlyMode && cameraData.cameraType == CameraType.Game))
                     m_DrawOverlayUIPass.RenderOverlayIMGUI(renderGraph, frameData, in color, in depth);
             }
 
@@ -1611,7 +1611,7 @@ namespace UnityEngine.Rendering.Universal
             // To target the BB directly, either we don't render to the intermediate textures, or we render with the on-tile renderer.
             // The on-tile renderer guarantees a single native render pass for the draw passes to the backbuffer, even though
             // it potentially uses the intermediate textures as temporary attachments inside of the NRP.
-            bool intermediateTexturesAreSampledAsTextures = s_RequiresIntermediateAttachments && !onTileValidation;
+            bool intermediateTexturesAreSampledAsTextures = s_RequiresIntermediateAttachments && !useTileOnlyMode;
             bool noStoreOnlyResolveBBColor = !intermediateTexturesAreSampledAsTextures && !isNativeRenderingAfterURP && (cameraData.cameraTargetDescriptor.msaaSamples > 1);
 
             TextureUVOrigin backbufferTextureUVOrigin = RenderingUtils.GetBackBufferUVOrientation(cameraData);
@@ -1743,7 +1743,7 @@ namespace UnityEngine.Rendering.Universal
             desc.autoGenerateMips = false;
             desc.filterMode = FilterMode.Bilinear;
             desc.wrapMode = TextureWrapMode.Clamp;
-            desc.bindTextureMS = onTileValidation && desc.msaaSamples != MSAASamples.None; //Needed for GLES fallback
+            desc.bindTextureMS = useTileOnlyMode && desc.msaaSamples != MSAASamples.None; //Needed for GLES fallback
 
             // When there's a single camera setup, there's no need to do the double buffer technique with attachment A/B, in order to save memory allocation
             // and simplify the workflow by using a RenderGraph texture directly.

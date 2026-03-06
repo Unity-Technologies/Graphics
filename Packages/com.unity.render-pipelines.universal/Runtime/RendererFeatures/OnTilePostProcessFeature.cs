@@ -99,7 +99,7 @@ public partial class OnTilePostProcessFeature : ScriptableRendererFeature
 
         m_OnTilePostProcessPass.Setup(ref m_OnTilePostProcessMaterial);
         m_OnTilePostProcessPass.renderPassEvent = postProcessingEvent;
-        m_OnTilePostProcessPass.m_UseTextureReadFallback = !universalRenderer.onTileValidation;
+        m_OnTilePostProcessPass.m_UseTextureReadFallback = !universalRenderer.useTileOnlyMode;
 
         renderer.EnqueuePass(m_ColorGradingLutPass);
         renderer.EnqueuePass(m_OnTilePostProcessPass);
