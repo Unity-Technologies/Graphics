@@ -13,6 +13,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Hints
         internal const string kSearchName = "sg:SearchName";
         internal const string kSearchCategory = "sg:SearchCategory";
 
+        internal const string kPrecision = "sg:DynamicPrecision";
+
         // Not yet implemented.
         internal const string kGroupKey = "sg:GroupKey";
         internal const string kReturnTooltip = "sg:ReturnTooltip";
@@ -27,12 +29,14 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Hints
     class ProviderKey : IStrongHint<IShaderFunction>
     {
         public string Key => Func.kProviderKey;
-        public bool Process(bool found, string rawValue, IShaderFunction obj, IProvider provider, out object value, out string msg)
+        public bool AlwaysProcess => true;
+        public bool AllowDisqualifiedSynonyms => false;
+        public bool Process(bool found, string rawValue, IShaderFunction obj, IProvider provider, out object value, out string msg, string actualHintKey)
         {
             string sourcePath = AssetDatabase.GUIDToAssetPath(provider.AssetID);
 
             value = provider.ProviderKey;
-            msg = !found // The defaulted ProviderKey is the fully qualified signature.
+            msg = !found
                 ? $"Expected; but none found for '{provider.ProviderKey}' in '{sourcePath}'."
                 : null;
 
@@ -43,7 +47,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Hints
     class SearchName : IStrongHint<IShaderFunction>
     {
         public string Key => Func.kSearchName;
-        public bool Process(bool found, string rawValue, IShaderFunction obj, IProvider provider, out object value, out string msg)
+        public bool AlwaysProcess => true;
+        public bool Process(bool found, string rawValue, IShaderFunction obj, IProvider provider, out object value, out string msg, string actualHintKey)
         {
             msg = null;
             value = found ? rawValue : ShaderObjectUtils.QualifySignature(obj, false, true);
@@ -54,7 +59,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Hints
     class SearchTerms : IStrongHint<IShaderFunction>
     {
         public string Key => Func.kSearchTerms;
-        public bool Process(bool found, string rawValue, IShaderFunction obj, IProvider provider, out object value, out string msg)
+        public bool AlwaysProcess => true;
+        public bool Process(bool found, string rawValue, IShaderFunction obj, IProvider provider, out object value, out string msg, string actualHintKey)
         {
             msg = null;
             value = found ? HeaderUtils.LazyTokenString(rawValue) : new string[] { obj.Name };
@@ -65,8 +71,9 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Hints
     class SearchCategory : IStrongHint<IShaderFunction>
     {
         public string Key => Func.kSearchCategory;
+        public bool AlwaysProcess => true;
         public IReadOnlyCollection<string> Synonyms { get; } = new[] { "Category" };
-        public bool Process(bool found, string rawValue, IShaderFunction obj, IProvider provider, out object value, out string msg)
+        public bool Process(bool found, string rawValue, IShaderFunction obj, IProvider provider, out object value, out string msg, string actualHintKey)
         {
             msg = null;
             if (found)

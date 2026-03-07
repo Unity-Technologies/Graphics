@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         public string ProviderKey => kExpressionProviderKey;
         public GUID AssetID => default;
         public bool RequiresGeneration => true;
-        private static readonly string[] kNamespace = { "unity", "shadergraph", "expression" };
+        private static readonly string[] kNamespace = { "unity_sg_expression" };
 
         internal string Expression => m_expression;
         internal string ShaderType => m_type;
@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         [NonSerialized]
         IShaderFunction m_definition;
 
-        internal ExpressionProvider() : this("Expression", "", "float") { }
+        internal ExpressionProvider() : this("Expression", "A", "float") { }
 
         internal ExpressionProvider(string name, string expression, string type)
         {
@@ -61,7 +61,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             { Hints.Func.kProviderKey,  kExpressionProviderKey },
             { Hints.Func.kSearchName, "Expression" },
             { Hints.Func.kSearchCategory, "Utility" },
-            { Hints.Func.kSearchTerms, "equation, calculation, inline, code" }
+            { Hints.Func.kSearchTerms, "equation, calculation, inline, code" },
+            { Hints.Func.kPrecision, "" }
         };
 
         internal void UpdateExpression(string name, string expression, string type)
@@ -113,6 +114,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             IShaderType shaderType = new ShaderType(type);
 
             List<IShaderField> parameters = new();
+
             foreach (var paramName in orderedNames)
                 parameters.Add(new ShaderField(paramName, true, false, shaderType, null));
 

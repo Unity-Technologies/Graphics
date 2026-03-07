@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             }
 
             // Parameters
-            foreach (var paramHeader in node.ParamHeaders)
+            foreach (var paramHeader in node.ParamHeaders.Values)
             {
                 hasMsg = false;
                 sb.Clear();

@@ -33,7 +33,15 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
         internal bool isLiteral { get; private set; }
 
+        internal bool isDynamic { get; private set; }
+
         internal bool isBareResource { get; private set; }
+
+        internal bool isReferable { get; private set; }
+        internal string Referable { get; private set; }
+
+        internal bool isLinkage { get; private set; }
+        internal string linkTarget { get; private set; }
 
         private static HintRegistry<IShaderField> s_HintRegistry;
         protected override HintRegistry<IShaderField> GetHintRegistry()
@@ -44,7 +52,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                 s_HintRegistry.RegisterStrongHint(new Hints.DisplayName<IShaderField>());
                 s_HintRegistry.RegisterStrongHint(new Hints.Tooltip<IShaderField>());
 
-                s_HintRegistry.RegisterStrongHint(new Hints.Flag<IShaderField>(Hints.Param.kLocal, new string[] { Hints.Param.kAccessModifier, Hints.Param.kCustomEditor }));
+                s_HintRegistry.RegisterStrongHint(new Hints.Flag<IShaderField>(Hints.Param.kLocal, new string[] { Hints.Param.kAccessModifier }));
 
                 s_HintRegistry.RegisterStrongHint(new Hints.Literal());
                 s_HintRegistry.RegisterStrongHint(new Hints.Static());
@@ -53,6 +61,9 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                 s_HintRegistry.RegisterStrongHint(new Hints.Dropdown());
                 s_HintRegistry.RegisterStrongHint(new Hints.Default());
                 s_HintRegistry.RegisterStrongHint(new Hints.External());
+                s_HintRegistry.RegisterStrongHint(new Hints.Referable());
+                s_HintRegistry.RegisterStrongHint(new Hints.Dynamic());
+                s_HintRegistry.RegisterStrongHint(new Hints.Linkage());
             }
             return s_HintRegistry;
         }
@@ -102,6 +113,20 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                 externalQualifiedTypeName = $"{externalNamespace}::{typeName}";
 
             isLiteral = Has(Hints.Param.kLiteral);
+
+            if (isReferable = Has(Hints.Param.kReferable))
+            {
+                Referable = Get<string>(Hints.Param.kReferable);
+            }
+
+            isDynamic = Has(Hints.Param.kDynamic);
+
+            if (isLinkage = Has(Hints.Param.kLinkage))
+            {
+                linkTarget = Get<string>(Hints.Param.kLinkage);
+                isLocal = true;
+            }
+
         }
 
         internal ParameterHeader(IShaderField param, IProvider provider)

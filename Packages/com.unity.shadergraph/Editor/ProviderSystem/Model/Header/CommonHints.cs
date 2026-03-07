@@ -11,10 +11,11 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Hints
     internal class DisplayName<T> : IStrongHint<T> where T : IShaderObject
     {
         public string Key { get; private set; }
+        public bool AlwaysProcess => true;
         public IReadOnlyCollection<string> Synonyms { get; } = new string[] { "Label", "Title" };
         string fallback;
         internal DisplayName(string name = Common.kDisplayName, string fallback = null) { Key = name; this.fallback = fallback; }
-        public bool Process(bool found, string rawValue, T obj, IProvider provider, out object value, out string msg)
+        public bool Process(bool found, string rawValue, T obj, IProvider provider, out object value, out string msg, string actualHintKey)
         {
             msg = null;
             value = found ? rawValue : fallback ?? obj.Name;
@@ -27,7 +28,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Hints
         public string Key { get; private set; }
         public IReadOnlyCollection<string> Synonyms { get; } = new [] { "summary" };
         internal Tooltip(string name = Common.kTooltip) { Key = name; }
-        public bool Process(bool found, string rawValue, T obj, IProvider provider, out object value, out string msg)
+        public bool Process(bool found, string rawValue, T obj, IProvider provider, out object value, out string msg, string actualHintKey)
         {
             msg = null;
             value = rawValue;
@@ -39,12 +40,19 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Hints
     {
         public string Key { get; private set; }
         public IReadOnlyCollection<string> Conflicts { get; private set; }
+        public IReadOnlyCollection<string> Synonyms { get; private set; }
 
         internal Flag(string name) { Key = name; Conflicts = null; }
         internal Flag(string name, string conflict) { Key = name; Conflicts = new[] { conflict }; }
         internal Flag(string name, string[] conflicts) { Key = name; Conflicts = conflicts; }
+        internal Flag(string name, string[] conflicts, string[] synonyms)
+        {
+            Key = name;
+            Conflicts = conflicts;
+            Synonyms = synonyms;
+        }
 
-        public bool Process(bool found, string rawValue, T obj, IProvider provider, out object value, out string msg)
+        public bool Process(bool found, string rawValue, T obj, IProvider provider, out object value, out string msg, string actualHintKey)
         {
             msg = null;
             value = rawValue;

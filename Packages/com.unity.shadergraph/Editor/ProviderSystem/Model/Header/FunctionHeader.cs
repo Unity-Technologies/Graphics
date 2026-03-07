@@ -18,6 +18,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
         internal ParameterHeader returnHeader { get; private set; }
 
+        internal bool allowPrecision { get; private set; }
+
         private static HintRegistry<IShaderFunction> s_HintRegistry;
         protected override HintRegistry<IShaderFunction> GetHintRegistry()
         {
@@ -29,12 +31,16 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                 s_HintRegistry.RegisterStrongHint(new Hints.DisplayName<IShaderFunction>());
                 s_HintRegistry.RegisterStrongHint(new Hints.Tooltip<IShaderFunction>());
 
+                // Duplicate Synonyms are getting registered and we aren't handling conflicts;
+                // but we should allow multimapping!
                 s_HintRegistry.RegisterStrongHint(new Hints.DisplayName<IShaderFunction>(Hints.Func.kReturnDisplayName, "Out"));
                 s_HintRegistry.RegisterStrongHint(new Hints.Tooltip<IShaderFunction>(Hints.Func.kReturnTooltip));
 
                 s_HintRegistry.RegisterStrongHint(new Hints.SearchName());
                 s_HintRegistry.RegisterStrongHint(new Hints.SearchTerms());
                 s_HintRegistry.RegisterStrongHint(new Hints.SearchCategory());
+
+                s_HintRegistry.RegisterStrongHint(new Hints.Flag<IShaderFunction>(Hints.Func.kPrecision, null, new string[] { "Precision" }));
             }
             return s_HintRegistry;
         }
@@ -54,6 +60,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             searchName = Get<string>(Hints.Func.kSearchName);
             searchTerms = Get<string[]>(Hints.Func.kSearchTerms);
             searchCategory = Get<string>(Hints.Func.kSearchCategory);
+
+            allowPrecision = Has(Hints.Func.kPrecision);
 
             returnHeader = new ParameterHeader(returnDisplayName, func.ReturnType, returnTooltip, provider);
         }

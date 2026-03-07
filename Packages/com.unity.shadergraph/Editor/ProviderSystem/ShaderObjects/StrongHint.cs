@@ -6,32 +6,57 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
     interface IStrongHint<T> where T : IShaderObject
     {
         string Key { get; }
+
+        // Indicate that this hint should attempt to be processed even if it wasn't found;
+        // this allows hints like 'DisplayName' to be able to handle determining a fallback.
+        bool AlwaysProcess => false;
+        bool AllowDisqualifiedSynonyms => true;
+
         IReadOnlyCollection<string> Synonyms => null;
         IReadOnlyCollection<string> Conflicts => null;
 
-        bool Process(bool found, string rawValue, T obj, IProvider provider, out object value, out string msg);
+        bool Process(bool found, string rawValue, T obj, IProvider provider, out object value, out string msg, string actualHintKey);
     }
 
     internal class HintRegistry<T> where T : IShaderObject
     {
-        List<IStrongHint<T>> m_hints = new();
-        Dictionary<string, List<string>> m_alternates = new();
+        Dictionary<string, IStrongHint<T>> m_hintsByKey = new();
+        Dictionary<string, List<(string StrongHintKey, int Priority)>> m_synonymMap = new();
 
         internal void RegisterStrongHint(IStrongHint<T> hint)
         {
-            m_hints.Add(hint);
+            // add the new hint;
+            m_hintsByKey.Add(hint.Key, hint);
+
+            // add the hint's actual key as a synonym with highest priority
+            int priority = 0;
+            if (!m_synonymMap.TryAdd(hint.Key, new() { (hint.Key, priority) }))
+                m_synonymMap[hint.Key].Add((hint.Key, priority));
+
+            if (!hint.AllowDisqualifiedSynonyms)
+                return;
+
+            // build a list of alternates by disqualifying the hint.key.
             var alternates = new List<string>(DisqualifyKey(hint.Key));
 
+            // Look through the hints synonyms and also add them and their disqualifications.
             if (hint.Synonyms != null)
                 foreach(var synonym in hint.Synonyms)
                     alternates.AddRange(DisqualifyKey(synonym, true));
 
-            if (alternates.Count > 0)
-                m_alternates.Add(hint.Key, alternates);
+            // for each subsequent alternate, the priority decreases.
+            foreach(var alternate in alternates)
+            {
+                priority++;
+                // Since a single synonym could be used by multiple hints, we need to register
+                // each StrongHint.Key to the synonym.
+                if (!m_synonymMap.TryAdd(alternate, new() { (hint.Key, priority) }))
+                    m_synonymMap[alternate].Add((hint.Key, priority));
+            }
         }
 
         // eg. (unity:engine:sg:HintKey) => engine:sg:HintKey, sg:HintKey, HintKey
-        private static IEnumerable<string> DisqualifyKey(string key, bool inclusive = false)
+        internal static IEnumerable<string> DisqualifyKey(string key, bool inclusive = false)
         {
             if (inclusive)
                 yield return key;
@@ -55,61 +80,85 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         {
             values = new();
             msgs = new();
-            Dictionary<string, List<string>> conflictCases = new();
 
-            // this is run per the registered hint types and not the hints on the object.
-            foreach (var hint in m_hints)
+            Dictionary<string, (string Synonym, int Priority)> foundHints = new();
+            Dictionary<string, HashSet<string>> conflictCases = new();
+            HashSet<string> conflictedHints = new();
+
+            // prepass, match the discovered hints to strong hint keys- this allows us to determine which strong hints shouldn't be skipped.
+            foreach(var rawHintKey in obj.Hints.Keys)
             {
-                // assess whether the object has the hint.
-                bool hintFound = obj.Hints.TryGetValue(hint.Key, out var hintRawValue);
-                bool hintValid = false;
-
-                // try the alternate keys. It isn't strictly erroneous to have alternates also be present.
-                if (!hintFound && m_alternates.ContainsKey(hint.Key))
-                    foreach (var alternateKey in m_alternates[hint.Key])
-                        if (hintFound = obj.Hints.TryGetValue(alternateKey, out hintRawValue))
-                            break;
-
-                // some hints may have default values and need to be processed whether they are found or not.
-                if (hintValid = hint.Process(hintFound, hintRawValue, obj, provider, out var value, out var msg))
+                if (m_synonymMap.TryGetValue(rawHintKey, out var matches))
                 {
-                    values.Add(hint.Key, value);
-                }
-
-                if (!string.IsNullOrWhiteSpace(msg))
-                    msgs.Add($"{hint.Key}: {msg}");
-
-                // if they were processed or existed previously, we need to consider their conflict classes.
-                if ((hintFound || hintValid) && hint.Conflicts != null && hint.Conflicts.Count > 0)
-                {
-                    foreach(var conflict in hint.Conflicts)
+                    foreach(var hint in matches)
                     {
-                        conflictCases.TryAdd(conflict, new());
-                        conflictCases[conflict].Add(hint.Key);
+                        // track priority so that we don't accidentally match a a synonym over the actual key.
+                        if (!foundHints.TryAdd(hint.StrongHintKey, (rawHintKey, hint.Priority)))
+                        {
+                            // newly found synonym is higher priority (lower number), so use that instead.
+                            if (hint.Priority < foundHints[hint.StrongHintKey].Priority)
+                                foundHints[hint.StrongHintKey] = (rawHintKey, hint.Priority);
+                        }
+
+                        // we can also determine which conflict classes we'll run into here.
+                        if (m_hintsByKey[hint.StrongHintKey].Conflicts != null)
+                            foreach (var conflictClass in m_hintsByKey[hint.StrongHintKey].Conflicts)
+                                if (!conflictCases.TryAdd(conflictClass, new HashSet<string>() { hint.StrongHintKey }))
+                                    conflictCases[conflictClass].Add(hint.StrongHintKey);
                     }
                 }
             }
 
+            // Conflict cases allow us to early out processing hints.
             foreach(var caseKV in conflictCases)
             {
-                // if there is only one hint in a conflict case, it isn't conflicted.
-                if (caseKV.Value.Count <= 1)
+                if (caseKV.Value.Count == 1)
                     continue;
 
-                // otherwise it'll need a message and for the conflicting hints to be removed from the values.
+                // Aggregate conflicted hints so that we know which aren't being processed because they are in conflict.
+                conflictedHints.UnionWith(caseKV.Value);
+
+                // Build conflict message.
                 StringBuilder sb = new();
                 bool first = true;
                 sb.Append($"Conflicting hints of class '{caseKV.Key}' found, ignoring: ");
                 foreach (var conflictKey in caseKV.Value)
                 {
-                    // Any key in conflict is removed and ignored.
-                    values.Remove(conflictKey);
                     if (!first)
                         sb.Append(", ");
-                    sb.Append($"{conflictKey}");
+                    sb.Append($"'{conflictKey}'");
                     first = false;
                 }
                 msgs.Add(sb.ToString());
+            }
+
+            // Now that we know which hints are both in use and valid, we can skip the ones not in use.
+            foreach (var strongHint in m_hintsByKey.Values)
+            {
+                if (conflictedHints.Contains(strongHint.Key))
+                    continue;
+
+                string synonymUsed = null;
+                string rawHintValue = null;
+                bool found;
+                bool shouldProcess = strongHint.AlwaysProcess;
+
+
+                if (found = foundHints.TryGetValue(strongHint.Key, out var rawHintData))
+                {
+                    shouldProcess = true;
+                    synonymUsed = rawHintData.Synonym;
+                    rawHintValue = obj.Hints[synonymUsed];
+                }
+
+                if (!shouldProcess)
+                    continue;
+
+                if (strongHint.Process(found, rawHintValue, obj, provider, out var value, out var msg, synonymUsed))
+                    values.Add(strongHint.Key, value);
+
+                if (!string.IsNullOrWhiteSpace(msg))
+                    msgs.Add($"{strongHint.Key}: {msg}");
             }
         }
     }

@@ -70,7 +70,11 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             }
 
             var t = SplitTypeName(a.ShaderType.Name);
-            return $"{t.typeName} {a.Name}{t.arraySpec}";
+            var typeName = t.typeName;
+
+            string access = a.IsInput && a.IsOutput ? "inout " : a.IsOutput ? "out " : "";
+
+            return $"{access}{typeName} {a.Name}{t.arraySpec}";
         }
 
         private static string GenerateHints(string closure, IReadOnlyDictionary<string, string> hints, string name = null)
@@ -88,13 +92,30 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             return sb.ToString();
         }
 
+        internal static string GenerateCall(IShaderFunction func, string argList)
+        {
+            StringBuilder call = new();
+            string funcName = func.Name;
+
+            foreach (var name in func.Namespace)
+                call.Append($"{name}::");
+
+            call.Append(funcName);
+
+            call.Append("(");
+            call.Append(argList);
+            call.Append(");");
+
+            return call.ToString();
+        }
+
         internal static string GenerateCode(IShaderFunction func, bool generateHints = true, bool export = true, bool generateNamespace = true)
         {
             ShaderStringBuilder sb = new();
 
             if (generateNamespace)
                 foreach (var name in func.Namespace)
-                    sb.Append($"namespace {name}{{");
+                    sb.Append($"namespace {name} {{");
 
             sb.AppendNewLine();
             sb.IncreaseIndent();
@@ -109,7 +130,10 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                         sb.Append(GenerateHints("paramhints", param.Hints, param.Name));
             }
 
-            sb.Append($"{(export ? "UNITY_EXPORT_REFLECTION" : "")} {func.ReturnType.Name} {func.Name}(");
+            string funcName = func.Name;
+            string typeName = func.ReturnType.Name;
+
+            sb.Append($"{(export ? "UNITY_EXPORT_REFLECTION" : "")} {typeName} {funcName}(");
 
             bool first = true;
 

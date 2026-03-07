@@ -673,6 +673,7 @@ namespace UnityEditor.ShaderGraph
 
         }
 
+        internal int lastKnownDynamicVectorLength = 1;
         public virtual void EvaluateDynamicMaterialSlots(List<MaterialSlot> inputSlots, List<MaterialSlot> outputSlots)
         {
             var dynamicInputSlotsToCompare = DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Get();
@@ -732,6 +733,8 @@ namespace UnityEditor.ShaderGraph
                 // we can now figure out the dynamic slotType
                 // from here set all the
                 var dynamicType = ConvertDynamicVectorInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
+                lastKnownDynamicVectorLength = dynamicType.GetChannelCount();
+
                 foreach (var dynamicKvP in dynamicInputSlotsToCompare)
                     dynamicKvP.Key.SetConcreteType(dynamicType);
                 foreach (var skippedSlot in skippedDynamicSlots)
@@ -893,7 +896,7 @@ namespace UnityEditor.ShaderGraph
             return defaultVariableName;
         }
 
-        public MaterialSlot AddSlot(MaterialSlot slot, bool attemptToModifyExistingInstance = true)
+        public MaterialSlot AddSlot(MaterialSlot slot, bool attemptToModifyExistingInstance = true, bool copyExistingValue = true)
         {
             if (slot == null)
             {
@@ -956,7 +959,8 @@ namespace UnityEditor.ShaderGraph
 
             // foundSlot is of a different type; try to copy values
             // I think this is to support casting if implemented in CopyValuesFrom ?
-            slot.CopyValuesFrom(foundSlot);
+            if (copyExistingValue)
+                slot.CopyValuesFrom(foundSlot);
             foundSlot.owner = null;
 
 

@@ -12,6 +12,12 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         public GUID AssetID { get; private set; }
         public IShaderFunction Definition { get; private set; }
 
+        internal TestProvider(string testName, IShaderFunction func)
+        {
+            ProviderKey = testName;
+            Definition = func;
+        }
+
         internal TestProvider(string testName, string path = null, IEnumerable<string> namespaces = null)
         {
             ProviderKey = testName;
@@ -50,7 +56,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
 
         private static void DoDisplayNameTest(HintRegistry<IShaderObject> reg, string referenceName, string displayName, Dictionary<string, object> values, List<string> messages)
         {
-            
+
 
             if (displayName == null)
                 displayName = referenceName;
@@ -67,7 +73,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         private static IShaderField Param(string testName, IShaderType shaderType, string hintKey, string hintValueRaw)
         {
             var hints = new Dictionary<string, string>() { { hintKey, hintValueRaw } };
-            return new ShaderField(testName, false, false, shaderType, hints);
+            return new ShaderField(testName, true, false, shaderType, hints);
         }
 
         private static void DoOneHintTest<T, V>(HintRegistry<T> reg, IProvider<T> provider, bool expectsValue, V expectedValue, bool expectsMessage, Dictionary<string, object> values, List<string> messages, string hintKey = null) where T : IShaderObject
@@ -147,7 +153,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         {
             HintRegistry<IShaderObject> reg = new();
             reg.RegisterStrongHint(new Hints.DisplayName<IShaderObject>());
-            
+
             Dictionary<string, object> values = new();
             List<string> messages = new();
 
@@ -155,7 +161,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
             DoDisplayNameTest(reg, "TestObject", "Test Object DisplayName", values, messages);
         }
 
-        
+
         [Test]
         public void TestRange()
         {
@@ -241,6 +247,60 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
             // ask it to reimport, which will populate error messages and fail the test if anything is awry.
             AssetDatabase.ImportAsset(kAllHintsPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
             AssetDatabase.ImportAsset(kAllHintsGraphPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+        }
+
+        [Test]
+        public void LegacyPrecisionAndDynamics()
+        {
+            Dictionary<string, string> DynamicHint = new() { { Hints.Param.kDynamic, "" } };
+            Dictionary<string, string> PrecisionHint = new() { { Hints.Func.kPrecision, "" } };
+            List<string> generated = new() { "unity_sg_generated" };
+
+            ShaderType f = new("float");
+            ShaderType h = new("half");
+            ShaderType f2 = new("float2");
+            ShaderType h2 = new("half2");
+            ShaderType f3 = new("float3");
+            ShaderType h3 = new("half3");
+            ShaderType f4 = new("float4");
+            ShaderType h4 = new("half4");
+
+            ShaderFunction testFunc = new("TestFunc", null, new IShaderField[] {
+                new ShaderField("A", true, true, f, DynamicHint),
+                new ShaderField("B", true, true, h3, DynamicHint),
+                new ShaderField("C", true, true, h2, null),
+                new ShaderField("D", true, true, f2, null)
+            }, f, "", PrecisionHint);
+
+            var provider = new TestProvider("TestProvider", testFunc);
+
+            var funcHeader = new FunctionHeader();
+            var paramHeaders = new Dictionary<string, ParameterHeader>();
+
+            funcHeader.Process(provider.Definition, provider);
+            foreach(var param in provider.Definition.Parameters)
+                paramHeaders.Add(param.Name, new ParameterHeader(param, provider));
+
+
+            ShaderFunction expectedFunc = new("TestFunc_half4", generated, new IShaderField[] {
+                new ShaderField("A", true, true, h4, DynamicHint),
+                new ShaderField("B", true, true, h4, DynamicHint),
+                new ShaderField("C", true, true, h2, null),
+                new ShaderField("D", true, true, h2, null)
+            }, h, "", PrecisionHint);
+
+            HeaderUtils.TryApplyLegacy(provider.Definition, funcHeader, paramHeaders, "half", 4, out var resultFunc);
+            Assert.IsTrue(TestUtils.CompareFunction(expectedFunc, resultFunc));
+
+            expectedFunc = new("TestFunc_float1", generated, new IShaderField[] {
+                new ShaderField("A", true, true, f, DynamicHint),
+                new ShaderField("B", true, true, f, DynamicHint),
+                new ShaderField("C", true, true, f2, null),
+                new ShaderField("D", true, true, f2, null)
+            }, f, "", PrecisionHint);
+
+            HeaderUtils.TryApplyLegacy(provider.Definition, funcHeader, paramHeaders, "float", 1, out resultFunc);
+            Assert.IsTrue(TestUtils.CompareFunction(expectedFunc, resultFunc));
         }
     }
 }
