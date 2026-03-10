@@ -142,6 +142,7 @@
 
 #WizardCheckbox
 {
+    margin-top: 4px;
     overflow: hidden;
 }
 
