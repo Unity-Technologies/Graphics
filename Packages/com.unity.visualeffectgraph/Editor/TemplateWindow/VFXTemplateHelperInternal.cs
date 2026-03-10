@@ -124,7 +124,7 @@ namespace UnityEditor.VFX
         internal static bool TryGetTemplateStatic(string vfxPath, out GraphViewTemplateDescriptor graphViewTemplate)
         {
             // Can happen because the search engine sometimes finds prefabs
-            if (!vfxPath.EndsWith(VisualEffectResource.Extension))
+            if (!vfxPath.EndsWith(VisualEffectResource.Extension, StringComparison.OrdinalIgnoreCase))
             {
                 graphViewTemplate = default;
                 return false;

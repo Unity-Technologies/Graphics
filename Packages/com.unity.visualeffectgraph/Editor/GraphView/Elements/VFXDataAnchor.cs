@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -401,7 +402,7 @@ namespace UnityEditor.VFX.UI
             if (descriptor.modelType == typeof(VisualEffectSubgraphOperator))
             {
                 var path = (string)descriptor.variant.settings.Single(x => x.Key == "path").Value;
-                if (!path.StartsWith(VisualEffectAssetEditorUtility.templatePath) && path.EndsWith(VisualEffectSubgraphOperator.Extension))
+                if (!path.StartsWith(VisualEffectAssetEditorUtility.templatePath) && path.EndsWith(VisualEffectSubgraphOperator.Extension, StringComparison.OrdinalIgnoreCase))
                 {
                     var subGraph = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphOperator>(path);
                     if (subGraph != null && (!controller.viewController.model.isSubgraph || !subGraph.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.viewController.model.subgraph) && subGraph.GetResource() != controller.viewController.model))

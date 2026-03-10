@@ -340,7 +340,7 @@ namespace UnityEditor.VFX
                     var assetsCount = 0;
                     foreach (var sourceAssetPath in report.packedAssetsInfoPath.Distinct())
                     {
-                        if (sourceAssetPath.EndsWith(".vfx", StringComparison.OrdinalIgnoreCase))
+                        if (sourceAssetPath.EndsWith(VisualEffectResource.Extension, StringComparison.OrdinalIgnoreCase))
                         {
                             assetsCount++;
                         }

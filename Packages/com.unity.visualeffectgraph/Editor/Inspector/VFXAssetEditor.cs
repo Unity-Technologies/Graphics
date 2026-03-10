@@ -25,7 +25,7 @@ class VFXExternalShaderProcessor : AssetPostprocessor
     {
         if (!allowExternalization)
             return;
-        bool isVFX = assetPath.EndsWith(VisualEffectResource.Extension);
+        bool isVFX = assetPath.EndsWith(VisualEffectResource.Extension, StringComparison.OrdinalIgnoreCase);
         if (isVFX)
         {
             string vfxName = Path.GetFileNameWithoutExtension(assetPath);
@@ -49,7 +49,7 @@ class VFXExternalShaderProcessor : AssetPostprocessor
 
             foreach (var shaderPath in Directory.GetFiles(shaderDirectory))
             {
-                if (shaderPath.EndsWith(k_ShaderExt))
+                if (shaderPath.EndsWith(k_ShaderExt, StringComparison.OrdinalIgnoreCase))
                 {
                     System.IO.StreamReader file = new System.IO.StreamReader(shaderPath);
 
@@ -144,7 +144,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
         else if (obj is Material || obj is Shader || obj is ComputeShader)
         {
             var path = AssetDatabase.GetAssetPath(entityId);
-            if (path.EndsWith(VisualEffectResource.Extension))
+            if (path.EndsWith(VisualEffectResource.Extension, StringComparison.OrdinalIgnoreCase))
             {
                 var resource = VisualEffectResource.GetResourceAtPath(path);
                 if (resource != null)
