@@ -29,7 +29,10 @@ namespace UnityEditor.ShaderGraph
         {
             string outputVarName = GetVariableNameForSlot(k_OutputSlotId);
 
-            sb.AppendLine("float4 {0} = float4(1, 1, 0, 1);", outputVarName);
+            sb.AppendLine("float4 {0} = float4(1, 1, 1, 1);", outputVarName);
+
+            if (generationMode == GenerationMode.Preview)
+                return;
 
             sb.AppendLine("[branch] if (_UIE_RENDER_TYPE_GRADIENT || _UIE_RENDER_TYPE_ANY && round(IN.typeTexSettings.x) == k_FragTypeSvgGradient)");
             using (sb.BlockScope())

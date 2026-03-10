@@ -82,6 +82,16 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
+            if (generationMode == GenerationMode.Preview)
+            {
+                // In preview mode, return white
+                sb.AppendLine("$precision4 {0} = $precision4(1, 1, 1, 1);", GetVariableNameForSlot(Color0SlotId));
+                sb.AppendLine("$precision4 {0} = $precision4(1, 1, 1, 1);", GetVariableNameForSlot(Color1SlotId));
+                sb.AppendLine("$precision4 {0} = $precision4(1, 1, 1, 1);", GetVariableNameForSlot(Color2SlotId));
+                sb.AppendLine("$precision4 {0} = $precision4(1, 1, 1, 1);", GetVariableNameForSlot(Color3SlotId));
+                return;
+            }
+
             sb.AppendLine("$precision4 {0};", GetVariableNameForSlot(Color0SlotId));
             sb.AppendLine("$precision4 {0};", GetVariableNameForSlot(Color1SlotId));
             sb.AppendLine("$precision4 {0};", GetVariableNameForSlot(Color2SlotId));
