@@ -19,9 +19,7 @@ For example, a Texture might only have 3 mips: a 64×64 mip, a 32×32 mip, and a
 
 The Calculate Level of Detail Texture 2D node is under the **Input** &gt; **Texture** category in the Create Node menu.
 
-## Compatibility
-
-The Calculate Level of Detail Texture 2D [!include[nodes-compatibility-all](./snippets/nodes-compatibility-all.md)]    <!-- ALL PIPELINES INCLUDE  -->
+## Limitations
 
 The Calculate Level of Detail Texture 2D [!include[nodes-fragment-only](./snippets/nodes-fragment-only.md)]       <!-- FRAGMENT ONLY INCLUDE  -->
 

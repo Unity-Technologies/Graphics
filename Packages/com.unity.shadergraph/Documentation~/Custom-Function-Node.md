@@ -165,6 +165,8 @@ However, be aware of the following:
 * The Shader Graph node and main previews can't access Unity's Render Pipeline libraries in the Editor. This generates compile errors in the Editor even though the shader works correctly in your project. To prevent this issue, you have to isolate the code with an `#ifdef SHADERGRAPH_PREVIEW` condition and also define default values for the variables in the Shader Graph preview context.
 * The code in libraries might change over time from one Unity version to another. You need to make sure to regularly test and update your custom functions in your projects.
 
+[!include[birp-deprecation-message](snippets/birp-deprecation-message.md)]
+
 Here is an example with URP library function calls and the above-mentioned conditional protections set up:
 
 ```

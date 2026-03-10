@@ -4,6 +4,8 @@
 
 Enable **Allow Material Override** to modify a specific set of properties for Universal Render Pipeline Lit and Unlit Shader Graphs and for Built-In Render Pipeline Shader Graphs in the Material Inspector.
 
+[!include[birp-deprecation-message](snippets/birp-deprecation-message.md)]
+
 | Property | Behavior | 
 | :--- | :--- |
 | **Workflow Mode** | Refer to the URP documentation for the [Lit URP](https://docs.unity3d.com/Manual/urp/lit-shader) Shader. <br/>**Note**: Not applicable to URP Unlit and the Built-In Render Pipeline. |

@@ -6,10 +6,6 @@ For more information, refer to [Set default inputs for a Sub Graph](Sub-Graph-De
 
 The node generates branching HLSL source code, but during compilation Unity optimizes the branch out of your shader.
 
-## Compatibility
-
-The Branch On Input Connection [!include[nodes-compatibility-all](./snippets/nodes-compatibility-all.md)]    <!-- ALL PIPELINES INCLUDE  -->
-
 You can only use a Branch on Input Connection node in a [Sub Graph](Sub-graphs.md).
 
 ## Inputs
