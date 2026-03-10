@@ -141,8 +141,7 @@ namespace UnityEditor.ShaderGraph
         public void AttachMessage(string errString, ShaderCompilerMessageSeverity severity)
         {
             ClearMessage();
-            IconBadge badge;
-            badge = IconBadge.CreateComment(errString);
+            IconBadge badge = IconBadgeWrapper.CreateComment(errString);
 
             Add(badge);
             badge.AttachTo(outputContainer, SpriteAlignment.RightCenter);
