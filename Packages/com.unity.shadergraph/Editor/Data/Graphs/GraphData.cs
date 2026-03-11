@@ -887,6 +887,17 @@ namespace UnityEditor.ShaderGraph
             return context.activeBlocks;
         }
 
+        public void RefreshBadgesAndPreviews()
+        {
+            foreach (var node in this.m_Nodes)
+            {
+                if (node.value != null)
+                {
+                    node.value.Dirty(ModificationScope.Graph);
+                }
+            }
+        }
+
         public void UpdateActiveBlocks(List<BlockFieldDescriptor> activeBlockDescriptors)
         {
             // Set Blocks as active based on supported Block list

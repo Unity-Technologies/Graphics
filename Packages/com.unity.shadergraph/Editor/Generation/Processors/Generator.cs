@@ -12,6 +12,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Assertions;
 using Pool = UnityEngine.Pool;
 using UnityEngine.Profiling;
+using UnityEditor.Rendering.UITK.ShaderGraph;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -192,6 +193,14 @@ namespace UnityEditor.ShaderGraph
             }
             else
             {
+                var targets = m_GraphData.activeTargets.ToList();
+                foreach (var target in targets)
+                {
+                    if (target.activeSubTarget is IUISubTarget)
+                    {
+                        return new Target[] { new PreviewTarget(true) };
+                    }
+                }
                 return new Target[] { new PreviewTarget() };
             }
         }
