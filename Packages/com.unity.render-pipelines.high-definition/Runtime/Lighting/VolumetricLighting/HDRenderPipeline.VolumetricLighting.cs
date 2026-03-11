@@ -1051,11 +1051,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool fogOverdrawDebugEnabled;
 
             // Regular fogs
+            public ComputeShader clearVolumetricMaterialCS;
             public ComputeShader volumetricMaterialCS;
             public GraphicsBuffer globalIndirectBuffer;
             public GraphicsBuffer globalIndirectionBuffer;
             public GraphicsBuffer materialDataBuffer;
             public GraphicsBuffer visibleVolumeGlobalIndices;
+            public int clearRenderingParametersKernel;
             public int computeRenderingParametersKernel;
             public ComputeBuffer visibleVolumeBoundsBuffer;
         }
@@ -1210,7 +1212,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.vfxDebugRendererList = renderGraph.CreateRendererList(vfxDebugFogRenderListDesc);
                         builder.UseRendererList(passData.vfxDebugRendererList);
                     }
+                    passData.clearVolumetricMaterialCS = runtimeShaders.clearVolumetricMaterialCS;
                     passData.volumetricMaterialCS = runtimeShaders.volumetricMaterialCS;
+                    passData.clearRenderingParametersKernel = passData.clearVolumetricMaterialCS.FindKernel("Clear");
                     passData.computeRenderingParametersKernel = passData.volumetricMaterialCS.FindKernel("ComputeVolumetricMaterialRenderingParameters");
                     passData.visibleVolumeBoundsBuffer = visibleVolumeBoundsBuffer;
                     passData.globalIndirectBuffer = LocalVolumetricFogManager.manager.globalIndirectBuffer;
@@ -1226,6 +1230,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
 
+                            // Clear the indirect arguments.
+                            natCmd.SetComputeBufferParam(data.clearVolumetricMaterialCS, data.clearRenderingParametersKernel, HDShaderIDs._VolumetricGlobalIndirectArgsBuffer, data.globalIndirectBuffer);
+                            natCmd.SetComputeIntParam(data.clearVolumetricMaterialCS, HDShaderIDs._MaxVolumeCount, data.globalIndirectBuffer.count);
+
+                            int dispatchXCount = HDUtils.DivRoundUp(data.globalIndirectBuffer.count, 64);
+                            natCmd.DispatchCompute(data.clearVolumetricMaterialCS, data.clearRenderingParametersKernel, dispatchXCount, 1, 1);
+
                             // Prepare draw indirect command for the draw
                             int volumeCount = data.volumetricFogs.Count;
 
@@ -1240,7 +1251,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             natCmd.SetComputeIntParam(data.volumetricMaterialCS, HDShaderIDs._VolumetricViewCount, data.hdCamera.viewCount);
                             ConstantBuffer.PushGlobal(natCmd, data.volumetricCB, HDShaderIDs._ShaderVariablesVolumetric);
 
-                            int dispatchXCount = Mathf.Max(1, Mathf.CeilToInt((float)(volumeCount * data.hdCamera.viewCount) / 32.0f));
+                            dispatchXCount = Mathf.Max(1, Mathf.CeilToInt((float)(volumeCount * data.hdCamera.viewCount) / 32.0f));
                             natCmd.DispatchCompute(data.volumetricMaterialCS, data.computeRenderingParametersKernel, dispatchXCount, 1, 1);
 
                             natCmd.SetGlobalBuffer(HDShaderIDs._VolumetricGlobalIndirectionBuffer, data.globalIndirectionBuffer);
