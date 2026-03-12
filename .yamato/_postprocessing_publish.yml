@@ -12,6 +12,7 @@ test_editors:
   - 6000.2
   - 6000.3
   - 6000.4
+  - 6000.5
   - trunk
 test_platforms:
   - name: win
