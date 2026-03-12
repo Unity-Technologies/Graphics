@@ -4,6 +4,10 @@
 
 using System;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 #if ENABLE_RENDERING_DEBUGGER_UI
 using UnityEngine.UIElements;
 #endif
@@ -20,6 +24,8 @@ namespace UnityEngine.Rendering
         public class Panel : IContainer, IComparable<Panel>
         {
 #if ENABLE_RENDERING_DEBUGGER_UI
+            private VisualElement m_HelpButton;
+
             /// <inheritdoc/>
             public VisualElement Create(DebugUI.Context context)
             {
@@ -29,9 +35,23 @@ namespace UnityEngine.Rendering
                     name = displayName + "_Content"
                 };
 
-                var label = container.Q<Label>(className:"unity-group-box__label");
+                var label = container.Q<Label>(className: "unity-group-box__label");
                 label.AddToClassList("debug-window-header-title");
                 label.AddToClassList("debug-window-search-filter-target");
+                label.AddToClassList("debug-window-header-row");
+
+#if UNITY_EDITOR
+                if (EditorGUIUtility.isProSkin)
+                {
+                    container.AddToClassList("dark");
+                }
+
+                m_HelpButton = new UIElements.Button(() => Help.BrowseURL(documentationUrl));
+                m_HelpButton.tooltip = $"Open Reference for {displayName} debugger panel.";
+                m_HelpButton.SetEnabled(!string.IsNullOrEmpty(documentationUrl));
+                m_HelpButton.AddToClassList("debug-window-help-button");
+                label.Add(m_HelpButton);
+#endif
                 container.AddToClassList("debug-window-tab-content");
                 container.AddToClassList("unity-inspector-element");
 
@@ -98,7 +118,21 @@ namespace UnityEngine.Rendering
             public event Action<Panel> onSetDirty = delegate { };
 
 #if UNITY_EDITOR
-            public string documentationUrl { get; set; }
+            private string m_DocumentationURL;
+
+            public string documentationUrl {
+                get => m_DocumentationURL;
+                set
+                {
+                    if (m_DocumentationURL == value)
+                        return;
+
+                    m_DocumentationURL = value;
+#if ENABLE_RENDERING_DEBUGGER_UI
+                    m_HelpButton?.SetEnabled(!string.IsNullOrEmpty(m_DocumentationURL));
+#endif
+                }
+            }
 #endif
 
             /// <summary>

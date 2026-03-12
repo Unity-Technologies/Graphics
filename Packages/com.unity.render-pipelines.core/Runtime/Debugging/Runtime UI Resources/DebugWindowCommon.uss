@@ -3,6 +3,14 @@
 
 /* Common */
 
+.debug-window-header-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    min-height: 30px;
+    width: 100%;
+}
+
 .debug-window-header-title {
     font-size: 24px;
     -unity-font-style: bold;
@@ -107,4 +115,31 @@
 
 .debug-window-colorfield.debug-window-table-cell>.unity-base-field__input {
     flex-grow: 0;
+}
+
+.debug-window-help-button {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    border-width: 0;
+    border-radius: 3px;
+	background-color: transparent;
+    background-size: 16px 16px;
+    background-image: resource("Icons/_Help.png");
+    align-self: flex-end;
+}
+
+.debug-window-help-button:hover {
+    background-color: var(--unity-colors-button-background-hover);
+}
+
+.dark .debug-window-help-button {
+    background-image: resource("Icons/d__Help.png");
+}
+
+.debug-window-help-button:disabled
+{
+	display: none;
 }
