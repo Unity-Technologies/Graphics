@@ -127,39 +127,12 @@ namespace UnityEngine.Rendering.Universal
             m_CurrentSettings = new ScreenSpaceAmbientOcclusionSettings();
         }
 
-        internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings, ScriptableRenderer renderer, Material material, Texture2D[] blueNoiseTextures)
+        internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings, ScreenSpaceAmbientOcclusionSettings.DepthSource depthSource, Material material, Texture2D[] blueNoiseTextures)
         {
             m_BlueNoiseTextures = blueNoiseTextures;
             m_Material = material;
             m_CurrentSettings = featureSettings;
-
-            // RenderPass Event + Source Settings (Depth / Depth&Normals
-            if (renderer is UniversalRenderer { usesDeferredLighting: true })
-            {
-                renderPassEvent = m_CurrentSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingPrePasses;
-
-                m_CurrentSettings.Source = ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
-            }
-            else
-            {
-                // Rendering after PrePasses is usually correct except when depth priming is in play:
-                // then we rely on a depth resolve taking place after the PrePasses in order to have it ready for SSAO.
-                // Hence we set the event to RenderPassEvent.AfterRenderingPrePasses + 1 at the earliest.
-                renderPassEvent = m_CurrentSettings.AfterOpaque ? RenderPassEvent.BeforeRenderingTransparents : RenderPassEvent.AfterRenderingPrePasses + 1;
-            }
-
-            // Ask for a Depth or Depth + Normals textures
-            switch (m_CurrentSettings.Source)
-            {
-                case ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth:
-                    ConfigureInput(ScriptableRenderPassInput.Depth);
-                    break;
-                case ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals:
-                    ConfigureInput(ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Normal); // need depthNormal prepass for forward-only geometry
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            m_CurrentSettings.Source = depthSource;
 
             // Blur settings
             switch (m_CurrentSettings.BlurQuality)
@@ -277,7 +250,6 @@ namespace UnityEngine.Rendering.Universal
             internal MaterialPropertyBlock materialPropertyBlock;
             internal Material material;
             internal float directLightingStrength;
-            internal TextureHandle cameraColor;
             internal TextureHandle AOTexture;
             internal TextureHandle finalTexture;
             internal TextureHandle blurTexture;
@@ -399,7 +371,6 @@ namespace UnityEngine.Rendering.Universal
 
                 // Fill in the Pass data...
                 InitSSAOPassData(passData);
-                passData.cameraColor = resourceData.cameraColor;
                 passData.AOTexture = aoTexture;
                 passData.finalTexture = finalTexture;
                 passData.blurTexture = blurTexture;
@@ -408,13 +379,6 @@ namespace UnityEngine.Rendering.Universal
 
                 // Declare input textures
                 builder.SetRenderAttachment(passData.AOTexture, 0, AccessFlags.WriteAll);
-
-                // TODO: Refactor to eliminate the need for 'UseTexture'.
-                // Currently required only because 'PostProcessUtils.SetSourceSize' allocates an RTHandle,
-                // which expects a valid graphicsResource. Without this call, 'cameraColor.graphicsResource'
-                // may be null if it wasn't initialized in an earlier pass (e.g., DrawOpaque).
-                if (passData.cameraColor.IsValid())
-                    builder.UseTexture(passData.cameraColor, AccessFlags.Read);
 
                 if (cameraDepthTexture.IsValid())
                     builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
@@ -427,8 +391,8 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderFunc(static (SSAOPassData data, RasterGraphContext ctx) =>
                 {
-                    // Setup
-                    PostProcessUtils.SetGlobalShaderSourceSize(ctx.cmd, data.cameraData.cameraTargetDescriptor.width, data.cameraData.cameraTargetDescriptor.height, data.cameraColor);
+                    var desc = data.cameraData.cameraTargetDescriptor;
+                    PostProcessUtils.SetGlobalShaderSourceSize(ctx.cmd, desc.width, desc.height, desc.useDynamicScale);
 
                     if (data.cameraNormalsTexture.IsValid())
                         data.materialPropertyBlock.SetTexture(s_CameraNormalsTextureID, data.cameraNormalsTexture);

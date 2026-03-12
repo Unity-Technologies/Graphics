@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -92,6 +93,35 @@ namespace UnityEngine.Rendering.Universal
 
         internal static bool SupportsLightLayers(GraphicsDeviceType type)
         {
+            return true;
+        }
+
+        /// <summary>
+        /// Returns true if the given ScriptableRenderPassInput requirements are compatible with Tile-Only Mode on the Universal Renderer.
+        /// Reusable for any ScriptableRenderPass.
+        /// </summary>
+        /// <param name="requirements">The pass input requirements.</param>
+        /// <param name="renderPassEvent">The event at which the pass runs. When only Depth (or Motion) is requested without Normal, a pass before or at BeforeRenderingOpaques gets a prepass instead of a depth copy, so it remains compatible.</param>
+        /// <remarks>
+        /// This method mirrors how the render pipeline fulfills pass input requirements. Keep it in sync with pipeline behavior:
+        /// <list type="bullet">
+        /// <item><b>Color:</b> The pipeline adds a copy color pass and exposes the result as a global texture. That store/load cannot stay on tile and triggers Tile-Only validation.</item>
+        /// <item><b>Depth without Normal:</b> The pipeline fulfills depth-only by adding a depth copy pass when the pass runs after opaque. When the pass runs at or before BeforeRenderingOpaques, the pipeline adds a prepass instead, which is compatible.</item>
+        /// <item><b>Motion without Normal:</b> Motion implies depth; same as Depth without Normal with respect to prepass vs copy and renderPassEvent.</item>
+        /// </list>
+        /// When adding or changing requirements or pipeline behavior, update this method and the corresponding editor validation (e.g. FullScreenPassRendererFeatureEditor) so they stay consistent.
+        /// </remarks>
+        internal static bool IsCompatibleWithTileOnlyMode(ScriptableRenderPassInput requirements, RenderPassEvent renderPassEvent)
+        {
+            if ((requirements & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None)
+                return false;
+            // Depth without Normal: pipeline uses a depth copy when the pass runs after opaque; when pass is before or at opaque, pipeline adds a prepass instead (compatible).
+            if ((requirements & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None && (requirements & ScriptableRenderPassInput.Normal) == ScriptableRenderPassInput.None
+                && renderPassEvent > RenderPassEvent.BeforeRenderingOpaques)
+                return false;
+            if ((requirements & ScriptableRenderPassInput.Motion) != ScriptableRenderPassInput.None && (requirements & ScriptableRenderPassInput.Normal) == ScriptableRenderPassInput.None
+                && renderPassEvent > RenderPassEvent.BeforeRenderingOpaques)
+                return false;
             return true;
         }
 
@@ -852,13 +882,53 @@ namespace UnityEngine.Rendering.Universal
             if (onTileRenderer)
             {
                 // The On-Tile renderer guarantees that the backbuffer orientation is propagated to
-                // the camera targets. 
+                // the camera targets.
                 return GetBackBufferUVOrientation(cameraData);
             }
             else
             {
                 return TextureUVOrigin.BottomLeft;
             }
+        }
+
+        /// <summary>
+        /// Computes the inverse view-projection matrix for a given texture UV origin.
+        /// This is critical for passes that reconstruct world positions from depth textures.
+        ///
+        /// THE PROBLEM:
+        /// Many rendering passes (ScreenSpaceShadows, SSAO, SSR, etc.) need to reconstruct world positions from screen-space depth.
+        /// The reconstruction process uses screen UVs [0,1] and depth to build clip-space coordinates [-1,1], then transforms
+        /// them to world space using the inverse view-projection matrix (unity_MatrixInvVP).
+        ///
+        /// However, the Y-axis direction in clip space depends on the texture's UV origin:
+        /// - BottomLeft (standard texture): UV(0,0) is bottom-left → clip(-1,-1) is bottom-left → Y increases upward
+        /// - TopLeft (backbuffer on modern APIs): UV(0,0) is top-left → clip(-1,+1) is top-left → Y increases downward
+        ///
+        /// The inverse VP matrix encodes this Y-flip assumption via _ProjectionParams.x. If the matrix was computed for TopLeft
+        /// but you're reconstructing from a BottomLeft depth texture, the Y-coordinate is inverted, resulting in incorrect
+        /// world positions (and thus wrong shadow lookups, SSAO samples, etc.).
+        ///
+        /// WHEN IT BREAKS:
+        /// - Tile-Only Mode: The active render target can be TopLeft (backbuffer), so unity_MatrixInvVP is set for TopLeft.
+        ///   But cameraDepthTexture is always BottomLeft (intermediate texture). Mismatch → broken.
+        /// - Direct-to-backbuffer: Similar issue when rendering directly to a TopLeft backbuffer but sampling BottomLeft depth.
+        /// - After prepass: Camera properties are restored for the active target, overwriting the matrix that was correct
+        ///   during the prepass.
+        ///
+        /// THE FIX:
+        /// Query the texture's actual UV origin (via GetTextureUVOrigin) and compute the inverse VP matrix that matches
+        /// how that texture was rendered. This ensures the reconstruction math is consistent with the source data.
+        /// </summary>
+        /// <param name="textureUVOrigin">The UV origin of the texture (typically from GetTextureUVOrigin)</param>
+        /// <param name="cameraData">Camera data containing view and projection matrices</param>
+        /// <returns>The inverse view-projection matrix matching the texture orientation</returns>
+        internal static Matrix4x4 ComputeInverseViewProjectionMatrix(TextureUVOrigin textureUVOrigin, UniversalCameraData cameraData)
+        {
+            bool isFlipped = (textureUVOrigin == TextureUVOrigin.BottomLeft);
+            Matrix4x4 projection = cameraData.GetGPUProjectionMatrix(isFlipped);
+            Matrix4x4 view = cameraData.GetViewMatrix();
+            Matrix4x4 viewProj = CoreMatrixUtils.MultiplyProjectionMatrix(projection, view, cameraData.camera.orthographic);
+            return Matrix4x4.Inverse(viewProj);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

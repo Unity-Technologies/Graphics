@@ -171,7 +171,50 @@ namespace UnityEngine.Rendering.Universal
             if (!TryPrepareResources())
                 return;
 
-            bool shouldAdd = m_SSAOPass.Setup(m_Settings, renderer, m_Material, m_BlueNoise256Textures);
+            bool usesDeferred = renderer is UniversalRenderer { usesDeferredLighting: true };
+            ScriptableRenderPassInput requirements;
+            RenderPassEvent passEvent;
+            if (usesDeferred)
+            {
+                passEvent = m_Settings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingPrePasses;
+                requirements = ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Normal;
+            }
+            else
+            {
+                passEvent = m_Settings.AfterOpaque ? RenderPassEvent.BeforeRenderingTransparents : RenderPassEvent.AfterRenderingPrePasses + 1;
+                requirements = m_Settings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth ? ScriptableRenderPassInput.Depth : ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Normal;
+            }
+
+            if (renderer is UniversalRenderer universalRenderer && universalRenderer.useTileOnlyMode)
+            {
+                if (!RenderingUtils.IsCompatibleWithTileOnlyMode(requirements, passEvent))
+                {
+                    Debug.LogErrorFormat(
+                        "Screen Space Ambient Occlusion \"{0}\": the current settings are not compatible with Tile-Only Mode. Open the Universal Renderer \"{1}\" in the Inspector for more information.",
+                        name, renderer.name);
+                    return;
+                }
+
+                // SSAO-specific: In Tile-Only Mode with After Opaque, Render Graph merges the Blit SSAO pass with
+                // earlier passes that use the backbuffer (e.g. TopLeft UV origin). The merged pass then stores the
+                // SSAO occlusion texture with that same origin. Later, the occlusion texture is sampled as a texture
+                // (blur, etc.) which expects a different UV origin (e.g. BottomLeft), causing "Texture attachment
+                // Backbuffer depth with uv origin X does not match with texture attachment _SSAO_OcclusionTexture0
+                // with uv origin Y". Pass merging is currently too aggressive here, so disallow After Opaque with
+                // Depth Normals in Tile-Only Mode.
+                if (m_Settings.AfterOpaque && m_Settings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals)
+                {
+                    Debug.LogErrorFormat(
+                        "Screen Space Ambient Occlusion \"{0}\": the current settings are not compatible with Tile-Only Mode. Open the Universal Renderer \"{1}\" in the Inspector for more information.",
+                        name, renderer.name);
+                    return;
+                }
+            }
+
+            m_SSAOPass.renderPassEvent = passEvent;
+            m_SSAOPass.ConfigureInput(requirements);
+            var effectiveDepthSource = usesDeferred ? ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals : m_Settings.Source;
+            bool shouldAdd = m_SSAOPass.Setup(m_Settings, effectiveDepthSource, m_Material, m_BlueNoise256Textures);
             if (shouldAdd)
                 renderer.EnqueuePass(m_SSAOPass);
         }

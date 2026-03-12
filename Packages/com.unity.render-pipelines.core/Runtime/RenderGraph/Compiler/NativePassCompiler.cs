@@ -1130,7 +1130,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 var firstStoreAttachmentName = graph.m_ResourcesForDebugOnly.GetRenderGraphResourceName(firstStoreNativePassAttachment.handle);
                                 var name = graph.m_ResourcesForDebugOnly.GetRenderGraphResourceName(nativePassAttachment.handle);
 
-                                throw new InvalidOperationException($"From pass '{contextData.passNames[nativePassData.firstGraphPass]}' to pass '{contextData.passNames[nativePassData.lastGraphPass]}' when trying to store resource '{name}' of type {nativePassAttachment.handle.type} at index {nativePassAttachment.handle.index} - "
+                                throw new InvalidOperationException($"From pass '{contextData.GetPassName(nativePassData.firstGraphPass)}' to pass '{contextData.GetPassName(nativePassData.lastGraphPass)}' when trying to store resource '{name}' of type {nativePassAttachment.handle.type} at index {nativePassAttachment.handle.index} - "
                                                                     + RenderGraph.RenderGraphExceptionMessages.IncompatibleTextureUVOriginStore(firstStoreAttachmentName, storeUVOrigin, name, resData.textureUVOrigin));
                             }
 

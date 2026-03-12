@@ -57,6 +57,8 @@ namespace UnityEngine.Rendering.Universal
             internal static readonly ProfilingSampler setEditorTarget = new ProfilingSampler($"Set Editor Target");
         }
 
+        internal string name { get; set; } 
+
         /// <summary>
         /// This setting controls if the camera editor should display the camera stack category.
         /// If your scriptable renderer is not supporting stacking this one should return 0.

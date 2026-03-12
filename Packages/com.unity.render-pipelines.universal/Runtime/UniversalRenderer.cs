@@ -306,6 +306,7 @@ namespace UnityEngine.Rendering.Universal
             this.m_CameraDepthAttachmentFormat = data.depthAttachmentFormat;
             this.m_CameraDepthTextureFormat = data.depthTextureFormat;
             this.postProcessEnabled = data.postProcessData != null;
+            this.name = data.name;
 
             UpdateSupportedRenderingFeatures();
 

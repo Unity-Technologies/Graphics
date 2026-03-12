@@ -107,9 +107,6 @@ public class OnTilePostProcessPass : ScriptableRenderPass
         // The code below can then also use resourceData.isActiveTargetBackBuffer correctly for robustness.
         resourceData.SwitchActiveTexturesToBackbuffer();
 
-        // Reset keywords
-        m_OnTileUberMaterial.shaderKeywords = null;
-
         SetupVignette(m_OnTileUberMaterial, cameraData.xr, srcDesc.width, srcDesc.height, vignette);
         SetupLut(m_OnTileUberMaterial, colorLookup, colorAdjustments, lutSize);
         SetupTonemapping(m_OnTileUberMaterial, tonemapping, isHdrGrading: postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange);
@@ -357,24 +354,29 @@ public class OnTilePostProcessPass : ScriptableRenderPass
 
     private void SetupTonemapping(Material onTileUberMaterial, Tonemapping tonemapping, bool isHdrGrading)
     {
-        if (isHdrGrading)
-        {
-            CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.HDRGrading, isHdrGrading);
-        }
-        else
+        CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.HDRGrading, isHdrGrading);
+
+        if (!isHdrGrading)
         {
             CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.TonemapNeutral,
                 tonemapping.mode.value == TonemappingMode.Neutral);
             CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.TonemapACES,
                 tonemapping.mode.value == TonemappingMode.ACES);
         }
+        else
+        {
+            CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.TonemapNeutral, false);
+            CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.TonemapACES, false);
+        }
     }
 
     void SetupGrain(Material onTileUberMaterial, UniversalCameraData cameraData, FilmGrain filmgrain, PostProcessData data)
     {
-        if (filmgrain.IsActive())
+        bool isActive = filmgrain.IsActive();
+        CoreUtils.SetKeyword(onTileUberMaterial, ShaderKeywordStrings.FilmGrain, isActive);
+
+        if (isActive)
         {
-            onTileUberMaterial.EnableKeyword(ShaderKeywordStrings.FilmGrain);
             PostProcessUtils.ConfigureFilmGrain(
                 data,
                 filmgrain,
@@ -386,9 +388,10 @@ public class OnTilePostProcessPass : ScriptableRenderPass
 
     void SetupDithering(Material onTileUberMaterial, UniversalCameraData cameraData, PostProcessData data)
     {
+        CoreUtils.SetKeyword(onTileUberMaterial, ShaderKeywordStrings.Dithering, cameraData.isDitheringEnabled);
+
         if (cameraData.isDitheringEnabled)
         {
-            onTileUberMaterial.EnableKeyword(ShaderKeywordStrings.Dithering);
             m_DitheringTextureIndex = PostProcessUtils.ConfigureDithering(
                 data,
                 m_DitheringTextureIndex,
