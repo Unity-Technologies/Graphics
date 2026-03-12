@@ -279,9 +279,9 @@ namespace UnityEngine.Rendering.Universal
         {
             // Oddly adding and subtracting vectors is expensive here because of the new structures created...
             Vector3 deltaPos;
-            deltaPos.x = light.m_CachedPosition.x - boundingSphere.position.x;
-            deltaPos.y = light.m_CachedPosition.y - boundingSphere.position.y;
-            deltaPos.z = light.m_CachedPosition.z - boundingSphere.position.z;
+            deltaPos.x = light.boundingSphere.position.x - boundingSphere.position.x;
+            deltaPos.y = light.boundingSphere.position.y - boundingSphere.position.y;
+            deltaPos.z = light.boundingSphere.position.z - boundingSphere.position.z;
 
             float distanceSq = Vector3.SqrMagnitude(deltaPos);
 
