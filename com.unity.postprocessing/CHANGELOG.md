@@ -4,11 +4,16 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [3.5.4] - 2026-03-12
+## [3.5.4] - 2026-03-13
 
 ### Fixed
+- Fixed serialization hierarchy errors
 - Documentation updates
-- Compilation fixes with Core-CLR
+
+## [3.5.3] - 2026-02-19
+
+### Fixed
+- Explicitly declare dependency on UI module that was implicit before. 
 
 ## [3.5.2] - 2025-12-17
 
