@@ -470,8 +470,10 @@ Shader "Universal Render Pipeline/Simple Lit"
             HLSLPROGRAM
             #pragma shader_feature_local _ALPHATEST_ON
             #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ APPLICATION_SPACE_WARP_MOTION_TRANSPARENT
             #pragma shader_feature_local_vertex _ADD_PRECOMPUTED_VELOCITY
             #define APPLICATION_SPACE_WARP_MOTION 1
+
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ObjectMotionVectors.hlsl"
             ENDHLSL

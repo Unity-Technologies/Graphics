@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.Universal
         private RTHandle m_XRMotionVectorDepth;
         private TextureHandle xrMotionVectorDepth;
         private bool m_XRSpaceWarpRightHandedNDC;
+        private LayerMask m_transparentlayerMask;
 
         /// <summary>
         /// Creates a new <c>XRDepthMotionPass</c> instance.
@@ -25,7 +26,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
         /// <param name="xrMotionVector">The Shader used for rendering XR camera motion vector.</param>
         /// <seealso cref="RenderPassEvent"/>
-        public XRDepthMotionPass(RenderPassEvent evt, Shader xrMotionVector)
+        public XRDepthMotionPass(RenderPassEvent evt, Shader xrMotionVector, LayerMask transparentLayerMask)
         {
             base.profilingSampler = new ProfilingSampler(nameof(XRDepthMotionPass));
             renderPassEvent = evt;
@@ -35,12 +36,14 @@ namespace UnityEngine.Rendering.Universal
             m_XRMotionVectorColor = null;
             xrMotionVectorDepth = TextureHandle.nullHandle;
             m_XRMotionVectorDepth = null;
+            m_transparentlayerMask = transparentLayerMask;
         }
 
         private const int k_XRViewCountPerPass = 2;
         private class PassData
         {
             internal RendererListHandle objMotionRendererList;
+            internal RendererListHandle objTransparentMotionRendererList;
             internal Matrix4x4[] previousViewProjectionStereo = new Matrix4x4[k_XRViewCountPerPass];
             internal Matrix4x4[] viewProjectionStereo = new Matrix4x4[k_XRViewCountPerPass];
             internal Material xrMotionVector;
@@ -57,9 +60,9 @@ namespace UnityEngine.Rendering.Universal
         // Motion Vector
         private Material m_XRMotionVectorMaterial;
 
-        private static DrawingSettings GetObjectMotionDrawingSettings(Camera camera)
+        private static DrawingSettings GetObjectMotionDrawingSettings(Camera camera, bool isTransparent = false)
         {
-            var sortingSettings = new SortingSettings(camera) { criteria = SortingCriteria.CommonOpaque };
+            var sortingSettings = new SortingSettings(camera) { criteria = isTransparent ? SortingCriteria.CommonTransparent : SortingCriteria.CommonOpaque };
             // Notes: Usually, PerObjectData.MotionVectors will filter the renderer nodes to only draw moving objects.
             // In our case, we use forceAllMotionVectorObjects in the filteringSettings to draw idle objects as well to populate depth.
             var drawingSettings = new DrawingSettings(k_MotionOnlyShaderTagId, sortingSettings)
@@ -77,14 +80,23 @@ namespace UnityEngine.Rendering.Universal
         {
             var objectMotionDrawingSettings = GetObjectMotionDrawingSettings(camera);
 
-            // XRTODO: Extend RenderQueueRange.all to support transparent objects?
-            // URP current' doesn't support this, missing motion override for transparent materials.
             var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, camera.cullingMask);
             // Also render game objects that are not moved since last frame to save depth prepass requirement for camera motion.
             filteringSettings.forceAllMotionVectorObjects = true;
             var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
 
             RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, ref cullResults, objectMotionDrawingSettings, filteringSettings, renderStateBlock, ref passData.objMotionRendererList);
+        }
+        private void InitTransparentObjectMotionRendererLists(ref PassData passData, ref CullingResults cullResults, RenderGraph renderGraph, Camera camera)
+        {
+            var objectMotionDrawingSettings = GetObjectMotionDrawingSettings(camera, true);
+
+            var filteringSettings = new FilteringSettings(RenderQueueRange.transparent, m_transparentlayerMask);
+            // Also render game objects that are not moved since last frame to save depth prepass requirement for camera motion.
+            filteringSettings.forceAllMotionVectorObjects = true;
+            var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
+
+            RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, ref cullResults, objectMotionDrawingSettings, filteringSettings, renderStateBlock, ref passData.objTransparentMotionRendererList);
         }
 
         /// <summary>
@@ -214,6 +226,8 @@ namespace UnityEngine.Rendering.Universal
                 // Setup RendererList
                 InitObjectMotionRendererLists(ref passData, ref renderingData.cullResults, renderGraph, cameraData.camera);
                 builder.UseRendererList(passData.objMotionRendererList);
+                InitTransparentObjectMotionRendererLists(ref passData, ref renderingData.cullResults, renderGraph, cameraData.camera);
+                builder.UseRendererList(passData.objTransparentMotionRendererList);
 
                 // Allow setting up global matrix array
                 builder.AllowGlobalStateModification(true);
@@ -235,6 +249,11 @@ namespace UnityEngine.Rendering.Universal
 
                     // Fill mv texturew with camera motion for pixels that don't have mv stencil bit.
                     context.cmd.DrawProcedural(Matrix4x4.identity, data.xrMotionVector, 0, MeshTopology.Triangles, 3, 1);
+
+                    // Transparent Object Motion for both static and dynamic objects, fill stencil for mv filled pixels.
+                    context.cmd.SetKeyword(ShaderGlobalKeywords.APPLICATION_SPACE_WARP_MOTION_TRANSPARENT, true);
+                    context.cmd.DrawRendererList(passData.objTransparentMotionRendererList);
+                    context.cmd.SetKeyword(ShaderGlobalKeywords.APPLICATION_SPACE_WARP_MOTION_TRANSPARENT, false);
                 });
             }
         }

@@ -989,6 +989,7 @@ namespace UnityEngine.Rendering.Universal
         public static GlobalKeyword META_QUEST_LIGHTUNROLL;
         public static GlobalKeyword META_QUEST_NO_SPOTLIGHTS_LIGHT_LOOP;
 #endif
+        public static GlobalKeyword APPLICATION_SPACE_WARP_MOTION_TRANSPARENT;
 
         // TODO: Move following keywords to Local keywords?
         // https://docs.unity3d.com/ScriptReference/Rendering.LocalKeyword.html
@@ -1108,6 +1109,7 @@ namespace UnityEngine.Rendering.Universal
             ShaderGlobalKeywords.META_QUEST_LIGHTUNROLL = GlobalKeyword.Create(ShaderKeywordStrings.META_QUEST_LIGHTUNROLL);
             ShaderGlobalKeywords.META_QUEST_NO_SPOTLIGHTS_LIGHT_LOOP = GlobalKeyword.Create(ShaderKeywordStrings.META_QUEST_NO_SPOTLIGHTS_LIGHT_LOOP);            
 #endif
+            ShaderGlobalKeywords.APPLICATION_SPACE_WARP_MOTION_TRANSPARENT = GlobalKeyword.Create(ShaderKeywordStrings.APPLICATION_SPACE_WARP_MOTION_TRANSPARENT);
 
         }
     }
@@ -1451,6 +1453,9 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Use light loop optimized for point lights only on Meta Quest device, the evaluation of whether this optimization can be enabled is performed per batch. </summary>
         internal const string META_QUEST_NO_SPOTLIGHTS_LIGHT_LOOP = "META_QUEST_NO_SPOTLIGHTS_LIGHT_LOOP";
 #endif
+
+        /// <summary> Keyword used for transparency spacewarp-related code </summary>
+        internal const string APPLICATION_SPACE_WARP_MOTION_TRANSPARENT = "APPLICATION_SPACE_WARP_MOTION_TRANSPARENT";
 
         /// <summary> Keyword used for Multi Sampling Anti-Aliasing (MSAA) with 2 per pixel sample count. </summary>
         public const string Msaa2 = "_MSAA_2";

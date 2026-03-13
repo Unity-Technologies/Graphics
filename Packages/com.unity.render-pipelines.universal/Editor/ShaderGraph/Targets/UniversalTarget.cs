@@ -1684,6 +1684,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     #region Pragmas
     static class CorePragmas
     {
+        public static PragmaDescriptor MultiCompileAppSpacewarpTransparent => new PragmaDescriptor { value = "multi_compile _ APPLICATION_SPACE_WARP_MOTION_TRANSPARENT" };
+
         public static readonly PragmaCollection Default = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
@@ -1711,6 +1713,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             { Pragma.Target(ShaderModel.Target35) },
             { Pragma.MultiCompileInstancing },
+            { MultiCompileAppSpacewarpTransparent },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
