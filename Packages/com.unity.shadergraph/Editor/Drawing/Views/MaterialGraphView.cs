@@ -138,6 +138,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graph.AddRemoveBlocksFromActiveList(activeBlocks);
             }
 
+            graph.RefreshBadgesAndPreviews();
             graph.UpdateActiveBlocks(activeBlocks);
             this.m_PreviewManagerUpdateDelegate();
             this.m_InspectorUpdateDelegate();
