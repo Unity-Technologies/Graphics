@@ -1,5 +1,2 @@
-system: jira
-server: jira.unity3d.com
-issuetype: Bug
 package: PostProcessing
 project: PPB
