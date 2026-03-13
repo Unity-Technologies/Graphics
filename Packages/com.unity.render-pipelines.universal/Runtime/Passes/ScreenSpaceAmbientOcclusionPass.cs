@@ -394,12 +394,12 @@ namespace UnityEngine.Rendering.Universal
                     var desc = data.cameraData.cameraTargetDescriptor;
                     PostProcessUtils.SetGlobalShaderSourceSize(ctx.cmd, desc.width, desc.height, desc.useDynamicScale);
 
+                    data.materialPropertyBlock.Clear();
+
                     if (data.cameraNormalsTexture.IsValid())
                         data.materialPropertyBlock.SetTexture(s_CameraNormalsTextureID, data.cameraNormalsTexture);
 
                     Vector4 viewScaleBias = new(1, 1, 0, 0);
-
-                    data.materialPropertyBlock.Clear();
                     data.materialPropertyBlock.SetVector(_BlitScaleBias, viewScaleBias);
 
                     CoreUtils.DrawFullScreen(ctx.cmd, data.material, data.materialPropertyBlock, (int)ShaderPasses.AmbientOcclusion);
