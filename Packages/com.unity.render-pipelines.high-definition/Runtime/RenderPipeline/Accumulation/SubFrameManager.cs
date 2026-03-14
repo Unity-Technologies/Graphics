@@ -190,7 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
         internal void ResetDenoisingStatus()
         {
-            foreach (int camID in m_CameraCache.Keys.ToList())
+            foreach (EntityId camID in m_CameraCache.Keys.ToList())
             {
                 CameraData camData = GetCameraData(camID);
                 if (camData.colorDenoiserData.denoiser != null || camData.volumetricFogDenoiserData.denoiser != null)

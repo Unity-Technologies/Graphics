@@ -50,7 +50,7 @@ public struct DrawKey : IEquatable<DrawKey>, IComparable<DrawKey>
     public BatchMeshID meshID;
     public uint submeshIndex;
     public BatchMaterialID material;
-    public int transparentInstanceID;
+    public EntityId transparentInstanceID;
 
     public override int GetHashCode()
     {
@@ -75,7 +75,7 @@ public struct DrawKey : IEquatable<DrawKey>, IComparable<DrawKey>
     }
     public bool Equals(DrawKey other) => CompareTo(other) == 0;
 
-    public bool isTransparent { get { return transparentInstanceID != 0; } }
+    public bool isTransparent { get { return transparentInstanceID != EntityId.None; } }
 
     public BatchDrawCommandFlags drawCommandFlags { get {
         var flags = BatchDrawCommandFlags.None;
@@ -131,7 +131,7 @@ public unsafe class RenderBRG : MonoBehaviour
     private NativeArray<int> m_rendererIndices;
     private NativeArray<int> m_drawIndices;
     private NativeArray<DrawRenderer> m_renderers;
-    private NativeArray<int> m_pickingIDs;
+    private NativeArray<EntityId> m_pickingIDs;
 
     private int m_maxInstancesPerBatch;
     private BatchBufferTarget m_brgBufferTarget;
@@ -228,7 +228,7 @@ public unsafe class RenderBRG : MonoBehaviour
         public NativeArray<BatchCullingOutputDrawCommands> drawCommands;
 
         [ReadOnly]
-        public NativeArray<int> pickingIDs;
+        public NativeArray<EntityId> pickingIDs;
         public bool isPickingCulling;
         public int batchLayer;
 
@@ -806,7 +806,7 @@ public unsafe class RenderBRG : MonoBehaviour
 #endif
 
         m_renderers = new NativeArray<DrawRenderer>(renderers.Length, Allocator.Persistent);
-        m_pickingIDs = new NativeArray<int>(numPickingIDs, Allocator.Persistent);
+        m_pickingIDs = new NativeArray<EntityId>(numPickingIDs, Allocator.Persistent);
         m_batchHash = new NativeParallelHashMap<DrawKey, int>(1024, Allocator.Persistent);
         m_rangeHash = new NativeParallelHashMap<RangeKey, int>(1024, Allocator.Persistent);
         m_drawBatches = new NativeList<DrawBatch>(Allocator.Persistent);
@@ -1014,7 +1014,7 @@ public unsafe class RenderBRG : MonoBehaviour
     private void ExtractPickingID(int rendererIndex, MeshRenderer meshRenderer)
     {
 #if ENABLE_PICKING
-        m_pickingIDs[rendererIndex] = meshRenderer.gameObject.GetInstanceID();
+        m_pickingIDs[rendererIndex] = meshRenderer.gameObject.GetEntityId();
 #endif
     }
 
@@ -1125,7 +1125,7 @@ public unsafe class RenderBRG : MonoBehaviour
                     material = material,
                     meshID = mesh,
                     submeshIndex = (uint)matIndex,
-                    transparentInstanceID = isTransparent ? renderer.GetInstanceID() : 0,
+                    transparentInstanceID = isTransparent ? renderer.GetEntityId() : EntityId.None,
                 };
 
                 renderersByKey.Add(key, rendererIndex);

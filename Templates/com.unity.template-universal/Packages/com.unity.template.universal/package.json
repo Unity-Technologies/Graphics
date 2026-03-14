@@ -9,11 +9,11 @@
   "dependencies": {
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.2d.tilemap": "1.0.0",
-    "com.unity.collab-proxy": "1.7.1",
+    "com.unity.collab-proxy": "2.11.4",
     "com.unity.feature.development": "1.0.1",
     "com.unity.render-pipelines.universal": "13.1.0",
     "com.unity.textmeshpro": "3.0.6",
-    "com.unity.timeline": "1.6.2",
+    "com.unity.timeline": "1.8.11",
     "com.unity.ugui": "1.0.0",
     "com.unity.xr.legacyinputhelpers": "2.1.8",
     "com.unity.visualscripting": "1.7.7"

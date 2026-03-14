@@ -228,7 +228,7 @@ namespace UnityEditor.VFX.Test
 
             var showFolderContents = projectBrowser.GetType().GetMethod("ShowFolderContents", BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.NotNull(showFolderContents);
-            showFolderContents.Invoke(projectBrowser, new object[] { (EntityId)folderAsset.GetInstanceID(), true });
+            showFolderContents.Invoke(projectBrowser, new object[] { (EntityId)folderAsset.GetEntityId(), true });
             yield return null;
         }
 

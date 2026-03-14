@@ -428,6 +428,26 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             runtimePlatforms: new[] { RuntimePlatform.WindowsEditor },
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12 }
         )]
+        [IgnoreGraphicsTest(
+            "4014_PrecomputedVelocityAlembic",
+            "https://jira.unity3d.com/browse/UUM-136889"
+        )]
+        [IgnoreGraphicsTest(
+            "9304_MotionVectorsPrecomputedAndCustomVelocity",
+            "Also fails because of Alembic removal https://jira.unity3d.com/browse/UUM-136889"
+        )]
+        [IgnoreGraphicsTest(
+            "9921_UnderWater",
+            "Also fails because of Alembic removal https://jira.unity3d.com/browse/UUM-136889"
+        )]
+        [IgnoreGraphicsTest(
+            "9921_UnderWater_Back",
+            "Also fails because of Alembic removal https://jira.unity3d.com/browse/UUM-136889"
+        )]
+        [IgnoreGraphicsTest(
+            "9950-LineRendering",
+            "Also fails because of Alembic removal https://jira.unity3d.com/browse/UUM-136889"
+        )]
         public IEnumerator Run(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);

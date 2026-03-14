@@ -1427,7 +1427,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(asset);
 
             //Trying to open the asset, it shouldn't fail
-            VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0);
+            VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0);
             var window = VFXViewWindow.GetWindow(asset);
             Assert.AreNotEqual(0, window.graphView.controller.allChildren.Count());
             window.graphView.OnSave();
@@ -1482,7 +1482,7 @@ namespace UnityEditor.VFX.Test
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(tempDest + "/Repro_13863.vfx");
             Assert.IsNotNull(asset);
 
-            VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0);
+            VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0);
             var window = VFXViewWindow.GetWindow(asset);
             window.LoadAsset(asset, null);
             for (int i = 0; i < 4; ++i)
