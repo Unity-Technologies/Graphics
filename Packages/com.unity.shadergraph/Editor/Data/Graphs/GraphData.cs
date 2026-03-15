@@ -1671,38 +1671,47 @@ namespace UnityEditor.ShaderGraph
             return copy;
         }
 
+        // Removes a collection of shader inputs, deferring graph validation until all inputs have been removed
+        public void RemoveGraphInputs(IEnumerable<ShaderInput> inputs)
+        {
+            foreach (ShaderInput input in inputs)
+            {
+                switch (input)
+                {
+                    case AbstractShaderProperty property:
+                        var propertyNodes = GetNodes<PropertyNode>().Where(x => x.property == input).ToList();
+                        foreach (var propertyNode in propertyNodes)
+                            ReplacePropertyNodeWithConcreteNodeNoValidate(propertyNode);
+                        break;
+                }
+
+                // Also remove this input from any category it existed in
+                foreach (var categoryData in categories)
+                {
+                    if (categoryData.IsItemInCategory(input))
+                    {
+                        categoryData.RemoveItemFromCategory(input);
+                        break;
+                    }
+                }
+
+                foreach (var node in GetNodes<SubGraphNode>())
+                {
+                    if (node.UsedReferenceNames().Contains(input.referenceName))
+                    {
+                        node.ValidateNode();
+                        node.Dirty(ModificationScope.Graph);
+                    }
+                }
+
+                RemoveGraphInputNoValidate(input);
+            }
+            ValidateGraph();
+        }
+
         public void RemoveGraphInput(ShaderInput input)
         {
-            switch (input)
-            {
-                case AbstractShaderProperty property:
-                    var propertyNodes = GetNodes<PropertyNode>().Where(x => x.property == input).ToList();
-                    foreach (var propertyNode in propertyNodes)
-                        ReplacePropertyNodeWithConcreteNodeNoValidate(propertyNode);
-                    break;
-            }
-
-            // Also remove this input from any category it existed in
-            foreach (var categoryData in categories)
-            {
-                if (categoryData.IsItemInCategory(input))
-                {
-                    categoryData.RemoveItemFromCategory(input);
-                    break;
-                }
-            }
-
-            foreach(var node in GetNodes<SubGraphNode>())
-            {
-                if (node.UsedReferenceNames().Contains(input.referenceName))
-                {
-                    node.ValidateNode();
-                    node.Dirty(ModificationScope.Graph);
-                }
-            }
-
-            RemoveGraphInputNoValidate(input);
-            ValidateGraph();
+            RemoveGraphInputs(new ShaderInput[] { input });
         }
 
         public void MoveCategory(CategoryData category, int newIndex)
@@ -1889,8 +1898,7 @@ namespace UnityEditor.ShaderGraph
                 m_RemovedCategories.Add(existingCategory);
 
                 // Whenever a category is removed, also remove any inputs within that category
-                foreach (var shaderInput in existingCategory.Children)
-                    RemoveGraphInput(shaderInput);
+                RemoveGraphInputs(existingCategory.Children);
             }
             else
                 AssertHelpers.Fail("Attempted to remove a category that does not exist in the graph.");
