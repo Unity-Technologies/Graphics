@@ -36,7 +36,15 @@ namespace UnityEditor.ShaderGraph
         {
             string outputVarName = GetVariableNameForSlot(k_OutputSlotId);
 
-            sb.AppendLine("float4 {0} = float4(1, 1, 0, 1);", outputVarName);
+            sb.AppendLine("float4 {0} = float4(1, 1, 1, 1);", outputVarName);
+
+            if (generationMode == GenerationMode.Preview)
+            {
+                bool hasTint = GetInputNodeFromSlot(k_InputSlotIdTint) != null;
+                if (hasTint)
+                    sb.AppendLine("{0} = {1};", outputVarName, GetSlotValue(k_InputSlotIdTint, generationMode));
+                return;
+            }
 
             sb.AppendLine("[branch] if (_UIE_RENDER_TYPE_TEXTURE || _UIE_RENDER_TYPE_ANY && round(IN.typeTexSettings.x) == k_FragTypeTexture)");
             using (sb.BlockScope())

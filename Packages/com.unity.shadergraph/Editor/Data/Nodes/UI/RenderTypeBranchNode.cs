@@ -49,8 +49,20 @@ namespace UnityEditor.ShaderGraph
             string outputVarNameColor = GetVariableNameForSlot(k_OutputSlotIdColor);
             string outputVarNameAlpha = GetVariableNameForSlot(k_OutputSlotIdAlpha);
 
-            sb.AppendLine("float3 {0} = float3(0, 0, 0);", outputVarNameColor);
+            sb.AppendLine("float3 {0} = float3(1, 1, 1);", outputVarNameColor);
             sb.AppendLine("float {0} = 1.0;", outputVarNameAlpha);
+
+            if (generationMode == GenerationMode.Preview)
+            {
+                // In preview mode the UITK render-type macros don't exist.
+                // Output the Solid input if connected.
+                if (GetInputNodeFromSlot(k_InputSlotIdSolid) != null)
+                {
+                    sb.AppendLine("{0} = {1}.rgb;", outputVarNameColor, GetSlotValue(k_InputSlotIdSolid, generationMode));
+                    sb.AppendLine("{0} = {1}.a;", outputVarNameAlpha, GetSlotValue(k_InputSlotIdSolid, generationMode));
+                }
+                return;
+            }
 
             sb.AppendLine("[branch] if (_UIE_RENDER_TYPE_SOLID || _UIE_RENDER_TYPE_ANY && TestType(IN.typeTexSettings.x, k_FragTypeSolid))");
             using (sb.BlockScope())

@@ -26,6 +26,13 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
+            if (generationMode == GenerationMode.Preview)
+            {
+                // In preview mode, return false by default
+                sb.AppendLine("bool {0} = false;", GetVariableNameForSlot(k_OutputSlotId));
+                return;
+            }
+
             sb.AppendLine("bool {0} = _UIE_FORCE_GAMMA;", GetVariableNameForSlot(k_OutputSlotId));
         }
 
