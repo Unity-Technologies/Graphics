@@ -185,7 +185,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportRaytracing = EditorGUIUtility.TrTextContent("Realtime Raytracing");
             public static readonly GUIContent supportedRayTracingMode = EditorGUIUtility.TrTextContent("Supported Ray Tracing Mode");
             public static readonly GUIContent supportVFXRayTracing = EditorGUIUtility.TrTextContent("Visual Effects Ray Tracing", "When enabled, Visual Effects Outputs which have Enable Ray Tracing on will be accounted for in Ray-traced effects.");
-            public static readonly GUIContent rayTracingRestrictionOnlyWarning = EditorGUIUtility.TrTextContent("Ray tracing is currently only supported on DX12, Playstation 5 and Xbox Series X.", null, CoreEditorStyles.iconWarn);
+            public static readonly GUIContent rayTracingRestrictionOnlyWarning = EditorGUIUtility.TrTextContent("Ray tracing requires DX12 on Windows. Disable Auto Graphics API and set Direct3D 12 as the first Graphics API in Player Settings. You can use the HDRP Wizard to configure these settings.", null, CoreEditorStyles.iconWarn);
+            public static string rayTracingNotSupportedBuildTarget = L10n.Tr("The {0} does not support Ray tracing. Consider disabling it or switch to a platform that supports it.");
             public static readonly GUIContent rayTracingMSAAUnsupported = EditorGUIUtility.TrTextContent("When Ray tracing is enabled in asset, MSAA is not supported. Please refer to the documentation.");
             public static readonly GUIContent waterMSAAUnsupported = EditorGUIUtility.TrTextContent("When Water is enabled in asset, MSAA is not supported. Please refer to the documentation.");
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
@@ -248,9 +249,11 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent mediumQualityContent = EditorGUIUtility.TrTextContent("Medium", "Specifies the resolution of the shadows set to medium quality.");
             public static readonly GUIContent highQualityContent = EditorGUIUtility.TrTextContent("High", "Specifies the resolution of the shadows set to high quality.");
             public static readonly GUIContent veryHighQualityContent = EditorGUIUtility.TrTextContent("Very High", "Specifies the resolution of the shadows set to very high quality.");
-            public static readonly GUIContent allowMixedCachedCascadeShadows = EditorGUIUtility.TrTextContent("Allow Mixed Cached Shadows", "Allow mixed cached shadows for directional lights, it will incurr in further memory cost.");
+            public static readonly GUIContent allowMixedCachedCascadeShadows = EditorGUIUtility.TrTextContent("Allow Mixed Cached Shadows", "Allow mixed cached shadows for directional lights, it will incur in further memory cost.");
 
+            public static readonly GUIContent supportContactShadows = EditorGUIUtility.TrTextContent("Contact Shadows", "Enables the support of contact shadows in HDRP.");
             public static readonly GUIContent useContactShadows = EditorGUIUtility.TrTextContent("Use Contact Shadows", "Use contact shadows for lights.");
+
             public static readonly GUIContent supportScreenSpaceShadows = EditorGUIUtility.TrTextContent("Screen Space Shadows", "Enables the support of screen space shadows in HDRP.");
             public static readonly GUIContent maxScreenSpaceShadowSlots = EditorGUIUtility.TrTextContent("Maximum", "Sets the maximum number of screen space shadows slots HDRP can handle on screen at once. Monochrome (Opaque/Transparent) shadows requires one slot, colored shadows requires three and area lights shadows require two.");
             public static readonly GUIContent screenSpaceShadowFormat = EditorGUIUtility.TrTextContent("Buffer Format", "Defines the format of the buffer used for screen space shadows. The buffer format can be R8G8B8A8 or R16G16B16A16.");

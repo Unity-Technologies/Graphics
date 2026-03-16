@@ -1,0 +1,25 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
+
+#pragma kernel Clear
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+uint _MaxVolumeCount;
+
+RWBuffer<uint> _VolumetricGlobalIndirectArgsBuffer;
+
+[numthreads(64, 1, 1)]
+void Clear(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= _MaxVolumeCount)
+        return;
+
+    uint volumeIndex = dispatchThreadID.x;
+
+    _VolumetricGlobalIndirectArgsBuffer[volumeIndex * 5 + 0] = 0; // IndexCountPerInstance
+    _VolumetricGlobalIndirectArgsBuffer[volumeIndex * 5 + 1] = 0; // InstanceCount
+    _VolumetricGlobalIndirectArgsBuffer[volumeIndex * 5 + 2] = 0; // StartIndexLocation
+    _VolumetricGlobalIndirectArgsBuffer[volumeIndex * 5 + 3] = 0; // BaseVertexLocation
+    _VolumetricGlobalIndirectArgsBuffer[volumeIndex * 5 + 4] = 0; // StartInstanceLocation
+}

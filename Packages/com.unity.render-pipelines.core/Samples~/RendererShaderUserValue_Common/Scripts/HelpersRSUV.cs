@@ -1,9 +1,31 @@
 using System;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public static class HelpersRSUV
 {
+    // Decode a float from a full 32bits uint.
+    // This is the most optimized way of reinterpreting the bits of a uint as a float without any overhead.
+    public static float DecodeData(uint value)
+    {
+        return BitConverter.Int32BitsToSingle((int)value);
+    }
+
+    // Decode an int starting at bitOffset from a specific length
+    public static int DecodeData(uint value, int bitOffset, int length)
+    {
+        if (length <= 0 || length > 32)
+            throw new ArgumentOutOfRangeException(nameof(length), "Length must be between 1 and 32.");
+        if (bitOffset < 0 || bitOffset > 31)
+            throw new ArgumentOutOfRangeException(nameof(bitOffset), "Offset must be between 0 and 31.");
+        if (bitOffset + length > 32)
+            throw new ArgumentOutOfRangeException("bitOffset + length exceeds 32 bits.");
+
+        // Shift right to remove lower irrelevant bits, then mask the desired field
+        uint mask = (length == 32) ? uint.MaxValue : (1u << length) - 1;
+        uint extracted = (value >> bitOffset) & mask;
+
+        return (int)extracted;
+    }
 
     // Set a bit to 0 or 1 at a specific bitIndex in a uint
     public static uint SetBit(uint value, int bitIndex, bool b)
@@ -39,23 +61,6 @@ public static class HelpersRSUV
         return flags;
     }
 
-
-    public static int DecodeData(uint value, int bitOffset, int length)
-    {
-        if (length <= 0 || length > 32)
-            throw new ArgumentOutOfRangeException(nameof(length), "Length must be between 1 and 32.");
-        if (bitOffset < 0 || bitOffset > 31)
-            throw new ArgumentOutOfRangeException(nameof(bitOffset), "Offset must be between 0 and 31.");
-        if (bitOffset + length > 32)
-            throw new ArgumentOutOfRangeException("bitOffset + length exceeds 32 bits.");
-
-        // Shift right to remove lower irrelevant bits, then mask the desired field
-        uint mask = (length == 32) ? uint.MaxValue : (1u << length) - 1;
-        uint extracted = (value >> bitOffset) & mask;
-
-        return (int)extracted;
-    }
-
     // Encode a Color32 type into the full raw uint
     public static uint EncodeData(Color32 color)
     {
@@ -76,5 +81,9 @@ public static class HelpersRSUV
         return EncodeData(new Color32(r, g, b, a));
     }
 
-   
+    // Encode a float into the full raw uint
+    public static uint EncodeData(float value)
+    {
+        return (uint)BitConverter.SingleToInt32Bits(value);
+    }
 }

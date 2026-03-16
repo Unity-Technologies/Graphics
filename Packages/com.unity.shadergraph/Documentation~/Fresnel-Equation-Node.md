@@ -35,9 +35,9 @@ You can find Numerical values of refractive indices at [refractiveindex.info](ht
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-| Mode      | Dropdown | &#8226; **Schlick**: This mode produces an approximation based on [Schlick's Approximation](https://en.wikipedia.org/wiki/Schlick%27s_approximation). Use the Schlick mode for interactions between air and dielectric materials. <br/>&#8226; **Dielectric**: Use this mode for interactions between two dielectric Materials. For example, air to glass, glass to water, or water to air.<br/>&#8226; **DielectricGeneric**: This mode computes a [Fresnel equation](https://seblagarde.wordpress.com/2013/04/29/memo-on-fresnel-equations) for interactions between a dielectric and a metal. For example, clear-coat- to metal, glass to metal, or water to metal. <br/>**Note:** if the **IORMediumK** value is 0, **DielectricGeneric** behaves in the same way as the **Dielectric** mode. ||
+| Control | Description |
+|:---|:---|
+| **Mode** | Select an equation mode to affect Material interactions to the Fresnel Component. The options are:<ul><li>**Schlick**: This mode produces an approximation based on [Schlick's Approximation](https://en.wikipedia.org/wiki/Schlick%27s_approximation). Use the Schlick mode for interactions between air and dielectric materials.</li><li>**Dielectric**: Use this mode for interactions between two dielectric Materials. For example, air to glass, glass to water, or water to air.</li><li>**DielectricGeneric**: This mode computes a [Fresnel equation](https://seblagarde.wordpress.com/2013/04/29/memo-on-fresnel-equations) for interactions between a dielectric and a metal. For example, clear-coat- to metal, glass to metal, or water to metal.</li></ul>**Note:** if the **IORMediumK** value is 0, **DielectricGeneric** behaves in the same way as the **Dielectric** mode. |
 
 ## Generated Code Example
 

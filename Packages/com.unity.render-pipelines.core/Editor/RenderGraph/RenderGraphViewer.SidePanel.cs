@@ -44,9 +44,6 @@ namespace UnityEditor.Rendering
             public const string kCustomFoldoutArrow = "custom-foldout-arrow";
         }
 
-        internal const string k_SelectionColorBeginTag = "<mark=#3169ACAB>";
-        internal const string k_SelectionColorEndTag = "</mark>";
-
         TwoPaneSplitView m_SidePanelSplitView;
         bool m_ResourceListExpanded = true;
         bool m_PassListExpanded = true;
@@ -59,6 +56,7 @@ namespace UnityEditor.Rendering
         Dictionary<VisualElement, List<TextElement>> m_SidePanelPassTexts = new ();
         Dictionary<VisualElement, List<TextElement>> m_GridResourceListTexts = new ();
         Dictionary<VisualElement, List<TextElement>> m_GridPassListTexts = new ();
+        UIElementSearchFilter m_SearchFilter;
 
         void InitializeSidePanel()
         {
@@ -106,117 +104,29 @@ namespace UnityEditor.Rendering
             passListFoldout.icon = m_PassListIcon;
             passListFoldout.contextMenuGenerator = () => CreateContextMenu(passListFoldout.Q<ScrollView>());
 
-            var searchField = rootVisualElement.Q<ToolbarSearchField>(Names.kSearchField);
-            searchField.placeholderText = L10n.Tr("Search");
-            searchField.RegisterValueChangedCallback(evt => OnSearchFilterChanged(evt.newValue));
-        }
-
-        static bool IsInsideTag(string input, int index)
-        {
-            int openTagIndex = input.LastIndexOf('<', index);
-            int closeTagIndex = input.LastIndexOf('>', index);
-            return openTagIndex > closeTagIndex;
-        }
-
-        static bool IsSearchFilterMatch(string str, string searchString, out int startIndex, out int endIndex)
-        {
-            startIndex = -1;
-            endIndex = -1;
-
-            if (searchString.Length == 0)
-                return true;
-
-            int searchStartIndex = 0;
-            for (;;)
-            {
-                startIndex = str.IndexOf(searchString, searchStartIndex, StringComparison.CurrentCultureIgnoreCase);
-
-                // If we found a match but it is inside another tag, ignore it and continue
-                if (startIndex != -1 && IsInsideTag(str, startIndex))
-                {
-                    searchStartIndex = startIndex + 1;
-                    continue;
-                }
-
-                // Either valid match (not inside another tag) or no match
-                break;
-            }
-
-            if (startIndex == -1)
-                return false;
-
-            endIndex = startIndex + searchString.Length - 1;
-            return true;
-        }
-
-        private IVisualElementScheduledItem m_PreviousSearch;
-        private string m_PendingSearchString = string.Empty;
-        private const int k_SearchStringLimit = 15;
-        void OnSearchFilterChanged(string searchString)
-        {
-            // Ensure the search string is within the allowed length limit (15 chars max)
-            if (searchString.Length > k_SearchStringLimit)
-            {
-                searchString = searchString[..k_SearchStringLimit];  // Trim to max 15 chars
-                Debug.LogWarning("[Render Graph Viewer] Search string limit exceeded: " + k_SearchStringLimit);
-            }
-
-            // Sanitize to not match rich text tags
-            searchString = searchString.Replace("<", string.Empty).Replace(">", string.Empty);
-
-            // If the search string hasn't changed, avoid repeating the same search
-            if (m_PendingSearchString == searchString)
-                return;
-
-            m_PendingSearchString = searchString;
-
-            if (m_PreviousSearch != null && m_PreviousSearch.isActive)
-                m_PreviousSearch.Pause();
-
-            m_PreviousSearch = rootVisualElement
-                .schedule
-                .Execute(() =>
+            m_SearchFilter = new UIElementSearchFilter(
+                rootVisualElement,
+                searchString =>
                 {
                     PerformSearch(m_SidePanelResourceTexts, searchString, hideRootElementIfNoMatch: true);
                     PerformSearch(m_SidePanelPassTexts, searchString, hideRootElementIfNoMatch: true);
                     PerformSearch(m_GridResourceListTexts, searchString);
                     PerformSearch(m_GridPassListTexts, searchString);
-                })
-                .StartingIn(5); // Avoid spamming multiple search if the user types really fast
+                }
+            );
+            m_SearchFilter.InitializeSearchField(Names.kSearchField);
         }
 
         internal static void PerformSearch(Dictionary<VisualElement, List<TextElement>> elementCache, string searchString, bool hideRootElementIfNoMatch = false)
         {
-            // Display filter
             foreach (var (rootElement, textElements) in elementCache)
             {
                 bool anyDescendantMatchesSearch = false;
                 foreach (var elem in textElements)
                 {
-                    var text = elem.text;
-
-                    // Remove existing match highlight tags
-                    var hasHighlight = text.IndexOf(k_SelectionColorBeginTag, StringComparison.Ordinal) >= 0;
-                    if (hasHighlight)
-                    {
-                        text = text.Replace(k_SelectionColorBeginTag, string.Empty);
-                        text = text.Replace(k_SelectionColorEndTag, string.Empty);
-                    }
-
-                    if (!IsSearchFilterMatch(text, searchString, out int startHighlight, out int endHighlight))
-                    {
-                        // Reset original text
-                        elem.text = text;
-                        continue;
-                    }
-
-                    if (startHighlight >= 0 && endHighlight >= 0)
-                    {
-                        text = text.Insert(startHighlight, k_SelectionColorBeginTag);
-                        text = text.Insert(endHighlight + k_SelectionColorBeginTag.Length + 1, k_SelectionColorEndTag);
-                    }
-                    elem.text = text;
-                    anyDescendantMatchesSearch = true;
+                    UIElementSearchFilter.ApplySearchAndHighlight(elem, searchString, out bool matched);
+                    if (matched)
+                        anyDescendantMatchesSearch = true;
                 }
 
                 if (hideRootElementIfNoMatch)

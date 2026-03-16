@@ -6,15 +6,15 @@ Defines a constant **Float** value in the shader using an **Integer** field. Can
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| Out | Output      |    Float    | None | Output value |
+| Name | Direction | Type | Binding | Description |
+|:--- |:---|:---|:---|:---|
+| Out | Output | Float | None | Output value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-|       | Integer |  | Defines the output value. |
+| Control | Description |
+|:---|:---|
+| (Integer) | Defines the output value. |
 
 ## Generated Code Example
 

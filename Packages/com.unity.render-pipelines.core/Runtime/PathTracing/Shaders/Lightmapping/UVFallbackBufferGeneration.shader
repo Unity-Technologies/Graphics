@@ -12,6 +12,10 @@ Shader "Hidden/UVFallbackBufferGeneration"
             #pragma target 5.0
             #include "GeometryUtils.hlsl"
 
+            #define INSIDE_EPS      0.01f   // Epsilon chosen to be 1 order of magnitude larger than the maximum
+                                            // distance between subsequent floats in range [0; 8192]
+            #define PARALLEL_EPS    1e-6f
+
             struct v2f
             {
                 float4 vertex : SV_POSITION;
@@ -32,8 +36,9 @@ Shader "Hidden/UVFallbackBufferGeneration"
                 uint2 resolution = uint2(g_Width, g_Height);
                 float2 tri[3];
                 float4 unusedAABB;
+                const float eps = 0.01f;
                 ReadParentTriangle(g_VertexBuffer, vertexId, float4(g_WidthScale, g_HeightScale, 0, 0), tri);
-                ExpandTriangleForConservativeRasterization(resolution, tri, vertexId, unusedAABB, o.vertex);
+                ExpandTriangleForConservativeRasterization(resolution, tri, vertexId, unusedAABB, o.vertex, PARALLEL_EPS);
 
                 // Scale the triangle to screen coordinates, pass it to fragment shader.
                 o.vertices[0] = tri[0] * resolution;
@@ -54,8 +59,7 @@ Shader "Hidden/UVFallbackBufferGeneration"
                 // as our intersector cannot handle such points. Epsilon chosen to be 1 order of magnitude larger than the maximum
                 // distance between subsequent floats in range [0; 8192]
                 float2 texelCenter = i.vertex.xy;
-                const float eps = 0.01f;
-                if (IsInside(texelCenter, c, b, eps) && IsInside(texelCenter, b, a, eps) && IsInside(texelCenter, a, c, eps))
+                if (IsInside(texelCenter, c, b, INSIDE_EPS) && IsInside(texelCenter, b, a, INSIDE_EPS) && IsInside(texelCenter, a, c, INSIDE_EPS))
                 {
                     #if UNITY_REVERSED_Z
                     depth = 1.0;
@@ -70,7 +74,7 @@ Shader "Hidden/UVFallbackBufferGeneration"
                 uint resultSize = 3;
 
                 // Clip to the texel.
-                ClipPolygonWithTexel(texelCenter, result, resultSize);
+                ClipPolygonWithTexel(texelCenter, result, resultSize, INSIDE_EPS, PARALLEL_EPS);
 
                 // Discard removed triangles.
                 if (resultSize <= 0)

@@ -261,9 +261,7 @@ namespace UnityEngine.PathTracing.Core
 
         internal static ulong EntityIDToUlong(EntityId id)
         {
-            Debug.Assert(UnsafeUtility.SizeOf<EntityId>() == sizeof(int),
-                "If this assert is firing, the size of EntityId has changed. Remove the intermediate cast to int below, and cast directly to ulong instead.");
-
+            Debug.Assert(UnsafeUtility.SizeOf<EntityId>() == sizeof(ulong), "EntityId should be 8 bytes");
             return EntityId.ToULong(id);
         }
     }

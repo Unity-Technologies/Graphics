@@ -308,6 +308,19 @@ namespace UnityEditor.VFX.URP
                 populateWithCustomInterpolators = true,
                 fields = GenerateSurfaceDescriptionInput(context, data).ToArray()
             };
+
+            var output = context as VFXAbstractRenderedOutput;
+            List<(KeywordDescriptor oldDesc, int value)> keywordsToDefines = new List<(KeywordDescriptor oldDesc, int value)>();
+            if (output != null)
+            {
+                keywordsToDefines.Add((CoreKeywordDescriptors.StaticLightmap, 0));
+                keywordsToDefines.Add((CoreKeywordDescriptors.DirectionalLightmapCombined, 0));
+                keywordsToDefines.Add((CoreKeywordDescriptors.UseLegacyLightmaps, 0));
+                keywordsToDefines.Add((CoreKeywordDescriptors.LightmapBicubicSampling, 0));
+                keywordsToDefines.Add((CoreKeywordDescriptors.LightmapShadowMixing, 0));
+                keywordsToDefines.Add((CoreKeywordDescriptors.DynamicLightmap, 0));
+            }
+
             return new ShaderGraphBinder()
             {
                 baseStructs = new StructCollection
@@ -329,8 +342,31 @@ namespace UnityEditor.VFX.URP
                     ( Pragma.Target(ShaderModel.Target35), Pragma.Target(ShaderModel.Target45) ),
                     ( Pragma.Target(ShaderModel.Target40), Pragma.Target(ShaderModel.Target45) ),
                 },
-                useFragInputs = false
+                useFragInputs = false,
+                keywordsToDefines = keywordsToDefines.ToArray()
             };
+        }
+
+        public override List<PassCollection.Item> FilterOutPasses(PassCollection passes, VFXContext context)
+        {
+            List<PassCollection.Item> filteredPasses = new List<PassCollection.Item>(passes.Count());
+            var outputContext = context as VFXAbstractParticleOutput;
+            bool hasMotionVector =  outputContext.hasMotionVector;
+            bool hasShadowCasting = outputContext.hasShadowCasting;
+            bool isOpaque = outputContext.isBlendModeOpaque;
+
+            foreach (PassCollection.Item item in passes)
+            {
+                bool skipPass = false;
+                skipPass |= item.descriptor.lightMode == "Meta";
+                skipPass |= item.descriptor.lightMode == "XRMotionVectors";
+                skipPass |= (!hasMotionVector && item.descriptor.lightMode == "MotionVectors");
+                skipPass |= (!hasShadowCasting && item.descriptor.lightMode == "ShadowCaster");
+                skipPass |= (!isOpaque && item.descriptor.lightMode is "UniversalGBuffer" or "DepthOnly" or "DepthNormals");
+                if(!skipPass)
+                    filteredPasses.Add(item);
+            }
+            return filteredPasses;
         }
     }
 

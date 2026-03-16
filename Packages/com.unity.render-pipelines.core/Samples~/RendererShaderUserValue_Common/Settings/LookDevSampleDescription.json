@@ -25,6 +25,7 @@
 	• <code>DecodeUintToFloat4()</code> decodes the full 32 bits as a Vector4 (for example, a 32-bit color).  
 
 	These HLSL helpers are then used in the <link="FunctionsRSUV.hlsl">FunctionsRSUV</link> HLSL script to create functions that can be used in a <a href="https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/Custom-Function-Node.html">Custom Function node</a> directly in Shader Graphs.
+	Those functions can also be called using the Shader Function Reflection API using the <code>UNITY_EXPORT_REFLECTION</code> keyword above the function declaration to directly use it as a node instead of using the custom function node. 
 
 <h1>Health</h1>
 

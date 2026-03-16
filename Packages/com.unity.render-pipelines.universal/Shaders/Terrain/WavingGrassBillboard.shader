@@ -37,6 +37,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
             #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
 #if defined(UNITY_PLATFORM_META_QUEST)
             #pragma multi_compile _ META_QUEST_ORTHO_PROJ
+            #pragma multi_compile _ META_QUEST_NO_SPOTLIGHTS_LIGHT_LOOP
 #endif
             #pragma multi_compile_fragment _ _SCREEN_SPACE_IRRADIANCE
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"

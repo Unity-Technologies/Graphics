@@ -9,7 +9,6 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Lighting-related Rendering Debugger settings.
     /// </summary>
-    [URPHelpURL("features/rendering-debugger-reference", "lighting")]
     [Serializable]
     public class DebugDisplaySettingsLighting : IDebugDisplaySettingsData, ISerializedDebugDisplaySettings
     {
@@ -67,6 +66,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [DisplayInfo(name = "Lighting", order = 3)]
+        [URPHelpURL("features/rendering-debugger-reference", "lighting")]
         internal class SettingsPanel : DebugDisplaySettingsPanel<DebugDisplaySettingsLighting>
         {
             public SettingsPanel(DebugDisplaySettingsLighting data)

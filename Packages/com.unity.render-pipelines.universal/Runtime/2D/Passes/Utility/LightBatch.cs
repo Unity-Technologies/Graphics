@@ -194,6 +194,12 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool CanBatch(Light2D light, Material material, int index, out int lightHash)
         {
+            if (material == null || light.lightMesh == null)
+            {
+                lightHash = 0;
+                return false;
+            }
+
             lightHash = Hash(light, material);
             hashCode = (hashCode == 0) ? lightHash : hashCode;
             if (batchCount == 0)

@@ -6,15 +6,15 @@ Defines a constant **Matrix 3x3** value in the shader.
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| Out | Output      |    Matrix 3 | None | Output value |
+| Name | Direction | Type | Binding | Description |
+|:--- |:---|:---|:---|:---|
+| Out | Output | Matrix 3 | None | Output value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-|  | Matrix 3x3 |  | Sets output value |
+| Control | Description |
+|:---|:---|
+| (Matrix 3x3) | Sets the matrix 3x3 output value. |
 
 ## Generated Code Example
 

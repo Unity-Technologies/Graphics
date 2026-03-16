@@ -16,7 +16,16 @@ namespace UnityEditor.Rendering.Universal
                 (serialized, owner) => IsAnyRendererHasPostProcessingEnabled(serialized, UniversalRenderPipeline.asset) && serialized.renderPostProcessing.boolValue,
                 (serialized, owner) =>
                 {
-                    EditorGUILayout.HelpBox(Styles.disabledPostprocessing, MessageType.Warning);
+                    int selectedRendererOption = serialized.renderer.intValue;
+                    
+                    var rendererData = selectedRendererOption == -1 ? UniversalRenderPipeline.asset.scriptableRendererData : UniversalRenderPipeline.asset.m_RendererDataList[selectedRendererOption];
+
+                    CoreEditorUtils.DrawFixMeBox(
+                       string.Format(Styles.disabledPostprocessing),
+                       MessageType.Warning,
+                       "Open",
+                       () => AssetDatabase.OpenAsset(rendererData));
+
                     s_PostProcessingWarningShown = true;
                 });
 
@@ -134,7 +143,7 @@ namespace UnityEditor.Rendering.Universal
                         CED.Group(
                             CameraUI.Rendering.Drawer_Rendering_CullingMask,
                             CameraUI.Rendering.Drawer_Rendering_OcclusionCulling,
-                            OcclusionCullingWithWarningOnTileValidation
+                            OcclusionCullingWithWarningTileOnlyMode
                         )
                     ),
                     CED.noop,
@@ -150,7 +159,7 @@ namespace UnityEditor.Rendering.Universal
                     CED.Group(
                         CameraUI.Rendering.Drawer_Rendering_CullingMask,
                         CameraUI.Rendering.Drawer_Rendering_OcclusionCulling,
-                        OcclusionCullingWithWarningOnTileValidation
+                        OcclusionCullingWithWarningTileOnlyMode
                     )
                 );
             }
@@ -197,7 +206,7 @@ namespace UnityEditor.Rendering.Universal
                 var rendererData = selectedRendererOption == -1 ? rpAsset.scriptableRendererData : rpAsset.m_RendererDataList[selectedRendererOption];
 
                 var forwardRendererData = rendererData as UniversalRendererData;
-                if (forwardRendererData != null && forwardRendererData.postProcessData == null)
+                if (forwardRendererData != null && !rpAsset.GetRenderer(selectedRendererOption).supportedRenderingFeatures.postProcessing)
                     return true;
 
                 var renderer2DData = rendererData as UnityEngine.Rendering.Universal.Renderer2DData;
@@ -282,13 +291,6 @@ namespace UnityEditor.Rendering.Universal
             static void DrawerRenderingRenderPostProcessing(UniversalRenderPipelineSerializedCamera serialized, Editor owner)
             {
                 EditorGUILayout.PropertyField(serialized.renderPostProcessing, Styles.renderPostProcessing);
-
-                // There is other issue displayed if one try to use PP while Renderer does not allow it
-                bool enabledInRenderer = serialized.renderer.hasMultipleDifferentValues
-                    || (UniversalRenderPipeline.asset.TryGetRendererData(serialized.renderer.intValue, out var rendererData)
-                        && rendererData is UniversalRendererData universalData
-                        && universalData.postProcessData != null);
-                DisplayOnTileValidationWarning(serialized.renderPostProcessing, p => p.boolValue && enabledInRenderer, Styles.renderPostProcessing, serialized);
             }
 
             static void DrawerRenderingPriority(UniversalRenderPipelineSerializedCamera serialized, Editor owner)
@@ -299,18 +301,18 @@ namespace UnityEditor.Rendering.Universal
             static void DrawerRenderingDepthTexture(UniversalRenderPipelineSerializedCamera serialized, Editor owner)
             {
                 EditorGUILayout.PropertyField(serialized.renderDepth, Styles.requireDepthTexture);
-                DisplayOnTileValidationWarning(serialized.renderDepth, p => p.intValue == (int)CameraOverrideOption.On, Styles.requireDepthTexture, serialized);
+                DisplayTileOnlyModeWarning(serialized.renderDepth, p => p.intValue == (int)CameraOverrideOption.On, Styles.requireDepthTexture, serialized);
             }
 
             static void DrawerRenderingOpaqueTexture(UniversalRenderPipelineSerializedCamera serialized, Editor owner)
             {
                 EditorGUILayout.PropertyField(serialized.renderOpaque, Styles.requireOpaqueTexture);
-                DisplayOnTileValidationWarning(serialized.renderOpaque, p => p.intValue == (int)CameraOverrideOption.On, Styles.requireOpaqueTexture, serialized);
+                DisplayTileOnlyModeWarning(serialized.renderOpaque, p => p.intValue == (int)CameraOverrideOption.On, Styles.requireOpaqueTexture, serialized);
             }
             
-            static void OcclusionCullingWithWarningOnTileValidation(UniversalRenderPipelineSerializedCamera serialized, Editor owner)
+            static void OcclusionCullingWithWarningTileOnlyMode(UniversalRenderPipelineSerializedCamera serialized, Editor owner)
             {
-                DisplayOnTileValidationWarning(serialized.baseCameraSettings.occlusionCulling, p => p.boolValue, CameraUI.Rendering.Styles.occlusionCulling, serialized);
+                DisplayTileOnlyModeWarning(serialized.baseCameraSettings.occlusionCulling, p => p.boolValue, CameraUI.Rendering.Styles.occlusionCulling, serialized);
             }
         }
     }

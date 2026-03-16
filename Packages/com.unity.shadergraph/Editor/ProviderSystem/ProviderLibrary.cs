@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,6 +7,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
     internal class ProviderLibrary
     {
         static ProviderLibrary s_instance;
+
+        internal static bool IsInstanceInitialized => s_instance != null;
         internal static ProviderLibrary Instance
         {
             get
@@ -14,6 +17,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                 {
                     s_instance = new();
                     s_instance.PopulateFromFiles();
+                    s_instance.PopulateFromScripts();
                 }
                 return s_instance;
             }
@@ -65,6 +69,16 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             foreach (var result in results)
             {
                 AnalyzeFile(result);
+            }
+        }
+
+        internal void PopulateFromScripts()
+        {
+            foreach (var type in ProviderTypeCache.GetScriptedProviderTypes())
+            {
+                var provider = Activator.CreateInstance(type, true) as IProvider;
+                if (provider != null)
+                    TryAdd(provider);
             }
         }
 

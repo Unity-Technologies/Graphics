@@ -154,7 +154,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_AccurateGbufferNormals = false;
 
         [SerializeField] IntermediateTextureMode m_IntermediateTextureMode = IntermediateTextureMode.Always;
-        [SerializeField] bool m_OnTileValidation = false;
+        [SerializeField] bool m_TileOnlyMode = false;
 
         /// <inheritdoc/>
         protected override ScriptableRenderer Create()
@@ -348,19 +348,20 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// On-Tile validation validates features to prevent going off tile.
-        /// This is mainly useful for tile based architectures.
+        /// Tile-Only Mode restricts render passes to avoid memory load/store of main camera targets, keeping them in on‑chip tile memory.
+        /// It activates additional RenderGaph validation. Some features may be disabled or fall back. See docs for details.
+        /// This is a potential GPU performance optimization on Tile-Based GPU architectures.
         /// </summary>
-        public bool onTileValidation
+        public bool tileOnlyMode
         {
-            get => m_OnTileValidation;
+            get => m_TileOnlyMode;
             set
             {
-                if (m_OnTileValidation == value)
+                if (m_TileOnlyMode == value)
                     return;
 
                 SetDirty();
-                m_OnTileValidation = value;
+                m_TileOnlyMode = value;
             }
         }
 

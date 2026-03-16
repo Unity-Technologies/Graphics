@@ -134,6 +134,8 @@ SAMPLER(sampler_CameraDepthTexture);
 // Color pyramid (width, height, lodcount, Unused)
 TEXTURE2D_X(_ColorPyramidTexture);
 
+TEXTURE2D_X(_DeferredDirectionalShadow);
+
 // Custom pass buffer
 TEXTURE2D_X(_CustomDepthTexture);
 TEXTURE2D_X(_CustomColorTexture);

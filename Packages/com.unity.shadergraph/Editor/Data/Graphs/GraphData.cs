@@ -698,7 +698,7 @@ namespace UnityEditor.ShaderGraph
             m_MovedContexts = false;
         }
 
-        public void AddNode(AbstractMaterialNode node)
+        public void AddNode(AbstractMaterialNode node, bool usePreviewPref = true)
         {
             if (node is AbstractMaterialNode materialNode)
             {
@@ -708,7 +708,8 @@ namespace UnityEditor.ShaderGraph
                     return;
                 }
 
-                materialNode.previewExpanded = ShaderGraphPreferences.newNodesPreview;
+                if (usePreviewPref && materialNode.UsePreviewPref)
+                    materialNode.previewExpanded = ShaderGraphPreferences.newNodesPreview;
 
                 AddNodeNoValidate(materialNode);
 
@@ -885,6 +886,17 @@ namespace UnityEditor.ShaderGraph
                 context.AddBlock(cibnode.descriptor);
             }
             return context.activeBlocks;
+        }
+
+        public void RefreshBadgesAndPreviews()
+        {
+            foreach (var node in this.m_Nodes)
+            {
+                if (node.value != null)
+                {
+                    node.value.Dirty(ModificationScope.Graph);
+                }
+            }
         }
 
         public void UpdateActiveBlocks(List<BlockFieldDescriptor> activeBlockDescriptors)
@@ -1660,38 +1672,47 @@ namespace UnityEditor.ShaderGraph
             return copy;
         }
 
+        // Removes a collection of shader inputs, deferring graph validation until all inputs have been removed
+        public void RemoveGraphInputs(IEnumerable<ShaderInput> inputs)
+        {
+            foreach (ShaderInput input in inputs)
+            {
+                switch (input)
+                {
+                    case AbstractShaderProperty property:
+                        var propertyNodes = GetNodes<PropertyNode>().Where(x => x.property == input).ToList();
+                        foreach (var propertyNode in propertyNodes)
+                            ReplacePropertyNodeWithConcreteNodeNoValidate(propertyNode);
+                        break;
+                }
+
+                // Also remove this input from any category it existed in
+                foreach (var categoryData in categories)
+                {
+                    if (categoryData.IsItemInCategory(input))
+                    {
+                        categoryData.RemoveItemFromCategory(input);
+                        break;
+                    }
+                }
+
+                foreach (var node in GetNodes<SubGraphNode>())
+                {
+                    if (node.UsedReferenceNames().Contains(input.referenceName))
+                    {
+                        node.ValidateNode();
+                        node.Dirty(ModificationScope.Graph);
+                    }
+                }
+
+                RemoveGraphInputNoValidate(input);
+            }
+            ValidateGraph();
+        }
+
         public void RemoveGraphInput(ShaderInput input)
         {
-            switch (input)
-            {
-                case AbstractShaderProperty property:
-                    var propertyNodes = GetNodes<PropertyNode>().Where(x => x.property == input).ToList();
-                    foreach (var propertyNode in propertyNodes)
-                        ReplacePropertyNodeWithConcreteNodeNoValidate(propertyNode);
-                    break;
-            }
-
-            // Also remove this input from any category it existed in
-            foreach (var categoryData in categories)
-            {
-                if (categoryData.IsItemInCategory(input))
-                {
-                    categoryData.RemoveItemFromCategory(input);
-                    break;
-                }
-            }
-
-            foreach(var node in GetNodes<SubGraphNode>())
-            {
-                if (node.UsedReferenceNames().Contains(input.referenceName))
-                {
-                    node.ValidateNode();
-                    node.Dirty(ModificationScope.Graph);
-                }
-            }
-
-            RemoveGraphInputNoValidate(input);
-            ValidateGraph();
+            RemoveGraphInputs(new ShaderInput[] { input });
         }
 
         public void MoveCategory(CategoryData category, int newIndex)
@@ -1878,8 +1899,7 @@ namespace UnityEditor.ShaderGraph
                 m_RemovedCategories.Add(existingCategory);
 
                 // Whenever a category is removed, also remove any inputs within that category
-                foreach (var shaderInput in existingCategory.Children)
-                    RemoveGraphInput(shaderInput);
+                RemoveGraphInputs(existingCategory.Children);
             }
             else
                 AssertHelpers.Fail("Attempted to remove a category that does not exist in the graph.");
@@ -2290,7 +2310,7 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 remappedNodes.Add(pastedNode);
-                AddNode(pastedNode);
+                AddNode(pastedNode, false);
 
                 // add the node to the pasted node list
                 m_PastedNodes.Add(pastedNode);

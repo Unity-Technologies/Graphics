@@ -84,6 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_SubsurfaceScattering;
         protected ShaderKeyword m_ScreenSpaceShadowOFFKeywords;
         protected ShaderKeyword m_ScreenSpaceShadowONKeywords;
+        protected ShaderKeyword m_ContactShadowsOFFKeyword;
         protected ShaderKeyword m_ProbeVolumesL1;
         protected ShaderKeyword m_ProbeVolumesL2;
         protected ShaderKeyword m_LightmapBicubicSampling;
@@ -133,6 +134,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SubsurfaceScattering = new ShaderKeyword("OUTPUT_SPLIT_LIGHTING");
             m_ScreenSpaceShadowOFFKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_OFF");
             m_ScreenSpaceShadowONKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_ON");
+            m_ContactShadowsOFFKeyword = new ShaderKeyword("CONTACT_SHADOWS_OFF");
             m_ProbeVolumesL1 = new ShaderKeyword("PROBE_VOLUMES_L1");
             m_ProbeVolumesL2 = new ShaderKeyword("PROBE_VOLUMES_L2");
             m_LightmapBicubicSampling = new ShaderKeyword("LIGHTMAP_BICUBIC_SAMPLING");

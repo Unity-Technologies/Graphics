@@ -775,9 +775,9 @@ namespace UnityEditor.VFX.URP
                     gbufferDefines.Write("#define _SPECULAR_SETUP");
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXURPGBufferDefines}", gbufferDefines);
 
-                var forwardPassName = new VFXShaderWriter();
-                forwardPassName.Write(materialType == MaterialType.SixWaySmokeLit ? "UniversalForwardOnly" : "UniversalForward");
-                yield return new KeyValuePair<string, VFXShaderWriter>("${VFXURPForwardPassName}", forwardPassName);
+                var forwardPassLightMode = new VFXShaderWriter();
+                forwardPassLightMode.Write(materialType == MaterialType.SixWaySmokeLit ? "UniversalForwardOnly" : "UniversalForward");
+                yield return new KeyValuePair<string, VFXShaderWriter>("${VFXURPForwardPassLightMode}", forwardPassLightMode);
             }
         }
     }

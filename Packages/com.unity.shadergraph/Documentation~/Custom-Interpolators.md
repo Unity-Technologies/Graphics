@@ -9,6 +9,8 @@ There are two target audiences for custom interpolators:
 
 **Note:** If you use the Built-In Render Pipeline, refer to [Input vertex data into a shader](https://docs.unity3d.com/Manual/SL-VertexProgramInputs.html) instead.
 
+[!include[birp-deprecation-message](snippets/birp-deprecation-message.md)]
+
 ## Supported data types
 
 Custom interpolators support float, vector 2, vector 3, and vector 4 types.

@@ -285,6 +285,17 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static Vector4 CalcShaderSourceSize(float width, float height, bool useDynamicScale)
+        {
+            if (useDynamicScale)
+            {
+                width *= ScalableBufferManager.widthScaleFactor;
+                height *= ScalableBufferManager.heightScaleFactor;
+            }
+            return new Vector4(width, height, 1.0f / width, 1.0f / height);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Vector4 CalcShaderSourceSize(RTHandle source)
         {
             return CalcShaderSourceSize(source.rt.width, source.rt.height, source.rt);
@@ -293,6 +304,14 @@ namespace UnityEngine.Rendering.Universal
         internal static void SetGlobalShaderSourceSize(RasterCommandBuffer cmd, float width, float height, RenderTexture rt)
         {
             cmd.SetGlobalVector(ShaderConstants._SourceSize, CalcShaderSourceSize(width, height, rt));
+        }
+
+        /// <summary>
+        /// Sets the global shader _SourceSize vector from width, height and dynamic scale flag. Use this when no texture/RTHandle is available (e.g. in Render Graph to avoid UseTexture on camera color).
+        /// </summary>
+        internal static void SetGlobalShaderSourceSize(RasterCommandBuffer cmd, float width, float height, bool useDynamicScale)
+        {
+            cmd.SetGlobalVector(ShaderConstants._SourceSize, CalcShaderSourceSize(width, height, useDynamicScale));
         }
 
         internal static void SetGlobalShaderSourceSize(CommandBuffer cmd, float width, float height, RenderTexture rt)

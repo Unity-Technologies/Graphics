@@ -12,9 +12,7 @@ A Sample Texture 2D node can also sample a normal map. For more information, ref
 
 The Sample Texture 2D node is under the **Input** &gt; **Texture** category in the Create Node menu.
 
-## Compatibility
-
-The Sample Texture 2D [!include[nodes-compatibility-all](./snippets/nodes-compatibility-all.md)]
+## Limitations
 
 [!include[nodes-sample-fragment-lod](./snippets/sample-nodes/nodes-sample-fragment-lod.md)]
 

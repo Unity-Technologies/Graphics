@@ -230,6 +230,10 @@ namespace UnityEditor.Rendering.HighDefinition
             if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowONKeywords) && !shadowInitParams.supportScreenSpaceShadows)
                 return true;
 
+            // Remove contact shadow shaders when they are not supported.
+            if (inputData.shaderKeywordSet.IsEnabled(m_ContactShadowsOFFKeyword) && shadowInitParams.supportContactShadows)
+                return true;
+
             // DECAL
 
             // Rendering layers and decal layers output to the same buffer

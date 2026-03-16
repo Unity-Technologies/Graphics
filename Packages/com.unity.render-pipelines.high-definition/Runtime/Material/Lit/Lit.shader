@@ -869,6 +869,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile_fragment SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
+            #pragma multi_compile_fragment _ CONTACT_SHADOWS_OFF
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
@@ -912,7 +913,7 @@ Shader "HDRP/Lit"
             #pragma shader_feature_local _DISABLE_SSR_TRANSPARENT
             #pragma shader_feature_local_fragment _ _REFRACTION_PLANE _REFRACTION_SPHERE _REFRACTION_THIN
 
-            #pragma switch2_extended_structured_buffer_bindings
+            #pragma extended_structured_buffer_bindings
 
             #ifndef SHADER_STAGE_FRAGMENT
             #define SHADOW_LOW
@@ -999,6 +1000,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile_fragment SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
+            #pragma multi_compile_fragment _ CONTACT_SHADOWS_OFF
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
@@ -1046,7 +1048,7 @@ Shader "HDRP/Lit"
 
             #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
-            #pragma switch2_extended_structured_buffer_bindings
+            #pragma extended_structured_buffer_bindings
 
             #ifndef SHADER_STAGE_FRAGMENT
             #define SHADOW_LOW

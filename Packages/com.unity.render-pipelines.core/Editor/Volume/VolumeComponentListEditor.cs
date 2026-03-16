@@ -155,6 +155,8 @@ namespace UnityEditor.Rendering
             else
                 m_Editors[index] = editor;
 
+            FilterEditorsBySearch();
+
             DocumentationUtils.TryGetHelpURL(component.GetType(), out string helpUrl);
             helpUrl ??= string.Empty;
             m_VolumeComponentHelpUrls[editor] = helpUrl;
@@ -222,9 +224,22 @@ namespace UnityEditor.Rendering
             asset = null;
         }
 
+        readonly HashSet<VolumeComponentEditor> m_CurrentSearchFilteredEditors = new();
+        void FilterEditorsBySearch()
+        {
+            m_CurrentSearchFilteredEditors.Clear();
+            if (string.IsNullOrEmpty(m_SearchString)) return;
+
+            foreach (var editor in m_Editors)
+            {
+                if (MatchesSearchString(editor.GetDisplayTitle().text))
+                    m_CurrentSearchFilteredEditors.Add(editor);
+            }
+        }
+        bool EditorIsIncludedInCurrentSearch(VolumeComponentEditor editor) => string.IsNullOrEmpty(m_SearchString) || m_CurrentSearchFilteredEditors.Contains(editor);
         bool MatchesSearchString(string title)
         {
-            return m_SearchString.Length == 0 || title.Contains(m_SearchString, StringComparison.OrdinalIgnoreCase);
+            return string.IsNullOrEmpty(m_SearchString) || title.Contains(m_SearchString, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -263,7 +278,7 @@ namespace UnityEditor.Rendering
                 {
                     if (!editor.visible)
                         return false;
-                    return MatchesSearchString(editor.GetDisplayTitle().text);
+                    return EditorIsIncludedInCurrentSearch(editor);
                 }
 
                 void DrawEditor(VolumeComponentEditor editor, int index = -1)
@@ -310,7 +325,11 @@ namespace UnityEditor.Rendering
                 {
                     Rect searchRect = GUILayoutUtility.GetRect(50, EditorGUIUtility.singleLineHeight);
                     searchRect.width -= 2;
-                    m_SearchString = m_SearchField.OnGUI(searchRect, m_SearchString);
+                    using (var check = new EditorGUI.ChangeCheckScope())
+                    {
+                        m_SearchString = m_SearchField.OnGUI(searchRect, m_SearchString);
+                        if (check.changed) FilterEditorsBySearch();
+                    }
                     GUILayout.Space(2);
 
                     EditorGUILayout.HelpBox(
@@ -346,7 +365,6 @@ namespace UnityEditor.Rendering
 
                         for (int i = 0; i < editors.Count; i++)
                             DrawEditor(editors[i]);
-
                         GUILayout.Space(8);
                     }
                 }

@@ -1206,6 +1206,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Volumetric Materials
         public static readonly int _VolumeCount = Shader.PropertyToID("_VolumeCount");
+        public static readonly int _MaxVolumeCount = Shader.PropertyToID("_MaxVolumeCount");
         public static readonly int _MaxSliceCount = Shader.PropertyToID("_MaxSliceCount");
         public static readonly int _VolumetricGlobalIndirectArgsBuffer = Shader.PropertyToID("_VolumetricGlobalIndirectArgsBuffer");
         public static readonly int _VolumetricGlobalIndirectionBuffer = Shader.PropertyToID("_VolumetricGlobalIndirectionBuffer");

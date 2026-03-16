@@ -154,6 +154,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
 #if defined(UNITY_PLATFORM_META_QUEST)
             #pragma multi_compile _ META_QUEST_ORTHO_PROJ
+            #pragma multi_compile _ META_QUEST_NO_SPOTLIGHTS_LIGHT_LOOP
 #endif
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
@@ -526,6 +527,7 @@ Shader "Universal Render Pipeline/Lit"
             HLSLPROGRAM
             #pragma shader_feature_local _ALPHATEST_ON
             #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ APPLICATION_SPACE_WARP_MOTION_TRANSPARENT
             #pragma shader_feature_local_vertex _ADD_PRECOMPUTED_VELOCITY
             #define APPLICATION_SPACE_WARP_MOTION 1
 

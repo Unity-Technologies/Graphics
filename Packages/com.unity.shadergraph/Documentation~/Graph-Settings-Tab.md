@@ -23,6 +23,8 @@ Shader Graph supports the following target types:
 * **Universal**: Shaders for the [Universal Render Pipeline (URP)](xref:um-universal-render-pipeline), available only if your project uses URP.
 * **HDRP**: Shaders for the [High Definition Render Pipeline (HDRP)](xref:high-definition-render-pipeline), available only if your project uses HDRP.
 
+[!include[birp-deprecation-message](snippets/birp-deprecation-message.md)]
+
 ### Target properties
 
 Each graph target added in the list of **Active Targets** has its own set of properties.

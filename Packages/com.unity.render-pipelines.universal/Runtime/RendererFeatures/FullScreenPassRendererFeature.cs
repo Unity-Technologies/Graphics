@@ -82,6 +82,17 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+        /// <summary>
+        /// Returns true if the combination of settings is compatible with Tile-Only Mode on the Universal Renderer.
+        /// </summary>
+        internal bool IsCompatibleWithTileOnlyMode()
+        {
+            // These checks must match the Tile-Only Mode validation in FullScreenPassRendererFeatureEditor.
+            if (fetchColorBuffer)
+                return false;
+            return RenderingUtils.IsCompatibleWithTileOnlyMode(requirements, (RenderPassEvent)injectionPoint);
+        }
+
         /// <inheritdoc/>
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
@@ -96,6 +107,14 @@ namespace UnityEngine.Rendering.Universal
             if (passIndex < 0 || passIndex >= passMaterial.passCount)
             {
                 Debug.LogWarningFormat("The full screen feature \"{0}\" will not execute - the pass index is out of bounds for the material.", name);
+                return;
+            }
+
+            if (renderer is UniversalRenderer universalRenderer && universalRenderer.useTileOnlyMode && !IsCompatibleWithTileOnlyMode())
+            {
+                Debug.LogErrorFormat(
+                    "Full Screen Renderer Feature \"{0}\": the current settings are not compatible with Tile-Only Mode. Open the Universal Renderer \"{1}\" in the Inspector for more information.",
+                    name, universalRenderer.name);
                 return;
             }
 

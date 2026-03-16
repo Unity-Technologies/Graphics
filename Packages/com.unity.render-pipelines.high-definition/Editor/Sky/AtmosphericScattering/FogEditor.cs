@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected SerializedDataParameter m_DepthExtent;
         protected SerializedDataParameter m_GlobalLightProbeDimmer;
         protected SerializedDataParameter m_SliceDistributionUniformity;
+        protected SerializedDataParameter m_VolumetricFogQuality;
         protected SerializedDataParameter m_FogControlMode;
         protected SerializedDataParameter m_ScreenResolutionPercentage;
         protected SerializedDataParameter m_VolumeSliceCount;
@@ -71,6 +72,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_EnableVolumetricFog = Unpack(o.Find(x => x.enableVolumetricFog));
             m_DepthExtent = Unpack(o.Find(x => x.depthExtent));
             m_SliceDistributionUniformity = Unpack(o.Find(x => x.sliceDistributionUniformity));
+            m_VolumetricFogQuality = Unpack(o.Find(x => x.quality));
             m_FogControlMode = Unpack(o.Find(x => x.fogControlMode));
             m_ScreenResolutionPercentage = Unpack(o.Find(x => x.screenResolutionPercentage));
             m_VolumeSliceCount = Unpack(o.Find(x => x.volumeSliceCount));
@@ -139,7 +141,32 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     base.OnInspectorGUI(); // Quality Setting
 
-                    using (new IndentLevelScope())
+                    var defaultFog = HDEditorUtils.GetVolumeComponentDefaultState<Fog>();
+
+                    // Get effective quality value (use local if overridden, otherwise use default)
+                    bool useDefaultQuality = !m_VolumetricFogQuality.overrideState.boolValue;
+                    int effectiveQuality = useDefaultQuality
+                        ? (defaultFog?.quality.value ?? -1)
+                        : m_VolumetricFogQuality.value.intValue;
+
+                    if (effectiveQuality > 1)
+                    {
+                        using (new IndentLevelScope())
+                        {
+                            if (useDefaultQuality && HDEditorUtils.TryGetVolumeParameterSource<Fog>(
+                                  fog => fog.quality.overrideState && fog.quality.value > 1,
+                                  out var sourceProfile,
+                                  out var sourceName))
+                            {
+                                HDEditorUtils.ShowPlatformParameterPerformanceWarning(BuildTarget.Switch2, "Tier", "High", sourceName, () => Selection.activeObject = sourceProfile, "It is recommended to either disable Volumetric Fog, or lower the quality tier to Low/Medium");
+                            }
+                            else
+                            {
+                                HDEditorUtils.ShowPlatformParameterPerformanceWarning(BuildTarget.Switch2, "Tier", "High", "It is recommended to either disable Volumetric Fog, or lower the quality tier to Low/Medium.");
+                            }
+                        }
+                    }
+
                     using (new QualityScope(this))
                     {
                         if (PropertyField(m_FogControlMode))
@@ -176,12 +203,38 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     PropertyField(m_VolumetricLightingDensityCutoff);
-                    if (m_VolumetricLightingDensityCutoff.value.floatValue > 0.0f)
+                    // Get effective density cutoff value (use local if overridden, otherwise use default)
+                    bool useDefaultDensityCutoff = !m_VolumetricLightingDensityCutoff.overrideState.boolValue;
+                    float effectiveDensityCutoff = useDefaultDensityCutoff
+                        ? (defaultFog?.volumetricLightingDensityCutoff.value ?? -1.0f)
+                        : m_VolumetricLightingDensityCutoff.value.floatValue;
+
+                    if (effectiveDensityCutoff > 0.0f)
                     {
                         using (new IndentLevelScope())
                         {
                             float currentMinExtinction = VolumeRenderingUtils.ExtinctionFromMeanFreePath(m_MeanFreePath.value.floatValue);
                             EditorGUILayout.HelpBox($"The current minimum density for the fog is {currentMinExtinction:F3} (calculated from the Fog Distance).", MessageType.Info, wide: true);
+                        }
+                    }
+                    else
+                    {
+                        if (effectiveQuality > 0)
+                        {
+                            using (new IndentLevelScope())
+                            {
+                                if (useDefaultDensityCutoff && HDEditorUtils.TryGetVolumeParameterSource<Fog>(
+                                      fog => fog.volumetricLightingDensityCutoff.overrideState && fog.volumetricLightingDensityCutoff.value <= 0.0f,
+                                      out var sourceProfile,
+                                      out var sourceName))
+                                {
+                                    HDEditorUtils.ShowPlatformParameterPerformanceWarning(BuildTarget.Switch2, "Density Cutoff", "0", sourceName, () => Selection.activeObject = sourceProfile, "It is recommended to use Density cutoff when using Medium/High tier.");
+                                }
+                                else
+                                {
+                                    HDEditorUtils.ShowPlatformParameterPerformanceWarning(BuildTarget.Switch2, "Density Cutoff", "0", "It is recommended to use Density cutoff when using Medium/High tier.");
+                                }
+                            }
                         }
                     }
                 }

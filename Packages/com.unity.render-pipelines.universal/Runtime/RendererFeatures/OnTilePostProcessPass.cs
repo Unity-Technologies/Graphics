@@ -1,10 +1,8 @@
 using UnityEngine;
 using UnityEngine.Rendering.RenderGraphModule;
-using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering.Universal.Internal;
 
 /// <summary>
 /// Renders the on-tile post-processing stack.
@@ -14,7 +12,7 @@ public class OnTilePostProcessPass : ScriptableRenderPass
     /// <summary>
     /// The override shader to use.
     /// </summary>
-    internal bool m_UseMultisampleShaderResolve = false;
+    internal readonly bool k_SupportsMultisampleShaderResolve = false;
     internal bool m_UseTextureReadFallback = false;
     
     RTHandle m_UserLut;
@@ -27,17 +25,35 @@ public class OnTilePostProcessPass : ScriptableRenderPass
     const string m_PassName = "On Tile Post Processing";
     const string m_FallbackPassName = "On Tile Post Processing (sampling fallback) ";
 
+    int m_PassOnTile, m_PassOnTileMsaa, m_PassTextureSample, m_PassOnTileVis, m_PassOnTileMsaaVis, m_PassTexureSampleVis;
+
     internal OnTilePostProcessPass(PostProcessData postProcessData)
     {
         m_PostProcessData = postProcessData;
-#if ENABLE_VR && ENABLE_XR_MODULE
-        m_UseMultisampleShaderResolve = SystemInfo.supportsMultisampledShaderResolve;
+
+#if ENABLE_VR && ENABLE_XR_MODULE        
+        k_SupportsMultisampleShaderResolve = SystemInfo.supportsMultisampledShaderResolve;
 #endif
     }
 
     internal void Setup(ref Material onTileUberMaterial)
     {
-        m_OnTileUberMaterial = onTileUberMaterial;
+        Debug.Assert(onTileUberMaterial != null, "The material set in OnTilePostProcessPass can't be null.");
+
+        if (m_OnTileUberMaterial == null)
+        {
+            m_OnTileUberMaterial = onTileUberMaterial;
+
+            // We just do this once, assuming the shader never changes. 
+            m_PassOnTile = onTileUberMaterial.FindPass("OnTileUberPost");
+            m_PassOnTileMsaa = onTileUberMaterial.FindPass("OnTileUberPostMSSoftware");
+            m_PassTextureSample = onTileUberMaterial.FindPass("OnTileUberPostTextureSample");
+            m_PassOnTileVis = onTileUberMaterial.FindPass("OnTileUberPostVisMesh");
+            m_PassOnTileMsaaVis = onTileUberMaterial.FindPass("OnTileUberPostMSSoftwareVisMesh");
+            m_PassTexureSampleVis = onTileUberMaterial.FindPass("OnTileUberPostTextureSampleVisMesh");
+        }
+
+        m_OnTileUberMaterial = onTileUberMaterial;                
     }
 
     /// <summary>
@@ -52,7 +68,7 @@ public class OnTilePostProcessPass : ScriptableRenderPass
     /// <inheritdoc cref="IRenderGraphRecorder.RecordRenderGraph"/>
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {
-        if (m_OnTileUberMaterial == null) return;
+        Debug.Assert(m_OnTileUberMaterial != null, "The material set in OnTilePostProcessPass can't be null.");     
 
         var resourceData = frameData.Get<UniversalResourceData>();
         var renderingData = frameData.Get<UniversalRenderingData>();
@@ -81,9 +97,15 @@ public class OnTilePostProcessPass : ScriptableRenderPass
 #endif
 
         TextureHandle source = resourceData.activeColorTexture;
-        TextureDesc srcDesc = renderGraph.GetTextureDesc(source); ;
-        
+        TextureDesc srcDesc = renderGraph.GetTextureDesc(source);
+
+
         TextureHandle destination = resourceData.backBufferColor;
+        var destInfo = renderGraph.GetRenderTargetInfo(destination);
+
+        // This signals to URP (or the next pass) that rendering has switched to the backbuffer. URP will therefore not add the final blit pass.
+        // The code below can then also use resourceData.isActiveTargetBackBuffer correctly for robustness.
+        resourceData.SwitchActiveTexturesToBackbuffer();
 
         SetupVignette(m_OnTileUberMaterial, cameraData.xr, srcDesc.width, srcDesc.height, vignette);
         SetupLut(m_OnTileUberMaterial, colorLookup, colorAdjustments, lutSize);
@@ -93,93 +115,42 @@ public class OnTilePostProcessPass : ScriptableRenderPass
 
         CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, cameraData.isAlphaOutputEnabled);
 
-        UberShaderPasses shaderPass = useVisibilityMesh ? UberShaderPasses.NormalVisMesh : UberShaderPasses.Normal;
-#if ENABLE_VR && ENABLE_XR_MODULE
-        bool setMultisamplesShaderResolveFeatureFlag = false;
-#endif
-        if (srcDesc.msaaSamples != MSAASamples.None)
-        {
-            if (srcDesc.msaaSamples == MSAASamples.MSAA8x)
-            {
-                Debug.LogError("MSAA8x is enabled in Universal Render Pipeline Asset but it is not supported by the on-tile post-processing feature yet. Please use MSAA4x or MSAA2x instead.");
-                return;
-            }
+        int shaderPass;
 
-            var destInfo = renderGraph.GetRenderTargetInfo(destination);
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (m_UseMultisampleShaderResolve)
-            {
-                // If we have support for msaa shader resolve we can do MSAA -> non MSAA in our render pass.
-                shaderPass = useVisibilityMesh ? UberShaderPasses.MSAASoftwareResolveVisMesh : UberShaderPasses.MSAASoftwareResolve;
-
-                // When rendering into the backbuffer, we could enable the shader resolve extension to resolve into the msaa1x surface directly on platforms that support auto resolve.
-                // For platforms that don't support auto resolve, the backbuffer is a multisampled surface and we don't need to enable the extension. This is to maximize the pass merging because shader resolve enabled pass has to be the last subpass.
-                if (SystemInfo.supportsMultisampleAutoResolve)
-                {
-
-                    setMultisamplesShaderResolveFeatureFlag = true;
-                }
-            }
-            else
-#endif
-            {
-                if (destInfo.msaaSamples == (int)srcDesc.msaaSamples)
-                {
-                    // If we have MSAA -> MSAA we can still resolve in the shader running at fragmnet rate
-                    // and the hardware resolve will sometimes be optimized as a result.
-                    shaderPass = useVisibilityMesh ? UberShaderPasses.MSAASoftwareResolveVisMesh : UberShaderPasses.MSAASoftwareResolve;
-                }
-                else
-                {
-                    // We are going MSAA -> Non MSAA without shader resolve support which is not a valid render pass
-                    // configuration. So we need to force a resolve before running our shader which will cause us not
-                    // to be on tile anymore.
-                    shaderPass = useVisibilityMesh ? UberShaderPasses.TextureReadVisMesh : UberShaderPasses.TextureRead;
-                }
-            }
-        }
-
-        // Fallback to texture read mode when requested.
         if (m_UseTextureReadFallback)
         {
-            shaderPass = useVisibilityMesh ? UberShaderPasses.TextureReadVisMesh : UberShaderPasses.TextureRead;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            setMultisamplesShaderResolveFeatureFlag = false;
-#endif
+            shaderPass = useVisibilityMesh ? m_PassTexureSampleVis : m_PassTextureSample;
         }
-
-        // Fallback logic to handle the case where Frame Buffer Fetch is not compatible with the pass setup.
-        TextureDesc destDesc;
-        var info = renderGraph.GetRenderTargetInfo(destination);
-        destDesc = new TextureDesc(info.width, info.height);
-        destDesc.format = info.format;
-        destDesc.msaaSamples = (MSAASamples)info.msaaSamples;
-        destDesc.bindTextureMS = info.bindMS;
-        destDesc.slices = info.volumeDepth;
-        destDesc.dimension = info.volumeDepth > 1 ? TextureDimension.Tex2DArray : TextureDimension.Tex2D;
-
-        // Falls back to texture read mode if texture dimension does not match between source and destination (invalid frame buffer fetch setup). 
-        if (srcDesc.width != destDesc.width || srcDesc.height != destDesc.height || srcDesc.slices != destDesc.slices)
+        else 
         {
-            shaderPass = useVisibilityMesh ? UberShaderPasses.TextureReadVisMesh : UberShaderPasses.TextureRead;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            setMultisamplesShaderResolveFeatureFlag = false;
-#endif
+            Debug.Assert(srcDesc.width == destInfo.width && srcDesc.height == destInfo.height && srcDesc.slices == destInfo.volumeDepth
+                , "On Tile Post Processing expects the source and destination to have the same dimensions.");
+
+            switch (srcDesc.msaaSamples)
+            {
+                case MSAASamples.None:
+                    shaderPass = useVisibilityMesh ? m_PassOnTileVis : m_PassOnTile;
+                    break;
+                case MSAASamples.MSAA8x:
+                    Debug.LogError("MSAA8x is enabled in Universal Render Pipeline Asset but it is not supported by the on-tile post-processing feature yet. Please use MSAA4x or MSAA2x instead.");
+                    return;
+                default:
+                    shaderPass = useVisibilityMesh ? m_PassOnTileMsaaVis: m_PassOnTileMsaa;
+                    break;
+            }
         }
 
         var lutTexture = resourceData.internalColorLut;
         var passName = m_UseTextureReadFallback ? m_FallbackPassName : m_PassName;
         using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData))
-        {
-            passData.source = source;
-            passData.destination = destination;
+        {            
             passData.material = m_OnTileUberMaterial;
             passData.shaderPass = shaderPass;
+            passData.useTextureReadFallback = m_UseTextureReadFallback;
 
-            if (shaderPass == UberShaderPasses.TextureRead || shaderPass == UberShaderPasses.TextureReadVisMesh)
+            if (m_UseTextureReadFallback)
             {
-                builder.UseTexture(source, AccessFlags.Read);
+                builder.UseTexture(passData.source = source, AccessFlags.Read);
             }
             else
             {
@@ -198,47 +169,40 @@ public class OnTilePostProcessPass : ScriptableRenderPass
                 builder.UseTexture(userLutTexture, AccessFlags.Read);
             }
 
-            builder.SetRenderAttachment(destination, 0, AccessFlags.WriteAll);
+            builder.SetRenderAttachment(passData.destination = destination, 0, AccessFlags.WriteAll);
             builder.SetRenderFunc(static (PassData data, RasterGraphContext context) => ExecuteFBFetchPass(data, context));
 
-            passData.useXRVisibilityMesh = false;
+            passData.useXRVisibilityMesh = useVisibilityMesh;
             passData.msaaSamples = (int)srcDesc.msaaSamples;
+
+            // When rendering into the backbuffer, we could enable the shader resolve extension to resolve into the msaa1x surface directly on platforms that support auto resolve.
+            // For platforms that don't support auto resolve, the backbuffer is a multisampled surface and we don't need to enable the extension. This is to maximize the pass merging because shader resolve enabled pass has to be the last subpass.
+            bool useMultisampledShaderResolve = (int)srcDesc.msaaSamples > destInfo.msaaSamples && k_SupportsMultisampleShaderResolve;
+
+            ExtendedFeatureFlags featureFlags = ExtendedFeatureFlags.None;
+
+            if (useMultisampledShaderResolve)
+            {
+                featureFlags |= ExtendedFeatureFlags.MultisampledShaderResolve;                
+            }            
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
-                ExtendedFeatureFlags xrFeatureFlag = ExtendedFeatureFlags.MultiviewRenderRegionsCompatible;
-                if (setMultisamplesShaderResolveFeatureFlag)
-                {
-                    xrFeatureFlag |= ExtendedFeatureFlags.MultisampledShaderResolve;
-                }
-                builder.SetExtendedFeatureFlags(xrFeatureFlag);
+                featureFlags |= ExtendedFeatureFlags.MultiviewRenderRegionsCompatible;
 
                 // We want our foveation logic to match other geometry passes(eg. Opaque, Transparent, Skybox) because we want to merge with previous passes.
                 bool passSupportsFoveation = cameraData.xrUniversal.canFoveateIntermediatePasses || resourceData.isActiveTargetBackBuffer;
                 builder.EnableFoveatedRasterization(
                     cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
 
-                passData.useXRVisibilityMesh = useVisibilityMesh;
                 passData.xr = cameraData.xr; // Need to pass this down for the method call RenderVisibleMeshCustomMaterial()
             }
 #endif
+            builder.SetExtendedFeatureFlags(featureFlags);
+
         }
-
-        //This will prevent the final blit pass from being added/needed (still internal API in trunk)
-        resourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
-        resourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
     }
-
-    enum UberShaderPasses
-    {
-        Normal,
-        MSAASoftwareResolve,
-        TextureRead,
-        NormalVisMesh,
-        MSAASoftwareResolveVisMesh,
-        TextureReadVisMesh,
-    };
 
     // This static method is used to execute the pass and passed as the RenderFunc delegate to the RenderGraph render pass
     static void ExecuteFBFetchPass(PassData data, RasterGraphContext context)
@@ -249,15 +213,16 @@ public class OnTilePostProcessPass : ScriptableRenderPass
         if (data.userLutTexture.IsValid())
             data.material.SetTexture(ShaderConstants._UserLut, data.userLutTexture);
 
-        bool IsHandleYFlipped = RenderingUtils.IsHandleYFlipped(context, in data.destination); 
-        // We need to set the "_BlitScaleBias" uniform for user materials with shaders relying on core Blit.hlsl to work
-        data.material.SetVector(s_BlitScaleBias, !IsHandleYFlipped ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0));
+        bool flip = context.GetTextureUVOrigin(data.source) != context.GetTextureUVOrigin(data.destination);
 
-        if (data.shaderPass == UberShaderPasses.TextureRead || data.shaderPass == UberShaderPasses.TextureReadVisMesh)
+        // We need to set the "_BlitScaleBias" uniform for user materials with shaders relying on core Blit.hlsl to work
+        data.material.SetVector(s_BlitScaleBias, flip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0));
+
+        if (data.useTextureReadFallback)
         {
             data.material.SetTexture(s_BlitTexture, data.source);
         }
-        else if (data.shaderPass == UberShaderPasses.MSAASoftwareResolve || data.shaderPass == UberShaderPasses.MSAASoftwareResolveVisMesh)
+        else 
         {
             // Setup MSAA samples
             switch (data.msaaSamples)
@@ -301,11 +266,12 @@ public class OnTilePostProcessPass : ScriptableRenderPass
         internal TextureHandle lutTexture;
         internal TextureHandle userLutTexture;
         internal Material material;
-        internal UberShaderPasses shaderPass;
+        internal int shaderPass;
         internal Vector4 scaleBias;
         internal bool useXRVisibilityMesh;
         internal XRPass xr;
         internal int msaaSamples;
+        internal bool useTextureReadFallback;
     }
 
     TextureHandle TryGetCachedUserLutTextureHandle(ColorLookup colorLookup, RenderGraph renderGraph)
@@ -388,24 +354,29 @@ public class OnTilePostProcessPass : ScriptableRenderPass
 
     private void SetupTonemapping(Material onTileUberMaterial, Tonemapping tonemapping, bool isHdrGrading)
     {
-        if (isHdrGrading)
-        {
-            CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.HDRGrading, isHdrGrading);
-        }
-        else
+        CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.HDRGrading, isHdrGrading);
+
+        if (!isHdrGrading)
         {
             CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.TonemapNeutral,
                 tonemapping.mode.value == TonemappingMode.Neutral);
             CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.TonemapACES,
                 tonemapping.mode.value == TonemappingMode.ACES);
         }
+        else
+        {
+            CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.TonemapNeutral, false);
+            CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.TonemapACES, false);
+        }
     }
 
     void SetupGrain(Material onTileUberMaterial, UniversalCameraData cameraData, FilmGrain filmgrain, PostProcessData data)
     {
-        if (filmgrain.IsActive())
+        bool isActive = filmgrain.IsActive();
+        CoreUtils.SetKeyword(onTileUberMaterial, ShaderKeywordStrings.FilmGrain, isActive);
+
+        if (isActive)
         {
-            onTileUberMaterial.EnableKeyword(ShaderKeywordStrings.FilmGrain);
             PostProcessUtils.ConfigureFilmGrain(
                 data,
                 filmgrain,
@@ -417,9 +388,10 @@ public class OnTilePostProcessPass : ScriptableRenderPass
 
     void SetupDithering(Material onTileUberMaterial, UniversalCameraData cameraData, PostProcessData data)
     {
+        CoreUtils.SetKeyword(onTileUberMaterial, ShaderKeywordStrings.Dithering, cameraData.isDitheringEnabled);
+
         if (cameraData.isDitheringEnabled)
         {
-            onTileUberMaterial.EnableKeyword(ShaderKeywordStrings.Dithering);
             m_DitheringTextureIndex = PostProcessUtils.ConfigureDithering(
                 data,
                 m_DitheringTextureIndex,

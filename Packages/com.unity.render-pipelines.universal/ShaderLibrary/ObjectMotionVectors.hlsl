@@ -31,7 +31,7 @@
 struct Attributes
 {
     float4 position             : POSITION;
-#if _ALPHATEST_ON
+#if _ALPHATEST_ON || APPLICATION_SPACE_WARP_MOTION_TRANSPARENT
     float2 uv                   : TEXCOORD0;
 #endif
     float3 positionOld          : TEXCOORD4;
@@ -46,7 +46,7 @@ struct Varyings
     float4 positionCS                 : SV_POSITION;
     float4 positionCSNoJitter         : POSITION_CS_NO_JITTER;
     float4 previousPositionCSNoJitter : PREV_POSITION_CS_NO_JITTER;
-#if _ALPHATEST_ON
+#if _ALPHATEST_ON || APPLICATION_SPACE_WARP_MOTION_TRANSPARENT
     float2 uv                         : TEXCOORD0;
 #endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -65,7 +65,7 @@ Varyings vert(Attributes input)
 
     const VertexPositionInputs vertexInput = GetVertexPositionInputs(input.position.xyz);
 
-    #if defined(_ALPHATEST_ON)
+    #if defined(_ALPHATEST_ON) || APPLICATION_SPACE_WARP_MOTION_TRANSPARENT
         output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
     #endif
 
@@ -106,6 +106,9 @@ float4 frag(Varyings input) : SV_Target
     #endif
 
     #if defined(APPLICATION_SPACE_WARP_MOTION)
+        #if APPLICATION_SPACE_WARP_MOTION_TRANSPARENT
+        clip((SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a * _BaseColor.a) - 0.001);
+        #endif
         return float4(CalcAswNdcMotionVectorFromCsPositions(input.positionCSNoJitter, input.previousPositionCSNoJitter), 1);
     #else
         return float4(CalcNdcMotionVectorFromCsPositions(input.positionCSNoJitter, input.previousPositionCSNoJitter), 0, 0);

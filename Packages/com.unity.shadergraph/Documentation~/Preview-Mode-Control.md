@@ -13,16 +13,16 @@ This mode control functionality also applies to Sub Graph previews. See [Graph S
 ## How to use
 
 For nodes:
+
 1. Add a node which includes a preview.
 2. Select the node.
 3. In the Graph Inspector or Node Settings, find the Preview control.
 4. Select an option.
 
-
 For SubGraphs:
+
 * Select a mode in the [Sub Graph](Sub-graph.md) [Graph Settings](Graph-Settings-Tab.md) menu.
 
-![](images/previewmodecontrol.png)
+## Additional resources
 
-Related
-[Preview node](Preview-Node.md)
+* [Preview node](Preview-Node.md)

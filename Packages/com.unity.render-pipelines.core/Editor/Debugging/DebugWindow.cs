@@ -163,11 +163,15 @@ namespace UnityEditor.Rendering
         // Note: this won't get called if the window is opened when the editor itself is closed
         void OnDestroy()
         {
-            // Note: In the case where the window is maximized/unmaximized, OnEnable for the new window gets called *before* OnDestroy.
-            //       Therefore you need to be careful with statics/globals. In this case, we only mark displayEditorUI as false if we are
-            //       closing the only/last DebugWindow instance.
-            if (Resources.FindObjectsOfTypeAll(typeof(DebugWindow)).Length == 0)
-                DebugManager.instance.displayEditorUI = false;
+            EditorApplication.delayCall += () =>
+            {
+                // Note: In the case where the window is maximized/unmaximized, OnEnable for the new window gets called *before* OnDestroy.
+                //       Therefore you need to be careful with statics/globals. In this case, we only mark displayEditorUI as false if we are
+                //       closing the only/last DebugWindow instance. The check is delayed because inside OnDestroy, the current window still exists.
+                var debugWindows = Resources.FindObjectsOfTypeAll(typeof(DebugWindow));
+                if (debugWindows.Length == 0)
+                    DebugManager.instance.displayEditorUI = false;
+            };
 
             DebugManager.instance.onSetDirty -= MarkDirty;
 
@@ -286,6 +290,9 @@ namespace UnityEditor.Rendering
                 // The schedulers themselves are created in AttachToPanelEvent so we need to delay to ensure this has happened.
                 EditorApplication.delayCall += () => SetSelectedPanel(m_SelectedPanelName);
             });
+
+            BuildSearchCache();
+            InitializeSearchField();
         }
 
         void ResetClicked()

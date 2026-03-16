@@ -12,9 +12,7 @@ For more information about Texture 3D assets, refer to [3D textures](https://doc
 
 The Sample Texture 2D node is under the **Input** &gt; **Texture** category in the Create Node menu.
 
-## Compatibility
-
-The Sample Texture 3D [!include[nodes-compatibility-all](./snippets/nodes-compatibility-all.md)]
+## Limitations
 
 [!include[nodes-sample-fragment-lod](./snippets/sample-nodes/nodes-sample-fragment-lod.md)]
 

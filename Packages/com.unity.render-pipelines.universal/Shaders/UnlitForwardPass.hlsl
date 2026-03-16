@@ -2,6 +2,7 @@
 #ifndef URP_UNLIT_FORWARD_PASS_INCLUDED
 #define URP_UNLIT_FORWARD_PASS_INCLUDED
 
+#include "UnlitInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Unlit.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #if defined(LOD_FADE_CROSSFADE)
@@ -161,7 +162,7 @@ void UnlitPassFragment(
     fogFactor = input.fogCoord;
 #endif // #if defined(_FOG_FRAGMENT)
     finalColor.rgb = MixFog(finalColor.rgb, fogFactor);
-    finalColor.a = OutputAlpha(finalColor.a, IsSurfaceTypeTransparent(_Surface));
+    finalColor.a = OutputAlpha(finalColor.a, IsSurfaceTypeTransparent());
 
     outColor = finalColor;
 

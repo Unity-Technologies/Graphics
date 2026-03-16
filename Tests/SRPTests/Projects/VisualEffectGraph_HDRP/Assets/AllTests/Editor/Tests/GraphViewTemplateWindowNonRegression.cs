@@ -249,7 +249,7 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.ImportAsset(path);
 
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
-            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
+            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0));
             var window = VFXViewWindow.GetWindow(asset, true);
             window.LoadAsset(asset, null);
             window.Show();

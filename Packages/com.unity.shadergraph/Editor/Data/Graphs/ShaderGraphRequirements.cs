@@ -215,6 +215,81 @@ namespace UnityEditor.ShaderGraph.Internal
             return newReqs;
         }
 
+        private static void FromSlot(MaterialSlot node, ref ShaderGraphRequirements reqs, ShaderStageCapability stageCapability = ShaderStageCapability.All, bool[] texCoordNeedsDerivs = null)
+        {
+            if (node is IMayRequireTransform a)
+                reqs.m_RequiresTransforms.AddRange(a.RequiresTransform());
+
+            if (node is IMayRequireNormal b)
+                reqs.m_RequiresNormal |= b.RequiresNormal(stageCapability);
+
+            if (node is IMayRequireBitangent c)
+                reqs.m_RequiresBitangent |= c.RequiresBitangent(stageCapability);
+
+            if (node is IMayRequireTangent d)
+                reqs.m_RequiresTangent |= d.RequiresTangent(stageCapability);
+
+            if (node is IMayRequireViewDirection e)
+                reqs.m_RequiresViewDir |= e.RequiresViewDirection(stageCapability);
+
+            if (node is IMayRequirePosition f)
+                reqs.m_RequiresPosition |= f.RequiresPosition(stageCapability);
+
+            if (node is IMayRequirePositionPredisplacement g)
+                reqs.m_RequiresPositionPredisplacement |= g.RequiresPositionPredisplacement(stageCapability);
+
+            if (!reqs.m_RequiresScreenPosition && node is IMayRequireScreenPosition h)
+                reqs.m_RequiresScreenPosition = h.RequiresScreenPosition(stageCapability);
+
+            if (!reqs.m_RequiresNDCPosition && node is IMayRequireNDCPosition i)
+                reqs.m_RequiresNDCPosition = i.RequiresNDCPosition(stageCapability);
+
+            if (!reqs.m_RequiresPixelPosition && node is IMayRequirePixelPosition j)
+                reqs.m_RequiresPixelPosition = j.RequiresPixelPosition(stageCapability);
+
+            if (!reqs.m_RequiresVertexColor && node is IMayRequireVertexColor k)
+                reqs.m_RequiresVertexColor = k.RequiresVertexColor(stageCapability);
+
+            if (!reqs.m_RequiresFaceSign && node is IMayRequireFaceSign l)
+                reqs.m_RequiresFaceSign = l.RequiresFaceSign(stageCapability);
+
+            if (!reqs.m_RequiresDepthTexture && node is IMayRequireDepthTexture m)
+                reqs.m_RequiresDepthTexture = m.RequiresDepthTexture(stageCapability);
+
+            if (!reqs.m_RequiresCameraOpaqueTexture && node is IMayRequireCameraOpaqueTexture n)
+                reqs.m_RequiresCameraOpaqueTexture = n.RequiresCameraOpaqueTexture(stageCapability);
+
+            if (!reqs.m_RequiresVertexSkinning && node is IMayRequireVertexSkinning o)
+                reqs.m_RequiresVertexSkinning = o.RequiresVertexSkinning(stageCapability);
+
+            if (!reqs.m_RequiresVertexID && node is IMayRequireVertexID p)
+                reqs.m_RequiresVertexID = p.RequiresVertexID(stageCapability);
+
+            if (node is IMayRequireMeshUV q)
+            {
+                for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
+                {
+                    var channel = (UVChannel)uvIndex;
+                    if (q.RequiresMeshUV(channel))
+                    {
+                        reqs.m_RequiresMeshUVs.Add(channel);
+                        if (texCoordNeedsDerivs is not null &&
+                            uvIndex < texCoordNeedsDerivs.Length &&
+                            texCoordNeedsDerivs[uvIndex])
+                        {
+                            reqs.m_RequiresMeshUVDerivatives.Add(channel);
+                        }
+                    }
+                }
+            }
+
+            if (!reqs.m_RequiresInstanceID && node is IMayRequireInstanceID r)
+                reqs.m_RequiresInstanceID = r.RequiresInstanceID(stageCapability);
+
+            if (!reqs.m_RequiresUITK && node is IMayRequireUITK w)
+                reqs.m_RequiresUITK = w.RequiresUITK(stageCapability);
+        }
+
         internal static ShaderGraphRequirements FromNodes<T>(IEnumerable<T> nodes, ShaderStageCapability stageCapability = ShaderStageCapability.All, bool includeIntermediateSpaces = true, bool[] texCoordNeedsDerivs = null)
             where T : AbstractMaterialNode
         {
@@ -226,6 +301,13 @@ namespace UnityEditor.ShaderGraph.Internal
 
             foreach (var node in nodes)
             {
+                using (UnityEngine.Pool.ListPool<MaterialSlot>.Get(out var inputSlots))
+                {
+                    node.GetInputSlots(inputSlots);
+                    foreach (var slot in inputSlots)
+                        FromSlot(slot, ref reqs, stageCapability, texCoordNeedsDerivs);
+                }
+
                 if (node is IMayRequireTransform a)
                     reqs.m_RequiresTransforms.AddRange(a.RequiresTransform());
 
@@ -303,6 +385,8 @@ namespace UnityEditor.ShaderGraph.Internal
             }
 
             reqs.m_RequiresTransforms = reqs.m_RequiresTransforms.Distinct().ToList();
+            reqs.m_RequiresMeshUVDerivatives = reqs.m_RequiresMeshUVDerivatives.Distinct().ToList();
+            reqs.m_RequiresMeshUVs = reqs.m_RequiresMeshUVs.Distinct().ToList();
 
             // if anything needs tangentspace we have make
             // sure to have our othonormal basis!

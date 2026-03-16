@@ -270,7 +270,6 @@ namespace UnityEditor.VFX
         {
             if (typeof(T) == typeof(EntityId))
                 return (T)(object)base.Get();
-            Debug.Assert(UnsafeUtility.SizeOf<EntityId>() == sizeof(int), "EntityId size is not equal to int size, this will cause issues, update to VFXValue<EntityId> instead");
 
             return (T)(object)EditorUtility.EntityIdToObject(base.Get());
         }

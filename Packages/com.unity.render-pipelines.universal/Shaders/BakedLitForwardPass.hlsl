@@ -1,6 +1,7 @@
 #ifndef UNIVERSAL_BAKEDLIT_FORWARD_PASS_INCLUDED
 #define UNIVERSAL_BAKEDLIT_FORWARD_PASS_INCLUDED
 
+#include "BakedLitInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #if defined(LOD_FADE_CROSSFADE)
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
@@ -174,7 +175,7 @@ void BakedLitForwardPassFragment(
 
     half4 finalColor = UniversalFragmentBakedLit(inputData, color, alpha, normalTS);
 
-    finalColor.a = OutputAlpha(finalColor.a, _Surface);
+    finalColor.a = OutputAlpha(finalColor.a, IsSurfaceTypeTransparent());
     outColor = finalColor;
 
 #ifdef _WRITE_RENDERING_LAYERS

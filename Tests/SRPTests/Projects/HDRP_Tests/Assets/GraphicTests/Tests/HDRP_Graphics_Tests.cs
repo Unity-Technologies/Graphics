@@ -2,6 +2,7 @@ using System.Collections;
 using System.Runtime.InteropServices;
 using NUnit.Framework;
 using UnityEngine.SceneManagement;
+using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
@@ -412,6 +413,40 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             isInclusive: true,
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan },
             runtimePlatforms: new[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer }
+        )]
+        [IgnoreGraphicsTest(
+            "4075_PhysicalCamera-gateFit|4111_DRS-DLSS-With-CustomPass",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-134786",
+            runtimePlatforms: new RuntimePlatform[]
+            {
+                RuntimePlatform.WindowsEditor
+            }
+        )]
+        [IgnoreGraphicsTest(
+            "3004_QuadOverdraw",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-134754",
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor },
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12 }
+        )]
+        [IgnoreGraphicsTest(
+            "4014_PrecomputedVelocityAlembic",
+            "https://jira.unity3d.com/browse/UUM-136889"
+        )]
+        [IgnoreGraphicsTest(
+            "9304_MotionVectorsPrecomputedAndCustomVelocity",
+            "Also fails because of Alembic removal https://jira.unity3d.com/browse/UUM-136889"
+        )]
+        [IgnoreGraphicsTest(
+            "9921_UnderWater",
+            "Also fails because of Alembic removal https://jira.unity3d.com/browse/UUM-136889"
+        )]
+        [IgnoreGraphicsTest(
+            "9921_UnderWater_Back",
+            "Also fails because of Alembic removal https://jira.unity3d.com/browse/UUM-136889"
+        )]
+        [IgnoreGraphicsTest(
+            "9950-LineRendering",
+            "Also fails because of Alembic removal https://jira.unity3d.com/browse/UUM-136889"
         )]
         public IEnumerator Run(SceneGraphicsTestCase testCase)
         {

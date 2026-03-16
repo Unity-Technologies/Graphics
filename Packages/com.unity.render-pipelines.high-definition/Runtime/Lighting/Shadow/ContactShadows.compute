@@ -1,6 +1,9 @@
 #pragma kernel DeferredContactShadow
 
 #pragma multi_compile _ ENABLE_MSAA
+#pragma multi_compile _ DIRECTIONAL_ONLY
+#pragma multi_compile _ HALF_RESOLUTION
+#pragma multi_compile _ USE_FEATURE_FLAGS
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -18,21 +21,32 @@
 
 // #pragma enable_d3d11_debug_symbols
 
+StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;
+
 #ifdef ENABLE_MSAA
     TEXTURE2D_X(_CameraDepthValues);
-#endif
+#endif // ENABLE_MSAA
 
-#define DEFERRED_SHADOW_TILE_SIZE 8
+#ifdef USE_FEATURE_FLAGS
+StructuredBuffer<uint> g_TileFeatureFlags;
+uniform uint g_NumTiles;
+uniform uint g_NumTilesX;
+#endif // USE_FEATURE_FLAGS
 
-float SampleDepth(float2 UV, bool HalfRes)
+#define DEFERRED_SHADOW_TILE_SIZE   8
+#define TILE_SIZE                   4
+
+float SampleDepth(float2 UV, bool HalfResTracing)
 {
-    float2 pixelCoord = UV.xy * _ScreenSize.xy;
+    uint2 pixelCoord = UV.xy * _ScreenSize.xy;
 
-    if (HalfRes)
-    {
-        pixelCoord.x *= 0.5f;
-        pixelCoord.y = pixelCoord.y * 0.5f + _RenderTargetHeight;
-    }
+     if (HalfResTracing)
+     {
+         uint mipLevel = 1;
+         pixelCoord >>= mipLevel;
+
+         pixelCoord += _DepthPyramidMipLevelOffsets[mipLevel];
+     }
 
     return LoadCameraDepth(pixelCoord);
 }
@@ -109,7 +123,7 @@ bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLengt
 #else
         // Depth buffer depth for this sample
         float sampleDepth = SampleDepth(saturate(sampleAlongRay.xy), tracingHalfRes);
-#endif
+#endif // ENABLE_MSAA
 
         float depthDiff = sampleDepth - sampleAlongRay.z;
 
@@ -168,22 +182,27 @@ void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    uint2 pixelCoord = groupId * DEFERRED_SHADOW_TILE_SIZE + groupThreadId;
-    // There might be a mismatch between the size of a tile and the group size of this shader.
-    uint2 tileCoord = (groupId * DEFERRED_SHADOW_TILE_SIZE) / (TILE_SIZE_FPTL);
+    uint2 pixelCoord = groupId * (uint2)DEFERRED_SHADOW_TILE_SIZE + groupThreadId;
+    uint contactShadowValue = 0;
+
+#ifdef HALF_RESOLUTION
+    pixelCoord *= 2;
+#endif // HALF_RESOLUTION
+
+    uint2 tileId = pixelCoord / (TILE_SIZE * TILE_SIZE);
 
 #ifdef ENABLE_MSAA
     float depth = LOAD_TEXTURE2D_X(_CameraDepthValues, pixelCoord.xy).z;
 #else
-    float depth = LoadCameraDepth(pixelCoord.xy);
-#endif
+    float depth = SampleDepth(pixelCoord * _ScreenSize.zw, true);
+#endif // ENABLE_MSAA
 
-    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord);
+    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileId);
 
     // discard the shadow if we're on the sky or outside of the contact shadow range
     if (depth == UNITY_RAW_FAR_CLIP_VALUE || posInput.linearDepth - _ContactShadowFadeEnd > 1 || posInput.linearDepth < _ContactShadowMinDistance)
     {
-        _ContactShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = 0;
+        //_ContactShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = 0;
 
         // TODO: investigate why the following return statement generates invalid glsl code when TEXTURE_2D_X is set to expand to Texture2DArray
         //return;
@@ -195,7 +214,12 @@ void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
         // the fade is combined for all lights and stored in the 8 remaining bits of the R32 target
         float   globalFade = 0.0;
 
+#ifdef USE_FEATURE_FLAGS
+        uint tileIndex = tileId.y * g_NumTilesX + tileId.x;
+        uint featureFlags = g_TileFeatureFlags[tileIndex + unity_StereoEyeIndex * g_NumTiles];
+#else
         uint featureFlags = ~0;
+#endif // USE_FEATURE_FLAGS
 
         // Do the contact shadow for the directional light
         if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
@@ -213,11 +237,18 @@ void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
                     // be tested in the lightloop, so it insert 1 at the index of the contact shadow if there is a contact shadow
                     // we take full bits at one multiplied by contact shadow and filter the bit at the contact shadow index.
                     contactShadowMask |= light.contactShadowMask * occluded;
-                }
 
+#ifdef DIRECTIONAL_ONLY
+                    // When in low mode, we only store the directional light contact shadow into an 8 bit target
+                    // So, we encode the shadow into the fade value and exit the loop directly.
+                    globalFade *= occluded;
+                    break;
+#endif // DIRECTIONAL_ONLY
+                }
             }
         }
 
+#ifndef DIRECTIONAL_ONLY
         // iterate over all point/spot lights
         if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
         {
@@ -225,10 +256,10 @@ void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
 
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
             GetCountAndStart(posInput, LIGHTCATEGORY_PUNCTUAL, lightStart, lightCount);
-#else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+#else
             lightCount = _PunctualLightCount;
             lightStart = 0;
-#endif
+#endif // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
             uint startFirstLane = 0;
             bool fastPath;
 
@@ -261,7 +292,10 @@ void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
                 }
             }
         }
+#endif // DIRECTIONAL_ONLY
 
-        _ContactShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = PackContactShadowData(globalFade, contactShadowMask);
+        contactShadowValue = PackContactShadowData(globalFade, contactShadowMask);
     }
+
+    _ContactShadowTextureUAV[COORD_TEXTURE2D_X(groupId * DEFERRED_SHADOW_TILE_SIZE + groupThreadId)] = contactShadowValue;
 }

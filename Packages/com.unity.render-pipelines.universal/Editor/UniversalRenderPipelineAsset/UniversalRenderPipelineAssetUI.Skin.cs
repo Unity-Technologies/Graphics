@@ -145,16 +145,16 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUIUtility.TrTextContent("\"BatchRendererGroup Variants\" setting must be \"Keep All\". To fix, modify Graphics settings and set \"BatchRendererGroup Variants\" to \"Keep All\".");
             public static GUIContent staticBatchingInfoMessage =
                 EditorGUIUtility.TrTextContent("Static Batching is not recommended when using GPU draw submission modes, performance may improve if Static Batching is disabled in Player Settings.");
-            public static GUIContent lightModeErrorMessage =
-                EditorGUIUtility.TrTextContent("Rendering Path must be set to Forward+ or Deferred+ for correct lighting and reflections. One or more entries in the RendererList are not set to this mode.");
+            public static readonly string lightModeErrorFormatter = L10n.Tr("Rendering Path must be set to Forward+ or Deferred+ for correct lighting and reflections. Renderers to change: {0}.");
             public static GUIContent renderGraphNotEnabledErrorMessage =
                 EditorGUIUtility.TrTextContent("Render Graph must be enabled to use occlusion culling.");
             public static GUIContent stencilLodCrossFadeWarningMessage =
                 EditorGUIUtility.TrTextContent("LOD Cross Fade with stencil dithering is not compatible with stencil override in Renderer.");
             
-            public static readonly string formatterOnTileValidationOneRenderer = L10n.Tr("'{0}' will be skipped because it is incompatible with the enabled 'On-Tile Validation' on the Renderer: {1}.");
-            public static readonly string formatterOnTileValidationMultipleRenderer = L10n.Tr("'{0}' will be skipped whenever an active renderer uses 'On-Tile Validation' setting, such as: {1}.");
-            public static readonly string suffixWhenDifferentPositionOnTileValidation = L10n.Tr(" (different position)");
+            public static readonly string formatterTileOnlyMode = L10n.Tr("'{0}' will be skipped because it is incompatible with the enabled 'Tile-Only Mode'. Affected renderers: {1}.");
+            public static readonly string tileOnlyModeMaybeMessage = L10n.Tr("'{0}' might be skipped when 'Tile-Only Mode' is enabled. Renderer Features can provide this functionality, so behavior can vary. Affected renderers: {1}.");
+            public static readonly string msaaTileOnlyInfo = L10n.Tr("'{0}' is supported in 'Tile-Only Mode'. However, in the Editor and on platforms where the back buffer does not support MSAA, URP forces MSAA to None to keep data in Tile Memory. Affected renderers: {1}.");
+            public static readonly string suffixWhenDifferentPositionTileOnlyMode = L10n.Tr(" (different position)");
 
             // Dropdown menu options
             public static string[] mainLightOptions = { "Disabled", "Per Pixel" };

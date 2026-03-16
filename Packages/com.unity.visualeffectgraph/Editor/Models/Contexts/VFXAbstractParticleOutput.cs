@@ -722,7 +722,8 @@ namespace UnityEditor.VFX
                 var shaderTags = new VFXShaderWriter();
                 var renderQueueStr = subOutput.GetRenderQueueStr();
                 var renderTypeStr = isBlendModeOpaque ? "Opaque" : "Transparent";
-                shaderTags.Write(string.Format("Tags {{ \"Queue\"=\"{0}\" \"IgnoreProjector\"=\"{1}\" \"RenderType\"=\"{2}\" }}", renderQueueStr, !isBlendModeOpaque, renderTypeStr));
+                var renderPipelineTagStr = subOutput.GetRenderPipelineTagStr();
+                shaderTags.Write($"Tags {{ \"Queue\"=\"{renderQueueStr}\" \"IgnoreProjector\"=\"{!isBlendModeOpaque}\" \"RenderType\"=\"{renderTypeStr}\" \"RenderPipeline\" = \"{renderPipelineTagStr}\" }}");
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXShaderTags}", shaderTags);
 
                 foreach (var additionnalStencilReplacement in subOutput.GetStencilStateOverridesStr())

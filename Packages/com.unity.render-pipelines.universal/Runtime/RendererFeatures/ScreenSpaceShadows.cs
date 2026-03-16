@@ -104,6 +104,18 @@ namespace UnityEngine.Rendering.Universal
             return m_Material != null;
         }
 
+        /// <summary>
+        /// Pass that renders screen-space shadows by sampling the main light shadow map.
+        ///
+        /// This pass reconstructs world positions from the depth prepass (cameraDepthTexture),
+        /// transforms them to shadow space, and samples the shadow map to produce a screen-space
+        /// shadow texture. This is more efficient than traditional forward shadow sampling per-pixel.
+        ///
+        /// IMPORTANT: World position reconstruction from depth requires the inverse view-projection matrix
+        /// (unity_MatrixInvVP) to match the UV origin of the depth texture. In Tile-Only Mode and
+        /// direct-to-backbuffer scenarios, the depth texture orientation may differ from the active
+        /// render target, requiring explicit matrix setup. See ExecutePass for details.
+        /// </summary>
         private class ScreenSpaceShadowsPass : ScriptableRenderPass
         {
             // Private Variables
@@ -126,20 +138,26 @@ namespace UnityEngine.Rendering.Universal
 
                 return m_Material != null;
             }
-            
+
             private class PassData
             {
                 internal TextureHandle target;
+                internal TextureHandle cameraDepthTexture;
+                internal TextureHandle activeTarget;
                 internal Material material;
+                internal UniversalCameraData cameraData;
             }
 
             /// <summary>
             /// Initialize the shared pass data.
             /// </summary>
             /// <param name="passData"></param>
-            private void InitPassData(ref PassData passData)
+            private void InitPassData(ref PassData passData, in TextureHandle cameraDepthTexture, in TextureHandle activeTarget, UniversalCameraData cameraData)
             {
                 passData.material = m_Material;
+                passData.cameraDepthTexture = cameraDepthTexture;
+                passData.activeTarget = activeTarget;
+                passData.cameraData = cameraData;
             }
 
             public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
@@ -149,7 +167,9 @@ namespace UnityEngine.Rendering.Universal
                     Debug.LogErrorFormat("{0}.Execute(): Missing material. ScreenSpaceShadows pass will not execute. Check for missing reference in the renderer resources.", GetType().Name);
                     return;
                 }
-                UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+                var cameraData = frameData.Get<UniversalCameraData>();
+                var resourceData = frameData.Get<UniversalResourceData>();
+
                 var desc = cameraData.cameraTargetDescriptor;
                 desc.depthStencilFormat = GraphicsFormat.None;
                 desc.msaaSamples = 1;
@@ -170,8 +190,10 @@ namespace UnityEngine.Rendering.Universal
                 {
                     passData.target = color;
                     builder.UseTexture(color, AccessFlags.WriteAll);
+                    builder.UseTexture(resourceData.cameraDepthTexture);
 
-                    InitPassData(ref passData);
+                    // activeColorTexture is always valid here since AddRenderPasses returns early for offscreen depth cameras
+                    InitPassData(ref passData, resourceData.cameraDepthTexture, resourceData.activeColorTexture, cameraData);
                     builder.AllowGlobalStateModification(true);
 
                     if (color.IsValid())
@@ -179,17 +201,44 @@ namespace UnityEngine.Rendering.Universal
 
                     builder.SetRenderFunc(static (PassData data, UnsafeGraphContext rgContext) =>
                     {
-                        ExecutePass(rgContext.cmd, data, data.target);
+                        ExecutePass(rgContext, data);
                     });
                 }
             }
 
-            private static void ExecutePass(UnsafeCommandBuffer cmd, PassData data, RTHandle target)
+            private static void ExecutePass(UnsafeGraphContext rgContext, PassData data)
             {
-                Blitter.BlitTexture(cmd, target, Vector2.one, data.material, 0);
+                var cmd = rgContext.cmd;
+
+                // CRITICAL FIX for Tile-Only Mode and direct-to-backbuffer rendering:
+                //
+                // The shader reconstructs world positions from depth using:
+                //   float3 wpos = ComputeWorldSpacePosition(uv, depth, unity_MatrixInvVP);
+                //
+                // The global unity_MatrixInvVP might be set for the active render target's orientation (e.g., TopLeft in Tile-Only Mode),
+                // but cameraDepthTexture was rendered with a potentially different orientation (always BottomLeft - it's an intermediate texture).
+                //
+                // When orientations don't match, the Y-coordinate in world-space reconstruction is inverted, causing shadow lookups
+                // to sample from the wrong world positions → shadows appear upside down.
+                //
+                // FIX: Temporarily set unity_MatrixInvVP to match cameraDepthTexture's orientation for correct position reconstruction.
+                TextureUVOrigin depthOrigin = rgContext.GetTextureUVOrigin(data.cameraDepthTexture);
+                Matrix4x4 depthInvVP = RenderingUtils.ComputeInverseViewProjectionMatrix(depthOrigin, data.cameraData);
+                cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, depthInvVP);
+
+                // Perform the shadow sampling blit
+                Blitter.BlitTexture(cmd, data.target, Vector2.one, data.material, 0);
+
+                // Set shadow keywords
                 cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadows, false);
                 cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, false);
                 cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowScreen, true);
+
+                // Restore unity_MatrixInvVP to match the active target's orientation for subsequent passes.
+                // Without this, later passes that rely on the global matrix might get incorrect results.
+                TextureUVOrigin activeOrigin = rgContext.GetTextureUVOrigin(data.activeTarget);
+                Matrix4x4 activeInvVP = RenderingUtils.ComputeInverseViewProjectionMatrix(activeOrigin, data.cameraData);
+                cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, activeInvVP);
             }
         }
 

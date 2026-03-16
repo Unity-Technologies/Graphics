@@ -7,12 +7,12 @@
   "unity": "6000.3",
   "description": "This template includes the settings and assets you need to start creating with the High Definition Render Pipeline (HDRP).",
   "dependencies": {
-    "com.unity.collab-proxy": "2.10.0",
+    "com.unity.collab-proxy": "2.11.4",
     "com.unity.feature.development": "1.0.2",
     "com.unity.render-pipelines.high-definition": "17.0.4",
-    "com.unity.timeline": "1.8.9",
+    "com.unity.timeline": "1.8.11",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualscripting": "1.9.7",
-    "com.unity.inputsystem": "1.14.2"
+    "com.unity.inputsystem": "1.19.0"
   }
 }

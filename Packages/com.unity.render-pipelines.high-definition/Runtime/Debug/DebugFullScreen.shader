@@ -406,19 +406,31 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_CONTACT_SHADOWS)
                 {
                     uint2 samplePosition = (uint2)((input.texcoord.xy / _RTHandleScale.xy) * _DebugViewportSize.xy);
+                    if (_ContactShadowHalfResolution == 1)
+                        samplePosition /= 2;
                     uint contactShadowData = LOAD_TEXTURE2D_X(_ContactShadowTexture, samplePosition).r;
 
                     // when the index is -1 we display all contact shadows
                     uint mask = (_DebugContactShadowLightIndex == -1) ? -1 : 1 << _DebugContactShadowLightIndex;
-                    float lightContactShadow = (contactShadowData & mask) != 0;
+                    float lightContactShadow = 0;
+                    if (_ContactShadowDirectionalOnly == 1)
+                        lightContactShadow = contactShadowData / 255.0;
+                    else
+                        lightContactShadow = (contactShadowData & mask) != 0;
 
                     return float4(1.0 - lightContactShadow.xxx, 0.0);
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_CONTACT_SHADOWS_FADE)
                 {
                     uint2 samplePosition = (uint2)((input.texcoord.xy / _RTHandleScale.xy) * _DebugViewportSize.xy);
+                    if (_ContactShadowHalfResolution == 1)
+                        samplePosition /= 2;
                     uint contactShadowData = LOAD_TEXTURE2D_X(_ContactShadowTexture, samplePosition).r;
-                    float fade = float((contactShadowData >> 24)) / 255.0;
+                    float fade = 0;
+                    if (_ContactShadowDirectionalOnly == 1)
+                        fade = contactShadowData / 255.0;
+                    else
+                        fade = float((contactShadowData >> 24)) / 255.0;
 
                     return float4(fade.xxx, 0.0);
                 }

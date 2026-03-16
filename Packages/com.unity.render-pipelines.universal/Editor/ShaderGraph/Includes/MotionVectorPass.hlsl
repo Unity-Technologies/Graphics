@@ -184,6 +184,9 @@ float4 frag(
 
 
 #if defined(APPLICATION_SPACE_WARP_MOTION)
+    #if APPLICATION_SPACE_WARP_MOTION_TRANSPARENT && defined(_SURFACE_TYPE_TRANSPARENT)
+        clip(surfaceDescription.Alpha - 0.001);
+    #endif
     return float4(CalcAswNdcMotionVectorFromCsPositions(mvInput.positionCSNoJitter, mvInput.previousPositionCSNoJitter), 1);
 #else
     return float4(CalcNdcMotionVectorFromCsPositions(mvInput.positionCSNoJitter, mvInput.previousPositionCSNoJitter), 0, 0);

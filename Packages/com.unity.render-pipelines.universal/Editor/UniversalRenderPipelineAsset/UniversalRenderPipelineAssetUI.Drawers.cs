@@ -132,7 +132,7 @@ namespace UnityEditor.Rendering.Universal
         }
 
         public static readonly CED.IDrawer Inspector = CED.Group(
-            CED.Group(PrepareOnTileValidationWarning),
+            CED.Group(PrepareTileOnlyModeWarning),
             CED.AdditionalPropertiesFoldoutGroup(Styles.renderingSettingsText, Expandable.Rendering, k_ExpandedState, ExpandableAdditional.Rendering, k_AdditionalPropertiesState, DrawRendering, DrawRenderingAdditional),
             CED.FoldoutGroup(Styles.qualitySettingsText, Expandable.Quality, k_ExpandedState, DrawQuality),
             CED.AdditionalPropertiesFoldoutGroup(Styles.lightingSettingsText, Expandable.Lighting, k_ExpandedState, ExpandableAdditional.Lighting, k_AdditionalPropertiesState, DrawLighting, DrawLightingAdditional),
@@ -160,10 +160,10 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox(Styles.rendererUnsupportedAPIMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
 
             EditorGUILayout.PropertyField(serialized.requireDepthTextureProp, Styles.requireDepthTextureText);
-            DisplayOnTileValidationWarning(serialized.requireDepthTextureProp, p => p.boolValue, Styles.requireDepthTextureText);
+            DisplayTileOnlyHelpBox(serialized.requireDepthTextureProp, p => p.boolValue, Styles.requireDepthTextureText);
 
             EditorGUILayout.PropertyField(serialized.requireOpaqueTextureProp, Styles.requireOpaqueTextureText);
-            DisplayOnTileValidationWarning(serialized.requireOpaqueTextureProp, p => p.boolValue, Styles.requireOpaqueTextureText);
+            DisplayTileOnlyHelpBox(serialized.requireOpaqueTextureProp, p => p.boolValue, Styles.requireOpaqueTextureText);
 
             EditorGUI.BeginDisabledGroup(!serialized.requireOpaqueTextureProp.boolValue);
             EditorGUILayout.PropertyField(serialized.opaqueDownsamplingProp, Styles.opaqueDownsamplingText);
@@ -181,7 +181,7 @@ namespace UnityEditor.Rendering.Universal
                 ++EditorGUI.indentLevel;
                 serialized.smallMeshScreenPercentage.floatValue = Mathf.Clamp(EditorGUILayout.FloatField(Styles.smallMeshScreenPercentage, serialized.smallMeshScreenPercentage.floatValue), 0.0f, 20.0f);
                 EditorGUILayout.PropertyField(serialized.gpuResidentDrawerEnableOcclusionCullingInCameras, Styles.gpuResidentDrawerEnableOcclusionCullingInCameras);
-                DisplayOnTileValidationWarning(serialized.gpuResidentDrawerEnableOcclusionCullingInCameras, p => p.boolValue, Styles.gpuResidentDrawerEnableOcclusionCullingInCameras);
+                DisplayTileOnlyHelpBox(serialized.gpuResidentDrawerEnableOcclusionCullingInCameras, p => p.boolValue, Styles.gpuResidentDrawerEnableOcclusionCullingInCameras);
                 --EditorGUI.indentLevel;
 
                 if (brgStrippingError)
@@ -193,7 +193,10 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
                 if (lightingModeError)
-                    EditorGUILayout.HelpBox(Styles.lightModeErrorMessage.text, MessageType.Warning, true);
+                {
+                    var renderersToChange = GetRendererNamesWithoutCorrectLightingMode(serialized.asset);
+                    EditorGUILayout.HelpBox(string.Format(Styles.lightModeErrorFormatter, renderersToChange), MessageType.Error, true);
+                }
                 if (staticBatchingWarning)
                     EditorGUILayout.HelpBox(Styles.staticBatchingInfoMessage.text, MessageType.Info, true);
             }
@@ -214,6 +217,41 @@ namespace UnityEditor.Rendering.Universal
 
             return true;
         }
+
+        /// <summary>Formats renderer names as "'Name1', 'Name2'" using pooled StringBuilder. Shared by Tile-Only Mode and lighting mode messages.</summary>
+        static string FormatRendererNames(IEnumerable<ScriptableRendererData> collection, string suffix = "")
+        {
+            if (collection == null)
+                return string.Empty;
+            using var _ = StringBuilderPool.Get(out var sb);
+            var first = true;
+            foreach (var r in collection)
+            {
+                if (r == null)
+                    continue;
+                if (!first)
+                    sb.Append(", ");
+                sb.Append("'").Append(r.name).Append("'").Append(suffix);
+                first = false;
+            }
+            return sb.ToString();
+        }
+
+        private static IEnumerable<ScriptableRendererData> GetRenderersWithoutCorrectLightingMode(UniversalRenderPipelineAsset asset)
+        {
+            if (asset?.m_RendererDataList == null)
+                yield break;
+            foreach (var rendererData in asset.m_RendererDataList)
+            {
+                if (rendererData == null)
+                    continue;
+                if (rendererData is not UniversalRendererData universalRendererData || !universalRendererData.usesClusterLightLoop)
+                    yield return rendererData;
+            }
+        }
+
+        private static string GetRendererNamesWithoutCorrectLightingMode(UniversalRenderPipelineAsset asset)
+            => FormatRendererNames(GetRenderersWithoutCorrectLightingMode(asset));
 
         static void DrawRenderingAdditional(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
@@ -243,15 +281,15 @@ namespace UnityEditor.Rendering.Universal
             DrawHDR(serialized, ownerEditor);
 
             EditorGUILayout.PropertyField(serialized.msaa, Styles.msaaText);            
-            DisplayOnTileValidationWarning(
+            DisplayTileOnlyHelpBox(
                 serialized.msaa, 
                 p => p.intValue != (int)MsaaQuality.Disabled
                     // This operation is actually ok on Quest
                     && !IsAndroidXRTargetted(), 
-                Styles.msaaText);
+                Styles.msaaText, MessageType.Info, Styles.msaaTileOnlyInfo);
 
             serialized.renderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, serialized.renderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
-            DisplayOnTileValidationWarning(
+            DisplayTileOnlyHelpBox(
                 serialized.renderScale, 
                 p =>
                 {
@@ -328,7 +366,7 @@ namespace UnityEditor.Rendering.Universal
                 serialized.selectedUpscalerName.stringValue = namesArray[selectedIndex];
             }
 
-            DisplayOnTileValidationWarning(serialized.upscalingFilter, p => serialized.selectedUpscalerName.stringValue != UniversalRenderPipeline.k_UpscalerName_Auto, Styles.upscalingFilterText);
+            DisplayTileOnlyHelpBox(serialized.upscalingFilter, p => serialized.selectedUpscalerName.stringValue != UniversalRenderPipeline.k_UpscalerName_Auto, Styles.upscalingFilterText);
 
             // --- 5. Draw Options per upscaler ---
             string selectedName = namesArray[selectedIndex];
@@ -417,7 +455,7 @@ namespace UnityEditor.Rendering.Universal
                 serialized.upscalingFilter.enumValueIndex = Math.Min(selectedIndex, (int)UpscalingFilterSelection.STP);
             }
 
-            DisplayOnTileValidationWarning(serialized.upscalingFilter, p => p.intValue != (int)UpscalingFilterSelection.Auto, Styles.upscalingFilterText);
+            DisplayTileOnlyHelpBox(serialized.upscalingFilter, p => p.intValue != (int)UpscalingFilterSelection.Auto, Styles.upscalingFilterText);
 
             // draw upscaler options, if any
             switch (serialized.asset.upscalingFilter)
@@ -451,10 +489,14 @@ namespace UnityEditor.Rendering.Universal
 #endif
         }
 
+        public static readonly string disabledPostprocessing = L10n.Tr("HDR is not supported by one of the Universal Render Pipeline renderers.");
+
         static void DrawHDR(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
             EditorGUILayout.PropertyField(serialized.hdr, Styles.hdrText);
-            DisplayOnTileValidationWarning(serialized.hdr, p => p.boolValue, Styles.hdrText);
+
+            // A ScriptableRenderFeature can add HDR, for example the OnTilePostProcessing extension.
+            DisplayTileOnlyHelpBox(serialized.hdr, p => p.boolValue, Styles.hdrText, customMessage: Styles.tileOnlyModeMaybeMessage);
 
             // Nested and in-between additional property
             bool additionalProperties = k_ExpandedState[Expandable.Quality] && k_AdditionalPropertiesState[ExpandableAdditional.Quality];
@@ -859,8 +901,6 @@ namespace UnityEditor.Rendering.Universal
 
         static void DrawPostProcessing(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
-            DisplayOnTileValidationWarningForPostProcessingSection(Styles.postProcessingSettingsText);
-
             EditorGUILayout.PropertyField(serialized.colorGradingMode, Styles.colorGradingMode);
             bool isHdrOn = serialized.hdr.boolValue;
             if (!isHdrOn && serialized.colorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
@@ -942,36 +982,33 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.useAdaptivePerformance, Styles.useAdaptivePerformance);
         }
 #endif
-        
-        struct OnTileValidationInfos
+        struct TileOnlyModeInfos
         {
-            public bool enabled => !string.IsNullOrEmpty(formatter);
-            public readonly string formatter;
+            public bool enabled => !string.IsNullOrEmpty(rendererNames);
+            public readonly bool isSingleRendererCase;
             public readonly string rendererNames;
-            public readonly string rendererNamesWithPostProcess;
 
-            public OnTileValidationInfos(string formatter, string rendererNames, string rendererNamesWithPostProcess)
+            public TileOnlyModeInfos(bool isSingleRendererCase, string rendererNames)
             {
-                this.formatter = formatter;
+                this.isSingleRendererCase = isSingleRendererCase;
                 this.rendererNames = rendererNames;
-                this.rendererNamesWithPostProcess = rendererNamesWithPostProcess;
             }
         }
 
-        static OnTileValidationInfos lastOnTileValidationInfos; //prevent computing this multiple time for this ImGUI frame
+        static TileOnlyModeInfos lastTileOnlyModeInfos; //prevent computing this multiple time for this ImGUI frame
 
-        static void PrepareOnTileValidationWarning(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
+        static void PrepareTileOnlyModeWarning(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
             // Rules:
             //   - mono selection:
-            //      - only 1 Renderer in the list: Display warning if RendererData's OnTileValidation is enabled
-            //      - many Renderers in the list: Display warning with list of RendererData's where OnTileValidation is enabled
+            //      - only 1 Renderer in the list: Display warning if RendererData's Tile-Only Mode is enabled
+            //      - many Renderers in the list: Display warning with list of RendererData's where Tile-Only Mode is enabled
             //   - multi selection:
-            //      - compute the list interection of RendererDatas where OnTileValidation is enabled amongst all URPAsset in selection
+            //      - compute the list interection of RendererDatas where Tile-Only Mode is enabled amongst all URPAsset in selection
             //      - If list is not empty, display warning with this list. Additionaly specify for item iden due to being at different position
             //   - Additionally for both, for Post Processing section: only show names where Post Processing is enabled
 
-            lastOnTileValidationInfos = default;
+            lastTileOnlyModeInfos = default;
             
             // If impacted section are not opened, early exit
             if (!(k_ExpandedState[Expandable.Rendering] || k_ExpandedState[Expandable.Quality] || k_ExpandedState[Expandable.PostProcessing]))
@@ -997,7 +1034,7 @@ namespace UnityEditor.Rendering.Universal
                 } 
             }
             
-            // Helper to filter the list and get only unique result of UniversalRendererData that have the OnTileValidation.
+            // Helper to filter the list and get only unique result of UniversalRendererData that have Tile-Only Mode.
             // The returned IDisposable is for being able to return the HashSet to the pool when Dispose is call like at end of Using. 
             IDisposable SelectUniqueAndCast(IEnumerable<SerializedProperty> properties, out HashSet<UniversalRendererData> uniques)
             {
@@ -1006,51 +1043,16 @@ namespace UnityEditor.Rendering.Universal
                 while (e.MoveNext())
                     if (!e.Current.hasMultipleDifferentValues 
                         && e.Current.boxedValue is UniversalRendererData universalData 
-                        && universalData.onTileValidation)
+                        && universalData.tileOnlyMode)
                         uniques.Add(universalData);
                 return disposer;
             }
-            
-            // Additional select to filter the one that have PostProcessing enabled.
-            IEnumerable<UniversalRendererData> WherePostProcessingEnabled(IEnumerable<UniversalRendererData> renderer)
-            {
-                var e = renderer.GetEnumerator();
-                while (e.MoveNext())
-                    if (e.Current.postProcessData != null)
-                        yield return e.Current;
-            }
 
-            // Helper to draw the name in the collection as a string, between '' and with a coma separator 
-            string ListElementNames(IEnumerable<UniversalRendererData> collection, string suffix = "")
-            {
-                var e = collection.GetEnumerator();
-                if (!e.MoveNext())
-                    return string.Empty;
-
-                string GetName(IEnumerator<UniversalRendererData> e)
-                    => $"'{e.Current.name}'{suffix}";
-
-                string last = GetName(e);
-                if (!e.MoveNext())
-                    return last;
-
-                using var o = StringBuilderPool.Get(out var sb);
-                do
-                {
-                    sb.Append(last);
-                    last = $", {GetName(e)}";
-                }
-                while (e.MoveNext());
-                sb.Append(last);
-
-                return sb.ToString();
-            }
-            
             // Helper for multiple selection to distinguish element that remain at stable position (in the selection) from others
             string ConcatCollectionInName(IEnumerable<UniversalRendererData> rightlyPositioned, IEnumerable<UniversalRendererData> wronglyPositioned)
             {
-                var firstPart = ListElementNames(rightlyPositioned);
-                var secondPart = ListElementNames(wronglyPositioned, Styles.suffixWhenDifferentPositionOnTileValidation);
+                var firstPart = FormatRendererNames(rightlyPositioned);
+                var secondPart = FormatRendererNames(wronglyPositioned, Styles.suffixWhenDifferentPositionTileOnlyMode);
                 if (string.IsNullOrEmpty(firstPart))
                     return secondPart;
                 if (string.IsNullOrEmpty(secondPart)) 
@@ -1059,7 +1061,6 @@ namespace UnityEditor.Rendering.Universal
             }
 
             string names = null;
-            string namesWithPostProcess = null;
             if (!serialized.rendererDatas.hasMultipleDifferentValues)
             {
                 // Simple case: all element selected share the same list.
@@ -1070,46 +1071,41 @@ namespace UnityEditor.Rendering.Universal
                         return;
 
                     if (k_ExpandedState[Expandable.Rendering] || k_ExpandedState[Expandable.Quality])
-                        names = ListElementNames(renderers);
+                        names = FormatRendererNames(renderers);
 
-                    if (k_ExpandedState[Expandable.PostProcessing])
-                        namesWithPostProcess = ListElementNames(WherePostProcessingEnabled(renderers));
-                
-                    lastOnTileValidationInfos = new OnTileValidationInfos(
-                        serialized.rendererDatas.arraySize == 1 ? Styles.formatterOnTileValidationOneRenderer : Styles.formatterOnTileValidationMultipleRenderer,
-                        names,
-                        namesWithPostProcess);
+                    bool isSingleRendererCase = serialized.rendererDatas.arraySize == 1;
+                    lastTileOnlyModeInfos = new TileOnlyModeInfos(isSingleRendererCase, names);
                     return;
                 }
             }
 
             // Complex case: the renderer list is different in some elements of the selection
 
-            // Let's compute the intersection of each RendererList where it is a UniversalRenderer with On-Tile Validation enabled.
+            // Let's compute the intersection of each RendererList where it is a UniversalRenderer with Tile-Only Mode enabled.
             // If the intersection is empty, it would means no RendererData validate the criteria so we early exit.
 
             // We can retrieve element at stable position by directly checking the serialization of the selection.
             // Elements in the intersection that are not in the stable positio list are elements shared in all list but with moving index.
 
 
-            // Helper to build the HashSet of UniversalRenderer that have OnTileValidation on one targeted asset.
+            // Helper to build the HashSet of UniversalRenderer that have Tile-Only Mode on one targeted asset.
             // The returned IDisposable is for being able to return the HashSet to the pool when Dispose is call like at end of Using.
-            IDisposable GetUniversalRendererWithOnTileValidationEnabled(UniversalRenderPipelineAsset asset, out HashSet<UniversalRendererData> set)
+            IDisposable GetUniversalRendererWithTileOnlyModeEnabled(UniversalRenderPipelineAsset asset, out HashSet<UniversalRendererData> set)
             {
                 IDisposable disposer = HashSetPool<UniversalRendererData>.Get(out set);
                 for (int rendererIndex = 0; rendererIndex < asset.rendererDataList.Length; ++rendererIndex)
-                    if (asset.rendererDataList[rendererIndex] is UniversalRendererData universalData && universalData.onTileValidation)
+                    if (asset.rendererDataList[rendererIndex] is UniversalRendererData universalData && universalData.tileOnlyMode)
                         set.Add(universalData);
                 return disposer;
             }
 
-            using (GetUniversalRendererWithOnTileValidationEnabled((UniversalRenderPipelineAsset)serialized.serializedObject.targetObjects[0], out var movingPositions))
+            using (GetUniversalRendererWithTileOnlyModeEnabled((UniversalRenderPipelineAsset)serialized.serializedObject.targetObjects[0], out var movingPositions))
             {
                 if (movingPositions.Count == 0)
                     return;
 
                 for (int i = 1; i < serialized.serializedObject.targetObjects.Length; ++i)
-                    using (GetUniversalRendererWithOnTileValidationEnabled((UniversalRenderPipelineAsset)serialized.serializedObject.targetObjects[i], out var otherIntersection))
+                    using (GetUniversalRendererWithTileOnlyModeEnabled((UniversalRenderPipelineAsset)serialized.serializedObject.targetObjects[i], out var otherIntersection))
                     {
                         if (otherIntersection.Count == 0)
                             return;
@@ -1124,38 +1120,29 @@ namespace UnityEditor.Rendering.Universal
                         movingPositions.Remove(stablePositionElement);
 
                     if (k_ExpandedState[Expandable.Rendering] || k_ExpandedState[Expandable.Quality])
-                        names = ConcatCollectionInName(stablePositions, movingPositions);
-                        
-                    if (k_ExpandedState[Expandable.PostProcessing])
-                        namesWithPostProcess = ConcatCollectionInName(WherePostProcessingEnabled(stablePositions), WherePostProcessingEnabled(movingPositions));
+                        names = ConcatCollectionInName(stablePositions, movingPositions);                        
                 }
 
-                lastOnTileValidationInfos = new OnTileValidationInfos(Styles.formatterOnTileValidationMultipleRenderer, names, namesWithPostProcess);
+                lastTileOnlyModeInfos = new TileOnlyModeInfos(
+                    isSingleRendererCase: false,
+                    rendererNames: names
+                );
             }
         }
 
-        static void DisplayOnTileValidationWarning(SerializedProperty prop, Func<SerializedProperty, bool> shouldDisplayWarning, GUIContent label = null)
+        static void DisplayTileOnlyHelpBox(SerializedProperty prop, Func<SerializedProperty, bool> shouldDisplay, GUIContent label, MessageType messageType = MessageType.Warning, string customMessage = null)
         {
-            if (prop == null 
-                || shouldDisplayWarning == null 
-                || !lastOnTileValidationInfos.enabled
-                || !shouldDisplayWarning(prop))
+            if (prop == null
+                || shouldDisplay == null
+                || !lastTileOnlyModeInfos.enabled
+                || !shouldDisplay(prop))
                 return;
 
-            EditorGUILayout.HelpBox(
-                string.Format(lastOnTileValidationInfos.formatter, label == null ? prop.displayName : label.text, lastOnTileValidationInfos.rendererNames), 
-                MessageType.Warning);
-        }
-        
-        //variant for a whole section such as post processing
-        static void DisplayOnTileValidationWarningForPostProcessingSection(GUIContent label)
-        {
-            if (label == null || !lastOnTileValidationInfos.enabled || string.IsNullOrEmpty(lastOnTileValidationInfos.rendererNamesWithPostProcess))
-                return;
-            
-            EditorGUILayout.HelpBox(
-                string.Format(lastOnTileValidationInfos.formatter, label.text, lastOnTileValidationInfos.rendererNamesWithPostProcess), 
-                MessageType.Warning);
+            var fmt = !string.IsNullOrEmpty(customMessage) ? customMessage : Styles.formatterTileOnlyMode;
+            var labelText = label == null ? prop.displayName : label.text;
+            string message = string.Format(fmt, labelText, lastTileOnlyModeInfos.rendererNames);
+
+            EditorGUILayout.HelpBox(message, messageType);
         }
     }
 }

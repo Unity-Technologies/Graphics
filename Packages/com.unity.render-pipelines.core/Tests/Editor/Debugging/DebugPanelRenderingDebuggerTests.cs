@@ -191,8 +191,6 @@ namespace UnityEditor.Rendering.Tests
             Assert.IsNotNull(visualElement, $"{widgetName} should create non-null VisualElement");
         }
 
-        #region Value Get/Set Tests
-
         static TestCaseData[] GetSetFieldTestCases()
         {
             var testData = new DebugPanelDisplaySettings.DebugPanelDisplaySettingsData();
@@ -389,10 +387,6 @@ namespace UnityEditor.Rendering.Tests
             }
         }
 
-        #endregion
-
-        #region isHiddenCallback Tests
-
         [Test]
         public void NumberHiddenFields_ShouldBeHidden_WhenBothConditionsAreMet()
         {
@@ -456,7 +450,199 @@ namespace UnityEditor.Rendering.Tests
             data.enumField = EnumValues.TypeC;
             Assert.IsFalse(widget.isHiddenCallback(), "Container should be visible when enumField is TypeC");
         }
-        #endregion
+
+        [Test]
+        public void SearchFilter_MatchesBasicText()
+        {
+            var widget = WidgetFactory.CreateIntField(data);
+            widget.displayName = "Test Widget";
+
+            var visualElement = widget.ToVisualElement(DebugUI.Context.Editor);
+            var textElements = visualElement.Query<TextElement>(className: "debug-window-search-filter-target").ToList();
+
+            var cache = new Dictionary<DebugUI.Widget, WidgetSearchData>
+            {
+                [widget] = new WidgetSearchData(textElements, string.Empty)
+            };
+
+            DebugWindow.PerformSearch(cache, "test", hideRootElementIfNoMatch: true);
+
+            Assert.IsFalse(widget.m_IsHiddenBySearchFilter);
+            Assert.IsTrue(textElements[0].text.Contains("<mark="));
+        }
+
+        [Test]
+        public void SearchFilter_HidesNonMatchingWidget()
+        {
+            var widget = WidgetFactory.CreateIntField(data);
+            widget.displayName = "Alpha";
+
+            var visualElement = widget.ToVisualElement(DebugUI.Context.Editor);
+            var textElements = visualElement.Query<TextElement>(className: "debug-window-search-filter-target").ToList();
+
+            var cache = new Dictionary<DebugUI.Widget, WidgetSearchData>
+            {
+                [widget] = new WidgetSearchData(textElements, string.Empty)
+            };
+
+            DebugWindow.PerformSearch(cache, "beta", hideRootElementIfNoMatch: true);
+
+            Assert.IsTrue(widget.m_IsHiddenBySearchFilter);
+            Assert.IsFalse(textElements[0].text.Contains("<mark="));
+        }
+
+        [Test]
+        public void SearchFilter_MatchesAdditionalSearchText()
+        {
+            var widget = WidgetFactory.CreateEnumField(data);
+            widget.displayName = "Mode";
+
+            var visualElement = widget.ToVisualElement(DebugUI.Context.Editor);
+            var textElements = visualElement.Query<TextElement>(className: "debug-window-search-filter-target").ToList();
+            string aggregatedText = DebugWindow.CollectAggregatedAdditionalSearchText(widget);
+
+            var cache = new Dictionary<DebugUI.Widget, WidgetSearchData>
+            {
+                [widget] = new WidgetSearchData(textElements, aggregatedText)
+            };
+
+            DebugWindow.PerformSearch(cache, "Type A", hideRootElementIfNoMatch: true);
+
+            Assert.IsFalse(widget.m_IsHiddenBySearchFilter);
+        }
+
+        [Test]
+        public void SearchFilter_ContainerVisibilityWithMatchingChild()
+        {
+            var container = new DebugUI.Foldout { displayName = "Container" };
+            var child = WidgetFactory.CreateIntField(data);
+            child.displayName = "Matching Child";
+            container.children.Add(child);
+
+            var containerVisualElement = container.ToVisualElement(DebugUI.Context.Editor);
+            var childVisualElement = child.ToVisualElement(DebugUI.Context.Editor);
+
+            var containerTextElements = containerVisualElement.Query<TextElement>(className: "debug-window-search-filter-target").ToList();
+            var childTextElements = childVisualElement.Query<TextElement>(className: "debug-window-search-filter-target").ToList();
+
+            var cache = new Dictionary<DebugUI.Widget, WidgetSearchData>
+            {
+                [container] = new WidgetSearchData(containerTextElements, DebugWindow.CollectAggregatedAdditionalSearchText(container)),
+                [child] = new WidgetSearchData(childTextElements, DebugWindow.CollectAggregatedAdditionalSearchText(child))
+            };
+
+            DebugWindow.PerformSearch(cache, "Matching", hideRootElementIfNoMatch: true);
+
+            Assert.IsFalse(container.m_IsHiddenBySearchFilter);
+            Assert.IsFalse(child.m_IsHiddenBySearchFilter);
+        }
+
+        [Test]
+        public void SearchFilter_ChildVisibleWhenParentDoesntMatch()
+        {
+            var container = new DebugUI.Foldout { displayName = "Container" };
+            var child = WidgetFactory.CreateIntField(data);
+            child.displayName = "MatchingChild";
+            container.children.Add(child);
+
+            var containerVisualElement = container.ToVisualElement(DebugUI.Context.Editor);
+            var childVisualElement = child.ToVisualElement(DebugUI.Context.Editor);
+
+            var containerTextElements = containerVisualElement.Query<TextElement>(className: "debug-window-search-filter-target").ToList();
+            var childTextElements = childVisualElement.Query<TextElement>(className: "debug-window-search-filter-target").ToList();
+
+            var cache = new Dictionary<DebugUI.Widget, WidgetSearchData>
+            {
+                [container] = new WidgetSearchData(containerTextElements, DebugWindow.CollectAggregatedAdditionalSearchText(container)),
+                [child] = new WidgetSearchData(childTextElements, DebugWindow.CollectAggregatedAdditionalSearchText(child))
+            };
+
+            DebugWindow.PerformSearch(cache, "MatchingChild", hideRootElementIfNoMatch: true);
+
+            Assert.IsFalse(child.m_IsHiddenBySearchFilter);
+            Assert.IsFalse(container.m_IsHiddenBySearchFilter);
+        }
+
+        [Test]
+        public void SearchFilter_ChildVisibleViaAdditionalTextWhenParentDoesntMatch()
+        {
+            var container = new DebugUI.Foldout { displayName = "Container" };
+            var child = WidgetFactory.CreateEnumField(data);
+            child.displayName = "EnumMode";
+            container.children.Add(child);
+
+            var containerVisualElement = container.ToVisualElement(DebugUI.Context.Editor);
+            var childVisualElement = child.ToVisualElement(DebugUI.Context.Editor);
+
+            var containerTextElements = containerVisualElement.Query<TextElement>(className: "debug-window-search-filter-target").ToList();
+            var childTextElements = childVisualElement.Query<TextElement>(className: "debug-window-search-filter-target").ToList();
+
+            var cache = new Dictionary<DebugUI.Widget, WidgetSearchData>
+            {
+                [container] = new WidgetSearchData(containerTextElements, DebugWindow.CollectAggregatedAdditionalSearchText(container)),
+                [child] = new WidgetSearchData(childTextElements, DebugWindow.CollectAggregatedAdditionalSearchText(child))
+            };
+
+            DebugWindow.PerformSearch(cache, "Type B", hideRootElementIfNoMatch: true);
+
+            Assert.IsFalse(child.m_IsHiddenBySearchFilter);
+            Assert.IsFalse(container.m_IsHiddenBySearchFilter);
+        }
+
+        [Test]
+        public void SearchFilter_CaseInsensitiveMatching()
+        {
+            var widget = WidgetFactory.CreateIntField(data);
+            widget.displayName = "TestWidget";
+
+            var visualElement = widget.ToVisualElement(DebugUI.Context.Editor);
+            var textElements = visualElement.Query<TextElement>(className: "debug-window-search-filter-target").ToList();
+
+            var cache = new Dictionary<DebugUI.Widget, WidgetSearchData>
+            {
+                [widget] = new WidgetSearchData(textElements, string.Empty)
+            };
+
+            string[] searchStrings = { "testwidget", "TESTWIDGET", "TeStWiDgEt" };
+
+            foreach (var searchString in searchStrings)
+            {
+                widget.m_IsHiddenBySearchFilter = false;
+                DebugWindow.PerformSearch(cache, searchString, hideRootElementIfNoMatch: true);
+                Assert.IsFalse(widget.m_IsHiddenBySearchFilter);
+            }
+        }
+
+        [Test]
+        public void SearchFilter_EmptySearchShowsAll()
+        {
+            var widget1 = WidgetFactory.CreateIntField(data);
+            widget1.displayName = "Alpha";
+            var widget2 = WidgetFactory.CreateIntField(data);
+            widget2.displayName = "Beta";
+
+            var visualElement1 = widget1.ToVisualElement(DebugUI.Context.Editor);
+            var visualElement2 = widget2.ToVisualElement(DebugUI.Context.Editor);
+
+            var textElements1 = visualElement1.Query<TextElement>(className: "debug-window-search-filter-target").ToList();
+            var textElements2 = visualElement2.Query<TextElement>(className: "debug-window-search-filter-target").ToList();
+
+            var cache = new Dictionary<DebugUI.Widget, WidgetSearchData>
+            {
+                [widget1] = new WidgetSearchData(textElements1, string.Empty),
+                [widget2] = new WidgetSearchData(textElements2, string.Empty)
+            };
+
+            DebugWindow.PerformSearch(cache, "Alpha", hideRootElementIfNoMatch: true);
+
+            Assert.IsFalse(widget1.m_IsHiddenBySearchFilter);
+            Assert.IsTrue(widget2.m_IsHiddenBySearchFilter);
+
+            DebugWindow.PerformSearch(cache, "", hideRootElementIfNoMatch: true);
+
+            Assert.IsFalse(widget1.m_IsHiddenBySearchFilter);
+            Assert.IsFalse(widget2.m_IsHiddenBySearchFilter);
+        }
     }
 }
 #endif

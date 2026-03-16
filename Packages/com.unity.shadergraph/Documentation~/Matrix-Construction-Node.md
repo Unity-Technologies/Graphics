@@ -15,21 +15,21 @@ For example, connecting **Vector 2** type values to inputs **M0** and **M1** wil
 
 ## Ports
 
-| Name        | Direction           | Type  | Description |
-|:------------ |:-------------|:-----|:---|
-| M0      | Input | Vector 4 | First row or column |
-| M1      | Input | Vector 4 | Second row or column |
-| M2      | Input | Vector 4 | Third row or column |
-| M3      | Input | Vector 4 | Fourth row or column |
-| 4x4 | Output      |    Matrix 4x4 | Output as Matrix 4x4 |
-| 3x3 | Output      |    Matrix 3x3 | Output as Matrix 3x3 |
-| 2x2 | Output      |    Matrix 2x2 | Output as Matrix 2x2 |
+| Name | Direction | Type | Description |
+|:--- |:---|:---|:---|
+| M0 | Input | Vector 4 | First row or column |
+| M1 | Input | Vector 4 | Second row or column |
+| M2 | Input | Vector 4 | Third row or column |
+| M3 | Input | Vector 4 | Fourth row or column |
+| 4x4 | Output | Matrix 4x4 | Output as Matrix 4x4 |
+| 3x3 | Output | Matrix 3x3 | Output as Matrix 3x3 |
+| 2x2 | Output | Matrix 2x2 | Output as Matrix 2x2 |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-|      | Dropdown | Row, Column | Selects how the output matrix should be filled |
+| Control | Description |
+|:---|:---|
+| (Dropdown) | Selects how the output matrix should be filled. The options are:<ul><li>**Row**: Input vectors specify matrix rows from top to bottom.</li><li>**Column**: Input vectors specify matrix columns from left to right.</li></ul> |
 
 ## Generated Code Example
 

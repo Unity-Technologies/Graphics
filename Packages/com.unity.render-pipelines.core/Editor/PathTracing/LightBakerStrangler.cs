@@ -884,16 +884,18 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             bool debugDispatches = integrationSettings.DebugDispatches;
             bool doDirectionality = AnyLightmapRequestHasOutput(lightmapRequestData.requests, LightmapRequestOutputType.DirectionalityDirect) || AnyLightmapRequestHasOutput(lightmapRequestData.requests, LightmapRequestOutputType.DirectionalityIndirect);
 
-            // Find the max index count in any mesh, so we can pre-allocate various buffers based on it.
+            // Find the max index and vertex count in any mesh, so we can pre-allocate various buffers based on it.
             uint maxIndexCount = 1;
+            uint maxVertexCount = 1;
             for (int meshIdx = 0; meshIdx < world.Meshes.Length; ++meshIdx)
             {
                 maxIndexCount = Math.Max(maxIndexCount, world.Meshes[meshIdx].GetTotalIndexCount());
+                maxVertexCount = Math.Max(maxVertexCount, (uint)world.Meshes[meshIdx].vertexCount);
             }
 
             (int width, int height)[] atlasSizes = lightmapRequestData.atlassing.m_AtlasSizes;
             int initialLightmapResolution = atlasSizes.Length > 0 ? atlasSizes[0].width : 1024;
-            if (!lightmappingContext.Initialize(deviceContext, initialLightmapResolution, initialLightmapResolution, world, maxIndexCount, lightmapResourceLib))
+            if (!lightmappingContext.Initialize(deviceContext, initialLightmapResolution, initialLightmapResolution, world, maxIndexCount, maxVertexCount, lightmapResourceLib))
                 return Result.InitializeFailure;
 
             lightmappingContext.IntegratorContext.Initialize(samplingResources, lightmapResourceLib, !useLegacyBakingBehavior);

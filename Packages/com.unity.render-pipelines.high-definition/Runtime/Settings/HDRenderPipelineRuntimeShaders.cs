@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
             get => m_CopyDepthBufferPS;
             set => this.SetValueAndNotify(ref m_CopyDepthBufferPS, value);
         }
-		
+
         [SerializeField, ResourcePath("Runtime/ShaderLibrary/Blit.shader")]
         private Shader m_BlitPS;
 
@@ -820,6 +820,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get => m_VolumetricMaterialCS;
             set => this.SetValueAndNotify(ref m_VolumetricMaterialCS, value);
+        }
+
+        [SerializeField, ResourcePath("Runtime/Material/VolumetricMaterial/ClearVolumetricMaterial.compute")]
+        private ComputeShader m_ClearVolumetricMaterialCS;
+
+        public ComputeShader clearVolumetricMaterialCS
+        {
+            get => m_ClearVolumetricMaterialCS;
+            set => this.SetValueAndNotify(ref m_ClearVolumetricMaterialCS, value);
         }
 
         [SerializeField, ResourcePath("Runtime/Material/Eye/EyeCausticLUTGen.compute")]

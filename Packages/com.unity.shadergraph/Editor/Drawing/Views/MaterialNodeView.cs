@@ -88,7 +88,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 contents.Add(dropdownContainer);
             }
 
-            if (node.hasPreview && IsPreviewable(node))
+            if (node.hasPreview)
             {
                 // Add actual preview which floats on top of the node
                 m_PreviewContainer = new VisualElement
@@ -196,11 +196,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             IconBadge badge;
             if (severity == ShaderCompilerMessageSeverity.Error)
             {
-                badge = IconBadge.CreateError(errString);
+                badge = InternalBridge.IconBadge.CreateError(errString);
             }
             else
             {
-                badge = IconBadge.CreateComment(errString);
+                badge = InternalBridge.IconBadge.CreateComment(errString);
             }
 
             Add(badge);

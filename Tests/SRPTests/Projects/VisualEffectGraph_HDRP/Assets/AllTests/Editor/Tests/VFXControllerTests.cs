@@ -1349,7 +1349,7 @@ namespace UnityEditor.VFX.Test
 
             // Open this vfx the same way it would be done by a user
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetRandomFileName);
-            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
+            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0));
 
             var window = VFXViewWindow.GetWindow(asset);
             window.LoadAsset(asset, null); //Should not be needed, without, viewController is null on Yamato. See UUM-11596.
@@ -1388,7 +1388,7 @@ namespace UnityEditor.VFX.Test
             }
 
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
-            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
+            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0));
 
             var window = VFXViewWindow.GetWindow(asset);
             window.LoadAsset(asset, null);
@@ -1448,7 +1448,7 @@ namespace UnityEditor.VFX.Test
 
             // Open this vfx the same way it would be done by a user
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetRandomFileName);
-            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
+            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0));
 
             var window = VFXViewWindow.GetWindow(asset);
             window.LoadAsset(asset, null); //Should not be needed, without, viewController is null on Yamato. See UUM-11596.
@@ -1500,7 +1500,7 @@ namespace UnityEditor.VFX.Test
             var assetPath = AssetDatabase.GetAssetPath(graph);
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
             Assert.IsNotNull(asset);
-            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
+            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0));
 
             var window = VFXViewWindow.GetWindow(asset);
             window.LoadAsset(asset, null);
@@ -1638,7 +1638,7 @@ namespace UnityEditor.VFX.Test
             {
                 var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
                 Assert.IsNotNull(asset);
-                Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
+                Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0));
 
                 window = VFXViewWindow.GetWindow(asset);
                 window.LoadAsset(asset, null);
@@ -1668,7 +1668,7 @@ namespace UnityEditor.VFX.Test
             //Prepare Controller
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
             Assert.IsNotNull(asset);
-            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
+            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0));
 
             var window = VFXViewWindow.GetWindow(asset);
             window.LoadAsset(asset, null);

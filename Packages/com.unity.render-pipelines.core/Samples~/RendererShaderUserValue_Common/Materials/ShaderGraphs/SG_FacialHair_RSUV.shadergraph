@@ -52,9 +52,6 @@
             "m_Id": "f83b3b058af24143868a9d659da8dab5"
         },
         {
-            "m_Id": "79474ab03e0e4624816eb4a3030d5ac8"
-        },
-        {
             "m_Id": "7dc3c8aeb5be47169a97f4e7f7bd0973"
         },
         {
@@ -79,9 +76,6 @@
             "m_Id": "8bc0c5453b474c0bbbaa8b0bac09ce9c"
         },
         {
-            "m_Id": "58d2ea6a02b4491780517c88091d58a8"
-        },
-        {
             "m_Id": "d6f250b1561f461cb544474f6179a69b"
         },
         {
@@ -92,6 +86,12 @@
         },
         {
             "m_Id": "537acf400edc49ab8180cc4efd40ca63"
+        },
+        {
+            "m_Id": "56d8415a6bb743dd8e771f0436cce028"
+        },
+        {
+            "m_Id": "6a81424056b645a9b92444204c1a0697"
         }
     ],
     "m_GroupDatas": [],
@@ -128,6 +128,62 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
+                    "m_Id": "56d8415a6bb743dd8e771f0436cce028"
+                },
+                "m_SlotId": 1
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "16b82e0bfd4a41cdb90a1c33352b6439"
+                },
+                "m_SlotId": -507983606
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "56d8415a6bb743dd8e771f0436cce028"
+                },
+                "m_SlotId": 2
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "d95d41952083499796dfe101d6230bff"
+                },
+                "m_SlotId": 0
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "56d8415a6bb743dd8e771f0436cce028"
+                },
+                "m_SlotId": 3
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "30590029af22478f82f5ae3e3303f56c"
+                },
+                "m_SlotId": 0
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "56d8415a6bb743dd8e771f0436cce028"
+                },
+                "m_SlotId": 4
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "8bc0c5453b474c0bbbaa8b0bac09ce9c"
+                },
+                "m_SlotId": 0
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
                     "m_Id": "575cb76d2b35462588c1362be6703336"
                 },
                 "m_SlotId": 2
@@ -137,62 +193,6 @@
                     "m_Id": "d95549792a6340c0a961337e744df2ad"
                 },
                 "m_SlotId": 1
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
-                    "m_Id": "58d2ea6a02b4491780517c88091d58a8"
-                },
-                "m_SlotId": 3
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "575cb76d2b35462588c1362be6703336"
-                },
-                "m_SlotId": 1901369136
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
-                    "m_Id": "58d2ea6a02b4491780517c88091d58a8"
-                },
-                "m_SlotId": 4
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "575cb76d2b35462588c1362be6703336"
-                },
-                "m_SlotId": -1138850905
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
-                    "m_Id": "58d2ea6a02b4491780517c88091d58a8"
-                },
-                "m_SlotId": 5
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "575cb76d2b35462588c1362be6703336"
-                },
-                "m_SlotId": -195736247
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
-                    "m_Id": "58d2ea6a02b4491780517c88091d58a8"
-                },
-                "m_SlotId": 6
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "575cb76d2b35462588c1362be6703336"
-                },
-                "m_SlotId": 80168675
             }
         },
         {
@@ -212,57 +212,57 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
-                    "m_Id": "79474ab03e0e4624816eb4a3030d5ac8"
-                },
-                "m_SlotId": 0
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "16b82e0bfd4a41cdb90a1c33352b6439"
-                },
-                "m_SlotId": -507983606
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
-                    "m_Id": "79474ab03e0e4624816eb4a3030d5ac8"
+                    "m_Id": "6a81424056b645a9b92444204c1a0697"
                 },
                 "m_SlotId": 1
             },
             "m_InputSlot": {
                 "m_Node": {
-                    "m_Id": "d95d41952083499796dfe101d6230bff"
+                    "m_Id": "575cb76d2b35462588c1362be6703336"
                 },
-                "m_SlotId": 0
+                "m_SlotId": 1901369136
             }
         },
         {
             "m_OutputSlot": {
                 "m_Node": {
-                    "m_Id": "79474ab03e0e4624816eb4a3030d5ac8"
+                    "m_Id": "6a81424056b645a9b92444204c1a0697"
                 },
                 "m_SlotId": 2
             },
             "m_InputSlot": {
                 "m_Node": {
-                    "m_Id": "30590029af22478f82f5ae3e3303f56c"
+                    "m_Id": "575cb76d2b35462588c1362be6703336"
                 },
-                "m_SlotId": 0
+                "m_SlotId": -195736247
             }
         },
         {
             "m_OutputSlot": {
                 "m_Node": {
-                    "m_Id": "79474ab03e0e4624816eb4a3030d5ac8"
+                    "m_Id": "6a81424056b645a9b92444204c1a0697"
                 },
                 "m_SlotId": 3
             },
             "m_InputSlot": {
                 "m_Node": {
-                    "m_Id": "8bc0c5453b474c0bbbaa8b0bac09ce9c"
+                    "m_Id": "575cb76d2b35462588c1362be6703336"
                 },
-                "m_SlotId": 0
+                "m_SlotId": 80168675
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "6a81424056b645a9b92444204c1a0697"
+                },
+                "m_SlotId": 4
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "575cb76d2b35462588c1362be6703336"
+                },
+                "m_SlotId": -1138850905
             }
         },
         {
@@ -459,6 +459,7 @@
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
+    "hideConnector": false,
     "m_Hidden": false,
     "m_PerRendererData": false,
     "m_customAttributes": [],
@@ -466,6 +467,7 @@
         "m_SerializedTexture": "{\"textureArray\":{\"instanceID\":0}}",
         "m_Guid": ""
     },
+    "isHDR": false,
     "m_Modifiable": true
 }
 
@@ -503,6 +505,7 @@
     "m_DisplayName": "",
     "m_SlotType": 1,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "",
     "m_StageCapability": 3,
     "m_Value": {
@@ -528,6 +531,7 @@
     "m_DisplayName": "Tangent",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "Tangent",
     "m_StageCapability": 1,
     "m_Value": {
@@ -590,10 +594,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 820.666748046875,
-            "y": 154.66668701171876,
-            "width": 209.3331298828125,
-            "height": 305.3333435058594
+            "x": 820.6666870117188,
+            "y": 143.33335876464845,
+            "width": 204.66656494140626,
+            "height": 130.6666717529297
         }
     },
     "m_Slots": [
@@ -638,6 +642,7 @@
     "m_DisplayName": "Base Color",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "BaseColor",
     "m_StageCapability": 2,
     "m_Value": {
@@ -668,6 +673,7 @@
     "m_DisplayName": "HairStyleOffset",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "_HairStyleOffset",
     "m_StageCapability": 3,
     "m_Value": 0.0,
@@ -698,6 +704,7 @@
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
+    "hideConnector": false,
     "m_Hidden": false,
     "m_PerRendererData": false,
     "m_customAttributes": [],
@@ -708,6 +715,7 @@
     "isMainTexture": false,
     "useTilingAndOffset": false,
     "useTexelSize": true,
+    "isHDR": false,
     "m_Modifiable": true,
     "m_DefaultType": 0
 }
@@ -720,6 +728,7 @@
     "m_DisplayName": "Position",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "_Position",
     "m_StageCapability": 3,
     "m_Value": {
@@ -820,6 +829,23 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "3694e1c84af940b3be38b996f047a7b7",
+    "m_Id": 3,
+    "m_DisplayName": "Eyebrows Style",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_HideConnector": false,
+    "m_ShaderOutputName": "EyebrowsStyle",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": [],
+    "m_LiteralMode": false
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.BlockNode",
     "m_ObjectId": "386844f83f224cefaf21f7dd79a5f265",
     "m_Group": {
@@ -854,12 +880,30 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "392868af7c284fc69245e75440d09671",
+    "m_Id": 1,
+    "m_DisplayName": "Hair Color",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_HideConnector": false,
+    "m_ShaderOutputName": "HairColor",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": [],
+    "m_LiteralMode": false
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
     "m_ObjectId": "413b9578547345b0a3e18b1051cf95a5",
     "m_Id": 0,
     "m_DisplayName": "",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "",
     "m_StageCapability": 3,
     "m_Value": {
@@ -893,22 +937,6 @@
             "m_Id": "00e56286eb1a4a74b3b9db9238dc7ccb"
         }
     ]
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "492fcc4f695d4cd0953ccc354eecfda3",
-    "m_Id": 3,
-    "m_DisplayName": "AnimIndexFrom",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "AnimIndexFrom",
-    "m_StageCapability": 3,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
-    "m_Labels": [],
-    "m_LiteralMode": false
 }
 
 {
@@ -947,6 +975,23 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "51c7ecf428084cff88eb891307b67e04",
+    "m_Id": 4,
+    "m_DisplayName": "Beard Style",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_HideConnector": false,
+    "m_ShaderOutputName": "BeardStyle",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": [],
+    "m_LiteralMode": false
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.BlockNode",
     "m_ObjectId": "537acf400edc49ab8180cc4efd40ca63",
     "m_Group": {
@@ -977,6 +1022,70 @@
         "m_SerializableColors": []
     },
     "m_SerializedDescriptor": "SurfaceDescription.Alpha"
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.ProviderSystem.ProviderNode",
+    "m_ObjectId": "56d8415a6bb743dd8e771f0436cce028",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "RSUV Soldier Facial Hair",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": -854.66650390625,
+            "y": 166.00003051757813,
+            "width": 185.33331298828126,
+            "height": 177.33328247070313
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "392868af7c284fc69245e75440d09671"
+        },
+        {
+            "m_Id": "d453df65f6d64e4e8c0a1c486b3b6f86"
+        },
+        {
+            "m_Id": "3694e1c84af940b3be38b996f047a7b7"
+        },
+        {
+            "m_Id": "51c7ecf428084cff88eb891307b67e04"
+        }
+    ],
+    "synonyms": [
+        "GetRendererShaderUserValueFacialHair_float"
+    ],
+    "m_Precision": 0,
+    "m_PreviewExpanded": false,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_provider": {
+        "rid": 1000
+    },
+    "references": {
+        "version": 2,
+        "RefIds": [
+            {
+                "rid": 1000,
+                "type": {
+                    "class": "ReflectedFunctionProvider",
+                    "ns": "UnityEditor.ShaderGraph.ProviderSystem",
+                    "asm": "Unity.ShaderGraph.Editor"
+                },
+                "data": {
+                    "m_providerKey": "RSUVSoldierFacialHair",
+                    "m_sourceAssetId": "3f5ad0d251b7b794997e01f67893b6b8"
+                }
+            }
+        ]
+    }
 }
 
 {
@@ -1088,72 +1197,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "583eaa1af2744588af5c2ea29c4d0579",
-    "m_Id": 0,
-    "m_DisplayName": "HairColor",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "HairColor",
-    "m_StageCapability": 3,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
-    "m_Labels": [],
-    "m_LiteralMode": false
-}
-
-{
-    "m_SGVersion": 1,
-    "m_Type": "UnityEditor.ShaderGraph.CustomFunctionNode",
-    "m_ObjectId": "58d2ea6a02b4491780517c88091d58a8",
-    "m_Group": {
-        "m_Id": ""
-    },
-    "m_Name": "GetRendererShaderUserValueVAT (Custom Function)",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": -246.0,
-            "y": -128.66668701171876,
-            "width": 347.3333435058594,
-            "height": 144.00003051757813
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "492fcc4f695d4cd0953ccc354eecfda3"
-        },
-        {
-            "m_Id": "9e06447b1a194da2a541af1b5547e6d7"
-        },
-        {
-            "m_Id": "9266ef8e704e41fdaf7922eb959066d6"
-        },
-        {
-            "m_Id": "6e9114fd8aa54eb2b04b7b1d12bd1fba"
-        }
-    ],
-    "synonyms": [
-        "code",
-        "HLSL"
-    ],
-    "m_Precision": 0,
-    "m_PreviewExpanded": false,
-    "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_SourceType": 0,
-    "m_FunctionName": "GetRendererShaderUserValueVAT",
-    "m_FunctionSource": "3f5ad0d251b7b794997e01f67893b6b8",
-    "m_FunctionSourceUsePragmas": true,
-    "m_FunctionBody": "Enter function body here..."
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
     "m_ObjectId": "58d906cab16d49eea7d055a4564c52cb",
     "m_Group": {
@@ -1196,6 +1239,7 @@
     "m_DisplayName": "ColorPalette",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "_ColorPalette",
     "m_StageCapability": 2,
     "m_BareResource": false,
@@ -1248,6 +1292,7 @@
     "m_DisplayName": "AnimationIndexFrom",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "_AnimationIndexFrom",
     "m_StageCapability": 1,
     "m_Value": 0.0,
@@ -1264,6 +1309,7 @@
     "m_DisplayName": "Position",
     "m_SlotType": 1,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "Position",
     "m_StageCapability": 1,
     "m_Value": {
@@ -1287,6 +1333,7 @@
     "m_DisplayName": "BeardOffset",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "_BeardOffset",
     "m_StageCapability": 3,
     "m_Value": 0.0,
@@ -1331,18 +1378,66 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "6e9114fd8aa54eb2b04b7b1d12bd1fba",
-    "m_Id": 4,
-    "m_DisplayName": "FrameTime",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "FrameTime",
-    "m_StageCapability": 3,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
-    "m_Labels": [],
-    "m_LiteralMode": false
+    "m_Type": "UnityEditor.ShaderGraph.ProviderSystem.ProviderNode",
+    "m_ObjectId": "6a81424056b645a9b92444204c1a0697",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "RSUV Soldier Vertex Animation Texture",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": -174.0,
+            "y": -128.6666717529297,
+            "width": 269.33331298828127,
+            "height": 177.3333282470703
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "f07db05247124196b34c5ed1ac2bd19b"
+        },
+        {
+            "m_Id": "7a2a6fe6e92f4baea78c7d864a1aee39"
+        },
+        {
+            "m_Id": "9a7a3a0153304576bd09023f3dbb04e7"
+        },
+        {
+            "m_Id": "caae374dcbc7481cb4ddb2afce2a0e7b"
+        }
+    ],
+    "synonyms": [
+        "GetRendererShaderUserValueVAT_float"
+    ],
+    "m_Precision": 0,
+    "m_PreviewExpanded": false,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_provider": {
+        "rid": 1000
+    },
+    "references": {
+        "version": 2,
+        "RefIds": [
+            {
+                "rid": 1000,
+                "type": {
+                    "class": "ReflectedFunctionProvider",
+                    "ns": "UnityEditor.ShaderGraph.ProviderSystem",
+                    "asm": "Unity.ShaderGraph.Editor"
+                },
+                "data": {
+                    "m_providerKey": "RSUVSoldierVAT",
+                    "m_sourceAssetId": "3f5ad0d251b7b794997e01f67893b6b8"
+                }
+            }
+        ]
+    }
 }
 
 {
@@ -1353,6 +1448,7 @@
     "m_DisplayName": "Out",
     "m_SlotType": 1,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
     "m_Value": {
@@ -1376,6 +1472,7 @@
     "m_DisplayName": "Metallic",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "Metallic",
     "m_StageCapability": 2,
     "m_Value": 0.0,
@@ -1392,6 +1489,7 @@
     "m_DisplayName": "Predicate",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "Predicate",
     "m_StageCapability": 3,
     "m_Value": false,
@@ -1406,6 +1504,7 @@
     "m_DisplayName": "FrameTime",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "_FrameTime",
     "m_StageCapability": 1,
     "m_Value": 0.0,
@@ -1415,53 +1514,20 @@
 }
 
 {
-    "m_SGVersion": 1,
-    "m_Type": "UnityEditor.ShaderGraph.CustomFunctionNode",
-    "m_ObjectId": "79474ab03e0e4624816eb4a3030d5ac8",
-    "m_Group": {
-        "m_Id": ""
-    },
-    "m_Name": "GetRendererShaderUserValueFacialHair (Custom Function)",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": -1073.3333740234375,
-            "y": 182.6667022705078,
-            "width": 382.0,
-            "height": 167.99998474121095
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "583eaa1af2744588af5c2ea29c4d0579"
-        },
-        {
-            "m_Id": "7e020db5a93d4792a704b152c6138700"
-        },
-        {
-            "m_Id": "f580df7cc4464ec990741bee4e01b27b"
-        },
-        {
-            "m_Id": "ee0300223a29454f9f0ba7ef9a3d04ca"
-        }
-    ],
-    "synonyms": [
-        "code",
-        "HLSL"
-    ],
-    "m_Precision": 0,
-    "m_PreviewExpanded": false,
-    "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_SourceType": 0,
-    "m_FunctionName": "GetRendererShaderUserValueFacialHair",
-    "m_FunctionSource": "3f5ad0d251b7b794997e01f67893b6b8",
-    "m_FunctionSourceUsePragmas": true,
-    "m_FunctionBody": "Enter function body here..."
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "7a2a6fe6e92f4baea78c7d864a1aee39",
+    "m_Id": 2,
+    "m_DisplayName": "Anim Index To",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_HideConnector": false,
+    "m_ShaderOutputName": "AnimIndexTo",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -1594,22 +1660,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "7e020db5a93d4792a704b152c6138700",
-    "m_Id": 1,
-    "m_DisplayName": "HairStyle",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "HairStyle",
-    "m_StageCapability": 3,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
-    "m_Labels": [],
-    "m_LiteralMode": false
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
     "m_ObjectId": "8447ddd01afe48998b96d194425b934b",
     "m_Group": {
@@ -1652,6 +1702,7 @@
     "m_DisplayName": "Alpha",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "Alpha",
     "m_StageCapability": 2,
     "m_Value": 1.0,
@@ -1704,6 +1755,7 @@
     "m_DisplayName": "",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "",
     "m_StageCapability": 3,
     "m_Value": {
@@ -1718,22 +1770,6 @@
         "z": 0.0,
         "w": 0.0
     },
-    "m_LiteralMode": false
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "9266ef8e704e41fdaf7922eb959066d6",
-    "m_Id": 6,
-    "m_DisplayName": "TransitionLerpFactor",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "TransitionLerpFactor",
-    "m_StageCapability": 3,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
-    "m_Labels": [],
     "m_LiteralMode": false
 }
 
@@ -1759,6 +1795,7 @@
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
+    "hideConnector": false,
     "m_Hidden": false,
     "m_PerRendererData": false,
     "m_customAttributes": [],
@@ -1773,6 +1810,7 @@
     "m_DisplayName": "VertexAnimationTextureArray",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "_VertexAnimationTextureArray",
     "m_StageCapability": 1,
     "m_BareResource": false,
@@ -1785,15 +1823,16 @@
 {
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "9e06447b1a194da2a541af1b5547e6d7",
-    "m_Id": 5,
-    "m_DisplayName": "AnimIndexTo",
+    "m_ObjectId": "9a7a3a0153304576bd09023f3dbb04e7",
+    "m_Id": 3,
+    "m_DisplayName": "Transition Lerp Factor",
     "m_SlotType": 1,
     "m_Hidden": false,
-    "m_ShaderOutputName": "AnimIndexTo",
+    "m_HideConnector": false,
+    "m_ShaderOutputName": "TransitionLerpFactor",
     "m_StageCapability": 3,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
+    "m_Value": 1.0,
+    "m_DefaultValue": 1.0,
     "m_Labels": [],
     "m_LiteralMode": false
 }
@@ -1806,6 +1845,7 @@
     "m_DisplayName": "Out",
     "m_SlotType": 1,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
     "m_Value": {
@@ -1857,6 +1897,7 @@
     "m_DisplayName": "Bent Normal",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "BentNormal",
     "m_StageCapability": 2,
     "m_Value": {
@@ -1901,6 +1942,7 @@
     "m_DisplayName": "Normal",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "Normal",
     "m_StageCapability": 1,
     "m_Value": {
@@ -1925,6 +1967,7 @@
     "m_DisplayName": "Position",
     "m_SlotType": 1,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "Position",
     "m_StageCapability": 3,
     "m_Value": {
@@ -1948,6 +1991,7 @@
     "m_DisplayName": "",
     "m_SlotType": 1,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "",
     "m_StageCapability": 3,
     "m_Value": {
@@ -1973,6 +2017,7 @@
     "m_DisplayName": "UseVertexAnimation",
     "m_SlotType": 1,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
     "m_Value": false,
@@ -1987,6 +2032,7 @@
     "m_DisplayName": "True",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "True",
     "m_StageCapability": 3,
     "m_Value": {
@@ -2012,6 +2058,7 @@
     "m_DisplayName": "TransitionLerpFactor",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "_TransitionLerpFactor",
     "m_StageCapability": 1,
     "m_Value": 0.0,
@@ -2028,6 +2075,7 @@
     "m_DisplayName": "Color",
     "m_SlotType": 1,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "Color",
     "m_StageCapability": 2,
     "m_Value": {
@@ -2043,6 +2091,23 @@
         "w": 0.0
     },
     "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "caae374dcbc7481cb4ddb2afce2a0e7b",
+    "m_Id": 4,
+    "m_DisplayName": "Frame Time",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_HideConnector": false,
+    "m_ShaderOutputName": "FrameTime",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -2067,6 +2132,7 @@
     "m_DisplayName": "",
     "m_SlotType": 1,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "",
     "m_StageCapability": 3,
     "m_Value": {
@@ -2092,6 +2158,7 @@
     "m_DisplayName": "Normal (Tangent Space)",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "NormalTS",
     "m_StageCapability": 2,
     "m_Value": {
@@ -2147,12 +2214,30 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "d453df65f6d64e4e8c0a1c486b3b6f86",
+    "m_Id": 2,
+    "m_DisplayName": "Hair Style",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_HideConnector": false,
+    "m_ShaderOutputName": "HairStyle",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": [],
+    "m_LiteralMode": false
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.PositionMaterialSlot",
     "m_ObjectId": "d56c89334d8d486fae119e74df56f01e",
     "m_Id": 0,
     "m_DisplayName": "Position",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "Position",
     "m_StageCapability": 1,
     "m_Value": {
@@ -2295,6 +2380,7 @@
     "m_DisplayName": "Smoothness",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "Smoothness",
     "m_StageCapability": 2,
     "m_Value": 0.10000000149011612,
@@ -2311,6 +2397,7 @@
     "m_DisplayName": "VertexAnimationTextureArray",
     "m_SlotType": 1,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
     "m_BareResource": false
@@ -2324,6 +2411,7 @@
     "m_DisplayName": "AnimationIndexTo",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "_AnimationIndexTo",
     "m_StageCapability": 1,
     "m_Value": 0.0,
@@ -2350,6 +2438,7 @@
     "m_DisplayName": "EyeBrowsOffset",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "_EyeBrowsOffset",
     "m_StageCapability": 3,
     "m_Value": 0.0,
@@ -2366,6 +2455,7 @@
     "m_DisplayName": "",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "",
     "m_StageCapability": 3,
     "m_Value": {
@@ -2386,12 +2476,13 @@
 {
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "ee0300223a29454f9f0ba7ef9a3d04ca",
-    "m_Id": 3,
-    "m_DisplayName": "BeardStyle",
+    "m_ObjectId": "f07db05247124196b34c5ed1ac2bd19b",
+    "m_Id": 1,
+    "m_DisplayName": "Anim Index From",
     "m_SlotType": 1,
     "m_Hidden": false,
-    "m_ShaderOutputName": "BeardStyle",
+    "m_HideConnector": false,
+    "m_ShaderOutputName": "AnimIndexFrom",
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
@@ -2407,6 +2498,7 @@
     "m_DisplayName": "HairColorPalette",
     "m_SlotType": 1,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
     "m_BareResource": false
@@ -2420,24 +2512,9 @@
     "m_DisplayName": "InputOffset",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "_InputOffset",
     "m_StageCapability": 2,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
-    "m_Labels": [],
-    "m_LiteralMode": false
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "f580df7cc4464ec990741bee4e01b27b",
-    "m_Id": 2,
-    "m_DisplayName": "EyebrowsStyle",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "EyebrowsStyle",
-    "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
     "m_Labels": [],
@@ -2486,6 +2563,7 @@
     "m_DisplayName": "False",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "False",
     "m_StageCapability": 3,
     "m_Value": {
@@ -2551,6 +2629,7 @@
     "m_DisplayName": "Emission",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "Emission",
     "m_StageCapability": 2,
     "m_Value": {
@@ -2581,6 +2660,7 @@
     "m_DisplayName": "Ambient Occlusion",
     "m_SlotType": 0,
     "m_Hidden": false,
+    "m_HideConnector": false,
     "m_ShaderOutputName": "Occlusion",
     "m_StageCapability": 2,
     "m_Value": 1.0,

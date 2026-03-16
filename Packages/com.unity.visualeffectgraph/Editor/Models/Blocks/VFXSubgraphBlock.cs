@@ -31,6 +31,15 @@ namespace UnityEditor.VFX
             }
         }
 
+        public override void GetSourceDependentAssets(HashSet<string> dependencies)
+        {
+            base.GetSourceDependentAssets(dependencies);
+            if (!object.ReferenceEquals(m_Subgraph, null) && AssetDatabase.TryGetGUIDAndLocalFileIdentifier(m_Subgraph, out var guid, out _))
+            {
+                dependencies.Add(guid);
+            }
+        }
+
         public override void CheckGraphBeforeImport()
         {
             base.CheckGraphBeforeImport();

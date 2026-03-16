@@ -456,6 +456,15 @@ namespace UnityEngine.Rendering
 
             widgetList.Add(new DebugUI.RuntimeDebugShadersMessageBox());
 
+#if !UNITY_EDITOR
+            widgetList.Add(new DebugUI.MessageBox
+            {
+                displayName = "Warning: Probe Volume debugging is not supported in the Player.",
+                style = DebugUI.MessageBox.Style.Warning,
+                flags = DebugUI.Flags.RuntimeOnly
+            });
+#endif
+
             var subdivContainer = new DebugUI.Container()
             {
                 displayName = "Subdivision Visualization",

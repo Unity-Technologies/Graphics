@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public SubFrameManager subFrameManager;
             public ScriptableRenderContext renderContext;
 
-            public int camID;
+            public EntityId camID;
             public bool useAOV;
             public bool denoiseVolumetricFog;
             public bool temporal;

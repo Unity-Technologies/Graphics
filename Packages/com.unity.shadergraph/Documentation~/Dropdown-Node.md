@@ -31,10 +31,6 @@ To add a Subgraph Dropdown node to a Subgraph:
 
 ![An image of the Graph window, that displays a Dropdown node in the Graph Editor. The Dropdown property is selected in the Blackboard and the Graph Inspector shows the available options for configuring the Dropdown property.](images/sg-subgraph-dropdown-node.png)
 
-## Compatibility
-
-The Subgraph Dropdown [!include[nodes-compatibility-all](./snippets/nodes-compatibility-all.md)]    <!-- ALL PIPELINES INCLUDE  -->
-
 ## Ports
 
 > [!NOTE]

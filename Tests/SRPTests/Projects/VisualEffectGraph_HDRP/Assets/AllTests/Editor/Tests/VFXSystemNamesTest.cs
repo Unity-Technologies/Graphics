@@ -127,7 +127,7 @@ namespace UnityEditor.VFX.Test
 
             // Open this vfx the same way it would be done by a user
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(m_TestAssetRandomFileName);
-            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
+            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0));
 
             var window = VFXViewWindow.GetWindow(asset, true);
             var viewController = window.graphView.controller;

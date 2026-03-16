@@ -149,6 +149,10 @@ namespace UnityEditor.VFX.HDRP
                 HDRenderQueue.Clamps(k_RenderQueue_AllOpaque, ChangeType(renderQueueType, 0, owner.hasAlphaClipping) + materialSortingPriority) :
                 ChangeType(renderQueueType, materialSortingPriority, owner.hasAlphaClipping);
         }
+        public override string GetRenderPipelineTagStr()
+        {
+            return HDRenderPipeline.k_ShaderTagName;
+        }
 
         private int GetMaterialSortingPriority()
         {

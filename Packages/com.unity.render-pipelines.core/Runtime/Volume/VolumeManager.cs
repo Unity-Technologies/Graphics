@@ -41,6 +41,8 @@ namespace UnityEngine.Rendering
     /// <seealso cref="GraphicsSettings"/>
     public sealed partial class VolumeManager
     {
+        static readonly ProfilerMarker k_ProfilerMarkerInitialize = new ("VolumeManager.Initialize");
+        static readonly ProfilerMarker k_ProfilerMarkerInitializeBaseTypesArray = new ("VolumeManager.InitializeBaseTypesArray");
         static readonly ProfilerMarker k_ProfilerMarkerUpdate = new ("VolumeManager.Update");
         static readonly ProfilerMarker k_ProfilerMarkerReplaceData = new ("VolumeManager.ReplaceData");
         static readonly ProfilerMarker k_ProfilerMarkerEvaluateVolumeDefaultState = new ("VolumeManager.EvaluateVolumeDefaultState");
@@ -78,7 +80,7 @@ namespace UnityEngine.Rendering
                 return supportedVolumeComponents;
 
             if (baseComponentTypeArray == null)
-                LoadBaseTypes(currentPipelineAssetType);
+                InitializeBaseTypesArray();
 
             supportedVolumeComponents = BuildVolumeComponentDisplayList(baseComponentTypeArray);
             s_SupportedVolumeComponentsForRenderPipeline[currentPipelineAssetType] = supportedVolumeComponents;
@@ -145,18 +147,17 @@ namespace UnityEngine.Rendering
                     volumes.Add(result);
             }
 
-            return volumes
-                .OrderBy(i => i.Item1)
-                .ToList();
+            volumes.Sort((a, b) => string.Compare(a.Item1, b.Item1));
+            return volumes;
         }
-        
+
         Type[] m_BaseComponentTypeArray;
 
         /// <summary>
         /// The current list of all available types that derive from <see cref="VolumeComponent"/>.
         /// </summary>
-        public Type[] baseComponentTypeArray 
-        { 
+        public Type[] baseComponentTypeArray
+        {
             get
             {
                 if (isInitialized)
@@ -165,7 +166,7 @@ namespace UnityEngine.Rendering
                 throw new InvalidOperationException($"{nameof(VolumeManager)}.{nameof(instance)}.{nameof(baseComponentTypeArray)} cannot be called before the {nameof(VolumeManager)} is initialized. (See {nameof(VolumeManager)}.{nameof(instance)}.{nameof(isInitialized)} and {nameof(RenderPipelineManager)} for creation callback).");
             }
             internal set => m_BaseComponentTypeArray = value; // internal only for tests
-        } 
+        }
 
         /// <summary>
         /// Global default profile that provides default values for volume components. VolumeManager applies
@@ -259,11 +260,28 @@ namespace UnityEngine.Rendering
         /// <param name="qualityDefaultVolumeProfile">Quality default volume profile.</param>
         public void Initialize(VolumeProfile globalDefaultVolumeProfile = null, VolumeProfile qualityDefaultVolumeProfile = null)
         {
+            using var profilerScope = k_ProfilerMarkerInitialize.Auto();
             Debug.Assert(!isInitialized);
             Debug.Assert(m_CreatedVolumeStacks.Count == 0);
 
-            LoadBaseTypes(GraphicsSettings.currentRenderPipelineAssetType);
+            InitializeBaseTypesArray(globalDefaultVolumeProfile);
+
             InitializeInternal(globalDefaultVolumeProfile, qualityDefaultVolumeProfile);
+        }
+
+        void InitializeBaseTypesArray(VolumeProfile globalDefaultVolumeProfile = null)
+        {
+            using var profilerScope = k_ProfilerMarkerInitializeBaseTypesArray.Auto();
+#if UNITY_EDITOR
+            LoadBaseTypesByReflection(GraphicsSettings.currentRenderPipelineAssetType);
+#else
+            if (globalDefaultVolumeProfile == null)
+            {
+                var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<IDefaultVolumeProfileAsset>();
+                globalDefaultVolumeProfile = defaultVolumeProfileSettings?.defaultVolumeProfile;
+            }
+            LoadBaseTypes(globalDefaultVolumeProfile);
+#endif
         }
 
         //This is called by test where the basetypes are tuned for the purpose of the test.
@@ -305,6 +323,7 @@ namespace UnityEngine.Rendering
         /// <param name="profile">The VolumeProfile to use as the global default profile.</param>
         public void SetGlobalDefaultProfile(VolumeProfile profile)
         {
+            LoadBaseTypes(profile);
             globalDefaultProfile = profile;
             EvaluateVolumeDefaultState();
         }
@@ -327,6 +346,10 @@ namespace UnityEngine.Rendering
         {
             var validProfiles = profiles ?? new List<VolumeProfile>();
             validProfiles.RemoveAll(x => x == null);
+
+            if (globalDefaultProfile == null && validProfiles.Count > 0)
+                globalDefaultProfile = validProfiles[0];
+
             customDefaultProfiles = new ReadOnlyCollection<VolumeProfile>(validProfiles);
             EvaluateVolumeDefaultState();
         }
@@ -408,38 +431,44 @@ namespace UnityEngine.Rendering
             stack.Dispose();
         }
 
-        // For now, if a user is having a VolumeComponent with the old attribute for filtering support.
-        // We are adding it to the supported volume components, but we are showing a warning.
-        bool IsSupportedByObsoleteVolumeComponentMenuForRenderPipeline(Type t, Type pipelineAssetType)
+        /// <summary>
+        /// LoadBaseTypes is responsible for loading the list of VolumeComponent types that will be used to build the default state of the VolumeStack. It uses the provided global default profile to determine which component types are relevant for the current render pipeline.
+        /// This will be called only once at runtime on app boot
+        /// </summary>
+        /// <param name="globalDefaultVolumeProfile">The global default volume profile to use to build the base component type array.</param>
+        internal void LoadBaseTypes(VolumeProfile globalDefaultVolumeProfile)
         {
-            var legacySupported = false;
-
-#pragma warning disable CS0618
-            var legacyPipelineAttribute = t.GetCustomAttribute<VolumeComponentMenuForRenderPipeline>();
-            if (legacyPipelineAttribute != null)
+            if (globalDefaultVolumeProfile == null)
             {
-                Debug.LogWarning($"{nameof(VolumeComponentMenuForRenderPipeline)} is deprecated, use {nameof(SupportedOnRenderPipelineAttribute)} and {nameof(VolumeComponentMenu)} with {t} instead. #from(2023.1)");
-#if UNITY_EDITOR
-                var renderPipelineTypeFromAsset = RenderPipelineEditorUtility.GetPipelineTypeFromPipelineAssetType(pipelineAssetType);
-
-                for (int i = 0; i < legacyPipelineAttribute.pipelineTypes.Length; ++i)
-                {
-                    if (legacyPipelineAttribute.pipelineTypes[i] == renderPipelineTypeFromAsset)
-                    {
-                        legacySupported = true;
-                        break;
-                    }
-                }
-#endif
+                m_BaseComponentTypeArray = Array.Empty<Type>();
+                return;
             }
-#pragma warning restore CS0618
 
-            return legacySupported;
+            using (ListPool<Type>.Get(out var list))
+            {
+                var pipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
+                foreach (var comp in globalDefaultVolumeProfile.components)
+                {
+                    if (comp == null) continue;
+
+                    var componentType = comp.GetType();
+                    if (!SupportedOnRenderPipelineAttribute.IsTypeSupportedOnRenderPipeline(componentType, pipelineAssetType))
+                        continue;
+
+                    list.Add(componentType);
+                }
+
+                m_BaseComponentTypeArray = list.ToArray();
+            }
         }
 
-        // This will be called only once at runtime and on domain reload / pipeline switch in the editor
-        // as we need to keep track of any compatible component in the project
-        internal void LoadBaseTypes(Type pipelineAssetType)
+#if UNITY_EDITOR
+        /// <summary>
+        /// This should only be called when we need to load base types without being able to trust default profiles are up to date. This is slow and uses Reflection!
+        /// Will be called only once at runtime and on domain reload / pipeline switch in the editor as we need to keep track of any compatible component in the project
+        /// </summary>
+        /// <param name="pipelineAssetType">The Pipeline Type used to check if each VolumeComponent is supported.</param>
+        internal Type[] LoadBaseTypesByReflection(Type pipelineAssetType)
         {
             // Grab all the component types we can find that are compatible with current pipeline
             using (ListPool<Type>.Get(out var list))
@@ -449,23 +478,25 @@ namespace UnityEngine.Rendering
                     if (t.IsAbstract)
                         continue;
 
-                    var isSupported = SupportedOnRenderPipelineAttribute.IsTypeSupportedOnRenderPipeline(t, pipelineAssetType) ||
-                                      IsSupportedByObsoleteVolumeComponentMenuForRenderPipeline(t, pipelineAssetType);
+                    if (!SupportedOnRenderPipelineAttribute.IsTypeSupportedOnRenderPipeline(t, pipelineAssetType))
+                        continue;
 
-                    if (isSupported)
-                        list.Add(t);
+                    list.Add(t);
                 }
 
                 m_BaseComponentTypeArray = list.ToArray();
             }
+
+            return m_BaseComponentTypeArray;
         }
+#endif
 
         internal void InitializeVolumeComponents()
         {
             if (m_BaseComponentTypeArray == null || m_BaseComponentTypeArray.Length == 0)
                 return;
 
-            // Call custom static Init method if present
+            // Call deprecated static Init method if present
             var flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
             foreach (var type in m_BaseComponentTypeArray)
             {
@@ -481,7 +512,11 @@ namespace UnityEngine.Rendering
         void EvaluateVolumeDefaultState()
         {
             if (m_BaseComponentTypeArray == null || m_BaseComponentTypeArray.Length == 0)
+            {
+                m_ComponentsDefaultState = Array.Empty<VolumeComponent>();
+                m_ParametersDefaultState = Array.Empty<VolumeParameter>();
                 return;
+            }
 
             using var profilerScope = k_ProfilerMarkerEvaluateVolumeDefaultState.Auto();
 
@@ -490,7 +525,7 @@ namespace UnityEngine.Rendering
             // Initialize() and the default state can be updated a lot quicker.
 
             // First, default-construct all VolumeComponents
-            List<VolumeComponent> componentsDefaultStateList = new();
+            using var _ = ListPool<VolumeComponent>.Get(out var componentsDefaultStateList);
             foreach (var type in m_BaseComponentTypeArray)
             {
                 componentsDefaultStateList.Add((VolumeComponent) ScriptableObject.CreateInstance(type));

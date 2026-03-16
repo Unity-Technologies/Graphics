@@ -218,6 +218,9 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             return "UISubTarget";
         }
 
+        const string kUVErrorMessageNode = "UI Material does not support UV1-7. Consider using 'UV0'.";
+        const string kUVErrorMessageSubGraph = "UI Material does not support UV1-7. Consider using 'UV0' in the subgraph.";
+
         public INodeValidationExtension.Status GetValidationStatus(AbstractMaterialNode node, out string msg)
         {
             // Make sure node is in our graph first
@@ -227,6 +230,12 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
                 return INodeValidationExtension.Status.None;
             }
 
+            // Clear all Warning/Error message from other providers.
+            // The message from the graph (when loading the graph) will not be removed
+            // since it's not the same provider as the UISubTarget. It then stays present
+            // even if the UV0 is selected.
+            node.owner.messageManager.ClearNodeFromOtherProvider(this, new[] { node });
+
             foreach (var item in node.owner.activeTargets)
             {
                 if (item.prefersUITKPreview)
@@ -234,16 +243,6 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
                     if (ValidateUV(node, out msg))
                     {
                         return INodeValidationExtension.Status.Warning;
-                    }
-
-                    UVNode uvNode = node as UVNode;
-                    if (uvNode != null)
-                    {
-                        if (uvNode.uvChannel != UnityEditor.ShaderGraph.Internal.UVChannel.UV0)
-                        {
-                            msg = "UI Material does not support UV1-7. Consider using 'UV0'.";
-                            return INodeValidationExtension.Status.Warning;
-                        }
                     }
                 }
             }
@@ -261,7 +260,17 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             {
                 if (uvSlot.channel != UnityEditor.ShaderGraph.Internal.UVChannel.UV0)
                 {
-                    warningMessage = "UI Material does not support UV1-7. Consider using 'UV0'.";
+                    warningMessage = kUVErrorMessageNode;
+                    return true;
+                }
+            }
+
+            UVNode uvNode = node as UVNode;
+            if (uvNode != null)
+            {
+                if (uvNode.uvChannel != UnityEditor.ShaderGraph.Internal.UVChannel.UV0)
+                {
+                    warningMessage = kUVErrorMessageNode;
                     return true;
                 }
             }
@@ -283,7 +292,7 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             {
                 if (uvSlot.channel != UnityEditor.ShaderGraph.Internal.UVChannel.UV0)
                 {
-                    warningMessage = "UI Material does not support UV1-7. Consider using 'UV0'.";
+                    warningMessage = kUVErrorMessageNode;
                     return true;
                 }
             }
@@ -303,7 +312,7 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
                     {
                         if (item != UnityEditor.ShaderGraph.Internal.UVChannel.UV0)
                         {
-                            warningMessage = "UI Material does not support UV1-7. Consider using 'UV0' in the subgraph.";
+                            warningMessage = kUVErrorMessageSubGraph;
                             return true;
                         }
                     }

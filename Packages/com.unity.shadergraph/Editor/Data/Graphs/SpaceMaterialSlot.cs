@@ -31,7 +31,10 @@ namespace UnityEditor.ShaderGraph
         {
             var slot = foundSlot as SpaceMaterialSlot;
             if (slot != null)
+            {
                 space = slot.space;
+                owner?.Dirty(ModificationScope.Topological);
+            }
         }
     }
 }

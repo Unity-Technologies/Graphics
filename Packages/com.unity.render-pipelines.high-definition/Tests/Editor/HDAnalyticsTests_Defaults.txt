@@ -108,6 +108,7 @@
 {"hdShadowInitParams.maxPunctualShadowMapResolution":"2048"},
 {"hdShadowInitParams.maxAreaShadowMapResolution":"2048"},
 {"hdShadowInitParams.supportScreenSpaceShadows":"False"},
+{"hdShadowInitParams.supportContactShadows":"True"},
 {"hdShadowInitParams.maxScreenSpaceShadowSlots":"4"},
 {"hdShadowInitParams.screenSpaceShadowBufferFormat":"R16G16B16A16"},
 {"decalSettings.drawDistance":"1000"},

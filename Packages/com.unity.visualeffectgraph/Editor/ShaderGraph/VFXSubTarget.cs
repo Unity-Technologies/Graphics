@@ -407,6 +407,38 @@ namespace UnityEditor.VFX
             return keywords;
         }
 
+        static (KeywordCollection keywords, DefineCollection defines) ApplyKeywordToDefines(KeywordCollection inputKeywords, DefineCollection inputDefines, VFXSRPBinder.ShaderGraphBinder shaderGraphSRPInfo)
+        {
+            if (inputKeywords != null)
+            {
+                var keywordsToDefines = shaderGraphSRPInfo.keywordsToDefines;
+                if(keywordsToDefines == null || keywordsToDefines.Length == 0)
+                    return (inputKeywords, inputDefines);
+
+                var overridenKeywords = new KeywordCollection();
+                var overridenDefines = inputDefines != null ? new DefineCollection(inputDefines) : new DefineCollection();
+                foreach (var inputKeyword in inputKeywords)
+                {
+                    bool hasReplacement = false;
+                    foreach (var replacementCandidate in keywordsToDefines)
+                    {
+                        if (replacementCandidate.oldDesc.referenceName == inputKeyword.descriptor.referenceName)
+                        {
+                            hasReplacement = true;
+                            overridenDefines.Add(replacementCandidate.oldDesc, replacementCandidate.value);
+                            break;
+                        }
+                    }
+                    if(!hasReplacement)
+                    {
+                        overridenKeywords.Add(inputKeyword.descriptor, inputKeyword.fieldConditions);
+                    }
+                }
+                return (overridenKeywords, overridenDefines);
+            }
+            return (inputKeywords, inputDefines);
+        }
+
         static DefineCollection ApplyDefineModifier(DefineCollection inputDefines, VFXSRPBinder.ShaderGraphBinder shaderGraphSRPInfo, VFXTaskCompiledData data)
         {
             var defineReplacement = k_CommonDefineReplacement;
@@ -490,33 +522,22 @@ namespace UnityEditor.VFX
                 out var fragInputsDescriptor
             );
 
-            // Omit META and MV or Shadow Pass if disabled on the context.
-            var filteredPasses = subShaderDescriptor.passes.AsEnumerable();
-
-            filteredPasses = filteredPasses.Where(o => o.descriptor.lightMode != "META");
-            var outputContext = (VFXAbstractParticleOutput)context;
-            if (!outputContext.hasMotionVector)
-                filteredPasses = filteredPasses.Where(o => o.descriptor.lightMode != "MotionVectors");
-
-            if (!outputContext.hasShadowCasting)
-                filteredPasses = filteredPasses.Where(o => o.descriptor.lightMode != "ShadowCaster");
-
-            // SPACEWARP DOES NOT SUPPORT VFX GRAPH FOR NOW, SO WE DISABLE IT HERE
-            filteredPasses = filteredPasses.Where(o => o.descriptor.lightMode != "XRMotionVectors");
-
-            var passes = filteredPasses.ToArray();
+            var passes = srp.FilterOutPasses(subShaderDescriptor.passes, context);
 
             var addPragmaRequireCubeArray = data.uniformMapper.textures.Any(o => o.valueType == VFXValueType.TextureCubeArray);
 
             PassCollection vfxPasses = new PassCollection();
             var cachedVFXInterpolators = GetVFXInterpolators(context, data).ToList();
-            for (int i = 0; i < passes.Length; i++)
+            for (int i = 0; i < passes.Count; i++)
             {
                 var passDescriptor = passes[i].descriptor;
 
                 passDescriptor.pragmas = ApplyPragmaModifier(passDescriptor.pragmas, shaderGraphSRPInfo, addPragmaRequireCubeArray);
                 passDescriptor.keywords = ApplyKeywordModifier(passDescriptor.keywords, shaderGraphSRPInfo);
                 passDescriptor.defines = ApplyDefineModifier(passDescriptor.defines, shaderGraphSRPInfo, data);
+                var (keywords, defines) = ApplyKeywordToDefines(passDescriptor.keywords, passDescriptor.defines, shaderGraphSRPInfo);
+                passDescriptor.keywords = keywords;
+                passDescriptor.defines = defines;
 
                 // Warning: We are replacing the struct provided in the regular pass. It is ok as for now the VFX editor don't support
                 // tessellation or raytracing

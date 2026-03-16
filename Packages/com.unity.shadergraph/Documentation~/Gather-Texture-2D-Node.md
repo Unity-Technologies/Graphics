@@ -19,9 +19,7 @@ The pixels that the Gather Texture 2D samples are always from the top mip level 
 
 The Gather Texture 2D node is under the **Input** &gt; **Texture** category in the Create Node menu.
 
-## Compatibility
-
-The Gather Texture 2D [!include[nodes-compatibility-all](./snippets/nodes-compatibility-all.md)]    <!-- ALL PIPELINES INCLUDE  -->
+## Limitations
 
 The Gather Texture 2D [!include[nodes-fragment-only](./snippets/nodes-fragment-only.md)]       <!-- FRAGMENT ONLY INCLUDE  -->
 

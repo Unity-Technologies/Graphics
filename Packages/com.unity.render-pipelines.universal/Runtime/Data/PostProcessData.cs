@@ -233,7 +233,7 @@ namespace UnityEngine.Rendering.Universal
             /// <summary>
             /// Pre-baked Blue noise textures.
             /// </summary>
-            // [ResourceFormattedPaths("Textures/BlueNoise16/L/LDR_LLL1_{0}.png", 0, 32)]
+            [ResourceFormattedPaths("Textures/BlueNoise16/L/LDR_LLL1_{0}.png", 0, 32)]
             public Texture2D[] blueNoise16LTex;
 
             /// <summary>

@@ -571,6 +571,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
         ContactShadows m_ContactShadows = null;
+        bool m_SupportContactShadow = true;
         bool m_EnableContactShadow = false;
 
         IndirectLightingController m_indirectLightingController = null;
@@ -766,6 +767,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 Shader.EnableKeyword("SCREEN_SPACE_SHADOWS_OFF");
             }
 
+            // Set contact shadows keyword state.
+            m_SupportContactShadow = shadowParams.supportContactShadows;
+            if (m_SupportContactShadow)
+            {
+                Shader.DisableKeyword("CONTACT_SHADOWS_OFF");
+            }
+            else
+            {
+                Shader.EnableKeyword("CONTACT_SHADOWS_OFF");
+            }
+
             InitShadowSystem(asset);
 
             m_GpuLightsBuilder.Initialize(m_Asset, m_ShadowManager, m_TextureCaches);
@@ -814,7 +826,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var frameSettings = hdCamera.frameSettings;
 
             m_ContactShadows = hdCamera.volumeStack.GetComponent<ContactShadows>();
-            m_EnableContactShadow = frameSettings.IsEnabled(FrameSettingsField.ContactShadows) && m_ContactShadows.enable.value && m_ContactShadows.length.value > 0;
+            m_EnableContactShadow = m_SupportContactShadow && frameSettings.IsEnabled(FrameSettingsField.ContactShadows) && m_ContactShadows.enable.value && m_ContactShadows.length.value > 0;
             m_indirectLightingController = hdCamera.volumeStack.GetComponent<IndirectLightingController>();
 
             m_ContactShadowIndex = 0;
@@ -1990,28 +2002,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // When contact shadow index is 0, then there is no light casting contact shadow in the view
             return m_EnableContactShadow && m_ContactShadowIndex != 0;
-        }
-
-        // The first rendered 24 lights that have contact shadow enabled have a mask used to select the bit that contains
-        // the contact shadow shadowed information (occluded or not). Otherwise -1 is written
-        // 8 bits are reserved for the fading.
-        void GetContactShadowMask(HDAdditionalLightData hdAdditionalLightData, BoolScalableSetting contactShadowEnabled, HDCamera hdCamera, bool isRasterization, ref int contactShadowMask, ref float rayTracingShadowFlag)
-        {
-            contactShadowMask = 0;
-            rayTracingShadowFlag = 0.0f;
-            // If contact shadows are not enabled or we already reached the manimal number of contact shadows
-            // or this is not rasterization
-            if ((!hdAdditionalLightData.useContactShadow.Value(contactShadowEnabled))
-                || m_ContactShadowIndex >= LightDefinitions.s_ContactShadowMaskMask
-                || !isRasterization)
-                return;
-
-            // Evaluate the contact shadow index of this light
-            contactShadowMask = 1 << m_ContactShadowIndex++;
-
-            // If this light has ray traced contact shadow
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && hdAdditionalLightData.rayTraceContactShadow)
-                rayTracingShadowFlag = 1.0f;
         }
 
         unsafe void SetPlanarReflectionData(int index, ref Matrix4x4 vp, ref Vector4 scaleOffset)

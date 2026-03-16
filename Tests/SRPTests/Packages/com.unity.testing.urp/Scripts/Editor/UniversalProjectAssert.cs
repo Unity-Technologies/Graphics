@@ -59,10 +59,13 @@ public static class UniversalProjectAssert
             var rendererData = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(path);
             Assert.IsNotNull(rendererData, $"Failed to load renderer at path {path}");
 
+            var renderer = new UniversalRenderer(rendererData);
+            bool rendererHasPostProcessing = renderer.supportedRenderingFeatures.postProcessing;
+
             if (expectDisabled)
-                Assert.IsNull(rendererData.postProcessData, $"Universal Renderer at path {path} has post processing enabled. {projectName} project should not have renderers with post processing enabled.");
+                Assert.False(rendererHasPostProcessing, $"Universal Renderer at path {path} has post processing enabled. {projectName} project should not have renderers with post processing enabled.");
             else
-                Assert.IsNotNull(rendererData.postProcessData, $"Universal Renderer at path {path} has post processing disabled. {projectName} project must have post processing enabled.");
+                Assert.True(rendererHasPostProcessing, $"Universal Renderer at path {path} has post processing disabled. {projectName} project must have post processing enabled.");
         }
     }
 

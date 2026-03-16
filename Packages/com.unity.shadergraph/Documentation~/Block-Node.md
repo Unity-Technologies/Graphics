@@ -26,6 +26,4 @@ If you disable **Automatically Add or Remove Blocks**, Shader Graph doesn't auto
 
 Active Block nodes are Blocks that contribute to the final shader. Inactive Block nodes are Blocks that are present in the Shader Graph, but don't contribute to the final shader.
 
-![image](images/Active-Inactive-Blocks.png)
-
 When you change the graph settings, certain Blocks might become active or inactive. Inactive Block nodes and any node streams that are connected only to Inactive Block nodes appear grayed out.

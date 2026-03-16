@@ -12,16 +12,18 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
     class TextControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
-        public TextControlAttribute(string label = null)
+        bool m_hideLabel;
+        public TextControlAttribute(string label = null, bool hideLabel = false)
         {
             m_Label = label;
+            m_hideLabel = hideLabel;
         }
 
         public VisualElement InstantiateControl(AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
             if (!TextControlView.validTypes.Contains(propertyInfo.PropertyType))
                 return null;
-            return new TextControlView(m_Label, node, propertyInfo);
+            return new TextControlView(m_Label, node, propertyInfo, m_hideLabel);
         }
     }
 
@@ -32,15 +34,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         PropertyInfo m_PropertyInfo;
         string m_Value;
         int m_UndoGroup = -1;
-        public TextControlView(string label, AbstractMaterialNode node, PropertyInfo propertyInfo)
+        public TextControlView(string label, AbstractMaterialNode node, PropertyInfo propertyInfo, bool hideLabel = false)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/TextControlView"));
             m_Node = node;
             m_PropertyInfo = propertyInfo;
-            label = label ?? ObjectNames.NicifyVariableName(propertyInfo.Name);
+
             var container = new VisualElement { name = "container" };
-            var thisLabel = new Label(label);
-            container.Add(thisLabel);
+            if (!hideLabel)
+            {
+                label = label ?? ObjectNames.NicifyVariableName(propertyInfo.Name);
+                var thisLabel = new Label(label);
+                container.Add(thisLabel);
+            }
             m_Value = GetValue();
             string value = null;
             var field = new TextField { value = m_Value };

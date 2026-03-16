@@ -60,6 +60,11 @@ namespace UnityEditor.VFX
             }
         }
 
+        public virtual string GetRenderPipelineTagStr()
+        {
+            return "";
+        }
+
         public virtual string GetRenderQueueStr()
         {
             var baseRenderQueue = string.Empty;
