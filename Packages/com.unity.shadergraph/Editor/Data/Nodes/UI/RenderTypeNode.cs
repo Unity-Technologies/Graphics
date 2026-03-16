@@ -39,6 +39,18 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
+            if (generationMode == GenerationMode.Preview)
+            {
+                // In preview mode the UITK render-type macros don't exist.
+                // Default to Solid render type.
+                sb.AppendLine("bool {0} = true;", GetVariableNameForSlot(k_OutputSlotIdSolid));
+                sb.AppendLine("bool {0} = false;", GetVariableNameForSlot(k_OutputSlotIdTexture));
+                sb.AppendLine("bool {0} = false;", GetVariableNameForSlot(k_OutputSlotIdSDFText));
+                sb.AppendLine("bool {0} = false;", GetVariableNameForSlot(k_OutputSlotIdBitmapText));
+                sb.AppendLine("bool {0} = false;", GetVariableNameForSlot(k_OutputSlotIdGradient));
+                return;
+            }
+
             sb.AppendLine("bool {0} = _UIE_RENDER_TYPE_SOLID || _UIE_RENDER_TYPE_ANY && round(IN.typeTexSettings.x) == k_FragTypeSolid;", GetVariableNameForSlot(k_OutputSlotIdSolid));
             sb.AppendLine("bool {0} = _UIE_RENDER_TYPE_TEXTURE || _UIE_RENDER_TYPE_ANY && round(IN.typeTexSettings.x) == k_FragTypeTexture;", GetVariableNameForSlot(k_OutputSlotIdTexture));
             sb.AppendLine("bool {0} = (_UIE_RENDER_TYPE_TEXT || _UIE_RENDER_TYPE_ANY) && round(IN.typeTexSettings.x) == k_FragTypeText && (GetTextureInfo(IN.typeTexSettings.y).sdfScale > 0.0);", GetVariableNameForSlot(k_OutputSlotIdSDFText));

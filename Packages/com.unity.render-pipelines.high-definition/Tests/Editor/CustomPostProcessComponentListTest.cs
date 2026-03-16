@@ -5,6 +5,8 @@ using NUnit.Framework;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
+#pragma warning disable 618
+
 namespace UnityEditor.Rendering.HighDefinition.Tests
 {
     class CustomPostProcessComponentListTest
@@ -14,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition.Tests
         {
         }
 
+        [Obsolete("Obsolete to strip from builds")]
         class TestComponent : CustomPostProcessVolumeComponent
         {
             public override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
@@ -22,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition.Tests
             }
         }
 
+        [Obsolete("Obsolete to strip from builds")]
         class TestComponent2 : CustomPostProcessVolumeComponent
         {
             public override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)

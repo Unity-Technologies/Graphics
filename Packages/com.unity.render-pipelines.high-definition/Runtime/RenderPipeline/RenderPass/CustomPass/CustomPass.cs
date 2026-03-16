@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 output.colorBufferRG = targets.colorBufferRG;
                 builder.UseTexture(output.colorBufferRG, AccessFlags.ReadWrite);
             }
-            if (targets.nonMSAAColorBufferRG.IsValid())
+            if (targets.nonMSAAColorBufferRG.IsValid() && targets.nonMSAAColorBufferRG != targets.colorBufferRG)
             {
                 output.nonMSAAColorBufferRG = targets.nonMSAAColorBufferRG;
                 builder.UseTexture(output.nonMSAAColorBufferRG, AccessFlags.ReadWrite);

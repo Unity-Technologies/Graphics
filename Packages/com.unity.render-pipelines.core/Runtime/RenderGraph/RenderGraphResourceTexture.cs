@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// </summary>
     [DebuggerDisplay("Texture ({handle.index})")]
     [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
-    public readonly struct TextureHandle
+    public readonly struct TextureHandle : IEquatable<TextureHandle>
     {
         private static TextureHandle s_NullHandle = new TextureHandle();
 
@@ -150,6 +150,52 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <param name="texture">Input TextureHandle.</param>
         /// <returns>Resource as a RTHandle.</returns>
         public static implicit operator RTHandle(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
+
+        /// <summary>
+        /// Determines whether this instance and another specified <see cref="TextureHandle"/> object have the same underlying resource handle.
+        /// </summary>
+        /// <param name="other">The texture handle to compare with the current instance.</param>
+        /// <returns>
+        /// True if both texture handles reference the same underlying resource; otherwise, false.
+        /// </returns>
+        public bool Equals(TextureHandle other) => handle.Equals(other.handle);
+
+        /// <summary>
+        /// Determines whether the specified object is equal to the current <see cref="TextureHandle"/>.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current instance.</param>
+        /// <returns>
+        /// True if the specified object is a <see cref="TextureHandle"/> and references the same underlying resource; otherwise, false.
+        /// </returns>
+        public override bool Equals(object obj) => obj is TextureHandle other && Equals(other);
+
+        /// <summary>
+        /// Returns the hash code for this <see cref="TextureHandle"/>.
+        /// </summary>
+        /// <returns>
+        /// The hash code of the current <see cref="TextureHandle"/>.
+        /// </returns>
+        public override int GetHashCode() => handle.GetHashCode();
+
+        /// <summary>
+        /// Determines whether two <see cref="TextureHandle"/> instances reference the same underlying resource.
+        /// </summary>
+        /// <param name="lhs">The first texture handle to compare.</param>
+        /// <param name="rhs">The second texture handle to compare.</param>
+        /// <returns>
+        /// True if both handles reference the same underlying resource; otherwise, false.
+        /// </returns>
+        public static bool operator ==(TextureHandle lhs, TextureHandle rhs) => lhs.handle.Equals(rhs.handle);
+
+        /// <summary>
+        /// Determines whether two <see cref="TextureHandle"/> instances reference different underlying resources.
+        /// </summary>
+        /// <param name="lhs">The first texture handle to compare.</param>
+        /// <param name="rhs">The second texture handle to compare.</param>
+        /// <returns>
+        /// True if the handles reference different underlying resources; otherwise, false.
+        /// </returns>
+        public static bool operator !=(TextureHandle lhs, TextureHandle rhs) => !lhs.handle.Equals(rhs.handle);
 
         /// <summary>
         /// Return true if the handle is valid.

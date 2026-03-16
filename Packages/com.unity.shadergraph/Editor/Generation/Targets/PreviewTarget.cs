@@ -10,10 +10,17 @@ namespace UnityEditor.ShaderGraph
     {
         static readonly GUID kSourceCodeGuid = new GUID("7464b9fcde08e5645a16b9b8ae1e573c"); // PreviewTarget.cs
 
-        public PreviewTarget()
+        private bool isUITKPreview = false;
+
+        public PreviewTarget() : this(false)
+        {
+        }
+
+        public PreviewTarget(bool isUITKPreview)
         {
             displayName = "Preview";
             isHidden = true;
+            this.isUITKPreview = isUITKPreview;
         }
 
         public override bool IsActive() => false;
@@ -22,7 +29,7 @@ namespace UnityEditor.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
-            context.AddSubShader(SubShaders.Preview);
+            context.AddSubShader(SubShaders.GetPreview(isUITKPreview));
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -41,66 +48,77 @@ namespace UnityEditor.ShaderGraph
 
         static class SubShaders
         {
-            public static SubShaderDescriptor Preview = new SubShaderDescriptor()
+            public static SubShaderDescriptor GetPreview(bool isUITKPreview)
             {
-                renderQueue = "Geometry",
-                renderType = "Opaque",
-                generatesPreview = true,
-                passes = new PassCollection { Passes.Preview },
-            };
+                var preview = new SubShaderDescriptor()
+                {
+                    renderQueue = "Geometry",
+                    renderType = "Opaque",
+                    generatesPreview = true,
+                    passes = new PassCollection { Passes.GetPreview(isUITKPreview) },
+                };
+
+                return preview;
+            }
         }
 
         static class Passes
         {
-            public static PassDescriptor Preview = new PassDescriptor()
+            public static PassDescriptor GetPreview(bool isUITKPreview)
             {
-                // Definition
-                referenceName = "SHADERPASS_PREVIEW",
-                useInPreview = true,
+                var pass = new PassDescriptor()
+                {
+                    // Definition
+                    referenceName = "SHADERPASS_PREVIEW",
+                    useInPreview = true,
 
-                // Templates
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                    // Templates
+                    passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                    sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
-                // Collections
-                structs = new StructCollection
-                {
-                    { Structs.Attributes },
-                    { StructDescriptors.PreviewVaryings },
-                    { Structs.SurfaceDescriptionInputs },
-                    { Structs.VertexDescriptionInputs },
-                },
-                fieldDependencies = FieldDependencies.Default,
-                pragmas = new PragmaCollection
-                {
-                    { Pragma.Vertex("vert") },
-                    { Pragma.Fragment("frag") },
-                },
-                defines = new DefineCollection
-                {
-                    { KeywordDescriptors.PreviewKeyword, 1 },
-                },
-                includes = new IncludeCollection
-                {
-                    // Pre-graph
-                    { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl", IncludeLocation.Pregraph },
-                    { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl", IncludeLocation.Pregraph },
-                    { "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl", IncludeLocation.Pregraph },       // TODO: put this on a conditional
-                    { "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl", IncludeLocation.Pregraph },
-                    { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl", IncludeLocation.Pregraph },
-                    { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl", IncludeLocation.Pregraph },
-                    { "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl", IncludeLocation.Pregraph },
-                    { "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl", IncludeLocation.Pregraph },
-                    { "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariables.hlsl", IncludeLocation.Pregraph },
-                    { "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl", IncludeLocation.Pregraph },
-                    { "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl", IncludeLocation.Pregraph },
-                    { "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Shim/UIShim.hlsl", IncludeLocation.Pregraph },
+                    // Collections
+                    structs = new StructCollection
+                    {
+                        { Structs.Attributes },
+                        { StructDescriptors.PreviewVaryings },
+                        { Structs.SurfaceDescriptionInputs },
+                        { Structs.VertexDescriptionInputs },
+                    },
+                    fieldDependencies = FieldDependencies.Default,
+                    pragmas = new PragmaCollection
+                    {
+                        { Pragma.Vertex("vert") },
+                        { Pragma.Fragment("frag") },
+                    },
+                    defines = new DefineCollection
+                    {
+                        { KeywordDescriptors.PreviewKeyword, 1 },
+                        { KeywordDescriptors.UITKPreviewKeyword, isUITKPreview ? 1 : 0 }
+                    },
+                    includes = new IncludeCollection
+                    {
+                        // Pre-graph
+                        { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl", IncludeLocation.Pregraph },
+                        { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl", IncludeLocation.Pregraph },
+                        { "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl", IncludeLocation.Pregraph },       // TODO: put this on a conditional
+                        { "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl", IncludeLocation.Pregraph },
+                        { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl", IncludeLocation.Pregraph },
+                        { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl", IncludeLocation.Pregraph },
+                        { "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl", IncludeLocation.Pregraph },
+                        { "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl", IncludeLocation.Pregraph },
+                        { "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariables.hlsl", IncludeLocation.Pregraph },
+                        { "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl", IncludeLocation.Pregraph },
+                        { "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl", IncludeLocation.Pregraph },
+                        { "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Shim/UIShimPreview.hlsl", IncludeLocation.Pregraph },
 
-                    // Post-graph
-                    { "Packages/com.unity.shadergraph/ShaderGraphLibrary/PreviewVaryings.hlsl", IncludeLocation.Postgraph },
-                    { "Packages/com.unity.shadergraph/ShaderGraphLibrary/PreviewPass.hlsl", IncludeLocation.Postgraph },
-                }
-            };
+                        // Post-graph
+                        { "Packages/com.unity.shadergraph/ShaderGraphLibrary/PreviewVaryings.hlsl", IncludeLocation.Postgraph },
+                        { "Packages/com.unity.shadergraph/ShaderGraphLibrary/PreviewPass.hlsl", IncludeLocation.Postgraph },
+                    }
+                };
+
+                return pass;
+            }
         }
 
         static class StructDescriptors
@@ -139,6 +157,15 @@ namespace UnityEditor.ShaderGraph
             {
                 displayName = "Preview",
                 referenceName = "SHADERGRAPH_PREVIEW",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.MultiCompile,
+                scope = KeywordScope.Global,
+                stages = KeywordShaderStage.All,
+            };
+            public static KeywordDescriptor UITKPreviewKeyword = new KeywordDescriptor()
+            {
+                displayName = "UITK Preview",
+                referenceName = "UITK_PREVIEW",
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.MultiCompile,
                 scope = KeywordScope.Global,

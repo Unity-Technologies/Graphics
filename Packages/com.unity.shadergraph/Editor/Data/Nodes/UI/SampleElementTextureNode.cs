@@ -82,6 +82,16 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
+            if (generationMode == GenerationMode.Preview)
+            {
+                // In preview mode, return white
+                sb.AppendLine("$precision4 {0} = $precision4(1, 1, 1, 1);", GetVariableNameForSlot(Color0SlotId));
+                sb.AppendLine("$precision4 {0} = $precision4(1, 1, 1, 1);", GetVariableNameForSlot(Color1SlotId));
+                sb.AppendLine("$precision4 {0} = $precision4(1, 1, 1, 1);", GetVariableNameForSlot(Color2SlotId));
+                sb.AppendLine("$precision4 {0} = $precision4(1, 1, 1, 1);", GetVariableNameForSlot(Color3SlotId));
+                return;
+            }
+
             sb.AppendLine("$precision4 {0};", GetVariableNameForSlot(Color0SlotId));
             sb.AppendLine("$precision4 {0};", GetVariableNameForSlot(Color1SlotId));
             sb.AppendLine("$precision4 {0};", GetVariableNameForSlot(Color2SlotId));
@@ -99,6 +109,13 @@ namespace UnityEditor.ShaderGraph
                     GetVariableNameForSlot(Color1SlotId),
                     GetVariableNameForSlot(Color2SlotId),
                     GetVariableNameForSlot(Color3SlotId));
+
+                sb.AppendLine("#if _UIE_FORCE_GAMMA");
+                sb.AppendLine("{0}.rgb = uie_linear_to_gamma({1}.rgb);", GetVariableNameForSlot(Color0SlotId), GetVariableNameForSlot(Color0SlotId));
+                sb.AppendLine("{0}.rgb = uie_linear_to_gamma({1}.rgb);", GetVariableNameForSlot(Color1SlotId), GetVariableNameForSlot(Color1SlotId));
+                sb.AppendLine("{0}.rgb = uie_linear_to_gamma({1}.rgb);", GetVariableNameForSlot(Color2SlotId), GetVariableNameForSlot(Color2SlotId));
+                sb.AppendLine("{0}.rgb = uie_linear_to_gamma({1}.rgb);", GetVariableNameForSlot(Color3SlotId), GetVariableNameForSlot(Color3SlotId));
+                sb.AppendLine("#endif");
             }
         }
 

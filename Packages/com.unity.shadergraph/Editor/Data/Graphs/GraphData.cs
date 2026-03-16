@@ -698,7 +698,7 @@ namespace UnityEditor.ShaderGraph
             m_MovedContexts = false;
         }
 
-        public void AddNode(AbstractMaterialNode node)
+        public void AddNode(AbstractMaterialNode node, bool usePreviewPref = true)
         {
             if (node is AbstractMaterialNode materialNode)
             {
@@ -708,7 +708,8 @@ namespace UnityEditor.ShaderGraph
                     return;
                 }
 
-                materialNode.previewExpanded = ShaderGraphPreferences.newNodesPreview;
+                if (usePreviewPref && materialNode.UsePreviewPref)
+                    materialNode.previewExpanded = ShaderGraphPreferences.newNodesPreview;
 
                 AddNodeNoValidate(materialNode);
 
@@ -885,6 +886,17 @@ namespace UnityEditor.ShaderGraph
                 context.AddBlock(cibnode.descriptor);
             }
             return context.activeBlocks;
+        }
+
+        public void RefreshBadgesAndPreviews()
+        {
+            foreach (var node in this.m_Nodes)
+            {
+                if (node.value != null)
+                {
+                    node.value.Dirty(ModificationScope.Graph);
+                }
+            }
         }
 
         public void UpdateActiveBlocks(List<BlockFieldDescriptor> activeBlockDescriptors)
@@ -2290,7 +2302,7 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 remappedNodes.Add(pastedNode);
-                AddNode(pastedNode);
+                AddNode(pastedNode, false);
 
                 // add the node to the pasted node list
                 m_PastedNodes.Add(pastedNode);

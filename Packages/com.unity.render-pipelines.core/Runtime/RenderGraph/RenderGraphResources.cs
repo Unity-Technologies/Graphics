@@ -123,6 +123,21 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             return hdl.m_Value == this.m_Value && hdl.m_Version == this.m_Version && hdl.type == this.type;
         }
+
+        public static bool operator ==(ResourceHandle lhs, ResourceHandle rhs) => lhs.Equals(rhs);
+
+        public static bool operator !=(ResourceHandle lhs, ResourceHandle rhs) => !lhs.Equals(rhs);
+
+        public override bool Equals(object obj) => obj is ResourceHandle other && Equals(other);
+
+        public override int GetHashCode()
+        {
+            var hashCode = HashFNV1A32.Create();
+            hashCode.Append(m_Value);
+            hashCode.Append(m_Version);
+            hashCode.Append(m_Type);
+            return hashCode.value;
+        }
     }
 
     class IRenderGraphResource

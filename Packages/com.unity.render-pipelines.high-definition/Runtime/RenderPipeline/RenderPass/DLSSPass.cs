@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             static NVIDIA.DLSSPreset Uint2Preset(uint preset)
             {
-                if (preset >= (uint)NVIDIA.DLSSPreset.Preset_Default && preset <= (uint)NVIDIA.DLSSPreset.Preset_K)
+                if (preset >= (uint)NVIDIA.DLSSPreset.Preset_Default && preset <= (uint)NVIDIA.DLSSPreset.Preset_M)
                     return (NVIDIA.DLSSPreset)preset;
                 Debug.LogWarningFormat("Unknown DLSS Preset value {0}, using default value.", preset);
                 return NVIDIA.DLSSPreset.Preset_Default;
