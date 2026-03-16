@@ -10,17 +10,17 @@ You can use **Custom** material type to define your own physically based materia
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| Out | Output      |    Float    | None | Output value |
+| Name | Direction | Type | Binding | Description |
+|:--- |:---|:---|:---|:---|
+| Out | Output | Float | None | Output value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-| Material | Dropdown | Common, RustedMetal, Water, Ice, Glass, Custom | Selects the material value to output. |
-| Range    | Slider |  | Controls output value for **Common** material type. |
-| IOR      | Slider |  | Controls index of refraction for **Custom** material type. |
+| Control | Description |
+|:---|:---|
+| **Material** | Selects the material value to output. The options are:<ul><li>**Common**</li><li>**RustedMetal**</li><li>**Water**</li><li>**Ice**</li><li>**Glass**</li><li>**Custom**</li></ul> |
+| **Range** | Controls the output value for a **Common** material type. |
+| **IOR** | Controls the index of refraction for a **Custom** material type. |
 
 ## Generated Code Example
 

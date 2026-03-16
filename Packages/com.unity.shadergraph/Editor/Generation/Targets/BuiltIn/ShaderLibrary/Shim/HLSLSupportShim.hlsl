@@ -16,12 +16,19 @@
 
 #define SHADOWS_NATIVE
 
+#undef fixed
 #define fixed real
+#undef fixed2
 #define fixed2 real2
+#undef fixed3
 #define fixed3 real3
+#undef fixed4
 #define fixed4 real4
+#undef fixed4x4
 #define fixed4x4 real4x4
+#undef fixed3x3
 #define fixed3x3 real3x3
+#undef fixed2x2
 #define fixed2x2 real2x2
 
 #define UNITY_INITIALIZE_OUTPUT(type,name) ZERO_INITIALIZE(type, name)

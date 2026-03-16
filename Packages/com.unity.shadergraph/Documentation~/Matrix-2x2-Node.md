@@ -6,15 +6,15 @@ Defines a constant **Matrix 2x2** value in the shader.
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| Out | Output      |    Matrix 2 | None | Output value |
+| Name | Direction | Type | Binding | Description |
+|:--- |:---|:---|:---|:---|
+| Out | Output | Matrix 2 | None | Output value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-|  | Matrix 2x2 |  | Sets output value |
+| Control | Description |
+|:---|:---|
+| (Matrix 2x2) | Sets the matrix 2x2 output value. |
 
 ## Generated Code Example
 

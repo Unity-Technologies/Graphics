@@ -21,18 +21,16 @@ To access the **Shader Graph Window**, you must first create a [Shader Graph Ass
 
 Use the **Shader Graph Window** toolbar to manage the shader graph asset, display elements in the window, and more.
 
-| Icon                | Item                | Description |
-|:--------------------|:--------------------|:------------|
-| ![Image](images/sg-save-icon.png) | **Save Asset**      | Save the graph to update the [Shader Graph Asset](index.md). |
-| ![Image](images/sg-dropdown-icon.png) | **Save As**         | Save the [Shader Graph Asset](index.md) under a new name. |
-| | **Show In Project** | Highlight the [Shader Graph Asset](index.md) in the [Project Window](https://docs.unity3d.com/Manual/ProjectView.html). |
-| | **Check Out**       | If version control is enabled, check out the [Shader Graph Asset](index.md) from the source control provider. |
-| ![Image](images/sg-color-mode-selector.png) | **Color Mode Selector**      | Select a [Color Mode](Color-Modes.md) for the graph. |
-| ![Image](images/sg-blackboard-icon.png) | **Blackboard**      | Toggle the visibility of the [Blackboard](Blackboard.md). |
-| ![Image](images/sg-graph-inspector-icon.png) | **Graph Inspector** | Toggle the visibility of the [Graph Inspector](Internal-Inspector.md). |
-| ![Image](images/sg-main-preview-icon.png) | **Main Preview**    | Toggle the visibility of the [Main Preview](Main-Preview.md). |
-| ![Image](images/sg-help_icon.png) | **Help**     | Open the Shader Graph documentation in the browser. |
-| ![Image](images/sg-dropdown-icon.png) | **Resources** | Contains links to Shader Graph resources (like samples and User forums). |
+| Icon | Item                | Description |
+|:---|:---|:---|
+| ![The Save Asset icon](images/sg-save-icon.png) | **Save Asset** | Save the graph to update the [Shader Graph Asset](index.md). |
+| ![The asset file management icon](images/sg-dropdown-icon.png) | **Asset file management** | Use additional options to manage the graph asset file. The options are:<ul><li>**Save As**: Save the [Shader Graph Asset](index.md) under a new name.</li><li>**Show In Project**: Highlight the [Shader Graph Asset](index.md) in the [Project Window](https://docs.unity3d.com/Manual/ProjectView.html).</li><li>**Check Out**: If version control is enabled, check out the [Shader Graph Asset](index.md) from the source control provider.</li></ul> |
+| ![The Color Mode Selector icon](images/sg-color-mode-selector.png) | **Color Mode Selector**      | Select a [Color Mode](Color-Modes.md) for the graph. |
+| ![The Blackboard icon](images/sg-blackboard-icon.png) | **Blackboard**      | Toggle the visibility of the [Blackboard](Blackboard.md). |
+| ![The Graph Inspector icon](images/sg-graph-inspector-icon.png) | **Graph Inspector** | Toggle the visibility of the [Graph Inspector](Internal-Inspector.md). |
+| ![The Main Preview icon](images/sg-main-preview-icon.png) | **Main Preview**    | Toggle the visibility of the [Main Preview](Main-Preview.md). |
+| ![The Help icon](images/sg-help_icon.png) | **Help**     | Open the Shader Graph documentation in the browser. |
+| ![The Resources icon](images/sg-dropdown-icon.png) | **Resources** | Contains links to Shader Graph resources (like samples and User forums). |
 
 ## Workspace
 

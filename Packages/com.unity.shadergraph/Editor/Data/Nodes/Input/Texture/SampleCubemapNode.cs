@@ -45,13 +45,16 @@ namespace UnityEditor.ShaderGraph
         // Node generations
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
+            string outputVectorVariableName = GetVariableNameForSlot(OutputSlotId);
+
             //Sampler input slot
             var samplerSlot = FindInputSlot<MaterialSlot>(SamplerInputId);
             var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
 
+            // Sample
             var id = GetSlotValue(CubemapInputId, generationMode);
             string result = string.Format("$precision4 {0} = SAMPLE_TEXTURECUBE_LOD({1}.tex, {2}.samplerstate, reflect(-{3}, {4}), {5});"
-                , GetVariableNameForSlot(OutputSlotId)
+                , outputVectorVariableName
                 , id
                 , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id
                 , GetSlotValue(ViewDirInputId, generationMode)
@@ -59,6 +62,9 @@ namespace UnityEditor.ShaderGraph
                 , GetSlotValue(LODInputId, generationMode));
 
             sb.AppendLine(result);
+
+            // Decode HDR
+            SampleTexture2DNode.AppendHDRDecodeOperation(sb, outputVectorVariableName, id);
         }
 
         public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability)
