@@ -297,12 +297,14 @@ namespace UnityEditor.Rendering
 
                 menu.AddItem(Styles.collapseAll, false, () =>
                 {
-                    SetComponentEditorsExpanded(componentEditors, false);
+                    if (componentEditors != null)
+                        SetComponentEditorsExpanded(componentEditors, false);
                     onComponentEditorsExpandedCollapsed?.Invoke();
                 });
                 menu.AddItem(Styles.expandAll, false, () =>
                 {
-                    SetComponentEditorsExpanded(componentEditors, true);
+                    if (componentEditors != null)
+                        SetComponentEditorsExpanded(componentEditors, true);
                     onComponentEditorsExpandedCollapsed?.Invoke();
                 });
             }

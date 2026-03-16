@@ -132,7 +132,7 @@ namespace UnityEditor.Rendering
                 bool canCreateNewAsset = RenderPipelineManager.currentPipeline is TRenderPipeline;
                 VolumeProfileUtils.AddVolumeProfileContextMenuItems(ref menu,
                     setting.volumeProfile,
-                    s_DefaultVolumeProfileEditor.allEditors,
+                    s_DefaultVolumeProfileEditor == null ? null : s_DefaultVolumeProfileEditor.allEditors,
                     overrideStateOnReset: true,
                     defaultVolumeProfilePath: defaultVolumeProfilePath,
                     onNewVolumeProfileCreated: createdProfile =>
@@ -151,7 +151,7 @@ namespace UnityEditor.Rendering
                         }
                         VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<TRenderPipeline>(createdProfile, initialAsset);
                     },
-                    onComponentEditorsExpandedCollapsed: s_DefaultVolumeProfileEditor.RebuildListViews,
+                    onComponentEditorsExpandedCollapsed: s_DefaultVolumeProfileEditor == null ? null : s_DefaultVolumeProfileEditor.RebuildListViews,
                     canCreateNewAsset);
             }
         }
