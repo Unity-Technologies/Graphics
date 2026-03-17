@@ -355,5 +355,44 @@ namespace UnityEditor.VFX.Test
 
             yield return null;
         }
+        
+        static bool FindInShaderSource(VisualEffectResource vfxResource, string match)
+        {
+            for (int shaderIndex = 0; shaderIndex < vfxResource.GetShaderSourceCount(); ++shaderIndex)
+            {
+                var shaderSource = vfxResource.GetShaderSource(shaderIndex);
+                if (shaderSource.Contains(match))
+                    return true;
+            }
+
+            return false;
+        }
+
+        [UnityTest, Description("Cover UUM-133319")]
+        public IEnumerator Repro_Simplest_Subgraph_Chain()
+        {
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => { x.Close(); });
+            AssetDatabase.ImportPackageImmediately("Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_Simplest_Subgraph_Chain.unitypackage");
+            AssetDatabase.Refresh();
+            yield return null;
+
+            var mainGraphPath = Path.Combine(VFXTestCommon.tempBasePath, "Repro_Simplest_Subgraph_Chain.vfx");
+            var subGraphPath = Path.Combine(VFXTestCommon.tempBasePath, "Repro_Simplest_Subgraph_Chain.vfxblock");
+
+            var mainGraphAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(mainGraphPath);
+            var subGraphAsset = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraph>(subGraphPath);
+            Assert.IsNotNull(mainGraphAsset);
+            Assert.IsNotNull(subGraphAsset);
+
+            Assert.IsTrue(FindInShaderSource(mainGraphAsset.GetResource(), "void Gravity"));
+
+            var subgraphContext = subGraphAsset.GetResource().GetOrCreateGraph().children.Single();
+            var gravity = subgraphContext.children.OfType<Block.Gravity>().Single();
+            subgraphContext.RemoveChild(gravity);
+            subGraphAsset.GetResource().WriteAsset();
+            yield return null;
+
+            Assert.IsFalse(FindInShaderSource(mainGraphAsset.GetResource(), "void Gravity"));
+        }
     }
 }
