@@ -43,6 +43,8 @@ namespace UnityEditor.ShaderGraph
 
         internal virtual bool ExposeToSearcher => true;
 
+        internal virtual bool UsePreviewPref => true;
+
         protected virtual bool CanPropagateFloatLiteral => false;
 
         OnNodeModified m_OnModified;
