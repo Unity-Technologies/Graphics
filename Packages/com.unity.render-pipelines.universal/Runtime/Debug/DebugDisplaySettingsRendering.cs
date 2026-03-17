@@ -194,6 +194,20 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public TaaDebugMode taaDebugMode { get; set; } = TaaDebugMode.None;
 
+        /// <summary>
+        /// Whether to block the Reflection Probe Atlas overlay display. Returns true when the relevant overlay is selected
+        /// but the main camera's rendering mode doesn't support displaying the Reflection Probe Atlas.
+        /// </summary>
+        internal bool blockReflectionProbeAtlasOverlay
+        {
+            get
+            {
+                var camera = Camera.main;
+                return camera == null ? false :
+                    (fullScreenDebugMode == DebugFullScreenMode.ReflectionProbeAtlas && !(camera.GetUniversalAdditionalCameraData().scriptableRenderer as UniversalRenderer).usesClusterLightLoop);
+            }
+        }
+
         #region Pixel validation
 
         /// <summary>
@@ -223,6 +237,7 @@ namespace UnityEngine.Rendering.Universal
             public const string RangeValidationSettingsContainerName = "Pixel Range Settings";
 
             public static readonly NameAndTooltip MapOverlays = new() { name = "Map Overlays", tooltip = "Overlays render pipeline textures to validate the scene." };
+            public static readonly NameAndTooltip ReflectionProbeAtlasDebugWarning = new() { name = "Warning: Reflection Probe Atlas visualization not supported for the current rendering path. Switch to Forward+ or Deferred+ to use this debug view.", tooltip = "Switch to Forward+ or Deferred+ in the main camera's Universal Renderer Data asset to use this debug overlay." };
             public static readonly NameAndTooltip StpDebugViews = new() { name = "STP Debug Views", tooltip = "Debug visualizations provided by STP." };
             public static readonly NameAndTooltip MapSize = new() { name = "Map Size", tooltip = "Set the size of the render pipeline texture in the scene." };
             public static readonly NameAndTooltip AdditionalWireframeModes = new() { name = "Additional Wireframe Modes", tooltip = "Debug the scene with additional wireframe shader views that are different from those in the scene view." };
@@ -277,9 +292,16 @@ namespace UnityEngine.Rendering.Universal
             {
                 children =
                 {
+                    new DebugUI.MessageBox
+                    {
+                        nameAndTooltip = Strings.ReflectionProbeAtlasDebugWarning,
+                        style = DebugUI.MessageBox.Style.Warning,
+                        isHiddenCallback = () => !panel.data.blockReflectionProbeAtlasOverlay,
+                    },
                     new DebugUI.IntField
                     {
                         nameAndTooltip = Strings.MapSize,
+                        isHiddenCallback = () => panel.data.blockReflectionProbeAtlasOverlay,
                         getter = () => panel.data.fullScreenDebugModeOutputSizeScreenPercent,
                         setter = value => panel.data.fullScreenDebugModeOutputSizeScreenPercent = value,
                         incStep = 10,
