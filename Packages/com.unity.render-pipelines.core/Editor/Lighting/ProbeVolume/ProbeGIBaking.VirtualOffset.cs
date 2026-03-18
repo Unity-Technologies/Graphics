@@ -356,7 +356,7 @@ namespace UnityEngine.Rendering
             if (ValidateBakingCellsSize(bakingCellsArray, chunkSizeInProbes, hasVirtualOffsets, hasRenderingLayers))
             {
                 // Write back the assets.
-                WriteBakingCells(bakingCellsArray);
+                WriteBakingCells(m_BakingSet, bakingCellsArray);
             }
 
             m_BakingBatch?.Dispose();

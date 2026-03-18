@@ -479,6 +479,14 @@ namespace UnityEngine.Rendering
             // Cancellation
             public bool failed;
 
+            [Flags]
+            enum BakeJobRequests
+            {
+                MAIN_REQUEST = 1,
+                TOUCHUP_REQUESTS = 2,
+                ADDITIONAL_REQUEST = 4
+            }
+
             internal static void InitVirtualOffsetJob(IntPtr pVirtualOffsetsBuffer, ref bool bakeVirtualOffsets)
             {
                 bool usingVirtualOffset = m_BakingSet.settings.virtualOffsetSettings.useVirtualOffset;
@@ -541,7 +549,11 @@ namespace UnityEngine.Rendering
                 probeCount = probePositions.Length;
                 reflectionProbeCount = requests.Count;
 
-                jobs = CreateBakingJobs(bakingSet, requests.Count != 0);
+                var probeJobRequests = BakeJobRequests.MAIN_REQUEST | BakeJobRequests.TOUCHUP_REQUESTS;
+                if (requests.Count > 0)
+                    probeJobRequests |= BakeJobRequests.ADDITIONAL_REQUEST;
+
+                jobs = CreateBakingJobs(bakingSet, probeJobRequests);
                 originalPositions = probePositions.ToArray(Allocator.Persistent);
                 SortPositions(probePositions, requests);
 
@@ -587,13 +599,22 @@ namespace UnityEngine.Rendering
                 stepCount = lightingJob.stepCount;
             }
 
-            public void InitLightingJob(ProbeVolumeBakingSet bakingSet, NativeList<Vector3> probePositions, BakeType bakeType)
+            public void InitLightingJob(ProbeVolumeBakingSet bakingSet, ProbeAdjustmentVolume touchup, NativeList<Vector3> probePositions, BakeType bakeType)
             {
                 probeCount = probePositions.Length;
 
                 s_AdjustmentVolumes = new TouchupVolumeWithBoundsList();
+                touchup.GetOBBandAABB(out var obb, out var aabb);
+                s_AdjustmentVolumes.Add((obb, aabb, touchup));
+                touchup.skyDirection.Normalize();
 
-                jobs = CreateBakingJobs(bakingSet, false);
+                var probeJobRequests = BakeJobRequests.TOUCHUP_REQUESTS;
+                if (touchup.mode != ProbeAdjustmentVolume.Mode.OverrideSampleCount)
+                {
+                    // Other touchup volumes don't need a job of their own but they do need a main request job
+                    probeJobRequests |= BakeJobRequests.MAIN_REQUEST;
+                }
+                jobs = CreateBakingJobs(bakingSet, probeJobRequests);
                 SortPositions(probePositions, new List<Vector3>());
 
                 lightingJob = lightingOverride ?? new DefaultLightTransport();
@@ -622,16 +643,19 @@ namespace UnityEngine.Rendering
                 bakingThread.Start();
             }
 
-            static BakeJob[] CreateBakingJobs(ProbeVolumeBakingSet bakingSet, bool hasAdditionalRequests)
+            static BakeJob[] CreateBakingJobs(ProbeVolumeBakingSet bakingSet, BakeJobRequests bakeJobRequests)
             {
                 // Build the list of adjustment volumes affecting sample count
                 var touchupVolumesAndBounds = new TouchupVolumeWithBoundsList();
+                if (bakeJobRequests.HasFlag(BakeJobRequests.TOUCHUP_REQUESTS))
                 {
                     // This is slow, but we should have very little amount of touchup volumes.
                     foreach (var adjustment in s_AdjustmentVolumes)
                     {
                         if (adjustment.volume.mode == ProbeAdjustmentVolume.Mode.OverrideSampleCount)
+                        {
                             touchupVolumesAndBounds.Add(adjustment);
+                        }
                     }
 
                     // Sort by volume to give priority to smaller volumes
@@ -640,18 +664,33 @@ namespace UnityEngine.Rendering
 
                 var lightingSettings = ProbeVolumeLightingTab.GetLightingSettings();
                 bool skyOcclusion = bakingSet.skyOcclusion;
+                var jobs = new List<BakeJob>();
 
-                int additionalJobs = hasAdditionalRequests ? 2 : 1;
-                var jobs = new BakeJob[touchupVolumesAndBounds.Count + additionalJobs];
+                if (bakeJobRequests.HasFlag(BakeJobRequests.TOUCHUP_REQUESTS))
+                {
+                    foreach (var touchupVolume in touchupVolumesAndBounds)
+                    {
+                        BakeJob job = new BakeJob();
+                        job.Create(lightingSettings, skyOcclusion, touchupVolume);
+                        jobs.Add(job);
+                    }
+                }
 
-                for (int i = 0; i < touchupVolumesAndBounds.Count; i++)
-                    jobs[i].Create(lightingSettings, skyOcclusion, touchupVolumesAndBounds[i]);
+                if (bakeJobRequests.HasFlag(BakeJobRequests.MAIN_REQUEST))
+                {
+                    BakeJob job = new BakeJob();
+                    job.Create(bakingSet, lightingSettings, skyOcclusion);
+                    jobs.Add(job);
+                }
 
-                jobs[touchupVolumesAndBounds.Count + 0].Create(bakingSet, lightingSettings, skyOcclusion);
-                if (hasAdditionalRequests)
-                    jobs[touchupVolumesAndBounds.Count + 1].Create(bakingSet, lightingSettings, false);
+                if (bakeJobRequests.HasFlag(BakeJobRequests.ADDITIONAL_REQUEST))
+                {
+                    BakeJob job = new BakeJob();
+                    job.Create(bakingSet, lightingSettings, false);
+                    jobs.Add(job);
+                }
 
-                return jobs;
+                return jobs.ToArray();
             }
 
             static BakeJob[] CreateAdditionalBakingJobs()
@@ -1802,7 +1841,7 @@ namespace UnityEngine.Rendering
             // Attempt to convert baking cells to runtime cells
             bool succeededWritingBakingCells;
             using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.WriteBakedData))
-                succeededWritingBakingCells = WriteBakingCells(m_BakedCells.Values.ToArray());
+                succeededWritingBakingCells = WriteBakingCells(m_BakingSet, m_BakedCells.Values.ToArray());
 
             if (!succeededWritingBakingCells)
                 return;
