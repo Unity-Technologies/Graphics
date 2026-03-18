@@ -141,15 +141,24 @@ namespace UnityEngine.Rendering
             // Scan all materials once to retrieve whether this renderer is indirect-compatible or not (and store it in the RangeKey).
             // Also cache hash map lookups since we need them right after.
             bool supportsIndirect = true;
-            NativeArray<GPUDrivenMaterial> subMaterials = new NativeArray<GPUDrivenMaterial>(subMaterialIDs.Length, Allocator.Temp);
+            bool isMetal = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal;
+            var subMaterials = new NativeArray<GPUDrivenMaterial>(subMaterialIDs.Length, Allocator.Temp);
             for (int i = 0; i < subMaterialIDs.Length; i++)
             {
                 EntityId subMaterialID = subMaterialIDs[i];
                 if (!materialMap.TryGetValue(subMaterialID, out GPUDrivenMaterial subMaterial))
                     continue;
 
-                supportsIndirect &= subMaterial.isIndirectSupported;
                 subMaterials[i] = subMaterial;
+
+                int subMeshIndex = subMeshStartIndex + i;
+                int lodLoopCount = math.max(mesh.meshLodCount, 1);
+                var subMesh = mesh.subMeshes[subMeshIndex * lodLoopCount];
+
+                // The indirect path does not support topology adjustment; use the direct path when this is required.
+                // Concretely, for quads, only use the indirect path if we allow quads natively (e.g. tessellation shaders).
+                supportsIndirect &= subMesh.topology != MeshTopology.Quads || subMaterial.hasTessellation;
+                supportsIndirect &= !isMetal || !subMaterial.hasTessellation;
             }
 
             var rangeKey = new RangeKey
