@@ -166,7 +166,13 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
         prunedList[i] = 0;
     }
 
+#if SHADER_API_SWITCH
+    // Only used for internal testing and not for scenes with large number of lights
+    // Currently when enabled this can trigger a hang on tests
+    bool lightSortRequired = false;
+#else
     bool lightSortRequired = g_iNrVisibLights > LIGHT_LIST_MAX_COARSE_ENTRIES;  // Uniform runtime branch
+#endif
     if (lightSortRequired)
     {
         UNITY_UNROLLX(DIV_ROUND_UP(MAX_NR_VISIBLE_LIGHTS/32, NR_THREADS))
