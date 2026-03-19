@@ -2163,6 +2163,11 @@ namespace UnityEngine.Rendering.HighDefinition
             Render(renderContext, cameras);
         }
 
+#if UNITY_EDITOR
+        // Throttle logging for WaterUpdate. Remove when FrameDebugger is improved to handle variable updates.
+        double m_RealtimeSinceLastLogUpdateWaterSurfaces;
+#endif
+
         /// <summary>
         /// RenderPipeline Render implementation.
         /// </summary>
@@ -2229,15 +2234,36 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_Asset.currentPlatformRenderPipelineSettings.supportWater)
             {
-                // Update the water surfaces
-                var commandBuffer = CommandBufferPool.Get("");
-                waterSystem.UpdateWaterSurfaces(commandBuffer);
-                renderContext.ExecuteCommandBuffer(commandBuffer);
-                renderContext.Submit();
-                commandBuffer.Clear();
-                CommandBufferPool.Release(commandBuffer);
-            }
 
+#if UNITY_EDITOR
+                // Disable water updates while in the FrameDebugger until it can be improved.
+                // Intermittent blit/CPU-readback events cause flicker in the FrameDebugger.
+                // NOTE: This means those events cannot be debugged with the FrameDebugger for now.
+                if (FrameDebugger.enabled)
+                {
+                    // Notify the user that we have disabled the water updates for the FrameDebugger to avoid flicker.
+                    if (Time.realtimeSinceStartupAsDouble - m_RealtimeSinceLastLogUpdateWaterSurfaces > 60.0)
+                    {
+                        Debug.Log("Water surface updates are disabled while the FrameDebugger is active. Some events might not be visible in the FrameDebugger.");
+                        m_RealtimeSinceLastLogUpdateWaterSurfaces = Time.realtimeSinceStartupAsDouble;
+                    }
+                }
+                else
+                {
+                    m_RealtimeSinceLastLogUpdateWaterSurfaces = 0.0; // Make sure we notify on FrameDebugger activation.
+#else
+                {
+#endif
+
+                    // Update the water surfaces
+                    var commandBuffer = CommandBufferPool.Get("");
+                    waterSystem.UpdateWaterSurfaces(commandBuffer);
+                    renderContext.ExecuteCommandBuffer(commandBuffer);
+                    renderContext.Submit();
+                    commandBuffer.Clear();
+                    CommandBufferPool.Release(commandBuffer);
+                }
+            }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
 
@@ -3471,7 +3497,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
-        
+
         void AllocateCustomPassBuffers()
         {
             m_CustomPassColorBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetCustomBufferFormat(), enableRandomWrite: true, useDynamicScale: true, name: "CustomPassColorBuffer"));
