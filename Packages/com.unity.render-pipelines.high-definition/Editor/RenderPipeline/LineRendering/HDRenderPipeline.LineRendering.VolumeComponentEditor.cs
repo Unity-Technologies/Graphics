@@ -43,6 +43,36 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             using var disableScope = new EditorGUI.DisabledScope(notSupported);
 
+            if (!notSupported && EditorGraphicsSettings.ShouldValidateGraphicsForActiveBuildTarget())
+            {
+                var validationSettings = HDProjectSettings.validationSettings;
+                var defaultHQLines = HDEditorUtils.GetVolumeComponentDefaultState<HighQualityLineRenderingVolumeComponent>();
+
+                // Get effective enable value (use local if overridden, otherwise use default)
+                bool useDefaultEnable = !m_Enable.overrideState.boolValue;
+                bool effectiveEnable = useDefaultEnable
+                    ? (defaultHQLines?.enable.value ?? false)
+                    : m_Enable.value.boolValue;
+
+                if (effectiveEnable && !validationSettings.k_HighQualityLineRendering_Recommended)
+                {
+                    using (new IndentLevelScope())
+                    {
+                        if (useDefaultEnable && HDEditorUtils.TryGetVolumeParameterSource<HighQualityLineRenderingVolumeComponent>(
+                              hqLines => hqLines.enable.overrideState && hqLines.enable.value == effectiveEnable,
+                              out var sourceProfile,
+                              out var sourceName))
+                        {
+                            HDEditorUtils.ShowFeatureOptimisationWarning(HDRenderPipelineUI.Styles.highQualityLineRenderingSubTitle.text, sourceName, () => Selection.activeObject = sourceProfile);
+                        }
+                        else
+                        {
+                            HDEditorUtils.ShowFeatureOptimisationWarning(HDRenderPipelineUI.Styles.highQualityLineRenderingSubTitle.text);
+                        }
+                    }
+                }
+            }
+
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
             PropertyField(m_Enable);
             PropertyField(m_CompositionMode);

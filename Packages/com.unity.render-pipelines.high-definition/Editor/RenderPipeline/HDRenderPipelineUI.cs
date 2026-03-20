@@ -230,6 +230,13 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVolumetricClouds, Styles.supportVolumetricCloudsContent);
+
+            if (EditorGraphicsSettings.ShouldValidateGraphicsForActiveBuildTarget())
+            {
+                var validationSettings = HDProjectSettings.validationSettings;
+                if (serialized.renderPipelineSettings.supportVolumetricClouds.boolValue && !validationSettings.k_VolumetricClouds_Recommended)
+                    HDEditorUtils.ShowFeatureOptimisationWarning(Styles.volumetricCloudsSubTitle.text);
+            }
         }
 
         static void Drawer_SectionProbeVolume(SerializedHDRenderPipelineAsset serialized, Editor owner)
@@ -1231,6 +1238,13 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportHighQualityLineRendering, Styles.supportHighQualityLineRenderingContent);
 
+            if (EditorGraphicsSettings.ShouldValidateGraphicsForActiveBuildTarget())
+            {
+                var validationSettings = HDProjectSettings.validationSettings;
+                if (serialized.renderPipelineSettings.supportHighQualityLineRendering.boolValue && !validationSettings.k_HighQualityLineRendering_Recommended)
+                    HDEditorUtils.ShowFeatureOptimisationWarning(Styles.highQualityLineRenderingSubTitle.text);
+            }
+
             ++EditorGUI.indentLevel;
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportHighQualityLineRendering.boolValue))
             {
@@ -1448,7 +1462,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static void DisplayRayTracingSupportBox()
         {
             var currentBuildTarget = EditorUserBuildSettings.activeBuildTarget;
-            if (HDRenderPipeline.PlatformHasRaytracingIssues(currentBuildTarget, out var warning))
+            if (HDRenderPipeline.CheckPlatformRaytracingCompatability(currentBuildTarget, out var warning))
             {
                 EditorGUILayout.HelpBox(warning, MessageType.Warning);
             }
@@ -1604,8 +1618,13 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDistortion, Styles.supportDistortion);
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSubsurfaceScattering, Styles.supportedSSSContent);
-            if (serialized.renderPipelineSettings.supportSubsurfaceScattering.boolValue)
-                HDEditorUtils.ShowPlatformPerformanceWarning(BuildTarget.Switch2, "Subsurface Scattering");
+
+            if (EditorGraphicsSettings.ShouldValidateGraphicsForActiveBuildTarget())
+            {
+                var validationSettings = HDProjectSettings.validationSettings;
+                if (serialized.renderPipelineSettings.supportSubsurfaceScattering.boolValue && !validationSettings.k_SubsurfaceScattering_Recommended)
+                    HDEditorUtils.ShowFeatureOptimisationWarning(Styles.supportedSSSContent.text);
+            }
 
             using (new EditorGUI.DisabledScope(serialized.renderPipelineSettings.supportSubsurfaceScattering.hasMultipleDifferentValues
                 || !serialized.renderPipelineSettings.supportSubsurfaceScattering.boolValue))

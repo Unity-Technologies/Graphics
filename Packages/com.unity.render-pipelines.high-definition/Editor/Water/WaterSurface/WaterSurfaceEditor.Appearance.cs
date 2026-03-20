@@ -231,10 +231,18 @@ namespace UnityEditor.Rendering.HighDefinition
             // Caustics
             using (new BoldLabelScope())
                 EditorGUILayout.PropertyField(serialized.m_Caustics, k_Caustics);
-            if (serialized.m_Caustics.boolValue)
+
+            using (new IndentLevelScope())
             {
-                using (new IndentLevelScope())
+                if (serialized.m_Caustics.boolValue)
                 {
+                    if (EditorGraphicsSettings.ShouldValidateGraphicsForActiveBuildTarget())
+                    {
+                        var validationSettings = HDProjectSettings.validationSettings;
+                        if (!validationSettings.k_Water_CausticsRecommended)
+                            HDEditorUtils.ShowFeatureOptimisationWarning(k_Caustics.text);
+                    }
+
                     EditorGUILayout.PropertyField(serialized.m_CausticsResolution);
                     int bandCount = WaterSystem.EvaluateBandCount(surfaceType, serialized.m_Ripples.boolValue);
 
@@ -306,6 +314,13 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (serialized.m_UnderWater.boolValue)
                 {
+                    if (EditorGraphicsSettings.ShouldValidateGraphicsForActiveBuildTarget())
+                    {
+                        var validationSettings = HDProjectSettings.validationSettings;
+                        if (!validationSettings.k_Water_UnderwaterRecommended)
+                            HDEditorUtils.ShowFeatureOptimisationWarning(k_UnderWater.text);
+                    }
+
                     // Bounds data
                     if ((WaterGeometryType)serialized.m_GeometryType.enumValueIndex != WaterGeometryType.Infinite)
                     {

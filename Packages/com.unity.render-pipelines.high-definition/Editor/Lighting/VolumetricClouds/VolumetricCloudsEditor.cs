@@ -519,9 +519,35 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             using var disableScope = new EditorGUI.DisabledScope(notSupported);
 
+            if (EditorGraphicsSettings.ShouldValidateGraphicsForActiveBuildTarget())
+            {
+                var validationSettings = HDProjectSettings.validationSettings;
+                VolumetricClouds defaultClouds = HDEditorUtils.GetVolumeComponentDefaultState<VolumetricClouds>();
+
+                // Get effective quality value (use local if overridden, otherwise use default)
+                bool useDefaultEnabled = !m_Enable.overrideState.boolValue;
+                bool effectiveEnabled = useDefaultEnabled
+                    ? (defaultClouds?.enable.value ?? false)
+                    : m_Enable.value.boolValue;
+
+                if (effectiveEnabled && !validationSettings.k_VolumetricClouds_Recommended)
+                {
+                    if (useDefaultEnabled && HDEditorUtils.TryGetVolumeParameterSource<VolumetricClouds>(
+                      clouds => clouds.enable.overrideState && clouds.enable.value == effectiveEnabled,
+                      out var sourceProfile,
+                      out var sourceName))
+                    {
+                        HDEditorUtils.ShowFeatureOptimisationWarning(HDRenderPipelineUI.Styles.volumetricCloudsSubTitle.text, sourceName, () => Selection.activeObject = sourceProfile);
+                    }
+                    else
+                    {
+                        HDEditorUtils.ShowFeatureOptimisationWarning(HDRenderPipelineUI.Styles.volumetricCloudsSubTitle.text);
+                    }
+                }
+            }
+
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
             PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));
-
             if (m_Enable.value.boolValue && !notSupported)
                 HDEditorUtils.EnsureFrameSetting(FrameSettingsField.VolumetricClouds);
 

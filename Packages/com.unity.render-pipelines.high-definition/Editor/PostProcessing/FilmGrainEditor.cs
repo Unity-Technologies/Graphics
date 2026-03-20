@@ -25,31 +25,35 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             HDEditorUtils.EnsureFrameSetting(FrameSettingsField.FilmGrain);
 
-            var defaultFilmGrain = HDEditorUtils.GetVolumeComponentDefaultState<FilmGrain>();
-
-            // Get effective intensity value (use local if overridden, otherwise use default)
-            bool useDefaultIntensity = !m_Intensity.overrideState.boolValue;
-            float effectiveIntensity = useDefaultIntensity
-                ? (defaultFilmGrain?.intensity.value ?? -1.0f)
-                : m_Intensity.value.floatValue;
-
-            if (effectiveIntensity > 0.0f)
+            if (EditorGraphicsSettings.ShouldValidateGraphicsForActiveBuildTarget())
             {
-                using (new IndentLevelScope())
+                var defaultFilmGrain = HDEditorUtils.GetVolumeComponentDefaultState<FilmGrain>();
+
+                // Get effective intensity value (use local if overridden, otherwise use default)
+                bool useDefaultIntensity = !m_Intensity.overrideState.boolValue;
+                float effectiveIntensity = useDefaultIntensity
+                    ? (defaultFilmGrain?.intensity.value ?? 0.0f)
+                    : m_Intensity.value.floatValue;
+
+                var validationSettings = HDProjectSettings.validationSettings;
+                if (effectiveIntensity > 0.0f && !validationSettings.k_FilmGrain_Recommended)
                 {
-                    if (useDefaultIntensity && HDEditorUtils.TryGetVolumeParameterSource<FilmGrain>(
-                          filmGrain => filmGrain.intensity.overrideState && filmGrain.intensity.value > 0.0f,
-                          out var sourceProfile,
-                          out var sourceName))
+                    using (new IndentLevelScope())
                     {
-                        HDEditorUtils.ShowPlatformPerformanceWarning(BuildTarget.Switch2, "Film Grain", sourceName, () => Selection.activeObject = sourceProfile);
+                        if (useDefaultIntensity && HDEditorUtils.TryGetVolumeParameterSource<FilmGrain>(
+                              filmGrain => filmGrain.intensity.overrideState && filmGrain.intensity.value > 0.0f,
+                              out var sourceProfile,
+                              out var sourceName))
+                        {
+                            HDEditorUtils.ShowFeatureOptimisationWarning("Film Grain", sourceName, () => Selection.activeObject = sourceProfile);
+                        }
+                        else
+                        {
+                            HDEditorUtils.ShowFeatureOptimisationWarning("Film Grain");
+                        }
                     }
-                    else
-                    {
-                        HDEditorUtils.ShowPlatformPerformanceWarning(BuildTarget.Switch2, "Film Grain");
-                    }
-                }
-            }
+
+                }            }
 
             PropertyField(m_Type);
 

@@ -938,7 +938,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        static internal bool PlatformHasRaytracingIssues(BuildTarget buildTarget, out string message)
+        static internal bool CheckPlatformRaytracingCompatability(BuildTarget buildTarget, out string message)
         {
             message = string.Empty;
 
