@@ -213,8 +213,26 @@ namespace UnityEngine.Rendering.Universal
                 hdrOperations = !hasFinalPass && enableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
             }
 
+            UberPostProcessPass.FilteringOperation filteringOperation = UberPostProcessPass.FilteringOperation.Linear;
+
+            // Point sampling is only used for upscaling so the default linear sampler should be used if there is a final pass
+            if (cameraData.imageScalingMode == ImageScalingMode.Upscaling && !hasFinalPass)
+            {
+#if ENABLE_UPSCALER_FRAMEWORK
+                if (cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_Point)
+                {
+                    filteringOperation = UberPostProcessPass.FilteringOperation.Point;
+                }
+#else
+                if (cameraData.upscalingFilter == ImageUpscalingFilter.Point)
+                {
+                    filteringOperation = UberPostProcessPass.FilteringOperation.Point;
+                }
+#endif
+            }
+
             bool renderOverlayUI = requireHDROutput && enableColorEncodingIfNeeded;
-            m_UberPass.Setup(ditherTexture, hdrOperations, applySrgbEncoding, !hasFinalPass, renderOverlayUI);
+            m_UberPass.Setup(ditherTexture, filteringOperation, hdrOperations, applySrgbEncoding, !hasFinalPass, renderOverlayUI);
             m_UberPass.RecordRenderGraph(renderGraph, frameData);
         }
 
