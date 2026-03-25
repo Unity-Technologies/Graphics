@@ -85,6 +85,7 @@ SAMPLER(sampler_CoatMaskMap);
 PROP_DECL_TEX2D(_BaseColorMap);
 PROP_DECL_TEX2D(_MaskMap);
 PROP_DECL_TEX2D(_BentNormalMap);
+PROP_DECL_TEX2D(_BentNormalMapOS);
 PROP_DECL_TEX2D(_NormalMap);
 PROP_DECL_TEX2D(_NormalMapOS);
 PROP_DECL_TEX2D(_DetailMap);
