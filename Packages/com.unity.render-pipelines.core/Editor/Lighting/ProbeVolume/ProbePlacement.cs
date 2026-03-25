@@ -170,13 +170,30 @@ namespace UnityEngine.Rendering
                 {
                     _subdivideSceneCS = GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeBakingResources>().subdivideSceneCS;
 
-                    s_ClearBufferKernel = subdivideSceneCS.FindKernel("ClearBuffer");
-                    s_ClearKernel = subdivideSceneCS.FindKernel("Clear");
-                    s_JumpFloodingKernel = subdivideSceneCS.FindKernel("JumpFlooding");
-                    s_FillUVKernel = subdivideSceneCS.FindKernel("FillUVMap");
-                    s_FinalPassKernel = subdivideSceneCS.FindKernel("FinalPass");
-                    s_VoxelizeProbeVolumesKernel = subdivideSceneCS.FindKernel("VoxelizeProbeVolumeData");
-                    s_SubdivideKernel = subdivideSceneCS.FindKernel("Subdivide");
+                    // The compute shader is not supported on OpenGL (see #pragma only_renderers in ProbeVolumeSubdivide.compute)
+                    // The kernels won't exist, so we skip initialization. This is caught earlier in RunPlacement with a proper error message.
+                    try
+                    {
+                        s_ClearBufferKernel = subdivideSceneCS.FindKernel("ClearBuffer");
+                        s_ClearKernel = subdivideSceneCS.FindKernel("Clear");
+                        s_JumpFloodingKernel = subdivideSceneCS.FindKernel("JumpFlooding");
+                        s_FillUVKernel = subdivideSceneCS.FindKernel("FillUVMap");
+                        s_FinalPassKernel = subdivideSceneCS.FindKernel("FinalPass");
+                        s_VoxelizeProbeVolumesKernel = subdivideSceneCS.FindKernel("VoxelizeProbeVolumeData");
+                        s_SubdivideKernel = subdivideSceneCS.FindKernel("Subdivide");
+                    }
+                    catch (System.ArgumentException)
+                    {
+                        // Kernels not found - likely running on unsupported graphics API
+                        string message = "ProbeVolumeSubdivide compute shader kernels not found.";
+                        if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore ||
+                            SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+                        {
+                            message += " This is expected on OpenGL which is not supported for APV baking.";
+                        }
+                        Debug.LogWarning(message);
+                        _subdivideSceneCS = null;
+                    }
                 }
                 return _subdivideSceneCS;
             }

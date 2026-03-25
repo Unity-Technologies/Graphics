@@ -133,6 +133,15 @@ namespace UnityEngine.Rendering
         {
             Debug.Assert(profileInfo != null);
 
+            // APV baking requires compute shader support that is not always available on OpenGL devices
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+            {
+                Debug.LogError("Adaptive Probe Volume baking is not supported on OpenGL. Please switch to Direct3D, Vulkan, or Metal in Project Settings > Player > Other Settings > Graphics API.");
+                canceledByUser = true;
+                return new NativeList<Vector3>(Allocator.Temp);
+            }
+
             // Overwrite loaded settings with data from profile. Note that the m_BakingSet.profile is already patched up if isFreezingPlacement
             float prevBrickSize = refVolume.MinBrickSize();
             int prevMaxSubdiv = refVolume.GetMaxSubdivision();
