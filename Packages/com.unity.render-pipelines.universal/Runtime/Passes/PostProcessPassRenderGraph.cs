@@ -2536,11 +2536,10 @@ namespace UnityEngine.Rendering.Universal
                 if (userLutTexture.IsValid())
                     builder.UseTexture(userLutTexture, AccessFlags.Read);
 
-                if (m_Bloom.IsActive())
-                {
+                passData.bloomTexture = bloomTexture; // This can be null if Bloom is not active.
+                if (bloomTexture.IsValid())
                     builder.UseTexture(bloomTexture, AccessFlags.Read);
-                    passData.bloomTexture = bloomTexture;
-                }
+
 
                 if (requireHDROutput && m_EnableColorEncodingIfNeeded && overlayUITexture.IsValid())
                     builder.UseTexture(overlayUITexture, AccessFlags.Read);
