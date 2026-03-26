@@ -87,21 +87,22 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
         if (!hit.IsValid() || hit.isFrontFace)
         {
             validHits++;
-            continue;
         }
-
-        float distanceDiff = hit.hitDistance - minDist;
-        if (distanceDiff < DISTANCE_THRESHOLD)
+        else if (hit.IsValid())
         {
-            UnifiedRT::HitGeomAttributes attributes = UnifiedRT::FetchHitGeomAttributes(hit, UnifiedRT::kGeomAttribFaceNormal);
-            float dotSurface = dot(ray.direction, attributes.faceNormal);
-
-            // If new distance is smaller by at least kDistanceThreshold, or if ray is at least DOT_THRESHOLD more colinear with normal
-            if (distanceDiff < -DISTANCE_THRESHOLD || dotSurface - maxDotSurface > DOT_THRESHOLD)
+            float distanceDiff = hit.hitDistance - minDist;
+            if (distanceDiff < DISTANCE_THRESHOLD)
             {
-                outDirection = ray.direction;
-                maxDotSurface = dotSurface;
-                minDist = hit.hitDistance;
+                UnifiedRT::HitGeomAttributes attributes = UnifiedRT::FetchHitGeomAttributes(hit, UnifiedRT::kGeomAttribFaceNormal);
+                float dotSurface = dot(ray.direction, attributes.faceNormal);
+
+                // If new distance is smaller by at least kDistanceThreshold, or if ray is at least DOT_THRESHOLD more colinear with normal
+                if (distanceDiff < -DISTANCE_THRESHOLD || dotSurface - maxDotSurface > DOT_THRESHOLD)
+                {
+                    outDirection = ray.direction;
+                    maxDotSurface = dotSurface;
+                    minDist = hit.hitDistance;
+                }
             }
         }
     }
