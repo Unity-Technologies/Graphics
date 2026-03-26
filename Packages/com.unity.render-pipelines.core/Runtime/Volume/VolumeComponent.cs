@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering
     /// This attribute allows you to add commands to the <b>Add Override</b> popup menu on Volumes,
     /// while also specifying the render pipeline(s) for which the command will be supported.
     /// </summary>
-    [Obsolete(@"VolumeComponentMenuForRenderPipelineAttribute is deprecated. Use VolumeComponentMenu with SupportedOnRenderPipeline instead. #from(2023.1)")]
+    [Obsolete(@"VolumeComponentMenuForRenderPipelineAttribute is deprecated. Use VolumeComponentMenu with SupportedOnRenderPipeline instead. #from(2023.1)", true)]
     public class VolumeComponentMenuForRenderPipeline : VolumeComponentMenu
     {
         /// <summary>
@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering
     /// <para>
     /// In the example above, the custom component `ExampleComponent` extends `VolumeComponent` and defines a parameter
     /// (`intensity`) that can be manipulated within the volume framework. The `ClampedFloatParameter` is a type of
-    /// <see cref="VolumeParameter{T}"/> that ensures the value remains within a specified range. 
+    /// <see cref="VolumeParameter{T}"/> that ensures the value remains within a specified range.
     /// </para>
     /// </example>
     [Serializable]
@@ -164,7 +164,7 @@ namespace UnityEngine.Rendering
         /// The backing storage of <see cref="parameters"/>. Use this for performance-critical work.
         /// </summary>
         internal VolumeParameter[] parameterList;
-        
+
         ReadOnlyCollection<VolumeParameter> m_ParameterReadOnlyCollection;
 
         /// <summary>
@@ -355,7 +355,7 @@ namespace UnityEngine.Rendering
         {
             for (int i = 0; i < parameterList.Length; ++i)
             {
-                if (parameterList[i].overrideState) 
+                if (parameterList[i].overrideState)
                     return true;
             }
             return false;
