@@ -55,3 +55,5 @@ You can now open the asset and edit the graph in the [Shader Graph window](Shade
 * [Shader Graph template browser](template-browser.md)
 * [Create a custom shader graph template](template-browser.md#create-a-custom-shader-graph-template)
 * [Shader Graph window](Shader-Graph-Window.md)
+* [Shader Graph Asset reference](Shader-Graph-Asset.md)
+
