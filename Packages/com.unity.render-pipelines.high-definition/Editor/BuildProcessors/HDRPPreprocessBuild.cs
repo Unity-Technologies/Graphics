@@ -41,6 +41,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 ConfigureMinimumMaxLoDValueForAllQualitySettings();
 
+                if (HDRenderPipelineGlobalSettings.instance.TryInitializeDefaultVolumeProfile(out var defaultVolumeProfileSettings))
+                {
+                    Debug.Log("Default Volume Profile has been created or Diffusion Profiles have been updated to ensure all components are present. This is required to avoid missing overrides at runtime which can lead to unexpected rendering issues. Please save these changes to avoid this message in the future.");
+                }
+
+                if (defaultVolumeProfileSettings == null)
+                {
+                    throw new BuildFailedException("Failed to initialize the Default Volume Profile. A Default Volume Profile is required for HDRP to function properly.");
+                }
+
+                if (VolumeProfileUtils.TryEnsureAllOverridesForDefaultProfile(defaultVolumeProfileSettings.volumeProfile))
+                {
+                    Debug.Log("Default Volume Profile has been modified to ensure all components are present. This is required to avoid missing overrides at runtime which can lead to unexpected rendering issues. Please save these changes to avoid this message in the future.");
+                }
+
                 LogIncludedAssets(m_BuildData.renderPipelineAssets);
 
                 GatherShaderFeatures();

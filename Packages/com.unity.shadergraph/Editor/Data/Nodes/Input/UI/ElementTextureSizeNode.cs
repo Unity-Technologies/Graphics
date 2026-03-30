@@ -39,6 +39,16 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
+            if (generationMode == GenerationMode.Preview)
+            {
+                // In preview mode, return default values (1.0)
+                if (GetInputNodeFromSlot(TextureWidthSlotId) != null) sb.AppendLine("$precision1 {0} = 1.0;", GetVariableNameForSlot(TextureWidthSlotId));
+                if (GetInputNodeFromSlot(TextureHeightSlotId) != null) sb.AppendLine("$precision1 {0} = 1.0;", GetVariableNameForSlot(TextureHeightSlotId));
+                if (GetInputNodeFromSlot(TexelWidthSlotId) != null) sb.AppendLine("$precision1 {0} = 1.0;", GetVariableNameForSlot(TexelWidthSlotId));
+                if (GetInputNodeFromSlot(TexelHeightSlotId) != null) sb.AppendLine("$precision1 {0} = 1.0;", GetVariableNameForSlot(TexelHeightSlotId));
+                return;
+            }
+
             if ((GetInputNodeFromSlot(TextureWidthSlotId) != null) ||
                 (GetInputNodeFromSlot(TextureHeightSlotId) != null) ||
                 (GetInputNodeFromSlot(TexelWidthSlotId) != null) ||

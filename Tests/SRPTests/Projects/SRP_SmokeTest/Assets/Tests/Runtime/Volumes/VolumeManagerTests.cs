@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.Tests
     class VolumeManagerTests
     {
         readonly LayerMask k_defaultLayer = 1;
+        VolumeProfile m_defaultProfile;
         VolumeProfile m_VolumeProfile;
         readonly List<GameObject> m_Objects = new();
         readonly bool m_IsGlobal;
@@ -36,8 +37,12 @@ namespace UnityEngine.Rendering.Tests
             var volumeComponent = m_VolumeProfile.Add<TestVolume>();
             volumeComponent.param.Override(TestVolume.k_OverrideValue);
 
+            m_defaultProfile = ScriptableObject.CreateInstance<VolumeProfile>();
+            var defaultComponent = m_defaultProfile.Add<TestVolume>();
+            defaultComponent.param.Override(TestVolume.k_DefaultValue);
+
             volumeManager = new VolumeManager();
-            volumeManager.Initialize();
+            volumeManager.Initialize(m_defaultProfile);
             camera = new GameObject("Camera", typeof(Camera));
             m_Objects.Add(camera);
         }
@@ -143,6 +148,7 @@ namespace UnityEngine.Rendering.Tests
 
     class VolumeManagerDefaultProfileTests
     {
+        VolumeProfile m_VolumeProfileDefault;
         VolumeProfile m_VolumeProfile1;
         VolumeProfile m_VolumeProfile2;
         VolumeProfile m_VolumeProfile3;
@@ -153,6 +159,9 @@ namespace UnityEngine.Rendering.Tests
         [SetUp]
         public void Setup()
         {
+            m_VolumeProfileDefault = ScriptableObject.CreateInstance<VolumeProfile>();
+            m_VolumeProfileDefault.Add<TestVolume>().param.Override(TestVolume.k_DefaultValue);
+
             m_VolumeProfile1 = ScriptableObject.CreateInstance<VolumeProfile>();
             m_VolumeProfile1.Add<TestVolume>().param.Override(TestVolume.k_OverrideValue);
 
@@ -176,7 +185,7 @@ namespace UnityEngine.Rendering.Tests
         public void ParameterIsCorrectByDefault()
         {
             volumeManager = new VolumeManager();
-            volumeManager.Initialize();
+            volumeManager.Initialize(m_VolumeProfileDefault);
 
             LayerMask defaultLayer = 1;
             var camera = new GameObject("Camera", typeof(Camera));
@@ -202,20 +211,20 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(TestVolume.k_OverrideValue3, GetDefaultState().param.value);
 
             volumeManager.SetGlobalDefaultProfile(null);
-            Assert.AreEqual(TestVolume.k_OverrideValue3, GetDefaultState().param.value);
+            Assert.IsNull(GetDefaultState()); // No global default profile - default state should be null even if quality and custom defaults are set, as global is the base for the default state
 
             volumeManager.SetQualityDefaultProfile(null);
-            Assert.AreEqual(TestVolume.k_OverrideValue3, GetDefaultState().param.value);
+            Assert.IsNull(GetDefaultState()); // No global default profile - default state should be null even if quality and custom defaults are set, as global is the base for the default state
 
             volumeManager.SetCustomDefaultProfiles(null);
-            Assert.AreEqual(TestVolume.k_DefaultValue, GetDefaultState().param.value);
+            Assert.IsNull(GetDefaultState()); // No global default profile - default state should be null even if quality and custom defaults are set, as global is the base for the default state
         }
 
         [Test]
         public void CustomDefaultProfilesAreAppliedInOrder()
         {
             volumeManager = new VolumeManager();
-            volumeManager.Initialize();
+            volumeManager.Initialize(m_VolumeProfileDefault);
 
             volumeManager.SetCustomDefaultProfiles(new List<VolumeProfile> { m_VolumeProfile1, m_VolumeProfile2 });
             Assert.AreEqual(TestVolume.k_OverrideValue2, GetDefaultState().param.value);

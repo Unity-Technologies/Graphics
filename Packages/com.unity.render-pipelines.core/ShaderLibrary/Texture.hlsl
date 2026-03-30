@@ -23,6 +23,7 @@ struct UnityTexture2D
     SAMPLER(samplerstate);
     float4 texelSize;
     float4 scaleTranslate;
+    float4 hdrDecode;
 
     // these functions allows users to convert code using Texture2D to UnityTexture2D by simply changing the type of the variable
     // the existing texture macros will call these functions, which will forward the call to the texture appropriately
@@ -61,15 +62,16 @@ float4 tex2D(UnityTexture2D tex, float2 uv)                 { return SAMPLE_TEXT
 float4 tex2Dlod(UnityTexture2D tex, float4 uv0l)            { return SAMPLE_TEXTURE2D_LOD(tex.tex, tex.samplerstate, uv0l.xy, uv0l.w); }
 float4 tex2Dbias(UnityTexture2D tex, float4 uv0b)           { return SAMPLE_TEXTURE2D_BIAS(tex.tex, tex.samplerstate, uv0b.xy, uv0b.w); }
 
-#define UnityBuildTexture2DStruct(n) UnityBuildTexture2DStructInternal(TEXTURE2D_ARGS(n, sampler##n), n##_TexelSize, n##_ST)
-#define UnityBuildTexture2DStructNoScale(n) UnityBuildTexture2DStructInternal(TEXTURE2D_ARGS(n, sampler##n), n##_TexelSize, float4(1, 1, 0, 0))
-UnityTexture2D UnityBuildTexture2DStructInternal(TEXTURE2D_PARAM(tex, samplerstate), float4 texelSize, float4 scaleTranslate)
+#define UnityBuildTexture2DStruct(n) UnityBuildTexture2DStructInternal(TEXTURE2D_ARGS(n, sampler##n), n##_TexelSize, n##_ST, float4(0, 0, 0, 0))
+#define UnityBuildTexture2DStructNoScale(n) UnityBuildTexture2DStructInternal(TEXTURE2D_ARGS(n, sampler##n), n##_TexelSize, float4(1, 1, 0, 0), float4(0, 0, 0, 0))
+UnityTexture2D UnityBuildTexture2DStructInternal(TEXTURE2D_PARAM(tex, samplerstate), float4 texelSize, float4 scaleTranslate, float4 hdrDecode)
 {
     UnityTexture2D result;
     result.tex = tex;
     result.samplerstate = samplerstate;
     result.texelSize = texelSize;
     result.scaleTranslate = scaleTranslate;
+    result.hdrDecode = hdrDecode;
     return result;
 }
 
@@ -77,12 +79,7 @@ UnityTexture2D UnityBuildTexture2DStructInternal(TEXTURE2D_PARAM(tex, samplersta
 #define UnityBuildTexture2DStructNoScaleNoTexelSize(n) UnityBuildTexture2DStructNoTexelSizeInternal(TEXTURE2D_ARGS(n, sampler##n), float4(1, 1, 0, 0))
 UnityTexture2D UnityBuildTexture2DStructNoTexelSizeInternal(TEXTURE2D_PARAM(tex, samplerstate), float4 scaleTranslate)
 {
-    UnityTexture2D result;
-    result.tex = tex;
-    result.samplerstate = samplerstate;
-    result.texelSize = float4(1, 1, 1, 1);
-    result.scaleTranslate = scaleTranslate;
-    return result;
+    return UnityBuildTexture2DStructInternal(tex, samplerstate, float4(1, 1, 1, 1), scaleTranslate, float4(0, 0, 0, 0));
 }
 
 
@@ -90,6 +87,7 @@ struct UnityTexture2DArray
 {
     TEXTURE2D_ARRAY(tex);
     SAMPLER(samplerstate);
+    float4 hdrDecode;
 
     // these functions allows users to convert code using Texture2DArray to UnityTexture2DArray by simply changing the type of the variable
     // the existing texture macros will call these functions, which will forward the call to the texture appropriately
@@ -106,12 +104,13 @@ struct UnityTexture2DArray
     float4 Load(int4 pixel)                                                     { return LOAD_TEXTURE2D_ARRAY(tex, pixel.xy, pixel.z); }
 };
 
-#define UnityBuildTexture2DArrayStruct(n) UnityBuildTexture2DArrayStructInternal(TEXTURE2D_ARRAY_ARGS(n, sampler##n))
-UnityTexture2DArray UnityBuildTexture2DArrayStructInternal(TEXTURE2D_ARRAY_PARAM(tex, samplerstate))
+#define UnityBuildTexture2DArrayStruct(n) UnityBuildTexture2DArrayStructInternal(TEXTURE2D_ARRAY_ARGS(n, sampler##n), float4(0, 0, 0, 0))
+UnityTexture2DArray UnityBuildTexture2DArrayStructInternal(TEXTURE2D_ARRAY_PARAM(tex, samplerstate), float4 hdrDecode)
 {
     UnityTexture2DArray result;
     result.tex = tex;
     result.samplerstate = samplerstate;
+    result.hdrDecode = hdrDecode;
     return result;
 }
 
@@ -120,6 +119,7 @@ struct UnityTextureCube
 {
     TEXTURECUBE(tex);
     SAMPLER(samplerstate);
+    float4 hdrDecode;
 
     // these functions allows users to convert code using TextureCube to UnityTextureCube by simply changing the type of the variable
     // the existing texture macros will call these functions, which will forward the call to the texture appropriately
@@ -140,12 +140,13 @@ struct UnityTextureCube
 float4 texCUBE(UnityTextureCube tex, float3 dir)                        { return SAMPLE_TEXTURECUBE(tex.tex, tex.samplerstate, dir); }
 float4 texCUBEbias(UnityTextureCube tex, float4 dirBias)                { return SAMPLE_TEXTURECUBE_BIAS(tex.tex, tex.samplerstate, dirBias.xyz, dirBias.w); }
 
-#define UnityBuildTextureCubeStruct(n) UnityBuildTextureCubeStructInternal(TEXTURECUBE_ARGS(n, sampler##n))
-UnityTextureCube UnityBuildTextureCubeStructInternal(TEXTURECUBE_PARAM(tex, samplerstate))
+#define UnityBuildTextureCubeStruct(n) UnityBuildTextureCubeStructInternal(TEXTURECUBE_ARGS(n, sampler##n), float4(0, 0, 0, 0))
+UnityTextureCube UnityBuildTextureCubeStructInternal(TEXTURECUBE_PARAM(tex, samplerstate), float4 hdrDecode)
 {
     UnityTextureCube result;
     result.tex = tex;
     result.samplerstate = samplerstate;
+    result.hdrDecode = hdrDecode;
     return result;
 }
 
@@ -154,11 +155,6 @@ struct UnityTexture3D
 {
     TEXTURE3D(tex);
     SAMPLER(samplerstate);
-
-    // This dummy field is unused in Unity 6.4 and earlier. Here, the field is added strictly as a dummy to work around UUM-133088
-    // Without this additional field, UnityTexture3D and sampler3D_f have the exact same structure, which will cause DXC to consider
-    // them as the same type. This causes to compilation errors due to the corresponding overloads of tex3D being considered ambiguous
-    // by DXC. Adding the field resolves this. Starting from Unity 6.5, the field is actually used in code.
     float4 hdrDecode;
 
     // these functions allows users to convert code using Texture3D to UnityTexture3D by simply changing the type of the variable
@@ -173,12 +169,13 @@ struct UnityTexture3D
 
 float4 tex3D(UnityTexture3D tex, float3 uvw)                            { return SAMPLE_TEXTURE3D(tex.tex, tex.samplerstate, uvw); }
 
-#define UnityBuildTexture3DStruct(n) UnityBuildTexture3DStructInternal(TEXTURE3D_ARGS(n, sampler##n))
-UnityTexture3D UnityBuildTexture3DStructInternal(TEXTURE3D_PARAM(tex, samplerstate))
+#define UnityBuildTexture3DStruct(n) UnityBuildTexture3DStructInternal(TEXTURE3D_ARGS(n, sampler##n), float4(0, 0, 0, 0))
+UnityTexture3D UnityBuildTexture3DStructInternal(TEXTURE3D_PARAM(tex, samplerstate), float4 hdrDecode)
 {
     UnityTexture3D result;
     result.tex = tex;
     result.samplerstate = samplerstate;
+    result.hdrDecode = hdrDecode;
     return result;
 }
 

@@ -196,7 +196,6 @@ namespace UnityEditor.Rendering
 
         static Dictionary<Type, VolumeParameterDrawer> s_ParameterDrawers;
         SupportedOnRenderPipelineAttribute m_SupportedOnRenderPipelineAttribute;
-        Type[] m_LegacyPipelineTypes;
 
         static VolumeComponentEditor()
         {
@@ -274,11 +273,6 @@ namespace UnityEditor.Rendering
 
             var volumeComponentType = volumeComponent.GetType();
             m_SupportedOnRenderPipelineAttribute = volumeComponentType.GetCustomAttribute<SupportedOnRenderPipelineAttribute>();
-
-#pragma warning disable CS0618
-            var supportedOn = volumeComponentType.GetCustomAttribute<VolumeComponentMenuForRenderPipeline>();
-            m_LegacyPipelineTypes = supportedOn != null ? supportedOn.pipelineTypes : Array.Empty<Type>();
-#pragma warning restore CS0618
         }
 
         internal void DetermineVisibility(Type renderPipelineAssetType, Type renderPipelineType)
@@ -292,12 +286,6 @@ namespace UnityEditor.Rendering
             if (m_SupportedOnRenderPipelineAttribute != null)
             {
                 visible = m_SupportedOnRenderPipelineAttribute.GetSupportedMode(renderPipelineAssetType) != SupportedOnRenderPipelineAttribute.SupportedMode.Unsupported;
-                return;
-            }
-
-            if (renderPipelineType != null && m_LegacyPipelineTypes.Length > 0)
-            {
-                visible = m_LegacyPipelineTypes.Contains(renderPipelineType);
                 return;
             }
 
@@ -440,6 +428,7 @@ namespace UnityEditor.Rendering
             }
         }
 
+        GUIContent m_DisplayTitle;
         /// <summary>
         /// Sets the label for the component header. Override this method to provide
         /// a custom label. If you don't, Unity automatically obtains one from the class name.
@@ -447,17 +436,19 @@ namespace UnityEditor.Rendering
         /// <returns>A label to display in the component header.</returns>
         public virtual GUIContent GetDisplayTitle()
         {
+            if (m_DisplayTitle != null) return m_DisplayTitle;
+
             var volumeComponentType = volumeComponent.GetType();
             var displayInfo = volumeComponentType.GetCustomAttribute<DisplayInfoAttribute>();
             if (displayInfo != null && !string.IsNullOrWhiteSpace(displayInfo.name))
-                return EditorGUIUtility.TrTextContent(displayInfo.name, string.Empty);
-            
+                return m_DisplayTitle = EditorGUIUtility.TrTextContent(displayInfo.name, string.Empty);
+
             #pragma warning disable CS0618
             if (!string.IsNullOrWhiteSpace(volumeComponent.displayName))
-                return EditorGUIUtility.TrTextContent(volumeComponent.displayName, string.Empty);
+                return m_DisplayTitle = EditorGUIUtility.TrTextContent(volumeComponent.displayName, string.Empty);
             #pragma warning restore CS0618
-            
-            return EditorGUIUtility.TrTextContent(ObjectNames.NicifyVariableName(volumeComponentType.Name) , string.Empty);
+
+            return m_DisplayTitle = EditorGUIUtility.TrTextContent(ObjectNames.NicifyVariableName(volumeComponentType.Name), string.Empty);
         }
 
         void AddToggleState(GUIContent content, bool state)

@@ -223,18 +223,26 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
 
         public INodeValidationExtension.Status GetValidationStatus(AbstractMaterialNode node, out string msg)
         {
-            // Make sure node is in our graph first
             if (node.owner == null)
             {
                 msg = null;
                 return INodeValidationExtension.Status.None;
             }
 
-            // Clear all Warning/Error message from other providers.
-            // The message from the graph (when loading the graph) will not be removed
-            // since it's not the same provider as the UISubTarget. It then stays present
-            // even if the UV0 is selected.
-            node.owner.messageManager.ClearNodeFromOtherProvider(this, new[] { node });
+            if (!IsIUISubTarget(node))
+            {
+                msg = null;
+                return INodeValidationExtension.Status.None;
+            }
+
+            if (!HasUVMaterialSlotOrIsUVNode(node))
+            {
+                msg = null;
+                return INodeValidationExtension.Status.None;
+            }
+
+            node.owner.messageManager.ClearNodesFromProvider(node.owner, new[] { node });
+            node.owner.messageManager.ClearNodesFromProvider(this, new[] { node });
 
             foreach (var item in node.owner.activeTargets)
             {
@@ -251,8 +259,53 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             return INodeValidationExtension.Status.None;
         }
 
-        private bool ValidateUV(AbstractMaterialNode node, out string warningMessage)
+        static bool IsIUISubTarget(AbstractMaterialNode node)
         {
+            bool isIUISubTarget = false;
+            foreach (var target in node.owner.activeTargets)
+            {
+                var subTarget = target.activeSubTarget;
+                if (subTarget is IUISubTarget)
+                {
+                    isIUISubTarget = true;
+                    break;
+                }
+            }
+            return isIUISubTarget;
+        }
+
+        static bool HasUVMaterialSlotOrIsUVNode(AbstractMaterialNode node)
+        {
+            List<UVMaterialSlot> uvSlots = new();
+            node.GetInputSlots<UVMaterialSlot>(uvSlots);
+
+            if (uvSlots.Count > 0)
+            {
+                return true;
+            }
+
+            UVNode uvNode = node as UVNode;
+            if (uvNode != null)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        static bool ValidateUV(AbstractMaterialNode node, out string warningMessage)
+        {
+            if (!IsIUISubTarget(node))
+            {
+                warningMessage = null;
+                return false;
+            }
+
+            if (!HasUVMaterialSlotOrIsUVNode(node))
+            {
+                warningMessage = null;
+                return false;
+            }
+
             List<UVMaterialSlot> uvSlots = new();
             node.GetInputSlots<UVMaterialSlot>(uvSlots);
 

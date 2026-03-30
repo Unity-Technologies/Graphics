@@ -127,18 +127,31 @@ namespace UnityEditor.ShaderGraph
             textureSlot.defaultType = (textureType == TextureType.Normal ? Texture2DShaderProperty.DefaultType.NormalMap : Texture2DShaderProperty.DefaultType.White);
         }
 
+        public static void AppendHDRDecodeOperation(ShaderStringBuilder sb, string sampledDataVariableName,
+            string textureInputVariableName)
+        {
+            // Compiler should optimize away the whole branch if the texture isn't an HDR texture property
+            sb.AppendLine(string.Format("if ({0}.hdrDecode.x > 0)", textureInputVariableName));
+            sb.IncreaseIndent();
+            sb.AppendLine(string.Format("{0} = DecodeHDRSample({0}, {1}.hdrDecode);", sampledDataVariableName,
+                textureInputVariableName));
+            sb.DecreaseIndent();
+        }
+
         // Node generations
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             var uvName = GetSlotValue(UVInput, generationMode);
+            string outputVectorVariableName = GetVariableNameForSlot(OutputSlotRGBAId);
 
             //Sampler input slot
             var samplerSlot = FindInputSlot<MaterialSlot>(SamplerInput);
             var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
 
+            // Sample
             var id = GetSlotValue(TextureInputId, generationMode);
             var result = string.Format("$precision4 {0} = {1}({2}.tex, {3}.samplerstate, {2}.GetTransformedUV({4}) {5});"
-                , GetVariableNameForSlot(OutputSlotRGBAId)
+                , outputVectorVariableName
                 , MipSamplingModesUtils.Get2DTextureSamplingMacro(m_MipSamplingMode, usePlatformMacros: !m_EnableGlobalMipBias, isArray: false)
                 , id
                 , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id
@@ -147,24 +160,27 @@ namespace UnityEditor.ShaderGraph
 
             sb.AppendLine(result);
 
+            // Decode HDR
+            AppendHDRDecodeOperation(sb, outputVectorVariableName, id);
+
+            // Unpack normal
             if (textureType == TextureType.Normal)
             {
                 if (normalMapSpace == NormalMapSpace.Tangent)
                 {
-                    sb.AppendLine(string.Format("{0}.rgb = UnpackNormal({0});", GetVariableNameForSlot(OutputSlotRGBAId)));
+                    sb.AppendLine(string.Format("{0}.rgb = UnpackNormal({0});", outputVectorVariableName));
                 }
                 else
                 {
-                    sb.AppendLine(string.Format("{0}.rgb = UnpackNormalRGB({0});", GetVariableNameForSlot(OutputSlotRGBAId)));
+                    sb.AppendLine(string.Format("{0}.rgb = UnpackNormalRGB({0});", outputVectorVariableName));
                 }
             }
 
-            sb.AppendLine(string.Format("$precision {0} = {1}.r;", GetVariableNameForSlot(OutputSlotRId), GetVariableNameForSlot(OutputSlotRGBAId)));
-
-
-            sb.AppendLine(string.Format("$precision {0} = {1}.g;", GetVariableNameForSlot(OutputSlotGId), GetVariableNameForSlot(OutputSlotRGBAId)));
-            sb.AppendLine(string.Format("$precision {0} = {1}.b;", GetVariableNameForSlot(OutputSlotBId), GetVariableNameForSlot(OutputSlotRGBAId)));
-            sb.AppendLine(string.Format("$precision {0} = {1}.a;", GetVariableNameForSlot(OutputSlotAId), GetVariableNameForSlot(OutputSlotRGBAId)));
+            // Extract components
+            sb.AppendLine(string.Format("$precision {0} = {1}.r;", GetVariableNameForSlot(OutputSlotRId), outputVectorVariableName));
+            sb.AppendLine(string.Format("$precision {0} = {1}.g;", GetVariableNameForSlot(OutputSlotGId), outputVectorVariableName));
+            sb.AppendLine(string.Format("$precision {0} = {1}.b;", GetVariableNameForSlot(OutputSlotBId), outputVectorVariableName));
+            sb.AppendLine(string.Format("$precision {0} = {1}.a;", GetVariableNameForSlot(OutputSlotAId), outputVectorVariableName));
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
