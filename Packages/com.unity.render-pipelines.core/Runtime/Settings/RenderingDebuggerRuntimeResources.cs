@@ -30,12 +30,12 @@ namespace UnityEngine.Rendering
 
 #if ENABLE_RENDERING_DEBUGGER_UI
         [SerializeField, ResourcePath("Runtime/Debugging/Runtime UI Resources/RuntimeDebugWindow_PanelSettings.asset")]
-        private LazyLoadReference<PanelSettings> m_PanelSettings;
+        private PanelSettings m_PanelSettings;
 
-        /// <summary>StyleSheet for the Rendering Debugger Runtime UI</summary>
+        /// <summary>Panel Settings Asset for the Rendering Debugger Runtime UI</summary>
         public PanelSettings panelSettings
         {
-            get => m_PanelSettings.asset;
+            get => m_PanelSettings;
             set => this.SetValueAndNotify(ref m_PanelSettings, value, nameof(m_PanelSettings));
         }
 
@@ -54,12 +54,12 @@ namespace UnityEngine.Rendering
         }
 
         [SerializeField, ResourcePath("Runtime/Debugging/Runtime UI Resources/RuntimeDebugWindow.uxml")]
-        private LazyLoadReference<VisualTreeAsset> m_VisualTreeAsset;
+        private VisualTreeAsset m_VisualTreeAsset;
 
         /// <summary>Visual Tree Asset for the Rendering Debugger Runtime UI</summary>
         public VisualTreeAsset visualTreeAsset
         {
-            get => m_VisualTreeAsset.asset;
+            get => m_VisualTreeAsset;
             set => this.SetValueAndNotify(ref m_VisualTreeAsset, value, nameof(m_VisualTreeAsset));
         }
 #endif

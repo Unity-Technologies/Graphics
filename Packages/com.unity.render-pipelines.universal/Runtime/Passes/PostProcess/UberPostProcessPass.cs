@@ -9,8 +9,15 @@ namespace UnityEngine.Rendering.Universal
         Material m_Material;
         Texture2D[] m_FilmGrainTextures;
 
+        public enum FilteringOperation
+        {
+            Linear,
+            Point
+        }
+
         Texture m_DitherTexture;
         RTHandle m_UserLut;
+        FilteringOperation m_FilteringOperation;
         HDROutputUtils.Operation m_HdrOperations;
         bool m_IsValid;
         bool m_IsFinalPass;
@@ -28,6 +35,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Defaults
             m_DitherTexture = null; // Dither disabled.
+            m_FilteringOperation = FilteringOperation.Linear;   // Common case.
             m_HdrOperations = HDROutputUtils.Operation.None;    // HDR disabled.
             m_RequireSRGBConversionBlit = false; // sRGB conversion is typically automatic based on format.
             m_IsFinalPass = false;  // Assume other passes.
@@ -42,12 +50,14 @@ namespace UnityEngine.Rendering.Universal
         }
 
         public void Setup(Texture ditherTexture,
+            FilteringOperation filteringOperation,
             HDROutputUtils.Operation hdrOperations,
             bool requireSRGBConversionBlit,
             bool isFinalPass,
             bool renderOverlayUI)
         {
             m_DitherTexture = ditherTexture;
+            m_FilteringOperation = filteringOperation;
             m_HdrOperations = hdrOperations;
             m_RequireSRGBConversionBlit = requireSRGBConversionBlit;
             m_IsFinalPass = isFinalPass;
@@ -64,6 +74,7 @@ namespace UnityEngine.Rendering.Universal
             internal UniversalCameraData cameraData;
 
             internal Tonemapping tonemapping;
+            internal FilteringOperation filteringOperation;
             internal HDROutputUtils.Operation hdrOperations;
             internal bool isHdrGrading;
 
@@ -166,6 +177,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // HDR
                 passData.tonemapping = tonemapping;
+                passData.filteringOperation = m_FilteringOperation;
                 passData.hdrOperations = m_HdrOperations;
                 passData.isHdrGrading = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
 
@@ -187,9 +199,20 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var cameraData = data.cameraData;
                     var material = data.material;
+                    var filteringOperation = data.filteringOperation;
 
                     // Reset keywords
                     material.shaderKeywords = null;
+
+                    switch (filteringOperation)
+                    {
+                        case FilteringOperation.Point:
+                            material.EnableKeyword(ShaderKeywordStrings.PointSampling);
+                        break;
+                        case FilteringOperation.Linear: goto default;
+                        default:
+                        break;
+                    }
 
                     data.lut.Apply(material);
 

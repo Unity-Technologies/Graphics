@@ -498,18 +498,11 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Shows a platform-specific performance warning help box for a given feature.
         /// </summary>
-        /// <param name="targetPlatform">The build target platform to check and display</param>
         /// <param name="featureName">The name of the feature (e.g., "Ray Tracing", "Film Grain")</param>
         /// <param name="recommendation">Optional recommendation text. If null, uses default "is not recommended for this platform"</param>
-        internal static void ShowPlatformPerformanceWarning(BuildTarget targetPlatform, string featureName, string recommendation = null)
+        internal static void ShowFeatureOptimisationWarning(string featureName, string recommendation = null)
         {
-            if (EditorUserBuildSettings.activeBuildTarget != targetPlatform)
-                return;
-
-            var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(targetPlatform);
-            var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(activeBuildTargetGroup);
-
-            string message = $"{featureName} is enabled for {namedBuildTarget.TargetName}. ";
+            string message = $"{featureName} is enabled for the active platform.\n";
 
             if (!string.IsNullOrEmpty(recommendation))
             {
@@ -517,7 +510,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                message += "\nThis may significantly impact performance and is not recommended for this platform.";
+                message += HDRenderPipelineUI.Styles.featureNotRecommendedWarning;
             }
 
             EditorGUILayout.HelpBox(message, MessageType.Warning, wide: true);
@@ -526,18 +519,11 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Shows a platform-specific performance warning help box for a given feature.
         /// </summary>
-        /// <param name="targetPlatform">The build target platform to check and display</param>
         /// <param name="featureName">The name of the feature (e.g., "Ray Tracing", "Film Grain")</param>
         /// <param name="recommendation">Optional recommendation text. If null, uses default "is not recommended for this platform"</param>
-        internal static void ShowPlatformPerformanceWarning(BuildTarget targetPlatform, string featureName, string sourceAssetName, Action onButtonClicked, string recommendation = null)
+        internal static void ShowFeatureOptimisationWarning(string featureName, string sourceAssetName, Action onButtonClicked, string recommendation = null)
         {
-            if (EditorUserBuildSettings.activeBuildTarget != targetPlatform)
-                return;
-
-            var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(targetPlatform);
-            var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(activeBuildTargetGroup);
-
-            string message = $"{featureName} is enabled in {sourceAssetName} for {namedBuildTarget.TargetName}. ";
+            string message = $"{featureName} is enabled in {sourceAssetName} for the active platform.\n";
 
             if (!string.IsNullOrEmpty(recommendation))
             {
@@ -545,7 +531,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                message += "\nThis may significantly impact performance and is not recommended for this platform.";
+                message += HDRenderPipelineUI.Styles.featureNotRecommendedWarning;
             }
 
             CoreEditorUtils.DrawFixMeBox(
@@ -555,53 +541,31 @@ namespace UnityEditor.Rendering.HighDefinition
                 onButtonClicked);
         }
 
-        /// <summary>
-        /// Shows a platform-specific performance warning help box for a given setting within a feature.
-        /// </summary>
-        /// <param name="targetPlatform">The build target platform to check and display</param>
-        /// <param name="settingName">The name of the setting responsible for the performance warning in the feature.</param>
-        /// <param name="settingValue">The current value of the setting.</param>
-        /// <param name="recommendation">Optional recommendation text. If null, uses default "is not recommended for this platform"</param>
-        internal static void ShowPlatformParameterPerformanceWarning(BuildTarget targetPlatform, string settingName, string settingValue, string recommendation = null)
+        internal static void ShowFeatureParameterOptimisationWarning(string settingName, string settingValue, string recommendation = null)
         {
-            if (EditorUserBuildSettings.activeBuildTarget != targetPlatform)
-                return;
+            EditorGUILayout.HelpBox(CreateParameterWarningMessage(settingName, settingValue, null, recommendation), MessageType.Warning, wide: true);
+        }
 
-            var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(targetPlatform);
-            var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(activeBuildTargetGroup).TargetName;
+        internal static void ShowFeatureParameterOptimisationWarning(string settingName, string settingValue, string sourceAssetName, Action onButtonClicked, string recommendation = null)
+        {
+            CoreEditorUtils.DrawFixMeBox(
+                CreateParameterWarningMessage(settingName, settingValue, sourceAssetName, recommendation),
+                MessageType.Warning,
+                "Open",
+                onButtonClicked);
+        }
 
-            string message = $"{settingName}: {settingValue} is used for {namedBuildTarget}.";
-
-            if (!string.IsNullOrEmpty(recommendation))
+        internal static string CreateParameterWarningMessage(string settingName, string settingValue, string sourceAssetName = null, string recommendation = null)
+        {
+            string message = $"{settingName}: {settingValue} ";
+            if (sourceAssetName != null)
             {
-                message += '\n' + recommendation;
+                message += $"is set in {sourceAssetName}.";
             }
             else
             {
-                message += "\nThis may significantly impact performance and is not recommended for this platform.";
+                message += $"is used for the active platform.";
             }
-
-            EditorGUILayout.HelpBox(message, MessageType.Warning, wide: true);
-        }
-
-        /// <summary>
-        /// Shows a platform-specific performance warning help box for a given setting within a feature.
-        /// </summary>
-        /// <param name="targetPlatform">The build target platform to check and display</param>
-        /// <param name="settingName">The name of the setting responsible for the performance warning in the feature.</param>
-        /// <param name="settingValue">The current value of the setting.</param>
-        /// <param name="sourceAssetName">The name of the asset responsible for producing this warning.</param>
-        /// <param name="onButtonClicked">Action to perform when the helpbox button is clicked.</param>
-        /// <param name="recommendation">Optional recommendation text. If null, uses default "is not recommended for this platform"</param>
-        internal static void ShowPlatformParameterPerformanceWarning(BuildTarget targetPlatform, string settingName, string settingValue, string sourceAssetName, Action onButtonClicked, string recommendation = null)
-        {
-            if (EditorUserBuildSettings.activeBuildTarget != targetPlatform)
-                return;
-
-            var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(targetPlatform);
-            var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(activeBuildTargetGroup).TargetName;
-
-            string message = $"{settingName}: {settingValue} is set in {sourceAssetName} for {namedBuildTarget}. ";
 
             if (!string.IsNullOrEmpty(recommendation))
             {
@@ -612,11 +576,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 message += $"\nThis may impact performance and is not recommended for this platform.";
             }
 
-            CoreEditorUtils.DrawFixMeBox(
-                message,
-                MessageType.Warning,
-                "Open",
-                onButtonClicked);
+            return message;
         }
 
         internal static bool IsInTestSuiteOrBatchMode()

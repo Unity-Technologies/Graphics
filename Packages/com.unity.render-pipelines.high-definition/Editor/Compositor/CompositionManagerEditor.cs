@@ -146,6 +146,13 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             }
             m_SerializedProperties.Update();
 
+            if (EditorGraphicsSettings.ShouldValidateGraphicsForActiveBuildTarget())
+            {
+                var validationSettings = HDProjectSettings.validationSettings;
+                if (!validationSettings.k_GraphicsCompositor_Recommended && m_compositionManager.enableInternal)
+                    HDEditorUtils.ShowFeatureOptimisationWarning("Graphics Compositor");
+            }
+
             m_EnablePreview = EditorGUILayout.Toggle(Styles.k_EnablePreview, m_compositionManager.enableOutput);
             {
                 m_compositionManager.enableOutput = m_EnablePreview;

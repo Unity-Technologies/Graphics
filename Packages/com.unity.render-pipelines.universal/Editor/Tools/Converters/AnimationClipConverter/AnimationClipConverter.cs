@@ -106,14 +106,21 @@ namespace UnityEditor.Rendering.Universal
                     (
                         SearchServiceUtils.IndexingOptions.DeepSearch,
                         query,
-                        (searchItem, path) =>
+                        (item, path) =>
                         {
-                            if (searchItem.ToObject() is not GameObject go || go.scene == null)
+                            var unityObject = item.ToObject();
+
+                            if (unityObject == null)
                                 return;
 
-                            var gid = GlobalObjectId.GetGlobalObjectIdSlow(go);
+                            var gid = GlobalObjectId.GetGlobalObjectIdSlow(unityObject);
+                            int type = gid.identifierType; // 1=Asset, 2=SceneObject
 
-                            var assetItem = new RenderPipelineConverterAssetItem(gid, go.scene.path);
+                            var assetItem = new RenderPipelineConverterAssetItem(gid.ToString())
+                            {
+                                name = unityObject.name,
+                                info = path,
+                            };
 
                             if (animatorUsingClip.TryGetValue(path, out var list))
                             {

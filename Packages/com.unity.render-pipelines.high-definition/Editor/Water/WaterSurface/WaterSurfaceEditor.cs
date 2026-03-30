@@ -174,8 +174,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
             using (new EditorGUI.IndentLevelScope())
             {
+
                 if (serialized.m_ScriptInteractions.boolValue)
                 {
+                    if (EditorGraphicsSettings.ShouldValidateGraphicsForActiveBuildTarget())
+                    {
+                        var validationSettings = HDProjectSettings.validationSettings;
+                        if (!validationSettings.k_Water_ScriptInteractionsRecommended)
+                            HDEditorUtils.ShowFeatureOptimisationWarning(serialized.m_ScriptInteractions.displayName);
+                    }
+
                     WaterSurfaceType surfaceType = (WaterSurfaceType)(serialized.m_SurfaceType.enumValueIndex);
 
                     // Does the surface support ripples
@@ -203,10 +211,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
             using (new BoldLabelScope())
                 EditorGUILayout.PropertyField(serialized.m_Tessellation);
-            if (serialized.m_Tessellation.boolValue)
+
+            using (new EditorGUI.IndentLevelScope())
             {
-                using (new EditorGUI.IndentLevelScope())
+                if (serialized.m_Tessellation.boolValue)
                 {
+                    if (EditorGraphicsSettings.ShouldValidateGraphicsForActiveBuildTarget())
+                    {
+                        var validationSettings = HDProjectSettings.validationSettings;
+                        if (!validationSettings.k_Water_TessellationRecommended)
+                            HDEditorUtils.ShowFeatureOptimisationWarning(serialized.m_Tessellation.displayName);
+                    }
+
                     EditorGUILayout.PropertyField(serialized.m_MaxTessellationFactor);
                     if (AdvancedProperties.BeginGroup())
                     {
@@ -294,18 +310,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             HDEditorUtils.EnsureVolume((WaterRendering water) => !water.enable.value ? "This Water Surface cannot render properly because Water Rendering override state property in the Volume System is either set to disabled or the current camera is currently not rendering." : null);
             HDEditorUtils.EnsureFrameSetting(FrameSettingsField.Water);
-
-            if (m_Tessellation.boolValue)
-                HDEditorUtils.ShowPlatformPerformanceWarning(BuildTarget.Switch2, "Water Tessellation");
-
-            if (m_ScriptInteractions.boolValue)
-                HDEditorUtils.ShowPlatformPerformanceWarning(BuildTarget.Switch2, "Water Script Interactions");
-
-            if (m_Caustics.boolValue)
-                HDEditorUtils.ShowPlatformPerformanceWarning(BuildTarget.Switch2, "Water Caustics");
-
-            if (m_UnderWater.boolValue)
-                HDEditorUtils.ShowPlatformPerformanceWarning(BuildTarget.Switch2, "Underwater");
 
             if (target is WaterSurface surface && surface.surfaceIndex == -1)
             {

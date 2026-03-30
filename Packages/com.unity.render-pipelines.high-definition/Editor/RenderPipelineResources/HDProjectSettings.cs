@@ -99,6 +99,43 @@ namespace UnityEditor.Rendering.HighDefinition
             get => instance.m_InProjectPluginLastSeenSubTargetVersionsSum;
         }
 
+        // This is a class of performance thresholds/recommendations used in HDRP to validate graphics settings for certain platforms.
+        // This needs to be refactored into a per-platform data-driven object.
+        internal class GraphicsValidationSettings
+        {
+            // Volumetric Fog
+            public readonly float k_Fog_MaximumFogBudget = 0.35f;
+            public readonly float k_Fog_MinimumFogBudgetForCutoff = 0.2f;
+
+            // Volumetric Clouds
+            public readonly bool k_VolumetricClouds_Recommended = false;
+
+            // Film Grain
+            public readonly bool k_FilmGrain_Recommended = false;
+
+            // Water
+            public readonly bool k_Water_TessellationRecommended = false;
+            public readonly bool k_Water_ScriptInteractionsRecommended = false;
+            public readonly bool k_Water_CausticsRecommended = false;
+            public readonly bool k_Water_UnderwaterRecommended = false;
+
+            // Subsurface Scattering
+            public readonly bool k_SubsurfaceScattering_Recommended = false;
+
+            // High Quality Line Rendering
+            public readonly bool k_HighQualityLineRendering_Recommended = false;
+
+            // Graphics Compositor
+            public readonly bool k_GraphicsCompositor_Recommended = false;
+        }
+
+        [NonSerialized]
+        private GraphicsValidationSettings m_GraphicsValidationSettings = new GraphicsValidationSettings();
+        internal static GraphicsValidationSettings validationSettings
+        {
+            get {  return instance.m_GraphicsValidationSettings; }
+        }
+
         //singleton pattern
         static HDProjectSettings instance
         {

@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -28,7 +27,6 @@ namespace UnityEditor.Rendering.HighDefinition
         protected SerializedDataParameter m_DepthExtent;
         protected SerializedDataParameter m_GlobalLightProbeDimmer;
         protected SerializedDataParameter m_SliceDistributionUniformity;
-        protected SerializedDataParameter m_VolumetricFogQuality;
         protected SerializedDataParameter m_FogControlMode;
         protected SerializedDataParameter m_ScreenResolutionPercentage;
         protected SerializedDataParameter m_VolumeSliceCount;
@@ -72,7 +70,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_EnableVolumetricFog = Unpack(o.Find(x => x.enableVolumetricFog));
             m_DepthExtent = Unpack(o.Find(x => x.depthExtent));
             m_SliceDistributionUniformity = Unpack(o.Find(x => x.sliceDistributionUniformity));
-            m_VolumetricFogQuality = Unpack(o.Find(x => x.quality));
             m_FogControlMode = Unpack(o.Find(x => x.fogControlMode));
             m_ScreenResolutionPercentage = Unpack(o.Find(x => x.screenResolutionPercentage));
             m_VolumeSliceCount = Unpack(o.Find(x => x.volumeSliceCount));
@@ -141,28 +138,54 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     base.OnInspectorGUI(); // Quality Setting
 
-                    var defaultFog = HDEditorUtils.GetVolumeComponentDefaultState<Fog>();
-
-                    // Get effective quality value (use local if overridden, otherwise use default)
-                    bool useDefaultQuality = !m_VolumetricFogQuality.overrideState.boolValue;
-                    int effectiveQuality = useDefaultQuality
-                        ? (defaultFog?.quality.value ?? -1)
-                        : m_VolumetricFogQuality.value.intValue;
-
-                    if (effectiveQuality > 1)
+                    float effectiveFogBudget = 0.0f;
+                    bool useDefaultDensityCutoff = !m_VolumetricLightingDensityCutoff.overrideState.boolValue;
+                    float effectiveDensityCutoff = 0.0f;
+                    if (EditorGraphicsSettings.ShouldValidateGraphicsForActiveBuildTarget())
                     {
-                        using (new IndentLevelScope())
+                        var validationSettings = HDProjectSettings.validationSettings;
+                        Fog defaultFog = HDEditorUtils.GetVolumeComponentDefaultState<Fog>();
+
+                        // Get effective quality value (use local if overridden, otherwise use default)
+                        bool useDefaultQuality = !overrideState;
+                        int effectiveQuality = useDefaultQuality
+                            ? (defaultFog?.quality.value ?? 0)
+                            : value;
+
+                        effectiveDensityCutoff = useDefaultDensityCutoff
+                            ? (defaultFog?.volumetricLightingDensityCutoff.value ?? 0.0f)
+                            : m_VolumetricLightingDensityCutoff.value.floatValue;
+
+                        // Custom quality tier
+                        if (effectiveQuality == k_CustomQuality)
                         {
-                            if (useDefaultQuality && HDEditorUtils.TryGetVolumeParameterSource<Fog>(
-                                  fog => fog.quality.overrideState && fog.quality.value > 1,
-                                  out var sourceProfile,
-                                  out var sourceName))
+                            bool useDefaultFogBudget = !m_VolumetricFogBudget.overrideState.boolValue;
+                            effectiveFogBudget = useDefaultFogBudget
+                                ? (defaultFog?.volumetricFogBudget ?? 0.0f)
+                                : m_VolumetricFogBudget.value.floatValue;
+                        }
+                        else if (hdpipe != null)
+                        {
+                            effectiveFogBudget = hdpipe.currentPlatformRenderPipelineSettings.lightingQualitySettings.Fog_Budget[effectiveQuality];
+                        }
+
+                        if (effectiveFogBudget >= validationSettings.k_Fog_MaximumFogBudget && (FogControl)m_FogControlMode.value.intValue == FogControl.Balance)
+                        {
+                            using (new IndentLevelScope())
                             {
-                                HDEditorUtils.ShowPlatformParameterPerformanceWarning(BuildTarget.Switch2, "Tier", "High", sourceName, () => Selection.activeObject = sourceProfile, "It is recommended to either disable Volumetric Fog, or lower the quality tier to Low/Medium");
-                            }
-                            else
-                            {
-                                HDEditorUtils.ShowPlatformParameterPerformanceWarning(BuildTarget.Switch2, "Tier", "High", "It is recommended to either disable Volumetric Fog, or lower the quality tier to Low/Medium.");
+                                string tierName = $"{(effectiveQuality == k_CustomQuality ? "Custom" : ((ScalableSettingLevelParameter.Level)effectiveQuality).ToString())} (Budget: {effectiveFogBudget})";
+                                string warningMessage = string.Format(HDRenderPipelineUI.Styles.maxFogBudgetWarning, validationSettings.k_Fog_MaximumFogBudget);
+                                if (useDefaultQuality && HDEditorUtils.TryGetVolumeParameterSource<Fog>(
+                                      fog => fog.quality.overrideState && fog.quality.value == effectiveQuality,
+                                      out var sourceProfile,
+                                      out var sourceName))
+                                {
+                                    HDEditorUtils.ShowFeatureParameterOptimisationWarning("Tier", tierName, sourceName, () => Selection.activeObject = sourceProfile, warningMessage);
+                                }
+                                else
+                                {
+                                    HDEditorUtils.ShowFeatureParameterOptimisationWarning("Tier", tierName, warningMessage);
+                                }
                             }
                         }
                     }
@@ -180,6 +203,11 @@ namespace UnityEditor.Rendering.HighDefinition
                                 }
                                 else
                                 {
+                                    if (EditorGraphicsSettings.ShouldValidateGraphicsForActiveBuildTarget())
+                                    {
+                                        HDEditorUtils.ShowFeatureParameterOptimisationWarning(m_FogControlMode.displayName, ((FogControl)m_FogControlMode.value.intValue).ToString(), "Manual fog control mode can have performance impacts if misused, use with care.");
+                                    }
+
                                     PropertyField(m_ScreenResolutionPercentage);
                                     PropertyField(m_VolumeSliceCount);
                                 }
@@ -203,13 +231,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     PropertyField(m_VolumetricLightingDensityCutoff);
-                    // Get effective density cutoff value (use local if overridden, otherwise use default)
-                    bool useDefaultDensityCutoff = !m_VolumetricLightingDensityCutoff.overrideState.boolValue;
-                    float effectiveDensityCutoff = useDefaultDensityCutoff
-                        ? (defaultFog?.volumetricLightingDensityCutoff.value ?? -1.0f)
-                        : m_VolumetricLightingDensityCutoff.value.floatValue;
-
-                    if (effectiveDensityCutoff > 0.0f)
+                    if (m_VolumetricLightingDensityCutoff.value.floatValue > 0.0f)
                     {
                         using (new IndentLevelScope())
                         {
@@ -217,10 +239,13 @@ namespace UnityEditor.Rendering.HighDefinition
                             EditorGUILayout.HelpBox($"The current minimum density for the fog is {currentMinExtinction:F3} (calculated from the Fog Distance).", MessageType.Info, wide: true);
                         }
                     }
-                    else
+
+                    if (EditorGraphicsSettings.ShouldValidateGraphicsForActiveBuildTarget())
                     {
-                        if (effectiveQuality > 0)
+                        var validationSettings = HDProjectSettings.validationSettings;
+                        if (effectiveDensityCutoff <= 0.0f && effectiveFogBudget >= validationSettings.k_Fog_MinimumFogBudgetForCutoff && (FogControl)m_FogControlMode.value.intValue == FogControl.Balance)
                         {
+                            string warningMessage = string.Format(HDRenderPipelineUI.Styles.minFogBudgetForDensityCutoffWarning, validationSettings.k_Fog_MinimumFogBudgetForCutoff);
                             using (new IndentLevelScope())
                             {
                                 if (useDefaultDensityCutoff && HDEditorUtils.TryGetVolumeParameterSource<Fog>(
@@ -228,17 +253,18 @@ namespace UnityEditor.Rendering.HighDefinition
                                       out var sourceProfile,
                                       out var sourceName))
                                 {
-                                    HDEditorUtils.ShowPlatformParameterPerformanceWarning(BuildTarget.Switch2, "Density Cutoff", "0", sourceName, () => Selection.activeObject = sourceProfile, "It is recommended to use Density cutoff when using Medium/High tier.");
+                                    HDEditorUtils.ShowFeatureParameterOptimisationWarning("Density Cutoff", "0", sourceName, () => Selection.activeObject = sourceProfile, warningMessage);
                                 }
                                 else
                                 {
-                                    HDEditorUtils.ShowPlatformParameterPerformanceWarning(BuildTarget.Switch2, "Density Cutoff", "0", "It is recommended to use Density cutoff when using Medium/High tier.");
+                                    HDEditorUtils.ShowFeatureParameterOptimisationWarning("Density Cutoff", "0", warningMessage);
                                 }
                             }
                         }
                     }
                 }
             }
+
             PropertyField(m_MultipleScatteringIntensity);
         }
 

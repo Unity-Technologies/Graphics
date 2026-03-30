@@ -422,6 +422,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent staticBatchingInfoMessage =
                 EditorGUIUtility.TrTextContent("Static Batching is not recommended when using GPU draw submission modes, performance may improve if Static Batching is disabled in Player Settings.");
 
+            public static readonly string featureNotRecommendedWarning = L10n.Tr("This feature is not optimized for this platform, enabling it may affect performance.");
+            public static readonly string maxFogBudgetWarning = L10n.Tr("The maximum recommended fog budget for this platform is {0}. Lower the tier to stay under this for optimal performance.");
+            public static readonly string minFogBudgetForDensityCutoffWarning = L10n.Tr("It is recommended to use Density cutoff when the fog budget is > {0} for this platform.");
+
             public const string memoryDrawback = "Adds GPU memory";
             public const string shaderVariantDrawback = "Adds Shader Variants";
             public const string lotShaderVariantDrawback = "Adds multiple Shader Variants";

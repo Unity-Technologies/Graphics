@@ -127,6 +127,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             set { m_VolumetricFogBudget.value = value; }
         }
+
+        /// <summary>The override state for the fog component's volumetric fog budget.</summary>
+        public bool volumetricFogBudgetOverrideState => m_VolumetricFogBudget.overrideState;
+
         [AdditionalProperty]
         [SerializeField, FormerlySerializedAs("volumetricFogBudget")]
         [Tooltip("Controls the performance to quality ratio of the volumetric fog. A value of 0 being the least resource-intensive and a value of 1 being the highest quality.")]

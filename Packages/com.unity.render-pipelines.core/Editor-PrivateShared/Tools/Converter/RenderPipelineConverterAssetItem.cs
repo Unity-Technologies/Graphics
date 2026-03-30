@@ -30,7 +30,13 @@ namespace UnityEditor.Rendering.Converter
 
         public string GlobalObjectId => m_GlobalObjectId;
 
-        public string name => System.IO.Path.GetFileNameWithoutExtension(assetPath);
+        [SerializeField]
+        private string m_Name;
+        public string name
+        {
+            get => string.IsNullOrEmpty(m_Name) ? System.IO.Path.GetFileNameWithoutExtension(assetPath) : m_Name;
+            set => m_Name = value;
+        }
 
         [SerializeField]
         private string m_Info;

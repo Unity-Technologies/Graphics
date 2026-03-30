@@ -130,7 +130,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // We use ConditionalWeakTable instead of a Dictionary of InstanceIDs to get automatic clean-up of dead entries in the table
         static ConditionalWeakTable<UnityEngine.Object, QualitySettingsBlob> s_CustomSettingsHistory = new ConditionalWeakTable<UnityEngine.Object, QualitySettingsBlob>();
 
-        static readonly int k_CustomQuality = ScalableSettingLevelParameter.LevelCount;
+        protected static readonly int k_CustomQuality = ScalableSettingLevelParameter.LevelCount;
 
         public override void OnEnable()
         {
@@ -210,6 +210,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected bool useCustomValue => m_QualitySetting.value.intValue == k_CustomQuality;
         protected bool overrideState => m_QualitySetting.overrideState.boolValue;
+        protected int value => m_QualitySetting.value.intValue;
 
         /// <summary>
         /// This utility can be used to copy a value into a volume component setting visible in the inspector.

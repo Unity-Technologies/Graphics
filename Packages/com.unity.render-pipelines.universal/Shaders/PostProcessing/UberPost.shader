@@ -1,6 +1,7 @@
 Shader "Hidden/Universal Render Pipeline/UberPost"
 {
     HLSLINCLUDE
+        #pragma multi_compile_local_fragment _ _POINT_SAMPLING
         #pragma multi_compile_local_fragment _ _DISTORTION
         #pragma multi_compile_local_fragment _ _CHROMATIC_ABERRATION
         #pragma multi_compile_local_fragment _ _BLOOM_LQ _BLOOM_HQ _BLOOM_LQ_DIRT _BLOOM_HQ_DIRT
@@ -146,6 +147,15 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             return uv;
         }
 
+        half4 SampleColor(float2 uv)
+        {
+            #if _POINT_SAMPLING
+            return SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_PointClamp, uv);
+            #else
+            return SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv);
+            #endif
+        }
+
         half4 FragUberPost(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -155,7 +165,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
 
             // NOTE: Hlsl specifies missing input.a to fill 1 (0 for .rgb).
             // InputColor is a "bottom" layer for alpha output.
-            half4 inputColor = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, ClampUVForBilinear(SCREEN_COORD_REMOVE_SCALEBIAS(uvDistorted), _BlitTexture_TexelSize.xy));
+            half4 inputColor = SampleColor(ClampUVForBilinear(SCREEN_COORD_REMOVE_SCALEBIAS(uvDistorted), _BlitTexture_TexelSize.xy));
             half3 color = inputColor.rgb;
 
             #if _CHROMATIC_ABERRATION
@@ -167,8 +177,8 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
                 float2 delta = (end - uv) / 3.0;
 
                 half r = color.r;
-                half g = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, ClampUVForBilinear(SCREEN_COORD_REMOVE_SCALEBIAS(DistortUV(delta + uv)      ), _BlitTexture_TexelSize.xy)).y;
-                half b = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, ClampUVForBilinear(SCREEN_COORD_REMOVE_SCALEBIAS(DistortUV(delta * 2.0 + uv)), _BlitTexture_TexelSize.xy)).z;
+                half g = SampleColor(ClampUVForBilinear(SCREEN_COORD_REMOVE_SCALEBIAS(DistortUV(delta + uv)      ), _BlitTexture_TexelSize.xy)).y;
+                half b = SampleColor(ClampUVForBilinear(SCREEN_COORD_REMOVE_SCALEBIAS(DistortUV(delta * 2.0 + uv)), _BlitTexture_TexelSize.xy)).z;
 
                 color = half3(r, g, b);
             }
