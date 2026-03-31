@@ -408,6 +408,10 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             runtimePlatforms: new[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer }
         )]
         [IgnoreGraphicsTest(
+            "4103_DRS-DLSS-AfterPost",
+            "Unstable: https://jira.unity3d.com/browse/UUM-137893"
+        )]
+        [IgnoreGraphicsTest(
             "4111_DRS-DLSS-With-CustomPass",
             "Platform not supported", // DLSS is DX12/DX11/Vulkan on PC-only
             isInclusive: true,
