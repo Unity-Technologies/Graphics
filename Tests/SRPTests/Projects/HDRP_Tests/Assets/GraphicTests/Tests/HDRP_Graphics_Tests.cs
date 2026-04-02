@@ -344,6 +344,10 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             runtimePlatforms: new[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer }
         )]
         [IgnoreGraphicsTest(
+            "4109_DRS-FSR2-AfterPost",
+            "Unstable: https://jira.unity3d.com/browse/UUM-138604"
+        )]
+        [IgnoreGraphicsTest(
             "4110_DRS-FSR2-With-CustomPass",
             "Platform not supported", // FSR is DX12/DX11/Vulkan on PC-only
             isInclusive: true,
