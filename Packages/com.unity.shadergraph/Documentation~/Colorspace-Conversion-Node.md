@@ -16,7 +16,7 @@ Returns the result of converting the value of input **In** from one colorspace s
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
 | From      | Dropdown | RGB, Linear, HSV | Selects the colorspace to convert from |
-| To      | Dropdown | RGB, Linear, HSV | Selects the colorspace to convert to |
+| To      | Dropdown | RGB, Linear, HSV | Selects the colorspace to convert to. Returns values in the range 0 to 1, or higher if the color space is HDR. |
 
 ## Generated Code Example
 
