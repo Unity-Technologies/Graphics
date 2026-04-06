@@ -273,6 +273,15 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <param name="flags">How this pass will access the buffer. Default value is set to AccessFlag.Read.</param>
         /// <returns>The value passed to 'input'. You should not use the returned value it will be removed in the future.</returns>
         BufferHandle UseBufferRandomAccess(BufferHandle tex, int index, bool preserveCounterValue, AccessFlags flags = AccessFlags.Read);
+        
+        /// <summary>
+        /// Specify the pre-render function to use for this pass.
+        /// The call happens when a native render pass starts
+        /// </summary>
+        /// <typeparam name="PassData">The Type of the class that provides data to the Render Pass.</typeparam>
+        /// <param name="renderFunc">Render function for the pass.</param>
+        public void SetPreRenderFunc<PassData>(BaseRenderFunc<PassData, RasterGraphContext> preRenderFunc)
+            where PassData : class, new();
     }
 
     /// <summary>

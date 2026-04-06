@@ -350,7 +350,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         // Shared validation between SetRenderAttachment/SetRenderAttachmentDepth
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        private void CheckUseFragment(in TextureHandle tex, bool isDepth)
+        private void CheckUseFragment(in TextureHandle tex, bool isDepth, bool ignoreReadTextureCheck = false)
         {
             if (RenderGraph.enableValidityChecks)
             {
@@ -362,12 +362,15 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 // SetRenderAttachment()
                 // UseTexture(grab)
                 // will work but not the other way around
-                for (int i = 0; i < m_RenderPass.resourceReadLists[tex.handle.iType].Count; i++)
+                if (!ignoreReadTextureCheck)
                 {
-                    if (m_RenderPass.resourceReadLists[tex.handle.iType][i].index == tex.handle.index)
+                    for (int i = 0; i < m_RenderPass.resourceReadLists[tex.handle.iType].Count; i++)
                     {
-                        alreadyUsed = true;
-                        break;
+                        if (m_RenderPass.resourceReadLists[tex.handle.iType][i].index == tex.handle.index)
+                        {
+                            alreadyUsed = true;
+                            break;
+                        }
                     }
                 }
 
@@ -478,7 +481,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             CheckFrameBufferFetchEmulationIsSupported(tex);
 
-            CheckUseFragment(tex, false);
+            // Depth texture can be bind as input attachment, bypass the depth format check inside CheckUseFragment
+            m_Resources.GetRenderTargetInfo(tex.handle, out var info);
+            bool isDepth = GraphicsFormatUtility.IsDepthFormat(info.format);
+            // Bypass the already used check for texture read, so that an attachment can be used as depth and input in one subpass
+            bool ignoreReadTextureCheck = true;
+            CheckUseFragment(tex, isDepth, ignoreReadTextureCheck);
             var versionedTextureHandle = new TextureHandle(UseResource(tex.handle, flags));
             m_RenderPass.SetFragmentInputRaw(versionedTextureHandle, index, flags, mipLevel, depthSlice);
         }
@@ -517,6 +525,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
             var h = UseBuffer(input, flags);
             m_RenderPass.SetRandomWriteResourceRaw(h.handle, index, preserveCounterValue, flags);
             return input;
+        }
+        
+        public void SetPreRenderFunc<PassData>(BaseRenderFunc<PassData, RasterGraphContext> preRenderFunc) where PassData : class, new()
+        {
+            ((RasterRenderGraphPass<PassData>)m_RenderPass).preRenderFunc = preRenderFunc;
         }
 
         public void SetRenderFunc<PassData>(BaseRenderFunc<PassData, ComputeGraphContext> renderFunc) where PassData : class, new()

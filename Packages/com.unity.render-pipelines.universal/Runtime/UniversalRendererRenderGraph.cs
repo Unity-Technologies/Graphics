@@ -1049,6 +1049,9 @@ namespace UnityEngine.Rendering.Universal
 
                 // Record depthMotion pass and import XR resources into the rendergraph.
                 m_XRDepthMotionPass?.Render(renderGraph, frameData);
+                
+                // Depth motion pass will break the subpass merge assumption, reset the projection matrix before draw opaque pass
+                SetupRenderGraphCameraProperties(renderGraph, resourceData.backBufferColor);
             }
 #endif
 
@@ -1388,7 +1391,6 @@ namespace UnityEngine.Rendering.Universal
 
             bool resolvePostProcessingToCameraTarget = !hasCaptureActions && !hasPassesAfterPostProcessing && !applyFinalPostProcessing;
             bool needsColorEncoding = DebugHandler == null || !DebugHandler.HDRDebugViewIsActive(cameraData.resolveFinalTarget);
-            bool xrDepthTargetResolved = resourceData.activeDepthID == UniversalResourceData.ActiveID.BackBuffer;
 
             DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(cameraData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
@@ -1562,6 +1564,9 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
+                // Resolve might happen in post processing pass
+                bool xrDepthTargetResolved = resourceData.activeDepthID == UniversalResourceData.ActiveID.BackBuffer;
+                
                 // Populate XR depth as requested by XR provider.
                 if (!xrDepthTargetResolved && cameraData.xr.copyDepth)
                 {
@@ -1775,6 +1780,13 @@ namespace UnityEngine.Rendering.Universal
 
                 importInfoDepth = importInfo;
                 importInfoDepth.format = cameraData.cameraTargetDescriptor.depthStencilFormat;
+#if UNITY_EDITOR
+                // In game window, Unity will use the scaled resolution, but the back buffer is still using pixel resolution
+                // This will prevent the subpass from working as the camera target's resolution is different from the backbuffer
+                cameraData.cameraTargetDescriptor.width = Screen.width;
+                cameraData.cameraTargetDescriptor.height = Screen.height;
+                cameraData.cameraTargetDescriptor.msaaSamples = numSamples;
+#endif
             }
             else
             {
@@ -1812,9 +1824,18 @@ namespace UnityEngine.Rendering.Universal
                     Debug.LogWarning("In the render graph API, the output Render Texture must have a depth buffer. When you select a Render Texture in any camera's Output Texture property, the Depth Stencil Format property of the texture must be set to a value other than None.");
                 }
             }
+            
+            if (importInfo.msaaSamples > 1)
+            {
+                // This will discard the MSAA texture and store the resolved texture
+                importBackbufferColorParams.discardOnLastUse = true;
+            }
 
             if (!isCameraTargetOffscreenDepth)
+            {
                 resourceData.backBufferColor = renderGraph.ImportTexture(m_TargetColorHandle, importInfo, importBackbufferColorParams);
+                cameraData.cameraTargetDescriptor.bindMS = importInfo.msaaSamples > 1; // When using MSAA and post processing, the _CameraTargetAttachment should be a MSAA only texture, as we don't need to resolve it.
+            }
 
             resourceData.backBufferDepth = renderGraph.ImportTexture(m_TargetDepthHandle, importInfoDepth, importBackbufferDepthParams);
         }
@@ -1854,6 +1875,9 @@ namespace UnityEngine.Rendering.Universal
                 importColorParams.clearOnFirstUse = clearColor;
                 importColorParams.clearColor = clearBackgroundColor;
                 importColorParams.discardOnLastUse = cameraData.resolveFinalTarget; // Last camera in stack
+                
+                // We don't need to store the camera target
+                importColorParams.discardOnLastUse = true;
                 resourceData.cameraColor = renderGraph.ImportTexture(currentRenderGraphCameraColorHandle, importColorParams);
             }
 

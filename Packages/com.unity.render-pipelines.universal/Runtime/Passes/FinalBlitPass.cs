@@ -219,6 +219,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
 
                     CoreUtils.SetRenderTarget(renderingData.commandBuffer, cameraTargetHandle.nameID, loadAction, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
+                    // The final blit can't be easily avoided for the logo screen when using HDR, manually correct the scale bias when using nrp with render graph
                     Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(m_Source, cameraTargetHandle, cameraData);
                     ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_Source, cameraTargetHandle, cameraData, scaleBias);
                     cameraData.renderer.ConfigureCameraTarget(cameraTargetHandle, cameraTargetHandle);

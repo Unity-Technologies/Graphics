@@ -209,6 +209,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
             rastercmd.m_ExecutingPass = context.executingPass;
             cmd = rastercmd;
         }
+        
+        public int CurrentRGPassId() {
+            return cmd.m_ExecutingPass.index;
+        }
 
         /// <inheritdoc />
         public readonly TextureUVOrigin GetTextureUVOrigin(in TextureHandle textureHandle)

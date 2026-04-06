@@ -154,6 +154,26 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         // Data per native renderpas
         public NativeList<NativePassData> nativePassData;
         public NativeList<SubPassDescriptor> nativeSubPassData; //Tighty packed list of per nrp subpasses
+        
+        public bool passMerged(int passId1, int passId2)
+        {
+            return passData[passId1].nativePassIndex == passData[passId2].nativePassIndex;
+        }
+
+        public bool nativepassFragmentsContain(int passId, int fragIndex)
+        {
+            int nativePassId = passData[passId].nativePassIndex;
+            if (nativePassId <= nativePassData.Length)
+            {
+                NativePassData data = nativePassData[nativePassId];
+                for (int i = 0; i < data.fragments.size; i++)
+                {
+                    if (data.fragments[i].resource.index == fragIndex)
+                        return true;
+                }
+            }
+            return false;
+        }
 
         // resources can be added as fragment both as input and output so make sure not to add them twice (return true upon new addition)
         public bool TryAddToFragmentList(in TextureAccess access, int listFirstIndex, int numItems, out string errorMessage)

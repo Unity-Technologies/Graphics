@@ -40,5 +40,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 nativeCompiler.ExecuteGraph(m_RenderGraphContext, m_Resources, m_RenderPasses);
             }
         }
+        
+        public bool IsPassUsingRenderTarget(int passId, int resourceId)
+        {
+            return nativeCompiler.contextData.nativepassFragmentsContain(passId, resourceId);
+        }
     }
 }

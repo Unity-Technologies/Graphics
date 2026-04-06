@@ -15,6 +15,9 @@ namespace UnityEngine.Rendering.Universal
         RenderQueueType renderQueueType;
         FilteringSettings m_FilteringSettings;
         RenderObjects.CustomCameraSettings m_CameraSettings;
+        
+        private const string DEPTH_INPUT_ATTACHMENT = "_DEPTH_INPUT_ATTACHMENT";
+        private static GlobalKeyword m_depthInputKeyword;
 
         /// <summary>
         /// The override material to use.
@@ -35,6 +38,8 @@ namespace UnityEngine.Rendering.Universal
         /// The pass index to use with the override shader.
         /// </summary>
         public int overrideShaderPassIndex { get; set; }
+        
+        public bool useDepthInputAttachment { get; set; } = false;
 
         List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
         private PassData m_PassData;
@@ -135,6 +140,8 @@ namespace UnityEngine.Rendering.Universal
 
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             m_CameraSettings = cameraSettings;
+            
+            m_depthInputKeyword = GlobalKeyword.Create(DEPTH_INPUT_ATTACHMENT);
         }
 
 #if URP_COMPATIBILITY_MODE
@@ -280,8 +287,15 @@ namespace UnityEngine.Rendering.Universal
 
                 passData.color = resourceData.activeColorTexture;
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
-                if (cameraData.imageScalingMode != ImageScalingMode.Upscaling || passData.renderPassEvent != RenderPassEvent.AfterRenderingPostProcessing)
+                if (useDepthInputAttachment && SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
+                {
+                    builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Read);
+                    builder.SetInputAttachment(resourceData.activeDepthTexture, index: 0, AccessFlags.Read);
+                }
+                else if (cameraData.imageScalingMode != ImageScalingMode.Upscaling || passData.renderPassEvent != RenderPassEvent.AfterRenderingPostProcessing)
+                {
                     builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Write);
+                }
 
                 TextureHandle mainShadowsTexture = resourceData.mainShadowsTexture;
                 TextureHandle additionalShadowsTexture = resourceData.additionalShadowsTexture;
@@ -324,6 +338,7 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {
+                    rgContext.cmd.SetKeyword(m_depthInputKeyword, useDepthInputAttachment && SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan);
                     var isYFlipped = RenderingUtils.IsHandleYFlipped(rgContext, in data.color);
                     ExecutePass(data, rgContext.cmd, data.rendererListHdl, isYFlipped);
                 });
