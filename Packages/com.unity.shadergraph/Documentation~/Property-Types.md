@@ -150,7 +150,7 @@ Defines a [Cubemap](https://docs.unity3d.com/Manual/class-Cubemap.html) value. D
 <a name="virtual-texture"> </a>
 ## Virtual Texture
 
-Defines a [Texture Stack](https://docs.unity3d.com/2020.1/Documentation/Manual/svt-use-in-shader-graph.html), which appears as object fields of type  [Texture](https://docs.unity3d.com/Manual/class-TextureImporter.html) in the Material Inspector. The number of fields corresponds to the number of layers in the property.
+Defines a [Texture Stack](https://docs.unity3d.com/Manual/svt-use-in-shader-graph.html), which appears as object fields of type  [Texture](https://docs.unity3d.com/Manual/class-TextureImporter.html) in the Material Inspector. The number of fields corresponds to the number of layers in the property.
 
 | Parameter | Description |
 | :--- | :--- |
