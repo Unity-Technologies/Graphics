@@ -56,6 +56,7 @@ namespace UnityEngine.Rendering.Universal
         CopyDepthPass m_CopyDepthPass;
         UpscalePass m_UpscalePass;
         CopyCameraSortingLayerPass m_CopyCameraSortingLayerPass;
+        CapturePass m_CapturePass;
         FinalBlitPass m_FinalBlitPass;
         FinalBlitPass m_OffscreenUICoverPrepass;
         DrawScreenSpaceUIPass m_DrawOffscreenUIPass;
@@ -117,6 +118,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_UpscalePass = new UpscalePass(RenderPassEvent.AfterRenderingPostProcessing, m_BlitMaterial);
             m_CopyCameraSortingLayerPass = new CopyCameraSortingLayerPass(m_BlitMaterial);
+            m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + k_FinalBlitPassQueueOffset, m_BlitMaterial, m_BlitHDRMaterial);
             m_OffscreenUICoverPrepass = new FinalBlitPass(RenderPassEvent.BeforeRenderingPostProcessing, m_BlitMaterial, m_BlitOffscreenUICoverMaterial);
 
@@ -201,7 +203,8 @@ namespace UnityEngine.Rendering.Universal
                     || cameraData.cameraTargetDescriptor.msaaSamples > 1 && UniversalRenderer.PlatformRequiresExplicitMsaaResolve()
                     || m_Renderer2DData.useCameraSortingLayerTexture
                     || !Mathf.Approximately(cameraData.renderScale, 1.0f)
-                    || (DebugHandler != null && DebugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget));
+                    || (DebugHandler != null && DebugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget))
+                    || cameraData.captureActions != null;
 
             return inputSummary;
         }
@@ -958,6 +961,12 @@ namespace UnityEngine.Rendering.Universal
             var finalBlitTarget = resolveToDebugScreen ? commonResourceData.debugScreenColor : commonResourceData.backBufferColor;
             var finalDepthHandle = resolveToDebugScreen ? commonResourceData.debugScreenDepth : commonResourceData.backBufferDepth;
 
+            // Capture pass for Unity Recorder
+            if (hasCaptureActions)
+            {
+                m_CapturePass.RecordRenderGraph(renderGraph, frameData);
+            }
+            
             if (applyFinalPostProcessing)
             {
                 m_PostProcessPassRenderGraph.RenderFinalPassRenderGraph(renderGraph, frameData, in finalColorHandle, commonResourceData.overlayUITexture, in finalBlitTarget, needsColorEncoding);
