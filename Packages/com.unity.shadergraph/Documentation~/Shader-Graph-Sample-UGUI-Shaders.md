@@ -1,11 +1,10 @@
-# UGUI Shaders
-![The Shader Graph UGUI Shaders: A collection of Shader Graph subgraphs that serve as building blocks for building user interface elements.](images/UIToolsSample.png) 
+# UGUI Shaders sample
 
-The Shader Graph UGUI Shaders sample is a collection of Shader Graph subgraphs that serve as building blocks for building user interface elements. They speed up the process of building widgets, buttons, and backgrounds for the user interface of your project.  Using these tools, you can build dynamic, procedural UI elements that don’t require any texture memory and scale correctly for any resolution screen.
+The Shader Graph UGUI Shaders sample is a collection of Shader Graph subgraphs that you can use to build user interface elements. They speed up the process of building widgets, buttons, and backgrounds for the user interface of your project.  With these tools, you can build dynamic, procedural UI elements that don’t require any texture memory and scale correctly for any resolution screen.
 
 In addition to the subgraphs, the sample also includes example buttons, indicators, and backgrounds built using the subgraphs.  The examples show how the subgraphs function in context and help you learn how to use them.
 
-We have two main objectives with this sample set:
+This sample set covers two main objectives:
 
 
  - Demonstrate Shader Graph’s ability to create dynamic, resolution-independent user interface elements in a wide variety of shapes and styles.

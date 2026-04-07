@@ -1,8 +1,6 @@
-# Production Ready Shaders
+# Production Ready Shaders sample
 
-The Shader Graph Production Ready Shaders sample is a collection of Shader Graph shader assets that are ready to be used out of the box or modified to suit your needs.  You can take them apart and learn from them, or just drop them directly into your project and use them as they are. The sample also includes a step-by-step tutorial for how to combine several of the shaders to create a forest stream environment.
-
-The sample content is broken into the following categories:
+The Shader Graph Production Ready Shaders sample is a collection of Shader Graph shader assets that are ready to be used out of the box or modified to suit your needs.  You can take them apart and learn from them, or just drop them directly into your project and use them as they are. The sample includes the Shader Graph versions of the HDRP and URP Lit shaders. It also includes a step-by-step tutorial for how to combine several of the shaders to create a forest stream environment.
 
 | Topic | Description   |
 |:------|:--------------|

@@ -3,7 +3,7 @@
 Use the templates and sub graphs included in the **Custom Lighting** sample to get started with lighting model customization in Shader Graph.
 
 > [!NOTE]
-> To use the **Custom Lighting** templates and sub graphs, you first need to [import the sample in your project](ShaderGraph-Samples.md#add-samples).
+> To use the **Custom Lighting** templates and sub graphs, you first need to [import the sample in your project](ShaderGraph-Samples-Import.md).
 
 ## Start from a shader graph template
 
