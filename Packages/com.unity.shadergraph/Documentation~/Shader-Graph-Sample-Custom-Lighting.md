@@ -1,6 +1,4 @@
-# Custom Lighting
-
-![An example scene with custom lighting effects.](images/CustomLightingSample.png) 
+# Custom Lighting sample
 
 Use the additional templates and sub graphs provided in the **Custom Lighting** sample to get started with lighting model customization in Shader Graph.
 
