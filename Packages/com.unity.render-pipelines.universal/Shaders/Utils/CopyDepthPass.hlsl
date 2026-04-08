@@ -44,7 +44,7 @@ float SampleDepth(float2 pixelCoords)
 {
     int2 coord = int2(pixelCoords); 
 #if MSAA_SAMPLES == 1
-    return LOAD(coord); 
+    return LOAD(coord).r;
 #else
     float outDepth = DEPTH_DEFAULT_VALUE;
 
