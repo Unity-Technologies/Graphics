@@ -31,6 +31,8 @@ Shader "OnTileUberPost"
     float4 _Vignette_Params2;
 #ifdef USING_STEREO_MATRICES
     float4 _Vignette_ParamsXR;
+    float4 _Quad_View_Uv_Remap_scalesXR;  // xy = Eye0 scale, zw = Eye1 scale
+    float4 _Quad_View_Uv_Remap_offsetsXR; // xy = Eye0 offset, zw = Eye1 offset
 #endif
     float2 _Grain_Params;
     float4 _Grain_TilingParams;
@@ -38,12 +40,16 @@ Shader "OnTileUberPost"
     float4 _HDROutputLuminanceParams;
 
     #define VignetteColor           _Vignette_Params1.xyz
-    #ifdef USING_STEREO_MATRICES
+#ifdef USING_STEREO_MATRICES
     #define VignetteCenterEye0      _Vignette_ParamsXR.xy
     #define VignetteCenterEye1      _Vignette_ParamsXR.zw
-    #else
+    #define QuadViewUvRemapEye0Scale  _Quad_View_Uv_Remap_scalesXR.xy
+    #define QuadViewUvRemapEye1Scale  _Quad_View_Uv_Remap_scalesXR.zw
+    #define QuadViewUvRemapEye0Offset _Quad_View_Uv_Remap_offsetsXR.xy
+    #define QuadViewUvRemapEye1Offset _Quad_View_Uv_Remap_offsetsXR.zw
+#else
     #define VignetteCenter          _Vignette_Params2.xy
-    #endif
+#endif
     #define VignetteIntensity       _Vignette_Params2.z
     #define VignetteSmoothness      _Vignette_Params2.w
     #define VignetteRoundness       _Vignette_Params1.w
@@ -73,6 +79,15 @@ Shader "OnTileUberPost"
     {
         half3 color = inputColor.rgb;
 
+        // Remapped UV for screen-space effects in Quad View
+        float2 uvRemapped = uv;
+#ifdef USING_STEREO_MATRICES
+        // Select per-eye scale and offset for robust handling of asymmetric projection matrices
+        const float2 quadViewScale = unity_StereoEyeIndex == 0 ? QuadViewUvRemapEye0Scale : QuadViewUvRemapEye1Scale;
+        const float2 quadViewOffset = unity_StereoEyeIndex == 0 ? QuadViewUvRemapEye0Offset : QuadViewUvRemapEye1Offset;
+        uvRemapped = uv * quadViewScale + quadViewOffset;
+#endif
+
         // To save on variants we use an uniform branch for vignette. This may have performance impact on lower end platforms
         UNITY_BRANCH
         if (VignetteIntensity > 0)
@@ -83,23 +98,23 @@ Shader "OnTileUberPost"
             const float2 VignetteCenter = unity_StereoEyeIndex == 0 ? VignetteCenterEye0 : VignetteCenterEye1;
         #endif
 
-            color = ApplyVignette(color, uv, VignetteCenter, VignetteIntensity, VignetteRoundness, VignetteSmoothness, VignetteColor);
+            color = ApplyVignette(color, uvRemapped, VignetteCenter, VignetteIntensity, VignetteRoundness, VignetteSmoothness, VignetteColor);
         }
 
         // Color grading is always enabled when post-processing/uber is active
         {
             color = ApplyColorGrading(color, PostExposure, TEXTURE2D_ARGS(_InternalLut, sampler_LinearClamp), LutParams, TEXTURE2D_ARGS(_UserLut, sampler_LinearClamp), UserLutParams, UserLutContribution, PaperWhite, OneOverPaperWhite);
         }
-        
+
         #if _FILM_GRAIN
         {
-            color = ApplyGrain(color, uv, TEXTURE2D_ARGS(_Grain_Texture, sampler_LinearRepeat), GrainIntensity, GrainResponse, GrainScale, GrainOffset, OneOverPaperWhite);
+            color = ApplyGrain(color, uvRemapped, TEXTURE2D_ARGS(_Grain_Texture, sampler_LinearRepeat), GrainIntensity, GrainResponse, GrainScale, GrainOffset, OneOverPaperWhite);
         }
         #endif
 
         #if _DITHERING
         {
-            color = ApplyDithering(color, uv, TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset, PaperWhite, OneOverPaperWhite);
+            color = ApplyDithering(color, uvRemapped, TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset, PaperWhite, OneOverPaperWhite);
         }
         #endif
        

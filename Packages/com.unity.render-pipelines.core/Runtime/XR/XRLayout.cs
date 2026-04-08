@@ -11,6 +11,24 @@ namespace UnityEngine.Experimental.Rendering
         readonly List<(Camera, XRPass)> m_ActivePasses = new List<(Camera, XRPass)>();
 
         /// <summary>
+        /// State container for Quad View rendering, used to cache data across render passes.
+        /// </summary>
+        public QuadViewState quadView;
+
+        /// <summary>
+        /// Contains cached state for Quad View XR rendering.
+        /// Quad View is an XR rendering mode where peripheral (outer) and foveal (inner) views are rendered separately.
+        /// </summary>
+        public struct QuadViewState
+        {
+            /// <summary>
+            /// Cached vignette center from the peripheral (outer) view pass.
+            /// Used by the inner view pass to ensure vignette effect is consistent across both views.
+            /// </summary>
+            public Vector4 cachedPeripheralVignetteCenter;
+        }
+
+        /// <summary>
         /// Configure the layout to render from the specified camera by generating passes from the the connected XR device.
         /// </summary>
         /// <param name="camera"> Camera that has XR device connected to. </param>
@@ -76,6 +94,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_ActivePasses.Clear();
+            quadView = default;
         }
 
         internal void LogDebugInfo()
