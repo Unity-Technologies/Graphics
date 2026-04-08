@@ -58,8 +58,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             TargetBuffer depth = targetDepthBuffer;
             if (depth == TargetBuffer.Camera &&
+                HDRenderPipeline.currentAsset != null &&
                 HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enabled &&
-                currentHDCamera.allowDynamicResolution &&
+                currentHDCamera != null && currentHDCamera.allowDynamicResolution &&
                 injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
             {
                 // This custom pass is injected after postprocessing, and Dynamic Resolution Scaling is enabled, which
