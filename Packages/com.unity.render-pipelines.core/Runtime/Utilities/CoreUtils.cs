@@ -1845,31 +1845,47 @@ namespace UnityEngine.Rendering
             }
         }
 
+        const char k_DirectorySeparatorChar = '/';
+
         /// <summary>
         /// Create any missing folders in the file path given.
         /// </summary>
-        /// <param name="filePath">File or folder (ending with '/') path to ensure existence of each subfolder in. </param>
+        /// <param name="filePath">File or folder (ending with '/') path to ensure existence of each subfolder in.</param>
         public static void EnsureFolderTreeInAssetFilePath(string filePath)
         {
-            var path = filePath.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
-            if (!path.StartsWith("Assets" + Path.DirectorySeparatorChar, StringComparison.CurrentCultureIgnoreCase))
-                throw new ArgumentException($"Path should start with \"Assets/\". Got {filePath}.", filePath);
+            if (string.IsNullOrEmpty(filePath))
+                return;
+
+            // Normalize to forward slashes (Unity standard)
+            var path = filePath.Replace('\\', k_DirectorySeparatorChar);
+
+            if (!path.StartsWith("Assets/", StringComparison.Ordinal))
+                throw new ArgumentException($"Path should start with \"Assets/\". Got {filePath}.", nameof(filePath));
 
             var folderPath = Path.GetDirectoryName(path);
 
-            if (!UnityEditor.AssetDatabase.IsValidFolder(folderPath))
+            if (string.IsNullOrEmpty(folderPath))
+                return;
+
+            // GetDirectoryName may reintroduce backslashes on Windows
+            folderPath = folderPath.Replace('\\', k_DirectorySeparatorChar);
+
+            // Early exit if folder already exists
+            if (AssetDatabase.IsValidFolder(folderPath))
+                return;
+
+            var folderNames = folderPath.Split(k_DirectorySeparatorChar);
+            string currentPath = "Assets";
+
+            for (int i = 1; i < folderNames.Length; ++i)
             {
-                var folderNames = folderPath.Split(Path.DirectorySeparatorChar);
-                string rootPath = "";
-                foreach (var folderName in folderNames)
-                {
-                    var newPath = rootPath + folderName;
-                    if (!UnityEditor.AssetDatabase.IsValidFolder(newPath))
-                        UnityEditor.AssetDatabase.CreateFolder(rootPath.TrimEnd(Path.DirectorySeparatorChar), folderName);
-                    rootPath = newPath + Path.DirectorySeparatorChar;
-                }
+                string nextPath = currentPath + k_DirectorySeparatorChar + folderNames[i];
+                if (!UnityEditor.AssetDatabase.IsValidFolder(nextPath))
+                    UnityEditor.AssetDatabase.CreateFolder(currentPath, folderNames[i]);
+                currentPath = nextPath;
             }
         }
+
 
         /// <summary>
         /// Returns the icon for the given type if it has an IconAttribute.
