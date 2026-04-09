@@ -4,6 +4,8 @@ Shader "OnTileUberPost"
     #pragma multi_compile_local_fragment _ _HDR_GRADING _TONEMAP_ACES _TONEMAP_NEUTRAL
     #pragma multi_compile_local_fragment _ _FILM_GRAIN
     #pragma multi_compile_local_fragment _ _DITHERING
+    #pragma multi_compile_local_fragment _ _GAMMA_20 _LINEAR_TO_SRGB_CONVERSION
+    #pragma multi_compile_local_fragment _ _USE_FAST_SRGB_LINEAR_CONVERSION
     #pragma multi_compile_local_fragment _ _ENABLE_ALPHA_OUTPUT
     #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 
@@ -79,6 +81,14 @@ Shader "OnTileUberPost"
     {
         half3 color = inputColor.rgb;
 
+        // Gamma space... Just do the rest of Uber in linear and convert back to sRGB at the end
+        #if UNITY_COLORSPACE_GAMMA
+        {
+            color = GetSRGBToLinear(color);
+            inputColor = GetSRGBToLinear(inputColor);
+        }
+        #endif
+        
         // Remapped UV for screen-space effects in Quad View
         float2 uvRemapped = uv;
 #ifdef USING_STEREO_MATRICES
@@ -112,12 +122,26 @@ Shader "OnTileUberPost"
         }
         #endif
 
+        // When Unity is configured to use gamma color encoding, we ignore the request to convert to gamma 2.0 and instead fall back to sRGB encoding
+        #if _GAMMA_20 && !UNITY_COLORSPACE_GAMMA
+        {
+            color = LinearToGamma20(color);
+            inputColor = LinearToGamma20(inputColor);
+        }
+        // Back to sRGB
+        #elif UNITY_COLORSPACE_GAMMA || _LINEAR_TO_SRGB_CONVERSION
+        {
+            color = GetLinearToSRGB(color);
+            inputColor = LinearToSRGB(inputColor);
+        }
+        #endif
+
         #if _DITHERING
         {
             color = ApplyDithering(color, uvRemapped, TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset, PaperWhite, OneOverPaperWhite);
         }
         #endif
-       
+
 #if _ENABLE_ALPHA_OUTPUT
         // Saturate is necessary to avoid issues when additive blending pushes the alpha over 1.
         return half4(color, saturate(inputColor.a));

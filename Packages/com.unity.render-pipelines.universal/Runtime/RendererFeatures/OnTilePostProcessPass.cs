@@ -116,6 +116,8 @@ public class OnTilePostProcessPass : ScriptableRenderPass
         SetupGrain(m_OnTileUberMaterial, cameraData, filmgrain, m_PostProcessData);
         SetupDithering(m_OnTileUberMaterial, cameraData, m_PostProcessData);
 
+        CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.LinearToSRGBConversion, cameraData.requireSrgbConversion);
+        CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.UseFastSRGBLinearConversion, postProcessingData.useFastSRGBLinearConversion);
         CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, cameraData.isAlphaOutputEnabled);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
