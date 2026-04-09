@@ -272,16 +272,14 @@ namespace UnityEngine.Rendering
         void InitializeBaseTypesArray(VolumeProfile globalDefaultVolumeProfile = null)
         {
             using var profilerScope = k_ProfilerMarkerInitializeBaseTypesArray.Auto();
-#if UNITY_EDITOR
-            LoadBaseTypesByReflection(GraphicsSettings.currentRenderPipelineAssetType);
-#else
+#if !UNITY_EDITOR
             if (globalDefaultVolumeProfile == null)
             {
                 var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<IDefaultVolumeProfileAsset>();
                 globalDefaultVolumeProfile = defaultVolumeProfileSettings?.defaultVolumeProfile;
             }
-            LoadBaseTypes(globalDefaultVolumeProfile);
 #endif
+            LoadBaseTypes(GraphicsSettings.currentRenderPipelineAssetType, globalDefaultVolumeProfile);
         }
 
         //This is called by test where the basetypes are tuned for the purpose of the test.
@@ -323,7 +321,7 @@ namespace UnityEngine.Rendering
         /// <param name="profile">The VolumeProfile to use as the global default profile.</param>
         public void SetGlobalDefaultProfile(VolumeProfile profile)
         {
-            LoadBaseTypes(profile);
+            LoadBaseTypes(GraphicsSettings.currentRenderPipelineAssetType, profile);
             globalDefaultProfile = profile;
             EvaluateVolumeDefaultState();
         }
@@ -435,8 +433,9 @@ namespace UnityEngine.Rendering
         /// LoadBaseTypes is responsible for loading the list of VolumeComponent types that will be used to build the default state of the VolumeStack. It uses the provided global default profile to determine which component types are relevant for the current render pipeline.
         /// This will be called only once at runtime on app boot
         /// </summary>
+        /// <param name="rpType">The Pipeline Type used to check if each VolumeComponent is supported.</param>
         /// <param name="globalDefaultVolumeProfile">The global default volume profile to use to build the base component type array.</param>
-        internal void LoadBaseTypes(VolumeProfile globalDefaultVolumeProfile)
+        internal void LoadBaseTypesByDefaultVolume(Type rpType, VolumeProfile globalDefaultVolumeProfile)
         {
             if (globalDefaultVolumeProfile == null)
             {
@@ -446,13 +445,13 @@ namespace UnityEngine.Rendering
 
             using (ListPool<Type>.Get(out var list))
             {
-                var pipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
                 foreach (var comp in globalDefaultVolumeProfile.components)
                 {
-                    if (comp == null) continue;
+                    if (comp == null)
+                        continue;
 
                     var componentType = comp.GetType();
-                    if (!SupportedOnRenderPipelineAttribute.IsTypeSupportedOnRenderPipeline(componentType, pipelineAssetType))
+                    if (!SupportedOnRenderPipelineAttribute.IsTypeSupportedOnRenderPipeline(componentType, rpType))
                         continue;
 
                     list.Add(componentType);
@@ -481,15 +480,30 @@ namespace UnityEngine.Rendering
                     if (!SupportedOnRenderPipelineAttribute.IsTypeSupportedOnRenderPipeline(t, pipelineAssetType))
                         continue;
 
+                    if (t.GetCustomAttribute<ObsoleteAttribute>() != null)
+                        continue;
+
                     list.Add(t);
                 }
-
                 m_BaseComponentTypeArray = list.ToArray();
             }
 
             return m_BaseComponentTypeArray;
         }
 #endif
+        /// <summary>
+        /// Helper to choose a type loading depending if we are in Editor and Standalone.
+        /// </summary>
+        /// <param name="pipelineAssetType">The Pipeline Type used to check if each VolumeComponent is supported.</param>
+        /// <param name="globalDefaultVolumeProfile">The global default volume profile to use to build the base component type array.</param>
+        void LoadBaseTypes(Type pipelineAssetType, VolumeProfile globalDefaultVolumeProfile = null)
+        {
+#if UNITY_EDITOR
+            LoadBaseTypesByReflection(pipelineAssetType);
+#else
+            LoadBaseTypesByDefaultVolume(pipelineAssetType, globalDefaultVolumeProfile);
+#endif
+        }
 
         internal void InitializeVolumeComponents()
         {
