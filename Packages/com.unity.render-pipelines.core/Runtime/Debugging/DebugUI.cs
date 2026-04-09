@@ -308,22 +308,19 @@ namespace UnityEngine.Rendering
                 m_Context = context;
                 m_VisualElement = Create();
 
-                //Debug.Log($"ToVisualElement for {queryPath}");
-
                 if (m_VisualElement == null)
                 {
                     Debug.LogWarning($"Unable to create a Visual Element for type {GetType()}");
                     return null;
                 }
                 m_VisualElement.AddToClassList("unity-inspector-element");
-
+                m_VisualElement.name = displayName;
 
 #if UNITY_EDITOR
                 // Support for legacy state handling
                 if (this is ISupportsLegacyStateHandling legacyStateWidget)
                 {
                     m_RequiresLegacyStateHandling = legacyStateWidget.RequiresLegacyStateHandling();
-                    //Debug.Log($"LegacyState: {m_RequiresLegacyStateHandling} ({queryPath})");
                 }
 #endif
 
