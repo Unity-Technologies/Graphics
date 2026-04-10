@@ -723,6 +723,12 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4109_DRS-FSR2-AfterPost.unity
     guid: cbd1f7bf59ae04b46afbfcb1188b43b4
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4110_DRS-FSR2-With-CustomPass.unity
+    guid: 9390792e3b2294045b987924157dbdd9
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4111_DRS-DLSS-With-CustomPass.unity
+    guid: ad8e39cfbb6358e43a74f0b2cb411342
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5001_Fog_FogFallback.unity
     guid: d04c39af67e5e18449a44f6a7778862f
   - enabled: 1
