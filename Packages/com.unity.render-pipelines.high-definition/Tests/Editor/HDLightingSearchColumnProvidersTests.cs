@@ -418,7 +418,7 @@ namespace UnityEditor.Rendering.HighDefinition.Tests
 
             var getterResult = column.getter(args);
             Assert.IsNotNull(getterResult, "Getter should return a value");
-            Assert.IsTrue(getterResult.GetType().Name.Contains("ShadowResolutionData"), "Getter should return ShadowResolutionData");
+            Assert.IsTrue(getterResult.GetType().Name.Contains("ShadowResolutionOption"), "Getter should return ShadowResolutionOption");
         }
 
         #endregion
@@ -587,8 +587,11 @@ namespace UnityEditor.Rendering.HighDefinition.Tests
                 }, $"Column initialization for {columnType} should not throw");
 
                 Assert.IsNotNull(column.getter, $"Column {columnType} should have a getter");
-                Assert.IsNotNull(column.cellCreator, $"Column {columnType} should have a cell creator");
-                Assert.IsNotNull(column.binder, $"Column {columnType} should have a binder");
+                if (column.drawer == null)
+                {
+                    Assert.IsNotNull(column.cellCreator, $"Column {columnType} should have a cell creator");
+                    Assert.IsNotNull(column.binder, $"Column {columnType} should have a binder");
+                }
                 Assert.IsNotNull(column.setter, $"Column {columnType} should have a setter");
             }
         }

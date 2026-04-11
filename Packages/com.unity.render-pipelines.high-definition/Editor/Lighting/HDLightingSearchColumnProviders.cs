@@ -255,23 +255,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLightingSearchDataAccessors.SetReflectionProbeResolution(go, data);
             };
 
-            column.cellCreator = _ => CreateImguiContainer();
-            column.binder = (args, ve) =>
+            column.drawer = args =>
             {
                 var go = args.item.data as GameObject ?? args.item.ToObject<GameObject>();
                 if (go == null || !go.TryGetComponent<HDProbe>(out var hdProbe))
                 {
-                    ve.visible = false;
-                    return;
+                    return args.value;
                 }
 
                 var reflectionProbeResolutionData = (HDLightingSearchDataAccessors.ReflectionProbeResolutionData)args.value;
-
-                var imguiContainer = ve.Q<IMGUIContainer>();
                 switch (hdProbe.type)
                 {
                     case ProbeSettings.ProbeType.ReflectionProbe:
-                        imguiContainer.onGUIHandler = () =>
                         {
                             var rect = EditorGUILayout.GetControlRect(false, k_ImguiContainerHeight);
                             var leftRect = new Rect(rect.x, rect.y, rect.width * k_RectLeftWidthRatio, rect.height);
@@ -279,9 +274,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                             GUILayout.BeginHorizontal("box", GUILayout.ExpandWidth(true));
 
-                            EditorGUI.BeginChangeCheck();
-                            var (level, useOverride) =  SerializedScalableSettingValueUI.LevelFieldGUI(leftRect, GUIContent.none, ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With3Levels), reflectionProbeResolutionData.level, reflectionProbeResolutionData.useOverride);
-
+                            var (level, useOverride) = SerializedScalableSettingValueUI.LevelFieldGUI(leftRect, GUIContent.none, ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With3Levels), reflectionProbeResolutionData.level, reflectionProbeResolutionData.useOverride);
                             Enum overrideLevel;
                             if (reflectionProbeResolutionData.useOverride)
                             {
@@ -294,54 +287,46 @@ namespace UnityEditor.Rendering.HighDefinition
                                     overrideLevel = EditorGUI.EnumFlagsField(rightRect, reflectionProbeResolutionData.overrideLevel);
                                 }
                             }
-                            if(EditorGUI.EndChangeCheck())
-                            {
-                                reflectionProbeResolutionData.level = level;
-                                reflectionProbeResolutionData.useOverride = useOverride;
-                                reflectionProbeResolutionData.overrideLevel = (CubeReflectionResolution)overrideLevel;
-                                column.setter?.Invoke(new SearchColumnEventArgs(args.item, args.context, column) { value = reflectionProbeResolutionData });
-                            }
+                            
+                            reflectionProbeResolutionData.level = level;
+                            reflectionProbeResolutionData.useOverride = useOverride;
+                            reflectionProbeResolutionData.overrideLevel = (CubeReflectionResolution)overrideLevel;
 
                             GUILayout.EndHorizontal();
                         };
                         break;
                     case ProbeSettings.ProbeType.PlanarProbe:
                     default:
-                        imguiContainer.onGUIHandler = () =>
+                    {
+                        var rect = EditorGUILayout.GetControlRect(false, k_ImguiContainerHeight);
+                        var leftRect = new Rect(rect.x, rect.y, rect.width * k_RectLeftWidthRatio, rect.height);
+                        var rightRect = new Rect(rect.x + rect.width * k_RectLeftWidthRatio, rect.y, rect.width * k_RectRightWidthRatio, rect.height);
+
+                        GUILayout.BeginHorizontal("box", GUILayout.ExpandWidth(true));
+
+                        var (level, useOverride) = SerializedScalableSettingValueUI.LevelFieldGUI(leftRect, GUIContent.none, ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With3Levels), reflectionProbeResolutionData.level, reflectionProbeResolutionData.useOverride);
+                        Enum overrideLevel;
+                        if (reflectionProbeResolutionData.useOverride)
                         {
-                            var rect = EditorGUILayout.GetControlRect(false, k_ImguiContainerHeight);
-                            var leftRect = new Rect(rect.x, rect.y, rect.width * k_RectLeftWidthRatio, rect.height);
-                            var rightRect = new Rect(rect.x + rect.width * k_RectLeftWidthRatio, rect.y, rect.width * k_RectRightWidthRatio, rect.height);
-
-                            GUILayout.BeginHorizontal("box", GUILayout.ExpandWidth(true));
-
-                            EditorGUI.BeginChangeCheck();
-                            var (level, useOverride) = SerializedScalableSettingValueUI.LevelFieldGUI(leftRect, GUIContent.none, ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With3Levels), reflectionProbeResolutionData.level, reflectionProbeResolutionData.useOverride);
-
-                            Enum overrideLevel;
-                            if (reflectionProbeResolutionData.useOverride)
+                            overrideLevel = EditorGUI.EnumPopup(rightRect, reflectionProbeResolutionData.overrideLevel);
+                        }
+                        else
+                        {
+                            using (new EditorGUI.DisabledScope(true))
                             {
-                                overrideLevel = EditorGUI.EnumPopup(rightRect, reflectionProbeResolutionData.overrideLevel);
+                                overrideLevel = EditorGUI.EnumFlagsField(rightRect, reflectionProbeResolutionData.overrideLevel);
                             }
-                            else
-                            {
-                                using (new EditorGUI.DisabledScope(true))
-                                {
-                                    overrideLevel = EditorGUI.EnumFlagsField(rightRect, reflectionProbeResolutionData.overrideLevel);
-                                }
-                            }
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                reflectionProbeResolutionData.level = level;
-                                reflectionProbeResolutionData.useOverride = useOverride;
-                                reflectionProbeResolutionData.overrideLevel = (CubeReflectionResolution)overrideLevel;
-                                column.setter?.Invoke(new SearchColumnEventArgs(args.item, args.context, column) { value = reflectionProbeResolutionData });
-                            }
+                        }
+                        
+                        reflectionProbeResolutionData.level = level;
+                        reflectionProbeResolutionData.useOverride = useOverride;
+                        reflectionProbeResolutionData.overrideLevel = (CubeReflectionResolution)overrideLevel;
 
-                            GUILayout.EndHorizontal();
-                        };
+                        GUILayout.EndHorizontal();
                         break;
+                    }
                 }
+                return reflectionProbeResolutionData;
             };
         }
 
@@ -369,55 +354,42 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLightingSearchDataAccessors.SetContactShadowsData(go, data);
             };
 
-            column.cellCreator = _ => CreateImguiContainer();
-            column.binder = (args, ve) =>
+            column.drawer = args =>
             {
                 var go = args.item.data as GameObject ?? args.item.ToObject<GameObject>();
                 if (go == null || !go.TryGetComponent<HDAdditionalLightData>(out _))
                 {
-                    ve.visible = false;
-                    return;
+                    return null;
                 }
 
-                ve.visible = true;
                 var contactShadowsData = (HDLightingSearchDataAccessors.ContactShadowsData)args.value;
-                var imguiContainer = ve.Q<IMGUIContainer>();
-                imguiContainer.onGUIHandler = () =>
+                var rect = EditorGUILayout.GetControlRect(false, k_ImguiContainerHeight);
+                var leftRect = new Rect(rect.x, rect.y, rect.width - k_ToggleWidth - 4f, rect.height);
+                var rightRect = new Rect(rect.xMax - k_ToggleWidth, rect.y, k_ToggleWidth, rect.height);
+                var (level, useOverride) = SerializedScalableSettingValueUI.LevelFieldGUI(
+                    leftRect,
+                    GUIContent.none,
+                    ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With3Levels),
+                    contactShadowsData.level,
+                    contactShadowsData.useOverride);
+
+                contactShadowsData.level = level;
+                contactShadowsData.useOverride = useOverride;
+
+                if (contactShadowsData.useOverride)
                 {
-                    var rect = EditorGUILayout.GetControlRect(false, k_ImguiContainerHeight);
-                    var leftRect = new Rect(rect.x, rect.y, rect.width - k_ToggleWidth - 4f, rect.height);
-                    var rightRect = new Rect(rect.xMax - k_ToggleWidth, rect.y, k_ToggleWidth, rect.height);
-
-                    EditorGUI.BeginChangeCheck();
-                    var (level, useOverride) = SerializedScalableSettingValueUI.LevelFieldGUI(
-                        leftRect,
-                        GUIContent.none,
-                        ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With3Levels),
-                        contactShadowsData.level,
-                        contactShadowsData.useOverride);
-
-                    contactShadowsData.level = level;
-                    contactShadowsData.useOverride = useOverride;
-
-                    if (contactShadowsData.useOverride)
+                    contactShadowsData.overrideValue = EditorGUI.Toggle(rightRect, contactShadowsData.overrideValue);
+                }
+                else
+                {
+                    var hdrp = HDRenderPipeline.currentAsset;
+                    var defaultValue = HDAdditionalLightData.ScalableSettings.UseContactShadow(hdrp);
+                    using (new EditorGUI.DisabledScope(true))
                     {
-                        contactShadowsData.overrideValue = EditorGUI.Toggle(rightRect, contactShadowsData.overrideValue);
+                        contactShadowsData.overrideValue = EditorGUI.Toggle(rightRect, defaultValue[contactShadowsData.level]);
                     }
-                    else
-                    {
-                        var hdrp = HDRenderPipeline.currentAsset;
-                        var defaultValue = HDAdditionalLightData.ScalableSettings.UseContactShadow(hdrp);
-                        using (new EditorGUI.DisabledScope(true))
-                        {
-                            contactShadowsData.overrideValue = EditorGUI.Toggle(rightRect, defaultValue[contactShadowsData.level]);
-                        }
-                    }
-
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        column.setter?.Invoke(new SearchColumnEventArgs(args.item, args.context, column) { value = contactShadowsData });
-                    }
-                };
+                }
+                return contactShadowsData;
             };
         }
 
@@ -435,58 +407,28 @@ namespace UnityEditor.Rendering.HighDefinition
 
             column.setter = args =>
             {
-                if (args.value is not HDLightingSearchDataAccessors.ShadowResolutionData data)
+                if (args.value is not ShadowResolutionOption option)
                     return;
 
                 var go = args.item.data as GameObject ?? args.item.ToObject<GameObject>();
                 if (go == null)
                     return;
 
-                HDLightingSearchDataAccessors.SetShadowResolutionData(go, data);
+                HDLightingSearchDataAccessors.SetShadowResolutionData(go, option);
             };
 
-            column.cellCreator = _ => CreateImguiContainer();
-            column.binder = (args, ve) =>
+            column.drawer = args =>
             {
                 var go = args.item.data as GameObject ?? args.item.ToObject<GameObject>();
                 if (go == null || !go.TryGetComponent<HDAdditionalLightData>(out _))
                 {
-                    ve.visible = false;
-                    return;
+                    return null;
                 }
 
-                ve.visible = true;
-                var shadowResolutionData = (HDLightingSearchDataAccessors.ShadowResolutionData)args.value;
-                var imguiContainer = ve.Q<IMGUIContainer>();
-                imguiContainer.onGUIHandler = () =>
-                {
-                    var rect = EditorGUILayout.GetControlRect(false, 20);
-                    var currentOption = shadowResolutionData.useOverride
-                        ? ShadowResolutionOption.Custom
-                        : shadowResolutionData.level switch
-                        {
-                            <= 0 => ShadowResolutionOption.Low,
-                            1 => ShadowResolutionOption.Medium,
-                            _ => ShadowResolutionOption.High
-                        };
-
-                    EditorGUI.BeginChangeCheck();
-                    var newOption = (ShadowResolutionOption)EditorGUI.EnumPopup(rect, currentOption);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        if (newOption == ShadowResolutionOption.Custom)
-                        {
-                            shadowResolutionData.useOverride = true;
-                        }
-                        else
-                        {
-                            shadowResolutionData.useOverride = false;
-                            shadowResolutionData.level = (int)newOption;
-                        }
-
-                        column.setter?.Invoke(new SearchColumnEventArgs(args.item, args.context, column) { value = shadowResolutionData });
-                    }
-                };
+                var currentOption = (ShadowResolutionOption)args.value;
+                var rect = EditorGUILayout.GetControlRect(false, 20);
+                var newOption = (ShadowResolutionOption)EditorGUI.EnumPopup(rect, currentOption);
+                return newOption;
             };
         }
 
@@ -580,13 +522,6 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         }
 
-        static VisualElement CreateImguiContainer()
-        {
-            var visualElement = new VisualElement() { style = { height = k_ImguiContainerHeight } };
-            visualElement.Add(new IMGUIContainer() { style = { height = k_ImguiContainerHeight } });
-            return visualElement;
-        }
-
         static class HDLightingSearchDataAccessors
         {
             internal struct ReflectionProbeResolutionData
@@ -601,12 +536,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 public int level;
                 public bool useOverride;
                 public bool overrideValue;
-            }
-
-            internal struct ShadowResolutionData
-            {
-                public int level;
-                public bool useOverride;
             }
 
             internal static float GetLightIntensity(GameObject go)
@@ -636,6 +565,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!LightUnitUtils.IsLightUnitSupported(lightType, lightUnit))
                     return;
 
+                Undo.RecordObject(light, "Change light intensity");
                 light.intensity = LightUnitUtils.ConvertIntensity(light, intensity, lightUnit, nativeUnit);
             }
 
@@ -655,6 +585,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!LightUnitUtils.IsLightUnitSupported(light.type, unit))
                     return;
 
+                Undo.RecordObject(light, "Change light intensity unit");
                 light.lightUnit = unit;
 
                 // Mark the light component as dirty so Unity's change detection system
@@ -700,15 +631,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 return contactShadowsData;
             }
 
-            internal static ShadowResolutionData GetShadowResolutionData(GameObject go)
+            internal static ShadowResolutionOption GetShadowResolutionData(GameObject go)
             {
-                var shadowResolutionData = new ShadowResolutionData();
                 if (!go.TryGetComponent<HDAdditionalLightData>(out var lightData))
-                    return shadowResolutionData;
+                    return ShadowResolutionOption.Custom;
 
-                shadowResolutionData.level = lightData.shadowResolution.level;
-                shadowResolutionData.useOverride = lightData.shadowResolution.useOverride;
-                return shadowResolutionData;
+                var currentOption = lightData.shadowResolution.useOverride
+                    ? ShadowResolutionOption.Custom
+                    : lightData.shadowResolution.level switch
+                    {
+                        <= 0 => ShadowResolutionOption.Low,
+                        1 => ShadowResolutionOption.Medium,
+                        _ => ShadowResolutionOption.High
+                    };
+                return currentOption;
             }
 
             internal static void SetReflectionProbeResolution(GameObject go, ReflectionProbeResolutionData reflectionProbeResolutionData)
@@ -716,6 +652,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!go.TryGetComponent<HDProbe>(out var hdProbe))
                     return;
 
+                Undo.RecordObject(hdProbe, "Change reflection probe resolution");
                 switch (hdProbe.type)
                 {
                     case ProbeSettings.ProbeType.ReflectionProbe:
@@ -737,18 +674,27 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!go.TryGetComponent<HDAdditionalLightData>(out var lightData))
                     return;
 
+                Undo.RecordObject(lightData, "Change contact shadow data");
                 lightData.useContactShadow.level = contactShadowsData.level;
                 lightData.useContactShadow.useOverride = contactShadowsData.useOverride;
                 lightData.useContactShadow.@override = contactShadowsData.overrideValue;
             }
 
-            internal static void SetShadowResolutionData(GameObject go, ShadowResolutionData shadowResolutionData)
+            internal static void SetShadowResolutionData(GameObject go, ShadowResolutionOption newOption)
             {
                 if (!go.TryGetComponent<HDAdditionalLightData>(out var lightData))
                     return;
 
-                lightData.shadowResolution.level = shadowResolutionData.level;
-                lightData.shadowResolution.useOverride = shadowResolutionData.useOverride;
+                Undo.RecordObject(lightData, "Change shadow resolution");
+                if (newOption == ShadowResolutionOption.Custom)
+                {
+                    lightData.shadowResolution.useOverride = true;
+                }
+                else
+                {
+                    lightData.shadowResolution.useOverride = false;
+                    lightData.shadowResolution.level = (int)newOption;
+                }
                 lightData.RefreshCachedShadow();
             }
 
@@ -765,6 +711,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!go.TryGetComponent<MeshRenderer>(out var meshRenderer))
                     return;
 
+                Undo.RecordObject(meshRenderer, "Change ray tracing mode");
                 meshRenderer.rayTracingMode = value;
             }
 
@@ -785,6 +732,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     return;
                 if (light.type == LightType.Tube || light.type == LightType.Disc)
                     return;
+
+                Undo.RecordObject(light, "Change light mode");
                 light.lightmapBakeType = value;
                 EditorUtility.SetDirty(light);
             }
@@ -809,6 +758,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (IsLightShapeApplicable(value))
                 {
+                    Undo.RecordObject(light, "Change light shape");
                     light.type = value;
 
                     if (!LightUnitUtils.IsLightUnitSupported(value, light.lightUnit))
