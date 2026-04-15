@@ -24,7 +24,7 @@ The assets available in the **Custom Lighting** sample allow you to [get started
 
 Before you start to customize lighting models with Shader Graph, be aware of the following limitations:
 
-### Shader Graph doesn't support deferred rendering
+### Shader Graph doesn't support custom lighting with deferred rendering
 
 Customizable lighting is only intended to be used when you set the render type to Forward or Forward+ in the Render Asset.
 

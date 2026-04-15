@@ -320,27 +320,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var ret = m_EmptyMgr.HasSeverity();
             Assert.IsTrue(ret);
         }
-
-        [Test]
-        public void ClearNodesFromOtherProvider()
-        {
-            m_ComplexMgr.ClearNodeFromOtherProvider(p0, new List<AbstractMaterialNode> { node1 });
-
-            // Verify node1 is still in provider0
-            Assert.IsTrue(m_ComplexMgr.Messages.ContainsKey(p0));
-            Assert.IsTrue(m_ComplexMgr.Messages[p0].ContainsKey(node1.objectId));
-            Assert.AreEqual(1, m_ComplexMgr.Messages[p0][node1.objectId].Count);
-            Assert.AreEqual(e2, m_ComplexMgr.Messages[p0][node1.objectId][0]);
-
-            // Verify node1 is cleared from provider1
-            Assert.IsTrue(m_ComplexMgr.Messages.ContainsKey(p1));
-            Assert.IsTrue(m_ComplexMgr.Messages[p1].ContainsKey(node1.objectId));
-            Assert.AreEqual(0, m_ComplexMgr.Messages[p1][node1.objectId].Count);
-
-            // Verify other nodes in provider1 are unchanged
-            Assert.AreEqual(1, m_ComplexMgr.Messages[p1][node0.objectId].Count);
-            Assert.AreEqual(1, m_ComplexMgr.Messages[p1][node2.objectId].Count);
-        }
     }
 }
 

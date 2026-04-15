@@ -123,25 +123,6 @@ namespace UnityEditor.Graphing.Util
                 }
             }
         }
-
-        public void ClearNodeFromOtherProvider(object messageProvider, IEnumerable<AbstractMaterialNode> nodes)
-        {
-            foreach (var key in m_Messages.Keys)
-            {
-                if (key != messageProvider)
-                {
-                    foreach (var node in nodes)
-                    {
-                        if (m_Messages[key].TryGetValue(node.objectId, out var messages))
-                        {
-                            nodeMessagesChanged |= messages.Count > 0;
-                            messages.Clear();
-                        }
-                    }
-                }
-            }
-        }
-
         public void ClearAll()
         {
             m_Messages.Clear();

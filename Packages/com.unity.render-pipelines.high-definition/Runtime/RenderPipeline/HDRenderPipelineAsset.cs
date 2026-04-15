@@ -24,6 +24,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
     public partial class HDRenderPipelineAsset : RenderPipelineAsset<HDRenderPipeline>, IVirtualTexturingEnabledRenderPipeline, IProbeVolumeEnabledRenderPipeline, IGPUResidentRenderPipeline, IRenderGraphEnabledRenderPipeline, ISTPEnabledRenderPipeline
     {
+        //This is not exposed to the UI. It can be enabled via Debug inspector if it is really needed.
+        [SerializeField] internal bool m_ShouldUseConservativeEnclosingSphere;
         /// <inheritdoc/>
         public override string renderPipelineShaderTag => HDRenderPipeline.k_ShaderTagName;
 
