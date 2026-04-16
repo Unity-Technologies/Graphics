@@ -322,6 +322,12 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         /// <summary>
+        /// Returns the current active XR layout, or null if none is active.
+        /// Used by render passes to access cross-camera XR state like Quad View parameters.
+        /// </summary>
+        public static XRLayout currentLayout => s_Layout.hasLayout ? s_Layout.top : null;
+
+        /// <summary>
         /// Used by the render pipeline to complete the XR layout at the end of the frame.
         /// </summary>
         public static void EndLayout()
@@ -430,15 +436,77 @@ namespace UnityEngine.Experimental.Rendering
                 xrPass.AddView(BuildView(renderPass, renderParam));
             }
 
-            for (int renderPassIndex = 0; renderPassIndex < s_Display.GetRenderPassCount(); ++renderPassIndex)
+            // Helper: extract frustum extents from projection matrix.
+            // Returns Vector4(width, height, left, top) at unit depth.
+            static Vector4 ExtractFrustumBoundsFromProjection(Matrix4x4 proj)
+            {
+                float width = 2.0f / proj[0, 0];
+                float height = 2.0f / proj[1, 1];
+                float left = (proj[0, 2] - 1.0f) / proj[0, 0];
+                float top = (1 - proj[1, 2]) / proj[1, 1];
+
+                return new Vector4(width, height, left, top);
+            }
+
+            Vector4 ExtractViewBounds(XRDisplaySubsystem.XRRenderPass renderPass, int renderParamIndex)
+            {
+                renderPass.GetRenderParameter(camera, renderParamIndex, out var renderParam);
+                var proj = renderParam.projection;
+                return ExtractFrustumBoundsFromProjection(proj);
+            }
+
+            int renderPassCount = s_Display.GetRenderPassCount();
+
+            // Pre-calculate view bounds for quad view (2 passes × 2 views) using fixed-size stack variables
+            // This avoids List allocations that would cause GC pressure every frame
+            Vector4 pass0View0Bounds = default, pass0View1Bounds = default;
+            Vector4 pass1View0Bounds = default, pass1View1Bounds = default;
+            bool isQuadViewSetup = renderPassCount == 2;
+            if (isQuadViewSetup)
+            {
+                s_Display.GetRenderPass(0, out var pass0);
+                s_Display.GetRenderPass(1, out var pass1);
+                if (pass0.GetRenderParameterCount() >= 2 && pass1.GetRenderParameterCount() >= 2)
+                {
+                    pass0View0Bounds = ExtractViewBounds(pass0, 0);
+                    pass0View1Bounds = ExtractViewBounds(pass0, 1);
+                    pass1View0Bounds = ExtractViewBounds(pass1, 0);
+                    pass1View1Bounds = ExtractViewBounds(pass1, 1);
+                }
+                else
+                {
+                    isQuadViewSetup = false;
+                }
+            }
+
+            for (int renderPassIndex = 0; renderPassIndex < renderPassCount; ++renderPassIndex)
             {
                 s_Display.GetRenderPass(renderPassIndex, out var renderPass);
                 s_Display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
 
                 int renderParameterCount = renderPass.GetRenderParameterCount();
+                bool isLastPass = renderPassIndex == renderPassCount - 1;
+                // This parameter makes sure we are in 2 pass quad view's second pass, which is the only case we need to apply special UV scale and offset.
+                bool isQuadViewLastPass = isLastPass && isQuadViewSetup;
+                Vector4 uvScales = Vector4.one;
+                Vector4 uvOffsets = Vector4.zero;
+                if (isQuadViewLastPass)
+                {
+                    // Calculate UV scales and offsets from pre-computed view bounds
+                    uvScales.x = pass1View0Bounds.x / pass0View0Bounds.x;
+                    uvScales.y = pass1View0Bounds.y / pass0View0Bounds.y;
+                    uvScales.z = pass1View1Bounds.x / pass0View1Bounds.x;
+                    uvScales.w = pass1View1Bounds.y / pass0View1Bounds.y;
+
+                    uvOffsets.x = (pass1View0Bounds.z - pass0View0Bounds.z) / pass0View0Bounds.x;
+                    uvOffsets.y = -(pass1View0Bounds.w - pass0View0Bounds.w) / pass0View0Bounds.y;
+                    uvOffsets.z = (pass1View1Bounds.z - pass0View1Bounds.z) / pass0View1Bounds.x;
+                    uvOffsets.w = -(pass1View1Bounds.w - pass0View1Bounds.w) / pass0View1Bounds.y;
+                }
+
                 if (CanUseSinglePass(camera, renderPass))
                 {
-                    var createInfo = BuildPass(renderPass, cullingParams, layout, renderPassIndex == s_Display.GetRenderPassCount() - 1);
+                    var createInfo = BuildPass(renderPass, cullingParams, layout, renderPassIndex == s_Display.GetRenderPassCount() - 1, uvScales, uvOffsets);
                     var xrPass = s_PassAllocator(createInfo);
 
                     for (int renderParamIndex = 0; renderParamIndex < renderParameterCount; ++renderParamIndex)
@@ -452,7 +520,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     for (int renderParamIndex = 0; renderParamIndex < renderParameterCount; ++renderParamIndex)
                     {
-                        var createInfo = BuildPass(renderPass, cullingParams, layout, renderPassIndex == s_Display.GetRenderPassCount() - 1);
+                        var createInfo = BuildPass(renderPass, cullingParams, layout, renderPassIndex == s_Display.GetRenderPassCount() - 1, uvScales, uvOffsets);
                         var xrPass = s_PassAllocator(createInfo);
                         AddViewToPass(xrPass, renderPass, renderParamIndex);
                         layout.AddPass(camera, xrPass);
@@ -515,7 +583,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             // Convert viewport from normalized to screen space
             Rect viewport = renderParameter.viewport;
-            
             viewport.x      *= renderPass.renderTargetScaledWidth;
             viewport.width  *= renderPass.renderTargetScaledWidth;
             viewport.y      *= renderPass.renderTargetScaledHeight;
@@ -542,8 +609,8 @@ namespace UnityEngine.Experimental.Rendering
             return rtDesc;
         }
 
-        static XRPassCreateInfo BuildPass(XRDisplaySubsystem.XRRenderPass xrRenderPass, ScriptableCullingParameters cullingParameters, XRLayout layout, bool isLastPass)
-        {    
+        static XRPassCreateInfo BuildPass(XRDisplaySubsystem.XRRenderPass xrRenderPass, ScriptableCullingParameters cullingParameters, XRLayout layout, bool isLastPass, Vector4 uvScales, Vector4 uvOffsets)
+        {
             XRPassCreateInfo passInfo = new XRPassCreateInfo
             {
                 renderTarget            = xrRenderPass.renderTarget,
@@ -562,7 +629,9 @@ namespace UnityEngine.Experimental.Rendering
                 copyDepth               = xrRenderPass.shouldFillOutDepth,
                 spaceWarpRightHandedNDC = xrRenderPass.spaceWarpRightHandedNDC,
                 xrSdkRenderPass         = xrRenderPass,
-                isLastCameraPass        = isLastPass
+                isLastCameraPass        = isLastPass,
+                uvScales                 = uvScales,
+                uvOffsets                = uvOffsets
             };
 
             return passInfo;

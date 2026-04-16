@@ -19,7 +19,7 @@ public class SamplesWindow : EditorWindow
 
     static void SceneOpened(Scene scene, OpenSceneMode openSceneMode)
     {
-        var currentShowcase = (SamplesShowcase)FindFirstObjectByType(typeof(SamplesShowcase));
+        var currentShowcase = (SamplesShowcase)FindAnyObjectByType(typeof(SamplesShowcase));
         if(currentShowcase != null)
             Selection.activeGameObject = currentShowcase.gameObject;
     }

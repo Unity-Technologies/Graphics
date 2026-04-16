@@ -103,6 +103,10 @@ namespace UnityEngine.Rendering.Universal
             // Early out for preview camera
             if (cameraData.cameraType == CameraType.Preview)
                 isLitView = false;
+
+            DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
+            if (debugHandler != null)
+                isLitView = debugHandler.IsLightingActive;
 #endif
 
             // Preset global light textures for first batch
@@ -110,7 +114,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 using (var builder = graph.AddRasterRenderPass<SetGlobalPassData>(k_SetLightBlendTexture, out var passData, m_SetLightBlendTextureProfilingSampler))
                 {
-                    if (layerBatch.lightStats.useLights)
+                    if (layerBatch.lightStats.useLights && isLitView)
                     {
                         passData.lightTextures = universal2DResourceData.lightTextures[batchIndex];
                         for (var i = 0; i < passData.lightTextures.Length; i++)
@@ -164,7 +168,7 @@ namespace UnityEngine.Rendering.Universal
                     builder.UseRendererList(passData.rendererList);
                 }
 
-                if (passData.layerUseLights)
+                if (passData.layerUseLights && isLitView)
                 {
                     passData.lightTextures = universal2DResourceData.lightTextures[batchIndex];
                     for (var i = 0; i < passData.lightTextures.Length; i++)

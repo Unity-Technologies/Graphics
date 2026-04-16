@@ -26,6 +26,8 @@ namespace UnityEngine.Experimental.Rendering
         internal bool hasMotionVectorPass;
         internal bool spaceWarpRightHandedNDC;
         internal bool isLastCameraPass;
+        internal Vector4 uvScales;
+        internal Vector4 uvOffsets;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
         internal UnityEngine.XR.XRDisplaySubsystem.XRRenderPass xrSdkRenderPass;
@@ -54,6 +56,8 @@ namespace UnityEngine.Experimental.Rendering
             m_OcclusionMesh = new XROcclusionMesh(this);
             m_VisibleMesh = new XRVisibleMesh(this);
             isLastCameraPass = true;    // default to last camera pass when creating from default constructor
+            uvScales = Vector4.one;
+            uvOffsets = Vector4.zero;
         }
 
         /// <summary>
@@ -136,6 +140,32 @@ namespace UnityEngine.Experimental.Rendering
         /// If true, is the last pass of a xr camera
         /// </summary>
         public bool isLastCameraPass { get; private set; }
+
+        /// <summary>
+        /// The scale factors used to map the current view's UV coordinates to the
+        /// peripheral (outset) view's UV space during post-processing.
+        /// xy = left eye (scale x, scale y), zw = right eye (scale x, scale y).
+        /// </summary>
+        /// <remarks>
+        /// Used in Quad View foveated rendering where the high-resolution inner patch
+        /// occupies a specific sub-region of the physical eye buffer.
+        /// Formula: mappedUV = uv * uvScales + uvOffsets
+        /// Only applicable to the inner pass; outer pass uses (1,1,1,1).
+        /// </remarks>
+        public Vector4 uvScales { get; private set; }
+
+        /// <summary>
+        /// The translation offsets used to map the current view's UV coordinates to the
+        /// peripheral (outset) view's UV space during post-processing.
+        /// xy = left eye (offset x, offset y), zw = right eye (offset x, offset y).
+        /// </summary>
+        /// <remarks>
+        /// Used in Quad View foveated rendering where the high-resolution inner patch
+        /// occupies a specific sub-region of the physical eye buffer.
+        /// Formula: mappedUV = uv * uvScales + uvOffsets
+        /// Only applicable to the inner pass; outer pass uses (0,0,0,0).
+        /// </remarks>
+        public Vector4 uvOffsets { get; private set; }
 
         /// <summary>
         /// Index of the pass inside the frame.
@@ -558,6 +588,8 @@ namespace UnityEngine.Experimental.Rendering
             occlusionMeshScale = createInfo.occlusionMeshScale;
             foveatedRenderingInfo = createInfo.foveatedRenderingInfo;
             isLastCameraPass = createInfo.isLastCameraPass;
+            uvScales = createInfo.uvScales;
+            uvOffsets = createInfo.uvOffsets;
         }
 
         internal void AddView(XRView xrView)

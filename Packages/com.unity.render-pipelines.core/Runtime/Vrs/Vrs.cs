@@ -38,6 +38,11 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Check if conversion of color texture to shading rate image is supported.
         /// Convenience to abstract all capabilities checks.
+        ///
+        ///  The `IsColorMaskTextureConversionSupported` method checks for the following:
+        ///- VRS hardware support through [ShadingRateInfo.supportsPerImageTile](xref:UnityEngine.Rendering.ShadingRateInfo.supportsPerImageTile). The `supportsPerImageTile` property determines whether your GPU can define different quality levels to different tiles.
+        ///- Compute shader support through [SystemInfo.supportsComputeShaders](xref:UnityEngine.Device.SystemInfo.supportsComputeShaders)
+        ///- Proper initialization of VRS utility functions and compute shaders required for converting color textures to shading rate image (SRI). This is automatically handled by the render pipeline. However, for custom implementations, you must call  <see cref="InitializeResources"/> manually.  
         /// </summary>
         /// <returns>Returns true if conversion of color texture to shading rate image is supported, false otherwise.</returns>
         public static bool IsColorMaskTextureConversionSupported()

@@ -308,6 +308,7 @@ namespace UnityEditor.Lighting
 
             internal static void SetBakingMode(ProbeVolumeBakingSet bakingSet, string mode)
             {
+                Undo.RecordObject(bakingSet, "Change Baking Mode");
                 bakingSet.singleSceneMode = (mode == "Single Scene");
             }
 
@@ -318,6 +319,7 @@ namespace UnityEditor.Lighting
 
             internal static void SetSkyOcclusionBakingSamples(ProbeVolumeBakingSet bakingSet, int samples)
             {
+                Undo.RecordObject(bakingSet, "Change Occlusion Baking");
                 bakingSet.skyOcclusionBakingSamples = samples;
             }
 
@@ -334,6 +336,7 @@ namespace UnityEditor.Lighting
                 if (!go.TryGetComponent<Volume>(out var volume))
                     return;
 
+                Undo.RecordObject(volume, "Change Volume Mode");
                 volume.isGlobal = (mode == "Global");
             }
 
@@ -350,6 +353,7 @@ namespace UnityEditor.Lighting
                 if (!go.TryGetComponent<Volume>(out var volume))
                     return;
 
+                Undo.RecordObject(volume, "Change Volume Profile");
                 volume.sharedProfile = profile;
             }
 
@@ -368,6 +372,7 @@ namespace UnityEditor.Lighting
 
                 if (IsLightShapeApplicable(value))
                 {
+                    Undo.RecordObject(light, "Change light Shape");
                     light.type = value;
                 }
             }

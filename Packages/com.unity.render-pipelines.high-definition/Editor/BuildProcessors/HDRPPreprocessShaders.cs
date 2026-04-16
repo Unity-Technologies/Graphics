@@ -167,7 +167,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     return true;
 
                 // If we are transparent we use cluster lighting and not tile lighting
-                if (inputData.shaderKeywordSet.IsEnabled(m_TileLighting))
+                // Exception: Keep tile lighting variants when DEBUG_DISPLAY is enabled for rendering debugger (only if stripDebugVariants is false)
+                if (inputData.shaderKeywordSet.IsEnabled(m_TileLighting) &&
+                    (stripDebugVariants || !inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay)))
                     return true;
             }
             else // Opaque

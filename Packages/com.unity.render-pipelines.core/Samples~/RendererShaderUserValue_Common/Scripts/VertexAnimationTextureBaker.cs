@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
@@ -123,3 +124,4 @@ public class VertexAnimationTextureBaker : EditorWindow
         Debug.Log($"VAT Array (RGBAHalf) baked: {path} with {clips.Count} clips. Max frames = {maxFrames}");
     }
 }
+#endif

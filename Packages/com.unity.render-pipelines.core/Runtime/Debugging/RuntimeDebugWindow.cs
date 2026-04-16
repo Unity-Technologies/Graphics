@@ -139,7 +139,7 @@ namespace UnityEngine.Rendering
 
                 // Need to unregister here as well because when the UI is closed and reopened, it is a different object so the member
                 // function will be a different object and the Unregister call in RecreateGUI does nothing.
-                m_PanelRootElement.UnregisterCallback<NavigationMoveEvent>(ConvertNavigationMoveEvents, TrickleDown.TrickleDown);               
+                m_PanelRootElement?.UnregisterCallback<NavigationMoveEvent>(ConvertNavigationMoveEvents, TrickleDown.TrickleDown);
             }
 
             DebugManager.instance.displayRuntimeUI = false;

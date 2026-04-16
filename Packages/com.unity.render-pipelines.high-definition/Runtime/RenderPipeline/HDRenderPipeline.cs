@@ -2757,9 +2757,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-                    m_DebugDisplaySettings.UpdateCameraFreezeOptions();
-#endif
                     m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
                 }
 
@@ -3091,6 +3088,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 frozenCullingParamAvailable = false;
             }
 
+            cullingParams.conservativeEnclosingSphere = currentAsset.m_ShouldUseConservativeEnclosingSphere;
             LightLoopUpdateCullingParameters(ref cullingParams, hdCamera);
 
             // If we don't use environment light (like when rendering reflection probes)

@@ -209,15 +209,24 @@ namespace UnityEngine.Rendering.Tests
 
             volumeManager.SetCustomDefaultProfiles(new List<VolumeProfile> { m_VolumeProfile3 });
             Assert.AreEqual(TestVolume.k_OverrideValue3, GetDefaultState().param.value);
-
+            
             volumeManager.SetGlobalDefaultProfile(null);
-            Assert.IsNull(GetDefaultState()); // No global default profile - default state should be null even if quality and custom defaults are set, as global is the base for the default state
+            if (Application.isEditor)
+                Assert.AreEqual(TestVolume.k_OverrideValue3, GetDefaultState().param.value);
+            else
+                Assert.IsNull(GetDefaultState()); // No global default profile - default state should be null even if quality and custom defaults are set, as global is the base for the default state
 
             volumeManager.SetQualityDefaultProfile(null);
-            Assert.IsNull(GetDefaultState()); // No global default profile - default state should be null even if quality and custom defaults are set, as global is the base for the default state
+            if (Application.isEditor)
+                Assert.AreEqual(TestVolume.k_OverrideValue3, GetDefaultState().param.value);
+            else
+                Assert.IsNull(GetDefaultState()); // No global default profile - default state should be null even if quality and custom defaults are set, as global is the base for the default state
 
             volumeManager.SetCustomDefaultProfiles(null);
-            Assert.IsNull(GetDefaultState()); // No global default profile - default state should be null even if quality and custom defaults are set, as global is the base for the default state
+            if (Application.isEditor)
+                Assert.AreEqual(TestVolume.k_DefaultValue, GetDefaultState().param.value);
+            else
+                Assert.IsNull(GetDefaultState()); // No global default profile - default state should be null even if quality and custom defaults are set, as global is the base for the default state
         }
 
         [Test]

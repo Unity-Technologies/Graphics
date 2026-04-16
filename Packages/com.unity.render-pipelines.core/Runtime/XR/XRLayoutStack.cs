@@ -15,6 +15,8 @@ namespace UnityEngine.Experimental.Rendering
             return layout;
         }
 
+        public bool hasLayout => m_Stack.Count > 0;
+
         public XRLayout top => m_Stack.Peek();
 
         public void Release()

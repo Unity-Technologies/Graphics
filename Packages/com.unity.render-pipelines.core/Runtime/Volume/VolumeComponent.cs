@@ -329,25 +329,6 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// A custom hashing function that Unity uses to compare the state of parameters.
-        /// </summary>
-        /// <returns>A computed hash code for the current instance.</returns>
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                //return parameters.Aggregate(17, (i, p) => i * 23 + p.GetHash());
-
-                int hash = 17;
-
-                for (int i = 0; i < parameterList.Length; i++)
-                    hash = hash * 23 + parameterList[i].GetHashCode();
-
-                return hash;
-            }
-        }
-
-        /// <summary>
         /// Returns true if any of the volume properites has been overridden.
         /// </summary>
         /// <returns>True if any of the volume properites has been overridden.</returns>

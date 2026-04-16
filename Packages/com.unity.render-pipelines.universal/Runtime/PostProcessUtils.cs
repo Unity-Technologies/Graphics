@@ -271,6 +271,21 @@ namespace UnityEngine.Rendering.Universal
         }
 #endregion
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+        /// <summary>
+        /// Configures UV remapping for Quad View multi-resolution rendering in XR.
+        /// Sets shader parameters for screen-space effects to align with inner view coordinates.
+        /// </summary>
+        /// <param name="material">The material to configure.</param>
+        /// <param name="xrPass">The XR pass containing UV scale/offset parameters.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void SetupXRUVRemapping(Material material, XRPass xrPass)
+        {
+            material.SetVector(ShaderConstants._Quad_View_Uv_Remap_scalesXR, xrPass.uvScales);
+            material.SetVector(ShaderConstants._Quad_View_Uv_Remap_offsetsXR, xrPass.uvOffsets);
+        }
+#endif
+
 #region Blit
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -394,6 +409,9 @@ namespace UnityEngine.Rendering.Universal
 
             public static readonly int _BlueNoise_Texture = Shader.PropertyToID("_BlueNoise_Texture");
             public static readonly int _Dithering_Params = Shader.PropertyToID("_Dithering_Params");
+
+            public static readonly int _Quad_View_Uv_Remap_scalesXR = Shader.PropertyToID("_Quad_View_Uv_Remap_scalesXR");
+            public static readonly int _Quad_View_Uv_Remap_offsetsXR = Shader.PropertyToID("_Quad_View_Uv_Remap_offsetsXR");
 
             public static readonly int _SourceSize = Shader.PropertyToID("_SourceSize");
         }

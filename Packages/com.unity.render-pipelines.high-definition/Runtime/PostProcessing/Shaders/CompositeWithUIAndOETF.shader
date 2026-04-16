@@ -8,6 +8,7 @@ Shader "Hidden/HDRP/CompositeUI"
         #pragma multi_compile_local_fragment _ APPLY_AFTER_POST
         #pragma multi_compile_local _ DISABLE_TEXTURE2D_X_ARRAY
         #pragma multi_compile_local_fragment _ BLIT_SINGLE_SLICE
+        #pragma multi_compile_local_fragment _ HDR_COLORSPACE_CONVERSION HDR_ENCODING HDR_COLORSPACE_CONVERSION_AND_ENCODING
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -96,6 +97,9 @@ Shader "Hidden/HDRP/CompositeUI"
             float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, uiCoord, 0);
             #endif
 
+            #if defined(HDR_COLORSPACE_CONVERSION)
+            outColor.rgb = RotateRec709ToOutputSpace(outColor.rgb) * _PaperWhite;
+            #endif
 
             outColor.rgb = SceneUIComposition(uiValue, outColor.rgb, _PaperWhite, _MaxNits);
             outColor.rgb = OETF(outColor.rgb, _MaxNits);

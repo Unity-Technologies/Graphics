@@ -22,6 +22,9 @@ public class OnTilePostProcessPass : ScriptableRenderPass
     int m_DitheringTextureIndex;
     PostProcessData m_PostProcessData;
 
+    // Cache vignette center from peripheral (outer) pass for quad view
+    static Vector4 s_CachedPeripheralVignetteCenter = Vector4.zero;
+
     const string m_PassName = "On Tile Post Processing";
     const string m_FallbackPassName = "On Tile Post Processing (sampling fallback) ";
 
@@ -113,7 +116,17 @@ public class OnTilePostProcessPass : ScriptableRenderPass
         SetupGrain(m_OnTileUberMaterial, cameraData, filmgrain, m_PostProcessData);
         SetupDithering(m_OnTileUberMaterial, cameraData, m_PostProcessData);
 
+        CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.LinearToSRGBConversion, cameraData.requireSrgbConversion);
+        CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.UseFastSRGBLinearConversion, postProcessingData.useFastSRGBLinearConversion);
         CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, cameraData.isAlphaOutputEnabled);
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+        // Setup XR UV remapping for Quad View (used by all screen-space effects)
+        if (cameraData.xr != null && cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
+        {
+            PostProcessUtils.SetupXRUVRemapping(m_OnTileUberMaterial, cameraData.xr);
+        }
+#endif
 
         int shaderPass;
 
@@ -328,11 +341,33 @@ public class OnTilePostProcessPass : ScriptableRenderPass
         if (xrPass != null && xrPass.enabled)
         {
             if (xrPass.singlePassEnabled)
-                material.SetVector(ShaderConstants._Vignette_ParamsXR, xrPass.ApplyXRViewCenterOffset(center));
+            {
+                Vector4 vignetteXRCenter;
+                var xrLayout = XRSystem.currentLayout;
+
+                if (xrLayout != null && xrPass.viewCount > 1 && xrPass.multipassId == 1 && xrPass.isLastCameraPass)
+                {
+                    // Second pass (inner views): Reuse the cached peripheral vignette center
+                    // This ensures vignette is calculated in the outer UV space after remapping
+                    vignetteXRCenter = xrLayout.quadView.cachedPeripheralVignetteCenter;
+                    // In quad view we need to also apply the aspect ratio correction to the vignette as the UV remapping will cause it to be stretched/squashed if not corrected
+                    aspectRatio *= xrPass.uvScales.y / xrPass.uvScales.x;
+                }
+                else
+                {
+                    // First pass (peripheral/outer views): Calculate and cache the vignette center
+                    vignetteXRCenter = xrPass.ApplyXRViewCenterOffset(center);
+                    if (xrLayout != null)
+                        xrLayout.quadView.cachedPeripheralVignetteCenter = vignetteXRCenter;
+                }
+                material.SetVector(ShaderConstants._Vignette_ParamsXR, vignetteXRCenter);
+            }
             else
+            {
                 // In multi-pass mode we need to modify the eye center with the values from .xy of the corrected
                 // center since the version of the shader that is not single-pass will use the value in _Vignette_Params2
                 center = xrPass.ApplyXRViewCenterOffset(center);
+            }
         }
 #endif
 
