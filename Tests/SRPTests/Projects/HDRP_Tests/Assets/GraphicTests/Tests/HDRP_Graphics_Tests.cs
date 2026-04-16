@@ -344,6 +344,10 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             runtimePlatforms: new[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer }
         )]
         [IgnoreGraphicsTest(
+            "4109_DRS-FSR2-AfterPost",
+            "Unstable: https://jira.unity3d.com/browse/UUM-138604"
+        )]
+        [IgnoreGraphicsTest(
             "4110_DRS-FSR2-With-CustomPass",
             "Platform not supported", // FSR is DX12/DX11/Vulkan on PC-only
             isInclusive: true,
@@ -370,6 +374,10 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             isInclusive: true,
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan },
             runtimePlatforms: new[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer }
+        )]
+        [IgnoreGraphicsTest(
+            "4103_DRS-DLSS-AfterPost",
+            "Unstable: https://jira.unity3d.com/browse/UUM-137893"
         )]
         [IgnoreGraphicsTest(
             "4111_DRS-DLSS-With-CustomPass",

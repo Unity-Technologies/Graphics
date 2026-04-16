@@ -1,4 +1,4 @@
-# Terrain Shaders
+# Terrain Shaders sample
 
 The Terrain Shaders sample shows you how to design your own terrain material solutions and customize them to fit your specific goals and performance budgets. Possibilities include high quality tile repetition break-up solutions, detail mapping, smooth blending with the distant material, parallax mapping, auto materials, triplanar projection, and more.
 
