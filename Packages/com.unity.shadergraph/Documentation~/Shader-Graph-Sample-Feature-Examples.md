@@ -1,6 +1,8 @@
-# Feature Examples
+# Feature Examples sample
 
 The Shader Graph Feature Examples sample content is a collection of Shader Graph assets that demonstrate how to achieve common techniques and effects in Shader Graph.  The goal of this sample pack is to help users see what is required to achieve specific effects and provide examples to make it easier for users to learn.
+
+Each sample contains notes that describe what the shader does. Most of the shaders have their core functionality in a subgraph, so you can copy and paste them into your own shader graphs.
 
 The sample content is broken into the following categories:
 

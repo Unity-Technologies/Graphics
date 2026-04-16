@@ -428,7 +428,10 @@ namespace UnityEngine.Rendering.HighDefinition
             bool useCameraCustomAttributes = parameters.hdCamera.fidelityFX2SuperResolutionUseCustomAttributes;
             var fsr2ViewData = new Fsr2ViewData();
             fsr2ViewData.inputRes  = new UpscalerResolution() { width = (uint)parameters.hdCamera.actualWidth, height = (uint)parameters.hdCamera.actualHeight };
-            fsr2ViewData.outputRes = new UpscalerResolution() { width = (uint)DynamicResolutionHandler.instance.finalViewport.x, height = (uint)DynamicResolutionHandler.instance.finalViewport.y };
+            fsr2ViewData.outputRes = new UpscalerResolution() {
+                width  = (uint)parameters.hdCamera.finalViewport.width,
+                height = (uint)parameters.hdCamera.finalViewport.height
+            };
             fsr2ViewData.jitterX = parameters.hdCamera.taaJitter.x;
             fsr2ViewData.jitterY = parameters.hdCamera.taaJitter.y;
             fsr2ViewData.reset = parameters.hdCamera.isFirstFrame;

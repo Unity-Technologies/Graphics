@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering.Universal
         DrawLight2DPass m_LightPass = new DrawLight2DPass();
         DrawShadow2DPass m_ShadowPass = new DrawShadow2DPass();
         DrawRenderer2DPass m_RendererPass = new DrawRenderer2DPass();
+        CapturePass m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
 
         LayerBatch[] m_LayerBatches;
         int m_BatchCount;
@@ -792,6 +793,12 @@ namespace UnityEngine.Rendering.Universal
             var finalBlitTarget = resolveToDebugScreen ? commonResourceData.debugScreenColor : commonResourceData.backBufferColor;
             var finalDepthHandle = resolveToDebugScreen ? commonResourceData.debugScreenDepth : commonResourceData.backBufferDepth;
 
+            // Capture pass for Unity Recorder
+            if (hasCaptureActions)
+            {
+                m_CapturePass.RecordRenderGraph(renderGraph, frameData);
+            }
+            
             if (applyFinalPostProcessing)
             {
                 postProcessPass.RenderFinalPassRenderGraph(renderGraph, frameData, in finalColorHandle, commonResourceData.overlayUITexture, in finalBlitTarget, needsColorEncoding);
