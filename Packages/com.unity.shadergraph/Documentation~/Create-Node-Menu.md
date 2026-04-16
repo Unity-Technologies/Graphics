@@ -29,7 +29,7 @@ To connect [ports](Port.md) between two existing [nodes](Node.md) or with the [m
 
 The line resulting from that connection is called an [edge](Edge.md).
 
-You can only connect an output port to a input port, or vice-versa, and you can't connect two ports of the same node together.
+You can only connect an output port to an input port, or vice-versa, and you can't connect two ports of the same node together.
 
 ## Add and connect a node from an existing port
 

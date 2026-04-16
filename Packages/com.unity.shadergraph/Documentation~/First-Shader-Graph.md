@@ -108,7 +108,7 @@ To use a Color property instead of a Color node in your shader graph, follow the
 
 1. Save your graph, and return to the material's Inspector.
    
-   The property you added in the graph now appears in the material's Inspector. Any changes you make to the property from the Inspector affects all objects that use this material.
+   The property you added to the graph now appears in the material's Inspector. Any changes you make to the property from the Inspector affect all objects that use this material.
 
 ## Additional resources
 
