@@ -25,7 +25,7 @@ The package vendoring process happens multiple times in each Unity release. The 
 A tag is generated on the changeset used to vendor a specific Unity release.
 
 Release branches are defined as follows:
-- **master** branch is used for main developement and it always maps to the latest **Unity Alpha** release.
+- **master** branch is used for main development and it always maps to the latest **Unity Alpha** release.
 - **{unity-version}/staging** maps to beta and released Unity versions. f.ex, **2021.1/staging** maps to Unity 2021.1.
 - **{package-major-version}.x.x/release** is used for Unity 2020.x and below. f.ex, **10.x.x/release** maps to Unity 2020.3 LTS.
 
