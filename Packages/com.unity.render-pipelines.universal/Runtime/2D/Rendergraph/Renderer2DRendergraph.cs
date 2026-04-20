@@ -649,8 +649,16 @@ namespace UnityEngine.Rendering.Universal
 
             var depthDescriptor = descriptor;
             depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
-            depthDescriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
-            depthDescriptor.depthStencilFormat = GraphicsFormat.None;
+            if (PlatformAutoDetect.hasRenderToR32F)
+            {
+                depthDescriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
+                depthDescriptor.depthStencilFormat = GraphicsFormat.None;
+            }
+            else
+            {
+                depthDescriptor.graphicsFormat = GraphicsFormat.None;
+                depthDescriptor.depthStencilFormat = CoreUtils.GetDefaultDepthOnlyFormat();
+            }
 
             resourceData.cameraDepthTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDescriptor, "_CameraDepthTexture", true);
         }

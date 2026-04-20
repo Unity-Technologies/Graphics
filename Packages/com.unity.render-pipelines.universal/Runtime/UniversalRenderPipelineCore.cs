@@ -2014,6 +2014,7 @@ namespace UnityEngine.Rendering.Universal
             public readonly bool isSwitch;
             public readonly bool isSwitch2;
             public readonly bool isRunningOnPowerVRGPU;
+            public readonly bool hasRenderToR32F;
 
             public PlatformDetectionCache()
             {
@@ -2029,6 +2030,7 @@ namespace UnityEngine.Rendering.Universal
                 isSwitch = Application.platform == RuntimePlatform.Switch;
                 isSwitch2 = Application.platform == RuntimePlatform.Switch2;
                 isRunningOnPowerVRGPU = SystemInfo.graphicsDeviceName.Contains("PowerVR");
+                hasRenderToR32F = SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, GraphicsFormatUsage.Render);
             }
         }
 
@@ -2080,6 +2082,11 @@ namespace UnityEngine.Rendering.Universal
         internal static bool isSwitch2 => platformCache.Value.isSwitch2;
 
         internal static bool isRunningOnPowerVRGPU => platformCache.Value.isRunningOnPowerVRGPU;
+
+        /// <summary>
+        /// If true, then the runtime device supports R32_SFloat render targets. Not guaranteed on GLES 3.1 or earlier.
+        /// </summary>
+        internal static bool hasRenderToR32F => platformCache.Value.hasRenderToR32F;
 
         /// <summary>
         /// Gives the SH evaluation mode when set to automatically detect.
