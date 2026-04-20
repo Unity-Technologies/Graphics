@@ -151,6 +151,7 @@ struct HitContext
 namespace UnifiedRT {
 
 #pragma warning(disable : 3557) // prevent warning when the "while (rayQuery.Proceed())" loop is unrolled
+#pragma warning(disable : 4000) // suppress FXC warnings about potentially uninitialized variables
 
 void TraceRay(DispatchInfo dispatchInfo, RayTracingAccelStruct accelStruct, uint instanceMask, Ray ray, uint rayFlags, inout UNIFIED_RT_PAYLOAD payload)
 {
