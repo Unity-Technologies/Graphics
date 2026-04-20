@@ -340,6 +340,8 @@ namespace UnityEngine.Rendering
 #endif
         }
 
+        internal static Action<bool, bool> initializedChanged; // previousValue, currentValue
+
         private static void Cleanup()
         {
             if (s_Instance == null)
@@ -352,6 +354,8 @@ namespace UnityEngine.Rendering
 
         private static void Recreate(GPUResidentDrawerSettings settings)
         {
+            bool wasInitialized = IsInitialized();
+
             Cleanup();
 
             if (IsGPUResidentDrawerSupportedBySRP(settings, out var message, out var severity))
@@ -363,6 +367,10 @@ namespace UnityEngine.Rendering
             {
                 LogMessage(message, severity);
             }
+
+            bool isInitialized = IsInitialized();
+            if (wasInitialized != isInitialized)
+                initializedChanged?.Invoke(wasInitialized, isInitialized);
         }
 
         private IntPtr m_ContextIntPtr = IntPtr.Zero;
