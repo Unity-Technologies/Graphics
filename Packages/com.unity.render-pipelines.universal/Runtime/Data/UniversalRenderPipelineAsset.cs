@@ -1563,6 +1563,7 @@ namespace UnityEngine.Rendering.Universal
         /// Specifies if this <c>UniversalRenderPipelineAsset</c> should use dynamic batching.
         /// </summary>
         /// <see href="https://docs.unity3d.com/Manual/DrawCallBatching.html"/>
+        [Obsolete("supportsDynamicBatching is deprecated and will be removed in a future release. #from(6000.5)", false)]
         public bool supportsDynamicBatching
         {
             get => m_SupportsDynamicBatching;
