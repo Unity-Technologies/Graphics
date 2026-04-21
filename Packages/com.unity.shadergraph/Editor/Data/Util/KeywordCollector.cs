@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
 
             keywords.Add(chunk);
 
-            if (!chunk.IsDynamic)
+            if (chunk.IsPermutable)
                 permutableKeywords.Add(chunk);
         }
 
@@ -67,11 +67,20 @@ namespace UnityEditor.ShaderGraph
 
             for (int i = 0; i < permutableKeywords.Count; i++)
             {
-                currentPermutation.Add(new KeyValuePair<ShaderKeyword, int>(permutableKeywords[i], 0));
+                var firstEntryValue = GetEntryValues(permutableKeywords[i]).First();
+                currentPermutation.Add(new KeyValuePair<ShaderKeyword, int>(permutableKeywords[i], firstEntryValue));
             }
 
             // Recursively permute keywords
             PermuteKeywords(permutableKeywords, currentPermutation, 0);
+        }
+
+        IEnumerable<int> GetEntryValues(ShaderKeyword keyword)
+        {
+            if (keyword.keywordType == KeywordType.Enum)
+                return keyword.GetEntriesInBranchOrder().Select(x => x.value);
+            else
+                return new int[] { 0, 1 };
         }
 
         void PermuteKeywords(List<ShaderKeyword> keywords, List<KeyValuePair<ShaderKeyword, int>> currentPermutation, int currentIndex)
@@ -80,8 +89,7 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             // Iterate each possible keyword at the current index
-            int entryCount = keywords[currentIndex].keywordType == KeywordType.Enum ? keywords[currentIndex].entries.Count : 2;
-            for (int i = 0; i < entryCount; i++)
+            foreach (int i in GetEntryValues(keywords[currentIndex]))
             {
                 // Set the index in the current permutation to the correct value
                 currentPermutation[currentIndex] = new KeyValuePair<ShaderKeyword, int>(keywords[currentIndex], i);
