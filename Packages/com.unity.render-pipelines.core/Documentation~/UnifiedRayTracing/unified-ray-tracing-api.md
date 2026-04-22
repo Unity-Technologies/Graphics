@@ -12,4 +12,4 @@ The `UnifiedRayTracing` API enables you to write ray tracing code that can execu
 |[Execute your ray tracing code](execute-shader.md)|How to execute your ray tracing shader.|
 |[Sample code](trace-camera-rays-full-sample.md)|Complete code example showcasing tracing rays from the scene's camera.|
 |[Unified ray tracing shader code reference](shader-code-reference.md)|API reference for the unified ray tracing shader code.|
-
+|[Release your ray tracing objects](release-resources.md)|Learn how to release your ray tracing resources.|
