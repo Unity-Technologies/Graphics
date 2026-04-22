@@ -214,7 +214,15 @@ namespace UnityEngine.Rendering.Universal
         /// but the Universal Render Pipeline's upscaling filter is not set to STP.
         /// </summary>
         internal bool blockSTPOverlay {
-            get { return fullScreenDebugMode == DebugFullScreenMode.STP && UniversalRenderPipeline.asset.upscalingFilter != UpscalingFilterSelection.STP; }
+            get {
+                var asset = UniversalRenderPipeline.asset; 
+                return asset != null && fullScreenDebugMode == DebugFullScreenMode.STP &&
+#if ENABLE_UPSCALER_FRAMEWORK
+                    asset.upscalerName != STPIUpscaler.upscalerName;
+#else
+                    asset.upscalingFilter != UpscalingFilterSelection.STP;
+#endif
+            }
         }
 
         #region Pixel validation
