@@ -332,7 +332,9 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         /// Resizes a scratch buffer if its size doesn't fit the requirement of <see cref="IRayTracingShader.Dispatch"/>.
         /// </summary>
         /// <remarks>
-        /// The resize is accomplished by disposing of the GraphicsBuffer and instanciating a new one at the proper size.
+        /// Unity resizes the buffer by disposing of the `GraphicsBuffer` and instantiating a new one with the proper size.
+        /// **Important:** If you reference the current <paramref name="scratchBuffer"/> in a command buffer, you must 
+        /// only call this method after you submit the command buffer. See <see cref="Graphics.ExecuteCommandBuffer"/> or <see cref="ScriptableRenderContext.ExecuteCommandBuffer"/>.
         /// </remarks>
         /// <param name="shader">The shader that will be passed to <see cref="IRayTracingShader.Dispatch"/>.</param>
         /// <param name="dispatchWidth">Number of threads in the X dimension that will be passed to <see cref="IRayTracingShader.Dispatch"/>.</param>
@@ -362,7 +364,9 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         /// Resizes a scratch buffer if its size doesn't fit the requirement of <see cref="IRayTracingAccelStruct.Build"/>.
         /// </summary>
         /// <remarks>
-        /// The resize is accomplished by disposing of the GraphicsBuffer and instanciating a new one at the proper size.
+        /// Unity resizes the buffer by disposing of the `GraphicsBuffer` and instantiating a new one with the proper size.
+        /// **Important:** If you reference the current <paramref name="scratchBuffer"/> in a command buffer, you must 
+        /// only call this method after you submit the command buffer. See <see cref="Graphics.ExecuteCommandBuffer"/> or <see cref="ScriptableRenderContext.ExecuteCommandBuffer"/>.
         /// </remarks>
         /// <param name="accelStruct">The acceleration structure that will be passed to <see cref="IRayTracingAccelStruct.Build"/>.</param>
         /// <param name="scratchBuffer">The scratch buffer.</param>
