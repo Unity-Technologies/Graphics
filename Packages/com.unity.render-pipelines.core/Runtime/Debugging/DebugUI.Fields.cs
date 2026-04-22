@@ -875,8 +875,11 @@ namespace UnityEngine.Rendering
 
                 this.ScheduleTracked(field, () => field.schedule.Execute(() =>
                 {
-                    if (currentIndex >= 0 && currentIndex < enumNames.Length)
-                        field.SetValueWithoutNotify(enumNames[currentIndex].text);
+                    // https://jira.unity3d.com/browse/UUM-138138: Clamp currentIndex to 0. This matches old IMGUI
+                    // DebugUIDrawer behavior where a negative index is sometimes used to denote an invalid/none value.
+                    int index = Mathf.Max(0, currentIndex);
+                    if (index < enumNames.Length)
+                        field.SetValueWithoutNotify(enumNames[index].text);
                 }).Every(100));
 
                 m_AdditionalSearchText = string.Join(",", field.choices);
