@@ -141,7 +141,8 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             var outputSlot = FindOutputSlot<MaterialSlot>(OutputSlotId);
-            if (keyword.keywordDefinition == KeywordDefinition.DynamicBranch)
+            if (keyword.keywordDefinition == KeywordDefinition.DynamicBranch
+                || keyword.IsShaderBuildSettingsCompatible)
             {
                 switch (keyword.keywordType)
                 {
@@ -152,16 +153,23 @@ namespace UnityEditor.ShaderGraph
                         break;
                     case KeywordType.Enum:
                         sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)};"));
-                        for(int i = 0; i < keyword.entries.Count; ++i)
+                        int i = 0;
+                        foreach ((KeywordEntry entry, int entryValue) in keyword.GetEntriesInBranchOrder())
                         {
-                            var keywordEntry = keyword.entries[i];
-                            string keywordName = $"{keyword.referenceName}_{keywordEntry.referenceName}";
-                            var value = GetSlotValue(keywordEntry.id, generationMode);
-                            sb.AppendLine(string.Format($"{(i != 0 ? "else" : "")} if({keywordName}) {GetVariableNameForSlot(OutputSlotId)} = {value};"));
+                            string keywordName = $"{keyword.referenceName}_{entry.referenceName}";
+                            var value = GetSlotValue(entry.id, generationMode);
+                            string assignment = $"{GetVariableNameForSlot(OutputSlotId)} = {value};";
+                            if (i == 0)
+                                sb.AppendLine($"if ({keywordName}) {assignment}");
+                            else if (i == keyword.entries.Count - 1)
+                                sb.AppendLine($"else {assignment}");
+                            else
+                                sb.AppendLine($"else if ({keywordName}) {assignment}");
+                            ++i;
                         }
                         break;
                 }
-        }
+            }
             else switch (keyword.keywordType)
             {
                 case KeywordType.Boolean:
@@ -181,12 +189,13 @@ namespace UnityEditor.ShaderGraph
                 case KeywordType.Enum:
                 {
                     // Iterate all entries in the keyword
-                    for (int i = 0; i < keyword.entries.Count; i++)
+                    int i = 0;
+                    foreach ((KeywordEntry entry, int entryValue) in keyword.GetEntriesInBranchOrder())
                     {
                         // Insert conditional
                         if (i == 0)
                         {
-                            sb.AppendLine($"#if defined({keyword.referenceName}_{keyword.entries[i].referenceName})");
+                            sb.AppendLine($"#if defined({keyword.referenceName}_{entry.referenceName})");
                         }
                         else if (i == keyword.entries.Count - 1)
                         {
@@ -194,12 +203,14 @@ namespace UnityEditor.ShaderGraph
                         }
                         else
                         {
-                            sb.AppendLine($"#elif defined({keyword.referenceName}_{keyword.entries[i].referenceName})");
+                            sb.AppendLine($"#elif defined({keyword.referenceName}_{entry.referenceName})");
                         }
 
                         // Append per-slot code
-                        var value = GetSlotValue(GetSlotIdForPermutation(new KeyValuePair<ShaderKeyword, int>(keyword, i)), generationMode);
+                        var value = GetSlotValue(GetSlotIdForPermutation(new KeyValuePair<ShaderKeyword, int>(keyword, entryValue)), generationMode);
                         sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)} = {value};"));
+
+                        ++i;
                     }
 
                     // End condition
