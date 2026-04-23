@@ -16,6 +16,9 @@ PackedVaryings uie_custom_vert(Attributes input)
     uieInput.circle = input.uv6;
     uieInput.textureId = input.uv7.x;
 
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, uieInput);
+
     v2f uieOutput = uie_std_vert(uieInput);
 
     Varyings varyings = (Varyings)0;
@@ -31,6 +34,9 @@ PackedVaryings uie_custom_vert(Attributes input)
     varyings.texCoord1 = uieOutput.typeTexSettings;
     varyings.texCoord3 = float4(uieOutput.textCoreLoc.x, uieOutput.textCoreLoc.y, input.uv0.z, input.uv0.w); // Layout uv in z, w
     varyings.texCoord4 = uieOutput.circle;
+
+    UNITY_TRANSFER_INSTANCE_ID(input, varyings);
+    UNITY_TRANSFER_VERTEX_OUTPUT_STEREO(uieOutput, varyings);
 
     PackedVaryings packedOutput = PackVaryings(varyings);
     return packedOutput;
