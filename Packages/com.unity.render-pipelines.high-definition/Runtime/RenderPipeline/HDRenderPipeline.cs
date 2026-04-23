@@ -2754,9 +2754,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-                    m_DebugDisplaySettings.UpdateCameraFreezeOptions();
-#endif
                     m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
                 }
 
