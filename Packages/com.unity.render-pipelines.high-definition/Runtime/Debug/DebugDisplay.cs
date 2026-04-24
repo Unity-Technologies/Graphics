@@ -272,12 +272,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static GUIContent[] s_RenderingMipmapDebugMaterialTextureSlotStrings = null;
         static int[] s_RenderingMipmapDebugMaterialTextureSlotValues = null;
 
-        static List<GUIContent> s_CameraNames = new List<GUIContent>() { new("None") };
-        static GUIContent[] s_CameraNamesStrings = { new ("No Visible Camera") };
-        static int[] s_CameraNamesValues = { 0 };
-
-        static bool needsRefreshingCameraFreezeList = true;
-
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
         internal UnityEngine.NVIDIA.DebugView nvidiaDebugView { get; } = new UnityEngine.NVIDIA.DebugView();
 #endif
@@ -339,8 +333,64 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool countRays = false;
             /// <summary>Display Show Lens Flare Data Driven Only.</summary>
             public bool showLensFlareDataDrivenOnly = false;
+
+            private static Camera[] GetAvailableDebuggableCameras()
+            {
+                using (ListPool<Camera>.Get(out var tmp))
+                {
+
+#if UNITY_EDITOR
+                    if (UnityEditor.SceneView.lastActiveSceneView != null)
+                    {
+                        var sceneCamera = UnityEditor.SceneView.lastActiveSceneView.camera;
+                        if (sceneCamera != null)
+                            tmp.Add(sceneCamera);
+                    }
+#endif
+
+                    var cameraArray = new Camera[Camera.allCamerasCount];
+                    Camera.GetAllCameras(cameraArray);
+
+                    foreach (var camera in cameraArray)
+                    {
+                        if (camera == null)
+                            continue;
+
+                        if (camera.cameraType != CameraType.Preview && camera.cameraType != CameraType.Reflection)
+                        {
+                            if (camera.TryGetComponent<IAdditionalData>(out _))
+                                tmp.Add(camera);
+                        }
+                    }
+
+                    return tmp.ToArray();
+                }
+            }
+
             /// <summary>Index of the camera to freeze for visibility.</summary>
-            public int debugCameraToFreeze = 0;
+            public int debugCameraToFreeze
+            {
+                get
+                {
+                    var cameras = GetAvailableDebuggableCameras();
+                    if (cameras == null || cameras.Length == 0 || selectedCameraToFreeze == null)
+                        return -1;
+
+                    return Array.IndexOf(cameras, selectedCameraToFreeze);
+                }
+                set
+                {
+                    var cameras = GetAvailableDebuggableCameras();
+                    if (value < 0 || value >= cameras.Length)
+                        selectedCameraToFreeze = null;
+                    else
+                        selectedCameraToFreeze = cameras[value];
+                }
+            }
+
+            /// <summary>The camera to freeze for visibility.</summary>
+            public Camera selectedCameraToFreeze;
+
             internal RTASDebugView rtasDebugView = RTASDebugView.Shadows;
             internal RTASDebugMode rtasDebugMode = RTASDebugMode.InstanceID;
             internal VolumetricCloudsDebug volumetricCloudDebug = VolumetricCloudsDebug.Lighting;
@@ -680,7 +730,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if camera visibility is frozen</returns>
         public bool IsCameraFreezeEnabled()
         {
-            return data.debugCameraToFreeze != 0;
+            return data.selectedCameraToFreeze != null;
         }
 
         /// <summary>
@@ -690,7 +740,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if a specific camera is frozen for visibility.</returns>
         public bool IsCameraFrozen(Camera camera)
         {
-            return IsCameraFreezeEnabled() && camera.name.Equals(s_CameraNamesStrings[data.debugCameraToFreeze].text);
+            return IsCameraFreezeEnabled() && camera == data.selectedCameraToFreeze;
         }
 
         /// <summary>
@@ -1974,7 +2024,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
-            renderingSettings.children.Add(new DebugUI.EnumField { nameAndTooltip = RenderingStrings.FreezeCameraForCulling, getter = () => data.debugCameraToFreeze, setter = value => data.debugCameraToFreeze = value, enumNames = s_CameraNamesStrings, enumValues = s_CameraNamesValues, getIndex = () => data.debugCameraToFreezeEnumIndex, setIndex = value => data.debugCameraToFreezeEnumIndex = value });
+            var freezeCameraForCullingSelector = new DebugUI.CameraSelector()
+            {
+                nameAndTooltip = RenderingStrings.FreezeCameraForCulling,
+                getter = () => data.selectedCameraToFreeze,
+                setter = value => data.selectedCameraToFreeze = value as Camera
+            };
+
+            renderingSettings.children.Add(freezeCameraForCullingSelector);
 
             renderingSettings.children.Add(new DebugUI.Container
             {
@@ -2225,19 +2282,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     ? -1
                     : data.mipMapDebugSettings.materialTextureSlot;
                 Texture.SetStreamingTextureMaterialDebugProperties(textureSlotImpl);
-            }
-        }
-
-        internal void UpdateCameraFreezeOptions()
-        {
-            if (needsRefreshingCameraFreezeList)
-            {
-                s_CameraNamesStrings = s_CameraNames.ToArray();
-                s_CameraNamesValues = Enumerable.Range(0, s_CameraNames.Count()).ToArray();
-
-                UnregisterRenderingDebug();
-                RegisterRenderingDebug();
-                needsRefreshingCameraFreezeList = false;
             }
         }
 
