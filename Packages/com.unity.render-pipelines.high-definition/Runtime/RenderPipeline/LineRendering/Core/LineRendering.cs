@@ -56,6 +56,16 @@ namespace UnityEngine.Rendering
             }
         }
 
+#if UNITY_EDITOR
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+        static void ResetStaticsOnLoad_LineRendering()
+        {
+            if(s_Instance != null && s_Instance.m_IsInitialized)
+                s_Instance.Cleanup();
+            s_Instance = new LineRendering();
+        }
+#endif
+
         private bool m_IsInitialized = false;
         private List<RendererData> m_VisibleDatas = new List<RendererData>();
 
