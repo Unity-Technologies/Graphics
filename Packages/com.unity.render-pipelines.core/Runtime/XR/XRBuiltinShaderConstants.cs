@@ -52,6 +52,11 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         static public readonly int unity_StereoWorldSpaceCameraPos = Shader.PropertyToID("unity_StereoWorldSpaceCameraPos");
 
+        /// <summary>
+        /// Cached unique id for unity_StereoEyeIndex
+        /// </summary>
+        static public readonly int unity_StereoEyeIndex = Shader.PropertyToID("unity_StereoEyeIndex");
+
         // Pre-allocate arrays to avoid GC
         static Matrix4x4[] s_cameraProjMatrix = new Matrix4x4[2];
         static Matrix4x4[] s_invCameraProjMatrix = new Matrix4x4[2];
