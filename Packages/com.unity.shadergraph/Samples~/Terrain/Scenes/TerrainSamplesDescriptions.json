@@ -394,6 +394,26 @@
 			
 			This tile break-up method uses a hexagon grid. The grid is procedurally generated and each tile has a unique offset, scale, and rotation. These transforms are applied to the material textures to create the tile breakup.  In order to blend smoothly between each hex tile, the material textures must be sampled 3 times. Because of these extra samples, this is the most expensive tile break-up method. But it's also the most effective.
 			"""
+		},
+		{
+			"title": "4 Layers Plus URP",
+			"prefabName": "4LayersPlusURP",
+			"description":
+			"""<ignore><link="CNM Simple Blend 4PlusLayers URP.shadergraph">Open the example shader</link></ignore>
+			
+			This shader is designed to support terrains with more than 4 layers in the Universal Render Pipeline.
+			This is done by grouping the layers 4 by 4, premultiplying each layer with its corresponding mask, and adding them together.
+			They are then rendered in additive passes, stacking each group of 4 over the previous one.
+			For each new pass, the layer indices are shifted back by 4, and the mask index by 1.
+			
+			Texture Packing Type:	CNM
+			Layer Type: 			Simple
+			Layer Blend Type: 		Alpha Premultiplied
+			Tile Breakup Type: 		None
+			Material Mask Type:		Painted Splatmap
+			Texture Samples:		13 per pass of 4 layers
+			Relative Cost:			0.88 per pass
+			"""
 		}
 	]
 }

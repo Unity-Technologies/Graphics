@@ -46,7 +46,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _CH1:
-        m_Texture: {fileID: 2800000, guid: 5177befc12f3f8543828689be98cfb30, type: 3}
+        m_Texture: {fileID: 2800000, guid: 8ebf9a6dd15b4a84bbe0a0bee2cfbcbe, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _CH2:
@@ -59,6 +59,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _CH4:
         m_Texture: {fileID: 2800000, guid: 4821ed7e8d065ef40b509f053993e50e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DefaultWhiteTex:
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
