@@ -3105,7 +3105,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 frozenCullingParamAvailable = false;
             }
 
+
             cullingParams.conservativeEnclosingSphere = currentAsset.m_ShouldUseConservativeEnclosingSphere;
+            cullingParams.numIterationsEnclosingSphere = currentAsset.m_NumIterationsEnclosingSphere;
             LightLoopUpdateCullingParameters(ref cullingParams, hdCamera);
 
             // If we don't use environment light (like when rendering reflection probes)
