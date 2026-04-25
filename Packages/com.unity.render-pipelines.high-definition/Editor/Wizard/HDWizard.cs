@@ -391,6 +391,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 });
         }
 
+        public static List<MaterialUpgrader> GetHDUpgraders()
+        {
+            return MaterialUpgrader.FetchAllUpgradersForPipeline(typeof(HDRenderPipelineAsset));
+        }
         private void CreateGUI()
         {
             UpdateWindowTitle();
@@ -431,8 +435,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             container.Add(CreateTitle(Style.migrationTitle));
 
-            if (MaterialUpgrader.ProjectContainsNonAutomaticUpgradePath(
-                    MaterialUpgraderEditMenus.GetHDUpgraders()))
+            if (MaterialUpgrader.ProjectContainsNonAutomaticUpgradePath(GetHDUpgraders()))
             {
                 var nonBuiltinMaterialHelpBox = new HelpBox(Style.nonAutomaticUpgradeMaterials, HelpBoxMessageType.Warning);
                 nonBuiltinMaterialHelpBox.AddToClassList("NonBuiltinMaterialWarning");
