@@ -1318,7 +1318,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_PreviewPanelSettings.ApplyPanelSettings();
 
                     var panel = m_PreviewPanelSettings.panel;
-                    panel.Repaint(Event.current);
+                    panel.Repaint();
                     panel.Render();
                 }
                 else
