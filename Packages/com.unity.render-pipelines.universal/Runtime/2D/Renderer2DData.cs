@@ -112,6 +112,8 @@ namespace UnityEngine.Rendering.Universal
 
             CoreUtils.Destroy(spriteSelfShadowMaterial);
             CoreUtils.Destroy(spriteUnshadowMaterial);
+            CoreUtils.Destroy(spriteSelfShadowMaterialSkinned);
+            CoreUtils.Destroy(spriteUnshadowMaterialSkinned);
             CoreUtils.Destroy(geometrySelfShadowMaterial);
             CoreUtils.Destroy(geometryUnshadowMaterial);
             CoreUtils.Destroy(projectedShadowMaterial);
@@ -130,6 +132,8 @@ namespace UnityEngine.Rendering.Universal
 
             spriteSelfShadowMaterial = null;
             spriteUnshadowMaterial = null;
+            spriteSelfShadowMaterialSkinned = null;
+            spriteUnshadowMaterialSkinned = null;
             projectedShadowMaterial = null;
             projectedUnshadowMaterial = null;
         }
@@ -138,6 +142,8 @@ namespace UnityEngine.Rendering.Universal
         internal Dictionary<uint, Material> lightMaterials { get; } = new Dictionary<uint, Material>();
         internal Material spriteSelfShadowMaterial { get; set; }
         internal Material spriteUnshadowMaterial { get; set; }
+        internal Material spriteSelfShadowMaterialSkinned { get; set; }
+        internal Material spriteUnshadowMaterialSkinned { get; set; }
         internal Material geometrySelfShadowMaterial { get; set; }
         internal Material geometryUnshadowMaterial { get; set; }
         internal Material projectedShadowMaterial { get; set; }

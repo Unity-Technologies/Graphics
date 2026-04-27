@@ -7,6 +7,10 @@ using Unity.Collections;
 using UnityEngine.U2D;
 #endif
 
+#if USING_2DANIMATION
+using UnityEngine.U2D.Animation;
+#endif
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -125,6 +129,38 @@ namespace UnityEngine.Rendering.Universal
 
             return rendererData.spriteUnshadowMaterial;
         }
+
+#if USING_2DANIMATION
+        private const string k_SkinnedSpriteKeyword = "SKINNED_SPRITE";
+
+        private static Material GetSpriteShadowMaterialSkinned(this Renderer2DData rendererData)
+        {
+            if (rendererData.spriteSelfShadowMaterialSkinned != null)
+                return rendererData.spriteSelfShadowMaterialSkinned;
+
+            var baseMaterial = rendererData.GetSpriteShadowMaterial();
+            if (baseMaterial == null || !baseMaterial.shader.isSupported)
+                return null;
+
+            rendererData.spriteSelfShadowMaterialSkinned = new Material(baseMaterial);
+            rendererData.spriteSelfShadowMaterialSkinned.EnableKeyword(k_SkinnedSpriteKeyword);
+            return rendererData.spriteSelfShadowMaterialSkinned;
+        }
+
+        private static Material GetSpriteUnshadowMaterialSkinned(this Renderer2DData rendererData)
+        {
+            if (rendererData.spriteUnshadowMaterialSkinned != null)
+                return rendererData.spriteUnshadowMaterialSkinned;
+
+            var baseMaterial = rendererData.GetSpriteUnshadowMaterial();
+            if (baseMaterial == null || !baseMaterial.shader.isSupported)
+                return null;
+
+            rendererData.spriteUnshadowMaterialSkinned = new Material(baseMaterial);
+            rendererData.spriteUnshadowMaterialSkinned.EnableKeyword(k_SkinnedSpriteKeyword);
+            return rendererData.spriteUnshadowMaterialSkinned;
+        }
+#endif
 
         private static Material GetGeometryShadowMaterial(this Renderer2DData rendererData)
         {
@@ -276,6 +312,22 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        /// <summary>
+        /// Use skinned sprite shadow materials only when this caster uses the SpriteSkin shape provider and
+        /// GPU deformation is active for that sprite (per <see cref="UnityEngine.U2D.Animation.SpriteSkinUtility.IsGpuDeformationActive"/>).
+        /// Materials are created like non-skinned variants; no null check here.
+        /// </summary>
+        static bool ShouldUseSkinnedSpriteShadowMaterials(ShadowCaster2D shadowCaster, Renderer renderer)
+        {
+#if USING_2DANIMATION
+            if (shadowCaster.shadowShape2DProvider is not ShadowShape2DProvider_SpriteSkin)
+                return false;
+            return renderer is SpriteRenderer spriteRenderer && SpriteSkinUtility.IsGpuDeformationActive(spriteRenderer);
+#else
+            return false;
+#endif
+        }
+
         static Renderer GetRendererFromCaster(ShadowCaster2D shadowCaster, Light2D light, int layerToRender)
         {
             Renderer renderer = null;
@@ -335,7 +387,7 @@ namespace UnityEngine.Rendering.Universal
             return numberOfSubmeshes;
         }
 
-        private static void RenderSpriteShadow(UnsafeCommandBuffer cmdBuffer, int layerToRender, Light2D light, List<ShadowCaster2D> shadowCasters, Material spriteShadowMaterial, Material spriteUnshadowMaterial, Material geometryShadowMaterial, Material geometryUnshadowMaterial, int pass, ShadowTestType shadowTestType)
+        private static void RenderSpriteShadow(UnsafeCommandBuffer cmdBuffer, int layerToRender, Light2D light, List<ShadowCaster2D> shadowCasters, Material spriteShadowMaterial, Material spriteUnshadowMaterial, Material geometryShadowMaterial, Material geometryUnshadowMaterial, Material spriteShadowMaterialSkinned, Material spriteUnshadowMaterialSkinned, int pass, ShadowTestType shadowTestType)
         {
             //Draw the sprites, either as self shadowing or unshadowing
             for (var i = 0; i < shadowCasters.Count; i++)
@@ -352,18 +404,22 @@ namespace UnityEngine.Rendering.Universal
 
                     if (renderer != null)
                     {
+                        bool useSkinnedMaterials = ShouldUseSkinnedSpriteShadowMaterials(shadowCaster, renderer);
+                        var shadowMat = useSkinnedMaterials ? spriteShadowMaterialSkinned : spriteShadowMaterial;
+                        var unshadowMat = useSkinnedMaterials ? spriteUnshadowMaterialSkinned : spriteUnshadowMaterial;
+
                         if (ShadowCasterIsVisible(shadowCaster) && shadowCaster.selfShadows)
                         {
                             int numberOfSubmeshes = GetRendererSubmeshes(renderer, shadowCaster);
                             for (int submeshIndex = 0; submeshIndex < numberOfSubmeshes; submeshIndex++)
-                                cmdBuffer.DrawRenderer(renderer, spriteShadowMaterial, submeshIndex, pass);
+                                cmdBuffer.DrawRenderer(renderer, shadowMat, submeshIndex, pass);
                         }
                         else
                         {
                             int numberOfSubmeshes = GetRendererSubmeshes(renderer, shadowCaster);
                             for (int submeshIndex = 0; submeshIndex < numberOfSubmeshes; submeshIndex++)
                             {
-                                cmdBuffer.DrawRenderer(renderer, spriteUnshadowMaterial, submeshIndex, pass);
+                                cmdBuffer.DrawRenderer(renderer, unshadowMat, submeshIndex, pass);
 
                             }
                         }
@@ -408,6 +464,13 @@ namespace UnityEngine.Rendering.Universal
                 var projectedUnshadowMaterial = rendererData.GetProjectedUnshadowMaterial();
                 var spriteShadowMaterial = rendererData.GetSpriteShadowMaterial();
                 var spriteUnshadowMaterial = rendererData.GetSpriteUnshadowMaterial();
+#if USING_2DANIMATION
+                var spriteShadowMaterialSkinned = rendererData.GetSpriteShadowMaterialSkinned();
+                var spriteUnshadowMaterialSkinned = rendererData.GetSpriteUnshadowMaterialSkinned();
+#else
+                Material spriteShadowMaterialSkinned = null;
+                Material spriteUnshadowMaterialSkinned = null;
+#endif
                 var geometryShadowMaterial = rendererData.GetGeometryShadowMaterial();
                 var geometryUnshadowMaterial = rendererData.GetGeometryUnshadowMaterial();
 
@@ -417,13 +480,13 @@ namespace UnityEngine.Rendering.Universal
                     var shadowCasters = layer.shadowCasters[group].GetShadowCasters();
 
                     // Render self shadowing or non self shadowing
-                    RenderSpriteShadow(cmdBuffer, layer.startLayerID, light, shadowCasters, spriteShadowMaterial, spriteUnshadowMaterial, geometryShadowMaterial, geometryUnshadowMaterial, 0, ShadowTestType.Always);
+                    RenderSpriteShadow(cmdBuffer, layer.startLayerID, light, shadowCasters, spriteShadowMaterial, spriteUnshadowMaterial, geometryShadowMaterial, geometryUnshadowMaterial, spriteShadowMaterialSkinned, spriteUnshadowMaterialSkinned, 0, ShadowTestType.Always);
                     // Draw the projected shadows for the shadow caster group. Only writes the composite stencil bit
                     RenderProjectedShadows(cmdBuffer, layer.startLayerID, light, shadowCasters, projectedShadowMaterial, 0, ShadowTestType.Always);
                     // Draw the projected shadows for the shadow caster group. Only writes the composite stencil bit
                     RenderProjectedShadows(cmdBuffer, layer.startLayerID, light, shadowCasters, projectedShadowMaterial, 1, ShadowTestType.Unshadow);
                     //Render self shadowing or non self shadowing
-                    RenderSpriteShadow(cmdBuffer, layer.startLayerID, light, shadowCasters, spriteShadowMaterial, spriteUnshadowMaterial, geometryShadowMaterial, geometryUnshadowMaterial, 1, ShadowTestType.Unshadow);
+                    RenderSpriteShadow(cmdBuffer, layer.startLayerID, light, shadowCasters, spriteShadowMaterial, spriteUnshadowMaterial, geometryShadowMaterial, geometryUnshadowMaterial, spriteShadowMaterialSkinned, spriteUnshadowMaterialSkinned, 1, ShadowTestType.Unshadow);
                 }
             }
         }
