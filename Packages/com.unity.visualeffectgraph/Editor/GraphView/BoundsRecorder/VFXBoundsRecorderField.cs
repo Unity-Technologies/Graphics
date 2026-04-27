@@ -30,10 +30,6 @@ namespace UnityEditor.VFX.UI
 
         private bool m_Selected = false;
 
-        [System.Obsolete("VFXBoundsRecorderFieldUIFactory is deprecated and will be removed. Use UxmlElementAttribute instead.", false)]
-        public class VFXBoundsRecorderFieldUIFactory : UxmlFactory<VFXBoundsRecorderField>
-        { }
-
         IVisualElementScheduledItem m_UpdateItem;
 
         private VFXContextUI m_TiedContext;

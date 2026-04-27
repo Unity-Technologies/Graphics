@@ -5,10 +5,6 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    [System.Obsolete("ResizableElementFactory is deprecated and will be removed. Use UxmlElementAttribute instead.", false)]
-    class ResizableElementFactory : UxmlFactory<ResizableElement>
-    { }
-
     [UxmlElement]
     partial class ResizableElement : VisualElement
     {

@@ -8,10 +8,6 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    [System.Obsolete("VFXContextBorderFactory is deprecated and will be removed. Use UxmlElementAttribute instead.", false)]
-    class VFXContextBorderFactory : UxmlFactory<VFXContextBorder>
-    { }
-
     [UxmlElement]
     partial class VFXContextBorder : ImmediateModeElement, IDisposable
     {
