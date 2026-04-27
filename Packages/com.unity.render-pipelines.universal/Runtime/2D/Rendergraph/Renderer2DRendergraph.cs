@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.Universal
         int m_BatchCount;
 
         bool ppcUpscaleRT = false;
+        static internal bool s_IsLightingActive;
 
         private struct ImportResourceSummary
         {
@@ -202,8 +203,10 @@ namespace UnityEngine.Rendering.Universal
         void InitializeLayerBatches()
         {
             Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
             m_LayerBatches = LayerUtility.CalculateBatches(m_Renderer2DData, out m_BatchCount);
+            s_IsLightingActive = IsSceneViewOrPreviewLightingActive(cameraData);
 
             // Initialize textures dependent on batch size
             if (resourceData.normalsTexture.Length != m_BatchCount)
@@ -856,6 +859,22 @@ namespace UnityEngine.Rendering.Universal
             m_RenderGraphBackbufferDepthHandle?.Release();
             m_CameraSortingLayerHandle?.Release();
             Light2DLookupTexture.Release();
+        }
+
+        static internal bool IsSceneViewOrPreviewLightingActive(UniversalCameraData cameraData)
+        {
+            DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(cameraData);
+            var isLightingActive = debugHandler?.IsLightingActive ?? true;
+
+#if UNITY_EDITOR
+            if (cameraData.isSceneViewCamera && UnityEditor.SceneView.currentDrawingSceneView != null)
+                isLightingActive &= UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
+
+            if (cameraData.isPreviewCamera && cameraData.camera.name == "Preview Scene Camera")
+                isLightingActive = false;
+#endif
+
+            return isLightingActive;
         }
     }
 }
