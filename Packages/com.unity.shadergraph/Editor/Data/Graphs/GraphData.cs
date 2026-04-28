@@ -301,6 +301,12 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         string m_Path;
 
+        [SerializeField]
+        internal bool m_DeprecateSubgraph;
+
+        [SerializeField]
+        internal string m_DeprecateSubgraphMessage;
+
         public string path
         {
             get { return m_Path; }

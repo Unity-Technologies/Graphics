@@ -469,6 +469,33 @@ Uncheck the checkbox to temporarily disable the define.";
                     "Preview",
                     PreviewMode.Inherit,
                     out var propertyVisualElement));
+
+                var deprecationToggle = new BoolPropertyDrawer();
+                propertySheet.Add(deprecationToggle.CreateGUI(
+                    newValue =>
+                    {
+                        graphData.owner.RegisterCompleteObjectUndo("Change Deprecation State");
+                        graphData.m_DeprecateSubgraph = newValue;
+                        this.m_postChangeTargetSettingsCallback();
+                    },
+                    graphData.m_DeprecateSubgraph,
+                    "Deprecate",
+                    out _
+                    ));
+
+                if (graphData.m_DeprecateSubgraph)
+                {
+                    var deprecationMsg = new TextPropertyDrawer();
+                    propertySheet.Add(deprecationMsg.CreateGUI(
+                        newValue =>
+                        {
+                            graphData.owner.RegisterCompleteObjectUndo("Change Deprecation Message");
+                            graphData.m_DeprecateSubgraphMessage = newValue;
+                        },
+                        graphData.m_DeprecateSubgraphMessage,
+                        "Deprecation Message"
+                        ));
+                }
             }
 
             propertySheet.Add(GetSettings(graphData, () => this.m_postChangeTargetSettingsCallback()));

@@ -196,6 +196,8 @@ namespace UnityEditor.ShaderGraph
             asset.functionName = $"SG_{asset.hlslName}_{asset.assetGuid}_$precision";
             asset.path = graph.path;
             asset.documentationPath = documentationPath;
+            asset.isDeprecated = graph.m_DeprecateSubgraph;
+            asset.deprecationMessage = graph.m_DeprecateSubgraphMessage;
 
             var outputNode = graph.outputNode;
             var outputSlots = UnityEngine.Pool.ListPool<MaterialSlot>.Get();

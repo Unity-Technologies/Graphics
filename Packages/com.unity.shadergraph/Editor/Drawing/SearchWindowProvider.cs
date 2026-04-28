@@ -180,7 +180,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateSubgraphAssets");
             foreach (var asset in NodeClassCache.knownSubGraphAssets)
             {
-                if (asset == null)
+                if (asset == null || asset.isDeprecated)
                     continue;
 
                 var node = new SubGraphNode { asset = asset };
