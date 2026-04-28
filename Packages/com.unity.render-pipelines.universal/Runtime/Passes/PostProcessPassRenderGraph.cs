@@ -1255,7 +1255,7 @@ namespace UnityEngine.Rendering.Universal
                             Matrix4x4 nonJitteredViewProjMatrix_k = GL.GetGPUProjectionMatrix(data.cameraData.GetProjectionMatrixNoJitter(xrIdx), true) * data.cameraData.GetViewMatrix(xrIdx);
 
                             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
-                                data.material, data.cameraData.camera, data.viewport, xr, data.cameraData.xr.multipassId,
+                                data.material, data.cameraData.camera, data.viewport, xr, xrIdx,
                                 data.width, data.height,
                                 data.usePanini, data.paniniDistance, data.paniniCropToFit,
                                 true,

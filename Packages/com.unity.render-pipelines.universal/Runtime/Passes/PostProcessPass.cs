@@ -1106,7 +1106,7 @@ namespace UnityEngine.Rendering.Universal
                     Matrix4x4 gpuVPXR = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrixNoJitter(xrIdx), true) * cameraData.GetViewMatrix(xrIdx);
 
                     LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
-                    m_Materials.lensFlareDataDriven, camera, pixelRect, cameraData.xr, cameraData.xr.multipassId,
+                    m_Materials.lensFlareDataDriven, camera, pixelRect, cameraData.xr, xrIdx,
                     (float)m_Descriptor.width, (float)m_Descriptor.height,
                     usePanini, paniniDistance, paniniCropToFit, true,
                     camera.transform.position,
