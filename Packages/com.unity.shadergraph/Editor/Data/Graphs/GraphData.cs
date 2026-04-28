@@ -2070,6 +2070,7 @@ namespace UnityEditor.ShaderGraph
             m_GraphPrecision = other.m_GraphPrecision;
             m_PreviewMode = other.m_PreviewMode;
             m_OutputNode = other.m_OutputNode;
+            m_SubDatas.CopyFrom(other.m_SubDatas);
 
             if ((this.vertexContext.position != other.vertexContext.position) ||
                 (this.fragmentContext.position != other.fragmentContext.position))
