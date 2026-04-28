@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering
 {
@@ -65,7 +64,7 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
-        /// Assign the global default default profile to VolumeManager. Ensures that defaultVolumeProfile contains
+        /// Assign the global default profile to VolumeManager. Ensures that defaultVolumeProfile contains
         /// overrides for every component. If defaultValueSource is provided, it will be used as the source for
         /// default values instead of default-constructing them.
         /// If components will be added to the profile, a confirmation dialog is displayed.
