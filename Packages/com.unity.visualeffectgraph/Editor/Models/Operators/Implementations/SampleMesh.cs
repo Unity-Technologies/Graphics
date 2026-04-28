@@ -445,7 +445,11 @@ To avoid this, change the input Transform space from Local to World or None.";
             var outputType = GetSampledType(vertexAttribute);
             VFXExpression sampled = null;
 
-            vertexIndex = new VFXExpressionMin(vertexIndex, new VFXExpressionMeshVertexCount(mesh));
+            var count = new VFXExpressionMeshVertexCount(mesh);
+            var safeCount = new VFXExpressionMax(count, VFXOperatorUtility.OneExpression[VFXValueType.Uint32]);
+            var countMinusOne = safeCount - VFXOperatorUtility.OneExpression[VFXValueType.Uint32];
+
+            vertexIndex = new VFXExpressionMin(vertexIndex, countMinusOne);
             var meshChannelFormatAndDimension = new VFXExpressionMeshChannelInfos(mesh, channelIndex);
             var vertexOffset = vertexIndex * meshVertexStride + meshChannelOffset;
 

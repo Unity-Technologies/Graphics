@@ -33,7 +33,6 @@ namespace UnityEngine.VFX.Test
         [IgnoreGraphicsTest("102_ShadergraphShadow", "See UUM-96202", RuntimePlatform.Switch)]
         [IgnoreGraphicsTest("015_FixedTime", "See UUM-109089", RuntimePlatform.Switch)]
         [IgnoreGraphicsTest("DebugAlbedo", "Onscreen assert", RuntimePlatform.Switch2)]
-        [IgnoreGraphicsTest("36_SkinnedSDF", "Onscreen assert", RuntimePlatform.Switch2)]
         [IgnoreGraphicsTest("015_FixedTime", "Onscreen assert", RuntimePlatform.Switch2)]
         [IgnoreGraphicsTest("Repro_SampleGradient_Branch_Instancing", "Compute shader ([Repro_SampleGradient_Branch_Instancing] [Minimal] Update Particles): Property (Repro_SampleGradient_Branch_Instancing_Buffer) at kernel index (0) is not set")]
         [IgnoreGraphicsTest("Empty", "No reference images provided")]

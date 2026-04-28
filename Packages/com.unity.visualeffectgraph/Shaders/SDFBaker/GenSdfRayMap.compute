@@ -74,7 +74,14 @@ uint LoadIndex32(uint idx)
 float3 GetVertexObj(uint idThread, uint idVertex)
 {
     uint idIndex = (3 * idThread + idVertex);
-    uint index = indexStride == 2 ? LoadIndex16(idIndex) : LoadIndex32(idIndex);
+    
+    uint index;
+    UNITY_BRANCH
+    if (indexStride == 2)
+        index = LoadIndex16(idIndex);
+    else 
+        index = LoadIndex32(idIndex);
+        
     uint vertIdx =  vertexPositionOffset + index * vertexStride;
     uint3 vRaw = vertices.Load3(vertIdx);
     return asfloat(vRaw);
@@ -205,7 +212,7 @@ RWStructuredBuffer<uint> Result ;
 #define groupthreads 512
 groupshared uint2 bucket[groupthreads];
 
-void PrefixSum(uint id, uint gid, uint x)
+void PrefixSum(uint id, uint gid, uint x, bool valid)
 {
     uint thid = id;
     //load input into shared memory
@@ -269,7 +276,9 @@ void PrefixSum(uint id, uint gid, uint x)
         }
         n = !n;
     }
-    Result[thid] = bucket[gid].y; //Careful, works for groupthreads = 512 (2^(2n+1))
+    
+    if (valid)
+        Result[thid] = bucket[gid].y; //Careful, works for groupthreads = 512 (2^(2n+1))
 }
 uint numElem;
 uint dispatchWidth;
@@ -279,30 +288,34 @@ void InBucketSum(uint3 GTid: SV_GroupThreadID, uint GI: SV_GroupIndex, uint3 gro
     uint x;
     const uint id = GTid.x + groupId.x * groupthreads + groupId.y * dispatchWidth * groupthreads;
 
-    if(id >= numElem)
+    bool valid = id < numElem;
+    UNITY_BRANCH
+    if(!valid)
     {
         x = 0u;
     }
     else{
         x = Input[id];
     }
-    PrefixSum(id, GI, x);
+    PrefixSum(id, GI, x, valid);
 }
 
 [numthreads(groupthreads, 1, 1)]
 void BlockSums(uint3 DTid: SV_DispatchThreadID, uint GI: SV_GroupIndex)
 {
-    uint x ;
-    if((DTid.x + 1) * groupthreads -1  >= numElem )
+    uint x;
+    uint idx = (DTid.x + 1) * groupthreads - 1;
+    bool validWrite = DTid.x * groupthreads < numElem;
+    UNITY_BRANCH
+    if (idx >= numElem)
     {
         x = 0u;
     }
     else
     {
-        uint id = (DTid.x + 1) * groupthreads - 1;
-        x = Input[id] + inputCounter[id]; // Change the type of x here if scan other types
+        x = Input[idx] + inputCounter[idx]; // Change the type of x here if scan other types
     }
-    PrefixSum(DTid.x, GI, x);
+    PrefixSum(DTid.x, GI, x, validWrite);
 }
 
 bool exclusive;
