@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.Universal
             RendererLighting.SetLightShaderGlobals(cmd, passData.lightBlendStyles, passData.blendStyleIndices);
 
 #if UNITY_EDITOR
-            if (passData.isLitView)
+            if (passData.isLightingActive)
 #endif
             {
                 if (passData.layerUseLights)
@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering.Universal
             internal bool activeDebugHandler;
 
 #if UNITY_EDITOR
-            internal bool isLitView; // Required for prefab view and preview camera
+            internal bool isLightingActive; // Required for prefab view and preview camera
 #endif
         }
 
@@ -100,35 +100,23 @@ namespace UnityEngine.Rendering.Universal
             CommonResourceData commonResourceData = frameData.Get<CommonResourceData>();
 
             var layerBatch = layerBatches[batchIndex];
-            bool isLitView = true;
 
-#if UNITY_EDITOR
-            // Early out for prefabs
-            if (cameraData.isSceneViewCamera && UnityEditor.SceneView.currentDrawingSceneView != null)
-                isLitView = UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
-
-            // Early out for preview camera
-            if (cameraData.cameraType == CameraType.Preview)
-                isLitView = false;
-
-            DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
-            if (debugHandler != null)
-                isLitView = debugHandler.IsLightingActive;
-#endif
+            // Check for lighting in scene/prefab/preview camera 
+            var isLightingActive = Renderer2D.s_IsLightingActive;
 
             // Preset global light textures for first batch
             if (batchIndex == 0)
             {
                 using (var builder = graph.AddRasterRenderPass<SetGlobalPassData>(k_SetLightBlendTexture, out var passData, m_SetLightBlendTextureProfilingSampler))
                 {
-                    if (layerBatch.lightStats.useLights && isLitView)
+                    if (layerBatch.lightStats.useLights && isLightingActive)
                     {
                         passData.lightTextures = universal2DResourceData.lightTextures[batchIndex];
                         for (var i = 0; i < passData.lightTextures.Length; i++)
                             builder.UseTexture(passData.lightTextures[i]);
                     }
 
-                    SetGlobalLightTextures(graph, builder, passData.lightTextures, ref layerBatch, rendererData, isLitView);
+                    SetGlobalLightTextures(graph, builder, passData.lightTextures, ref layerBatch, rendererData, isLightingActive);
 
                     builder.AllowGlobalStateModification(true);
 
@@ -147,7 +135,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.isSceneLit = rendererData.lightCullResult.IsSceneLit();
                 passData.layerUseLights = layerBatch.lightStats.useLights;
 #if UNITY_EDITOR
-                passData.isLitView = isLitView;
+                passData.isLightingActive = isLightingActive;
 #endif
 
                 var drawSettings = CreateDrawingSettings(k_ShaderTags, renderingData, cameraData, lightData, SortingCriteria.CommonTransparent);
@@ -172,7 +160,7 @@ namespace UnityEngine.Rendering.Universal
                     builder.UseRendererList(passData.rendererList);
                 }
 
-                if (passData.layerUseLights && isLitView)
+                if (passData.layerUseLights && isLightingActive)
                 {
                     passData.lightTextures = universal2DResourceData.lightTextures[batchIndex];
                     for (var i = 0; i < passData.lightTextures.Length; i++)
@@ -193,7 +181,7 @@ namespace UnityEngine.Rendering.Universal
                 // Post set global light textures for next renderer pass 
                 var nextBatch = batchIndex + 1;
                 if (nextBatch < universal2DResourceData.lightTextures.Length)
-                    SetGlobalLightTextures(graph, builder, universal2DResourceData.lightTextures[nextBatch], ref layerBatches[nextBatch], rendererData, isLitView);
+                    SetGlobalLightTextures(graph, builder, universal2DResourceData.lightTextures[nextBatch], ref layerBatches[nextBatch], rendererData, isLightingActive);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
@@ -202,9 +190,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void SetGlobalLightTextures(RenderGraph graph, IRasterRenderGraphBuilder builder, TextureHandle[] lightTextures, ref LayerBatch layerBatch, Renderer2DData rendererData, bool isLitView)
+        void SetGlobalLightTextures(RenderGraph graph, IRasterRenderGraphBuilder builder, TextureHandle[] lightTextures, ref LayerBatch layerBatch, Renderer2DData rendererData, bool isLightingActive)
         {
-            if (isLitView)
+            if (isLightingActive)
             {
                 if (layerBatch.lightStats.useLights)
                 {
