@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal const string k_LightShapePath = k_LightPath + "ShapeHDRP";
         internal const string k_LightIntensityPath = k_LightPath + "Intensity";
         internal const string k_LightIntensityUnitPath = k_LightPath + "IntensityUnit";
+        internal const string k_LightLayerPath = k_LightPath + "LightLayer";
         internal const string k_LightModePath = k_LightPath + "ModeHDRP";
         internal const string k_ContactShadowsPath = k_LightPath + "ContactShadows";
         internal const string k_ShadowResolutionPath = k_LightPath + "ShadowResolution";
@@ -230,6 +231,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             };
         }
+
 
         [SearchColumnProvider(k_ReflectionProbeResolutionPath)]
         public static void ReflectionProbeResolutionSearchColumnProvider(SearchColumn column)
