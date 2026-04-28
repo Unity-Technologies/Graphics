@@ -44,6 +44,15 @@ namespace Unity.Rendering.Universal.Tests
             var settings = Object.FindAnyObjectByType<UniversalGraphicsTestSettings>();
             Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
 
+            // Tests need higher threshold on AMD due to platform-specific rendering precision differences
+            bool isAMD = SystemInfo.graphicsDeviceVendor.Contains("amd", StringComparison.InvariantCultureIgnoreCase) ||
+                         SystemInfo.graphicsDeviceVendor.Contains("ati", StringComparison.InvariantCultureIgnoreCase);
+            if (isAMD)
+            {
+                settings.ImageComparisonSettings.AverageCorrectnessThreshold = Math.Max(settings.amdMinThreshold, settings.ImageComparisonSettings.AverageCorrectnessThreshold);
+                settings.ImageComparisonSettings.PerPixelCorrectnessThreshold = Math.Max(settings.amdMinThreshold, settings.ImageComparisonSettings.PerPixelCorrectnessThreshold);
+            }
+
 #if OCULUS_SDK || OPENXR_SDK
             if(!settings.XRCompatible)
             {
