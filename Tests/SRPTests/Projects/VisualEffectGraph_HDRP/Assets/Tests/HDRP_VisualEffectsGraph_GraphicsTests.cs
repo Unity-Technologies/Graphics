@@ -29,7 +29,6 @@ namespace UnityEngine.VFX.Test
         [IgnoreGraphicsTest("027_RWTexture", "See UUM-140411, might relate with UUM-119810", RuntimePlatform.OSXEditor)]
         [IgnoreGraphicsTest("36_SkinnedSDF", "See UUM-66822 and VFXG-539", RuntimePlatform.GameCoreXboxOne, RuntimePlatform.Switch)]
         [IgnoreGraphicsTest("39_SmokeLighting_APV", "Too many bindings when using APVs", RuntimePlatform.Switch)]
-        [IgnoreGraphicsTest("44_SDFBakerSlices", "See UUM-139282", RuntimePlatform.Switch)]
         [IgnoreGraphicsTest("102_ShadergraphShadow", "See UUM-96202", RuntimePlatform.Switch)]
         [IgnoreGraphicsTest("015_FixedTime", "See UUM-109089", RuntimePlatform.Switch)]
         [IgnoreGraphicsTest("DebugAlbedo", "Onscreen assert", RuntimePlatform.Switch2)]
