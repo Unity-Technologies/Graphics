@@ -71,7 +71,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             Dictionary<DataViewId, int> addedDataViewIds = new();
             LinearMultiTree<DataViewId> dataNodeToDataViews = new();
 
-            int InsertDataView(DataViewId dataViewId, LinearMultiTree<DataViewId> dataNodeToDataViews, Dictionary<DataViewId, int> addedDataViewIds)
+            int InsertDataView(DataViewId dataViewId, LinearMultiTree<DataViewId> dataNodeToDataViews, Dictionary<DataViewId, int> addedDataViewIds, bool addChildren = true)
             {
                 int index = -1;
                 if (addedDataViewIds.TryGetValue(dataViewId, out index))
@@ -81,7 +81,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 var parentDataViewId = m_DataViews[dataViewId].ParentDataViewId;
                 if (parentDataViewId.IsValid)
                 {
-                    parentIndex = InsertDataView(parentDataViewId, dataNodeToDataViews, addedDataViewIds);
+                    parentIndex = InsertDataView(parentDataViewId, dataNodeToDataViews, addedDataViewIds, false);
                 }
 
                 int childCount = 0;
@@ -93,6 +93,15 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 //Debug.Log($"Adding data view {dataViewId} with parent {parentDataViewId} and child count {childCount}");
                 index = dataNodeToDataViews.AddItem(dataViewId, parentIndex, childCount);
                 addedDataViewIds.Add(dataViewId, index);
+
+                if (addChildren)
+                {
+                    foreach (var childDataView in DataViewTrees.Data[dataViewId.Index].Children)
+                    {
+                        InsertDataView(childDataView.Data, dataNodeToDataViews, addedDataViewIds);
+                    }
+                }
+
                 return index;
             }
 

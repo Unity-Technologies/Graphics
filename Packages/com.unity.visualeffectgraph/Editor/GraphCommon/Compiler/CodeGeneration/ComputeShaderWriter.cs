@@ -1,4 +1,4 @@
-using UnityEngine;
+using UnityEditor.VFX;
 
 namespace Unity.GraphCommon.LowLevel.Editor
 {
@@ -10,7 +10,10 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
             Pragma("kernel CSMain");
             Pragma("only_renderers d3d11 glcore gles3 metal vulkan xboxone xboxone xboxseries playstation ps5 switch webgpu");
-            //Pragma("enable_debug_symbols");
+            if (VFXViewPreference.generateShadersWithDebugSymbols)
+            {
+                Pragma("enable_debug_symbols");
+            }
             NewLine();
         }
 

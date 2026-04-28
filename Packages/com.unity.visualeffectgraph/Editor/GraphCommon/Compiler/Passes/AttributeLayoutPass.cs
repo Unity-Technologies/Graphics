@@ -154,6 +154,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             }
         }
         private List<AttributeBucket> m_AttributeBuckets;
+        public uint Count => (uint)m_AttributeLayouts.Count;
         public uint Capacity { get; }
         private Dictionary<Attribute, AttributeLayoutInfo> m_AttributeLayouts;
 

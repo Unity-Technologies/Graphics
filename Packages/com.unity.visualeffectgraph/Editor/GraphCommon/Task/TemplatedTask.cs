@@ -157,7 +157,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <summary>
         /// The collection of subtasks to compose the task.
         /// </summary>
-        public IEnumerable<SubtaskDescription> Subtasks;
+        public List<SubtaskDescription> Subtasks;
 
         /// <summary>
         /// The data key used for the default attribute set.

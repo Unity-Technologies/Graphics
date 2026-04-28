@@ -8,50 +8,53 @@ namespace UnityEditor.VFX
     {
         public bool Execute(ref CompilationContext context)
         {
-            var particleSystemContainer = context.data.GetOrCreate<VfxGraphLegacyParticleSystemContainer>();
-            var traverser = context.graph.CreateTraverser();
-
-            List<DataViewId> particleDataViewIds = new(); //TODO: Temp
+            List<TaskNodeId> systemTaskNodeIds = new(); //TODO: Temp, due to graph being fully invalidated when changing data
 
             foreach (var taskNode in context.graph.TaskNodes)
             {
                 if (taskNode.Task is PlaceholderSystemTask systemTask)
                 {
-                    var particleDataView = taskNode.DataBindings[0].DataView;
-                    if (particleDataView.DataDescription is ParticleData particleData)
-                    {
-                        var particleSystem = new VfxGraphLegacyParticleSystemContainer.ParticleSystem($"ParticleSystem{particleSystemContainer.Count + 1}");
-                        particleSystem.Capacity = particleData.Capacity;
-                        CollectTasks(traverser, taskNode, particleSystem);
-                        particleSystemContainer.Add(particleSystem);
-
-                        if (particleDataView.FindSubData(ParticleData.AttributeDataKey, out var attributeDataView))
-                        {
-                            var attributeData = attributeDataView.DataDescription as AttributeData;
-                            var layoutCompilationData = context.data.Get<AttributeSetLayoutCompilationData>();
-                            var layout = layoutCompilationData[attributeData];
-                            if (layout.ContainsAttribute(VFXAttributesManager.ConvertToNewCompiler(VFXAttribute.Alive)))
-                            {
-                                particleDataViewIds.Add(particleDataView.Id); // TODO: Temp, get deadlist subdata here directly, when data change does not invalidate task iterators
-                            }
-                        }
-                    }
+                    systemTaskNodeIds.Add(taskNode.Id);
                 }
             }
-            // TODO: Temp
-            foreach(var particleDataViewId in particleDataViewIds)
+            var particleSystemContainer = context.data.GetOrCreate<VfxGraphLegacyParticleSystemContainer>();
+            var layoutCompilationData = context.data.Get<AttributeSetLayoutCompilationData>();
+            var traverser = context.graph.CreateTraverser();
+
+            foreach (var systemTaskNodeId in systemTaskNodeIds)
             {
-                var deadListDataId = context.graph.GetSubdata(particleDataViewId, ParticleData.DeadlistKey);
-                if(deadListDataId.IsValid)
-                    context.graph.OverrideDataDescription(deadListDataId, new DeadListData());
+                var systemTaskNode = context.graph.TaskNodes[systemTaskNodeId];
+
+                var particleDataView = systemTaskNode.DataBindings[0].DataView;
+                if (particleDataView.DataDescription is ParticleData particleData)
+                {
+                    CollectParticleSystem(systemTaskNode, particleDataView, traverser, particleSystemContainer);
+                    GenerateDeadList(systemTaskNode, particleDataView, layoutCompilationData, context.graph);
+                }
             }
+
             return true;
         }
 
-        void CollectTasks(GraphTraverser traverser, TaskNode rootTaskNode, VfxGraphLegacyParticleSystemContainer.ParticleSystem particleSystem)
+        void CollectParticleSystem(TaskNode systemTaskNode, in DataView particleDataView, GraphTraverser traverser, VfxGraphLegacyParticleSystemContainer particleSystemContainer)
         {
-            foreach (var taskNode in traverser.TraverseTaskDownwards(rootTaskNode))
+            var particleSystem = new VfxGraphLegacyParticleSystemContainer.ParticleSystem($"ParticleSystem{particleSystemContainer.Count + 1}");
+            var particleData = particleDataView.DataDescription as ParticleData;
+
+            particleSystem.Capacity = particleData.Capacity;
+            CollectTasks(systemTaskNode, particleDataView, traverser, particleSystemContainer, particleSystem);
+            particleSystemContainer.Add(particleDataView.Id, particleSystem);
+        }
+
+        void CollectTasks(TaskNode systemTaskNode, in DataView particleDataView, GraphTraverser traverser, VfxGraphLegacyParticleSystemContainer particleSystemContainer, VfxGraphLegacyParticleSystemContainer.ParticleSystem particleSystem)
+        {
+            foreach (var taskNode in traverser.TraverseTaskDownwards(systemTaskNode))
             {
+                if (!taskNode.DataBindings.FindDataView(particleDataView.Id).HasValue)
+                {
+                    continue;
+                }
+
                 if (taskNode.Task is TemplatedTask templatedTask)
                 {
                     UnityEngine.VFX.VFXTaskType taskType = UnityEngine.VFX.VFXTaskType.None;
@@ -59,6 +62,16 @@ namespace UnityEditor.VFX
                     {
                         case "Init":
                             taskType = UnityEngine.VFX.VFXTaskType.Initialize;
+
+                            foreach (var dataNode in taskNode.DataNodes)
+                            {
+                                var rootDataView = dataNode.DataContainer.RootDataView;
+                                if (rootDataView.DataDescription is ParticleData && !rootDataView.Id.Equals(particleDataView.Id))
+                                {
+                                    particleSystem.Parent = particleSystemContainer.Find(rootDataView.Id);
+                                }
+                            }
+
                             break;
                         case "Update":
                             taskType = UnityEngine.VFX.VFXTaskType.Update;
@@ -69,7 +82,7 @@ namespace UnityEditor.VFX
                         default:
                             continue;
                     }
-                    var task = new VfxGraphLegacyParticleSystemContainer.Task(templatedTask.TemplateName, taskNode.Id, taskType);
+                    var task = new VfxGraphLegacyParticleSystemContainer.Task(taskNode.Name ?? templatedTask.TemplateName, taskNode.Id, taskType);
                     particleSystem.Tasks.Add(task);
                 }
 
@@ -80,22 +93,41 @@ namespace UnityEditor.VFX
                 }
             }
         }
+
+        void GenerateDeadList(TaskNode systemTaskNode, in DataView particleDataView, AttributeSetLayoutCompilationData layoutCompilationData, IMutableGraph graph)
+        {
+            if (particleDataView.FindSubData(ParticleData.AttributeDataKey, out var attributeDataView))
+            {
+                var attributeData = attributeDataView.DataDescription as AttributeData;
+                var layout = layoutCompilationData[attributeData];
+                if (layout.ContainsAttribute(VFXAttributesManager.ConvertToNewCompiler(VFXAttribute.Alive)))
+                {
+                    if (particleDataView.FindSubData(ParticleData.DeadlistKey, out var deadListData))
+                    {
+                        graph.OverrideDataDescription(deadListData.Id, new DeadListData());
+                    }
+                }
+            }
+        }
     }
 
     class VfxGraphLegacyParticleSystemContainer : IEnumerable, IEnumerable<VfxGraphLegacyParticleSystemContainer.ParticleSystem>
     {
-        readonly List<ParticleSystem> m_ParticleSystems = new();
+        readonly Dictionary<DataViewId, ParticleSystem> m_ParticleSystems = new();
 
         public int Count => m_ParticleSystems.Count;
 
-        public void Add(ParticleSystem particleSystem)
+        public void Add(DataViewId particleDataViewId, ParticleSystem particleSystem) => m_ParticleSystems.Add(particleDataViewId, particleSystem);
+
+        public ParticleSystem Find(DataViewId particleDataViewId)
         {
-            m_ParticleSystems.Add(particleSystem);
+            m_ParticleSystems.TryGetValue(particleDataViewId, out var particleSystem);
+            return particleSystem;
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         IEnumerator<ParticleSystem> IEnumerable<ParticleSystem>.GetEnumerator() => GetEnumerator();
-        public List<ParticleSystem>.Enumerator GetEnumerator() => m_ParticleSystems.GetEnumerator();
+        public Dictionary<DataViewId, ParticleSystem>.ValueCollection.Enumerator GetEnumerator() => m_ParticleSystems.Values.GetEnumerator();
 
         public class ParticleSystem
         {
@@ -104,6 +136,8 @@ namespace UnityEditor.VFX
             public List<Task> Tasks { get; } = new();
 
             public Task SystemTask { get; private set; }
+
+            public ParticleSystem Parent { get; set; }
 
             public void SetSystemTask(Task systemTask)
             {

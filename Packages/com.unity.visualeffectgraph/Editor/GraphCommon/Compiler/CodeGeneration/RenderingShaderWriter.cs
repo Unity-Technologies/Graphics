@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.VFX;
 
 namespace Unity.GraphCommon.LowLevel.Editor
 {
@@ -34,6 +35,10 @@ namespace Unity.GraphCommon.LowLevel.Editor
         public void BeginHlslInclude()
         {
             WriteLine("HLSLINCLUDE");
+            if (VFXViewPreference.generateShadersWithDebugSymbols)
+            {
+                Pragma("enable_debug_symbols");
+            }
         }
 
         public void EndHlslInclude()
@@ -47,7 +52,6 @@ namespace Unity.GraphCommon.LowLevel.Editor
             OpenBlock();
             WriteLine("HLSLPROGRAM");
             Pragma("target 5.0");
-            Pragma("enable_debug_symbols");
             Pragma("vertex VFXVertex");
             Pragma("fragment VFXFragment");
 

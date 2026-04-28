@@ -19,7 +19,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
         public bool GetDataUsage(IDataKey dataKey, out DataPathSet readUsage, out DataPathSet writeUsage)
         {
-            if (AttributeSets.TryGetValue(dataKey, out var attributeSet))
+            if (AttributeSets != null && AttributeSets.TryGetValue(dataKey, out var attributeSet))
             {
                 DataPath dataPath = new(dataKey);
                 readUsage = new DataPathSet();

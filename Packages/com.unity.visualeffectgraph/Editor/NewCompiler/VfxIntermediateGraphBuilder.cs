@@ -3,12 +3,20 @@ using System.Collections.Generic;
 using Unity.GraphCommon.LowLevel.Editor;
 using UnityEngine.VFX;
 using UnityEngine;
+using UnityEditor.VFX.Block;
 
 namespace UnityEditor.VFX
 {
     class VfxIntermediateGraphBuilder
     {
-        private class ParticleSystemBuildInfo
+        class OutputEvent
+        {
+            public TriggerEvent TriggerBlock { get; set; }
+            public IDataKey BindingKey { get; set; }
+            public TaskNodeId SourceTask { get; set; }
+        }
+
+        class ParticleSystemBuildInfo
         {
             public ParticleSystemBuildInfo(VFXData data)
             {
@@ -19,19 +27,28 @@ namespace UnityEditor.VFX
             public VFXBasicInitialize InitContext { get; set; }
             public List<VFXBasicUpdate> UpdateContexts { get; } = new();
             public List<VFXAbstractParticleOutput> OutputContexts { get; } = new();
-            public DataViewId InputSpawnData { get; set; } = DataViewId.Invalid;
+            public Dictionary<VFXBasicSpawner, DataViewId> InputCpuEventDatas { get; set; } = new();
+            public ParticleSystemBuildInfo ParentParticleSystem { get; set; }
+            public Dictionary<ParticleSystemBuildInfo, OutputEvent> OutputEvents { get; set; } = new();
+            public bool Built { get; set; }
+            public DataViewId ParticleData { get; set; }
         }
 
-        private static readonly DataPath kAttributeDataPath = new DataPath(ParticleData.AttributeDataKey);
-        private static readonly IDataKey kParticleBindingKey = new NameDataKey("ParticleDataBinding");
-        private static readonly IDataKey kSpawnDataBindingKey = new NameDataKey("SpawnDataBinding");
-        private static readonly IDataKey kMainTextureKey = new NameDataKey("MainTexture");
+        static readonly DataPath kAttributeDataPath = new DataPath(ParticleData.AttributeDataKey);
+        static readonly IDataKey kParticleBindingKey = new NameDataKey("ParticleDataBinding");
+        static readonly IDataKey kEventListDataBindingKey = new NameDataKey("EventListDataBinding");
+        static readonly IDataKey kSourceAttributesBindingKey = new NameDataKey("SourceAttributeDataBinding"); 
+        static readonly IDataKey kMainTextureKey = new NameDataKey("MainTexture");
         static readonly IDataKey kGraphValuesKey = new NameDataKey("GraphValues");
 
+        static readonly UniqueDataKey kDefaultAttributeKey = new UniqueDataKey("Attributes");
+        static readonly UniqueDataKey kSourceAttributeKey = new UniqueDataKey("SourceAttributes");
+
         Dictionary<VFXData, ParticleSystemBuildInfo> m_ParticleSystems = new();
-        VFXSystemNames m_SystemNames = new();
+        Dictionary<StructuredData, Dictionary<string, uint>> m_StructuredDataNamesCount = new(); // TODO: Do we still need this?
+        VFXSystemNames m_SystemNames;
         VFXExpressionGraph m_ExpressionGraph;
-        VfxSubTaskBuilder m_SubTaskBuilder = new VfxSubTaskBuilder();
+        VfxSubTaskBuilder m_SubTaskBuilder = new VfxSubTaskBuilder(kDefaultAttributeKey, kSourceAttributeKey);
         Dictionary<VFXExpression, DataViewId> m_DeduplicatedExpressionsToDataView = new();
 
         Dictionary<IDataDescription, Dictionary<string, uint>> m_GraphValueNameCounts = new();
@@ -45,9 +62,9 @@ namespace UnityEditor.VFX
             var models = new HashSet<ScriptableObject>();
             graph.CollectDependencies(models, false);
 
-            m_ExpressionGraph = new VFXExpressionGraph();
             List<VFXContext> compilableContexts = new List<VFXContext>();
             List<VFXBasicSpawner> spawners = new List<VFXBasicSpawner>();
+            List<VFXBasicGPUEvent> gpuEvents = new List<VFXBasicGPUEvent>();
             foreach (var model in models)
             {
                 if (model is VFXContext context && context.CanBeCompiled())
@@ -59,6 +76,11 @@ namespace UnityEditor.VFX
                         case VFXBasicSpawner basicSpawner:
                         {
                             spawners.Add(basicSpawner);
+                            break;
+                        }
+                        case VFXBasicGPUEvent gpuEvent:
+                        {
+                            gpuEvents.Add(gpuEvent);
                             break;
                         }
                         case VFXBasicInitialize initContext:
@@ -92,52 +114,96 @@ namespace UnityEditor.VFX
             {
                 BuildSpawnerSystem(spawner, intermediateGraph);
             }
+
+            foreach (var gpuEvent in gpuEvents)
+            {
+                BuildGPUEvent(gpuEvent, intermediateGraph);
+            }
+
             foreach (var particleSystem in m_ParticleSystems.Values)
             {
                 BuildParticleSystem(particleSystem, intermediateGraph);
             }
 
-            //return new TaskGraph();
             return intermediateGraph;
         }
 
         void Clear()
         {
             m_ParticleSystems.Clear();
+            m_StructuredDataNamesCount.Clear();
+            m_SystemNames = new();
+            m_ExpressionGraph = new();
             m_GraphValueNameCounts.Clear();
-            m_SystemNames = new VFXSystemNames();
             m_DeduplicatedExpressionsToDataView.Clear();
         }
 
         void BuildSpawnerSystem(VFXBasicSpawner spawner, TaskGraph intermediateGraph)
         {
-            var spawnDataDescription = BuildSpawnerDataDescription(spawner.GetData());
-            var spawnData = intermediateGraph.AddData(spawnDataDescription.Name, spawnDataDescription);
+            var eventDataDescription = new EventData(m_SystemNames.GetUniqueSystemName(spawner.GetData()));
+            var eventData = intermediateGraph.AddData(eventDataDescription.Name, eventDataDescription);
+            var eventAttributeData = intermediateGraph.GetSubdata(eventData, EventData.AttributeDataKey);
 
             // Propagate spawn data to linked contexts
             foreach (var outputContext in spawner.outputContexts)
             {
                 var particleSystemBuildInfo = GetParticleSystemBuildInfo(outputContext.GetData());
-                particleSystemBuildInfo.InputSpawnData = spawnData;
+                particleSystemBuildInfo.InputCpuEventDatas.Add(spawner, eventData);
             }
 
-            bool first = true;
+            var cpuMapper = m_ExpressionGraph.BuildCPUMapper(spawner);
+
+            int taskIndex = 0;
             foreach (var block in spawner.activeFlattenedChildrenWithImplicit)
             {
                 if (block is VFXAbstractSpawner spawnerBlock)
                 {
-                    SpawnerTask subTask = new SpawnerTask(block.name, spawnerBlock.spawnerType, kSpawnDataBindingKey);
-                    var spawnerTaskNodeId = intermediateGraph.AddTask(subTask);
-                    intermediateGraph.BindData(spawnerTaskNodeId, kSpawnDataBindingKey, spawnData, first ? BindingUsage.Write : BindingUsage.ReadWrite);
-                    BindSpawnerExpressions(intermediateGraph, spawner, spawnerTaskNodeId);
-                    first = false;
+                    SpawnerTask subTask = null;
+                    if (spawnerBlock is Block.VFXSpawnerSetAttribute spawnerSetAttribute)
+                    {
+                        var attribute = VFXAttributesManager.ConvertToNewCompiler(spawnerSetAttribute.currentAttribute); ;
+                        intermediateGraph.GetSubdata(eventAttributeData, new AttributeKey(attribute));
+                        subTask = new SpawnerTask(spawnerBlock.spawnerType, kEventListDataBindingKey, attribute);
+                    }
+                    else
+                    {
+                        subTask = new SpawnerTask(spawnerBlock.spawnerType, kEventListDataBindingKey);
+                    }
+
+                    var spawnerTaskNodeId = intermediateGraph.AddTask(subTask, block.name);
+                    intermediateGraph.BindData(spawnerTaskNodeId, kEventListDataBindingKey, eventData, BindingUsage.ReadWrite);
+                    BindSpawnerExpressions(intermediateGraph, cpuMapper, spawnerTaskNodeId, taskIndex);
+
+                    taskIndex++;
                 }
             }
         }
 
-        IDataDescription BuildSpawnerDataDescription(VFXData data)
+        void BuildGPUEvent(VFXBasicGPUEvent gpuEvent, TaskGraph intermediateGraph)
         {
-            return new SpawnData(m_SystemNames.GetUniqueSystemName(data));
+            TriggerEvent triggerBlock = null;
+            ParticleSystemBuildInfo fromParticleSystem = null;
+            foreach (var slot in gpuEvent.allLinkedInputSlot)
+            {
+                Debug.Assert(fromParticleSystem == null, "GPU events should receive events from a single trigger block");
+                triggerBlock = slot.owner as TriggerEvent;
+                var context = triggerBlock.GetParent();
+                fromParticleSystem = GetParticleSystemBuildInfo(context.GetData());
+            }
+
+            ParticleSystemBuildInfo toParticleSystem = null;
+            foreach (var context in gpuEvent.outputContexts)
+            {
+                Debug.Assert(toParticleSystem == null, "GPU events should be connected to a single context");
+                toParticleSystem = GetParticleSystemBuildInfo(context.GetData());
+            }
+            if (fromParticleSystem != null && toParticleSystem != null)
+            {
+                OutputEvent outputEvent = new();
+                outputEvent.TriggerBlock = triggerBlock;
+                fromParticleSystem.OutputEvents.Add(toParticleSystem, outputEvent);
+                toParticleSystem.ParentParticleSystem = fromParticleSystem;
+            }
         }
 
         ParticleSystemBuildInfo GetParticleSystemBuildInfo(VFXData data)
@@ -153,43 +219,90 @@ namespace UnityEditor.VFX
 
         void BuildParticleSystem(ParticleSystemBuildInfo particleSystemBuildInfo, TaskGraph intermediateGraph)
         {
+            if (particleSystemBuildInfo.Built)
+                return;
+
+            if (particleSystemBuildInfo.ParentParticleSystem != null)
+            {
+                BuildParticleSystem(particleSystemBuildInfo.ParentParticleSystem, intermediateGraph);
+            }
+
             //if (!Validate(particleSystem))
             //    return; // And log error
 
             var particleDataDescription = BuildParticleDataDescription(particleSystemBuildInfo.Data);
             var particleData = intermediateGraph.AddData(particleDataDescription.Name, particleDataDescription);
 
+            particleSystemBuildInfo.ParticleData = particleData; // TODO: Hack
+
             var systemTask = intermediateGraph.AddTask(BuildSystemTask());
             intermediateGraph.BindData(systemTask, kParticleBindingKey, particleData, BindingUsage.Write);
 
             BuildGraphValuesBuffer(intermediateGraph, systemTask, out var graphValuesBufferViewId, out var contextDataViewId, out var graphValuesBuffer);
 
-            var initializeTask = intermediateGraph.AddTask(BuildInitializeTask(particleSystemBuildInfo.InitContext));
+            DataViewId eventListData = DataViewId.Invalid;
+            DataViewId sourceAttributesData = DataViewId.Invalid;
+            string sourceEventListDataName = particleDataDescription.Name + "_Source";
+            if (particleSystemBuildInfo.InputCpuEventDatas.Count > 0)
+            {
+                // CPU events
+                foreach (var (spawner, eventData) in particleSystemBuildInfo.InputCpuEventDatas)
+                {
+                    if (eventData.IsValid)
+                    {
+                        intermediateGraph.BindData(systemTask, new SpawnerDataKey(spawner), eventData, BindingUsage.Read);
+                    }
+                }
+                var eventListDataDescription = new EventListData(sourceEventListDataName, isCpu: true, (uint)particleSystemBuildInfo.InputCpuEventDatas.Count);
+                eventListData = intermediateGraph.AddData(eventListDataDescription.Name, eventListDataDescription);
+                intermediateGraph.BindData(systemTask, PlaceholderSystemTask.CpuEventsKey, eventListData, BindingUsage.Write);
+                sourceAttributesData = intermediateGraph.GetSubdata(eventListData, EventData.AttributeDataKey);
+            }
+            else if (particleSystemBuildInfo.ParentParticleSystem != null)
+            {
+                // GPU events
+                if (particleSystemBuildInfo.ParentParticleSystem.OutputEvents.TryGetValue(particleSystemBuildInfo, out var outputEvent))
+                {
+                    var eventListDataDescription = new EventListData(sourceEventListDataName, isCpu: false, particleDataDescription.Capacity);
+                    eventListData = intermediateGraph.AddData(eventListDataDescription.Name, eventListDataDescription);
+                    intermediateGraph.BindData(outputEvent.SourceTask, outputEvent.BindingKey, eventListData, BindingUsage.Write);
+                    sourceAttributesData = intermediateGraph.GetSubdata(particleSystemBuildInfo.ParentParticleSystem.ParticleData, ParticleData.AttributeDataKey);
+                }
+            }
+
+            var initializeTask = intermediateGraph.AddTask(BuildInitializeTask(particleSystemBuildInfo.InitContext), particleSystemBuildInfo.Data.title + " Init");
             BindExpressions(intermediateGraph, particleSystemBuildInfo.InitContext, initializeTask, systemTask, graphValuesBuffer, graphValuesBufferViewId);
             BindContextData(intermediateGraph, initializeTask, contextDataViewId);
 
-            var spawnData = particleSystemBuildInfo.InputSpawnData;
-            if (spawnData.IsValid)
-            {
-                intermediateGraph.BindData(initializeTask, kSpawnDataBindingKey, spawnData, BindingUsage.Read);
-            }
             intermediateGraph.BindData(initializeTask, kParticleBindingKey, particleData, BindingUsage.ReadWrite);
+            intermediateGraph.BindData(initializeTask, kEventListDataBindingKey, eventListData, BindingUsage.Read);
+            intermediateGraph.BindData(initializeTask, kSourceAttributesBindingKey, sourceAttributesData, BindingUsage.Read);
 
             foreach (var updateContext in particleSystemBuildInfo.UpdateContexts)
             {
-                var updateTask = intermediateGraph.AddTask(BuildUpdateTask(updateContext));
+                var updateTask = intermediateGraph.AddTask(BuildUpdateTask(updateContext, particleSystemBuildInfo.OutputEvents.Values), particleSystemBuildInfo.Data.title + " Update");
                 intermediateGraph.BindData(updateTask, kParticleBindingKey, particleData, BindingUsage.ReadWrite);
                 BindExpressions(intermediateGraph, updateContext, updateTask, systemTask, graphValuesBuffer, graphValuesBufferViewId);
                 BindContextData(intermediateGraph, updateTask, contextDataViewId);
+
+                foreach (var outputEvent in particleSystemBuildInfo.OutputEvents.Values)
+                {
+                    if (outputEvent.TriggerBlock.GetParent() == updateContext)
+                    {
+                        outputEvent.SourceTask = updateTask;
+                    }
+                }
             }
 
             foreach (var outputContext in particleSystemBuildInfo.OutputContexts)
             {
-                var outputTask = intermediateGraph.AddTask(BuildOutputTask(outputContext));
+                var outputTask = intermediateGraph.AddTask(BuildOutputTask(outputContext), particleSystemBuildInfo.Data.title + " Output");
                 intermediateGraph.BindData(outputTask, kParticleBindingKey, particleData, BindingUsage.Read);
                 BindExpressions(intermediateGraph, outputContext, outputTask, systemTask, graphValuesBuffer, graphValuesBufferViewId);
                 BindContextData(intermediateGraph, outputTask, contextDataViewId);
             }
+
+            particleSystemBuildInfo.Built = true;
         }
 
         void BuildGraphValuesBuffer(TaskGraph intermediateGraph, TaskNodeId systemTask, out DataViewId graphValuesBufferViewId, out DataViewId contextDataViewId, out StructuredData graphValuesBuffer)
@@ -222,14 +335,13 @@ namespace UnityEditor.VFX
             intermediateGraph.BindData(contextTask, TemplatedTask.ContextDataKey, contextDataViewId, BindingUsage.Read);
         }
 
-        void BindSpawnerExpressions(TaskGraph intermediateGraph, VFXBasicSpawner spawner, TaskNodeId spawnerTaskNodeId)
+        void BindSpawnerExpressions(TaskGraph intermediateGraph, VFXExpressionMapper cpuMapper, TaskNodeId spawnerTaskNodeId, int taskIndex)
         {
             // For spawner, we only bind CPU expressions and we do not use the full name for the binding.
-            var cpuMapper = m_ExpressionGraph.BuildCPUMapper(spawner);
-            foreach (var expression in cpuMapper.expressions)
+            foreach (var namedExpression in cpuMapper.CollectExpression(taskIndex, false))
             {
-                var expressionDataViewId = AddExpressionRecursively(intermediateGraph, expression);
-                string bindingName = cpuMapper.GetData(expression)[0].name;
+                var expressionDataViewId = AddExpressionRecursively(intermediateGraph, namedExpression.exp);
+                string bindingName = namedExpression.name;
                 intermediateGraph.BindData(spawnerTaskNodeId, new NameDataKey(bindingName), expressionDataViewId, BindingUsage.Read);
             }
         }
@@ -307,17 +419,15 @@ namespace UnityEditor.VFX
         {
             var cpuMapper = m_ExpressionGraph.BuildCPUMapper(context);
 
-            TaskNodeId targetNodeId = context is VFXBasicSpawner ? contextTask : systemTask;
-
             foreach (var expression in cpuMapper.expressions)
             {
                 var expressionDataViewId = AddExpressionRecursively(intermediateGraph, expression);
                 string bindingName = cpuMapper.GetData(expression)[0].fullName;
-                intermediateGraph.BindData(targetNodeId, new NameDataKey(bindingName), expressionDataViewId, BindingUsage.Read);
+                intermediateGraph.BindData(systemTask, new NameDataKey(bindingName), expressionDataViewId, BindingUsage.Read);
             }
         }
 
-        IDataDescription BuildParticleDataDescription(VFXData data)
+        ParticleData BuildParticleDataDescription(VFXData data)
         {
             uint capacity = (uint)data.GetSettingValue("capacity");
             return new ParticleData(m_SystemNames.GetUniqueSystemName(data), new Bounds(), data is ISpaceable spaceable ? spaceable.space : VFXSpace.None, capacity);
@@ -328,10 +438,10 @@ namespace UnityEditor.VFX
             return new PlaceholderSystemTask(
                 new List<(IDataKey, IExpression)>(),
                 new List<BindingRelativePath>()
-            {
-                new(kParticleBindingKey, DataPath.Empty),
-                new(TemplatedTask.GraphValuesBufferKey, DataPath.Empty)
-            });
+                {
+                    new(kParticleBindingKey, DataPath.Empty),
+                    new(TemplatedTask.GraphValuesBufferKey, DataPath.Empty)
+                });
         }
 
         ITask BuildInitializeTask(VFXBasicInitialize initContext)
@@ -340,6 +450,7 @@ namespace UnityEditor.VFX
             particleAttributes.AddAttribute(VFXAttributesManager.ConvertToNewCompiler(VFXAttribute.Alive), AttributeUsage.Write);
             particleAttributes.AddAttribute(VFXAttributesManager.ConvertToNewCompiler(VFXAttribute.ParticleId), AttributeUsage.Write);
             particleAttributes.AddAttribute(VFXAttributesManager.ConvertToNewCompiler(VFXAttribute.Seed), AttributeUsage.Write);
+            particleAttributes.AddAttribute(VFXAttributesManager.ConvertToNewCompiler(VFXAttribute.SpawnIndex), AttributeUsage.Write);
 
             BindingUsagePaths particleSystemUsage = new();
             particleSystemUsage.Add(kAttributeDataPath, particleAttributes);
@@ -347,8 +458,20 @@ namespace UnityEditor.VFX
             particleSystemUsage.Read.Add(new DataPath(ParticleData.DeadlistKey));
             particleSystemUsage.Write.Add(new DataPath(ParticleData.DeadlistKey));
 
-            BindingUsagePaths spawnSystemUsage = new();
-            spawnSystemUsage.Read.Add(new DataPath(SpawnData.SourceAttributeDataKey));
+            BindingUsagePaths eventListUsage = new();
+            eventListUsage.Read.Add(DataPath.Empty);
+
+            AttributeSet sourceAttributes = new AttributeSet();
+            sourceAttributes.AddAttribute(VFXAttributesManager.ConvertToNewCompiler(VFXAttribute.SpawnCount), AttributeUsage.Write);
+            BindingUsagePaths sourceAttributeUsage = new();
+            foreach (var attribute in sourceAttributes.ReadAttributes)
+            {
+                sourceAttributeUsage.Read.Add(new DataPath(new AttributeKey(attribute)));
+            }
+            foreach (var attribute in sourceAttributes.WriteAttributes)
+            {
+                sourceAttributeUsage.Write.Add(new DataPath(new AttributeKey(attribute)));
+            }
 
             BindingUsagePaths contextDataUsage = new();
             contextDataUsage.Read.Add(TemplatedTask.MaxParticleCountPath);
@@ -361,20 +484,22 @@ namespace UnityEditor.VFX
 
                 AttributeKeyMappings = new()
                 {
-                    [AttributeData.DefaultKey] = new(kParticleBindingKey, kAttributeDataPath) // TODO: Use a proper key for particle attributes and just provide which one is default
+                    [kDefaultAttributeKey] = new(kParticleBindingKey, kAttributeDataPath),
+                    [kSourceAttributeKey] = new(kSourceAttributesBindingKey, DataPath.Empty)
                 },
 
                 Bindings = new()
                 {
                     [kParticleBindingKey] = new(typeof(ParticleData), particleSystemUsage),
-                    [kSpawnDataBindingKey] = new(typeof(SpawnData), spawnSystemUsage),
+                    [kEventListDataBindingKey] = new(typeof(EventListData), eventListUsage),
+                    [kSourceAttributesBindingKey] = new(typeof(AttributeData), sourceAttributeUsage),
                     [TemplatedTask.ContextDataKey] = new(typeof(ValueData), contextDataUsage)
                 }
             };
             return new TemplatedTask("Init", args);
         }
 
-        ITask BuildUpdateTask(VFXBasicUpdate updateContext)
+        ITask BuildUpdateTask(VFXBasicUpdate updateContext, IEnumerable<OutputEvent> outputEvents)
         {
             AttributeSet particleAttributes = new AttributeSet();
             particleAttributes.AddAttribute(VFXAttributesManager.ConvertToNewCompiler(VFXAttribute.Alive), AttributeUsage.Read);
@@ -395,7 +520,7 @@ namespace UnityEditor.VFX
 
                 AttributeKeyMappings = new()
                 {
-                    [AttributeData.DefaultKey] = new(kParticleBindingKey, kAttributeDataPath)
+                    [kDefaultAttributeKey] = new(kParticleBindingKey, kAttributeDataPath)
                 },
 
                 Bindings = new()
@@ -404,6 +529,28 @@ namespace UnityEditor.VFX
                     [TemplatedTask.ContextDataKey] = new(typeof(ValueData), contextDataUsage)
                 }
             };
+
+            // TODO: Current TemplatedTask bindings are a bit rigid. It would be easier with specific derived classes that can abstract usage
+            // Output event usage could be implicit (still need to add the blocks though)
+            BindingUsagePaths outputEventWriteUsage = new();
+            outputEventWriteUsage.Write.Add(DataPath.Empty);
+            TemplatedTaskBinding outputEventBinding = new(typeof(EventListData), outputEventWriteUsage);
+            char eventName = 'a';
+            foreach (var outputEvent in outputEvents)
+            {
+                if (outputEvent.TriggerBlock.GetParent() == updateContext)
+                {
+                    outputEvent.BindingKey = new NameDataKey($"eventListOut_{eventName++}");
+                    args.Bindings.Add(outputEvent.BindingKey, outputEventBinding);
+
+                    string name = outputEvent.TriggerBlock.name + "_events";
+                    SubtaskDescription subtask = new();
+                    subtask.Name = name;
+                    subtask.ExpressionBindingKeys = new();
+                    subtask.Task = new TemplateSubtask(name, $"{outputEvent.BindingKey}.eventListData.AppendEvents(attributes.eventCount, threadData.index);", new()); //TODO: does not work with multiple trigger blocks
+                    args.Subtasks.Add(subtask);
+                }
+            }
 
             return new TemplatedTask("Update", args);
         }
@@ -440,7 +587,7 @@ namespace UnityEditor.VFX
 
                 AttributeKeyMappings = new()
                 {
-                    [AttributeData.DefaultKey] = new(kParticleBindingKey, kAttributeDataPath)
+                    [kDefaultAttributeKey] = new(kParticleBindingKey, kAttributeDataPath)
                 },
 
                 Bindings = new()

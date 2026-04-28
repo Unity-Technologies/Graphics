@@ -18,23 +18,21 @@ namespace UnityEditor.VFX
 
         public void WriteDescription(ShaderWriter shaderWriter, DataView dataView, ParticleData particleSystemData, string name, CompilationContext context)
         {
-            var layoutCompilationData = context.data.Get<AttributeSetLayoutCompilationData>();
-
             shaderWriter.IncludeFile("Packages/com.unity.visualeffectgraph/Shaders/Temp/Data/ParticleSystemData.hlsl");
 
-            var attributeData = dataView.FindSubData(ParticleData.AttributeDataKey, out var attributeDataView) ? attributeDataView.DataDescription as AttributeData : null;
             var deadlist = dataView.FindSubData(ParticleData.DeadlistKey, out var deadlistDataView) ? deadlistDataView.DataDescription : null;
-
             if (deadlist != null)
             {
                 shaderWriter.IncludeFile("Packages/com.unity.visualeffectgraph/Shaders/Temp/Data/DeadListData.hlsl");
             }
 
+            var attributeData = dataView.FindSubData(ParticleData.AttributeDataKey, out var attributeDataView) ? attributeDataView.DataDescription as AttributeData : null;
             if (attributeData != null)
             {
                 shaderWriter.NewLine();
                 m_AttributeDataWriter.WriteDescription(shaderWriter, attributeDataView, name + "_ParticleAttributeBuffer", context);
             }
+
             shaderWriter.NewLine();
             shaderWriter.WriteLine($"struct {name}");
             shaderWriter.OpenBlock();
@@ -53,6 +51,7 @@ namespace UnityEditor.VFX
             {
                 shaderWriter.NewLine();
                 shaderWriter.WriteLine("VFXByteAddressBuffer particleBuffer;");
+                var layoutCompilationData = context.data.Get<AttributeSetLayoutCompilationData>();
                 shaderWriter.WriteLine($"particleBuffer.Init(_{name}_attributeBuffer, {0}u, {layoutCompilationData[attributeData].GetBufferSize()}u);");
                 shaderWriter.WriteLine("particleAttributeBuffer.Init(particleBuffer);");
             }
@@ -122,7 +121,7 @@ namespace UnityEditor.VFX
             shaderWriter.WriteLine($"{sourceName} container;");
             if (needsParticleAttributeData)
             {
-                shaderWriter.WriteLine($"{name}_ParticleAttributeBuffer particleAttributeBuffer;");
+                shaderWriter.WriteLine($"{name}_ParticleAttributeBufferView particleAttributeBuffer;");
             }
             shaderWriter.NewLine();
             shaderWriter.WriteLine($"void Init({sourceName} particleData)");
@@ -142,7 +141,6 @@ namespace UnityEditor.VFX
 
             shaderWriter.CloseBlock(false);
             shaderWriter.WriteLine(";", ShaderWriter.WriteLineOptions.NoIndent);
-            shaderWriter.WriteLine($"{name}View {name};"); // TODO: probably externally only for the actual binding, not inner types
             return true;
         }
 

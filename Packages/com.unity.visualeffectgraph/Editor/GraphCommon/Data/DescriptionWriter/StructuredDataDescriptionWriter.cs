@@ -84,7 +84,6 @@ namespace Unity.GraphCommon.LowLevel.Editor
             shaderWriter.CloseBlock();
             shaderWriter.CloseBlock(false);
             shaderWriter.WriteLine(";", ShaderWriter.WriteLineOptions.NoIndent);
-            shaderWriter.WriteLine($"{name}View {name};"); // TODO: probably externally only for the actual binding, not inner types
             return true;
         }
 
