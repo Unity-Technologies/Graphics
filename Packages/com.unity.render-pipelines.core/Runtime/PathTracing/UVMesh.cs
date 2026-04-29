@@ -22,6 +22,15 @@ namespace UnityEngine.PathTracing.Integration
 
         public bool Build(Mesh mesh)
         {
+            for (int i = 0; i < mesh.subMeshCount; ++i)
+            {
+                if (mesh.GetTopology(i) != MeshTopology.Triangles)
+                {
+                    Debug.Assert(mesh.GetTopology(i) == MeshTopology.Triangles, "We expect meshes to be converted to triangle topology during input extraction.");
+                    return false;
+                }
+            }
+
 #if UNITY_EDITOR
                 var inputDataArray = UnityEditor.MeshUtility.AcquireReadOnlyMeshData(mesh);
 #else

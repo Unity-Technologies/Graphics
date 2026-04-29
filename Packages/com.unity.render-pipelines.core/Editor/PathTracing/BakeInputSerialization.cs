@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 using Unity.Mathematics;
 using UnityEngine;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEditor.LightBaking;
 using MixedLightingMode = UnityEngine.MixedLightingMode;
 
 // The types defined in this file should match the types defined in BakeInput.h.
@@ -254,14 +253,14 @@ namespace UnityEditor.PathTracing.LightBakerBridge
         public float aoDistance;
         public bool useHardwareRayTracing;
 
-        public LightSamplingMode directLightSamplingMode;
+        public UnityEngine.PathTracing.Core.LightSamplingMode directLightSamplingMode;
         public uint directRISCandidateCount;
-        public LightSamplingMode indirectLightSamplingMode;
+        public UnityEngine.PathTracing.Core.LightSamplingMode indirectLightSamplingMode;
         public UInt32 indirectRISCandidateCount;
         public LightAccelerationStructure lightAccelerationStructure;
         public uint lightGridMaxCells;
-        public EmissiveSamplingMode directEmissiveSamplingMode;
-        public EmissiveSamplingMode indirectEmissiveSamplingMode;
+        public UnityEngine.PathTracing.Core.EmissiveSamplingMode directEmissiveSamplingMode;
+        public UnityEngine.PathTracing.Core.EmissiveSamplingMode indirectEmissiveSamplingMode;
 
         public void Transfer(IBakeInputVisitor visitor)
         {

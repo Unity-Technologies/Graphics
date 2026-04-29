@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using ObjectDispatcher = UnityEngine.InternalBridge.ObjectDispatcher;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -206,7 +207,7 @@ namespace UnityEngine.Rendering.LiveGI
             m_Materials = new Dictionary<EntityId, MaterialData>();
             m_Lights = new Dictionary<EntityId, LightDescriptor>();
 
-            m_ObjectDispatcher = new ObjectDispatcher();
+            m_ObjectDispatcher = new();
 
 #if UNITY_EDITOR
             m_ObjectDispatcher.maxDispatchHistoryFramesCount = int.MaxValue;

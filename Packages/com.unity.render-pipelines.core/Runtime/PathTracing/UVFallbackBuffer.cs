@@ -97,7 +97,9 @@ namespace UnityEngine.PathTracing.Integration
             cmd.SetGlobalInteger(UVFallbackBufferBuilderShaderIDs.Height, height);
             cmd.SetGlobalFloat(UVFallbackBufferBuilderShaderIDs.WidthScale, widthScale);
             cmd.SetGlobalFloat(UVFallbackBufferBuilderShaderIDs.HeightScale, heightScale);
-            cmd.DrawProcedural(Matrix4x4.identity, _uvFallbackBufferMaterial, 0, MeshTopology.Triangles, (int)uvMesh.GetTotalIndexCount());
+            for (int i = 0; i < uvMesh.subMeshCount; ++i)
+                Debug.Assert(uvMesh.GetTopology(i) == MeshTopology.Triangles, "We expect meshes to be converted to triangle topology during input extraction.");
+            cmd.DrawProcedural(Matrix4x4.identity, _uvFallbackBufferMaterial, 0, MeshTopology.Triangles, originalIndices.Length);
 
             cmd.EndSample(k_BuildUVFallbackBuffer);
 

@@ -476,7 +476,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             // environment, we base the sample count on the number of emissive and environment lights.
             uint emissiveAndEnvLightCount = (uint)world.EnvLightCount + (uint)world.MeshLightCount;
             uint brdfSampleCount = emissiveAndEnvLightCount * lightingSettings.lightmapSampleCounts.directSampleCount;
-            if (lightingSettings.directEmissiveSamplingMode == EmissiveSamplingMode.LightSampling)
+            if (lightingSettings.directEmissiveSamplingMode == UnityEngine.PathTracing.Core.EmissiveSamplingMode.LightSampling)
                 brdfSampleCount = 0;
 
             // Lightmap settings
