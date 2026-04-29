@@ -41,7 +41,6 @@ PlayerSettings:
     height: 1
   m_SplashScreenLogos: []
   m_VirtualRealitySplashScreen: {fileID: 0}
-  m_HolographicTrackingLossScreen: {fileID: 0}
   defaultScreenWidth: 1024
   defaultScreenHeight: 768
   defaultScreenWidthWeb: 960
@@ -142,12 +141,10 @@ PlayerSettings:
   preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0
-  m_HolographicPauseOnTrackingLoss: 1
   xboxOneDisableKinectGpuReservation: 1
   xboxOneEnable7thCore: 1
   vrSettings:
     enable360StereoCapture: 0
-  isWsaHolographicRemotingEnabled: 0
   enableFrameTimingStats: 0
   enableOpenGLProfilerGPURecorders: 1
   allowHDRDisplaySupport: 0
@@ -172,7 +169,7 @@ PlayerSettings:
   AndroidMinSdkVersion: 23
   AndroidTargetSdkVersion: 0
   AndroidPreferredInstallLocation: 1
-  aotOptions: 
+  aotOptions:
   stripEngineCode: 1
   iPhoneStrippingLevel: 0
   iPhoneScriptCallOptimization: 0
@@ -222,8 +219,8 @@ PlayerSettings:
     rgba: 0
   iOSLaunchScreeniPadFillPct: 100
   iOSLaunchScreeniPadSize: 100
-  iOSLaunchScreenCustomStoryboardPath: 
-  iOSLaunchScreeniPadCustomStoryboardPath: 
+  iOSLaunchScreenCustomStoryboardPath:
+  iOSLaunchScreeniPadCustomStoryboardPath:
   iOSDeviceRequirements: []
   iOSURLSchemes: []
   macOSURLSchemes: []
@@ -234,10 +231,10 @@ PlayerSettings:
   metalCompileShaderBinary: 0
   iOSRenderExtraFrameOnPause: 0
   iosCopyPluginsCodeInsteadOfSymlink: 0
-  appleDeveloperTeamID: 
-  iOSManualSigningProvisioningProfileID: 
-  tvOSManualSigningProvisioningProfileID: 
-  VisionOSManualSigningProvisioningProfileID: 
+  appleDeveloperTeamID:
+  iOSManualSigningProvisioningProfileID:
+  tvOSManualSigningProvisioningProfileID:
+  VisionOSManualSigningProvisioningProfileID:
   iOSManualSigningProvisioningProfileType: 0
   tvOSManualSigningProvisioningProfileType: 0
   VisionOSManualSigningProvisioningProfileType: 0
@@ -247,7 +244,7 @@ PlayerSettings:
   appleEnableProMotion: 0
   shaderPrecisionModel: 0
   clonedFromGUID: 00000000000000000000000000000000
-  templatePackageId: 
+  templatePackageId:
   templateDefaultScene: Assets/OutdoorsScene.unity
   useCustomMainManifest: 0
   useCustomLauncherManifest: 0
@@ -261,8 +258,8 @@ PlayerSettings:
   AndroidTargetDevices: 0
   AndroidSplashScreenScale: 0
   androidSplashScreen: {fileID: 0}
-  AndroidKeystoreName: 
-  AndroidKeyaliasName: 
+  AndroidKeystoreName:
+  AndroidKeyaliasName:
   AndroidEnableArmv9SecurityFeatures: 0
   AndroidEnableArm64MTE: 0
   AndroidBuildApkPerCpuArchitecture: 0
@@ -388,92 +385,92 @@ PlayerSettings:
       m_Width: 432
       m_Height: 432
       m_Kind: 2
-      m_SubKind: 
+      m_SubKind:
     - m_Textures: []
       m_Width: 324
       m_Height: 324
       m_Kind: 2
-      m_SubKind: 
+      m_SubKind:
     - m_Textures: []
       m_Width: 216
       m_Height: 216
       m_Kind: 2
-      m_SubKind: 
+      m_SubKind:
     - m_Textures: []
       m_Width: 162
       m_Height: 162
       m_Kind: 2
-      m_SubKind: 
+      m_SubKind:
     - m_Textures: []
       m_Width: 108
       m_Height: 108
       m_Kind: 2
-      m_SubKind: 
+      m_SubKind:
     - m_Textures: []
       m_Width: 81
       m_Height: 81
       m_Kind: 2
-      m_SubKind: 
+      m_SubKind:
     - m_Textures: []
       m_Width: 192
       m_Height: 192
       m_Kind: 1
-      m_SubKind: 
+      m_SubKind:
     - m_Textures: []
       m_Width: 144
       m_Height: 144
       m_Kind: 1
-      m_SubKind: 
+      m_SubKind:
     - m_Textures: []
       m_Width: 96
       m_Height: 96
       m_Kind: 1
-      m_SubKind: 
+      m_SubKind:
     - m_Textures: []
       m_Width: 72
       m_Height: 72
       m_Kind: 1
-      m_SubKind: 
+      m_SubKind:
     - m_Textures: []
       m_Width: 48
       m_Height: 48
       m_Kind: 1
-      m_SubKind: 
+      m_SubKind:
     - m_Textures: []
       m_Width: 36
       m_Height: 36
       m_Kind: 1
-      m_SubKind: 
+      m_SubKind:
     - m_Textures: []
       m_Width: 192
       m_Height: 192
       m_Kind: 0
-      m_SubKind: 
+      m_SubKind:
     - m_Textures: []
       m_Width: 144
       m_Height: 144
       m_Kind: 0
-      m_SubKind: 
+      m_SubKind:
     - m_Textures: []
       m_Width: 96
       m_Height: 96
       m_Kind: 0
-      m_SubKind: 
+      m_SubKind:
     - m_Textures: []
       m_Width: 72
       m_Height: 72
       m_Kind: 0
-      m_SubKind: 
+      m_SubKind:
     - m_Textures: []
       m_Width: 48
       m_Height: 48
       m_Kind: 0
-      m_SubKind: 
+      m_SubKind:
     - m_Textures: []
       m_Width: 36
       m_Height: 36
       m_Kind: 0
-      m_SubKind: 
+      m_SubKind:
   m_BuildTargetBatching:
   - m_BuildTarget: Standalone
     m_StaticBatching: 1
@@ -563,13 +560,13 @@ PlayerSettings:
   enableInternalProfiler: 0
   logObjCUncaughtExceptions: 1
   enableCrashReportAPI: 0
-  cameraUsageDescription: 
-  locationUsageDescription: 
-  microphoneUsageDescription: 
-  bluetoothUsageDescription: 
+  cameraUsageDescription:
+  locationUsageDescription:
+  microphoneUsageDescription:
+  bluetoothUsageDescription:
   macOSTargetOSVersion: 10.13.0
-  switchNMETAOverride: 
-  switchNetLibKey: 
+  switchNMETAOverride:
+  switchNetLibKey:
   switchSocketMemoryPoolSize: 6144
   switchSocketAllocatorPoolSize: 128
   switchSocketConcurrencyLimit: 14
@@ -577,8 +574,8 @@ PlayerSettings:
   switchUseCPUProfiler: 0
   switchEnableFileSystemTrace: 0
   switchLTOSetting: 0
-  switchNSODependencies: 
-  switchCompilerFlags: 
+  switchNSODependencies:
+  switchCompilerFlags:
   switchSupportedNpadStyles: 22
   switchNativeFsCacheSize: 32
   switchIsHoldTypeHorizontal: 0
@@ -602,35 +599,35 @@ PlayerSettings:
   switchMicroSleepForYieldTime: 25
   switchRamDiskSpaceSize: 12
   ps4NPAgeRating: 12
-  ps4NPTitleSecret: 
-  ps4NPTrophyPackPath: 
+  ps4NPTitleSecret:
+  ps4NPTrophyPackPath:
   ps4ParentalLevel: 11
   ps4ContentID: ED1633-NPXX51362_00-0000000000000000
   ps4Category: 0
   ps4MasterVersion: 01.00
   ps4AppVersion: 01.00
   ps4AppType: 0
-  ps4ParamSfxPath: 
+  ps4ParamSfxPath:
   ps4VideoOutPixelFormat: 0
   ps4VideoOutInitialWidth: 1920
   ps4VideoOutBaseModeInitialWidth: 1920
   ps4VideoOutReprojectionRate: 60
-  ps4PronunciationXMLPath: 
-  ps4PronunciationSIGPath: 
-  ps4BackgroundImagePath: 
-  ps4StartupImagePath: 
-  ps4StartupImagesFolder: 
-  ps4IconImagesFolder: 
-  ps4SaveDataImagePath: 
-  ps4SdkOverride: 
-  ps4BGMPath: 
-  ps4ShareFilePath: 
-  ps4ShareOverlayImagePath: 
-  ps4PrivacyGuardImagePath: 
-  ps4ExtraSceSysFile: 
-  ps4NPtitleDatPath: 
+  ps4PronunciationXMLPath:
+  ps4PronunciationSIGPath:
+  ps4BackgroundImagePath:
+  ps4StartupImagePath:
+  ps4StartupImagesFolder:
+  ps4IconImagesFolder:
+  ps4SaveDataImagePath:
+  ps4SdkOverride:
+  ps4BGMPath:
+  ps4ShareFilePath:
+  ps4ShareOverlayImagePath:
+  ps4PrivacyGuardImagePath:
+  ps4ExtraSceSysFile:
+  ps4NPtitleDatPath:
   ps4RemotePlayKeyAssignment: -1
-  ps4RemotePlayKeyMappingDir: 
+  ps4RemotePlayKeyMappingDir:
   ps4PlayTogetherPlayerCount: 0
   ps4EnterButtonAssignment: 2
   ps4ApplicationParam1: 0
@@ -658,9 +655,9 @@ PlayerSettings:
   ps4ScriptOptimizationLevel: 2
   ps4Audio3dVirtualSpeakerCount: 14
   ps4attribCpuUsage: 0
-  ps4PatchPkgPath: 
-  ps4PatchLatestPkgPath: 
-  ps4PatchChangeinfoPath: 
+  ps4PatchPkgPath:
+  ps4PatchLatestPkgPath:
+  ps4PatchChangeinfoPath:
   ps4PatchDayOne: 0
   ps4attribUserManagement: 0
   ps4attribMoveSupport: 0
@@ -676,19 +673,19 @@ PlayerSettings:
   ps4attribEyeToEyeDistanceSettingVR: 0
   ps4IncludedModules: []
   ps4attribVROutputEnabled: 0
-  monoEnv: 
+  monoEnv:
   splashScreenBackgroundSourceLandscape: {fileID: 0}
   splashScreenBackgroundSourcePortrait: {fileID: 0}
   blurSplashScreenBackground: 1
-  spritePackerPolicy: 
+  spritePackerPolicy:
   webGLMemorySize: 32
   webGLExceptionSupport: 1
   webGLNameFilesAsHashes: 0
   webGLShowDiagnostics: 0
   webGLDataCaching: 1
   webGLDebugSymbols: 0
-  webGLEmscriptenArgs: 
-  webGLModulesDirectory: 
+  webGLEmscriptenArgs:
+  webGLModulesDirectory:
   webGLTemplate: APPLICATION:Default
   webGLAnalyzeBuildSize: 0
   webGLUseEmbeddedResources: 0
@@ -721,7 +718,7 @@ PlayerSettings:
   suppressCommonWarnings: 1
   allowUnsafeCode: 0
   useDeterministicCompilation: 1
-  additionalIl2CppArgs: 
+  additionalIl2CppArgs:
   scriptingRuntimeVersion: 1
   gcIncremental: 1
   gcWBarrierValidation: 0
@@ -730,15 +727,15 @@ PlayerSettings:
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
   metroPackageName: com.unity.template-starter-kit
-  metroPackageVersion: 
-  metroCertificatePath: 
-  metroCertificatePassword: 
-  metroCertificateSubject: 
-  metroCertificateIssuer: 
+  metroPackageVersion:
+  metroCertificatePath:
+  metroCertificatePassword:
+  metroCertificateSubject:
+  metroCertificateIssuer:
   metroCertificateNotAfter: 0000000000000000
   metroApplicationDescription: com.unity.template-starter-kit
   wsaImages: {}
-  metroTileShortName: 
+  metroTileShortName:
   metroTileShowName: 0
   metroMediumTileShowName: 0
   metroLargeTileShowName: 0
@@ -753,23 +750,23 @@ PlayerSettings:
   metroSplashScreenUseBackgroundColor: 0
   platformCapabilities: {}
   metroTargetDeviceFamilies: {}
-  metroFTAName: 
+  metroFTAName:
   metroFTAFileTypes: []
-  metroProtocolName: 
-  vcxProjDefaultLanguage: 
-  XboxOneProductId: 
-  XboxOneUpdateKey: 
-  XboxOneSandboxId: 
-  XboxOneContentId: 
-  XboxOneTitleId: 
-  XboxOneSCId: 
-  XboxOneGameOsOverridePath: 
-  XboxOnePackagingOverridePath: 
-  XboxOneAppManifestOverridePath: 
+  metroProtocolName:
+  vcxProjDefaultLanguage:
+  XboxOneProductId:
+  XboxOneUpdateKey:
+  XboxOneSandboxId:
+  XboxOneContentId:
+  XboxOneTitleId:
+  XboxOneSCId:
+  XboxOneGameOsOverridePath:
+  XboxOnePackagingOverridePath:
+  XboxOneAppManifestOverridePath:
   XboxOneVersion: 1.0.0.0
   XboxOnePackageEncryption: 0
   XboxOnePackageUpdateGranularity: 2
-  XboxOneDescription: 
+  XboxOneDescription:
   XboxOneLanguage:
   - enus
   XboxOneCapability: []
@@ -782,36 +779,36 @@ PlayerSettings:
   XboxOneAllowedProductIds: []
   XboxOnePersistentLocalStorageSize: 0
   XboxOneXTitleMemory: 8
-  XboxOneOverrideIdentityName: 
-  XboxOneOverrideIdentityPublisher: 
+  XboxOneOverrideIdentityName:
+  XboxOneOverrideIdentityPublisher:
   vrEditorSettings: {}
   cloudServicesEnabled: {}
   luminIcon:
-    m_Name: 
-    m_ModelFolderPath: 
-    m_PortalFolderPath: 
+    m_Name:
+    m_ModelFolderPath:
+    m_PortalFolderPath:
   luminCert:
-    m_CertPath: 
+    m_CertPath:
     m_SignPackage: 1
   luminIsChannelApp: 0
   luminVersion:
     m_VersionCode: 1
-    m_VersionName: 
-  hmiPlayerDataPath: 
+    m_VersionName:
+  hmiPlayerDataPath:
   hmiForceSRGBBlit: 1
   embeddedLinuxEnableGamepadInput: 0
-  hmiCpuConfiguration: 
+  hmiCpuConfiguration:
   hmiLogStartupTiming: 0
-  qnxGraphicConfPath: 
+  qnxGraphicConfPath:
   apiCompatibilityLevel: 6
   captureStartupLogs: {}
   activeInputHandler: 1
   windowsGamepadBackendHint: 0
-  cloudProjectId: 
+  cloudProjectId:
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: 
-  organizationId: 
+  projectName:
+  organizationId:
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}

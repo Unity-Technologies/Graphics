@@ -1,18 +1,3 @@
-## CI Status
-
-master (2020.1): [![](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/build-badge.svg?branch=master)](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/build-info?branch=master)
-[![](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/dependencies-badge.svg?branch=master)](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/dependencies-info?branch=master)
-2019.3: [![](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/build-badge.svg?branch=2019.3)](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/build-info?branch=2019.3)
-
-2019.2: [![](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/build-badge.svg?branch=2019.2)](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/build-info?branch=2019.2)
-
-2019.1: [![](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/build-badge.svg?branch=2019.1)](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/build-info?branch=2019.1)
-
-## Public Package Versions
-
-[![ReleaseBadge](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/release-badge.svg)]()
-[![ReleaseBadge](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/candidates-badge.svg)]()
-
 # About _High Definition Project Template_
 
 This template is a good starting point for people focused on high-end graphics that want to develop games for platforms that support Shader Model 5.0 (DX11 and above).
@@ -87,12 +72,18 @@ If you want to test your template locally from a user's perspective, you will ne
 
 ## Publishing your template for use in the Editor
 
-The first step to get your package published to production for public consumption is to send it to the candidates repository, where it can be evaluated by QA and Release Management.  You can publish your template to the candidates repository through the added CI, which is the **recommended** approach.
+Currently, in trunk, we maintain the HD Template version in the last 6.0 LTS. 
+This is then published and promoted as a package used for ALL 6.X versions.
 
-1. Once you are ready to publish a new version, say version `1.0.0`, you can add a git tag `rc-1.0.0` to the commit you want to publish. The CI will validate and then publish your template to `candidates`.
+1. Change versions and changelog like in this [PR](https://github.com/Unity-Technologies/Graphics/pull/8202) 
+2. If you upgraded the project to a new Unity version, make sure to update dependencies in package.json and make them match in manifest.json of the project itself like in this [PR](https://github.com/Unity-Technologies/Graphics/pull/8212).
+3. Launch Yamato job in the trunk: "Publish HDRP Template trunk (DRY RUN)"
+4. Download the artifact zip and unzip it to find com.unity.template.hd-YOURVERSION.tgz
+5. Test it locally, by adding it to Data\Resources\PackageManager\ProjectTemplate of your current editor and restart Unity Hub.
+6. If everything goes well, you can launch the real job : "Publish HDRP Template trunk" (Warning : you can only do it once for each version) 
+7. Create a workingset [PR](https://github.cds.internal.unity3d.com/unity/com.unity.working-set.templates/pull/444):  targeting one of the release/templates branch
+8. If the tests do not pass, make sure you updated the pvp-exemptions file like [this](https://github.cds.internal.unity3d.com/unity/com.unity.working-set.templates/blob/7b35200cd55f2c1bc48930b2075b090459248f82/pvp-exemptions.json#L870)
+9. When all the tests pass, add @unity/package-release-managers as reviewer
+10. When the PR lands, the new template should be available in all the versions more or less instantly. 
 
-1. Request that your template package be published to production by [filling out the following form](https://docs.google.com/forms/d/e/1FAIpQLSeEOeWszG7F5mx_VEYm8SrjcIajxa5WoLXh-yhLvw8odsEnaQ/viewform)
-
-1. Once your template is published to production, the last step is to create the Ono PR to include your template with a Unity Release, and have it be discovered in the Hub. To do so, create a branch that includes your template in `External/PackageManager/Editor/editor_installer.json`
-
-`Note`: You can retrieve a version of your template package as an artifact from CI pipelines following any commit made to your repository.  This will allow you to easily test a change at any point during your development.
+More complete docs [here](https://internaldocs.unity.com/package_development/template-starter-kit/release-template/#4-create-a-workingset-pr)

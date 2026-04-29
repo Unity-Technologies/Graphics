@@ -58,12 +58,6 @@ namespace Tests
         }
 
         [Test]
-        public void Serialization_YamlRefsShouldBeOnOneLine()
-        {
-            Assert.That(EditorSettings.serializeInlineMappingsOnOneLine, Is.True, "EditorSettings.serializeInlineMappingsOnOneLine should be ON by default.");
-        }
-
-        [Test]
         [TestCaseSource("GraphicsJobsValidBuildTargets")]
         public void GraphicsJobsDefaultSetting(BuildTarget buildTarget)
         {

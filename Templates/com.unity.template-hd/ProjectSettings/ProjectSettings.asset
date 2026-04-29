@@ -332,22 +332,39 @@ PlayerSettings:
     iPhone: 1
     tvOS: 1
   m_BuildTargetGroupLightmapEncodingQuality:
-  - m_BuildTarget: Standalone
+  - serializedVersion: 2
+    m_BuildTarget: Standalone
     m_EncodingQuality: 2
-  - m_BuildTarget: Android
+  - serializedVersion: 2
+    m_BuildTarget: Android
     m_EncodingQuality: 2
-  - m_BuildTarget: Lumin
+  - serializedVersion: 2
+    m_BuildTarget: Lumin
     m_EncodingQuality: 2
-  - m_BuildTarget: Windows Store Apps
+  - serializedVersion: 2
+    m_BuildTarget: WindowsStoreApps
+    m_EncodingQuality: 2
+  - serializedVersion: 2
+    m_BuildTarget: iOS
+    m_EncodingQuality: 2
+  - serializedVersion: 2
+    m_BuildTarget: Switch
+    m_EncodingQuality: 2
+  - serializedVersion: 2
+    m_BuildTarget: Switch2
     m_EncodingQuality: 2
   m_BuildTargetGroupHDRCubemapEncodingQuality:
-  - m_BuildTarget: Standalone
+  - serializedVersion: 2
+    m_BuildTarget: Standalone
     m_EncodingQuality: 2
-  - m_BuildTarget: Android
+  - serializedVersion: 2
+    m_BuildTarget: Android
     m_EncodingQuality: 2
-  - m_BuildTarget: Lumin
+  - serializedVersion: 2
+    m_BuildTarget: Lumin
     m_EncodingQuality: 1
-  - m_BuildTarget: Windows Store Apps
+  - serializedVersion: 2
+    m_BuildTarget: WindowsStoreApps
     m_EncodingQuality: 2
   m_BuildTargetGroupLightmapSettings: []
   m_BuildTargetGroupLoadStoreDebugModeSettings: []

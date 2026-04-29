@@ -48,7 +48,7 @@ MonoBehaviour:
           online (e.g. online shopping and manufacaturers websites). \n\nIn addition,
           relying on these real-world values greatly reduces the burden on beginners
           when it comes to selecting the correct light intensities.\n\nHere are some
-          href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Physical-Light-Units.html%23lighting-and-exposure-diagram\"<a>examples</a>
+          <a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Physical-Light-Units.html%23lighting-and-exposure-diagram\">examples</a>
           of different light sources and their respective lighting values."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
