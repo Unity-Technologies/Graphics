@@ -12,21 +12,33 @@ namespace UnityEditor.ShaderGraph.UnitTests
     [TestFixture]
     internal class KeywordTests
     {
-        const string kExpectedPreviewDeclaration = @"#define BOOLEAN_E0DB5C9A_ON
-#define ENUM_F6B920FA_A
-#define ENUM_7ECD6A43_D
+        const string kExpectedPreviewDeclaration = @"#define BOOLEAN_E0DB5C9A_ON true
+static const bool BOOLEAN_12C0E932_ON = false;
+static const bool ENUM_F6B920FA_A = false;
+static const bool ENUM_F6B920FA_B = false;
+static const bool ENUM_F6B920FA_C = false;
+#define ENUM_7ECD6A43_D true
+static const bool ENUM_7ECD6A43_A = false;
+static const bool ENUM_7ECD6A43_B = false;
+static const bool ENUM_7ECD6A43_C = false;
 #define _DYNAMIC_BOOLEAN false
 #define _DYNAMIC_ENUM_A true
 #define _DYNAMIC_ENUM_B false
 #define _DYNAMIC_ENUM_C false
+#define _COMPATIBLE_BOOLEAN true
+#define _COMPATIBLE_ENUM_A true
+static const bool _COMPATIBLE_ENUM_B = false;
+static const bool _COMPATIBLE_ENUM_C = false;
 ";
 
         const string kExpectedForRealsDeclaration = @"#pragma shader_feature_local _ BOOLEAN_E0DB5C9A_ON
 #pragma multi_compile _ BOOLEAN_12C0E932_ON
-#pragma shader_feature_local ENUM_F6B920FA_A ENUM_F6B920FA_B ENUM_F6B920FA_C
+#pragma shader_feature_local _ ENUM_F6B920FA_A ENUM_F6B920FA_B ENUM_F6B920FA_C
 #pragma multi_compile ENUM_7ECD6A43_A ENUM_7ECD6A43_B ENUM_7ECD6A43_C ENUM_7ECD6A43_D
 #pragma dynamic_branch_local _ _DYNAMIC_BOOLEAN
 #pragma dynamic_branch_local _DYNAMIC_ENUM_A _DYNAMIC_ENUM_B _DYNAMIC_ENUM_C
+#pragma shader_feature_local _ _COMPATIBLE_BOOLEAN
+#pragma shader_feature_local _COMPATIBLE_ENUM_A _COMPATIBLE_ENUM_B _COMPATIBLE_ENUM_C
 ";
 
         static string kExpectedPermutationDeclaration = @"#if defined(BOOLEAN_E0DB5C9A_ON) && defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_A)
@@ -53,78 +65,110 @@ namespace UnityEditor.ShaderGraph.UnitTests
     #define KEYWORD_PERMUTATION_10
 #elif defined(BOOLEAN_E0DB5C9A_ON) && defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_D)
     #define KEYWORD_PERMUTATION_11
-#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_A)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(BOOLEAN_12C0E932_ON) && defined(ENUM_7ECD6A43_A)
     #define KEYWORD_PERMUTATION_12
-#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_B)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(BOOLEAN_12C0E932_ON) && defined(ENUM_7ECD6A43_B)
     #define KEYWORD_PERMUTATION_13
-#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_C)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(BOOLEAN_12C0E932_ON) && defined(ENUM_7ECD6A43_C)
     #define KEYWORD_PERMUTATION_14
-#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_D)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(BOOLEAN_12C0E932_ON) && defined(ENUM_7ECD6A43_D)
     #define KEYWORD_PERMUTATION_15
-#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_A)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_A)
     #define KEYWORD_PERMUTATION_16
-#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_B)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_B)
     #define KEYWORD_PERMUTATION_17
-#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_C)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_C)
     #define KEYWORD_PERMUTATION_18
-#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_D)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_D)
     #define KEYWORD_PERMUTATION_19
-#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_A)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_A)
     #define KEYWORD_PERMUTATION_20
-#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_B)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_B)
     #define KEYWORD_PERMUTATION_21
-#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_C)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_C)
     #define KEYWORD_PERMUTATION_22
-#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_D)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_D)
     #define KEYWORD_PERMUTATION_23
-#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_A)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_A)
     #define KEYWORD_PERMUTATION_24
-#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_B)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_B)
     #define KEYWORD_PERMUTATION_25
-#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_C)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_C)
     #define KEYWORD_PERMUTATION_26
-#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_D)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_D)
     #define KEYWORD_PERMUTATION_27
-#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_A)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_7ECD6A43_A)
     #define KEYWORD_PERMUTATION_28
-#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_B)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_7ECD6A43_B)
     #define KEYWORD_PERMUTATION_29
-#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_C)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_7ECD6A43_C)
     #define KEYWORD_PERMUTATION_30
-#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_D)
+#elif defined(BOOLEAN_E0DB5C9A_ON) && defined(ENUM_7ECD6A43_D)
     #define KEYWORD_PERMUTATION_31
-#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_A)
+#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_A)
     #define KEYWORD_PERMUTATION_32
-#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_B)
+#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_B)
     #define KEYWORD_PERMUTATION_33
-#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_C)
+#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_C)
     #define KEYWORD_PERMUTATION_34
-#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_D)
+#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_D)
     #define KEYWORD_PERMUTATION_35
-#elif defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_A)
+#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_A)
     #define KEYWORD_PERMUTATION_36
-#elif defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_B)
+#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_B)
     #define KEYWORD_PERMUTATION_37
-#elif defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_C)
+#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_C)
     #define KEYWORD_PERMUTATION_38
-#elif defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_D)
+#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_D)
     #define KEYWORD_PERMUTATION_39
-#elif defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_A)
+#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_A)
     #define KEYWORD_PERMUTATION_40
-#elif defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_B)
+#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_B)
     #define KEYWORD_PERMUTATION_41
-#elif defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_C)
+#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_C)
     #define KEYWORD_PERMUTATION_42
-#elif defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_D)
+#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_D)
     #define KEYWORD_PERMUTATION_43
-#elif defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_A)
+#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_7ECD6A43_A)
     #define KEYWORD_PERMUTATION_44
-#elif defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_B)
+#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_7ECD6A43_B)
     #define KEYWORD_PERMUTATION_45
-#elif defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_C)
+#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_7ECD6A43_C)
     #define KEYWORD_PERMUTATION_46
-#else
+#elif defined(BOOLEAN_12C0E932_ON) && defined(ENUM_7ECD6A43_D)
     #define KEYWORD_PERMUTATION_47
+#elif defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_A)
+    #define KEYWORD_PERMUTATION_48
+#elif defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_B)
+    #define KEYWORD_PERMUTATION_49
+#elif defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_C)
+    #define KEYWORD_PERMUTATION_50
+#elif defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_D)
+    #define KEYWORD_PERMUTATION_51
+#elif defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_A)
+    #define KEYWORD_PERMUTATION_52
+#elif defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_B)
+    #define KEYWORD_PERMUTATION_53
+#elif defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_C)
+    #define KEYWORD_PERMUTATION_54
+#elif defined(ENUM_F6B920FA_B) && defined(ENUM_7ECD6A43_D)
+    #define KEYWORD_PERMUTATION_55
+#elif defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_A)
+    #define KEYWORD_PERMUTATION_56
+#elif defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_B)
+    #define KEYWORD_PERMUTATION_57
+#elif defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_C)
+    #define KEYWORD_PERMUTATION_58
+#elif defined(ENUM_F6B920FA_C) && defined(ENUM_7ECD6A43_D)
+    #define KEYWORD_PERMUTATION_59
+#elif defined(ENUM_7ECD6A43_A)
+    #define KEYWORD_PERMUTATION_60
+#elif defined(ENUM_7ECD6A43_B)
+    #define KEYWORD_PERMUTATION_61
+#elif defined(ENUM_7ECD6A43_C)
+    #define KEYWORD_PERMUTATION_62
+#else
+    #define KEYWORD_PERMUTATION_63
 #endif
 ";
 
@@ -306,19 +350,19 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             int booleanAIndex = descendentNodes.IndexOf(booleanANode);
             List<int> booleanAPermutations = keywordPermutationsPerNode[booleanAIndex];
-            Assert.AreEqual(24, booleanAPermutations.Count, "Boolean A had incorrect permutations.");
+            Assert.AreEqual(32, booleanAPermutations.Count, "Boolean A had incorrect permutations.");
 
             int booleanBIndex = descendentNodes.IndexOf(booleanBNode);
             List<int> booleanBPermutations = keywordPermutationsPerNode[booleanBIndex];
-            Assert.AreEqual(48, booleanBPermutations.Count, "Boolean B had incorrect permutations.");
+            Assert.AreEqual(64, booleanBPermutations.Count, "Boolean B had incorrect permutations.");
 
             int enumAIndex = descendentNodes.IndexOf(enumANode);
             List<int> enumAPermutations = keywordPermutationsPerNode[enumAIndex];
-            Assert.AreEqual(12, enumAPermutations.Count, "Enum A had incorrect permutations.");
+            Assert.AreEqual(16, enumAPermutations.Count, "Enum A had incorrect permutations.");
 
             int enumBIndex = descendentNodes.IndexOf(enumBNode);
             List<int> enumBPermutations = keywordPermutationsPerNode[enumBIndex];
-            Assert.AreEqual(24, enumBPermutations.Count, "Enum B had incorrect permutations.");
+            Assert.AreEqual(32, enumBPermutations.Count, "Enum B had incorrect permutations.");
         }
 
         [Test]
@@ -339,10 +383,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 Assert.Fail("One or more Keywords Nodes not in graph.");
             }
 
-            KeywordEntry newEntry1 = new KeywordEntry(4, "D", "D");
-            KeywordEntry newEntry2 = new KeywordEntry(5, "E", "E");
-            KeywordEntry newEntry3 = new KeywordEntry(6, "F", "F");
-            KeywordEntry newEntry4 = new KeywordEntry(5, "E", "E");
+            KeywordEntry newEntry1 = new KeywordEntry(14, "D", "D");
+            KeywordEntry newEntry2 = new KeywordEntry(15, "E", "E");
+            KeywordEntry newEntry3 = new KeywordEntry(16, "F", "F");
+            KeywordEntry newEntry4 = new KeywordEntry(15, "E", "E");
 
 
             enumAKeyword.entries.Add(newEntry1);
@@ -350,13 +394,13 @@ namespace UnityEditor.ShaderGraph.UnitTests
             enumAKeyword.entries.Add(newEntry3);
             enumBKeyword.entries.Add(newEntry4);
 
-            Assert.AreEqual(6, enumAKeyword.entries.Count, "Enum A Keyword has incorrect # of entries after adding");
+            Assert.AreEqual(7, enumAKeyword.entries.Count, "Enum A Keyword has incorrect # of entries after adding");
             Assert.AreEqual(5, enumBKeyword.entries.Count, "Enum B Keyword has incorrect # of entries after adding");
 
             enumANode.UpdateNode();
             enumBNode.UpdateNode();
 
-            Assert.AreEqual(7, enumANode.GetSlots<MaterialSlot>().Count(), "Enum A Node has incorrect # of entries after adding");
+            Assert.AreEqual(8, enumANode.GetSlots<MaterialSlot>().Count(), "Enum A Node has incorrect # of entries after adding");
             Assert.AreEqual(6, enumBNode.GetSlots<MaterialSlot>().Count(), "Enum B Node has incorrect # of entries after adding");
 
             enumAKeyword.entries.Remove(newEntry1);
@@ -364,13 +408,13 @@ namespace UnityEditor.ShaderGraph.UnitTests
             enumAKeyword.entries.Remove(newEntry3);
             enumBKeyword.entries.Remove(newEntry4);
 
-            Assert.AreEqual(3, enumAKeyword.entries.Count, "Enum A Keyword has incorrect # of entries after removing");
+            Assert.AreEqual(4, enumAKeyword.entries.Count, "Enum A Keyword has incorrect # of entries after removing");
             Assert.AreEqual(4, enumBKeyword.entries.Count, "Enum B Keyword has incorrect # of entries after removing");
 
             enumANode.UpdateNode();
             enumBNode.UpdateNode();
 
-            Assert.AreEqual(4, enumANode.GetSlots<MaterialSlot>().Count(), "Enum A Node has incorrect # of entries after removing");
+            Assert.AreEqual(5, enumANode.GetSlots<MaterialSlot>().Count(), "Enum A Node has incorrect # of entries after removing");
             Assert.AreEqual(5, enumBNode.GetSlots<MaterialSlot>().Count(), "Enum B Node has incorrect # of entries after removing");
         }
     }
