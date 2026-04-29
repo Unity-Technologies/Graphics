@@ -259,7 +259,7 @@ namespace UnityEditor.ShaderGraph
             string shaderName = isPrimaryShader ? m_PrimaryShaderFullName : ProcessShaderName(additionalShaderID);
 
             var activeNodeList = Pool.HashSetPool<AbstractMaterialNode>.Get();
-            bool ignoreActiveState = (m_Mode == GenerationMode.Preview);  // for previews, we ignore node active state
+            bool ignoreActiveState = m_Mode.IsPreview();  // for previews, we ignore node active state
             if (m_OutputNode == null)
             {
                 foreach (var block in m_ActiveBlocks)
@@ -295,7 +295,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            var variantLimit = this.m_Mode == GenerationMode.Preview
+            var variantLimit = m_Mode.IsPreview()
                 ? Mathf.Min(ShaderGraphPreferences.previewVariantLimit, ShaderGraphProjectSettings.instance.shaderVariantLimit)
                 : ShaderGraphProjectSettings.instance.shaderVariantLimit;
             if (!ShaderGraphProjectSettings.instance.overrideShaderVariantLimit)
@@ -418,7 +418,7 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             // Early out of preview generation if no passes are used in preview
-            if (m_Mode == GenerationMode.Preview && descriptor.generatesPreview == false)
+            if (m_Mode.IsPreview() && descriptor.generatesPreview == false)
                 return;
 
             m_Builder.AppendLine("SubShader");
@@ -436,7 +436,7 @@ namespace UnityEditor.ShaderGraph
                     var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor, activeBlockDescriptors, connectedBlockDescriptors, m_Targets[targetIndex]);
 
                     // TODO: cleanup this preview check, needed for HD decal preview pass
-                    if (m_Mode == GenerationMode.Preview)
+                    if (m_Mode.IsPreview())
                         activeFields.baseInstance.Add(Fields.IsPreview);
 
                     // Check masternode fields for valid passes
@@ -576,7 +576,7 @@ namespace UnityEditor.ShaderGraph
         void GenerateShaderPass(int targetIndex, PassDescriptor pass, ActiveFields activeFields, List<BlockFieldDescriptor> currentBlockDescriptors, PropertyCollector subShaderProperties)
         {
             // Early exit if pass is not used in preview
-            if (m_Mode == GenerationMode.Preview && !pass.useInPreview)
+            if (m_Mode.IsPreview() && !pass.useInPreview)
                 return;
 
             // using (s_profileGenerateShaderPass.Auto())
@@ -1107,7 +1107,7 @@ namespace UnityEditor.ShaderGraph
             {
                 graphDefines.AppendLine("#define SHADERPASS {0}", pass.referenceName);
 
-                if (m_OutputNode == null && m_Mode == GenerationMode.Preview)
+                if (m_OutputNode == null && m_Mode.IsPreview())
                     graphDefines.AppendLine("#define SHADERGRAPH_PREVIEW_MAIN");
 
                 if (pass.defines != null)

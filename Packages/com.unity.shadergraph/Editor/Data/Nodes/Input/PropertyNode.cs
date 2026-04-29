@@ -154,7 +154,7 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode mode)
         {
             // preview is always generating a full shader, even when previewing within a subgraph
-            bool isGeneratingSubgraph = owner.isSubGraph && (mode != GenerationMode.Preview);
+            bool isGeneratingSubgraph = owner.isSubGraph && !mode.IsPreview();
 
             switch (property.propertyType)
             {
@@ -222,7 +222,7 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine($"UnitySamplerState {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
                     break;
                 case PropertyType.Gradient:
-                    if (mode == GenerationMode.Preview)
+                    if (mode.IsPreview())
                         sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {GradientUtil.GetGradientForPreview(property.GetHLSLVariableName(isGeneratingSubgraph, mode))};");
                     else
                         sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
@@ -234,7 +234,7 @@ namespace UnityEditor.ShaderGraph
                 // If in a subgraph, the value will be read from a function parameter.
                 // If generating preview mode code, we always inline the value, according to code gen requirements.
                 // The parent graph always sets the explicit value to be passed to a subgraph function.
-                sb.AppendLine("bool {0} = {1};", GetConnectionStateVariableNameForSlot(OutputSlotId), (mode == GenerationMode.Preview || !isGeneratingSubgraph) ? (IsSlotConnected(OutputSlotId) ? "true" : "false") : property.GetConnectionStateHLSLVariableName());
+                sb.AppendLine("bool {0} = {1};", GetConnectionStateVariableNameForSlot(OutputSlotId), (mode.IsPreview() || !isGeneratingSubgraph) ? (IsSlotConnected(OutputSlotId) ? "true" : "false") : property.GetConnectionStateHLSLVariableName());
             }
         }
 
