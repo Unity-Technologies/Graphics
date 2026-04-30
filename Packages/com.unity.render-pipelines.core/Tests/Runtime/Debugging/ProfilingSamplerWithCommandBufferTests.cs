@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.Tests
         [UnityTest]
         [UnityPlatform(include = new[]
         {
-            RuntimePlatform.WindowsPlayer,
+            // RuntimePlatform.WindowsPlayer, Unstable on StandaloneWindows64: https://jira.unity3d.com/browse/UUM-138158
             RuntimePlatform.WindowsEditor,
             RuntimePlatform.PS5,
             RuntimePlatform.Switch
@@ -119,7 +119,7 @@ namespace UnityEngine.Rendering.Tests
         [UnityTest]
         [UnityPlatform(include = new[]
         {
-            RuntimePlatform.WindowsPlayer,
+            // RuntimePlatform.WindowsPlayer, Unstable on StandaloneWindows64: https://jira.unity3d.com/browse/UUM-138158
             RuntimePlatform.WindowsEditor,
             RuntimePlatform.PS5,
             RuntimePlatform.Switch
