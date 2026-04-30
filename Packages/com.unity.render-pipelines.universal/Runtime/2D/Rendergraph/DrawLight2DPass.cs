@@ -86,7 +86,8 @@ namespace UnityEngine.Rendering.Universal
                     layerBatch.endLayerValue != light.GetTopMostLitLayer()))
                     continue;
 
-                var useShadows = passData.layerBatch.lightStats.useShadows && layerBatch.shadowIndices.Contains(j);
+                var useShadows = (!passData.isVolumetric && passData.layerBatch.lightStats.useShadows) || (passData.isVolumetric && passData.layerBatch.lightStats.useVolumetricShadowLights);
+                useShadows &= layerBatch.shadowIndices.Contains(j);
                 var lightMaterial = passData.rendererData.GetLightMaterial(light, passData.isVolumetric, useShadows);
                 var lightMesh = light.lightMesh;
 
