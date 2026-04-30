@@ -62,10 +62,10 @@ This Block is compatible with the following Contexts:
 | **Frame Rate Mode**  | Enum     | Selects between different modes to control the frame rate when **FrameRate** mode is selected. Refer to [Frame Rate mode](#frame-rate-mode). |
 | **Cycles Mode**      | Enum     | Selects between different modes to specify the number of cycles when **Cycles** mode is selected. Refer to [Cycles mode](#cycles-mode). |
 | **Animation Range**  | Enum     | Different modes to control which frames are displayed. Refer to [Animation Range](#animation-range). |
-| **Use Custom Range** | Boolean  | In **FrameRate** mode, allows to customize the animation range. |
+| **Use Custom Range** | Boolean  | In **Frame Rate** mode, allows you to customize the animation range. |
 | **Reverse**          | Boolean  | Plays the animation from end to start. |
 | **Clamp Blending**   | Boolean  | Only visible if flipbook blending is enabled. Clamps the blending between the last and first frames. |
-| **Custom Curve**     | Boolean  | Allows using a curve to control animation speed over one cycle. By default, speed is linear: each frame is displayed for the same amount of time. |
+| **Custom Curve**     | Boolean  | Allows using a curve to control animation speed over one cycle. By default, speed is linear: each frame is displayed for the same amount of time. In **Frame Rate** mode, this property only appears if you enable **Over Lifetime**, **By Speed**, or **Custom**.  In **Cycles** mode, this property only appears if you enable **Custom Curve**. |
 
 ## Block properties
 
