@@ -347,11 +347,13 @@ namespace UnityEngine.Rendering.Universal
         void InitializeLayerBatches()
         {
             Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
-            var renderingData = frameData.Get<Universal2DRenderingData>().renderingData;
-            ref var layerBatches = ref frameData.Get<Universal2DRenderingData>().layerBatches;
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            Universal2DRenderingData renderData = frameData.Get<Universal2DRenderingData>();
+            ref var layerBatches = ref renderData.layerBatches;
 
-            layerBatches = LayerUtility.CalculateBatches(renderingData, out var batchCount);
-            frameData.Get<Universal2DRenderingData>().batchCount = batchCount;
+            layerBatches = LayerUtility.CalculateBatches(renderData.renderingData, out var batchCount);
+            renderData.batchCount = batchCount;
+            renderData.isLightingActive = IsSceneViewOrPreviewLightingActive(cameraData);
 
             // Initialize textures dependent on batch size
             if (resourceData.normalsTexture.Length != batchCount)
@@ -1104,6 +1106,22 @@ namespace UnityEngine.Rendering.Universal
         internal static bool supportsMRT
         {
             get => !IsGLESDevice();
+        }
+
+        static internal bool IsSceneViewOrPreviewLightingActive(UniversalCameraData cameraData)
+        {
+            DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(cameraData);
+            var isLightingActive = debugHandler?.IsLightingActive ?? true;
+
+#if UNITY_EDITOR
+            if (cameraData.isSceneViewCamera && UnityEditor.SceneView.currentDrawingSceneView != null)
+                isLightingActive &= UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
+
+            if (cameraData.isPreviewCamera && cameraData.camera.name == "Preview Scene Camera")
+                isLightingActive = false;
+#endif
+
+            return isLightingActive;
         }
     }
 }
