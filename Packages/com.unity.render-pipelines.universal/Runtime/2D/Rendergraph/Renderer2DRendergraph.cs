@@ -190,6 +190,13 @@ namespace UnityEngine.Rendering.Universal
                 inputSummary.requiresColorTexture |= needsColor;
             }
 
+            // Volumetric shadow pass requires intermediate texture
+            bool hasVolumetricShadowPass = false;
+            var layerBatches = frameData.Get<Universal2DRenderingData>().layerBatches;
+            var batchCount = frameData.Get<Universal2DRenderingData>().batchCount;
+            for (int i = 0; i < batchCount; ++i)
+                hasVolumetricShadowPass |= layerBatches[i].lightStats.useVolumetricShadowLights;
+
             inputSummary.requiresColorTexture |= cameraData.postProcessEnabled
                     || cameraData.isHdrEnabled
                     || cameraData.isSceneViewCamera
@@ -200,7 +207,8 @@ namespace UnityEngine.Rendering.Universal
                     || m_Renderer2DData.useCameraSortingLayerTexture
                     || !Mathf.Approximately(cameraData.renderScale, 1.0f)
                     || (DebugHandler != null && DebugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget))
-                    || cameraData.captureActions != null;
+                    || cameraData.captureActions != null
+                    || hasVolumetricShadowPass;
 
             return inputSummary;
         }

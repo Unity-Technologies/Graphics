@@ -142,6 +142,11 @@ namespace UnityEngine.Rendering.Universal
             return light.shadowsEnabled && light.shadowIntensity > 0 && light.IsLitLayer(layerToRender);
         }
 
+        internal static bool CanCastVolumetricShadows(Light2D light, int endLayerValue)
+        {
+            return light.volumeIntensity > 0 && light.volumetricEnabled && light.renderVolumetricShadows && light.GetTopMostLitLayer() == endLayerValue;
+        }
+
         internal static void SetLightShaderGlobals(IRasterCommandBuffer cmd, Light2DBlendStyle[] lightBlendStyles, int[] blendStyleIndices)
         {
             for (var i = 0; i < blendStyleIndices.Length; i++)
