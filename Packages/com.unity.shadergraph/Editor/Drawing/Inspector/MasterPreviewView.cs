@@ -112,15 +112,29 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
+            Target currentMainTarget = null;
+            if (m_Graph != null)
+            {
+                foreach (var target in m_Graph.activeTargets)
+                {
+                    currentMainTarget = target;
+                    break;
+                }
+            }
+            bool prefersUITK = currentMainTarget?.prefersUITKPreview ?? false;
+
+            DropdownMenuAction.Status EnabledIfNotPreferUITK(DropdownMenuAction a)
+                => prefersUITK ? DropdownMenuAction.Status.Disabled : DropdownMenuAction.Status.Normal;
+
             foreach (var primitiveTypeName in Enum.GetNames(typeof(PrimitiveType)))
             {
                 if (m_DoNotShowPrimitives.Contains(primitiveTypeName))
                     continue;
-                evt.menu.AppendAction(primitiveTypeName, e => ChangePrimitiveMesh(primitiveTypeName), DropdownMenuAction.AlwaysEnabled);
+                evt.menu.AppendAction(primitiveTypeName, e => ChangePrimitiveMesh(primitiveTypeName), EnabledIfNotPreferUITK);
             }
 
-            evt.menu.AppendAction("Sprite", e => ChangeMeshSprite(), DropdownMenuAction.AlwaysEnabled);
-            evt.menu.AppendAction("Custom Mesh", e => ChangeMeshCustom(), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction("Sprite", e => ChangeMeshSprite(), EnabledIfNotPreferUITK);
+            evt.menu.AppendAction("Custom Mesh", e => ChangeMeshCustom(), EnabledIfNotPreferUITK);
         }
 
         void OnPreviewChanged()
