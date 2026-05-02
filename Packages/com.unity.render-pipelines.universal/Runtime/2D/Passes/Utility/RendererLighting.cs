@@ -213,10 +213,9 @@ namespace UnityEngine.Rendering.Universal
             return light.shadowsEnabled && light.shadowIntensity > 0 && light.IsLitLayer(layerToRender);
         }
 
-        private static bool CanCastVolumetricShadows(Light2D light, int endLayerValue)
+        internal static bool CanCastVolumetricShadows(Light2D light, int endLayerValue)
         {
-            var topMostLayerValue = light.GetTopMostLitLayer();
-            return light.volumetricShadowsEnabled && light.shadowVolumeIntensity > 0 && topMostLayerValue == endLayerValue;
+            return light.volumeIntensity > 0 && light.volumetricEnabled && light.volumetricShadowsEnabled && light.shadowVolumeIntensity > 0 && light.GetTopMostLitLayer() == endLayerValue;
         }
 
         internal static void RenderLight(IRenderPass2D pass, CommandBuffer cmd, Light2D light, bool isVolume, int blendStyleIndex, int layerToRender, bool hasShadows, bool batchingSupported, ref int shadowLightCount)
