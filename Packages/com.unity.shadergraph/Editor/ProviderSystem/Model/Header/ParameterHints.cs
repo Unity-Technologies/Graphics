@@ -22,6 +22,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Hints
         internal const string kDynamic = "sg:DynamicVector";
         internal const string kReferable = "sg:Referable";
 
+        internal const string kCustomBinding = "sg:CustomBinding";
+
         internal static class Ref
         {
             internal const string kUV = "UV";
@@ -436,4 +438,33 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Hints
             return true;
         }
     }
+
+    internal class CustomBinding : IStrongHint<IShaderField>
+    {
+        public string Key => Param.kCustomBinding;
+        public IReadOnlyCollection<string> Conflicts { get; } = new string[] { Param.kCustomEditor };
+
+        public bool Process(bool found, string rawValue, IShaderField obj, IProvider provider, out object value, out string msg, string actualHintKey)
+        {
+            value = rawValue;
+            msg = null;
+            if (!found)
+                return false;
+
+            if (!obj.IsInput)
+            {
+                msg = $"Expected input parameter.";
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(rawValue))
+            {
+                msg = "Invalid value.";
+                return false;
+            }
+
+            return true;
+        }
+    }
+
 }
