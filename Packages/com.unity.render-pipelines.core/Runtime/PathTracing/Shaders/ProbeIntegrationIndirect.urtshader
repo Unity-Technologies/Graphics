@@ -10,7 +10,7 @@
 #include "PathTracing.hlsl"
 #include "SphericalHarmonicsUtils.hlsl"
 
-RWStructuredBuffer<float3> g_Positions;
+StructuredBuffer<float3> g_Positions;
 RWStructuredBuffer<float> g_RadianceShl2;
 uint g_PositionsOffset;
 uint g_SampleOffset;
@@ -103,16 +103,9 @@ void IntegrateIndirectRadiance(UnifiedRT::DispatchInfo dispatchInfo)
 
     // Local array to accumulate radiance into, using SoA layout.
     float3 accumulatedRadianceSH[SH_COEFFICIENTS_PER_CHANNEL];
-    accumulatedRadianceSH[0] = radiance * SHL0();
-    accumulatedRadianceSH[1] = radiance * SHL1_1(uniformSphereDir);
-    accumulatedRadianceSH[2] = radiance * SHL10(uniformSphereDir);
-    accumulatedRadianceSH[3] = radiance * SHL11(uniformSphereDir);
-
-    accumulatedRadianceSH[4] = radiance * SHL2_2(uniformSphereDir);
-    accumulatedRadianceSH[5] = radiance * SHL2_1(uniformSphereDir);
-    accumulatedRadianceSH[6] = radiance * SHL20(uniformSphereDir);
-    accumulatedRadianceSH[7] = radiance * SHL21(uniformSphereDir);
-    accumulatedRadianceSH[8] = radiance * SHL22(uniformSphereDir);
+    for (int i = 0; i < SH_COEFFICIENTS_PER_CHANNEL; ++i)
+        accumulatedRadianceSH[i] = 0.0f;
+    AccumulateRadianceIntoSH(accumulatedRadianceSH, radiance, uniformSphereDir);
 
     const float reciprocalSampleCount = 1.0f / (float) g_SampleCount;
     const float reciprocalUniformSphereDensity = 4.0f * PI;

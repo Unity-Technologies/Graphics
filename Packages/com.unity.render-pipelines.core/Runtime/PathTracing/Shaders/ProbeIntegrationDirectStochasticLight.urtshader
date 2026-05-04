@@ -12,7 +12,7 @@
 #include "SphericalHarmonicsUtils.hlsl"
 
 uint g_LightIndexInCell;
-RWStructuredBuffer<float3> g_Positions;
+StructuredBuffer<float3> g_Positions;
 RWStructuredBuffer<float> g_RadianceShl2;
 uint g_PositionsOffset;
 uint g_SampleOffset;
@@ -56,23 +56,14 @@ void IntegrateDirectRadiance(UnifiedRT::DispatchInfo dispatchInfo)
     [branch] if (g_LightIndexInCell >= numLightsInCell)
         return;
 
-    PTLight light = GetLightInCell(worldPosition, g_LightIndexInCell);
-    if (SampleLightRadiance(dispatchInfo, accelStruct, g_AccelStructInstanceList, worldPosition, 0.0f, options, light, rngState, lightSample))
+    uint lightIndex = LocalToGlobalLightIndex(worldPosition, g_LightIndexInCell);
+    if (SampleLightRadianceRoundRobin(dispatchInfo, accelStruct, g_AccelStructInstanceList, worldPosition, 0.0f, options, lightIndex, rngState, lightSample))
     #else
-    if (SampleLightsRadiance(dispatchInfo, accelStruct, g_AccelStructInstanceList, worldPosition, 0.0f, options, rngState, lightSample))
+    if (SampleRadianceFromLightGrid(dispatchInfo, accelStruct, g_AccelStructInstanceList, worldPosition, 0.0f, options, rngState, lightSample))
     #endif
     {
         // Project into SH.
-        accumulatedRadianceSH[0] += lightSample.radiance * SHL0();
-        accumulatedRadianceSH[1] += lightSample.radiance * SHL1_1(lightSample.direction);
-        accumulatedRadianceSH[2] += lightSample.radiance * SHL10(lightSample.direction);
-        accumulatedRadianceSH[3] += lightSample.radiance * SHL11(lightSample.direction);
-
-        accumulatedRadianceSH[4] += lightSample.radiance * SHL2_2(lightSample.direction);
-        accumulatedRadianceSH[5] += lightSample.radiance * SHL2_1(lightSample.direction);
-        accumulatedRadianceSH[6] += lightSample.radiance * SHL20(lightSample.direction);
-        accumulatedRadianceSH[7] += lightSample.radiance * SHL21(lightSample.direction);
-        accumulatedRadianceSH[8] += lightSample.radiance * SHL22(lightSample.direction);
+        AccumulateRadianceIntoSH(accumulatedRadianceSH, lightSample.radiance, lightSample.direction);
     }
 
     #ifdef LIGHT_SAMPLING_ROUND_ROBIN

@@ -17,7 +17,7 @@ int g_SampleOffset;
 uint g_ReceiveShadows;
 float g_PushOff;
 RWStructuredBuffer<float4> g_ExpandedOutput;
-RWStructuredBuffer<float4> g_ExpandedDirectional;
+RWStructuredBuffer<float4> g_ExpandedOutputDirectional;
 
 // Sample a specific light directly, weight with MIS.
 // Assumes 2 sampling strategies, the other being cosine weighted hemisphere sampling.
@@ -38,8 +38,8 @@ void EstimateMISWeightedIrradianceForSpecificLightUsingDirectSampling(
     float3 sampleDirection = 0.f;
     float sampleDensity = 0.f;
 
-    PTLight light = GetLightInCell(origin, lightIndexInCell);
-    if (SampleLightRadiance(dispatchInfo, accelStruct, g_AccelStructInstanceList, origin, normal, options, light, rngState, lightSample))
+    uint lightIndex = LocalToGlobalLightIndex(origin, lightIndexInCell);
+    if (SampleLightRadianceRoundRobin(dispatchInfo, accelStruct, g_AccelStructInstanceList, origin, normal, options, lightIndex, rngState, lightSample))
     {
         float sampleMISWeight = EmissiveMISWeightForLightRay(lightSample.lightType, lightSample.direction, lightSample.risSourcePdf, normal);
         float3 e = sampleMISWeight * ClampedCosine(normal, lightSample.direction) * lightSample.radiance;
@@ -67,7 +67,7 @@ void EstimateMISWeightedIrradianceUsingDirectSampling(
     float3 sampleDirection = 0.f;
     float sampleDensity = 0.f;
 
-    if (SampleLightsRadiance(dispatchInfo, accelStruct, instanceList, origin, normal, options, rngState, lightSample))
+    if (SampleRadianceFromLightGrid(dispatchInfo, accelStruct, instanceList, origin, normal, options, rngState, lightSample))
     {
         float sampleMISWeight = EmissiveMISWeightForLightRay(lightSample.lightType, lightSample.direction, lightSample.risSourcePdf, normal);
         float3 e = sampleMISWeight * ClampedCosine(normal, lightSample.direction) * lightSample.radiance;
@@ -136,5 +136,5 @@ void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
     // Store new accumulated irradiance
     g_ExpandedOutput[dispatchInfo.dispatchThreadID.x] += float4(irradiance.rgb,g_LightIndexInCell==0);
     if (g_AccumulateDirectional > 0)
-        g_ExpandedDirectional[dispatchInfo.dispatchThreadID.x] += directional;
+        g_ExpandedOutputDirectional[dispatchInfo.dispatchThreadID.x] += directional;
 }

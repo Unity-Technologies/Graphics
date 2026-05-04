@@ -204,7 +204,7 @@ namespace UnityEngine.PathTracing.Lightmapping
             UVFallbackBufferBuilder = new UVFallbackBufferBuilder();
             UVFallbackBufferBuilder.Prepare(lightmapResourceLib.UVFallbackBufferGenerationMaterial);
             LightmapDirectIntegrator = new LightmapDirectIntegrator();
-            LightmapDirectIntegrator.Prepare(lightmapResourceLib.DirectAccumulationShader, lightmapResourceLib.NormalizationShader, lightmapResourceLib.ExpansionHelpers, SamplingResources, _emptyExposureTexture);
+            LightmapDirectIntegrator.Prepare(lightmapResourceLib.DirectStochasticLightShader, lightmapResourceLib.DirectDirectionalAndEnvironmentShader, lightmapResourceLib.NormalizationShader, lightmapResourceLib.ExpansionHelpers, SamplingResources, _emptyExposureTexture);
             LightmapDirectBRDFIntegrator = new LightmapDirectBRDFIntegrator();
             LightmapDirectBRDFIntegrator.Prepare(lightmapResourceLib.DirectBRDFAccumulationShader, lightmapResourceLib.NormalizationShader, lightmapResourceLib.ExpansionHelpers, SamplingResources, _emptyExposureTexture);
             LightmapIndirectIntegrator = new LightmapIndirectIntegrator();
@@ -242,8 +242,9 @@ namespace UnityEngine.PathTracing.Lightmapping
     {
         internal IRayTracingShader GBufferShader;
         internal ComputeShader NormalizationShader;
-        internal IRayTracingShader DirectAccumulationShader;
+        internal IRayTracingShader DirectStochasticLightShader;
         internal IRayTracingShader DirectBRDFAccumulationShader;
+        internal IRayTracingShader DirectDirectionalAndEnvironmentShader;
         internal IRayTracingShader AOAccumulationShader;
         internal IRayTracingShader ValidityAccumulationShader;
         internal IRayTracingShader IndirectAccumulationShader;
@@ -268,8 +269,9 @@ namespace UnityEngine.PathTracing.Lightmapping
             GBufferShader = context.LoadRayTracingShader(packageFolder + "Shaders/LightmapGBufferIntegration.urtshader");
 
             NormalizationShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(packageFolder + "Shaders/ResolveAccumulation.compute");
-            DirectAccumulationShader = context.LoadRayTracingShader(packageFolder + "Shaders/LightmapDirectIntegration.urtshader");
+            DirectStochasticLightShader = context.LoadRayTracingShader(packageFolder + "Shaders/LightmapDirectStochasticLightIntegration.urtshader");
             DirectBRDFAccumulationShader = context.LoadRayTracingShader(packageFolder + "Shaders/LightmapDirectBRDFIntegration.urtshader");
+            DirectDirectionalAndEnvironmentShader = context.LoadRayTracingShader(packageFolder + "Shaders/LightmapDirectDirectionalAndEnvironmentIntegration.urtshader");
             AOAccumulationShader = context.LoadRayTracingShader(packageFolder + "Shaders/LightmapAOIntegration.urtshader");
             ValidityAccumulationShader = context.LoadRayTracingShader(packageFolder + "Shaders/LightmapValidityIntegration.urtshader");
             IndirectAccumulationShader = context.LoadRayTracingShader(packageFolder + "Shaders/LightmapIndirectIntegration.urtshader");

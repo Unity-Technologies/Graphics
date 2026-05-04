@@ -105,8 +105,12 @@ namespace UnityEngine.PathTracing.Tests
             Assert.AreEqual(0, _world.LightCount);
             var light = CreateLights(1);
             var handles = _world.AddLights(light, _respectLightLayers, _autoEstimateLUTRange, MixedLightingMode.IndirectOnly);
+            _world.Build(new Bounds(), _cmd, ref _buildScratchBuffer, _samplingResources, false, cubemapResolution, 64 * 64 * 64);
+            Graphics.ExecuteCommandBuffer(_cmd);
             Assert.AreEqual(1, _world.LightCount);
             _world.RemoveLights(handles);
+            _world.Build(new Bounds(), _cmd, ref _buildScratchBuffer, _samplingResources, false, cubemapResolution, 64 * 64 * 64);
+            Graphics.ExecuteCommandBuffer(_cmd);
             Assert.AreEqual(0, _world.LightCount);
         }
 

@@ -12,6 +12,31 @@ float g_PushOff;
 RWStructuredBuffer<float4> g_ExpandedOutput;
 RWStructuredBuffer<float4> g_ExpandedSampleCountInW;
 
+void CalculateOcclusionForLight(
+    UnifiedRT::DispatchInfo dispatchInfo,
+    PathTracingSampler rngState,
+    UnifiedRT::RayTracingAccelStruct accelStruct,
+    PTLight light,
+    float3 worldPosition,
+    float3 worldFaceNormal,
+    inout uint dimsOffset,
+    inout float visibility[4])
+{
+    if (light.shadowMaskChannel == -1)
+        return;
+    if (light.type == EMISSIVE_MESH || light.type == ENVIRONMENT_LIGHT) // Shadowmask only makes sense for punctual lights
+        return;
+
+    float3 origin = OffsetRayOrigin(worldPosition, worldFaceNormal, g_PushOff);
+
+    float3 attenuation = 1.0f;
+    float isVisible = IsLightVisibleFromPoint(dispatchInfo, accelStruct, g_AccelStructInstanceList, ShadowRayMask(), origin, rngState, dimsOffset, light, g_ReceiveShadows, attenuation) ? dot(float3(1.0f, 1.0f, 1.0f), attenuation)/3.0f : 0.0f;
+    dimsOffset += 3; // 2 dimensions for sampling the light, 1 dimension for jittering the shadow ray
+    if (light.shadowMaskChannel < 0 || light.shadowMaskChannel >= 4)
+        return;
+    visibility[light.shadowMaskChannel] += isVisible;
+}
+
 void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
 {
     float3 worldPosition = 0.f;
@@ -37,19 +62,12 @@ void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
     for (uint lightIndex = 0; lightIndex < numLights; ++lightIndex)
     {
         PTLight light = FetchLight(lightIndex);
-        if (light.shadowMaskChannel == -1)
-            continue;
-        if (light.type == EMISSIVE_MESH || light.type == ENVIRONMENT_LIGHT) // Shadowmask only makes sense for punctual lights
-            continue;
+        CalculateOcclusionForLight(dispatchInfo, rngState, accelStruct, light, worldPosition, worldFaceNormal, dimsOffset, visibility);
+    }
 
-        float3 origin = OffsetRayOrigin(worldPosition, worldFaceNormal, g_PushOff);
-
-        float3 attenuation = 1.0f;
-        float isVisible = IsLightVisibleFromPoint(dispatchInfo, accelStruct, g_AccelStructInstanceList, ShadowRayMask(), origin, rngState, dimsOffset, light, g_ReceiveShadows, attenuation) ? dot(float3(1.0f, 1.0f, 1.0f), attenuation)/3.0f : 0.0f;
-        dimsOffset += 3; // 2 dimensions for sampling the light, 1 dimension for jittering the shadow ray
-        if (light.shadowMaskChannel < 0 || light.shadowMaskChannel >= 4)
-            continue;
-        visibility[light.shadowMaskChannel] += isVisible;
+    if (g_HasMainDirectionalLight)
+    {
+        CalculateOcclusionForLight(dispatchInfo, rngState, accelStruct, g_MainDirectionalLight[0], worldPosition, worldFaceNormal, dimsOffset, visibility);
     }
 
     // store new accumulated radiance

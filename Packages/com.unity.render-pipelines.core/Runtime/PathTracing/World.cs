@@ -41,8 +41,8 @@ namespace UnityEngine.PathTracing.Core
 
     internal class World : IDisposable
     {
-        internal const int EMISSIVE_MESH = 8; // Must match the EMISSIVE_MESH define in Common.hlsl
-        internal const int ENVIRONMENT_LIGHT = 9; // Must match the ENVIRONMENT_LIGHT define in Common.hlsl
+        internal const int DIRECTIONAL_LIGHT = 1; // Must match the DIRECTIONAL_LIGHT define in PathTracingCommon.hlsl
+        internal const int EMISSIVE_MESH = 8; // Must match the EMISSIVE_MESH define in PathTracingCommon.hlsl
 
         // This trivial type only exists so that handles can be type-safe.
         // If we make an InstanceDescriptor type, we can use that instead.
@@ -140,40 +140,16 @@ namespace UnityEngine.PathTracing.Core
             // Light handle set
             public LightHandleSet LightHandleSet = new();
 
+            // Main directional and environment light are sampled explicitly, not via the stochastic light list.
             public bool HasEnvironmentLight = false;
-
-            public int EnvLightCount => HasEnvironmentLight ? 1 : 0;
+            public bool HasMainDirectionalLight = false;
+            public PTLight MainDirectionalLight;
+            public LightHandle MainDirectionalLightHandle;
+            public ComputeBuffer MainDirectionalLightBuffer;
 
             public int MeshLightCount => MeshLights.Count;
 
-            public int LightCount => LightHandleToLightListEntry.Count + MeshLightCount + EnvLightCount;
-
-            private static PTLight CreateEnvironmentLight()
-            {
-                PTLight envLight;
-                envLight.type = ENVIRONMENT_LIGHT;
-                envLight.position = Vector3.zero;
-                envLight.intensity = Vector3.zero;
-                envLight.castShadows = 1;
-                envLight.contributesToDirectLighting = 1;
-                envLight.forward = Vector3.zero;
-                envLight.attenuation = Vector4.one;
-                envLight.up = Vector3.zero;
-                envLight.right = Vector3.zero;
-                envLight.width = 0;
-                envLight.height = 0;
-                envLight.spotAngle = 0;
-                envLight.innerSpotAngle = 0;
-                envLight.layerMask = uint.MaxValue;
-                envLight.indirectScale = 1.0f;
-                envLight.attenuation = Vector4.zero;
-                envLight.range = float.MaxValue;
-                envLight.shadowMaskChannel = -1;
-                envLight.falloffIndex = -1;
-                envLight.shadowRadius = 0.0f;
-                envLight.cookieIndex = -1;
-                return envLight;
-            }
+            public int LightCount => LightList.Count;
 
             public void Build(Bounds sceneBounds, CommandBuffer cmdBuf, bool addEnvironmentLight)
             {
@@ -181,20 +157,41 @@ namespace UnityEngine.PathTracing.Core
                 LightList.Clear();
                 LightHandleToLightListIndex.Clear();
 
+                HasEnvironmentLight = addEnvironmentLight;
+
+                // Find main directional light, it shouldn't go in the light list.
+                HasMainDirectionalLight = false;
+                MainDirectionalLightHandle = LightHandle.Invalid;
+                float brightestDirectionalLightLuminance = 0;
+                foreach (var light in LightHandleToLightListEntry)
+                {
+                    var ptLight = light.Value;
+                    if (ptLight.type == DIRECTIONAL_LIGHT)
+                    {
+                        float luminance = Luminance(new Color(ptLight.intensity.x, ptLight.intensity.y, ptLight.intensity.z));
+                        if (luminance > brightestDirectionalLightLuminance)
+                        {
+                            HasMainDirectionalLight = true;
+                            MainDirectionalLight = ptLight;
+                            MainDirectionalLightHandle = light.Key;
+                            brightestDirectionalLightLuminance = luminance;
+                        }
+                    }
+                }
+
                 // Combine the mesh lights and the rest of the lights.
                 foreach (var light in LightHandleToLightListEntry)
                 {
+                    if (light.Key == MainDirectionalLightHandle)
+                        continue;
+
                     LightHandleToLightListIndex.Add(light.Key, LightList.Count);
                     LightList.Add(light.Value);
                 }
-                foreach (var meshLight in MeshLights)
-                    LightList.Add(meshLight.Value);
 
-                // If we explicitly sample emitters, include the environment light in the light list
-                if (addEnvironmentLight)
+                foreach (var meshLight in MeshLights)
                 {
-                    LightList.Add(CreateEnvironmentLight());
-                    HasEnvironmentLight = true;
+                    LightList.Add(meshLight.Value);
                 }
 
                 BuildLightFalloffLUTs(this);
@@ -231,8 +228,15 @@ namespace UnityEngine.PathTracing.Core
                 }
 
                 if (lightState.LightList.Count > 0)
-                {
                     cmdBuf.SetBufferData(lightState.LightListBuffer, lightState.LightList, 0, 0, lightState.LightList.Count);
+
+                if (lightState.MainDirectionalLightBuffer == null)
+                    lightState.MainDirectionalLightBuffer = new ComputeBuffer(1, Marshal.SizeOf<PTLight>());
+
+                if (lightState.HasMainDirectionalLight)
+                {
+                    cmdBuf.SetBufferData(lightState.MainDirectionalLightBuffer,
+                        new[]{ lightState.MainDirectionalLight }, 0, 0, 1);
                 }
 
                 if (lightState.LightFalloffBuffer == null || lightState.LightFalloffBuffer.count < lightState.LightFalloff.Length)
@@ -272,7 +276,7 @@ namespace UnityEngine.PathTracing.Core
 
         public int MaterialCount => _materialPool.MaterialCount;
 
-        public int LightCount => NonMeshLightCount + MeshLightCount + EnvLightCount;
+        public int LightCount => _lightState.LightCount;
         public int NonMeshLightCount => _lightState.LightHandleToLightListEntry.Count;
         public int MeshLightCount => _lightState.MeshLights.Count;
         public int EnvLightCount => _lightState.HasEnvironmentLight ? 1 : 0;
@@ -292,6 +296,10 @@ namespace UnityEngine.PathTracing.Core
         public List<PTLight> LightList => _lightState.LightList;
         public Dictionary<LightHandle, int> LightHandleToLightListIndex => _lightState.LightHandleToLightListIndex;
         public ComputeBuffer LightListBuffer => _lightState.LightListBuffer;
+        public LightHandle MainDirectionaLightHandle => _lightState.MainDirectionalLightHandle;
+        public ComputeBuffer MainDirectionalLightBuffer => _lightState.MainDirectionalLightBuffer;
+        public bool HasMainDirectionalLight => _lightState.HasMainDirectionalLight;
+        public bool HasEnvironmentLight => _lightState.HasEnvironmentLight;
 
         public ComputeBuffer LightFalloffBuffer => _lightState.LightFalloffBuffer;
         public ComputeBuffer LightFalloffLUTRangeBuffer => _lightState.LightFalloffLUTRangeBuffer;
@@ -413,6 +421,7 @@ namespace UnityEngine.PathTracing.Core
             _materialPool?.Dispose();
             _subMeshIndices.Clear();
             _lightState.LightListBuffer?.Dispose();
+            _lightState.MainDirectionalLightBuffer?.Dispose();
             _lightState.LightFalloffBuffer?.Dispose();
             _lightState.LightFalloffLUTRangeBuffer?.Dispose();
             _lightState.LightFalloffDescs.Clear();

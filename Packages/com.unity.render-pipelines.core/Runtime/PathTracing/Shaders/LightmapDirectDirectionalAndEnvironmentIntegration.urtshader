@@ -1,0 +1,85 @@
+#pragma only_renderers d3d11 vulkan metal glcore
+#pragma exclude_renderers switch switch2
+
+#pragma multi_compile _ LIGHT_SAMPLING_UNIFORM LIGHT_SAMPLING_RIS LIGHT_SAMPLING_ROUND_ROBIN
+#pragma multi_compile _ EMISSIVE_SAMPLING_LIGHT EMISSIVE_SAMPLING_BRDF EMISSIVE_SAMPLING_MIS
+
+#define UNIFIED_RT_GROUP_SIZE_X 64
+#define UNIFIED_RT_GROUP_SIZE_Y 1
+#define UNIFIED_RT_RAYGEN_FUNC AccumulateInternal
+
+#include "PathTracing.hlsl"
+#include "LightmapIntegrationHelpers.hlsl"
+
+int g_AccumulateDirectional;
+int g_SampleOffset;
+uint g_ReceiveShadows;
+float g_PushOff;
+RWStructuredBuffer<float4> g_ExpandedOutput;
+RWStructuredBuffer<float4> g_ExpandedOutputDirectional;
+
+void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
+{
+    float3 worldPosition = 0.f;
+    float3 worldNormal = 0.f;
+    float3 worldFaceNormal = 0.f;
+    uint localSampleOffset = 0;
+    uint2 instanceTexelPos = 0;
+    const bool gotSample = GetExpandedSample(dispatchInfo.dispatchThreadID.x, localSampleOffset, instanceTexelPos, worldPosition, worldNormal, worldFaceNormal);
+    if (!gotSample)
+        return;
+
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(g_SceneAccelStruct);
+
+    const uint sampleOffset = g_SampleOffset + localSampleOffset;
+
+    float3 origin = OffsetRayOrigin(worldPosition, worldFaceNormal, g_PushOff);
+
+    float4 irradiance = 0.0f;
+    float4 directional = 0.0f;
+
+    PathTracingSampler rngState;
+    rngState.Init(instanceTexelPos, sampleOffset);
+
+    SampleLightsOptions options;
+    options.isDirect = true;
+    options.receiveShadows = g_ReceiveShadows;
+    options.shadowRayMask = ShadowRayMask();
+    options.lightsRenderingLayerMask = 0xFFFFFFFF;
+    options.numLightCandidates = 1;
+
+    // TODO: Specialize sampling codepaths for different light types: https://jira.unity3d.com/browse/GFXLIGHT-2260
+    // Sample the main directional light
+    if (g_HasMainDirectionalLight)
+    {
+        PTLight directionalLight = g_MainDirectionalLight[0];
+        LightSample directionalLightSample;
+        SampleLightRadiance(dispatchInfo, accelStruct, g_AccelStructInstanceList, origin, worldNormal, options, directionalLight, rngState, directionalLightSample);
+        float3 eval = ClampedCosine(worldNormal, directionalLightSample.direction) * directionalLightSample.radiance;
+        irradiance.rgb += eval;
+        directional += float4(directionalLightSample.direction, 1.f) * Luminance(eval);
+    }
+
+    // Sample the environment
+    if (g_HasEnvironmentLight)
+    {
+        PTLight environmentLight = (PTLight)0;
+        environmentLight.type = ENVIRONMENT_LIGHT;
+        environmentLight.castsShadows = 1;
+        environmentLight.contributesToDirectLighting = 1;
+        environmentLight.layerMask = UINT_MAX;
+        LightSample environmentLightSample;
+        SampleLightRadiance(dispatchInfo, accelStruct, g_AccelStructInstanceList, origin, worldNormal, options, environmentLight, rngState, environmentLightSample);
+
+        float misWeight = EmissiveMISWeightForLightRay(environmentLightSample.lightType, environmentLightSample.direction, environmentLightSample.risSourcePdf, worldNormal);
+        float3 eval = misWeight * ClampedCosine(worldNormal, environmentLightSample.direction) * environmentLightSample.radiance;
+        irradiance.rgb += eval;
+        directional += float4(environmentLightSample.direction, 1.f) * Luminance(eval);
+    }
+
+    // Store new accumulated irradiance
+    g_ExpandedOutput[dispatchInfo.dispatchThreadID.x] += float4(irradiance.rgb, 0.0f);
+    if (g_AccumulateDirectional > 0)
+        g_ExpandedOutputDirectional[dispatchInfo.dispatchThreadID.x] += directional;
+}
+
