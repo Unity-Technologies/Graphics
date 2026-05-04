@@ -36,7 +36,35 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         ShaderStageCapability m_StageCapability;
 
+        [SerializeField]
+        string m_CustomBinding;
+
         bool m_HasError;
+
+        internal string CustomBinding
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(m_CustomBinding))
+                    return m_CustomBinding;
+
+                else if (owner is SubGraphNode sgNode)
+                {
+                    var property = sgNode.GetShaderProperty(id);
+                    return property?.customSlotLabel;
+                }
+
+                else if (owner is PropertyNode propertyNode)
+                {
+                    return propertyNode.property?.customSlotLabel;
+                }
+
+                return null;
+            }
+            set { m_CustomBinding = value; }
+        }
+
+        internal bool HasCustomBinding => !string.IsNullOrWhiteSpace(CustomBinding);
 
         protected MaterialSlot() { }
 
@@ -56,30 +84,13 @@ namespace UnityEditor.ShaderGraph
             this.shaderOutputName = shaderOutputName;
         }
 
-        public bool IsConnectionTestable()
-        {
-            if (owner is SubGraphNode sgNode)
-            {
-                var property = sgNode.GetShaderProperty(id);
-                if (property != null)
-                {
-                    return property.isConnectionTestable;
-                }
-            }
-            else if (owner is PropertyNode propertyNode)
-            {
-                return propertyNode.property.isConnectionTestable;
-            }
-            return false;
-        }
+        public bool IsConnectionTestable() => HasCustomBinding;
 
         public VisualElement InstantiateCustomControl()
         {
-            if (!isConnected && IsConnectionTestable())
+            if (!isConnected && HasCustomBinding)
             {
-                var sgNode = owner as SubGraphNode;
-                var property = sgNode.GetShaderProperty(id);
-                return new LabelSlotControlView(property.customSlotLabel);
+                return new LabelSlotControlView(CustomBinding);
             }
             return null;
         }

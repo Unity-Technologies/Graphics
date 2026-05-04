@@ -43,6 +43,9 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         internal bool isLinkage { get; private set; }
         internal string linkTarget { get; private set; }
 
+        internal bool hasCustomBinding { get; private set; }
+        internal string customBinding { get; private set; }
+
         private static HintRegistry<IShaderField> s_HintRegistry;
         protected override HintRegistry<IShaderField> GetHintRegistry()
         {
@@ -64,6 +67,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                 s_HintRegistry.RegisterStrongHint(new Hints.Referable());
                 s_HintRegistry.RegisterStrongHint(new Hints.Dynamic());
                 s_HintRegistry.RegisterStrongHint(new Hints.Linkage());
+                s_HintRegistry.RegisterStrongHint(new Hints.CustomBinding());
             }
             return s_HintRegistry;
         }
@@ -127,6 +131,10 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                 isLocal = true;
             }
 
+            if (hasCustomBinding = Has(Hints.Param.kCustomBinding))
+            {
+                customBinding = Get<string>(Hints.Param.kCustomBinding);
+            }
         }
 
         internal ParameterHeader(IShaderField param, IProvider provider)
