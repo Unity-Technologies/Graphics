@@ -830,7 +830,6 @@ namespace UnityEngine.VFX.Test
         }
 
         [UnityTest, Description("Cover internal behavior linked to readback of alive particle count")]
-		[Ignore("Disabled for Instability https://jira.unity3d.com/browse/UUM-140899")]
         public IEnumerator Verify_AliveParticleCount_Readback([ValueSource(nameof(kVerify_AliveParticleCount_ReadbackCase))] string currentName)
         {
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
