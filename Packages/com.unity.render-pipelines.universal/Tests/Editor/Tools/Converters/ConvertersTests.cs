@@ -7,7 +7,6 @@ using UnityEngine;
 namespace UnityEditor.Rendering.Universal.Tools
 {
     [Category("Graphics Tools")]
-    [Ignore("Disabled for Instability https://jira.unity3d.com/browse/UUM-138262")]
     class ConverterTests
     {
         class NotAConverterType
@@ -55,9 +54,7 @@ namespace UnityEditor.Rendering.Universal.Tools
                 new List<string>
                 {
                     "RenderSettings",
-#if PPV2_EXISTS
                     "PPv2"
-#endif
                 },
                 false,
                 new List<Type>
@@ -81,9 +78,7 @@ namespace UnityEditor.Rendering.Universal.Tools
                 false,
                  new List<Type>
                  {
-#if PPV2_EXISTS
                     typeof(PPv2Converter),
-#endif
                     typeof(BuiltInToURP3DRenderSettingsConverter),
                     typeof(AnimationClipConverter),
                     typeof(BuiltInToURP3DMaterialUpgrader),
