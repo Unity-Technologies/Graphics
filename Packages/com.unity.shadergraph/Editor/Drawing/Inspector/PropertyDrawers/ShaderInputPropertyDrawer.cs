@@ -250,7 +250,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             if (!isSubGraph || shaderInput.promoteToFinalShader)
             {
                 var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
-                propertySheet.Add(toggleDataPropertyDrawer.CreateGUI(
+                var toggleRow = toggleDataPropertyDrawer.CreateGUI(
                     evt =>
                     {
                         if (shaderInput is AbstractShaderProperty property &&
@@ -266,7 +266,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     new ToggleData(shaderInput.isExposed),
                     shaderInput is ShaderKeyword ? "Generate Material Property" : "Show In Inspector",
                     out var exposedToggleVisualElement,
-                    tooltip: shaderInput is ShaderKeyword ? "Generate a material property declaration to show this field in the material inspector." : "Hide or Show this property in the material inspector."));
+                    tooltip: shaderInput is ShaderKeyword ? "Generate a material property declaration to show this field in the material inspector." : "Hide or Show this property in the material inspector."
+                    );
+
+                toggleRow.SetEnabled(shaderInput.isExposable);
+                propertySheet.Add(toggleRow);                
                 exposedToggle = exposedToggleVisualElement as Toggle;
             }
         }
