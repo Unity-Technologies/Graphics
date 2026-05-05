@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             // For preview only we declare CRT defines
-            if (generationMode == GenerationMode.Preview)
+            if (generationMode.IsPreview())
             {
                 registry.builder.AppendLine("#define _CustomRenderTextureCubeFace 0.0");
                 registry.builder.AppendLine("#define _CustomRenderTexture3DSlice 0.0");
