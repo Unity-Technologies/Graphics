@@ -1,3 +1,5 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
 /**********************************************************************
 Copyright (c) 2019 Advanced Micro Devices, Inc. All rights reserved.
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -152,9 +154,13 @@ bool fast_intersect_triangle(in uint cull_mode,
     return hit;
 }
 
-float min3(float3 val) { return min(min(val.x, val.y), val.z); }
+// The leading "_" is to prevent possible name conflict with platform intrinsics which accept 3 parameters.
+// Using Min3 ensures that we use these intrinsics if available.
+float _min3(float3 val) { return Min3(val.x, val.y, val.z); }
 
-float max3(float3 val) { return max(max(val.x, val.y), val.z); }
+// The leading "_" is to prevent possible name conflict with platform intrinsics which accept 3 parameters
+// Using Max3 ensures that we use these intrinsics if available.
+float _max3(float3 val) { return Max3(val.x, val.y, val.z); }
 
 // slabs method for Ray-AABB intersection test (Ref: Raytracing Gems 2 Chapter 2)
 // relies on IEEE 754 floating point rules for infinity and NaNs to handle case when one or more ray_dir coordinates are 0.
@@ -165,8 +171,8 @@ float2 fast_intersect_bbox(in float3 ray_origin, in float3 ray_inv_dir, in float
     float3 n = (box_min - ray_origin) * ray_inv_dir;
     float3 tmax = max(f, n);
     float3 tmin = min(f, n);
-    float max_t = min(min3(tmax), t_max);
-    float min_t = max(max3(tmin), t_min);
+    float max_t = min(_min3(tmax), t_max);
+    float min_t = max(_max3(tmin), t_min);
 
     return float2(min_t, max_t);
 }

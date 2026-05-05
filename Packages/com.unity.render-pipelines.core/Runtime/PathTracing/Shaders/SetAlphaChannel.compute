@@ -1,4 +1,4 @@
-#pragma only_renderers d3d11 vulkan metal glcore
+#pragma only_renderers d3d11 vulkan metal glcore ps5
 #define GROUP_SIZE_X 8
 #define GROUP_SIZE_Y 8
 

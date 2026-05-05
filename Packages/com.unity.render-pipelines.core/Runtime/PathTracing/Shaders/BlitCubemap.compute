@@ -1,4 +1,4 @@
-#pragma only_renderers d3d11 vulkan metal glcore
+#pragma only_renderers d3d11 vulkan metal glcore ps5
 #define GROUP_SIZE_X 8
 #define GROUP_SIZE_Y 8
 
@@ -19,7 +19,7 @@ int g_Face;
 #define PositiveZ 4
 #define NegativeZ 5
 
-// Projects (blits) a face of a cubemap on a 2D texture 
+// Projects (blits) a face of a cubemap on a 2D texture
 #pragma kernel BlitCubemap
 [numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, 1)]
 void BlitCubemap(in uint2 gidx: SV_DispatchThreadID)
@@ -57,7 +57,7 @@ void BlitCubemap(in uint2 gidx: SV_DispatchThreadID)
     }
 
     float4 c = g_Source.SampleLevel(sampler_g_Source, texCoord, 0);
-    
+
 #if defined(GRAYSCALE_BLIT)
     g_Destination[gidx] = float4(c.w, c.w, c.w, 1);
 #else

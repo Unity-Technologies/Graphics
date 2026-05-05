@@ -1,13 +1,7 @@
-using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering.RadeonRays;
-using UnityEditor;
-using System.Data;
-
-
-
 
 #if UNITY_EDITOR
 using UnityEditor.Embree;
@@ -749,3 +743,4 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
     }
 
 }
+

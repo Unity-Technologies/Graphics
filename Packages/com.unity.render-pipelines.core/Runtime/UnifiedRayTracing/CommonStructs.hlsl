@@ -3,6 +3,19 @@
 
 namespace UnifiedRT {
 
+// With the HW raytracing backend use the RAY_FLAG macros directly which hold the correct platform specific values. 
+// With the compute backend, the RAY_FLAG macros might not be defined so use the hardcoded DXR values.
+#if defined(UNIFIED_RT_BACKEND_HARDWARE)
+static const uint kRayFlagNone = RAY_FLAG_NONE;
+static const uint kRayFlagForceOpaque = RAY_FLAG_FORCE_OPAQUE;
+static const uint kRayFlagForceNonOpaque = RAY_FLAG_FORCE_NON_OPAQUE;
+static const uint kRayFlagAcceptFirstHitAndEndSearch = RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH;
+static const uint kRayFlagSkipClosestHit = RAY_FLAG_SKIP_CLOSEST_HIT_SHADER;
+static const uint kRayFlagCullBackFacingTriangles = RAY_FLAG_CULL_BACK_FACING_TRIANGLES;
+static const uint kRayFlagCullFrontFacingTriangles = RAY_FLAG_CULL_FRONT_FACING_TRIANGLES;
+static const uint kRayFlagCullOpaque = RAY_FLAG_CULL_OPAQUE;
+static const uint kRayFlagCullNonOpaque = RAY_FLAG_CULL_NON_OPAQUE;
+#else
 static const uint kRayFlagNone = 0x0;
 static const uint kRayFlagForceOpaque = 0x01;
 static const uint kRayFlagForceNonOpaque = 0x02;
@@ -12,6 +25,7 @@ static const uint kRayFlagCullBackFacingTriangles = 0x10;
 static const uint kRayFlagCullFrontFacingTriangles = 0x20;
 static const uint kRayFlagCullOpaque = 0x40;
 static const uint kRayFlagCullNonOpaque = 0x80;
+#endif
 
 static const uint kIgnoreHit = 0;
 static const uint kAcceptHit = 1;

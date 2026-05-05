@@ -3,10 +3,11 @@
 
 #pragma warning(error: 3206) // Implicit truncation of vector type
 
-#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/CommonStructs.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
+// Include this last so PI doesn't get redefined if it was already defined
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Common.hlsl"
 
 // Force uniform sampling of the skybox for debugging / ground truth generation
 //#define UNIFORM_ENVSAMPLING
