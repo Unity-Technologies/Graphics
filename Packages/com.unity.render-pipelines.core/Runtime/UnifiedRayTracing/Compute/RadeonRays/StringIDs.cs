@@ -3,6 +3,7 @@ namespace UnityEngine.Rendering.RadeonRays
 {
     internal static class SID
     {
+        public static readonly int g_input_aabbs = Shader.PropertyToID("g_input_aabbs");
         public static readonly int g_vertices = Shader.PropertyToID("g_vertices");
         public static readonly int g_indices = Shader.PropertyToID("g_indices");
         public static readonly int g_scratch_buffer = Shader.PropertyToID("g_scratch_buffer");

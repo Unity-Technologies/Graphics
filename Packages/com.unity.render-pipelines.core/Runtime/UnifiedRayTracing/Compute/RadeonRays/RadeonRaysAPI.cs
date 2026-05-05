@@ -22,6 +22,12 @@ namespace UnityEngine.Rendering.RadeonRays
         public uint triangleCount;
     }
 
+    internal struct ProceduralBuildInfo
+    {
+        public GraphicsBuffer aabbBuffer;
+        public uint primCount;
+    }
+
     internal struct MeshBuildMemoryRequirements
     {
         public ulong buildScratchSizeInDwords;
@@ -166,14 +172,15 @@ namespace UnityEngine.Rendering.RadeonRays
 
     internal struct Instance
     {
-        public uint meshAccelStructOffset;
+        public uint accelStructInternalNodesOffset;
         public uint instanceMask;
         public uint vertexOffset;
-        public uint meshAccelStructLeavesOffset;
+        public uint accelStructLeafNodesOffset;
         public bool triangleCullingEnabled;
         public bool invertTriangleCulling;
         public uint userInstanceID;
         public bool isOpaque;
+        public bool isProcedural;
         public Transform localToWorldTransform;
     }
 
@@ -187,7 +194,7 @@ namespace UnityEngine.Rendering.RadeonRays
         public uint disableTriangleCulling;
         public uint invertTriangleCulling;
         public uint userInstanceID;
-        public int isOpaque;
+        public uint isOpaque_isProcedural;
         public Transform worldToLocalTransform;
         public Transform localToWorldTransform;
     }
@@ -246,7 +253,7 @@ namespace UnityEngine.Rendering.RadeonRays
             CommandBuffer cmd,
             MeshBuildInfo buildInfo, BuildFlags buildFlags,
             GraphicsBuffer scratchBuffer,
-            in BottomLevelLevelAccelStruct result)
+            in BottomLevelAccelStruct result)
         {
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
                 buildFlags |= BuildFlags.PreferFastBuild;
@@ -264,21 +271,52 @@ namespace UnityEngine.Rendering.RadeonRays
             }
         }
 
-        public MeshBuildMemoryRequirements GetMeshBuildMemoryRequirements(MeshBuildInfo buildInfo, BuildFlags buildFlags)
+        public void BuildProceduralAccelStruct(
+            CommandBuffer cmd,
+            ProceduralBuildInfo buildInfo, BuildFlags buildFlags,
+            GraphicsBuffer scratchBuffer,
+            in BottomLevelAccelStruct result)
+        {
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+                buildFlags |= BuildFlags.PreferFastBuild;
+
+            buildBvh.Execute(cmd,
+                buildInfo.aabbBuffer, buildInfo.primCount,
+                scratchBuffer, in result);
+
+            if ((buildFlags & BuildFlags.PreferFastBuild) == 0)
+            {
+                restructureBvh.Execute(cmd,
+                    buildInfo.aabbBuffer, buildInfo.primCount,
+                    scratchBuffer, in result);
+            }
+        }
+
+        public MeshBuildMemoryRequirements GetBlasBuildMemoryRequirements(uint primCount, BuildFlags buildFlags)
         {
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
                 buildFlags |= BuildFlags.PreferFastBuild;
 
             var result = new MeshBuildMemoryRequirements();
-            result.bvhSizeInDwords = buildBvh.GetResultDataSizeInDwords(buildInfo.triangleCount);
-            result.bvhLeavesSizeInDwords = buildInfo.triangleCount * (ulong)RadeonRaysAPI.BvhLeafNodeSizeInDwords();
+            result.bvhSizeInDwords = HlbvhBuilder.GetResultDataSizeInDwords(primCount);
+            result.bvhLeavesSizeInDwords = primCount * (ulong)RadeonRaysAPI.BvhLeafNodeSizeInDwords();
 
-            result.buildScratchSizeInDwords = buildBvh.GetScratchDataSizeInDwords(buildInfo.triangleCount);
+            result.buildScratchSizeInDwords = HlbvhBuilder.GetScratchDataSizeInDwords(primCount);
 
-            ulong restructureScratchSize = ((buildFlags & BuildFlags.PreferFastBuild) == 0) ? restructureBvh.GetScratchDataSizeInDwords(buildInfo.triangleCount) : 0;
+            ulong restructureScratchSize = ((buildFlags & BuildFlags.PreferFastBuild) == 0) ? restructureBvh.GetScratchDataSizeInDwords(primCount) : 0;
             result.buildScratchSizeInDwords = math.max(result.buildScratchSizeInDwords, restructureScratchSize);
 
             return result;
+        }
+
+        public MeshBuildMemoryRequirements GetMeshBuildMemoryRequirements(MeshBuildInfo buildInfo, BuildFlags buildFlags)
+        {
+            return GetBlasBuildMemoryRequirements(buildInfo.triangleCount, buildFlags);
+        }
+
+        public MeshBuildMemoryRequirements GetProceduralBuildMemoryRequirements(ProceduralBuildInfo buildInfo, BuildFlags buildFlags)
+        {
+            return GetBlasBuildMemoryRequirements(buildInfo.primCount, buildFlags);
         }
 
         public TopLevelAccelStruct BuildSceneAccelStruct(
@@ -302,15 +340,15 @@ namespace UnityEngine.Rendering.RadeonRays
             {
                 instancesInfos[i] = new InstanceInfo
                 {
-                    blasOffset = (int)instances[i].meshAccelStructOffset,
+                    blasOffset = (int)instances[i].accelStructInternalNodesOffset,
                     instanceMask = (int)instances[i].instanceMask,
                     vertexOffset = (int)instances[i].vertexOffset,
-                    indexOffset = (int)instances[i].meshAccelStructLeavesOffset,
+                    indexOffset = (int)instances[i].accelStructLeafNodesOffset,
                     localToWorldTransform = instances[i].localToWorldTransform,
                     disableTriangleCulling = instances[i].triangleCullingEnabled ? 0 : (1u << 30),
                     invertTriangleCulling = instances[i].invertTriangleCulling ? (1u << 31) : 0,
                     userInstanceID = instances[i].userInstanceID,
-                    isOpaque = instances[i].isOpaque ? 1 : 0
+                    isOpaque_isProcedural = (instances[i].isOpaque ? (1u << 0) : 0u) | (instances[i].isProcedural ? (1u << 1) : 0u)
                     // worldToLocal computed in the shader
                 };
             }
@@ -341,15 +379,16 @@ namespace UnityEngine.Rendering.RadeonRays
             {
                 instancesInfos[i] = new InstanceInfo
                 {
-                    blasOffset = (int)instances[i].meshAccelStructOffset,
+                    blasOffset = (int)instances[i].accelStructInternalNodesOffset,
                     instanceMask = (int)instances[i].instanceMask,
                     vertexOffset = (int)instances[i].vertexOffset,
-                    indexOffset = (int)instances[i].meshAccelStructLeavesOffset,
+                    indexOffset = (int)instances[i].accelStructLeafNodesOffset,
                     localToWorldTransform = instances[i].localToWorldTransform,
                     disableTriangleCulling = instances[i].triangleCullingEnabled ? 0 : (1u << 30),
                     invertTriangleCulling = instances[i].invertTriangleCulling ? (1u << 31) : 0,
                     userInstanceID = instances[i].userInstanceID,
-                    worldToLocalTransform = instances[i].localToWorldTransform.Inverse()
+                    worldToLocalTransform = instances[i].localToWorldTransform.Inverse(),
+                    isOpaque_isProcedural = (instances[i].isOpaque ? (1u << 0) : 0u) | (instances[i].isProcedural ? (1u << 1) : 0u)
                 };
             }
 
@@ -365,7 +404,7 @@ namespace UnityEngine.Rendering.RadeonRays
         public SceneBuildMemoryRequirements GetSceneBuildMemoryRequirements(uint instanceCount)
         {
             var result = new SceneBuildMemoryRequirements();
-            result.buildScratchSizeInDwords = buildTopLevelBvh.GetScratchDataSizeInDwords(instanceCount);
+            result.buildScratchSizeInDwords = HlbvhTopLevelBuilder.GetScratchDataSizeInDwords(instanceCount);
 
             return result;
         }
@@ -407,7 +446,7 @@ namespace UnityEngine.Rendering.RadeonRays
             requirements.totalBottomLevelBvhSizeInNodes = bvhOffset;
             requirements.totalBottomLevelBvhLeavesSizeInNodes = bvhLeavesOffset;
 
-            ulong topLevelScratchSize = buildTopLevelBvh.GetScratchDataSizeInDwords((uint)buildInfos.Length);
+            ulong topLevelScratchSize = HlbvhTopLevelBuilder.GetScratchDataSizeInDwords((uint)buildInfos.Length);
             requirements.buildScratchSizeInDwords = math.max(requirements.buildScratchSizeInDwords, topLevelScratchSize);
 
             return requirements;

@@ -97,7 +97,7 @@ struct InstanceInfo
     uint disable_triangle_culling;
     uint invert_triangle_culling;
     uint user_instance_id;
-    int is_opaque;
+    uint is_opaque_procedural;
     Transform world_to_local_transform;
     Transform local_to_world_transform;
 };

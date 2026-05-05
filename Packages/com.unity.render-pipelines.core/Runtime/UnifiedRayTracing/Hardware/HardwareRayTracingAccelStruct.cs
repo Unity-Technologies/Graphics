@@ -67,6 +67,25 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             return instanceHandle;
         }
 
+        public int AddInstance(ProceduralInstanceDesc proceduralInstance)
+        {
+            Utils.CheckArgIsNotNull(proceduralInstance.aabbBuffer, "proceduralInstanceDesc.aabbBuffer");
+
+            var instanceDesc = new RayTracingAABBsInstanceConfig(proceduralInstance.aabbBuffer, (int)proceduralInstance.aabbCount, false, null);
+            instanceDesc.mask = proceduralInstance.mask;
+            int instanceHandle = accelStruct.AddInstance(instanceDesc, proceduralInstance.localToWorldMatrix, proceduralInstance.instanceID);
+
+            // If instanceID is auto assigned, set it in the same way as ComputeRaytracingAccelStruct
+            if (proceduralInstance.instanceID == 0xFFFFFFFF)
+                accelStruct.UpdateInstanceID(instanceHandle, (uint)instanceHandle);
+
+#if UNITY_ASSERTIONS
+            m_InstanceHandles.Add(instanceHandle);
+#endif
+
+            return instanceHandle;
+        }
+
         public void RemoveInstance(int instanceHandle)
         {
             #if UNITY_ASSERTIONS

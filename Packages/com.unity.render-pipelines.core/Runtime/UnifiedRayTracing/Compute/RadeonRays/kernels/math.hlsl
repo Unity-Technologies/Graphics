@@ -23,6 +23,10 @@ THE SOFTWARE.
 #define FLT_MAX 3.402823e+38
 #endif
 
+#ifndef FLT_INF
+#define FLT_INF asfloat(0x7F800000)
+#endif
+
 //< Transform 3D point.
 float3 TransformPoint(in float3 p, in float4 transform[3])
 {

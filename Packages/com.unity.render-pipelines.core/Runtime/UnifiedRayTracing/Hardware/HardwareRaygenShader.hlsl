@@ -27,6 +27,9 @@ namespace UnifiedRT
     struct AttributeData
     {
         float2 barycentrics;
+        #ifdef UNIFIED_RT_ADDITIONAL_INTERSECTION_ATTRIBS
+            UNIFIED_RT_ADDITIONAL_INTERSECTION_ATTRIBS additionalAttribs;
+        #endif
     };
 }
 
@@ -37,7 +40,11 @@ void ClosestHitShader(inout UNIFIED_RT_PAYLOAD payload : SV_RayPayload, UnifiedR
     UnifiedRT::HitContext hitContext;
     hitContext.barycentrics = attribs.barycentrics;
 
-    UNIFIED_RT_CLOSESTHIT_FUNC(hitContext, payload);
+    #ifdef UNIFIED_RT_ADDITIONAL_INTERSECTION_ATTRIBS
+        UNIFIED_RT_CLOSESTHIT_FUNC(hitContext, payload, attribs.additionalAttribs);
+    #else
+        UNIFIED_RT_CLOSESTHIT_FUNC(hitContext, payload);
+    #endif
 }
 #endif
 
@@ -57,5 +64,35 @@ void AnyHitShader(inout UNIFIED_RT_PAYLOAD payload : SV_RayPayload, UnifiedRT::A
         AcceptHitAndEndSearch();
 
     // UnifiedRT::kAcceptHit: As specified in DXR, simply exiting means the hit is accepted.
+}
+#endif
+
+#ifdef UNIFIED_RT_INTERSECTION_FUNC
+[shader("intersection")]
+void IntersectionShader()
+{
+    UnifiedRT::HitContext hitContext;
+    #ifdef UNIFIED_RT_ADDITIONAL_INTERSECTION_ATTRIBS
+        float hitT;
+        float2 hitUvAttributes;
+        UNIFIED_RT_ADDITIONAL_INTERSECTION_ATTRIBS hitAttribs;
+        if (UNIFIED_RT_INTERSECTION_FUNC(hitContext, hitT, hitUvAttributes, hitAttribs))
+        {
+            UnifiedRT::AttributeData attribs;
+            attribs.barycentrics = hitUvAttributes;
+            attribs.additionalAttribs = hitAttribs;
+            ReportHit(hitT, 0, attribs);
+        }
+    #else
+        float hitT;
+        float2 hitUvAttributes;
+        if (UNIFIED_RT_INTERSECTION_FUNC(hitContext, hitT, hitUvAttributes))
+        {
+            UnifiedRT::AttributeData attribs;
+            attribs.barycentrics = hitUvAttributes;
+            ReportHit(hitT, 0, attribs);
+        }
+    #endif
+
 }
 #endif

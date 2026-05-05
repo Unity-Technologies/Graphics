@@ -7,16 +7,14 @@ using UnityEngine.Assertions;
 namespace UnityEngine.Rendering.RadeonRays
 {
 
-    internal class AABB
+    internal struct AABB
     {
         public float3 Min;
         public float3 Max;
 
-        public AABB()
-        {
-            Min = new float3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
-            Max = new float3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
-        }
+        public static readonly AABB Empty = new AABB(
+            new float3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity),
+            new float3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity));
 
         public AABB(float3 min, float3 max)
         {
@@ -94,29 +92,39 @@ namespace UnityEngine.Rendering.RadeonRays
             double cost = IsLeafNode(nodeAddr) ? GetLeafNodePrimCount(nodeAddr) : 1.2f;
             var a = SurfaceArea(nodeAabb);
             var b = SurfaceArea(parentAabb);
-            return cost *  a/ b;
+            return cost * a / b;
         }
 
-        public static double CheckConsistency(VertexBuffers bvhVertexBuffers, BottomLevelLevelAccelStruct bvh, uint primitiveCount)
+        public static double CheckConsistency(VertexBuffers bvhVertexBuffers, BottomLevelAccelStruct bvh, uint primitiveCount)
         {
-            return CheckConsistency(bvhVertexBuffers, bvh.bvh, bvh.bvhOffset, bvh.bvhLeaves, bvh.bvhLeavesOffset, primitiveCount);
+            var header = new BvhHeader[1];
+            bvh.bvh.GetData(header, 0, (int)bvh.bvhOffset, 1);
+
+            var vertexBuffers = DownloadVertexData(bvhVertexBuffers);
+            AABB[] primitiveAabbs = ComputePrimitiveAabbList(vertexBuffers, primitiveCount);
+
+            return CheckConsistencyInternal(primitiveAabbs, bvh.bvh, bvh.bvhOffset + 1, bvh.bvhLeaves, bvh.bvhLeavesOffset, header[0], primitiveCount);
+        }
+
+        public static double CheckConsistency(GraphicsBuffer primitiveAabbsBuffer, BottomLevelAccelStruct bvh, uint primitiveCount)
+        {
+            var header = new BvhHeader[1];
+            bvh.bvh.GetData(header, 0, (int)bvh.bvhOffset, 1);
+
+            AABB[] primitiveAabbs = new AABB[primitiveCount];
+            primitiveAabbsBuffer.GetData(primitiveAabbs);
+
+            return CheckConsistencyInternal(primitiveAabbs, bvh.bvh, bvh.bvhOffset + 1, bvh.bvhLeaves, bvh.bvhLeavesOffset, header[0], primitiveCount);
         }
 
         public static double CheckConsistency(GraphicsBuffer bvhBuffer, uint bvhBufferOffset, uint primitiveCount)
         {
-            return CheckConsistency(null, bvhBuffer, bvhBufferOffset, null, 0, primitiveCount);
-        }
-
-        static double CheckConsistency(
-            VertexBuffers bvhVertexBuffers,
-            GraphicsBuffer bvhBuffer, uint bvhBufferOffset, GraphicsBuffer bvhLeavesBuffer, uint bvhLeavesBufferOffset,
-            uint primitiveCount)
-        {
             var header = new BvhHeader[1];
             bvhBuffer.GetData(header, 0, (int)bvhBufferOffset, 1);
 
-            return CheckConsistency(bvhVertexBuffers, bvhBuffer, bvhBufferOffset + 1, bvhLeavesBuffer, bvhLeavesBufferOffset, header[0], primitiveCount);
+            return CheckConsistencyInternal(null, bvhBuffer, bvhBufferOffset + 1, null, 0, header[0], primitiveCount);
         }
+
 
         public static int ExtractBits(uint value, int startBit, int count)
         {
@@ -139,31 +147,30 @@ namespace UnityEngine.Rendering.RadeonRays
             return (uint)ExtractBits(nodeAddr, 29, 2) + 1;
         }
 
-        static double CheckConsistency(
-            VertexBuffers bvhVertexBuffers,
+        static double CheckConsistencyInternal(
+            AABB[] primitiveAabbs,
             GraphicsBuffer bvhBuffer, uint bvhBufferOffset, GraphicsBuffer bvhLeavesBuffer, uint bvhLeavesBufferOffset,
             BvhHeader header, uint primitiveCount)
         {
             uint leafCount = header.leafNodeCount;
             uint rootAddr = header.root;
-            var nodeCount = HlbvhBuilder.GetBvhNodeCount(leafCount);
-            bool isTopLevel = bvhVertexBuffers == null;
+            bool isTopLevel = primitiveAabbs == null;
+            var nodeCount = isTopLevel ? HlbvhTopLevelBuilder.GetBvhNodeCount(leafCount) : HlbvhBuilder.GetBvhNodeCount(leafCount);
+            Assert.AreEqual(header.internalNodeCount, nodeCount);
 
             var bvhNodes = new BvhNode[nodeCount];
             bvhBuffer.GetData(bvhNodes, 0, (int)bvhBufferOffset, (int)nodeCount);
 
-            VertexBuffersCPU vertexBuffers = null;
             uint4[] bvhLeafNodes = null;
             if (!isTopLevel)
             {
-                vertexBuffers = DownloadVertexData(bvhVertexBuffers);
                 bvhLeafNodes = new uint4[primitiveCount];
                 bvhLeavesBuffer.GetData(bvhLeafNodes, 0, (int)bvhLeavesBufferOffset, (int)primitiveCount);
             }
 
             uint countedPrimitives = 0;
 
-            var rootAabb = GetAabb(vertexBuffers, bvhNodes, bvhLeafNodes, rootAddr, isTopLevel);
+            var rootAabb = GetAabb(primitiveAabbs, bvhNodes, bvhLeafNodes, rootAddr, isTopLevel);
             double sahCost = 0.0f;
 
             var q = new Queue<(uint Addr, uint Parent)>();
@@ -174,7 +181,7 @@ namespace UnityEngine.Rendering.RadeonRays
                 uint addr = current.Addr;
                 uint parent = current.Parent;
 
-                AABB aabb = GetAabb(vertexBuffers, bvhNodes, bvhLeafNodes, addr, isTopLevel);
+                AABB aabb = GetAabb(primitiveAabbs, bvhNodes, bvhLeafNodes, addr, isTopLevel);
                 sahCost += NodeSahCost(addr, aabb, rootAabb);
 
                 if (!(isTopLevel && IsLeafNode(addr)))
@@ -188,8 +195,8 @@ namespace UnityEngine.Rendering.RadeonRays
                 {
                     var node = bvhNodes[addr];
                     Assert.AreEqual(parent, node.parent);
-                    var leftAabb = GetAabb(vertexBuffers, bvhNodes, bvhLeafNodes, node.child0, isTopLevel);
-                    var rightAabb = GetAabb(vertexBuffers, bvhNodes, bvhLeafNodes, node.child1, isTopLevel);
+                    var leftAabb = GetAabb(primitiveAabbs, bvhNodes, bvhLeafNodes, node.child0, isTopLevel);
+                    var rightAabb = GetAabb(primitiveAabbs, bvhNodes, bvhLeafNodes, node.child1, isTopLevel);
 
                     bool leftOk = (aabb.Contains(leftAabb));
                     bool rightOk = (aabb.Contains(rightAabb));
@@ -197,8 +204,11 @@ namespace UnityEngine.Rendering.RadeonRays
                     Assert.IsTrue(leftOk);
                     Assert.IsTrue(rightOk);
 
-                    q.Enqueue((Addr: node.child0, Parent: addr));
-                    q.Enqueue((Addr: node.child1, Parent: addr));
+                    if (node.child0  != kInvalidID)
+                        q.Enqueue((Addr: node.child0, Parent: addr));
+
+                    if (node.child1 != kInvalidID)
+                        q.Enqueue((Addr: node.child1, Parent: addr));
                 }
             }
 
@@ -272,9 +282,9 @@ namespace UnityEngine.Rendering.RadeonRays
             return result;
         }
 
-        static AABB GetAabb(VertexBuffersCPU bvhVertexBuffers, BvhNode[] bvhNodes, uint4[] bvhLeafNodes, uint nodeAddr, bool isTopLevel)
+        static AABB GetAabb(AABB[] primitiveAabbs, BvhNode[] bvhNodes, uint4[] bvhLeafNodes, uint nodeAddr, bool isTopLevel)
         {
-            var aabb = new AABB();
+            var aabb = AABB.Empty;
 
             if (!IsLeafNode(nodeAddr))
             {
@@ -288,24 +298,35 @@ namespace UnityEngine.Rendering.RadeonRays
             else if (!isTopLevel)
             {
                 int firstIndex = (int)GetLeafNodeFirstPrim(nodeAddr);
-                int triangleCount = (int)GetLeafNodePrimCount(nodeAddr);
-                for (int i = 0; i < triangleCount; ++i)
+                int primCount = (int)GetLeafNodePrimCount(nodeAddr);
+                for (int i = 0; i < primCount; ++i)
                 {
                     uint index = (uint)(i + firstIndex);
-                    uint3 triangleIndices = bvhLeafNodes[index].xyz;
-                    uint3 meshTriangleindices = GetFaceIndices(bvhVertexBuffers.indices, bvhLeafNodes[index].w);
-
-                    Assert.AreEqual(meshTriangleindices, triangleIndices);
-
-                    var triangle = GetTriangle(bvhVertexBuffers.vertices, bvhVertexBuffers.vertexStride, triangleIndices);
-
-                    aabb.Encapsulate(triangle.v0);
-                    aabb.Encapsulate(triangle.v1);
-                    aabb.Encapsulate(triangle.v2);
+                    uint primIndex = bvhLeafNodes[index].w;
+                    aabb.Encapsulate(primitiveAabbs[primIndex]);
                 }
             }
 
             return aabb;
+        }
+
+        static AABB[] ComputePrimitiveAabbList(VertexBuffersCPU bvhVertexBuffers, uint primitiveCount)
+        {
+            var res = new AABB[primitiveCount];
+            for (uint i = 0; i < primitiveCount; ++i)
+            {
+                uint3 meshTriangleindices = GetFaceIndices(bvhVertexBuffers.indices, i);
+                var triangle = GetTriangle(bvhVertexBuffers.vertices, bvhVertexBuffers.vertexStride, meshTriangleindices);
+
+                var aabb = AABB.Empty;
+                aabb.Encapsulate(triangle.v0);
+                aabb.Encapsulate(triangle.v1);
+                aabb.Encapsulate(triangle.v2);
+
+                res[i] = aabb;
+            }
+
+            return res;
         }
     }
 }

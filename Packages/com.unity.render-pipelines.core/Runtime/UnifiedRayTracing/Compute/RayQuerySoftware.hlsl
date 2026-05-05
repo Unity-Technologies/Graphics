@@ -15,16 +15,30 @@
 
 RWStructuredBuffer<uint> _UnifiedRT_Stack;
 
+
 namespace UnifiedRT {
 
 groupshared uint lds_stack[UNIFIED_RT_LDS_STACK_SIZE * (UNIFIED_RT_GROUP_SIZE_X*UNIFIED_RT_GROUP_SIZE_Y*UNIFIED_RT_GROUP_SIZE_Z)];
 
 static const uint kTopLevelSentinel = 0xFFFFFFFE;
+
 static const uint kCommittedNothing = 0;
 static const uint kCommittedTriangleHit = 1;
+static const uint kCommittedProceduralHit = 2;
 
-static const uint kNonOpaqueInstanceBit = (1 << 29);
-static const uint kCandidateHitCommittedBit = (1 << 28);
+static const uint kCandidateNonOpaqueTriangle = 1;
+static const uint kCandidateProceduralPrimitive = 2;
+
+// unpack constants for CurrentInstance.flags:
+// NOTE: There is an unused bit between kNonOpaqueInstanceBit and kProceduralInstanceBit. This is a workaround for a shader compiler bug happening on Apple Silicon M2
+static const uint kCullModeMask = 0xC0000000;
+static const uint kNonOpaqueInstanceBit = (1 << 2);
+static const uint kProceduralInstanceBit = (1 << 0);
+
+// unpack constants for isFrontFace_isProc_primitiveIndex
+static const uint kHitIsFrontFaceBit = 0x80000000;
+static const uint kHiProceduralPrimitiveBit = 0x40000000;
+static const uint kHitPrimitiveIndexMask =  0x3FFFFFFF;
 
 struct RayTraversalStack
 {
@@ -88,20 +102,20 @@ uint GetCullMode(uint rayFlags)
 struct ClosestHit
 {
     uint instanceIndex;
-    uint isFrontFace_primitiveIndex;
+    uint isFrontFace_isProc_primitiveIndex;
     float2 uv;
 };
 
 struct CandidateHit
 {
-    uint isFrontFace_primitiveIndex;
+    uint isFrontFace_isProc_primitiveIndex;
     float2 uv;
     float hitT;
 };
 
 struct CurrentInstance
 {
-    uint cullMode_isNonOpaque_candidateCommitted;
+    uint flags; // cullMode (bits 31-30), isNonOpaque (bit 29), isProcedural (bit 28)
     uint bvhOffset;
     int bvhLeavesOffset;
     int vertexOffset;
@@ -116,16 +130,18 @@ CurrentInstance GetCurrentInstance(InstanceInfo instanceInfo, uint rayCullMode, 
 
     uint instanceCullMode = (rayCullMode ^ instanceInfo.invert_triangle_culling) | instanceInfo.disable_triangle_culling;
 
-    currentInstance.cullMode_isNonOpaque_candidateCommitted = instanceCullMode;
+    currentInstance.flags = instanceCullMode;
+    if ((instanceInfo.is_opaque_procedural & 2) == 2)
+        currentInstance.flags |= kProceduralInstanceBit;
     if (transparentInstance)
-        currentInstance.cullMode_isNonOpaque_candidateCommitted |= kNonOpaqueInstanceBit;
+        currentInstance.flags |= kNonOpaqueInstanceBit;
 
     return currentInstance;
 }
 
 bool IsInstanceNonOpaque(RayTracingAccelStruct accelStruct, uint instanceIndex, uint rayFlags)
 {
-    bool isTransparent = !accelStruct.instance_infos[instanceIndex].is_opaque;
+    bool isTransparent = (accelStruct.instance_infos[instanceIndex].is_opaque_procedural & 0x1) == 0;
     if (rayFlags & kRayFlagForceNonOpaque)
         isTransparent = true;
     if (rayFlags & kRayFlagForceOpaque)
@@ -175,7 +191,7 @@ bool IntersectLeafTriangle(
     const float3 d = rayOrigin - v1;
     const float u = dot(d, s1) * invd;
 
-    const uint detSignBit = asuint(determinant) & 0x80000000;    
+    const uint detSignBit = asuint(determinant) & 0x80000000;
     // Barycentric coordinate U is outside range or triangle front/backface culled
     bool hit = false;
     if (!((u < 0.f) || (u > 1.f) || determinant == 0.0f || detSignBit == triangleCullMode))
@@ -190,7 +206,7 @@ bool IntersectLeafTriangle(
             if (!(t < tmin || t > tmax))
             {
                 // Accept hit
-                hitInfo.isFrontFace_primitiveIndex = (detSignBit ^ 0x80000000) | leafNode.w;
+                hitInfo.isFrontFace_isProc_primitiveIndex = (detSignBit ^ kHitIsFrontFaceBit) | leafNode.w;
                 hitInfo.uv = float2(u, v);
                 hitInfo.hitT = t;
                 hit = true;
@@ -225,27 +241,14 @@ struct RayQuery
 
         currentNodeIndex = accelStruct.bvh[0].parent;  // get root node index from bvh header
         currentInstanceIndex = INVALID_NODE;
-        currentLeafTriangleIndex = -1;
+        currentLeafPrimIndex = -1;
     }
 
     bool Proceed()
     {
         bool transparencyEnabled = !(rayFlags & (UnifiedRT::kRayFlagForceOpaque | UnifiedRT::kRayFlagCullNonOpaque));
 
-        if ((currentInstance.cullMode_isNonOpaque_candidateCommitted & kCandidateHitCommittedBit) && transparencyEnabled)
-        {
-            currentInstance.cullMode_isNonOpaque_candidateCommitted &= ~kCandidateHitCommittedBit;
-
-            _CommitCandidateHit();
-
-            if (rayFlags & kRayFlagAcceptFirstHitAndEndSearch)
-            {
-                Abort();
-                return false;
-            }
-        }
-
-        currentLeafTriangleIndex++;
+        currentLeafPrimIndex++;
 
         while (currentNodeIndex != INVALID_NODE)
         {
@@ -262,6 +265,7 @@ struct RayQuery
                     node = accelStruct.bottom_bvhs[currentInstance.bvhOffset + 1 + currentNodeIndex];
 
                 uint2 result = IntersectInternalNode(node, rayInvDir, rayOrigin, tMin, tMax);
+
                 if (result.y != INVALID_NODE)
                 {
                     stack.Push(result.y);
@@ -273,7 +277,7 @@ struct RayQuery
                     skipPopStack = true;
                 }
             }
-            // top-level leaf: adjust ray respecively to transforms
+            // top-level leaf: adjust ray respectively to transforms
             else if (currentInstanceIndex == INVALID_NODE)
             {
                 uint currentInstanceIndex_ = GET_LEAF_NODE_FIRST_PRIM(currentNodeIndex);
@@ -290,7 +294,7 @@ struct RayQuery
                     stack.Push(kTopLevelSentinel);
 
                     currentInstanceIndex = currentInstanceIndex_;
-                    currentInstance = GetCurrentInstance(accelStruct.instance_infos[currentInstanceIndex_], rayCullMode_Mask & 0xC0000000, instanceIsTransparent);
+                    currentInstance = GetCurrentInstance(accelStruct.instance_infos[currentInstanceIndex_], rayCullMode_Mask & kCullModeMask, instanceIsTransparent);
                     currentNodeIndex = accelStruct.bottom_bvhs[currentInstance.bvhOffset + 0].parent;
 
                     // transform ray into Bottom level space
@@ -302,17 +306,23 @@ struct RayQuery
                     skipPopStack = true;
                 }
             }
-            // bottom-level leaf (triangles)
+            // bottom-level leaf (triangles and procedural prims)
             else
             {
-                int firstTriangle = GET_LEAF_NODE_FIRST_PRIM(currentNodeIndex);
-                int nodeTriangleCount = GET_LEAF_NODE_PRIM_COUNT(currentNodeIndex);
+                int firstPrim = GET_LEAF_NODE_FIRST_PRIM(currentNodeIndex);
+                int nodePrimCount = GET_LEAF_NODE_PRIM_COUNT(currentNodeIndex);
+                uint triangleCullMode = (currentInstance.flags & kCullModeMask);
+                bool nonOpaqueInstance = (currentInstance.flags & kNonOpaqueInstanceBit);
+                bool proceduralInstance = (currentInstance.flags & kProceduralInstanceBit);
 
-                while (currentLeafTriangleIndex < nodeTriangleCount)
+                while (currentLeafPrimIndex < nodePrimCount)
                 {
-                    uint4 leafNode = accelStruct.bottom_bvh_leaves[currentInstance.bvhLeavesOffset + (firstTriangle + currentLeafTriangleIndex)];
-                    uint triangleCullMode = (currentInstance.cullMode_isNonOpaque_candidateCommitted & 0xC0000000);
-                    bool nonOpaqueInstance = (currentInstance.cullMode_isNonOpaque_candidateCommitted & kNonOpaqueInstanceBit);
+                    uint4 leafNode = accelStruct.bottom_bvh_leaves[currentInstance.bvhLeavesOffset + (firstPrim + currentLeafPrimIndex)];
+                    if (proceduralInstance)
+                    {
+                        candidateHit.isFrontFace_isProc_primitiveIndex = kHiProceduralPrimitiveBit | leafNode.w;
+                        return true;
+                    }
 
                     if (IntersectLeafTriangle(
                         accelStruct.vertexBuffer, currentInstance.vertexOffset, leafNode, triangleCullMode,
@@ -331,10 +341,10 @@ struct RayQuery
                         }
                     }
 
-                    currentLeafTriangleIndex++;
+                    currentLeafPrimIndex++;
                 }
 
-                currentLeafTriangleIndex = 0;
+                currentLeafPrimIndex = 0;
             }
 
             if (skipPopStack)
@@ -365,13 +375,25 @@ struct RayQuery
 
     void CommitNonOpaqueTriangleHit()
     {
-        currentInstance.cullMode_isNonOpaque_candidateCommitted |= kCandidateHitCommittedBit;
+        _CommitCandidateHit();
+
+        if (rayFlags & kRayFlagAcceptFirstHitAndEndSearch)
+            Abort();
+    }
+
+    void CommitProceduralPrimitiveHit(float tHit)
+    {
+        candidateHit.hitT = tHit;
+        _CommitCandidateHit();
+
+        if (rayFlags & kRayFlagAcceptFirstHitAndEndSearch)
+            Abort();
     }
 
     void _CommitCandidateHit()
     {
         closestHit.instanceIndex = currentInstanceIndex;
-        closestHit.isFrontFace_primitiveIndex = candidateHit.isFrontFace_primitiveIndex;
+        closestHit.isFrontFace_isProc_primitiveIndex = candidateHit.isFrontFace_isProc_primitiveIndex;
         closestHit.uv = candidateHit.uv;
         tMax = candidateHit.hitT;
     }
@@ -381,24 +403,35 @@ struct RayQuery
     float3 WorldRayDirection() { return rayDirectionInWorld; }
     float RayTMin() { return tMin; }
 
+    uint CandidateType() { return currentInstance.flags & kProceduralInstanceBit ? kCandidateProceduralPrimitive : kCandidateNonOpaqueTriangle; }
     float CandidateTriangleRayT() { return candidateHit.hitT; }
     uint CandidateInstanceID() { return accelStruct.instance_infos[currentInstanceIndex].user_instance_id; }
-    uint CandidatePrimitiveIndex() { return candidateHit.isFrontFace_primitiveIndex & 0x7FFFFFFF; }
+    uint CandidatePrimitiveIndex() { return candidateHit.isFrontFace_isProc_primitiveIndex & kHitPrimitiveIndexMask; }
     float2 CandidateTriangleBarycentrics() { return candidateHit.uv; }
-    bool CandidateTriangleFrontFace() { return candidateHit.isFrontFace_primitiveIndex & 0x80000000; }
+    bool CandidateTriangleFrontFace() { return candidateHit.isFrontFace_isProc_primitiveIndex & kHitIsFrontFaceBit; }
     float3 CandidateLocalRayOrigin() { return rayOrigin; }
     float3 CandidateLocalRayDirection() { return rayDirection; }
     float3x4 CandidateWorldToLocal3x4() { return ConvertToFloat3x4(accelStruct.instance_infos[currentInstanceIndex].world_to_local_transform); }
     float4x3 CandidateWorldToLocal4x3() { return ConvertToFloat4x3(accelStruct.instance_infos[currentInstanceIndex].world_to_local_transform); }
     float3x4 CandidateLocalToWorld3x4() { return ConvertToFloat3x4(accelStruct.instance_infos[currentInstanceIndex].local_to_world_transform); }
     float4x3 CandidateLocalToWorld4x3() { return ConvertToFloat4x3(accelStruct.instance_infos[currentInstanceIndex].local_to_world_transform); }
+    bool CandidateProceduralPrimitiveNonOpaque() { return currentInstance.flags & kNonOpaqueInstanceBit; }
 
-    uint CommittedStatus() { return closestHit.instanceIndex == -1 ? kCommittedNothing : kCommittedTriangleHit; }
+    uint CommittedStatus()
+    {
+        if (closestHit.instanceIndex == -1)
+            return kCommittedNothing;
+        else if (closestHit.isFrontFace_isProc_primitiveIndex & kHiProceduralPrimitiveBit)
+            return kCommittedProceduralHit;
+        else
+            return kCommittedTriangleHit;
+    }
+
     float CommittedRayT() { return tMax; }
     uint CommittedInstanceID() { return accelStruct.instance_infos[closestHit.instanceIndex].user_instance_id;  }
-    uint CommittedPrimitiveIndex() { return closestHit.isFrontFace_primitiveIndex & 0x7FFFFFFF; }
+    uint CommittedPrimitiveIndex() { return closestHit.isFrontFace_isProc_primitiveIndex & kHitPrimitiveIndexMask; }
     float2 CommittedTriangleBarycentrics() { return closestHit.uv; }
-    bool CommittedTriangleFrontFace() { return closestHit.isFrontFace_primitiveIndex & 0x80000000; }
+    bool CommittedTriangleFrontFace() { return closestHit.isFrontFace_isProc_primitiveIndex & kHitIsFrontFaceBit; }
     float3 CommittedLocalRayOrigin() { return TransformPointT(rayOriginInWorld, accelStruct.instance_infos[closestHit.instanceIndex].world_to_local_transform); }
     float3 CommittedLocalRayDirection() { return TransformDirection(rayDirectionInWorld, accelStruct.instance_infos[closestHit.instanceIndex].world_to_local_transform); }
     float3x4 CommittedWorldToLocal3x4() { return ConvertToFloat3x4(accelStruct.instance_infos[closestHit.instanceIndex].world_to_local_transform); }
@@ -425,7 +458,7 @@ struct RayQuery
     CurrentInstance currentInstance;
     uint currentNodeIndex;
     uint currentInstanceIndex;
-    int currentLeafTriangleIndex;
+    int currentLeafPrimIndex;
 };
 
 
