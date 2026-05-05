@@ -62,6 +62,26 @@ namespace UnityEngine.Rendering
         /// <param name="displayResolution">The target display resolution.</param>
         /// <returns>A new context instance, or null for spatial upscalers that don't need context.</returns>
         IUpscalerContext CreateContext(UpscalerOptions options, Vector2Int displayResolution);
+
+        /// <summary>
+        /// Calculates the recommended global mip bias for texture sampling during rendering.
+        /// Temporal upscalers typically recommend a negative bias to sample finer mip levels,
+        /// providing more detail for temporal accumulation.
+        /// </summary>
+        /// <remarks>
+        /// The standard formula is <c>log2(renderWidth / displayWidth)</c>, which produces negative
+        /// values when upscaling (e.g., -1.0 for 2x upscaling). Some upscalers recommend an additional
+        /// offset (e.g., -1.0) for sharper results.
+        /// When a temporal upscaler is active, the render pipeline should use this value directly,
+        /// bypassing any TAA mip bias settings.
+        /// The render pipelines must guarantee this method is only called when upscaling is active
+        /// (preUpscaleResolution &lt; postUpscaleResolution). Implementations do not need to handle
+        /// the no-upscaling case.
+        /// </remarks>
+        /// <param name="preUpscaleResolution">The render resolution before upscaling.</param>
+        /// <param name="postUpscaleResolution">The target display resolution after upscaling.</param>
+        /// <returns>The recommended mip bias value (typically negative when upscaling).</returns>
+        float CalculateMipBias(Vector2Int preUpscaleResolution, Vector2Int postUpscaleResolution);
         #endregion
     }
 
@@ -97,6 +117,18 @@ namespace UnityEngine.Rendering
         {
             jitter = -STP.Jit16(frameIndex);
             allowScaling = false;
+        }
+
+        /// <inheritdoc cref="IUpscaler.CalculateMipBias(Vector2Int, Vector2Int)"/>
+        public virtual float CalculateMipBias(Vector2Int preUpscaleResolution, Vector2Int postUpscaleResolution)
+        {
+            // Standard formula: log2(renderRes / displayRes)
+            // Returns negative values when upscaling (e.g., -1.0 for 2x upscaling)
+            // Use minimum of both axes to ensure sufficient detail for non-uniform scaling
+            // Note: Pipeline ensures this is only called when actually upscaling (preUpscale < postUpscale)
+            float xBias = Mathf.Log((float)preUpscaleResolution.x / postUpscaleResolution.x, 2f);
+            float yBias = Mathf.Log((float)preUpscaleResolution.y / postUpscaleResolution.y, 2f);
+            return Mathf.Min(xBias, yBias);
         }
 
         /// <inheritdoc cref="IRenderGraphRecorder.RecordRenderGraph"/>
