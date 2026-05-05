@@ -428,7 +428,7 @@ float4 ComputeSSR(Varyings input) : SV_Target
         // Reproject position
         rayHitPosNDC.xy -= SampleMotionVector(rayHitPosNDC.xy);
         // Compensate for jittering
-        rayHitPosNDC.xy -= _CameraDeltaJitterOffset;
+        rayHitPosNDC.xy -= _CameraDeltaJitterOffset.xy;
 
         const float2 downsampledScreenSize = screenSizeWithInverse.zw * _Downsample;
         const int2 topLeftReprojectedPixelPos = int2(rayHitPosNDC.xy * downsampledScreenSize - 0.5);
