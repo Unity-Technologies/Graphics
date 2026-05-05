@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             // For preview only we declare CRT defines
-            if (generationMode == GenerationMode.Preview)
+            if (generationMode.IsPreview())
             {
                 registry.builder.AppendLine("#if !defined(UNITY_CRT_PREVIEW_TEXTURE) && !defined(UNITY_CUSTOM_TEXTURE_INCLUDED)");
                 registry.builder.AppendLine("#define UNITY_CRT_PREVIEW_TEXTURE");

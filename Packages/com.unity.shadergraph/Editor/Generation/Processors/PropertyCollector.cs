@@ -155,7 +155,7 @@ namespace UnityEditor.ShaderGraph
             // build a list of all HLSL properties
             var hlslProps = BuildHLSLPropertyList();
 
-            if (mode == GenerationMode.Preview)
+            if (mode.IsPreview())
             {
                 builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
 

@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var keyword in keywords)
             {
                 // Hardcode active keywords in preview to reduce compiled variants
-                if (mode == GenerationMode.Preview)
+                if (mode.IsPreview())
                 {
                     string declaration = keyword.GetKeywordPreviewDeclarationString();
                     if (!string.IsNullOrEmpty(declaration))
