@@ -631,11 +631,12 @@ namespace UnityEngine.Rendering.Universal
                         using (new CameraRenderingScope(renderContext, camera))
                         {
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
-                        //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
-                        //N.B.: We aren't expecting an XR camera at this stage
-                        VFX.VFXManager.PrepareCamera(camera);
+                            //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
+                            //N.B.: We aren't expecting an XR camera at this stage
+                            VFX.VFXManager.PrepareCamera(camera);
 #endif
-                            UpdateVolumeFramework(camera, null);
+                            camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData);
+                            UpdateVolumeFramework(camera, additionalCameraData);
                             // Only render if camera is a base camera
                             RenderSingleCameraInternal(renderContext, camera, isLastBaseCamera);
                         }
