@@ -1,7 +1,9 @@
 using System;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering
 {
@@ -17,6 +19,7 @@ namespace UnityEditor.Rendering
         static DefaultVolumeProfileEditor s_DefaultVolumeProfileEditor;
 
         VisualElement m_Root;
+        ObjectField m_ObjectField;
 
         /// <summary>SerializedObject representing the settings object</summary>
         protected SerializedObject m_SettingsSerializedObject;
@@ -30,6 +33,9 @@ namespace UnityEditor.Rendering
         protected const int k_DefaultVolumeLabelWidth = 260;
         /// <summary>Info box message</summary>
         protected abstract GUIContent volumeInfoBoxLabel { get; }
+
+        /// <summary>Label and tooltip used for the Default Volume Profile asset field.</summary>
+        protected abstract GUIContent defaultVolumeProfileAssetLabel { get;  }
 
         /// <summary>
         /// CreatePropertyGUI implementation.
@@ -106,6 +112,142 @@ namespace UnityEditor.Rendering
             s_DefaultVolumeProfileEditor = null;
             s_DefaultVolumeProfileSerializedProperty = null;
         }
+
+        /// <summary>
+        /// Show modal dialog to confirm update of selected volume if needed and apply new volume profile.
+        /// </summary>
+        /// <param name="field">Object Field used to display Default Volume profile</param>
+        /// <param name="newValue">New Volume profile</param>
+        /// <param name="previousValue">Previous volume profile</param>
+        /// <param name="defaultVolumeProfileSettings">Optionally provided default volume profile to extract default values</param>
+        /// <typeparam name="TRenderPipeline">Render Pipeline type</typeparam>
+        void ShowGlobalDefaultVolumeDialog<TRenderPipeline>(ObjectField field, Object newValue,
+            Object previousValue, IDefaultVolumeProfileSettings defaultVolumeProfileSettings = null)
+            where TRenderPipeline : RenderPipeline
+        {
+            bool confirmed = VolumeProfileUtils.UpdateGlobalDefaultVolumeProfileWithConfirmation<TRenderPipeline>(newValue as VolumeProfile, defaultVolumeProfileSettings?.volumeProfile);
+            if (confirmed)
+            {
+                UpdateDefaultVolumeSerializedPropertyAndRecreate(field, newValue);
+            }
+            else
+            {
+                m_VolumeProfileSerializedProperty.objectReferenceValue = previousValue;
+                m_VolumeProfileSerializedProperty.serializedObject.ApplyModifiedProperties();
+                field.SetValueWithoutNotify(previousValue);
+                // Update the ObjectSelector's visual selection if it's still open
+                if (previousValue != null && ObjectSelector.isVisible)
+                    ObjectSelector.SetVisualSelection(previousValue.GetEntityId());
+            }
+        }
+
+        /// <summary>
+        /// Update serialized property for Default Volume profile and recreate related Editors
+        /// </summary>
+        /// <param name="field">Object Field used to display Default Volume profile</param>
+        /// <param name="newValue">New Volume profile</param>
+        void UpdateDefaultVolumeSerializedPropertyAndRecreate(ObjectField field, Object newValue)
+        {
+            m_VolumeProfileSerializedProperty.objectReferenceValue = newValue;
+            m_VolumeProfileSerializedProperty.serializedObject.ApplyModifiedProperties();
+            field.SetValueWithoutNotify(newValue);
+            DestroyDefaultVolumeProfileEditor();
+            CreateDefaultVolumeProfileEditor();
+        }
+
+        /// <summary>
+        /// Draw ObjectField for Default Volume.
+        /// </summary>
+        /// <param name="defaultVolumeProfileSettings">Default value source if available</param>
+        /// <typeparam name="TRenderPipeline">Render Pipeline type for Default Volume</typeparam>
+        /// <typeparam name="TDefaultVolumeSettings">Default Volume settings container type</typeparam>
+        /// <returns>New Object Field</returns>
+        protected VisualElement DrawDefaultVolumeObjectField<TRenderPipeline, TDefaultVolumeSettings>(TDefaultVolumeSettings defaultVolumeProfileSettings = null)
+            where TRenderPipeline: RenderPipeline
+            where TDefaultVolumeSettings : class, IDefaultVolumeProfileSettings
+        {
+            VisualElement profileLine = new();
+            var toggle = new Toggle();
+            toggle.AddToClassList(Foldout.toggleUssClassName);
+            var checkmark = toggle.Q(className: Toggle.checkmarkUssClassName);
+            checkmark.AddToClassList(Foldout.checkmarkUssClassName);
+            m_ObjectField = new ObjectField(defaultVolumeProfileAssetLabel.text)
+            {
+                tooltip = defaultVolumeProfileAssetLabel.tooltip,
+                objectType = typeof(VolumeProfile),
+                value = m_VolumeProfileSerializedProperty.objectReferenceValue as VolumeProfile,
+                style =
+                {
+                    flexShrink = 1,
+                }
+            };
+            m_ObjectField.AddToClassList("unity-base-field__aligned"); //Align with other BaseField<T>
+            m_ObjectField.Q<Label>().RegisterCallback<ClickEvent>(evt => toggle.value ^= true);
+
+            toggle.RegisterValueChangedCallback(evt =>
+            {
+                m_EditorContainer.style.display = evt.newValue ? DisplayStyle.Flex : DisplayStyle.None;
+                m_DefaultVolumeProfileFoldoutExpanded.value = evt.newValue;
+            });
+            toggle.SetValueWithoutNotify(m_DefaultVolumeProfileFoldoutExpanded.value);
+            m_EditorContainer.style.display = m_DefaultVolumeProfileFoldoutExpanded.value ? DisplayStyle.Flex : DisplayStyle.None;
+
+            profileLine.style.flexDirection = FlexDirection.Row;
+            m_ObjectField.style.flexGrow = 1;
+
+            m_ObjectField.RegisterValueChangedCallback(evt =>
+            {
+                if (evt.newValue == evt.previousValue)
+                    return;
+
+                if (RenderPipelineManager.currentPipeline is not TRenderPipeline)
+                {
+                    m_ObjectField.SetValueWithoutNotify(evt.previousValue);
+                    Debug.Log($"Cannot change Default Volume Profile when {typeof(TRenderPipeline).Name} is not active. Rolling back to previous value.");
+                    return;
+                }
+
+                if (evt.newValue == null)
+                {
+                    m_ObjectField.SetValueWithoutNotify(evt.previousValue);
+                    Debug.Log("This Volume Profile Asset cannot be null. Rolling back to previous value.");
+                    return;
+                }
+
+
+                if (evt.previousValue != null)
+                {
+                    var newValue = evt.newValue;
+                    var oldValue = evt.previousValue;
+                    EditorApplication.delayCall += () => ShowGlobalDefaultVolumeDialog<TRenderPipeline>(m_ObjectField, newValue, oldValue, defaultVolumeProfileSettings);
+                    return;
+                }
+
+                VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<TRenderPipeline>(evt.newValue as VolumeProfile, defaultVolumeProfileSettings?.volumeProfile);
+                UpdateDefaultVolumeSerializedPropertyAndRecreate(m_ObjectField, evt.newValue);
+            });
+
+            m_ObjectField.RegisterCallback<AttachToPanelEvent>(evt =>
+            {
+                if (GraphicsSettings.currentRenderPipeline == null || RenderPipelineManager.pipelineSwitchCompleted)
+                    HandleRenderPipelineChange<TRenderPipeline>();
+                RenderPipelineManager.activeRenderPipelineTypeChanged += HandleRenderPipelineChange<TRenderPipeline>;
+            });
+            m_ObjectField.RegisterCallback<DetachFromPanelEvent>(evt => RenderPipelineManager.activeRenderPipelineTypeChanged -= HandleRenderPipelineChange<TRenderPipeline>);
+
+            profileLine.Add(toggle);
+            profileLine.Add(m_ObjectField);
+
+            return profileLine;
+        }
+
+        void HandleRenderPipelineChange<TRenderPipeline>()
+            where TRenderPipeline: RenderPipeline
+        {
+            m_ObjectField.enabledSelf = RenderPipelineManager.currentPipeline is TRenderPipeline;
+        }
+
+
 
         /// <summary>
         /// Implementation of the Default Volume Profile asset field.

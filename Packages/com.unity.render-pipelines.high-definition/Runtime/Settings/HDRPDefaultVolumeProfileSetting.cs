@@ -19,14 +19,14 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <code>
     /// using UnityEngine.Rendering;
     /// using UnityEngine.Rendering.HighDefinition;
-    /// 
-    /// public static class URPDefaultVolumeProfileHelper
+    ///
+    /// public static class HDRPDefaultVolumeProfileHelper
     /// {
     ///     public static VolumeProfile volumeProfile
     ///     {
     ///         get
     ///         {
-    ///             var gs = GraphicsSettings.GetRenderPipelineSettings&lt;URPDefaultVolumeProfileSettings&gt;();
+    ///             var gs = GraphicsSettings.GetRenderPipelineSettings&lt;HDRPDefaultVolumeProfileSettings&gt;();
     ///             if (gs == null) //not in HDRP
     ///                 return null;
     ///             return gs.volumeProfile;
@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
             set => this.SetValueAndNotify(ref m_VolumeProfile, value);
         }
     }
-    
+
 #if UNITY_EDITOR
     //Overriding "Reset" in menu that is not called at HDRPDefaultVolumeProfileSettings creation such Reset()
     struct ResetImplementation : IRenderPipelineGraphicsSettingsContextMenu2<HDRPDefaultVolumeProfileSettings>

@@ -10,5 +10,12 @@ namespace UnityEditor.Rendering
         {
             UnityEditor.ObjectSelector.get.Show(obj, requiredType, objectBeingEdited, allowSceneObjects, allowedEntityIds, onObjectSelectorClosed, onObjectSelectedUpdated, showNoneItem);
         }
+
+        public static void SetVisualSelection(EntityId entityId)
+        {
+            UnityEditor.ObjectSelector.get.SetVisualSelection(entityId);
+        }
+
+        public static bool isVisible => UnityEditor.ObjectSelector.isVisible;
     }
 }
