@@ -77,6 +77,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 31627e9dbb81dad4ea2c4341db17299c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _DefaultWhiteTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MOHS1:
         m_Texture: {fileID: 2800000, guid: 32419dbd87911c34db664317090de4e3, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -202,7 +206,7 @@ Material:
     - _SupportDecals: 1
     - _TransparentWritingMotionVec: 0
     - _TransparentZWrite: 0
-    - _UV_Scale: 2
+    - _UV_Scale: 1
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZWrite: 1
