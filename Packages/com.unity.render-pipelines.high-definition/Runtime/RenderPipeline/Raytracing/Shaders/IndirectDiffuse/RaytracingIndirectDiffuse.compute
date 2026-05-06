@@ -222,11 +222,8 @@ NeighborTapData GetNeighborTapDataSample_HR(uint2 groupThreadId, int2 offset)
     return GetNeighborTapDataSample_HR(OffsetToLDSAdress_HR(groupThreadId, offset));
 }
 
-NeighborTapData GetNeighborTapDataSample_HR_NOLDS(uint2 fulLResCoord, int2 offset)
+NeighborTapData GetNeighborTapDataSample_HR_NOLDS(uint2 tapCoord)
 {
-    int2 tapCoord = (fulLResCoord / 2 + offset) * 2;
-    tapCoord = int2(clamp(tapCoord.x, 0, (int)_ScreenSize.x - 1), clamp(tapCoord.y, 0, (int)_ScreenSize.y - 1));
-
     NeighborTapData outVal;
     outVal.lighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, tapCoord / 2).xyz;
     outVal.linearDepth = Linear01Depth(LOAD_TEXTURE2D_X(_DepthTexture, tapCoord).x, _ZBufferParams);
@@ -278,11 +275,15 @@ void IndirectDiffuseIntegrationUpscaleHalfRes(uint3 dispatchThreadId : SV_Dispat
     {
         for(int x = -HALF_RES_OUT_REGION_SIZE; x < HALF_RES_OUT_REGION_SIZE; ++x)
         {
+            int2 tapCoord = (targetCoord / 2 + int2(x,y)) * 2;
+            if (any(tapCoord < 0) || any(tapCoord >= _ScreenSize.xy))
+                continue;
+
         #ifndef WITHOUT_LDS
             // Grab the neighbor data
             NeighborTapData neighborData = GetNeighborTapDataSample_HR(groupThreadId, int2(x,y));
         #else
-            NeighborTapData neighborData = GetNeighborTapDataSample_HR_NOLDS(targetCoord, int2(x,y));
+            NeighborTapData neighborData = GetNeighborTapDataSample_HR_NOLDS(tapCoord);
         #endif
             // Evaluate the weight of this neighbor
             float weight = EvaluateNeighborWeight(neighborData, normalData.normalWS, linearDepth);
@@ -416,6 +417,10 @@ void IndirectDiffuseIntegrationUpscaleFullRes(uint3 dispatchThreadId : SV_Dispat
     {
         for(int x = -FULL_RES_OUT_REGION_SIZE; x < FULL_RES_OUT_REGION_SIZE; ++x)
         {
+            int2 tapCoord = targetCoord + int2(x,y);
+            if (any(tapCoord < 0) || any(tapCoord >= _ScreenSize.xy))
+                continue;
+
         #ifndef WITHOUT_LDS
             // Grab the neighbor data
             NeighborTapData neighborData = GetNeighborTapDataSample_FR(groupThreadId, int2(x,y));

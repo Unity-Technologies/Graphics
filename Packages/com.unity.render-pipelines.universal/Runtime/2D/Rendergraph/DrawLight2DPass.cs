@@ -177,19 +177,16 @@ namespace UnityEngine.Rendering.Universal
             var layerBatch = frameData.Get<Universal2DRenderingData>().layerBatches[batchIndex];
 
             DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
-            var isDebugLightingActive = debugHandler?.IsLightingActive ?? true;
+            var isLightingActive = debugHandler?.IsLightingActive ?? true;
 
 #if UNITY_EDITOR
             if (cameraData.isSceneViewCamera && UnityEditor.SceneView.currentDrawingSceneView != null)
-                isDebugLightingActive &= UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
-
-            if (cameraData.camera.cameraType == CameraType.Preview)
-                isDebugLightingActive = false;
+                isLightingActive &= UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
 #endif
 
             if (!layerBatch.lightStats.useLights ||
                 isVolumetric && !layerBatch.lightStats.useVolumetricLights ||
-                !isDebugLightingActive)
+                !isLightingActive)
                 return;
 
             // Render single RTs by for apis that don't support MRTs

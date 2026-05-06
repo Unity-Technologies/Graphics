@@ -71,7 +71,7 @@ Shader "Hidden/Light2D"
 
             half _InverseHDREmulationScale;
 
-            Varyings vert_shape_shared(float3 position, Attributes a)
+            Varyings vert_shape_shared(float3 position, Attributes a, PerLight2D light)
             {
                 Varyings o = (Varyings)0;
 
@@ -96,7 +96,7 @@ Shader "Hidden/Light2D"
 
             Varyings vert_provider(Attributes a, PerLight2D light)
             {
-                return vert_shape_shared(a.positionOS, a);
+                return vert_shape_shared(a.positionOS, a, light);
             }
 
 
@@ -108,7 +108,7 @@ Shader "Hidden/Light2D"
                 positionOS.x = positionOS.x + _L2D_FALLOFF_DISTANCE * a.color.r;
                 positionOS.y = positionOS.y + _L2D_FALLOFF_DISTANCE * a.color.g;
 
-                return vert_shape_shared(positionOS, a);
+                return vert_shape_shared(positionOS, a, light);
             }
 
             Varyings vert_point(Attributes a, PerLight2D light)

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
@@ -40,7 +39,6 @@ internal class SampleDependencyImporter : IPackageManagerExtension
 
     PackageInfo m_PackageInfo;
     SampleList m_SampleList;
-    List<Sample> m_Samples;
 
     VisualElement injectingElement;
     VisualElement _panelRoot;
@@ -100,6 +98,7 @@ internal class SampleDependencyImporter : IPackageManagerExtension
 
         var bound = Mathf.Min(sampleContainers.Count, m_SampleList.samples.Length);
 
+        // Foreach sample
         for (int i=0; i<bound; i++)
         {
             // Check if the sample has dependencies, if not just skip the injection.
@@ -155,16 +154,20 @@ internal class SampleDependencyImporter : IPackageManagerExtension
 
                 // Need to copy i for the lambda.
                 var index = i;
-                // On click of the imported button, import the dependencies first then call the original button logic.
+                // On click of the imported button, import the dependencies first then use the package manager API to trigger the regular sample import logic.
                 injectedButton.clicked += () =>
                 {
                     ImportSampleDependencies(index);
 
-                    using (var ev = NavigationSubmitEvent.GetPooled())
+                    // After importing the dependencies, we can call the package manager API import logic.
+                    foreach (Sample sample in Sample.FindByPackage(m_PackageInfo.name, m_PackageInfo.version))
                     {
-                        ev.target = importButton;
-                        importButton.SendEvent(ev);
+                        if (sample.displayName == m_SampleList.samples[index].displayName)
+                        {
+                            sample.Import(Sample.ImportOptions.HideImportWindow | Sample.ImportOptions.OverridePreviousImports);
+                        }
                     }
+
                 };
             }
             else // We may need to update the button text after the sample import here.

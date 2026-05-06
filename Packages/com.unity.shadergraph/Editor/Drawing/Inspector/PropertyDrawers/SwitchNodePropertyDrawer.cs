@@ -1,8 +1,7 @@
 using System;
 using UnityEditor.Graphing;
-using UnityEngine.UIElements;
 using UnityEngine;
-using System.Collections.Generic;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
@@ -33,17 +32,23 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 return;
 
             var listView = new ReorderableListView<SwitchNode.EntryCase>(node.m_cases, "Conditions");
-            listView.InitializeItemCallback += (List<SwitchNode.EntryCase> List) =>
-            {
-                return new SwitchNode.EntryCase { comparisonType = ComparisonType.Equal, threshold = List.Count };
-            };
 
-            listView.ValueChangedCallback += (List<SwitchNode.EntryCase> list) =>
-            {
-                node.owner.owner.RegisterCompleteObjectUndo("switch Entry List Change");
-                node.Dirty(ModificationScope.Topological);
-                node.UpdateNodeAfterDeserialization();
-            };
+            listView.OnNewItemCallback +=
+                () => new SwitchNode.EntryCase { comparisonType = ComparisonType.Equal, threshold = node.m_cases.Count };
+
+            listView.OnBeforeChangeCallback +=
+                (ReorderableListView<SwitchNode.EntryCase>.ListActionType changeType) =>
+                {
+                    node.owner.owner.RegisterCompleteObjectUndo($"{changeType} Switch Condition");
+                };
+
+            listView.OnChangeCallback +=
+                (ReorderableListView<SwitchNode.EntryCase>.ListActionType changeType) =>
+                {
+                    node.Dirty(ModificationScope.Topological);
+                    node.UpdateNodeAfterDeserialization();
+                    inspectorUpdateDelegate();
+                };
 
             listView.DrawItemCallback += (Rect rect, int idx) =>
             {

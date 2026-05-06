@@ -14,6 +14,7 @@ namespace UnityEngine.VFX.Test
     {
         [IgnoreGraphicsTest("05_MotionVectors", "No reference images provided")]
         [IgnoreGraphicsTest("13_Decals", "No reference images provided")]
+		[IgnoreGraphicsTest("027_RWTexture", "Disabled for Instability https://jira.unity3d.com/browse/UUM-140028", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.GameCoreXboxOne })]
         [IgnoreGraphicsTest("32_ExcludeFromTAA", "No reference images provided")]
         [IgnoreGraphicsTest("34_ShaderGraphGeneration", "No reference images provided")]
         [IgnoreGraphicsTest("ShadergraphSampleScene", "Unstable in QV")]

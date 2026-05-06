@@ -258,7 +258,7 @@ namespace UnityEditor.Rendering.HighDefinition
             column.drawer = args =>
             {
                 var go = args.item.data as GameObject ?? args.item.ToObject<GameObject>();
-                if (go == null || !go.TryGetComponent<HDProbe>(out var hdProbe))
+                if (go == null || !go.TryGetComponent<HDProbe>(out var hdProbe) || args.value is not HDLightingSearchDataAccessors.ReflectionProbeResolutionData)
                 {
                     return args.value;
                 }
@@ -357,7 +357,7 @@ namespace UnityEditor.Rendering.HighDefinition
             column.drawer = args =>
             {
                 var go = args.item.data as GameObject ?? args.item.ToObject<GameObject>();
-                if (go == null || !go.TryGetComponent<HDAdditionalLightData>(out _))
+                if (go == null || !go.TryGetComponent<HDAdditionalLightData>(out _) || args.value is not HDLightingSearchDataAccessors.ContactShadowsData)
                 {
                     return null;
                 }
@@ -420,7 +420,7 @@ namespace UnityEditor.Rendering.HighDefinition
             column.drawer = args =>
             {
                 var go = args.item.data as GameObject ?? args.item.ToObject<GameObject>();
-                if (go == null || !go.TryGetComponent<HDAdditionalLightData>(out _))
+                if (go == null || !go.TryGetComponent<HDAdditionalLightData>(out _) || args.value is not ShadowResolutionOption)
                 {
                     return null;
                 }

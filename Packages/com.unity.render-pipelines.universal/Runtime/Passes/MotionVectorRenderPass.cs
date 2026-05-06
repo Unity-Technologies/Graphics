@@ -60,7 +60,9 @@ namespace UnityEngine.Rendering.Universal
             var drawingSettings = new DrawingSettings(ShaderTagId.none, sortingSettings)
             {
                 perObjectData = PerObjectData.MotionVectors,
+#pragma warning disable 618
                 enableDynamicBatching = supportsDynamicBatching,
+#pragma warning restore 618
                 enableInstancing = true,
                 lodCrossFadeStencilMask = 0, // Disable stencil-based lod because depth copy before motion vector pass doesn't copy stencils.
             };
@@ -174,7 +176,9 @@ namespace UnityEngine.Rendering.Universal
                 passData.cameraDepth = cameraDepthTexture;
                 builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
 
+#pragma warning disable 618
                 InitRendererLists(ref passData, ref renderingData.cullResults, renderingData.supportsDynamicBatching, renderGraph);
+#pragma warning restore 618
                 builder.UseRendererList(passData.rendererListHdl);
 
                 if (motionVectorColor.IsValid())

@@ -179,7 +179,13 @@ namespace UnityEditor.Rendering.Universal
             if ((GPUResidentDrawerMode)serialized.gpuResidentDrawerMode.intValue != GPUResidentDrawerMode.Disabled)
             {
                 ++EditorGUI.indentLevel;
-                serialized.smallMeshScreenPercentage.floatValue = Mathf.Clamp(EditorGUILayout.FloatField(Styles.smallMeshScreenPercentage, serialized.smallMeshScreenPercentage.floatValue), 0.0f, 20.0f);
+                using (new EditorGUI.MixedValueScope(serialized.smallMeshScreenPercentage.hasMultipleDifferentValues))
+                {
+                    EditorGUI.BeginChangeCheck();
+                    float newSmallMeshScreenPercentage = Mathf.Clamp(EditorGUILayout.FloatField(Styles.smallMeshScreenPercentage, serialized.smallMeshScreenPercentage.floatValue), 0.0f, 20.0f);
+                    if (EditorGUI.EndChangeCheck())
+                        serialized.smallMeshScreenPercentage.floatValue = newSmallMeshScreenPercentage;
+                }
                 EditorGUILayout.PropertyField(serialized.gpuResidentDrawerEnableOcclusionCullingInCameras, Styles.gpuResidentDrawerEnableOcclusionCullingInCameras);
                 DisplayTileOnlyHelpBox(serialized.gpuResidentDrawerEnableOcclusionCullingInCameras, p => p.boolValue, Styles.gpuResidentDrawerEnableOcclusionCullingInCameras);
                 --EditorGUI.indentLevel;
@@ -256,7 +262,12 @@ namespace UnityEditor.Rendering.Universal
         static void DrawRenderingAdditional(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
             EditorGUILayout.PropertyField(serialized.srpBatcher, Styles.srpBatcher);
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.supportsDynamicBatching, Styles.dynamicBatching);
+            if (EditorGUI.EndChangeCheck() && serialized.supportsDynamicBatching.boolValue)
+            {
+                Debug.LogWarning(Styles.warningDynamicBatching);
+            }
             EditorGUILayout.PropertyField(serialized.storeActionsOptimizationProperty, Styles.storeActionsOptimizationText);
         }
 
@@ -288,7 +299,13 @@ namespace UnityEditor.Rendering.Universal
                     && !IsAndroidXRTargetted(), 
                 Styles.msaaText, MessageType.Info, Styles.msaaTileOnlyInfo);
 
-            serialized.renderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, serialized.renderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
+            using (new EditorGUI.MixedValueScope(serialized.renderScale.hasMultipleDifferentValues))
+            {
+                EditorGUI.BeginChangeCheck();
+                float newRenderScale = EditorGUILayout.Slider(Styles.renderScaleText, serialized.renderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.renderScale.floatValue = newRenderScale;
+            }
             DisplayTileOnlyHelpBox(
                 serialized.renderScale, 
                 p =>
@@ -388,7 +405,13 @@ namespace UnityEditor.Rendering.Universal
                     // We put the FSR sharpness override value behind an override checkbox so we can tell when the user intends to use a custom value rather than the default.
                     if (serialized.fsrOverrideSharpness.boolValue)
                     {
-                        serialized.fsrSharpness.floatValue = EditorGUILayout.Slider(Styles.fsrSharpnessText, serialized.fsrSharpness.floatValue, 0.0f, 1.0f);
+                        using (new EditorGUI.MixedValueScope(serialized.fsrSharpness.hasMultipleDifferentValues))
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            float newFsrSharpness = EditorGUILayout.Slider(Styles.fsrSharpnessText, serialized.fsrSharpness.floatValue, 0.0f, 1.0f);
+                            if (EditorGUI.EndChangeCheck())
+                                serialized.fsrSharpness.floatValue = newFsrSharpness;
+                        }
                     }
                     --EditorGUI.indentLevel;
                     break;
@@ -469,7 +492,13 @@ namespace UnityEditor.Rendering.Universal
                         // We put the FSR sharpness override value behind an override checkbox so we can tell when the user intends to use a custom value rather than the default.
                         if (serialized.fsrOverrideSharpness.boolValue)
                         {
-                            serialized.fsrSharpness.floatValue = EditorGUILayout.Slider(Styles.fsrSharpnessText, serialized.fsrSharpness.floatValue, 0.0f, 1.0f);
+                            using (new EditorGUI.MixedValueScope(serialized.fsrSharpness.hasMultipleDifferentValues))
+                            {
+                                EditorGUI.BeginChangeCheck();
+                                float newFsrSharpness = EditorGUILayout.Slider(Styles.fsrSharpnessText, serialized.fsrSharpness.floatValue, 0.0f, 1.0f);
+                                if (EditorGUI.EndChangeCheck())
+                                    serialized.fsrSharpness.floatValue = newFsrSharpness;
+                            }
                         }
 
                         --EditorGUI.indentLevel;
@@ -517,13 +546,13 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.EndDisabledGroup();
 
             EditorGUI.indentLevel++;
-            disableGroup |= !serialized.mainLightRenderingModeProp.boolValue;
+            disableGroup |= serialized.mainLightRenderingModeProp.hasMultipleDifferentValues || !serialized.mainLightRenderingModeProp.boolValue;
 
             EditorGUI.BeginDisabledGroup(disableGroup);
             EditorGUILayout.PropertyField(serialized.mainLightShadowsSupportedProp, Styles.supportsMainLightShadowsText);
             EditorGUI.EndDisabledGroup();
 
-            disableGroup |= !serialized.mainLightShadowsSupportedProp.boolValue;
+            disableGroup |= serialized.mainLightShadowsSupportedProp.hasMultipleDifferentValues || !serialized.mainLightShadowsSupportedProp.boolValue;
             EditorGUI.BeginDisabledGroup(disableGroup);
             EditorGUILayout.PropertyField(serialized.mainLightShadowmapResolutionProp, Styles.mainLightShadowmapResolutionText);
             EditorGUI.EndDisabledGroup();
@@ -541,7 +570,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(serialized.probeVolumeSHBands, Styles.probeVolumeSHBands);
 
                 EditorGUILayout.PropertyField(serialized.supportProbeVolumeGPUStreaming, Styles.supportProbeVolumeGPUStreaming);
-                EditorGUI.BeginDisabledGroup(!serialized.supportProbeVolumeGPUStreaming.boolValue);
+                EditorGUI.BeginDisabledGroup(serialized.supportProbeVolumeGPUStreaming.hasMultipleDifferentValues || !serialized.supportProbeVolumeGPUStreaming.boolValue);
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(serialized.supportProbeVolumeDiskStreaming, Styles.supportProbeVolumeDiskStreaming);
                 EditorGUI.indentLevel--;
@@ -579,9 +608,15 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.additionalLightsRenderingModeProp, Styles.addditionalLightsRenderingModeText);
             EditorGUI.indentLevel++;
 
-            disableGroup = serialized.additionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
+            disableGroup = serialized.additionalLightsRenderingModeProp.hasMultipleDifferentValues || serialized.additionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
             EditorGUI.BeginDisabledGroup(disableGroup);
-            serialized.additionalLightsPerObjectLimitProp.intValue = EditorGUILayout.IntSlider(Styles.perObjectLimit, serialized.additionalLightsPerObjectLimitProp.intValue, 0, UniversalRenderPipeline.maxPerObjectLights);
+            using (new EditorGUI.MixedValueScope(serialized.additionalLightsPerObjectLimitProp.hasMultipleDifferentValues))
+            {
+                EditorGUI.BeginChangeCheck();
+                int newPerObjectLimit = EditorGUILayout.IntSlider(Styles.perObjectLimit, serialized.additionalLightsPerObjectLimitProp.intValue, 0, UniversalRenderPipeline.maxPerObjectLights);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.additionalLightsPerObjectLimitProp.intValue = newPerObjectLimit;
+            }
 #if UNITY_META_QUEST
             if (serialized.additionalLightsPerObjectLimitProp.intValue > 1)
             {
@@ -590,19 +625,23 @@ namespace UnityEditor.Rendering.Universal
 #endif
             EditorGUI.EndDisabledGroup();
 
-            disableGroup |= (serialized.additionalLightsPerObjectLimitProp.intValue == 0 || serialized.additionalLightsRenderingModeProp.intValue != (int)LightRenderingMode.PerPixel);
+            disableGroup |= serialized.additionalLightsPerObjectLimitProp.hasMultipleDifferentValues
+                || serialized.additionalLightsRenderingModeProp.hasMultipleDifferentValues
+                || serialized.additionalLightsPerObjectLimitProp.intValue == 0
+                || serialized.additionalLightsRenderingModeProp.intValue != (int)LightRenderingMode.PerPixel;
             EditorGUI.BeginDisabledGroup(disableGroup);
             EditorGUILayout.PropertyField(serialized.additionalLightShadowsSupportedProp, Styles.supportsAdditionalShadowsText);
             EditorGUI.EndDisabledGroup();
 
-            disableGroup |= !serialized.additionalLightShadowsSupportedProp.boolValue;
+            disableGroup |= serialized.additionalLightShadowsSupportedProp.hasMultipleDifferentValues || !serialized.additionalLightShadowsSupportedProp.boolValue;
             EditorGUI.BeginDisabledGroup(disableGroup);
             EditorGUILayout.PropertyField(serialized.additionalLightShadowmapResolutionProp, Styles.additionalLightsShadowmapResolution);
             DrawShadowResolutionTierSettings(serialized, ownerEditor);
             EditorGUI.EndDisabledGroup();
 
             EditorGUILayout.Space();
-            disableGroup = serialized.additionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled || !serialized.supportsLightCookies.boolValue;
+            disableGroup = serialized.additionalLightsRenderingModeProp.hasMultipleDifferentValues || serialized.additionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled
+                || serialized.supportsLightCookies.hasMultipleDifferentValues || !serialized.supportsLightCookies.boolValue;
 
             EditorGUI.BeginDisabledGroup(disableGroup);
             EditorGUILayout.PropertyField(serialized.additionalLightCookieResolutionProp, Styles.additionalLightsCookieResolution);
@@ -656,10 +695,8 @@ namespace UnityEditor.Rendering.Universal
         {
             // UI code adapted from HDRP U.I logic implemented in com.unity.render-pipelines.high-definition/Editor/RenderPipeline/Settings/SerializedScalableSetting.cs )
 
-            var rect = GUILayoutUtility.GetRect(0, float.Epsilon, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
+            var rect = EditorGUILayout.GetControlRect();
             var contentRect = EditorGUI.PrefixLabel(rect, Styles.additionalLightsShadowResolutionTiers);
-
-            EditorGUI.BeginChangeCheck();
 
             const int k_ShadowResolutionTiersCount = 3;
             var values = new[] { serialized.additionalLightsShadowResolutionTierLowProp, serialized.additionalLightsShadowResolutionTierMediumProp, serialized.additionalLightsShadowResolutionTierHighProp };
@@ -679,20 +716,29 @@ namespace UnityEditor.Rendering.Universal
                 if (spaceLeft > 2) // If at least two pixels are left to draw this field, draw it, otherwise, skip
                 {
                     var fieldSlot = new Rect(contentRect.x + pixelShift, contentRect.y, num - labelWidth, contentRect.height); // Define the rectangle for the field
-                    int value = EditorGUI.DelayedIntField(fieldSlot, values[index].intValue);
-                    values[index].intValue = Mathf.Max(UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution, Mathf.NextPowerOfTwo(value));
+                    using (new EditorGUI.MixedValueScope(values[index].hasMultipleDifferentValues))
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        int value = EditorGUI.DelayedIntField(fieldSlot, values[index].intValue);
+                        if (EditorGUI.EndChangeCheck())
+                            values[index].intValue = Mathf.Max(UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution, Mathf.NextPowerOfTwo(value));
+                    }
                 }
                 pixelShift += spaceLeft;  // Shift by the slot that was left for the field
             }
 
             EditorGUI.indentLevel = indentLevel;
-
-            EditorGUI.EndChangeCheck();
         }
 
         static void DrawShadows(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
-            serialized.shadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistanceText, serialized.shadowDistanceProp.floatValue));
+            using (new EditorGUI.MixedValueScope(serialized.shadowDistanceProp.hasMultipleDifferentValues))
+            {
+                EditorGUI.BeginChangeCheck();
+                float newShadowDistance = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistanceText, serialized.shadowDistanceProp.floatValue));
+                if (EditorGUI.EndChangeCheck())
+                    serialized.shadowDistanceProp.floatValue = newShadowDistance;
+            }
             EditorUtils.Unit unit = EditorUtils.Unit.Metric;
             if (serialized.shadowCascadeCountProp.intValue != 0)
             {
@@ -719,8 +765,21 @@ namespace UnityEditor.Rendering.Universal
             DrawCascades(serialized, cascadeCount, useMetric, baseMetric);
             EditorGUI.indentLevel++;
 
-            serialized.shadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, serialized.shadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
-            serialized.shadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, serialized.shadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
+            using (new EditorGUI.MixedValueScope(serialized.shadowDepthBiasProp.hasMultipleDifferentValues))
+            {
+                EditorGUI.BeginChangeCheck();
+                float newDepthBias = EditorGUILayout.Slider(Styles.shadowDepthBias, serialized.shadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.shadowDepthBiasProp.floatValue = newDepthBias;
+            }
+
+            using (new EditorGUI.MixedValueScope(serialized.shadowNormalBiasProp.hasMultipleDifferentValues))
+            {
+                EditorGUI.BeginChangeCheck();
+                float newNormalBias = EditorGUILayout.Slider(Styles.shadowNormalBias, serialized.shadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.shadowNormalBiasProp.floatValue = newNormalBias;
+            }
             EditorGUILayout.PropertyField(serialized.softShadowsSupportedProp, Styles.supportsSoftShadows);
             if (serialized.softShadowsSupportedProp.boolValue)
             {
@@ -910,8 +969,10 @@ namespace UnityEditor.Rendering.Universal
             else if (isHdrOn && PlayerSettings.allowHDRDisplaySupport && serialized.colorGradingMode.intValue == (int)ColorGradingMode.LowDynamicRange)
                 EditorGUILayout.HelpBox(Styles.colorGradingModeWithHDROutput, MessageType.Warning);
 
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.DelayedIntField(serialized.colorGradingLutSize, Styles.colorGradingLutSize);
-            serialized.colorGradingLutSize.intValue = Mathf.Clamp(serialized.colorGradingLutSize.intValue, UniversalRenderPipelineAsset.k_MinLutSize, UniversalRenderPipelineAsset.k_MaxLutSize);
+            if (EditorGUI.EndChangeCheck())
+                serialized.colorGradingLutSize.intValue = Mathf.Clamp(serialized.colorGradingLutSize.intValue, UniversalRenderPipelineAsset.k_MinLutSize, UniversalRenderPipelineAsset.k_MaxLutSize);
             if (isHdrOn && serialized.colorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange && serialized.colorGradingLutSize.intValue < 32)
                 EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
 

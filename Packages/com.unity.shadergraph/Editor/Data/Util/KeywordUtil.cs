@@ -233,15 +233,20 @@ namespace UnityEditor.ShaderGraph
                     // Iterate all keywords that are part of the permutation
                     for (int i = 0; i < permutations[p].Count; i++)
                     {
+                        (ShaderKeyword keyword, int entryValue) = permutations[p][i];
+
                         // When previous keyword was inserted subsequent requires &&
                         string and = appendAnd ? " && " : string.Empty;
 
-                        switch (permutations[p][i].Key.keywordType)
+                        switch (keyword.keywordType)
                         {
                             case KeywordType.Enum:
                             {
-                                sb.Append($"{and}defined({permutations[p][i].Key.referenceName}_{permutations[p][i].Key.entries[permutations[p][i].Value].referenceName})");
-                                appendAnd = true;
+                                if (!keyword.entries[entryValue].IsNoneKeyword)
+                                {
+                                    sb.Append($"{and}defined({keyword.referenceName}_{keyword.entries[entryValue].referenceName})");
+                                    appendAnd = true;
+                                }
                                 break;
                             }
                             case KeywordType.Boolean:

@@ -77,6 +77,11 @@ public class HDRP_Runtime_Graphics_Tests
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal },
         architectures: new Architecture[] { Architecture.X64 }
     )]
+	[IgnoreGraphicsTest(
+		"009-SG-FullScreenTarget$",
+		"https://jira.unity3d.com/browse/UUM-140915",
+		runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.PS5, RuntimePlatform.Switch, RuntimePlatform.WindowsPlayer }
+	)]
     [IgnoreGraphicsTest(
         "010-BRG-Simple",
         "Unstable: https://jira.unity3d.com/browse/UUM-134572",

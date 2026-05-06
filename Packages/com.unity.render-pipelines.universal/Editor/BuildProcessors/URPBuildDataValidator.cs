@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.Universal
         // This check iterates over all pipeline assets and enables the built-in DynamicBatching flag if at least one of them has dynamic batching enabled. We need to do this to ensure meshCompression is set correctly.
         private static void ValidateDynamicBatchingSettings(List<UniversalRenderPipelineAsset> renderPipelineAssets)
         {
+#pragma warning disable 618
             bool supportsDynamicBatching = false;
             foreach (var urpPipelineAsset in renderPipelineAssets)
             {
@@ -36,6 +37,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             PlayerSettings.SetDynamicBatchingForPlatform(EditorUserBuildSettings.activeBuildTarget, supportsDynamicBatching);
+#pragma warning restore 618
         }
 
         private static void ValidateRenderPipelineGlobalSettings(UniversalRenderPipelineGlobalSettings globalSettingsInstance, StringBuilder failures)

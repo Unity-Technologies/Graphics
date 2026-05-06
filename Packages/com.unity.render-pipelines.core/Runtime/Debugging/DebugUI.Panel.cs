@@ -56,6 +56,7 @@ namespace UnityEngine.Rendering
                 container.AddToClassList("unity-inspector-element");
 
                 var content = new VisualElement();
+
                 foreach (var child in children)
                 {
                     if (context == Context.Editor && child.isRuntimeOnly)
@@ -67,6 +68,7 @@ namespace UnityEngine.Rendering
                     if (childUIElement != null)
                         content.Add(childUIElement);
                 }
+
                 container.Add(content);
 
                 return container;

@@ -9,7 +9,7 @@ Follow these steps:
 ## Load the ray tracing resources
 The [`RayTracingContext`](xref:UnityEngine.Rendering.UnifiedRayTracing.RayTracingContext) needs a few utility shaders that the [`RayTracingResources`](xref:UnityEngine.Rendering.UnifiedRayTracing.RayTracingResources) object supplies. You can load these resources in several different ways.
 
-If your project uses SRP (Scriptable Render Pipeline), load the resources via [`RayTracingResources.LoadFromRenderPipelineResources`](xref:UnityEngine.Rendering.UnifiedRayTracing.RayTracingContext.LoadFromRenderPipelineResources()). This always works in the Editor.
+If your project uses SRP (Scriptable Render Pipeline), load the resources via [`RayTracingResources.LoadFromRenderPipelineResources`](xref:UnityEngine.Rendering.UnifiedRayTracing.RayTracingResources.LoadFromRenderPipelineResources()). This always works in the Editor.
 ```C#
 var rtResources = new RayTracingResources();
 bool result = rtResources.LoadFromRenderPipelineResources();
@@ -49,9 +49,12 @@ rtResources.LoadFromAssetBundle(asssetBundle);
 ## Create the context
 Once the [`RayTracingResources`](xref:UnityEngine.Rendering.UnifiedRayTracing.RayTracingResources) are loaded, use them to create the [`RayTracingContext`](xref:UnityEngine.Rendering.UnifiedRayTracing.RayTracingContext).
 ```C# 
-// Choose a backend
-var backend = RayTracingContext.IsBackendSupported(RayTracingBackend.Hardware) ? RayTracingBackend.Hardware : RayTracingBackend.Compute;
+var context = new RayTracingContext(rtResources);
+```
 
-// Create the context
+By default, Unity checks if the device supports hardware ray tracing, and selects either hardware ray tracing or compute shaders. To manually select the backend, pass in a `RayTracingBackend`. For example:
+
+```C# 
+var backend = RayTracingBackend.Compute;
 var context = new RayTracingContext(backend, rtResources);
 ```

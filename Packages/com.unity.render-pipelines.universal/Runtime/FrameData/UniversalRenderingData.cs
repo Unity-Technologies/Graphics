@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.Universal
         /// True if the pipeline supports dynamic batching.
         /// This settings doesn't apply when drawing shadow casters. Dynamic batching is always disabled when drawing shadow casters.
         /// </summary>
+        [System.Obsolete("supportsDynamicBatching is deprecated and will be removed in a future release. #from(6000.5)", false)]
         public bool supportsDynamicBatching;
 
         /// <summary>
@@ -56,7 +57,9 @@ namespace UnityEngine.Rendering.Universal
         public override void Reset()
         {
             cullResults = default;
+#pragma warning disable 618
             supportsDynamicBatching = default;
+#pragma warning restore 618
             perObjectData = default;
             renderingMode = default;
             stencilLodCrossFadeEnabled = default;

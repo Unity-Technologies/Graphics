@@ -289,6 +289,7 @@
         * [Sample Element Texture](sample-element-texture-node.md)
     * [Utility](Utility-Nodes.md)
         * [Custom Function](Custom-Function-Node.md)
+        * [Expression](Expression-Node.md)
         * [Preview](Preview-Node.md)
         * High Definition Render Pipeline
             * [Emission](Emission-Node.md)
@@ -318,6 +319,7 @@
             * [Nand](Nand-Node.md)
             * [Not](Not-Node.md)
             * [Or](Or-Node.md)
+            * [Switch](Switch-Node.md)
     * [UV](UV-Nodes.md)
         * [Flipbook](Flipbook-Node.md)
         * [Parallax Mapping](Parallax-Mapping-Node.md)

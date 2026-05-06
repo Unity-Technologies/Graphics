@@ -68,6 +68,9 @@ namespace UnityEditor.ShaderGraph
 
         internal bool IsDynamic => m_KeywordDefinition == KeywordDefinition.DynamicBranch;
 
+        // If true, indicates that ShaderGraph may pre-compute permutations containing this keyword
+        internal bool IsPermutable => !IsDynamic && !IsShaderBuildSettingsCompatible;
+
         [SerializeField]
         private KeywordDefinition m_KeywordDefinition = KeywordDefinition.ShaderFeature;
 
@@ -104,6 +107,8 @@ namespace UnityEditor.ShaderGraph
             set => m_Entries = value;
         }
 
+        public bool HasNoneEntry => entries.Count > 0 && entries[0].IsNoneKeyword;
+
         [SerializeField]
         private int m_Value;
 
@@ -115,6 +120,17 @@ namespace UnityEditor.ShaderGraph
 
         [SerializeField]
         private bool m_IsEditable = true;       // this serializes !isBuiltIn
+
+        [SerializeField]
+        private bool m_IsShaderBuildSettingsCompatible = true;
+
+        // Note that if this field is true, we must effectively treat this keyword as a dynamic branch for code gen
+        // purposes as its definition may be overridden by project settings.
+        public bool IsShaderBuildSettingsCompatible
+        {
+            get => m_IsShaderBuildSettingsCompatible;
+            set => m_IsShaderBuildSettingsCompatible = value;
+        }
 
         public bool isBuiltIn
         {
@@ -129,6 +145,21 @@ namespace UnityEditor.ShaderGraph
         internal override bool isRenamable => !isBuiltIn;
 
         internal override ConcreteSlotValueType concreteShaderValueType => keywordType.ToConcreteSlotValueType();
+
+        public IEnumerable<(KeywordEntry entry, int value)> GetEntriesExcludingNone()
+        {
+            for (int i = HasNoneEntry ? 1 : 0; i < entries.Count; ++i)
+                yield return (entries[i], i);
+        }
+
+        // Enumerates the enum's entries in the order one would emit 'if', 'else if', and 'else' branches
+        public IEnumerable<(KeywordEntry entry, int value)> GetEntriesInBranchOrder()
+        {
+            foreach (var entry in GetEntriesExcludingNone())
+                yield return entry;
+            if (HasNoneEntry)
+                yield return (entries[0], 0);
+        }
 
         public override string GetOldDefaultReferenceName()
         {
@@ -184,10 +215,16 @@ namespace UnityEditor.ShaderGraph
                     case KeywordType.Boolean:
                         return $"#define {referenceName} {(value == 0 ? "false" : " true")}";
                     case KeywordType.Enum:
-                        string result = $"#define {referenceName}_{entries[value].referenceName} true";
-                        for (int i = 0; i < entries.Count; ++i)
-                            if (i != value)
-                                result += $"\n#define {referenceName}_{entries[i].referenceName} false";
+                        string result = entries[value].IsNoneKeyword ?
+                            string.Empty : $"#define {referenceName}_{entries[value].referenceName} true";
+                        foreach ((KeywordEntry entry, int entryValue) in GetEntriesExcludingNone())
+                        {
+                            if (entryValue != value)
+                            {
+                                string newline = result.Length == 0 ? string.Empty : "\n";
+                                result += $"{newline}#define {referenceName}_{entry.referenceName} false";
+                            }
+                        }
                         return result;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -196,9 +233,19 @@ namespace UnityEditor.ShaderGraph
             else switch (keywordType)
             {
                 case KeywordType.Boolean:
-                    return value == 1 ? $"#define {referenceName}" : string.Empty;
+                    return value == 1 ? $"#define {referenceName} true" : $"static const bool {referenceName} = false;";
                 case KeywordType.Enum:
-                    return $"#define {referenceName}_{entries[value].referenceName}";
+                    string enumResult = entries[value].IsNoneKeyword ?
+                            string.Empty : $"#define {referenceName}_{entries[value].referenceName} true";
+                    foreach ((KeywordEntry entry, int entryValue) in GetEntriesExcludingNone())
+                    {
+                        if (entryValue != value)
+                        {
+                            string newline = enumResult.Length == 0 ? string.Empty : "\n";
+                            enumResult += $"{newline}static const bool {referenceName}_{entry.referenceName} = false;";
+                        }
+                    }
+                    return enumResult;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -219,16 +266,17 @@ namespace UnityEditor.ShaderGraph
                 keywordScope = keywordScope,
                 entries = entries,
                 keywordStages = keywordStages,
-                overrideReferenceName = overrideReferenceName
+                overrideReferenceName = overrideReferenceName,
+                IsShaderBuildSettingsCompatible = IsShaderBuildSettingsCompatible,
             };
         }
 
-        public override int latestVersion => 1;
+        public override int latestVersion => 2;
         public override void OnAfterDeserialize(string json)
         {
             if (sgVersion == 0)
             {
-                // we now allow keywords to control whether they are exposed (for Material control) or not.
+                // Version 1 allows keywords to control whether they are exposed (for Material control) or not.
                 // old exposable keywords set their exposed state to maintain previous behavior
                 // (where bool keywords only showed up in the material when ending in "_ON")
                 if (isExposable)
@@ -239,6 +287,14 @@ namespace UnityEditor.ShaderGraph
                         generatePropertyBlock = true;
                 }
                 ChangeVersion(1);
+            }
+            if (sgVersion < 2)
+            {
+                // Version 2 marks the point at which we changed KeywordNode code gen to be compatible with
+                // Shader Build Settings. Legacy shader graphs should default to incompatible KeywordNode
+                // code gen.
+                IsShaderBuildSettingsCompatible = false;
+                ChangeVersion(2);
             }
         }
     }

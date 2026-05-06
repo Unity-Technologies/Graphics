@@ -751,7 +751,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 perObjectData = renderingData.perObjectData,
                 mainLightIndex = lightData.mainLightIndex,
+#pragma warning disable 618
                 enableDynamicBatching = renderingData.supportsDynamicBatching,
+#pragma warning restore 618
 
                 // Disable instancing for preview cameras. This is consistent with the built-in forward renderer. Also fixes case 1127324.
                 enableInstancing = camera.cameraType != CameraType.Preview,

@@ -1722,6 +1722,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 propertySheet.Add(help);
             }
 
+            var isShaderBuildSettingsCompatibleDrawer = new ToggleDataPropertyDrawer();
+            propertySheet.Add(isShaderBuildSettingsCompatibleDrawer.CreateGUI(
+                newValue =>
+                {
+                    this._preChangeValueCallback("Change Keyword Allow Definition Override");
+                    keyword.IsShaderBuildSettingsCompatible = newValue.isOn;
+                    this._postChangeValueCallback(modificationScope: ModificationScope.Graph);
+                },
+                new ToggleData(keyword.IsShaderBuildSettingsCompatible),
+                "Allow Definition Override",
+                out VisualElement isShaderBuildSettingsCompatibleToggle,
+                tooltip: "Indicates whether this keyword's definition can be overridden by the project's shader build settings."));
+
             typeField.SetEnabled(!keyword.isBuiltIn);
             {
                 var isOverridablePropertyDrawer = new ToggleDataPropertyDrawer();
@@ -1730,15 +1743,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 propertySheet.Add(isOverridablePropertyDrawer.CreateGUI(
                     newValue =>
                     {
-                        this._preChangeValueCallback("Change Keyword Is Overridable");
+                        this._preChangeValueCallback("Change Keyword Allow State Override");
                         keyword.keywordScope = newValue.isOn
                             ? KeywordScope.Global
                             : KeywordScope.Local;
                     },
                     new ToggleData(toggleState),
-                    "Is Overridable",
+                    "Allow State Override",
                     out keywordScopeField,
-                    tooltip: "Indicate whether this keyword's state can be overridden through the Shader.SetKeyword scripting interface."));
+                    tooltip: "Indicates whether this keyword's state can be overridden through the Shader.SetKeyword scripting interface."));
                 keywordScopeField.SetEnabled(enabledState);
             }
             BuildExposedField(propertySheet);
@@ -1793,6 +1806,24 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             // Clamp value between entry list
             int value = Mathf.Clamp(keyword.value, 0, keyword.entries.Count - 1);
+
+            // Include "none" entry
+            var includeNoneDrawer = new ToggleDataPropertyDrawer();
+            propertySheet.Add(includeNoneDrawer.CreateGUI(
+                (newValue) =>
+                {
+                    this._preChangeValueCallback("Change Include None Value");
+                    if (newValue.isOn)
+                        keyword.entries.Insert(0, new KeywordEntry(GetFirstUnusedKeywordID(), "None", string.Empty));
+                    else
+                        keyword.entries.RemoveAll(entry => entry.IsNoneKeyword);
+                    this._postChangeValueCallback();
+                    this._keywordChangedCallback();
+                },
+                new ToggleData(keyword.HasNoneEntry),
+                "Include \"none\" entry",
+                out VisualElement includeNoneToggle,
+                tooltip: "Indicates whether the enum can assume a \"none\" value as indicated by the \"_\" keyword."));
 
             // Default field
             var field = new PopupField<string>(keyword.entries.Select(x => x.displayName).ToList(), value);
@@ -2044,6 +2075,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             {
                 KeywordEntry entry = ((KeywordEntry)m_KeywordReorderableList.list[index]);
                 EditorGUI.BeginChangeCheck();
+                EditorGUI.BeginDisabled(entry.IsNoneKeyword);
 
                 Rect displayRect = new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight);
                 var displayName = EditorGUI.DelayedTextField(displayRect, entry.displayName, EditorStyles.label);
@@ -2052,6 +2084,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 var referenceName = EditorGUI.TextField(new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.referenceName,
                     keyword.isBuiltIn ? EditorStyles.label : greyLabel);
 
+                EditorGUI.EndDisabled();
                 if (EditorGUI.EndChangeCheck())
                 {
                     this._preChangeValueCallback("Edit Enum Keyword Entry");
@@ -2177,6 +2210,24 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         void KeywordReorderEntries(ReorderableList list)
         {
+            if (shaderInput is not ShaderKeyword keyword)
+                return;
+
+            // Ensure that the "none" entry is always at position 0
+            int noneEntryIndex = 0;
+            for (; noneEntryIndex < list.list.Count; ++noneEntryIndex)
+            {
+                KeywordEntry entry = (KeywordEntry)list.list[noneEntryIndex];
+                if (entry.IsNoneKeyword)
+                    break;
+            }
+            if (0 < noneEntryIndex && noneEntryIndex < list.list.Count)
+            {
+                object noneEntry = list.list[noneEntryIndex];
+                list.list.RemoveAt(noneEntryIndex);
+                list.list.Insert(0, noneEntry);
+            }
+
             this._preChangeValueCallback("Reorder Keyword Entry");
             this._postChangeValueCallback(true);
             this._keywordChangedCallback();

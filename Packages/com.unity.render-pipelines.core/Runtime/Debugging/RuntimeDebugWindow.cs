@@ -127,7 +127,9 @@ namespace UnityEngine.Rendering
             else
                 selectedPanelName = m_SelectedPanel.displayName;
 
-            SetSelectedPanel(selectedPanelName);
+            // Defer until after layout so all AttachToPanelEvent callbacks from ScheduleTracked
+            // have fired and registered their schedulers before SetHierarchyEnabled is called.
+            m_TabViewElement.schedule.Execute(_ => SetSelectedPanel(selectedPanelName)).StartingIn(100);
         }
 
         void OnDestroy()

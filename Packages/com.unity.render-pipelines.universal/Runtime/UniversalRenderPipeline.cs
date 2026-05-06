@@ -1808,7 +1808,9 @@ namespace UnityEngine.Rendering.Universal
             UniversalLightData universalLightData = frameData.Get<UniversalLightData>();
 
             UniversalRenderingData data = frameData.Get<UniversalRenderingData>();
+#pragma warning disable 618
             data.supportsDynamicBatching = settings.supportsDynamicBatching;
+#pragma warning restore 618
             data.perObjectData = GetPerObjectLightFlags(universalLightData, settings, renderingMode);
 
             UniversalRenderer universalRenderer = renderer as UniversalRenderer;
@@ -2596,17 +2598,17 @@ namespace UnityEngine.Rendering.Universal
             // TODO
             if (!cameraData.xr.enabled)
             {
-                cameraData.cameraTargetDescriptor.width = (int)(cameraData.camera.pixelWidth * cameraData.renderScale);
-                cameraData.cameraTargetDescriptor.height = (int)(cameraData.camera.pixelHeight * cameraData.renderScale);
+                cameraData.cameraTargetDescriptor.width = Mathf.Max(1, (int)(cameraData.pixelWidth * cameraData.renderScale));
+                cameraData.cameraTargetDescriptor.height = Mathf.Max(1, (int)(cameraData.pixelHeight * cameraData.renderScale));
 #if ENABLE_UPSCALER_FRAMEWORK
                 IUpscaler activeUpscaler = upscaling.activeUpscaler;
                 if (activeUpscaler != null) // An IUpscaler is active.
                 {
                     // It might want to change the pre-upscale resolution. Negotiate with it.
-                    Vector2Int res = new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.scaledHeight);
+                    Vector2Int res = new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
                     activeUpscaler.NegotiatePreUpscaleResolution(ref res, new Vector2Int(cameraData.pixelWidth, cameraData.pixelHeight));
-                    cameraData.cameraTargetDescriptor.width = res.x;
-                    cameraData.cameraTargetDescriptor.height = res.y;
+                    cameraData.cameraTargetDescriptor.width = Mathf.Max(1, res.x);
+                    cameraData.cameraTargetDescriptor.height = Mathf.Max(1, res.y);
                 }
 #endif
                 cameraData.scaledWidth = cameraData.cameraTargetDescriptor.width;
@@ -2625,8 +2627,10 @@ namespace UnityEngine.Rendering.Universal
             UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
             UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
 
+#pragma warning disable 618
             if (AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipDynamicBatching)
                 renderingData.supportsDynamicBatching = false;
+#pragma warning restore 618
 
             var MainLightShadowmapResolutionMultiplier = AdaptivePerformance.AdaptivePerformanceRenderSettings.MainLightShadowmapResolutionMultiplier;
             shadowData.mainLightShadowmapWidth = (int)(shadowData.mainLightShadowmapWidth * MainLightShadowmapResolutionMultiplier);
