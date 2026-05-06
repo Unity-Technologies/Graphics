@@ -2169,15 +2169,16 @@ namespace UnityEditor.VFX.UI
 
             if (sel.elements.Count > 0)
             {
-                var rentedArray = ArrayPool<EntityId>.Shared.Rent(objectsSelected.Count);
+                var arrayLen = objectsSelected.Count;
+                var rentedArray = ArrayPool<EntityId>.Shared.Rent(arrayLen);
                 try
                 {
                     objectsSelected.CopyTo(rentedArray, 0);
-                    Selection.SetCustomSelection(kSelectionKey, EditorJsonUtility.ToJson(sel), rentedArray);
+                    Selection.SetCustomSelection(kSelectionKey, EditorJsonUtility.ToJson(sel), new ReadOnlySpan<EntityId>(rentedArray, 0, arrayLen));
                 }
                 finally
                 {
-                    ArrayPool<EntityId>.Shared.Return(rentedArray, clearArray: false);
+                    ArrayPool<EntityId>.Shared.Return(rentedArray, false);
                 }
                 if (emptyBlackboardSelection)
                 {
