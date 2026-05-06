@@ -313,10 +313,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         GenerateColorPyramid(m_RenderGraph, hdCamera, colorBuffer, distortionColorPyramid, FullScreenDebugMode.PreRefractionColorPyramid, distortionRendererList);
                         currentColorPyramid = distortionColorPyramid;
 
-
-                        // The color pyramid for distortion is not an history, so it need to be sampled appropriate RT handle scale. Thus we need to update it
-                        var newScale = new Vector4(RTHandles.rtHandleProperties.rtHandleScale.x, RTHandles.rtHandleProperties.rtHandleScale.y, 0, 0);
-                        m_ShaderVariablesGlobalCB._ColorPyramidUvScaleAndLimitCurrentFrame = newScale;
+                        // The color pyramid for distortion is not an history buffer, so it needs to be sampled using an appropriate RT handle scale. Thus we need to update the scale and the limit.
+                        // It's relatively straightforward to update the scale because we store it in rtHandleScale but we miss the limit values. For now, we approximate them by setting them to the scale value.
+                        // This is imperfect but resetting limit at (0, 0) gives worse results (UUM-130925).
+                        var newScaleLimits = new Vector4(RTHandles.rtHandleProperties.rtHandleScale.x, RTHandles.rtHandleProperties.rtHandleScale.y, RTHandles.rtHandleProperties.rtHandleScale.x, RTHandles.rtHandleProperties.rtHandleScale.y);
+                        m_ShaderVariablesGlobalCB._ColorPyramidUvScaleAndLimitCurrentFrame = newScaleLimits;
                         PushGlobalCameraParams(m_RenderGraph, hdCamera);
                     }
 

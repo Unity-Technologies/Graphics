@@ -5,6 +5,7 @@ To use the API to trace rays in Unity, follow these steps:
 3. Create a shader.
 4. Build your acceleration structure.
 5. Execute your shader.
+6. Dispose of your objects.
 
 ## Create the ray tracing context
 
@@ -53,3 +54,5 @@ rtShader.Dispatch(cmd, traceScratchBuffer, threadCountX, threadCountY, threadCou
 
 For more information, refer to [Execute your ray tracing code](execute-shader.md).
 
+## Dispose of your objects
+For more information, refer to [Release your ray tracing objects](release-resources.md).

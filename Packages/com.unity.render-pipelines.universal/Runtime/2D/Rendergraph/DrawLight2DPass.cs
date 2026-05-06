@@ -180,20 +180,12 @@ namespace UnityEngine.Rendering.Universal
             Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
-            DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(cameraData);
-            var isDebugLightingActive = debugHandler?.IsLightingActive ?? true;
-
-#if UNITY_EDITOR
-            if (cameraData.isSceneViewCamera && UnityEditor.SceneView.currentDrawingSceneView != null)
-                isDebugLightingActive &= UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
-
-            if (cameraData.camera.cameraType == CameraType.Preview)
-                isDebugLightingActive = false;
-#endif
+            // Check for lighting in scene/prefab/preview camera 
+            var isLightingActive = Renderer2D.s_IsLightingActive;
 
             if (!layerBatch.lightStats.useLights ||
                 isVolumetric && !layerBatch.lightStats.useVolumetricLights ||
-                !isDebugLightingActive)
+                !isLightingActive)
                 return;
 
             // Render single RTs by for apis that don't support MRTs
