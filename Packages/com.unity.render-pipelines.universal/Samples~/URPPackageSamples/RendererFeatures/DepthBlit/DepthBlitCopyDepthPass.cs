@@ -88,8 +88,9 @@ public class DepthBlitCopyDepthPass : ScriptableRenderPass
             builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
             {
                 // Enable an MSAA shader keyword based on the source texture MSAA sample count
+                // when depth must be resolved manually in the copy shader
                 RTHandle sourceTex = data.source;
-                int cameraSamples = sourceTex.rt.antiAliasing;
+                int cameraSamples = sourceTex.rt.bindTextureMS ? sourceTex.rt.antiAliasing : 1;
                 context.cmd.SetKeyword(data.keyword_DepthMsaa2, cameraSamples == 2);
                 context.cmd.SetKeyword(data.keyword_DepthMsaa4, cameraSamples == 4);
                 context.cmd.SetKeyword(data.keyword_DepthMsaa8, cameraSamples == 8);

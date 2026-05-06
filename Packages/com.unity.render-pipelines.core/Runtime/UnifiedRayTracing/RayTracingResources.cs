@@ -5,6 +5,12 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.UnifiedRayTracing
 {
+    /// <summary>
+    /// Resource class that handles the serialization of UnifiedRayTracing's utility shaders in projects using a Scriptable Render Pipeline.
+    /// </summary>
+    /// <remarks>
+    /// This class is used internally by <see cref="RayTracingResources.LoadFromRenderPipelineResources"/>
+    /// </remarks>
     [Scripting.APIUpdating.MovedFrom(
         autoUpdateAPI: true,
         sourceNamespace: "UnityEngine.Rendering.UnifiedRayTracing",
@@ -13,10 +19,13 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
     [Serializable]
     [SupportedOnRenderPipeline()]
     [Categorization.CategoryInfo(Name = "R: Unified Ray Tracing", Order = 1000), HideInInspector]
-    sealed class RayTracingRenderPipelineResources : IRenderPipelineResources
+    public sealed class RayTracingRenderPipelineResources : IRenderPipelineResources
     {
         [SerializeField, HideInInspector] int m_Version = 1;
 
+        /// <summary>
+        /// The version number of the resources container.
+        /// </summary>
         public int version
         {
             get => m_Version;
@@ -49,54 +58,84 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         [SerializeField, ResourcePath("Runtime/UnifiedRayTracing/Compute/RadeonRays/kernels/scatter.compute")]
         ComputeShader m_Scatter;
 
+        /// <summary>
+        /// Compute shader for geometry pool operations.
+        /// </summary>
         public ComputeShader GeometryPoolKernels
         {
             get => m_GeometryPoolKernels;
             set => this.SetValueAndNotify(ref m_GeometryPoolKernels, value, nameof(m_GeometryPoolKernels));
         }
 
+        /// <summary>
+        /// Compute shader for buffer copy operations.
+        /// </summary>
         public ComputeShader CopyBuffer
         {
             get => m_CopyBuffer;
             set => this.SetValueAndNotify(ref m_CopyBuffer, value, nameof(m_CopyBuffer));
         }
 
+        /// <summary>
+        /// Compute shader for copying vertex position data.
+        /// </summary>
         public ComputeShader CopyPositions
         {
             get => m_CopyPositions;
             set => this.SetValueAndNotify(ref m_CopyPositions, value, nameof(m_CopyPositions));
         }
 
+        /// <summary>
+        /// Compute shader for radix sort operations.
+        /// </summary>
         public ComputeShader BitHistogram
         {
             get => m_BitHistogram;
             set => this.SetValueAndNotify(ref m_BitHistogram, value, nameof(m_BitHistogram));
         }
 
+        /// <summary>
+        /// Compute shader for prefix sum operations.
+        /// </summary>
         public ComputeShader BlockReducePart
         {
             get => m_BlockReducePart;
             set => this.SetValueAndNotify(ref m_BlockReducePart, value, nameof(m_BlockReducePart));
         }
 
+        /// <summary>
+        /// Compute shader for prefix sum operations.
+        /// </summary>
         public ComputeShader BlockScan
         {
             get => m_BlockScan;
             set => this.SetValueAndNotify(ref m_BlockScan, value, nameof(m_BlockScan));
         }
 
+        /// <summary>
+        /// Compute shader for building a BVH.
+        /// </summary>
         public ComputeShader BuildHlbvh
         {
             get => m_BuildHlbvh;
             set => this.SetValueAndNotify(ref m_BuildHlbvh, value, nameof(m_BuildHlbvh));
         }
 
+        /// <summary>
+        /// Compute shader for BVH restructuring.
+        /// </summary>
+        /// <remarks>
+        /// Used to optimize the BVH structure after initial construction.
+        /// </remarks>
         public ComputeShader RestructureBvh
         {
             get => m_RestructureBvh;
             set => this.SetValueAndNotify(ref m_RestructureBvh, value, nameof(m_RestructureBvh));
         }
 
+        /// <summary>
+        /// Compute shader for radix sort operations.
+        /// </summary>
         public ComputeShader Scatter
         {
             get => m_Scatter;
@@ -107,17 +146,62 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
     /// <summary>
     /// Utility shaders needed by a <see cref="RayTracingContext"/> to operate.
     /// </summary>
+    /// <remarks>
+    /// This class holds compute shaders required for unified ray tracing operations,
+    /// including geometry pool management and BVH construction kernels.
+    /// </remarks>
     public class RayTracingResources
     {
-        internal ComputeShader geometryPoolKernels { get; set; }
-        internal ComputeShader copyBuffer { get; set; }
-        internal ComputeShader copyPositions { get; set; }
-        internal ComputeShader bitHistogram { get; set; }
-        internal ComputeShader blockReducePart { get; set; }
-        internal ComputeShader blockScan { get; set; }
-        internal ComputeShader buildHlbvh { get; set; }
-        internal ComputeShader restructureBvh { get; set; }
-        internal ComputeShader scatter { get; set; }
+        /// <summary>
+        /// Compute shader for geometry pool operations.
+        /// </summary>
+        public ComputeShader geometryPoolKernels { get; set; }
+
+        /// <summary>
+        /// Compute shader for buffer copy operations.
+        /// </summary>
+        public ComputeShader copyBuffer { get; set; }
+
+        /// <summary>
+        /// Compute shader for copying vertex position data.
+        /// </summary>
+        public ComputeShader copyPositions { get; set; }
+
+        /// <summary>
+        /// Compute shader for radix sort operations.
+        /// </summary>
+        public ComputeShader bitHistogram { get; set; }
+
+        /// <summary>
+        /// Compute shader for radix sort operations.
+        /// </summary>
+        public ComputeShader scatter { get; set; }
+
+        /// <summary>
+        /// Compute shader for prefix sum operations.
+        /// </summary>
+        public ComputeShader blockReducePart { get; set; }
+
+        /// <summary>
+        /// Compute shader for prefix sum operations.
+        /// </summary>
+        public ComputeShader blockScan { get; set; }
+
+        /// <summary>
+        /// Compute shader for building a BVH.
+        /// </summary>
+        public ComputeShader buildHlbvh { get; set; }
+
+        /// <summary>
+        /// Compute shader for BVH restructuring.
+        /// </summary>
+        /// <remarks>
+        /// Used to optimize the BVH structure after initial construction.
+        /// </remarks>
+        public ComputeShader restructureBvh { get; set; }
+
+
+        
 
 #if UNITY_EDITOR
         /// <summary>

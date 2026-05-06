@@ -12,6 +12,8 @@ namespace UnityEditor.Rendering
     /// </summary>
     public partial class MaterialUpgrader
     {
+internal static readonly string k_DialogKey = $"{nameof(UnityEditor)}.{nameof(Rendering)}.{nameof(MaterialUpgrader)}.ConfirmMaterialConversion";
+
         #region Internal API
         /// <summary>
         /// Represents an entry describing material properties
@@ -344,15 +346,15 @@ namespace UnityEditor.Rendering
 
             bool CanPerformUpgrade()
             {
-                const string title = "Material Upgrader";
-                const string message = "This operation will overwrite existing materials in your project.\n\nPlease ensure you have a backup before proceeding.";
+                const string title = "Confirm Material Conversion";
+                const string message = "This action will modify materials and cannot be easily undone. It is strongly recommended to have a backup or use version control before continuing.";
                 const string proceed = "Proceed";
                 const string cancel = "Cancel";
 
                 if (Application.isBatchMode)
                     return true;
 
-                return EditorUtility.DisplayDialog(title, message, proceed, cancel);
+                return EditorUtility.DisplayDialog(title, message, proceed, cancel, DialogOptOutDecisionType.ForThisMachine, k_DialogKey);
             }
 
             if (CanPerformUpgrade())
