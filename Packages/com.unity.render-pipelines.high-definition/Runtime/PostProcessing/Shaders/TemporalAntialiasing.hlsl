@@ -231,10 +231,10 @@ float2 GetClosestFragmentOffset(TEXTURE2D_X(DepthTexture), int2 positionSS)
     float s0 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + offset0, 0).r;
 
     float3 closest = float3(0.0, 0.0, center);
-    closest = COMPARE_DEPTH(s0, closest.z) ? float3(offset0, s3) : closest;
-    closest = COMPARE_DEPTH(s3, closest.z) ? float3(offset3, s2) : closest;
-    closest = COMPARE_DEPTH(s2, closest.z) ? float3(offset2, s1) : closest;
-    closest = COMPARE_DEPTH(s1, closest.z) ? float3(offset1, s0) : closest;
+    closest = COMPARE_DEPTH(s0, closest.z) ? float3(offset0, s0) : closest;
+    closest = COMPARE_DEPTH(s3, closest.z) ? float3(offset3, s3) : closest;
+    closest = COMPARE_DEPTH(s2, closest.z) ? float3(offset2, s2) : closest;
+    closest = COMPARE_DEPTH(s1, closest.z) ? float3(offset1, s1) : closest;
 
     return closest.xy;
 }
@@ -332,7 +332,7 @@ CTYPE HistoryBicubic5Tap(TEXTURE2D_X(HistoryTexture), float2 UV, float sharpenin
     CTYPE s0 = Fetch4(HistoryTexture, float2(tc12.x, tc0.y), 0.0, rtHandleScale).CTYPE_SWIZZLE;
     CTYPE s1 = Fetch4(HistoryTexture, float2(tc0.x, tc12.y), 0.0, rtHandleScale).CTYPE_SWIZZLE;
     CTYPE s2 = Fetch4(HistoryTexture, float2(tc12.x, tc12.y), 0.0, rtHandleScale).CTYPE_SWIZZLE;
-    CTYPE s3 = Fetch4(HistoryTexture, float2(tc3.x, tc0.y), 0.0, rtHandleScale).CTYPE_SWIZZLE;
+    CTYPE s3 = Fetch4(HistoryTexture, float2(tc3.x, tc12.y), 0.0, rtHandleScale).CTYPE_SWIZZLE;
     CTYPE s4 = Fetch4(HistoryTexture, float2(tc12.x, tc3.y), 0.0, rtHandleScale).CTYPE_SWIZZLE;
 
     float cw0 = (w12.x * w0.y);
