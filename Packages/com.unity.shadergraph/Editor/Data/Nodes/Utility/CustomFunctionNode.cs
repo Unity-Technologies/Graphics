@@ -159,7 +159,7 @@ namespace UnityEditor.ShaderGraph
                 if (!IsValidFunction())
                 {
                     // invalid functions generate special preview code..  (why?)
-                    if (generationMode == GenerationMode.Preview && outputSlots.Count != 0)
+                    if (generationMode.IsPreview() && outputSlots.Count != 0)
                     {
                         outputSlots.OrderBy(s => s.id);
                         var hlslVariableType = outputSlots[0].concreteValueType.ToShaderString();

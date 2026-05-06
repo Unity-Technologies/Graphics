@@ -121,8 +121,8 @@ namespace UnityEditor.ShaderGraph
         {
             var outputSlot = FindOutputSlot<MaterialSlot>(OutputSlotId);
 
-            bool isGeneratingSubgraph = owner.isSubGraph && (generationMode != GenerationMode.Preview);
-            if (generationMode == GenerationMode.Preview || !isGeneratingSubgraph)
+            bool isGeneratingSubgraph = owner.isSubGraph && !generationMode.IsPreview();
+            if (generationMode.IsPreview() || !isGeneratingSubgraph)
             {
                 sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)};"));
                 var value = GetSlotValue(GetSlotIdForActiveSelection(), generationMode);
