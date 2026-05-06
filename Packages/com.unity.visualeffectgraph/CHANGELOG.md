@@ -14,6 +14,9 @@ The version number for this package has increased due to a version update of a r
 
 This version is compatible with Unity 6000.6.0a7.
 
+## Fixed
+- Fixed case sensitivity for VFX Graph asset file extensions.
+
 For the release notes, refer to the [Unity download archive](https://unity.com/releases/editor/archive).
 
 ## [17.4.0] - 2025-10-22
