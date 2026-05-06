@@ -321,6 +321,10 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        // Some nodes' generated code may include user-authored shader code.
+        // In this case, we must actually attempt to compile the shader to know if the node generates errors.
+        // If this property returns true, we force preview compilation for the node even if it doesn't have a preview.
+        public virtual bool hasUserAuthoredCode => false;
 
         string m_DefaultVariableName;
         string m_NameForDefaultVariableName;

@@ -933,7 +933,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     Assert.IsNotNull(node);
                     Assert.IsFalse(node is BlockNode);
 
-                    if (node.hasPreview && node.previewExpanded && !m_PreviewsCompiling.Contains(preview) && MaterialNodeView.IsPreviewable(node))
+                    bool nodeHasVisiblePreview = node.hasPreview && node.previewExpanded;
+                    if ((nodeHasVisiblePreview || node.hasUserAuthoredCode) && MaterialNodeView.IsPreviewable(node) && !m_PreviewsCompiling.Contains(preview))
                     {
                         previewsToCompile.Add(preview);
                     }

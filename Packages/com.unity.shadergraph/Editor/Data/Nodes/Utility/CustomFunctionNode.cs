@@ -82,6 +82,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public override bool hasPreview => true;
+        public override bool hasUserAuthoredCode => true;
 
         [SerializeField]
         HlslSourceType m_SourceType = HlslSourceType.File;
