@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public HairSubTarget() => displayName = "Hair";
 
-        static readonly GUID kSubTargetSourceCodeGuid = new GUID("7e681cc79dd8e6c46ba1e8412d519e26");  // HairSubTarget.cs
+        static readonly UnityEngine.GUID kSubTargetSourceCodeGuid = new UnityEngine.GUID("7e681cc79dd8e6c46ba1e8412d519e26");  // HairSubTarget.cs
 
         static string[] passTemplateMaterialDirectories = new string[]
         {
@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
-        protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
+        protected override UnityEngine.GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override ShaderID shaderID => ShaderID.SG_Hair;
         protected override string subShaderInclude => CoreIncludes.kHair;
         protected override string raytracingInclude => CoreIncludes.kHairRaytracing;
