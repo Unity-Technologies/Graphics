@@ -1421,6 +1421,9 @@ namespace UnityEngine.Rendering.Universal
                 if (isTargetBackbuffer)
                 {
                     target = backbuffer;
+
+                    // Switch target to backbuffer for post processing pass
+                    resourceData.SwitchActiveTexturesToBackbuffer();
                 }
                 else
                 {
@@ -1475,11 +1478,6 @@ namespace UnityEngine.Rendering.Universal
                 // Handle any after-post rendering debugger overlays
                 if (cameraData.resolveFinalTarget)
                     SetupAfterPostRenderGraphFinalPassDebug(renderGraph, frameData);
-
-                if (isTargetBackbuffer)
-                {
-                    resourceData.SwitchActiveTexturesToBackbuffer();
-                }
             }
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingPostProcessing);
