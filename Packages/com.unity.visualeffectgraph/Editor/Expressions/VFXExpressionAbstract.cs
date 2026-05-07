@@ -71,6 +71,7 @@ namespace UnityEditor.VFX
             {
                 return new int[] { data0, data1, data2, data3 };
             }
+
         }
 
         [Flags]
@@ -424,6 +425,17 @@ namespace UnityEditor.VFX
                 data[Operands.OperandCount - addOperands.Length + i] = addOperands[i];
 
             return data;
+        }
+
+        internal unsafe VFXExpressionDesc GetExpressionDesc(VFXExpressionGraph graph)
+        {
+            var operands = GetOperands(graph);
+            VFXExpressionDesc desc = new() { op = operation };
+            desc.data[0] = operands[0];
+            desc.data[1] = operands[1];
+            desc.data[2] = operands[2];
+            desc.data[3] = operands[3];
+            return desc;
         }
 
         public virtual IEnumerable<VFXAttributeInfo> GetNeededAttributes()

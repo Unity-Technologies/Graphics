@@ -206,11 +206,7 @@ namespace UnityEditor.VFX
                 }
 
                 var outExpressionsDesc = i >= maxCommonExpressionIndex ? outExpressionPerSpawnEventDescs : outExpressionCommonDescs;
-                outExpressionsDesc.Add(new VFXExpressionDesc
-                {
-                    op = exp.operation,
-                    data = exp.GetOperands(graph).ToArray(),
-                });
+                outExpressionsDesc.Add(exp.GetExpressionDesc(graph));
             }
         }
 

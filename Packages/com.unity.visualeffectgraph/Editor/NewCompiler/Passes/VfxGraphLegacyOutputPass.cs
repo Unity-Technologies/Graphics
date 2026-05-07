@@ -747,10 +747,13 @@ namespace UnityEditor.VFX
             return desc;
         }
 
-        uint AddExpression(VFXExpressionOperation op, int data0, int data1, int data2, int data3)
+        unsafe uint AddExpression(VFXExpressionOperation op, int data0, int data1, int data2, int data3)
         {
-            UnityEditor.VFX.VFXExpressionDesc vfxExpression = new(){ op = op };
-            vfxExpression.data = new[] { data0, data1, data2, data3 };
+            UnityEditor.VFX.VFXExpressionDesc vfxExpression = new() { op = op };
+            vfxExpression.data[0] = data0;
+            vfxExpression.data[1] = data1;
+            vfxExpression.data[2] = data2;
+            vfxExpression.data[3] = data3;
             var vfxExpressionIndex = (uint)m_currentOutput.SheetExpressions.Count;
             m_currentOutput.SheetExpressions.Add(vfxExpression);
             return vfxExpressionIndex;
