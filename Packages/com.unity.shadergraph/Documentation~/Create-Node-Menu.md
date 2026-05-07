@@ -27,7 +27,7 @@ To add a [node](Node.md) to your shader graph, follow these steps:
 
 To connect [ports](Port.md) between two existing [nodes](Node.md) or with the [master stack](Master-Stack.md), select and drag the desired port to the target.
 
-The line resulting from that connection is called an [edge](Edge.md).
+The line resulting from that connection is called a [wire](Wire.md).
 
 You can only connect an output port to an input port, or vice-versa, and you can't connect two ports of the same node together.
 
@@ -64,6 +64,6 @@ To add a new [block node](Block-Node.md) to the [master stack](Master-Stack.md),
 
 * [Nodes](Node.md)
 * [Ports](Port.md)
-* [Edges](Edge.md)
+* [Wires](Wire.md)
 * [Master Stack](Master-Stack.md)
 * [Block nodes](Block-Node.md)
