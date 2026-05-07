@@ -455,6 +455,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-138001",
                 RuntimePlatform.WindowsEditor
         )]
+        [IgnoreGraphicsTest(
+            "9920_WaterSurface",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-141715",
+             RuntimePlatform.WindowsEditor
+        )]
         public IEnumerator Run(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);
