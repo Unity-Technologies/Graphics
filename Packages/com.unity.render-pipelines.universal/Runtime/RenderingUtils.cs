@@ -1137,10 +1137,10 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="destination"></param>
         /// <param name="cameraData"></param>
         /// <returns></returns>
-        internal static Vector4 GetFinalBlitScaleBias(RTHandle source, RTHandle destination, UniversalCameraData cameraData)
+        internal static Vector4 GetFinalBlitScaleBias(RTHandle source, RTHandle destination, UniversalCameraData cameraData, bool nrpRenderGraph = false)
         {
             Vector2 scale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-            var yflip = cameraData.IsRenderTargetProjectionMatrixFlipped(destination);
+            var yflip = cameraData.IsRenderTargetProjectionMatrixFlipped(destination) || (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan && nrpRenderGraph);
             Vector4 scaleBias = !yflip ? new Vector4(scale.x, -scale.y, 0, scale.y) : new Vector4(scale.x, scale.y, 0, 0);
 
             return scaleBias;

@@ -2022,6 +2022,13 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             ExecuteBeginRenderPass(rgContext, resources, ref nativePass);
                             nrpBegan = true;
                             inRenderPass = true;
+                            
+                            for (int subpassIndex = nativePass.firstGraphPass; subpassIndex <= nativePass.lastGraphPass; subpassIndex++)
+                            {
+                                ref var subpassData = ref contextData.passData.ElementAt(subpassIndex);
+                                rgContext.executingPass = passes[subpassData.passId];
+                                passes[subpassData.passId].PreExecute(rgContext);
+                            }
                         }
                     }
                 }

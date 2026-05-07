@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
     abstract class RenderGraphPass
     {
+        public virtual void PreExecute(InternalRenderGraphContext renderGraphContext) { return; }
         public abstract void Execute(InternalRenderGraphContext renderGraphContext);
         public abstract void Release(RenderGraphObjectPool pool);
         public abstract bool HasRenderFunc();
@@ -701,6 +702,18 @@ namespace UnityEngine.Rendering.RenderGraphModule
     where PassData : class, new()
     {
         internal static RasterGraphContext c = new RasterGraphContext();
+        internal BaseRenderFunc<PassData, RasterGraphContext> preRenderFunc;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void PreExecute(InternalRenderGraphContext renderGraphContext)
+        {
+            if (preRenderFunc != null)
+            {
+                RasterGraphContext temp_c = new RasterGraphContext();
+                temp_c.FromInternalContext(renderGraphContext);
+                preRenderFunc(data, temp_c);
+            }
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void Execute(InternalRenderGraphContext renderGraphContext)

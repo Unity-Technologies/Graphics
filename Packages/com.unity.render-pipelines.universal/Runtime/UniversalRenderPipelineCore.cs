@@ -1485,6 +1485,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for Multi Sampling Anti-Aliasing (MSAA) with 4 per pixel sample count. </summary>
         public const string Msaa4 = "_MSAA_4";
+        
+        /// <summary> Keyword used for Multi Sampling Anti-Aliasing (MSAA) with 8 per pixel sample count. </summary>
+        public const string Msaa8 = "_MSAA_8";
     }
 
     public sealed partial class UniversalRenderPipeline

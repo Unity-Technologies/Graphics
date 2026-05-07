@@ -14,6 +14,9 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         #pragma multi_compile_fragment _ DEBUG_DISPLAY
         #pragma multi_compile_fragment _ SCREEN_COORD_OVERRIDE
         #pragma multi_compile_local_fragment _ HDR_INPUT HDR_ENCODING
+        
+        #pragma multi_compile_local_fragment _ SUBPASS_INPUT_ATTACHMENT
+        #pragma multi_compile _ _MSAA_2 _MSAA_4 _MSAA_8
 
         #pragma dynamic_branch_local_fragment _ _HDR_OVERLAY
 
@@ -42,6 +45,16 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
                 #define BLOOM_DIRT
             #endif
         #endif
+        
+         #if defined(_MSAA_2)
+            #define MSAA_SAMPLES 2
+        #elif defined(_MSAA_4)
+            #define MSAA_SAMPLES 4
+        #elif defined(_MSAA_8)
+            #define MSAA_SAMPLES 8
+        #else
+            #define MSAA_SAMPLES 1
+        #endif
 
         TEXTURE2D_X(_Bloom_Texture);
         TEXTURE2D(_LensDirt_Texture);
@@ -50,6 +63,15 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         TEXTURE2D(_UserLut);
         TEXTURE2D(_BlueNoise_Texture);
         TEXTURE2D_X(_OverlayUITexture);
+        
+        #if SUBPASS_INPUT_ATTACHMENT
+            #define urp_cameraColor 0
+            #if MSAA_SAMPLES == 1
+                FRAMEBUFFER_INPUT_HALF(urp_cameraColor);
+            #else
+                FRAMEBUFFER_INPUT_HALF_MS(urp_cameraColor);
+            #endif
+        #endif
 
         float4 _BloomTexture_TexelSize;
         float4 _Lut_Params;
@@ -153,9 +175,29 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             float2 uv = SCREEN_COORD_APPLY_SCALEBIAS(UnityStereoTransformScreenSpaceTex(input.texcoord));
             float2 uvDistorted = DistortUV(uv);
 
+#if 0
             // NOTE: Hlsl specifies missing input.a to fill 1 (0 for .rgb).
             // InputColor is a "bottom" layer for alpha output.
             half4 inputColor = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, ClampUVForBilinear(SCREEN_COORD_REMOVE_SCALEBIAS(uvDistorted), _BlitTexture_TexelSize.xy));
+#else
+            half4 inputColor = half4(0.0, 0.0, 0.0, 0.0);
+            #if SUBPASS_INPUT_ATTACHMENT
+                #if MSAA_SAMPLES == 1
+                    inputColor = LOAD_FRAMEBUFFER_INPUT(urp_cameraColor, float2(0,0));
+                #else
+                    UNITY_UNROLL
+                    for(int i = 0; i < MSAA_SAMPLES; ++i) {
+                        half4 col = LOAD_FRAMEBUFFER_INPUT_MS(urp_cameraColor, i, float2(0,0));
+                        inputColor = inputColor + col;
+                    }
+                    inputColor = inputColor / MSAA_SAMPLES;
+                #endif
+            #else
+                // NOTE: Hlsl specifies missing input.a to fill 1 (0 for .rgb).
+                // InputColor is a "bottom" layer for alpha output.
+                inputColor = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, ClampUVForBilinear(SCREEN_COORD_REMOVE_SCALEBIAS(uvDistorted), _BlitTexture_TexelSize.xy));                
+            #endif
+#endif // 0
             half3 color = inputColor.rgb;
 
             #if _CHROMATIC_ABERRATION

@@ -217,6 +217,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <param name="renderGraph">The rendergraph instance that was used to create the texture on. Texture handles are a lightweight object, all information is stored on the RenderGraph itself.</param>
         /// <returns>The texture descriptor for the given texture handle.</returns>
         public TextureDesc GetDescriptor(RenderGraph renderGraph) { return renderGraph.GetTextureDesc(this); }
+        
+        public int GetResourceId() { return handle.index; }
     }
 
     /// <summary>

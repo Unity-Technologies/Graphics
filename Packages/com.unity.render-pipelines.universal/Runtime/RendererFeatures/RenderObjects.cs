@@ -119,6 +119,11 @@ namespace UnityEngine.Rendering.Universal
             /// The camera settings to use.
             /// </summary>
             public CustomCameraSettings cameraSettings = new CustomCameraSettings();
+            
+            /// <summary>
+            /// Sets whether it should have depth as an input attachment or not.
+            /// </summary>
+            public bool depthInput = false;
         }
 
         /// <summary>
@@ -223,7 +228,14 @@ namespace UnityEngine.Rendering.Universal
             }
 
             if (settings.overrideDepthState)
+            {
+                // In edit mode, the camera being used is the sceneview camera, which causes issues for depth input
+                if (Application.isPlaying)
+                {
+                    renderObjectsPass.useDepthInputAttachment = settings.depthInput;
+                }
                 renderObjectsPass.SetDepthState(settings.enableWrite, settings.depthCompareFunction);
+            }
 
             if (settings.stencilSettings.overrideStencilState)
                 renderObjectsPass.SetStencilState(settings.stencilSettings.stencilReference,
