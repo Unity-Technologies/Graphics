@@ -150,7 +150,7 @@ namespace UnityEditor.VFX
                     shaderSourceIndex = -1,
                     values = mappings.ToArray(),
                     type = (UnityEngine.VFX.VFXTaskType)VFXTaskType.Output,
-                    model = context
+                    modelId = context.GetEntityId()
                 };
 
                 mappings.Clear();
