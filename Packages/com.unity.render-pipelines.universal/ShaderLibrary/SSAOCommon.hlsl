@@ -45,6 +45,7 @@ half4 _SSAOBlueNoiseParams;
 static const half2 BlueNoiseScale   = 0;
 static const half2 BlueNoiseOffset  = 0;
 #endif
+
 #endif // SSAO_COMMON_DECLARE_UNIFORMS
 
 // Constants
@@ -161,9 +162,22 @@ float3 GetPositionVS(float2 positionSS, float depth, float4 depthToViewParams)
     }
 #endif
 
-    // Unproject pixel coords to view space; Z is linear depth
     float linearDepth = GetLinearEyeDepth(depth);
+#if defined(_ORTHOGRAPHIC)
+    return float3(positionSS * depthToViewParams.xy - depthToViewParams.zw, linearDepth);
+#else
     return float3((positionSS * depthToViewParams.xy - depthToViewParams.zw) * linearDepth, linearDepth);
+#endif
+}
+
+// View vector in view space. Orthographic cameras have a constant view direction along -Z.
+half3 GetViewVectorVS(float3 positionVS)
+{
+#if defined(_ORTHOGRAPHIC)
+    return half3(0, 0, -1);
+#else
+    return half3(normalize(-positionVS));
+#endif
 }
 
 // Checks if the fragment should skip AO (sky or beyond falloff).
@@ -243,7 +257,7 @@ float GetHorizonAngle(float maxH, float candidateH, float distSq, half invRadius
     return (candidateH > maxH) ? lerp(maxH, candidateH, falloff) : lerp(maxH, candidateH, 0.03);
 }
 
-half2 GetDepthSamplePos(int stepIdx, half2 rayStart, half2 rayDir, half2 screenSize, half rayOffset, half maxRadiusPixels, float minS, int sliceIdx, int stepCount)
+float2 GetDepthSamplePos(int stepIdx, half2 rayStart, half2 rayDir, half2 screenSize, half rayOffset, half maxRadiusPixels, float minS, int sliceIdx, int stepCount)
 {
     // R1 sequence using integer arithmetic for bit-exact frac()
     uint stepSeed = uint(sliceIdx + stepIdx * stepCount) * R1_ALPHA_UINT;
@@ -259,17 +273,17 @@ half2 GetDepthSamplePos(int stepIdx, half2 rayStart, half2 rayDir, half2 screenS
     return clamp(rayStart + offset * rayDir, 2.0, screenSize - 2.0);
 }
 
-void UpdateHorizon(inout float maxHorizon, half2 samplePos, half3 V, half3 positionVS, float sampleDepth, float4 depthToViewParams, half invRadiusSq)
+void UpdateHorizon(inout float maxHorizon, float2 samplePos, half3 V, float3 positionVS, float sampleDepth, float4 depthToViewParams, half invRadiusSq)
 {
-    half3 samplePosVS = GetPositionVS(samplePos, sampleDepth, depthToViewParams);
-    half3 deltaPos = samplePosVS - positionVS;
+    float3 samplePosVS = GetPositionVS(samplePos, sampleDepth, depthToViewParams);
+    float3 deltaPos = samplePosVS - positionVS;
     float deltaLenSq = dot(deltaPos, deltaPos);
     float currHorizon = dot(deltaPos, V) * rsqrt(deltaLenSq);
 
     maxHorizon = GetHorizonAngle(maxHorizon, currHorizon, deltaLenSq, invRadiusSq);
 }
 
-float HorizonLoop(GTAOConfig config, half3 positionVS, half3 V, float2 rayStart, half2 rayDir,
+float HorizonLoop(GTAOConfig config, float3 positionVS, half3 V, float2 rayStart, half2 rayDir,
                   half rayOffset, half maxRadiusPixels, float initialHorizon, int sliceIdx)
 {
     float maxHorizon = initialHorizon;
@@ -285,7 +299,7 @@ float HorizonLoop(GTAOConfig config, half3 positionVS, half3 V, float2 rayStart,
 #endif
     for (int stepIdx = 0; stepIdx < GTAO_STEP_COUNT; stepIdx++)
     {
-        half2 samplePos = GetDepthSamplePos(stepIdx, rayStart, rayDir, screenSize, rayOffset, maxRadiusPixels, minS, sliceIdx, GTAO_STEP_COUNT);
+        float2 samplePos = GetDepthSamplePos(stepIdx, rayStart, rayDir, screenSize, rayOffset, maxRadiusPixels, minS, sliceIdx, GTAO_STEP_COUNT);
         float sampleDepth = SSAO_COMMON_FETCH_DEPTH(samplePos, screenSize, config.downsample);
         UpdateHorizon(maxHorizon, samplePos, V, positionVS, sampleDepth, config.depthToViewParams, config.gtaoInvRadiusSq);
     }
@@ -351,7 +365,11 @@ half4 EvaluateGTAO(GTAOConfig config, float2 uv, float2 positionSS, float3 posit
     half3 normalVS = TransformWorldToViewNormal(normal);
     normalVS = half3(normalVS.xy, -normalVS.z);
 
+#if defined(_ORTHOGRAPHIC)
+    half fovCorrectedRadiusSS = clamp(config.radius * config.gtaoFOVCorrection, GTAO_STEP_COUNT, config.gtaoMaxRadiusPixels);
+#else
     half fovCorrectedRadiusSS = clamp(config.radius * config.gtaoFOVCorrection * rcp(linearDepth), GTAO_STEP_COUNT, config.gtaoMaxRadiusPixels);
+#endif
 #if defined(_BLUE_NOISE)
     half rayOffset = GetOffsetGTAO_BlueNoise(uv, config.blueNoiseOffset, config.blueNoiseScale, config.temporalOffset);
 #else

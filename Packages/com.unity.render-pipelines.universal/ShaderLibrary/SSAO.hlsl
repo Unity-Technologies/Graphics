@@ -3,24 +3,17 @@
 
 // Quality Constants
 #if defined(_SAMPLE_COUNT_HIGH)
-    static const int SAMPLE_COUNT              = 12;
-    static const int GTAO_STEP_COUNT           = 8;
-    static const int GTAO_BASE_DIRECTION_COUNT = 4;
+    static const int SAMPLE_COUNT               = 12;
+    static const int GTAO_STEP_COUNT            = 4;
+    static const int GTAO_DIRECTION_COUNT       = 4;
 #elif defined(_SAMPLE_COUNT_MEDIUM)
-    static const int SAMPLE_COUNT              = 8;
-    static const int GTAO_STEP_COUNT           = 4;
-    static const int GTAO_BASE_DIRECTION_COUNT = 2;
+    static const int SAMPLE_COUNT               = 8;
+    static const int GTAO_STEP_COUNT            = 4;
+    static const int GTAO_DIRECTION_COUNT       = 2;
 #else
-    static const int SAMPLE_COUNT              = 4;
-    static const int GTAO_STEP_COUNT           = 2;
-    static const int GTAO_BASE_DIRECTION_COUNT = 1;
-#endif
-
-// Temporal filtering amortizes directions across frames, so only 1 direction is needed per frame.
-#if defined(_TEMPORAL_FILTERING)
-    static const int GTAO_DIRECTION_COUNT = 1;
-#else
-    static const int GTAO_DIRECTION_COUNT = GTAO_BASE_DIRECTION_COUNT;
+    static const int SAMPLE_COUNT               = 4;
+    static const int GTAO_STEP_COUNT            = 2;
+    static const int GTAO_DIRECTION_COUNT       = 1;
 #endif
 
 // Textures and Caller-defined macros for sampling (must be defined before SSAOCommon include)
@@ -58,8 +51,6 @@ TEXTURE2D_X(_MotionVectorTexture);
 #define RADIUS                  _SSAOParams.y
 #define DOWNSAMPLE              _SSAOParams.z
 #define FALLOFF                 _SSAOParams.w
-#define TEMPORAL_SCALE          _SSAOTemporalParams.x
-#define TEMPORAL_RESPONSE       _SSAOTemporalParams.y
 
 #if defined(USING_STEREO_MATRICES)
     #define unity_eyeIndex unity_StereoEyeIndex
@@ -139,27 +130,32 @@ half GetRandomVal(half u, half sampleIndex)
 // Sample point picker
 half3 PickSamplePoint(float2 uv, int sampleIndex, half sampleIndexHalf, half rcpSampleCount, half3 normal_o, float2 pixelDensity)
 {
-    #if defined(_BLUE_NOISE)
-        const half lerpVal = sampleIndexHalf * rcpSampleCount;
-        const half noise = SSAO_COMMON_SAMPLE_BLUE_NOISE(((uv + BlueNoiseOffset) * BlueNoiseScale) + lerpVal);
-        const half u = frac(GetRandomVal(HALF_ZERO, sampleIndexHalf).x + noise) * HALF_TWO - HALF_ONE;
-        const half theta = (GetRandomVal(HALF_ONE, sampleIndexHalf).x + noise) * HALF_TWO_PI * HALF_HUNDRED;
-        const half u2 = half(sqrt(HALF_ONE - u * u));
+    half3 v;
+#if defined(_BLUE_NOISE)
+    const half lerpVal = sampleIndexHalf * rcpSampleCount;
+    const half noise = SSAO_COMMON_SAMPLE_BLUE_NOISE(((uv + BlueNoiseOffset) * BlueNoiseScale) + lerpVal);
+    const half u = frac(GetRandomVal(HALF_ZERO, sampleIndexHalf).x + noise) * HALF_TWO - HALF_ONE;
+    const half theta = (GetRandomVal(HALF_ONE, sampleIndexHalf).x + noise) * HALF_TWO_PI * HALF_HUNDRED;
+    const half u2 = half(sqrt(HALF_ONE - u * u));
+    half sinTheta, cosTheta;
+    sincos(theta, sinTheta, cosTheta);
 
-        half3 v = half3(u2 * cos(theta), u2 * sin(theta), u);
-        v *= (dot(normal_o, v) >= HALF_ZERO) * HALF_TWO - HALF_ONE;
-        v *= lerp(0.1, 1.0, lerpVal * lerpVal);
-    #else
-        const float2 positionSS = GetScreenSpacePosition(uv, DOWNSAMPLE);
-        const half noise = half(InterleavedGradientNoise(positionSS, sampleIndex));
-        const half u = frac(GetRandomVal(HALF_ZERO, sampleIndex) + noise) * HALF_TWO - HALF_ONE;
-        const half theta = (GetRandomVal(HALF_ONE, sampleIndex) + noise) * HALF_TWO_PI;
-        const half u2 = half(sqrt(HALF_ONE - u * u));
+    v = half3(u2 * cosTheta, u2 * sinTheta, u);
+    v *= (dot(normal_o, v) >= HALF_ZERO) * HALF_TWO - HALF_ONE;
+    v *= lerp(0.1, 1.0, lerpVal * lerpVal);
+#else
+    const float2 positionSS = GetScreenSpacePosition(uv, DOWNSAMPLE);
+    const half noise = half(InterleavedGradientNoise(positionSS, sampleIndex));
+    const half u = frac(GetRandomVal(HALF_ZERO, sampleIndex) + noise) * HALF_TWO - HALF_ONE;
+    const half theta = (GetRandomVal(HALF_ONE, sampleIndex) + noise) * HALF_TWO_PI;
+    const half u2 = half(sqrt(HALF_ONE - u * u));
+    half sinTheta, cosTheta;
+    sincos(theta, sinTheta, cosTheta);
 
-        half3 v = half3(u2 * cos(theta), u2 * sin(theta), u);
-        v *= sqrt((sampleIndexHalf + HALF_ONE) * rcpSampleCount);
-        v = faceforward(v, -normal_o, v);
-    #endif
+    v = half3(u2 * cosTheta, u2 * sinTheta, u);
+    v *= sqrt((sampleIndexHalf + HALF_ONE) * rcpSampleCount);
+    v = faceforward(v, -normal_o, v);
+#endif
 
     v *= RADIUS;
     v.xy *= pixelDensity;
@@ -186,19 +182,20 @@ float3 ReconstructViewPos(float2 uv, float linearDepth)
     uv.y = 1.0 - uv.y;
 
     // view pos in world space
-    #if defined(_ORTHOGRAPHIC)
-        float zScale = linearDepth * _ProjectionParams.w; // divide by far plane
-        float3 viewPos = _CameraViewTopLeftCorner[unity_eyeIndex].xyz
-                            + _CameraViewXExtent[unity_eyeIndex].xyz * uv.x
-                            + _CameraViewYExtent[unity_eyeIndex].xyz * uv.y
-                            + _CameraViewZExtent[unity_eyeIndex].xyz * zScale;
-    #else
-        float zScale = linearDepth * _ProjectionParams2.x; // divide by near plane
-        float3 viewPos = _CameraViewTopLeftCorner[unity_eyeIndex].xyz
-                            + _CameraViewXExtent[unity_eyeIndex].xyz * uv.x
-                            + _CameraViewYExtent[unity_eyeIndex].xyz * uv.y;
-        viewPos *= zScale;
-    #endif
+    float3 viewPos;
+#if defined(_ORTHOGRAPHIC)
+    float zScale = linearDepth * _ProjectionParams.w; // divide by far plane
+    viewPos = _CameraViewTopLeftCorner[unity_eyeIndex].xyz
+                        + _CameraViewXExtent[unity_eyeIndex].xyz * uv.x
+                        + _CameraViewYExtent[unity_eyeIndex].xyz * uv.y
+                        + _CameraViewZExtent[unity_eyeIndex].xyz * zScale;
+#else
+    float zScale = linearDepth * _ProjectionParams2.x; // divide by near plane
+    viewPos = _CameraViewTopLeftCorner[unity_eyeIndex].xyz
+                        + _CameraViewXExtent[unity_eyeIndex].xyz * uv.x
+                        + _CameraViewYExtent[unity_eyeIndex].xyz * uv.y;
+    viewPos *= zScale;
+#endif
 
     return viewPos;
 }
@@ -330,13 +327,14 @@ half4 FragSSAO(Varyings input)
             camTransform101112.x * vpos_s1.x + camTransform101112.y * vpos_s1.y + camTransform101112.z * vpos_s1.z
         );
 
-        half zDist = HALF_ZERO;
+        half zDist;
+        half2 uv_s1_01;
         #if defined(_ORTHOGRAPHIC)
             zDist = halfLinearDepth_o;
-            half2 uv_s1_01 = saturate((spos_s1 + HALF_ONE) * HALF_HALF);
+            uv_s1_01 = saturate((spos_s1 + HALF_ONE) * HALF_HALF);
         #else
             zDist = half(-dot(UNITY_MATRIX_V[2].xyz, vpos_s1));
-            half2 uv_s1_01 = saturate(half2(spos_s1 * rcp(zDist) + HALF_ONE) * HALF_HALF);
+            uv_s1_01 = saturate(half2(spos_s1 * rcp(zDist) + HALF_ONE) * HALF_HALF);
         #endif
 
         #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
@@ -411,7 +409,7 @@ half4 FragGTAO(Varyings input)
 
     float2 positionSS = GetScreenSpacePosition(uv, config.downsample);
     float3 positionVS = GetPositionVS(positionSS, rawDepth_o, config.depthToViewParams);
-    half3 V = normalize(-positionVS);
+    half3 V = GetViewVectorVS(positionVS);
     half3 normal_o = SampleNormal(uv, linearDepth_o, pixelDensity);
 
     return EvaluateGTAO(config, uv, positionSS, positionVS, V, normal_o, rawDepth_o, linearDepth_o, halfLinearDepth_o);
@@ -633,61 +631,5 @@ half4 KawaseBlur(Varyings input) : SV_Target
     return half4(col, col, col, 1);
 }
 
-
-// ------------------------------------------------------------------
-// Temporal Filter
-// ------------------------------------------------------------------
-float2 SampleMotionVectors(float2 uv)
-{
-    return SAMPLE_TEXTURE2D_X(_MotionVectorTexture, sampler_PointClamp, UnityStereoTransformScreenSpaceTex(uv)).xy;
-}
-
-half SampleHistory(float2 uv)
-{
-    return SAMPLE_TEXTURE2D_X(_SSAOHistoryTexture, sampler_LinearClamp, UnityStereoTransformScreenSpaceTex(uv)).r;
-}
-
-half4 TemporalFilter(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-    half2 uv = input.texcoord;
-    half2 velocity = SampleMotionVectors(uv);
-
-    half minColor = HALF_ZERO;
-    half maxColor = HALF_ONE;
-    half filterColor = HALF_ZERO;
-    half2 screenSize = _SourceSize.xy * DOWNSAMPLE;
-    ResolverAABB(TEMPORAL_SCALE, uv, screenSize, minColor, maxColor, filterColor);
-
-    half currColor = filterColor;
-
-    half2 historyUV = uv - velocity;
-    half lastColor = SampleHistory(historyUV);
-    lastColor = clamp(lastColor, minColor, maxColor);
-
-    if (historyUV.x < 0 || historyUV.x > 1 || historyUV.y < 0 || historyUV.y > 1)
-    {
-        lastColor = filterColor;
-    }
-
-    // Higher motion = lower history weight = more current frame
-    half weight = saturate(clamp(TEMPORAL_RESPONSE, HALF_ZERO, half(0.98)) * (HALF_ONE - length(velocity) * half(8.0)));
-    half result = lerp(currColor, lastColor, weight);
-
-    return half4(result, result, result, HALF_ONE);
-}
-
-// ------------------------------------------------------------------
-// Copy History (Simple copy pass for history buffer)
-// ------------------------------------------------------------------
-
-half4 CopyHistory(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-    half2 uv = input.texcoord;
-    return SSAO_COMMON_SAMPLE_BASEMAP(uv);
-}
 
 #endif //UNIVERSAL_SSAO_INCLUDED

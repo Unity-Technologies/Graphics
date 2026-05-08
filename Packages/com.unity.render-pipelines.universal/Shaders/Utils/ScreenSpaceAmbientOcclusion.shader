@@ -39,8 +39,6 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                 #pragma multi_compile_local_fragment _SOURCE_DEPTH_LOW _SOURCE_DEPTH_MEDIUM _SOURCE_DEPTH_HIGH _SOURCE_DEPTH_NORMALS
                 #pragma multi_compile_local_fragment _ _ORTHOGRAPHIC
                 #pragma multi_compile_local_fragment _SAMPLE_COUNT_LOW _SAMPLE_COUNT_MEDIUM _SAMPLE_COUNT_HIGH
-                #pragma multi_compile_local_fragment _ _TEMPORAL_FILTERING
-
                 #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
@@ -217,87 +215,5 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             ENDHLSL
         }
 
-        // ------------------------------------------------------------------
-        // Temporal Filter
-        // ------------------------------------------------------------------
-
-        // 10 - Temporal Filter
-        Pass
-        {
-            Name "SSAO_TemporalFilter"
-
-            HLSLPROGRAM
-                #pragma vertex Vert
-                #pragma fragment TemporalFilter
-                #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
-                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
-            ENDHLSL
-        }
-
-        // 11 - After Opaque Temporal Filter
-        Pass
-        {
-            Name "SSAO_TemporalFilter_AfterOpaque"
-
-            ZTest Off
-            ZWrite Off
-            Cull Off
-            Blend One SrcAlpha, Zero One
-            BlendOp Add, Add
-
-            HLSLPROGRAM
-                #pragma vertex Vert
-                #pragma fragment FragTemporalFilterAfterOpaque
-
-                #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
-                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
-
-                half4 FragTemporalFilterAfterOpaque(Varyings input) : SV_Target
-                {
-                    half ao = TemporalFilter(input).r;
-                    return half4(0.0, 0.0, 0.0, ao);
-                }
-
-            ENDHLSL
-        }
-
-        // 12 - Copy History (Simple copy for history buffer)
-        Pass
-        {
-            Name "SSAO_CopyHistory"
-
-            HLSLPROGRAM
-                #pragma vertex Vert
-                #pragma fragment CopyHistory
-                #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
-                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
-            ENDHLSL
-        }
-
-        // 13 - Copy History After Opaque
-        Pass
-        {
-            Name "SSAO_CopyHistory_AfterOpaque"
-
-            ZTest Off
-            ZWrite Off
-            Cull Off
-            Blend One SrcAlpha, Zero One
-            BlendOp Add, Add
-
-            HLSLPROGRAM
-                #pragma vertex Vert
-                #pragma fragment FragCopyHistoryAfterOpaque
-
-                #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
-                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
-
-                half4 FragCopyHistoryAfterOpaque(Varyings input) : SV_Target
-                {
-                    half ao = CopyHistory(input).r;
-                    return half4(0.0, 0.0, 0.0, ao);
-                }
-            ENDHLSL
-        }
     }
 }

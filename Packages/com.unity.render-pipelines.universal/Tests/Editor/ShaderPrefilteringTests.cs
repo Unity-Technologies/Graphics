@@ -444,9 +444,21 @@ namespace ShaderStrippingAndPrefiltering
             });
             expected = helper.defaultPrefilteringData;
             expected.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Select;
+#if MODERN_SSAO
+            expected.stripSSAODepthNormals = false;
+            expected.stripSSAOSourceDepthLow = false;
+            expected.stripSSAOSourceDepthMedium = false;
+            expected.stripSSAOSourceDepthHigh = false;
+            expected.stripSSAOBlueNoise = false;
+            expected.stripSSAOInterleaved = false;
+            expected.stripSSAOSampleCountLow = false;
+            expected.stripSSAOSampleCountMedium = false;
+            expected.stripSSAOSampleCountHigh = false;
+#else
             expected.stripSSAOBlueNoise = false;
             expected.stripSSAODepthNormals = false;
             expected.stripSSAOSampleCountMedium = false;
+#endif
             actual = helper.CreatePrefilteringSettings(ShaderFeatures.ScreenSpaceOcclusion);
             helper.AssertPrefilteringData(expected, actual);
 
@@ -467,12 +479,24 @@ namespace ShaderStrippingAndPrefiltering
             });
             expected = helper.defaultPrefilteringData;
             expected.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Select;
+#if MODERN_SSAO
+            expected.stripSSAODepthNormals = false;
+            expected.stripSSAOSourceDepthLow = false;
+            expected.stripSSAOSourceDepthMedium = false;
+            expected.stripSSAOSourceDepthHigh = false;
+            expected.stripSSAOBlueNoise = false;
+            expected.stripSSAOInterleaved = false;
+            expected.stripSSAOSampleCountLow = false;
+            expected.stripSSAOSampleCountMedium = false;
+            expected.stripSSAOSampleCountHigh = false;
+#else
             expected.stripSSAOBlueNoise = false;
             expected.stripSSAOInterleaved = false;
             expected.stripSSAODepthNormals = false;
             expected.stripSSAOSourceDepthMedium = false;
             expected.stripSSAOSampleCountMedium = false;
             expected.stripSSAOSampleCountHigh = false;
+#endif
             actual = helper.CreatePrefilteringSettings(ShaderFeatures.ScreenSpaceOcclusion);
             helper.AssertPrefilteringData(expected, actual);
 
@@ -484,6 +508,19 @@ namespace ShaderStrippingAndPrefiltering
             helper.ssaoRendererFeatures[1].AOMethod = ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.InterleavedGradient;
 
             expected = helper.defaultPrefilteringData;
+#if MODERN_SSAO
+            expected.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Select;
+            expected.stripSSAODepthNormals = false;
+            expected.stripSSAOSourceDepthLow = false;
+            expected.stripSSAOSourceDepthMedium = false;
+            expected.stripSSAOSourceDepthHigh = false;
+            expected.stripSSAOBlueNoise = false;
+            expected.stripSSAOInterleaved = false;
+            expected.stripSSAOSampleCountLow = false;
+            expected.stripSSAOSampleCountMedium = false;
+            expected.stripSSAOSampleCountHigh = false;
+            actual = helper.CreatePrefilteringSettings(ShaderFeatures.ScreenSpaceOcclusion | ShaderFeatures.ScreenSpaceOcclusionAfterOpaque);
+#else
             expected.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Remove;
             expected.stripSSAOBlueNoise = true;
             expected.stripSSAOInterleaved = false;
@@ -492,6 +529,7 @@ namespace ShaderStrippingAndPrefiltering
             expected.stripSSAOSampleCountMedium = false;
             expected.stripSSAOSampleCountHigh = false;
             actual = helper.CreatePrefilteringSettings(ShaderFeatures.None);
+#endif
             helper.AssertPrefilteringData(expected, actual);
         }
 

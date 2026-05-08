@@ -135,23 +135,23 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] private bool m_PrefilterAlphaOutput = false;
 
         // Screen Space Ambient Occlusion (SSAO) specific keywords
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SourceDepthNormalsKeyword)]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthNormalsKeyword)]
         [SerializeField] private bool m_PrefilterSSAODepthNormals = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SourceDepthLowKeyword)]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthLowKeyword)]
         [SerializeField] private bool m_PrefilterSSAOSourceDepthLow = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SourceDepthMediumKeyword)]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthMediumKeyword)]
         [SerializeField] private bool m_PrefilterSSAOSourceDepthMedium = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SourceDepthHighKeyword)]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthHighKeyword)]
         [SerializeField] private bool m_PrefilterSSAOSourceDepthHigh = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_AOInterleavedGradientKeyword)]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_AOInterleavedGradientKeyword)]
         [SerializeField] private bool m_PrefilterSSAOInterleaved = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_AOBlueNoiseKeyword)]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_AOBlueNoiseKeyword)]
         [SerializeField] private bool m_PrefilterSSAOBlueNoise = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SampleCountLowKeyword)]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SampleCountLowKeyword)]
         [SerializeField] private bool m_PrefilterSSAOSampleCountLow = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SampleCountMediumKeyword)]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SampleCountMediumKeyword)]
         [SerializeField] private bool m_PrefilterSSAOSampleCountMedium = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SampleCountHighKeyword)]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SampleCountHighKeyword)]
         [SerializeField] private bool m_PrefilterSSAOSampleCountHigh = false;
 
         // Decals
