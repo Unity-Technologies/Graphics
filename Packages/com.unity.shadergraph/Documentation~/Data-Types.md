@@ -2,7 +2,7 @@
 
 ## Description
 
-There are a number of **Data Types** in [Shader Graph](index.md). Each **Port** on a [Node](Node.md) has an associated **Data Type** that defines what edges can be connected to it. The **Data Types** have colors for usability, these colors are applied to ports and edges of that **Data Type**.
+There are a number of **Data Types** in [Shader Graph](index.md). Each **Port** on a [Node](Node.md) has an associated **Data Type** that defines what wires can be connected to it. The **Data Types** have colors for usability, these colors are applied to ports and wires of that **Data Type**.
 
 Some **Data Types** have associated [Property Types](Property-Types.md) for exposing these values to the [Inspector](https://docs.unity3d.com/Manual/UsingTheInspector.html) for [Materials](https://docs.unity3d.com/Manual/class-Material.html) that use the shader.
 
@@ -35,17 +35,17 @@ All **Vector** types can be promoted or truncated to match any **Vector** type [
 
 ## Dynamic Data Types
 
-Some **Data Types** are dynamic. This means a port using these **Data Types** can change their underlying **Concrete Data Type** based on what **Data Type** is connected to it. By default, [Nodes](Node.md) using dynamic **Data Types** can only have one **Concrete Data Type**, meaning that once a connected edge has applied its **Data Type** to that port, all other **Dynamic Data Type** slots of that [Node](Node.md) will apply the same **Data Type**.
+Some **Data Types** are dynamic. This means a port using these **Data Types** can change their underlying **Concrete Data Type** based on what **Data Type** is connected to it. By default, [Nodes](Node.md) using dynamic **Data Types** can only have one **Concrete Data Type**, meaning that once a connected wire has applied its **Data Type** to that port, all other **Dynamic Data Type** slots of that [Node](Node.md) will apply the same **Data Type**.
 
 One notable exception to this is the [Multiply Node](Multiply-Node.md) which allows both **Dynamic** **Matrix** and **Vector** types.
 
 ### Dynamic Vector
 
-The **Dynamic Vector** type allows connected edges of any **Vector** type. All connected edges are automatically truncated to the type with the lowest dimension, unless the lowest dimension is 1, in which case the **Float** is promoted.
+The **Dynamic Vector** type allows connected wires of any **Vector** type. All connected wires are automatically truncated to the type with the lowest dimension, unless the lowest dimension is 1, in which case the **Float** is promoted.
 
 ### Dynamic Matrix
 
-The **Dynamic Matrix** type allows connected edges of any **Matrix** type. All connected edges are automatically truncated to the type with the lowest dimension.
+The **Dynamic Matrix** type allows connected wires of any **Matrix** type. All connected wires are automatically truncated to the type with the lowest dimension.
 
 ### Dynamic
 

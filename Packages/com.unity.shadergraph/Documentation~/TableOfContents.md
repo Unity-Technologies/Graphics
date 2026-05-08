@@ -24,7 +24,7 @@
     * [Node](Node.md)
         * [Port](Port.md)
         * [Custom Port Menu](Custom-Port-Menu.md)
-        * [Edge](Edge.md)
+        * [Wire](Wire.md)
     * [Sub Graphs](Sub-graphs.md)
         * [Introduction to Sub Graphs](Sub-graph.md)
         * [Create a Sub Graph](Create-Sub-Graph.md)
