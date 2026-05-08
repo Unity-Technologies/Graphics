@@ -76,6 +76,8 @@ namespace UnityEngine.PathTracing.Lightmapping
         public RenderedGameObjectsFilter Filter;
         public uint RenderingObjectLayer;
         public bool EnableEmissiveSampling;
+        public bool IsProceduralTerrain;
+        public int TerrainIndex;
     }
 
     internal struct BakeInstance
@@ -90,6 +92,8 @@ namespace UnityEngine.PathTracing.Lightmapping
         public bool ReceiveShadows;
         public LodIdentifier LodIdentifier;
         public uint InstanceIndex; // Index of the instance in BakeInput
+        public bool IsProceduralTerrain;
+        public int TerrainIndex;
 
         private static float4x4 NormalMatrix(float4x4 m)
         {
@@ -105,7 +109,7 @@ namespace UnityEngine.PathTracing.Lightmapping
             return boundingSphere;
         }
 
-        public void Build(Mesh mesh, Vector4 normalizedOccupiedST, Vector4 sourceLightmapST, Vector2Int texelSize, Vector2Int texelOffset, Matrix4x4 localToWorldMatrix, bool receiveShadows, LodIdentifier lodIdentifier, uint instanceIndex)
+        public void Build(Mesh mesh, Vector4 normalizedOccupiedST, Vector4 sourceLightmapST, Vector2Int texelSize, Vector2Int texelOffset, Matrix4x4 localToWorldMatrix, bool receiveShadows, LodIdentifier lodIdentifier, uint instanceIndex, bool isProceduralTerrain, int terrainIndex)
         {
             Mesh = mesh;
             NormalizedOccupiedST = normalizedOccupiedST;
@@ -117,6 +121,8 @@ namespace UnityEngine.PathTracing.Lightmapping
             LocalToWorldMatrixNormals = NormalMatrix(this.LocalToWorldMatrix);
             LodIdentifier = lodIdentifier;
             InstanceIndex = instanceIndex;
+            IsProceduralTerrain = isProceduralTerrain;
+            TerrainIndex = terrainIndex;
         }
     }
 

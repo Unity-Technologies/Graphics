@@ -570,6 +570,37 @@ namespace UnityEngine.PathTracing.Core
             return instance;
         }
 
+        public InstanceHandle AddTerrainInstance(
+            short[] heightData,
+            int resolution,
+            Unity.Mathematics.float3 heightmapScale,
+            byte[] holeData,
+            int holeResolution,
+            MaterialHandle material,
+            uint mask,
+            uint renderingLayerMask,
+            in Matrix4x4 localToWorldMatrix)
+        {
+            uint materialIndex = 0;
+            if (material != MaterialHandle.Invalid)
+                _materialPool.GetMaterialInfo(material.Value, out materialIndex, out _);
+
+            InstanceHandle instance = _instanceHandleSet.Add();
+            _rayTracingAccelerationStructure.AddTerrainInstance(
+                instance.Value,
+                heightData,
+                resolution,
+                heightmapScale,
+                holeData,
+                holeResolution,
+                localToWorldMatrix,
+                materialIndex,
+                renderingLayerMask,
+                mask);
+
+            return instance;
+        }
+
         public void UpdateInstanceTransform(InstanceHandle instance, Matrix4x4 localToWorldMatrix)
         {
             _rayTracingAccelerationStructure.UpdateInstanceTransform(instance.Value, localToWorldMatrix);

@@ -66,7 +66,7 @@ struct InstanceData
     float4x3 localToWorld; // transpose before transforming a vector (or do a left-side multiplication) float3x4 isn't used to avoid wasting space due its column alignment to float4s
     float localToWorldDeterminant;
     float localToWorldDetSign;
-    uint padding0;
+    int terrainIndex;
     uint padding1;
     float4x3 previousLocalToWorld; // transpose before transforming a vector (or do a left-side multiplication)
     float4x3 localToWorldNormals; // cast to float3x3 before use (right-side multiplication to transform a vector)
@@ -74,6 +74,18 @@ struct InstanceData
     uint instanceMask;
     uint userMaterialID;
     uint geometryIndex;
+};
+
+struct TerrainData
+{
+    float3 terrainScale;
+    float heightmapWidthInTexels;
+    float3 invTerrainScale;
+    float invHeightmapWidthInTexels;
+    int pow2DivideTileCountX;
+    int pow2ModuloTileCountX;
+    int tileWidthInCells;
+    float invTerrainWidthInCells;
 };
 
 struct DispatchInfo

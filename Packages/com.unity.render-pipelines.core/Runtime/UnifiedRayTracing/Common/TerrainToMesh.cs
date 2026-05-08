@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                 int i2 = m_Job.indices[i + 1];
                 int i3 = m_Job.indices[i + 2];
 
-                if (i1 != 0 && i2 != 0 && i3 != 0)
+                if (i1 != i2 || i2 != i3)
                 {
                     trianglesWithoutHoles.Add(i1);
                     trianglesWithoutHoles.Add(i2);

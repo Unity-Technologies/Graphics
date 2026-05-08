@@ -95,7 +95,7 @@ namespace UnityEngine.PathTracing.Tests
         {
             Mesh mesh = TestUtils.CreateSingleTriangleMesh();
             BakeInstance instance = new();
-            instance.Build(mesh, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), new Vector2Int(10, 10), Vector2Int.zero, Matrix4x4.identity, true, LodIdentifier.Invalid, 0);
+            instance.Build(mesh, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), new Vector2Int(10, 10), Vector2Int.zero, Matrix4x4.identity, true, LodIdentifier.Invalid, 0, false, -1);
             BakeInstance[] instances = { instance };
             Assert.IsTrue(m_ResourceCache.AddResources(instances, _context, m_Cmd, m_UVFBBuilder), "Expected that the instance could be added to cache.");
             Assert.AreEqual(1, m_ResourceCache.UVMeshCount(), "Expected that the cache has one uv mesh.");
@@ -108,9 +108,9 @@ namespace UnityEngine.PathTracing.Tests
         {
             Mesh mesh = TestUtils.CreateSingleTriangleMesh();
             BakeInstance instance1 = new();
-            instance1.Build(mesh, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), new Vector2Int(10, 10), Vector2Int.zero, Matrix4x4.identity, true, LodIdentifier.Invalid, 0);
+            instance1.Build(mesh, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), new Vector2Int(10, 10), Vector2Int.zero, Matrix4x4.identity, true, LodIdentifier.Invalid, 0, false, -1);
             BakeInstance instance2 = new();
-            instance2.Build(mesh, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), new Vector2Int(10, 10), Vector2Int.zero, Matrix4x4.identity, true, LodIdentifier.Invalid, 0);
+            instance2.Build(mesh, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), new Vector2Int(10, 10), Vector2Int.zero, Matrix4x4.identity, true, LodIdentifier.Invalid, 0, false, -1);
             BakeInstance[] instances = { instance1, instance2 };
             Assert.IsTrue(m_ResourceCache.AddResources(instances, _context, m_Cmd, m_UVFBBuilder), "Expected that the instance could be added to cache.");
             Assert.AreEqual(1, m_ResourceCache.UVMeshCount(), "Expected that the cache has one uv mesh.");
@@ -124,9 +124,9 @@ namespace UnityEngine.PathTracing.Tests
             Mesh mesh1 = TestUtils.CreateSingleTriangleMesh();
             Mesh mesh2 = TestUtils.CreateQuadMesh();
             BakeInstance instance1 = new();
-            instance1.Build(mesh1, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), new Vector2Int(10, 10), Vector2Int.zero, Matrix4x4.identity, true, LodIdentifier.Invalid, 0);
+            instance1.Build(mesh1, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), new Vector2Int(10, 10), Vector2Int.zero, Matrix4x4.identity, true, LodIdentifier.Invalid, 0, false, -1);
             BakeInstance instance2 = new();
-            instance2.Build(mesh2, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), new Vector2Int(10, 10), Vector2Int.zero, Matrix4x4.identity, true, LodIdentifier.Invalid, 0);
+            instance2.Build(mesh2, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), new Vector2Int(10, 10), Vector2Int.zero, Matrix4x4.identity, true, LodIdentifier.Invalid, 0, false, -1);
             BakeInstance[] instances = { instance1, instance2 };
             Assert.IsTrue(m_ResourceCache.AddResources(instances, _context, m_Cmd, m_UVFBBuilder), "Expected that the instance could be added to cache.");
             Assert.AreEqual(2, m_ResourceCache.UVMeshCount(), "Expected that the cache has 2 uv meshes.");
@@ -140,9 +140,9 @@ namespace UnityEngine.PathTracing.Tests
             Mesh mesh1 = TestUtils.CreateSingleTriangleMesh();
             Mesh mesh2 = mesh1;
             BakeInstance instance1 = new();
-            instance1.Build(mesh1, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), new Vector2Int(5, 5), Vector2Int.zero, Matrix4x4.identity, true, LodIdentifier.Invalid, 0);
+            instance1.Build(mesh1, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), new Vector2Int(5, 5), Vector2Int.zero, Matrix4x4.identity, true, LodIdentifier.Invalid, 0, false, -1);
             BakeInstance instance2 = new();
-            instance2.Build(mesh2, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), new Vector2Int(10, 10), Vector2Int.zero, Matrix4x4.identity, true, LodIdentifier.Invalid, 0);
+            instance2.Build(mesh2, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), new Vector2Int(10, 10), Vector2Int.zero, Matrix4x4.identity, true, LodIdentifier.Invalid, 0, false, -1);
             BakeInstance[] instances = { instance1, instance2 };
             Assert.IsTrue(m_ResourceCache.AddResources(instances, _context, m_Cmd, m_UVFBBuilder), "Expected that the instance could be added to cache.");
             Assert.AreEqual(1, m_ResourceCache.UVMeshCount(), "Expected that the cache has one uv mesh.");

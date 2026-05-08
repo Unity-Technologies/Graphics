@@ -18,11 +18,13 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             foreach (InstanceEntry instanceEntry in m_Instances.Values)
             {
                 GeometryPoolHandle geomHandle = instanceEntry.geometryPoolHandle;
-                m_GeometryPool.Unregister(geomHandle);
+                if (geomHandle.valid)
+                    m_GeometryPool.Unregister(geomHandle);
             }
             m_GeometryPool.SendGpuCommands();
 
             m_InstanceBuffer?.Dispose();
+            m_TerrainBuffer?.Dispose();
             m_GeometryPool.Dispose();
         }
 
@@ -49,6 +51,39 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             return slots[0].block.offset;
         }
 
+        public int AddInstance(in ProceduralInstanceDesc procInstance, uint materialID, uint renderingLayerMask, RTTerrain terrainData)
+        {
+            var terrainSlot = m_TerrainBuffer.Add(1)[0];
+            m_TerrainBuffer.Set(terrainSlot, terrainData);
+
+            var instanceSlot = m_InstanceBuffer.Add(1)[0];
+            m_InstanceBuffer.Set(instanceSlot,
+                new RTInstance
+                {
+                    localToWorld = ToFloat4x3(procInstance.localToWorldMatrix),
+                    localToWorldNormals = NormalMatrix(procInstance.localToWorldMatrix),
+                    previousLocalToWorld = ToFloat4x3(procInstance.localToWorldMatrix),
+                    userTerrainIndex = terrainSlot.block.offset,
+                    userMaterialID = materialID,
+                    instanceMask = procInstance.mask,
+                    renderingLayerMask = renderingLayerMask,
+                    geometryIndex = 0xFFFFFFFF
+                });
+
+            var instanceEntry = new InstanceEntry
+            {
+                geometryPoolHandle = GeometryPoolHandle.Invalid,
+                indexInTerrainBuffer = terrainSlot,
+                indexInInstanceBuffer = instanceSlot,
+                instanceMask = procInstance.mask,
+                vertexOffset = 0xFFFFFFFF,
+                indexOffset = 0xFFFFFFFF,
+            };
+            m_Instances.Add(instanceSlot.block.offset, instanceEntry);
+
+            return instanceSlot.block.offset;
+        }
+
         void AddInstance(BlockAllocator.Allocation slotAllocation, in MeshInstanceDesc meshInstance, uint materialID, uint renderingLayerMask)
         {
             Debug.Assert(meshInstance.mesh != null, "targetRenderer.mesh is null");
@@ -66,6 +101,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                     localToWorld = ToFloat4x3(meshInstance.localToWorldMatrix),
                     localToWorldDeterminant = localToWorldDet,
                     localToWorldDetSign = localToWorldDet > 0 ? 1.0f : -1.0f,
+                    userTerrainIndex = -1,
                     localToWorldNormals = NormalMatrix(meshInstance.localToWorldMatrix),
                     previousLocalToWorld = ToFloat4x3(meshInstance.localToWorldMatrix),
                     userMaterialID = materialID,
@@ -80,6 +116,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             var instanceEntry = new InstanceEntry
             {
                 geometryPoolHandle = geometryHandle,
+                indexInTerrainBuffer = BlockAllocator.Allocation.Invalid,
                 indexInInstanceBuffer = slotAllocation,
                 instanceMask = meshInstance.mask,
                 vertexOffset = (uint)(allocInfo.vertexAlloc.block.offset) * ((uint)GeometryPool.GetVertexByteSize() / 4),
@@ -104,9 +141,16 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             m_Instances.Remove(instanceHandle);
             m_InstanceBuffer.Remove(removedEntry.indexInInstanceBuffer);
 
+            var terrainHandle = removedEntry.indexInTerrainBuffer;
+            if (terrainHandle.valid)
+                m_TerrainBuffer.Remove(terrainHandle);
+
             var geomHandle = removedEntry.geometryPoolHandle;
-            m_GeometryPool.Unregister(geomHandle);
-            m_GeometryPool.SendGpuCommands();
+            if (geomHandle.valid)
+            {
+                m_GeometryPool.Unregister(geomHandle);
+                m_GeometryPool.SendGpuCommands();
+            }
         }
 
         public void ClearInstances()
@@ -114,11 +158,13 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             foreach (InstanceEntry instanceEntry in m_Instances.Values)
             {
                 GeometryPoolHandle geomHandle = instanceEntry.geometryPoolHandle;
-                m_GeometryPool.Unregister(geomHandle);
+                if (geomHandle.valid)
+                    m_GeometryPool.Unregister(geomHandle);
             }
             m_GeometryPool.SendGpuCommands();
 
             m_Instances.Clear();
+            m_TerrainBuffer.Clear();
             m_InstanceBuffer.Clear();
         }
 
@@ -188,8 +234,8 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
         public void Bind(CommandBuffer cmd, IRayTracingShader shader)
         {
-            var gpuBuffer = m_InstanceBuffer.GetGpuBuffer(cmd);
-            shader.SetBufferParam(cmd, Shader.PropertyToID("g_AccelStructInstanceList"), gpuBuffer);
+            shader.SetBufferParam(cmd, Shader.PropertyToID("g_AccelStructInstanceList"), m_InstanceBuffer.GetGpuBuffer(cmd));
+            shader.SetBufferParam(cmd, Shader.PropertyToID("g_TerrainList"), m_TerrainBuffer.GetGpuBuffer(cmd));
             shader.SetBufferParam(cmd, Shader.PropertyToID("g_globalIndexBuffer"), m_GeometryPool.globalIndexBuffer);
             shader.SetBufferParam(cmd, Shader.PropertyToID("g_globalVertexBuffer"), m_GeometryPool.globalVertexBuffer);
             shader.SetIntParam(cmd, Shader.PropertyToID("g_globalVertexBufferStride"), m_GeometryPool.globalVertexBufferStrideBytes/4);
@@ -215,6 +261,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
         readonly GeometryPool m_GeometryPool;
         readonly PersistentGpuArray<RTInstance> m_InstanceBuffer = new PersistentGpuArray<RTInstance>(100);
+        readonly PersistentGpuArray<RTTerrain> m_TerrainBuffer = new PersistentGpuArray<RTTerrain>(20);
 
         [StructLayout(LayoutKind.Sequential)]
         public struct RTInstance
@@ -222,7 +269,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             public float4x3 localToWorld;
             public float localToWorldDeterminant;
             public float localToWorldDetSign;
-            public uint padding0;
+            public int userTerrainIndex;
             public uint padding1;
             public float4x3 previousLocalToWorld;
             public float4x3 localToWorldNormals;
@@ -232,9 +279,23 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             public uint geometryIndex;
         };
 
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RTTerrain
+        {
+            public float3 terrainScale;
+            public float heightmapWidthInTexels;
+            public float3 invTerrainScale;
+            public float invHeightmapWidthInTexels;
+            public int pow2DivideTileCountX;
+            public int pow2ModuloTileCountX;
+            public int tileWidthInCells;
+            public float invTerrainWidthInCells;
+        }
+
         public class InstanceEntry
         {
             public GeometryPoolHandle geometryPoolHandle;
+            public BlockAllocator.Allocation indexInTerrainBuffer;
             public BlockAllocator.Allocation indexInInstanceBuffer;
             public uint instanceMask;
             public uint vertexOffset;

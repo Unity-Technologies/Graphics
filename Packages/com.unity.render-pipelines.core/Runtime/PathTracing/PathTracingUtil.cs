@@ -128,6 +128,8 @@ namespace UnityEngine.PathTracing.Core
             var envTex = world.GetEnvironmentTexture(cmd, out EnvironmentCDF envCDF);
             shader.SetTextureParam(cmd, Shader.PropertyToID("g_EnvTex"), envTex);
             SetEnvSamplingShaderParams(cmd, shader, envCDF);
+
+            world.GetAccelerationStructure().BindTerrainResources(cmd, shader);
         }
 
         static internal void BindPathTracingInputs(

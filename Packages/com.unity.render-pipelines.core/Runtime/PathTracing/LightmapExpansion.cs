@@ -172,12 +172,16 @@ namespace UnityEngine.PathTracing.Lightmapping
 
             // Run the debug shader to retrieve the samples.
             var lightmapSamplesExpanded = new GraphicsBuffer(GraphicsBuffer.Target.Structured | GraphicsBuffer.Target.CopySource, (int)(sampleCount), sizeof(float) * 2);
-            var instanceGeometryIndex = lightmappingContext.World.PathTracingWorld.GetAccelerationStructure().GeometryPool.GetInstanceGeometryIndex(instance.Mesh);
+            var instanceGeometryIndex = instance.IsProceduralTerrain
+                ? -1
+                : lightmappingContext.World.PathTracingWorld.GetAccelerationStructure().GeometryPool.GetInstanceGeometryIndex(instance.Mesh);
+            var terrainIndex = instance.TerrainIndex;
             lightmappingContext.IntegratorContext.GBufferDebugShader.Accumulate(
                     cmd,
                     instance.LocalToWorldMatrix,
                     instance.LocalToWorldMatrixNormals,
                     instanceGeometryIndex,
+                    terrainIndex,
                     lightmappingContext.World.PathTracingWorld,
                     lightmappingContext.GBuffer,
                     expandedSampleWidth,

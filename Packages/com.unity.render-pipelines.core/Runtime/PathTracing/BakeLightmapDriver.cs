@@ -259,7 +259,10 @@ namespace UnityEngine.PathTracing.Lightmapping
                     );
 
                 GraphicsBuffer expandedDirectional = lightmappingContext.ExpandedOutputDirectional;
-                var instanceGeometryIndex = lightmappingContext.World.PathTracingWorld.GetAccelerationStructure().GeometryPool.GetInstanceGeometryIndex(instance.Mesh);
+                var instanceGeometryIndex = instance.IsProceduralTerrain
+                    ? -1
+                    : lightmappingContext.World.PathTracingWorld.GetAccelerationStructure().GeometryPool.GetInstanceGeometryIndex(instance.Mesh);
+                var terrainIndex = instance.TerrainIndex;
 
                 bool debugGBuffer = false;
                 if (debugGBuffer)
@@ -293,6 +296,7 @@ namespace UnityEngine.PathTracing.Lightmapping
                             instance.LocalToWorldMatrix,
                             instance.LocalToWorldMatrixNormals,
                             instanceGeometryIndex,
+                            terrainIndex,
                             instance.TexelSize,
                             chunkOffset,
                             lightmappingContext.World.PathTracingWorld,
@@ -317,6 +321,7 @@ namespace UnityEngine.PathTracing.Lightmapping
                             instance.LocalToWorldMatrix,
                             instance.LocalToWorldMatrixNormals,
                             instanceGeometryIndex,
+                            terrainIndex,
                             instance.TexelSize,
                             chunkOffset,
                             lightmappingContext.World.PathTracingWorld,
@@ -341,6 +346,7 @@ namespace UnityEngine.PathTracing.Lightmapping
                             instance.LocalToWorldMatrix,
                             instance.LocalToWorldMatrixNormals,
                             instanceGeometryIndex,
+                            terrainIndex,
                             instance.TexelSize,
                             chunkOffset,
                             lightmappingContext.World.PathTracingWorld,
@@ -370,6 +376,7 @@ namespace UnityEngine.PathTracing.Lightmapping
                             instance.LocalToWorldMatrix,
                             instance.LocalToWorldMatrixNormals,
                             instanceGeometryIndex,
+                            terrainIndex,
                             instance.TexelSize,
                             chunkOffset,
                             lightmappingContext.World.PathTracingWorld,
@@ -398,6 +405,7 @@ namespace UnityEngine.PathTracing.Lightmapping
                             instance.LocalToWorldMatrix,
                             instance.LocalToWorldMatrixNormals,
                             instanceGeometryIndex,
+                            terrainIndex,
                             instance.TexelSize,
                             chunkOffset,
                             lightmappingContext.World.PathTracingWorld,
@@ -423,6 +431,7 @@ namespace UnityEngine.PathTracing.Lightmapping
                             instance.LocalToWorldMatrix,
                             instance.LocalToWorldMatrixNormals,
                             instanceGeometryIndex,
+                            terrainIndex,
                             instance.TexelSize,
                             chunkOffset,
                             lightmappingContext.World.PathTracingWorld,

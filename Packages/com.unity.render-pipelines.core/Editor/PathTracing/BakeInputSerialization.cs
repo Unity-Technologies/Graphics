@@ -252,6 +252,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
         public bool aoEnabled;
         public float aoDistance;
         public bool useHardwareRayTracing;
+        public bool enableHeightfieldRayTracing;
 
         public UnityEngine.PathTracing.Core.LightSamplingMode directLightSamplingMode;
         public uint directRISCandidateCount;
@@ -273,6 +274,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             visitor.TransferBoolean(ref aoEnabled);
             visitor.TransferBlittable(ref aoDistance);
             visitor.TransferBoolean(ref useHardwareRayTracing);
+            visitor.TransferBoolean(ref enableHeightfieldRayTracing);
 
             visitor.TransferBlittable(ref directLightSamplingMode);
             visitor.TransferBlittable(ref directRISCandidateCount);
@@ -950,7 +952,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
     {
         // Should match BakeInputSerialization::kCurrentFileVersion in BakeInputSerialization.h.
         // If these are out of sync, the implementation in this file probably needs to be updated.
-        const UInt64 CurrentFileVersion = 202603061;
+        const UInt64 CurrentFileVersion = 202605011;
 
         public static bool Deserialize(string path, out BakeInput bakeInput)
         {
