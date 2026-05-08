@@ -278,15 +278,13 @@ half3 ReconstructNormal(float2 uv, float linearDepth, float3 vpos, float2 pixelD
     #if defined(_SOURCE_DEPTH_LOW)
         return half3(normalize(cross(ddy(vpos), ddx(vpos))));
     #else
-        float2 delta = float2(_SourceSize.zw * 2.0);
-
-        pixelDensity = rcp(pixelDensity);
+        float2 delta = float2(_SourceSize.zw * 2.0) * rcp(pixelDensity);
 
         // Sample the neighbour fragments
-        float2 lUV = float2(-delta.x, 0.0) * pixelDensity;
-        float2 rUV = float2(delta.x, 0.0) * pixelDensity;
-        float2 uUV = float2(0.0, delta.y) * pixelDensity;
-        float2 dUV = float2(0.0, -delta.y) * pixelDensity;
+        float2 lUV = float2(-delta.x, 0.0);
+        float2 rUV = float2(delta.x, 0.0);
+        float2 uUV = float2(0.0, delta.y);
+        float2 dUV = float2(0.0, -delta.y);
 
         float3 l1 = float3(uv + lUV, 0.0); l1.z = SampleAndGetLinearEyeDepth(l1.xy); // Left1
         float3 r1 = float3(uv + rUV, 0.0); r1.z = SampleAndGetLinearEyeDepth(r1.xy); // Right1
@@ -316,17 +314,17 @@ half3 ReconstructNormal(float2 uv, float linearDepth, float3 vpos, float2 pixelD
         // h == 1.0 && v == 1.0: p1 = right, p2 = up
         // h == 0.0 && v == 1.0: p1 = up,    p2 = left
         // Calculate the view space positions for the three points...
-        half3 P1;
-        half3 P2;
+        float3 P1;
+        float3 P2;
         if (closest_vertical == 0)
         {
-            P1 = half3(closest_horizontal == 0 ? l1 : d1);
-            P2 = half3(closest_horizontal == 0 ? d1 : r1);
+            P1 = closest_horizontal == 0 ? l1 : d1;
+            P2 = closest_horizontal == 0 ? d1 : r1;
         }
         else
         {
-            P1 = half3(closest_horizontal == 0 ? u1 : r1);
-            P2 = half3(closest_horizontal == 0 ? l1 : u1);
+            P1 = closest_horizontal == 0 ? u1 : r1;
+            P2 = closest_horizontal == 0 ? l1 : u1;
         }
 
         // Use the cross product to calculate the normal...
