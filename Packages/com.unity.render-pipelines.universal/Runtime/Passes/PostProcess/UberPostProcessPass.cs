@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering.Universal
             internal FilmGrainParams filmGrain;
             internal DitheringParams dither;
 
-            internal bool isFinalPass;
+            internal bool isActiveTargetBackBuffer;
             internal bool useFastSRGBLinearConversion;
             internal bool requireSRGBConversionBlit;
         }
@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering.Universal
                     passData.filmGrain.Setup(filmGrain, m_FilmGrainTextures, cameraData.pixelWidth, cameraData.pixelHeight);
                     passData.dither.Setup(m_DitherTexture, cameraData.pixelWidth, cameraData.pixelHeight);
                 }
-                passData.isFinalPass = m_IsFinalPass;
+                passData.isActiveTargetBackBuffer = resourceData.isActiveTargetBackBuffer;
 
                 builder.SetRenderFunc(static (UberPostPassData data, RasterGraphContext context) =>
                 {
@@ -256,16 +256,16 @@ namespace UnityEngine.Rendering.Universal
                     if(PostProcessUtils.RequireHDROutput(cameraData))
                     {
                         PostProcessUtils.SetupHDROutput(material, cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, data.tonemapping, data.hdrOperations, cameraData.rendersOverlayUI);
-                        RenderingUtils.SetupOffscreenUIViewportParams(material, ref cameraData.pixelRect, data.isFinalPass && cameraData.resolveFinalTarget);
+                        RenderingUtils.SetupOffscreenUIViewportParams(material, ref cameraData.pixelRect, data.isActiveTargetBackBuffer);
                     }
 
                     // Done with Uber, blit it
 #if ENABLE_VR && ENABLE_XR_MODULE
                     if (cameraData.xr.enabled && cameraData.xr.hasValidVisibleMesh)
-                        PostProcessUtils.ScaleViewportAndDrawVisibilityMesh(context, data.sourceTexture, data.destinationTexture, data.cameraData, material, data.isFinalPass);
+                        PostProcessUtils.ScaleViewportAndDrawVisibilityMesh(context, data.sourceTexture, data.destinationTexture, data.cameraData, material, data.isActiveTargetBackBuffer);
                     else
 #endif
-                        PostProcessUtils.ScaleViewportAndBlit(context, data.sourceTexture, data.destinationTexture, data.cameraData, material, data.isFinalPass);
+                        PostProcessUtils.ScaleViewportAndBlit(context, data.sourceTexture, data.destinationTexture, data.cameraData, material, data.isActiveTargetBackBuffer);
 
                 });
             }

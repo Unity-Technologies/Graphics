@@ -317,7 +317,7 @@ namespace UnityEngine.Rendering.Universal
             SetGlobalShaderSourceSize(CommandBufferHelpers.GetRasterCommandBuffer(cmd), source);
         }
 
-        internal static void ScaleViewport(RasterCommandBuffer cmd, RTHandle dest, UniversalCameraData cameraData, bool isFinalPass)
+        internal static void ScaleViewport(RasterCommandBuffer cmd, RTHandle dest, UniversalCameraData cameraData, bool isActiveTargetBackBuffer)
         {
             RenderTargetIdentifier cameraTarget = BuiltinRenderTextureType.CameraTarget;
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -326,7 +326,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
             if (dest.nameID == cameraTarget || cameraData.targetTexture != null)
             {
-                if (!isFinalPass || !cameraData.resolveFinalTarget)
+                if (!isActiveTargetBackBuffer)
                 {
                     // Inside the camera stack the target is the shared intermediate target, which can be scaled with render scale.
                     // camera.pixelRect is the viewport of the final target in pixels, so it cannot be used for the intermediate target.
@@ -350,19 +350,19 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void ScaleViewportAndBlit(RasterGraphContext context, in TextureHandle sourceTexture, in TextureHandle destTexture, UniversalCameraData cameraData, Material material, bool isFinalPass)
+        internal static void ScaleViewportAndBlit(RasterGraphContext context, in TextureHandle sourceTexture, in TextureHandle destTexture, UniversalCameraData cameraData, Material material, bool isActiveTargetBackBuffer)
         {
             Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(context, sourceTexture, destTexture);
-            ScaleViewport(context.cmd, destTexture, cameraData, isFinalPass);
+            ScaleViewport(context.cmd, destTexture, cameraData, isActiveTargetBackBuffer);
 
             Blitter.BlitTexture(context.cmd, sourceTexture, scaleBias, material, 0);
         }
 
-        internal static void ScaleViewportAndDrawVisibilityMesh(RasterGraphContext context, in TextureHandle sourceTexture, in TextureHandle destTexture, UniversalCameraData cameraData, Material material, bool isFinalPass)
+        internal static void ScaleViewportAndDrawVisibilityMesh(RasterGraphContext context, in TextureHandle sourceTexture, in TextureHandle destTexture, UniversalCameraData cameraData, Material material, bool isActiveTargetBackBuffer)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(context, sourceTexture, destTexture);
-            ScaleViewport(context.cmd, destTexture, cameraData, isFinalPass);
+            ScaleViewport(context.cmd, destTexture, cameraData, isActiveTargetBackBuffer);
 
             // Set property block for blit shader
             MaterialPropertyBlock xrPropertyBlock = XRSystemUniversal.GetMaterialPropertyBlock();
