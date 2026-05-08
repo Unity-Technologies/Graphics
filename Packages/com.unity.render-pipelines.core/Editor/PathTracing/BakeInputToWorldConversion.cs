@@ -242,10 +242,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             {
                 ref readonly LightData lightData = ref bakeInput.lightData[i];
 
-                // TODO(pema.malling): The following transform is only correct for linear color space :( https://jira.unity3d.com/browse/LIGHT-1763
-                float maxColor = Mathf.Max(lightData.color.x, Mathf.Max(lightData.color.y, lightData.color.z));
-                float maxIndirectColor = Mathf.Max(lightData.indirectColor.x, Mathf.Max(lightData.indirectColor.y, lightData.indirectColor.z));
-                float bounceIntensity = maxColor <= 0 ? 0 : maxIndirectColor / maxColor;
+                float bounceIntensity = lightData.indirectMultiplier;
 
                 World.LightDescriptor lightDescriptor;
                 lightDescriptor.Type = LightBakerLightTypeToUnityLightType(lightData.type);

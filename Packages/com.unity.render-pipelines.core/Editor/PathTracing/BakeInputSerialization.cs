@@ -573,6 +573,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
         public AngularFalloffType angularFalloff;
         public bool castsShadows;
         public UInt32 shadowMaskChannel;
+        public float indirectMultiplier;
 
         public void Transfer(IBakeInputVisitor visitor)
         {
@@ -593,6 +594,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             visitor.TransferBlittable(ref angularFalloff);
             visitor.TransferBoolean(ref castsShadows);
             visitor.TransferBlittable(ref shadowMaskChannel);
+            visitor.TransferBlittable(ref indirectMultiplier);
         }
     }
 
