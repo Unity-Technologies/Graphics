@@ -645,8 +645,9 @@ namespace UnityEngine.PathTracing.Core
             if (_planeMesh == null)
                 _planeMesh = CreateQuadMesh();
 
-            if (metaPassIndex != -1)
-                cmd.DrawMesh(_planeMesh, Matrix4x4.identity, material, 0, metaPassIndex, properties);
+            Debug.Assert(metaPassIndex != -1, "Users of MaterialPool are expected to only pass in materials which have a metapass.");
+
+            cmd.DrawMesh(_planeMesh, Matrix4x4.identity, material, 0, metaPassIndex, properties);
 
             Graphics.ExecuteCommandBuffer(cmd);
             return targetTexture;

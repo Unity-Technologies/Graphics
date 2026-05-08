@@ -4,3 +4,4 @@ using System.Runtime.CompilerServices;
 // to a select set of assemblies.
 
 [assembly: InternalsVisibleTo("Unity.PathTracing.Runtime")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Runtime")]

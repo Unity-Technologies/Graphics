@@ -518,6 +518,11 @@ namespace UnityEngine.Rendering
             return handles;
         }
 
+        public LightHandle AddLight(LightDescriptor lightDesc)
+        {
+            return _lights.Add(lightDesc);
+        }
+
         public void UpdateLights(LightHandle[] lightHandles, Span<LightDescriptor> lightDescriptors)
         {
             Debug.Assert(lightHandles.Length == lightDescriptors.Length);
@@ -529,12 +534,22 @@ namespace UnityEngine.Rendering
             }
         }
 
+        public void UpdateLight(LightHandle handle, LightDescriptor descriptor)
+        {
+            _lights.Update(handle, descriptor);
+        }
+
         public void RemoveLights(Span<LightHandle> lightHandles)
         {
             foreach (var lightHandle in lightHandles)
             {
                 _lights.Remove(lightHandle);
             }
+        }
+
+        public void RemoveLight(LightHandle handle)
+        {
+            _lights.Remove(handle);
         }
 
         public void Commit(CommandBuffer cmdBuf, ref GraphicsBuffer scratchBuffer, uint envCubemapResolution, UnityEngine.Light sun, out bool viewAndProjectionMatricesChanged)
