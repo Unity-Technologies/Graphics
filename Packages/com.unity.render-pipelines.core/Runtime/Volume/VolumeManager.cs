@@ -639,7 +639,7 @@ namespace UnityEngine.Rendering
             m_VolumeCollection.ChangeLayer(volume, prevLayer, newLayer);
         }
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
         internal bool renderingDebuggerAttached { get; set; }
         internal event Action<VolumeStack, Camera> beginVolumeStackUpdate;
         internal event Action<VolumeStack, Camera> endVolumeStackUpdate;
@@ -664,7 +664,7 @@ namespace UnityEngine.Rendering
                 }
             }
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
             if (renderingDebuggerAttached)
                 overrideVolumeStackData?.Invoke(stack, volume, interpFactor);
 #endif
@@ -805,7 +805,7 @@ namespace UnityEngine.Rendering
             if (!onlyGlobal)
                 trigger.TryGetComponent<Camera>(out camera);
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
             if (renderingDebuggerAttached)
                 beginVolumeStackUpdate?.Invoke(stack, camera);
 #endif
@@ -888,7 +888,7 @@ namespace UnityEngine.Rendering
 #endif
             }
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
             if (renderingDebuggerAttached)
                 endVolumeStackUpdate?.Invoke(stack, camera);
 #endif

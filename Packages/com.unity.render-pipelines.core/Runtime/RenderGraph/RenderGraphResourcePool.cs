@@ -119,14 +119,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_FrameAllocatedResources.Clear();
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         public void RegisterFrameAllocation(int hash, Type value)
         {
             if (RenderGraph.enableValidityChecks && hash != -1)
                 m_FrameAllocatedResources.Add((hash, value));
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         public void UnregisterFrameAllocation(int hash, Type value)
         {
             if (RenderGraph.enableValidityChecks && hash != -1)
@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public override void CheckFrameAllocation(bool onException, int frameIndex)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR // conditional not working with override
+#if UNITY_ENABLE_CHECKS // conditional not working with override
             if (RenderGraph.enableValidityChecks)
             {
                 // In case of exception we need to release all resources to the pool to avoid leaking.

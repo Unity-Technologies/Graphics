@@ -62,7 +62,7 @@ public class HDDynamicResolution : MonoBehaviour
     public int ScaleDownStepCount = 2;
 
     /// <summary>
-    /// Enables the debug view of dynamic resolution. Only on development build or editor.
+    /// Enables the debug view of dynamic resolution. Only available in the Editor or in the Debug, Checked, or Instrumented managed code variants.
     /// </summary>
     [Tooltip("Enables the debug view of dynamic resolution.")]
     public bool EnableDebugView = false;
@@ -84,7 +84,7 @@ public class HDDynamicResolution : MonoBehaviour
     bool m_Initialized = false;
     uint m_InitialFrameCounter = 0;
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_INCLUDE_INSTRUMENTATION
     GUIStyle m_DebugStyle = new GUIStyle();
 
     float m_MaxGPUFrameTime = 0.0f;
@@ -221,7 +221,7 @@ public class HDDynamicResolution : MonoBehaviour
 
     void UpdateGUIData(FrameTiming timing)
     {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_INCLUDE_INSTRUMENTATION
         if (EnableDebugView)
         {
             if (m_CurrentFrameSlot == 0)
@@ -252,7 +252,7 @@ public class HDDynamicResolution : MonoBehaviour
     /// </remarks>
     void OnGUI()
     {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_INCLUDE_INSTRUMENTATION
         if (EnableDebugView)
         {
             m_DebugStyle = GUI.skin.box;

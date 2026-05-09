@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering
         /// <exception cref="InvalidOperationException">
         /// Thrown if the current render graph pass does not permit modifications to global state.
         /// </exception>
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         protected internal void ThrowIfGlobalStateNotAllowed()
         {
             if (m_ExecutingPass != null && !m_ExecutingPass.allowGlobalState) throw new InvalidOperationException($"{m_ExecutingPass.name}: Modifying global state from this command buffer is not allowed. Please ensure your render graph pass allows modifying global state.");
@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering
         /// Checks if the Raster Command Buffer has set a valid render target.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if the there are no active render targets.</exception>
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         protected internal void ThrowIfRasterNotAllowed()
         {
             if (m_ExecutingPass != null && !m_ExecutingPass.HasRenderAttachments()) throw new InvalidOperationException($"{m_ExecutingPass.name}: Using raster commands from a pass with no active render target is not allowed as it will use an undefined render target state. Please set up pass render targets using SetRenderAttachments.");
@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering
         /// <exception cref="Exception">
         /// Throws an exception if the texture handle is not properly registered for the pass or being used incorrectly.
         /// </exception>
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         protected internal void ValidateTextureHandle(in TextureHandle h)
         {
             if(RenderGraph.enableValidityChecks)
@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering
         /// <exception cref="Exception">
         /// Throws an exception if the texture handle is either not registered as a readable resource or misused as both an attachment and a regular texture.
         /// </exception>
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         protected internal void ValidateTextureHandleRead(in TextureHandle h)
         {
             if (RenderGraph.enableValidityChecks)
@@ -117,7 +117,7 @@ namespace UnityEngine.Rendering
         /// <exception cref="Exception">
         /// Throws an exception if the texture handle is not registered for writing, attempts to write to a built-in texture, or is misused as both a writeable resource and a render target attachment.
         /// </exception>
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         protected internal void ValidateTextureHandleWrite(in TextureHandle h)
         {
             if(RenderGraph.enableValidityChecks)

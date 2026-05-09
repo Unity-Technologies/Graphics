@@ -419,7 +419,7 @@ namespace UnityEngine.Rendering.Universal
             m_Camera.ResetWorldToCameraMatrix();
         }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
         // Show on-screen warning about invalid render resolutions.
         void OnGUI()
         {

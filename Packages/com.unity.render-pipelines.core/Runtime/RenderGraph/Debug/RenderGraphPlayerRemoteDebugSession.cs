@@ -1,4 +1,4 @@
-﻿#if !UNITY_EDITOR && DEVELOPMENT_BUILD
+﻿#if !UNITY_EDITOR && UNITY_ENABLE_CHECKS
 using UnityEngine.Networking.PlayerConnection;
 using static UnityEngine.Rendering.RenderGraphModule.RenderGraph;
 

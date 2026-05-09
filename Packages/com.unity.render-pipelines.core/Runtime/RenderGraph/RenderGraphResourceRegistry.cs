@@ -179,7 +179,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         List<CoreRendererList> m_ActiveRendererLists = new List<CoreRendererList>(kInitialRendererListCount);
 
         #region Internal Interface
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         void CheckTextureResource(TextureResource texResource)
         {
             if (texResource.graphicsResource == null && !texResource.imported)
@@ -248,7 +248,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return CoreRendererList.nullRendererList;
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         void CheckBufferResource(BufferResource bufferResource)
         {
             if (bufferResource.graphicsResource == null)
@@ -283,7 +283,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             var accelStructureResource = GetRayTracingAccelerationStructureResource(handle.handle);
             var resource = accelStructureResource.graphicsResource;
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             if (resource == null)
                 throw new InvalidOperationException($"Trying to use a acceleration structure ({accelStructureResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
 #endif
@@ -348,14 +348,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void CheckHandleValidity(in ResourceHandle res)
         {
             CheckHandleValidity(res.type, res.index);
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         void CheckHandleValidity(RenderGraphResourceType type, int index)
         {
             if(RenderGraph.enableValidityChecks)
@@ -490,7 +490,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 {
                     // RTHandle wrapping a regular 2D texture we can't render to that
                 }
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                 else if (rt.m_NameID != emptyId)
                 {
 
@@ -566,14 +566,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 // Anything else is an error and should take the overload not taking a RenderTargetInfo
                 else
                 {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                     throw new Exception("Invalid import, you are importing a texture handle that isn't wrapping a RenderTargetIdentifier. You cannot use the overload taking RenderTargetInfo as the graph will automatically determine the texture properties based on the passed in handle.");
 #endif
                 }
             }
             else
             {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                 throw new Exception("Invalid import, null handle.");
 #endif
             }
@@ -626,7 +626,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         internal void RefreshSharedTextureDesc(in TextureHandle texture, in TextureDesc desc)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             if (!IsRenderGraphResourceShared(RenderGraphResourceType.Texture, texture.handle.index))
             {
                 throw new InvalidOperationException($"Trying to refresh texture {texture} that is not a shared resource.");
@@ -641,7 +641,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             var texResources = m_RenderGraphResources[(int)RenderGraphResourceType.Texture];
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             if (texture.handle.index == 0 || texture.handle.index >= texResources.sharedResourcesCount+1)
                 throw new InvalidOperationException("Tried to release a non shared texture.");
 #endif
@@ -689,7 +689,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         static readonly RenderTargetIdentifier emptyId = RenderTargetIdentifier.Invalid;
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         private void ValidateRenderTarget(in ResourceHandle res)
         {
             if(RenderGraph.enableValidityChecks)
@@ -701,7 +701,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         internal void GetRenderTargetInfo(in ResourceHandle res, out RenderTargetInfo outInfo)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             if (res.iType != (int)RenderGraphResourceType.Texture)
             {
                 outInfo = new RenderTargetInfo();
@@ -760,7 +760,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     // screen resolution,.... we can't even hope to know or replicate the size calculation here
                     // so we just say we don't know what this rt is and rely on the user passing in the info to us.
                     ref readonly var desc = ref GetTextureResourceDesc(res, true);
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                     if (desc.width == 0 || desc.height == 0 || desc.slices == 0 || desc.msaaSamples == 0 || desc.format == GraphicsFormat.None)
                     {
                         throw new Exception("Invalid imported texture. A RTHandle wrapping an RenderTargetIdentifier was imported without providing valid RenderTargetInfo.");
@@ -801,7 +801,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return (depthStencil != GraphicsFormat.None) ? depthStencil : color;
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         internal void ValidateFormat(GraphicsFormat color, GraphicsFormat depthStencil)
         {
             if (RenderGraph.enableValidityChecks)
@@ -1134,7 +1134,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         void ValidateTextureDesc(in TextureDesc desc)
         {
             if (RenderGraph.enableValidityChecks)
@@ -1177,7 +1177,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         void ValidateRendererListDesc(in CoreRendererListDesc desc)
         {
             if(RenderGraph.enableValidityChecks)
@@ -1194,7 +1194,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         void ValidateBufferDesc(in BufferDesc desc)
         {
             if(RenderGraph.enableValidityChecks)
@@ -1234,7 +1234,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                         rendererListResource.isActive = true;
                         break;
                     }
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                     default:
                     {
                         throw new ArgumentException("Invalid RendererListHandle: RendererListHandleType is not recognized.");

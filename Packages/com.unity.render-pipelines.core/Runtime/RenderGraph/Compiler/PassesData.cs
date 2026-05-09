@@ -305,7 +305,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         {
             errorMessage = null;
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             if (h.type != RenderGraphResourceType.Texture)
             {
                 errorMessage = RenderGraph.RenderGraphExceptionMessages.k_NonTextureAsAttachmentError;
@@ -315,7 +315,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             ref readonly var resInfo = ref ctx.UnversionedResourceData(h);
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             if (resInfo.width == 0 || resInfo.height == 0 || resInfo.msaaSamples == 0)
             {
                 errorMessage = RenderGraph.RenderGraphExceptionMessages.k_InvalidGetRenderTargetInfoResultsError;
@@ -324,7 +324,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 #endif
             if (RenderGraph.enableValidityChecks && fragmentInfoValid)
             {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                 if (fragmentInfoWidth != resInfo.width ||
                     fragmentInfoHeight != resInfo.height ||
                     fragmentInfoVolumeDepth != resInfo.volumeDepth)
@@ -1185,7 +1185,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 // Check if we're handling the depth attachment
                 if (currRenderGraphPassHasDepth && fragmentIdx == 0)
                 {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                     // If depth input attachment flag is set, depth must be read-only
                     if (passToMerge.extendedFeatureFlags.HasFlag(ExtendedFeatureFlags.DepthAttachmentAsInputAttachment))
                     {
@@ -1308,7 +1308,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     // Check if we're handling the depth attachment
                     if (passToMerge.fragmentInfoHasDepth && fragmentIdx == 0)
                     {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                         // If depth input attachment flag is set, depth must be read-only
                         if (passToMerge.extendedFeatureFlags.HasFlag(ExtendedFeatureFlags.DepthAttachmentAsInputAttachment))
                         {
@@ -1601,7 +1601,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     if (existingAttach.accessFlags.HasFlag(AccessFlags.Discard))
                         newAttachAccessFlags &= ~AccessFlags.Read;
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                     if (existingAttach.resource.version > newAttach.resource.version)
                         throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_AddingOlderAttachmentVersion);
 #endif
@@ -1635,7 +1635,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     if (existingAttach.accessFlags.HasFlag(AccessFlags.Discard))
                         newAttachAccessFlags &= ~AccessFlags.Read;
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                     if (existingAttach.resource.version > newAttach.resource.version)
                         throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_AddingOlderAttachmentVersion);
 #endif

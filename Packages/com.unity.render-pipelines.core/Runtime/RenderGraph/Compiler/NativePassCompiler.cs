@@ -203,7 +203,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             NRPRGComp_ExecuteDestroyResources,
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         void ValidatePasses()
         {
             if (RenderGraph.enableValidityChecks)
@@ -632,7 +632,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 // make sure that the relevant properties are hashed properly. See RenderGraphPass.ComputeHash()
 
                 int activeNativePassId = -1;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                 bool generatePassBreakAudits = RenderGraphDebugSession.hasActiveDebugSession || s_ForceGenerateAuditsForTests;
 #endif
                 int indexSinceLastCulledPass = 0;
@@ -675,7 +675,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         if (mergeTestResult.reason != PassBreakReason.Merged)
                         {
                             SetPassStatesForNativePass(activeNativePassId);
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                             if (generatePassBreakAudits)
                             {
                                 ref var nativePassData = ref contextData.nativePassData.ElementAt(activeNativePassId);
@@ -725,7 +725,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 {
                     // "Close" the last native pass by marking the last graph pass as end
                     SetPassStatesForNativePass(activeNativePassId);
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                     if (generatePassBreakAudits)
                     {
                         ref var nativePassData = ref contextData.nativePassData.ElementAt(activeNativePassId);
@@ -1334,7 +1334,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             return haveGfxCommandsBeenAddedToCmd;
         }
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
         // s_EmptyLoadAudit and s_EmptyStoreAudit don't need to be reset when entering playmode. In practical terms,
         // they are read-only, but we can't actually mark them readonly due to ref var usage in DetermineLoadStoreActions.
         [NoAutoStaticsCleanup]
@@ -1365,7 +1365,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 // This pass also contains the latest versions used within this pass
                 // As we have no pass reordering for now the merged passes are always a consecutive list and we can simply do a range
                 // check on the create/destroy passid to see if it's allocated/freed in this native renderpass
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                 bool generateAudits = RenderGraphDebugSession.hasActiveDebugSession || s_ForceGenerateAuditsForTests;
                 ref var currLoadAudit = ref s_EmptyLoadAudit;
                 ref var currStoreAudit = ref s_EmptyStoreAudit;
@@ -1384,7 +1384,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     RenderBufferLoadAction loadAction = RenderBufferLoadAction.DontCare;
                     RenderBufferStoreAction storeAction = RenderBufferStoreAction.DontCare;
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                     if (generateAudits)
                     {
                         nativePass.loadAudit.Add(new LoadAudit(LoadReason.FullyRewritten));
@@ -1414,7 +1414,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         if (resourceData.firstUsePassID < nativePass.firstGraphPass)
                         {
                             loadAction = RenderBufferLoadAction.Load;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                             if (generateAudits)
                                 currLoadAudit = new LoadAudit(LoadReason.LoadPreviouslyWritten, resourceData.firstUsePassID);
 #endif
@@ -1424,7 +1424,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             if (usedAfterThisNativePass)
                             {
                                 storeAction = RenderBufferStoreAction.Store;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                                 if (generateAudits)
                                     currStoreAudit = new StoreAudit(StoreReason.StoreUsedByLaterPass, destroyPassID);
 #endif
@@ -1440,7 +1440,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 if (resourceData.clear)
                                 {
                                     loadAction = RenderBufferLoadAction.Clear;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                                     if (generateAudits)
                                         currLoadAudit = new LoadAudit(LoadReason.ClearImported);
 #endif
@@ -1448,7 +1448,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 else
                                 {
                                     loadAction = RenderBufferLoadAction.Load;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                                     if (generateAudits)
                                         currLoadAudit = new LoadAudit(LoadReason.LoadImported);
 #endif
@@ -1458,7 +1458,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             {
                                 // Created by the graph internally clear on first read
                                 loadAction = RenderBufferLoadAction.Clear;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                                 if (generateAudits)
                                     currLoadAudit = new LoadAudit(LoadReason.ClearCreated);
 #endif
@@ -1476,7 +1476,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             {
                                 // The resource is still used after this native pass so we need to store it.
                                 storeAction = RenderBufferStoreAction.Store;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                                 if (generateAudits)
                                     currStoreAudit = new StoreAudit(StoreReason.StoreUsedByLaterPass, destroyPassID);
 #endif
@@ -1494,7 +1494,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                     if (resourceData.discard)
                                     {
                                         storeAction = RenderBufferStoreAction.DontCare;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                                         if (generateAudits)
                                             currStoreAudit = new StoreAudit(StoreReason.DiscardImported);
 #endif
@@ -1502,7 +1502,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                     else
                                     {
                                         storeAction = RenderBufferStoreAction.Store;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                                         if (generateAudits)
                                             currStoreAudit = new StoreAudit(StoreReason.StoreImported);
 #endif
@@ -1511,7 +1511,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 else
                                 {
                                     storeAction = RenderBufferStoreAction.DontCare;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                                     if (generateAudits)
                                         currStoreAudit = new StoreAudit(StoreReason.DiscardUnused);
 #endif
@@ -1583,7 +1583,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 if (needsMSAASamples && needsResolvedData)
                                 {
                                     storeAction = RenderBufferStoreAction.StoreAndResolve;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                                     if (generateAudits)
                                         currStoreAudit = new StoreAudit(
                                             (isImportedLastWriter ? StoreReason.StoreImported : StoreReason.StoreUsedByLaterPass),
@@ -1595,7 +1595,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 else if (needsResolvedData)
                                 {
                                     storeAction = RenderBufferStoreAction.Resolve;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                                     if (generateAudits)
                                         currStoreAudit = new StoreAudit(
                                             (isImportedLastWriter ? StoreReason.StoreImported : StoreReason.StoreUsedByLaterPass),
@@ -1606,7 +1606,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 else if (needsMSAASamples)
                                 {
                                     storeAction = RenderBufferStoreAction.Store;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                                     if (generateAudits)
                                         currStoreAudit = new StoreAudit(
                                             (resourceData.bindMS ? StoreReason.DiscardBindMs : StoreReason.DiscardUnused),
@@ -1630,7 +1630,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                     if (resourceData.discard)
                                     {
                                         storeAction = RenderBufferStoreAction.DontCare;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                                         if (generateAudits)
                                             currStoreAudit = new StoreAudit(StoreReason.DiscardImported);
 #endif
@@ -1638,7 +1638,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                     else
                                     {
                                         storeAction = RenderBufferStoreAction.Store;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                                         if (generateAudits)
                                             currStoreAudit = new StoreAudit(
                                                 StoreReason.DiscardBindMs, -1, StoreReason.StoreImported);
@@ -1659,7 +1659,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                         storeAction = isDepthAttachment
                                             ? RenderBufferStoreAction.DontCare
                                             : RenderBufferStoreAction.Resolve;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                                         if (generateAudits)
                                             currStoreAudit = new StoreAudit(
                                                 StoreReason.DiscardImported, -1, StoreReason.DiscardImported);
@@ -1668,7 +1668,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                     else
                                     {
                                         storeAction = RenderBufferStoreAction.StoreAndResolve;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                                         if (generateAudits)
                                             currStoreAudit = new StoreAudit(
                                                 StoreReason.StoreImported, -1, StoreReason.StoreImported);
@@ -1683,7 +1683,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     {
                         memoryless = true;
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                         // Ensure load/store actions are actually valid for memory less
                         if (loadAction == RenderBufferLoadAction.Load)
                             throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_LoadingMemorylessResource);
@@ -1706,7 +1706,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         private void ValidateNativePass(in NativePassData nativePass, int width, int height, int depth, int samples, int attachmentCount)
         {
             if (RenderGraph.enableValidityChecks)
@@ -1719,7 +1719,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         private void ValidateAttachment(in RenderTargetInfo attRenderTargetInfo, RenderGraphResourceRegistry resources, int nativePassWidth, int nativePassHeight, int nativePassMSAASamples,
             bool isVrs, bool isShaderResolve)
         {
@@ -1871,7 +1871,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 var depthAttachmentIndex = nativePass.hasDepth ? 0 : -1;
 
                 var graphPassNamesForDebugSpan = ReadOnlySpan<byte>.Empty;
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                 if (RenderGraph.enableValidityChecks)
                 {
                     graphPassNamesForDebug.Clear();
@@ -1972,7 +1972,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                     for (int i = 0; i <= pass.colorBufferMaxIndex; ++i)
                     {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                         if (!colorBufferAccess[i].textureHandle.IsValid())
                             throw new InvalidOperationException($"In pass {pass.name}, when trying to use {colorBufferAccess[i].textureHandle.handle.type} attachment at index {colorBufferAccess[i].textureHandle.handle.index} - " + RenderGraph.RenderGraphExceptionMessages.k_InvalidMRTSetup);
 #endif

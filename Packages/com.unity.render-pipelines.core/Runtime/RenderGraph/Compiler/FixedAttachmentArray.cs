@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         /// <exception cref="ArgumentException">Thrown if the amount of elements is less than 0 or more than MaxAttachments</exception>
         public FixedAttachmentArray(int numAttachments)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             if (numAttachments < 0 || numAttachments > MaxAttachments)
             {
                 throw new ArgumentException($"FixedAttachmentArray - numAttachments must be in range of [0, {MaxAttachments}[");
@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         /// <exception cref="IndexOutOfRangeException">If the maximum amount of elements (MaxAttachments) is reached.</exception>
         public int Add(in DataType data)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             if ((uint)activeAttachments >= MaxAttachments)
                 throw new IndexOutOfRangeException($"A FixedAttachmentArray can only contain {MaxAttachments} items.");
 #endif
@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         {
             get
             {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                 if ((uint)index >= MaxAttachments)
                     throw new IndexOutOfRangeException($"FixedAttachmentArray - index must be in range of [0, {MaxAttachments}[");
                 if ((uint)index >= activeAttachments)

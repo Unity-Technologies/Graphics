@@ -1,4 +1,4 @@
-#if ENABLE_UIELEMENTS_MODULE && (UNITY_EDITOR || DEVELOPMENT_BUILD)
+#if ENABLE_UIELEMENTS_MODULE && UNITY_ENABLE_CHECKS
 #define ENABLE_RENDERING_DEBUGGER_UI
 #endif
 
@@ -172,7 +172,7 @@ namespace UnityEngine.Rendering
 
         DebugManager()
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             RegisterDebugInputs();
 #endif
         }

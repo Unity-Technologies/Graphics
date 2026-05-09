@@ -469,7 +469,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_Disposed = true;
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         void CheckResource(in ResourceHandle res, bool checkTransientReadWrite = true)
         {
             if(RenderGraph.enableValidityChecks)

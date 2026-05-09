@@ -177,7 +177,7 @@ namespace UnityEngine.Rendering
 
         void IDebugDisplaySettingsData.Reset()
         {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
             VolumeManager.instance.overrideVolumeStackData -= OnVolumeStackInterpolated;
             VolumeManager.instance.beginVolumeStackUpdate -= OnBeginVolumeStackUpdate;
             VolumeManager.instance.endVolumeStackUpdate -= OnEndVolumeStackUpdate;
@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public DebugDisplaySettingsVolume()
         {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
             VolumeManager.instance.overrideVolumeStackData += OnVolumeStackInterpolated;
             VolumeManager.instance.beginVolumeStackUpdate += OnBeginVolumeStackUpdate;
             VolumeManager.instance.endVolumeStackUpdate += OnEndVolumeStackUpdate;
@@ -358,7 +358,7 @@ namespace UnityEngine.Rendering
 
             internal static DebugUI.Widget CreateVolumeParameterWidget(string name, bool isResultParameter, VolumeParameter param)
             {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                 if (param != null)
                 {
                     Func<bool> isHiddenCallback = isResultParameter ?
@@ -569,7 +569,7 @@ namespace UnityEngine.Rendering
                 // Function for updating the attach state and also checking if the table should be visible
                 Func<bool> hiddenCallback = () =>
                 {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                     VolumeManager.instance.renderingDebuggerAttached = data.selectedComponent > 0 && data.selectedCamera != null;
                     return !VolumeManager.instance.renderingDebuggerAttached;
 #else
@@ -663,10 +663,10 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < results.parameterList.Length; ++i)
                 {
                     var parameter = results.parameterList[i];
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                    string displayName = VolumeDebugData.GetVolumeParameterDebugId(parameter);// In the development player, just the debug id
+#if UNITY_ENABLE_CHECKS
+                    string displayName = VolumeDebugData.GetVolumeParameterDebugId(parameter); // In the Editor or in the Debug or Checked managed code variant, just the debug id
 #else
-                    string displayName = i.ToString(); // Everywhere else, just a dummy id ( TODO: The Volume panel code should be stripped completely in nom-development builds )
+                    string displayName = i.ToString(); // Everywhere else, just a dummy id ( TODO: The Volume panel code should be stripped completely in the Instrumented and Release managed code variants )
 #endif
                     table.children.Add(new DebugUI.Table.Row { displayName = displayName });
                 }

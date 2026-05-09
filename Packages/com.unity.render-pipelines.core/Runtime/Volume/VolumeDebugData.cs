@@ -5,7 +5,7 @@ using Unity.Scripting.LifecycleManagement;
 
 namespace UnityEngine.Rendering
 {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
     internal static class VolumeDebugData
     {
         [NoAutoStaticsCleanup] // Cache for reflection data, no need to reset

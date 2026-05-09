@@ -115,7 +115,7 @@ namespace UnityEditor.Rendering.Universal
 
         public UpdateShaderPrefilteringDataBeforeBuild()
         {
-            ShaderBuildPreprocessor.GatherShaderFeatures(Debug.isDebugBuild);
+            ShaderBuildPreprocessor.GatherShaderFeatures();
         }
 
 		public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList){}
@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering.Universal
     /// Preprocess Build class used to determine the shader features used in the project.
     /// Also called when building Asset Bundles.
     /// </summary>
-    class ShaderBuildPreprocessor : IPreprocessBuildWithReport, IPostprocessBuildWithReport
+    class ShaderBuildPreprocessor : IPreprocessBuildWithContext, IPostprocessBuildWithContext
     {
         // Public
         public int callbackOrder => 0;
@@ -145,7 +145,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 // This can happen for example when building AssetBundles.
                 if (s_SupportedFeaturesList.Count == 0)
-                    GatherShaderFeatures(Debug.isDebugBuild);
+                    GatherShaderFeatures();
 
                 return s_SupportedFeaturesList;
             }
@@ -168,6 +168,7 @@ namespace UnityEditor.Rendering.Universal
         private static bool s_UseSHPerVertexForSHAuto;
         private static VolumeFeatures s_VolumeFeatures;
         private static List<ShaderFeatures> s_SupportedFeaturesList = new();
+        private static bool s_UseDiagnosticChecks;
 
         // Helper class to detect XR build targets at build time.
         internal sealed class PlatformBuildTimeDetect
@@ -232,7 +233,7 @@ namespace UnityEditor.Rendering.Universal
         }
 
         // Called before the build is started...
-        public void OnPreprocessBuild(BuildReport report)
+        public void OnPreprocessBuild(BuildCallbackContext ctx)
         {
 #if PROFILE_BUILD
             Profiler.enableBinaryLog = true;
@@ -240,13 +241,27 @@ namespace UnityEditor.Rendering.Universal
             Profiler.enabled = true;
 #endif
 
-            bool isDevelopmentBuild = (report.summary.options & BuildOptions.Development) != 0;
-            GatherShaderFeatures(isDevelopmentBuild);
+            s_UseDiagnosticChecks = PlayerSettings.GetManagedCodeVariant(GetNamedBuildTarget(ctx.Report)) <= ManagedCodeVariant.Checked;
+            GatherShaderFeatures();
+        }
+
+        static NamedBuildTarget GetNamedBuildTarget(BuildReport report)
+        {
+            var platformGroup = report.summary.platformGroup;
+            if (platformGroup == BuildTargetGroup.Standalone &&
+                report.summary.GetSubtarget<StandaloneBuildSubtarget>() == StandaloneBuildSubtarget.Server)
+            {
+                return NamedBuildTarget.Server;
+            }
+            return NamedBuildTarget.FromBuildTargetGroup(platformGroup);
         }
 
         // Called after the build has finished...
-        public void OnPostprocessBuild(BuildReport report)
+        public void OnPostprocessBuild(BuildCallbackContext ctx)
         {
+            // Build is done, editor always uses diagnostic checks
+            s_UseDiagnosticChecks = true;
+
             PlatformBuildTimeDetect.ClearInstance();
 #if PROFILE_BUILD
             Profiler.enabled = false;
@@ -255,10 +270,10 @@ namespace UnityEditor.Rendering.Universal
 
         // Gathers all the shader features and updates the prefiltering
         // settings for all URP Assets in the quality settings
-        internal static void GatherShaderFeatures(bool isDevelopmentBuild)
+        internal static void GatherShaderFeatures()
         {
             s_SupportedFeaturesList.Clear();
-            GetGlobalAndPlatformSettings(isDevelopmentBuild);
+            GetGlobalAndPlatformSettings();
 
             // If stripping of unused volume features is disabled, the s_VolumeFeatures
             // variable is set to include every keyword used by volumes shaders.
@@ -278,10 +293,10 @@ namespace UnityEditor.Rendering.Universal
         }
 
         // Retrieves the global and platform settings used in the project...
-        private static void GetGlobalAndPlatformSettings(bool isDevelopmentBuild)
+        private static void GetGlobalAndPlatformSettings()
         {
             if (GraphicsSettings.TryGetRenderPipelineSettings<ShaderStrippingSetting>(out var shaderStrippingSettings))
-                s_StripDebugDisplayShaders = !isDevelopmentBuild || shaderStrippingSettings.stripRuntimeDebugShaders;
+                s_StripDebugDisplayShaders = !s_UseDiagnosticChecks || shaderStrippingSettings.stripRuntimeDebugShaders;
             else
                 s_StripDebugDisplayShaders = true;
 

@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public int capacity { get { return m_Array.Length; } }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
         /// <summary>
         ///  This keeps track of structural modifications to this array and allows us to raise exceptions when modifying during enumeration
         /// </summary>
@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering
         {
             m_Array = new T[32];
             size = 0;
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             version = 0;
 #endif
         }
@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering
         {
             m_Array = new T[size];
             this.size = size;
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             version = 0;
 #endif
         }
@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering
         {
             m_Array = new T[capacity];
             this.size = (resize) ? capacity : 0;
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             version = 0;
 #endif
         }
@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering
             m_Array = new T[deepCopy.size];
             size = deepCopy.size;
             Array.Copy(deepCopy.m_Array, m_Array, size);
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             version = 0;
 #endif
         }
@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering
         /// <param name="item">Item to be inserted in the DynamicArray.</param>
         public void Insert(int index, T item)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             if (index < 0 || index > size)
                 throw new IndexOutOfRangeException();
 #endif
@@ -187,7 +187,7 @@ namespace UnityEngine.Rendering
         /// <param name="index">The zero-based index of the element to remove.</param>
         public void RemoveAt(int index)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             if (index < 0 || index >= size)
                 throw new IndexOutOfRangeException();
 #endif
@@ -209,7 +209,7 @@ namespace UnityEngine.Rendering
             if (count == 0)
                 return;
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             if (index < 0 || index >= size || count < 0 || index + count > size)
                 throw new ArgumentOutOfRangeException();
 #endif
@@ -362,7 +362,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                 if (index < 0 || index >= size)
                     throw new IndexOutOfRangeException();
 #endif
@@ -407,7 +407,7 @@ namespace UnityEngine.Rendering
         {
             private readonly DynamicArray<T> owner;
             private int index;
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             private int localVersion;
 #endif
 
@@ -418,13 +418,13 @@ namespace UnityEngine.Rendering
             /// <exception cref="ArgumentNullException">Thrown if the array is null.</exception>
             public Iterator(DynamicArray<T> setOwner)
             {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                 if (setOwner == null)
                     throw new ArgumentNullException();
 #endif
                 owner = setOwner;
                 index = -1;
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                 localVersion = owner.version;
 #endif
             }
@@ -447,7 +447,7 @@ namespace UnityEngine.Rendering
             /// <exception cref="InvalidOperationException">An operation changed the DynamicArray after the creation of this iterator.</exception>
             public bool MoveNext()
             {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                 if (owner.version != localVersion)
                 {
                     throw  new InvalidOperationException("DynamicArray was modified during enumeration");
@@ -512,7 +512,7 @@ namespace UnityEngine.Rendering
                 private int index;
                 private int first;
                 private int last;
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                 private int localVersion;
 #endif
 
@@ -526,7 +526,7 @@ namespace UnityEngine.Rendering
                 /// <exception cref="ArgumentNullException">Thrown if the array is null.</exception>
                 public RangeIterator(DynamicArray<T> setOwner, int first, int numItems)
                 {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                     if (setOwner == null)
                         throw new ArgumentNullException();
                     if (first < 0 || first > setOwner.size || (first + numItems) > setOwner.size)
@@ -536,7 +536,7 @@ namespace UnityEngine.Rendering
                     this.first = first;
                     index = first-1;
                     last = first + numItems;
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                     localVersion = owner.version;
 #endif
                 }
@@ -559,7 +559,7 @@ namespace UnityEngine.Rendering
                 /// <exception cref="InvalidOperationException">The DynamicArray was modified after the iterator was created.</exception>
                 public bool MoveNext()
                 {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                     if (owner.version != localVersion)
                     {
                         throw  new InvalidOperationException("DynamicArray was modified during enumeration");
@@ -623,7 +623,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         protected internal void BumpVersion()
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             version++;
 #endif
         }

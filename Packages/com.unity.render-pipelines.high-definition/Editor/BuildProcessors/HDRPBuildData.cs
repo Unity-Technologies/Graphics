@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         }
 
-        public HDRPBuildData(BuildTarget buildTarget, bool isDevelopmentBuild)
+        public HDRPBuildData(BuildTarget buildTarget, bool useDiagnosticChecks)
         {
             buildingPlayerForHDRenderPipeline = false;
 
@@ -58,7 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     materialResources = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();
 
-                    stripDebugVariants = !isDevelopmentBuild || GraphicsSettings.GetRenderPipelineSettings<ShaderStrippingSetting>().stripRuntimeDebugShaders;
+                    stripDebugVariants = !useDiagnosticChecks || GraphicsSettings.GetRenderPipelineSettings<ShaderStrippingSetting>().stripRuntimeDebugShaders;
                 }
 
                 var waterSettings = GraphicsSettings.GetRenderPipelineSettings<WaterSystemGlobalSettings>();

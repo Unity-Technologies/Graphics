@@ -405,7 +405,7 @@ namespace UnityEngine.Rendering.Universal
 
             DebugManager.instance.RefreshEditor();
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             m_DebugDisplaySettingsUI.RegisterDebug(UniversalRenderPipelineDebugDisplaySettings.Instance);
 #endif
 
@@ -459,7 +459,7 @@ namespace UnityEngine.Rendering.Universal
                 ProbeReferenceVolume.instance.Cleanup();
             }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             m_DebugDisplaySettingsUI.UnregisterDebug();
 #endif
 
@@ -595,7 +595,7 @@ namespace UnityEngine.Rendering.Universal
                 SetupPerFrameShaderConstants();
                 XRSystem.SetDisplayMSAASamples((MSAASamples)asset.msaaSampleCount);
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                 if (DebugManager.instance.isAnyDebugUIActive)
                     UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateDisplayStats();
 

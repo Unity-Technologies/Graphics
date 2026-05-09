@@ -1047,7 +1047,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // This is use to Display legacy shader with an error shader
-        [System.Diagnostics.Conditional("DEVELOPMENT_BUILD"), System.Diagnostics.Conditional("UNITY_EDITOR")]
+        [System.Diagnostics.Conditional("UNITY_ENABLE_CHECKS")]
         void RenderForwardError(RenderGraph renderGraph,
             HDCamera hdCamera,
             TextureHandle colorBuffer,

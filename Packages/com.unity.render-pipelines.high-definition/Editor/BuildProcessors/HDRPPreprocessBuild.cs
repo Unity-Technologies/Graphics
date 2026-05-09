@@ -30,8 +30,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public void OnPreprocessBuild(BuildReport report)
         {
             m_BuildData?.Dispose();
-            bool isDevelopmentBuild = (report.summary.options & BuildOptions.Development) != 0;
-            m_BuildData = new HDRPBuildData(EditorUserBuildSettings.activeBuildTarget, isDevelopmentBuild);
+            bool useDiagnosticChecks = PlayerSettings.GetManagedCodeVariant(GetNamedBuildTarget(report)) <= ManagedCodeVariant.Checked;
+            m_BuildData = new HDRPBuildData(report.summary.platform, useDiagnosticChecks);
 
             if (m_BuildData.buildingPlayerForHDRenderPipeline)
             {
@@ -58,18 +58,29 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 LogIncludedAssets(m_BuildData.renderPipelineAssets);
 
-                if (!IsConfigurationValid())
+                if (!IsConfigurationValid(report.summary.platform))
                 {
                     if(!ProceedWithBuild())
                         throw new BuildFailedException("Build canceled by user due to HDRP configuration issues.");
                 }
 
 
-                GatherShaderFeatures();
+                GatherShaderFeatures(report.summary.platform);
             }
         }
 
-        private static bool IsConfigurationValid()
+        static NamedBuildTarget GetNamedBuildTarget(BuildReport report)
+        {
+            var platformGroup = report.summary.platformGroup;
+            if (platformGroup == BuildTargetGroup.Standalone &&
+                report.summary.GetSubtarget<StandaloneBuildSubtarget>() == StandaloneBuildSubtarget.Server)
+            {
+                return NamedBuildTarget.Server;
+            }
+            return NamedBuildTarget.FromBuildTargetGroup(platformGroup);
+        }
+
+        private static bool IsConfigurationValid(BuildTarget buildTarget)
         {
             // Validate the configuration of the HDRP assets for the current build target. We want to make sure that users are aware of potential performance issues or unsupported features before building.
             // We still want to build the player even if the configuration is not optimal, but we log warnings to inform users about potential issues.
@@ -82,7 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition
             bool validConfiguration = true;
 
             {
-                bool config = ValidateRayTracingConfiguration(m_BuildData.renderPipelineAssets);
+                bool config = ValidateRayTracingConfiguration(buildTarget, m_BuildData.renderPipelineAssets);
                 validConfiguration &= config;
             }
 
@@ -161,7 +172,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        internal static bool ValidateRayTracingConfiguration(List<HDRenderPipelineAsset> assetsList)
+        private static bool ValidateRayTracingConfiguration(BuildTarget currentBuildTarget, List<HDRenderPipelineAsset> assetsList)
         {
             // Check if any asset has ray tracing enabled
             bool anyAssetHasRayTracingEnabled = false;
@@ -177,7 +188,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!anyAssetHasRayTracingEnabled)
                 return true; // No ray tracing enabled, skip validation
 
-            var currentBuildTarget = EditorUserBuildSettings.activeBuildTarget;
             if (HDRenderPipeline.CheckPlatformRaytracingCompatability(currentBuildTarget, out var warning))
             {
                 Debug.LogWarning($"HDRP Build Validation - Ray Tracing:{warning}");
@@ -506,12 +516,12 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        private static void GatherShaderFeatures()
+        private static void GatherShaderFeatures(BuildTarget buildTarget)
         {
             s_SupportedFeaturesList.Clear();
             using (ListPool<HDRenderPipelineAsset>.Get(out List<HDRenderPipelineAsset> hdrpAssets))
             {
-                bool buildingForHDRP = EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets(hdrpAssets);
+                bool buildingForHDRP = buildTarget.TryGetRenderPipelineAssets(hdrpAssets);
                 if (buildingForHDRP)
                 {
                     // Get Supported features & update data used for Shader Prefiltering and Scriptable Stripping

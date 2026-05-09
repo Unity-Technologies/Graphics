@@ -718,7 +718,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (initParams.maxShadowRequests > 65536)
             {
                 initParams.maxShadowRequests = 65536;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                 Debug.LogWarning("The 'Maximum Shadows on Screen' value has been clamped to 65536 in order not to exceed the maximum size of the buffer.");
 #endif
             }

@@ -466,7 +466,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_stencilVisLightOffsets.IsCreated)
                 m_stencilVisLightOffsets.Dispose();
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             for (int i = 0; i < m_GbufferTextureHandles.Length; i++)
             {
                 m_GbufferTextureHandles[i] = TextureHandle.nullHandle;

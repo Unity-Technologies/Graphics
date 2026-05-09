@@ -511,7 +511,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ScriptableRendererData"/>
         public ScriptableRenderer(ScriptableRendererData data)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             DebugHandler = new DebugHandler();
 #endif
             foreach (var feature in data.rendererFeatures)

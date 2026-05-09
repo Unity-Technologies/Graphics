@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering
 
         private static void CalculateRadixParams(int radixBits, out int bitStates)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             if (radixBits != 2 && radixBits != 4 && radixBits != 8)
                 throw new Exception("Radix bits must be 2, 4 or 8 for uint radix sort.");
 #endif

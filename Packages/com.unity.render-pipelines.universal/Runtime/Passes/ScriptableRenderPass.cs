@@ -229,14 +229,14 @@ namespace UnityEngine.Rendering.Universal
         /// A ProfilingSampler for the entire render pass. Used as a profiling name by <c>ScriptableRenderer</c> when executing the pass.
         /// The default is named as the class type of the sub-class.
         /// Set <c>base.profilingSampler</c> from the sub-class constructor to set a different profiling name for a custom <c>ScriptableRenderPass
-        /// This returns null in release build (non-development).</c>.
+        /// This returns null in the Release managed code variant.</c>.
         /// </summary>
         protected internal ProfilingSampler profilingSampler
         {
             get
             {
 
-#if (DEVELOPMENT_BUILD || UNITY_EDITOR)
+#if UNITY_INCLUDE_INSTRUMENTATION
                 return m_ProfingSampler;
 #else
                 return null;
@@ -245,13 +245,13 @@ namespace UnityEngine.Rendering.Universal
             set
             {
                 m_ProfingSampler = value;
-                m_PassName = (value != null) ? value.name : this.GetType().Name;                
+                m_PassName = (value != null) ? value.name : this.GetType().Name;
             }
         }
 
         /// <summary>
-        /// The name of the pass that will show up in profiler and other tools. This will be indentical to the 
-        /// name of <c>profilingSampler</c>. <c>profilingSampler</c> is set to null in the release build (non-development)
+        /// The name of the pass that will show up in profiler and other tools. This will be identical to the
+        /// name of <c>profilingSampler</c>. <c>profilingSampler</c> is set to null in the Release managed code variant
         /// so this <c>passName</c> property is the safe way to access the name and use it consistently. This will always return a valid string.
         /// </summary>
         protected internal string passName{ get { return m_PassName; } }

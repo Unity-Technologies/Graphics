@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering
     [Serializable]
     public abstract class VolumeParameter : ICloneable
     {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
         internal int fieldHash { get; set; }
 #endif
         /// <summary>

@@ -1577,7 +1577,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 #endif
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
             if (cameraData.renderer.DebugHandler is { IsDepthPrimingCompatible: false })
                 return false;
 #endif

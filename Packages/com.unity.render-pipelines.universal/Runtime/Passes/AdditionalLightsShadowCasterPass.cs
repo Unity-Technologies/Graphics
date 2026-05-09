@@ -366,8 +366,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             ref AdditionalLightsShadowAtlasLayout atlasLayout = ref shadowData.shadowAtlasLayout;
 
             // Check changes in the shadow requests and shadow atlas configuration - compute shadow request/configuration hash
-            // Should only be done in the editor or development builds as computing the hash has a cost that's clearly visible when profiling.
-            #if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // Should only be done in the Editor or in the Debug or Checked managed code variant as computing the hash has a cost that's clearly visible when profiling.
+            #if UNITY_ENABLE_CHECKS
             if (!cameraData.isPreviewCamera)
             {
                 ulong newShadowRequestHash = ComputeShadowRequestHash(lightData, shadowData);
