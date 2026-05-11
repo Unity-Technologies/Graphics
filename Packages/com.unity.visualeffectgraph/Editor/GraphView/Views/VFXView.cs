@@ -2360,6 +2360,18 @@ namespace UnityEditor.VFX.UI
             get { return m_Blackboard; }
         }
 
+        protected internal override bool isValidSelection
+        {
+            get
+            {
+                foreach (var element in selection)
+                {
+                    if (element is not VFXBlackboardFieldBase)
+                        return true;
+                }
+                return false;
+            }
+        }
 
         protected internal override bool canCutSelection => canCopySelection;
 
@@ -2983,7 +2995,6 @@ namespace UnityEditor.VFX.UI
                 evt.menu.InsertAction(3, string.IsNullOrEmpty(context.controller.model.label) ? "Name Context" : "Rename Context", a => context.OnRename(), e => DropdownMenuAction.Status.Normal);
             }
 
-
             if (selection.OfType<VFXNodeUI>().Any() && evt.target is VFXNodeUI)
             {
                 if (selection.OfType<VFXOperatorUI>().Any() && !selection.OfType<VFXNodeUI>().Any(t => !(t is VFXOperatorUI) && !(t is VFXParameterUI)))
@@ -2998,7 +3009,7 @@ namespace UnityEditor.VFX.UI
             if (evt.target is GraphView || evt.target is Node || evt.target is Group)
             {
                 evt.menu.AppendAction("Duplicate with edges", (a) => { DuplicateSelectionWithEdges(); },
-                    (a) => { return canDuplicateSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled; });
+                    (a) => { return isValidSelection && canDuplicateSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled; });
                 evt.menu.AppendSeparator();
             }
 
