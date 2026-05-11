@@ -16,6 +16,9 @@ using Assert = NUnit.Framework.Assert;
 namespace UnityEditor.ShaderGraph.UnitTests
 {
     [TestFixture]
+    [UnityPlatform(exclude = new RuntimePlatform[] {
+        RuntimePlatform.WindowsEditor // Disabled for Instability https://jira.unity3d.com/browse/UUM-141869
+    } )]
     internal class SubWindowTests
     {
         static string kGraphName = "Assets/CommonAssets/Graphs/SubWindow.shadergraph";
