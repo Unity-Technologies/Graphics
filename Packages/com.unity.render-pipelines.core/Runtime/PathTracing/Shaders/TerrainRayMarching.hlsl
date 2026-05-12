@@ -59,9 +59,9 @@ static const int kCellCorner11 = 1;
 static const int kCellCorner10 = 2;
 static const int kCellCorner00 = 3;
 
-void GetCellCornerHeights(int2 coord, float invTerrainWidthInCells, int terrainIndex, out float4 cellHeights, out bool cellIsHole)
+void GetCellCornerHeights(int2 coord, int terrainIndex, out float4 cellHeights, out bool cellIsHole)
 {
-    float2 uv = (float2(coord) + 1.0) * invTerrainWidthInCells;
+    float2 uv = (float2(coord) + 1.0) * _TerrainTextureInvWidth;
     cellHeights = _TerrainTexture.Gather(sampler_TerrainTexture, float3(uv, terrainIndex)) - 1.0f / 32767.f;
     // A hole cell has all 4 corners negated. A single negative corner can occur at height=0
     // when the +1 bias wasn't applied (no-hole terrain), so check all corners.
@@ -135,7 +135,7 @@ bool RayMarchTerrainTile(uint instanceID, int tileIndex, float3 rayOrigin, float
 
         float4 cellHeights;
         bool cellIsHole;
-        GetCellCornerHeights(iterCell, terrainData.invHeightmapWidthInTexels, instanceData.terrainIndex, cellHeights, cellIsHole);
+        GetCellCornerHeights(iterCell, instanceData.terrainIndex, cellHeights, cellIsHole);
 
         float tCellExit = min(tMax.x, tMax.y);
         float hRayAtExit = rayOrigin.z + tCellExit * rayDirection.z;
@@ -208,7 +208,7 @@ void ComputeTerrainLocalPosAndNormal(UnifiedRT::TerrainData terrainData, int ter
 
     float4 cellHeights;
     bool cellIsHole;
-    GetCellCornerHeights(cellCoord, terrainData.invHeightmapWidthInTexels, terrainIndex, cellHeights, cellIsHole);
+    GetCellCornerHeights(cellCoord, terrainIndex, cellHeights, cellIsHole);
 
     // Interpolate height using the correct triangle (matching DDA split).
     float h;
@@ -221,17 +221,25 @@ void ComputeTerrainLocalPosAndNormal(UnifiedRT::TerrainData terrainData, int ter
 
     // Sobel 3x3 normal filter matching TerrainToMesh.CalculateTerrainNormal.
     // Kernel weights: [-1,-2,-1, 0,0,0, 1,2,1] for each axis.
-    float2 sampleUV = (heightmapUV + 0.5) * terrainData.invHeightmapWidthInTexels;
-    float eps = terrainData.invHeightmapWidthInTexels;
+    // UV math uses atlas width because the heightmap may live in a padded slot.
+    float2 sampleUV = (heightmapUV + 0.5) * _TerrainTextureInvWidth;
+    float eps = _TerrainTextureInvWidth;
 
-    float hTL = abs(_TerrainTexture.SampleLevel(sampler_TerrainTexture, float3(sampleUV + float2(-eps, -eps), terrainIndex), 0)) - 1.0 / 32767.0;
-    float hML = abs(_TerrainTexture.SampleLevel(sampler_TerrainTexture, float3(sampleUV + float2(-eps,    0), terrainIndex), 0)) - 1.0 / 32767.0;
-    float hBL = abs(_TerrainTexture.SampleLevel(sampler_TerrainTexture, float3(sampleUV + float2(-eps,  eps), terrainIndex), 0)) - 1.0 / 32767.0;
-    float hTR = abs(_TerrainTexture.SampleLevel(sampler_TerrainTexture, float3(sampleUV + float2( eps, -eps), terrainIndex), 0)) - 1.0 / 32767.0;
-    float hMR = abs(_TerrainTexture.SampleLevel(sampler_TerrainTexture, float3(sampleUV + float2( eps,    0), terrainIndex), 0)) - 1.0 / 32767.0;
-    float hBR = abs(_TerrainTexture.SampleLevel(sampler_TerrainTexture, float3(sampleUV + float2( eps,  eps), terrainIndex), 0)) - 1.0 / 32767.0;
-    float hTM = abs(_TerrainTexture.SampleLevel(sampler_TerrainTexture, float3(sampleUV + float2(   0, -eps), terrainIndex), 0)) - 1.0 / 32767.0;
-    float hBM = abs(_TerrainTexture.SampleLevel(sampler_TerrainTexture, float3(sampleUV + float2(   0,  eps), terrainIndex), 0)) - 1.0 / 32767.0;
+    // Clamp each tap to the terrain's own texel range so Sobel taps near the edges
+    // of a padded slot don't fall in the zero-padded region (or wrap into it).
+    float minUV = 0.5 * _TerrainTextureInvWidth;
+    float maxUV = (terrainData.heightmapWidthInTexels - 0.5) * _TerrainTextureInvWidth;
+    #define _TERRAIN_SAMPLE(off) abs(_TerrainTexture.SampleLevel(sampler_TerrainTexture, float3(clamp(sampleUV + (off), minUV, maxUV), terrainIndex), 0)) - 1.0 / 32767.0
+
+    float hTL = _TERRAIN_SAMPLE(float2(-eps, -eps));
+    float hML = _TERRAIN_SAMPLE(float2(-eps,    0));
+    float hBL = _TERRAIN_SAMPLE(float2(-eps,  eps));
+    float hTR = _TERRAIN_SAMPLE(float2( eps, -eps));
+    float hMR = _TERRAIN_SAMPLE(float2( eps,    0));
+    float hBR = _TERRAIN_SAMPLE(float2( eps,  eps));
+    float hTM = _TERRAIN_SAMPLE(float2(   0, -eps));
+    float hBM = _TERRAIN_SAMPLE(float2(   0,  eps));
+    #undef _TERRAIN_SAMPLE
 
     float dX = (-hTL - 2.0 * hML - hBL + hTR + 2.0 * hMR + hBR) * heightmapScale.y * invHeightmapScale.x;
     float dZ = (-hTL - 2.0 * hTM - hTR + hBL + 2.0 * hBM + hBR) * heightmapScale.y * invHeightmapScale.z;

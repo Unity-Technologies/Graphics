@@ -501,15 +501,15 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             return outMesh;
         }
 
-        internal static Mesh CreateTerrainQuadMesh(int heightmapResolution)
+        internal static Mesh CreateTerrainQuadMesh()
         {
-            // Match the UV range of TerrainToMesh: UV = vertex.xz / resolution
-            // Last sample at (resolution-1) gives max UV = (resolution-1)/resolution
-            float maxUV = (float)(heightmapResolution - 1) / heightmapResolution;
+            // Match TerrainToMesh's extent convention: UV = vertex.xz / (resolution - 1).
+            // The quad spans [0, 1] in both vertex space and UV so the lightmap atlas
+            // region is fully covered (matches Progressive GPU).
             var mesh = new Mesh();
-            mesh.vertices = new Vector3[] { new(0, 0, 0), new(maxUV, 0, 0), new(maxUV, 0, maxUV), new(0, 0, maxUV) };
-            mesh.uv = new Vector2[] { new(0, 0), new(maxUV, 0), new(maxUV, maxUV), new(0, maxUV) };
-            mesh.uv2 = new Vector2[] { new(0, 0), new(maxUV, 0), new(maxUV, maxUV), new(0, maxUV) };
+            mesh.vertices = new Vector3[] { new(0, 0, 0), new(1, 0, 0), new(1, 0, 1), new(0, 0, 1) };
+            mesh.uv = new Vector2[] { new(0, 0), new(1, 0), new(1, 1), new(0, 1) };
+            mesh.uv2 = new Vector2[] { new(0, 0), new(1, 0), new(1, 1), new(0, 1) };
             mesh.normals = new Vector3[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up };
             mesh.triangles = new int[] { 0, 2, 1, 0, 3, 2 };
             return mesh;
@@ -583,8 +583,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             {
                 if (useProceduralTerrain)
                 {
-                    var heightMap = bakeInput.heightMapData[bakeInput.terrainData[i].heightMapIndex];
-                    meshes[meshIndex] = CreateTerrainQuadMesh(heightMap.resolution);
+                    meshes[meshIndex] = CreateTerrainQuadMesh();
                 }
                 else
                 {

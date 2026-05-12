@@ -147,7 +147,8 @@ PTHitGeom GetTerrainHitGeomInfo(UnifiedRT::InstanceData instanceInfo, UnifiedRT:
 {
     UnifiedRT::TerrainData terrainData = UnifiedRT::GetTerrain(instanceInfo.terrainIndex);
 
-    // Compute hit pos in cell coordinates
+    // hit.uvBarycentrics is in extent-convention UV space (cellCoord / (resolution-1)).
+    // Multiply by numCells to recover cell-space coordinates for position/normal.
     float numCells = terrainData.heightmapWidthInTexels - 1.0;
     float2 heightmapUV = hit.uvBarycentrics * numCells;
 

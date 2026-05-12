@@ -20,9 +20,13 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         Texture2DArray _terrainTextureArray;
         readonly List<GraphicsBuffer> _aabbBuffers = new();
         int _terrainCount;
-        int _terrainResolution;
+        // Width (and height) of the heightmap atlas in texels — the running max of every added
+        // terrain's resolution. Smaller terrains are padded into the upper-left of their slice.
+        int _maxTerrainResolution;
         static RenderTexture s_EmptyTerrainTexture;
         internal static readonly int _terrainTileWidth = 8;
+        static readonly int s_TerrainTextureId = Shader.PropertyToID("_TerrainTexture");
+        static readonly int s_TerrainTextureInvWidthId = Shader.PropertyToID("_TerrainTextureInvWidth");
 
         static RenderTexture GetEmptyTerrainTexture()
         {
@@ -81,7 +85,13 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         {
             // Always bind something — Unity's ray tracing dispatch validates that all
             // declared shader textures/buffers are bound, even if not accessed at runtime.
-            shader.SetTextureParam(cmd, Shader.PropertyToID("_TerrainTexture"), _terrainTextureArray != null ? _terrainTextureArray : GetEmptyTerrainTexture());
+            shader.SetTextureParam(cmd, s_TerrainTextureId, _terrainTextureArray != null ? _terrainTextureArray : GetEmptyTerrainTexture());
+            // Inverse of the heightmap atlas width in texels. Shaders use it to convert per-
+            // terrain texel indices into atlas-normalized UVs — the divisor differs from a
+            // terrain's own resolution when smaller terrains share the atlas with larger ones.
+            // Defaults to 1.0 against the 1×1 fallback texture above.
+            int atlasW = _maxTerrainResolution > 0 ? _maxTerrainResolution : 1;
+            shader.SetFloatParam(cmd, s_TerrainTextureInvWidthId, 1.0f / atlasW);
         }
 
         public void Dispose()
@@ -96,7 +106,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                 buf?.Dispose();
             _aabbBuffers.Clear();
             _terrainCount = 0;
-            _terrainResolution = 0;
+            _maxTerrainResolution = 0;
             if (_terrainTextureArray != null)
             {
                 Object.DestroyImmediate(_terrainTextureArray);
@@ -290,20 +300,40 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             return texture;
         }
 
-        void GrowTextureArray(Texture2D newSlice)
+        // Append `newSlice` (sized newSliceResolution × newSliceResolution) into the heightmap
+        // atlas. The atlas is sized to _maxTerrainResolution; smaller slices live in the
+        // upper-left of their slot and the rest is zero-padded. If the atlas needs to grow,
+        // existing slices are partial-copied into the upper-left of correspondingly larger
+        // slots in a freshly allocated array.
+        void GrowTextureArray(Texture2D newSlice, int newSliceResolution, int previousAtlasWidth)
         {
+            int atlasW = _maxTerrainResolution;
             int newCount = _terrainCount + 1;
-            var newArray = new Texture2DArray(_terrainResolution, _terrainResolution, newCount,
+            var newArray = new Texture2DArray(atlasW, atlasW, newCount,
                 Experimental.Rendering.GraphicsFormat.R16_SNorm, Experimental.Rendering.TextureCreationFlags.None);
+
+            // Zero-initialize every slot so padding regions are well-defined.
+            // Upload one zeroed slice from the CPU and broadcast it to every slot via
+            // GPU-local CopyTexture, avoiding an O(N) PCIe transfer per grow.
+            var zeroSlice = new Texture2D(atlasW, atlasW, Experimental.Rendering.GraphicsFormat.R16_SNorm, Experimental.Rendering.TextureCreationFlags.None);
+            var zeros = new NativeArray<short>(atlasW * atlasW, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            zeroSlice.SetPixelData(zeros, 0);
+            zeroSlice.Apply(updateMipmaps: false, makeNoLongerReadable: true);
+            zeros.Dispose();
+
+            for (int slot = 0; slot < newCount; slot++)
+                Graphics.CopyTexture(zeroSlice, 0, 0, newArray, slot, 0);
+
+            Object.DestroyImmediate(zeroSlice);
 
             if (_terrainTextureArray != null)
             {
                 for (int i = 0; i < _terrainCount; i++)
-                    Graphics.CopyTexture(_terrainTextureArray, i, 0, newArray, i, 0);
+                    Graphics.CopyTexture(_terrainTextureArray, i, 0, 0, 0, previousAtlasWidth, previousAtlasWidth, newArray, i, 0, 0, 0);
                 Object.DestroyImmediate(_terrainTextureArray);
             }
 
-            Graphics.CopyTexture(newSlice, 0, 0, newArray, _terrainCount, 0);
+            Graphics.CopyTexture(newSlice, 0, 0, 0, 0, newSliceResolution, newSliceResolution, newArray, _terrainCount, 0, 0, 0);
             _terrainTextureArray = newArray;
         }
 
@@ -319,15 +349,14 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             uint renderingLayerMask,
             uint instanceMask = 0xFFFFFFFF)
         {
-            if (_terrainCount > 0)
-                Debug.Assert(resolution == _terrainResolution, $"All terrains must have the same heightmap resolution. Expected {_terrainResolution}, got {resolution}."); // Will be addressed in https://jira.unity3d.com/browse/GFXLIGHT-2267
-            _terrainResolution = resolution;
+            int previousAtlasWidth = _maxTerrainResolution;
+            _maxTerrainResolution = math.max(_maxTerrainResolution, resolution);
 
             var aabbBuffer = CreateTerrainAabbBuffer(heightData, resolution, heightmapScale);
             _aabbBuffers.Add(aabbBuffer);
 
             var sliceTexture = CreateTerrainTexture(heightData, resolution, holeData, holeResolution);
-            GrowTextureArray(sliceTexture);
+            GrowTextureArray(sliceTexture, resolution, previousAtlasWidth);
             Object.DestroyImmediate(sliceTexture);
 
             int tilesPerAxis = (resolution - 1) / _terrainTileWidth;

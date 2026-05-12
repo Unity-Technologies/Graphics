@@ -186,7 +186,10 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             float3 v = new float3(x, heightmap[y*width +x], y);
 
             positions[vertexIndex] = v * heightmapScale;
-            uvs[vertexIndex] = v.xz / new float2(width, height);
+            // Extent convention: vertex.xz / (W-1) spans [0, 1] across the terrain extent.
+            // Matches Progressive GPU's HeightmapJobData.cpp:83 so the lightmap atlas region
+            // is fully covered (no ~1/W unbaked strip at the right/top edges).
+            uvs[vertexIndex] = v.xz / new float2(width - 1, height - 1);
             normals[vertexIndex] = CalculateTerrainNormal(heightmap, x, y, width, height, heightmapScale);
 
             if (x < width - 1 && y < height - 1)

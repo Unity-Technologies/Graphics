@@ -56,6 +56,9 @@ namespace UnityEngine.PathTracing.Tests
             if (!SystemInfo.supportsComputeShaders && m_Backend == RayTracingBackend.Compute)
                 Assert.Ignore("Cannot run test on this Graphics API. Compute shaders are not supported");
 
+            if (SystemInfo.graphicsDeviceName.Contains("llvmpipe"))
+                Assert.Ignore("Cannot run test on this device (Renderer: llvmpipe). Software rasterizers diverge from real GPUs for terrain heightmap sampling. Mirrors the skip in ResourceCacheTests.SetUp.");
+
             var resources = new RayTracingResources();
             resources.Load();
             m_Context = new RayTracingContext(m_Backend, resources);
@@ -320,10 +323,72 @@ namespace UnityEngine.PathTracing.Tests
             for (int i = 0; i < results.Length; i++)
             {
                 Assert.AreEqual(1u, results[i].isValid, $"{labels[i]} ray should hit the terrain.");
-                float expectedU = rayX[i] / (heightmapScale.x * resolution);
-                float expectedV = rayZ[i] / (heightmapScale.z * resolution);
+                float expectedU = rayX[i] / (heightmapScale.x * (resolution - 1));
+                float expectedV = rayZ[i] / (heightmapScale.z * (resolution - 1));
                 Assert.AreEqual(expectedU, results[i].uv.x, tolerance, $"{labels[i]} UV.x should be ~{expectedU:F3}.");
                 Assert.AreEqual(expectedV, results[i].uv.y, tolerance, $"{labels[i]} UV.y should be ~{expectedV:F3}.");
+            }
+        }
+
+        [Test]
+        public void TraceRayDownToFlatTerrain_LightmapUvMatchesMeshConvention(
+            [Values(TerrainMode.Mesh, TerrainMode.Procedural)] TerrainMode terrainMode)
+        {
+            // Production lightmap UV (res.uv0 in GetTerrainHitGeomInfo) is hit.uvBarycentrics
+            // straight from the procedural intersection. It must match the mesh path's vertex
+            // UVs in extent convention (vertex.xz / (resolution-1) = cellCoord / (resolution-1)
+            // — see TerrainToMesh.cs:189) so both paths agree with each other and with the
+            // Progressive GPU baker.
+            //
+            // A divisor of resolution instead of (resolution - 1) compresses the procedural UV
+            // by (W-1)/W — about 3% at 33-res — so the same world point lands at different
+            // lightmap atlas positions for mesh vs procedural terrain. This appears as the
+            // terrain being offset in the baked lightmap.
+            //
+            // This test probes positions near the right/top edges (where cellCoord is largest
+            // and the offset is most pronounced) with a tolerance tight enough to catch a
+            // ~3% error but well above floating-point noise.
+            int resolution = 33;
+            float3 heightmapScale = new float3(1.0f, 100.0f, 1.0f);
+            float terrainHeight = 50.0f;
+
+            AddTerrain(terrainMode, CreateFlatHeightmap(resolution, terrainHeight, heightmapScale.y),
+                resolution, heightmapScale, Matrix4x4.identity);
+
+            float terrainExtent = (resolution - 1) * heightmapScale.x;
+            float edgeInset = 0.1f;
+            float ex = k_BoundaryEpsilonX;
+            float ez = k_BoundaryEpsilonZ;
+
+            string[] labels = { "right edge", "top edge", "top-right corner" };
+            float[] rayX = {
+                terrainExtent - edgeInset + ex,
+                terrainExtent * 0.5f + ex,
+                terrainExtent - edgeInset + ex,
+            };
+            float[] rayZ = {
+                terrainExtent * 0.5f + ez,
+                terrainExtent - edgeInset + ez,
+                terrainExtent - edgeInset + ez,
+            };
+
+            var rays = new TestRay[rayX.Length];
+            for (int i = 0; i < rays.Length; i++)
+                rays[i] = RayDown(rayX[i], rayZ[i]);
+            var results = TraceRays(rays);
+
+            // 0.01 tolerance is well above float noise but well below the ~3% offset the
+            // wrong divisor introduces at the right/top edges of a 33-res terrain.
+            float tolerance = 0.01f;
+            for (int i = 0; i < results.Length; i++)
+            {
+                Assert.AreEqual(1u, results[i].isValid, $"{labels[i]} ray ({terrainMode}) should hit the terrain.");
+                float expectedU = rayX[i] / (heightmapScale.x * (resolution - 1));
+                float expectedV = rayZ[i] / (heightmapScale.z * (resolution - 1));
+                Assert.AreEqual(expectedU, results[i].uv.x, tolerance,
+                    $"{labels[i]} UV.x should match extent convention (cellCoord / (resolution-1)); was {results[i].uv.x:F4}, expected {expectedU:F4}.");
+                Assert.AreEqual(expectedV, results[i].uv.y, tolerance,
+                    $"{labels[i]} UV.y should match extent convention (cellCoord / (resolution-1)); was {results[i].uv.y:F4}, expected {expectedV:F4}.");
             }
         }
 
@@ -656,6 +721,290 @@ namespace UnityEngine.PathTracing.Tests
 
             Assert.AreEqual(1u, results[1].isValid, "Ray should hit terrain B.");
             Assert.AreEqual(heightB, results[1].worldPosition.y, 1.0f, $"Should hit terrain B at y={heightB}.");
+        }
+
+        // For mixed-resolution coverage we drive the procedural path explicitly.
+        // The mesh path doesn't share heightmap storage between terrains, so it is the natural
+        // oracle and we keep it parameterized too — the procedural cases are the ones being
+        // implemented for and rely on the regrow-and-repad logic in AccelStructAdapter.
+        [Test]
+        public void TraceRayDownToMixedResolutionTerrains_SmallThenLarge_HitsBoth(
+            [Values(TerrainMode.Mesh, TerrainMode.Procedural)] TerrainMode terrainMode)
+        {
+            int resA = 33;
+            int resB = 129;
+            float3 heightmapScale = new float3(1.0f, 100.0f, 1.0f);
+            float heightA = 30.0f;
+            float heightB = 60.0f;
+
+            float extentA = (resA - 1) * heightmapScale.x;
+            float extentB = (resB - 1) * heightmapScale.x;
+            float3 offsetB = new float3(extentA + 10.0f, 0, 0);
+
+            // Order matters here: small first, then large. Adding the large one must regrow the
+            // texture array and re-pad slot 0 (the small terrain) into the new larger slice.
+            AddTerrain(terrainMode, CreateFlatHeightmap(resA, heightA, heightmapScale.y),
+                resA, heightmapScale, Matrix4x4.identity);
+            AddTerrain(terrainMode, CreateFlatHeightmap(resB, heightB, heightmapScale.y),
+                resB, heightmapScale, Matrix4x4.Translate(offsetB));
+
+            if (terrainMode == TerrainMode.Procedural)
+                Assert.AreEqual(2, m_AccelStructAdapter.TerrainCount, "Should have two terrain slices in the texture array.");
+
+            float ex = k_BoundaryEpsilonX;
+            float ez = k_BoundaryEpsilonZ;
+
+            var results = TraceRays(new TestRay[]
+            {
+                RayDown(extentA * 0.5f + ex, extentA * 0.5f + ez),                    // 0: terrain A (33-res, slot 0 after regrow)
+                RayDown(offsetB.x + extentB * 0.5f + ex, extentB * 0.5f + ez),        // 1: terrain B (129-res, slot 1)
+            });
+
+            Assert.AreEqual(1u, results[0].isValid, "Ray should hit small (33-res) terrain A after regrow.");
+            Assert.AreEqual(heightA, results[0].worldPosition.y, 1.0f, $"Should hit terrain A at y={heightA}.");
+
+            Assert.AreEqual(1u, results[1].isValid, "Ray should hit large (129-res) terrain B.");
+            Assert.AreEqual(heightB, results[1].worldPosition.y, 1.0f, $"Should hit terrain B at y={heightB}.");
+        }
+
+        [Test]
+        public void TraceRayDownToMixedResolutionTerrains_LargeThenSmall_HitsBoth(
+            [Values(TerrainMode.Mesh, TerrainMode.Procedural)] TerrainMode terrainMode)
+        {
+            int resA = 129;
+            int resB = 33;
+            float3 heightmapScale = new float3(1.0f, 100.0f, 1.0f);
+            float heightA = 30.0f;
+            float heightB = 60.0f;
+
+            float extentA = (resA - 1) * heightmapScale.x;
+            float extentB = (resB - 1) * heightmapScale.x;
+            float3 offsetB = new float3(extentA + 10.0f, 0, 0);
+
+            // Large first, then small: no regrow on the second add. The small terrain must be
+            // copied into the upper-left of a slot sized to the existing (larger) atlas width.
+            AddTerrain(terrainMode, CreateFlatHeightmap(resA, heightA, heightmapScale.y),
+                resA, heightmapScale, Matrix4x4.identity);
+            AddTerrain(terrainMode, CreateFlatHeightmap(resB, heightB, heightmapScale.y),
+                resB, heightmapScale, Matrix4x4.Translate(offsetB));
+
+            float ex = k_BoundaryEpsilonX;
+            float ez = k_BoundaryEpsilonZ;
+
+            var results = TraceRays(new TestRay[]
+            {
+                RayDown(extentA * 0.5f + ex, extentA * 0.5f + ez),                    // 0: terrain A (129-res)
+                RayDown(offsetB.x + extentB * 0.5f + ex, extentB * 0.5f + ez),        // 1: terrain B (33-res, padded)
+            });
+
+            Assert.AreEqual(1u, results[0].isValid, "Ray should hit large (129-res) terrain A.");
+            Assert.AreEqual(heightA, results[0].worldPosition.y, 1.0f, $"Should hit terrain A at y={heightA}.");
+
+            Assert.AreEqual(1u, results[1].isValid, "Ray should hit small (33-res) terrain B in padded slot.");
+            Assert.AreEqual(heightB, results[1].worldPosition.y, 1.0f, $"Should hit terrain B at y={heightB}.");
+        }
+
+        [Test]
+        public void TraceRayDownToMixedResolutionTerrains_LargeThenSmall_PaddingDoesNotHit(
+            [Values(TerrainMode.Mesh, TerrainMode.Procedural)] TerrainMode terrainMode)
+        {
+            // The small terrain occupies the upper-left of a slot sized to the larger atlas.
+            // The padding region must not produce spurious hits — the AABB tiles only cover the
+            // real terrain extent, so this is mainly a regression guard.
+            int resA = 129;
+            int resB = 33;
+            float3 heightmapScale = new float3(1.0f, 100.0f, 1.0f);
+            float heightA = 30.0f;
+            float heightB = 60.0f;
+
+            float extentA = (resA - 1) * heightmapScale.x;
+            float extentB = (resB - 1) * heightmapScale.x;
+            float3 offsetB = new float3(extentA + 10.0f, 0, 0);
+
+            AddTerrain(terrainMode, CreateFlatHeightmap(resA, heightA, heightmapScale.y),
+                resA, heightmapScale, Matrix4x4.identity);
+            AddTerrain(terrainMode, CreateFlatHeightmap(resB, heightB, heightmapScale.y),
+                resB, heightmapScale, Matrix4x4.Translate(offsetB));
+
+            // Pick world coords that are outside terrain B's extent but inside what would be
+            // its slot if the atlas were treated as world-space (it isn't — but a buggy UV
+            // remap could erroneously make the padded region rayable).
+            float outsideOffset = 0.1f;
+            float beyondBX = offsetB.x + extentB + outsideOffset;
+            float beyondBZ = extentB + outsideOffset;
+            // Stay clear of terrain A's extent (offsetB.x = extentA + 10).
+            Assert.Less(extentA, beyondBX, "Test setup: ray X should not hit terrain A.");
+
+            var results = TraceRays(new TestRay[]
+            {
+                RayDown(beyondBX, extentB * 0.5f),                                    // just past terrain B's right edge
+                RayDown(offsetB.x + extentB * 0.5f, beyondBZ),                        // just past terrain B's far edge
+            });
+
+            Assert.AreEqual(0u, results[0].isValid, "Ray past terrain B's right edge must miss (no padding hits).");
+            Assert.AreEqual(0u, results[1].isValid, "Ray past terrain B's far edge must miss (no padding hits).");
+        }
+
+        [Test]
+        public void TraceRayDownToThreeMixedResolutionTerrains_HitsAll(
+            [Values(TerrainMode.Mesh, TerrainMode.Procedural)] TerrainMode terrainMode)
+        {
+            // Two regrows: 33 → 65 → 257. Verifies that re-padding existing slots remains
+            // correct after multiple grows (slot 0 padded twice, slot 1 padded once).
+            int[] resolutions = { 33, 65, 257 };
+            float[] heights = { 20.0f, 40.0f, 70.0f };
+            float3 heightmapScale = new float3(1.0f, 100.0f, 1.0f);
+
+            float gap = 10.0f;
+            float[] offsetsX = new float[resolutions.Length];
+            float runningX = 0;
+            for (int i = 0; i < resolutions.Length; i++)
+            {
+                offsetsX[i] = runningX;
+                runningX += (resolutions[i] - 1) * heightmapScale.x + gap;
+            }
+
+            for (int i = 0; i < resolutions.Length; i++)
+            {
+                AddTerrain(terrainMode,
+                    CreateFlatHeightmap(resolutions[i], heights[i], heightmapScale.y),
+                    resolutions[i], heightmapScale, Matrix4x4.Translate(new float3(offsetsX[i], 0, 0)));
+            }
+
+            if (terrainMode == TerrainMode.Procedural)
+                Assert.AreEqual(3, m_AccelStructAdapter.TerrainCount, "Should have three terrain slices.");
+
+            float ex = k_BoundaryEpsilonX;
+            float ez = k_BoundaryEpsilonZ;
+            var rays = new TestRay[resolutions.Length];
+            for (int i = 0; i < resolutions.Length; i++)
+            {
+                float extent = (resolutions[i] - 1) * heightmapScale.x;
+                rays[i] = RayDown(offsetsX[i] + extent * 0.5f + ex, extent * 0.5f + ez);
+            }
+            var results = TraceRays(rays);
+
+            for (int i = 0; i < resolutions.Length; i++)
+            {
+                Assert.AreEqual(1u, results[i].isValid, $"Ray {i} should hit terrain {resolutions[i]}-res.");
+                Assert.AreEqual(heights[i], results[i].worldPosition.y, 1.0f,
+                    $"Terrain {resolutions[i]}-res should be at y={heights[i]}.");
+            }
+        }
+
+        [Test]
+        public void TraceRayDownToFlatTerrain_SmallSliceInLargeAtlas_NormalAtEdgesAndCornersIsCorrect(
+            [Values(TerrainMode.Mesh, TerrainMode.Procedural)] TerrainMode terrainMode)
+        {
+            // A flat terrain placed inside an atlas slot that is larger than the terrain itself.
+            // Rays land just inside every corner and edge midpoint (8 in total). Sobel normal
+            // sampling reaches one atlas-texel beyond the hit position; with a tight inset those
+            // taps fall on or past the boundary between real terrain data and the zero-padded
+            // region. If the implementation samples the padding, the normal will tilt away from
+            // up. With correct sampling the normal must remain ≈ (0, 1, 0) everywhere.
+            int resLarge = 257;
+            int resSmall = 33;
+            float3 heightmapScaleLarge = new float3(1.0f, 100.0f, 1.0f);
+            float3 heightmapScaleSmall = new float3(1.0f, 100.0f, 1.0f);
+            float terrainHeight = 50.0f;
+
+            float extentLarge = (resLarge - 1) * heightmapScaleLarge.x;
+            float3 offsetSmall = new float3(extentLarge + 20.0f, 0, 0);
+
+            // Add the large terrain first to force the atlas to its size; the small terrain
+            // ends up padded into the upper-left of its slot.
+            AddTerrain(terrainMode, CreateFlatHeightmap(resLarge, 5.0f, heightmapScaleLarge.y),
+                resLarge, heightmapScaleLarge, Matrix4x4.identity);
+            AddTerrain(terrainMode, CreateFlatHeightmap(resSmall, terrainHeight, heightmapScaleSmall.y),
+                resSmall, heightmapScaleSmall, Matrix4x4.Translate(offsetSmall));
+
+            float extentSmall = (resSmall - 1) * heightmapScaleSmall.x; // = 32 m
+
+            // Tight inset so the Sobel taps reach right up to the terrain boundary.
+            float inset = 0.001f;
+            // Tiny but different X and Z epsilons keep midpoint rays off cell/tile/AABB
+            // boundaries and break the in-cell diagonal (x.frac == z.frac) symmetry.
+            // Smaller than `inset` so upper-edge rays stay inside the terrain extent.
+            float ex = 0.00013f;
+            float ez = 0.00027f;
+            float ox = offsetSmall.x;
+            float oz = offsetSmall.z;
+            float lo = inset;
+            float hi = extentSmall - inset;
+            float mid = extentSmall * 0.5f;
+
+            string[] labels = {
+                "BL corner", "BR corner", "TL corner", "TR corner",
+                "L edge", "R edge", "B edge", "T edge",
+            };
+            var rays = new TestRay[]
+            {
+                RayDown(ox + lo  + ex, oz + lo  + ez),            // 0: bottom-left corner
+                RayDown(ox + hi  + ex, oz + lo  + ez),            // 1: bottom-right corner
+                RayDown(ox + lo  + ex, oz + hi  + ez),            // 2: top-left corner
+                RayDown(ox + hi  + ex, oz + hi  + ez),            // 3: top-right corner
+                RayDown(ox + lo  + ex, oz + mid + ez),            // 4: left edge midpoint
+                RayDown(ox + hi  + ex, oz + mid + ez),            // 5: right edge midpoint
+                RayDown(ox + mid + ex, oz + lo  + ez),            // 6: bottom edge midpoint
+                RayDown(ox + mid + ex, oz + hi  + ez),            // 7: top edge midpoint
+            };
+            var results = TraceRays(rays);
+
+            for (int i = 0; i < results.Length; i++)
+            {
+                Assert.AreEqual(1u, results[i].isValid, $"{labels[i]} ray ({terrainMode}) should hit the terrain.");
+                Assert.AreEqual(0f, results[i].worldNormal.x, 0.05f,
+                    $"{labels[i]} normal X should be ~0 (was {results[i].worldNormal.x:F3}); padded region likely sampled.");
+                Assert.AreEqual(1f, results[i].worldNormal.y, 0.05f,
+                    $"{labels[i]} normal Y should be ~1 (was {results[i].worldNormal.y:F3}); padded region likely sampled.");
+                Assert.AreEqual(0f, results[i].worldNormal.z, 0.05f,
+                    $"{labels[i]} normal Z should be ~0 (was {results[i].worldNormal.z:F3}); padded region likely sampled.");
+            }
+        }
+
+        [Test]
+        public void TraceRayDownToHalfCylinder_SmallSliceInLargeAtlas_ReturnsCorrectNormals(
+            [Values(TerrainMode.Mesh, TerrainMode.Procedural)] TerrainMode terrainMode)
+        {
+            // Sobel normal sampling uses invAtlasWidthInTexels for the texel offset eps. If the
+            // small terrain's eps still used its own resolution, Sobel taps would land at the
+            // wrong texels in the padded slot and the normal would be wrong.
+            // Setup: a large flat terrain first (forces a large atlas), then a small half-cylinder
+            // terrain whose normals we assert.
+            int resLarge = 257;
+            int resSmall = 65;
+            float radius = 32.0f;
+            float3 heightmapScaleLarge = new float3(1.0f, 100.0f, 1.0f);
+            float3 heightmapScaleSmall = new float3(2.0f * radius / (resSmall - 1), radius, 2.0f * radius / (resSmall - 1));
+
+            float extentLarge = (resLarge - 1) * heightmapScaleLarge.x;
+            float3 offsetSmall = new float3(extentLarge + 20.0f, 0, 0);
+
+            AddTerrain(terrainMode, CreateFlatHeightmap(resLarge, 5.0f, heightmapScaleLarge.y),
+                resLarge, heightmapScaleLarge, Matrix4x4.identity);
+            AddTerrain(terrainMode, CreateHalfCylinderHeightmap(resSmall, radius, heightmapScaleSmall.y),
+                resSmall, heightmapScaleSmall, Matrix4x4.Translate(offsetSmall));
+
+            float extentSmall = (resSmall - 1) * heightmapScaleSmall.x; // = 2 * radius
+            float midZ = extentSmall * 0.5f + k_BoundaryEpsilonZ;
+            float ex = k_BoundaryEpsilonX;
+
+            var results = TraceRays(new TestRay[]
+            {
+                RayDown(offsetSmall.x + extentSmall * 0.5f + ex, midZ, radius + 50),        // 0: cylinder center → normal up
+                RayDown(offsetSmall.x + radius - radius / math.sqrt(2f) + ex, midZ, radius + 50), // 1: 45° slope
+            });
+
+            Assert.AreEqual(1u, results[0].isValid, "Center ray should hit small half-cylinder in padded slot.");
+            Assert.AreEqual(1u, results[1].isValid, "45-degree ray should hit small half-cylinder in padded slot.");
+
+            float3 up = new float3(0, 1, 0);
+            float dotCenter = math.dot(results[0].worldNormal, up);
+            float dot45 = math.dot(results[1].worldNormal, up);
+
+            Assert.AreEqual(1f, dotCenter, 0.15f, $"Padded-slot center dot(normal, up) should be ~1, was {dotCenter:F3}.");
+            float expected45Dot = 1f / math.sqrt(2f);
+            Assert.AreEqual(expected45Dot, dot45, 0.15f, $"Padded-slot 45 dot(normal, up) should be ~{expected45Dot:F3}, was {dot45:F3}.");
         }
     }
 }

@@ -5,6 +5,7 @@
 #define TERRAIN_RAY_MARCHING_ENABLED
 Texture2DArray<float> _TerrainTexture;
 SamplerState sampler_TerrainTexture;
+float _TerrainTextureInvWidth;
 #include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/TerrainRayMarching.hlsl"
 
 // Use the same include pattern as PathTracing.hlsl — define raygen macro, include TraceRayPathTracing
@@ -110,7 +111,10 @@ void TestRayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
             ComputeTerrainLocalPosAndNormal(terrainData, instance.terrainIndex, heightmapUV, localPos, localNormal);
 
             result.worldNormal = normalize(mul((float3x3)instance.localToWorldNormals, localNormal));
-            result.uv = saturate(heightmapUV * terrainData.invHeightmapWidthInTexels);
+            // Mirror production's GetTerrainHitGeomInfo: the lightmap UV comes straight
+            // from hit.uvBarycentrics. This must match the mesh path's vertex UVs
+            // (cellCoord / resolution) — see TerrainToMesh.cs.
+            result.uv = hit.uvBarycentrics;
         }
         else
         {

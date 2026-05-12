@@ -9,6 +9,7 @@
 #define TERRAIN_RAY_MARCHING_ENABLED
 Texture2DArray<float> _TerrainTexture;
 SamplerState sampler_TerrainTexture;
+float _TerrainTextureInvWidth;
 #include "TerrainRayMarching.hlsl"
 
 #include "PathTracingCommon.hlsl"
