@@ -455,13 +455,8 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             StructFields.Attributes.positionOS,
             StructFields.Attributes.color,
             StructFields.Attributes.uv0,
-            StructFields.Attributes.uv1,
+            UIStructs.PackedIdsAttribute, // Uint4 instead of Float4
             StructFields.Attributes.uv2,
-            StructFields.Attributes.uv3,
-            StructFields.Attributes.uv4,
-            StructFields.Attributes.uv5,
-            StructFields.Attributes.uv6,
-            StructFields.Attributes.uv7,
 
             StructFields.Varyings.positionCS,
             StructFields.Varyings.color,

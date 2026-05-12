@@ -5,16 +5,11 @@
 PackedVaryings uie_custom_vert(Attributes input)
 {
     appdata_t uieInput = (appdata_t)0;
-    uieInput.vertex = float4(input.positionOS, 1.0f);
-    uieInput.color = input.color;
-    uieInput.uv = input.uv0;
-    uieInput.xformClipPages = input.uv1;
-    uieInput.ids = input.uv2;
-    uieInput.flags = input.uv3;
-    uieInput.opacityColorPages = input.uv4;
-    uieInput.settingIndex = input.uv5;
-    uieInput.circle = input.uv6;
-    uieInput.textureId = input.uv7.x;
+    uieInput.vertex    = float4(input.positionOS, 1.0f);
+    uieInput.color     = input.color;
+    uieInput.uv        = input.uv0;
+    uieInput.packedIds = input.uv1;
+    uieInput.circle    = input.uv2;
 
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, uieInput);
