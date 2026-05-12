@@ -21,13 +21,15 @@ namespace UnityEditor.VFX
             public uint Count = 0;
         }
 
-        public override void GetImportDependentAssets(HashSet<EntityId> dependencies)
+        public sealed override bool IsDependentOnAnyOf(HashSet<EntityId> dependencies)
         {
-            base.GetImportDependentAssets(dependencies);
-            if (!object.ReferenceEquals(Asset, null))
-            {
-                dependencies.Add(Asset.GetEntityId());
-            }
+            if (base.IsDependentOnAnyOf(dependencies))
+                return true;
+
+            if (!ReferenceEquals(Asset, null) && dependencies.Contains(Asset.GetEntityId()))
+                return true;
+
+            return false;
         }
 
         internal override void GenerateErrors(VFXErrorReporter report)

@@ -78,7 +78,7 @@ namespace UnityEditor.VFX.Test
             spawnerContext.AddChild(constantRate);
             graph.AddChild(spawnerContext);
 
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
             var expressionIndex = graph.FindReducedExpressionIndexFromSlotCPU(slotRate);
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
@@ -129,7 +129,7 @@ namespace UnityEditor.VFX.Test
 
             graph.AddChild(builtInParameter);
 
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
 
             var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;

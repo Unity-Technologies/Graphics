@@ -31,9 +31,9 @@ namespace UnityEditor.VFX.Test
             VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
             graph.visualEffectResource = resource;
 
-            var window = EditorWindow.GetWindow<VFXViewWindow>();
+            var window = VFXTestCommon.GetViewWindow();
             window.Close();
-            window = EditorWindow.GetWindow<VFXViewWindow>();
+            window = VFXTestCommon.GetViewWindow();
             m_ViewController = VFXViewController.GetController(m_Asset.GetResource(), true);
             m_View = window.graphView;
             m_View.controller = m_ViewController;
@@ -45,7 +45,7 @@ namespace UnityEditor.VFX.Test
         public void CleanUp()
         {
             AssetDatabase.DeleteAsset(tempFilePath);
-            var window = EditorWindow.GetWindow<VFXViewWindow>();
+            var window = VFXTestCommon.GetViewWindow();
             window.Close();
         }
 

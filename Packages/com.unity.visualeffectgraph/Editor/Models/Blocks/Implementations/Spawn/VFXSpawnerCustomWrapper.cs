@@ -8,9 +8,69 @@ namespace UnityEditor.VFX
 {
     class CustomSpawnerVariant : VariantProvider
     {
+        static Type[] m_SpawnerCallbacksTypes;
+        static HashSet<GUID> m_SpawnerCallbacksGuids;
+        static HashSet<string> m_SpawnerCallbacksPaths;
+
+        static void LoadIfNeeded()
+        {
+            if (m_SpawnerCallbacksTypes == null)
+            {
+                m_SpawnerCallbacksTypes = VFXLibrary.FindConcreteSubclasses(typeof(VFXSpawnerCallbacks)).ToArray();
+                m_SpawnerCallbacksGuids = new();
+                m_SpawnerCallbacksPaths = new(StringComparer.OrdinalIgnoreCase);
+                foreach (var type in SpawnerCallbacksTypes)
+                {
+                    var guids = AssetDatabase.FindAssets($"{type.Name}");
+                    if (guids.Length == 0)
+                        Debug.LogError($"Can't find Source File for: {type}");
+
+                    foreach (var guid in guids)
+                    {
+                        var path = AssetDatabase.GUIDToAssetPath(guid);
+                        // LoadAssetAtPath<T>() cannot be used while Unity is gathering dependencies.
+                        // Ideally, we would load the asset as ScriptableObject and verify its type, but this must be avoided in this context.
+                        // Since these hash sets are used only for dependency filtering, having multiple matches of the same type is acceptable.
+                        if (path.EndsWith("cs", StringComparison.OrdinalIgnoreCase))
+                        {
+                            m_SpawnerCallbacksGuids.Add(new GUID(guid));
+                            m_SpawnerCallbacksPaths.Add(path); 
+                        }
+                    }
+                }
+            }
+        }
+
+        static Type[] SpawnerCallbacksTypes
+        {
+            get
+            {
+                LoadIfNeeded();
+                return m_SpawnerCallbacksTypes;
+            }
+        }
+
+        public static HashSet<GUID> SpawnerCallbacksGuids
+        {
+            get
+            {
+                LoadIfNeeded();
+                return m_SpawnerCallbacksGuids;
+            }
+        }
+
+        public static HashSet<string> SpawnerCallbacksPaths
+        {
+            get
+            {
+                LoadIfNeeded();
+                return m_SpawnerCallbacksPaths;
+            }
+        }
+
         public override IEnumerable<Variant> GetVariants()
         {
-            var types = VFXLibrary.FindConcreteSubclasses(typeof(VFXSpawnerCallbacks))
+            var types = SpawnerCallbacksTypes
                 .Where(x => x != typeof(LoopAndDelay)) //Explicitly exclude loop and delay from listing, preferably use VFXSpawnContext settings instead
                 .ToArray();
             foreach (var type in types)
@@ -81,15 +141,16 @@ namespace UnityEditor.VFX
             ResolveCustomCallbackInstance();
         }
 
-        public override void GetImportDependentAssets(HashSet<EntityId> dependencies)
+        public sealed override bool IsDependentOnAnyOf(HashSet<EntityId> dependencies)
         {
-            base.GetImportDependentAssets(dependencies);
-            if (customBehavior != null)
-            {
-                dependencies.Add(customBehavior.GetEntityId());
-            }
-        }
+            if (base.IsDependentOnAnyOf(dependencies))
+                return true;
 
+            if (!object.ReferenceEquals(customBehavior, null) && dependencies.Contains(customBehavior.GetEntityId()))
+                return true;
+
+            return false;
+        }
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get

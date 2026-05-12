@@ -127,7 +127,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(name_A, name_B);
             Assert.AreNotEqual(eventOutput_A.GetData(), eventOutput_B.GetData());
 
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
             var names = new List<string>();
             vfxComponent.GetOutputEventNames(names);
             Assert.AreEqual(1, names.Count);
@@ -140,11 +140,20 @@ namespace UnityEditor.VFX.Test
 
             //Now, different names
             Assert.AreNotEqual(name_A, name_B);
+            Assert.AreNotEqual(null, eventOutput_A.GetData());
+            Assert.AreNotEqual(null, eventOutput_B.GetData());
+            Assert.IsAssignableFrom<VFXDataOutputEvent>(eventOutput_A.GetData());
+            Assert.IsAssignableFrom<VFXDataOutputEvent>(eventOutput_B.GetData());
+
+            //N.B.: InitImplicitContexts is called by compilation, which isn't applied without window opened
+            (eventOutput_A.GetData() as VFXDataOutputEvent).InitImplicitContexts();
+            (eventOutput_B.GetData() as VFXDataOutputEvent).InitImplicitContexts();
+
             Assert.AreNotEqual(eventOutput_A.GetData(), eventOutput_B.GetData());
             Assert.AreEqual((eventOutput_A.GetData() as VFXDataOutputEvent).eventName, name_A);
             Assert.AreEqual((eventOutput_B.GetData() as VFXDataOutputEvent).eventName, name_B);
 
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
             vfxComponent.GetOutputEventNames(names);
             Assert.AreEqual(2, names.Count);
             Assert.IsTrue(names.Contains(newName));
@@ -159,7 +168,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(name_A, name_B);
             Assert.AreNotEqual(eventOutput_A.GetData(), eventOutput_B.GetData());
             Assert.AreEqual((eventOutput_A.GetData() as VFXDataOutputEvent).eventName, name_A);
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
             vfxComponent.GetOutputEventNames(names);
             Assert.AreEqual(1, names.Count);
             Assert.AreEqual(newName, names[0]);

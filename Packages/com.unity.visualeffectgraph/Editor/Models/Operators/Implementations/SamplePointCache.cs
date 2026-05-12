@@ -25,6 +25,17 @@ namespace UnityEditor.VFX.Operator
         [VFXSetting, SerializeField, Tooltip("Specifies how Unity handles the sample when the particleId is out of the point cache bounds.")]
         private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Wrap;
 
+        public sealed override bool IsDependentOnAnyOf(HashSet<EntityId> dependencies)
+        {
+            if (base.IsDependentOnAnyOf(dependencies))
+                return true;
+
+            if (!ReferenceEquals(asset, null) && dependencies.Contains(asset.GetEntityId()))
+                return true;
+
+            return false;
+        }
+
         private static Type GetOutputType(Texture2D surface)
         {
             switch (surface.format)

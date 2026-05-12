@@ -33,7 +33,7 @@ namespace UnityEditor.VFX
             {
                 var assetPath = AssetDatabase.GetAssetPath(shaderGraph.GetEntityId());
 
-                var newShaderGraph = AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(assetPath);
+                var newShaderGraph = VFXShaderGraphHelpers.LoadShaderGraphAssetAtPath(assetPath);
                 m_IsShaderGraphMissing = newShaderGraph == null;
 
                 if (!m_IsShaderGraphMissing)
@@ -63,7 +63,7 @@ namespace UnityEditor.VFX
                 if (shaderGraph && shaderGraph.generatesWithShaderGraph)
                 {
                     var path = AssetDatabase.GetAssetPath(shaderGraph);
-                    var referenceMaterial = AssetDatabase.LoadAssetAtPath<Material>(path);
+                    var referenceMaterial = VFXShaderGraphHelpers.LoadMaterialAtPath(path);
                     materialSettings.UpgradeToMaterialWorkflowVersion(referenceMaterial);
                 }
             }
@@ -91,15 +91,6 @@ namespace UnityEditor.VFX
             if (setting.name == nameof(shaderGraph))
             {
                 VFXAnalytics.GetInstance().OnSpecificSettingChanged($"{GetType().Name}.{setting.name}");
-            }
-        }
-
-        public override void GetImportDependentAssets(HashSet<EntityId> dependencies)
-        {
-            base.GetImportDependentAssets(dependencies);
-            if (!object.ReferenceEquals(shaderGraph, null))
-            {
-                dependencies.Add(shaderGraph.GetEntityId());
             }
         }
 
@@ -191,26 +182,33 @@ namespace UnityEditor.VFX
         // Do not resync slots when shader graph is missing to keep potential links to the shader properties
         public override bool ResyncSlots(bool notify) => !m_IsShaderGraphMissing && base.ResyncSlots(notify);
 
-        public override void CheckGraphBeforeImport()
+        public override void ResyncDependencies()
         {
-            base.CheckGraphBeforeImport();
+            base.ResyncDependencies();
             var currentShaderGraph = GetOrRefreshShaderGraphObject();
 
-            // If the graph is reimported it can be because one of its dependency such as the shadergraphs, has been changed.
-            if (!VFXGraph.explicitCompile)
+            ResyncSlots(true);
+
+            // Ensure that the output context name is in sync with the shader graph shader enum name.
+            if (currentShaderGraph != null && currentShaderGraph.generatesWithShaderGraph)
+                Invalidate(InvalidationCause.kUIChangedTransient);
+
+            else if (m_IsShaderGraphMissing)
             {
-                ResyncSlots(true);
-
-                // Ensure that the output context name is in sync with the shader graph shader enum name.
-                if (currentShaderGraph != null && currentShaderGraph.generatesWithShaderGraph)
-                    Invalidate(InvalidationCause.kUIChangedTransient);
-
-                else if (m_IsShaderGraphMissing)
-                {
-                    var vfxName = GetGraph().visualEffectResource.name;
-                    Debug.LogError($"The VFX Graph '{vfxName}'" + VFXShaderGraphHelpers.GetMissingShaderGraphErrorMessage(currentShaderGraph));
-                }
+                var vfxName = GetGraph().visualEffectResource.name;
+                Debug.LogError($"The VFX Graph '{vfxName}'" + VFXShaderGraphHelpers.GetMissingShaderGraphErrorMessage(currentShaderGraph));
             }
+        }
+
+        public sealed override bool IsDependentOnAnyOf(HashSet<EntityId> dependencies)
+        {
+            if (base.IsDependentOnAnyOf(dependencies))
+                return true;
+
+            if (!ReferenceEquals(shaderGraph, null) && dependencies.Contains(shaderGraph.GetEntityId()))
+                return true;
+
+            return false;
         }
 
         internal override void GenerateErrors(VFXErrorReporter report)

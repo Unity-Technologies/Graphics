@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.VFX.Block;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -10,27 +11,29 @@ namespace UnityEditor.VFX
     {
         public static bool IsSubgraphModel(VFXModel model) => model is VFXSubgraphBlock or VFXSubgraphContext or VFXSubgraphOperator;
 
-        public static int TransferExpressionToParameters(IList<VFXExpression> inputExpression, IEnumerable<VFXParameter> parameters, List<VFXExpression> backedUpExpressions = null)
+        public static int TransferExpressionToParameter(IList<VFXExpression> inputExpressions, int expressionOffset, VFXParameter param, List<VFXExpression> backedUpExpressions = null)
         {
-            int cptSlot = 0;
-            foreach (var param in parameters)
+            var outputSlot = param.outputSlots[0];
+            param.subgraphMode = true;
+
+            foreach (var slot in outputSlot.GetExpressionSlots())
             {
-                VFXSlot outputSlot = param.outputSlots[0];
-
-                param.subgraphMode = true;
-                if (inputExpression.Count <= cptSlot)
-                    continue;
-
-                foreach (var slot in outputSlot.GetExpressionSlots())
-                {
-                    if (backedUpExpressions != null)
-                        backedUpExpressions.Add(slot.GetExpression());
-                    slot.SetExpression(inputExpression[cptSlot]);
-                    cptSlot += 1;
-                }
+                backedUpExpressions?.Add(slot.GetExpression());
+                slot.SetExpression(inputExpressions[expressionOffset++]);
             }
 
-            return cptSlot;
+            return expressionOffset;
+        }
+
+        public static int TransferExpressionToParameters(IList<VFXExpression> inputExpression, IEnumerable<VFXParameter> parameters, List<VFXExpression> backedUpExpressions = null)
+        {
+            int expressionOffset = 0;
+            foreach (var param in parameters)
+            {
+                expressionOffset = TransferExpressionToParameter(inputExpression, expressionOffset, param, backedUpExpressions);
+            }
+
+            return expressionOffset;
         }
 
         public static VFXPropertyWithValue GetPropertyFromInputParameter(VFXParameter param)
@@ -61,26 +64,71 @@ namespace UnityEditor.VFX
         {
             return models.OfType<VFXParameter>().Where(predicate).OrderBy(t => t.order);
         }
+
+        public static void ResyncCustomAttributes(VFXGraph mainGraph, VFXGraph subGraph)
+        {
+            if (mainGraph == null || subGraph == null)
+            {
+                return;
+            }
+
+            foreach (var customAttribute in subGraph.customAttributes)
+            {
+                if (!mainGraph.attributesManager.Exist(customAttribute.attributeName))
+                {
+                    mainGraph.TryAddCustomAttribute(customAttribute.attributeName, CustomAttributeUtility.GetValueType(customAttribute.type), customAttribute.description, true, out _);
+                    mainGraph.Invalidate(VFXModel.InvalidationCause.kExpressionGraphChanged);
+                }
+                else
+                {
+                    mainGraph.TryUpdateCustomAttribute(customAttribute.attributeName, customAttribute.type, customAttribute.description, true);
+                }
+                mainGraph.SetCustomAttributeDirty();
+            }
+        }
+
+        public static void SetSubgraphFlattenParentsDeep(VFXGraph graph)
+        {
+            if (graph == null)
+                throw new ArgumentNullException();
+
+            foreach (var child in graph.children)
+            {
+                if (child is IVFXSubgraphModel subGraph)
+                    subGraph.SetSubmodelsFlattenedParents(graph);
+
+                else
+                {
+                    if (child is VFXContext context)
+                    {
+                        foreach (var block in context.children)
+                            if (block is VFXSubgraphBlock subBlock)
+                                subBlock.SetSubmodelsFlattenedParents(context);
+                    }
+                }
+            }
+        }
     }
+
 
     [VFXHelpURL("Subgraph")]
     [VFXInfo(name = "Empty Subgraph Operator")]
-    class VFXSubgraphOperator : VFXOperator, IVFXAttributeUsage
+    class VFXSubgraphOperator : VFXOperator, IVFXAttributeUsage, IVFXSubgraphModel
     {
-        bool m_IsMissing;
-
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected VisualEffectSubgraphOperator m_Subgraph;
 
-        public VFXSubgraphOperator()
-        {
-            // This allow to detect when a resource is deleted or restored
-            EditorApplication.projectChanged += OnProjectOrHierarchyChanged;
-        }
+        // Cached resource copy
+        [NonSerialized]
+        private VisualEffectResource m_ResourceCopy;
+        [NonSerialized]
+        private VFXModel[] m_SubChildren;
+
+        public VisualEffectResource resourceCopy => m_ResourceCopy;
 
         public void OnDestroy()
         {
-            EditorApplication.projectChanged -= OnProjectOrHierarchyChanged;
+            ClearCopy();
         }
 
         public VisualEffectSubgraphOperator subgraph
@@ -96,65 +144,65 @@ namespace UnityEditor.VFX
                     {
                         m_Subgraph = newSubgraph;
                     }
-
-                    m_IsMissing = m_Subgraph == null;
                 }
                 return m_Subgraph;
             }
         }
 
-        [NonSerialized]
-        VFXModel[] m_SubChildren;
+        private VisualEffectResource GetOrCreateResourceCopy(bool forceRecreate = false)
+        {
+            RecreateCopyIfNeeded(forceRecreate);
+            return m_ResourceCopy;
+        }
 
         public void RecreateCopy()
         {
-            ClearCopy();
+            RecreateCopyIfNeeded(true);
+        }
 
-            if (subgraph == null)
-            {
-                m_SubChildren = null;
+        public void RecreateCopyIfNeeded(bool force = false)
+        {
+            if (force)
+                ClearCopy();
+
+            if (subgraph == null || m_ResourceCopy != null)
                 return;
-            }
+            
+            m_ResourceCopy = m_Subgraph.GetResourceAtPathAndForget();
 
-            var graph = m_Subgraph.GetResource().GetOrCreateGraph();
-            HashSet<ScriptableObject> dependencies = new HashSet<ScriptableObject>();
+            if (VFXViewPreference.advancedLogs)
+                Debug.Log($"VfxSubgraphOperator::RecreateCopy for {name} ({GetEntityId()}) of type {GetType()}. Path: {AssetDatabase.GetAssetPath(m_Subgraph.GetEntityId())}. COPY ID: {m_ResourceCopy.GetEntityId()}");
 
-            foreach (var child in graph.children.Where(t => t is VFXOperator || t is VFXParameter))
+            var copyGraph = m_ResourceCopy.GetGraph();
+            if (copyGraph == null)
+                throw new InvalidOperationException("GetResourceAtPathAndForget failure");
+
+            copyGraph.SanitizeGraph();
+
+            var dependencies = new HashSet<ScriptableObject>();
+            foreach (var child in copyGraph.children.Where(t => t is VFXOperator || t is VFXParameter))
             {
                 dependencies.Add(child);
                 child.CollectDependencies(dependencies);
             }
 
-            var copy = VFXMemorySerializer.DuplicateObjects(dependencies.ToArray());
-            m_SubChildren = copy.OfType<VFXModel>().Where(t => t is VFXOperator || t is VFXParameter).ToArray();
-
-            foreach (var child in copy)
-            {
-                child.hideFlags = HideFlags.HideAndDontSave;
-            }
-
-            var usedSubgraph = m_Subgraph.GetResource().GetOrCreateGraph();
+            m_SubChildren = dependencies.OfType<VFXModel>().Where(t => t is VFXOperator || t is VFXParameter).ToArray();
+            var usedSubgraph = copyGraph;
             usedSubgraph.SyncCustomAttributes();
-            if (GetGraph() is { } mainGraph)
-            {
-                mainGraph.SyncCustomAttributes();
-            }
-            ResyncCustomAttributes();
+
+            VFXSubgraphUtility.ResyncCustomAttributes(GetGraph(), copyGraph);
         }
 
         private void ClearCopy()
         {
-            if (m_SubChildren != null)
+            if (m_ResourceCopy != null)
             {
-                foreach (var child in m_SubChildren)
-                {
-                    if (child != null)
-                    {
-                        ScriptableObject.DestroyImmediate(child, true);
-                    }
-                }
+                m_ResourceCopy.DestroyTransientResourceDeep();
+                m_ResourceCopy = null;
                 m_SubChildren = null;
             }
+            else if (m_SubChildren != null)
+                throw new Exception("Bad internal state for VFXSubgraphOperator");
         }
 
         public sealed override string name => m_Subgraph != null ? ObjectNames.NicifyVariableName(m_Subgraph.name) : "Empty Subgraph Operator";
@@ -163,9 +211,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (m_SubChildren == null)
-                    RecreateCopy();
-
+                RecreateCopyIfNeeded();
                 return GetParameters(VFXSubgraphUtility.InputPredicate)
                     .OrderBy(x => x.order)
                     .Select(VFXSubgraphUtility.GetPropertyFromInputParameter);
@@ -186,16 +232,23 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void GetImportDependentAssets(HashSet<EntityId> dependencies)
+        public sealed override bool IsDependentOnAnyOf(HashSet<EntityId> dependencies)
         {
-            base.GetImportDependentAssets(dependencies);
-            if (!object.ReferenceEquals(m_Subgraph, null))
-            {
-                dependencies.Add(m_Subgraph.GetEntityId());
-            }
+            if (base.IsDependentOnAnyOf(dependencies))
+                return true;
+
+            if (!ReferenceEquals(m_Subgraph, null) && dependencies.Contains(m_Subgraph.GetEntityId()))
+                return true;
+
+            return false;
         }
 
-        protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
+        public void SetSubmodelsFlattenedParents(VFXModel parent)
+        {
+            // Nothing is needed for sub operators atm
+        }
+
+        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             if (cause == InvalidationCause.kSettingChanged)
             {
@@ -203,7 +256,7 @@ namespace UnityEditor.VFX
 
                 if (graph != null && m_Subgraph != null && m_Subgraph.GetResource() is {} resource)
                 {
-                    var otherGraph = resource.GetOrCreateGraph();
+                    var otherGraph = resource.GetGraph();
                     if (otherGraph == graph || otherGraph.subgraphDependencies.Contains(graph.GetResource().visualEffectObject))
                         m_Subgraph = null; // prevent cyclic dependencies.
 
@@ -214,7 +267,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            base.Invalidate(model, cause);
+            base.OnInvalidate(model, cause);
         }
 
         IEnumerable<VFXParameter> GetParameters(Func<VFXParameter, bool> predicate)
@@ -231,26 +284,28 @@ namespace UnityEditor.VFX
             if (ownedOnly || m_Subgraph == null)
                 return;
 
-            m_Subgraph.GetResource().GetOrCreateGraph().CollectDependencies(objs, false);
+            m_Subgraph.GetResource().GetGraph().CollectDependencies(objs, false);
         }
 
-        public override void CheckGraphBeforeImport()
+        public override void ResyncDependencies()
         {
-            base.CheckGraphBeforeImport();
+            base.ResyncDependencies();
 
-            // If the graph is reimported it can be because one of its dependency such as the subgraphs, has been changed.
-            if (!VFXGraph.explicitCompile)
-            {
-                MarkOutputExpressionsAsOutOfDate();
-                ResyncSlots(true);
-                ResyncCustomAttributes();
-            }
+            ClearCopy();
+
+            MarkOutputExpressionsAsOutOfDate();
+            ResyncSlots(true);
+            if (m_Subgraph != null)
+                VFXSubgraphUtility.ResyncCustomAttributes(GetGraph(), m_Subgraph.GetResource().GetGraph());
         }
 
         protected override void OnAdded()
         {
             base.OnAdded();
-            ResyncCustomAttributes();
+            if (m_Subgraph != null)
+            {
+                VFXSubgraphUtility.ResyncCustomAttributes(GetGraph(), GetOrCreateResourceCopy().GetGraph());
+            }
         }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
@@ -258,8 +313,7 @@ namespace UnityEditor.VFX
             if (subgraph == null)
                 return Array.Empty<VFXExpression>();
 
-            if (m_SubChildren == null)
-                RecreateCopy();
+            RecreateCopyIfNeeded();
 
             // Change all the inputExpressions of the parameters.
             var parameters = GetParameters(VFXSubgraphUtility.InputPredicate).OrderBy(t => t.order);
@@ -277,48 +331,13 @@ namespace UnityEditor.VFX
             return outputExpressions.ToArray();
         }
 
-        void OnProjectOrHierarchyChanged()
-        {
-            var wasMissing = m_IsMissing;
-            var temp = subgraph;
-            if (wasMissing != m_IsMissing)
-            {
-                Invalidate(InvalidationCause.kExpressionGraphChanged);
-            }
-        }
-
-        private void ResyncCustomAttributes()
-        {
-            var graph = GetGraph();
-            if (graph == null || m_Subgraph == null)
-            {
-                return;
-            }
-
-            var usedSubgraph = m_Subgraph.GetResource().GetOrCreateGraph();
-
-            foreach (var customAttribute in usedSubgraph.customAttributes)
-            {
-                if (!graph.attributesManager.Exist(customAttribute.attributeName))
-                {
-                    graph.TryAddCustomAttribute(customAttribute.attributeName, CustomAttributeUtility.GetValueType(customAttribute.type), customAttribute.description, true, out _);
-                    graph.Invalidate(InvalidationCause.kExpressionGraphChanged);
-                }
-                else
-                {
-                    graph.TryUpdateCustomAttribute(customAttribute.attributeName, customAttribute.type, customAttribute.description, true);
-                }
-            }
-            graph.SetCustomAttributeDirty();
-        }
-
         public IEnumerable<VFXAttribute> usedAttributes
         {
             get
             {
                 if (m_Subgraph != null)
                 {
-                    var usedSubgraph = m_Subgraph.GetResource().GetOrCreateGraph();
+                    var usedSubgraph = GetOrCreateResourceCopy().GetGraph();
                     foreach (var customAttribute in usedSubgraph.customAttributes)
                     {
                         if (usedSubgraph.attributesManager.TryFind(customAttribute.attributeName, out var attribute))

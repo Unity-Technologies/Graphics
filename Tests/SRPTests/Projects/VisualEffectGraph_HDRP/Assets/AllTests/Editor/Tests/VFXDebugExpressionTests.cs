@@ -62,7 +62,7 @@ namespace UnityEditor.VFX.Test
 
             spawnerContext.AddChild(constantRate);
             graph.AddChild(spawnerContext);
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
 
             var vfxComponent = m_gameObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;

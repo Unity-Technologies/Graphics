@@ -75,6 +75,36 @@ namespace UnityEditor.VFX.Test
             yield return new WaitForDomainReload();
 
             Assert.IsTrue(Directory.Exists(kSampleExpectedPath));
+
+            bool checkOpenWindow = false;
+#if VFX_TESTS_HAS_URP
+            checkOpenWindow = m_CurrentMatch == "Learning";
+#endif
+            if (checkOpenWindow)
+            {
+                //This setup repro issue leading to corrupted VFX after import, see PR #84641
+#if VFX_TESTS_HAS_URP
+                var sceneGuid = AssetDatabase.FindAssets("t:scene URP_", new[] {kSampleExpectedPath}).Single();
+#else
+                var sceneGuid = AssetDatabase.FindAssets("t:scene HDRP_", new[] { kSampleExpectedPath }).Single();
+#endif
+                var scenePath = AssetDatabase.GUIDToAssetPath(sceneGuid);
+                UnityEditor.SceneManagement.EditorSceneManager.OpenScene(scenePath, SceneManagement.OpenSceneMode.Single);
+                foreach (var guid in AssetDatabase.FindAssets("t:VisualEffectAsset", new[] { kSampleExpectedPath }))
+                {
+                    var path = AssetDatabase.GUIDToAssetPath(guid);
+                    var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
+                    var resource = vfxAsset.GetResource();
+
+                    var window = VFXTestCommon.GetWindow(resource, true, true);
+                    window.LoadResource(resource, null);
+                    yield return null;
+
+                    Assert.AreNotEqual(0, window.graphView.controller.AllSlotContainerControllers.Count());
+                    window.Close();
+                }
+            }
+
             if (m_CurrentMatch == "Learning")
             {
                 //Extra check for learning sample consistency
@@ -82,7 +112,7 @@ namespace UnityEditor.VFX.Test
                 {
                     var path = AssetDatabase.GUIDToAssetPath(guid);
                     var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
-                    var graph = vfxAsset.GetResource().GetOrCreateGraph();
+                    var graph = vfxAsset.GetResource().GetGraph();
 
                     foreach (var initialize in graph.children.OfType<VFXBasicInitialize>())
                     {
@@ -95,6 +125,7 @@ namespace UnityEditor.VFX.Test
                     Assert.IsTrue(graph.UIInfos.stickyNoteInfos.Length > 0, "Failure at " + path);
                 }
             }
+
             m_CurrentMatch = null;
 
             AssetDatabase.DeleteAsset(kSampleExpectedPath);

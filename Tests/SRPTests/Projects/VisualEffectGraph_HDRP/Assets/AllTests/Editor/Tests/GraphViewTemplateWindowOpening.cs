@@ -28,7 +28,7 @@ namespace UnityEditor.VFX.Test
             //debugMode = true;
             createWindowFunction = () =>
             {
-                var vfxWindow = VFXViewWindow.GetWindow((VisualEffectAsset)null, true);
+                var vfxWindow = VFXTestCommon.GetWindow((VisualEffectAsset)null, true);
                 return vfxWindow;
             };
         }

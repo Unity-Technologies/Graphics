@@ -215,7 +215,7 @@ namespace UnityEditor.VFX.UI
             }
             else if (controller.model is VFXSubgraphOperator subgraphOperator && subgraphOperator.subgraph.GetResource() is {} resource)
             {
-                var usedSubgraph = resource.GetOrCreateGraph();
+                var usedSubgraph = resource.GetGraph();
 
                 attributes = usedSubgraph.customAttributes.Select(x => x.attributeName).ToList();
             }

@@ -150,6 +150,12 @@ namespace UnityEditor.VFX.UI
             m_NeedsFlush = false;
         }
 
+        public void Release()
+        {
+            Undo.ClearUndo(m_graphUndoCursor);
+            ScriptableObject.DestroyImmediate(m_graphUndoCursor);
+        }
+
         public RestoreResult RestoreState()
         {
             if (m_CurrentCursor == m_graphUndoCursor.index)
@@ -161,6 +167,9 @@ namespace UnityEditor.VFX.UI
             {
                 if (order == 1) // undo
                 {
+                    if (m_CurrentCursor >= m_undoStack.Count)
+                        throw new ArgumentOutOfRangeException("Corrupted VFX Graph undo stack - Missing entries");
+
                     // Undoing a full graph backup, needs to go back to previous backup and replay delta changes 
                     if (m_undoStack[m_CurrentCursor] is BackupGraph)
                     {
@@ -341,7 +350,13 @@ namespace UnityEditor.VFX.UI
 
         private void ReleaseUndoStack()
         {
-            m_graphUndoStack = null; 
+            if (m_graphUndoStack == null)
+            {
+                return;
+            }
+
+            m_graphUndoStack.Release();
+            m_graphUndoStack = null;
         }
 
         public void IncremenentGraphUndoRedoState(VFXModel model, VFXModel.InvalidationCause cause)
@@ -379,7 +394,8 @@ namespace UnityEditor.VFX.UI
                     if (result == VFXGraphUndoStack.RestoreResult.FullGraph)
                     {
                         ExpressionGraphDirty = true;
-                        model.GetOrCreateGraph().UpdateSubAssets();
+                        model.GetGraph().PrepareGraph();
+                        model.GetGraph().UpdateSubAssets();
                         EditorUtility.SetDirty(graph);
                         NotifyUpdate();
                     }

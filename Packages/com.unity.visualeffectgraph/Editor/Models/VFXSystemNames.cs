@@ -1,18 +1,20 @@
 using System.Collections.Generic;
 using System.Linq;
-
+using Unity.Profiling;
 using UnityEngine;
 
 using SysRegex = System.Text.RegularExpressions.Regex;
 
 namespace UnityEditor.VFX
 {
-    internal class VFXSystemNames
+    class VFXSystemNames
     {
-        private static readonly string DefaultSystemName = "System";
-        private static readonly string IndexPattern = @" (\(([0-9])*\))$";
+        static readonly string DefaultSystemName = "System";
+        static readonly string IndexPattern = @" (\(([0-9])*\))$";
 
-        private readonly Dictionary<VFXData, string> m_SystemNamesCache = new();
+        readonly Dictionary<VFXData, string> m_SystemNamesCache = new();
+
+        static readonly ProfilerMarker k_ProfilerMarkerSyncNames = new("VFXEditor.ResyncNames");
 
         public static string GetSystemName(VFXModel model)
         {
@@ -59,6 +61,8 @@ namespace UnityEditor.VFX
 
         public void Sync(VFXGraph graph)
         {
+            using var scope = k_ProfilerMarkerSyncNames.Auto();
+
             var models = new HashSet<ScriptableObject>();
             graph.CollectDependencies(models, false);
 

@@ -144,7 +144,7 @@ namespace UnityEditor.Experimental.VFX.Utility
                 var resource = asset.GetResource();
                 if (resource != null) //If VisualEffectGraph is store in asset bundle, we can't use this following code
                 {
-                    graph = resource.graph as VFXGraph;
+                    graph = resource.GetGraph();
                 }
             }
 

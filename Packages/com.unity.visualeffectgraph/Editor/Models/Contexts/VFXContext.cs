@@ -784,14 +784,11 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void CheckGraphBeforeImport()
+        public override void ResyncDependencies()
         {
-            base.CheckGraphBeforeImport();
-            // If the graph is reimported it can be because one of its depedency such as the subgraphs, has been changed.
-            // blocs could be subgraph blocks.
-
+            base.ResyncDependencies();
             foreach (var block in children)
-                block.CheckGraphBeforeImport();
+                block.ResyncDependencies();
         }
 
         //TODO: Register all the contexts that have issues when transfering settings (in ConvertContext() )

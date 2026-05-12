@@ -6,7 +6,8 @@
         "Unity.VisualEffectGraph.Editor",
         "Unity.VisualEffectGraph.Runtime",
         "Unity.Timeline",
-        "Unity.Timeline.Editor"
+        "Unity.Timeline.Editor",
+        "Unity.Nuget.Moq.Editor"
     ],
     "includePlatforms": [
         "Editor"
@@ -15,7 +16,8 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "nunit.framework.dll"
+        "nunit.framework.dll",
+        "Moq.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [

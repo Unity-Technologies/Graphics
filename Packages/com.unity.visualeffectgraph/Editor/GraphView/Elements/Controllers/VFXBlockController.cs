@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.UI
                 // Prevent breaking the editor opening.
                 try
                 {
-                    (model as VFXSubgraphBlock).RecreateCopy();
+                    (model as VFXSubgraphBlock).RecreateCopyIfNeeded();
                 }
                 catch (Exception e)
                 {

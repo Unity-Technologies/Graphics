@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.Test
         [OneTimeTearDown]
         public void DestroyTestAssets()
         {
-            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.CloseAllVFXWindow();
             VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
@@ -195,7 +195,7 @@ namespace UnityEditor.VFX.Test
 
                 //Clean up for next experiment
                 System.GC.Collect();
-                var window = EditorWindow.GetWindow<VFXViewWindow>();
+                var window = VFXTestCommon.GetViewWindow();
                 window.Close();
                 VFXTestCommon.DeleteAllTemporaryGraph();
 
@@ -495,7 +495,7 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             //The issue is actually visible in VFXView
-            var window = EditorWindow.GetWindow<VFXViewWindow>();
+            var window = VFXTestCommon.GetViewWindow();
             window.Show();
             var bckpAutoCompile = window.autoCompile;
             window.autoCompile = autoCompile;
@@ -521,7 +521,7 @@ namespace UnityEditor.VFX.Test
             var vfxController = VFXTestCommon.StartEditTestAsset();
             var sphereOperatorDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Sphere");
 
-            var window = EditorWindow.GetWindow<VFXViewWindow>(null, true);
+            var window = VFXTestCommon.GetViewWindow();
             var sphereOperator = vfxController.AddVFXOperator(new Vector2(4, 4), sphereOperatorDesc.variant);
             vfxController.ApplyChanges();
 
@@ -552,7 +552,7 @@ namespace UnityEditor.VFX.Test
 
             var inlineSkinnedMeshRendererDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.modelType == typeof(VFXInlineOperator) && o.name == typeof(SkinnedMeshRenderer).UserFriendlyName());
             Assert.IsNotNull(inlineSkinnedMeshRendererDesc.variant);
-            var window = EditorWindow.GetWindow<VFXViewWindow>(null, true);
+            var window = VFXTestCommon.GetViewWindow();
             var skinnedMeshInlineOperator = vfxController.AddVFXOperator(new Vector2(4, 4), inlineSkinnedMeshRendererDesc.variant);
 
             vfxController.ApplyChanges();
@@ -583,7 +583,7 @@ namespace UnityEditor.VFX.Test
             var vfxController = VFXTestCommon.StartEditTestAsset();
             var sphereOperatorDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Sphere");
 
-            var window = EditorWindow.GetWindow<VFXViewWindow>(null, true);
+            var window = VFXTestCommon.GetViewWindow();
             var sphereOperator = vfxController.AddVFXOperator(new Vector2(4, 4), sphereOperatorDesc.variant);
             vfxController.ApplyChanges();
 
@@ -604,7 +604,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Open_Subgraph_In_Same_Tab_When_Its_Already_Opened()
         {
             // Prepare
-            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.CloseAllVFXWindow();
             var window = CreateSimpleVFXGraph();
             var graphTitle = window.titleContent.text;
 
@@ -618,7 +618,7 @@ namespace UnityEditor.VFX.Test
             // Open created subgraph
             AssetDatabase.ImportAsset(subgraphFileName);
             var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraph>(subgraphFileName);
-            var subgraphWindow = VFXViewWindow.GetWindow(vfx.GetOrCreateResource(), true);
+            var subgraphWindow = VFXTestCommon.GetWindow(vfx.GetResource(), true);
 
             yield return null;
 
@@ -638,7 +638,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Open_Subgraph_In_Same_Tab()
         {
             // Prepare
-            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.CloseAllVFXWindow();
             var window = CreateSimpleVFXGraph();
 
             yield return null;
@@ -660,12 +660,114 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(Path.GetFileNameWithoutExtension(subgraphFileName), window.titleContent.text);
         }
 
+        bool Find_In_Update_Context_Source(VisualEffectAsset asset, string pattern)
+        {
+            var resource = asset.GetResource();
+            var shaderSourcesCount = resource.GetShaderSourceCount();
+            for (int shaderIndex = 0; shaderIndex < shaderSourcesCount; ++shaderIndex)
+            {
+                var shaderName = resource.GetShaderSourceName(shaderIndex);
+                if (shaderName.Contains("Update"))
+                {
+                    var shaderSource = resource.GetShaderSource(shaderIndex);
+                    return shaderSource.Contains(pattern);
+                }
+            }
+            return false;
+        }
+
+        public static readonly bool[] kCreate_Graph_Modify_And_Save_Subgraph_Applied_To_MainCase =
+        {
+            true,
+            //false //Coverage from UUM-116297
+        };
+        [UnityTest]
+        [Description("Expected main graph being updated when a subgraph is modified on disk")]
+        public IEnumerator Create_Graph_Modify_And_Save_Subgraph_Applied_To_Main([ValueSource(nameof(kCreate_Graph_Modify_And_Save_Subgraph_Applied_To_MainCase))] bool saveMainGraphOnDisk)
+        {
+            VFXTestCommon.CloseAllVFXWindow();
+            Assert.AreEqual(0, VFXViewWindow.GetAllWindows().Count());
+
+            //Prepare asset with subgraph open for edition
+            var rootGraph = VFXTestCommon.CreateGraph_And_System();
+            var rootAsset = rootGraph.GetResource().asset;
+            var blockCollision = ScriptableObject.CreateInstance<Block.CollisionShape>();
+            blockCollision.SetSettingValue("shape", CollisionShapeBase.Type.Sphere);
+            var updateContext = rootGraph.children.OfType<VFXBasicUpdate>().Single();
+            Assert.AreEqual(0, updateContext.children.Count());
+            updateContext.AddChild(blockCollision);
+            VFXTestCommon.ReimportVFXGraph(rootGraph);
+
+            Assert.AreEqual(VFXCompilationMode.Runtime, VisualEffectAssetUtility.GetCompilationMode(rootGraph.GetResource().asset));
+            var rootWindow = VFXTestCommon.GetWindow(rootAsset, true);
+            rootWindow.LoadResource(rootAsset.GetResource());
+            Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count());
+
+            for (int i = 0; i < 8; ++i)
+            {
+                if (VisualEffectAssetUtility.GetCompilationMode(rootGraph.GetResource().asset) == VFXCompilationMode.Edition)
+                    break;
+                yield return null;
+            }
+
+            Assert.AreEqual(VFXCompilationMode.Edition, VisualEffectAssetUtility.GetCompilationMode(rootGraph.GetResource().asset));
+            Assert.IsTrue(Find_In_Update_Context_Source(rootAsset, "shape:Sphere"));
+            Assert.IsFalse(Find_In_Update_Context_Source(rootAsset, "shape:Cone"));
+            
+            var controllers = rootWindow.graphView.Query<VFXContextUI>()
+                .ToList()
+                .Single(x => x.controller.model is VFXBasicUpdate)
+                .controller.allChildren
+                .OfType<VFXBlockController>()
+                .ToList();
+            Assert.AreEqual(1, controllers.Count);
+
+            var subgraphFilename = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
+            VFXConvertSubgraph.ConvertToSubgraphBlock(rootWindow.graphView, controllers, Rect.zero, subgraphFilename);
+            yield return null;
+
+            if (saveMainGraphOnDisk)
+            {
+                rootWindow.SaveChanges();
+                yield return null;
+            }
+
+            var subgraphVfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphBlock>(subgraphFilename);
+            var subgraphResource = subgraphVfxAsset.GetResource();
+            VFXViewWindow subgraphWindow = VFXTestCommon.GetWindow(subgraphResource, true);
+            subgraphWindow.LoadResource(subgraphResource);
+            yield return null;
+
+            //Modify Subgraph
+            Assert.AreEqual(2, VFXViewWindow.GetAllWindows().Count());
+            var subgraphVfx = subgraphWindow.graphView.controller.graph;
+            var subgraphContext = subgraphVfx.children.OfType<VFXBlockSubgraphContext>().Single();
+            var blockCollisionInSubgraph = subgraphContext.children.Single();
+            blockCollisionInSubgraph.SetSettingValue("shape", CollisionShapeBase.Type.Cone);
+            subgraphWindow.graphView.controller.ApplyChanges();
+            yield return null;
+
+            Assert.IsTrue(Find_In_Update_Context_Source(rootAsset, "shape:Sphere"));
+            Assert.IsFalse(Find_In_Update_Context_Source(rootAsset, "shape:Cone"));
+
+            Assert.IsTrue(EditorUtility.IsDirty(subgraphVfx));
+            subgraphWindow.SaveChanges();
+            yield return null;
+
+            Assert.IsFalse(Find_In_Update_Context_Source(rootAsset, "shape:Sphere"));
+            Assert.IsTrue(Find_In_Update_Context_Source(rootAsset, "shape:Cone"));
+            VFXTestCommon.CloseAllVFXWindow();
+            yield return null;
+        }
+
+
+        private static bool[] kOpen_Subgraph_In_Same_Tab_And_Go_Back_Case = new[] {true, false};
         [UnityTest]
         [Description("When a subgraph is entered in-place a back button is available and allow to reload original graph in that same tab")]
-        public IEnumerator Open_Subgraph_In_Same_Tab_And_Go_Back()
+        public IEnumerator Open_Subgraph_In_Same_Tab_And_Go_Back([ValueSource(nameof(kOpen_Subgraph_In_Same_Tab_And_Go_Back_Case))] bool saveMainGraph)
         {
             // Prepare
-            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.CloseAllVFXWindow();
             var window = CreateSimpleVFXGraph();
             var originalTitle = window.titleContent.text;
 
@@ -675,6 +777,12 @@ namespace UnityEditor.VFX.Test
             var controllers = GetBlocks(window, "Set".Label(false).AppendLiteral("Lifetime")).Take(1);
             var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
             VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
+            Assert.IsTrue(EditorUtility.IsDirty(window.graphView.controller.graph));
+            yield return null;
+            Assert.IsTrue(window.hasUnsavedChanges);
+
+            if (saveMainGraph)
+                window.graphView.OnSave();
 
             yield return null;
 
@@ -695,14 +803,18 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count);
             Assert.AreEqual(originalTitle, window.titleContent.text);
+            //Since we are relying on hasUnsavedChanges status, the titleContent doesn't change
+            //The '*' is now handled internally in EditorWindow
+            Assert.AreEqual(!saveMainGraph, EditorUtility.IsDirty(window.graphView.controller.graph));
+            Assert.AreEqual(!saveMainGraph, window.hasUnsavedChanges);
         }
 
         [UnityTest]
         [Description("If we go back to original graph but that graph is already opened, then the current tab is left unchanged and the focus is given to the opened graph window")]
-        public IEnumerator Open_Subgraph_In_Same_Tab_And_Go_Back_And_Original_Graph_Is_Opened()
+        public IEnumerator Open_Subgraph_In_Same_Tab_And_Go_Back_And_Original_Graph_Is_Opened([ValueSource(nameof(kOpen_Subgraph_In_Same_Tab_And_Go_Back_Case))] bool saveMainGraph)
         {
             // Prepare
-            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.CloseAllVFXWindow();
             var window = CreateSimpleVFXGraph();
             var originalTitle = window.titleContent.text;
             var originalResource = window.displayedResource;
@@ -713,6 +825,12 @@ namespace UnityEditor.VFX.Test
             var controllers = GetBlocks(window, "Set".Label(false).AppendLiteral("Lifetime")).Take(1);
             var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
             VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
+            yield return null;
+            Assert.IsTrue(EditorUtility.IsDirty(window.graphView.controller.graph));
+            Assert.IsTrue(window.hasUnsavedChanges);
+
+            if (saveMainGraph)
+                window.graphView.OnSave();
 
             yield return null;
 
@@ -726,7 +844,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(Path.GetFileNameWithoutExtension(subgraphFileName), window.titleContent.text);
 
             // Open the original resource
-            var originalWindow = VFXViewWindow.GetWindow(originalResource, true);
+            var originalWindow = VFXTestCommon.GetWindow(originalResource, true);
             originalWindow.LoadResource(originalResource);
             Assert.AreEqual(2, VFXViewWindow.GetAllWindows().Count);
 
@@ -737,6 +855,11 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(2, VFXViewWindow.GetAllWindows().Count);
             Assert.AreEqual(originalTitle, originalWindow.titleContent.text);
+            //Since we are relying on hasUnsavedChanges status, the titleContent doesn't change
+            //The '*' is now handled internally in EditorWindow
+            Assert.AreEqual(!saveMainGraph, EditorUtility.IsDirty(originalWindow.graphView.controller.graph));
+            Assert.AreEqual(!saveMainGraph, originalWindow.hasUnsavedChanges);
+
             Assert.AreEqual(Path.GetFileNameWithoutExtension(subgraphFileName), window.titleContent.text);
         }
 
@@ -745,7 +868,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Open_Subgraph_In_Same_Tab_And_Go_Back_And_Original_Graph_Is_Deleted()
         {
             // Prepare
-            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.CloseAllVFXWindow();
             var window = CreateSimpleVFXGraph();
             var originalGraphPath = AssetDatabase.GetAssetPath(window.displayedResource);
 
@@ -793,8 +916,8 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.ImportAsset(fileName);
 
             var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(fileName);
-            VFXViewWindow window = VFXViewWindow.GetWindow(vfx, true);
-            window.LoadResource(vfx.GetOrCreateResource());
+            VFXViewWindow window = VFXTestCommon.GetWindow(vfx, true);
+            window.LoadResource(vfx.GetResource());
 
             return window;
         }
@@ -826,7 +949,7 @@ namespace UnityEditor.VFX.Test
             var vfxController = VFXTestCommon.StartEditTestAsset();
             var initializeContextDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name == "Initialize Particle");
 
-            var window = EditorWindow.GetWindow<VFXViewWindow>(null, true);
+            var window = VFXTestCommon.GetViewWindow();
             var initializeContext = vfxController.AddVFXContext(new Vector2(4, 4), initializeContextDesc.variant) as VFXBasicInitialize;
             vfxController.ApplyChanges();
             yield return null;
@@ -868,10 +991,13 @@ namespace UnityEditor.VFX.Test
             subgraphResource.WriteAsset();
             yield return null;
 
-            window1 = VFXViewWindow.GetWindow((VisualEffectAsset)null, true);//.CreateWindow<VFXViewWindow>();
+            window1 = VFXTestCommon.GetWindow((VisualEffectAsset)null, true);//.CreateWindow<VFXViewWindow>();
             window1.LoadResource(mainGraph);
             yield return null;
             Assert.AreEqual(DragAndDropVisualMode.Rejected, window1.graphView.GetDragAndDropModeForVisualEffectObject(subgraphResource.asset), "Should not be able to create a circular dependency");
+
+            window1.Close();
+            yield return null;
         }
 
         public class TestEditor : EditorWindow
@@ -930,7 +1056,7 @@ namespace UnityEditor.VFX.Test
                 viewController.ApplyChanges();
                 yield return null;
 
-                var window = VFXViewWindow.GetWindow(viewController.graph.GetResource(), true, true);
+                var window = VFXTestCommon.GetWindow(viewController.graph.GetResource(), true, true);
                 var texture2DNodeUI = window.graphView.Q<VFXOperatorUI>();
                 var button = texture2DNodeUI.Q<VisualElement>(null, "unity-object-field__selector");
 

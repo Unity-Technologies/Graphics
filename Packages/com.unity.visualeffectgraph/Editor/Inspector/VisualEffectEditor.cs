@@ -917,7 +917,7 @@ namespace UnityEditor.VFX
             var component = (VisualEffect)target;
             VFXGraph graph = null;
             if (resource != null)
-                graph = resource.GetOrCreateGraph();
+                graph = resource.GetGraph();
 
             if (graph == null)
             {

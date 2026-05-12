@@ -14,79 +14,6 @@ using UnityEditor.VFX.UI;
 using UnityEngine.UIElements;
 using UnityObject = UnityEngine.Object;
 
-
-class VFXExternalShaderProcessor : AssetPostprocessor
-{
-    public const string k_ShaderDirectory = "Shaders";
-    public const string k_ShaderExt = ".vfxshader";
-    public static bool allowExternalization { get { return EditorPrefs.GetBool(VFXViewPreference.allowShaderExternalizationKey, false); } }
-
-    void OnPreprocessAsset()
-    {
-        if (!allowExternalization)
-            return;
-        bool isVFX = assetPath.EndsWith(VisualEffectResource.Extension, StringComparison.OrdinalIgnoreCase);
-        if (isVFX)
-        {
-            string vfxName = Path.GetFileNameWithoutExtension(assetPath);
-            string vfxDirectory = Path.GetDirectoryName(assetPath);
-
-            string shaderDirectory = vfxDirectory + "/" + k_ShaderDirectory + "/" + vfxName;
-
-            if (!Directory.Exists(shaderDirectory))
-            {
-                return;
-            }
-            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
-            if (asset == null)
-                return;
-
-            bool oneFound = false;
-            VisualEffectResource resource = asset.GetResource();
-            if (resource == null)
-                return;
-            VFXShaderSourceDesc[] descs = resource.shaderSources;
-
-            foreach (var shaderPath in Directory.GetFiles(shaderDirectory))
-            {
-                if (shaderPath.EndsWith(k_ShaderExt, StringComparison.OrdinalIgnoreCase))
-                {
-                    System.IO.StreamReader file = new System.IO.StreamReader(shaderPath);
-
-                    string shaderLine = file.ReadLine();
-                    file.Close();
-                    if (shaderLine == null || !shaderLine.StartsWith("//"))
-                        continue;
-
-                    string[] shaderParams = shaderLine.Split(',');
-
-                    string shaderName = shaderParams[0].Substring(2);
-
-                    int index;
-                    if (!int.TryParse(shaderParams[1], out index))
-                        continue;
-
-                    if (index < 0 || index >= descs.Length)
-                        continue;
-                    if (descs[index].name != shaderName)
-                        continue;
-
-                    string shaderSource = File.ReadAllText(shaderPath);
-                    //remove the first two lines that where added when externalized
-                    shaderSource = shaderSource.Substring(shaderSource.IndexOf("\n", shaderSource.IndexOf("\n") + 1) + 1);
-
-                    descs[index].source = shaderSource;
-                    oneFound = true;
-                }
-            }
-            if (oneFound)
-            {
-                resource.shaderSources = descs;
-            }
-        }
-    }
-}
-
 [CustomEditor(typeof(VisualEffectAsset))]
 [CanEditMultipleObjects]
 class VisualEffectAssetEditor : UnityEditor.Editor
@@ -181,8 +108,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
 
         if (VFXViewWindow.GetAllWindows().All(x => x.graphView?.controller?.graph.visualEffectResource.GetEntityId() != m_CurrentGraph.visualEffectResource.GetEntityId() || !x.hasFocus))
         {
-            // Do we need a compileReporter here?
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(m_CurrentGraph.visualEffectResource));
+            m_CurrentGraph.SetExpressionGraphDirty();
         }
     }
 
@@ -207,7 +133,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
         var resource = vfxTarget.GetResource();
         if (resource != null) //Can be null if VisualEffectAsset is in Asset Bundle
         {
-            m_CurrentGraph = resource.GetOrCreateGraph();
+            m_CurrentGraph = resource.GetGraph();
             m_CurrentGraph.systemNames.Sync(m_CurrentGraph);
             m_OutputContexts.AddRange(m_CurrentGraph.children.OfType<IVFXSubRenderer>().OrderBy(t => t.vfxSystemSortPriority));
         }
@@ -839,10 +765,10 @@ class VisualEffectAssetEditor : UnityEditor.Editor
 
                 //The following should be working, and works for newly created systems, but fails for old systems,
                 //due probably to incorrectly pasting the VFXData when creating them.
-                // bool hasAutomaticBoundsSystems = resource.GetOrCreateGraph().children
+                // bool hasAutomaticBoundsSystems = resource.GetGraph().children
                 //     .OfType<VFXDataParticle>().Any(d => d.boundsMode == BoundsSettingMode.Automatic);
 
-                bool hasAutomaticBoundsSystems = resource.GetOrCreateGraph().children
+                bool hasAutomaticBoundsSystems = resource.GetGraph().children
                     .OfType<VFXBasicInitialize>()
                     .Select(x => x.GetData())
                     .OfType<VFXDataParticle>()
@@ -898,7 +824,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             resource = asset.GetResource();
 
             m_OutputContexts.Clear();
-            m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.vfxSystemSortPriority));
+            m_OutputContexts.AddRange(resource.GetGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.vfxSystemSortPriority));
 
             using (VisualEffectEditor.ShowAssetHeader(EditorGUIUtility.TrTextContent("Output Render Order"), showOutputOrderCategory, out showOutputOrderCategory))
             {
@@ -914,44 +840,17 @@ class VisualEffectAssetEditor : UnityEditor.Editor
                 {
                     string assetPath = AssetDatabase.GetAssetPath(asset);
                     UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(assetPath);
-                    string directory = Path.GetDirectoryName(assetPath) + "/" + VFXExternalShaderProcessor.k_ShaderDirectory + "/" + asset.name + "/";
 
                     foreach (var shader in objects)
                     {
                         if (shader is ComputeShader or Shader)
                         {
                             GUILayout.BeginHorizontal();
-
                             int index = resource.GetShaderIndex(shader);
                             EditorGUILayout.LabelField(shader.name.Replace('\n', ' '));
 
                             if (index >= 0)
                             {
-                                if (VFXExternalShaderProcessor.allowExternalization && index < resource.GetShaderSourceCount())
-                                {
-                                    string shaderSourceName = resource.GetShaderSourceName(index);
-                                    string externalPath = directory + shaderSourceName;
-
-                                    externalPath = directory + shaderSourceName.Replace('/', '_') + VFXExternalShaderProcessor.k_ShaderExt;
-
-                                    if (System.IO.File.Exists(externalPath))
-                                    {
-                                        if (GUILayout.Button("Reveal External", GUILayout.Width(80)))
-                                        {
-                                            EditorUtility.RevealInFinder(externalPath);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (GUILayout.Button("Externalize", GUILayout.Width(80)))
-                                        {
-                                            Directory.CreateDirectory(directory);
-
-                                            File.WriteAllText(externalPath, "//" + shaderSourceName + "," + index.ToString() + "\n//Don't delete the previous line or this one\n" + resource.GetShaderSource(index));
-                                        }
-                                    }
-                                }
-
                                 if (GUILayout.Button("Show Generated", GUILayout.Width(110)))
                                 {
                                     resource.ShowGeneratedShaderFile(index);

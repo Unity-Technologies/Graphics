@@ -89,13 +89,6 @@ namespace UnityEditor.VFX
 
     class VFXGraphCompiledData
     {
-        // 3: Serialize material
-        // 4: Bounds helper change
-        // 5: HasAttributeBuffer flag
-        // 6: needsComputeBounds needs Sanitization
-        // 7: changes in data serialization and additional mappings added to runtime data (graphValueOffset and parentSystemIndex)
-        public const uint compiledVersion = 7;
-
         public VFXGraphCompiledData(VFXGraph graph)
         {
             if (graph == null)
@@ -1094,6 +1087,91 @@ namespace UnityEditor.VFX
             public VisualEffectAssetDesc assetDesc;
         }
 
+        void CompileExpressionGraph(VFXCompilationMode compilationMode)
+        {
+            var assetPath = AssetDatabase.GetAssetPath(visualEffectResource);
+            try
+            {
+                var nbSteps = 5.0f;
+                var progressBarTitle = "Compiling Expression " + assetPath;
+                CompileExpressionGraph(compilationMode, progressBarTitle, nbSteps, out var _, out var _, out var _, out var _, out var _);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Unity cannot compile the VisualEffectAsset at path \"{assetPath}\" because of the following exception:\n{e}");
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
+        }
+
+        static readonly Unity.Profiling.ProfilerMarker k_CompileExpression = new("VFXEditor.CompileExpressionGraph");
+        void CompileExpressionGraph(VFXCompilationMode compilationMode,
+            string progressBarTitle,
+            float nbSteps,
+            out IEnumerable<VFXContext> compilableContexts,
+            out IEnumerable<VFXData> compilableData,
+            out HashSet<string> sourceDependencies,
+            out List<VFXExpressionDesc> expressionDescs,
+            out List<VFXExpressionDesc> expressionPerSpawnEventAttributesDescs)
+        {
+            using var profilerMarker = k_CompileExpression.Auto();
+
+            EditorUtility.DisplayProgressBar(progressBarTitle, "Collecting dependencies", 0 / nbSteps);
+            var models = new HashSet<ScriptableObject>();
+            m_Graph.CollectDependencies(models, false);
+
+            sourceDependencies = new HashSet<string>();
+            foreach (VFXModel model in models.Where(t => t is IVFXSlotContainer))
+            {
+                model.GetSourceDependentAssets(sourceDependencies);
+            }
+
+            var contexts = models.OfType<VFXContext>().ToArray();
+
+            foreach (var c in contexts) // Unflag all contexts
+                c.MarkAsCompiled(false);
+
+            compilableContexts = contexts.Where(c => c.CanBeCompiled()).ToArray();
+            compilableData = models.OfType<VFXData>().Where(d => d.CanBeCompiled());
+
+            IEnumerable<VFXContext> implicitContexts = Enumerable.Empty<VFXContext>();
+            foreach (var d in compilableData) // Flag compiled contexts
+                implicitContexts = implicitContexts.Concat(d.InitImplicitContexts());
+            compilableContexts = compilableContexts.Concat(implicitContexts.ToArray());
+
+            foreach (var c in compilableContexts) // Flag compiled contexts
+                c.MarkAsCompiled(true);
+
+            EditorUtility.DisplayProgressBar(progressBarTitle, "Collecting attributes", 1 / nbSteps);
+            foreach (var data in compilableData)
+                data.CollectAttributes();
+
+            EditorUtility.DisplayProgressBar(progressBarTitle, "Process dependencies", 2 / nbSteps);
+            foreach (var data in compilableData)
+                data.ProcessDependencies();
+
+            // Sort the systems by layer so they get updated in the right order. It has to be done after processing the dependencies
+            compilableData = compilableData.OrderBy(d => d.layer);
+
+            EditorUtility.DisplayProgressBar(progressBarTitle, "Compiling expression Graph", 3 / nbSteps);
+            m_ExpressionGraph = new VFXExpressionGraph();
+            var exposedExpressionContext = ScriptableObject.CreateInstance<VFXImplicitContextOfExposedExpression>();
+            exposedExpressionContext.FillExpression(m_Graph); //Force all exposed expression to be visible, only for registering in CompileExpressions
+
+            var expressionContextOptions = compilationMode == VFXCompilationMode.Runtime ? VFXExpressionContextOption.ConstantFolding : VFXExpressionContextOption.Reduction;
+            m_ExpressionGraph.CompileExpressions(compilableContexts.Concat(new VFXContext[] {exposedExpressionContext}), expressionContextOptions);
+
+            EditorUtility.DisplayProgressBar(progressBarTitle, "Generating bytecode", 4 / nbSteps);
+            expressionDescs = new List<VFXExpressionDesc>();
+            expressionPerSpawnEventAttributesDescs = new List<VFXExpressionDesc>();
+            var valueDescs = new List<VFXExpressionValueContainerDesc>();
+            FillExpressionDescs(m_ExpressionGraph, expressionDescs, expressionPerSpawnEventAttributesDescs, valueDescs);
+            m_ExpressionValues = valueDescs.OrderBy(o => o.expressionIndex).ToArray();
+        }
+
+        static readonly Unity.Profiling.ProfilerMarker k_CompileAsset = new("VFXEditor.CompileAsset");
         public VFXCompileOutput Compile(VFXCompilationMode compilationMode, bool enableShaderDebugSymbols, VFXAnalytics analytics)
         {
             var output = new VFXCompileOutput()
@@ -1109,74 +1187,29 @@ namespace UnityEditor.VFX
             }
 
             //Graph is empty
-            if (m_Graph.children.Count() == 0)
+            if (m_Graph.GetNbChildren() == 0)
             {
                 output.success = true;
-                output.assetDesc.version = compiledVersion;
                 output.assetDesc.systemDesc = Array.Empty<VFXEditorSystemDesc>();
                 return output;
             }
 
-            Profiler.BeginSample("VFXEditor.CompileAsset");
+            using var profilerMarker = k_CompileAsset.Auto();
+
             float nbSteps = 12.0f;
             string assetPath = AssetDatabase.GetAssetPath(visualEffectResource);
             string progressBarTitle = "Compiling " + assetPath;
             try
             {
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Collecting dependencies", 0 / nbSteps);
-                var models = new HashSet<ScriptableObject>();
-                m_Graph.CollectDependencies(models, false);
-
-                var resource = m_Graph.GetResource();
-                resource.ClearSourceDependencies();
-
-                foreach (VFXModel model in models.Where(t => t is IVFXSlotContainer))
-                {
-                    model.GetSourceDependentAssets(output.sourceDependencies);
-                }
-
-                var contexts = models.OfType<VFXContext>().ToArray();
-
-                foreach (var c in contexts) // Unflag all contexts
-                    c.MarkAsCompiled(false);
-
-
-                IEnumerable<VFXContext> compilableContexts = contexts.Where(c => c.CanBeCompiled()).ToArray();
-                var compilableData = models.OfType<VFXData>().Where(d => d.CanBeCompiled());
-
-                IEnumerable<VFXContext> implicitContexts = Enumerable.Empty<VFXContext>();
-                foreach (var d in compilableData) // Flag compiled contexts
-                    implicitContexts = implicitContexts.Concat(d.InitImplicitContexts());
-                compilableContexts = compilableContexts.Concat(implicitContexts.ToArray());
-
-                foreach (var c in compilableContexts) // Flag compiled contexts
-                    c.MarkAsCompiled(true);
-
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Collecting attributes", 1 / nbSteps);
-                foreach (var data in compilableData)
-                    data.CollectAttributes();
-
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Process dependencies", 2 / nbSteps);
-                foreach (var data in compilableData)
-                    data.ProcessDependencies();
-
-                // Sort the systems by layer so they get updated in the right order. It has to be done after processing the dependencies
-                compilableData = compilableData.OrderBy(d => d.layer);
-
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Compiling expression Graph", 3 / nbSteps);
-                m_ExpressionGraph = new VFXExpressionGraph();
-                var exposedExpressionContext = ScriptableObject.CreateInstance<VFXImplicitContextOfExposedExpression>();
-                exposedExpressionContext.FillExpression(m_Graph); //Force all exposed expression to be visible, only for registering in CompileExpressions
-
-                var expressionContextOptions = compilationMode == VFXCompilationMode.Runtime ? VFXExpressionContextOption.ConstantFolding : VFXExpressionContextOption.Reduction;
-                m_ExpressionGraph.CompileExpressions(compilableContexts.Concat(new VFXContext[] { exposedExpressionContext }), expressionContextOptions);
-
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Generating bytecode", 4 / nbSteps);
-                var expressionDescs = new List<VFXExpressionDesc>();
-                var expressionPerSpawnEventAttributesDescs = new List<VFXExpressionDesc>();
-                var valueDescs = new List<VFXExpressionValueContainerDesc>();
-                FillExpressionDescs(m_ExpressionGraph, expressionDescs, expressionPerSpawnEventAttributesDescs, valueDescs);
-
+                CompileExpressionGraph(compilationMode,
+                    progressBarTitle,
+                    nbSteps,
+                    out var compilableContexts,
+                    out var compilableData,
+                    out var sourceDependencies,
+                    out var expressionDescs,
+                    out var expressionPerSpawnEventAttributesDescs);
+                output.sourceDependencies = sourceDependencies;
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating mappings", 5 / nbSteps);
 
@@ -1246,7 +1279,6 @@ namespace UnityEditor.VFX
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating shaders", 8 / nbSteps);
                 GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, compiledData, compilationMode, output.sourceDependencies, enableShaderDebugSymbols, gpuMappers);
 
-                m_Graph.systemNames.Sync(m_Graph);
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Saving shaders", 9 / nbSteps);
                 VFXShaderSourceDesc[] shaderSources = SaveShaderFiles(m_Graph.visualEffectResource, generatedCodeData, compiledData, m_Graph.systemNames);
 
@@ -1316,7 +1348,7 @@ namespace UnityEditor.VFX
                 var expressionSheet = new VFXExpressionSheet();
                 expressionSheet.expressions = expressionDescs.ToArray();
                 expressionSheet.expressionsPerSpawnEventAttribute = expressionPerSpawnEventAttributesDescs.ToArray();
-                expressionSheet.values = valueDescs.OrderBy(o => o.expressionIndex).ToArray();
+                expressionSheet.values = m_ExpressionValues;
 
                 var sortedExposedProperties = exposedParameterDescs.OrderBy(o => o.mapping.name);
                 expressionSheet.exposed = sortedExposedProperties.Select(o => new VFXExposedMapping() { mapping = o.mapping, space = (VFXSpace)o.space }).ToArray();
@@ -1349,9 +1381,6 @@ namespace UnityEditor.VFX
                 output.assetDesc.rendererSettings = new() { shadowCastingMode = shadowCastingMode, motionVectorGenerationMode = motionVectorGenerationMode };
                 output.assetDesc.instancingDisabledReason = instancingDisabledReason;
                 output.assetDesc.compilationMode = compilationMode;
-                output.assetDesc.version = compiledVersion;
-
-                m_ExpressionValues = expressionSheet.values;
             }
             catch (Exception e)
             {
@@ -1362,7 +1391,6 @@ namespace UnityEditor.VFX
             }
             finally
             {
-                Profiler.EndSample();
                 EditorUtility.ClearProgressBar();
             }
 
@@ -1370,13 +1398,29 @@ namespace UnityEditor.VFX
             return output;
         }
 
-        public void UpdateValues()
+        public VFXExpressionValueContainerDesc[] UpdateValues()
         {
-            if (m_ExpressionGraph == null)
-                return;
+            var asset = m_Graph.visualEffectResource.asset;
+            // If runtime asset is null or its expression count is 0, it means runtime data generation fails, skip the update value silently
+            if (asset == null || VisualEffectAssetUtility.GetExpressionCount(asset) == 0)
+                return Array.Empty<VFXExpressionValueContainerDesc>();
 
+            if (m_ExpressionGraph == null)
+            {
+                m_Graph.PrepareGraph();
+                CompileExpressionGraph(m_Graph.GetCompilationMode());
+                if (m_ExpressionGraph == null)
+                    return Array.Empty<VFXExpressionValueContainerDesc>();
+            }
+            
             var flatGraph = m_ExpressionGraph.FlattenedExpressions;
             var numFlattenedExpressions = flatGraph.Count;
+
+            if (VisualEffectAssetUtility.GetExpressionCount(asset) != numFlattenedExpressions)
+            {
+                Debug.LogError($"Unexpected expression count at {AssetDatabase.GetAssetPath(asset)}, expected: {numFlattenedExpressions} actual: {VisualEffectAssetUtility.GetExpressionCount(asset)}");
+                return Array.Empty<VFXExpressionValueContainerDesc>();
+            }
 
             int descIndex = 0;
             for (int i = 0; i < numFlattenedExpressions; ++i)
@@ -1416,7 +1460,8 @@ namespace UnityEditor.VFX
                 }
             }
 
-            VisualEffectAssetUtility.SetValueSheet(m_Graph.visualEffectResource.asset, m_ExpressionValues);
+            VisualEffectAssetUtility.SetValueSheet(asset, m_ExpressionValues);
+            return m_ExpressionValues;
         }
 
         public VFXInstancingDisabledReason ValidateInstancing(IEnumerable<VFXContext> compilableContexts)

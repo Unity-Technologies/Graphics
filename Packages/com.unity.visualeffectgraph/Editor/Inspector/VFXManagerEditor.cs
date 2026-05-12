@@ -21,6 +21,7 @@ class VFXManagerEditor : Editor
     SerializedProperty[] m_CapacityProperties;
     SerializedProperty[] m_ShaderProperties;
     SerializedProperty[] m_InstancingProperties;
+    SerializedProperty m_EditorResourcesProperty;
     SerializedProperty m_RuntimeResourcesProperty;
 
     void OnEnable()
@@ -51,7 +52,7 @@ class VFXManagerEditor : Editor
             serializedObject.FindProperty("m_BatchEmptyLifetime")
         };
 
-
+        m_EditorResourcesProperty = serializedObject.FindProperty("m_EditorResources");
         m_RuntimeResourcesProperty = serializedObject.FindProperty("m_RuntimeResources");
 
         CheckVFXManager();
@@ -93,7 +94,12 @@ class VFXManagerEditor : Editor
         GUILayout.Space(15);
         if (m_RuntimeResourcesProperty != null)
         {
-            EditorGUILayout.PropertyField(m_RuntimeResourcesProperty);
+            EditorGUILayout.ObjectField(m_RuntimeResourcesProperty, typeof(VFXRuntimeResources));
+        }
+
+        if (m_EditorResourcesProperty != null)
+        {
+            EditorGUILayout.ObjectField(m_EditorResourcesProperty, typeof(VFXResources));
         }
 
         GUILayout.Space(15);
@@ -142,6 +148,26 @@ class VFXManagerEditor : Editor
         return false;
     }
 
+    private static bool SetEditorResourcesIfNeeded(SerializedObject obj)
+    {
+        var resourcesProperty = obj.FindProperty("m_EditorResources");
+        if (resourcesProperty == null)
+        {
+            return false;
+        }
+        if (resourcesProperty.objectReferenceValue == null)
+        {
+            var editorResource = AssetDatabase.LoadAssetAtPath<ScriptableObject>("Packages/com.unity.visualeffectgraph/Editor/Utilities/EditorResources.asset");
+            if (editorResource != null)
+            {
+                resourcesProperty.objectReferenceValue = editorResource;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static void CheckVFXManager()
     {
         UnityObject vfxmanager = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/VFXManager.asset").FirstOrDefault();
@@ -166,7 +192,10 @@ class VFXManagerEditor : Editor
         bool runtimeResourcesModified = false;
         runtimeResourcesModified = SetRuntimeResourcesIfNeeded(obj);
 
-        if (shaderModified || runtimeResourcesModified)
+        bool editorResourceModified = false;
+        editorResourceModified = SetEditorResourcesIfNeeded(obj);
+
+        if (shaderModified || runtimeResourcesModified || editorResourceModified)
             obj.ApplyModifiedPropertiesWithoutUndo();
     }
 }

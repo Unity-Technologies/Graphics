@@ -13,12 +13,17 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Internal;
+
 #if VFX_HAS_TIMELINE
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
 #endif
 using Object = UnityEngine.Object;
 
+using Moq;
+
+[assembly: InternalsVisibleTo("Unity.Testing.VisualEffectGraph.PerformanceEditorTests")]
+[assembly: InternalsVisibleTo("Unity.Testing.VisualEffectGraph.PerformanceEditorTests-testable")]
 [assembly: InternalsVisibleTo("Unity.Testing.VisualEffectGraph.Tests")]
 [assembly: InternalsVisibleTo("Unity.Testing.VisualEffectGraph.Tests-testable")]
 [assembly: InternalsVisibleTo("Unity.VisualEffectGraph.EditorTests")]
@@ -135,6 +140,46 @@ namespace UnityEditor.VFX.Test
             VFXValueType.Matrix4x4
         };
 
+        [MenuItem("Tests/VFX/Create Many VFX and Open")]
+        public static void CreateManyVFX_And_Open()
+        {
+            var resourceToOpen = new List<VisualEffectResource>();
+            int createManyVFXAndOpen = 32;
+            for (int i = 0; i < createManyVFXAndOpen; ++i)
+            {
+                var vfxGraph = CopyTemporaryGraph("Packages/com.unity.visualeffectgraph/Editor/Templates/02_Simple_Loop.vfx", $"{i + 1}_");
+                var vfxResource = vfxGraph.GetResource();
+                resourceToOpen.Add(vfxResource);
+            }
+
+            foreach (var vfxResource in resourceToOpen)
+            {
+                var vfxWindow = GetWindow(vfxResource, true, true);
+                vfxWindow.LoadResource(vfxResource);
+            }
+        }
+
+        [MenuItem("Tests/VFX/Modify All Opened Graph")]
+        public static void ModifyAllOpenedGraph()
+        {
+            var allWindows = VFXViewWindow.GetAllWindows().ToList();
+            Unity.Profiling.Editor.UI.EditorCoroutineUtility.StartCoroutineOwnerless(ModifyAllOpenedGraphFocus(allWindows));
+        }
+
+        private static IEnumerator ModifyAllOpenedGraphFocus(List<VFXViewWindow> allWindows)
+        {
+            foreach (var vfxWindow in allWindows)
+            {
+                vfxWindow.Focus();
+                yield return new Unity.Profiling.Editor.UI.EditorWaitForSeconds(0.1f);
+
+                var vfxContext = vfxWindow.graphView.controller.graph.children.OfType<VFXContext>().First();
+                vfxContext.position += Vector2.one;
+                vfxWindow.graphView.controller.LightApplyChanges();
+                yield return new Unity.Profiling.Editor.UI.EditorWaitForSeconds(0.1f);
+            }
+        }
+
         public static void CloseAllUnecessaryWindows()
         {
             //See UUM-14622: AssetImport during inspector rendering is creating instabilities
@@ -157,17 +202,21 @@ namespace UnityEditor.VFX.Test
             return vfx.GetSpawnSystemInfo(spawnerList[(int)index]);
         }
 
-        public static VFXGraph CopyTemporaryGraph(string path)
+        public static VFXGraph CopyTemporaryGraph(string path, string prefix = null)
         {
             var guid = System.Guid.NewGuid().ToString();
-            string tempFilePath = string.Format(tempFileFormat, guid);
+
+            if (string.IsNullOrEmpty(prefix))
+                prefix = "vfx_";
+
+            string tempFilePath = $"{tempBasePath}{prefix}{guid}.vfx";
             System.IO.Directory.CreateDirectory(tempBasePath);
             File.Copy(path, tempFilePath);
 
             AssetDatabase.ImportAsset(tempFilePath);
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(tempFilePath);
             VisualEffectResource resource = asset.GetResource();
-            var graph = resource.GetOrCreateGraph();
+            var graph = resource.GetGraph();
             return graph;
         }
 
@@ -199,7 +248,7 @@ namespace UnityEditor.VFX.Test
 
         public static VFXViewController StartEditTestAsset()
         {
-            var window = EditorWindow.GetWindow<VFXViewWindow>();
+            var window = VFXTestCommon.GetViewWindow();
             window.Show();
             var graph = VFXTestCommon.MakeTemporaryGraph();
             var viewController = VFXViewController.GetController(graph.GetResource(), true);
@@ -214,8 +263,8 @@ namespace UnityEditor.VFX.Test
             System.IO.Directory.CreateDirectory(tempBasePath);
 
             var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
-            VisualEffectResource resource = asset.GetOrCreateResource(); // force resource creation
-            VFXGraph graph = resource.GetOrCreateGraph();
+            VisualEffectResource resource = asset.GetResource();
+            VFXGraph graph = resource.GetGraph();
             return graph;
         }
 
@@ -247,10 +296,8 @@ namespace UnityEditor.VFX.Test
             return AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphOperator>(tempFilePath);
         }
 
-        public static VFXGraph CreateGraph_And_System()
+        public static void CreateSystem(VFXGraph graph)
         {
-            var graph = VFXTestCommon.MakeTemporaryGraph();
-
             var output = ScriptableObject.CreateInstance<VFXPointOutput>();
             output.SetSettingValue("castShadows", true);
             graph.AddChild(output);
@@ -272,9 +319,83 @@ namespace UnityEditor.VFX.Test
             var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             spawner.LinkTo(contextInitialize);
             graph.AddChild(spawner);
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+        }
 
+        public static VFXGraph CreateGraph_And_System()
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            VFXTestCommon.CreateSystem(graph);
+            VFXTestCommon.ReimportVFXGraph(graph);
             return graph;
+        }
+
+        public static void CloseAllVFXWindow()
+        {
+            VFXViewWindow.GetAllWindows().ToList().ForEach(
+                    x =>
+                    {
+                        MockingVFXViewWindowsIfNeeded(x);
+                        x.Close();
+                    });
+
+            if (EditorWindow.HasOpenInstances<GraphViewTemplateWindow>())
+            {
+                EditorWindow.GetWindow<GraphViewTemplateWindow>()?.Close();
+            }
+        }
+
+        public static VFXViewWindow GetWindow(VFXGraph vfxGraph, bool createIfNeeded = false, bool show = true)
+        {
+            var currentWindow = VFXViewWindow.GetWindow(vfxGraph, createIfNeeded, show);
+            MockingVFXViewWindowsIfNeeded(currentWindow);
+            return currentWindow;
+        }
+
+        public static VFXViewWindow GetWindow(VisualEffectResource vfxResource, bool createIfNeeded = false, bool show = true)
+        {
+            var currentWindow = VFXViewWindow.GetWindow(vfxResource, createIfNeeded, show);
+            MockingVFXViewWindowsIfNeeded(currentWindow);
+            return currentWindow;
+        }
+
+        public static VFXViewWindow GetWindow(VisualEffectAsset vfxAsset, bool createIfNeeded = false)
+        {
+            var currentWindow = VFXViewWindow.GetWindow(vfxAsset, createIfNeeded);
+            MockingVFXViewWindowsIfNeeded(currentWindow);
+            return currentWindow;
+        }
+
+        public static VFXViewWindow GetViewWindow()
+        {
+            var currentWindow = VFXViewWindow.GetWindow<VFXViewWindow>();
+            MockingVFXViewWindowsIfNeeded(currentWindow);
+            return currentWindow;
+        }
+
+        private static void MockingVFXViewWindowsIfNeeded(VFXViewWindow currentWindow)
+        {
+            if (currentWindow.graphView != null &&
+                (currentWindow.graphView.AssetEventHandler == null
+                 || currentWindow.graphView.AssetEventHandler == currentWindow.graphView))
+            {
+                MockingVFXViewWindows(currentWindow);
+            }
+        }
+
+        static Mock<IVFXViewEditorAssetEventHandler> s_DefaultMockView;
+        public static void MockingVFXViewWindows(VFXViewWindow currentWindow, bool onSaveOnClose = true)
+        {
+            if (s_DefaultMockView == null)
+            {
+                s_DefaultMockView = new Mock<IVFXViewEditorAssetEventHandler>();
+                s_DefaultMockView.Setup(x => x.AskAssetChangedBeforeClose(It.IsAny<string>())).Returns(AskAssetChangedBeforeCloseChoice.Ignore);
+            }
+            currentWindow.graphView.AssetEventHandler = s_DefaultMockView.Object;
+        }
+
+        public static void ReimportVFXGraph(VFXGraph graph)
+        {
+            graph.GetResource().WriteAsset();
         }
 
         public static void DeleteAllTemporaryGraph()
@@ -360,8 +481,8 @@ namespace UnityEditor.VFX.Test
         {
             var resource = vfxGraph.GetResource();
             EditorUtility.SetDirty(resource);
+            VFXTestCommon.ReimportVFXGraph(vfxGraph);
             var path = AssetDatabase.GetAssetPath(vfxGraph);
-            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
 
             for (int i = 0; i < 4; ++i)
                 yield return null;
@@ -444,5 +565,15 @@ namespace UnityEditor.VFX.Test
 
             return spawners;
         }
+        public static ShaderInclude CreateShaderFile(string hlslCode, out string destinationPath)
+        {
+            destinationPath = Path.Combine(VFXTestCommon.tempBasePath, Guid.NewGuid() + ".hlsl");
+            Directory.CreateDirectory(VFXTestCommon.tempBasePath);
+            File.WriteAllText(destinationPath, hlslCode);
+            AssetDatabase.ImportAsset(destinationPath);
+            var shaderInclude = (ShaderInclude)AssetDatabase.LoadAssetAtPath(destinationPath, typeof(ShaderInclude));
+            return shaderInclude;
+        }
+
     }
 }

@@ -22,26 +22,15 @@ namespace UnityEditor.VFX.Test
         public void Setup()
         {
             EventHelpers.TestSetUp();
-            CloseAllWindows();
+            VFXTestCommon.CloseAllVFXWindow();
         }
 
         [TearDown]
         public void DestroyTestAsset()
         {
-            CloseAllWindows();
+            VFXTestCommon.CloseAllVFXWindow();
             VFXTestCommon.DeleteAllTemporaryGraph();
             EventHelpers.TestTearDown();
-        }
-
-        private void CloseAllWindows()
-        {
-            VFXViewWindow.GetAllWindows()
-                .ToList()
-                .ForEach(x => x.Close());
-            if (EditorWindow.HasOpenInstances<GraphViewTemplateWindow>())
-            {
-                EditorWindow.GetWindow<GraphViewTemplateWindow>()?.Close();
-            }
         }
 
         [Test]
@@ -129,7 +118,7 @@ namespace UnityEditor.VFX.Test
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(m_TestAssetRandomFileName);
             Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0));
 
-            var window = VFXViewWindow.GetWindow(asset, true);
+            var window = VFXTestCommon.GetWindow(asset, true);
             var viewController = window.graphView.controller;
 
             // Act
@@ -160,7 +149,7 @@ namespace UnityEditor.VFX.Test
             VFXViewWindow.ShowWindow();
             yield return null;
             Assert.True(EditorWindow.HasOpenInstances<VFXViewWindow>());
-            var vfxViewWindow = EditorWindow.GetWindowDontShow<VFXViewWindow>();
+            var vfxViewWindow = VFXTestCommon.GetViewWindow();
 
             var onCreateAssetMethod = vfxViewWindow.graphView.GetType().GetMethod("OnCreateAsset", BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.NotNull(onCreateAssetMethod);

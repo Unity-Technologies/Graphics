@@ -127,6 +127,9 @@ namespace UnityEditor.VFX.UI
                         m_SourceController.RemoveElement(element);
                 }
 
+                if (m_TargetController.useCount != 1)
+                    Debug.LogError($"Controller for resource {m_TargetController.graph} is expected to be transient in convert to subgraph workflows.");
+
                 m_TargetController.useCount--;
                 m_SourceController.useCount--;
             }
@@ -180,6 +183,9 @@ namespace UnityEditor.VFX.UI
                         m_SourceController.RemoveElement(element);
                 }
 
+                if (m_TargetController.useCount != 1)
+                    Debug.LogError($"Controller for resource {m_TargetController.graph} is expected to be transient in convert to subgraph workflow.");
+
                 m_TargetController.useCount--;
                 m_SourceController.useCount--;
             }
@@ -230,12 +236,13 @@ namespace UnityEditor.VFX.UI
                 else
                 {
                     m_TargetSubgraph = VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>(path);
-                    m_TargetController = VFXViewController.GetController(m_TargetSubgraph.GetResource());
+                    m_TargetController = VFXViewController.GetTransientControllerForConvertToSubgraph(m_TargetSubgraph.GetResource());
                     m_TargetController.useCount++;
                     m_TargetControllers = new List<VFXNodeController>();
                 }
                 CopyCustomAttributes<VFXOperatorController>(sourceView, controllers);
                 CopyPasteNodes();
+                m_TargetSubgraph.GetResource()?.WriteAssetWithSubAssets();
 
                 m_SourceNode = ScriptableObject.CreateInstance<VFXSubgraphOperator>();
                 PostSetupNode();
@@ -244,14 +251,16 @@ namespace UnityEditor.VFX.UI
                 TransfertOperatorOutputEdges();
                 Uninit();
 
+                // TransfertOperatorOutputEdges updates the target subgraph to connect its final output inside subgraph.
+                // A prior call to WriteAssetWithSubAssets is required to ensure that input and output slots exist in the VFXSubgraphOperator.
+                m_TargetSubgraph.GetResource()?.WriteAssetWithSubAssets();
+
                 //The PrepareSubgraphs was initially in compilation
                 //This change has been canceled to prevent creation of model in the wrong place
                 //Be sure the newly created operator has expected slot
                 var subGraphOperator = m_SourceNode as VFXSubgraphOperator;
                 subGraphOperator.RecreateCopy();
                 subGraphOperator.ResyncSlots(true);
-
-                m_TargetSubgraph.GetResource()?.WriteAssetWithSubAssets();
             }
 
             List<VFXBlockController> m_SourceBlockControllers;
@@ -270,7 +279,7 @@ namespace UnityEditor.VFX.UI
                 else
                 {
                     m_TargetSubgraph = VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphBlock>(path);
-                    m_TargetController = VFXViewController.GetController(m_TargetSubgraph.GetResource());
+                    m_TargetController = VFXViewController.GetTransientControllerForConvertToSubgraph(m_TargetSubgraph.GetResource());
                     m_TargetController.useCount++;
                     m_TargetControllers = new List<VFXNodeController>();
                 }
@@ -280,7 +289,6 @@ namespace UnityEditor.VFX.UI
                 m_SourceBlockControllers = m_SourceControllers.OfType<VFXBlockController>().OrderBy(t => t.index).ToList();
 
                 VFXContextController sourceContextController = m_SourceBlockControllers.First().contextController;
-
                 object copyData = VFXCopy.CopyBlocks(m_SourceBlockControllers, m_SourceControllers);
 
                 var targetContext = m_TargetController.graph.children.OfType<VFXBlockSubgraphContext>().FirstOrDefault();
@@ -331,6 +339,8 @@ namespace UnityEditor.VFX.UI
                 (m_SourceView.GetNodeByController(sourceContextController) as VFXContextUI).UpdateSelectionWithNewBlocks();
                 sourceContextController.ApplyChanges();
 
+                m_TargetSubgraph.GetResource()?.WriteAssetWithSubAssets();
+
                 m_SourceNodeController = sourceContextController.blockControllers.First(t => t.model == m_SourceNode);
                 PostSetup();
                 m_SourceNode.SetSettingValue("m_Subgraph", m_TargetSubgraph);
@@ -344,8 +354,6 @@ namespace UnityEditor.VFX.UI
                 TransferEdges();
                 m_SourceControllers = m_SourceControllersWithBlocks.ToList();
                 UninitSmart();
-
-                m_TargetSubgraph.GetResource()?.WriteAssetWithSubAssets();
             }
 
             bool CreateUniqueSubgraph(string typeName, string extension, Func<string, VisualEffectObject> createFunc)
@@ -397,7 +405,7 @@ namespace UnityEditor.VFX.UI
 
                 m_TargetSubgraph = createFunc(targetSubgraphPath);
 
-                m_TargetController = VFXViewController.GetController(m_TargetSubgraph.GetResource());
+                m_TargetController = VFXViewController.GetTransientControllerForConvertToSubgraph(m_TargetSubgraph.GetResource());
                 m_TargetController.useCount++;
                 m_TargetControllers = new List<VFXNodeController>();
 
@@ -536,6 +544,9 @@ namespace UnityEditor.VFX.UI
                     // Link the parameternode and the input in the target
                     m_TargetController.CreateLink(targetAnchor, parameterNode.outputPorts[0]);
 
+                    //This is suboptimal but necessary to support following CreateLink, the RecreateCopy is only reading data from the disk
+                    m_TargetSubgraph.GetResource()?.WriteAssetWithSubAssets();
+
                     if (m_SourceSlotContainer is VFXOperator)
                         (m_SourceSlotContainer as VFXOperator).ResyncSlots(true);
                     else if (m_SourceSlotContainer is VFXSubgraphBlock)
@@ -611,6 +622,9 @@ namespace UnityEditor.VFX.UI
                         newTargetParamController.exposedName = ReplaceReservedName((linkedParameter.sourceNode as VFXParameterNodeController).parentController.exposedName);
                     else
                         newTargetParamController.exposedName = ReplaceReservedName(newSourceOutputs[i].name);
+
+                    //This is suboptimal but necessary to support following CreateLink, the RecreateCopy is only reading data from the disk
+                    m_TargetSubgraph.GetResource()?.WriteAssetWithSubAssets();
 
                     //first the equivalent of sourceInput in the target
 

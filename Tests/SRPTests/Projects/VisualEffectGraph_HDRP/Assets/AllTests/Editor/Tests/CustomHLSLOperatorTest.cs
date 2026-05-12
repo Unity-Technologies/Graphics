@@ -37,13 +37,13 @@ namespace UnityEditor.VFX.Test
         [OneTimeSetUp]
         public void Setup()
         {
-            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.CloseAllVFXWindow();
         }
 
         [OneTimeTearDown]
         public void Cleanup()
         {
-            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.CloseAllVFXWindow();
             VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
@@ -86,7 +86,7 @@ namespace UnityEditor.VFX.Test
         {
             // Arrange
             var operatorName = "AutoTest";
-            var shaderInclude = CustomHLSLBlockTest.CreateShaderFile(defaultHlslCode, out var shaderIncludePath);
+            var shaderInclude = VFXTestCommon.CreateShaderFile(defaultHlslCode, out var shaderIncludePath);
             var hlslOperator = CreateCustomHLSLOperator();
             hlslOperator.SetSettingValue("m_ShaderFile", shaderInclude);
             hlslOperator.SetSettingValue("m_OperatorName", operatorName);
@@ -200,7 +200,7 @@ float3 GetCustomColor(in float3 vec)
 {
     return float3(0.1f, 0.2f, 0.3f);
 }";
-            var shaderInclude = CustomHLSLBlockTest.CreateShaderFile(hlslCode, out var shaderIncludePath);
+            var shaderInclude = VFXTestCommon.CreateShaderFile(hlslCode, out var shaderIncludePath);
 
             var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
             hlslOperator.SetSettingValue("m_HLSLCode", hlslCode);
@@ -233,7 +233,7 @@ float3 GetCustomColor(in float3 vec)
             newShaderGraphOutput.AddChild(blockOrientCameraPlane);
             var defineToFind = blockOrientCameraPlane.defines.First();
 
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfxAsset));
+            VFXTestCommon.ReimportVFXGraph(graph);
             yield return null;
 
             string source = null;
@@ -334,7 +334,7 @@ float3 GetCustomColor(in float3 vec)
         {
             // Arrange
             var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
-            CustomHLSLBlockTest.CreateShaderFile(defaultHlslCode, out var shaderIncludePath);
+            VFXTestCommon.CreateShaderFile(defaultHlslCode, out var shaderIncludePath);
             shaderIncludePath = Path.GetFileName(shaderIncludePath);
 
             var hlslCode = string.Format("#include \"{0}\"", shaderIncludePath);
@@ -388,7 +388,7 @@ float3 Transform(float3 a, float3 b)
         public IEnumerator Check_CustomHLSL_Operator_Expression_Equality()
         {
             // Arrange
-            CustomHLSLBlockTest.CreateShaderFile(defaultHlslCode, out var shaderIncludePath);
+            VFXTestCommon.CreateShaderFile(defaultHlslCode, out var shaderIncludePath);
             shaderIncludePath = Path.GetFileName(shaderIncludePath);
 
             var hlslCode = string.Format("#include \"{0}\"", shaderIncludePath);
@@ -504,7 +504,7 @@ float3 DecodeMorton(in uint code)
             vfxTargetContext.label = "Find_Me_In_Generated_Source";
 
             Assert.IsTrue(blockAttribute.inputSlots[0].Link(hlslOperator.outputSlots[0]));
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
             yield return null;
 
             graph.errorManager.GenerateErrors();
@@ -540,7 +540,7 @@ float3 DecodeMorton(in uint code)
             var includePathList = new List<string>();
             for (int includeIndex = 0; includeIndex < 8; ++includeIndex)
             {
-                CustomHLSLBlockTest.CreateShaderFile(string.Empty, out var shaderIncludePath);
+                VFXTestCommon.CreateShaderFile(string.Empty, out var shaderIncludePath);
                 includePathList.Add(shaderIncludePath);
                 hlslCode.AppendFormat("#include \"{0}\"", shaderIncludePath);
                 hlslCode.AppendLine();
@@ -568,7 +568,7 @@ float3 DummyFunction()
             vfxTargetContext.label = "Find_Me_In_Generated_Source";
 
             Assert.IsTrue(blockAttribute.inputSlots[0].Link(hlslOperator.outputSlots[0]));
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
             yield return null;
 
             bool found = false;
@@ -682,7 +682,7 @@ float3 DummyFunction()
             vfxTargetContext.AddChild(blockAttribute);
             Assert.IsTrue(blockAttribute.inputSlots[0].Link(hlslOperator.outputSlots[0]));
 
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
 
             bool foundCustomFunction = false;
             var vfx = graph.visualEffectResource;
@@ -753,7 +753,7 @@ float3 DummyFunction()
             blockAttribute.SetSettingValue("attribute", "position");
             vfxTargetContext.AddChild(blockAttribute);
             Assert.IsTrue(blockAttribute.inputSlots[0].Link(hlslOperator.outputSlots[0]));
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
 
             for (int i = 0; i < 4; ++i)
                 yield return null;
@@ -789,15 +789,15 @@ float3 DummyFunction()
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
             var vfx = asset.GetResource();
 
-            vfx.GetOrCreateGraph().SetCompilationMode(VFXCompilationMode.Edition);
-            vfx.GetOrCreateGraph().CompileAndUpdateAsset(asset);
+            vfx.GetGraph().SetCompilationMode(VFXCompilationMode.Edition);
+            vfx.GetGraph().CompileAndUpdateAsset(asset);
             yield return null;
 
             var sourceEdition = Check_Multiple_Usage_Buffer_Get_Source(vfx);
             Assert.IsNotNull(sourceEdition);
 
-            vfx.GetOrCreateGraph().SetCompilationMode(VFXCompilationMode.Runtime);
-            vfx.GetOrCreateGraph().CompileAndUpdateAsset(asset);
+            vfx.GetGraph().SetCompilationMode(VFXCompilationMode.Runtime);
+            vfx.GetGraph().CompileAndUpdateAsset(asset);
             yield return null;
 
             var sourceRuntime = Check_Multiple_Usage_Buffer_Get_Source(vfx);
@@ -869,10 +869,9 @@ float3 DummyFunction()
             second.AddChild(blockSetColor);
             Assert.IsTrue(hlslOperatorRead.outputSlots[0].Link(blockSetColor.inputSlots[0]));
 
-            var vfxPath = AssetDatabase.GetAssetPath(graph);
             if (legalUsage)
             {
-                AssetDatabase.ImportAsset(vfxPath);
+                VFXTestCommon.ReimportVFXGraph(graph);
                 for (int i = 0; i < 4; ++i)
                     yield return null;
 
@@ -903,7 +902,7 @@ float3 DummyFunction()
             {
                 using var customLogHandler = new CustomLogHandler();
                 customLogHandler.ExpectedLog(LogType.Error, "Unity cannot compile the VisualEffectAsset at path");
-                AssetDatabase.ImportAsset(vfxPath);
+                VFXTestCommon.ReimportVFXGraph(graph);
             }
 
             yield return null;
@@ -949,7 +948,7 @@ float3 DummyFunction()
                 "    second = 2;" + "\n" +
                 "}";
 
-            var shaderFile = CustomHLSLBlockTest.CreateShaderFile(hlslCode, out var shaderIncludePath);
+            var shaderFile = VFXTestCommon.CreateShaderFile(hlslCode, out var shaderIncludePath);
             var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
             hlslOperator.SetSettingValue("m_ShaderFile", shaderFile);
 
@@ -977,7 +976,7 @@ float3 DummyFunction()
         private void MakeSimpleGraphWithCustomHLSL(CustomHLSL hlslOperator, out VFXViewWindow view, out VFXGraph graph)
         {
             graph = VFXTestCommon.CreateGraph_And_System();
-            view = VFXViewWindow.GetWindow(graph, true, true);
+            view = VFXTestCommon.GetWindow(graph, true, true);
             view.LoadResource(graph.visualEffectResource);
 
             graph.AddChild(hlslOperator);

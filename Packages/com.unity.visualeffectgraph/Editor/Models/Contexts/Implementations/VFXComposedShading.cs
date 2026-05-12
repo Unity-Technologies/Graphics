@@ -28,7 +28,7 @@ namespace UnityEditor.VFX
             if (currentShaderGraph == null && !object.ReferenceEquals(currentShaderGraph, null))
             {
                 var assetPath = AssetDatabase.GetAssetPath(currentShaderGraph.GetEntityId());
-                var newShaderGraph = AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(assetPath);
+                var newShaderGraph = VFXShaderGraphHelpers.LoadShaderGraphAssetAtPath(assetPath);
                 if (newShaderGraph == null)
                 {
                     if (errors != null)
@@ -51,14 +51,14 @@ namespace UnityEditor.VFX
                     if (errors != null)
                         errors.Add(("DeprecatedOldShaderGraph", VFXErrorType.Error, ParticleShadingShaderGraph.kErrorOldSG));
 
-                    currentShaderGraph = VFXResources.errorFallbackShaderGraph;
+                    currentShaderGraph = VFXResources.defaultResources.errorFallbackShaderGraph;
                 }
                 else if (VFXLibrary.currentSRPBinder != null && !VFXLibrary.currentSRPBinder.IsShaderVFXCompatible(currentShaderGraph))
                 {
                     if (errors != null)
                         errors.Add(("NoSRPCompatibleSG", VFXErrorType.Error, "The current Shader Graph doesn't support the current SRP or VFX Support is not enabled."));
 
-                    currentShaderGraph = VFXResources.errorFallbackShaderGraph;
+                    currentShaderGraph = VFXResources.defaultResources.errorFallbackShaderGraph;
                 }
             }
 
@@ -67,7 +67,7 @@ namespace UnityEditor.VFX
                 if (errors?.Count == 0)
                     errors.Add(("NoShaderGraph", VFXErrorType.Error, "Please assign a compatible ShaderGraph Asset."));
 
-                currentShaderGraph = VFXResources.errorFallbackShaderGraph;
+                currentShaderGraph = VFXResources.defaultResources.errorFallbackShaderGraph;
             }
 
             return currentShaderGraph;
@@ -186,14 +186,17 @@ namespace UnityEditor.VFX
             return desc;
         }
 
-        public override void GetImportDependentAssets(HashSet<EntityId> dependencies)
+        public override bool IsDependentOnAnyOf(HashSet<EntityId> dependencies)
         {
-            base.GetImportDependentAssets(dependencies);
-            if (!ReferenceEquals(shaderGraph, null))
-            {
-                dependencies.Add(shaderGraph.GetEntityId());
-            }
+            if (base.IsDependentOnAnyOf(dependencies))
+                return true;
+
+            if (!object.ReferenceEquals(shaderGraph, null) && dependencies.Contains(shaderGraph.GetEntityId()))
+                return true;
+
+            return false;
         }
+
 
         public override bool CanBeCompiled()
         {

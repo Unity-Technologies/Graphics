@@ -592,6 +592,17 @@ namespace UnityEditor.VFX
             processed.Add(entry);
         }
 
+        public static bool operator == (VFXExpression a, VFXExpression b)
+        {
+            if (a is null) return b is null;
+            return a.Equals(b);
+        }
+
+        public static bool operator != (VFXExpression a, VFXExpression b)
+        {
+            return !(a == b);
+        }
+
         public static VFXExpression operator *(VFXExpression a, VFXExpression b) { return new VFXExpressionMul(a, b); }
         public static VFXExpression operator /(VFXExpression a, VFXExpression b) { return new VFXExpressionDivide(a, b); }
         public static VFXExpression operator +(VFXExpression a, VFXExpression b) { return new VFXExpressionAdd(a, b); }

@@ -154,9 +154,11 @@ namespace UnityEditor.VFX
             globalEventAttributes.AddRange(listWithOffset);
         }
 
+        readonly Unity.Profiling.ProfilerMarker k_CompileExpressionMaker = new("VFXEditor.CompileExpressions");
+
         public void CompileExpressions(IEnumerable<VFXContext> contexts, VFXExpressionContextOption options)
         {
-            Profiler.BeginSample("VFXEditor.CompileExpressionGraph");
+            k_CompileExpressionMaker.Begin();
 
             try
             {
@@ -208,7 +210,7 @@ namespace UnityEditor.VFX
             }
             finally
             {
-                Profiler.EndSample();
+                k_CompileExpressionMaker.End();
             }
         }
 

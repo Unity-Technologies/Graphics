@@ -223,15 +223,6 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        public override void GetImportDependentAssets(HashSet<EntityId> dependencies)
-        {
-            base.GetImportDependentAssets(dependencies);
-            if (!ReferenceEquals(m_ShaderFile, null))
-            {
-                dependencies.Add(m_ShaderFile.GetEntityId());
-            }
-        }
-
         // Do not resync slots when no function to preserve existing slots and links when there's an error
         public override bool ResyncSlots(bool notify)
         {
@@ -248,13 +239,10 @@ namespace UnityEditor.VFX.Operator
             base.OnInvalidate(model, cause);
         }
 
-        public override void CheckGraphBeforeImport()
+        public override void ResyncDependencies()
         {
-            base.CheckGraphBeforeImport();
-
-            // If the graph is re-imported it can be because one of its dependency such as an external hlsl file that has changed.
-            if (!VFXGraph.explicitCompile)
-                ResyncSlots(true);
+            base.ResyncDependencies();
+            ResyncSlots(true);
         }
 
         internal override void GenerateErrors(VFXErrorReporter report)

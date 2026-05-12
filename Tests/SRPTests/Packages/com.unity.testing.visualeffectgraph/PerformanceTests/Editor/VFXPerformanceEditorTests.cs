@@ -14,6 +14,7 @@ using System.IO;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using UnityEngine.VFX.PerformanceTest;
+using UnityEditor.VFX.Test;
 
 namespace UnityEditor.VFX.PerformanceTest
 {
@@ -113,15 +114,6 @@ namespace UnityEditor.VFX.PerformanceTest
             }
         }
 
-        static IEnumerable<string> allCompilationMode
-        {
-            get
-            {
-                foreach (var mode in Enum.GetValues(typeof(VFXCompilationMode)))
-                    yield return mode.ToString();
-            }
-        }
-
         private static void LoadVFXGraph(string vfxAssetName, out string fullPath, out VFXGraph graph)
         {
             using (Measure.Scope("VFXGraphLoad.FindAsset"))
@@ -149,7 +141,7 @@ namespace UnityEditor.VFX.PerformanceTest
             using (Measure.Scope("VFXGraphLoad.GetResource"))
             {
                 var resource = vfxAsset.GetResource();
-                graph = resource.GetOrCreateGraph();
+                graph = resource.GetGraph();
             }
         }
 
@@ -214,7 +206,7 @@ namespace UnityEditor.VFX.PerformanceTest
                 VFXViewWindow window = null;
                 using (Measure.Scope("VFXViewWindow.Show"))
                 {
-                    window = VFXViewWindow.GetWindow(graph, true, true);
+                    window = VFXTestCommon.GetWindow(graph, true, true);
                     yield return null;
                 }
 
@@ -252,7 +244,7 @@ namespace UnityEditor.VFX.PerformanceTest
                 VFXViewWindow emptyVFXWindow;
                 using (Measure.Scope("VFXViewWindow.SwitchTab"))
                 {
-                    emptyVFXWindow = VFXViewWindow.GetWindow((VFXGraph)null, true, true);
+                    emptyVFXWindow = VFXTestCommon.GetWindow((VFXGraph)null, true, true);
                     window.ShowTab();
                     for (int i = 0; i < 4; ++i)
                         yield return null;
@@ -310,16 +302,9 @@ namespace UnityEditor.VFX.PerformanceTest
             }
         }
 
-        static readonly string[] allForceShaderValidation = { "ShaderValidation_On", "ShaderValidation_Off" };
         [Timeout(k_BuildTimeout), Version(k_Version), Test, Performance]
-        public void Compilation([ValueSource(nameof(allActiveSRP))] string srp, /*[ValueSource("allForceShaderValidation")] string forceShaderValidationModeName,*/ [ValueSource("allCompilationMode")] string compilationModeName, [ValueSource(nameof(SelectedVisualEffectAsset))] string vfxAssetPath)
+        public void Compilation([ValueSource(nameof(allActiveSRP))] string srp, [ValueSource(nameof(SelectedVisualEffectAsset))] string vfxAssetPath)
         {
-            VFXCompilationMode compilationMode;
-            Enum.TryParse<VFXCompilationMode>(compilationModeName, out compilationMode);
-
-            //This compilation test shouldn't measure shader compilation time, furthermore, the first variant isn't always relevant.
-            bool forceShaderValidationMode = false;
-
             VFXGraph graph;
             string fullPath;
             LoadVFXGraph(vfxAssetPath, out fullPath, out graph);
@@ -330,9 +315,6 @@ namespace UnityEditor.VFX.PerformanceTest
                     using (Measure.Scope("VFXGraph.Compile.Main"))
                     {
                         VFXExpression.ClearCache();
-                        graph.SetExpressionGraphDirty();
-                        graph.SetForceShaderValidation(forceShaderValidationMode, false);
-                        graph.SetCompilationMode(compilationMode, false);
                         AssetDatabase.ImportAsset(fullPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
                     }
                 }

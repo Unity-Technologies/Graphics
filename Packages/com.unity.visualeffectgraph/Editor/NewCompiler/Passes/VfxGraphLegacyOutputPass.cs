@@ -46,7 +46,6 @@ namespace UnityEditor.VFX
                 shadowCastingMode = ShadowCastingMode.Off
             };
             vfxAssetDesc.instancingDisabledReason = VFXInstancingDisabledReason.Unknown;
-            vfxAssetDesc.version = Version;
 
             return vfxAssetDesc;
         }
