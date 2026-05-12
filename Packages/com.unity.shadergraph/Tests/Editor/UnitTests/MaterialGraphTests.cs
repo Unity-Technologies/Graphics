@@ -45,9 +45,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         private const string kTempAssetPath = "Packages/com.unity.shadergraph/Tests/Editor/TempGraphKeepUnsavedChange.shadergraph";
 
         [UnityTest]
-        [UnityPlatform(exclude = new RuntimePlatform[] {
-            RuntimePlatform.WindowsEditor // Disabled for Instability https://jira.unity3d.com/browse/UUM-141869
-        })]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })] // Unstable: https://jira.unity3d.com/browse/UUM-141869
         public IEnumerator TestMaterialGraphKeepUnsavedChange()
         {
             if (Display.main == null || Application.isBatchMode)

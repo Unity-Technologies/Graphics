@@ -117,6 +117,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
         // Tests that loading and saving a fully versioned graph file doesn't change the file on disk.
         [UnityTest]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })] // Unstable: https://jira.unity3d.com/browse/UUM-141869
         public IEnumerator SaveAndLoadTests()
         {
             foreach (string assetGuid in AssetDatabase.FindAssets("*", new string[] { targetUnityDirectoryPath }))

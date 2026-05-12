@@ -139,6 +139,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         // Tests that the Sub Window status is remembered when closing and reopening Shader Graphs.
         // The repeating Q<...>ing is done deliberately: to confirm that it's still in the graph view.
         [UnityTest]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })] // Unstable: https://jira.unity3d.com/browse/UUM-141869
         public IEnumerator SubWindowStatusRememberedAfterCloseAndReopen()
         {
             yield return ToggleSubWindowsThenCloseThenReopen(true, true, true);
