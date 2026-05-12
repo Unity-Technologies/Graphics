@@ -136,8 +136,14 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_LightVolumeEnabled = false;
         [SerializeField] int[] m_ApplyToSortingLayers;  // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
 
+        // UUM-141743: m_DeprecatedPointLightCookieSprite uses [FormerlySerializedAs("m_LightCookieSprite")]
+        // for one-time migration of pre-split assets, but m_LightCookieSprite still exists as a real
+        // serialized field, so the FSA races against the same-name binding on every load. The proper
+        // fix is to move the migration into the existing ComponentVersions upgrade path.
+#pragma warning disable UAC1018
         [Reload("Textures/2D/Sparkle.png")]
         [SerializeField] Sprite m_LightCookieSprite;
+#pragma warning restore UAC1018
 
         [FormerlySerializedAs("m_LightCookieSprite")]
         [SerializeField] Sprite m_DeprecatedPointLightCookieSprite;

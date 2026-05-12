@@ -270,6 +270,10 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.APVByDefault, (HDRenderPipelineAsset data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
+                // Pre-APVByDefault assets only carry the single 'lightProbeSystem' YAML key; seed
+                // oldLightProbeSystem from it here instead of via [FormerlySerializedAs] (UUM-141751).
+                data.m_RenderPipelineSettings.oldLightProbeSystem = data.m_RenderPipelineSettings.lightProbeSystem;
+
                 if (!data.m_RenderPipelineSettings.oldSupportProbeVolume)
                 {
                     data.m_RenderPipelineSettings.lightProbeSystem = RenderPipelineSettings.LightProbeSystem.LegacyLightProbes;
