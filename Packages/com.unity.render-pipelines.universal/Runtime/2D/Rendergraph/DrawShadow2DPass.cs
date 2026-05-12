@@ -2,17 +2,13 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.Universal.U2D.Profiler;
 using CommonResourceData = UnityEngine.Rendering.Universal.UniversalResourceData;
 
 namespace UnityEngine.Rendering.Universal
 {
     internal class DrawShadow2DPass : ScriptableRenderPass
     {
-        static readonly string k_ShadowPass = "Shadow2D UnsafePass";
-        static readonly string k_ShadowVolumetricPass = "Shadow2D Volumetric UnsafePass";
-
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_ShadowPass);
-        private static readonly ProfilingSampler m_ProfilingSamplerVolume = new ProfilingSampler(k_ShadowVolumetricPass);
 
         private static void ExecuteShadowPass(UnsafeCommandBuffer cmd, PassData passData, Light2D light, int batchIndex)
         {
@@ -47,8 +43,8 @@ namespace UnityEngine.Rendering.Universal
                 isVolumetric && !layerBatch.lightStats.useVolumetricShadowLights)
                 return;
 
-            var passName = !isVolumetric ? k_ShadowPass : k_ShadowVolumetricPass;
-            var profilingSampler = !isVolumetric ? m_ProfilingSampler : m_ProfilingSamplerVolume;
+            var passName = !isVolumetric ? ProfilerMarkers.s_ShadowPass : ProfilerMarkers.s_ShadowVolumetricPass;
+            var profilingSampler = !isVolumetric ? ProfilerMarkers.s_ProfilingSamplerShadowPass : ProfilerMarkers.s_ProfilingSamplerShadowVolumetricPass;
             LayerDebug.FormatPassName(layerBatch, ref passName);
 
             using (var builder = graph.AddUnsafePass<PassData>(passName, out var passData, LayerDebug.GetProfilingSampler(passName, profilingSampler)))
@@ -81,7 +77,7 @@ namespace UnityEngine.Rendering.Universal
                         ExecuteShadowPass(cmd, data, light, i);
                     }
                 });
-            }                                                                                                                                                                                                                                                                                                                                                       
+            }
         }
     }
 }

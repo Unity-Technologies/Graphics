@@ -1,13 +1,11 @@
 using System;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
-using UnityEngine.U2D;
 using Unity.Collections;
 
 #if UNITY_EDITOR
 using System.Linq;
 using UnityEditor;
-using UnityEditor.Rendering.Universal;
 using UnityEditor.EditorTools;
 #endif
 
@@ -277,6 +275,10 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsLit(Light2D light)
         {
+            // Global lights do not cast shadows
+            if (light.lightType == Light2D.LightType.Global)
+                return false;
+
             // Oddly adding and subtracting vectors is expensive here because of the new structures created...
             Vector3 deltaPos;
             deltaPos.x = light.boundingSphere.position.x - boundingSphere.position.x;

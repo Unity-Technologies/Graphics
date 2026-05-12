@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.Universal
                 int inEdgesLength = inEdges.Length;
                 int inVerticesLength = inVertices.Length;
 
-                
+
                 for (int i = 0; i < inVerticesLength; i++)
                 {
                     tmpVec2.x = inVerticesPtr[i].x;
@@ -340,7 +340,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if USING_2DCOMMON
             int tessOutEdgeCount = 0;
-            U2D.Common.UTess.ModuleHandle.Tessellate(Allocator.Temp, tessInVertices, tessInEdges, ref tessOutVertices, out tessOutVertexCount, ref tessOutIndices, out tessOutIndexCount, ref tessOutEdges, out tessOutEdgeCount, false);
+            UnityEngine.U2D.Common.UTess.ModuleHandle.Tessellate(Allocator.Temp, tessInVertices, tessInEdges, ref tessOutVertices, out tessOutVertexCount, ref tessOutIndices, out tessOutIndexCount, ref tessOutEdges, out tessOutEdgeCount, false);
 #endif
 
             int indexOffset = inIndices.Length;
@@ -797,13 +797,13 @@ namespace UnityEngine.Rendering.Universal
                 bool* inShapeIsClosedArrayPtr = (bool*)inShapeIsClosedArray.m_Buffer;
                 Vector3* inVerticesPtr = (Vector3*)inVertices.m_Buffer;
                 ShadowEdge* inEdgesPtr = (ShadowEdge*)inEdges.m_Buffer;
-                
+
 
                 int inEdgesLength = inEdges.Length;
 
                 Vector2 tmpVec2 = new Vector2(); // So we don't call the constructor
                 Vector3 tmpVec3 = Vector3.zero;
-                
+
 
                 // Seperate out our closed and open shapes. Closed shapes will go through clipper. Open shapes will just be copied.
                 int closedPathArrayIndex = 0;
@@ -897,7 +897,7 @@ namespace UnityEngine.Rendering.Universal
                     int offsetSolutionPathSizesLength = offsetSolution.pathSizes.Length;
 
 
-                    
+
                     // Copy out the solution first..
                     for (int i = 0; i < offsetSolutionPointsLength; i++)
                     {

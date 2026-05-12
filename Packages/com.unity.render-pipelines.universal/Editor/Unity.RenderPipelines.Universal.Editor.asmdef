@@ -79,6 +79,11 @@
             "name": "com.unity.modules.terrain",
             "expression": "1.0.0",
             "define": "ENABLE_TERRAIN_MODULE"
+        },
+        {
+            "name": "com.unity.profiling.core",
+            "expression": "1.0.3",
+            "define": "PROFILER_INSTALLED"
         }
     ],
     "noEngineReferences": false

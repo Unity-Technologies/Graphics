@@ -1,6 +1,7 @@
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal.Internal;
+using UnityEngine.Rendering.Universal.U2D.Profiler;
 using static UnityEngine.Rendering.Universal.UniversalResourceDataBase;
 using CommonResourceData = UnityEngine.Rendering.Universal.UniversalResourceData;
 
@@ -35,6 +36,17 @@ namespace UnityEngine.Rendering.Universal
         {
             null, null
         };
+
+#if ENABLE_PROFILER && PROFILER_INSTALLED
+        static bool s_CanProfilerCapture;
+        #if UNITY_2D_URP_TESTS
+        // Do not do any capture in test due to the current profiling requires memory allocation which causes tests to fail.
+        // We should look into a way to capture profiler data without allocations in the future and re-enable this for tests as well.
+        internal static bool canProfilerCapture => false && s_CanProfilerCapture;
+        #else
+        internal static bool canProfilerCapture => s_CanProfilerCapture && UnityEngine.Profiling.Profiler.enabled;
+        #endif
+#endif
 
         internal RTHandle m_RenderGraphCameraDepthHandle;
         RTHandle m_RenderGraphBackbufferColorHandle;
@@ -86,6 +98,10 @@ namespace UnityEngine.Rendering.Universal
 
             m_OffscreenUIColorHandle?.Release();
             m_OffscreenUIColorHandle = null;
+
+#if ENABLE_PROFILER && PROFILER_INSTALLED
+            s_CanProfilerCapture = false;
+#endif
         }
 #endif
 
@@ -574,6 +590,7 @@ namespace UnityEngine.Rendering.Universal
         void CreateCameraNormalsTextures(RenderGraph renderGraph, RenderTextureDescriptor descriptor, int width, int height)
         {
             Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
+            var layerBatches = frameData.Get<Universal2DRenderingData>().layerBatches;
 
             var desc = new RenderTextureDescriptor(width, height);
             desc.graphicsFormat = RendererLighting.GetRenderTextureFormat();
@@ -581,7 +598,16 @@ namespace UnityEngine.Rendering.Universal
             desc.msaaSamples = descriptor.msaaSamples;
 
             for (int i = 0; i < resourceData.normalsTexture.Length; ++i)
-                resourceData.normalsTexture[i] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_NormalMap", true, RendererLighting.k_NormalClearColor);
+            {
+                if (layerBatches[i].useNormals)
+                {
+                    resourceData.normalsTexture[i] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_NormalMap", true, RendererLighting.k_NormalClearColor);
+#if ENABLE_PROFILER && PROFILER_INSTALLED
+                    if (canProfilerCapture)
+                        ProfilerMarkers.s_U2DNormalMapProfilerCounterValue.Value++;
+#endif
+                }
+            }
 
             if (IsDepthUsageAllowed(frameData, m_Renderer2DData))
             {
@@ -619,6 +645,10 @@ namespace UnityEngine.Rendering.Universal
                         clearColor = Color.black;
 
                     resourceData.lightTextures[i][j] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, RendererLighting.k_ShapeLightTextureIDs[index], true, clearColor, FilterMode.Bilinear);
+#if ENABLE_PROFILER && PROFILER_INSTALLED
+                    if (canProfilerCapture)
+                        ProfilerMarkers.s_U2DLightProfilerCounterValue.Value++;
+#endif
                 }
             }
         }
@@ -637,6 +667,10 @@ namespace UnityEngine.Rendering.Universal
                 for (var j = 0; j < layerBatches[i].shadowIndices.Count; ++j)
                 {
                     resourceData.shadowTextures[i][j] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, shadowDesc, "_ShadowTex", false, FilterMode.Bilinear);
+#if ENABLE_PROFILER && PROFILER_INSTALLED
+                    if (canProfilerCapture)
+                        ProfilerMarkers.s_U2DShadowProfilerCounterValue.Value++;
+#endif
                 }
             }
 
@@ -746,6 +780,11 @@ namespace UnityEngine.Rendering.Universal
             CommonResourceData commonResourceData = frameData.Get<CommonResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
+#if ENABLE_PROFILER && PROFILER_INSTALLED
+            // canProfilerCapture is initialized here and can only be used after
+            s_CanProfilerCapture = cameraData.isGameCamera;
+#endif
+
             InitializeLayerBatches();
 
             CreateResources(renderGraph);
@@ -791,7 +830,7 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             var renderingData = frameData.Get<Universal2DRenderingData>().renderingData;
 
-            m_LightPass.Setup(renderGraph, ref renderingData);
+            m_LightPass.Setup(renderGraph, frameData);
 
             // Before rendering the lights cache some values that are expensive to get/calculate
             var culledLights = renderingData.lightCullResult.visibleLights;
@@ -864,6 +903,17 @@ namespace UnityEngine.Rendering.Universal
 
                 RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent2D.AfterRenderingLights, i);
             }
+
+#if ENABLE_PROFILER && PROFILER_INSTALLED
+            if (canProfilerCapture)
+            {
+                ProfilerMarkers.s_ShadowMeshFrameData.Emit();
+                ProfilerMarkers.s_ShadowRenderFrameData.Emit();
+
+                ProfilerMarkers.s_LightMeshFrameData.Emit();
+                ProfilerMarkers.s_LightRenderFrameData.Emit();
+            }
+#endif
 
             // Default Render Pass
             for (var i = 0; i < batchCount; i++)
@@ -973,11 +1023,11 @@ namespace UnityEngine.Rendering.Universal
             if (applyPostProcessing)
             {
                 bool isTargetBackbuffer = resolvePostProcessingToCameraTarget;
-               
+
                 if(isTargetBackbuffer)
                 {
                     commonResourceData.SwitchActiveTexturesToBackbuffer();
-                }              
+                }
                 else
                 {
                     // if the postprocessing pass is trying to read and write to the same CameraColor target, we need to swap so it writes to a different target,
@@ -991,7 +1041,7 @@ namespace UnityEngine.Rendering.Universal
 
                     commonResourceData.destinationCameraColor = renderGraph.ImportTexture(nextRenderGraphCameraColorHandle, importColorParams);
                 }
-      
+
                 m_PostProcess.RenderPostProcessing(
                     renderGraph,
                     frameData,
@@ -1000,7 +1050,7 @@ namespace UnityEngine.Rendering.Universal
 
             }
 
-            RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent2D.AfterRenderingPostProcessing);                      
+            RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent2D.AfterRenderingPostProcessing);
 
             // Do PixelPerfect upscaling when using the Stretch Fill option
             if (requirePixelPerfectUpscale)
@@ -1036,7 +1086,7 @@ namespace UnityEngine.Rendering.Universal
             if (shouldRenderUI && !outputToHDR)
             {
                 m_DrawOverlayUIPass.RenderOverlay(renderGraph, frameData, commonResourceData.backBufferColor, commonResourceData.backBufferDepth);
-            }               
+            }
 
             // If HDR debug views are enabled, debugHandler will perform the blit from debugScreenColor (== finalColorHandle) to backBufferColor.
             if (resolveToDebugScreen)
@@ -1046,7 +1096,7 @@ namespace UnityEngine.Rendering.Universal
                 //Swapping the backbuffer textures back
                 commonResourceData.backBufferColor = debugRealBackBufferColor;
                 commonResourceData.backBufferDepth = debugRealBackBufferDepth;
-            }           
+            }
 
             if (cameraData.resolveFinalTarget)
             {

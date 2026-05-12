@@ -4,7 +4,6 @@ using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.U2D;
 using UnityEngine.Rendering.RenderGraphModule;
 using System.Collections.Generic;
-using UnityEditor;
 
 #if UNITY_EDITOR
 using System.Linq;
@@ -518,7 +517,7 @@ namespace UnityEngine.Rendering.Universal
             else
                 return kEmptyBounds;
         }
-        
+
         internal void UpdateCookieSpriteTexture()
         {
             m_CookieSpriteTexture?.Release();
@@ -718,9 +717,10 @@ namespace UnityEngine.Rendering.Universal
             {
 #if UNITY_EDITOR
                 m_SelectionSources.selectedHashCode = (int)m_LightType;
-#endif 
+#endif
             }
         }
+
     }
 
 }

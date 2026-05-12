@@ -1,13 +1,10 @@
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.Universal.U2D.Profiler;
 
 namespace UnityEngine.Rendering.Universal
 {
     internal class UpscalePass : ScriptableRenderPass
     {
-        static readonly string k_UpscalePass = "Upscale2D Pass";
-
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_UpscalePass);
-        private static readonly ProfilingSampler m_ExecuteProfilingSampler = new ProfilingSampler("Draw Upscale");
         Material m_BlitMaterial;
 
         private class PassData
@@ -24,7 +21,7 @@ namespace UnityEngine.Rendering.Universal
 
         private static void ExecutePass(RasterCommandBuffer cmd, RTHandle source, Material blitMaterial)
         {
-            using (new ProfilingScope(cmd, m_ExecuteProfilingSampler))
+            using (new ProfilingScope(cmd, ProfilerMarkers.s_ProfilingSamplerDrawUpscale))
             {
                 Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                 Blitter.BlitTexture(cmd, source, viewportScale, blitMaterial, source.rt.filterMode == FilterMode.Bilinear ? 1 : 0);
@@ -37,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
             if (ppc == null || !ppc.enabled || !ppc.requiresUpscalePass)
                 return;
 
-            using (var builder = graph.AddRasterRenderPass<PassData>(k_UpscalePass, out var passData, m_ProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>(ProfilerMarkers.s_UpscalePass, out var passData, ProfilerMarkers.s_ProfilingSamplerUpscalePass))
             {
                 passData.source = cameraColorAttachment;
                 passData.blitMaterial = m_BlitMaterial;

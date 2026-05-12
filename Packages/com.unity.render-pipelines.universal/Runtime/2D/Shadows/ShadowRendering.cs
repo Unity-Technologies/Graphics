@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using Unity.Collections;
+using UnityEngine.Rendering.Universal.U2D.Profiler;
 
 #if USING_SPRITESHAPE
 using UnityEngine.U2D;
@@ -39,11 +40,6 @@ namespace UnityEngine.Rendering.Universal
         private static readonly int k_ShadowShadowColorID = Shader.PropertyToID("_ShadowColor");
         private static readonly int k_ShadowUnshadowColorID = Shader.PropertyToID("_UnshadowColor");
 
-        private static readonly ProfilingSampler m_ProfilingSamplerShadows = new ProfilingSampler("Draw 2D Shadow Texture");
-        private static readonly ProfilingSampler m_ProfilingSamplerShadowsA = new ProfilingSampler("Draw 2D Shadows (A)");
-        private static readonly ProfilingSampler m_ProfilingSamplerShadowsR = new ProfilingSampler("Draw 2D Shadows (R)");
-        private static readonly ProfilingSampler m_ProfilingSamplerShadowsG = new ProfilingSampler("Draw 2D Shadows (G)");
-        private static readonly ProfilingSampler m_ProfilingSamplerShadowsB = new ProfilingSampler("Draw 2D Shadows (B)");
 
         private static readonly float k_MaxShadowSoftnessAngle = 15;
         private static readonly Color k_ShadowColorLookup = new Color(0, 0, 1, 0);
@@ -257,7 +253,6 @@ namespace UnityEngine.Rendering.Universal
             if (ShadowCasterGroup2DManager.shadowCasterGroups != null)
             {
                 Bounds bounds = CalculateWorldSpaceBounds(camera, cullResult);
-
                 List<ShadowCasterGroup2D> groups = ShadowCasterGroup2DManager.shadowCasterGroups;
                 for (int groupIndex = 0; groupIndex < groups.Count; groupIndex++)
                 {
@@ -452,7 +447,7 @@ namespace UnityEngine.Rendering.Universal
 
         private static void RenderShadows(UnsafeCommandBuffer cmdBuffer, Renderer2DData rendererData, ref LayerBatch layer, Light2D light)
         {
-            using (new ProfilingScope(cmdBuffer, m_ProfilingSamplerShadows))
+            using (new ProfilingScope(cmdBuffer, ProfilerMarkers.s_ProfilingSamplerShadows))
             {
                 var shadowRadius = light.boundingSphere.radius + (light.transform.position - light.boundingSphere.position).magnitude;
 
@@ -487,6 +482,21 @@ namespace UnityEngine.Rendering.Universal
                     RenderProjectedShadows(cmdBuffer, layer.startLayerID, light, shadowCasters, projectedShadowMaterial, 1, ShadowTestType.Unshadow);
                     //Render self shadowing or non self shadowing
                     RenderSpriteShadow(cmdBuffer, layer.startLayerID, light, shadowCasters, spriteShadowMaterial, spriteUnshadowMaterial, geometryShadowMaterial, geometryUnshadowMaterial, spriteShadowMaterialSkinned, spriteUnshadowMaterialSkinned, 1, ShadowTestType.Unshadow);
+
+#if ENABLE_PROFILER && PROFILER_INSTALLED
+                    if (Renderer2D.canProfilerCapture)
+                    {
+                        for (var i = 0; i < shadowCasters.Count; i++)
+                        {
+                            var shadowCaster = shadowCasters[i];
+                            if (!shadowCaster.IsLit(light))
+                                continue;                            
+                            ProfilerMarkers.s_U2DShadowCasterCounterValue.Value++;
+                            ProfilerMarkers.s_ShadowRenderFrameData.Capture(shadowCaster.gameObject.GetEntityId());
+                            ProfilerMarkers.s_ShadowMeshFrameData.Capture(shadowCaster.gameObject, shadowCaster.mesh);
+                        }
+                    }
+#endif
                 }
             }
         }
