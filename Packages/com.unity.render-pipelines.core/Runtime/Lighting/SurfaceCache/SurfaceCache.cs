@@ -303,6 +303,7 @@ namespace UnityEngine.Rendering
         private uint _defragCount = 1;
         private uint _defragOffset = 0;
         readonly private float _albedoBoost = 1.0f;
+        private float _emissiveTriangleIntensityMultiplier = 1.0f;
 
         public GraphicsBuffer PunctualLightSamples => _punctualLightSamples;
         public SurfaceCachePatchList Patches => _patches;
@@ -379,6 +380,7 @@ namespace UnityEngine.Rendering
             internal SurfaceCacheWorld World;
             internal float AlbedoBoost;
             internal float EnvironmentIntensityMultiplier;
+            internal float EmissiveTriangleIntensityMultiplier;
             internal uint FrameIdx;
             internal uint CascadeCount;
             internal bool MultiBounce;
@@ -462,6 +464,7 @@ namespace UnityEngine.Rendering
             public static readonly int _AlbedoTextures = Shader.PropertyToID("_AlbedoTextures");
             public static readonly int _AlbedoBoost = Shader.PropertyToID("_AlbedoBoost");
             public static readonly int _EnvironmentIntensityMultiplier = Shader.PropertyToID("_EnvironmentIntensityMultiplier");
+            public static readonly int _EmissiveTriangleIntensityMultiplier = Shader.PropertyToID("_EmissiveTriangleIntensityMultiplier");
             public static readonly int _DirectionalLightDirection = Shader.PropertyToID("_DirectionalLightDirection");
             public static readonly int _DirectionalLightIntensity = Shader.PropertyToID("_DirectionalLightIntensity");
             public static readonly int _MaterialAtlasTexelSize = Shader.PropertyToID("_MaterialAtlasTexelSize");
@@ -527,6 +530,11 @@ namespace UnityEngine.Rendering
         public void SetEstimationParams(SurfaceCacheEstimationParameterSet estimationParams)
         {
             _estimationParams = estimationParams;
+        }
+
+        public void SetEmissiveTriangleIntensityMultiplier(float multiplier)
+        {
+            _emissiveTriangleIntensityMultiplier = multiplier;
         }
 
         public void SetDefragCount(uint count)
@@ -693,6 +701,7 @@ namespace UnityEngine.Rendering
                 passData.FrameIdx = frameIdx;
                 passData.AlbedoBoost = _albedoBoost;
                 passData.EnvironmentIntensityMultiplier = world.GetEnvironmentIntensityMultiplier();
+                passData.EmissiveTriangleIntensityMultiplier = _emissiveTriangleIntensityMultiplier;
                 passData.VolumeSpatialResolution = Volume.SpatialResolution;
                 passData.VolumeCascadeOffsets = Volume.CascadeOffsetBuffer;
                 passData.CascadeCount = Volume.CascadeCount;
@@ -864,6 +873,7 @@ namespace UnityEngine.Rendering
                 shader.SetTextureParam(cmd, ShaderIDs._EmissionTextures, data.World.GetMaterialEmissionTextures());
                 shader.SetFloatParam(cmd, ShaderIDs._AlbedoBoost, data.AlbedoBoost);
                 shader.SetFloatParam(cmd, ShaderIDs._EnvironmentIntensityMultiplier, data.EnvironmentIntensityMultiplier);
+                shader.SetFloatParam(cmd, ShaderIDs._EmissiveTriangleIntensityMultiplier, data.EmissiveTriangleIntensityMultiplier);
                 shader.SetFloatParam(cmd, ShaderIDs._MaterialAtlasTexelSize, GetMaterialAtlasTexelSize(data.World.GetMaterialAlbedoTextures()));
                 shader.SetIntParam(cmd, ShaderIDs._PunctualLightCount, punctualLightCount);
                 shader.SetIntParam(cmd, ShaderIDs._BouncePatchAllocation, data.BouncePatchAllocation ? 1 : 0);

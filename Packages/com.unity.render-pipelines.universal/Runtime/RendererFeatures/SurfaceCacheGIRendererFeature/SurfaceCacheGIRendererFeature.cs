@@ -407,6 +407,7 @@ namespace UnityEngine.Rendering.Universal
                 _coreResources = resourceSet;
 
                 _cache = new SurfaceCache(resourceSet, volParams);
+                _cache.SetEmissiveTriangleIntensityMultiplier(k_EmissiveTriangleIntensityMultiplier);
 
                 _world = new SurfaceCacheWorld();
                 _world.Init(_rtContext, worldResources);
@@ -441,6 +442,15 @@ namespace UnityEngine.Rendering.Universal
                 _world.Dispose();
                 _worldUpdateScratch?.Dispose();
             }
+
+            // Historically, GI systems in Unity have, for historical reasons, 1) multiplied punctual light intensity
+            // inputs with PI, and 2) divided all GI output with PI. To match this, Surface Cache for now does
+            // something mathematically equivalent: It divides environment light and triangle emission by PI.
+            // Ideally, we'd get rid of this behavior across all Unity GI systems in the future.
+            // Note that this is distinct from the separate issue that URP is generally off by PI in its output.
+            private const bool k_ConformToUnityGIFormat = true;
+
+            private const float k_EmissiveTriangleIntensityMultiplier = k_ConformToUnityGIFormat ? 1.0f / Mathf.PI : 1.0f;
 
             private static VolumeParameterSet GetVolumeParametersOrDefaults(SurfaceCacheGIVolumeOverride volume)
             {
@@ -549,6 +559,7 @@ namespace UnityEngine.Rendering.Universal
                         CascadeCount = newCascadeCount
                     };
                     _cache = new SurfaceCache(_coreResources, newVolParams);
+                    _cache.SetEmissiveTriangleIntensityMultiplier(k_EmissiveTriangleIntensityMultiplier);
                     _frameIdx = 0;
                 }
 
@@ -683,7 +694,7 @@ namespace UnityEngine.Rendering.Universal
                     Debug.Assert(_objDispatcher == null);
                     _legacyWorldAdapter.Update(_sceneTracker, RenderSettings.ambientMode, RenderSettings.skybox,
                         RenderSettings.ambientSkyColor.linear, RenderSettings.ambientEquatorColor.linear, RenderSettings.ambientGroundColor.linear,
-                        RenderSettings.ambientIntensity, _world);
+                        RenderSettings.ambientIntensity, k_ConformToUnityGIFormat, _world);
                 }
                 else
                 {
@@ -697,6 +708,7 @@ namespace UnityEngine.Rendering.Universal
                         RenderSettings.ambientEquatorColor.linear,
                         RenderSettings.ambientGroundColor.linear,
                         RenderSettings.ambientIntensity,
+                        k_ConformToUnityGIFormat,
                         _world);
                 }
 

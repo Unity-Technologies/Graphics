@@ -56,8 +56,8 @@ namespace UnityEngine.Rendering.Universal
         }
 
         internal void Update(SceneUpdatesTracker sceneTracker, AmbientMode ambientMode, Material skyboxMaterial,
-            Color ambientSkycolor, Color ambientEquatorColor, Color ambientGroundColor, float envIntensityMultiplier,
-            SurfaceCacheWorld world)
+            Color ambientSkycolor, Color ambientEquatorColor, Color ambientGroundColor, float materialEnvIntensityMultiplier,
+            bool divideEnvIntensityByPI, SurfaceCacheWorld world)
         {
             const bool filterBakedLights = true;
             var changes = sceneTracker.GetChanges(filterBakedLights);
@@ -82,30 +82,32 @@ namespace UnityEngine.Rendering.Universal
             const bool multiplyPunctualLightIntensityByPI = false;
             UpdateLights(world, changes.addedLights, changes.removedLights, changes.changedLights, multiplyPunctualLightIntensityByPI);
 
+            float envIntensityMultiplier = divideEnvIntensityByPI ? 1.0f / Mathf.PI : 1.0f;
+
             switch (ambientMode)
             {
                 case AmbientMode.Skybox:
                     world.SetEnvironmentMode(CubemapRender.Mode.Material);
                     world.SetEnvironmentMaterial(skyboxMaterial);
-                    world.SetEnvironmentIntensityMultiplier(envIntensityMultiplier);
+                    world.SetEnvironmentIntensityMultiplier(materialEnvIntensityMultiplier * envIntensityMultiplier);
                     break;
 
                 case AmbientMode.Flat:
                     world.SetEnvironmentMode(CubemapRender.Mode.Color);
                     world.SetEnvironmentColor(ambientSkycolor);
-                    world.SetEnvironmentIntensityMultiplier(1.0f);
+                    world.SetEnvironmentIntensityMultiplier(envIntensityMultiplier);
                     break;
 
                 case AmbientMode.Trilight:
                     world.SetEnvironmentMode(CubemapRender.Mode.Color);
                     world.SetEnvironmentGradientColors(ambientSkycolor, ambientEquatorColor, ambientGroundColor);
-                    world.SetEnvironmentIntensityMultiplier(1.0f);
+                    world.SetEnvironmentIntensityMultiplier(envIntensityMultiplier);
                     break;
 
                 default:
                     world.SetEnvironmentMode(CubemapRender.Mode.Color);
                     world.SetEnvironmentColor(Color.black);
-                    world.SetEnvironmentIntensityMultiplier(1.0f);
+                    world.SetEnvironmentIntensityMultiplier(envIntensityMultiplier);
                     break;
             }
         }
@@ -622,8 +624,8 @@ namespace UnityEngine.Rendering.Universal
         }
 
         public void Update(ObjectDispatcher objDispatcher, AmbientMode ambientMode, Material skyboxMaterial,
-            Color ambientSkycolor, Color ambientEquatorColor, Color ambientGroundColor, float envIntensityMultiplier,
-            SurfaceCacheWorld world)
+            Color ambientSkycolor, Color ambientEquatorColor, Color ambientGroundColor, float materialEnvIntensityMultiplier,
+            bool divideEnvIntensityByPI, SurfaceCacheWorld world)
         {
             UpdateMeshRenderers(objDispatcher, world);
             UpdateLights(objDispatcher, world);
@@ -634,7 +636,8 @@ namespace UnityEngine.Rendering.Universal
                 ambientSkycolor,
                 ambientEquatorColor,
                 ambientGroundColor,
-                envIntensityMultiplier,
+                materialEnvIntensityMultiplier,
+                divideEnvIntensityByPI,
                 world);
         }
 
@@ -664,33 +667,35 @@ namespace UnityEngine.Rendering.Universal
         }
 
         void UpdateEnvironment(AmbientMode ambientMode, Material skyboxMaterial,
-            Color ambientSkycolor, Color ambientEquatorColor, Color ambientGroundColor, float envIntensityMultiplier,
-            SurfaceCacheWorld world)
+            Color ambientSkycolor, Color ambientEquatorColor, Color ambientGroundColor, float materialEnvIntensityMultiplier,
+            bool divideEnvIntensityByPI, SurfaceCacheWorld world)
         {
+            float envIntensityMultiplier = divideEnvIntensityByPI ? 1.0f / Mathf.PI : 1.0f;
+
             switch (ambientMode)
             {
                 case AmbientMode.Skybox:
                     world.SetEnvironmentMode(CubemapRender.Mode.Material);
                     world.SetEnvironmentMaterial(skyboxMaterial);
-                    world.SetEnvironmentIntensityMultiplier(envIntensityMultiplier);
+                    world.SetEnvironmentIntensityMultiplier(materialEnvIntensityMultiplier * envIntensityMultiplier);
                     break;
 
                 case AmbientMode.Flat:
                     world.SetEnvironmentMode(CubemapRender.Mode.Color);
                     world.SetEnvironmentColor(ambientSkycolor);
-                    world.SetEnvironmentIntensityMultiplier(1.0f);
+                    world.SetEnvironmentIntensityMultiplier(envIntensityMultiplier);
                     break;
 
                 case AmbientMode.Trilight:
                     world.SetEnvironmentMode(CubemapRender.Mode.Color);
                     world.SetEnvironmentGradientColors(ambientSkycolor, ambientEquatorColor, ambientGroundColor);
-                    world.SetEnvironmentIntensityMultiplier(1.0f);
+                    world.SetEnvironmentIntensityMultiplier(envIntensityMultiplier);
                     break;
 
                 default:
                     world.SetEnvironmentMode(CubemapRender.Mode.Color);
                     world.SetEnvironmentColor(Color.black);
-                    world.SetEnvironmentIntensityMultiplier(1.0f);
+                    world.SetEnvironmentIntensityMultiplier(envIntensityMultiplier);
                     break;
             }
         }

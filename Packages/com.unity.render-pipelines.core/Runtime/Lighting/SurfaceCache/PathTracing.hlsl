@@ -233,6 +233,7 @@ float3 OutgoingDirectionalBounceAndMultiBounceRadiance(
     PatchUtil::VolumeParamSet volumeParams,
     float3 albedo,
     float3 emission,
+    float emissiveTriangleIntensityMultiplier,
     out uint bouncePatchIndex)
 {
     float3 radiance = 0.0f;
@@ -265,7 +266,7 @@ float3 OutgoingDirectionalBounceAndMultiBounceRadiance(
     }
 
     radiance *= albedo * INV_PI;
-    radiance += emission;
+    radiance += emission * emissiveTriangleIntensityMultiplier;
     return radiance;
 }
 
@@ -279,6 +280,7 @@ float3 IncomingEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
     bool multiBounce,
     TextureCube<float3> envTex,
     float envIntensityMultiplier,
+    float emissiveTriangleIntensityMultiplier,
     SamplerState envSampler,
     PatchIrradianceBufferType patchIrradiances,
     RWStructuredBuffer<PatchUtil::PatchStatisticsSet> patchStatistics,
@@ -319,6 +321,7 @@ float3 IncomingEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
                 volumeParams,
                 hitAlbedo,
                 hitEmission,
+                emissiveTriangleIntensityMultiplier,
                 bouncePatchIndex);
 
             if (enablePatchAllocation)
