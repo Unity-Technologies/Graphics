@@ -503,6 +503,9 @@ namespace UnityEngine.Rendering
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
 
+            const string useLegacyLightmapsKeyword = "USE_LEGACY_LIGHTMAPS";
+            Shader.EnableKeyword(useLegacyLightmapsKeyword);
+
             if (!internalSettings.isManagedByUnitTest)
                 InsertIntoPlayerLoop();
 
@@ -537,6 +540,9 @@ namespace UnityEngine.Rendering
 
             if (!m_InternalSettings.isManagedByUnitTest)
                 RemoveFromPlayerLoop();
+
+            const string useLegacyLightmapsKeyword = "USE_LEGACY_LIGHTMAPS";
+            Shader.DisableKeyword(useLegacyLightmapsKeyword);
 
             m_WorldProcessor.Dispose();
             m_WorldProcessor = null;
