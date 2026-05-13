@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
     [TestFixture]
     [UnityPlatform(exclude = new RuntimePlatform[] {
         RuntimePlatform.WindowsEditor // Disabled for Instability https://jira.unity3d.com/browse/UUM-141869
-    } )]
+    })]
     internal class SaveLoadTests
     {
         GraphEditorView m_GraphEditorView;
@@ -117,7 +117,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
         // Tests that loading and saving a fully versioned graph file doesn't change the file on disk.
         [UnityTest]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })] // Unstable: https://jira.unity3d.com/browse/UUM-141869
         public IEnumerator SaveAndLoadTests()
         {
             foreach (string assetGuid in AssetDatabase.FindAssets("*", new string[] { targetUnityDirectoryPath }))
