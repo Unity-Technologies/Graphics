@@ -71,6 +71,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty conservativeEnclosingSphereProp { get; }
 
         public SerializedProperty srpBatcher { get; }
+        // Deprecated: Retained for serialized data compatibility and will be removed in a future release.
         public SerializedProperty supportsDynamicBatching { get; }
         public SerializedProperty mixedLightingSupportedProp { get; }
         public SerializedProperty useRenderingLayers { get; }

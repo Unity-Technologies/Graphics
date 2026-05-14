@@ -54,13 +54,12 @@ namespace UnityEngine.Rendering.Universal
             DrawObjectMotionVectors(cmd, passData.xr, ref rendererList);
         }
 
-        private static DrawingSettings GetDrawingSettings(Camera camera, bool supportsDynamicBatching)
+        private static DrawingSettings GetDrawingSettings(Camera camera)
         {
             var sortingSettings = new SortingSettings(camera) { criteria = SortingCriteria.CommonOpaque };
             var drawingSettings = new DrawingSettings(ShaderTagId.none, sortingSettings)
             {
                 perObjectData = PerObjectData.MotionVectors,
-                enableDynamicBatching = supportsDynamicBatching,
                 enableInstancing = true,
                 lodCrossFadeStencilMask = 0, // Disable stencil-based lod because depth copy before motion vector pass doesn't copy stencils.
             };
@@ -141,9 +140,9 @@ namespace UnityEngine.Rendering.Universal
             passData.cameraMaterial = m_CameraMaterial;
         }
 
-        private void InitRendererLists(ref PassData passData, ref CullingResults cullResults, bool supportsDynamicBatching, RenderGraph renderGraph)
+        private void InitRendererLists(ref PassData passData, ref CullingResults cullResults, RenderGraph renderGraph)
         {
-            var drawingSettings = GetDrawingSettings(passData.camera, supportsDynamicBatching);
+            var drawingSettings = GetDrawingSettings(passData.camera);
             var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, ref cullResults, drawingSettings, m_FilteringSettings, renderStateBlock, ref passData.rendererListHdl);
         }
@@ -174,7 +173,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.cameraDepth = cameraDepthTexture;
                 builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
 
-                InitRendererLists(ref passData, ref renderingData.cullResults, renderingData.supportsDynamicBatching, renderGraph);
+                InitRendererLists(ref passData, ref renderingData.cullResults, renderGraph);
                 builder.UseRendererList(passData.rendererListHdl);
 
                 if (motionVectorColor.IsValid())

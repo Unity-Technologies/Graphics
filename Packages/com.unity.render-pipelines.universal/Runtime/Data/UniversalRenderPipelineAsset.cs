@@ -551,6 +551,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Advanced settings
         [SerializeField] bool m_UseSRPBatcher = true;
+        // Deprecated: Retained for serialized data compatibility and will be removed in a future release.
         [SerializeField] bool m_SupportsDynamicBatching = false;
 #if UNITY_EDITOR
         // multi_compile _ LIGHTMAP_SHADOW_MIXING
@@ -1563,6 +1564,7 @@ namespace UnityEngine.Rendering.Universal
         /// Specifies if this <c>UniversalRenderPipelineAsset</c> should use dynamic batching.
         /// </summary>
         /// <see href="https://docs.unity3d.com/Manual/DrawCallBatching.html"/>
+        [Obsolete("supportsDynamicBatching is obsolete.", true)]
         public bool supportsDynamicBatching
         {
             get => m_SupportsDynamicBatching;
