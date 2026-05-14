@@ -4,7 +4,8 @@
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/PathTracing.hlsl"
 
-#pragma exclude_renderers switch switch2 webgpu
+// PS5 is excluded right now as compiling the shader times out on this platform. See UUM-142110
+#pragma exclude_renderers switch switch2 webgpu ps5
 
 uint g_SampleCount;
 
