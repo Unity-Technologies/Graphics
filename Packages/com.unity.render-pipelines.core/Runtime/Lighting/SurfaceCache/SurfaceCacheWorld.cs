@@ -1,5 +1,3 @@
-#if SURFACE_CACHE
-
 using System;
 using System.Collections.Generic;
 using Unity.Collections.LowLevel.Unsafe;
@@ -167,7 +165,7 @@ namespace UnityEngine.Rendering
                 return desc.Transform.GetColumn(2).normalized;
             }
 
-            static DirectionalLight ConvertDirectionalLight(LightDescriptor desc)
+            private static DirectionalLight ConvertDirectionalLight(LightDescriptor desc)
             {
                 return new DirectionalLight()
                 {
@@ -176,7 +174,7 @@ namespace UnityEngine.Rendering
                 };
             }
 
-            static PunctualLight ConvertSpotLight(LightDescriptor desc)
+            private static PunctualLight ConvertSpotLight(LightDescriptor desc)
             {
                 float cosOuterAngle = Mathf.Cos(desc.OuterSpotAngle * Mathf.Deg2Rad * 0.5f);
                 float cosInnerAngle = Mathf.Cos(desc.InnerSpotAngle * Mathf.Deg2Rad * 0.5f);
@@ -206,7 +204,7 @@ namespace UnityEngine.Rendering
                 };
             }
 
-            static PunctualLight ConvertPointLight(LightDescriptor desc)
+            private static PunctualLight ConvertPointLight(LightDescriptor desc)
             {
                 return new PunctualLight()
                 {
@@ -562,5 +560,3 @@ namespace UnityEngine.Rendering
         }
     }
 }
-
-#endif

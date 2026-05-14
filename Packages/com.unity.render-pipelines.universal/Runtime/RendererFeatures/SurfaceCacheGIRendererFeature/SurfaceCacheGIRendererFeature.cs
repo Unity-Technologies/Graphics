@@ -1061,9 +1061,35 @@ namespace UnityEngine.Rendering.Universal
             var worldLoadResult = worldResources.LoadFromRenderPipelineResources();
             Debug.Assert(worldLoadResult);
 
+            var coreRpResources = GraphicsSettings.GetRenderPipelineSettings<Rendering.SurfaceCacheRenderPipelineResourceSet>();
+            Debug.Assert(coreRpResources != null);
+
             var coreResources = new Rendering.SurfaceCacheResourceSet((uint)SystemInfo.computeSubGroupSize);
-            var coreResourceLoadResult = coreResources.LoadFromRenderPipelineResources(_rtContext);
-            Debug.Assert(coreResourceLoadResult);
+
+            Object punctualLightSamplingUnifiedObj;
+            Object estimationUnifiedObj;
+            if (_rtContext.BackendType == RayTracingBackend.Compute)
+            {
+                punctualLightSamplingUnifiedObj = coreRpResources.punctualLightSamplingComputeShader;
+                estimationUnifiedObj = coreRpResources.estimationComputeShader;
+            }
+            else
+            {
+                punctualLightSamplingUnifiedObj = coreRpResources.punctualLightSamplingRayTracingShader;
+                estimationUnifiedObj = coreRpResources.estimationRayTracingShader;
+            }
+            IRayTracingShader punctualLightSamplingShader = _rtContext.CreateRayTracingShader(punctualLightSamplingUnifiedObj);
+            IRayTracingShader estimationShader = _rtContext.CreateRayTracingShader(estimationUnifiedObj);
+
+            coreResources.Load(
+                coreRpResources.scrollingShader,
+                coreRpResources.evictionShader,
+                coreRpResources.patchAllocationShader,
+                coreRpResources.spatialFilteringShader,
+                coreRpResources.temporalFilteringShader,
+                coreRpResources.defragShader,
+                punctualLightSamplingShader,
+                estimationShader);
 
             // Use defaults for initial volume configuration; runtime values come from the Volume override per-frame
             var volParams = new SurfaceCacheVolumeParameterSet

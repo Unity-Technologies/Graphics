@@ -7,7 +7,13 @@
         "GUID:214c0945bb158c940aada223f3223ee8",
         "GUID:d8b63aba1907145bea998dd612889d6b"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor",
+        "LinuxStandalone64",
+        "macOSStandalone",
+        "PS5",
+        "WindowsStandalone64"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

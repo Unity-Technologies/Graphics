@@ -10,4 +10,5 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.PathTracing.Editor")]
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Core.Editor")]
 [assembly: InternalsVisibleTo("Unity.SurfaceCache.Runtime")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Core.Editor.Tests")]
 [assembly: InternalsVisibleTo("Assembly-CSharp-testable")]
