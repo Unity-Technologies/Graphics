@@ -51,29 +51,103 @@ namespace UnityEngine.Rendering.Universal
             OpaquesAndTransparents,
         }
 
+        internal enum PerformancePreset
+        {
+            Fast,
+            Balanced,
+            HighQuality,
+            BestQuality,
+            Custom
+        }
+
+        internal struct PerformancePresetValues
+        {
+            public Resolution resolution;
+            public UpscalingMethod upscalingMethod;
+            public bool linearMarching;
+            public int hitRefinementSteps;
+            public float finalThicknessMultiplier;
+            public float maxRayLength;
+            public int maxRaySteps;
+            public float objectThickness;
+        }
+
+        internal static ref readonly PerformancePresetValues DefaultPreset => ref k_PerformancePresets[(int)PerformancePreset.HighQuality];
+        internal static readonly PerformancePresetValues[] k_PerformancePresets =
+        {
+            // Fastest
+            new()
+            {
+                resolution = Resolution.Quarter,
+                upscalingMethod = UpscalingMethod.Kawase,
+                linearMarching = true,
+                hitRefinementSteps = 3,
+                finalThicknessMultiplier = 0.15f,
+                maxRayLength = 20f,
+                maxRaySteps = 16,
+                objectThickness = 0.325f
+            },
+            // Balanced
+            new()
+            {
+                resolution = Resolution.Half,
+                upscalingMethod = UpscalingMethod.Gaussian,
+                linearMarching = true,
+                hitRefinementSteps = 5,
+                finalThicknessMultiplier = 0.05f,
+                maxRayLength = 30f,
+                maxRaySteps = 32,
+                objectThickness = 0.325f
+            },
+            // High Quality
+            new()
+            {
+                resolution = Resolution.Half,
+                upscalingMethod = UpscalingMethod.Gaussian,
+                linearMarching = false,
+                hitRefinementSteps = 5,
+                finalThicknessMultiplier = 0.16f,
+                maxRayLength = 30f,
+                maxRaySteps = 64,
+                objectThickness = 0.01f
+            },
+            // Best Quality
+            new()
+            {
+                resolution = Resolution.Full,
+                upscalingMethod = UpscalingMethod.Gaussian,
+                linearMarching = false,
+                hitRefinementSteps = 5,
+                finalThicknessMultiplier = 0.16f,
+                maxRayLength = 30f,
+                maxRaySteps = 64,
+                objectThickness = 0.01f
+            }
+        };
+
         /// <summary>The mode determining which objects to reflect using Screen Space Reflections.</summary>
         [Tooltip("The mode determining which objects to reflect using Screen Space Reflections. 'Opaques Only' will only render opaque objects in reflections, while 'Opaques And Transparents' will also render transparent objects in reflections.")]
         public EnumParameter<ReflectionMode> mode = new(ReflectionMode.OpaquesOnly);
 
         /// <summary>The resolution to render Screen Space Reflections at.</summary>
         [Tooltip("The resolution to render Screen Space Reflections at. Lower values will yield better performance, but lower quality.")]
-        public EnumParameter<Resolution> resolution = new(Resolution.Full);
+        public EnumParameter<Resolution> resolution = new(DefaultPreset.resolution, true);
 
         /// <summary>The technique to use for upscaling Screen Space Reflections.</summary>
         [Tooltip("The method to use for upscaling the low resolution SSR texture. 'Kawase' is the most performant method, followed by 'Gaussian', and finally 'Bilateral'.")]
-        public EnumParameter<UpscalingMethod> upscalingMethod = new(UpscalingMethod.Bilateral);
+        public EnumParameter<UpscalingMethod> upscalingMethod = new(DefaultPreset.upscalingMethod, true);
 
         /// <summary>Whether to use linear marching to calculate Screen Space Reflections, rather than hierarchical depth buffer marching.</summary>
         [Tooltip("Whether to use linear marching to calculate Screen Space Reflections, rather than hierarchical depth buffer marching. With the option disabled, Unity generates a depth pyramid and uses its for hierarchical marching. This is more accurate, but may be less performant on low-end devices.")]
-        public BoolParameter linearMarching = new(false);
+        public BoolParameter linearMarching = new(DefaultPreset.linearMarching, true);
 
         /// <summary>Amount of binary search steps applied at the end of the ray to refine hit results, reducing stair-stepping artifacts and gaps in reflections caused by linear marching, where initial steps may be imprecise and miss fine details.</summary>
         [Tooltip("Amount of binary search steps applied at the end of the ray to refine hit results, reducing stair-stepping artifacts and gaps in reflections caused by linear marching, where initial steps may be imprecise and miss fine details.")]
-        public MinIntParameter hitRefinementSteps = new(4,0);
+        public MinIntParameter hitRefinementSteps = new(DefaultPreset.hitRefinementSteps, 0, true);
 
         /// <summary>Multiplies the regular thickness to compute a finer value, used with additional refinement steps to achieve more precise hit detection.</summary>
         [Tooltip("Multiplies the regular thickness to compute a finer value, used with additional refinement steps to achieve more precise hit detection.")]
-        public ClampedFloatParameter finalThicknessMultiplier = new(0.25f, 0.0f, 1f);
+        public ClampedFloatParameter finalThicknessMultiplier = new(DefaultPreset.finalThicknessMultiplier, 0.0f, 1f, true);
 
         /// <summary>Whether to enable rough reflections by blurring the reflected color.</summary>
         [Tooltip("Whether to enable rough reflections by blurring the reflected color. Disabling will improve performance, but all reflections will be mirror-like.")]
@@ -105,7 +179,7 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>The maximum distance in world space units a ray can travel. Only has an effect when linearMarching is enabled.</summary>
         [Tooltip("The maximum distance in world space units a ray can travel.")]
-        public MinFloatParameter maxRayLength = new(10f, 0f);
+        public MinFloatParameter maxRayLength = new(DefaultPreset.maxRayLength, 0f, true);
 
         /// <summary>The fade distance in world space units before the maximum ray length. Only has an effect when linearMarching is enabled.</summary>
         [Tooltip("The fade distance in world space units before the maximum ray length. Only has an effect when Linear Marching is enabled.")]
@@ -113,11 +187,11 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>The maximum amount of steps to take when tracing rays.</summary>
         [Tooltip("The maximum amount of steps to take when tracing rays.")]
-        public MinIntParameter maxRaySteps = new(48, 1);
+        public MinIntParameter maxRaySteps = new(DefaultPreset.maxRaySteps, 1, true);
 
         /// <summary>How close to the depth buffer a ray must be to be considered a hit.</summary>
         [Tooltip("How close to the depth buffer a ray must be to be considered a hit. Higher values will result in less accurate reflections, but may help mitigate shimmering artifacts.")]
-        public ClampedFloatParameter objectThickness = new(0.02f, 0f, 1f);
+        public ClampedFloatParameter objectThickness = new(DefaultPreset.objectThickness, 0f, 1f, true);
 
         // Helpers
         internal bool ShouldRenderTransparents() => mode.value == ReflectionMode.OpaquesAndTransparents;

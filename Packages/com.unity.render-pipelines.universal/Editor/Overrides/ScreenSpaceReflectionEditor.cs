@@ -3,21 +3,13 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using static UnityEngine.Rendering.Universal.ScreenSpaceReflectionVolumeSettings;
 
 namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(ScreenSpaceReflectionVolumeSettings))]
     class ScreenSpaceReflectionEditor : VolumeComponentEditor
     {
-        enum PerformancePreset
-        {
-            Fast,
-            Balanced,
-            HighQuality,
-            BestQuality,
-            Custom
-        }
-
         // Serialized properties, performance settings
         SerializedDataParameter m_Resolution;
         SerializedDataParameter m_UpscalingMethod;
@@ -43,71 +35,6 @@ namespace UnityEditor.Rendering.Universal
         PerformancePreset m_CurrentPreset = PerformancePreset.Custom;
         bool m_IgnorePresetChange = false;
         bool m_PresetDirty = false;
-
-        struct QualitySettings
-        {
-            public ScreenSpaceReflectionVolumeSettings.Resolution resolution;
-            public ScreenSpaceReflectionVolumeSettings.UpscalingMethod upscalingMethod;
-            public int hitRefinementSteps;
-            public float finalThicknessMultiplier;
-            public float maxRayLength;
-            public int maxRaySteps;
-            public float objectThickness;
-            public bool linearMarching;
-        }
-
-        // Quality preset definitions
-        static readonly QualitySettings[] k_QualityPresets =
-        {
-            // Fastest
-            new QualitySettings
-            {
-                resolution = ScreenSpaceReflectionVolumeSettings.Resolution.Quarter,
-                upscalingMethod = ScreenSpaceReflectionVolumeSettings.UpscalingMethod.Kawase,
-                linearMarching = true,
-                hitRefinementSteps = 3,
-                finalThicknessMultiplier = 0.15f,
-                maxRayLength = 10f,
-                maxRaySteps = 16,
-                objectThickness = 0.325f
-            },
-            // Balanced
-            new QualitySettings
-            {
-                resolution = ScreenSpaceReflectionVolumeSettings.Resolution.Half,
-                upscalingMethod = ScreenSpaceReflectionVolumeSettings.UpscalingMethod.Gaussian,
-                linearMarching = true,
-                hitRefinementSteps = 5,
-                finalThicknessMultiplier = 0.05f,
-                maxRayLength = 10f,
-                maxRaySteps = 32,
-                objectThickness = 0.325f
-            },
-            // High Quality
-            new QualitySettings
-            {
-                resolution = ScreenSpaceReflectionVolumeSettings.Resolution.Half,
-                upscalingMethod = ScreenSpaceReflectionVolumeSettings.UpscalingMethod.Bilateral,
-                linearMarching = false,
-                hitRefinementSteps = 5,
-                finalThicknessMultiplier = 0.16f,
-                maxRayLength = 20f,
-                maxRaySteps = 64,
-                objectThickness = 0.018f
-            },
-            // Best Quality
-            new QualitySettings
-            {
-                resolution = ScreenSpaceReflectionVolumeSettings.Resolution.Full,
-                upscalingMethod = ScreenSpaceReflectionVolumeSettings.UpscalingMethod.Bilateral,
-                linearMarching = false,
-                hitRefinementSteps = 5,
-                finalThicknessMultiplier = 0.16f,
-                maxRayLength = 30f,
-                maxRaySteps = 64,
-                objectThickness = 0.015f
-            }
-        };
 
         public override void OnEnable()
         {
@@ -196,7 +123,7 @@ namespace UnityEditor.Rendering.Universal
             DrawHeader("Visual Quality");
             PropertyField(m_Mode);
             PropertyField(m_RoughReflections);
-            if (m_RoughReflections.value.enumValueIndex != (int)ScreenSpaceReflectionVolumeSettings.RoughReflectionsQuality.Disabled)
+            if (m_RoughReflections.value.enumValueIndex != (int)RoughReflectionsQuality.Disabled)
             {
                 using (new EditorGUI.DisabledScope(!m_RoughReflections.overrideState.boolValue))
                 {
@@ -222,9 +149,9 @@ namespace UnityEditor.Rendering.Universal
 
         void DetectCurrentPreset()
         {
-            for (int i = 0; i < k_QualityPresets.Length; i++)
+            for (int i = 0; i < k_PerformancePresets.Length; i++)
             {
-                if (MatchesPreset(k_QualityPresets[i]))
+                if (MatchesPreset(k_PerformancePresets[i]))
                 {
                     m_CurrentPreset = (PerformancePreset)i;
                     return;
@@ -234,7 +161,7 @@ namespace UnityEditor.Rendering.Universal
         }
 
         // Ignores authoring and debugging settings.
-        bool MatchesPreset(QualitySettings preset)
+        bool MatchesPreset(PerformancePresetValues preset)
         {
             return m_Resolution.value.enumValueFlag == (int)preset.resolution &&
                    m_UpscalingMethod.value.enumValueFlag == (int)preset.upscalingMethod &&
@@ -253,7 +180,7 @@ namespace UnityEditor.Rendering.Universal
 
             m_IgnorePresetChange = true;
 
-            var settings = k_QualityPresets[(int)preset];
+            var settings = k_PerformancePresets[(int)preset];
 
             m_Resolution.overrideState.boolValue = true;
             m_Resolution.value.intValue = (int)settings.resolution;
