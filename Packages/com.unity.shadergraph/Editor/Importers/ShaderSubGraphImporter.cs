@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph
             var subGraphPath = ctx.assetPath;
             var subGraphGuid = AssetDatabase.AssetPathToGUID(subGraphPath);
             graphAsset.assetGuid = subGraphGuid;
-            var textGraph = File.ReadAllText(subGraphPath, Encoding.UTF8);
+            var textGraph = FileUtilities.ReadAllTextUTF8(subGraphPath);
             var messageManager = new MessageManager();
             var graphData = new GraphData
             {
