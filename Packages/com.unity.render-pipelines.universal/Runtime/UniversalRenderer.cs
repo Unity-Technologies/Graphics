@@ -648,12 +648,15 @@ namespace UnityEngine.Rendering.Universal
                 cullingParameters.cullingOptions &= ~CullingOptions.ShadowCasters;
             }
 
+            cullingParameters.cullingOptions |= CullingOptions.SkipTexturelessReflectionProbes;
+
             if (usesClusterLightLoop)
             {
                 // We don't add one to the maximum light because mainlight is treated as any other light.
                 cullingParameters.maximumVisibleLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
-                // Do not sort reflection probe from engine it will come in reverse order from what we need.
-                cullingParameters.reflectionProbeSortingCriteria = ReflectionProbeSortingCriteria.None;
+                // Sort probes so the most important, smallest probes come first,
+                // matching the shader's ascending iteration order (firstbitlow).
+                cullingParameters.reflectionProbeSortingCriteria = ReflectionProbeSortingCriteria.ImportanceThenSizeInverse;
             }
             else if (renderingModeActual == RenderingMode.Deferred)
             {

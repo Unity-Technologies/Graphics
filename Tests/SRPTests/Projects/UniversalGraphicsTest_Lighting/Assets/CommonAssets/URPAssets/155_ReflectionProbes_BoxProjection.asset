@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
-  m_Name: ReflectionProbes
+  m_Name: 155_ReflectionProbes_BoxProjection
   m_EditorClassIdentifier: 
   k_AssetVersion: 13
   k_AssetPreviousVersion: 13
@@ -19,7 +19,6 @@ MonoBehaviour:
   m_RendererDataList:
   - {fileID: 11400000, guid: bc60c4bc59aafe74198ea6134790d94b, type: 2}
   - {fileID: 11400000, guid: 121c47ef1b505bb4c9b2c17eda2dd176, type: 2}
-  - {fileID: 11400000, guid: f59607d3476b54858a594ea904187fb5, type: 2}
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 0
   m_RequireOpaqueTexture: 0
@@ -54,7 +53,7 @@ MonoBehaviour:
   m_AdditionalLightsShadowResolutionTierMedium: 1024
   m_AdditionalLightsShadowResolutionTierHigh: 2048
   m_ReflectionProbeBlending: 1
-  m_ReflectionProbeBoxProjection: 0
+  m_ReflectionProbeBoxProjection: 1
   m_ReflectionProbeAtlas: 1
   m_ShadowDistance: 50
   m_ShadowCascadeCount: 1
