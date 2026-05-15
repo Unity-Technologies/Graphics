@@ -62,11 +62,13 @@ static const int kCellCorner00 = 3;
 void GetCellCornerHeights(int2 coord, int terrainIndex, out float4 cellHeights, out bool cellIsHole)
 {
     float2 uv = (float2(coord) + 1.0) * _TerrainTextureInvWidth;
-    cellHeights = _TerrainTexture.Gather(sampler_TerrainTexture, float3(uv, terrainIndex)) - 1.0f / 32767.f;
-    // A hole cell has all 4 corners negated. A single negative corner can occur at height=0
-    // when the +1 bias wasn't applied (no-hole terrain), so check all corners.
-    cellIsHole = all(cellHeights < 0);
-    cellHeights = abs(cellHeights);
+    cellHeights = _TerrainTexture.Gather(sampler_TerrainTexture, float3(uv, terrainIndex));
+    // Hole encoding (AccelStructAdapter.CreateTerrainTexture) negates the texel at the cell's
+    // (cx, cy) corner -- corner00 of that cell -- so check that specific corner.
+    cellIsHole = cellHeights[kCellCorner00] < 0;
+    // abs() before subtracting the bias so a negated hole-corner texel decodes
+    // symmetrically (otherwise it would become (H+2)/32767 instead of H/32767).
+    cellHeights = abs(cellHeights) - 1.0f / 32767.f;
 }
 
 void IntersectRayWithTrianglePlane(float C, float A, float B, float3 rayOrigin, float3 rayDirection, float2 currentCell, out float hitT, out float2 hitPos, out bool frontFaceHit)
@@ -141,8 +143,12 @@ bool RayMarchTerrainTile(uint instanceID, int tileIndex, float3 rayOrigin, float
         float hRayAtExit = rayOrigin.z + tCellExit * rayDirection.z;
         float hRayAtEntry = rayOrigin.z + tCellEntry * rayDirection.z;
 
-        // Check if ray's height range overlaps the cell's height range
-        if (min(hRayAtExit, hRayAtEntry) <= _terrainMax4(cellHeights) && !cellIsHole)
+        // Check if ray's height range overlaps the cell's height range. A small absolute
+        // tolerance avoids FP rounding silently dropping hits where the ray grazes the surface
+        // exactly (e.g. a perfectly flat zero-height terrain hit by an axis-aligned ray --
+        // hRayAtEntry can round to either side of zero).
+        const float kHeightOverlapTolerance = 1e-7f;
+        if (min(hRayAtExit, hRayAtEntry) <= _terrainMax4(cellHeights) + kHeightOverlapTolerance && !cellIsHole)
         {
             bool hit = false;
 

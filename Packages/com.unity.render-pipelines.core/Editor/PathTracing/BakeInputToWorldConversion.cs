@@ -605,7 +605,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                     var holeMap = terrain.terrainHoleIndex >= 0 ? bakeInput.terrainHoleData[terrain.terrainHoleIndex] : new TerrainHoleData();
 
                     if (terrain.terrainHoleIndex >= 0)
-                        Debug.Assert(holeMap.resolution == heightMap.resolution + 1);
+                        Debug.Assert(holeMap.resolution == heightMap.resolution - 1, $"Hole resolution {holeMap.resolution} should be heightmap resolution {heightMap.resolution} - 1.");
 
                     // Find the instance data for this terrain to get the transform and material
                     for (int inst = 0; inst < bakeInput.instanceData.Length; inst++)

@@ -196,6 +196,18 @@ namespace UnityEngine.PathTracing.Tests
             };
         }
 
+        static TestRay RayUp(float x, float z, float startY = -200f, uint rayMask = 0xFFFFFFFF)
+        {
+            return new TestRay
+            {
+                origin = new float3(x, startY, z),
+                direction = new float3(0, 1, 0),
+                tMin = 0,
+                tMax = 1000,
+                rayMask = rayMask
+            };
+        }
+
         [Test]
         public void TraceRayDownToFlatTerrain_HitsAtCorrectPosition(
             [Values(TerrainMode.Mesh, TerrainMode.Procedural)] TerrainMode terrainMode)
@@ -1005,6 +1017,308 @@ namespace UnityEngine.PathTracing.Tests
             Assert.AreEqual(1f, dotCenter, 0.15f, $"Padded-slot center dot(normal, up) should be ~1, was {dotCenter:F3}.");
             float expected45Dot = 1f / math.sqrt(2f);
             Assert.AreEqual(expected45Dot, dot45, 0.15f, $"Padded-slot 45 dot(normal, up) should be ~{expected45Dot:F3}, was {dot45:F3}.");
+        }
+
+        // Hole map convention matches AccelStructAdapter.CreateTerrainTexture and Unity's terrain
+        // hole texture: byte[holeResolution * holeResolution], 0 = hole, non-zero = solid.
+        static byte[] CreateHoleData(int holeResolution, params int2[] holeCells)
+        {
+            var data = new byte[holeResolution * holeResolution];
+            for (int i = 0; i < data.Length; i++)
+                data[i] = 255;
+            foreach (var cell in holeCells)
+                data[cell.y * holeResolution + cell.x] = 0;
+            return data;
+        }
+
+        void AddTerrain(TerrainMode mode, short[] heightData, int resolution, float3 heightmapScale,
+            Matrix4x4 localToWorld, byte[] holeData, int holeResolution, uint instanceMask = 0xFFFFFFFF)
+        {
+            ulong handle = s_NextHandle++;
+            if (mode == TerrainMode.Procedural)
+            {
+                m_AccelStructAdapter.AddTerrainInstance(
+                    handle, heightData, resolution, heightmapScale,
+                    holeData, holeResolution, localToWorld, 0, 0xFFFFFFFF, instanceMask);
+            }
+            else
+            {
+                var mesh = TerrainToMesh.Convert(resolution, resolution, heightData,
+                    new Vector3(heightmapScale.x, heightmapScale.y, heightmapScale.z),
+                    holeResolution, holeResolution, holeData);
+                m_AccelStructAdapter.AddInstance(handle, mesh, localToWorld,
+                    new uint[] { instanceMask }, new uint[] { 0 }, new bool[] { true }, 0xFFFFFFFF);
+            }
+        }
+
+        // Cell (cx, cy) spans world X in [cx * scale.x, (cx+1) * scale.x] and similarly in Z.
+        static TestRay RayDownThroughCellCenter(int cx, int cy, float3 heightmapScale)
+        {
+            float wx = (cx + 0.5f) * heightmapScale.x + k_BoundaryEpsilonX;
+            float wz = (cy + 0.5f) * heightmapScale.z + k_BoundaryEpsilonZ;
+            return RayDown(wx, wz);
+        }
+
+        [Test]
+        public void TraceRayDownThroughHoleCell_Misses(
+            [Values(TerrainMode.Mesh, TerrainMode.Procedural)] TerrainMode terrainMode)
+        {
+            int resolution = 9;
+            int holeResolution = resolution - 1;
+            float3 heightmapScale = new float3(1.0f, 100.0f, 1.0f);
+            float terrainHeight = 50.0f;
+
+            int holeCx = 4, holeCy = 4;
+            var holeData = CreateHoleData(holeResolution, new int2(holeCx, holeCy));
+
+            AddTerrain(terrainMode, CreateFlatHeightmap(resolution, terrainHeight, heightmapScale.y),
+                resolution, heightmapScale, Matrix4x4.identity, holeData, holeResolution);
+
+            var results = TraceRays(new TestRay[]
+            {
+                RayDownThroughCellCenter(holeCx, holeCy, heightmapScale),
+            });
+
+            Assert.AreEqual(0u, results[0].isValid,
+                $"Ray fired through hole cell ({holeCx},{holeCy}) on {terrainMode} should miss.");
+        }
+
+        [Test]
+        public void TraceRayDownAdjacentToHole_StillHits(
+            [Values(TerrainMode.Mesh, TerrainMode.Procedural)] TerrainMode terrainMode)
+        {
+            int resolution = 9;
+            int holeResolution = resolution - 1;
+            float3 heightmapScale = new float3(1.0f, 100.0f, 1.0f);
+            float terrainHeight = 50.0f;
+            const float rayStartY = 200f;
+            float expectedHitDist = rayStartY - terrainHeight;
+
+            int holeCx = 4, holeCy = 4;
+            var holeData = CreateHoleData(holeResolution, new int2(holeCx, holeCy));
+
+            AddTerrain(terrainMode, CreateFlatHeightmap(resolution, terrainHeight, heightmapScale.y),
+                resolution, heightmapScale, Matrix4x4.identity, holeData, holeResolution);
+
+            // Fire rays through the 4-connected neighbors of the hole — all solid, should hit at terrainHeight.
+            var results = TraceRays(new TestRay[]
+            {
+                RayDownThroughCellCenter(holeCx - 1, holeCy, heightmapScale),
+                RayDownThroughCellCenter(holeCx + 1, holeCy, heightmapScale),
+                RayDownThroughCellCenter(holeCx, holeCy - 1, heightmapScale),
+                RayDownThroughCellCenter(holeCx, holeCy + 1, heightmapScale),
+            });
+
+            for (int i = 0; i < results.Length; i++)
+            {
+                Assert.AreEqual(1u, results[i].isValid,
+                    $"Neighbor ray {i} of hole ({holeCx},{holeCy}) on {terrainMode} should hit.");
+                Assert.AreEqual(expectedHitDist, results[i].hitDistance, 1.0f,
+                    $"Neighbor ray {i} of hole ({holeCx},{holeCy}) on {terrainMode} hit distance.");
+                Assert.AreEqual(terrainHeight, results[i].worldPosition.y, 1.0f,
+                    $"Neighbor ray {i} of hole ({holeCx},{holeCy}) on {terrainMode} hit Y.");
+            }
+        }
+
+        [Test]
+        public void TraceRayThroughCornerHoles_AllMiss(
+            [Values(TerrainMode.Mesh, TerrainMode.Procedural)] TerrainMode terrainMode)
+        {
+            int resolution = 9;
+            int holeResolution = resolution - 1;
+            float3 heightmapScale = new float3(1.0f, 100.0f, 1.0f);
+            float terrainHeight = 50.0f;
+
+            // Holes at all 4 corner cells — exposes off-by-one in either direction.
+            int last = holeResolution - 1;
+            var holeData = CreateHoleData(holeResolution,
+                new int2(0, 0),
+                new int2(last, 0),
+                new int2(0, last),
+                new int2(last, last));
+
+            AddTerrain(terrainMode, CreateFlatHeightmap(resolution, terrainHeight, heightmapScale.y),
+                resolution, heightmapScale, Matrix4x4.identity, holeData, holeResolution);
+
+            var results = TraceRays(new TestRay[]
+            {
+                RayDownThroughCellCenter(0, 0, heightmapScale),
+                RayDownThroughCellCenter(last, 0, heightmapScale),
+                RayDownThroughCellCenter(0, last, heightmapScale),
+                RayDownThroughCellCenter(last, last, heightmapScale),
+            });
+
+            Assert.AreEqual(0u, results[0].isValid, $"Corner hole (0,0) on {terrainMode} should miss.");
+            Assert.AreEqual(0u, results[1].isValid, $"Corner hole ({last},0) on {terrainMode} should miss.");
+            Assert.AreEqual(0u, results[2].isValid, $"Corner hole (0,{last}) on {terrainMode} should miss.");
+            Assert.AreEqual(0u, results[3].isValid, $"Corner hole ({last},{last}) on {terrainMode} should miss.");
+        }
+
+        [Test]
+        public void TraceRaysThroughFullyHoleyTerrain_AllMiss(
+            [Values(TerrainMode.Mesh, TerrainMode.Procedural)] TerrainMode terrainMode)
+        {
+            int resolution = 9;
+            int holeResolution = resolution - 1;
+            float3 heightmapScale = new float3(1.0f, 100.0f, 1.0f);
+            float terrainHeight = 50.0f;
+
+            var holeData = new byte[holeResolution * holeResolution]; // all zeros = all holes
+
+            AddTerrain(terrainMode, CreateFlatHeightmap(resolution, terrainHeight, heightmapScale.y),
+                resolution, heightmapScale, Matrix4x4.identity, holeData, holeResolution);
+
+            var rays = new TestRay[holeResolution * holeResolution];
+            for (int cy = 0; cy < holeResolution; cy++)
+                for (int cx = 0; cx < holeResolution; cx++)
+                    rays[cy * holeResolution + cx] = RayDownThroughCellCenter(cx, cy, heightmapScale);
+
+            var results = TraceRays(rays);
+
+            for (int i = 0; i < results.Length; i++)
+                Assert.AreEqual(0u, results[i].isValid,
+                    $"Ray {i} on fully-holey {terrainMode} terrain should miss.");
+        }
+
+        [Test]
+        public void TraceRaysThroughHoleStrip_HolesMiss_SolidsHit(
+            [Values(TerrainMode.Mesh, TerrainMode.Procedural)] TerrainMode terrainMode)
+        {
+            // A horizontal strip of holes at cy = 3 across the full X range. Every cell on
+            // that row should miss; every cell on the rows above and below should hit.
+            int resolution = 9;
+            int holeResolution = resolution - 1;
+            float3 heightmapScale = new float3(1.0f, 100.0f, 1.0f);
+            float terrainHeight = 50.0f;
+            int holeRow = 3;
+
+            var holeCells = new int2[holeResolution];
+            for (int cx = 0; cx < holeResolution; cx++)
+                holeCells[cx] = new int2(cx, holeRow);
+            var holeData = CreateHoleData(holeResolution, holeCells);
+
+            AddTerrain(terrainMode, CreateFlatHeightmap(resolution, terrainHeight, heightmapScale.y),
+                resolution, heightmapScale, Matrix4x4.identity, holeData, holeResolution);
+
+            // 3 rays per column: one in the hole row, one above, one below.
+            var rays = new TestRay[holeResolution * 3];
+            for (int cx = 0; cx < holeResolution; cx++)
+            {
+                rays[cx * 3 + 0] = RayDownThroughCellCenter(cx, holeRow,     heightmapScale); // hole
+                rays[cx * 3 + 1] = RayDownThroughCellCenter(cx, holeRow - 1, heightmapScale); // solid below
+                rays[cx * 3 + 2] = RayDownThroughCellCenter(cx, holeRow + 1, heightmapScale); // solid above
+            }
+
+            var results = TraceRays(rays);
+
+            for (int cx = 0; cx < holeResolution; cx++)
+            {
+                Assert.AreEqual(0u, results[cx * 3 + 0].isValid,
+                    $"Hole cell ({cx},{holeRow}) on {terrainMode} should miss.");
+                Assert.AreEqual(1u, results[cx * 3 + 1].isValid,
+                    $"Solid cell ({cx},{holeRow - 1}) on {terrainMode} should hit.");
+                Assert.AreEqual(1u, results[cx * 3 + 2].isValid,
+                    $"Solid cell ({cx},{holeRow + 1}) on {terrainMode} should hit.");
+            }
+        }
+
+        [Test]
+        public void TraceRayDownAdjacentToHole_HighTerrain_HitDistanceMatchesFlatHeight()
+        {
+            // Verifies that a downward ray hitting a solid cell that touches a hole
+            // returns the same hit distance as a flat terrain at the same height.
+            // Uses a tall heightmapScale.y so that any per-corner height-decoding
+            // error around the hole shows up as a >1 m hit-distance error.
+            //
+            // Procedural mode only: the Mesh path bypasses the heightmap encoding.
+            int resolution = 9;
+            int holeResolution = resolution - 1;
+            float3 heightmapScale = new float3(1.0f, 30000.0f, 1.0f);
+            float terrainHeight = 100.0f;
+            const float rayStartY = 40000f;
+
+            int holeCx = 4, holeCy = 4;
+            var holeData = CreateHoleData(holeResolution, new int2(holeCx, holeCy));
+
+            AddTerrain(TerrainMode.Procedural, CreateFlatHeightmap(resolution, terrainHeight, heightmapScale.y),
+                resolution, heightmapScale, Matrix4x4.identity, holeData, holeResolution);
+
+            // Aim inside the solid cell left of the hole at cellFrac (0.9, 0.1):
+            // close to the corner shared with the hole, well off cell edges and the
+            // triangle-split diagonal.
+            int adjCx = holeCx - 1, adjCy = holeCy;
+            float wx = (adjCx + 0.9f) * heightmapScale.x;
+            float wz = (adjCy + 0.1f) * heightmapScale.z;
+            var ray = new TestRay
+            {
+                origin = new float3(wx, rayStartY, wz),
+                direction = new float3(0, -1, 0),
+                tMin = 0,
+                tMax = rayStartY * 2f,
+                rayMask = 0xFFFFFFFF
+            };
+
+            var results = TraceRays(new[] { ray });
+
+            // Compare against the height that actually round-trips through the
+            // SNORM texture, not the nominal world height the test asked for.
+            short heightShort = WorldHeightToShort(terrainHeight, heightmapScale.y);
+            float quantizedHeight = (float)heightShort / 32767.0f * heightmapScale.y;
+            float expectedHitDist = rayStartY - quantizedHeight;
+            // 0.5 m tolerance: well below the ~1.4 m signal a per-corner decoding
+            // error would produce at this sample point with this heightmapScale.y,
+            // and well above any benign float-interpolation noise across the cell.
+            const float tolerance = 0.5f;
+
+            Assert.AreEqual(1u, results[0].isValid,
+                "Ray through solid cell adjacent to hole should hit.");
+            Assert.AreEqual(expectedHitDist, results[0].hitDistance, tolerance,
+                $"Solid cell ({adjCx},{adjCy}) adjacent to hole ({holeCx},{holeCy}) " +
+                "hit distance should match a flat terrain at the same height.");
+        }
+
+        [Test]
+        public void TraceRaysUpFromBelowZeroHeightTerrain_AllCellsHit(
+            [Values(TerrainMode.Mesh, TerrainMode.Procedural)] TerrainMode terrainMode,
+            [Values(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.7f, 1.0f)] float startBelow)
+        {
+            // Corner case: a flat terrain at height 0 with no holes, with rays fired UPWARD from
+            // various distances below the terrain. Exercises:
+            //   - the always-apply-bias guarantee (height=0 must not be misdetected as a hole),
+            //   - per-cell sign-bit hole sampling at every cell,
+            //   - backface hits from below,
+            //   - FP precision in the per-cell height-overlap test (different startBelow values
+            //     land on different FP-rounding sides of an exactly-zero ray-vs-surface hRay).
+            int resolution = 33;
+            // 10x10x10 terrain: per-cell spacing in X/Z is 10/(resolution-1); Y scale is 10.
+            float3 heightmapScale = new float3(10.0f / (resolution - 1), 10.0f, 10.0f / (resolution - 1));
+            float terrainHeight = 0.0f;
+
+            AddTerrain(terrainMode, CreateFlatHeightmap(resolution, terrainHeight, heightmapScale.y),
+                resolution, heightmapScale, Matrix4x4.identity, null, 0);
+
+            // Fire a 64x64 grid of rays UPWARD from `startBelow` below the terrain. Each ray is
+            // centred on a lightmap-style texel covering the full terrain extent, with a small
+            // boundary nudge to keep us off cell edges and the per-cell triangle split diagonal.
+            const int gridDim = 64;
+            float terrainExtent = (resolution - 1) * heightmapScale.x;
+            float texelSize = terrainExtent / gridDim;
+            var rays = new TestRay[gridDim * gridDim];
+            for (int gy = 0; gy < gridDim; gy++)
+                for (int gx = 0; gx < gridDim; gx++)
+                {
+                    float wx = (gx + 0.5f) * texelSize + k_BoundaryEpsilonX;
+                    float wz = (gy + 0.5f) * texelSize + k_BoundaryEpsilonZ;
+                    rays[gy * gridDim + gx] = RayUp(wx, wz, terrainHeight - startBelow);
+                }
+
+            var results = TraceRays(rays);
+
+            int hits = 0;
+            for (int i = 0; i < results.Length; i++)
+                if (results[i].isValid == 1u) hits++;
+            Assert.AreEqual(gridDim * gridDim, hits,
+                $"{terrainMode} startBelow={startBelow}: only {hits} of {gridDim * gridDim} upward rays hit the zero-height terrain.");
         }
     }
 }
