@@ -95,18 +95,17 @@ namespace UnityEngine.Rendering.Universal
                 public ProfilingSampler sampler;
             }
 
-            static Dictionary<int, CameraMetadataCacheEntry> s_MetadataCache = new();
-
-            static readonly CameraMetadataCacheEntry k_NoAllocEntry = new() { sampler = new ProfilingSampler("Unknown") };
+            static readonly Dictionary<EntityId, CameraMetadataCacheEntry> s_MetadataCache = new();
 
             public static CameraMetadataCacheEntry GetCached(Camera camera)
             {
-#if UNIVERSAL_PROFILING_NO_ALLOC
-                return k_NoAllocEntry;
-#else
-                int cameraId = camera.GetHashCode();
+                EntityId cameraId = camera.GetEntityId();
                 if (!s_MetadataCache.TryGetValue(cameraId, out CameraMetadataCacheEntry result))
                 {
+                    // Whenever a new camera is encountered, we will need to retrieve its name. We use this allocating
+                    // frame to also prune the cache of deleted cameras (e.g. scene change or cameras destroyed from script)
+                    RemoveDeletedCameras();
+
                     string cameraName = camera.name; // Warning: camera.name allocates
                     result = new CameraMetadataCacheEntry
                     {
@@ -117,7 +116,22 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 return result;
-#endif
+            }
+
+            static void RemoveDeletedCameras()
+            {
+                using (ListPool<EntityId>.Get(out var deletedCameras))
+                {
+                    foreach (var id in s_MetadataCache.Keys)
+                    {
+                        if (Resources.EntityIdToObject(id) == null)
+                            deletedCameras.Add(id);
+                    }
+                    foreach (var id in deletedCameras)
+                    {
+                        s_MetadataCache.Remove(id);
+                    }
+                }
             }
         }
 
