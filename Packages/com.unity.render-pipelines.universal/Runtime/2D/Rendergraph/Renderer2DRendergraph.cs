@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.Universal
             m_Renderer2DData = data;
             m_Renderer2DData.lightCullResult = new Light2DCullResult();
 
-            supportedRenderingFeatures = new RenderingFeatures();
+            UpdateSupportedRenderingFeatures();
 
             LensFlareCommonSRP.mergeNeeded = 0;
             LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample = 1;
@@ -147,6 +147,29 @@ namespace UnityEngine.Rendering.Universal
                 XRSystem.Initialize(XRPassUniversal.Create, xrResources.xrOcclusionMeshPS, xrResources.xrMirrorViewPS);
             }
 #endif
+        }
+
+        internal override void UpdateSupportedRenderingFeatures()
+        {
+            // Only set supported rendering features that apply to 2D
+            supportedRenderingFeatures.supportsHDR = true;
+            supportedRenderingFeatures.postProcessing = m_Renderer2DData.postProcessData != null;
+            supportedRenderingFeatures.cameraDepthTexture = true;
+            supportedRenderingFeatures.upscaling = true;
+            supportedRenderingFeatures.antiAliasing = true;
+            supportedRenderingFeatures.overlayCamera = true;
+            supportedRenderingFeatures.msaa = true;
+
+            foreach (var feature in rendererFeatures)
+            {
+                if (feature.isActive)
+                {
+                    supportedRenderingFeatures.postProcessing |= feature.supportedRenderingFeatures.postProcessing;
+                }
+            }
+
+            // Setting the engine wide feature flags here as well. We can likely phase these out. 
+            SupportedRenderingFeatures.active.supportsHDR = supportedRenderingFeatures.supportsHDR;
         }
 
         internal static bool IsDepthUsageAllowed(ContextContainer frameData, Renderer2DData rendererData)
@@ -428,9 +451,10 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            // Account for Quality->Render Scale and Light Texture Render Scale
             var renderTextureScale = m_Renderer2DData.lightRenderTextureScale;
-            var width = (int)Mathf.Max(1, cameraData.cameraTargetDescriptor.width * renderTextureScale);
-            var height = (int)Mathf.Max(1, cameraData.cameraTargetDescriptor.height * renderTextureScale);
+            var width = (int)Mathf.Max(1, cameraTargetDescriptor.width * renderTextureScale);
+            var height = (int)Mathf.Max(1, cameraTargetDescriptor.height * renderTextureScale);
 
             // Normals and Light textures have to be of the same renderTextureScale, to prevent any sampling artifacts during lighting calculations
             CreateCameraNormalsTextures(renderGraph, cameraTargetDescriptor, width, height);
@@ -440,7 +464,7 @@ namespace UnityEngine.Rendering.Universal
             CreateShadowTextures(renderGraph, width, height);
 
             if (m_Renderer2DData.useCameraSortingLayerTexture)
-                CreateCameraSortingLayerTexture(renderGraph, cameraTargetDescriptor);
+                CreateCameraSortingLayerTexture(renderGraph, cameraTargetDescriptor, width, height);
 
             // Create the attachments
             if (cameraData.renderType == CameraRenderType.Base) // require intermediate textures
@@ -631,13 +655,15 @@ namespace UnityEngine.Rendering.Universal
             resourceData.shadowDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, shadowDepthDesc, "_ShadowDepth", false, FilterMode.Bilinear);
         }
 
-        void CreateCameraSortingLayerTexture(RenderGraph renderGraph, RenderTextureDescriptor descriptor)
+        void CreateCameraSortingLayerTexture(RenderGraph renderGraph, RenderTextureDescriptor cameraDesc, int width, int height)
         {
             Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
 
-            descriptor.msaaSamples = 1;
-            CopyCameraSortingLayerPass.ConfigureDescriptor(m_Renderer2DData.cameraSortingLayerDownsamplingMethod, ref descriptor, out var filterMode);
-            RenderingUtils.ReAllocateHandleIfNeeded(ref m_CameraSortingLayerHandle, descriptor, filterMode, TextureWrapMode.Clamp, name: CopyCameraSortingLayerPass.k_CameraSortingLayerTexture);
+            var desc = new RenderTextureDescriptor(width, height);
+            desc.graphicsFormat = cameraDesc.graphicsFormat;
+
+            CopyCameraSortingLayerPass.ConfigureDescriptor(m_Renderer2DData.cameraSortingLayerDownsamplingMethod, ref desc, out var filterMode);
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_CameraSortingLayerHandle, desc, filterMode, TextureWrapMode.Clamp, name: CopyCameraSortingLayerPass.k_CameraSortingLayerTexture);
             resourceData.cameraSortingLayerTexture = renderGraph.ImportTexture(m_CameraSortingLayerHandle);
         }
 
@@ -942,7 +968,9 @@ namespace UnityEngine.Rendering.Universal
             // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
             // and only upscale the low-res RT to fullscreen when blitting it to camera target. Also, final post processing pass is not run in this case,
             // so FXAA is not supported (you don't want to apply FXAA when everything is intentionally pixelated).
-            bool applyFinalPostProcessing = cameraData.resolveFinalTarget && !ppcUpscaleRT && anyPostProcessing && cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
+            bool applyFinalPostProcessing = cameraData.resolveFinalTarget && !ppcUpscaleRT && anyPostProcessing &&
+                                            ((cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing) ||
+                                             (cameraData.imageScalingMode == ImageScalingMode.Upscaling && cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
 
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing || (x as ScriptableRenderPass2D)?.renderPassEvent2D == RenderPassEvent2D.AfterRenderingPostProcessing) != null;
             bool needsColorEncoding = !resolveToDebugScreen;
@@ -1073,6 +1101,7 @@ namespace UnityEngine.Rendering.Universal
 
             Light2DManager.Dispose();
             Light2DLookupTexture.Release();
+            LensFlareCommonSRP.Dispose();
 
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_BlitHDRMaterial);
