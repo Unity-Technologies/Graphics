@@ -43,7 +43,7 @@ MonoBehaviour:
 
 
           Baked lighting
-          in Unity rely on lightmaps, which are textures that store the lighting
+          in Unity relies on lightmaps, which are textures that store the lighting
           information that can be used at runtime to greatly speed up the rendering
           of the (indirect) lighting.
 

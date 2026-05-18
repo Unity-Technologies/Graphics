@@ -41,7 +41,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: "In certain situations, some objects should be prevented
           from influencing the placement of probes. This is often the case for proxy
-          geometries or distance objects. Indeed, these objects usually do not require
+          geometries or distant objects. Indeed, these objects usually do not require
           more probes to be placed around them, as this would increase the baking
           time and the size of the Probe Volumes' data on disk.\n\nFor example, we
           have an object called <b>ShadowProxy</b> in the scene that is used to enforce

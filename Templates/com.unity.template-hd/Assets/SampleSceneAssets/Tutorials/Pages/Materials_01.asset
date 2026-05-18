@@ -39,7 +39,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 'Materials are used to set the visual aspect of the objects
           in the Scene. Typically, a Material relies on a shader and a variety of
-          imputs, such as textures and numerical values.
+          inputs, such as textures and numerical values.
 
 
           HDRP uses <b>Physically

@@ -56,8 +56,8 @@ MonoBehaviour:
           is <b>Global</b> in the <i>Inspector.</i>\n\n4. Disable the <b>HDRI Sky</b>
           Override. You can see that the sky disappears.\n\n5. Undo your change.\n\n<b>Global
           Volumes</b> have an effect on cameras wherever they are located in the
-          scene. They are convenient for defining values that remain constant thoughtout
-          the scene, for instance:\n\\u2022 Sky\n\\u2022 Fog\n\\u2022 Shadows\n"
+          scene. They are convenient for defining values that remain constant throughout
+          the scene, for instance:\n• Sky\n• Fog\n• Shadows\n"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

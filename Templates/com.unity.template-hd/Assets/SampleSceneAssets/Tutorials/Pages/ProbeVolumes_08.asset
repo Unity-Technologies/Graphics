@@ -21,8 +21,11 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 2800000, guid: 760bba328d6642a4db16fc74f5651703, type: 3}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -43,12 +46,15 @@ MonoBehaviour:
           Volumes compared to the Light Probe Groups, how they are placed automatically,
           and how we tuned them for this scene. \n\nProbe Volumes are a broad topic.
           A lot more information and tips on how to deal with specific issues can
-          be found in our <a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@16.0/manual/probevolumes.html\">documentation.</a>
+          be found in our <a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/probevolumes.html\">documentation.</a>
           \n\nAdditionally, we have released an in-depth <a href=\"https://www.youtube.com/watch?v=iU7X5xICkc8\">video
           presentation</a> from GDC 2023 about Probe Volumes.\n\n<b>Note:</b> You
           do not need to save your changes in order to follow other tutorials."
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:

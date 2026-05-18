@@ -41,8 +41,8 @@ MonoBehaviour:
           Light intensities and colors to achieve realistic lighting.\n\nWhen talking
           about physically correct lighting, it\u2019s crucial to understand Exposure,
           which we will cover in the next tutorial.\n\nHDRP also supports <a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/IES-Profile.html\">IES
-          profiles</a> which are files that stores the distribution of light around
-          a lamp. For instance, these files are frequently used in architecture visualistions.\n\nFor
+          profiles</a> which are files that store the distribution of light around
+          a lamp. For instance, these files are frequently used in architecture visualisations.\n\nFor
           more information on Physically Based Lighting, watch this <a href=\"https://youtu.be/yqCHiZrgKzs?t=1936\">video
           tutorial.</a>\n\n<b>Note:</b> You do not need to save your changes in order
           to follow other tutorials."
