@@ -1,7 +1,7 @@
 #pragma multi_compile _ EMULATE_WAVE_SIZE_8 EMULATE_WAVE_SIZE_16 EMULATE_WAVE_SIZE_32 EMULATE_WAVE_SIZE_64 EMULATE_WAVE_SIZE_128
 #pragma multi_compile _ UNITY_DEVICE_SUPPORTS_WAVE_ANY
 
-// Warning: Keep this kernel order in sync with WaveKernel enum in WaveEmulationTests.cs
+// Warning: Keep this kernel order in sync with Kernel enum in FunctionTests.cs
 #pragma kernel kAllEqual
 #pragma kernel kAllTrue
 #pragma kernel kAnyTrue
