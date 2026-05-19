@@ -83,7 +83,7 @@ namespace UnityEditor.VFX.UI
                         var path = variant.settings.Single(x => x.Key == "path").Value as string;
                         var subgraphBlock = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphBlock>(path);
                         var view = GetFirstAncestorOfType<VFXView>();
-                        var graph = subgraphBlock.GetResource().GetOrCreateGraph();
+                        var graph = subgraphBlock.GetResource().GetGraph();
                         if (view.HasCustomAttributeConflicts(graph.attributesManager.GetCustomAttributes()))
                         {
                             return;
@@ -455,13 +455,13 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                var references = DragAndDrop.objectReferences.OfType<VisualEffectSubgraphBlock>();
+                var references = DragAndDrop.objectReferences.OfType<VisualEffectSubgraphBlock>().ToArray();
 
-                if (references.Any() && (!controller.viewController.model.isSubgraph || !references.Any(t => t.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.viewController.model.subgraph) || t.GetResource() == controller.viewController.model)))
+                if (references.Length != 0 && (!controller.viewController.model.isSubgraph || !references.Any(t => t.GetResource().GetGraph().subgraphDependencies.Contains(controller.viewController.model.subgraph) || t.GetResource() == controller.viewController.model)))
                 {
                     var compatibleReferences = references.Where(x =>
                     {
-                        var subgraphBlock = x?.GetResource()?.GetOrCreateGraph()?.children.OfType<VFXBlockSubgraphContext>().First();
+                        var subgraphBlock = x?.GetResource()?.GetGraph()?.children.OfType<VFXBlockSubgraphContext>().First();
                         return subgraphBlock != null ? controller.model.Accept(subgraphBlock.compatibleContextType, subgraphBlock.ownedType) : false;
                     });
 
@@ -528,12 +528,12 @@ namespace UnityEditor.VFX.UI
             {
                 var references = DragAndDrop.objectReferences.OfType<VisualEffectSubgraphBlock>().ToArray();
 
-                if (references.Any() && (!controller.viewController.model.isSubgraph || !references.Any(t => t.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.viewController.model.subgraph) || t.GetResource() == controller.viewController.model)))
+                if (references.Length != 0 && (!controller.viewController.model.isSubgraph || !references.Any(t => t.GetResource().GetGraph().subgraphDependencies.Contains(controller.viewController.model.subgraph) || t.GetResource() == controller.viewController.model)))
                 {
                     VFXView view = GetFirstAncestorOfType<VFXView>();
                     foreach (var reference in references)
                     {
-                        var graph = reference != null ? reference.GetResource().GetOrCreateGraph() : null;
+                        var graph = reference != null ? reference.GetResource().GetGraph() : null;
                         if (graph != null)
                         {
                             var subgraphContext = graph.children.OfType<VFXBlockSubgraphContext>().First();

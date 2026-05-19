@@ -27,3 +27,4 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         readonly RayTracingResources m_Resources;
     }
 }
+

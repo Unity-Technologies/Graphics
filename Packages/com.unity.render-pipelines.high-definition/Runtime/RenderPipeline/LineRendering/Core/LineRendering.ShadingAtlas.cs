@@ -34,6 +34,14 @@ namespace UnityEngine.Rendering
             public int previousSize;
         }
 
+#if UNITY_EDITOR
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+        static void ResetStaticsOnLoad_ShadingAtlas()
+        {
+            s_ShadingAtlasAllocations.Clear();
+        }
+#endif
+
         void CleanupShadingAtlas()
         {
             RTHandles.Release(m_ShadingAtlasRT[0]);

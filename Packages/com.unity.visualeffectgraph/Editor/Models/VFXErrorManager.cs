@@ -153,6 +153,9 @@ namespace UnityEditor.VFX
                     m_IsGeneratingErrors = true;
                     foreach (var model in m_ScheduledModels)
                     {
+                        if (model == null)
+                            continue; //vfxModel can be null if reference object has been deleted before view update
+
                         model.GenerateErrors(this);
                     }
 

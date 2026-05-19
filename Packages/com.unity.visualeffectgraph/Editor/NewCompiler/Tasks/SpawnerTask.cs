@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using Unity.GraphCommon.LowLevel.Editor;
-using UnityEngine;
 
 namespace UnityEditor.VFX
 {
@@ -12,34 +10,38 @@ namespace UnityEditor.VFX
         /// <summary>
         /// Gets the name of the template associated with the task.
         /// </summary>
-        public string TemplateName { get; }
         public VFXTaskType SpawnerType { get; }
 
-        IDataKey m_SpawnDataKey;
+        public IDataKey SpawnDataKey { get; }
+
+        public Attribute Attribute { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TemplatedTask"/> class using the specified template name
-        /// and task snippets.
+        /// Initializes a new instance of the <see cref="SpawnerTask"/>
         /// </summary>
-        /// <param name="templateName">The name of the template associated with the task.</param>
         /// <param name="spawnerType">The spawner task type.</param>
         /// <param name="spawnDataKey"> The data key for the spawn data</param>
-        public SpawnerTask(string templateName, VFXTaskType spawnerType, IDataKey spawnDataKey)
+        public SpawnerTask(VFXTaskType spawnerType, IDataKey spawnDataKey, Attribute attribute = null)
         {
             SpawnerType = spawnerType;
-            TemplateName = templateName;
-            m_SpawnDataKey = spawnDataKey;
+            SpawnDataKey = spawnDataKey;
+            Attribute = attribute;
         }
 
         /// <inheritdoc />
         public bool GetDataUsage(IDataKey dataKey, out DataPathSet readUsage, out DataPathSet writeUsage)
         {
-            if (dataKey.Equals(m_SpawnDataKey))
+            if (dataKey.Equals(SpawnDataKey))
             {
                 readUsage = new DataPathSet();
                 writeUsage = new DataPathSet();
                 writeUsage.Add(DataPath.Empty);
-                writeUsage.Add(new DataPath(SpawnData.SourceAttributeDataKey));
+                DataPath attributeDataPath = new(EventData.AttributeDataKey);
+                writeUsage.Add(attributeDataPath);
+                if (Attribute != null)
+                {
+                    writeUsage.Add(new DataPath(attributeDataPath, new AttributeKey(Attribute)));
+                }
                 return true;
             }
             readUsage = null;

@@ -16,7 +16,6 @@ namespace UnityEditor.VFX
 
         private static bool m_Loaded = false;
         private static bool m_DisplayExperimentalOperator = false;
-        private static bool m_AllowShaderExternalization = false;
         private static bool m_GenerateShadersWithDebugSymbols = false;
         private static bool m_DisplayExtraDebugInfo = false;
         private static bool m_ForceEditionCompilation = false;
@@ -160,7 +159,6 @@ namespace UnityEditor.VFX
         public const string experimentalOperatorKey = "VFX.displayExperimentalOperatorKey";
         public const string extraDebugInfoKey = "VFX.ExtraDebugInfo";
         public const string forceEditionCompilationKey = "VFX.ForceEditionCompilation";
-        public const string allowShaderExternalizationKey = "VFX.allowShaderExternalization";
         public const string generateShadersWithDebugSymbolsKey = "VFX.generateShadersWithDebugSymbols";
         public const string advancedLogsKey = "VFX.AdvancedLogs";
         public const string cameraBuffersFallbackKey = "VFX.CameraBuffersFallback";
@@ -179,7 +177,6 @@ namespace UnityEditor.VFX
                 m_DisplayExperimentalOperator = EditorPrefs.GetBool(experimentalOperatorKey, false);
                 m_DisplayExtraDebugInfo = EditorPrefs.GetBool(extraDebugInfoKey, false);
                 m_ForceEditionCompilation = EditorPrefs.GetBool(forceEditionCompilationKey, false);
-                m_AllowShaderExternalization = EditorPrefs.GetBool(allowShaderExternalizationKey, false);
                 m_GenerateShadersWithDebugSymbols = EditorPrefs.GetBool(generateShadersWithDebugSymbolsKey, false);
                 m_AdvancedLogs = EditorPrefs.GetBool(advancedLogsKey, false);
                 m_CameraBuffersFallback = (VFXMainCameraBufferFallback)EditorPrefs.GetInt(cameraBuffersFallbackKey, (int)VFXMainCameraBufferFallback.PreferMainCamera);
@@ -244,20 +241,12 @@ namespace UnityEditor.VFX
                     m_DisplayExperimentalOperator = EditorGUILayout.Toggle(new GUIContent("Experimental Operators/Blocks", "When enabled, operators and blocks which are still in an experimental state become available to use within the Visual Effect Graph."), m_DisplayExperimentalOperator);
                     m_DisplayExtraDebugInfo = EditorGUILayout.Toggle(new GUIContent("Show Additional Debug info", "When enabled, additional information becomes available in the inspector when selecting blocks, such as the attributes they use and their shader code."), m_DisplayExtraDebugInfo);
                     m_AdvancedLogs = EditorGUILayout.Toggle(new GUIContent("Verbose Mode for compilation", "When enabled, additional information about the data, expressions, and generated shaders is displayed in the console whenever a graph is compiled."), m_AdvancedLogs);
-                    m_AllowShaderExternalization = EditorGUILayout.Toggle(new GUIContent("Experimental shader externalization", "When enabled, the generated shaders are stored alongside the Visual Effect asset, enabling their direct modification."), m_AllowShaderExternalization);
 
                     bool oldGenerateShaderWithDebugSymbols = m_GenerateShadersWithDebugSymbols;
                     m_GenerateShadersWithDebugSymbols = EditorGUILayout.Toggle(new GUIContent("Generate Shaders with Debug Symbols", "When enabled, the VFX shaders are generated with debug symbols."), m_GenerateShadersWithDebugSymbols);
-                    if (oldGenerateShaderWithDebugSymbols != m_GenerateShadersWithDebugSymbols && DisplayReimportPopup())
-                        ForEachVFXInProject(vfx => AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfx.GetResource())));
 
                     bool oldForceEditionCompilation = m_ForceEditionCompilation;
                     m_ForceEditionCompilation = EditorGUILayout.Toggle(new GUIContent("Force Compilation in Edition Mode", "When enabled, the unoptimized edit version of the Visual Effect is compiled even when the effect is not being edited. Otherwise, an optimized runtime version is compiled."), m_ForceEditionCompilation);
-                    if (m_ForceEditionCompilation != oldForceEditionCompilation)
-                    {
-                        bool forceReimport = DisplayReimportPopup();
-                        ForEachVFXInProject(vfx => vfx.GetResource().GetOrCreateGraph().SetCompilationMode(m_ForceEditionCompilation ? VFXCompilationMode.Edition : VFXCompilationMode.Runtime, forceReimport));
-                    }
 
 #if UNITY_2022_1_OR_NEWER
                     if (Unsupported.IsDeveloperMode())
@@ -282,7 +271,6 @@ namespace UnityEditor.VFX
                         EditorPrefs.SetBool(extraDebugInfoKey, m_DisplayExtraDebugInfo);
                         EditorPrefs.SetBool(forceEditionCompilationKey, m_ForceEditionCompilation);
                         EditorPrefs.SetBool(advancedLogsKey, m_AdvancedLogs);
-                        EditorPrefs.SetBool(allowShaderExternalizationKey, m_AllowShaderExternalization);
                         EditorPrefs.SetBool(generateShadersWithDebugSymbolsKey, m_GenerateShadersWithDebugSymbols);
                         EditorPrefs.SetInt(cameraBuffersFallbackKey, (int)m_CameraBuffersFallback);
                         EditorPrefs.SetBool(multithreadUpdateEnabledKey, m_MultithreadUpdateEnabled);
@@ -300,6 +288,13 @@ namespace UnityEditor.VFX
 
                         EditorPrefs.SetBool(visualEffectTargetListedKey, m_VisualEffectTargetListed);
                     }
+
+                    //The reimport is only valid after writing EditorPrefs
+                    if (m_ForceEditionCompilation != oldForceEditionCompilation && DisplayReimportPopup())
+                        ForEachVFXInProject(vfx => AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfx)));
+
+                    if (oldGenerateShaderWithDebugSymbols != m_GenerateShadersWithDebugSymbols && DisplayReimportPopup())
+                        ForEachVFXInProject(vfx => AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfx.GetResource())));
                 }
 
                 base.OnGUI(searchContext);

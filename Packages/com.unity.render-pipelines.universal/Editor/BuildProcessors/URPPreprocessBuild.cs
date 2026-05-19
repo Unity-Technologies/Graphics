@@ -18,8 +18,7 @@ namespace UnityEditor.Rendering.Universal
         public void OnPreprocessBuild(BuildReport report)
         {
             m_BuildData?.Dispose();
-            bool isDevelopmentBuild = (report.summary.options & BuildOptions.Development) != 0;
-            m_BuildData = new URPBuildData(EditorUserBuildSettings.activeBuildTarget, isDevelopmentBuild);
+            m_BuildData = new URPBuildData(report.summary.platform);
 
             if (m_BuildData.buildingPlayerForUniversalRenderPipeline)
             {

@@ -71,6 +71,7 @@ namespace UnityEditor.VFX
             {
                 return new int[] { data0, data1, data2, data3 };
             }
+
         }
 
         [Flags]
@@ -426,6 +427,17 @@ namespace UnityEditor.VFX
             return data;
         }
 
+        internal unsafe VFXExpressionDesc GetExpressionDesc(VFXExpressionGraph graph)
+        {
+            var operands = GetOperands(graph);
+            VFXExpressionDesc desc = new() { op = operation };
+            desc.data[0] = operands[0];
+            desc.data[1] = operands[1];
+            desc.data[2] = operands[2];
+            desc.data[3] = operands[3];
+            return desc;
+        }
+
         public virtual IEnumerable<VFXAttributeInfo> GetNeededAttributes()
         {
             return Enumerable.Empty<VFXAttributeInfo>();
@@ -578,6 +590,17 @@ namespace UnityEditor.VFX
             foreach (var parent in entry.parents) CollectParentExpressionRecursively(parent, processed);
 
             processed.Add(entry);
+        }
+
+        public static bool operator == (VFXExpression a, VFXExpression b)
+        {
+            if (a is null) return b is null;
+            return a.Equals(b);
+        }
+
+        public static bool operator != (VFXExpression a, VFXExpression b)
+        {
+            return !(a == b);
         }
 
         public static VFXExpression operator *(VFXExpression a, VFXExpression b) { return new VFXExpressionMul(a, b); }

@@ -713,7 +713,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeSubsurfaceScattering();
             InitializeLineRendering();
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             m_DebugDisplaySettings.RegisterDebug();
             m_DebugDisplaySettingsUI.RegisterDebug(HDDebugDisplaySettings.Instance);
 #endif
@@ -1013,7 +1013,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ReleaseRayTracingManager();
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             m_DebugDisplaySettingsUI.UnregisterDebug();
             m_DebugDisplaySettings.UnregisterDebug();
 #endif
@@ -2269,7 +2269,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Update();
@@ -3105,7 +3105,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 frozenCullingParamAvailable = false;
             }
 
+
             cullingParams.conservativeEnclosingSphere = currentAsset.m_ShouldUseConservativeEnclosingSphere;
+            cullingParams.numIterationsEnclosingSphere = currentAsset.m_NumIterationsEnclosingSphere;
             LightLoopUpdateCullingParameters(ref cullingParams, hdCamera);
 
             // If we don't use environment light (like when rendering reflection probes)

@@ -933,7 +933,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     Assert.IsNotNull(node);
                     Assert.IsFalse(node is BlockNode);
 
-                    if (node.hasPreview && node.previewExpanded && !m_PreviewsCompiling.Contains(preview) && MaterialNodeView.IsPreviewable(node))
+                    bool nodeHasVisiblePreview = node.hasPreview && node.previewExpanded;
+                    if ((nodeHasVisiblePreview || node.hasUserAuthoredCode) && MaterialNodeView.IsPreviewable(node) && !m_PreviewsCompiling.Contains(preview))
                     {
                         previewsToCompile.Add(preview);
                     }
@@ -1318,7 +1319,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_PreviewPanelSettings.ApplyPanelSettings();
 
                     var panel = m_PreviewPanelSettings.panel;
-                    panel.Repaint(Event.current);
+                    panel.Repaint();
                     panel.Render();
                 }
                 else
@@ -1403,7 +1404,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (!m_Graph.isOnlyVFXTarget)
             {
                 // UITK shaders need ForReals mode to have access to UITK macros for proper rendering
-                var mode = prefersUITKPreview ? GenerationMode.ForReals : GenerationMode.Preview;
+                // Use PreviewForReals to get both ForReals features and Preview slot behavior (uniforms instead of inlined constants)
+                var mode = prefersUITKPreview ? GenerationMode.PreviewForReals : GenerationMode.Preview;
                 var generator = new Generator(m_Graph, m_Graph.outputNode, mode, "Master");
                 shaderData.shaderString = generator.generatedShader;
 

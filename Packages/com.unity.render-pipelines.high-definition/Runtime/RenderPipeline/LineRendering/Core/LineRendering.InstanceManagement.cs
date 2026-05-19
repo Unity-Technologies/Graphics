@@ -16,6 +16,16 @@ namespace UnityEngine.Rendering
         private static ILineRenderer[]        s_RendererInstancesAsArray = null;
         private static int                    s_RendererInstanceCount = 0;
 
+#if UNITY_EDITOR
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+        static void ResetStaticsOnLoad_InstanceManagement()
+        {
+            s_RendererInstances.Clear();
+            s_RendererInstancesAsArray = null;
+            s_RendererInstanceCount = 0;
+        }
+#endif
+
         private static void UpdateInstanceArray()
         {
             s_RendererInstanceCount = s_RendererInstances.Count;

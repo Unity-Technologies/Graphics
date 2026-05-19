@@ -27,7 +27,7 @@ namespace UnityEditor.VFX.Test
             if (!experimental)
                 EditorPrefs.SetBool(VFXViewPreference.experimentalOperatorKey, true);
 
-            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.CloseAllVFXWindow();
             m_ViewController = VFXTestCommon.StartEditTestAsset();
         }
 
@@ -39,7 +39,7 @@ namespace UnityEditor.VFX.Test
                 EditorPrefs.SetBool(VFXViewPreference.experimentalOperatorKey, false);
             }
 
-            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.CloseAllVFXWindow();
             VFXTestCommon.DeleteAllTemporaryGraph();
         }
 

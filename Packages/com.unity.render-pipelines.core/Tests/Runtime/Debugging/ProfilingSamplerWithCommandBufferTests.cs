@@ -1,16 +1,13 @@
 using System.Collections;
 using NUnit.Framework;
 using Unity.Profiling;
-using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 
 namespace UnityEngine.Rendering.Tests
 {
     class ProfilingSamplerWithCommandBufferTests
     {
-        const int kWarmupFrames = 4 /*ProfilerRecorder.GPU_RESULTS_DELAY_FRAMES*/;
-        const int kSampledFrames = 2;
+        const int k_SampledFrames = 100;
 
         Texture2D m_Texture;
 
@@ -26,38 +23,58 @@ namespace UnityEngine.Rendering.Tests
             UnityEngine.Object.DestroyImmediate(m_Texture);
         }
 
+        static IEnumerator WaitForRecorderSample(CommandBuffer commandBuffer, ProfilerRecorder recorder, int maxFrames)
+        {
+            for (int i = 0; i < maxFrames; i++)
+            {
+                Graphics.ExecuteCommandBuffer(commandBuffer);
+                yield return null;
+
+                if (recorder.Count > 0 && recorder.GetSample(0).Count > 0)
+                    yield break;
+            }
+
+            Assert.Fail($"Recorder sample count was 0 after {maxFrames} frames");
+        }
+
         [UnityTest]
         public IEnumerator CommandBufferBeginSample_IsCapturedByProfilerRecorder()
         {
             var sampler = new ProfilingSampler(nameof(CommandBufferBeginSample_IsCapturedByProfilerRecorder));
+            using var inlineRecorder = ProfilerRecorder.StartNew(ProfilerCategory.Render, "Inl_" + sampler.name);
             using var recorder = ProfilerRecorder.StartNew(ProfilerCategory.Render, sampler.name);
 
-            var commandBuffer = new CommandBuffer();
+            using var commandBuffer = new CommandBuffer();
             using (new ProfilingScope(commandBuffer, sampler))
             { }
 
-            yield return ExecuteCommandBufferForFrames(commandBuffer, kWarmupFrames, kSampledFrames);
+            // The inline sampler should have recorded the sample even before the command buffer is executed, as it runs on the CPU immediately.
+            inlineRecorder.Stop();
+            Assert.AreEqual(1, inlineRecorder.Count);
+            Assert.AreEqual(1, inlineRecorder.GetSample(0).Count);
 
-            commandBuffer.Dispose();
-            Assert.AreEqual(1, recorder.Count);
-            Assert.Greater(recorder.GetSample(0).Count, 0);
+            // The sampler should be recorded on the CPU after the command buffer is executed on render thread.
+            yield return WaitForRecorderSample(commandBuffer, recorder, k_SampledFrames);
         }
 
         [UnityTest]
         public IEnumerator CommandBufferBeginSampleWithObject_IsCapturedByProfilerRecorder()
         {
             var sampler = new ProfilingSampler(nameof(CommandBufferBeginSampleWithObject_IsCapturedByProfilerRecorder));
+            using var inlineRecorder = ProfilerRecorder.StartNew(ProfilerCategory.Render, "Inl_" + sampler.name);
             using var recorder = ProfilerRecorder.StartNew(ProfilerCategory.Render, sampler.name);
 
-            var commandBuffer = new CommandBuffer();
+            using var commandBuffer = new CommandBuffer();
             using (new ProfilingScope(commandBuffer, sampler, m_Texture))
             { }
 
-            yield return ExecuteCommandBufferForFrames(commandBuffer, kWarmupFrames, kSampledFrames);
+            // The inline sampler should have recorded the sample even before the command buffer is executed, as it runs on the CPU immediately.
+            inlineRecorder.Stop();
+            Assert.AreEqual(1, inlineRecorder.Count);
+            Assert.AreEqual(1, inlineRecorder.GetSample(0).Count);
 
-            commandBuffer.Dispose();
-            Assert.AreEqual(1, recorder.Count);
-            Assert.Greater(recorder.GetSample(0).Count, 0);
+            // The sampler should be recorded on the CPU after the command buffer is executed on render thread.
+            yield return WaitForRecorderSample(commandBuffer, recorder, k_SampledFrames);
         }
 
         [Test]
@@ -77,12 +94,11 @@ namespace UnityEngine.Rendering.Tests
         [UnityTest]
         [UnityPlatform(include = new[]
         {
-            RuntimePlatform.WindowsPlayer,
+            // RuntimePlatform.WindowsPlayer, Unstable on StandaloneWindows64: https://jira.unity3d.com/browse/UUM-138158
             RuntimePlatform.WindowsEditor,
             RuntimePlatform.PS5,
             RuntimePlatform.Switch
         })]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })] // Unstable: https://jira.unity3d.com/browse/UUM-138158
         public IEnumerator CommandBufferBeginSampleWithObject_GpuSamples_ReturnsNonZeroCount()
         {
             if (!SystemInfo.supportsGpuRecorder)
@@ -91,26 +107,23 @@ namespace UnityEngine.Rendering.Tests
             var sampler = new ProfilingSampler(nameof(CommandBufferBeginSampleWithObject_GpuSamples_ReturnsNonZeroCount));
             using var recorder = ProfilerRecorder.StartNew(ProfilerCategory.Render, sampler.name, 1, ProfilerRecorderOptions.GpuRecorder | ProfilerRecorderOptions.Default);
 
-            var commandBuffer = new CommandBuffer();
+            using var commandBuffer = new CommandBuffer();
             using (new ProfilingScope(commandBuffer, sampler, m_Texture))
             { }
 
-            yield return ExecuteCommandBufferForFrames(commandBuffer, kWarmupFrames, kSampledFrames);
-
-            commandBuffer.Dispose();
-            Assert.AreEqual(1, recorder.Count);
-            Assert.Greater(recorder.GetSample(0).Count, 0);
+            // The sampler should be recorded on the GPU after the command buffer is executed on render thread.
+            // Need at least 4 frames of wait.
+            yield return WaitForRecorderSample(commandBuffer, recorder, k_SampledFrames);
         }
 
         [UnityTest]
         [UnityPlatform(include = new[]
         {
-            RuntimePlatform.WindowsPlayer,
+            // RuntimePlatform.WindowsPlayer, Unstable on StandaloneWindows64: https://jira.unity3d.com/browse/UUM-138158
             RuntimePlatform.WindowsEditor,
             RuntimePlatform.PS5,
             RuntimePlatform.Switch
         })]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })] // Unstable: https://jira.unity3d.com/browse/UUM-138158
         public IEnumerator CommandBufferBeginSample_GpuSamples_ReturnsNonZeroCount()
         {
             if (!SystemInfo.supportsGpuRecorder)
@@ -119,29 +132,13 @@ namespace UnityEngine.Rendering.Tests
             var sampler = new ProfilingSampler(nameof(CommandBufferBeginSample_GpuSamples_ReturnsNonZeroCount));
             using var recorder = ProfilerRecorder.StartNew(ProfilerCategory.Render, sampler.name, 1, ProfilerRecorderOptions.GpuRecorder | ProfilerRecorderOptions.Default);
 
-            var commandBuffer = new CommandBuffer();
+            using var commandBuffer = new CommandBuffer();
             using (new ProfilingScope(commandBuffer, sampler))
             { }
 
-            yield return ExecuteCommandBufferForFrames(commandBuffer, kWarmupFrames, kSampledFrames);
-
-            commandBuffer.Dispose();
-            Assert.AreEqual(1, recorder.Count);
-            Assert.Greater(recorder.GetSample(0).Count, 0);
-        }
-
-        static IEnumerator ExecuteCommandBufferForFrames(CommandBuffer commandBuffer, int warmupFrames, int sampledFrames)
-        {
-            for (int i = 0; i < warmupFrames; i++)
-            {
-                Graphics.ExecuteCommandBuffer(commandBuffer);
-                yield return null;
-            }
-            for (int i = 0; i < sampledFrames; i++)
-            {
-                Graphics.ExecuteCommandBuffer(commandBuffer);
-                yield return null;
-            }
+            // The sampler should be recorded on the GPU after the command buffer is executed on render thread.
+            // Need at least 4 frames of wait.
+            yield return WaitForRecorderSample(commandBuffer, recorder, k_SampledFrames);
         }
     }
 }

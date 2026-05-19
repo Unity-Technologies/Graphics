@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             // For preview only we declare CRT defines
-            if (generationMode == GenerationMode.Preview)
+            if (generationMode.IsPreview())
             {
                 registry.builder.AppendLine("#ifndef _CustomRenderTextureHeight");
                 registry.builder.AppendLine("#define _CustomRenderTextureHeight 1.0");

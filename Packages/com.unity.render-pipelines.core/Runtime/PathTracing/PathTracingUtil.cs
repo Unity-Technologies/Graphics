@@ -19,6 +19,9 @@ namespace UnityEngine.PathTracing.Core
             public static readonly int NumLights = Shader.PropertyToID("g_NumLights");
             public static readonly int NumEmissiveMeshes = Shader.PropertyToID("g_NumEmissiveMeshes");
             public static readonly int LightList = Shader.PropertyToID("g_LightList");
+            public static readonly int MainDirectionalLight = Shader.PropertyToID("g_MainDirectionalLight");
+            public static readonly int HasMainDirectionalLight = Shader.PropertyToID("g_HasMainDirectionalLight");
+            public static readonly int HasEnvironmentLight = Shader.PropertyToID("g_HasEnvironmentLight");
             public static readonly int LightFalloff = Shader.PropertyToID("g_LightFalloff");
             public static readonly int LightFalloffLUTRange = Shader.PropertyToID("g_LightFalloffLUTRange");
             public static readonly int LightFalloffLUTLength = Shader.PropertyToID("g_LightFalloffLUTLength");
@@ -58,6 +61,9 @@ namespace UnityEngine.PathTracing.Core
             shader.SetIntParam(cmd, ShaderProperties.NumLights, world.LightCount);
             shader.SetIntParam(cmd, ShaderProperties.NumEmissiveMeshes, world.MeshLightCount);
             shader.SetBufferParam(cmd, ShaderProperties.LightList, world.LightListBuffer);
+            shader.SetBufferParam(cmd, ShaderProperties.MainDirectionalLight, world.MainDirectionalLightBuffer);
+            shader.SetIntParam(cmd, ShaderProperties.HasMainDirectionalLight, world.HasMainDirectionalLight ? 1 : 0);
+            shader.SetIntParam(cmd, ShaderProperties.HasEnvironmentLight, world.HasEnvironmentLight ? 1 : 0);
             shader.SetBufferParam(cmd, ShaderProperties.LightFalloff, world.LightFalloffBuffer);
             shader.SetBufferParam(cmd, ShaderProperties.LightFalloffLUTRange, world.LightFalloffLUTRangeBuffer);
             shader.SetIntParam(cmd, ShaderProperties.LightFalloffLUTLength, (int)world.LightFalloffLUTLength);
@@ -122,6 +128,8 @@ namespace UnityEngine.PathTracing.Core
             var envTex = world.GetEnvironmentTexture(cmd, out EnvironmentCDF envCDF);
             shader.SetTextureParam(cmd, Shader.PropertyToID("g_EnvTex"), envTex);
             SetEnvSamplingShaderParams(cmd, shader, envCDF);
+
+            world.GetAccelerationStructure().BindTerrainResources(cmd, shader);
         }
 
         static internal void BindPathTracingInputs(

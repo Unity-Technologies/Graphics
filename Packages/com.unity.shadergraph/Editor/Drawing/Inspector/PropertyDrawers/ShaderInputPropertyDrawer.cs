@@ -30,6 +30,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         // Keyword
         ReorderableList m_KeywordReorderableList;
         int m_KeywordSelectedIndex;
+        int m_DefaultKeywordEntryId;
 
         // Dropdown
         ReorderableList m_DropdownReorderableList;
@@ -249,7 +250,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             if (!isSubGraph || shaderInput.promoteToFinalShader)
             {
                 var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
-                propertySheet.Add(toggleDataPropertyDrawer.CreateGUI(
+                var toggleRow = toggleDataPropertyDrawer.CreateGUI(
                     evt =>
                     {
                         if (shaderInput is AbstractShaderProperty property &&
@@ -265,7 +266,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     new ToggleData(shaderInput.isExposed),
                     shaderInput is ShaderKeyword ? "Generate Material Property" : "Show In Inspector",
                     out var exposedToggleVisualElement,
-                    tooltip: shaderInput is ShaderKeyword ? "Generate a material property declaration to show this field in the material inspector." : "Hide or Show this property in the material inspector."));
+                    tooltip: shaderInput is ShaderKeyword ? "Generate a material property declaration to show this field in the material inspector." : "Hide or Show this property in the material inspector."
+                    );
+
+                toggleRow.SetEnabled(shaderInput.isExposable);
+                propertySheet.Add(toggleRow);                
                 exposedToggle = exposedToggleVisualElement as Toggle;
             }
         }
@@ -1806,6 +1811,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             // Clamp value between entry list
             int value = Mathf.Clamp(keyword.value, 0, keyword.entries.Count - 1);
+            m_DefaultKeywordEntryId = keyword.entries[value].id;
 
             // Include "none" entry
             var includeNoneDrawer = new ToggleDataPropertyDrawer();
@@ -1831,6 +1837,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             {
                 this._preChangeValueCallback("Change Keyword Value");
                 keyword.value = field.index;
+                m_DefaultKeywordEntryId = keyword.entries[field.index].id;
                 if (graphData.owner.materialArtifact)
                 {
                     graphData.owner.materialArtifact.SetFloat(keyword.referenceName, field.index);
@@ -2227,6 +2234,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 list.list.RemoveAt(noneEntryIndex);
                 list.list.Insert(0, noneEntry);
             }
+
+            // Find the default entry by its id and update the index to match its new position
+            keyword.value = keyword.entries.FindIndex(e => e.id == m_DefaultKeywordEntryId);
 
             this._preChangeValueCallback("Reorder Keyword Entry");
             this._postChangeValueCallback(true);

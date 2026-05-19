@@ -20,9 +20,10 @@ void main(ThreadData threadData)
     {
         VFXProcessBlocks(particleAttributes);
 
+        ParticleDataBinding.particleAttributeBuffer.StoreData(particleAttributes, particleIndex);
+
         if (particleAttributes.alive)
         {
-            ParticleDataBinding.particleAttributeBuffer.StoreData(particleAttributes, particleIndex);
         }
         else
         {

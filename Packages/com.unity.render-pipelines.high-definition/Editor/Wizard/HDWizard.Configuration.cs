@@ -66,7 +66,6 @@ namespace UnityEditor.Rendering.HighDefinition
             var qualityVariable = Expression.Variable(lightEncodingQualityType, "quality_internal");
             var buildTargetVariable = Expression.Variable(typeof(BuildTarget), "platform");
             var staticBatchingVariable = Expression.Variable(typeof(int), "staticBatching");
-            var dynamicBatchingVariable = Expression.Variable(typeof(int), "DynamicBatching");
             var staticBatchingParameter = Expression.Parameter(typeof(bool), "staticBatching");
             var buildTargetGroupParameter = Expression.Parameter(typeof(BuildTargetGroup), "platformGroup");
             var buildTargetParameter = Expression.Parameter(typeof(BuildTarget), "platform");

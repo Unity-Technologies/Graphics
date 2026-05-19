@@ -31,6 +31,9 @@ namespace UnityEditor.ShaderGraph
         const string k_RefreshNodesButtonName = "refresh-nodes-button";
         const string k_HelpBoxHiddenUssModifier = "sg-heatmap__help-box--hidden";
 
+        const int k_MaxColorsEntries = 500;
+        const int k_MaxSubgraphEntries = 500;
+
         ShaderGraphHeatmapValues HeatmapValuesTarget => target as ShaderGraphHeatmapValues;
 
         MultiColumnListView m_NodesListView;
@@ -245,6 +248,26 @@ namespace UnityEditor.ShaderGraph
             root.styleSheets.Add(styleSheet);
 
             var colorsListView = root.Q<ListView>(k_ColorsListName);
+
+            void LimitTextFieldValue(TextField target, ChangeEvent<string> ev, int limit)
+            {
+                if (int.TryParse(ev.newValue, out int newValue))
+                {
+                    target.value = Math.Min(newValue, limit).ToString();
+
+                    // Consume the event to ensure no additional callbacks fire based on the invalid input
+                    if (newValue > limit)
+                        ev.StopPropagation();
+                }
+            }
+
+            // Limit the max number of color entries
+            TextField colorsArraySizeField = colorsListView.Q<TextField>(className: BaseListView.arraySizeFieldUssClassName);
+            colorsArraySizeField?.RegisterCallback((ChangeEvent<string> ev) =>
+            {
+                LimitTextFieldValue(colorsArraySizeField, ev, k_MaxColorsEntries);
+            }, TrickleDown.TrickleDown);
+
             colorsListView.bindingPath = serializedObject.FindProperty(nameof(ShaderGraphHeatmapValues.m_Colors)).propertyPath;
             colorsListView.makeItem = () => new ColorField {showAlpha = false, hdr = false};
             colorsListView.bindItem = (v, i) =>
@@ -284,6 +307,13 @@ namespace UnityEditor.ShaderGraph
 
             var subgraphEntries = HeatmapValuesTarget.Subgraphs;
             m_SubgraphListView = root.Q<MultiColumnListView>(k_SubgraphListName);
+
+            // Limit the max number of subgraph entries
+            TextField subgraphArraySizeField = m_SubgraphListView.Q<TextField>(className: BaseListView.arraySizeFieldUssClassName);
+            subgraphArraySizeField?.RegisterCallback((ChangeEvent<string> ev) =>
+            {
+                LimitTextFieldValue(subgraphArraySizeField, ev, k_MaxSubgraphEntries);
+            }, TrickleDown.TrickleDown);
 
             var subgraphsSerializedProperty = serializedObject.FindProperty("m_Subgraphs");
             ConfigureSubgraphPickerColumn(m_SubgraphListView.columns[k_SubgraphColumnName]);

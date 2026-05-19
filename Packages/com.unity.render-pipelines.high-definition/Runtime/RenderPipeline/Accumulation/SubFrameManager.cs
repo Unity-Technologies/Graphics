@@ -8,8 +8,8 @@ using UnityEngine.Rendering.RenderGraphModule;
 using UnityEditor;
 #endif // UNITY_EDITOR
 
-// Enable the denoising code path only on windows
-#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+// Enable the denoising code path only on Windows
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
 using UnityEngine.Rendering.Denoising;
 #endif
 
@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // Struct storing per-camera data, to handle accumulation and dirtiness
     internal struct CameraData
     {
-#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
         // Struct storing denoiser data
         internal struct DenoiserData
         {
@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             accumulatedWeight = 0.0f;
             currentIteration = 0;
-#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
             colorDenoiserData.ResetRequest();
             volumetricFogDenoiserData.ResetRequest();
 #endif
@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float accumulatedWeight;
         public uint currentIteration;
-#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
         public DenoiserData colorDenoiserData;
         public DenoiserData volumetricFogDenoiserData;
 #endif
@@ -124,9 +124,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_CameraCache.TryGetValue(camID, out camData))
             {
                 camData.ResetIteration();
-#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
-                camData.colorDenoiserData.Init();
-                camData.volumetricFogDenoiserData.Init();
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+                if (IntPtr.Size == 8) // Only supported on 64-bit
+                {
+                    camData.colorDenoiserData.Init();
+                    camData.volumetricFogDenoiserData.Init();
+                }
 #endif
                 m_CameraCache.Add(camID, camData);
             }
@@ -187,9 +190,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
         internal void ResetDenoisingStatus()
         {
+            if (IntPtr.Size != 8) // Only supported on 64-bit
+                return;
+
             foreach (EntityId camID in m_CameraCache.Keys.ToList())
             {
                 CameraData camData = GetCameraData(camID);

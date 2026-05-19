@@ -59,6 +59,12 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                     continue;
                 }
 
+                // Procedural terrain is not added to the acceleration structure as a mesh.
+                // The procedural instance handles ray intersection, and GBuffer generation
+                // uses the heightmap directly (g_InstanceGeometryIndex == -1).
+                if (fatInstance.IsProceduralTerrain)
+                    continue;
+
                 var instanceHandle = world.AddInstance(
                     fatInstance.Mesh,
                     fatInstance.Materials,
@@ -277,7 +283,9 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                         fatInstance.LocalToWorldMatrix,
                         fatInstance.ReceiveShadows,
                         fatInstance.LodIdentifier,
-                        bakeInputInstanceIndex);
+                        bakeInputInstanceIndex,
+                        fatInstance.IsProceduralTerrain,
+                        fatInstance.TerrainIndex);
                     ++instanceCounter;
                 }
 
@@ -405,13 +413,13 @@ namespace UnityEditor.PathTracing.LightBakerBridge
         {
             ulong workSteps = 0;
             if (outputTypeMask.HasFlag(ProbeRequestOutputType.RadianceIndirect))
-                workSteps += ProbeIntegrator.CalculateWorkSteps(count, effectiveIndirectSampleCount, bounceCount);
+                workSteps += ProbeIntegrator.CalculateWorkStepsIndirectRadiance(count, effectiveIndirectSampleCount, bounceCount);
             if (outputTypeMask.HasFlag(ProbeRequestOutputType.RadianceDirect))
-                workSteps += ProbeIntegrator.CalculateWorkSteps(count, directSampleCount, 0);
+                workSteps += ProbeIntegrator.CalculateWorkStepsDirectRadiance(count, directSampleCount);
             if (outputTypeMask.HasFlag(ProbeRequestOutputType.Validity))
-                workSteps += ProbeIntegrator.CalculateWorkSteps(count, effectiveIndirectSampleCount, 0);
+                workSteps += ProbeIntegrator.CalculateWorkStepsOcclusion(count, effectiveIndirectSampleCount);
             if (outputTypeMask.HasFlag(ProbeRequestOutputType.LightProbeOcclusion) && usesProbeOcclusion)
-                workSteps += ProbeIntegrator.CalculateWorkSteps(count, effectiveIndirectSampleCount, 0);
+                workSteps += ProbeIntegrator.CalculateWorkStepsValidity(count, effectiveIndirectSampleCount);
 
             return workSteps;
         }
@@ -476,7 +484,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             // environment, we base the sample count on the number of emissive and environment lights.
             uint emissiveAndEnvLightCount = (uint)world.EnvLightCount + (uint)world.MeshLightCount;
             uint brdfSampleCount = emissiveAndEnvLightCount * lightingSettings.lightmapSampleCounts.directSampleCount;
-            if (lightingSettings.directEmissiveSamplingMode == EmissiveSamplingMode.LightSampling)
+            if (lightingSettings.directEmissiveSamplingMode == UnityEngine.PathTracing.Core.EmissiveSamplingMode.LightSampling)
                 brdfSampleCount = 0;
 
             // Lightmap settings
@@ -1018,7 +1026,9 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                                 return Result.AddResourcesToCacheFailure;
 
                             InstanceHandle[] currentLodInstances = PrepareLodInstances(cmd, lightmappingContext.World, bakeInstance, lodInstances, lodgroupToContributorInstances, false);
-                            var instanceGeometryIndex = lightmappingContext.World.PathTracingWorld.GetAccelerationStructure().GeometryPool.GetInstanceGeometryIndex(bakeInstance.Mesh);
+                            var instanceGeometryIndex = bakeInstance.IsProceduralTerrain
+                                ? -1
+                                : lightmappingContext.World.PathTracingWorld.GetAccelerationStructure().GeometryPool.GetInstanceGeometryIndex(bakeInstance.Mesh);
 
                             uint instanceWidth = (uint)bakeInstance.TexelSize.x;
                             uint instanceHeight = (uint)bakeInstance.TexelSize.y;
@@ -1068,6 +1078,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                                 // geometry pool bindings
                                 Util.BindAccelerationStructure(cmd, normalShader, world.PathTracingWorld.GetAccelerationStructure());
                                 Util.BindMaterialsAndTextures(cmd, normalShader, world.PathTracingWorld);
+                                world.PathTracingWorld.GetAccelerationStructure().BindTerrainResources(cmd, normalShader);
 
                                 var requiredSizeInBytes = normalShader.GetTraceScratchBufferRequiredSizeInBytes((uint)chunkSize, 1, 1);
                                 if (requiredSizeInBytes > 0)
@@ -1080,6 +1091,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                                 normalShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorld, bakeInstance.LocalToWorldMatrix);
                                 normalShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorldNormals, bakeInstance.LocalToWorldMatrixNormals);
                                 normalShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.InstanceGeometryIndex, instanceGeometryIndex);
+                                normalShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.TerrainIndex, bakeInstance.TerrainIndex);
                                 normalShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.InstanceWidth, (int)instanceWidth);
 
                                 normalShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.GBuffer, lightmappingContext.GBuffer);

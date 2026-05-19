@@ -266,7 +266,11 @@ namespace UnityEditor.Rendering.Universal
         static void DrawRenderingAdditional(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
             EditorGUILayout.PropertyField(serialized.srpBatcher, Styles.srpBatcher);
-            EditorGUILayout.PropertyField(serialized.supportsDynamicBatching, Styles.dynamicBatching);
+            if (serialized.supportsDynamicBatching.boolValue)
+            {
+                EditorGUILayout.PropertyField(serialized.supportsDynamicBatching, Styles.dynamicBatching);
+                EditorGUILayout.HelpBox(Styles.warningDynamicBatching.text, MessageType.Warning);
+            }
             EditorGUILayout.PropertyField(serialized.storeActionsOptimizationProperty, Styles.storeActionsOptimizationText);
         }
 

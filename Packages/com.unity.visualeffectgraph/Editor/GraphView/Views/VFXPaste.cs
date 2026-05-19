@@ -65,7 +65,7 @@ namespace UnityEditor.VFX.UI
             }
 
             var resource = VisualEffectResource.GetResourceAtPath(path);
-            var graph = resource.GetOrCreateGraph();
+            var graph = resource.GetGraph();
 
             return graph.children
                 .OfType<VFXSubgraphOperator>()

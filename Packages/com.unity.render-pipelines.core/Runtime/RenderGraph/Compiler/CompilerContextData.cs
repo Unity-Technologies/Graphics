@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public ref ResourceReaderData ResourceReader(in ResourceHandle h, int i)
         {
             int numReaders = resources[h].numReaders;
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             if (i >= numReaders)
             {
                 throw new Exception("Invalid reader id");
@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public bool TryAddToFragmentList(in TextureAccess access, int listFirstIndex, int numItems, out string errorMessage)
         {
             errorMessage = null;
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             if (access.textureHandle.handle.type != RenderGraphResourceType.Texture)
             {
                 errorMessage = RenderGraph.RenderGraphExceptionMessages.k_NonTextureAsAttachmentError;
@@ -174,7 +174,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 ref var fragment = ref fragmentData.ElementAt(i);
                 if (fragment.resource.index == access.textureHandle.handle.index)
                 {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                     if (fragment.resource.version != access.textureHandle.handle.version)
                     {
                         //this would mean you're trying to attach say both v1 and v2 of a resource to the same pass as an attachment

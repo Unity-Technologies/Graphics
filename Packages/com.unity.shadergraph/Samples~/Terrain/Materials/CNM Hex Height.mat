@@ -61,6 +61,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 31627e9dbb81dad4ea2c4341db17299c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _DefaultWhiteTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _LayerHexDetail_0870a413e1da4a9aa513846f27c68555_DetailTexture_428711103_Texture2D:
         m_Texture: {fileID: 2800000, guid: 4c037056fa1a2f440b35be93de341a59, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -213,7 +217,7 @@ Material:
     - _SupportDecals: 1
     - _TransparentWritingMotionVec: 0
     - _TransparentZWrite: 0
-    - _UV_Scale: 2
+    - _UV_Scale: 1
     - _UseRotation1: 1
     - _UseRotation2: 1
     - _UseRotation3: 0

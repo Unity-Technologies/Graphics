@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -115,7 +115,7 @@ namespace UnityEditor.Rendering.Universal
 
         public UpdateShaderPrefilteringDataBeforeBuild()
         {
-            ShaderBuildPreprocessor.GatherShaderFeatures(Debug.isDebugBuild);
+            ShaderBuildPreprocessor.GatherShaderFeatures();
         }
 
 		public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList){}
@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering.Universal
     /// Preprocess Build class used to determine the shader features used in the project.
     /// Also called when building Asset Bundles.
     /// </summary>
-    class ShaderBuildPreprocessor : IPreprocessBuildWithReport, IPostprocessBuildWithReport
+    class ShaderBuildPreprocessor : IPreprocessBuildWithContext, IPostprocessBuildWithContext
     {
         // Public
         public int callbackOrder => 0;
@@ -145,7 +145,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 // This can happen for example when building AssetBundles.
                 if (s_SupportedFeaturesList.Count == 0)
-                    GatherShaderFeatures(Debug.isDebugBuild);
+                    GatherShaderFeatures();
 
                 return s_SupportedFeaturesList;
             }
@@ -168,6 +168,7 @@ namespace UnityEditor.Rendering.Universal
         private static bool s_UseSHPerVertexForSHAuto;
         private static VolumeFeatures s_VolumeFeatures;
         private static List<ShaderFeatures> s_SupportedFeaturesList = new();
+        private static bool s_UseDiagnosticChecks;
 
         // Helper class to detect XR build targets at build time.
         internal sealed class PlatformBuildTimeDetect
@@ -232,7 +233,7 @@ namespace UnityEditor.Rendering.Universal
         }
 
         // Called before the build is started...
-        public void OnPreprocessBuild(BuildReport report)
+        public void OnPreprocessBuild(BuildCallbackContext ctx)
         {
 #if PROFILE_BUILD
             Profiler.enableBinaryLog = true;
@@ -240,13 +241,27 @@ namespace UnityEditor.Rendering.Universal
             Profiler.enabled = true;
 #endif
 
-            bool isDevelopmentBuild = (report.summary.options & BuildOptions.Development) != 0;
-            GatherShaderFeatures(isDevelopmentBuild);
+            s_UseDiagnosticChecks = PlayerSettings.GetManagedCodeVariant(GetNamedBuildTarget(ctx.Report)) <= ManagedCodeVariant.Checked;
+            GatherShaderFeatures();
+        }
+
+        static NamedBuildTarget GetNamedBuildTarget(BuildReport report)
+        {
+            var platformGroup = report.summary.platformGroup;
+            if (platformGroup == BuildTargetGroup.Standalone &&
+                report.summary.GetSubtarget<StandaloneBuildSubtarget>() == StandaloneBuildSubtarget.Server)
+            {
+                return NamedBuildTarget.Server;
+            }
+            return NamedBuildTarget.FromBuildTargetGroup(platformGroup);
         }
 
         // Called after the build has finished...
-        public void OnPostprocessBuild(BuildReport report)
+        public void OnPostprocessBuild(BuildCallbackContext ctx)
         {
+            // Build is done, editor always uses diagnostic checks
+            s_UseDiagnosticChecks = true;
+
             PlatformBuildTimeDetect.ClearInstance();
 #if PROFILE_BUILD
             Profiler.enabled = false;
@@ -255,10 +270,10 @@ namespace UnityEditor.Rendering.Universal
 
         // Gathers all the shader features and updates the prefiltering
         // settings for all URP Assets in the quality settings
-        internal static void GatherShaderFeatures(bool isDevelopmentBuild)
+        internal static void GatherShaderFeatures()
         {
             s_SupportedFeaturesList.Clear();
-            GetGlobalAndPlatformSettings(isDevelopmentBuild);
+            GetGlobalAndPlatformSettings();
 
             // If stripping of unused volume features is disabled, the s_VolumeFeatures
             // variable is set to include every keyword used by volumes shaders.
@@ -278,10 +293,10 @@ namespace UnityEditor.Rendering.Universal
         }
 
         // Retrieves the global and platform settings used in the project...
-        private static void GetGlobalAndPlatformSettings(bool isDevelopmentBuild)
+        private static void GetGlobalAndPlatformSettings()
         {
             if (GraphicsSettings.TryGetRenderPipelineSettings<ShaderStrippingSetting>(out var shaderStrippingSettings))
-                s_StripDebugDisplayShaders = !isDevelopmentBuild || shaderStrippingSettings.stripRuntimeDebugShaders;
+                s_StripDebugDisplayShaders = !s_UseDiagnosticChecks || shaderStrippingSettings.stripRuntimeDebugShaders;
             else
                 s_StripDebugDisplayShaders = true;
 
@@ -879,14 +894,22 @@ namespace UnityEditor.Rendering.Universal
                 ScreenSpaceAmbientOcclusion ssaoFeature = rendererFeature as ScreenSpaceAmbientOcclusion;
                 if (ssaoFeature != null)
                 {
+#pragma warning disable CS0618 // ScreenSpaceAmbientOcclusion.settings is obsolete
                     ScreenSpaceAmbientOcclusionSettings ssaoSettings = ssaoFeature.settings;
+#pragma warning restore CS0618
                     ssaoRendererFeatures.Add(ssaoSettings);
 
+                    // MODERN_SSAO lets the volume switch between before/after opaque at runtime,
+                    // so the build must conservatively keep both keyword paths when SSAO is enabled.
+#if MODERN_SSAO
+                    shaderFeatures |= ShaderFeatures.ScreenSpaceOcclusion | ShaderFeatures.ScreenSpaceOcclusionAfterOpaque;
+#else
                     // The feature is active (Tested a few lines above) so check for AfterOpaque
                     if (ssaoSettings.AfterOpaque)
                         shaderFeatures |= ShaderFeatures.ScreenSpaceOcclusionAfterOpaque;
                     else
                         shaderFeatures |= ShaderFeatures.ScreenSpaceOcclusion;
+#endif
 
                     // Otherwise the keyword will not be used
                     continue;
@@ -1045,6 +1068,12 @@ namespace UnityEditor.Rendering.Universal
             bool isAssetUsingForwardPlus = IsFeatureEnabled(shaderFeatures, ShaderFeatures.ForwardPlus);
             bool isAssetUsingDeferredPlus = IsFeatureEnabled(shaderFeatures, ShaderFeatures.DeferredPlus);
             bool isAssetUsingDeferred = IsFeatureEnabled(shaderFeatures, ShaderFeatures.DeferredShading);
+            bool usesScreenSpaceOcclusion = IsFeatureEnabled(shaderFeatures, ShaderFeatures.ScreenSpaceOcclusion);
+            bool hasRuntimeConfigurableSSAO = false;
+#if MODERN_SSAO
+            hasRuntimeConfigurableSSAO = ssaoRendererFeatures.Count > 0;
+            usesScreenSpaceOcclusion |= hasRuntimeConfigurableSSAO;
+#endif
 
             ShaderPrefilteringData spd = new();
             spd.stripXRKeywords = stripXR;
@@ -1162,10 +1191,10 @@ namespace UnityEditor.Rendering.Universal
 
             // Screen Space Ambient Occlusion
             spd.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Remove;
-            if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.ScreenSpaceOcclusion))
+            if (usesScreenSpaceOcclusion)
             {
                 // Remove the SSAO's OFF variant if Global Settings allow it and every renderer uses it.
-                if (stripUnusedVariants && everyRendererHasSSAO)
+                if (stripUnusedVariants && everyRendererHasSSAO && !hasRuntimeConfigurableSSAO)
                     spd.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.SelectOnly;
                 // Otherwise we keep both
                 else
@@ -1195,19 +1224,36 @@ namespace UnityEditor.Rendering.Universal
             spd.stripSSAOSampleCountLow    = true;
             spd.stripSSAOSampleCountMedium = true;
             spd.stripSSAOSampleCountHigh   = true;
-            for (int i = 0; i < ssaoRendererFeatures.Count; i++)
+#if MODERN_SSAO
+            if (hasRuntimeConfigurableSSAO)
             {
-                ScreenSpaceAmbientOcclusionSettings ssaoSettings = ssaoRendererFeatures[i];
-                bool isUsingDepthNormals = ssaoSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
-                spd.stripSSAODepthNormals      &= !isUsingDepthNormals;
-                spd.stripSSAOSourceDepthLow    &= isUsingDepthNormals || ssaoSettings.NormalSamples != ScreenSpaceAmbientOcclusionSettings.NormalQuality.Low;
-                spd.stripSSAOSourceDepthMedium &= isUsingDepthNormals || ssaoSettings.NormalSamples != ScreenSpaceAmbientOcclusionSettings.NormalQuality.Medium;
-                spd.stripSSAOSourceDepthHigh   &= isUsingDepthNormals || ssaoSettings.NormalSamples != ScreenSpaceAmbientOcclusionSettings.NormalQuality.High;
-                spd.stripSSAOBlueNoise         &= ssaoSettings.AOMethod != ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise;
-                spd.stripSSAOInterleaved       &= ssaoSettings.AOMethod != ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.InterleavedGradient;
-                spd.stripSSAOSampleCountLow    &= ssaoSettings.Samples != ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Low;
-                spd.stripSSAOSampleCountMedium &= ssaoSettings.Samples != ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Medium;
-                spd.stripSSAOSampleCountHigh   &= ssaoSettings.Samples != ScreenSpaceAmbientOcclusionSettings.AOSampleOption.High;
+                spd.stripSSAODepthNormals      = false;
+                spd.stripSSAOSourceDepthLow    = false;
+                spd.stripSSAOSourceDepthMedium = false;
+                spd.stripSSAOSourceDepthHigh   = false;
+                spd.stripSSAOBlueNoise         = false;
+                spd.stripSSAOInterleaved       = false;
+                spd.stripSSAOSampleCountLow    = false;
+                spd.stripSSAOSampleCountMedium = false;
+                spd.stripSSAOSampleCountHigh   = false;
+            }
+            else
+#endif
+            {
+                for (int i = 0; i < ssaoRendererFeatures.Count; i++)
+                {
+                    ScreenSpaceAmbientOcclusionSettings ssaoSettings = ssaoRendererFeatures[i];
+                    bool isUsingDepthNormals = ssaoSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
+                    spd.stripSSAODepthNormals      &= !isUsingDepthNormals;
+                    spd.stripSSAOSourceDepthLow    &= isUsingDepthNormals || ssaoSettings.NormalSamples != ScreenSpaceAmbientOcclusionSettings.NormalQuality.Low;
+                    spd.stripSSAOSourceDepthMedium &= isUsingDepthNormals || ssaoSettings.NormalSamples != ScreenSpaceAmbientOcclusionSettings.NormalQuality.Medium;
+                    spd.stripSSAOSourceDepthHigh   &= isUsingDepthNormals || ssaoSettings.NormalSamples != ScreenSpaceAmbientOcclusionSettings.NormalQuality.High;
+                    spd.stripSSAOBlueNoise         &= ssaoSettings.AOMethod != ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise;
+                    spd.stripSSAOInterleaved       &= ssaoSettings.AOMethod != ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.InterleavedGradient;
+                    spd.stripSSAOSampleCountLow    &= ssaoSettings.Samples != ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Low;
+                    spd.stripSSAOSampleCountMedium &= ssaoSettings.Samples != ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Medium;
+                    spd.stripSSAOSampleCountHigh   &= ssaoSettings.Samples != ScreenSpaceAmbientOcclusionSettings.AOSampleOption.High;
+                }
             }
 
             // Upscaling

@@ -1,0 +1,67 @@
+.container {
+    flex-grow: 1;
+    height: 100%;
+}
+
+.table {
+    flex-grow: 1;
+    height: 100%;
+}
+
+.unity-multi-column-header__column--sortable {
+    flex-direction: row-reverse;
+}
+
+#unity-multi-column-header-column-title{
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cell {
+    flex-direction: row;
+    align-items: center;
+    align-content: center;
+    height: 25px;
+}
+
+.cell-icon {
+    max-width: 16px;
+    max-height: 16px;
+    min-width: 16px;
+    min-height: 16px;
+    flex: 0 0 0;
+    flex-direction: row;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.cell-label {
+    flex-grow: 1;
+}
+
+.shadowCaster-icon {
+    background-image: resource('GameObject Icon');
+}
+
+.dark .shadowCaster-icon {
+    background-image: resource('d_GameObject Icon');
+}
+
+.dark .gameObject-icon {
+    background-image: resource('d_GameObject Icon');
+}
+
+.gameObject-icon {
+    background-image: resource('GameObject Icon');
+}
+
+.light-icon {
+    background-image: url('../../../../../Editor/2D/Resources/InspectorIcons/SpriteLight.png');
+}
+
+.category-icon {
+    background-image: resource('Folder Icon');
+}
+
+.dark .category-icon {
+    background-image: resource('d_Folder Icon');
+}

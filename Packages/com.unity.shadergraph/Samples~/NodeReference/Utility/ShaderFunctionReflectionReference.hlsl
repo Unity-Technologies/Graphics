@@ -101,15 +101,24 @@ namespace ShaderFunctionReflectionReference {
     ///    <sg:SearchName>Linkage Example</sg:SearchName>
     ///    <sg:SearchTerms>Reference, Hint</sg:SearchTerms>
     /// </funchints>
-    ///<paramhints name = "overrideSkyColor">
+    /// <paramhints name = "skyColor">
+    ///     <CustomBinding>Ambient Sky Color</CustomBinding>
+    /// </paramhints>
+    /// <paramhints name = "groundColor">
+    ///     <CustomBinding>Ambient Ground Color</CustomBinding>
+    /// </paramhints>
+    /// <paramhints name = "cameraDirectionWS">
+    ///     <CustomBinding>Camera Direction WS</CustomBinding>
+    /// </paramhints>
+    /// <paramhints name = "overrideSkyColor">
     ///     <Linkage>skyColor</Linkage>
-    ///</paramhints>
-        ///<paramhints name = "overrideGroundColor">
+    /// </paramhints>
+    /// <paramhints name = "overrideGroundColor">
     ///     <Linkage>groundColor</Linkage>
-    ///</paramhints>
-    ///<paramhints name = "overrideCameraDirectionWS">
+    /// </paramhints>
+    /// <paramhints name = "overrideCameraDirectionWS">
     ///     <Linkage>cameraDirectionWS</Linkage>
-    ///</paramhints>
+    /// </paramhints>
     UNITY_EXPORT_REFLECTION
     float3 LinkageExample(
         float3 skyColor,

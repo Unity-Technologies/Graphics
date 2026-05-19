@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using UnityEditor;
 #endif // UNITY_EDITOR
 
-// Enable the denoising code path only on windows 64
-#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+// Enable the denoising code path only on Windows
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
 using UnityEngine.Rendering.Denoising;
 #endif
 
@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Custom
     }
 
-#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
     // For the HDRP path tracer we only enable a subset of the denoisers that are available in the denoising plugin
 
     /// <summary>
@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Defines the maximum, post-exposed luminance computed for indirect path segments. Lower values help prevent noise and fireflies (very bright pixels), but introduce bias by darkening the overall result. Increase this value if your image looks too dark.")]
         public MinFloatParameter maximumIntensity = new MinFloatParameter(10f, 0f);
 
-#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
 
         /// <summary>
         /// Enables denoising for the converged path tracer frame
@@ -396,7 +396,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CacheMaxIteration = (uint)m_PathTracingSettings.maximumSamples.value;
                 m_SubFrameManager.SelectiveReset(m_CacheMaxIteration);
 
-#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
                 // We have to reset the status of any active denoisers so the denoiser will run again when we have max samples
                 m_SubFrameManager.ResetDenoisingStatus();
 #endif
@@ -789,9 +789,11 @@ namespace UnityEngine.Rendering.HighDefinition
             var normal = TextureHandle.nullHandle;
             var volumetricScattering = TextureHandle.nullHandle;
 
-#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
-            bool needsAOVs = m_PathTracingSettings.denoising.value != HDDenoiserType.None && (m_PathTracingSettings.useAOVs.value || m_PathTracingSettings.temporal.value);
-            bool needsVolumetricFogAOV = m_PathTracingSettings.denoising.value != HDDenoiserType.None && m_PathTracingSettings.separateVolumetrics.value;
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+            // Denoising is only supported on 64-bit
+            bool denoiseSupported = IntPtr.Size == 8;
+            bool needsAOVs = denoiseSupported && m_PathTracingSettings.denoising.value != HDDenoiserType.None && (m_PathTracingSettings.useAOVs.value || m_PathTracingSettings.temporal.value);
+            bool needsVolumetricFogAOV = denoiseSupported && m_PathTracingSettings.denoising.value != HDDenoiserType.None && m_PathTracingSettings.separateVolumetrics.value;
 
             if (needsAOVs)
             {
@@ -880,8 +882,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderPathTracingFrame(m_RenderGraph, hdCamera, camData, m_FrameTexture, albedo, normal, motionVector, volumetricScattering);
 
-#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
-                bool denoise = m_PathTracingSettings.denoising.value != HDDenoiserType.None;
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+                bool denoise = IntPtr.Size == 8 && m_PathTracingSettings.denoising.value != HDDenoiserType.None;
                 // Note: for now we enable AOVs when temporal is also enabled, because this seems to work better with Optix.
                 if (denoise && (m_PathTracingSettings.useAOVs.value || m_PathTracingSettings.temporal.value))
                 {
@@ -909,7 +911,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
     /// <summary>
     /// A <see cref="VolumeParameter"/> that holds a <see cref="DenoiserParameter"/> value.
     /// </summary>

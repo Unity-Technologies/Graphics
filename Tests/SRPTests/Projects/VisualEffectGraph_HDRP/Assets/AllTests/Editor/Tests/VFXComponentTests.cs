@@ -67,7 +67,7 @@ namespace UnityEditor.VFX.Test
                 graph.AddChild(parameter);
             }
 
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
             return graph;
         }
 
@@ -115,13 +115,13 @@ namespace UnityEditor.VFX.Test
                 Assert.IsTrue(sampleBuffer.outputSlots[0].Link(addAttribute.inputSlots[0]));
             }
 
-            var assetPath = AssetDatabase.GetAssetPath(graph);
-            AssetDatabase.ImportAsset(assetPath);
+            VFXTestCommon.ReimportVFXGraph(graph);
 
             for (uint i = 0; i < 8; i++)
                 yield return null;
 
             //Check compilation error
+            var assetPath = AssetDatabase.GetAssetPath(graph);
             var allSubAsset = AssetDatabase.LoadAllAssetsAtPath(assetPath);
             var computeInitialize = allSubAsset.OfType<ComputeShader>().FirstOrDefault(o => o.name.Contains("Initialize"));
             Assert.IsNotNull(computeInitialize);
@@ -192,7 +192,7 @@ namespace UnityEditor.VFX.Test
             parameterInteger.SetSettingValue("m_Exposed", true);
             graph.AddChild(parameterInteger);
 
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
 
             var visualEffectAsset = graph.visualEffectResource.asset;
 
@@ -250,7 +250,7 @@ namespace UnityEditor.VFX.Test
                 parameterInteger.SetSettingValue("m_Exposed", true);
                 graph.AddChild(parameterInteger);
 
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+                VFXTestCommon.ReimportVFXGraph(graph);
             }
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
@@ -343,7 +343,7 @@ namespace UnityEditor.VFX.Test
 
             //LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("Exception while compiling expression graph:*")); < Incorrect with our katana configuration
             Debug.unityLogger.logEnabled = false;
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
             Debug.unityLogger.logEnabled = true;
             Assert.Throws(typeof(IndexOutOfRangeException), () => VFXTestCommon.GetSpawnerState(vfxComponent, 0)); //This is the exception which matters for this test
         }
@@ -364,7 +364,7 @@ namespace UnityEditor.VFX.Test
             }
 
 
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
             yield return null;
 
             var vfxAsset = graph.visualEffectResource.asset;

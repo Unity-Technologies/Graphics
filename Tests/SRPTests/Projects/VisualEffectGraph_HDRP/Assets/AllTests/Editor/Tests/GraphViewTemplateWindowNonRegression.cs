@@ -63,7 +63,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(resources.Length, resources.Distinct().Count());
 
             var pathCResource = GetWindowFromPath(pathC).displayedResource;
-            var getWindow = VFXViewWindow.GetWindow(pathCResource);
+            var getWindow = VFXTestCommon.GetWindow(pathCResource);
             Assert.IsNotNull(getWindow);
 
             //Close now all windows to track potential failure
@@ -233,7 +233,7 @@ namespace UnityEditor.VFX.Test
         static VFXViewWindow GetWindowFromPath(string path)
         {
             var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
-            return VFXViewWindow.GetWindow(vfx);
+            return VFXTestCommon.GetWindow(vfx);
         }
 
         static void CreateAndOpenVFX(int i, out string path)
@@ -248,7 +248,7 @@ namespace UnityEditor.VFX.Test
 
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
             Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0));
-            var window = VFXViewWindow.GetWindow(asset, true);
+            var window = VFXTestCommon.GetWindow(asset, true);
             window.LoadAsset(asset, null);
             window.Show();
         }

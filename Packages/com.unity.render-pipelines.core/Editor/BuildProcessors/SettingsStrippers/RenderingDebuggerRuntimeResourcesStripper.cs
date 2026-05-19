@@ -6,6 +6,6 @@ namespace UnityEditor.Rendering
     {
         public bool active => true;
 
-        public bool CanRemoveSettings(RenderingDebuggerRuntimeResources settings) => !CoreBuildData.instance.developmentBuild;
+        public bool CanRemoveSettings(RenderingDebuggerRuntimeResources settings) => !CoreBuildData.instance.useDiagnosticChecks;
     }
 }

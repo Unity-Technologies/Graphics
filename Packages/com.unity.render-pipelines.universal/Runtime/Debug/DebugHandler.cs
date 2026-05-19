@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering.Universal
             descriptor.graphicsFormat = GraphicsFormat.None;
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         internal void SetupShaderProperties(RasterCommandBuffer cmd, int passIndex = 0)
         {
             if (LightingSettings.lightingDebugMode == DebugLightingMode.ShadowCascades)
@@ -420,7 +420,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         internal void UpdateShaderGlobalPropertiesForFinalValidationPass(CommandBuffer cmd, UniversalCameraData cameraData, bool isFinalPass)
         {
             UpdateShaderGlobalPropertiesForFinalValidationPass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), InitDebugFinalValidationPassData(s_DebugFinalValidationPassData, cameraData, isFinalPass));
@@ -432,7 +432,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         internal void UpdateShaderGlobalPropertiesForFinalValidationPass(RenderGraph renderGraph, UniversalCameraData cameraData, bool isFinalPass)
         {
             using (var builder = renderGraph.AddRasterRenderPass<DebugFinalValidationPassData>(nameof(UpdateShaderGlobalPropertiesForFinalValidationPass), out var passData, s_DebugFinalValidationSampler))
@@ -487,7 +487,7 @@ namespace UnityEngine.Rendering.Universal
             return passData;
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         static void Setup(RasterCommandBuffer cmd, DebugSetupPassData passData)
         {
             if (passData.isActiveForCamera)
@@ -532,13 +532,13 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         internal void Setup(CommandBuffer cmd, bool isPreviewCamera)
         {
             Setup(CommandBufferHelpers.GetRasterCommandBuffer(cmd), InitDebugSetupPassData(s_DebugSetupPassData, isPreviewCamera));
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         internal void Setup(RenderGraph renderGraph, bool isPreviewCamera)
         {
             using (var builder = renderGraph.AddRasterRenderPass<DebugSetupPassData>(s_DebugSetupSampler.name, out var passData, s_DebugSetupSampler))
@@ -552,7 +552,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         internal void Render(RenderGraph renderGraph, UniversalCameraData cameraData, in TextureHandle srcColor, in TextureHandle overlayTexture, in TextureHandle dstColor)
         {
             if (IsActiveForCamera(cameraData.isPreviewCamera) && HDRDebugViewIsActive(cameraData.resolveFinalTarget))

@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph
             var subGraphPath = ctx.assetPath;
             var subGraphGuid = AssetDatabase.AssetPathToGUID(subGraphPath);
             graphAsset.assetGuid = subGraphGuid;
-            var textGraph = File.ReadAllText(subGraphPath, Encoding.UTF8);
+            var textGraph = FileUtilities.ReadAllTextUTF8(subGraphPath);
             var messageManager = new MessageManager();
             var graphData = new GraphData
             {
@@ -196,6 +196,8 @@ namespace UnityEditor.ShaderGraph
             asset.functionName = $"SG_{asset.hlslName}_{asset.assetGuid}_$precision";
             asset.path = graph.path;
             asset.documentationPath = documentationPath;
+            asset.isDeprecated = graph.m_DeprecateSubgraph;
+            asset.deprecationMessage = graph.m_DeprecateSubgraphMessage;
 
             var outputNode = graph.outputNode;
             var outputSlots = UnityEngine.Pool.ListPool<MaterialSlot>.Get();

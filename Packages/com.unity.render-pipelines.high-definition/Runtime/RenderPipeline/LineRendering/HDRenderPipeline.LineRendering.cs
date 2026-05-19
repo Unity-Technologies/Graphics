@@ -27,6 +27,14 @@ namespace UnityEngine.Rendering.HighDefinition
         private int m_LineCompositePassDepthMovecIndex;
         private static bool s_SupportLineRendering;
 
+#if UNITY_EDITOR
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+        static void ResetStaticsOnLoad_LineRendering()
+        {
+            s_SupportLineRendering = false;
+        }
+#endif
+
         void InitializeLineRendering()
         {
             s_SupportLineRendering = asset.currentPlatformRenderPipelineSettings.supportHighQualityLineRendering;

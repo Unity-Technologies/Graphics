@@ -1,0 +1,6 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="./U2DGraphicsProfilerView.uss"/>
+    <ui:TwoPaneSplitView>
+    </ui:TwoPaneSplitView>
+    <ui:Label name="noProfiling" text="Unity Profiling Core  Package (com.unity.profiling.core) is not installed.&#10;Please install it from the Package Manager to enable profiling." class="noProfiling"/>
+</ui:UXML>

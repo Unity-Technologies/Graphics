@@ -2,8 +2,8 @@ using System;
 using System.Reflection;
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEditor.VFX;
 using UnityEngine;
+using UnityEditor.VFX;
 
 namespace Unity.GraphCommon.LowLevel.Editor
 {
@@ -46,7 +46,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
                         sourceCode = GenerateTemplatedTaskSourceCode_Compute(taskNode, context);
 
                         var computeShader = ShaderUtil.CreateComputeShaderAsset(sourceCode);
-                        computeShader.name = templatedTask.TemplateName;
+                        computeShader.name = taskNode.Name ?? templatedTask.TemplateName;
                         var task = new GpuKernelTask(computeShader, 0);
                         context.graph.SetTask(taskNode.Id, task);
                     }
@@ -54,7 +54,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
                     {
                         sourceCode = GenerateTemplatedTaskSourceCode_Rendering(taskNode, context);
                         Shader shader = ShaderUtil.CreateShaderAsset(sourceCode);
-                        shader.name = templatedTask.TemplateName;
+                        shader.name = taskNode.Name ?? templatedTask.TemplateName;
                         Material material = new Material(shader);
                         var task = new RenderingTask(material);
                         context.graph.SetTask(taskNode.Id, task);
@@ -95,19 +95,19 @@ namespace Unity.GraphCommon.LowLevel.Editor
         {
             TemplatedTask templatedTask = taskNode.Task as TemplatedTask;
             //TODO: Generate proper name
-            string shaderName = templatedTask.TemplateName;
+            string shaderName = taskNode.Name ?? templatedTask.TemplateName;
 
             m_ComputeShaderWriter.Begin(shaderName);
 
             m_ComputeShaderWriter.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/Temp/Data/ThreadData.hlsl\"");
+
+            IncludeCommonLibrary(m_ComputeShaderWriter);
 
             IncludeData(m_ComputeShaderWriter, taskNode, context);
 
             GenerateAttributeSets(m_ComputeShaderWriter, taskNode, templatedTask, context);
 
             GenerateDataViews(m_ComputeShaderWriter, taskNode, templatedTask, context);
-
-            IncludeCommonLibrary(m_ComputeShaderWriter);
 
             ForwardDeclarations(m_ComputeShaderWriter, templatedTask);
 
@@ -124,7 +124,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         {
             TemplatedTask templatedTask = taskNode.Task as TemplatedTask;
             //TODO: Generate proper name
-            string shaderName = templatedTask.TemplateName;
+            string shaderName = taskNode.Name ?? templatedTask.TemplateName;
 
             m_RenderingShaderWriter.Begin(shaderName);
 
@@ -132,13 +132,13 @@ namespace Unity.GraphCommon.LowLevel.Editor
             {
                 using (m_RenderingShaderWriter.CreateHlslIncludeScope())
                 {
+                    IncludeCommonLibrary(m_RenderingShaderWriter);
+
                     IncludeData(m_RenderingShaderWriter, taskNode, context);
 
                     GenerateAttributeSets(m_RenderingShaderWriter, taskNode, templatedTask, context);
 
                     GenerateDataViews(m_RenderingShaderWriter, taskNode, templatedTask, context);
-
-                    IncludeCommonLibrary(m_RenderingShaderWriter);
 
                     ForwardDeclarations(m_RenderingShaderWriter, templatedTask);
 
@@ -199,7 +199,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 {
                     if (binding.BindingDataKey == bindingRelativePath.BindingKey)
                     {
-                        bool found = binding.DataNode.UsedDataViewsRoot.FindSubData(bindingRelativePath.SubDataPath, out dataView);
+                        bool found = binding.DataView.FindSubData(bindingRelativePath.SubDataPath, out dataView);
                         Debug.Assert(found);
                         break;
                     }
@@ -280,10 +280,11 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 {
                     m_DataBindingsWithView.Add(dataBinding.Id);
                 }
-                else if (BindingNeedsRemapping(dataBinding))
+
+                if (BindingNeedsRemapping(dataBinding))
                 {
                     bool isStatic = !IsCompositeData(dataDescription);
-                    WriteVariableDeclaration(shaderWriter, typeName, bindingName, isStatic);
+                    WriteVariableDeclaration(shaderWriter, hasView ? $"{bindingName}View": typeName, bindingName, isStatic);
                 }
 
             }
@@ -303,15 +304,20 @@ namespace Unity.GraphCommon.LowLevel.Editor
         {
             shaderWriter.Indent();
             shaderWriter.Write("void VFXProcessBlocks(");
+            bool first = true;
             foreach (var attributeKeyMapping in templatedTask.AttributeKeyMappings)
             {
                 var structType = attributeKeyMapping.Key.ToString();
                 var structName = attributeKeyMapping.Key == templatedTask.DefaultAttributeKey ? "attributes" : $"{char.ToLowerInvariant(structType[0])}{structType.Substring(1)}";
-                //m_ComputeShaderWriter.Write(", ");
+                if (!first)
+                {
+                    shaderWriter.Write(", ");
+                }
                 shaderWriter.Write("inout ");
                 shaderWriter.Write(structType);
                 shaderWriter.Write(" ");
                 shaderWriter.Write(structName);
+                first = false;
             }
             shaderWriter.Write(")");
         }
@@ -326,6 +332,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
         void ForwardDeclarations(ShaderWriter shaderWriter, TemplatedTask templatedTask)
         {
+            shaderWriter.NewLine();
             WriteProcessBlocksDeclaration(shaderWriter, templatedTask);
             shaderWriter.Write(";");
             shaderWriter.NewLine();
@@ -341,13 +348,14 @@ namespace Unity.GraphCommon.LowLevel.Editor
             CompilationContext context)
         {
             computeShaderWriter.NewLine();
+            computeShaderWriter.WriteLine("static ThreadData threadData;");
+            computeShaderWriter.NewLine();
             uint threadCount = 64u;
             computeShaderWriter.WriteMainFunction(threadCount, 1, 1);
             computeShaderWriter.OpenBlock();
             InitMainData(computeShaderWriter, taskNode);
             computeShaderWriter.NewLine();
             computeShaderWriter.WriteLine("// Template entry point");
-            computeShaderWriter.WriteLine("ThreadData threadData;");
             computeShaderWriter.WriteLine($"threadData.Init(groupId.x * {threadCount} + groupThreadId.x);");
             computeShaderWriter.WriteLine("main(threadData);");
             computeShaderWriter.CloseBlock();

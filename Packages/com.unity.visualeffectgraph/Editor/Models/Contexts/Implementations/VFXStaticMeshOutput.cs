@@ -104,13 +104,15 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
         }
 
-        public override void GetImportDependentAssets(HashSet<EntityId> dependencies)
+        public sealed override bool IsDependentOnAnyOf(HashSet<EntityId> dependencies)
         {
-            base.GetImportDependentAssets(dependencies);
-            if (!object.ReferenceEquals(shader, null))
-            {
-                dependencies.Add(shader.GetEntityId());
-            }
+            if (base.IsDependentOnAnyOf(dependencies))
+                return true;
+
+            if (!object.ReferenceEquals(shader, null) && dependencies.Contains(shader.GetEntityId()))
+                return true;
+
+            return false;
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
@@ -264,14 +266,10 @@ namespace UnityEditor.VFX
         // Do not resync slots when shader graph is missing to keep potential links to the shader properties
         public override bool ResyncSlots(bool notify) => !m_IsShaderGraphMissing && base.ResyncSlots(notify);
 
-        public override void CheckGraphBeforeImport()
+        public override void ResyncDependencies()
         {
-            base.CheckGraphBeforeImport();
-            // If the graph is reimported it can be because one of its dependency such as the shadergraphs, has been changed.
-            if (!VFXGraph.explicitCompile)
-                ResyncSlots(true);
-
-            Invalidate(InvalidationCause.kUIChangedTransient);
+            base.ResyncDependencies();
+            ResyncSlots(true);
         }
 
         internal override void GenerateErrors(VFXErrorReporter report)

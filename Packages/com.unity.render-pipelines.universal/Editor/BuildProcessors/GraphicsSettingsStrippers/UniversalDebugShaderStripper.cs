@@ -9,9 +9,9 @@ namespace UnityEditor.Rendering
 
         public bool CanRemoveSettings(UniversalRenderPipelineDebugShaders settings)
         {
-            if (!CoreBuildData.instance.developmentBuild)
+            if (!CoreBuildData.instance.useDiagnosticChecks)
                 return true;
-            
+
             return GraphicsSettings.GetRenderPipelineSettings<ShaderStrippingSetting>()?.stripRuntimeDebugShaders ?? false;
         }
     }

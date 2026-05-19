@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.RadeonRays
             radixSort = new RadixSort(shaders);
         }
 
-        public ulong GetScratchDataSizeInDwords(uint instanceCount)
+        public static ulong GetScratchDataSizeInDwords(uint instanceCount)
         {
             var scratchLayout = ScratchBufferLayout.Create(instanceCount);
             return scratchLayout.TotalSize;
@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.RadeonRays
 
         public static uint GetBvhNodeCount(uint leafCount)
         {
-            return leafCount - 1;
+            return math.max(leafCount - 1, 1);
         }
 
         public void AllocateResultBuffers(uint instanceCount, ref TopLevelAccelStruct accelStruct)
@@ -95,6 +95,7 @@ namespace UnityEngine.Rendering.RadeonRays
         {
             Common.EnableKeyword(cmd, shaderBuildHlbvh, "TOP_LEVEL", true);
             Common.EnableKeyword(cmd, shaderBuildHlbvh, "UINT16_INDICES", false);
+            Common.EnableKeyword(cmd, shaderBuildHlbvh, "AABB_PRIMITIVES", false);
             uint instanceCount = accelStruct.instanceCount;
             var scratchLayout = ScratchBufferLayout.Create(instanceCount);
 

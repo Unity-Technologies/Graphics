@@ -310,6 +310,19 @@ namespace UnityEditor.VFX.Test
         {
             s_logs.Add("OnInvalidateDelegate " + model + " " + cause);
         }
+
+        [Test]
+        public void AddChild_Referring_VFXEditorResources()
+        {
+            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+            var sampleSDF = ScriptableObject.CreateInstance<Operator.SampleSDF>();
+            var slotTextureValue = (Texture3D)sampleSDF.inputSlots[0].value;
+            graph.AddChild(sampleSDF);
+
+            Assert.AreNotEqual(slotTextureValue, null);
+            Assert.AreEqual(slotTextureValue, VFXResources.defaultResources.signedDistanceField);
+            Assert.IsTrue(AssetDatabase.GetAssetPath(slotTextureValue).Contains("SignedDistanceField"));
+        }
     }
 }
 #endif

@@ -1,47 +1,64 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Data;
 using UnityEngine;
 using UnityEditor.VFX.Block;
 
 namespace UnityEditor.VFX
 {
+    interface IVFXSubgraphModel
+    {
+        public VisualEffectResource resourceCopy { get; }
+        public void SetSubmodelsFlattenedParents(VFXModel parent);
+    }
+
+
     [VFXHelpURL("Subgraph")]
     [VFXInfo(name = "Empty Subgraph Block")]
-    class VFXSubgraphBlock : VFXBlock
+    class VFXSubgraphBlock : VFXBlock, IVFXSubgraphModel
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected VisualEffectSubgraphBlock m_Subgraph;
 
+        // Cached resource copy
         [NonSerialized]
-        VFXModel[] m_SubChildren;
+        private VisualEffectResource m_ResourceCopy;
+        [NonSerialized]
+        private VFXModel[] m_SubChildren;
+        [NonSerialized]
+        private VFXBlock[] m_SubBlocks;
 
-        [NonSerialized]
-        VFXBlock[] m_SubBlocks;
-        VFXGraph m_UsedSubgraph;
+        public VisualEffectResource resourceCopy => m_ResourceCopy;
 
         public VisualEffectSubgraphBlock subgraph => m_Subgraph;
 
-        public override void GetImportDependentAssets(HashSet<EntityId> dependencies)
+        public sealed override bool IsDependentOnAnyOf(HashSet<EntityId> dependencies)
         {
-            base.GetImportDependentAssets(dependencies);
-            if (!object.ReferenceEquals(m_Subgraph, null))
-            {
-                dependencies.Add(m_Subgraph.GetEntityId());
-            }
+            if (base.IsDependentOnAnyOf(dependencies))
+                return true;
+
+            if (!ReferenceEquals(m_Subgraph, null) && dependencies.Contains(m_Subgraph.GetEntityId()))
+                return true;
+
+            return false;
         }
 
-        public override void CheckGraphBeforeImport()
+        void OnDestroy()
         {
-            base.CheckGraphBeforeImport();
+            ClearCopy();
+        }
 
-            // If the graph is reimported it can be because one of its dependency such as the subgraphs, has been changed.
-            if (!VFXGraph.explicitCompile)
-            {
-                ResyncSlots(true);
-                ResyncCustomAttributes();
-                Invalidate(InvalidationCause.kUIChangedTransient); // if a subgraph block has changed, we need to update it's visual valid state
-            }
+        public override void ResyncDependencies()
+        {
+            base.ResyncDependencies();
+
+            ClearCopy();
+
+            ResyncSlots(true);
+            if (m_Subgraph != null)
+                VFXSubgraphUtility.ResyncCustomAttributes(GetGraph(), GetOrCreateResourceCopy().GetGraph());
+            Invalidate(InvalidationCause.kUIChangedTransient); // if a subgraph block has changed, we need to update it's visual valid state
         }
 
         public sealed override string name => m_Subgraph != null ? ObjectNames.NicifyVariableName(m_Subgraph.name) : "Empty Subgraph Block";
@@ -62,20 +79,15 @@ namespace UnityEditor.VFX
                 {
                     if (m_Subgraph == null && !object.ReferenceEquals(m_Subgraph, null))
                         m_Subgraph = EditorUtility.EntityIdToObject(m_Subgraph.GetEntityId()) as VisualEffectSubgraphBlock;
-                    if (m_SubChildren == null && subgraph != null) // if the subasset exists but the subchildren has not been recreated yet, return the existing slots
+                    if (m_SubChildren == null && subgraph != null && GetGraph() != null) // if the subasset exists but the subchildren has not been recreated yet, return the existing slots
                         RecreateCopy();
 
-                    foreach (var param in GetParameters(InputPredicate).OrderBy(t => t.order))
+                    foreach (var param in GetParameters(VFXSubgraphUtility.InputPredicate).OrderBy(t => t.order))
                     {
                         yield return VFXSubgraphUtility.GetPropertyFromInputParameter(param);
                     }
                 }
             }
-        }
-
-        static bool InputPredicate(VFXParameter param)
-        {
-            return param.exposed && !param.isOutput;
         }
 
         IEnumerable<VFXParameter> GetParameters(Func<VFXParameter, bool> predicate)
@@ -90,11 +102,6 @@ namespace UnityEditor.VFX
             m_isInOnEnable = true;
             base.OnEnable();
             m_isInOnEnable = false;
-        }
-
-        void SubChildrenOnInvalidate(VFXModel model, InvalidationCause cause)
-        {
-            Invalidate(this, cause);
         }
 
         public override IEnumerable<VFXAttribute> usedAttributes => m_SubChildren?.OfType<IVFXAttributeUsage>().SelectMany(x => x.usedAttributes) ?? Array.Empty<VFXAttribute>();
@@ -114,77 +121,76 @@ namespace UnityEditor.VFX
             }
         }
 
+        private VisualEffectResource GetOrCreateResourceCopy(bool forceRecreate = false)
+        {
+            RecreateCopyIfNeeded(forceRecreate);
+            return m_ResourceCopy;
+        }
+
         public void RecreateCopy()
         {
-            if (m_SubChildren != null)
-            {
-                foreach (var child in m_SubChildren)
-                {
-                    if (child != null)
-                    {
-                        child.onInvalidateDelegate -= SubChildrenOnInvalidate;
-                        ScriptableObject.DestroyImmediate(child, true);
-                    }
-                }
-            }
+            RecreateCopyIfNeeded(true);
+        }
 
-            if (subgraph == null)
-            {
-                m_SubChildren = null;
-                m_SubBlocks = null;
-                m_UsedSubgraph = null;
+        public void RecreateCopyIfNeeded(bool force = false)
+        {
+            if (force)
+                ClearCopy();
+
+            if (subgraph == null || m_ResourceCopy != null)
                 return;
-            }
 
-            var graph = m_Subgraph.GetResource().GetOrCreateGraph();
-            HashSet<ScriptableObject> dependencies = new HashSet<ScriptableObject>();
+            m_ResourceCopy = m_Subgraph.GetResourceAtPathAndForget();
 
-            var context = graph.children.OfType<VFXBlockSubgraphContext>().FirstOrDefault();
+            if (VFXViewPreference.advancedLogs)
+                Debug.Log($"VfxSubgraphBlock::RecreateCopy for {name} ({GetEntityId()}) of type {GetType()}. Path: {AssetDatabase.GetAssetPath(m_Subgraph.GetEntityId())}. COPY ID: {m_ResourceCopy?.GetEntityId()}");
 
+            var copyGraph = m_ResourceCopy.GetGraph();
+            if (copyGraph == null)
+                throw new InvalidOperationException("Unexpected failure of GetResourceAtPathAndForget");
+            
+            copyGraph.SanitizeGraph();
+
+            var context = copyGraph.children.OfType<VFXBlockSubgraphContext>().FirstOrDefault();
             if (context == null)
             {
-                m_SubChildren = null;
-                m_SubBlocks = null;
-                m_UsedSubgraph = null;
+                ClearCopy();
                 return;
             }
 
-            foreach (var child in graph.children.Where(t => t is VFXOperator || t is VFXParameter))
-            {
-                dependencies.Add(child);
-                child.CollectDependencies(dependencies);
-            }
+            VFXSubgraphUtility.ResyncCustomAttributes(GetGraph(), copyGraph);
+            m_SubBlocks = copyGraph.children.OfType<VFXContext>().SelectMany(o => o.children).ToArray();
+            m_SubChildren = m_SubBlocks.Concat(copyGraph.children.Where(t => t is VFXOperator || t is VFXParameter)).ToArray();
 
-            foreach (var block in context.children)
-            {
-                dependencies.Add(block);
-                block.CollectDependencies(dependencies);
-            }
-
-            var copy = VFXMemorySerializer.DuplicateObjects(dependencies.ToArray());
-            m_UsedSubgraph = graph;
-            m_UsedSubgraph.SyncCustomAttributes();
-            m_SubChildren = copy.OfType<VFXModel>().Where(t => t is VFXBlock || t is VFXOperator || t is VFXParameter).ToArray();
-            m_SubBlocks = m_SubChildren.OfType<VFXBlock>().ToArray();
-            foreach (var child in m_SubChildren)
-            {
-                child.CheckGraphBeforeImport();
-                child.onInvalidateDelegate += SubChildrenOnInvalidate;
-            }
-
-            foreach (var child in copy)
-            {
-                child.hideFlags = HideFlags.HideAndDontSave;
-            }
-
+            copyGraph.SyncCustomAttributes();
+            
             foreach (var subgraphBlocks in m_SubBlocks.OfType<VFXSubgraphBlock>())
-                subgraphBlocks.RecreateCopy();
+                subgraphBlocks.RecreateCopyIfNeeded();
+
             SyncSlots(VFXSlot.Direction.kInput, true);
-            ResyncCustomAttributes();
-            if (GetGraph() is { } mainGraph)
+
+            if (GetParent() is not VFXBlockSubgraphContext) // Propagate flattened parent context only from root
+                SetSubmodelsFlattenedParents(GetParent());
+
+            // Remove that as it causes some recursivity issues
+            // TODO: Inplement custom attribute sync correctly
+            //if (GetGraph() is { } mainGraph)
+            //{
+            //    mainGraph.SyncCustomAttributes();
+            //}
+        }
+
+        private void ClearCopy()
+        {
+            if (m_ResourceCopy != null)
             {
-                mainGraph.SyncCustomAttributes();
+                m_ResourceCopy.DestroyTransientResourceDeep();
+                m_ResourceCopy = null;
+                m_SubChildren = null;
+                m_SubBlocks = null;
             }
+            else if (m_SubChildren != null || m_SubBlocks != null)
+                throw new Exception("Bad internal state for VFXSubgraphBlock");
         }
 
         public void PatchInputExpressions()
@@ -217,11 +223,8 @@ namespace UnityEditor.VFX
                 if (m_Subgraph == null)
                     return true;
 
-                VFXGraph subGraph = m_Subgraph.GetResource().GetOrCreateGraph();
-                VFXBlockSubgraphContext blockContext = subGraph.children.OfType<VFXBlockSubgraphContext>().First();
-                VFXContext parent = GetParent();
-                if (parent == null)
-                    return true;
+                var subGraph = GetOrCreateResourceCopy().GetGraph();
+                var blockContext = subGraph.children.OfType<VFXBlockSubgraphContext>().FirstOrDefault();
                 if (blockContext == null)
                     return false;
 
@@ -229,8 +232,8 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override VFXContextType compatibleContexts { get { return (subgraph != null) ? subgraph.GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().First().compatibleContextType : VFXContextType.All; } }
-        public override VFXDataType compatibleData { get { return (subgraph != null) ? subgraph.GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().First().ownedType : VFXDataType.Particle | VFXDataType.SpawnEvent; } }
+        public override VFXContextType compatibleContexts { get { return (GetOrCreateResourceCopy() != null) ? GetOrCreateResourceCopy().GetGraph().children.OfType<VFXBlockSubgraphContext>().First().compatibleContextType : VFXContextType.All; } }
+        public override VFXDataType compatibleData { get { return (GetOrCreateResourceCopy() != null) ? GetOrCreateResourceCopy().GetGraph().children.OfType<VFXBlockSubgraphContext>().First().ownedType : VFXDataType.Particle | VFXDataType.SpawnEvent; } }
 
         public override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
         {
@@ -251,76 +254,88 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void SetSubblocksFlattenedParent()
+        public void SetSubmodelsFlattenedParents(VFXModel parent)
         {
-            VFXContext parent = GetParent();
-            foreach (var block in recursiveSubBlocks)
+            if (m_SubBlocks == null)
+                return;
+
+            foreach (var block in m_SubBlocks)
+            {
                 block.flattenedParent = parent;
+                if (block is VFXSubgraphBlock subgraphBlock)
+                    subgraphBlock.SetSubmodelsFlattenedParents(parent);
+            }
         }
 
-        protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
+        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
-            if (cause == InvalidationCause.kSettingChanged)
+            switch (cause)
             {
-                var graph = GetGraph();
+                // Recreate subgraph copy
+                case InvalidationCause.kSettingChanged:
+                {
+                    var graph = GetGraph();
 
-                if (graph != null && subgraph != null && m_Subgraph.GetResource() != null)
-                {
-                    var otherGraph = m_Subgraph.GetResource().GetOrCreateGraph();
-                    if (otherGraph == graph || otherGraph.subgraphDependencies.Contains(graph.GetResource().visualEffectObject))
-                        m_Subgraph = null; // prevent cyclic dependencies.
-                    if (otherGraph != m_UsedSubgraph)
-                        RecreateCopy();
-                    if (graph.GetResource().isSubgraph) // BuildSubgraphDependencies is called for vfx by recompilation, but in subgraph we must call it explicitely
-                        graph.BuildSubgraphDependencies();
-                }
-                else if (m_UsedSubgraph != null)
-                    RecreateCopy();
-            }
-            else if (cause == InvalidationCause.kParamChanged || cause == InvalidationCause.kExpressionValueInvalidated)
-            {
-                VFXSlot slot = model as VFXSlot;
-                if (slot != null && slot.IsMasterSlot())
-                {
-                    int slotIndex = GetSlotIndex(slot);
-                    if (slotIndex >= 0) // Not a toggle slot
+                    if (graph != null && subgraph != null)
                     {
-                        var parameter = m_SubChildren.OfType<VFXParameter>().FirstOrDefault(m => m.order == slotIndex);
-                        if (parameter != null)
-                            parameter.GetOutputSlot(0).Invalidate(InvalidationCause.kExpressionValueInvalidated); // Propagate value change event to subblock parameter
+                        var otherGraph = m_Subgraph.GetResource().GetGraph();
+                        if (otherGraph == graph || otherGraph.subgraphDependencies.Contains(graph.GetResource().visualEffectObject))
+                            m_Subgraph = null; // prevent cyclic dependencies.
+
+                        if (graph.GetResource().isSubgraph) // BuildSubgraphDependencies is called for vfx by recompilation, but in subgraph we must call it explicitely
+                            graph.BuildSubgraphDependencies();
+                    }
+                    else if (GetOrCreateResourceCopy() != null)
+                        RecreateCopy();
+                }
+                break;
+
+                // Propagate change in expressions to subgraph
+                case InvalidationCause.kExpressionInvalidated:
+                case InvalidationCause.kConnectionChanged:
+                {
+                    VFXSlot slot = model as VFXSlot;
+                    if (slot != null && slot.IsMasterSlot()) // Check master to avoid multi invalidation when walking through slot hierarchy
+                        PatchInputExpressions(); // this will propagate invalidation to subgraphs
+                }
+                break;
+
+                // Propagate change in expression values to subgraph
+                case InvalidationCause.kParamChanged:
+                case InvalidationCause.kExpressionValueInvalidated:
+                {
+                    VFXSlot slot = model as VFXSlot;
+                    if (slot != null && slot.IsMasterSlot())
+                    {
+                        int slotIndex = GetSlotIndex(slot);
+                        if (slotIndex >= 0) // Not a toggle slot
+                        {
+                            var parameter = m_SubChildren.OfType<VFXParameter>().FirstOrDefault(m => m.order == slotIndex);
+                            if (parameter != null)
+                                parameter.GetOutputSlot(0).Invalidate(InvalidationCause.kExpressionValueInvalidated); // Propagate value change event to subblock parameter
+                        }
                     }
                 }
+                break;
             }
 
-            base.Invalidate(model, cause);
+            base.OnInvalidate(model, cause);
         }
 
         protected override void OnAdded()
         {
             base.OnAdded();
-            ResyncCustomAttributes();
+            SetSubmodelsFlattenedParents(GetParent() is VFXBlockSubgraphContext ? GetParent().flattenedParent : GetParent());
+            if (m_Subgraph != null)
+            {
+                VFXSubgraphUtility.ResyncCustomAttributes(GetGraph(), GetOrCreateResourceCopy().GetGraph());
+            }
         }
 
-        private void ResyncCustomAttributes()
+        protected override void OnRemoved()
         {
-            var graph = GetGraph();
-            if (graph == null || m_SubChildren == null)
-            {
-                return;
-            }
-
-            foreach (var customAttribute in usedAttributes)
-            {
-                if (!graph.attributesManager.Exist(customAttribute.name))
-                {
-                    graph.TryAddCustomAttribute(customAttribute.name, customAttribute.type, customAttribute.description, true, out _);
-                }
-                else
-                {
-                    graph.TryUpdateCustomAttribute(customAttribute.name, CustomAttributeUtility.GetSignature(customAttribute.type), customAttribute.description, true);
-                }
-                graph.SetCustomAttributeDirty();
-            }
+            base.OnRemoved();
+            SetSubmodelsFlattenedParents(null);
         }
     }
 }

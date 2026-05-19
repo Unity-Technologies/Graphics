@@ -35,20 +35,31 @@ namespace UnityEditor.Rendering
         public List<RenderPipelineAsset> renderPipelineAssets { get; private set; } = new();
 
         /// <summary>
-        /// Whether the build is a development build or not.
+        /// Whether the current build's managed code variant has <c>UNITY_ENABLE_CHECKS</c> defined
+        /// (Debug or Checked variant).
         /// </summary>
-        public bool developmentBuild { get; private set; } = false;
+        /// <remarks>
+        /// Use this to gate inclusion of diagnostic shaders, resources, and other build-time decisions
+        /// that mirror C# code paths compiled under <c>#if UNITY_ENABLE_CHECKS</c>.
+        /// </remarks>
+        public bool useDiagnosticChecks { get; private set; } = false;
+
+        /// <summary>
+        /// Obsolete. Always returns <c>false</c>.
+        /// </summary>
+        [Obsolete("developmentBuild is no longer populated and always returns false. Use useDiagnosticChecks for stripping decisions that mirror UNITY_ENABLE_CHECKS-gated C# code.")]
+        public bool developmentBuild => false;
 
         internal Dictionary<EntityId, ComputeShader> computeShaderCache { get; private set; } = new();
 
         internal bool pipelineSupportGPUResidentDrawer { get; private set; } = false;
         internal bool playerNeedGPUResidentDrawer { get; private set; } = false;
 
-        private CoreBuildData(BuildTarget buildTarget, bool development)
+        private CoreBuildData(BuildTarget buildTarget)
         {
             m_Instance = this;
 
-            developmentBuild = development;
+            useDiagnosticChecks = PlayerSettings.GetManagedCodeVariant(GetNamedBuildTarget(buildTarget)) <= ManagedCodeVariant.Checked;
 
             if (!buildTarget.TryGetRenderPipelineAssets(renderPipelineAssets))
                 return;
@@ -63,7 +74,19 @@ namespace UnityEditor.Rendering
         }
 
         private static CoreBuildData CreateInstance()
-            => new(EditorUserBuildSettings.activeBuildTarget, EditorUserBuildSettings.development);
+            => new(EditorUserBuildSettings.activeBuildTarget);
+
+        // NamedBuildTarget for buildTarget under the active subtarget (Player vs Server for Standalone).
+        private static NamedBuildTarget GetNamedBuildTarget(BuildTarget buildTarget)
+        {
+            var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(buildTarget);
+            if (buildTargetGroup == BuildTargetGroup.Standalone &&
+                EditorUserBuildSettings.standaloneBuildSubtarget == StandaloneBuildSubtarget.Server)
+            {
+                return NamedBuildTarget.Server;
+            }
+            return NamedBuildTarget.FromBuildTargetGroup(buildTargetGroup);
+        }
 
         private void CheckGPUResidentDrawerUsage()
         {

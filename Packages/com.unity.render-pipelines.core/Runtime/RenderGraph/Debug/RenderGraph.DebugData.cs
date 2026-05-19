@@ -315,10 +315,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
-        [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         void AddPassDebugMetadata(RenderGraphPass renderPass, string file, int line)
         {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
             // Does nothing unless debug session is active.
             if (!RenderGraphDebugSession.hasActiveDebugSession)
                 return;

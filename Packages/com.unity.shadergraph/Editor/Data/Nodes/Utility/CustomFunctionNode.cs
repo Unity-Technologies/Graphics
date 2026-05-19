@@ -82,6 +82,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public override bool hasPreview => true;
+        public override bool hasUserAuthoredCode => true;
 
         [SerializeField]
         HlslSourceType m_SourceType = HlslSourceType.File;
@@ -159,7 +160,7 @@ namespace UnityEditor.ShaderGraph
                 if (!IsValidFunction())
                 {
                     // invalid functions generate special preview code..  (why?)
-                    if (generationMode == GenerationMode.Preview && outputSlots.Count != 0)
+                    if (generationMode.IsPreview() && outputSlots.Count != 0)
                     {
                         outputSlots.OrderBy(s => s.id);
                         var hlslVariableType = outputSlots[0].concreteValueType.ToShaderString();

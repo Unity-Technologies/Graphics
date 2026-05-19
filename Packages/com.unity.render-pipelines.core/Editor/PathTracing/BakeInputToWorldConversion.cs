@@ -242,10 +242,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             {
                 ref readonly LightData lightData = ref bakeInput.lightData[i];
 
-                // TODO(pema.malling): The following transform is only correct for linear color space :( https://jira.unity3d.com/browse/LIGHT-1763
-                float maxColor = Mathf.Max(lightData.color.x, Mathf.Max(lightData.color.y, lightData.color.z));
-                float maxIndirectColor = Mathf.Max(lightData.indirectColor.x, Mathf.Max(lightData.indirectColor.y, lightData.indirectColor.z));
-                float bounceIntensity = maxColor <= 0 ? 0 : maxIndirectColor / maxColor;
+                float bounceIntensity = lightData.indirectMultiplier;
 
                 World.LightDescriptor lightDescriptor;
                 lightDescriptor.Type = LightBakerLightTypeToUnityLightType(lightData.type);
@@ -504,6 +501,43 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             return outMesh;
         }
 
+        internal static Mesh CreateTerrainQuadMesh()
+        {
+            // Match TerrainToMesh's extent convention: UV = vertex.xz / (resolution - 1).
+            // The quad spans [0, 1] in both vertex space and UV so the lightmap atlas
+            // region is fully covered (matches Progressive GPU).
+            var mesh = new Mesh();
+            mesh.vertices = new Vector3[] { new(0, 0, 0), new(1, 0, 0), new(1, 0, 1), new(0, 0, 1) };
+            mesh.uv = new Vector2[] { new(0, 0), new(1, 0), new(1, 1), new(0, 1) };
+            mesh.uv2 = new Vector2[] { new(0, 0), new(1, 0), new(1, 1), new(0, 1) };
+            mesh.normals = new Vector3[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up };
+            mesh.triangles = new int[] { 0, 2, 1, 0, 3, 2 };
+            return mesh;
+        }
+
+        // Compute world-space bounds for a procedural terrain. The quad mesh used by procedural terrain
+        // is in normalized UV space and has Y=0, so CalculateMeshBounds on it gives wrong results.
+        // The terrain occupies (resolution-1) * heightmapScale.x in X, (resolution-1) * heightmapScale.z in Z,
+        // and Y in [0, heightmapScale.y] (conservative — uses the maximum possible height).
+        private static Bounds CalculateProceduralTerrainBounds(in HeightmapData heightMap, in LightBakerBridge.TerrainData terrainData, Matrix4x4 localToWorldMatrix4x4, out Vector3 meshMinVertex, out Vector3 meshMaxVertex)
+        {
+            float extentX = (heightMap.resolution - 1) * terrainData.heightmapScale.x;
+            float extentZ = (heightMap.resolution - 1) * terrainData.heightmapScale.z;
+            float maxY = terrainData.heightmapScale.y;
+            Vector3[] corners = new Vector3[]
+            {
+                new(0,       0,    0),
+                new(extentX, 0,    0),
+                new(0,       0,    extentZ),
+                new(extentX, 0,    extentZ),
+                new(0,       maxY, 0),
+                new(extentX, maxY, 0),
+                new(0,       maxY, extentZ),
+                new(extentX, maxY, extentZ),
+            };
+            return CalculateMeshBounds(corners, localToWorldMatrix4x4, out meshMinVertex, out meshMaxVertex);
+        }
+
         private static Bounds CalculateMeshBounds(Vector3[] vertices, Matrix4x4 localToWorldMatrix4x4, out Vector3 meshMinVertex, out Vector3 meshMaxVertex)
         {
             meshMinVertex = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
@@ -531,6 +565,8 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             List<UnityEngine.Object> allocatedObjects,
             uint renderingObjectLayer)
         {
+            bool useProceduralTerrain = bakeInput.lightingSettings.enableHeightfieldRayTracing;
+
             // Extract meshes
             meshes = new Mesh[bakeInput.meshData.Length + bakeInput.terrainData.Length];
             int meshIndex = 0;
@@ -542,13 +578,65 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             }
 
             // Extract terrains
-            int terrainMeshOffset = meshIndex; // remember where the terrains start
+            int terrainMeshOffset = meshIndex;
             for (int i = 0; i < bakeInput.terrainData.Length; i++)
             {
-                var heightMap = bakeInput.heightMapData[bakeInput.terrainData[i].heightMapIndex];
-                var holeMap = bakeInput.terrainData[i].terrainHoleIndex >= 0 ? bakeInput.terrainHoleData[bakeInput.terrainData[i].terrainHoleIndex] : new TerrainHoleData();
-                meshes[meshIndex] = TerrainDataToMesh(in bakeInput.terrainData[i], in heightMap, in holeMap);
+                if (useProceduralTerrain)
+                {
+                    meshes[meshIndex] = CreateTerrainQuadMesh();
+                }
+                else
+                {
+                    var heightMap = bakeInput.heightMapData[bakeInput.terrainData[i].heightMapIndex];
+                    var holeMap = bakeInput.terrainData[i].terrainHoleIndex >= 0 ? bakeInput.terrainHoleData[bakeInput.terrainData[i].terrainHoleIndex] : new TerrainHoleData();
+                    meshes[meshIndex] = TerrainDataToMesh(in bakeInput.terrainData[i], in heightMap, in holeMap);
+                }
                 meshIndex++;
+            }
+
+            // Add procedural terrain instances to the acceleration structure
+            if (useProceduralTerrain && bakeInput.terrainData.Length > 0)
+            {
+
+                for (int i = 0; i < bakeInput.terrainData.Length; i++)
+                {
+                    ref readonly LightBakerBridge.TerrainData terrain = ref bakeInput.terrainData[i];
+                    var heightMap = bakeInput.heightMapData[terrain.heightMapIndex];
+                    var holeMap = terrain.terrainHoleIndex >= 0 ? bakeInput.terrainHoleData[terrain.terrainHoleIndex] : new TerrainHoleData();
+
+                    if (terrain.terrainHoleIndex >= 0)
+                        Debug.Assert(holeMap.resolution == heightMap.resolution - 1, $"Hole resolution {holeMap.resolution} should be heightmap resolution {heightMap.resolution} - 1.");
+
+                    // Find the instance data for this terrain to get the transform and material
+                    for (int inst = 0; inst < bakeInput.instanceData.Length; inst++)
+                    {
+                        if (bakeInput.instanceData[inst].terrainIndex != i)
+                            continue;
+
+                        ref readonly InstanceData instanceData = ref bakeInput.instanceData[inst];
+                        float4x4 localToWorldFloat4x4 = instanceData.transform;
+                        Matrix4x4 localToWorldMatrix4x4 = new Matrix4x4(localToWorldFloat4x4.c0, localToWorldFloat4x4.c1, localToWorldFloat4x4.c2, localToWorldFloat4x4.c3);
+
+                        var materials = perInstanceSubMeshMaterials[inst];
+                        MaterialHandle terrainMaterial = materials.Length > 0 ? materials[0] : MaterialHandle.Invalid;
+
+                        uint mask = World.GetInstanceMask(
+                            instanceData.castShadows ? ShadowCastingMode.On : ShadowCastingMode.Off,
+                            true, RenderedGameObjectsFilter.OnlyStatic);
+
+                        world.AddTerrainInstance(
+                            heightMap.data,
+                            heightMap.resolution,
+                            terrain.heightmapScale,
+                            holeMap.data,
+                            holeMap.resolution,
+                            terrainMaterial,
+                            mask,
+                            renderingObjectLayer,
+                            localToWorldMatrix4x4);
+                        break;
+                    }
+                }
             }
 
             // Compute the tight UV scale and offset for each mesh.
@@ -573,8 +661,9 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             List<FatInstance> fatInstanceList = new();
             for (int i = 0; i < bakeInput.instanceData.Length; i++)
             {
-                // Get materials
                 ref readonly InstanceData instanceData = ref bakeInput.instanceData[i];
+
+                // Get materials
                 var materials = perInstanceSubMeshMaterials[i];
                 var visibility = perInstanceSubMeshVisibility[i];
 
@@ -589,8 +678,21 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 Vector2 uvBoundsSize = uvBoundsSizes[globalMeshIndex];
                 Vector2 uvBoundsOffset = uvBoundsOffsets[globalMeshIndex];
 
-                // Calculate bounds
-                Bounds meshBounds = CalculateMeshBounds(mesh.vertices, localToWorldMatrix4x4, out Vector3 meshMinVertex, out Vector3 meshMaxVertex);
+                // Calculate bounds. For procedural terrain the quad mesh is in normalized UV space,
+                // so we must derive bounds from the heightmap extent and scale instead.
+                bool isProceduralTerrain = useProceduralTerrain && instanceData.terrainIndex >= 0;
+                Bounds meshBounds;
+                Vector3 meshMinVertex, meshMaxVertex;
+                if (isProceduralTerrain)
+                {
+                    ref readonly LightBakerBridge.TerrainData terrain = ref bakeInput.terrainData[instanceData.terrainIndex];
+                    var heightMap = bakeInput.heightMapData[terrain.heightMapIndex];
+                    meshBounds = CalculateProceduralTerrainBounds(in heightMap, in terrain, localToWorldMatrix4x4, out meshMinVertex, out meshMaxVertex);
+                }
+                else
+                {
+                    meshBounds = CalculateMeshBounds(mesh.vertices, localToWorldMatrix4x4, out meshMinVertex, out meshMaxVertex);
+                }
 
                 // Keep track of scene bounds as we go
                 sceneMinVertex = Vector3.Min(sceneMinVertex, meshMinVertex);
@@ -605,8 +707,18 @@ namespace UnityEditor.PathTracing.LightBakerBridge
 
                 // add instance
                 var boundingSphere = new BoundingSphere();
-                boundingSphere.position = localToWorldMatrix4x4.MultiplyPoint(mesh.bounds.center);
-                boundingSphere.radius = (localToWorldMatrix4x4.MultiplyPoint(mesh.bounds.extents) - boundingSphere.position).magnitude;
+                if (isProceduralTerrain)
+                {
+                    // For procedural terrain the mesh is a normalized-UV quad, so use the world-space
+                    // bounds we just computed instead of mesh.bounds.
+                    boundingSphere.position = meshBounds.center;
+                    boundingSphere.radius = meshBounds.extents.magnitude;
+                }
+                else
+                {
+                    boundingSphere.position = localToWorldMatrix4x4.MultiplyPoint(mesh.bounds.center);
+                    boundingSphere.radius = (localToWorldMatrix4x4.MultiplyPoint(mesh.bounds.extents) - boundingSphere.position).magnitude;
+                }
                 var lodIdentifier = new LodIdentifier(instanceData.lodGroup, instanceData.lodMask, instanceData.contributingLodLevel);
                 var fatInstance = new FatInstance
                 {
@@ -623,7 +735,9 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                     ReceiveShadows = instanceData.receiveShadows,
                     Filter = filter,
                     RenderingObjectLayer = renderingObjectLayer,
-                    EnableEmissiveSampling = true
+                    EnableEmissiveSampling = true,
+                    IsProceduralTerrain = isProceduralTerrain,
+                    TerrainIndex = instanceData.terrainIndex
                 };
                 fatInstanceList.Add(fatInstance);
             }

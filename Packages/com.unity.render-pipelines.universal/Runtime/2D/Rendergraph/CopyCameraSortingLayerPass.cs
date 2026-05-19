@@ -1,14 +1,11 @@
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.Universal.U2D.Profiler;
 
 namespace UnityEngine.Rendering.Universal
 {
     internal class CopyCameraSortingLayerPass : ScriptableRenderPass
     {
-        static readonly string k_CopyCameraSortingLayerPass = "CopyCameraSortingLayer Pass";
-
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_CopyCameraSortingLayerPass);
-        private static readonly ProfilingSampler m_ExecuteProfilingSampler = new ProfilingSampler("Copy");
         internal static readonly string k_CameraSortingLayerTexture = "_CameraSortingLayerTexture";
         internal static readonly int k_CameraSortingLayerTextureId = Shader.PropertyToID(k_CameraSortingLayerTexture);
         Material m_BlitMaterial;
@@ -38,7 +35,7 @@ namespace UnityEngine.Rendering.Universal
 
         private static void Execute(RasterCommandBuffer cmd, RTHandle source, Material blitMaterial)
         {
-            using (new ProfilingScope(cmd, m_ExecuteProfilingSampler))
+            using (new ProfilingScope(cmd, ProfilerMarkers.s_ProfilingSamplerCopy))
             {
                 Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                 Blitter.BlitTexture(cmd, source, viewportScale, blitMaterial, source.rt.filterMode == FilterMode.Bilinear ? 1 : 0);
@@ -56,7 +53,7 @@ namespace UnityEngine.Rendering.Universal
             UniversalResourceData commonResourceData = frameData.Get<UniversalResourceData>();
             Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
 
-            using (var builder = graph.AddRasterRenderPass<PassData>(k_CopyCameraSortingLayerPass, out var passData, m_ProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>(ProfilerMarkers.s_CopyCameraSortingLayerPass, out var passData, ProfilerMarkers.s_ProfilingSamplerCopyCameraSortingLayerPass))
             {
                 passData.source = commonResourceData.activeColorTexture;
                 passData.blitMaterial = m_BlitMaterial;

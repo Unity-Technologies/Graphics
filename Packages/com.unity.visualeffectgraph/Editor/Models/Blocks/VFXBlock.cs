@@ -67,6 +67,9 @@ namespace UnityEditor.VFX
         public virtual IEnumerable<string> defines { get { return Enumerable.Empty<string>(); } }
         public virtual string source => null;
 
+        // Returns the actual compiled context for the block (parent for blocks and flattenedparent for blocks in subgraphs)
+        protected VFXContext compiledParentContext => (flattenedParent != null ? flattenedParent : GetParent()) as VFXContext;
+
         public override void OnEnable()
         {
             base.OnEnable();
@@ -151,7 +154,11 @@ namespace UnityEditor.VFX
                 UpdateEnableState();
 
                 if (m_CachedEnableState != oldEnableState)
+                {
                     Invalidate(InvalidationCause.kEnableChanged);
+                    if (this is not IVFXSubgraphModel) // Forward to flatten parent for blocks (but not subblocks)
+                        flattenedParent?.Invalidate(InvalidationCause.kEnableChanged);
+                }
             }
         }
 
@@ -221,19 +228,5 @@ namespace UnityEditor.VFX
             //Override with care: most block are assuming expression are in same space than owner (and doesn't conversion afterwards).
             return GetOwnerSpace();
         }
-
-        public VFXContext flattenedParent
-        {
-            get
-            {
-                return m_FlattenedParent != null ? m_FlattenedParent : GetParent();
-            }
-            set
-            {
-                m_FlattenedParent = value;
-            }
-        }
-
-        private VFXContext m_FlattenedParent;
     }
 }

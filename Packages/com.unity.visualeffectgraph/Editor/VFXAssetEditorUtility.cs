@@ -40,8 +40,26 @@ namespace UnityEditor
 
         static void CheckVFXManagerOnce()
         {
+            var previousEditorResource = UnityEngine.VFX.VFXManager.editorResources;
             VFXManagerEditor.CheckVFXManager();
             EditorApplication.update -= CheckVFXManagerOnce;
+
+            if (previousEditorResource != UnityEngine.VFX.VFXManager.editorResources && UnityEngine.VFX.VFXManager.editorResources != null)
+            {
+                var migratedEditorResourcePath = AssetDatabase.GetAssetPath(UnityEngine.VFX.VFXManager.editorResources);
+                var formerResources = AssetDatabase.FindAssets("t:VFXResources");
+                foreach (var formerResource in formerResources)
+                {
+                    var formerResourcePath = AssetDatabase.GUIDToAssetPath(formerResource);
+                    if (formerResourcePath.Equals(migratedEditorResourcePath, System.StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    Debug.LogWarningFormat(
+                        "The VFXResources asset is now explicitly referenced in 'Edit/Project Settings/VFX'. To register your previous custom VFXResources located at '{0}', assign it to the 'Editor Resources' field in that window.",
+                        formerResourcePath
+                    );
+                }
+            }
         }
 
         static VisualEffectAssetEditorUtility()
@@ -129,17 +147,9 @@ VisualEffectResource:
         [MenuItem("Assets/Create/Visual Effects/Visual Effect Defaults", false, 307)]
         public static void CreateVisualEffectDefaults()
         {
-            var obj = VFXResources.CreateInstance<VFXResources>();
-            obj.SetDefaults();
+            var obj = VFXResources.CreateDefault();
             AssetDatabase.CreateAsset(obj, "Assets/Visual Effects Defaults.asset");
             Selection.activeObject = obj;
-        }
-
-        [MenuItem("Assets/Create/Visual Effects/Visual Effect Defaults", true)]
-        public static bool IsCreateVisualEffectDefaultsActive()
-        {
-            var resources = Resources.FindObjectsOfTypeAll<VFXResources>();
-            return resources == null || resources.Length == 0;
         }
 
         [MenuItem("Assets/Create/Visual Effects/HLSL File", false)]

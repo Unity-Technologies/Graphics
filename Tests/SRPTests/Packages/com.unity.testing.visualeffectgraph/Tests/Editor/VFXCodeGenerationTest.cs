@@ -73,7 +73,8 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.SaveAssets(); //ease potential debug while looking at final data
             var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
             Assert.IsNotNull(vfxAsset);
-            var vfxGraph = vfxAsset.GetOrCreateResource().GetOrCreateGraph();
+            var vfxGraph = vfxAsset.GetResource().GetGraph();
+            vfxGraph.PrepareGraph();
 
             var collectedOutput = new List<(string label, string system, string type)>();
             foreach (var output in vfxGraph.children.OfType<VFXAbstractParticleOutput>())
@@ -132,12 +133,12 @@ namespace UnityEditor.VFX.Test
             var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             spawner.LinkTo(contextInitialize);
             graph.AddChild(spawner);
+            VFXTestCommon.ReimportVFXGraph(graph);
             var assetPath = AssetDatabase.GetAssetPath(graph);
-            AssetDatabase.ImportAsset(assetPath); ;
 
             var defaultShaderGraph = VFXShaderGraphHelpers.GetShaderGraph(output);
             Assert.IsNotNull(defaultShaderGraph);
-            Assert.AreEqual(VFXResources.errorFallbackShaderGraph, defaultShaderGraph);
+            Assert.AreEqual(VFXResources.defaultResources.errorFallbackShaderGraph, defaultShaderGraph);
             var allAssets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
 
             Assert.AreEqual(4, allAssets.Length);
@@ -231,11 +232,12 @@ namespace UnityEditor.VFX.Test
             contextUpdate.LinkTo(output);
 
             var vfxPath = AssetDatabase.GetAssetPath(graph);
-            AssetDatabase.ImportAsset(vfxPath);
+            VFXTestCommon.ReimportVFXGraph(graph);
+
             var allAssets = AssetDatabase.LoadAllAssetsAtPath(vfxPath);
             Assert.AreEqual(5, allAssets.Length);
 
-            var resource = allAssets.OfType<VisualEffectAsset>().Single().GetOrCreateResource();
+            var resource = allAssets.OfType<VisualEffectAsset>().Single().GetResource();
             var invalidPathChars = System.IO.Path.GetInvalidPathChars();
             Assert.AreNotEqual(0, invalidPathChars.Length);
 
@@ -263,7 +265,7 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.SaveAssets(); //ease potential debug while looking at final data
 
             var allAssets = AssetDatabase.LoadAllAssetsAtPath(vfxPath);
-            var resource = allAssets.OfType<VisualEffectAsset>().Single().GetOrCreateResource();
+            var resource = allAssets.OfType<VisualEffectAsset>().Single().GetResource();
 
             int shaderAndMaterialCount = 0;
             foreach (var subAsset in allAssets)
@@ -363,8 +365,9 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(AssetDatabase.AssetPathExists(vfxPath));
 
             var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath).GetResource();
-            vfx.GetOrCreateGraph().SetCompilationMode(compilationMode);
-            vfx.GetOrCreateGraph().CompileAndUpdateAsset(vfx.asset);
+            vfx.GetGraph().PrepareGraph();
+            vfx.GetGraph().SetCompilationMode(compilationMode);
+            vfx.GetGraph().CompileAndUpdateAsset(vfx.asset);
 
             Assert.AreEqual(5, vfx.GetShaderSourceCount());
 
@@ -401,7 +404,7 @@ namespace UnityEditor.VFX.Test
                 shaderCount++;
             }
             Assert.AreEqual(4, shaderCount);
-            vfx.GetOrCreateGraph().SetCompilationMode(VFXCompilationMode.Runtime);
+            vfx.GetGraph().SetCompilationMode(VFXCompilationMode.Runtime);
         }
 
         [UnityTest]
@@ -589,8 +592,8 @@ namespace UnityEditor.VFX.Test
             if (changeMeshLodCount)
             {
                 var graph = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath)
-                    .GetOrCreateResource()
-                    .GetOrCreateGraph();
+                    .GetResource()
+                    .GetGraph();
                 Assert.IsNotNull(graph);
                 var meshOutput = graph.children.OfType<VFXMeshOutput>().SingleOrDefault();
                 Assert.IsNotNull(meshOutput);

@@ -24,48 +24,30 @@ namespace UnityEditor.VFX.Test
     {
         VFXViewController m_ViewController;
 
-        const string testAssetName = "Assets/TmpTests/VFXGraph{0}.vfx";
-
-        private int m_StartUndoGroupId;
-
-
-        string lastFileName;
-        static int cpt = 0;
-
         [SetUp]
         public void CreateTestAsset()
         {
-            lastFileName = string.Format(testAssetName, cpt++);
+            var graph = VFXTestCommon.MakeTemporaryGraph();
 
-            var directoryPath = Path.GetDirectoryName(lastFileName);
-            if (!Directory.Exists(directoryPath))
-            {
-                Directory.CreateDirectory(directoryPath);
-            }
+            VFXTestCommon.CloseAllUnecessaryWindows();
+            while (EditorWindow.HasOpenInstances<VFXViewWindow>())
+                EditorWindow.GetWindow<VFXViewWindow>().Close();
 
+            var window = VFXTestCommon.GetWindow(graph, true, true);
+            window.LoadAsset(graph.GetResource().asset, null);
 
-            if (File.Exists(lastFileName))
-            {
-                AssetDatabase.DeleteAsset(lastFileName);
-            }
-
-            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(lastFileName);
-
-            VisualEffectResource resource = asset.GetResource(); // force resource creation
-
-            m_ViewController = VFXViewController.GetController(resource);
-            m_ViewController.useCount++;
-
-            m_StartUndoGroupId = Undo.GetCurrentGroup();
+            m_ViewController = window.graphView.controller;
         }
 
         [TearDown]
         public void DestroyTestAsset()
         {
-            m_ViewController.useCount--;
-            Undo.RevertAllDownToGroup(m_StartUndoGroupId);
-            AssetDatabase.DeleteAsset(lastFileName);
-            lastFileName = null;
+            VFXTestCommon.CloseAllUnecessaryWindows();
+            while (EditorWindow.HasOpenInstances<VFXViewWindow>())
+                EditorWindow.GetWindow<VFXViewWindow>().Close();
+            VFXTestCommon.DeleteAllTemporaryGraph();
+
+            m_ViewController = null;
         }
 
         [Test]
@@ -85,7 +67,7 @@ namespace UnityEditor.VFX.Test
             m_ViewController.ApplyChanges();
 
             // Select the created context (which now contains a single block)
-            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+            VFXViewWindow window = VFXTestCommon.GetViewWindow();
             VFXView view = window.graphView;
             view.controller = m_ViewController;
             view.ClearSelection();
@@ -141,7 +123,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(operatorController.model, newOperator);
 
             // Select the newly created operator
-            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+            VFXViewWindow window = VFXTestCommon.GetViewWindow();
             VFXView view = window.graphView;
 
             view.controller = m_ViewController;
@@ -190,7 +172,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(newOperator, operatorController.model);
 
             // Select the newly created operator
-            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+            VFXViewWindow window = VFXTestCommon.GetViewWindow();
             VFXView view = window.graphView;
             view.controller = m_ViewController;
             view.ClearSelection();
@@ -222,17 +204,18 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(VFXSpace.World, copyASlot.space);
         }
 
-        [Test]
-        public void CopyPasteEdges()
+        [UnityTest]
+        public IEnumerator CopyPasteEdges()
         {
             // Load a pre-made vfx asset into a VFX Graph window
-            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>("Assets/AllTests/Editor/Tests/CopyPasteTest.vfx");
-            VFXViewController controller = VFXViewController.GetController(asset.GetResource(), true);
-            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-            VFXView view = window.graphView;
-            view.controller = controller;
-            view.ClearSelection();
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>("Assets/AllTests/Editor/Tests/CopyPasteTest.vfx");
+            var resource = asset.GetResource();
+            var window = VFXTestCommon.GetWindow(resource, true, true);
+            window.LoadAsset(asset, null);
+            yield return null;
 
+            var view = window.graphView;
+            view.ClearSelection();
 
             // Select all nodes in the graph
             var originalElements = view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>().ToArray();
@@ -244,7 +227,12 @@ namespace UnityEditor.VFX.Test
 
             // Copy / Paste selection
             string copyData = view.SerializeElements(view.selection.OfType<GraphElement>());
-            view.controller = m_ViewController;
+
+            var emptyVFX = VFXTestCommon.MakeTemporaryGraph();
+            var otherWindow = VFXTestCommon.GetWindow(emptyVFX.GetResource(), true, true);
+            otherWindow.LoadAsset(emptyVFX.GetResource().asset, null);
+            view = otherWindow.graphView; //Switch to other view from here
+
             view.UnserializeAndPasteElements("paste", copyData);
 
             var parameters = view.Query().OfType<VFXParameterUI>().ToList();
@@ -290,6 +278,10 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(flowEdge.output.GetFirstAncestorOfType<VFXContextUI>(), contexts[1]);
             Assert.AreEqual(flowEdge.input.GetFirstAncestorOfType<VFXContextUI>(), contexts[0]);
+
+            window.Close();
+            otherWindow.Close();
+            yield return null;
         }
 
         [Test]
@@ -310,7 +302,7 @@ namespace UnityEditor.VFX.Test
             m_ViewController.ApplyChanges();
 
             // Select the created context
-            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+            VFXViewWindow window = VFXTestCommon.GetViewWindow();
             VFXView view = window.graphView;
             view.controller = m_ViewController;
             view.ClearSelection();
@@ -351,7 +343,7 @@ namespace UnityEditor.VFX.Test
             m_ViewController.AddVFXContext(new Vector2(100, 100), outputContextDesc.variant);
             m_ViewController.ApplyChanges();
 
-            var window = EditorWindow.GetWindow<VFXViewWindow>();
+            var window = VFXTestCommon.GetViewWindow();
             var view = window.graphView;
             view.controller = m_ViewController;
             view.ClearSelection();
@@ -393,7 +385,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CreateTemplate()
         {
-            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+            VFXViewWindow window = VFXTestCommon.GetViewWindow();
 
             VFXView view = window.graphView;
             view.controller = m_ViewController;
@@ -404,7 +396,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void PasteSystems()
         {
-            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+            VFXViewWindow window = VFXTestCommon.GetViewWindow();
 
             VFXView view = window.graphView;
             view.controller = m_ViewController;
@@ -446,7 +438,7 @@ namespace UnityEditor.VFX.Test
         [UnityTest, Description("UUM-46548")]
         public IEnumerator PasteMissingPointCacheAsset()
         {
-            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+            VFXViewWindow window = VFXTestCommon.GetViewWindow();
 
             VFXView view = window.graphView;
             view.controller = m_ViewController;
@@ -498,7 +490,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator CopyPasteContextWithCustomAttribute()
         {
             var viewController1 = m_ViewController;
-            var window1 = EditorWindow.GetWindow<VFXViewWindow>();
+            var window1 = VFXTestCommon.GetViewWindow();
             var view1 = window1.graphView;
             view1.controller = viewController1;
 
@@ -530,7 +522,7 @@ namespace UnityEditor.VFX.Test
             // Create a second asset and open window
             CreateTestAsset();
             var viewController2 = m_ViewController;
-            var window2 = EditorWindow.GetWindow<VFXViewWindow>();
+            var window2 = VFXTestCommon.GetViewWindow();
             var view2 = window2.graphView;
             view2.controller = viewController2;
 
@@ -548,7 +540,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator CopyPasteOperatorWithCustomAttribute()
         {
             var viewController1 = m_ViewController;
-            var window1 = EditorWindow.GetWindow<VFXViewWindow>();
+            var window1 = VFXTestCommon.GetViewWindow();
             var view1 = window1.graphView;
             view1.controller = viewController1;
 
@@ -574,7 +566,7 @@ namespace UnityEditor.VFX.Test
             // Create a second asset and open window
             CreateTestAsset();
             var viewController2 = m_ViewController;
-            var window2 = EditorWindow.GetWindow<VFXViewWindow>();
+            var window2 = VFXTestCommon.GetViewWindow();
             var view2 = window2.graphView;
             view2.controller = viewController2;
 
@@ -590,7 +582,7 @@ namespace UnityEditor.VFX.Test
         [UnityTest, Description("UUM-75893")]
         public IEnumerator CopyPasteMultipleParametersWithEdges()
         {
-            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+            VFXViewWindow window = VFXTestCommon.GetViewWindow();
             VFXView view = window.graphView;
             view.controller = m_ViewController;
 
@@ -635,11 +627,18 @@ namespace UnityEditor.VFX.Test
         [UnityTest, Description("UUM-122054")]
         public IEnumerator CopyPasteParameter_Check_Order()
         {
-            var window = EditorWindow.GetWindow<VFXViewWindow>();
+            var window = VFXTestCommon.GetViewWindow();
             var view = window.graphView;
             view.controller = m_ViewController;
 
             var parameter = m_ViewController.AddVFXParameter(Vector2.zero, VFXLibrary.GetParameters().First(x => x.modelType == typeof(float)).variant);
+
+            //TODOPAUL: Check with @julien-amsellem, we got a null category here
+            //Later, in SetParametersOrder, we are doing ".Where(t => t.Value.isOutput == controller.isOutput && t.Value.model.category == controller.model.category)"
+            //It fails due to confusion between null and string.empty, it seems specific to test
+            //This test has been added with PR #82090
+            parameter.category = string.Empty;
+
             m_ViewController.LightApplyChanges();
             view.blackboard.Update(true);
             yield return null;

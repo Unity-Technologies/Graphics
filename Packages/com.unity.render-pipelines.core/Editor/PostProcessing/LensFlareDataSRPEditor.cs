@@ -1275,7 +1275,7 @@ namespace UnityEditor.Rendering
                         // Recursive function to check if targetAsset is found in asset's dependency chain
                         bool CheckCycle(LensFlareDataSRP asset, LensFlareDataSRP targetAsset)
                         {
-                            if (asset == null || visited.Contains(asset))
+                            if (asset == null || asset.elements == null || visited.Contains(asset))
                                 return false;
 
                             visited.Add(asset);

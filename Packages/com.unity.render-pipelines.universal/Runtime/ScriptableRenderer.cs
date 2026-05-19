@@ -312,11 +312,26 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(ShaderPropertyId.rtHandleScale, Vector4.one);
 
             // Calculate a bias value which corrects the mip lod selection logic when image scaling is active.
-            // We clamp this value to 0.0 or less to make sure we don't end up reducing image detail in the downsampling case.
-            float mipBias = Math.Min((float)-Math.Log(cameraWidth / scaledCameraTargetWidth, 2.0f), 0.0f);
-            // Temporal Anti-aliasing can use negative mip bias to increase texture sharpness and new information for the jitter.
-            float taaMipBias = Math.Min(cameraData.taaSettings.mipBias, 0.0f);
-            mipBias = Math.Min(mipBias, taaMipBias);
+            float mipBias;
+#if ENABLE_UPSCALER_FRAMEWORK
+            IUpscaler activeUpscaler = UniversalRenderPipeline.upscaling?.activeUpscaler;
+            if (activeUpscaler != null && activeUpscaler.isTemporal && cameraData.imageScalingMode == ImageScalingMode.Upscaling)
+            {
+                // Temporal upscaler is active - use its mip bias calculation directly, bypassing TAA settings
+                Vector2Int preRes = new Vector2Int((int)scaledCameraTargetWidth, (int)scaledCameraTargetHeight);
+                Vector2Int postRes = new Vector2Int((int)cameraWidth, (int)cameraHeight);
+                mipBias = activeUpscaler.CalculateMipBias(preRes, postRes);
+            }
+            else
+#endif
+            {
+                // Combine image scaling bias with TAA mip bias
+                // We clamp this value to 0.0 or less to make sure we don't end up reducing image detail in the downsampling case.
+                mipBias = Math.Min((float)-Math.Log(cameraWidth / scaledCameraTargetWidth, 2.0f), 0.0f);
+                // Temporal Anti-aliasing can use negative mip bias to increase texture sharpness and new information for the jitter.
+                float taaMipBias = Math.Min(cameraData.taaSettings.mipBias, 0.0f);
+                mipBias = Math.Min(mipBias, taaMipBias);
+            }
             cmd.SetGlobalVector(ShaderPropertyId.globalMipBias, new Vector2(mipBias, Mathf.Pow(2.0f, mipBias)));
 
             //Set per camera matrices.
@@ -496,7 +511,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ScriptableRendererData"/>
         public ScriptableRenderer(ScriptableRendererData data)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             DebugHandler = new DebugHandler();
 #endif
             foreach (var feature in data.rendererFeatures)
@@ -816,14 +831,16 @@ namespace UnityEngine.Rendering.Universal
             // Must be configured during the recording timeline before adding other XR intermediate passes.
             cameraData.xrUniversal.canFoveateIntermediatePasses = !PlatformAutoDetect.isXRMobile || isDefaultXRViewport;
 
-            using (var builder = renderGraph.AddRasterRenderPass<BeginXRPassData>("BeginXRRendering", out var passData,
+            // Since cmd.ConfigureFoveatedRendering will dispatch a compute shader we run into issues if it happens inside native render pass (especially true for DX12)
+            // As a workaround we use unsafe pass here
+            using (var builder = renderGraph.AddUnsafePass<BeginXRPassData>("BeginXRRendering", out var passData,
                 Profiling.beginXRRendering))
             {
                 passData.cameraData = cameraData;
 
                 builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((BeginXRPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc((BeginXRPassData data, UnsafeGraphContext context) =>
                 {
                     if (data.cameraData.xr.enabled)
                     {
@@ -1165,7 +1182,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetKeyword(ShaderGlobalKeywords.LinearToSRGBConversion, false);
             cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, false);
             cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceOcclusion, false);
-            cmd.SetGlobalVector(ScreenSpaceAmbientOcclusionPass.s_AmbientOcclusionParamID, Vector4.zero);
+            cmd.SetGlobalVector(SSAOUtils.ShaderConstants._AmbientOcclusionParam, Vector4.zero);
 #if URP_SCREEN_SPACE_REFLECTION
             cmd.SetGlobalVector(ScreenSpaceReflectionPass.ShaderConstants._ReflectionParam, Vector4.zero);
 #endif

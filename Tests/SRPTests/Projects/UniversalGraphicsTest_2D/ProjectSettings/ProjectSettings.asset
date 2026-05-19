@@ -176,7 +176,7 @@ PlayerSettings:
   AndroidTargetSdkVersion: 0
   AndroidPreferredInstallLocation: 1
   AndroidPreferredDataLocation: 1
-  aotOptions: 
+  aotOptions:
   stripEngineCode: 1
   iPhoneStrippingLevel: 0
   iPhoneScriptCallOptimization: 0
@@ -228,8 +228,8 @@ PlayerSettings:
     rgba: 0
   iOSLaunchScreeniPadFillPct: 100
   iOSLaunchScreeniPadSize: 100
-  iOSLaunchScreenCustomStoryboardPath: 
-  iOSLaunchScreeniPadCustomStoryboardPath: 
+  iOSLaunchScreenCustomStoryboardPath:
+  iOSLaunchScreeniPadCustomStoryboardPath:
   iOSDeviceRequirements: []
   iOSURLSchemes: []
   macOSURLSchemes: []
@@ -240,10 +240,10 @@ PlayerSettings:
   metalCompileShaderBinary: 1
   iOSRenderExtraFrameOnPause: 0
   iosCopyPluginsCodeInsteadOfSymlink: 0
-  appleDeveloperTeamID: 
-  iOSManualSigningProvisioningProfileID: 
-  tvOSManualSigningProvisioningProfileID: 
-  VisionOSManualSigningProvisioningProfileID: 
+  appleDeveloperTeamID:
+  iOSManualSigningProvisioningProfileID:
+  tvOSManualSigningProvisioningProfileID:
+  VisionOSManualSigningProvisioningProfileID:
   iOSManualSigningProvisioningProfileType: 0
   tvOSManualSigningProvisioningProfileType: 0
   VisionOSManualSigningProvisioningProfileType: 0
@@ -276,7 +276,7 @@ PlayerSettings:
   AndroidIsGame: 1
   androidAppCategory: 3
   useAndroidAppCategory: 1
-  androidAppCategoryOther: 
+  androidAppCategoryOther:
   AndroidEnableTango: 0
   androidEnableBanner: 1
   androidUseLowAccuracyLocation: 0
@@ -592,13 +592,13 @@ PlayerSettings:
   enableInternalProfiler: 0
   logObjCUncaughtExceptions: 1
   enableCrashReportAPI: 0
-  cameraUsageDescription: 
-  locationUsageDescription: 
-  microphoneUsageDescription: 
-  bluetoothUsageDescription: 
+  cameraUsageDescription:
+  locationUsageDescription:
+  microphoneUsageDescription:
+  bluetoothUsageDescription:
   macOSTargetOSVersion: 12.0
-  switchNMETAOverride: 
-  switchNetLibKey: 
+  switchNMETAOverride:
+  switchNetLibKey:
   switchSocketMemoryPoolSize: 6144
   switchSocketAllocatorPoolSize: 128
   switchSocketConcurrencyLimit: 14
@@ -851,15 +851,15 @@ PlayerSettings:
   webWasm2023: 0
   webEnableSubmoduleStrippingCompatibility: 0
   scriptingDefineSymbols:
-    Android: LWRP_DEBUG_STATIC_POSTFX
-    Nintendo Switch: LWRP_DEBUG_STATIC_POSTFX
-    PS4: LWRP_DEBUG_STATIC_POSTFX
-    Standalone: LWRP_DEBUG_STATIC_POSTFX
-    WebGL: LWRP_DEBUG_STATIC_POSTFX
-    Windows Store Apps: LWRP_DEBUG_STATIC_POSTFX
-    XboxOne: LWRP_DEBUG_STATIC_POSTFX
-    iPhone: LWRP_DEBUG_STATIC_POSTFX
-    tvOS: LWRP_DEBUG_STATIC_POSTFX
+    Android: LWRP_DEBUG_STATIC_POSTFX;UNITY_2D_URP_TESTS
+    Nintendo Switch: LWRP_DEBUG_STATIC_POSTFX;UNITY_2D_URP_TESTS
+    PS4: LWRP_DEBUG_STATIC_POSTFX;UNITY_2D_URP_TESTS
+    Standalone: LWRP_DEBUG_STATIC_POSTFX;UNITY_2D_URP_TESTS
+    WebGL: LWRP_DEBUG_STATIC_POSTFX;UNITY_2D_URP_TESTS
+    Windows Store Apps: LWRP_DEBUG_STATIC_POSTFX;UNITY_2D_URP_TESTS
+    XboxOne: LWRP_DEBUG_STATIC_POSTFX;UNITY_2D_URP_TESTS
+    iPhone: LWRP_DEBUG_STATIC_POSTFX;UNITY_2D_URP_TESTS
+    tvOS: LWRP_DEBUG_STATIC_POSTFX;UNITY_2D_URP_TESTS
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
@@ -872,7 +872,7 @@ PlayerSettings:
   suppressCommonWarnings: 1
   allowUnsafeCode: 0
   useDeterministicCompilation: 1
-  additionalIl2CppArgs: 
+  additionalIl2CppArgs:
   scriptingRuntimeVersion: 1
   gcIncremental: 0
   gcWBarrierValidation: 0
@@ -952,9 +952,9 @@ PlayerSettings:
   hmiPlayerDataPath:
   hmiForceSRGBBlit: 1
   embeddedLinuxEnableGamepadInput: 1
-  hmiCpuConfiguration: 
+  hmiCpuConfiguration:
   hmiLogStartupTiming: 0
-  qnxGraphicConfPath: 
+  qnxGraphicConfPath:
   apiCompatibilityLevel: 6
   captureStartupLogs: {}
   activeInputHandler: 0

@@ -24,7 +24,7 @@
     * [Node](Node.md)
         * [Port](Port.md)
         * [Custom Port Menu](Custom-Port-Menu.md)
-        * [Edge](Edge.md)
+        * [Wire](Wire.md)
     * [Sub Graphs](Sub-graphs.md)
         * [Introduction to Sub Graphs](Sub-graph.md)
         * [Create a Sub Graph](Create-Sub-Graph.md)
@@ -54,6 +54,9 @@
     * [Using Custom Interpolators](Custom-Interpolators-landing.md)
         * [Custom Interpolators](Custom-Interpolators.md)
         * [Custom Interpolator reference](Custom-Interpolators-reference.md)
+    * [Create custom nodes with HLSL](Custom-nodes-hlsl-landing.md)
+        * [Introduction to HLSL in Shader Graph](Custom-nodes-hlsl-introduction.md)
+        * [Create a custom node by reflection from HLSL](Custom-nodes-hlsl-create-node-by-reflection.md)
 * [Node Library](Node-Library.md)
     * [Artistic](Artistic-Nodes.md)
         * Adjustment

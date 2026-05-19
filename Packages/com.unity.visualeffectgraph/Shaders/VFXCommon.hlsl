@@ -131,6 +131,12 @@ float3 VFXSafeNormalize(float3 v)
     return v * rsqrt(sqrLength);
 }
 
+float3 VFXSafeNormalize(float3 v, float3 fallback)
+{
+    float sqrLength = dot(v, v);
+    return sqrLength > VFX_EPSILON * VFX_EPSILON ? v * rsqrt(sqrLength) : fallback;
+}
+
 float3 VFXSafeNormalizedCross(float3 v1, float3 v2, float3 fallback)
 {
     float3 outVec = cross(v1, v2);
@@ -224,6 +230,15 @@ float4 LoadTexture(VFXSampler2DArray s, int4 pixelCoords)
 float4 LoadTexture(VFXSampler3D s, int4 pixelCoords)
 {
     return s.t.Load(pixelCoords);
+}
+
+float DecodeDepth(float depth)
+{
+#if UNITY_REVERSED_Z
+    return 1.0f - depth;
+#else
+    return depth;
+#endif
 }
 
 float SampleSDF(VFXSampler3D s, float3 coords, float level = 0.0f)

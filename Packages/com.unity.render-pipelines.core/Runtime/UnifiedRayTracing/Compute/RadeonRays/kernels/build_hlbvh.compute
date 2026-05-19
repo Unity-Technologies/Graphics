@@ -15,7 +15,7 @@ subject to the following restrictions:
 
 // WebGPU has extremely strict uniformity requirements that are incompatible with the current implementation of this shader.
 #pragma exclude_renderers webgpu
-#pragma multi_compile __ TOP_LEVEL UINT16_INDICES
+#pragma multi_compile __ UINT16_INDICES AABB_PRIMITIVES TOP_LEVEL
 
 #if defined(SHADER_API_PSSL) || defined(SHADER_API_METAL) || defined(SHADER_API_WEBGPU)
 #define globallycoherent
@@ -34,21 +34,21 @@ uint g_leaf_parents_offset;
 int g_internal_node_range_offset;
 
 #if !(TOP_LEVEL)
-RWStructuredBuffer<float> g_vertices;
-ByteAddressBuffer g_indices;
-int g_vertices_offset;
-int g_base_index;
-int g_indices_offset;
-#define MESH_INDICES_BINDINGS
-#include "triangle_mesh.hlsl"
+#if AABB_PRIMITIVES
+    StructuredBuffer<Aabb> g_input_aabbs;
+#else
+    RWStructuredBuffer<float> g_vertices;
+    ByteAddressBuffer g_indices;
+    int g_vertices_offset;
+    int g_base_index;
+    int g_indices_offset;
+    #define MESH_INDICES_BINDINGS
+    #include "triangle_mesh.hlsl"
+#endif
 #endif
 globallycoherent RWStructuredBuffer<uint> g_scratch_buffer;
 
 #include "bvh2il.hlsl"
-
-#if TOP_LEVEL
-
-#endif
 
 #define PRIMITIVES_PER_THREAD 8
 
@@ -238,6 +238,11 @@ void CalculateAabb(in uint gidx: SV_DispatchThreadID,
         if (prim_index < g_constants_triangle_count)
         {
 #if !(TOP_LEVEL)
+        #if AABB_PRIMITIVES
+            Aabb primAabb = GetInputAabb(prim_index);
+            GrowAabb(primAabb.pmin, local_aabb);
+            GrowAabb(primAabb.pmax, local_aabb);
+        #else
             // Fetch triangle indices & vertices.
             uint3 indices = GetFaceIndices(prim_index);
             TriangleData tri = FetchTriangle(indices);
@@ -246,6 +251,7 @@ void CalculateAabb(in uint gidx: SV_DispatchThreadID,
             GrowAabb(tri.v0, local_aabb);
             GrowAabb(tri.v1, local_aabb);
             GrowAabb(tri.v2, local_aabb);
+        #endif
 #else
             Aabb instance_aabb = GetInstanceAabb(prim_index);
             GrowAabb(instance_aabb.pmin, local_aabb);
@@ -289,18 +295,20 @@ void CalculateMortonCodes(in uint gidx: SV_DispatchThreadID,
         {
             // Calculate primitive centroid and map it to [0, 1].
 #if !(TOP_LEVEL)
+        #if AABB_PRIMITIVES
+            Aabb prim_aabb = GetInputAabb(prim_index);
+        #else
             uint3 indices = GetFaceIndices(prim_index);
             TriangleData tri = FetchTriangle(indices);
-            Aabb triangle_aabb = CreateEmptyAabb();
-            GrowAabb(tri.v0, triangle_aabb);
-            GrowAabb(tri.v1, triangle_aabb);
-            GrowAabb(tri.v2, triangle_aabb);
-
-            float3 center = 0.5f * (triangle_aabb.pmin + triangle_aabb.pmax);
+            Aabb prim_aabb = CreateEmptyAabb();
+            GrowAabb(tri.v0, prim_aabb);
+            GrowAabb(tri.v1, prim_aabb);
+            GrowAabb(tri.v2, prim_aabb);
+        #endif
 #else
-            Aabb instance_aabb = GetInstanceAabb(prim_index);
-            float3 center = 0.5f * (instance_aabb.pmin + instance_aabb.pmax);
+            Aabb prim_aabb = GetInstanceAabb(prim_index);
 #endif
+            float3 center = 0.5f * (prim_aabb.pmin + prim_aabb.pmax);
             center -= mesh_aabb.pmin;
             center /= (mesh_aabb.pmax - mesh_aabb.pmin);
 
@@ -318,7 +326,11 @@ uint deltaCompare(int index, int otherIndex)
 
 void InitBvhHeader(float3 fpmin, float3 fpmax, uint primCount)
 {
+#if TOP_LEVEL
+    g_bvh[g_bvh_offset + 0].child0 = max(primCount - 1, 1); // internal node count
+#else
     g_bvh[g_bvh_offset + 0].child0 = primCount - 1; // internal node count
+#endif
     g_bvh[g_bvh_offset + 0].child1 = primCount; // leaf node count
     g_bvh[g_bvh_offset + 0].update = 0; // unused
     g_bvh[g_bvh_offset + 0].parent = 0; // root node index (set later)
@@ -451,13 +463,22 @@ void BuildTreeBottomUp(
 
         if (N == 1)
         {
-            uint prim_index = 0;
-            SetBvhHeaderRootNodeIndex(LEAF_NODE_INDEX(prim_index));
             #if TOP_LEVEL
-                g_instance_infos[prim_index].world_to_local_transform = Inverse(g_instance_infos[prim_index].local_to_world_transform);
+                g_instance_infos[0].world_to_local_transform = Inverse(g_instance_infos[0].local_to_world_transform);
+                SetBvhHeaderRootNodeIndex(0);
+                g_bvh[g_bvh_offset + 1 + 0].parent = INVALID_IDX;
+                g_bvh[g_bvh_offset + 1 + 0].child0 = LEAF_NODE_INDEX(0);
+                g_bvh[g_bvh_offset + 1 + 0].child1 = INVALID_IDX;
+                g_bvh[g_bvh_offset + 1 + 0].SetLeftAabb(GetNodeAabb(g_bvh_offset + 1, LEAF_NODE_INDEX(0)));
+                g_bvh[g_bvh_offset + 1 + 0].SetRightAabb(-FLT_INF, -FLT_INF);
             #else
+                SetBvhHeaderRootNodeIndex(LEAF_NODE_INDEX(0));
                 g_scratch_buffer[g_leaf_parents_offset + 0] = INVALID_IDX;
+                #if AABB_PRIMITIVES
+                uint3 indices = 0;
+                #else
                 uint3 indices = GetFaceIndices(0);
+                #endif
                 g_bvh_leaves[g_bvh_leaves_offset + 0] = uint4(indices, 0);
             #endif
             return;
@@ -481,7 +502,11 @@ void BuildTreeBottomUp(
             uint index = ChooseNodeParent(LEAF_NODE_INDEX(prim_index), leaf_index, leaf_index, N, true);
         #else
             uint prim_index = g_scratch_buffer[g_primitive_refs_offset + leaf_index];
+            #if AABB_PRIMITIVES
+            uint3 indices = 0;
+            #else
             uint3 indices = GetFaceIndices(prim_index);
+            #endif
             SetLeafNode(leaf_index, indices, prim_index);
 
             uint index = ChooseNodeParent(LEAF_NODE_INDEX(leaf_index), leaf_index, leaf_index, N, true);

@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering
                     if (filter?.Invoke(field) ?? true)
                     {
                         VolumeParameter volumeParameter = (VolumeParameter)field.GetValue(o);
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                         VolumeDebugData.AddVolumeParameterDebugId(volumeParameter, field);
 #endif
                         parameters.Add(volumeParameter);

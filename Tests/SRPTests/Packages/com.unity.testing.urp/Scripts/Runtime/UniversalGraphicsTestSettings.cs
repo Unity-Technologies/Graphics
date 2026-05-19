@@ -17,6 +17,9 @@ public class UniversalGraphicsTestSettings : GraphicsTestSettings
     }
     public RenderBackendCompatibility renderBackendCompatibility = RenderBackendCompatibility.RenderGraphAndNonRenderGraph;
 
+    // Minimum threshold for image comparison on AMD GPUs due to platform-specific rendering precision differences
+    public float amdMinThreshold = 0.002f;
+
     [HideInInspector]
     public bool SetBackBufferResolution = false;
 

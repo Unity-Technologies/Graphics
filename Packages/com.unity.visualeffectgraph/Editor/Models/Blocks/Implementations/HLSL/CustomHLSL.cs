@@ -230,13 +230,15 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        public override void GetImportDependentAssets(HashSet<EntityId> dependencies)
+        public sealed override bool IsDependentOnAnyOf(HashSet<EntityId> dependencies)
         {
-            base.GetImportDependentAssets(dependencies);
-            if (!ReferenceEquals(m_ShaderFile, null))
-            {
-                dependencies.Add(m_ShaderFile.GetEntityId());
-            }
+            if (base.IsDependentOnAnyOf(dependencies))
+                return true;
+
+            if (!ReferenceEquals(m_ShaderFile, null) && dependencies.Contains(m_ShaderFile.GetEntityId()))
+                return true;
+
+            return false;
         }
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
@@ -248,13 +250,10 @@ namespace UnityEditor.VFX.Block
             base.OnInvalidate(model, cause);
         }
 
-        public override void CheckGraphBeforeImport()
+        public override void ResyncDependencies()
         {
-            base.CheckGraphBeforeImport();
-
-            // If the graph is re-imported it can be because one of its dependency such as an external hlsl file that has changed.
-            if (!VFXGraph.explicitCompile)
-                ResyncSlots(true);
+            base.ResyncDependencies();
+            ResyncSlots(true);
         }
 
         protected override void OnAdded()

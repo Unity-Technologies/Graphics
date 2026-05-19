@@ -232,7 +232,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (m_NumActiveWaterDecals >= m_MaxDecalCount)
                     {
-                        #if UNITY_EDITOR || DEVELOPMENT_BUILD
+                        #if UNITY_ENABLE_CHECKS
                         Debug.LogWarning("Maximum amount of visible Water Decals reached. Some of them will be ignored.");
                         #endif
                         break;

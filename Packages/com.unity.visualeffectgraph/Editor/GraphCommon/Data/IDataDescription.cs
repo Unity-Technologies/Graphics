@@ -60,7 +60,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <returns>
         /// True if the other data is compatible with this, false otherwise.
         /// </returns>
-        bool IsCompatible(IDataDescription other) => Equals(other);
+        bool IsCompatible(IDataDescription other) => GetType() == other.GetType();
 
         /// <summary>
         /// Gets the name of this data object.

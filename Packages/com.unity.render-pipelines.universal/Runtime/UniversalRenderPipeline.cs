@@ -96,18 +96,17 @@ namespace UnityEngine.Rendering.Universal
                 public ProfilingSampler sampler;
             }
 
-            static readonly Dictionary<int, CameraMetadataCacheEntry> s_MetadataCache = new();
-
-            static readonly CameraMetadataCacheEntry k_NoAllocEntry = new() { sampler = new ProfilingSampler("Unknown") };
+            static readonly Dictionary<EntityId, CameraMetadataCacheEntry> s_MetadataCache = new();
 
             public static CameraMetadataCacheEntry GetCached(Camera camera)
             {
-#if UNIVERSAL_PROFILING_NO_ALLOC
-                return k_NoAllocEntry;
-#else
-                int cameraId = camera.GetHashCode();
+                EntityId cameraId = camera.GetEntityId();
                 if (!s_MetadataCache.TryGetValue(cameraId, out CameraMetadataCacheEntry result))
                 {
+                    // Whenever a new camera is encountered, we will need to retrieve its name. We use this allocating
+                    // frame to also prune the cache of deleted cameras (e.g. scene change or cameras destroyed from script)
+                    RemoveDeletedCameras();
+
                     string cameraName = camera.name; // Warning: camera.name allocates
                     result = new CameraMetadataCacheEntry
                     {
@@ -118,7 +117,24 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 return result;
-#endif
+            }
+
+            static void RemoveDeletedCameras()
+            {
+                using (ListPool<EntityId>.Get(out var deletedCameras))
+                {
+                    foreach (var id in s_MetadataCache.Keys)
+                    {
+                        if (Resources.EntityIdToObject(id) == null)
+                            deletedCameras.Add(id);
+                    }
+                    foreach (var id in deletedCameras)
+                    {
+                        if (s_MetadataCache.TryGetValue(id, out var entry))
+                            entry.sampler?.Dispose();
+                        s_MetadataCache.Remove(id);
+                    }
+                }
             }
 
             public static void Clear()
@@ -389,7 +405,7 @@ namespace UnityEngine.Rendering.Universal
 
             DebugManager.instance.RefreshEditor();
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             m_DebugDisplaySettingsUI.RegisterDebug(UniversalRenderPipelineDebugDisplaySettings.Instance);
 #endif
 
@@ -443,7 +459,7 @@ namespace UnityEngine.Rendering.Universal
                 ProbeReferenceVolume.instance.Cleanup();
             }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             m_DebugDisplaySettingsUI.UnregisterDebug();
 #endif
 
@@ -579,7 +595,7 @@ namespace UnityEngine.Rendering.Universal
                 SetupPerFrameShaderConstants();
                 XRSystem.SetDisplayMSAASamples((MSAASamples)asset.msaaSampleCount);
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                 if (DebugManager.instance.isAnyDebugUIActive)
                     UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateDisplayStats();
 
@@ -615,11 +631,12 @@ namespace UnityEngine.Rendering.Universal
                         using (new CameraRenderingScope(renderContext, camera))
                         {
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
-                        //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
-                        //N.B.: We aren't expecting an XR camera at this stage
-                        VFX.VFXManager.PrepareCamera(camera);
+                            //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
+                            //N.B.: We aren't expecting an XR camera at this stage
+                            VFX.VFXManager.PrepareCamera(camera);
 #endif
-                            UpdateVolumeFramework(camera, null);
+                            camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData);
+                            UpdateVolumeFramework(camera, additionalCameraData);
                             // Only render if camera is a base camera
                             RenderSingleCameraInternal(renderContext, camera, isLastBaseCamera);
                         }
@@ -1225,12 +1242,8 @@ namespace UnityEngine.Rendering.Universal
                     baseCameraData.stackAnyPostProcessingEnabled = stackAnyPostProcessingEnabled;
                     baseCameraData.stackLastCameraOutputToHDR = finalOutputHDR;
 
-                    // Render the offscreen overlay UI only in the first base camera.
-                    var rendersOffscreenUI = baseCameraData.rendersOverlayUI && finalOutputHDR && !offscreenUIRenderedInCurrentFrame;
-                    if (rendersOffscreenUI)
-                        offscreenUIRenderedInCurrentFrame = true;
-                    baseCameraData.rendersOffscreenUI = rendersOffscreenUI;
-                    baseCameraData.blitsOffscreenUICover = rendersOffscreenUI && requireOffscreenUICoverPrepass;
+                    // Render the HDR offscreen overlay UI only in the first base camera if it renders overlay UI.
+                    UpdateOffscreenUIRendering(baseCameraData, finalOutputHDR);
 
                     RenderSingleCamera(context, baseCameraData);
                 }
@@ -1281,6 +1294,10 @@ namespace UnityEngine.Rendering.Universal
 
                                 overlayCameraData.stackAnyPostProcessingEnabled = stackAnyPostProcessingEnabled;
                                 overlayCameraData.stackLastCameraOutputToHDR = finalOutputHDR;
+
+                                // Render the HDR offscreen overlay UI from the stack's last camera if earlier base camera did not render overlay UI.
+                                if (isLastOverlayCamera)
+                                    UpdateOffscreenUIRendering(overlayCameraData, finalOutputHDR);
 
                                 xrLayout.ReconfigurePass(overlayCameraData.xr, overlayCamera);
 
@@ -1360,6 +1377,16 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 #endif
+        }
+
+        static void UpdateOffscreenUIRendering(UniversalCameraData cameraData, bool finalOutputHDR)
+        {
+            // The first eligible camera in the frame draws HDR offscreen overlay UI.
+            var rendersOffscreenUI = cameraData.rendersOverlayUI && finalOutputHDR && !offscreenUIRenderedInCurrentFrame;
+            if (rendersOffscreenUI)
+                offscreenUIRenderedInCurrentFrame = true;
+            cameraData.rendersOffscreenUI = rendersOffscreenUI;
+            cameraData.blitsOffscreenUICover = rendersOffscreenUI && requireOffscreenUICoverPrepass;
         }
 
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
@@ -1866,7 +1893,6 @@ namespace UnityEngine.Rendering.Universal
             UniversalLightData universalLightData = frameData.Get<UniversalLightData>();
 
             UniversalRenderingData data = frameData.Get<UniversalRenderingData>();
-            data.supportsDynamicBatching = settings.supportsDynamicBatching;
             data.perObjectData = GetPerObjectLightFlags(universalLightData, settings, renderingMode);
 
             UniversalRenderer universalRenderer = renderer as UniversalRenderer;
@@ -2682,9 +2708,6 @@ namespace UnityEngine.Rendering.Universal
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
             UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
-
-            if (AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipDynamicBatching)
-                renderingData.supportsDynamicBatching = false;
 
             var MainLightShadowmapResolutionMultiplier = AdaptivePerformance.AdaptivePerformanceRenderSettings.MainLightShadowmapResolutionMultiplier;
             shadowData.mainLightShadowmapWidth = (int)(shadowData.mainLightShadowmapWidth * MainLightShadowmapResolutionMultiplier);

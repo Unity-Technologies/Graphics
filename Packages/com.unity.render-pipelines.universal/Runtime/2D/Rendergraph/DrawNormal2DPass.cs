@@ -1,14 +1,12 @@
 using System;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.Universal.U2D.Profiler;
 using CommonResourceData = UnityEngine.Rendering.Universal.UniversalResourceData;
 
 namespace UnityEngine.Rendering.Universal
 {
     internal class DrawNormal2DPass : ScriptableRenderPass
     {
-        static readonly string k_NormalPass = "Normal2D Pass";
-
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_NormalPass);
         private static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
 
         private class PassData
@@ -35,10 +33,10 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
-            var passName = k_NormalPass;
+            var passName = ProfilerMarkers.s_MormalPass;
             LayerDebug.FormatPassName(layerBatch, ref passName);
 
-            using (var builder = graph.AddRasterRenderPass<PassData>(passName, out var passData, LayerDebug.GetProfilingSampler(passName, m_ProfilingSampler)))
+            using (var builder = graph.AddRasterRenderPass<PassData>(passName, out var passData, LayerDebug.GetProfilingSampler(passName, ProfilerMarkers.s_ProfilingSamplerNormalPass)))
             {
                 LayerUtility.GetFilterSettings(rendererData, layerBatch, out var filterSettings);
 

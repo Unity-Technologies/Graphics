@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.Test
         {
             EditorPrefs.SetBool(VFXViewPreference.experimentalOperatorKey, useExperimental);
             VFXViewPreference.SetDirty();
-            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.CloseAllVFXWindow();
             VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
@@ -48,7 +48,7 @@ namespace UnityEditor.VFX.Test
         {
             // Arrange
             var graph = VFXTestCommon.CreateGraph_And_System();
-            var window = VFXViewWindow.GetWindow(graph, true, true);
+            var window = VFXTestCommon.GetWindow(graph, true, true);
             window.LoadResource(graph.visualEffectResource);
             var controller = window.graphView.controller;
             var contextController = controller.contexts.Single(x => x.model.contextType == (VFXContextType)contextType);
@@ -68,7 +68,7 @@ namespace UnityEditor.VFX.Test
         {
             // Arrange
             var graph = VFXTestCommon.CreateGraph_And_System();
-            var window = VFXViewWindow.GetWindow(graph, true, true);
+            var window = VFXTestCommon.GetWindow(graph, true, true);
             window.LoadResource(graph.visualEffectResource);
             var nodeProvider = new VFXNodeProvider(window.graphView.controller, (v, pos) => { }, null, null);
             VFXFilterWindow.Show(Vector2.zero, Vector2.zero, nodeProvider);
@@ -95,7 +95,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(EditorPrefs.GetBool(VFXViewPreference.experimentalOperatorKey));
 
             var graph = VFXTestCommon.CreateGraph_And_System();
-            var window = VFXViewWindow.GetWindow(graph, true, true);
+            var window = VFXTestCommon.GetWindow(graph, true, true);
             window.LoadResource(graph.visualEffectResource);
             var controller = window.graphView.controller;
             var contextController = controller.contexts.Single(x => x.model.contextType == VFXContextType.Update);
@@ -134,7 +134,7 @@ namespace UnityEditor.VFX.Test
         {
             // Arrange
             var graph = VFXTestCommon.CreateGraph_And_System();
-            var window = VFXViewWindow.GetWindow(graph, true, true);
+            var window = VFXTestCommon.GetWindow(graph, true, true);
             window.LoadResource(graph.visualEffectResource);
             var controller = window.graphView.controller;
             var contextController = controller.contexts.Single(x => x.model.contextType == VFXContextType.Update);
@@ -157,7 +157,7 @@ namespace UnityEditor.VFX.Test
         {
             // Arrange
             var graph = VFXTestCommon.CreateGraph_And_System();
-            var window = VFXViewWindow.GetWindow(graph, true, true);
+            var window = VFXTestCommon.GetWindow(graph, true, true);
             window.LoadResource(graph.visualEffectResource);
             var nodeProvider = new VFXNodeProvider(window.graphView.controller, (v, pos) => { }, null, null);
             VFXFilterWindow.Show(Vector2.zero, Vector2.zero, nodeProvider);

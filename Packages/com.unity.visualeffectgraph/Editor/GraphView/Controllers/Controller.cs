@@ -109,7 +109,7 @@ namespace UnityEditor.VFX.UI
 
     abstract class Controller<T> : Controller where T : UnityEngine.Object
     {
-        T m_Model;
+       readonly T m_Model;
 
 
         public Controller(T model)

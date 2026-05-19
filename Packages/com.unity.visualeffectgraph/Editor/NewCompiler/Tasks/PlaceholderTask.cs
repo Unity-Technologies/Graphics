@@ -3,8 +3,22 @@ using Unity.GraphCommon.LowLevel.Editor;
 
 namespace UnityEditor.VFX
 {
+    record SpawnerDataKey : IDataKey
+    {
+        public VFXBasicSpawner Spawner { get; }
+
+        public SpawnerDataKey(VFXBasicSpawner spawner)
+        {
+            Spawner = spawner;
+        }
+
+        public override string ToString() => Spawner.name;
+    }
+
     class PlaceholderSystemTask : ITask
     {
+        public static UniqueDataKey CpuEventsKey { get; } = new UniqueDataKey(nameof(CpuEventsKey));
+
         Dictionary<IDataKey, BindingUsagePaths> m_BindingToUsage = new();
 
         private List<KeyValuePair<IDataKey, IExpression>> m_Expressions = new();
@@ -38,18 +52,39 @@ namespace UnityEditor.VFX
         }
         public bool GetDataUsage(IDataKey dataKey, out DataPathSet readUsage, out DataPathSet writeUsage)
         {
+            readUsage = null;
+            writeUsage = null;
+
             if (m_BindingToUsage.ContainsKey(dataKey))
             {
                 readUsage = m_BindingToUsage[dataKey].Read;
                 writeUsage = m_BindingToUsage[dataKey].Write;
-                return true;
             }
-            // If the data key is not explicitly used, we assume it's read without any specific path (e.g., whole struct) and not written.
-            // This has no functional impact, it is just to clarify the intent, and help debug visualizers.
-            readUsage = new DataPathSet();
-            readUsage.Add(DataPath.Empty);
-            writeUsage = null;
-            return true;
+            else if (dataKey == CpuEventsKey)
+            {
+                readUsage = readUsage ?? new DataPathSet();
+                writeUsage = writeUsage ?? new DataPathSet();
+
+                writeUsage.Add(new DataPath(EventData.AttributeDataKey));
+            }
+            else if (dataKey is SpawnerDataKey)
+            {
+                readUsage = readUsage ?? new DataPathSet();
+                writeUsage = writeUsage ?? new DataPathSet();
+
+                readUsage.Add(new DataPath(EventData.AttributeDataKey));
+            }
+            else
+            {
+                // For now, if the data key is not explicitly used, we assume it's read without any specific path (e.g., whole struct) and not written.
+                // This has no functional impact, it is just to clarify the intent, and help debug visualizers.
+                readUsage = readUsage ?? new DataPathSet();
+                writeUsage = writeUsage ?? new DataPathSet();
+
+                readUsage.Add(DataPath.Empty);
+            }
+
+            return readUsage != null && writeUsage != null && (!readUsage.Empty || !writeUsage.Empty);
         }
 
         /// <inheritdoc />

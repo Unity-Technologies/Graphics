@@ -68,6 +68,9 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
         {
             foreach (var entry in m_Entries)
             {
+                if (!context.IsDescriptorEnabled(entry.Descriptor))
+                    continue;
+
                 foreach (var issue in entry.EnumerateIssues())
                 {
                     if (string.IsNullOrEmpty(issue.id))

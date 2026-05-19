@@ -231,7 +231,7 @@ namespace UnityEngine.PathTracing.Lightmapping
                     // Clear the output buffers.
                     ExpansionHelpers.ClearExpandedOutput(cmd, expansionShaders, ctx.ClearBufferKernel, lightmappingContext.ExpandedOutput, ctx.ClearDispatchBuffer);
                     if (doDirectional)
-                        ExpansionHelpers.ClearExpandedOutput(cmd, expansionShaders, ctx.ClearBufferKernel, lightmappingContext.ExpandedDirectional, ctx.ClearDispatchBuffer);
+                        ExpansionHelpers.ClearExpandedOutput(cmd, expansionShaders, ctx.ClearBufferKernel, lightmappingContext.ExpandedOutputDirectional, ctx.ClearDispatchBuffer);
                 }
 
                 // Work out the super sampling resolution. It's the width of the N x N supersampling kernel. Find the largest perfect square that is less than or equal to the max sample count per texel.
@@ -258,8 +258,11 @@ namespace UnityEngine.PathTracing.Lightmapping
                     superSampleWidth
                     );
 
-                GraphicsBuffer expandedDirectional = lightmappingContext.ExpandedDirectional;
-                var instanceGeometryIndex = lightmappingContext.World.PathTracingWorld.GetAccelerationStructure().GeometryPool.GetInstanceGeometryIndex(instance.Mesh);
+                GraphicsBuffer expandedDirectional = lightmappingContext.ExpandedOutputDirectional;
+                var instanceGeometryIndex = instance.IsProceduralTerrain
+                    ? -1
+                    : lightmappingContext.World.PathTracingWorld.GetAccelerationStructure().GeometryPool.GetInstanceGeometryIndex(instance.Mesh);
+                var terrainIndex = instance.TerrainIndex;
 
                 bool debugGBuffer = false;
                 if (debugGBuffer)
@@ -293,6 +296,7 @@ namespace UnityEngine.PathTracing.Lightmapping
                             instance.LocalToWorldMatrix,
                             instance.LocalToWorldMatrixNormals,
                             instanceGeometryIndex,
+                            terrainIndex,
                             instance.TexelSize,
                             chunkOffset,
                             lightmappingContext.World.PathTracingWorld,
@@ -317,6 +321,7 @@ namespace UnityEngine.PathTracing.Lightmapping
                             instance.LocalToWorldMatrix,
                             instance.LocalToWorldMatrixNormals,
                             instanceGeometryIndex,
+                            terrainIndex,
                             instance.TexelSize,
                             chunkOffset,
                             lightmappingContext.World.PathTracingWorld,
@@ -341,6 +346,7 @@ namespace UnityEngine.PathTracing.Lightmapping
                             instance.LocalToWorldMatrix,
                             instance.LocalToWorldMatrixNormals,
                             instanceGeometryIndex,
+                            terrainIndex,
                             instance.TexelSize,
                             chunkOffset,
                             lightmappingContext.World.PathTracingWorld,
@@ -370,6 +376,7 @@ namespace UnityEngine.PathTracing.Lightmapping
                             instance.LocalToWorldMatrix,
                             instance.LocalToWorldMatrixNormals,
                             instanceGeometryIndex,
+                            terrainIndex,
                             instance.TexelSize,
                             chunkOffset,
                             lightmappingContext.World.PathTracingWorld,
@@ -398,6 +405,7 @@ namespace UnityEngine.PathTracing.Lightmapping
                             instance.LocalToWorldMatrix,
                             instance.LocalToWorldMatrixNormals,
                             instanceGeometryIndex,
+                            terrainIndex,
                             instance.TexelSize,
                             chunkOffset,
                             lightmappingContext.World.PathTracingWorld,
@@ -423,6 +431,7 @@ namespace UnityEngine.PathTracing.Lightmapping
                             instance.LocalToWorldMatrix,
                             instance.LocalToWorldMatrixNormals,
                             instanceGeometryIndex,
+                            terrainIndex,
                             instance.TexelSize,
                             chunkOffset,
                             lightmappingContext.World.PathTracingWorld,
@@ -463,7 +472,7 @@ namespace UnityEngine.PathTracing.Lightmapping
                     ExpansionHelpers.PopulateReduceExpandedOutputIndirectDispatch(cmd, expansionShaders, ctx.PopulateReduceDispatchKernel, reduceThreadGroupSizeX, expandedSampleWidth, ctx.CompactedGBufferLength, ctx.ReduceDispatchBuffer);
                     ExpansionHelpers.ReduceExpandedOutput(cmd, expansionShaders, ctx.ReductionKernel, lightmappingContext.ExpandedOutput, maxExpandedDispatchSize, expandedSampleWidth, ctx.ReduceDispatchBuffer);
                     if (doDirectional)
-                        ExpansionHelpers.ReduceExpandedOutput(cmd, expansionShaders, ctx.ReductionKernel, lightmappingContext.ExpandedDirectional, maxExpandedDispatchSize, expandedSampleWidth, ctx.ReduceDispatchBuffer);
+                        ExpansionHelpers.ReduceExpandedOutput(cmd, expansionShaders, ctx.ReductionKernel, lightmappingContext.ExpandedOutputDirectional, maxExpandedDispatchSize, expandedSampleWidth, ctx.ReduceDispatchBuffer);
 
                     // Populate the copy indirect dispatch buffer - using the compacted size.
                     expansionShaders.GetKernelThreadGroupSizes(ctx.CopyToLightmapKernel, out uint copyThreadGroupSizeX, out uint copyThreadGroupSizeY, out uint copyThreadGroupSizeZ);
@@ -471,7 +480,7 @@ namespace UnityEngine.PathTracing.Lightmapping
                     ExpansionHelpers.PopulateCopyToLightmapIndirectDispatch(cmd, expansionShaders, ctx.PopulateCopyDispatchKernel, copyThreadGroupSizeX, ctx.CompactedGBufferLength, ctx.CopyDispatchBuffer);
                     ExpansionHelpers.CopyToLightmap(cmd, expansionShaders, ctx.CopyToLightmapKernel, expandedSampleWidth, instanceWidth, instanceTexelOffset, chunkOffset, ctx.CompactedGBufferLength, lightmappingContext.CompactedTexelIndices, lightmappingContext.ExpandedOutput, ctx.CopyDispatchBuffer, lightmappingContext.AccumulatedOutput);
                     if (doDirectional)
-                        ExpansionHelpers.CopyToLightmap(cmd, expansionShaders, ctx.CopyToLightmapKernel, expandedSampleWidth, instanceWidth, instanceTexelOffset, chunkOffset, ctx.CompactedGBufferLength, lightmappingContext.CompactedTexelIndices, lightmappingContext.ExpandedDirectional, ctx.CopyDispatchBuffer, lightmappingContext.AccumulatedDirectionalOutput);
+                        ExpansionHelpers.CopyToLightmap(cmd, expansionShaders, ctx.CopyToLightmapKernel, expandedSampleWidth, instanceWidth, instanceTexelOffset, chunkOffset, ctx.CompactedGBufferLength, lightmappingContext.CompactedTexelIndices, lightmappingContext.ExpandedOutputDirectional, ctx.CopyDispatchBuffer, lightmappingContext.AccumulatedDirectionalOutput);
                 }
                 return passSampleCount;
             }

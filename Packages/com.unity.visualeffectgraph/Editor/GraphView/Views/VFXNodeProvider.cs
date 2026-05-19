@@ -68,13 +68,13 @@ namespace UnityEditor.VFX.UI
                     {
                         VisualEffectResource res = asset.GetResource();
 
-                        Item item = new Item { name = asset.name, category = res.GetOrCreateGraph().categoryPath, path = path, guid = guid};
+                        Item item = new Item { name = asset.name, category = res.GetGraph().categoryPath, path = path, guid = guid};
                         if (item.category == null)
                             item.category = "";
 
                         if (typeof(T) == typeof(VisualEffectSubgraphBlock))
                         {
-                            VFXBlockSubgraphContext blockContext = asset.GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().FirstOrDefault();
+                            VFXBlockSubgraphContext blockContext = asset.GetResource().GetGraph().children.OfType<VFXBlockSubgraphContext>().FirstOrDefault();
 
                             if (blockContext != null)
                             {

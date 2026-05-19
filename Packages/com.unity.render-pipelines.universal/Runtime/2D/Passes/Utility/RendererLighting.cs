@@ -1,15 +1,10 @@
-using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using Unity.Collections;
-using System;
 using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.Universal
 {
     internal static class RendererLighting
     {
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Draw Normals");
-        private static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
         public static readonly Color k_NormalClearColor = new Color(0.5f, 0.5f, 0.5f, 1.0f);
         private static readonly string k_UsePointLightCookiesKeyword = "USE_POINT_LIGHT_COOKIES";
         private static readonly string k_LightQualityFastKeyword = "LIGHT_QUALITY_FAST";

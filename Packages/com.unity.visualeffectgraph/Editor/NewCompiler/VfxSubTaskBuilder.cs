@@ -8,7 +8,15 @@ namespace UnityEditor.VFX
 {
     class VfxSubTaskBuilder
     {
-        private ExpressionWriter m_ExpressionWriter = new();
+        private ExpressionWriter m_ExpressionWriter = new ExpressionWriter();
+        private IDataKey m_DefaultAttributeKey;
+        private IDataKey m_SourceAttributeKey;
+
+        public VfxSubTaskBuilder(IDataKey defaultAttributeKey, IDataKey sourceAttributeKey)
+        {
+            m_DefaultAttributeKey = defaultAttributeKey;
+            m_SourceAttributeKey = sourceAttributeKey;
+        }
 
         public List<SubtaskDescription> GenerateSubtasks(VFXContext context, VFXExpressionGraph expressionGraph)
         {
@@ -28,14 +36,14 @@ namespace UnityEditor.VFX
                 StringBuilder blockCodeBuilder = new StringBuilder(block.source);
                 StringBuilder expressionCodeBuilder = new StringBuilder();
 
-                // Patch attributes variable names and register their usage.
-                Dictionary<IDataKey, AttributeSet> attributeSets = new Dictionary<IDataKey, AttributeSet>();
-                var attributeSet = new AttributeSet();
+                var defaultAttributeSet = new AttributeSet();
+                var sourceAttributeSet = new AttributeSet();
+
                 foreach (var attributeInfo in block.attributes)
                 {
                     var attribute = VFXAttributesManager.ConvertToNewCompiler(attributeInfo.attrib);
                     AttributeUsage usage = GetAttributeUsage(attributeInfo.mode);
-                    attributeSet.AddAttribute(attribute, usage);
+                    defaultAttributeSet.AddAttribute(attribute, usage);
                     blockCodeBuilder.Replace(attributeInfo.attrib.name, "attributes." + attributeInfo.attrib.name);
                 }
 
@@ -61,7 +69,7 @@ namespace UnityEditor.VFX
                     }
                     expressionCodeBuilder.Append($"{leftHandSide} = {rightHandSide};\n");
 
-                    RegisterBlockAttributesFromExpression(attributeSet, reduced);
+                    RegisterBlockAttributesFromExpression(defaultAttributeSet, sourceAttributeSet, reduced);
                 }
 
                 // Workaround to handle RAND which implicitly uses the seed attribute
@@ -69,7 +77,14 @@ namespace UnityEditor.VFX
                     blockCodeBuilder.Insert(0, "uint seed = attributes.seed;\n");
 
                 blockCodeBuilder.Insert(0, expressionCodeBuilder.ToString());
-                attributeSets.Add(AttributeData.DefaultKey, attributeSet);
+
+                Dictionary<IDataKey, AttributeSet> attributeSets = new Dictionary<IDataKey, AttributeSet>();
+                attributeSets.Add(m_DefaultAttributeKey, defaultAttributeSet);
+                if (!sourceAttributeSet.IsEmpty())
+                {
+                    attributeSets.Add(m_SourceAttributeKey, sourceAttributeSet);
+                }
+
                 subTaskDesc.Task = new TemplateSubtask(block.name, blockCodeBuilder.ToString(), attributeSets);
 
                 subtaskDescriptions.Add(subTaskDesc);
@@ -78,16 +93,17 @@ namespace UnityEditor.VFX
             return subtaskDescriptions;
         }
 
-        void RegisterBlockAttributesFromExpression(AttributeSet attributeSet, VFXExpression expression)
+        void RegisterBlockAttributesFromExpression(AttributeSet defaultAttributeSet, AttributeSet sourceAttributeSet, VFXExpression expression)
         {
             if (expression is VFXAttributeExpression attributeExpression)
             {
+                var attributeSet = attributeExpression.attributeLocation == VFXAttributeLocation.Source ? sourceAttributeSet : defaultAttributeSet;
                 attributeSet.AddAttribute(VFXAttributesManager.ConvertToNewCompiler(attributeExpression.attribute), GetAttributeUsage(VFXAttributeMode.Read));
             }
 
             foreach (var expressionParent in expression.parents)
             {
-                RegisterBlockAttributesFromExpression(attributeSet, expressionParent);
+                RegisterBlockAttributesFromExpression(defaultAttributeSet, sourceAttributeSet, expressionParent);
             }
         }
 

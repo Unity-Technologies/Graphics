@@ -1,5 +1,3 @@
-#if SURFACE_CACHE
-
 using System;
 using Unity.Mathematics;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -228,34 +226,38 @@ namespace UnityEngine.Rendering
             ComputeSubGroupSize = computeSubGroupSize;
         }
 
-        internal bool LoadFromRenderPipelineResources(RayTracingContext rtContext)
+        internal void Load(
+            ComputeShader scrollingShader,
+            ComputeShader evictionShader,
+            ComputeShader patchAllocationShader,
+            ComputeShader spatialFilteringShader,
+            ComputeShader temporalFilteringShader,
+            ComputeShader defragShader,
+            IRayTracingShader punctualLightSamplingShader,
+            IRayTracingShader estimationShader)
         {
-            var rpResources = GraphicsSettings.GetRenderPipelineSettings<Rendering.SurfaceCacheRenderPipelineResourceSet>();
-            if (rpResources == null)
-                return false;
-
-            ScrollingShader = rpResources.scrollingShader;
+            ScrollingShader = scrollingShader;
             ScrollingKernel = ScrollingShader.FindKernel("Scroll");
             ScrollingShader.GetKernelThreadGroupSizes(ScrollingKernel, out ScrollingKernelGroupSize.x, out ScrollingKernelGroupSize.y, out ScrollingKernelGroupSize.z);
 
-            EvictionShader = rpResources.evictionShader;
+            EvictionShader = evictionShader;
             EvictionKernel = EvictionShader.FindKernel("Evict");
             EvictionShader.GetKernelThreadGroupSizes(EvictionKernel, out EvictionKernelGroupSize.x, out EvictionKernelGroupSize.y, out EvictionKernelGroupSize.z);
 
-            PatchAllocationShader = rpResources.patchAllocationShader;
+            PatchAllocationShader = patchAllocationShader;
             PatchAllocationKernel = PatchAllocationShader.FindKernel("Allocate");
             PatchAllocationShader.GetKernelThreadGroupSizes(PatchAllocationKernel, out PatchAllocationKernelGroupSize.x, out PatchAllocationKernelGroupSize.y, out PatchAllocationKernelGroupSize.z);
 
-            SpatialFilteringShader = rpResources.spatialFilteringShader;
+            SpatialFilteringShader = spatialFilteringShader;
             SpatialFilteringKernel = SpatialFilteringShader.FindKernel("FilterSpatially");
             SpatialFilteringShader.GetKernelThreadGroupSizes(SpatialFilteringKernel, out SpatialFilteringKernelGroupSize.x, out SpatialFilteringKernelGroupSize.y, out SpatialFilteringKernelGroupSize.z);
 
-            TemporalFilteringShader = rpResources.temporalFilteringShader;
+            TemporalFilteringShader = temporalFilteringShader;
             TemporalFilteringKernel = TemporalFilteringShader.FindKernel("FilterTemporally");
             TemporalFilteringShader.GetKernelThreadGroupSizes(TemporalFilteringKernel, out TemporalFilteringKernelGroupSize.x, out TemporalFilteringKernelGroupSize.y, out TemporalFilteringKernelGroupSize.z);
 
-            Debug.Assert(ComputeSubGroupSize == 8 || ComputeSubGroupSize == 16 || ComputeSubGroupSize == 32 || ComputeSubGroupSize == 48 || ComputeSubGroupSize == 64);
-            DefragShader = rpResources.defragShader;
+            Debug.Assert(ComputeSubGroupSize == 8 || ComputeSubGroupSize == 16 || ComputeSubGroupSize == 32 || ComputeSubGroupSize == 48 || ComputeSubGroupSize == 64, $"Unexpected, ComputeSubGroupSize={ComputeSubGroupSize}");
+            DefragShader = defragShader;
             var defragKeyword = "SUB_GROUP_SIZE_" + ComputeSubGroupSize;
             DefragShader.EnableKeyword(defragKeyword);
             DefragKernel = DefragShader.FindKernel("Defrag");
@@ -263,23 +265,8 @@ namespace UnityEngine.Rendering
             DefragKeyword = new LocalKeyword(DefragShader, defragKeyword);
             DefragShader.DisableKeyword(defragKeyword);
 
-            Object punctualLightSamplingUnifiedObj;
-            Object estimationUnifiedObj;
-            if (rtContext.BackendType == RayTracingBackend.Compute)
-            {
-                punctualLightSamplingUnifiedObj = rpResources.punctualLightSamplingComputeShader;
-                estimationUnifiedObj = rpResources.estimationComputeShader;
-            }
-            else
-            {
-                punctualLightSamplingUnifiedObj = rpResources.punctualLightSamplingRayTracingShader;
-                estimationUnifiedObj = rpResources.estimationRayTracingShader;
-            }
-
-            PunctualLightSamplingShader = rtContext.CreateRayTracingShader(punctualLightSamplingUnifiedObj);
-            EstimationShader = rtContext.CreateRayTracingShader(estimationUnifiedObj);
-
-            return true;
+            PunctualLightSamplingShader = punctualLightSamplingShader;
+            EstimationShader = estimationShader;
         }
     }
 
@@ -303,6 +290,7 @@ namespace UnityEngine.Rendering
         private uint _defragCount = 1;
         private uint _defragOffset = 0;
         readonly private float _albedoBoost = 1.0f;
+        private float _emissiveTriangleIntensityMultiplier = 1.0f;
 
         public GraphicsBuffer PunctualLightSamples => _punctualLightSamples;
         public SurfaceCachePatchList Patches => _patches;
@@ -379,6 +367,7 @@ namespace UnityEngine.Rendering
             internal SurfaceCacheWorld World;
             internal float AlbedoBoost;
             internal float EnvironmentIntensityMultiplier;
+            internal float EmissiveTriangleIntensityMultiplier;
             internal uint FrameIdx;
             internal uint CascadeCount;
             internal bool MultiBounce;
@@ -462,6 +451,7 @@ namespace UnityEngine.Rendering
             public static readonly int _AlbedoTextures = Shader.PropertyToID("_AlbedoTextures");
             public static readonly int _AlbedoBoost = Shader.PropertyToID("_AlbedoBoost");
             public static readonly int _EnvironmentIntensityMultiplier = Shader.PropertyToID("_EnvironmentIntensityMultiplier");
+            public static readonly int _EmissiveTriangleIntensityMultiplier = Shader.PropertyToID("_EmissiveTriangleIntensityMultiplier");
             public static readonly int _DirectionalLightDirection = Shader.PropertyToID("_DirectionalLightDirection");
             public static readonly int _DirectionalLightIntensity = Shader.PropertyToID("_DirectionalLightIntensity");
             public static readonly int _MaterialAtlasTexelSize = Shader.PropertyToID("_MaterialAtlasTexelSize");
@@ -527,6 +517,11 @@ namespace UnityEngine.Rendering
         public void SetEstimationParams(SurfaceCacheEstimationParameterSet estimationParams)
         {
             _estimationParams = estimationParams;
+        }
+
+        public void SetEmissiveTriangleIntensityMultiplier(float multiplier)
+        {
+            _emissiveTriangleIntensityMultiplier = multiplier;
         }
 
         public void SetDefragCount(uint count)
@@ -693,6 +688,7 @@ namespace UnityEngine.Rendering
                 passData.FrameIdx = frameIdx;
                 passData.AlbedoBoost = _albedoBoost;
                 passData.EnvironmentIntensityMultiplier = world.GetEnvironmentIntensityMultiplier();
+                passData.EmissiveTriangleIntensityMultiplier = _emissiveTriangleIntensityMultiplier;
                 passData.VolumeSpatialResolution = Volume.SpatialResolution;
                 passData.VolumeCascadeOffsets = Volume.CascadeOffsetBuffer;
                 passData.CascadeCount = Volume.CascadeCount;
@@ -864,6 +860,7 @@ namespace UnityEngine.Rendering
                 shader.SetTextureParam(cmd, ShaderIDs._EmissionTextures, data.World.GetMaterialEmissionTextures());
                 shader.SetFloatParam(cmd, ShaderIDs._AlbedoBoost, data.AlbedoBoost);
                 shader.SetFloatParam(cmd, ShaderIDs._EnvironmentIntensityMultiplier, data.EnvironmentIntensityMultiplier);
+                shader.SetFloatParam(cmd, ShaderIDs._EmissiveTriangleIntensityMultiplier, data.EmissiveTriangleIntensityMultiplier);
                 shader.SetFloatParam(cmd, ShaderIDs._MaterialAtlasTexelSize, GetMaterialAtlasTexelSize(data.World.GetMaterialAlbedoTextures()));
                 shader.SetIntParam(cmd, ShaderIDs._PunctualLightCount, punctualLightCount);
                 shader.SetIntParam(cmd, ShaderIDs._BouncePatchAllocation, data.BouncePatchAllocation ? 1 : 0);
@@ -1029,5 +1026,3 @@ namespace UnityEngine.Rendering
         }
     }
 }
-
-#endif

@@ -405,7 +405,7 @@ namespace UnityEditor.VFX.UI
                 if (!path.StartsWith(VisualEffectAssetEditorUtility.templatePath) && path.EndsWith(VisualEffectSubgraphOperator.Extension, StringComparison.OrdinalIgnoreCase))
                 {
                     var subGraph = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphOperator>(path);
-                    if (subGraph != null && (!controller.viewController.model.isSubgraph || !subGraph.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.viewController.model.subgraph) && subGraph.GetResource() != controller.viewController.model))
+                    if (subGraph != null && (!controller.viewController.model.isSubgraph || !subGraph.GetResource().GetGraph().subgraphDependencies.Contains(controller.viewController.model.subgraph) && subGraph.GetResource() != controller.viewController.model))
                         return true;
                 }
                 return false;

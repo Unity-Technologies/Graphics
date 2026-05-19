@@ -1,4 +1,4 @@
-#pragma only_renderers d3d11 vulkan metal glcore
+#pragma only_renderers d3d11 vulkan metal glcore ps5
 #define GROUP_SIZE_X 8
 #define GROUP_SIZE_Y 8
 
@@ -11,7 +11,7 @@ SamplerState sampler_g_Source;
 uint g_TextureWidth;
 uint g_TextureHeight;
 
-// Projects (blits) a face of a cubemap on a 2D texture 
+// Projects (blits) a face of a cubemap on a 2D texture
 #pragma kernel BlitGrayScaleCookie
 [numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, 1)]
 void BlitGrayScaleCookie(in uint2 gidx : SV_DispatchThreadID)
@@ -19,7 +19,7 @@ void BlitGrayScaleCookie(in uint2 gidx : SV_DispatchThreadID)
     if (gidx.x >= g_TextureWidth || gidx.y >= g_TextureHeight)
         return;
 
-    
+
     float2 texCoord = float2((gidx.x + 0.5f) / g_TextureWidth, (gidx.y + 0.5f) / g_TextureHeight);
 
     float c = g_Source.SampleLevel(sampler_g_Source, texCoord, 0).w;

@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 using Unity.Mathematics;
 using UnityEngine;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEditor.LightBaking;
 using MixedLightingMode = UnityEngine.MixedLightingMode;
 
 // The types defined in this file should match the types defined in BakeInput.h.
@@ -253,15 +252,16 @@ namespace UnityEditor.PathTracing.LightBakerBridge
         public bool aoEnabled;
         public float aoDistance;
         public bool useHardwareRayTracing;
+        public bool enableHeightfieldRayTracing;
 
-        public LightSamplingMode directLightSamplingMode;
+        public UnityEngine.PathTracing.Core.LightSamplingMode directLightSamplingMode;
         public uint directRISCandidateCount;
-        public LightSamplingMode indirectLightSamplingMode;
+        public UnityEngine.PathTracing.Core.LightSamplingMode indirectLightSamplingMode;
         public UInt32 indirectRISCandidateCount;
         public LightAccelerationStructure lightAccelerationStructure;
         public uint lightGridMaxCells;
-        public EmissiveSamplingMode directEmissiveSamplingMode;
-        public EmissiveSamplingMode indirectEmissiveSamplingMode;
+        public UnityEngine.PathTracing.Core.EmissiveSamplingMode directEmissiveSamplingMode;
+        public UnityEngine.PathTracing.Core.EmissiveSamplingMode indirectEmissiveSamplingMode;
 
         public void Transfer(IBakeInputVisitor visitor)
         {
@@ -274,6 +274,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             visitor.TransferBoolean(ref aoEnabled);
             visitor.TransferBlittable(ref aoDistance);
             visitor.TransferBoolean(ref useHardwareRayTracing);
+            visitor.TransferBoolean(ref enableHeightfieldRayTracing);
 
             visitor.TransferBlittable(ref directLightSamplingMode);
             visitor.TransferBlittable(ref directRISCandidateCount);
@@ -572,6 +573,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
         public AngularFalloffType angularFalloff;
         public bool castsShadows;
         public UInt32 shadowMaskChannel;
+        public float indirectMultiplier;
 
         public void Transfer(IBakeInputVisitor visitor)
         {
@@ -592,6 +594,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             visitor.TransferBlittable(ref angularFalloff);
             visitor.TransferBoolean(ref castsShadows);
             visitor.TransferBlittable(ref shadowMaskChannel);
+            visitor.TransferBlittable(ref indirectMultiplier);
         }
     }
 
@@ -951,7 +954,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
     {
         // Should match BakeInputSerialization::kCurrentFileVersion in BakeInputSerialization.h.
         // If these are out of sync, the implementation in this file probably needs to be updated.
-        const UInt64 CurrentFileVersion = 202603061;
+        const UInt64 CurrentFileVersion = 202605011;
 
         public static bool Deserialize(string path, out BakeInput bakeInput)
         {

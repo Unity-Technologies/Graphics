@@ -258,8 +258,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// Adds a new task node to the graph.
         /// </summary>
         /// <param name="task">The task to wrap in a node.</param>
+        /// <param name="name">The name of the node.</param>
         /// <returns>The Id associated with the new task node.</returns>
-        TaskNodeId AddTask(ITask task);
+        TaskNodeId AddTask(ITask task, string name = null);
 
         /// <summary>
         /// Add a new data node to the graph, from a new data.

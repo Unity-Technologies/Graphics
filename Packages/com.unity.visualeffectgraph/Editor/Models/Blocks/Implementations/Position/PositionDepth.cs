@@ -186,9 +186,7 @@ float2 uvs = UVSpawn;
                 source += @"
 float2 projpos = uvs * 2.0f - 1.0f;
 float depth = LOAD_TEXTURE2D_X(Camera_depthBuffer.t, uvs*Camera_scaledPixelDimensions).r;
-#if UNITY_REVERSED_Z
-depth = 1.0f - depth; // reversed z
-#endif";
+depth = DecodeDepth(depth);";
 
                 if (cullMode == CullMode.FarPlane)
                     source += @"

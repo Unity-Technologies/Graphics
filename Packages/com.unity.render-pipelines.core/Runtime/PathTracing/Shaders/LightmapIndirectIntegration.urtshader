@@ -14,7 +14,7 @@ int g_AccumulateDirectional;
 int g_SampleOffset;
 float g_PushOff;
 RWStructuredBuffer<float4> g_ExpandedOutput;
-RWStructuredBuffer<float4> g_ExpandedDirectional;
+RWStructuredBuffer<float4> g_ExpandedOutputDirectional;
 
 // additional instance flags to deal with lightmap lods
 #define CURRENT_LOD_FOR_LIGHTMAP_INSTANCE 8u
@@ -133,5 +133,5 @@ void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
     g_ExpandedOutput[dispatchInfo.dispatchThreadID.x] += float4(sampleRadiance * reciprocalProbabilityDensityMulipliedByCosine, 1.0f);
     // the cosine term from the PDF cancels with the cosine term for the integrand.
     if (g_AccumulateDirectional > 0)
-        g_ExpandedDirectional[dispatchInfo.dispatchThreadID.x] += float4(normalize(ray.direction), 1.f) * sampleLuminance;
+        g_ExpandedOutputDirectional[dispatchInfo.dispatchThreadID.x] += float4(normalize(ray.direction), 1.f) * sampleLuminance;
 }

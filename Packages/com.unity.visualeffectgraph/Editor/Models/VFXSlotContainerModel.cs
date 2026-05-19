@@ -196,6 +196,7 @@ namespace UnityEditor.VFX
         public override void OnEnable()
         {
             base.OnEnable();
+            m_OutputExpressionsUpToDate = false;
 
             if (m_InputSlots == null)
             {
@@ -470,14 +471,6 @@ namespace UnityEditor.VFX
         public virtual VFXSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
             return VFXSpace.None;
-        }
-
-        public override void CheckGraphBeforeImport()
-        {
-            // The cache is here to avoid multiple output recomputation when updating the expression graph
-            // So It's marked as out of date before compilation just to minimize risk of cache missed invalidation between different compilation
-            MarkOutputExpressionsAsOutOfDate(); 
-            base.CheckGraphBeforeImport();     
         }
 
         //[SerializeField]

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using UnityEngine.TestTools;
 using NUnit.Framework;
 using UnityEditor.Rendering.BuiltIn.ShaderGraph;
@@ -11,6 +12,7 @@ using UnityEngine.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 using UnityEditor.ShaderGraph.Internal;
+using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX.Test
 {
@@ -24,10 +26,17 @@ namespace UnityEditor.VFX.Test
         }
 
         [OneTimeTearDown]
+        public void Release()
+        {
+            EditorPrefs.SetBool(VFXViewPreference.forceEditionCompilationKey, false);
+            VFXViewPreference.SetDirty();
+            VFXTestCommon.DeleteAllTemporaryGraph();
+        }
+
+        [TearDown]
         public void CleanUp()
         {
-            while (EditorWindow.HasOpenInstances<VFXViewWindow>())
-                EditorWindow.GetWindow<VFXViewWindow>().Close();
+            VFXTestCommon.CloseAllVFXWindow();
             VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
@@ -52,11 +61,10 @@ namespace UnityEditor.VFX.Test
             return outputList;
         }
 
-        [Test]
-        public void Migration_Material_Settings()
+        static void GetVFXMaterialVariantUpgradeAsset(out string packagePath, out string vfxPath)
         {
-            var packagePath = @"Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/VFXMaterialVariant_Upgrade_Asset_";
-            var vfxPath = VFXTestCommon.tempBasePath + "/Upgradable_VFX_";
+            packagePath = @"Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/VFXMaterialVariant_Upgrade_Asset_";
+            vfxPath = VFXTestCommon.tempBasePath + "/Upgradable_VFX_";
 
 #if VFX_TESTS_HAS_URP
             packagePath += "URP.unitypackage";
@@ -67,9 +75,34 @@ namespace UnityEditor.VFX.Test
             packagePath += "HDRP.unitypackage";
             vfxPath += "HDRP.vfx";
 #endif
+        }
+
+
+        [Test(Description = "Cover UUM-67336 (check importer behavior)")]
+        public void Import_Twice_Same_Package_Sanitize_Still_Applied_Import()
+        {
+            GetVFXMaterialVariantUpgradeAsset(out var packagePath, out var vfxPath);
+
+            for (int i = 0; i < 3; ++i)
+            {
+                AssetDatabase.ImportPackageImmediately(packagePath);
+                AssetDatabase.ImportAsset(vfxPath);
+                var materials = AssetDatabase.LoadAllAssetsAtPath(vfxPath).OfType<Material>().ToArray();
+                var shaders = AssetDatabase.LoadAllAssetsAtPath(vfxPath).OfType<Shader>().ToArray();
+                Assert.AreEqual(2, materials.Length, "Fail at iteration: " + i);
+                Assert.AreEqual(2, shaders.Length, "Fail at iteration: " + i);
+            }
+        }
+        
+        [Test]
+        public void Migration_Material_Settings()
+        {
+            GetVFXMaterialVariantUpgradeAsset(out var packagePath, out var vfxPath);
+
             AssetDatabase.ImportPackageImmediately(packagePath);
             var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
-            var vfxGraph = vfxAsset.GetOrCreateResource().GetOrCreateGraph();
+            var vfxGraph = vfxAsset.GetResource().GetGraph();
+            vfxGraph.PrepareGraph();
 
             var withoutOverride = vfxGraph.children.OfType<VFXAbstractComposedParticleOutput>().FirstOrDefault(o => o.label == "Without override");
             var withOverride = vfxGraph.children.OfType<VFXAbstractComposedParticleOutput>().FirstOrDefault(o => o.label == "With override");
@@ -147,10 +180,10 @@ namespace UnityEditor.VFX.Test
             var vfxResource = vfxAsset.GetResource();
             Assert.IsNotNull(vfxResource);
 
-            var vfxGraph = vfxResource.GetOrCreateGraph();
+            var vfxGraph = vfxResource.GetGraph();
             Assert.IsNotNull(vfxGraph);
 
-            var window = VFXViewWindow.GetWindow(vfxGraph, true, true);
+            var window = VFXTestCommon.GetWindow(vfxGraph, true, true);
             window.LoadAsset(vfxAsset, null);
             window.Focus();
             yield return null; //No error preventing to open the graph
@@ -323,8 +356,8 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(shaderGraphPath_B);
             Assert.IsNotNull(vfx);
 
-            var graph = vfx.GetOrCreateResource().GetOrCreateGraph();
-            var window = VFXViewWindow.GetWindow(vfx, true);
+            var graph = vfx.GetResource().GetGraph();
+            var window = VFXTestCommon.GetWindow(vfx, true);
             window.LoadAsset(vfx, null);
             window.Show();
             Assert.IsNotNull(graph);
@@ -372,15 +405,24 @@ namespace UnityEditor.VFX.Test
 
             Undo.PerformUndo();
             yield return null;
+
+            window.Close();
+            yield return null;
         }
 
-        [Test]
-        public void Check_Material_Override_Behavior([ValueSource("s_Check_Material_Override_Behavior_Test_Case")] Check_Material_Override_Behavior_Test_Case testCase)
+        [UnityTest]
+        public IEnumerator Check_Material_Override_Behavior([ValueSource("s_Check_Material_Override_Behavior_Test_Case")] Check_Material_Override_Behavior_Test_Case testCase)
         {
             var baseDataPath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/";
             var shaderGraph = VFXTestCommon.CopyTemporaryShaderGraph(baseDataPath + testCase.initialShaderGraph + ".shadergraph");
 
             var graph = VFXTestCommon.MakeTemporaryGraph();
+
+            //Having the window opened automatically generates necessary sanitize on graph in memory
+            var window = VFXTestCommon.GetViewWindow();
+            window.LoadResource(graph.GetResource(), null);
+            yield return null;
+
             //Create VFXAsset
             {
                 var particleOutput = ScriptableObject.CreateInstance<VFXComposedParticleOutput>();
@@ -397,7 +439,7 @@ namespace UnityEditor.VFX.Test
                 spawner.LinkTo(contextInitialize);
                 graph.AddChild(spawner);
 
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+                VFXTestCommon.ReimportVFXGraph(graph);
             }
 
             //Basic First check
@@ -416,6 +458,7 @@ namespace UnityEditor.VFX.Test
 
                 var output = graph.children.OfType<VFXAbstractParticleOutput>().First();
                 Assert.IsNotNull(VFXShaderGraphHelpers.GetShaderGraph(output));
+
                 testCase.afterSwichShaderGraphCheck(output);
             }
 
@@ -447,6 +490,9 @@ namespace UnityEditor.VFX.Test
 
                 testCase.initialCheck(output);
             }
+
+            window.Close();
+            yield return null;
         }
 
         public struct Cross_Pipeline_VFX_Override_Test_Case
@@ -483,7 +529,7 @@ namespace UnityEditor.VFX.Test
             var visualEffectAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
             Assert.IsNotNull(visualEffectAsset);
 
-            VFXGraph graph = visualEffectAsset.GetOrCreateResource().GetOrCreateGraph();
+            VFXGraph graph = visualEffectAsset.GetResource().GetGraph();
             Assert.IsNotNull(graph);
 
             graph.SetCompilationMode(testCase.compilationMode);
@@ -492,12 +538,25 @@ namespace UnityEditor.VFX.Test
 
             if (testCase.usingImporter)
             {
+                EditorPrefs.SetBool(VFXViewPreference.forceEditionCompilationKey, testCase.compilationMode == VFXCompilationMode.Edition);
+                VFXViewPreference.SetDirty();
+
                 AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
                 allAssets = AssetDatabase.LoadAllAssetsAtPath(path);
+
+                EditorPrefs.SetBool(VFXViewPreference.forceEditionCompilationKey, false);
+                VFXViewPreference.SetDirty();
             }
             else
             {
-                allAssets = graph.CompileAndUpdateAsset(visualEffectAsset);
+                graph.CompileAndUpdateAsset(visualEffectAsset);
+
+                var previewAssetField = graph.GetType().GetField("m_PreviewAsset", BindingFlags.NonPublic | BindingFlags.Instance);
+                Assert.IsNotNull(previewAssetField);
+                var valuePreviewAsset = previewAssetField.GetValue(graph);
+                Assert.IsNotNull(valuePreviewAsset);
+                Assert.IsInstanceOf<List<UnityObject>>(valuePreviewAsset);
+                allAssets = ((List<UnityObject>)valuePreviewAsset).ToArray();
             }
 
             Assert.AreEqual(testCase.compilationMode, graph.GetCompilationMode());
@@ -613,7 +672,7 @@ namespace UnityEditor.VFX.Test
             }
 
             yield return null;
-            VFXViewWindow.GetWindow<VFXViewWindow>().Close();
+            VFXTestCommon.GetViewWindow().Close();
             VFXTestCommon.CloseAllUnecessaryWindows();
         }
 
@@ -636,7 +695,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(VFXCompilationMode.Runtime, VisualEffectAssetUtility.GetCompilationMode(graph.GetResource().asset));
             yield return null;
 
-            var window = VFXViewWindow.GetWindow(graph, true, true);
+            var window = VFXTestCommon.GetWindow(graph, true, true);
             window.LoadAsset(graph.GetResource().asset, null);
             for (int i = 0; i < 8; ++i)
             {
@@ -818,5 +877,59 @@ namespace UnityEditor.VFX.Test
             Assert.IsFalse(castShadow);
         }
 #endif
+
+        static string GetShaderSource(VFXGraph graph)
+        {
+            for (int i = 0; i < graph.GetResource().GetShaderSourceCount(); ++i)
+            {
+                var source = graph.GetResource().GetShaderSource(i);
+                if (source.Contains("SubShader"))
+                    return source;
+            }
+
+            throw new InvalidOperationException("Can't find generated shader");
+        }
+
+        [UnityTest, Description("Cover external change of unregistered ShaderGraph which is indirectly triggers the compilation of parent VisualEffectAsset")]
+        public IEnumerator VFX_Auto_Compile_On_SG_Change()
+        {
+            var graph = VFXTestCommon.CreateGraph_And_System();
+            yield return PrepareSimpleGraphWithSgOutput(graph);
+
+            var source = GetShaderSource(graph);
+            Assert.IsFalse(source.Contains("_Cosine_"));
+            Assert.IsFalse(source.Contains("_SquareRoot_"));
+
+            var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_Live_Edition_With_SG.unitypackage";
+            AssetDatabase.ImportPackageImmediately(packagePath);
+            yield return null;
+
+            var pathSgA = Path.Combine(VFXTestCommon.tempBasePath, "Live_Edition_With_SG_A.shadergraph");
+            var pathSgB = Path.Combine(VFXTestCommon.tempBasePath, "Live_Edition_With_SG_B.shadergraph");
+            var sgA = VFXShaderGraphHelpers.LoadShaderGraphAssetAtPath(pathSgA);
+            var sgB = VFXShaderGraphHelpers.LoadShaderGraphAssetAtPath(pathSgB);
+            Assert.IsNotNull(sgA);
+            Assert.IsNotNull(sgB);
+            Assert.AreNotEqual(sgA, sgB);
+
+            var sgOutput = graph.children.OfType<VFXComposedParticleOutput>().Single();
+            sgOutput.SetSettingValue("shaderGraph", sgA);
+            yield return null;
+
+            source = GetShaderSource(graph);
+            Assert.IsTrue(source.Contains("_Cosine_"));
+            Assert.IsFalse(source.Contains("_SquareRoot_"));
+
+            //Live_Edition_With_SG_A is not among reference because import didn't occur
+            var newContent = File.ReadAllBytes(pathSgB);
+            File.WriteAllBytes(pathSgA, newContent);
+            AssetDatabase.Refresh();
+            yield return null;
+
+            source = GetShaderSource(graph);
+            Assert.IsFalse(source.Contains("_Cosine_"));
+            Assert.IsTrue(source.Contains("_SquareRoot_"));
+        }
+
     }
 }

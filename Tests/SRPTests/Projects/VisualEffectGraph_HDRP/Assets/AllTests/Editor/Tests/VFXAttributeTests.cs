@@ -61,13 +61,13 @@ namespace UnityEditor.VFX.Test
         [SetUp]
         public void Setup()
         {
-            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.CloseAllVFXWindow();
         }
 
         [TearDown]
         public void Cleanup()
         {
-            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.CloseAllVFXWindow();
             VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
@@ -227,6 +227,7 @@ namespace UnityEditor.VFX.Test
         {
             var kSourceAsset = "Assets/AllTests/Editor/Tests/Repro_UUM_83849.vfx_";
             var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
+            graph.PrepareGraph();
             Assert.IsNotNull(graph);
 
             var initialize = graph.GetGraph().children.OfType<VFXBasicInitialize>().Single();
@@ -249,7 +250,7 @@ namespace UnityEditor.VFX.Test
         private string CheckCustomAttributeName<T>(string name) where T : VFXModel
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var window = VFXViewWindow.GetWindow(graph, true);
+            var window = VFXTestCommon.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
 
             graph.TryAddCustomAttribute(name, VFXValueType.Boolean, string.Empty, false, out var attribute);

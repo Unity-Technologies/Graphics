@@ -20,6 +20,21 @@ Two output value options for this node, **Inverse Projection** and **Inverse Vie
 |:--- |:---|
 | (Dropdown) | Sets the output value. The options are: <ul><li>**Model**</li><li>**InverseModel**</li><li>**View**</li><li>**InverseView**</li><li>**Projection**</li><li>**InverseProjection**</li><li>**ViewProjection**</li><li>**InverseViewProjection**</li></ul> |
 
+## Transformations
+
+All these matrices are `float4x4` type, and are column major.
+
+| **Name**                  | **Value** |
+|:---                       |:---       |
+| Model                 | Current model matrix. Transforms from Object to World space.                       |
+| InverseModel          | Inverse of the current model matrix. Transforms from World to Object space.        |
+| View                  | Current view matrix. Transforms from World to View space.                          |
+| InverseView           | Inverse of the current view matrix. Transforms from View to World space.           |
+| Projection            | Current projection matrix. Transforms from View to Clip space.                     |
+| InverseProjection     | Inverse of the current projection matrix. Transforms from Clip to View space.      |
+| ViewProjection        | Current view \* projection matrix. Transforms from World to Clip space.            |
+| InverseViewProjection | Inverse of current view \* projection matrix. Transforms from Clip to World space. |
+
 ## Generated Code Example
 
 The following example code represents one possible outcome of this node per mode.

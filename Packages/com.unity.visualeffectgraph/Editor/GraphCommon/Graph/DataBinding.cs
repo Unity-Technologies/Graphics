@@ -142,6 +142,34 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <value>The <see cref="DataBinding"/> associated with the ID at the specified index.</value>
         public DataBinding this[int index] => m_Provider[m_IdSource[index]];
 
+        public DataBinding? this[IDataKey bindingDataKey]
+        {
+            get
+            {
+                foreach (DataBinding dataBinding in this)
+                {
+                    if (dataBinding.BindingDataKey.Equals(bindingDataKey))
+                    {
+                        return dataBinding;
+                    }
+                }
+                return null;
+            }
+        }
+
+        // DataBindings may contain a DataViewId more than once, that's why I prefer a method over an indexer. Do we need a find all?
+        public DataBinding? FindDataView(DataViewId dataViewId)
+        {
+            foreach (DataBinding dataBinding in this)
+            {
+                if (dataBinding.DataView.Id.Equals(dataViewId))
+                {
+                    return dataBinding;
+                }
+            }
+            return null;
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DataViewEnumerable{T}"/> struct.
         /// </summary>

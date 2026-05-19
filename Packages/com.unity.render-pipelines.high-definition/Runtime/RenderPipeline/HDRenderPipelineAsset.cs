@@ -26,6 +26,8 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         //This is not exposed to the UI. It can be enabled via Debug inspector if it is really needed.
         [SerializeField] internal bool m_ShouldUseConservativeEnclosingSphere;
+        //Setting this to 64 as this is the default value. This is not exposed to the UI. It can be enabled via Debug inspector if it is really needed.
+        [SerializeField] internal int m_NumIterationsEnclosingSphere = 64;
         /// <inheritdoc/>
         public override string renderPipelineShaderTag => HDRenderPipeline.k_ShaderTagName;
 

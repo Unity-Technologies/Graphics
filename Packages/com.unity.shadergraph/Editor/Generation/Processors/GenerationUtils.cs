@@ -918,7 +918,7 @@ namespace UnityEditor.ShaderGraph
 
                     // Keywords use hardcoded state in preview
                     // Do not add them to the Property Block
-                    if (mode == GenerationMode.Preview)
+                    if (mode.IsPreview())
                         return;
 
                     foreach (var key in keywordCollector.keywords.Where(x => x.generatePropertyBlock))
@@ -932,7 +932,7 @@ namespace UnityEditor.ShaderGraph
                     var keywordInputs = keywordCollector.keywords.Where(x => x.generatePropertyBlock).ToList();
                     foreach (var input in graphInputs)
                     {
-                        if (input.isKeyword && mode != GenerationMode.Preview)
+                        if (input.isKeyword && !mode.IsPreview())
                         {
                             var keyword = keywordInputs.FirstOrDefault(x => x.referenceName.CompareTo(input.referenceName) == 0);
                             if (keyword != null)
@@ -957,7 +957,7 @@ namespace UnityEditor.ShaderGraph
                         property.AppendPropertyBlockStrings(sb);
                     }
 
-                    if (mode != GenerationMode.Preview)
+                    if (!mode.IsPreview())
                     {
                         foreach (var keyword in keywordInputs)
                         {

@@ -1,3 +1,4 @@
+using System;
 using Unity.Mathematics;
 using Unity.Profiling;
 using Unity.Profiling.LowLevel;
@@ -42,6 +43,7 @@ namespace UnityEngine.PathTracing.Integration
         public static readonly int ShaderLocalToWorld = Shader.PropertyToID("g_ShaderLocalToWorld");
         public static readonly int ShaderLocalToWorldNormals = Shader.PropertyToID("g_ShaderLocalToWorldNormals");
         public static readonly int InstanceGeometryIndex = Shader.PropertyToID("g_InstanceGeometryIndex");
+        public static readonly int TerrainIndex = Shader.PropertyToID("g_TerrainIndex");
         public static readonly int GISampleCount = Shader.PropertyToID("g_GISampleCount");
         public static readonly int AOMaxDistance = Shader.PropertyToID("g_AOMaxDistance");
         public static readonly int InputSampleCountInW = Shader.PropertyToID("g_InputSampleCountInW");
@@ -72,7 +74,7 @@ namespace UnityEngine.PathTracing.Integration
         public static readonly int DestinationY = Shader.PropertyToID("g_DestinationY");
         public static readonly int TextureInOut = Shader.PropertyToID("g_TextureInOut");
         public static readonly int ExpandedOutput = Shader.PropertyToID("g_ExpandedOutput");
-        public static readonly int ExpandedDirectional = Shader.PropertyToID("g_ExpandedDirectional");
+        public static readonly int ExpandedOutputDirectional = Shader.PropertyToID("g_ExpandedOutputDirectional");
         public static readonly int ExpandedSampleCountInW = Shader.PropertyToID("g_ExpandedSampleCountInW");
         public static readonly int ExpandedTexelSampleWidth = Shader.PropertyToID("g_ExpandedTexelSampleWidth");
         public static readonly int MaxLocalSampleCount = Shader.PropertyToID("g_MaxLocalSampleCount");
@@ -116,7 +118,8 @@ namespace UnityEngine.PathTracing.Integration
 
     internal class LightmapDirectIntegrator : System.IDisposable
     {
-        private IRayTracingShader _accumulationShader;
+        private IRayTracingShader _stochasticLightShader;
+        private IRayTracingShader _directionalAndEnvironmentShader;
         private ComputeShader _normalizationShader;
         private int _normalizationKernel;
         private int _directionalNormalizationKernel;
@@ -137,14 +140,19 @@ namespace UnityEngine.PathTracing.Integration
 
         public void SetupLightSamplingKeywords(CommandBuffer cmd, LightSamplingMode lightSamplingMode, EmissiveSamplingMode emissiveSamplingMode)
         {
-            Util.SetLightSamplingKeyword(cmd, _accumulationShader, lightSamplingMode);
-            Util.SetEmissiveSamplingKeyword(cmd, _accumulationShader, emissiveSamplingMode);
+            Util.SetLightSamplingKeyword(cmd, _stochasticLightShader, lightSamplingMode);
+            Util.SetLightSamplingKeyword(cmd, _directionalAndEnvironmentShader, lightSamplingMode);
+            Util.SetEmissiveSamplingKeyword(cmd, _stochasticLightShader, emissiveSamplingMode);
+            Util.SetEmissiveSamplingKeyword(cmd, _directionalAndEnvironmentShader, emissiveSamplingMode);
         }
 
-        public void Prepare(IRayTracingShader accumulationShader, ComputeShader normalizationShader, ComputeShader expansionHelpers, SamplingResources samplingResources, RTHandle emptyExposureTexture)
+        public void Prepare(IRayTracingShader stochasticLightShader, IRayTracingShader directionalAndEnvironmentShader, ComputeShader normalizationShader, ComputeShader expansionHelpers, SamplingResources samplingResources, RTHandle emptyExposureTexture)
         {
-            _accumulationShader = accumulationShader;
-            Debug.Assert(_accumulationShader != null);
+            _stochasticLightShader = stochasticLightShader;
+            Debug.Assert(_stochasticLightShader != null);
+
+            _directionalAndEnvironmentShader = directionalAndEnvironmentShader;
+            Debug.Assert(_directionalAndEnvironmentShader != null);
 
             _normalizationShader = normalizationShader;
             Debug.Assert(_normalizationShader != null);
@@ -166,6 +174,7 @@ namespace UnityEngine.PathTracing.Integration
             Matrix4x4 shaderLocalToWorld,
             Matrix4x4 shaderLocalToWorldNormals,
             int instanceGeometryIndex,
+            int terrainIndex,
             Vector2Int instanceTexelSize,
             uint2 chunkOffset,
             World world,
@@ -194,10 +203,14 @@ namespace UnityEngine.PathTracing.Integration
             // path tracing inputs
             bool preExpose = false;
             float environmentIntensityMultiplier = 1.0f;
-            Util.BindPathTracingInputs(cmd, _accumulationShader, risCandidateCount, preExpose, 0, environmentIntensityMultiplier, RenderedGameObjectsFilter.OnlyStatic, _samplingResources, _emptyTexture);
-            Util.BindWorld(cmd, _accumulationShader, world);
+            Util.BindPathTracingInputs(cmd, _stochasticLightShader, risCandidateCount, preExpose, 0, environmentIntensityMultiplier, RenderedGameObjectsFilter.OnlyStatic, _samplingResources, _emptyTexture);
+            Util.BindWorld(cmd, _stochasticLightShader, world);
+            Util.BindPathTracingInputs(cmd, _directionalAndEnvironmentShader, risCandidateCount, preExpose, 0, environmentIntensityMultiplier, RenderedGameObjectsFilter.OnlyStatic, _samplingResources, _emptyTexture);
+            Util.BindWorld(cmd, _directionalAndEnvironmentShader, world);
 
-            var requiredSizeInBytes = _accumulationShader.GetTraceScratchBufferRequiredSizeInBytes((uint)expandedOutput.count, 1, 1);
+            var requiredSizeInBytesMain = _stochasticLightShader.GetTraceScratchBufferRequiredSizeInBytes((uint)expandedOutput.count, 1, 1);
+            var requiredSizeInBytesDirectionalAndEnvironment = _directionalAndEnvironmentShader.GetTraceScratchBufferRequiredSizeInBytes((uint)expandedOutput.count, 1, 1);
+            var requiredSizeInBytes = Math.Max(requiredSizeInBytesMain, requiredSizeInBytesDirectionalAndEnvironment);
             if (requiredSizeInBytes > 0)
             {
                 var actualScratchBufferSize = (ulong)(traceScratchBuffer.count * traceScratchBuffer.stride);
@@ -205,22 +218,41 @@ namespace UnityEngine.PathTracing.Integration
                 Debug.Assert(requiredSizeInBytes <= actualScratchBufferSize);
             }
 
-            _accumulationShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorld, shaderLocalToWorld);
-            _accumulationShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorldNormals, shaderLocalToWorldNormals);
-            _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.InstanceGeometryIndex, instanceGeometryIndex);
-            _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ReceiveShadows, receiveShadows ? 1 : 0);
-            _accumulationShader.SetFloatParam(cmd, LightmapIntegratorShaderIDs.PushOff, pushOff);
-            _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.InstanceWidth, instanceWidth);
+            _stochasticLightShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorld, shaderLocalToWorld);
+            _stochasticLightShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorldNormals, shaderLocalToWorldNormals);
+            _stochasticLightShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.InstanceGeometryIndex, instanceGeometryIndex);
+            _stochasticLightShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.TerrainIndex, terrainIndex);
+            _stochasticLightShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ReceiveShadows, receiveShadows ? 1 : 0);
+            _stochasticLightShader.SetFloatParam(cmd, LightmapIntegratorShaderIDs.PushOff, pushOff);
+            _stochasticLightShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.InstanceWidth, instanceWidth);
 
-            _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.AccumulateDirectional, doDirectional ? 1 : 0);
-            _accumulationShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.GBuffer, gBuffer);
-            _accumulationShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.CompactedGBuffer, compactedTexelIndices);
-            _accumulationShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.ExpandedOutput, expandedOutput);
+            _stochasticLightShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.AccumulateDirectional, doDirectional ? 1 : 0);
+            _stochasticLightShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.GBuffer, gBuffer);
+            _stochasticLightShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.CompactedGBuffer, compactedTexelIndices);
+            _stochasticLightShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.ExpandedOutput, expandedOutput);
             if (doDirectional)
-                _accumulationShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.ExpandedDirectional, expandedDirectional);
-            _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ExpandedTexelSampleWidth, (int)expandedSampleWidth);
-            _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ChunkOffsetX, (int)chunkOffset.x);
-            _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ChunkOffsetY, (int)chunkOffset.y);
+                _stochasticLightShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.ExpandedOutputDirectional, expandedDirectional);
+            _stochasticLightShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ExpandedTexelSampleWidth, (int)expandedSampleWidth);
+            _stochasticLightShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ChunkOffsetX, (int)chunkOffset.x);
+            _stochasticLightShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ChunkOffsetY, (int)chunkOffset.y);
+
+            _directionalAndEnvironmentShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorld, shaderLocalToWorld);
+            _directionalAndEnvironmentShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorldNormals, shaderLocalToWorldNormals);
+            _directionalAndEnvironmentShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.InstanceGeometryIndex, instanceGeometryIndex);
+            _directionalAndEnvironmentShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.TerrainIndex, terrainIndex);
+            _directionalAndEnvironmentShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ReceiveShadows, receiveShadows ? 1 : 0);
+            _directionalAndEnvironmentShader.SetFloatParam(cmd, LightmapIntegratorShaderIDs.PushOff, pushOff);
+            _directionalAndEnvironmentShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.InstanceWidth, instanceWidth);
+
+            _directionalAndEnvironmentShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.AccumulateDirectional, doDirectional ? 1 : 0);
+            _directionalAndEnvironmentShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.GBuffer, gBuffer);
+            _directionalAndEnvironmentShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.CompactedGBuffer, compactedTexelIndices);
+            _directionalAndEnvironmentShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.ExpandedOutput, expandedOutput);
+            if (doDirectional)
+                _directionalAndEnvironmentShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.ExpandedOutputDirectional, expandedDirectional);
+            _directionalAndEnvironmentShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ExpandedTexelSampleWidth, (int)expandedSampleWidth);
+            _directionalAndEnvironmentShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ChunkOffsetX, (int)chunkOffset.x);
+            _directionalAndEnvironmentShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ChunkOffsetY, (int)chunkOffset.y);
 
             if (newChunkStarted)
             {
@@ -230,17 +262,24 @@ namespace UnityEngine.PathTracing.Integration
 
             // accumulate (expanded)
             {
-                _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.SampleOffset, (int)currentSampleCountPerTexel);
-                _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.MaxLocalSampleCount, (int)sampleCountToTakePerTexel);
+                // main pass
+                _stochasticLightShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.SampleOffset, (int)currentSampleCountPerTexel);
+                _stochasticLightShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.MaxLocalSampleCount, (int)sampleCountToTakePerTexel);
 
-                uint loopCount = lightSamplingMode == LightSamplingMode.RoundRobin ? maxLightsInAnyCell : 1;
+                // run kernel at least once to ensure we write sample count in alpha channel
+                uint loopCount = lightSamplingMode == LightSamplingMode.RoundRobin ? Math.Max(maxLightsInAnyCell, 1) : 1;
                 for (int lightIndexInCell = 0; lightIndexInCell < loopCount; ++lightIndexInCell)
                 {
-                    _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.LightIndexInCell, lightIndexInCell);
+                    _stochasticLightShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.LightIndexInCell, lightIndexInCell);
                     cmd.BeginSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
-                    _accumulationShader.Dispatch(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
+                    _stochasticLightShader.Dispatch(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
                     cmd.EndSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
                 }
+
+                // directional and environment pass
+                _directionalAndEnvironmentShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.SampleOffset, (int)currentSampleCountPerTexel);
+                _directionalAndEnvironmentShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.MaxLocalSampleCount, (int)sampleCountToTakePerTexel);
+                _directionalAndEnvironmentShader.Dispatch(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
             }
         }
 
@@ -311,6 +350,7 @@ namespace UnityEngine.PathTracing.Integration
             Matrix4x4 shaderLocalToWorld,
             Matrix4x4 shaderLocalToWorldNormals,
             int instanceGeometryIndex,
+            int terrainIndex,
             Vector2Int instanceTexelSize,
             uint2 chunkOffset,
             World world,
@@ -352,6 +392,7 @@ namespace UnityEngine.PathTracing.Integration
             _accumulationShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorld, shaderLocalToWorld);
             _accumulationShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorldNormals, shaderLocalToWorldNormals);
             _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.InstanceGeometryIndex, instanceGeometryIndex);
+            _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.TerrainIndex, terrainIndex);
             _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ReceiveShadows, receiveShadows ? 1 : 0);
             _accumulationShader.SetFloatParam(cmd, LightmapIntegratorShaderIDs.PushOff, pushOff);
             _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.InstanceWidth, instanceWidth);
@@ -361,7 +402,7 @@ namespace UnityEngine.PathTracing.Integration
             _accumulationShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.CompactedGBuffer, compactedTexelIndices);
             _accumulationShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.ExpandedOutput, expandedOutput);
             if (doDirectional)
-                _accumulationShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.ExpandedDirectional, expandedDirectional);
+                _accumulationShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.ExpandedOutputDirectional, expandedDirectional);
             _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ExpandedTexelSampleWidth, (int)expandedSampleWidth);
             _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ChunkOffsetX, (int)chunkOffset.x);
             _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ChunkOffsetY, (int)chunkOffset.y);
@@ -444,6 +485,7 @@ namespace UnityEngine.PathTracing.Integration
             Matrix4x4 shaderLocalToWorld,
             Matrix4x4 shaderLocalToWorldNormals,
             int instanceGeometryIndex,
+            int terrainIndex,
             Vector2Int instanceTexelSize,
             uint2 chunkOffset,
             World world,
@@ -483,6 +525,7 @@ namespace UnityEngine.PathTracing.Integration
             _accumulationShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorld, shaderLocalToWorld);
             _accumulationShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorldNormals, shaderLocalToWorldNormals);
             _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.InstanceGeometryIndex, instanceGeometryIndex);
+            _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.TerrainIndex, terrainIndex);
             _accumulationShader.SetFloatParam(cmd, LightmapIntegratorShaderIDs.PushOff, pushOff);
             _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.InstanceWidth, instanceWidth);
 
@@ -491,7 +534,7 @@ namespace UnityEngine.PathTracing.Integration
             _accumulationShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.CompactedGBuffer, compactedTexelIndices);
             _accumulationShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.ExpandedOutput, expandedOutput);
             if (doDirectional)
-                _accumulationShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.ExpandedDirectional, expandedDirectional);
+                _accumulationShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.ExpandedOutputDirectional, expandedDirectional);
             _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ExpandedTexelSampleWidth, (int)expandedSampleWidth);
             _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ChunkOffsetX, (int)chunkOffset.x);
             _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ChunkOffsetY, (int)chunkOffset.y);
@@ -574,6 +617,7 @@ namespace UnityEngine.PathTracing.Integration
             Matrix4x4 shaderLocalToWorld,
             Matrix4x4 shaderLocalToWorldNormals,
             int instanceGeometryIndex,
+            int terrainIndex,
             Vector2Int instanceTexelSize,
             uint2 chunkOffset,
             World world,
@@ -612,6 +656,7 @@ namespace UnityEngine.PathTracing.Integration
             _accumulationShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorld, shaderLocalToWorld);
             _accumulationShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorldNormals, shaderLocalToWorldNormals);
             _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.InstanceGeometryIndex, instanceGeometryIndex);
+            _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.TerrainIndex, terrainIndex);
             _accumulationShader.SetFloatParam(cmd, LightmapIntegratorShaderIDs.PushOff, pushOff);
             _accumulationShader.SetFloatParam(cmd, LightmapIntegratorShaderIDs.AOMaxDistance, aoMaxDistance);
             _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.InstanceWidth, instanceWidth);
@@ -689,6 +734,7 @@ namespace UnityEngine.PathTracing.Integration
             Matrix4x4 shaderLocalToWorld,
             Matrix4x4 shaderLocalToWorldNormals,
             int instanceGeometryIndex,
+            int terrainIndex,
             Vector2Int instanceTexelSize,
             uint2 chunkOffset,
             World world,
@@ -726,6 +772,7 @@ namespace UnityEngine.PathTracing.Integration
             _accumulationShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorld, shaderLocalToWorld);
             _accumulationShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorldNormals, shaderLocalToWorldNormals);
             _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.InstanceGeometryIndex, instanceGeometryIndex);
+            _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.TerrainIndex, terrainIndex);
             _accumulationShader.SetFloatParam(cmd, LightmapIntegratorShaderIDs.PushOff, pushOff);
             _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.InstanceWidth, instanceWidth);
 
@@ -802,6 +849,7 @@ namespace UnityEngine.PathTracing.Integration
             Matrix4x4 shaderLocalToWorld,
             Matrix4x4 shaderLocalToWorldNormals,
             int instanceGeometryIndex,
+            int terrainIndex,
             Vector2Int instanceTexelSize,
             uint2 chunkOffset,
             World world,
@@ -840,6 +888,7 @@ namespace UnityEngine.PathTracing.Integration
             _accumulationShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorld, shaderLocalToWorld);
             _accumulationShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorldNormals, shaderLocalToWorldNormals);
             _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.InstanceGeometryIndex, instanceGeometryIndex);
+            _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.TerrainIndex, terrainIndex);
             _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.ReceiveShadows, receiveShadows ? 1 : 0);
             _accumulationShader.SetFloatParam(cmd, LightmapIntegratorShaderIDs.PushOff, pushOff);
             _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.InstanceWidth, instanceWidth);
@@ -911,6 +960,7 @@ namespace UnityEngine.PathTracing.Integration
             Matrix4x4 shaderLocalToWorld,
             Matrix4x4 shaderLocalToWorldNormals,
             int instanceGeometryIndex,
+            int terrainIndex,
             World world,
             GraphicsBuffer gBuffer,
             uint expandedSampleWidth,
@@ -925,6 +975,7 @@ namespace UnityEngine.PathTracing.Integration
             _accumulationShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorld, shaderLocalToWorld);
             _accumulationShader.SetMatrixParam(cmd, LightmapIntegratorShaderIDs.ShaderLocalToWorldNormals, shaderLocalToWorldNormals);
             _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.InstanceGeometryIndex, instanceGeometryIndex);
+            _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.TerrainIndex, terrainIndex);
             _accumulationShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.GBuffer, gBuffer);
             _accumulationShader.SetBufferParam(cmd, LightmapIntegratorShaderIDs.LightmapSamplesExpanded, lightmapSamplesExpanded);
 

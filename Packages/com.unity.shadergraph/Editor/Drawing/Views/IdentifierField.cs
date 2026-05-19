@@ -17,11 +17,6 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         IdentifierInput tsInput => (IdentifierInput)textInputBase;
 
-        [Obsolete("UxmlFactory is deprecated and will be removed. Use UxmlElementAttribute instead.", false)]
-        public new class UxmlFactory : UxmlFactory<IdentifierField, UxmlTraits> { }
-        [Obsolete("UxmlTraits is deprecated and will be removed. Use UxmlElementAttribute instead.", false)]
-        public new class UxmlTraits : TextValueFieldTraits<string, UxmlStringAttributeDescription> { }
-
         protected override string ValueToString(string v)
         {
             return v;

@@ -147,10 +147,10 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// </summary>
         /// <param name="task">The task to add.</param>
         /// <returns>The ID of the newly created task node.</returns>
-        public TaskNodeId AddTask(ITask task)
+        public TaskNodeId AddTask(ITask task, string name = null)
         {
             Version++;
-            m_TaskNodes.Allocate(out var taskNodeId) = new TaskNodeInfo(taskNodeId, task);
+            m_TaskNodes.Allocate(out var taskNodeId) = new TaskNodeInfo(taskNodeId, task, name);
             return taskNodeId;
         }
 
@@ -531,7 +531,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
         void IMutableGraph.SetTask(TaskNodeId id, ITask task)
         {
-            m_TaskNodes[id] = new TaskNodeInfo(id, task);
+            m_TaskNodes[id] = new TaskNodeInfo(id, task, m_TaskNodes[id].Name);
         }
 
 

@@ -42,6 +42,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
         public override bool hasPreview => true;
 
+        public override bool hasUserAuthoredCode => true;
+
         public override bool canSetPrecision => Header?.allowPrecision ?? false;
 
         internal override bool ExposeToSearcher => false;

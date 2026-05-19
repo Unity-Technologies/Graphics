@@ -115,8 +115,9 @@ namespace UnityEditor.VFX
             return traitDescription;
         }
 
-        public virtual void GetImportDependentAssets(HashSet<EntityId> dependencies)
+        public virtual bool IsDependentOnAnyOf(HashSet<EntityId> dependencies)
         {
+            return false;
         }
 
         public virtual bool CanBeCompiled()
@@ -404,11 +405,18 @@ namespace UnityEditor.VFX
             return base.CanBeCompiled() && m_Topology.CanBeCompiled() && m_Shading.CanBeCompiled();
         }
 
-        public sealed override void GetImportDependentAssets(HashSet<EntityId> dependencies)
+        public sealed override bool IsDependentOnAnyOf(HashSet<EntityId> dependencies)
         {
-            base.GetImportDependentAssets(dependencies);
-            m_Topology?.GetImportDependentAssets(dependencies);
-            m_Shading?.GetImportDependentAssets(dependencies);
+            if (base.IsDependentOnAnyOf(dependencies))
+                return true;
+
+            if (m_Topology != null && m_Topology.IsDependentOnAnyOf(dependencies))
+                return true;
+
+            if (m_Shading != null && m_Shading.IsDependentOnAnyOf(dependencies))
+                return true;
+
+            return false;
         }
 
         public sealed override void OnUnknownChange()
@@ -417,21 +425,18 @@ namespace UnityEditor.VFX
             base.OnUnknownChange();
         }
 
-        public sealed override void CheckGraphBeforeImport()
+        public sealed override void ResyncDependencies()
         {
             if (m_Topology != null && m_Shading != null)
             {
                 var currentName = name;
                 MarkCacheAsDirty();
-                base.CheckGraphBeforeImport();
-                if (!VFXGraph.explicitCompile)
+                base.ResyncDependencies();
+                bool slotChanged = ResyncSlots(true);
+                if (!slotChanged && currentName != name)
                 {
-                    bool slotChanged = ResyncSlots(true);
-                    if (!slotChanged && currentName != name)
-                    {
-                        //`Invalidate(this, InvalidationCause.kUIChangedTransient)` won't trigger Modified/onModified
-                        Invalidate(InvalidationCause.kUIChangedTransient);
-                    }
+                    //`Invalidate(this, InvalidationCause.kUIChangedTransient)` won't trigger Modified/onModified
+                    Invalidate(InvalidationCause.kUIChangedTransient);
                 }
             }
         }

@@ -113,6 +113,8 @@ namespace UnityEditor.VFX.UI
 
         public static VFXViewWindow GetWindowNoShow(VFXView vfxView) => GetWindow(vfxView.controller?.graph, false, false);
         public static VFXViewWindow GetWindow(VFXView vfxView) => GetWindow(vfxView.controller?.graph);
+
+        public static bool HasAnyWindow() => s_VFXWindows.Count != 0;
         public static ReadOnlyCollection<VFXViewWindow> GetAllWindows() => s_VFXWindows.AsReadOnly();
 
         public static bool CloseIfNotLast(VFXView vfxView)
@@ -140,7 +142,7 @@ namespace UnityEditor.VFX.UI
         {
             m_ResourceHistory.RemoveAll(x => x == null);
             if (graphView != null)
-                graphView.UpdateIsSubgraph();
+                graphView.UpdateIsSubgraph(this);
         }
 
         public void LoadAsset(VisualEffectAsset asset, VisualEffect effectToAttach)
@@ -156,6 +158,7 @@ namespace UnityEditor.VFX.UI
             {
                 resource = new VisualEffectResource();
                 resource.SetAssetPath(AssetDatabase.GetAssetPath(asset));
+                resource.CreateGraph();
             }
 
             LoadResource(resource, effectToAttach);
@@ -183,7 +186,6 @@ namespace UnityEditor.VFX.UI
             if (graphView != null && !graphView.locked)
             {
                 graphView.TryAttachTo(visualEffect, true);
-                SaveChanges();
             }
             else if (visualEffect.visualEffectAsset == m_DisplayedResource.asset)
             {
@@ -196,7 +198,6 @@ namespace UnityEditor.VFX.UI
             if (graphView != null && graphView.attachedComponent == null)
             {
                 graphView.Detach();
-                SaveChanges();
             }
         }
 
@@ -222,7 +223,7 @@ namespace UnityEditor.VFX.UI
             graphView.controller = VFXViewController.GetController(resource, true);
             graphView.UpdateGlobalSelection();
             graphView.FrameNewController();
-            graphView.UpdateIsSubgraph();
+            graphView.UpdateIsSubgraph(this);
             UpdateIcon(resource);
         }
 
@@ -254,7 +255,7 @@ namespace UnityEditor.VFX.UI
                     {
                         LoadResource(resource);
                         m_ResourceHistory.Remove(resource);
-                        graphView.UpdateIsSubgraph();
+                        graphView.UpdateIsSubgraph(this);
                     }
                 }
             }
@@ -349,13 +350,34 @@ namespace UnityEditor.VFX.UI
         public bool autoReinit { get; set; }
         public float autoReinitPrewarmTime { get; set; }
 
+        public override void SaveChanges()
+        {
+            base.SaveChanges();
+            if (graphView != null)
+                graphView.OnSave();
+        }
+
+        public override void DiscardChanges()
+        {
+            base.DiscardChanges();
+            var resource = graphView?.controller?.graph?.GetResource();
+            if (resource != null)
+                VFXView.ReloadFromDisk(resource);
+        }
+
         void Update()
         {
             if (graphView == null && m_DisplayedResource == null)
+            {
+                hasUnsavedChanges = false;
                 return;
+            }
 
             VFXViewController controller = graphView?.controller;
             var filename = "No Asset";
+            hasUnsavedChanges = false;
+            saveChangesMessage = string.Empty;
+
             if (controller != null)
             {
                 controller.NotifyUpdate();
@@ -368,21 +390,33 @@ namespace UnityEditor.VFX.UI
 
                         if (EditorUtility.IsDirty(graph))
                         {
-                            filename += "*";
+                            hasUnsavedChanges = true;
+                            saveChangesMessage = VFXView.GetSaveChangesMessage(filename);
                         }
 
-                        if (autoCompile && graph.IsExpressionGraphDirty() && !graph.GetResource().isSubgraph)
+                        var processCompilation = false;
+                        if (!graph.GetResource().isSubgraph)
+                        {
+                            processCompilation = autoCompile && graph.IsExpressionGraphDirty();
+                            if (!processCompilation)
+                            {
+                                var asset = graph.GetResource().asset;
+                                if (asset != null)
+                                {
+                                    //Check if asset hasn't been reimported behind the scene (leading to an inconsistent compilation mode)
+                                    //In that case, repush a full compilation like we are opening this graph for the first time
+                                    processCompilation = VisualEffectAssetUtility.GetCompilationMode(asset) != graph.GetCompilationMode();
+                                }
+                            }
+                        }
+                        
+                        if (processCompilation)
                         {
                             graph.errorManager.RefreshCompilationReport();
-                            VFXGraph.explicitCompile = true;
-                            var asset = graph.GetResource().asset;
-                            graph.CompileAndUpdateAsset(asset);
-                            // As are implemented subgraph now, compiling dependents chain can reset dirty flag on used subgraphs, which will make an infinite loop, this is bad!
-                            graph.SetExpressionGraphDirty(false);
-                            VFXGraph.explicitCompile = false;
+                            VFXView.CompileAndUpdateAsset(graph);
                         }
                         else
-                            graph.RecompileIfNeeded(true, true);
+                            VFXView.RecompileIfNeeded(graph);
 
                         if (graph.IsCustomAttributeDirty())
                         {

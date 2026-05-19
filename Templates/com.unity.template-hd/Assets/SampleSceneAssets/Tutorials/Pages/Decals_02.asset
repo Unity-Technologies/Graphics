@@ -41,7 +41,7 @@ MonoBehaviour:
           simple surfaces.\n\r\n1. In the <i>Hierarchy,</i> select <b>Structure</b>
           > <b>Decals.</b>\r\n\r\n2. In its <i>Inspector,</i> toggle the GameObject
           <b>off</b> and <b>on.</b> \n\nSee how the decals add variations on the
-          concrete surfaces and breakup the texture tiling. \n\n3. Select <b>Structure</b>
+          concrete surfaces and break up the texture tiling. \n\n3. Select <b>Structure</b>
           > <b>Decals</b> > <b>Puddles</b>  > <b>Decal Puddle (11).</b>\n\n4. In
           its <i>Inspector,</i> reduce the <b>Fade Factor</b> parameter, in order
           to simulate the puddle drying out.\n\n\n<b>Expert tips</b>\n\n\u2022 Use

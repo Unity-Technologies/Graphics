@@ -196,11 +196,7 @@ namespace UnityEditor.VFX.Operator
 
             // Get depth
             VFXExpression depth = new VFXExpressionExtractComponent(new VFXExpressionLoadCameraBuffer(Camera_depthBuffer, uvs), 0);
-
-            if (SystemInfo.usesReversedZBuffer)
-            {
-                depth = VFXOperatorUtility.OneExpression[depth.valueType] - depth;
-            }
+            depth = new VFXExpressionDecodeDepth(depth);
 
             VFXExpression isAlive = VFXValue.Constant(true);
 

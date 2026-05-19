@@ -794,10 +794,6 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    [System.Obsolete("VFXComponentBoardEventUIFactory is deprecated and will be removed. Use UxmlElementAttribute instead.", false)]
-    class VFXComponentBoardEventUIFactory : UxmlFactory<VFXComponentBoardEventUI>
-    { }
-
     [UxmlElement]
     partial class VFXComponentBoardEventUI : VisualElement
     {

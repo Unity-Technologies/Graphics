@@ -49,7 +49,7 @@ MonoBehaviour:
           Use the <b>Limit Min</b> and <b>Limit Max</b> overrides to control how
           much the Automatic Exposure can fluctuate within a fixed range of values,
           to prevent it from displaying too dark or too bright images.\n\n\u2022
-          Use the <b>Compensation</b> overrie to slightly nudge the exposure up or
+          Use the <b>Compensation</b> override to slightly nudge the exposure up or
           down in case you aren't exactly satisfied with the exposure value selected
           by the system.\n\n\u2022 HDRP offers a wide range of mid grey targets,
           from 12.5% to 18% grey, to simulate the exposure system from most camera

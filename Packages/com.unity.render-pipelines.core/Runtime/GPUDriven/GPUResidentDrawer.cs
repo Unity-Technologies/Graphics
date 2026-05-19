@@ -14,6 +14,7 @@ using UnityEngine.PlayerLoop;
 using UnityEngine.SceneManagement;
 using UnityEngine.Rendering.RenderGraphModule;
 using Unity.Burst;
+using Unity.Scripting.LifecycleManagement;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -57,13 +58,20 @@ namespace UnityEngine.Rendering
 #else
         internal const bool EnableDeepValidation = false;
 #endif
-
+        [AutoStaticsCleanup]
         internal static bool MaintainContext { get; set; } = false;
+
+        [AutoStaticsCleanup]
         internal static bool ForceOcclusion { get; set; } = false;
 
-        private static GPUResidentDrawer s_Instance = null;
-
+        [AutoStaticsCleanup]
         private static uint s_InstanceVersion = 0;
+
+        [AutoStaticsCleanup]
+        internal static Action<bool, bool> initializedChanged; // previousValue, currentValue
+
+        [NoAutoStaticsCleanup]  // Manually cleaned up with [OnCodeUnloading] Cleanup()
+        private static GPUResidentDrawer s_Instance = null;
 
         ////////////////////////////////////////
         // Public API for rendering pipelines //
@@ -272,13 +280,6 @@ namespace UnityEngine.Rendering
             LowLevel.PlayerLoop.SetPlayerLoop(rootLoop);
         }
 
-#if UNITY_EDITOR
-        private static void OnAssemblyReload()
-        {
-            Cleanup();
-        }
-#endif
-
         internal static GPUResidentDrawerSettings GetGlobalSettingsFromRPAsset()
         {
             var renderPipelineAsset = GraphicsSettings.currentRenderPipeline;
@@ -343,7 +344,20 @@ namespace UnityEngine.Rendering
 #endif
         }
 
-        internal static Action<bool, bool> initializedChanged; // previousValue, currentValue
+#if UNITY_EDITOR
+        [InitializeOnEnterPlayMode]
+        private static void OnEnteringPlaymode(EnterPlayModeOptions options)
+        {
+            if (options.HasFlag(EnterPlayModeOptions.DisableDomainReload))
+                Cleanup();
+        }
+
+        [OnCodeUnloading]
+        private static void OnCodeUnloading()
+        {
+            Cleanup();
+        }
+#endif
 
         private static void Cleanup()
         {
@@ -481,8 +495,6 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
             m_FrameCameraIDs = new NativeList<EntityId>(1, Allocator.Persistent);
-            if (!internalSettings.isManagedByUnitTest)
-                AssemblyReloadEvents.beforeAssemblyReload += OnAssemblyReload;
 #endif
             SceneManager.sceneLoaded += OnSceneLoaded;
 
@@ -490,6 +502,9 @@ namespace UnityEngine.Rendering
             RenderPipelineManager.endContextRendering += OnEndContextRendering;
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
+
+            const string useLegacyLightmapsKeyword = "USE_LEGACY_LIGHTMAPS";
+            Shader.EnableKeyword(useLegacyLightmapsKeyword);
 
             if (!internalSettings.isManagedByUnitTest)
                 InsertIntoPlayerLoop();
@@ -512,9 +527,6 @@ namespace UnityEngine.Rendering
                 m_GPUDrivenProcessor.DisableGPUDrivenRendering(rendererIDs);
 
 #if UNITY_EDITOR
-            if (!m_InternalSettings.isManagedByUnitTest)
-                AssemblyReloadEvents.beforeAssemblyReload -= OnAssemblyReload;
-
             if (m_FrameCameraIDs.IsCreated)
                 m_FrameCameraIDs.Dispose();
 #endif
@@ -528,6 +540,9 @@ namespace UnityEngine.Rendering
 
             if (!m_InternalSettings.isManagedByUnitTest)
                 RemoveFromPlayerLoop();
+
+            const string useLegacyLightmapsKeyword = "USE_LEGACY_LIGHTMAPS";
+            Shader.DisableKeyword(useLegacyLightmapsKeyword);
 
             m_WorldProcessor.Dispose();
             m_WorldProcessor = null;

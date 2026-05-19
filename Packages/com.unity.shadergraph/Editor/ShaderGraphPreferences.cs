@@ -202,7 +202,7 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 EditorGUI.BeginChangeCheck();
-                var zoomStepSizeValue = EditorGUILayout.Slider(Labels.zoomStepSize.text, zoomStepSize, 0.0f, 1f);
+                var zoomStepSizeValue = EditorGUILayout.Slider(Labels.zoomStepSize, zoomStepSize, 0.0f, 1f);
                 if (EditorGUI.EndChangeCheck())
                 {
                     zoomStepSize = zoomStepSizeValue;

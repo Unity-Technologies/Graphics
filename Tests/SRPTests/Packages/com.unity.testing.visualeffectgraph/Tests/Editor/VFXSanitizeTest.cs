@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
+using UnityEditor.VFX.Operator;
 using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -20,6 +22,7 @@ namespace UnityEditor.VFX.Test
         {
             VFXTestCommon.CloseAllUnecessaryWindows();
             VFXTestCommon.DeleteAllTemporaryGraph();
+            SanitizeTest_PostProcessor.Enabled = false;
         }
 
         [SetUp]
@@ -27,6 +30,7 @@ namespace UnityEditor.VFX.Test
         {
             VFXTestCommon.CloseAllUnecessaryWindows();
             VFXTestCommon.DeleteAllTemporaryGraph();
+            SanitizeTest_PostProcessor.Enabled = true;
         }
 
         [UnityTest]
@@ -110,7 +114,7 @@ namespace UnityEditor.VFX.Test
             "D_3",
             "E_2",
             "F_4",
-            //"G_4", //Cover UUM-99973, fixed by PR #57335
+            "G_4", //Cover UUM-99973
             //"H_61"
         };
 
@@ -142,9 +146,9 @@ namespace UnityEditor.VFX.Test
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
-                vfx.GetOrCreateResource().GetOrCreateGraph().SanitizeForImport();
-                vfx.GetOrCreateResource().GetOrCreateGraph().UpdateSubAssets();
-                vfx.GetOrCreateResource().WriteAsset();
+                vfx.GetResource().GetGraph().PrepareGraph();
+                vfx.GetResource().GetGraph().UpdateSubAssets();
+                vfx.GetResource().WriteAsset();
             }
             yield return null;
 
@@ -153,9 +157,9 @@ namespace UnityEditor.VFX.Test
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectObject>(path);
-                vfx.GetOrCreateResource().GetOrCreateGraph().SanitizeForImport();
-                vfx.GetOrCreateResource().GetOrCreateGraph().UpdateSubAssets();
-                vfx.GetOrCreateResource().WriteAsset();
+                vfx.GetResource().GetGraph().PrepareGraph();
+                vfx.GetResource().GetGraph().UpdateSubAssets();
+                vfx.GetResource().WriteAsset();
             }
 
             //Trying to open VFXViewWindows (caught potential invalid states)
@@ -164,7 +168,7 @@ namespace UnityEditor.VFX.Test
 
             foreach (var guid in allVFXObject)
             {
-                var window = VFXViewWindow.GetWindow<VFXViewWindow>();
+                var window = VFXTestCommon.GetViewWindow();
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 var resource = VisualEffectResource.GetResourceAtPath(path);
                 Assert.IsNotNull(resource);
@@ -204,24 +208,24 @@ namespace UnityEditor.VFX.Test
 
             var rootAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(rootPath);
             Assert.IsNotNull(rootAsset);
-            var rootGraph = rootAsset.GetOrCreateResource().GetOrCreateGraph();
+            var rootGraph = rootAsset.GetResource().GetGraph();
             Assert.IsNotNull(rootGraph);
-            rootGraph.SanitizeForImport();
-            rootAsset.GetOrCreateResource().WriteAsset();
+            rootGraph.PrepareGraph();
+            rootAsset.GetResource().WriteAsset();
             yield return null;
 
             var childResource = VisualEffectResource.GetResourceAtPath(childPath);
             Assert.IsNotNull(childResource);
-            var childGraph = childResource.GetOrCreateGraph();
+            var childGraph = childResource.GetGraph();
             Assert.IsNotNull(childGraph);
-            childGraph.SanitizeForImport();
+            childGraph.PrepareGraph();
             childResource.WriteAsset();
             yield return null;
         }
 
         public static readonly bool[] kFalseOrTrue = { false, true };
 
-        [UnityTest, Ignore("Cover UUM-99970, fixed by PR #57335")]
+        [UnityTest, Description("Cover UUM-99970")]
         public IEnumerator Change_SG_Exposed_Properties_With_Order_Two_Subgraph([ValueSource(nameof(kFalseOrTrue))] bool sanitizeRoot, [ValueSource(nameof(kFalseOrTrue))] bool sanitizeChild)
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_SG_Subgraph_Missing_Sanitize.unitypackage";
@@ -242,18 +246,18 @@ namespace UnityEditor.VFX.Test
             {
                 var rootAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(rootPath);
                 Assert.IsNotNull(rootAsset);
-                var rootGraph = rootAsset.GetOrCreateResource().GetOrCreateGraph();
+                var rootGraph = rootAsset.GetResource().GetGraph();
                 Assert.IsNotNull(rootGraph);
-                rootGraph.SanitizeForImport();
+                rootGraph.PrepareGraph();
             }
 
             if (sanitizeChild)
             {
                 var childAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(childPath);
                 Assert.IsNotNull(childAsset);
-                var childGraph = childAsset.GetOrCreateResource().GetOrCreateGraph();
+                var childGraph = childAsset.GetResource().GetGraph();
                 Assert.IsNotNull(childGraph);
-                childGraph.SanitizeForImport();
+                childGraph.PrepareGraph();
             }
 
             File.WriteAllText(sgAPath, contentB); //sgBPath has one exposed properties while sgAPath is empty
@@ -267,13 +271,13 @@ namespace UnityEditor.VFX.Test
                 var rootAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(rootPath);
                 Assert.IsNotNull(rootAsset);
 
-                var rootGraph = rootAsset.GetOrCreateResource().GetOrCreateGraph();
+                var rootGraph = rootAsset.GetResource().GetGraph();
+                rootGraph.PrepareGraph();
                 Assert.IsNotNull(rootGraph);
-                Assert.AreEqual(sanitizeRoot, rootGraph.sanitized);
                 var subGraphContext = rootGraph.children.FirstOrDefault() as VFXSubgraphContext;
                 Assert.IsNotNull(subGraphContext);
-
-                rootGraph.SanitizeForImport();
+                
+                rootGraph.PrepareGraph();
                 Assert.IsNotNull(subGraphContext.subChildren);
                 var graphOutputInRoot = subGraphContext.subChildren.OfType<VFXComposedParticleOutput>().SingleOrDefault();
                 Assert.IsNotNull(graphOutputInRoot);
@@ -289,18 +293,17 @@ namespace UnityEditor.VFX.Test
                 var childAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(childPath);
                 Assert.IsNotNull(childAsset);
 
-                var childGraph = childAsset.GetOrCreateResource().GetOrCreateGraph();
+                var childGraph = childAsset.GetResource().GetGraph();
                 Assert.IsNotNull(childGraph);
-                Assert.AreEqual(sanitizeChild, childGraph.sanitized);
 
                 var graphOutputInChild = childGraph.children.OfType<VFXComposedParticleOutput>().SingleOrDefault();
                 Assert.IsNotNull(graphOutputInChild);
 
-                childGraph.SanitizeForImport();
+                childGraph.PrepareGraph();
                 Assert.AreEqual(1, graphOutputInChild.inputSlots.Count);
                 Assert.AreEqual("_Vector3", graphOutputInChild.inputSlots[0].fullName);
 
-                childAsset.GetOrCreateResource().WriteAsset();
+                childAsset.GetResource().WriteAsset();
             }
 
             yield return null;
@@ -322,24 +325,24 @@ namespace UnityEditor.VFX.Test
             {
                 var rootAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(rootPath);
                 Assert.IsNotNull(rootAsset);
-                var rootGraph = rootAsset.GetOrCreateResource().GetOrCreateGraph();
+                var rootGraph = rootAsset.GetResource().GetGraph();
                 Assert.IsNotNull(rootGraph);
-                rootGraph.SanitizeForImport();
+                rootGraph.PrepareGraph();
             }
 
             if (sanitizeChild)
             {
                 var childAsset = VisualEffectResource.GetResourceAtPath(childPath);
                 Assert.IsNotNull(childAsset);
-                var childGraph = childAsset.GetOrCreateGraph();
+                var childGraph = childAsset.GetGraph();
                 Assert.IsNotNull(childGraph);
-                childGraph.SanitizeForImport();
+                childGraph.PrepareGraph();
             }
 
             var leafAsset = VisualEffectResource.GetResourceAtPath(leafPath);
             Assert.IsNotNull(leafAsset);
-            var leafGraph = leafAsset.GetOrCreateGraph();
-            leafGraph.SanitizeForImport();
+            var leafGraph = leafAsset.GetGraph();
+            leafGraph.PrepareGraph();
 
             var viewController = VFXViewController.GetController(leafAsset, true);
             viewController.useCount++;
@@ -354,6 +357,312 @@ namespace UnityEditor.VFX.Test
             viewController.useCount--;
 
             yield return null;
+        }
+
+        static bool[] s_stressTestPollingInVFXViewController = { false, true };
+
+        [UnityTest, Description("Cover UUM-67336 (Reimport with window opened)")]
+        public IEnumerator Reimport_Sanitize_Twice_With_Window_Opened([ValueSource(nameof(s_stressTestPollingInVFXViewController))] bool stressTest)
+        {
+            var valueNoiseGUID = "bdeb9303d55801f4da41a7faa98bd5f6";
+            var noiseGUID = "a30aeb734589f22468d3ed89a2ecc09c";
+
+            var reproPath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_VFXValueNoise_Sanitize.vfx_";
+
+            var vfxGraph = VFXTestCommon.CopyTemporaryGraph(reproPath);
+            var vfxPath = AssetDatabase.GetAssetPath(vfxGraph);
+            var originalContent = File.ReadAllText(vfxPath);
+            Assert.AreEqual(1, Regex.Matches(originalContent, valueNoiseGUID).Count);
+            Assert.AreEqual(0, Regex.Matches(originalContent, noiseGUID).Count);
+
+            yield return null;
+
+            var resource = vfxGraph.GetResource();
+            Assert.IsNotNull(resource);
+
+            var beforeSanitizeModel = vfxGraph.children.Single();
+            Assert.IsInstanceOf<VFXOperator>(beforeSanitizeModel);
+            Assert.IsInstanceOf<ValueNoise>(beforeSanitizeModel);
+
+            var window = VFXTestCommon.GetViewWindow();
+            window.LoadResource(resource, null);
+
+            for (int i = 0; i < 4; ++i)
+            {
+                window.graphView.controller.LightApplyChanges();
+                var controller = window.graphView.controller.AllSlotContainerControllers.Single();
+
+                Assert.IsInstanceOf<VFXOperator>(controller.model);
+                Assert.IsNotInstanceOf<ValueNoise>(controller.model);
+                Assert.IsInstanceOf<Noise>(controller.model);
+
+                window.graphView.OnSave();
+                if (!stressTest)
+                {
+                    //VFXViewController might keep reference on deleted scriptable object
+                    yield return null;
+                }
+
+                var newContent = File.ReadAllText(vfxPath);
+                Assert.AreNotEqual(originalContent, newContent);
+                Assert.AreEqual(0, Regex.Matches(newContent, valueNoiseGUID).Count);
+                Assert.AreEqual(1, Regex.Matches(newContent, noiseGUID).Count);
+                if (!stressTest)
+                {
+                    yield return null;
+                }
+
+                File.WriteAllText(vfxPath, originalContent);
+                AssetDatabase.Refresh();
+
+                yield return null;
+            }
+
+            window.Close();
+            yield return null;
+        }
+
+        class SanitizeTest_PostProcessor : AssetPostprocessor
+        {
+            public static bool Enabled = false;
+            public static int Count = 0;
+            public static string[] LastImportedAssets;
+            static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+            {
+                if (Enabled)
+                {
+                    Count++;
+                    LastImportedAssets = (string[])importedAssets.Clone();
+                }
+            }
+        }
+
+        readonly string[] kInsure_OnPostprocessAllAssets_Chain = new[]
+        {
+            "A_SubgraphChain_0.shadergraph",
+            "A_SubgraphChain_1.vfx",
+            "A_SubgraphChain_2.vfxblock",
+            "A_SubgraphChain_3.vfx"
+        };
+
+        readonly int[][] kInsure_OnPostprocessAllAssets_Dependencies = new[]
+        {
+            new int[] { },
+            new int[] { 0, 2 },
+            new int[] { },
+            new int[] { 1 }
+        };
+
+        readonly string kInsure_OnPostprocessAllAssets_PackagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_SubgraphChain.unitypackage";
+        readonly string kInsure_OnPostprocessAllAssets_Scene = "SubgraphChain.unity";
+
+        public IEnumerator Insure_OnPostprocessAllAssets_Common()
+        {
+            SanitizeTest_PostProcessor.Count = 0;
+            yield return null;
+            Assert.AreEqual(0, SanitizeTest_PostProcessor.Count);
+
+            AssetDatabase.ImportPackageImmediately(kInsure_OnPostprocessAllAssets_PackagePath);
+            for (int i = 0; i < 4; i++)
+                yield return null;
+            Assert.AreEqual(1, SanitizeTest_PostProcessor.Count);
+            SanitizeTest_PostProcessor.Count = 0;
+        }
+
+        [UnityTest, Description("Integration Test: Verify that Open VFX recompiles automatically when a VFX resource changes, and ensure that multiple post-process events are triggered during OnPostprocessAllAssets when assets change on disk.")]
+        public IEnumerator Insure_OnPostprocessAllAssets_Called_Once_Per_Frame()
+        {
+            yield return Insure_OnPostprocessAllAssets_Common();
+            SceneManagement.EditorSceneManager.OpenScene(Path.Combine(VFXTestCommon.tempBasePath, kInsure_OnPostprocessAllAssets_Scene));
+
+            var vfxResource = VisualEffectResource.GetResourceAtPath(Path.Combine(VFXTestCommon.tempBasePath, kInsure_OnPostprocessAllAssets_Chain.Last()));
+            Assert.IsNotNull(vfxResource);
+
+            var window = VFXTestCommon.GetWindow(vfxResource, true, true);
+            window.LoadResource(vfxResource, null);
+
+            for (int i = 0; i < 4; i++)
+                yield return null;
+            Assert.AreEqual(0, SanitizeTest_PostProcessor.Count, "No expected import after opening the window");
+
+            var switchAssetScenario = new[]
+            {
+                new[] { 0 },
+                new[] { 1 },
+                new[] { 1, 2 },
+                new[] { 0, 1, 2 },
+            };
+
+            foreach (var scenario in switchAssetScenario)
+            {
+                //Experiment
+                SanitizeTest_PostProcessor.Count = 0;
+                foreach (var change in scenario)
+                {
+                    var basePath = Path.Combine(VFXTestCommon.tempBasePath, kInsure_OnPostprocessAllAssets_Chain[change]);
+                    var newContentPath = basePath.Replace("A_", "B_");
+                    var newContent = File.ReadAllBytes(newContentPath);
+                    File.WriteAllBytes(basePath, newContent);
+                }
+                AssetDatabase.Refresh();
+
+                for (int i = 0; i < 4; i++)
+                    yield return null;
+                Assert.AreEqual(1, SanitizeTest_PostProcessor.Count, "Expect only one import for any disk transaction");
+
+                //Restore for next loop
+                SanitizeTest_PostProcessor.Count = 0;
+                AssetDatabase.ImportPackageImmediately(kInsure_OnPostprocessAllAssets_PackagePath);
+                for (int i = 0; i < 4; i++)
+                    yield return null;
+                Assert.AreEqual(1, SanitizeTest_PostProcessor.Count);
+                SanitizeTest_PostProcessor.Count = 0;
+            }
+
+            window.Close();
+        }
+
+        static GUID[] OnFilterResourceDependencies(string basePath)
+        {
+            var baseGuid = AssetDatabase.GUIDFromAssetPath(basePath);
+            var externalRefsGuid = VisualEffectAssetUtility.GetVisualEffectExternalRefs(baseGuid);
+            var externalRefsPath = externalRefsGuid.Select(AssetDatabase.GUIDToAssetPath).ToArray();
+            var subAssets = VisualEffectResource.onFilterImportDependencies(externalRefsGuid, externalRefsPath, false);
+            return subAssets;
+        }
+
+        [UnityTest, Description("Integration Test: Verify expected behavior from GetVisualEffectDynamicDependencies with OnPostprocessAllAssets invocation")]
+        public IEnumerator Insure_OnPostprocessAllAssets_GetVisualEffectDynamicDependencies_Isolation()
+        {
+            yield return Insure_OnPostprocessAllAssets_Common();
+
+            Assert.IsNotNull(VisualEffectResource.onFilterImportDependencies);
+            for (int i = 1; i < kInsure_OnPostprocessAllAssets_Chain.Length; ++i) //First is SG
+            {
+                var basePath = Path.Combine(VFXTestCommon.tempBasePath, kInsure_OnPostprocessAllAssets_Chain[i]);
+                var subAssets = OnFilterResourceDependencies(basePath);
+
+                var expectedDependencies = kInsure_OnPostprocessAllAssets_Dependencies[i];
+                Assert.AreEqual(subAssets.Length, expectedDependencies.Length);
+                foreach (var expectedDependency in expectedDependencies)
+                {
+                    var dependencyPath = Path.Combine(VFXTestCommon.tempBasePath, kInsure_OnPostprocessAllAssets_Chain[expectedDependency]);
+                    var dependencyGuid = AssetDatabase.GUIDFromAssetPath(dependencyPath);
+                    Assert.IsTrue(subAssets.Contains(dependencyGuid), "Can't find dependency: {0} for asset: {1}", dependencyPath, basePath);
+                }
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator Insure_OnPostprocessAllAssets_GetVisualEffectDynamicDependencies_Isolation_CustomSpawner()
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var spawnBlockDesc = VFXLibrary.GetBlocks().Single(o => o.name == ObjectNames.NicifyVariableName("IncrementStripIndexOnStart"));
+            var spawnBlock = spawnBlockDesc.variant.CreateInstance();
+            spawnerContext.AddChild(spawnBlock);
+            graph.AddChild(spawnerContext);
+            VFXTestCommon.ReimportVFXGraph(graph);
+            yield return null;
+
+            var basePath = AssetDatabase.GetAssetPath(graph);
+            var subAssets = OnFilterResourceDependencies(basePath);
+            Assert.AreEqual(1, subAssets.Length);
+
+            var subAssetPath = AssetDatabase.GUIDToAssetPath(subAssets[0]);
+            Assert.IsTrue(subAssetPath.EndsWith("IncrementStripIndexOnStart.cs"));
+        }
+
+
+        [UnityTest]
+        public IEnumerator Insure_OnPostprocessAllAssets_GetVisualEffectDynamicDependencies_Isolation_CustomHLSL()
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+
+            var operatorName = "Insure_OnPostprocessAllAssets_GetVisualEffectDynamicDependencies_Isolation_CustomHLSL";
+            var shaderInclude = VFXTestCommon.CreateShaderFile("float add(float a, float b) { return a + b; } ", out var shaderIncludePath);
+            var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslOperator.SetSettingValue("m_ShaderFile", shaderInclude);
+            hlslOperator.SetSettingValue("m_OperatorName", operatorName);
+            graph.AddChild(hlslOperator);
+            VFXTestCommon.ReimportVFXGraph(graph);
+            yield return null;
+
+            var basePath = AssetDatabase.GetAssetPath(graph);
+            var subAssets = OnFilterResourceDependencies(basePath);
+            Assert.AreEqual(1, subAssets.Length);
+
+            var subAssetPath = AssetDatabase.GUIDToAssetPath(subAssets[0]);
+            Assert.AreEqual(shaderIncludePath, subAssetPath);
+        }
+
+        [UnityTest, Description("Integration Test: Verify expected behavior from GetVisualEffectDynamicDependencies with OnPostprocessAllAssets invocation")]
+        public IEnumerator Insure_OnPostprocessAllAssets_Called_On_Dependency_Changed()
+        {
+            yield return Insure_OnPostprocessAllAssets_Common();
+            VFXTestCommon.CloseAllVFXWindow();
+
+            var mainAssetPath = Path.Combine(VFXTestCommon.tempBasePath, kInsure_OnPostprocessAllAssets_Chain.Last());
+            foreach (var assetChain in kInsure_OnPostprocessAllAssets_Chain)
+            {
+                SanitizeTest_PostProcessor.Count = 0;
+                SanitizeTest_PostProcessor.LastImportedAssets = Array.Empty<string>();
+
+                var basePath = Path.Combine(VFXTestCommon.tempBasePath, assetChain);
+                var newContentPath = basePath.Replace("A_", "B_");
+                var newContent = File.ReadAllBytes(newContentPath);
+                File.WriteAllBytes(basePath, newContent);
+                AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ImportRecursive);
+                yield return null;
+
+                Assert.AreEqual(1, SanitizeTest_PostProcessor.Count, "Expect only one import for any disk transaction: {0}", assetChain);
+                Assert.IsTrue(SanitizeTest_PostProcessor.LastImportedAssets.Contains(basePath), "Can't find subAsset: {0}", assetChain);
+                Assert.IsTrue(SanitizeTest_PostProcessor.LastImportedAssets.Contains(mainAssetPath), "Can't find mainAsset: {0} after change of: {1}", mainAssetPath, basePath);
+
+                SanitizeTest_PostProcessor.Count = 0;
+                AssetDatabase.ImportPackageImmediately(kInsure_OnPostprocessAllAssets_PackagePath);
+                yield return null;
+                Assert.AreEqual(1, SanitizeTest_PostProcessor.Count);
+            }
+        }
+
+        static bool FindInShaderSource(VisualEffectResource vfxResource, string match)
+        {
+            for (int shaderIndex = 0; shaderIndex < vfxResource.GetShaderSourceCount(); ++shaderIndex)
+            {
+                var shaderSource = vfxResource.GetShaderSource(shaderIndex);
+                if (shaderSource.Contains(match))
+                    return true;
+            }
+
+            return false;
+        }
+
+        [UnityTest, Description("Cover UUM-133319")]
+        public IEnumerator Repro_Simplest_Subgraph_Chain()
+        {
+            VFXTestCommon.CloseAllVFXWindow();
+            AssetDatabase.ImportPackageImmediately("Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_Simplest_Subgraph_Chain.unitypackage");
+            AssetDatabase.Refresh();
+            yield return null;
+
+            var mainGraphPath = Path.Combine(VFXTestCommon.tempBasePath, "Repro_Simplest_Subgraph_Chain.vfx");
+            var subGraphPath = Path.Combine(VFXTestCommon.tempBasePath, "Repro_Simplest_Subgraph_Chain.vfxblock");
+
+            var mainGraphAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(mainGraphPath);
+            var subGraphAsset = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraph>(subGraphPath);
+            Assert.IsNotNull(mainGraphAsset);
+            Assert.IsNotNull(subGraphAsset);
+
+            Assert.IsTrue(FindInShaderSource(mainGraphAsset.GetResource(), "void Gravity"));
+
+            var subgraphContext = subGraphAsset.GetResource().GetGraph().children.Single();
+            var gravity = subgraphContext.children.OfType<Block.Gravity>().Single();
+            subgraphContext.RemoveChild(gravity);
+            subGraphAsset.GetResource().WriteAsset();
+            yield return null;
+
+            Assert.IsFalse(FindInShaderSource(mainGraphAsset.GetResource(), "void Gravity"));
         }
     }
 }

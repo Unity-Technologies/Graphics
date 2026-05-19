@@ -1,11 +1,10 @@
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.Universal.U2D.Profiler;
 
 namespace UnityEngine.Rendering.Universal
 {
     internal class GlobalPropertiesPass : ScriptableRenderPass
     {
-        static readonly string k_SetGlobalProperties = "SetGlobalProperties";
-        private static readonly ProfilingSampler m_SetGlobalPropertiesProfilingSampler = new ProfilingSampler(k_SetGlobalProperties);
 
         class PassData
         {
@@ -18,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             Renderer2DData rendererData = frameData.Get<Universal2DRenderingData>().renderingData;
 
-            using (var builder = graph.AddRasterRenderPass<PassData>(k_SetGlobalProperties, out var passData, m_SetGlobalPropertiesProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>(ProfilerMarkers.s_SetGlobalProperties, out var passData, ProfilerMarkers.s_ProfilingSamplerSetGlobalProperties))
             {
                 // Set screenParams when pixel perfect camera is used with the reference resolution
                 passData.screenParams = Vector2Int.zero;

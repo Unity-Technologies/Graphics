@@ -240,6 +240,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         readonly string kAllHintsGraphPath = "Assets/Testing/IntegrationTests/Graphs/ProviderSystem/ShouldCompileProperlyOnImport.shadergraph";
 
         [Test]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })] // Unstable: https://jira.unity3d.com/browse/UUM-141869
         public void CheckAllHints()
         {
             // 'AllHints.hlsl' is used by 'ShouldCompileOnImport.shadergraph'

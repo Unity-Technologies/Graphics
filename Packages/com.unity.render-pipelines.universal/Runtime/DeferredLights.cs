@@ -466,7 +466,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_stencilVisLightOffsets.IsCreated)
                 m_stencilVisLightOffsets.Dispose();
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             for (int i = 0; i < m_GbufferTextureHandles.Length; i++)
             {
                 m_GbufferTextureHandles[i] = TextureHandle.nullHandle;
@@ -796,6 +796,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Also separate shadow caster lights from non-shadow caster.
             int lastLightCookieIndex = -1;
             bool isFirstLight = true;
+            bool isFirstAdditionalLight = true;
             bool lastLightCookieKeywordState = false;
             bool lastShadowsKeywordState = false;
             bool lastSoftShadowsKeywordState = false;
@@ -829,7 +830,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     int shadowLightIndex = hasAdditionalLightPass ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(visLightIndex) : -1;
                     hasDeferredShadows = light && light.shadows != LightShadows.None && shadowLightIndex >= 0;
                     cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
-                    SetLightCookiesKeyword(cmd, visLightIndex, hasLightCookieManager, isFirstLight, ref lastLightCookieKeywordState, ref lastLightCookieIndex);
+                    SetLightCookiesKeyword(cmd, visLightIndex, hasLightCookieManager, isFirstAdditionalLight, ref lastLightCookieKeywordState, ref lastLightCookieIndex);
+                    isFirstAdditionalLight = false;
                 }
 
                 // Update keywords states

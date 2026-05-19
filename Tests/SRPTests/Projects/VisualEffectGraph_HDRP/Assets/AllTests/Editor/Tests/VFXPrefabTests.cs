@@ -115,7 +115,7 @@ namespace UnityEditor.VFX.Test
                 graph.AddChild(parameter);
             }
 
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
 
             var mainObject = MakeTemporaryGameObject();
             var vfx = mainObject.AddComponent<VisualEffect>();
@@ -235,7 +235,7 @@ namespace UnityEditor.VFX.Test
             {
                 Add_Valid_System(graph);
             }
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
 
             var mainObject = MakeTemporaryGameObject();
             GameObject prefabInstanceObject;
@@ -285,7 +285,7 @@ namespace UnityEditor.VFX.Test
             {
                 Add_Valid_System(graph);
             }
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
 
             var mainObject = MakeTemporaryGameObject();
             GameObject prefabInstanceObject;
@@ -365,7 +365,7 @@ namespace UnityEditor.VFX.Test
             parameter.value = new Vector3(0, 0, 0);
             graph.AddChild(parameter);
 
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
 
             var mainObject = MakeTemporaryGameObject();
 
@@ -449,7 +449,7 @@ namespace UnityEditor.VFX.Test
             parameter.SetSettingValue("m_Exposed", true);
             parameter.value = 123u;
             graph.AddChild(parameter);
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
 
             var mainObject = new GameObject("CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable", typeof(VisualEffect));
             mainObject.GetComponent<VisualEffect>().visualEffectAsset = graph.visualEffectResource.asset;
@@ -500,7 +500,7 @@ namespace UnityEditor.VFX.Test
             parameter.SetSettingValue("m_Exposed", true);
             parameter.value = 123u;
             graph.AddChild(parameter);
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            VFXTestCommon.ReimportVFXGraph(graph);
 
             var mainObject = new GameObject("CreatePrefab_VFX_Undo_Redo", typeof(VisualEffect));
             var vfx = mainObject.GetComponent<VisualEffect>();

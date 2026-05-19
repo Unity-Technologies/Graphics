@@ -28,6 +28,11 @@ namespace UnityEditor.ShaderGraph
             }
         };
 
+        // Overrides the default Float4 uv1 with Uint4 because UIE packs integer IDs into TEXCOORD1.
+        internal static readonly FieldDescriptor PackedIdsAttribute = new FieldDescriptor(
+            "Attributes", "uv1", "ATTRIBUTES_NEED_TEXCOORD1", ShaderValueType.Uint4,
+            "TEXCOORD1", subscriptOptions: StructFieldOptions.Optional);
+
         public static StructDescriptor Attributes = new StructDescriptor()
         {
             name = "Attributes",
@@ -37,14 +42,9 @@ namespace UnityEditor.ShaderGraph
             {
                 StructFields.Attributes.positionOS,
                 StructFields.Attributes.color,
-                StructFields.Attributes.uv0,
-                StructFields.Attributes.uv1,
-                StructFields.Attributes.uv2,
-                StructFields.Attributes.uv3,
-                StructFields.Attributes.uv4,
-                StructFields.Attributes.uv5,
-                StructFields.Attributes.uv6,
-                StructFields.Attributes.uv7,
+                StructFields.Attributes.uv0,        // .xy = uv, .zw = layoutUV
+                PackedIdsAttribute,                 // .x:[xform|clip] .y:[opacity|textcoreOrGrad] .z:[tex|flags] .w:reserved
+                StructFields.Attributes.uv2,        // .xy outer | .zw inner | .x text-extra-dilate
                 StructFields.Attributes.instanceID,
                 StructFields.Attributes.vertexID,
             }
@@ -60,11 +60,7 @@ namespace UnityEditor.ShaderGraph
                 new FieldDescriptor("VertexDescriptionInputs", "vertexPosition", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static),
                 new FieldDescriptor("VertexDescriptionInputs", "vertexColor", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static),
                 new FieldDescriptor("VertexDescriptionInputs", "uv", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static),
-                new FieldDescriptor("VertexDescriptionInputs", "xformClipPages", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static),
-                new FieldDescriptor("VertexDescriptionInputs", "ids", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static),
-                new FieldDescriptor("VertexDescriptionInputs", "flags", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static),
-                new FieldDescriptor("VertexDescriptionInputs", "opacityColorPages", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static),
-                new FieldDescriptor("VertexDescriptionInputs", "settingIndex", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static),
+                new FieldDescriptor("VertexDescriptionInputs", "packedIds", "", ShaderValueType.Uint4, subscriptOptions: StructFieldOptions.Static),
                 new FieldDescriptor("VertexDescriptionInputs", "circle", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static),
 
                 // optionals

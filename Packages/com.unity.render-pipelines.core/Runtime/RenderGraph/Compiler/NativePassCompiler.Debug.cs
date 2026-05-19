@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 debugPass.resourceReadLists = new RenderGraph.DebugData.PassData.ResourceIdLists();
                 debugPass.resourceWriteLists = new RenderGraph.DebugData.PassData.ResourceIdLists();
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
                 debugPass.scriptInfo = graphPass.debugScriptInfo;
 #endif
 

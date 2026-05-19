@@ -39,6 +39,9 @@ namespace UnityEditor.VFX.UI
             Count
         }
 
+        readonly GUID m_Guid;
+        public GUID Guid => m_Guid;
+
         string m_Name;
 
         public string name
@@ -218,7 +221,10 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                     Profiler.EndSample();
-                    if (!kv.Value && obj is VFXModel vfxModel && errorRefresh) // we refresh errors only if it wasn't a ui change
+                    if (!kv.Value
+                        && obj is VFXModel vfxModel
+                        && vfxModel != null //vfxModel can be null if reference object has been deleted before polled NotifyUpdate
+                        && errorRefresh) // we refresh errors only if it wasn't a ui change
                     {
                         vfxModel.RefreshErrors();
                     }
@@ -264,7 +270,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXGraph graph { get { return model != null ? model.graph as VFXGraph : null; } }
+        public VFXGraph graph { get { return model != null ? model.GetGraph() : null; } }
 
         readonly List<VFXFlowAnchorController> m_FlowAnchorController = new List<VFXFlowAnchorController>();
 
@@ -882,7 +888,7 @@ namespace UnityEditor.VFX.UI
             }
 
             // a standard equals will return true is the m_Graph is a destroyed object with the same instance ID ( like with a source control revert )
-            if (!object.ReferenceEquals(m_Graph, model.GetOrCreateGraph()))
+            if (!object.ReferenceEquals(m_Graph, model.GetGraph()))
             {
                 if (!object.ReferenceEquals(m_Graph, null))
                 {
@@ -897,8 +903,8 @@ namespace UnityEditor.VFX.UI
                 {
                     Clear();
                 }
-                m_Graph = model.GetOrCreateGraph();
-                m_Graph.SanitizeGraph();
+                m_Graph = model.GetGraph();
+                m_Graph.PrepareGraph();
 
                 if (m_Graph != null)
                 {
@@ -1365,12 +1371,25 @@ namespace UnityEditor.VFX.UI
         }
 
         static Dictionary<VisualEffectResource, VFXViewController> s_Controllers = new Dictionary<VisualEffectResource, VFXViewController>();
+        
+        public static VFXViewController GetTransientControllerForConvertToSubgraph(VisualEffectResource resource)
+        {
+            VFXViewController controller;
+            if (!s_Controllers.TryGetValue(resource, out controller))
+            {
+                controller = new VFXViewController(resource, false);
+                s_Controllers[resource] = controller;
+            }
+            else
+            {
+                Debug.LogError($"Already created controller for {resource}, convert to subgraph expects newly created controller.");
+            }
+
+            return controller;
+        }
 
         public static VFXViewController GetController(VisualEffectResource resource, bool forceUpdate = false)
         {
-            //TRANSITION : delete VFXAsset as it should be in Library
-            resource.ValidateAsset();
-
             VFXViewController controller;
             if (!s_Controllers.TryGetValue(resource, out controller))
             {
@@ -1397,8 +1416,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        internal VFXViewController(VisualEffectResource vfx) : base(vfx)
+        internal VFXViewController(VisualEffectResource vfx, bool initializeUndoStack = true) : base(vfx)
         {
+            var path = AssetDatabase.GetAssetPath(vfx);
+            vfx.assetPathString = path; // Set the path string for debug/log
+
             ModelChanged(vfx); // This will initialize the graph from the vfx asset.
 
             if (m_FlowAnchorController == null)
@@ -1407,14 +1429,17 @@ namespace UnityEditor.VFX.UI
             Undo.undoRedoPerformed += SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord += WillFlushUndoRecord;
 
-            string fileName = System.IO.Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(vfx));
+            m_Guid = AssetDatabase.GUIDFromAssetPath(path);
+
+            string fileName = System.IO.Path.GetFileNameWithoutExtension(path);
             vfx.name = fileName;
 
             if (m_Graph != null)
                 m_Graph.BuildParameterInfo();
 
+            if (initializeUndoStack)
+                InitializeUndoStack();
 
-            InitializeUndoStack();
             GraphChanged();
 
             Sanitize();

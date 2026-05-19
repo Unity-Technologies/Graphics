@@ -39,8 +39,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter upperHemisphereOnly = new BoolParameter(true);
         /// <summary>Direction of the distortion. This value can be relative to the Global Wind Orientation defined in the Visual Environment.</summary>
         public WindOrientationParameter scrollOrientation = new WindOrientationParameter();
+        // UUM-142015: scrollSpeed shares a serialized name with the [Obsolete]-but-still-serialized
+        // m_ObsoleteScrollSpeed in HDRISky.Migration.cs (carrying [FormerlySerializedAs("scrollSpeed")]).
+        // The Version.GlobalWind migration step copies the obsolete value into this field once on
+        // Awake, but the obsolete field keeps being persisted, so on subsequent loads the FSA races
+        // against the same-name binding. The principled fix is to drop the obsolete field and its
+        // migration step (#from(2022.1) is old enough that the migration is dead-letter).
+#pragma warning disable UAC1018
         /// <summary>Speed of the distortion. This value can be relative to the Global Wind Speed defined in the Visual Environment.</summary>
         public WindSpeedParameter scrollSpeed = new WindSpeedParameter();
+#pragma warning restore UAC1018
         /// <summary>Sets the initial rotation of the sun to allow us to rotate the sun with the sky if the sun is locked</summary>
         public FloatParameter sunInitialRotation = new FloatParameter(float.NegativeInfinity);
         /// <summary> Locks the sun to the backplate rotation</summary>

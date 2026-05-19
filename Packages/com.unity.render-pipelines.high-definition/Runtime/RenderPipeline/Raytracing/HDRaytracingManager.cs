@@ -949,11 +949,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        static internal bool CheckPlatformRaytracingCompatability(BuildTarget buildTarget, out string message)
+        static internal bool CheckPlatformRaytracingCompatability(BuildTarget currentBuildTarget, out string message)
         {
             message = string.Empty;
-
-            var currentBuildTarget = EditorUserBuildSettings.activeBuildTarget;
 
             // PS5 and Xbox Series fully support ray tracing - no warning needed
             if (currentBuildTarget == BuildTarget.PS5 || currentBuildTarget == BuildTarget.GameCoreXboxSeries)

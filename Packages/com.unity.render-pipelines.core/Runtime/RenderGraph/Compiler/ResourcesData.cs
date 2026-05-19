@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetWritingPass(CompilerContextData ctx, in ResourceHandle h, int passId)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             if (written)
             {
                 string passName = ctx.GetPassName(passId);
@@ -182,7 +182,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RegisterReadingPass(CompilerContextData ctx, in ResourceHandle h, int passId, int index)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             ref var unversioned = ref ctx.resources.unversionedData[h.iType].ElementAt(h.index);
             if (numReaders >= unversioned.maxReadersPerVersion)
             {

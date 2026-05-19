@@ -628,6 +628,15 @@ namespace UnityEditor.ShaderGraph
                 owner.AddValidationError(objectId, $"Sub Graph contains nodes that are unsupported by the current active targets, asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
             }
 
+            if (asset.isDeprecated)
+            {
+                string depMsg = !string.IsNullOrWhiteSpace(asset.deprecationMessage)
+                    ? $"Deprecated: {asset.deprecationMessage}"
+                    : "This Sub Graph has been deprecated.";
+
+                owner.AddValidationError(objectId, depMsg, Rendering.ShaderCompilerMessageSeverity.Warning);
+            }
+
             // detect disconnected VT properties, and VT layer count mismatches
             foreach (var paramProp in asset.inputs)
             {

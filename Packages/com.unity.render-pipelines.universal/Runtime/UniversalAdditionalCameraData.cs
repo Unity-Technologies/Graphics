@@ -331,18 +331,51 @@ namespace UnityEngine.Rendering.Universal
             layerMask = 1; // "Default"
             trigger = camera.transform;
 
+            // Special handling for SceneView camera - even though it now has UniversalAdditionalCameraData, it is not
+            // editable by users. Therefore we still try to mirror the main game camera's volumeLayerMask and volumeTrigger
+            // for the SceneView camera to keep scene view consistent in most cases.
             if (camera.cameraType == CameraType.SceneView)
             {
-                // Try to mirror the MainCamera volume layer mask for the scene view - do not mirror the target
                 var mainCamera = Camera.main;
-                UniversalAdditionalCameraData mainAdditionalCameraData = null;
+                UniversalAdditionalCameraData sourceAdditionalCameraData = null;
 
-                if (mainCamera != null && mainCamera.TryGetComponent(out mainAdditionalCameraData))
+                if (mainCamera != null)
+                    mainCamera.TryGetComponent(out sourceAdditionalCameraData);
+
+                // UUM-139912: If no camera is tagged "MainCamera", Camera.main is null and the volume
+                // layer mask falls back to "Default", so volumes on other layers stop affecting the scene
+                // view. Best effort: fall back to the first enabled game camera. The buffer is cached
+                // to avoid per-frame allocations.
+                if (sourceAdditionalCameraData == null && cameraData != null)
                 {
-                    layerMask = mainAdditionalCameraData.volumeLayerMask;
+                    int cameraCount = Camera.allCamerasCount;
+                    if (cameraData.m_AllCamerasTemp == null || cameraData.m_AllCamerasTemp.Length < cameraCount)
+                        cameraData.m_AllCamerasTemp = new Camera[cameraCount];
+                    Camera.GetAllCameras(cameraData.m_AllCamerasTemp);
+
+                    for (int i = 0; i < cameraCount; i++)
+                    {
+                        var otherCamera = cameraData.m_AllCamerasTemp[i];
+                        if (otherCamera == null || !UniversalRenderPipeline.IsGameCamera(otherCamera))
+                            continue;
+
+                        if (otherCamera.TryGetComponent(out UniversalAdditionalCameraData otherAdditionalCameraData))
+                        {
+                            sourceAdditionalCameraData = otherAdditionalCameraData;
+                            break;
+                        }
+                    }
+
+                    // Don't keep camera references in the temp buffer
+                    Array.Clear(cameraData.m_AllCamerasTemp, 0, cameraCount);
                 }
 
-                trigger = (mainAdditionalCameraData != null && mainAdditionalCameraData.volumeTrigger != null) ? mainAdditionalCameraData.volumeTrigger : trigger;
+                if (sourceAdditionalCameraData != null)
+                {
+                    layerMask = sourceAdditionalCameraData.volumeLayerMask;
+                    if (sourceAdditionalCameraData.volumeTrigger != null)
+                        trigger = sourceAdditionalCameraData.volumeTrigger;
+                }
             }
             else if (cameraData != null)
             {
@@ -491,6 +524,9 @@ namespace UnityEngine.Rendering.Universal
 
         // The URP camera history texture manager. Persistent per camera textures.
         [NonSerialized] internal UniversalCameraHistory m_History = new UniversalCameraHistory();
+
+        // Reusable temp buffer to avoid per-frame allocations from using Camera.allCameras. Only used for CameraType.SceneView.
+        [NonSerialized] internal Camera[] m_AllCamerasTemp;
 
         [SerializeField] internal TemporalAA.Settings m_TaaSettings = TemporalAA.Settings.Create();
 

@@ -8,7 +8,7 @@
 #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
 
 #if defined(SHADER_API_PS5)
-    #include "Packages/com.unity.render-pipelines.ps5/ShaderLibrary/API/FoveatedRendering_PSSL.hlsl"
+    #include "UnityPlatforms/PS5/ShaderLibrary/API/FoveatedRendering_PSSL.hlsl"
 #endif
 
 #if defined(SHADER_API_METAL)

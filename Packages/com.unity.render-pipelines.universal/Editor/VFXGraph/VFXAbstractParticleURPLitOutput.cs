@@ -57,8 +57,15 @@ namespace UnityEditor.VFX.URP
             CustomCurve,
         }
 
+        // UUM-141752: workflowMode uses [FormerlySerializedAs("materialType")] for one-time
+        // migration of pre-split assets, but materialType still exists as a real serialized field
+        // (of a different enum type), so the FSA races against the same-name binding on every load
+        // and can silently corrupt workflowMode. The proper fix is to drop the FSA and run the
+        // migration in OnAfterDeserialize keyed off a version sentinel.
+#pragma warning disable UAC1018
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Lighting"), Tooltip("Specifies the surface type of this output. Surface types determine how the particle will react to light.")]
         protected MaterialType materialType = MaterialType.Standard;
+#pragma warning restore UAC1018
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, FormerlySerializedAs("materialType"), Tooltip("Select a workflow that fits your textures. Choose between Metallic or Specular.")]
         protected WorkflowMode workflowMode = WorkflowMode.Metallic;

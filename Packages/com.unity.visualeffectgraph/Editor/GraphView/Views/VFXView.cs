@@ -108,7 +108,20 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXView : GraphView, IControlledElement<VFXViewController>, IControllerListener, IDisposable
+    enum AskAssetChangedBeforeCloseChoice
+    {
+        Save,
+        Cancel,
+        Discard,
+        Ignore
+    }
+
+    interface IVFXViewEditorAssetEventHandler
+    {
+        public AskAssetChangedBeforeCloseChoice AskAssetChangedBeforeClose(string path);
+    }
+
+    class VFXView : GraphView, IControlledElement<VFXViewController>, IControllerListener, IVFXViewEditorAssetEventHandler, IDisposable
     {
         private const int MaximumNameLengthInNotification = 128;
         private const float GrayedOutGraphOpacity = 0.6f;
@@ -164,12 +177,97 @@ namespace UnityEditor.VFX.UI
             get { return m_Controller; }
         }
 
+        public bool isDisconnecting { get; private set; }
+
+        internal IVFXViewEditorAssetEventHandler AssetEventHandler { get; set; }
+
+        public static string GetSaveChangesMessage(string path)
+        {
+            return $"Do you want to save the changes you made in the Visual Effect Graph?\n\n{path}\n\nYour changes will be lost if you don't save them.";
+        }
+
+        public AskAssetChangedBeforeCloseChoice AskAssetChangedBeforeClose(string path)
+        {
+            int choice = EditorUtility.DisplayDialogComplex(
+                "VisualEffect Graph has been changed",
+                GetSaveChangesMessage(path),
+                "Save", "Cancel", "Discard Changes");
+
+            switch (choice)
+            {
+                case 0: return AskAssetChangedBeforeCloseChoice.Save;
+                case 1: return AskAssetChangedBeforeCloseChoice.Cancel;
+                case 2: return AskAssetChangedBeforeCloseChoice.Discard;
+                default:
+                    Debug.LogError("Unexpected return code from DisplayDialogComplex: " + choice);
+                    break;
+            }
+            return AskAssetChangedBeforeCloseChoice.Cancel;
+        }
+
+        public static void ReloadFromDisk(VisualEffectResource resource)
+        {
+            VisualEffectResource.ForgetAtPath(AssetDatabase.GetAssetPath(resource));
+        }
+
+        public static void SaveOnDisk(VisualEffectResource resource)
+        {
+            resource.WriteAssetWithSubAssets();
+        }
+
         void DisconnectController(VFXViewController previousController)
         {
-            if (previousController.model && previousController.graph)
+            isDisconnecting = true;
+            VFXGraph.UnregisterAuthoringCompileData(previousController.Guid);
+            var path = AssetDatabase.GUIDToAssetPath(previousController.Guid);
+
+            //N.B.: This behavior shouldn't belong to view but VFXViewWindow
+            if (previousController.model != null
+                && previousController.graph != null
+                && previousController.graph.GetResource() is { } resource)
             {
-                previousController.graph.ForceShaderDebugSymbols(VFXViewPreference.generateShadersWithDebugSymbols, false); // Remove debug symbols override from view but don't reimport (this is done by the SetCompilation below)
-                previousController.graph.SetCompilationMode(VFXViewPreference.forceEditionCompilation ? VFXCompilationMode.Edition : VFXCompilationMode.Runtime);
+                var previousGraph = previousController.graph;
+                if (EditorUtility.IsDirty(previousGraph))
+                {
+                    var choice = AssetEventHandler.AskAssetChangedBeforeClose(path);
+                    if (choice == AskAssetChangedBeforeCloseChoice.Save)
+                    {
+                        SaveOnDisk(resource);
+                    }
+                    else if (choice == AskAssetChangedBeforeCloseChoice.Discard)
+                    {
+                        ReloadFromDisk(resource);
+
+                        //No change pending, reloading runtime data from disk to switch back to runtime
+                        AssetDatabase.ImportAsset(path);
+                    }
+                    else if (choice == AskAssetChangedBeforeCloseChoice.Cancel)
+                    {
+                        // Same problem than SG, see "user does not want to close the window." in MaterialGraphEditWindow
+                        // we can't stop the close from this code path though
+                        // all we can do is open a new window and transfer our data to the new one to avoid losing it
+                        var viewWindow = VFXViewWindow.GetWindow(previousGraph, true, true);
+                        viewWindow.LoadResource(resource);
+                    }
+                    else if (choice == AskAssetChangedBeforeCloseChoice.Ignore)
+                    {
+                        //Only used in test where conservation of data doesn't always matter
+                    }
+                }
+                else
+                {
+                    //Restore non serialized settings
+                    previousGraph.ForceShaderDebugSymbols(VFXViewPreference.generateShadersWithDebugSymbols);
+                    previousGraph.SetCompilationMode(VFXViewPreference.forceEditionCompilation ? VFXCompilationMode.Edition : VFXCompilationMode.Runtime);
+
+                    //No change pending, reloading runtime data from disk to switch back to runtime
+                    AssetDatabase.ImportAsset(path);
+                }
+            }
+            else if (!string.IsNullOrEmpty(path))
+            {
+                //Can be a ReloadFromDisk which actually deleted resource in memory
+                AssetDatabase.ImportAsset(path);
             }
 
             previousController.UnregisterHandler(this);
@@ -222,6 +320,9 @@ namespace UnityEditor.VFX.UI
 
             SceneView.duringSceneGui -= OnSceneGUI;
             OnFocus();
+
+            AssetEventHandler = null;
+            isDisconnecting = false;
         }
 
         const string kSelectionKey = "Unity.VisualEffectGraphHistory";
@@ -231,7 +332,9 @@ namespace UnityEditor.VFX.UI
             schedule.Execute(() =>
             {
                 if (controller != null && controller.graph)
+                {
                     controller.graph.SetCompilationMode(m_IsRuntimeMode ? VFXCompilationMode.Runtime : VFXCompilationMode.Edition);
+                }
             }).ExecuteLater(1);
 
             m_Controller.RegisterHandler(this);
@@ -258,6 +361,8 @@ namespace UnityEditor.VFX.UI
             }
 
             SceneView.duringSceneGui += OnSceneGUI;
+            AssetEventHandler ??= this;
+            VFXGraph.RegisterAuthoringCompileData(controller.Guid);
             Selection.RegisterCustomHandler(kSelectionKey, CustomSelectionHandler);
         }
 
@@ -413,6 +518,10 @@ namespace UnityEditor.VFX.UI
                             DisconnectController(previousController);
                             NewControllerSet();
                         }
+                        else
+                        {
+                            DisconnectController(previousController);
+                        }
                     }
                     else
                     {
@@ -463,7 +572,7 @@ namespace UnityEditor.VFX.UI
             {
                 var path = variant.settings.Single(x => x.Key == "path").Value as string;
                 var subGraph = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphOperator>(path);
-                if (subGraph != null && (!controller.model.isSubgraph || !subGraph.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.model.subgraph) && subGraph.GetResource() != controller.model))
+                if (subGraph != null && (!controller.model.isSubgraph || !subGraph.GetResource().GetGraph().subgraphDependencies.Contains(controller.model.subgraph) && subGraph.GetResource() != controller.model))
                 {
                     VFXModel newModel = ScriptableObject.CreateInstance<VFXSubgraphOperator>();
 
@@ -721,6 +830,12 @@ namespace UnityEditor.VFX.UI
 
         void OnPlayModeStateChanged(PlayModeStateChange playModeState)
         {
+            if (playModeState == PlayModeStateChange.EnteredEditMode ||
+                playModeState == PlayModeStateChange.EnteredPlayMode)
+            {
+                controller.graph.PrepareGraph();
+            }
+
             if (playModeState == PlayModeStateChange.EnteredEditMode)
             {
                 m_VFXSettings.Load(true);
@@ -1808,17 +1923,36 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public static void CompileAndUpdateAsset(VFXGraph graph)
+        {
+            var asset = graph.GetResource().asset;
+            var output = graph.CompileAndUpdateAsset(asset);
+            // As are implemented subgraph now, compiling dependents chain can reset dirty flag on used subgraphs, which will make an infinite loop, this is bad!
+            graph.SetExpressionGraphDirty(false);
+
+            var assetGuid = AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(graph));
+            VFXGraph.UpdateAuthoringCompileData(assetGuid, output.output, output.instancingEnabled, output.initialVariant, output.mode);
+        }
+
+        public static void RecompileIfNeeded(VFXGraph graph)
+        {
+            var output = graph.RecompileIfNeeded(true);
+            if (output.assetDesc.sheet.values != null)
+            {
+                var assetGuid = AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(graph));
+                VFXGraph.UpdateAuthoringValues(assetGuid, output.assetDesc.sheet.values);
+            }
+        }
+
         internal void Compile()
         {
             VFXLibrary.LogUnsupportedSRP();
 
             if (controller.model.isSubgraph)
-                controller.graph.RecompileIfNeeded(false, false);
+                controller.graph.RecompileIfNeeded(false);
             else
             {
-                VFXGraph.explicitCompile = true;
-                controller.graph.CompileAndUpdateAsset(controller.graph.GetResource().asset);
-                VFXGraph.explicitCompile = false;
+                CompileAndUpdateAsset(controller.graph);
             }
             foreach (var model in m_ModelsWithHiddenBadges)
             {
@@ -1830,8 +1964,7 @@ namespace UnityEditor.VFX.UI
         internal void OnSave()
         {
             m_ComponentBoard?.DeactivateBoundsRecordingIfNeeded(); //Avoids saving the graph with unnecessary bounds computations
-
-            controller.graph.visualEffectResource.WriteAssetWithSubAssets();
+            SaveOnDisk(controller.graph.visualEffectResource);
         }
 
         internal void SaveAs(string newPath)
@@ -2169,15 +2302,16 @@ namespace UnityEditor.VFX.UI
 
             if (sel.elements.Count > 0)
             {
-                var rentedArray = ArrayPool<EntityId>.Shared.Rent(objectsSelected.Count);
+                var arrayLen = objectsSelected.Count;
+                var rentedArray = ArrayPool<EntityId>.Shared.Rent(arrayLen);
                 try
                 {
                     objectsSelected.CopyTo(rentedArray, 0);
-                    Selection.SetCustomSelection(kSelectionKey, EditorJsonUtility.ToJson(sel), rentedArray);
+                    Selection.SetCustomSelection(kSelectionKey, EditorJsonUtility.ToJson(sel), new ReadOnlySpan<EntityId>(rentedArray, 0, arrayLen));
                 }
                 finally
                 {
-                    ArrayPool<EntityId>.Shared.Return(rentedArray, clearArray: false);
+                    ArrayPool<EntityId>.Shared.Return(rentedArray, false);
                 }
                 if (emptyBlackboardSelection)
                 {
@@ -2359,6 +2493,18 @@ namespace UnityEditor.VFX.UI
             get { return m_Blackboard; }
         }
 
+        protected internal override bool isValidSelection
+        {
+            get
+            {
+                foreach (var element in selection)
+                {
+                    if (element is not VFXBlackboardFieldBase)
+                        return true;
+                }
+                return false;
+            }
+        }
 
         protected internal override bool canCutSelection => canCopySelection;
 
@@ -2982,7 +3128,6 @@ namespace UnityEditor.VFX.UI
                 evt.menu.InsertAction(3, string.IsNullOrEmpty(context.controller.model.label) ? "Name Context" : "Rename Context", a => context.OnRename(), e => DropdownMenuAction.Status.Normal);
             }
 
-
             if (selection.OfType<VFXNodeUI>().Any() && evt.target is VFXNodeUI)
             {
                 if (selection.OfType<VFXOperatorUI>().Any() && !selection.OfType<VFXNodeUI>().Any(t => !(t is VFXOperatorUI) && !(t is VFXParameterUI)))
@@ -2997,7 +3142,7 @@ namespace UnityEditor.VFX.UI
             if (evt.target is GraphView || evt.target is Node || evt.target is Group)
             {
                 evt.menu.AppendAction("Duplicate with edges", (a) => { DuplicateSelectionWithEdges(); },
-                    (a) => { return canDuplicateSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled; });
+                    (a) => { return isValidSelection && canDuplicateSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled; });
                 evt.menu.AppendSeparator();
             }
 
@@ -3108,12 +3253,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void UpdateIsSubgraph()
+        public void UpdateIsSubgraph(VFXViewWindow parentViewWindow)
         {
             if (controller == null)
                 return;
 
-            m_BackButton.style.display = controller.graph != null && controller.graph.visualEffectResource.isSubgraph && VFXViewWindow.GetWindow(this).CanPopResource()
+            m_BackButton.style.display = controller.graph != null
+                                         && controller.graph.visualEffectResource.isSubgraph
+                                         && parentViewWindow.CanPopResource()
                 ? DisplayStyle.Flex
                 : DisplayStyle.None;
         }
@@ -3124,7 +3271,7 @@ namespace UnityEditor.VFX.UI
             {
                 var isOperator = visualEffectObject is VisualEffectSubgraphOperator;
                 var isBlock = visualEffectObject is VisualEffectSubgraphBlock;
-                var graph = visualEffectObject.GetResource().GetOrCreateGraph();
+                var graph = visualEffectObject.GetResource().GetGraph();
                 graph.BuildSubgraphDependencies();
                 var draggedObjectDependencies = graph.subgraphDependencies;
 
@@ -3242,7 +3389,7 @@ namespace UnityEditor.VFX.UI
                     {
                         if (draggedObject is VisualEffectSubgraphOperator subgraphOperator)
                         {
-                            var graph = subgraphOperator.GetResource().GetOrCreateGraph();
+                            var graph = subgraphOperator.GetResource().GetGraph();
                             if (HasCustomAttributeConflicts(graph.attributesManager.GetCustomAttributes()))
                             {
                                 continue;
@@ -3259,7 +3406,7 @@ namespace UnityEditor.VFX.UI
                     }
                     else if (draggedObject is VisualEffectSubgraphBlock subgraphBlock && !controller.model.isSubgraph) //can't drag a vfx subgraph block in a subgraph operator or a subgraph block
                     {
-                        VFXContextType contextKind = subgraphBlock.GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().First().compatibleContextType;
+                        VFXContextType contextKind = subgraphBlock.GetResource().GetGraph().children.OfType<VFXBlockSubgraphContext>().First().compatibleContextType;
                         VFXModelDescriptor<VFXContext> contextType = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXBasicInitialize));
                         if ((contextKind & VFXContextType.Update) == VFXContextType.Update)
                             contextType = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXBasicUpdate));

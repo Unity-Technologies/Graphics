@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.Test
         [OneTimeTearDown]
         public void OnTimeCleanup()
         {
-            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.CloseAllVFXWindow();
             VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
@@ -1086,7 +1086,7 @@ namespace UnityEditor.VFX.Test
             File.WriteAllText(testAssetRandomFileName, templateString);
             AssetDatabase.ImportAsset(testAssetRandomFileName);
 
-            var window = VFXViewWindow.GetWindow<VFXViewWindow>();
+            var window = VFXTestCommon.GetViewWindow();
             window.LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetRandomFileName), null);
 
             var viewController = VFXViewController.GetController(window.displayedResource);
@@ -1123,6 +1123,50 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(VFXPrimitiveType.Triangle, primitiveTypeFieldAccess.GetValue(planarTopology));
         }
 
+        [UnityTest]
+        public IEnumerator Clear_Undo_Stack_After_Closing_Window()
+        {
+            var graph = VFXTestCommon.CreateGraph_And_System();
+            var resource = graph.GetResource();
+            var asset = resource.asset;
+
+            var undoList = new List<string>();
+            Undo.GetUndoList(undoList, out var cursor);
+            var initialUndoCount = undoList.Count;
+
+            var window = VFXTestCommon.GetWindow(asset, true);
+            window.LoadAsset(asset, null);
+            for (int frame = 0; frame < 10; frame++)
+            {
+                if (VisualEffectAssetUtility.GetCompilationMode(asset) != VFXCompilationMode.Edition)
+                    yield return null;
+                else
+                    break;
+            }
+            Assert.AreEqual(VFXCompilationMode.Edition, VisualEffectAssetUtility.GetCompilationMode(asset));
+
+            var eventCount = 4;
+            for (int eventIndex = 0; eventIndex < eventCount; eventIndex++)
+            {
+                graph.children.OfType<VFXContext>().First().position += Vector2.down;
+                Undo.IncrementCurrentGroup();
+                yield return null;
+            }
+            undoList.Clear();
+            Undo.GetUndoList(undoList, out cursor);
+            var undoVFXCount = undoList.Count(o => o.Contains("VFX"));
+            Assert.AreEqual(eventCount, undoVFXCount);
+
+            window.Close();
+            yield return null;
+
+            undoList.Clear();
+            Undo.GetUndoList(undoList, out cursor);
+            undoVFXCount = undoList.Count(o => o.Contains("VFX"));
+            Assert.AreEqual(0, undoVFXCount);
+            Assert.AreEqual(initialUndoCount, undoList.Count);
+        }
+
         [Test]
         public void Avoid_Loop_In_Flow_Input()
         {
@@ -1150,7 +1194,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void UniqueDefaultSystemNames()
         {
-            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+            VFXViewWindow window = VFXTestCommon.GetViewWindow();
             VFXView view = window.graphView;
             view.controller = m_ViewController;
 
@@ -1175,10 +1219,10 @@ namespace UnityEditor.VFX.Test
         [UnityTest]
         public IEnumerator ConvertToSubGraphOperator()
         {
-            var window = VFXViewWindow.GetWindow<VFXViewWindow>();
-
             VisualEffectAsset asset = VisualEffectAssetEditorUtility.CreateNewAsset(testAssetMainSubgraph);
             VisualEffectResource resource = asset.GetResource();
+
+            var window = VFXTestCommon.GetWindow(resource, true, true);
             window.LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetMainSubgraph), null);
 
             var viewController = VFXViewController.GetController(VisualEffectResource.GetResourceAtPath(testAssetMainSubgraph));
@@ -1227,7 +1271,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(2, controller.Count());
             VFXConvertSubgraph.ConvertToSubgraphOperator(window.graphView, controller, Rect.zero, testSubgraphSubOperatorAssetName);
 
-            for (int i = 0; i < 32; ++i)
+            for (int i = 0; i < 8; ++i)
                 yield return null;
 
             //Check the status of the newly integrated subgraph, expecting one output
@@ -1237,7 +1281,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsFalse(subgraph.outputSlots.Any(s => s == null));
 
             //If we reach here without any error or crash, the bug has been fixed
-            window.graphView.controller = null;
+            yield return null;
         }
 
         //Extension of previous test: create two outputs in subgraph (instead of one), revert and restore
@@ -1256,7 +1300,7 @@ namespace UnityEditor.VFX.Test
 
             resource = VisualEffectResource.GetResourceAtPath(testSubgraphSubOperatorAssetName);
             Assert.IsNotNull(resource);
-            var window = VFXViewWindow.GetWindow<VFXViewWindow>();
+            var window = VFXTestCommon.GetViewWindow();
             window.LoadResource(resource, null);
 
             var viewController = window.graphView.controller;
@@ -1288,10 +1332,12 @@ namespace UnityEditor.VFX.Test
             {
                 AssetDatabase.ImportAsset(testAssetMainSubgraph);
                 var mainAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetMainSubgraph);
-                var mainGraph = mainAsset.GetOrCreateResource().GetOrCreateGraph();
+                var mainGraph = mainAsset.GetResource().GetGraph();
+                mainGraph.PrepareGraph();
 
                 var subGraph = mainGraph.children.OfType<VFXSubgraphOperator>().FirstOrDefault();
                 Assert.IsNotNull(subGraph);
+
                 Assert.AreEqual(2, subGraph.outputSlots.Count);
                 Assert.IsFalse(subGraph.outputSlots.Any(o => o == null));
             }
@@ -1304,10 +1350,12 @@ namespace UnityEditor.VFX.Test
 
                 AssetDatabase.ImportAsset(testAssetMainSubgraph);
                 var mainAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetMainSubgraph);
-                var mainGraph = mainAsset.GetOrCreateResource().GetOrCreateGraph();
+                var mainGraph = mainAsset.GetResource().GetGraph();
+                mainGraph.PrepareGraph();
 
                 var subGraph = mainGraph.children.OfType<VFXSubgraphOperator>().FirstOrDefault();
                 Assert.IsNotNull(subGraph);
+
                 Assert.AreEqual(1, subGraph.outputSlots.Count);
                 Assert.IsFalse(subGraph.outputSlots.Any(o => o == null));
             }
@@ -1320,10 +1368,12 @@ namespace UnityEditor.VFX.Test
 
                 AssetDatabase.ImportAsset(testAssetMainSubgraph);
                 var mainAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetMainSubgraph);
-                var mainGraph = mainAsset.GetOrCreateResource().GetOrCreateGraph();
+                var mainGraph = mainAsset.GetResource().GetGraph();
+                mainGraph.PrepareGraph();
 
                 var subGraph = mainGraph.children.OfType<VFXSubgraphOperator>().FirstOrDefault();
                 Assert.IsNotNull(subGraph);
+
                 Assert.AreEqual(2, subGraph.outputSlots.Count);
                 Assert.IsFalse(subGraph.outputSlots.Any(o => o == null));
             }
@@ -1331,7 +1381,7 @@ namespace UnityEditor.VFX.Test
 
             //Finally, open the source asset it will crash if the vfxasset is wrongly formed
             resource = VisualEffectResource.GetResourceAtPath(testAssetMainSubgraph);
-            window = VFXViewWindow.GetWindow<VFXViewWindow>();
+            window = VFXTestCommon.GetViewWindow();
             window.LoadResource(resource, null);
 
             for (int i = 0; i < 16; ++i)
@@ -1351,7 +1401,7 @@ namespace UnityEditor.VFX.Test
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetRandomFileName);
             Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0));
 
-            var window = VFXViewWindow.GetWindow(asset);
+            var window = VFXTestCommon.GetWindow(asset);
             window.LoadAsset(asset, null); //Should not be needed, without, viewController is null on Yamato. See UUM-11596.
             var viewController = window.graphView.controller;
             Assert.IsNotNull(viewController);
@@ -1384,13 +1434,13 @@ namespace UnityEditor.VFX.Test
                 var gravityDesc = VFXLibrary.GetBlocks().First(o => o.modelType == typeof(Gravity));
                 var gravity = gravityDesc.CreateInstance();
                 update.AddChild(gravity);
-                AssetDatabase.ImportAsset(vfxPath);
+                VFXTestCommon.ReimportVFXGraph(vfxGraph);
             }
 
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
             Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0));
 
-            var window = VFXViewWindow.GetWindow(asset);
+            var window = VFXTestCommon.GetWindow(asset);
             window.LoadAsset(asset, null);
             var viewController = window.graphView.controller;
             Assert.IsNotNull(viewController);
@@ -1420,7 +1470,7 @@ namespace UnityEditor.VFX.Test
 
             //Basic check on expected shader generation output
             AssetDatabase.ImportAsset(vfxPath);
-            var graph = asset.GetOrCreateResource();
+            var graph = asset.GetResource();
             bool foundGravityInSource = false;
             for (int shaderIndex = 0; shaderIndex < graph.GetShaderSourceCount(); ++shaderIndex)
             {
@@ -1437,6 +1487,54 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(foundGravityInSource);
         }
 
+        [UnityTest]
+        public IEnumerator ConvertToSubgraph_And_Undo()
+        {
+            string vfxPath;
+            {
+                var vfxGraph = VFXTestCommon.CreateGraph_And_System();
+                vfxPath = AssetDatabase.GetAssetPath(vfxGraph);
+                var update = vfxGraph.children.OfType<VFXBasicUpdate>().Single();
+                var gravityDesc = VFXLibrary.GetBlocks().First(o => o.modelType == typeof(Gravity));
+                var gravity = gravityDesc.CreateInstance();
+                update.AddChild(gravity);
+                VFXTestCommon.ReimportVFXGraph(vfxGraph);
+            }
+
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
+            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0));
+
+            var window = VFXTestCommon.GetWindow(asset);
+            window.LoadAsset(asset, null);
+            var viewController = window.graphView.controller;
+            Assert.IsNotNull(viewController);
+            yield return null;
+
+            Undo.IncrementCurrentGroup();
+            {
+                var subGraphBlockPath = vfxPath + "block";
+                var update = viewController.graph.children.OfType<VFXBasicUpdate>().Single();
+                var gravityBlock = update.children.OfType<Gravity>().First();
+                var controller = viewController.GetNodeController(gravityBlock, 0);
+                VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, new[] { controller }, Rect.zero, subGraphBlockPath);
+                viewController.ApplyChanges();
+            }
+            yield return null;
+            {
+                var update = viewController.graph.children.OfType<VFXBasicUpdate>().Single();
+                Assert.IsFalse(update.children.OfType<Gravity>().Any());
+                Assert.IsTrue(update.children.OfType<VFXSubgraphBlock>().Any());
+            }
+
+            Undo.PerformUndo();
+            yield return null;
+            {
+                var update = viewController.graph.children.OfType<VFXBasicUpdate>().Single();
+                Assert.IsTrue(update.children.OfType<Gravity>().Any(), "Undo Failure");
+                Assert.IsFalse(update.children.OfType<VFXSubgraphBlock>().Any());
+            }
+        }
+
         [UnityTest][Description("(Non regression test for FB case #1419176")]
         public IEnumerator Rename_Asset_Dont_Lose_Subgraph()
         {
@@ -1450,7 +1548,7 @@ namespace UnityEditor.VFX.Test
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetRandomFileName);
             Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0));
 
-            var window = VFXViewWindow.GetWindow(asset);
+            var window = VFXTestCommon.GetWindow(asset);
             window.LoadAsset(asset, null); //Should not be needed, without, viewController is null on Yamato. See UUM-11596.
             var viewController = window.graphView.controller;
             Assert.IsNotNull(viewController);
@@ -1502,7 +1600,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(asset);
             Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0));
 
-            var window = VFXViewWindow.GetWindow(asset);
+            var window = VFXTestCommon.GetWindow(asset);
             window.LoadAsset(asset, null);
             var viewController = window.graphView.controller;
             Assert.IsNotNull(viewController);
@@ -1534,7 +1632,7 @@ namespace UnityEditor.VFX.Test
 
             //Subgraph Content
             var subgraphContent = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraph>(subgraphPath);
-            var subgraph = (VFXGraph)subgraphContent.GetOrCreateResource().graph;
+            var subgraph = (VFXGraph)subgraphContent.GetResource().graph;
             var blockSubgraphContext = subgraph.children.OfType<VFXBlockSubgraphContext>().Single();
             Assert.AreEqual(1u, blockSubgraphContext.children.Count());
 
@@ -1565,6 +1663,131 @@ namespace UnityEditor.VFX.Test
             yield return null;
         }
 
+        static readonly bool[] kConvertToSubGraphOperator_With_ExposedProperty_Select_Parameters = { true, false };
+
+        [UnityTest]
+        public IEnumerator ConvertToSubGraphOperator_With_ExposedProperty([ValueSource(nameof(kConvertToSubGraphOperator_With_ExposedProperty_Select_Parameters))] bool includeParameter)
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var resource = graph.GetResource();
+
+            var window = VFXTestCommon.GetWindow(resource, true, true);
+            window.LoadAsset(resource.asset, null);
+            yield return null;
+
+            var add = ScriptableObject.CreateInstance<Operator.Add>();
+            graph.AddChild(add);
+
+            var parameter = ScriptableObject.CreateInstance<VFXParameter>();
+            parameter.Init(typeof(float));
+            graph.AddChild(parameter);
+
+            parameter.SetSettingValue("m_Exposed", true);
+            Assert.IsTrue(parameter.outputSlots[0].Link(add.inputSlots[1]));
+            yield return null;
+
+            var controllers = window.graphView.Query<VFXNodeUI>().ToList()
+                .Where(t => t.controller.model != null)
+                .Select(o => o.controller)
+                .Cast<Controller>().ToArray();
+
+            if (!includeParameter)
+            {
+                controllers = controllers.Where(o => o is not VFXParameterNodeController).ToArray();
+                Assert.AreEqual(1, controllers.Count());
+            }
+            else
+            {
+                Assert.AreEqual(2, controllers.Count());
+            }
+
+            var guid = Guid.NewGuid().ToString();
+            var subGraphPath = string.Format(VFXTestCommon.tempBasePath + "/vfx_{0}.vfxoperator", guid);
+            VFXConvertSubgraph.ConvertToSubgraphOperator(window.graphView, controllers, Rect.zero, subGraphPath);
+
+            //Check Main Graph Status
+            Assert.IsFalse(graph.children.OfType<Operator.Add>().Any());
+            Assert.AreEqual(1, graph.children.OfType<VFXParameter>().Count());
+
+            var subgraphOperator = graph.children.OfType<VFXSubgraphOperator>().Single();
+            var inputSlot = subgraphOperator.inputSlots.Single();
+            Assert.IsTrue(inputSlot.HasLink());
+
+            var linkedSlot = inputSlot.LinkedSlots.Single();
+            Assert.AreEqual(linkedSlot.owner, parameter);
+
+            //Check Subgraph Status
+            var subgraphContent = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraph>(subGraphPath);
+            var subgraph = (VFXGraph)subgraphContent.GetResource().graph;
+            Assert.IsNotNull(subgraph);
+
+            Assert.AreEqual(2, subgraph.children.Count());
+            var addInSubgraph = subgraph.children.OfType<Operator.Add>().Single();
+            var parameterInSubgraph = subgraph.children.OfType<VFXParameter>().Single();
+            var outputSlot = parameterInSubgraph.outputSlots.Single();
+            Assert.IsTrue(outputSlot.HasLink());
+
+            var linkedSlotInSubgraph = outputSlot.LinkedSlots.Single();
+            Assert.AreEqual(linkedSlotInSubgraph.owner, addInSubgraph);
+
+            window.Close();
+            yield return null;
+        }
+
+        [UnityTest, Description("Repro from nested subgraph and live authoring")]
+        public IEnumerator SubgraphNested_Unexpected_ExpressionCount()
+        {
+            var packagePath = "Assets/AllTests/Editor/Tests/Repro_SubgraphNested_ExpressionCount.unitypackage";
+            AssetDatabase.ImportPackageImmediately(packagePath);
+            yield return null;
+
+            var mainPath = "Assets/TmpTests/Repro_NestedSubgraph_ExpressionCount.vfx";
+            var subgraphPath = "Assets/TmpTests/Repro_NestedSubgraph_ExpressionCount_B.vfxblock";
+            var mainResource = VisualEffectResource.GetResourceAtPath(mainPath);
+            var subgraphResource = VisualEffectResource.GetResourceAtPath(subgraphPath);
+
+            Assert.IsNotNull(mainResource);
+            Assert.IsNotNull(subgraphResource);
+            yield return null;
+
+            var subgraphWindow = VFXTestCommon.GetWindow(subgraphResource, true, true);
+            subgraphWindow.LoadResource(subgraphResource);
+            yield return null;
+
+            var mainWindow = VFXTestCommon.GetWindow(mainResource, true, true);
+            mainWindow.LoadResource(mainResource);
+            yield return null;
+
+            //Modify Subgraph
+            var context = subgraphResource.GetGraph().children.OfType<VFXBlockSubgraphContext>().Single();
+            var firstBlock = context.children.First();
+            Assert.IsFalse((bool)firstBlock.activationSlot.value);
+            firstBlock.activationSlot.value = true;
+            yield return null;
+
+            Assert.IsTrue(EditorUtility.IsDirty(subgraphResource));
+            subgraphWindow.SaveChanges();
+            Assert.IsFalse(EditorUtility.IsDirty(subgraphResource));
+
+            //Modify main graph
+            var aContext = mainResource.GetGraph().children.OfType<VFXContext>().First();
+            aContext.position = aContext.position + new Vector2(1, 1);
+            yield return null;
+
+            Assert.IsTrue(EditorUtility.IsDirty(mainResource));
+            mainWindow.SaveChanges();
+            Assert.IsFalse(EditorUtility.IsDirty(mainResource));
+
+            yield return null;
+            Assert.IsFalse(mainResource.GetGraph().IsExpressionGraphDirty());
+            mainResource.GetGraph().SetExpressionValueDirty();
+            for (int i = 0; i < 4; ++i)
+            {
+                mainWindow.Repaint();
+                yield return null;
+            }
+        }
+
         [UnityTest, Description("Repro UUM-131487")]
         public IEnumerator Convert_To_ShaderGraphOutput()
         {
@@ -1572,7 +1795,7 @@ namespace UnityEditor.VFX.Test
             var output = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
             vfxGraph.AddChild(output);
 
-            var window = VFXViewWindow.GetWindow(vfxGraph.visualEffectResource, true, true);
+            var window = VFXTestCommon.GetWindow(vfxGraph.visualEffectResource, true, true);
             Assert.IsNotNull(window);
             window.LoadResource(vfxGraph.visualEffectResource, null);
             yield return null;
@@ -1605,6 +1828,67 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(shaderGraphReference);
 
             Assert.AreEqual(AssetDatabase.GetAssetPath(shaderGraphReference), AssetDatabase.GetAssetPath(shaderGraphFromConversion));
+        }
+
+        static readonly bool[] kSubgraph_ActivationSlot_Unexpected_ExpressionCount_Variant = { false, true };
+        [UnityTest, Description("Repro from subgraph using activation slot and live authoring (repro from UUM-131445)")]
+        public IEnumerator Subgraph_ActivationSlot_Unexpected_ExpressionCount([ValueSource(nameof(kSubgraph_ActivationSlot_Unexpected_ExpressionCount_Variant))] bool useVariant)
+        {
+            //N.B.: The "Bis" package doesn't use activation slot
+            var packagePath = $"Assets/AllTests/Editor/Tests/Repro_Subgraph_ActivationSlot{(useVariant ? "_Bis" : string.Empty)}.unitypackage";
+            AssetDatabase.ImportPackageImmediately(packagePath);
+            yield return null;
+
+            var mainPath = $"Assets/TmpTests/Repro_Subgraph_ActivationSlot{(useVariant ? "_Bis" : string.Empty)}.vfx";
+            var subgraphPath = $"Assets/TmpTests/Repro_Subgraph_ActivationSlot{(useVariant ? "_Bis" : string.Empty)}.vfxblock";
+            var mainResource = VisualEffectResource.GetResourceAtPath(mainPath);
+            var subgraphResource = VisualEffectResource.GetResourceAtPath(subgraphPath);
+
+            Assert.IsNotNull(mainResource);
+            Assert.IsNotNull(subgraphResource);
+            yield return null;
+
+            var subgraphWindow = VFXTestCommon.GetWindow(subgraphResource, true, true);
+            subgraphWindow.LoadResource(subgraphResource);
+            yield return null;
+
+            var mainWindow = VFXTestCommon.GetWindow(mainResource, true, true);
+            mainWindow.LoadResource(mainResource);
+            yield return null;
+
+            //Modify Subgraph
+            var subgraphContext = subgraphResource.GetGraph().children.OfType<VFXBlockSubgraphContext>().Single();
+            subgraphContext.position += new Vector2(1, 1);
+            yield return null;
+
+            //Modify main graph
+            var mainGraphContext = mainResource.GetGraph().children.OfType<VFXContext>().First();
+            mainGraphContext.position += new Vector2(1, 1);
+            yield return null;
+
+            Assert.IsTrue(EditorUtility.IsDirty(subgraphResource.GetGraph()));
+            Assert.IsTrue(EditorUtility.IsDirty(mainResource.GetGraph()));
+
+            subgraphWindow.SaveChanges();
+            mainWindow.SaveChanges();
+
+            Assert.IsFalse(EditorUtility.IsDirty(subgraphResource.GetGraph()));
+            Assert.IsFalse(EditorUtility.IsDirty(mainResource.GetGraph()));
+
+            yield return null;
+            Assert.IsFalse(mainResource.GetGraph().IsExpressionGraphDirty());
+            var inlineOperator = mainResource.GetGraph().children.OfType<VFXInlineOperator>().Single();
+            inlineOperator.inputSlots[0].value = !(bool)inlineOperator.inputSlots[0].value;
+
+            //Workaround, forcing dirty here indirectly fixes the issue because we won't go through UpdateValues but the full compilation
+            //mainResource.GetGraph().SetExpressionGraphDirty();
+
+            Assert.IsTrue(EditorUtility.IsDirty(mainResource.GetGraph()));
+            for (int i = 0; i < 4; ++i)
+            {
+                mainWindow.Repaint();
+                yield return null;
+            }
         }
 
         [UnityTest, Description("Repro from UUM-84060")]
@@ -1640,7 +1924,7 @@ namespace UnityEditor.VFX.Test
                 Assert.IsNotNull(asset);
                 Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0));
 
-                window = VFXViewWindow.GetWindow(asset);
+                window = VFXTestCommon.GetWindow(asset);
                 window.LoadAsset(asset, null);
                 var viewController = window.graphView.controller;
                 Assert.IsNotNull(viewController);
@@ -1653,6 +1937,56 @@ namespace UnityEditor.VFX.Test
             //A failure would log "Expression graph was marked as dirty after compiling context for UI. Discard to avoid infinite compilation loop." is logged
             window.Close();
             yield return null;
+        }
+
+        [UnityTest, Description("Check simple subgraph setup and insure we are compiling indefinitely")]
+        public IEnumerator Subgraph_Dont_Invalidate_MainGraph_Infinitely()
+        {
+            var packagePath = "Assets/AllTests/Editor/Tests/Repro_Subgraph_Infinite_Compilation.unitypackage";
+            AssetDatabase.ImportPackageImmediately(packagePath);
+            yield return null;
+
+            var mainPath = "Assets/TmpTests/Repro_Subgraph_Infinite_Compilation.vfx";
+            var subgraphPath = "Assets/TmpTests/Repro_Subgraph_Infinite_Compilation_Subgraph.vfxblock";
+
+            var mainResource = VisualEffectResource.GetResourceAtPath(mainPath);
+            var subgraphResource = VisualEffectResource.GetResourceAtPath(subgraphPath);
+
+            Assert.IsNotNull(mainResource);
+            Assert.IsNotNull(subgraphResource);
+            Assert.AreNotEqual(mainResource, subgraphResource);
+
+            var mainGraph = mainResource.GetGraph();
+            var subgraph = subgraphResource.GetGraph();
+            Assert.IsNotNull(mainGraph);
+            Assert.IsNotNull(subgraph);
+            Assert.AreNotEqual(mainGraph, subgraph);
+
+            var subgraphWindow = VFXTestCommon.GetWindow(subgraph, true, true);
+            subgraphWindow.LoadResource(subgraphResource);
+            yield return null;
+
+            var mainWindow = VFXTestCommon.GetWindow(mainGraph, true, true);
+            mainWindow.LoadResource(mainResource);
+            yield return null;
+
+            Assert.IsNotNull(mainWindow);
+            Assert.IsNotNull(subgraphWindow);
+            Assert.AreNotEqual(mainWindow, subgraphWindow);
+            yield return null;
+
+            Assert.IsFalse(EditorUtility.IsDirty(subgraph));
+            var mainSubgraphContext = subgraph.children.Single();
+            mainSubgraphContext.position = new Vector2(123, 456);
+            Assert.IsTrue(EditorUtility.IsDirty(subgraph));
+            subgraphWindow.graphView.OnSave();
+            for (int i = 0; i < 8; ++i)
+            {
+                mainWindow.Focus();
+                yield return null;
+            }
+            Assert.IsFalse(mainGraph.IsExpressionGraphDirty());
+            Assert.AreEqual(VFXCompilationMode.Edition, VisualEffectAssetUtility.GetCompilationMode(mainResource.asset));
         }
 
         [UnityTest, Description("Repro from UUM-113869")]
@@ -1670,7 +2004,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(asset);
             Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0));
 
-            var window = VFXViewWindow.GetWindow(asset);
+            var window = VFXTestCommon.GetWindow(asset);
             window.LoadAsset(asset, null);
             var controller = window.graphView.controller;
 
@@ -1685,6 +2019,56 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             Assert.AreEqual(2, controller.groupNodes.Count);
+        }
+
+        [UnityTest]
+        public IEnumerator ConvertToSubGraphOperator_And_Delete_Subgraph()
+        {
+            //Initial Setup using common ConvertToSubGraphOperator
+            VFXTestCommon.CloseAllVFXWindow();
+            Assert.AreEqual(0, VFXViewWindow.GetAllWindows().Count);
+
+            var previousTest = ConvertToSubGraphOperator();
+            while (previousTest.MoveNext())
+                yield return previousTest.Current;
+
+            Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count);
+            var activeWindowsOnMainGraph = VFXViewWindow.GetAllWindows().Single();
+
+            //Sanity check first
+            Assert.IsFalse(activeWindowsOnMainGraph.displayedResource.isSubgraph);
+
+            var currentMainGraph = activeWindowsOnMainGraph.graphView.controller.model.GetGraph();
+            Assert.IsNotNull(currentMainGraph);
+
+            var vfxSubgraphOperator = currentMainGraph.children.OfType<VFXSubgraphOperator>().Single();
+            Assert.IsNotNull(vfxSubgraphOperator);
+
+            var subChildrenProperty = vfxSubgraphOperator.GetType().GetField("m_SubChildren", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.IsNotNull(subChildrenProperty);
+
+            var subChildren = (VFXModel[])subChildrenProperty.GetValue(vfxSubgraphOperator);
+            Assert.IsNotNull(subChildren);
+            Assert.AreEqual(3, subChildren.Length);
+
+            var subGraphPath = AssetDatabase.GetAssetPath(vfxSubgraphOperator.subgraph);
+            var subGraphGuid = AssetDatabase.GUIDFromAssetPath(subGraphPath);
+            var currentAssetPath = AssetDatabase.GetAssetPath(currentMainGraph);
+            var currentContent = File.ReadAllText(currentAssetPath);
+            Assert.IsFalse(currentContent.Contains("fa71feae8df37b6479bb8bc6ab99f797"), "There is already a subgraph operator reference saved on disk");
+            Assert.IsFalse(currentContent.Contains(subGraphGuid.ToString()), "The subgraph reference exist in main graph, makes this test useless");
+
+            //Now, delete the subgraph, expect a recompile/update
+            AssetDatabase.DeleteAsset(testSubgraphSubOperatorAssetName);
+
+            currentMainGraph = activeWindowsOnMainGraph.graphView.controller.model.GetGraph();
+            Assert.IsNotNull(currentMainGraph);
+
+            vfxSubgraphOperator = currentMainGraph.children.OfType<VFXSubgraphOperator>().Single();
+            Assert.IsNotNull(vfxSubgraphOperator);
+
+            subChildren = (VFXModel[])subChildrenProperty.GetValue(vfxSubgraphOperator);
+            Assert.IsNull(subChildren);
         }
 
         [Test]

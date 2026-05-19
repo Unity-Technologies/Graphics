@@ -17,7 +17,7 @@ namespace UnityEngine.PathTracing.Lightmapping
         public RenderTexture AccumulatedOutput;
         public RenderTexture AccumulatedDirectionalOutput;
         public GraphicsBuffer ExpandedOutput;
-        public GraphicsBuffer ExpandedDirectional;
+        public GraphicsBuffer ExpandedOutputDirectional;
         public GraphicsBuffer GBuffer;
         public GraphicsBuffer CompactedTexelIndices;
         public GraphicsBuffer CompactedGBufferLength;
@@ -76,11 +76,11 @@ namespace UnityEngine.PathTracing.Lightmapping
         internal bool ExpandedBufferNeedsUpdating(UInt64 expandedSize)
         {
             if (ExpandedOutput is not null &&
-                ExpandedDirectional is not null &&
+                ExpandedOutputDirectional is not null &&
                 CompactedTexelIndices is not null &&
                 GBuffer is not null &&
                 expandedSize == (UInt64)ExpandedOutput.count &&
-                expandedSize == (UInt64)ExpandedDirectional.count &&
+                expandedSize == (UInt64)ExpandedOutputDirectional.count &&
                 expandedSize == (UInt64)CompactedTexelIndices.count &&
                 expandedSize == (UInt64)CompactedTexelIndices.count)
             {
@@ -102,9 +102,9 @@ namespace UnityEngine.PathTracing.Lightmapping
                 return false;
             }
 
-            ExpandedDirectional?.Dispose();
-            ExpandedDirectional = new GraphicsBuffer(GraphicsBuffer.Target.Structured | GraphicsBuffer.Target.CopySource, (int)(expandedSize), sizeof(float) * 4);
-            if (ExpandedDirectional is null)
+            ExpandedOutputDirectional?.Dispose();
+            ExpandedOutputDirectional = new GraphicsBuffer(GraphicsBuffer.Target.Structured | GraphicsBuffer.Target.CopySource, (int)(expandedSize), sizeof(float) * 4);
+            if (ExpandedOutputDirectional is null)
             {
                 Dispose();
                 return false;
@@ -219,7 +219,7 @@ namespace UnityEngine.PathTracing.Lightmapping
             ReleaseAndDestroy(ref AccumulatedOutput);
             ReleaseAndDestroy(ref AccumulatedDirectionalOutput);
             ExpandedOutput?.Dispose();
-            ExpandedDirectional?.Dispose();
+            ExpandedOutputDirectional?.Dispose();
             CompactedTexelIndices?.Dispose();
             GBuffer?.Dispose();
             CompactedGBufferLength?.Dispose();

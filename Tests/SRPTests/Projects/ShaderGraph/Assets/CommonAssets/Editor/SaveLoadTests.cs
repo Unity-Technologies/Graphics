@@ -19,6 +19,9 @@ using System.Collections.Generic;
 namespace UnityEditor.ShaderGraph.UnitTests
 {
     [TestFixture]
+    [UnityPlatform(exclude = new RuntimePlatform[] {
+        RuntimePlatform.WindowsEditor // Disabled for Instability https://jira.unity3d.com/browse/UUM-141869
+    })]
     internal class SaveLoadTests
     {
         GraphEditorView m_GraphEditorView;

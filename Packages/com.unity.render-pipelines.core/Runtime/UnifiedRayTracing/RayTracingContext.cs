@@ -1,5 +1,7 @@
+#if !PLATFORM_PS5 || UNITY_EDITOR
+#define PLATFORM_SUPPORTS_COMPUTE_BACKEND
+#endif
 using System;
-using System.IO;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -53,8 +55,10 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             BackendType = backend;
             if (backend == RayTracingBackend.Hardware)
                 m_Backend = new HardwareRayTracingBackend(resources);
+#if PLATFORM_SUPPORTS_COMPUTE_BACKEND
             else if (backend == RayTracingBackend.Compute)
                 m_Backend = new ComputeRayTracingBackend(resources);
+#endif
 
             Resources = resources;
             m_DispatchBuffer = RayTracingHelper.CreateDispatchIndirectBuffer();
@@ -99,8 +103,10 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         {
             if (backend == RayTracingBackend.Hardware)
                 return SystemInfo.supportsRayTracing;
+#if PLATFORM_SUPPORTS_COMPUTE_BACKEND
             else if (backend == RayTracingBackend.Compute)
                 return SystemInfo.supportsComputeShaders;
+#endif
 
             return false;
         }
@@ -333,7 +339,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         /// </summary>
         /// <remarks>
         /// Unity resizes the buffer by disposing of the `GraphicsBuffer` and instantiating a new one with the proper size.
-        /// **Important:** If you reference the current <paramref name="scratchBuffer"/> in a command buffer, you must 
+        /// **Important:** If you reference the current <paramref name="scratchBuffer"/> in a command buffer, you must
         /// only call this method after you submit the command buffer. See <see cref="Graphics.ExecuteCommandBuffer"/> or <see cref="ScriptableRenderContext.ExecuteCommandBuffer"/>.
         /// </remarks>
         /// <param name="shader">The shader that will be passed to <see cref="IRayTracingShader.Dispatch"/>.</param>
@@ -365,7 +371,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         /// </summary>
         /// <remarks>
         /// Unity resizes the buffer by disposing of the `GraphicsBuffer` and instantiating a new one with the proper size.
-        /// **Important:** If you reference the current <paramref name="scratchBuffer"/> in a command buffer, you must 
+        /// **Important:** If you reference the current <paramref name="scratchBuffer"/> in a command buffer, you must
         /// only call this method after you submit the command buffer. See <see cref="Graphics.ExecuteCommandBuffer"/> or <see cref="ScriptableRenderContext.ExecuteCommandBuffer"/>.
         /// </remarks>
         /// <param name="accelStruct">The acceleration structure that will be passed to <see cref="IRayTracingAccelStruct.Build"/>.</param>

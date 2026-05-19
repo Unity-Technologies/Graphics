@@ -35,7 +35,7 @@ namespace UnityEditor.VFX.Test
         [SetUp]
         public void Setup()
         {
-            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.CloseAllVFXWindow();
             VFXAnalytics.GetInstance().GetOrCreateAnalyticsData().Clear();
             m_SentData = default;
             m_EditorAnalyticsMock = new Mock<IEditorAnalytics>();
@@ -110,7 +110,7 @@ namespace UnityEditor.VFX.Test
             // Arrange
             var vfxAnalytics = new VFXAnalytics(m_EditorAnalyticsMock.Object);
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var view = VFXViewWindow.GetWindow(graph, true);
+            var view = VFXTestCommon.GetWindow(graph, true);
             yield return null;
             view.LoadResource(graph.visualEffectResource);
             view.Show(true);

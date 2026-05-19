@@ -980,9 +980,11 @@ namespace UnityEditor.VFX.UI
             // Expand categories so child elements can be selected
             var categoriesToExpand = new []{ AttributesCategoryTitle, CustomAttributeCategory.Title };
             ExpandCategories(categoriesToExpand);
-            this.Query<VFXBlackboardAttributeField>()
-                .Where(x => !x.attribute.isBuiltIn)
-                .ForEach(x => m_Treeview.AddToSelection(x.attribute.index));
+            foreach (var item in m_ParametersController.SelectMany(GetDataRecursive))
+            {
+                if (item.data is AttributeItem { isBuiltIn: false })
+                    m_Treeview.AddToSelectionById(item.id);
+            }
         }
 
         private void SelectUnusedCustomAttributes()
@@ -992,10 +994,12 @@ namespace UnityEditor.VFX.UI
             // Expand categories so child elements can be selected
             var categoriesToExpand = new []{ AttributesCategoryTitle, CustomAttributeCategory.Title };
             ExpandCategories(categoriesToExpand);
-            var unused = m_View.controller.graph.GetUnusedCustomAttributes().ToArray();
-            this.Query<VFXBlackboardAttributeField>()
-                .Where(x => unused.Contains(x.attribute.title))
-                .ForEach(x => m_Treeview.AddToSelection(x.attribute.index));
+            var unused = m_View.controller.graph.GetUnusedCustomAttributes().ToHashSet();
+            foreach (var item in m_ParametersController.SelectMany(GetDataRecursive))
+            {
+                if (item.data is AttributeItem attr && unused.Contains(attr.title))
+                    m_Treeview.AddToSelectionById(item.id);
+            }
         }
 
         private void SelectAllProperties()
@@ -1004,17 +1008,25 @@ namespace UnityEditor.VFX.UI
             m_Treeview.ClearSelection();
             // Expand categories so child elements can be selected
             ExpandCategories(controller.parameterControllers.Select(x => x.model.category));
-            this.Query<VFXBlackboardField>().ForEach(x => m_Treeview.AddToSelection(x.PropertyItem.index));
+            foreach (var item in m_ParametersController.SelectMany(GetDataRecursive))
+            {
+                if (item.data is PropertyItem)
+                    m_Treeview.AddToSelectionById(item.id);
+            }
         }
 
         private void SelectUnusedProperties()
         {
             m_View.ClearSelection();
             m_Treeview.ClearSelection();
-            var unused = unusedParameters.ToList();
+            var unused = unusedParameters.ToHashSet();
             // Expand categories so child elements can be selected
             ExpandCategories(unused.Select(x => x.category));
-            this.Query<VFXBlackboardField>().Where(x => unused.Contains(x.controller.model)).ForEach(x => m_Treeview.AddToSelection(x.PropertyItem.index));
+            foreach (var item in m_ParametersController.SelectMany(GetDataRecursive))
+            {
+                if (item.data is PropertyItem prop && unused.Contains(prop.controller.model))
+                    m_Treeview.AddToSelectionById(item.id);
+            }
         }
 
         IEnumerable<VFXParameter> unusedParameters
@@ -1023,7 +1035,7 @@ namespace UnityEditor.VFX.UI
             {
                 return controller.parameterControllers
                     .Select(x => x.model)
-                    .Where(t => !(t.isOutput ? t.inputSlots : t.outputSlots).Any(s => s.HasLink(true)));
+                    .Where(t => t.nodes.Count == 0);
             }
         }
 

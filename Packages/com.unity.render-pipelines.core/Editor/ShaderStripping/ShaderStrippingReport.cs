@@ -125,8 +125,19 @@ namespace UnityEditor.Rendering
 
         public void OnPreprocessBuild(BuildReport report)
         {
-            bool isDevelopmentBuild = (report.summary.options & BuildOptions.Development) != 0;
-            ShaderStripping.ReportBegin(isDevelopmentBuild);
+            bool useDiagnosticChecks = PlayerSettings.GetManagedCodeVariant(GetNamedBuildTarget(report)) <= ManagedCodeVariant.Checked;
+            ShaderStripping.ReportBegin(useDiagnosticChecks);
+        }
+
+        static NamedBuildTarget GetNamedBuildTarget(BuildReport report)
+        {
+            var platformGroup = report.summary.platformGroup;
+            if (platformGroup == BuildTargetGroup.Standalone &&
+                report.summary.GetSubtarget<StandaloneBuildSubtarget>() == StandaloneBuildSubtarget.Server)
+            {
+                return NamedBuildTarget.Server;
+            }
+            return NamedBuildTarget.FromBuildTargetGroup(platformGroup);
         }
 
         public void OnPostprocessBuild(BuildReport report)
@@ -354,7 +365,7 @@ namespace UnityEditor.Rendering
         static IShaderStrippingReport m_Reporter;
         public static IShaderStrippingReport reporter => m_Reporter ??= new ShaderStrippingReportLogger();
 
-        public static void ReportBegin(bool isDevelopmentBuild = false)
+        public static void ReportBegin(bool useDiagnosticChecks = false)
         {
             ShaderVariantLogLevel logStrippedVariants = ShaderVariantLogLevel.Disabled;
             bool exportStrippedVariants = s_DefaultExport;
@@ -364,7 +375,7 @@ namespace UnityEditor.Rendering
             {
                 logStrippedVariants = shaderVariantSettings.shaderVariantLogLevel;
                 exportStrippedVariants = shaderVariantSettings.exportShaderVariants;
-                s_ShowWarningDebugShaders = shaderVariantSettings.stripRuntimeDebugShaders && isDevelopmentBuild;
+                s_ShowWarningDebugShaders = shaderVariantSettings.stripRuntimeDebugShaders && useDiagnosticChecks;
             }
 
             m_Reporter = (logStrippedVariants == ShaderVariantLogLevel.Disabled && exportStrippedVariants == false) ?

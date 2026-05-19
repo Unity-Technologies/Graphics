@@ -86,3 +86,16 @@ float SHL22(float3 direction)
 {
     return SH_L22_NORMALIZATION * (direction.x * direction.x - direction.y * direction.y);
 }
+
+void AccumulateRadianceIntoSH(inout float3 sh[SH_COEFFICIENTS_PER_CHANNEL], float3 radiance, float3 direction)
+{
+    sh[0] += radiance * SHL0();
+    sh[1] += radiance * SHL1_1(direction);
+    sh[2] += radiance * SHL10(direction);
+    sh[3] += radiance * SHL11(direction);
+    sh[4] += radiance * SHL2_2(direction);
+    sh[5] += radiance * SHL2_1(direction);
+    sh[6] += radiance * SHL20(direction);
+    sh[7] += radiance * SHL21(direction);
+    sh[8] += radiance * SHL22(direction);
+}

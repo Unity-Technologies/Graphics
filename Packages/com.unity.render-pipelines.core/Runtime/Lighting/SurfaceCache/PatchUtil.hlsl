@@ -78,8 +78,8 @@ namespace PatchUtil
 
     uint ModuloDistance(uint a, uint b, uint modulo)
     {
-            int dif = abs(int(a) - int(b));
-            return min(dif, modulo - dif);
+        uint dif = max(a, b) - min(a, b);
+        return min(dif, modulo - dif);
     }
 
     uint GetFramesSinceLastAccess(uint currentFrameIdx, uint patchLastAccessFrame)

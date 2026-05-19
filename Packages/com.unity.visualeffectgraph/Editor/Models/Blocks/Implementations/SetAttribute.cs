@@ -201,14 +201,9 @@ namespace UnityEditor.VFX.Block
                 {
                     slot.space = contextSpace;
                 }
+
                 Debug.Log($"Sanitizing attribute {attribute} : settings space to {contextSpace} (retrieved from context)");
             }
-        }
-
-        public override void CheckGraphBeforeImport()
-        {
-            base.CheckGraphBeforeImport();
-            SyncCustomAttributeIfNeeded();
         }
 
         protected override IEnumerable<string> filteredOutSettings

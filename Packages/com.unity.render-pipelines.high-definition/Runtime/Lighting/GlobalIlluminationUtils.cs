@@ -93,6 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightDataGI.shape1 = 0.0f;
                     lightDataGI.type = UnityEngine.Experimental.GlobalIllumination.LightType.Directional;
                     lightDataGI.falloff = FalloffType.Undefined;
+                    lightDataGI.indirectMultiplier = light.bounceIntensity;
                     lightDataGI.coneAngle = light.cookieSize2D.x;
                     lightDataGI.innerConeAngle = light.cookieSize2D.y;
                     break;
@@ -112,6 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     spot.orientation = light.transform.rotation;
                     spot.color = directColor;
                     spot.indirectColor = indirectColor;
+                    spot.indirectMultiplier = light.bounceIntensity;
                     spot.range = light.range;
                     spot.coneAngle = light.spotAngle * Mathf.Deg2Rad;
                     spot.innerConeAngle = Mathf.Deg2Rad * light.innerSpotAngle;
@@ -143,6 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     pyramid.orientation = light.transform.rotation;
                     pyramid.color = directColor;
                     pyramid.indirectColor = indirectColor;
+                    pyramid.indirectMultiplier = light.bounceIntensity;
                     pyramid.range = light.range;
                     pyramid.angle = light.spotAngle * Mathf.Deg2Rad;
                     pyramid.aspectRatio = Mathf.Tan(light.innerSpotAngle * Mathf.PI / 360f) / Mathf.Tan(light.spotAngle * Mathf.PI / 360f);
@@ -167,6 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     box.orientation = light.transform.rotation;
                     box.color = directColor;
                     box.indirectColor = indirectColor;
+                    box.indirectMultiplier = light.bounceIntensity;
                     box.range = light.range;
                     box.width = light.areaSize.x;
                     box.height = light.areaSize.y;
@@ -198,6 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightDataGI.falloff = add.applyRangeAttenuation
                         ? FalloffType.InverseSquared
                         : FalloffType.InverseSquaredNoRangeAttenuation;
+                    lightDataGI.indirectMultiplier = light.bounceIntensity;
                 }
                 break;
 
@@ -214,6 +219,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // TEMP: for now, if we bake a rectangle type this will disable the light for runtime, need to speak with GI team about it!
                     lightDataGI.type = UnityEngine.Experimental.GlobalIllumination.LightType.Rectangle;
                     lightDataGI.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
+                    lightDataGI.indirectMultiplier = light.bounceIntensity;
                     if (add.areaLightCookie != null)
                         lightDataGI.cookieTextureEntityId = add.areaLightCookie.GetEntityId();
                     else if (add.IESSpot != null)
@@ -242,6 +248,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // TEMP: for now, if we bake a rectangle type this will disable the light for runtime, need to speak with GI team about it!
                     lightDataGI.type = UnityEngine.Experimental.GlobalIllumination.LightType.Disc;
                     lightDataGI.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
+                    lightDataGI.indirectMultiplier = light.bounceIntensity;
                     lightDataGI.cookieTextureEntityId = add.areaLightCookie ? add.areaLightCookie.GetEntityId() : EntityId.None;
                 }
                 break;

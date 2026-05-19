@@ -49,7 +49,7 @@ MonoBehaviour:
           local <b>Probe Adjustment Volumes</b> instead, found under <b>GameObject</b>
           > <b>Light</b> > <b>Probe Volumes.</b>\n\nThe bright line on the Cube seen
           in the image above is caused by the overly bright probes under the floor.
-          To fix this unwated light leaking, we already added a probe adjustment
+          To fix this unwanted light leaking, we already added a probe adjustment
           volume that virtually lifts the capture points of the said probes by 0.62
           meters when the lighting is generated.\n\n\nTo reproduce the artifact seen
           in the image above, follow these steps to disable the <b>Probe Adjustment

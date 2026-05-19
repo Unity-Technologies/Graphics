@@ -216,3 +216,22 @@ UNITY_EXPORT_REFLECTION float3 LinkageExample(bool test, float other)
     else
         return float3(0, other, 0);
 }
+
+///<funchints>
+/// <sg:ProviderKey>LinkageExampleWithBinding</sg:ProviderKey>
+///</funchints>
+///<paramhints name = "other">
+    /// <CustomBinding>My Special Label</CustomBinding>
+///</paramhints>
+///<paramhints name = "test">
+    /// <Linkage>other</Linkage>
+///</paramhints>
+UNITY_EXPORT_REFLECTION
+float3 LinkageExampleWithBinding(bool test, float other)
+{
+    if (!test)
+        return float3(1, 0, 0);
+    else
+        return float3(0, other, 0);
+}
+

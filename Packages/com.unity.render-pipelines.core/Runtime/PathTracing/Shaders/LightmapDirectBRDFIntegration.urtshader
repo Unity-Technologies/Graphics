@@ -15,7 +15,7 @@ int g_SampleOffset;
 uint g_ReceiveShadows;
 float g_PushOff;
 RWStructuredBuffer<float4> g_ExpandedOutput;
-RWStructuredBuffer<float4> g_ExpandedDirectional;
+RWStructuredBuffer<float4> g_ExpandedOutputDirectional;
 
 // Sample a random cosine weighted direction, weight with MIS. Only counts contribution from emissive meshes.
 // Assumes 2 sampling strategies, the other being direct sampling of lights (which may or may not be emissive meshes).
@@ -71,10 +71,7 @@ void EstimateMISWeightedIrradianceUsingCosineSampling(
         }
         else // Hit skybox, so stop
         {
-            // The density used to calculate MIS weights should include both the probability of sampling the specific
-            // point on the environment light, as well as the probability of picking the environment light.
             GetEnvironmentLightEmissionAndDensity(ray.direction, emission, lightDensity);
-            lightDensity /= GetNumLights(ray.origin);
             break;
         }
     }
@@ -129,6 +126,6 @@ void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
     // Store new accumulated irradiance
     g_ExpandedOutput[dispatchInfo.dispatchThreadID.x] += float4(irradiance.rgb, 1.0);
     if (g_AccumulateDirectional > 0)
-        g_ExpandedDirectional[dispatchInfo.dispatchThreadID.x] += directional;
+        g_ExpandedOutputDirectional[dispatchInfo.dispatchThreadID.x] += directional;
 }
 

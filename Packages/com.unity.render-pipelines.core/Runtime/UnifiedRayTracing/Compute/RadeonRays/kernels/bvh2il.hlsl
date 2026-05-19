@@ -96,7 +96,7 @@ struct InstanceInfo
     uint disable_triangle_culling;
     uint invert_triangle_culling;
     uint user_instance_id;
-    int is_opaque;
+    uint is_opaque_procedural;
     Transform world_to_local_transform;
     Transform local_to_world_transform;
 };
@@ -108,11 +108,19 @@ globallycoherent RWStructuredBuffer<uint4> g_bvh_leaves;
 uint g_bvh_leaves_offset;
 #endif
 
+
+#if AABB_PRIMITIVES
+Aabb GetInputAabb(uint prim_index)
+{
+    return g_input_aabbs[prim_index];
+}
+#endif
+
 #if TOP_LEVEL
 StructuredBuffer<BvhNode> g_bottom_bvhs;
 RWStructuredBuffer<InstanceInfo> g_instance_infos;
 
-Aabb GetInstanceAabb(int instance_index)
+Aabb GetInstanceAabb(uint instance_index)
 {
     uint bottom_bvh_offset = g_instance_infos[instance_index].blas_offset;
     Transform transform = g_instance_infos[instance_index].local_to_world_transform;
@@ -193,16 +201,23 @@ Aabb GetNodeAabb(uint offset, uint node_index)
 
     if (IS_LEAF_NODE(node_index))
     {
-        int firstTriangle = GET_LEAF_NODE_FIRST_PRIM(node_index);
-        int triangleCount = GET_LEAF_NODE_PRIM_COUNT(node_index);
-        for (int i = 0; i < triangleCount; ++i)
+        int firstPrim = GET_LEAF_NODE_FIRST_PRIM(node_index);
+        int primCount = GET_LEAF_NODE_PRIM_COUNT(node_index);
+        for (int i = 0; i < primCount; ++i)
         {
-            uint3 indices = g_bvh_leaves[g_bvh_leaves_offset + firstTriangle + i].xyz;
+            #if AABB_PRIMITIVES
+            uint aabbIndex = g_bvh_leaves[g_bvh_leaves_offset + firstPrim + i].w;
+            Aabb primAabb = GetInputAabb(aabbIndex);
+            GrowAabb(primAabb.pmin, aabb);
+            GrowAabb(primAabb.pmax, aabb);
+            #else
+            uint3 indices = g_bvh_leaves[g_bvh_leaves_offset + firstPrim + i].xyz;
             TriangleData tri = FetchTriangle(indices);
 
             GrowAabb(tri.v0, aabb);
             GrowAabb(tri.v1, aabb);
             GrowAabb(tri.v2, aabb);
+            #endif
         }
     }
     else
@@ -217,24 +232,33 @@ Aabb GetNodeAabb(uint offset, uint node_index)
     return aabb;
 }
 
+
+
 Aabb GetNodeAabbSync(uint offset, int node_index)
 {
     Aabb aabb = CreateEmptyAabb();
     if (IS_LEAF_NODE(node_index))
     {
-        int firstTriangle = GET_LEAF_NODE_FIRST_PRIM(node_index);
-        int triangleCount = GET_LEAF_NODE_PRIM_COUNT(node_index);
-        for (int i = 0; i < triangleCount; ++i)
+        int firstPrim = GET_LEAF_NODE_FIRST_PRIM(node_index);
+        int primCount = GET_LEAF_NODE_PRIM_COUNT(node_index);
+        for (int i = 0; i < primCount; ++i)
         {
+            #if AABB_PRIMITIVES
+            uint aabbIndex = g_bvh_leaves[g_bvh_leaves_offset + firstPrim + i].w;
+            Aabb primAabb = GetInputAabb(aabbIndex);
+            GrowAabb(primAabb.pmin, aabb);
+            GrowAabb(primAabb.pmax, aabb);
+            #else
             uint3 indices = 0;
-            InterlockedAdd(g_bvh_leaves[g_bvh_leaves_offset + firstTriangle + i].x, 0, indices.x);
-            InterlockedAdd(g_bvh_leaves[g_bvh_leaves_offset + firstTriangle + i].y, 0, indices.y);
-            InterlockedAdd(g_bvh_leaves[g_bvh_leaves_offset + firstTriangle + i].z, 0, indices.z);
+            InterlockedAdd(g_bvh_leaves[g_bvh_leaves_offset + firstPrim + i].x, 0, indices.x);
+            InterlockedAdd(g_bvh_leaves[g_bvh_leaves_offset + firstPrim + i].y, 0, indices.y);
+            InterlockedAdd(g_bvh_leaves[g_bvh_leaves_offset + firstPrim + i].z, 0, indices.z);
             TriangleData tri = FetchTriangle(indices);
 
             GrowAabb(tri.v0, aabb);
             GrowAabb(tri.v1, aabb);
             GrowAabb(tri.v2, aabb);
+            #endif
         }
     }
     else

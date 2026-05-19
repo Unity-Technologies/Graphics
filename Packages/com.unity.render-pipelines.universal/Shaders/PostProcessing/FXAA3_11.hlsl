@@ -734,7 +734,7 @@ NOTE the other tuning knobs are now in the shader function inputs!
                    GREEN AS LUMA OPTION SUPPORT FUNCTION
 ============================================================================*/
 
-    FxaaFloat2 g_fxaaHDROutputPaperWhiteNits = 0.0.xx;
+    static FxaaFloat2 g_fxaaHDROutputPaperWhiteNits = 0.0.xx;
 
 #if (FXAA_GREEN_AS_LUMA == 0)
     FxaaFloat FxaaLuma(FxaaFloat4 rgba)

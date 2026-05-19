@@ -308,7 +308,11 @@ namespace UnityEngine.Rendering.Universal
             private GraphicsBuffer _worldUpdateScratch;
 
             private readonly SceneUpdatesTracker _sceneTracker;
+            private readonly SurfaceCacheLegacyWorldAdapter _legacyWorldAdapter;
+
             private readonly SurfaceCacheWorldAdapter _worldAdapter;
+            private readonly InternalBridge.ObjectDispatcher _objDispatcher;
+
             private readonly SurfaceCacheWorld _world;
 
             private readonly ComputeShader _screenResolveLookupShader;
@@ -403,12 +407,22 @@ namespace UnityEngine.Rendering.Universal
                 _coreResources = resourceSet;
 
                 _cache = new SurfaceCache(resourceSet, volParams);
-                _sceneTracker = new SceneUpdatesTracker();
+                _cache.SetEmissiveTriangleIntensityMultiplier(k_EmissiveTriangleIntensityMultiplier);
 
                 _world = new SurfaceCacheWorld();
                 _world.Init(_rtContext, worldResources);
 
-                _worldAdapter = new SurfaceCacheWorldAdapter(_world, fallbackMaterial);
+                bool useLegacyAdapter = true;
+                if (useLegacyAdapter)
+                {
+                    _sceneTracker = new();
+                    _legacyWorldAdapter = new SurfaceCacheLegacyWorldAdapter(_world, fallbackMaterial);
+                }
+                else
+                {
+                    _objDispatcher = new();
+                    _worldAdapter = new SurfaceCacheWorldAdapter(_objDispatcher, _world, fallbackMaterial);
+                }
             }
 
             public void Dispose()
@@ -420,12 +434,23 @@ namespace UnityEngine.Rendering.Universal
                 _lowResScreenIrradiancesL11?.Release();
                 _lowResScreenIrradiancesL12?.Release();
                 _lowResScreenNdcDepths?.Release();
-                _sceneTracker.Dispose();
                 _cache.Dispose();
+                _sceneTracker?.Dispose();
+                _legacyWorldAdapter?.Dispose();
+                _worldAdapter?.CleanUp(_world);
+                _objDispatcher?.Dispose();
                 _world.Dispose();
-                _worldAdapter.Dispose();
                 _worldUpdateScratch?.Dispose();
             }
+
+            // Historically, GI systems in Unity have, for historical reasons, 1) multiplied punctual light intensity
+            // inputs with PI, and 2) divided all GI output with PI. To match this, Surface Cache for now does
+            // something mathematically equivalent: It divides environment light and triangle emission by PI.
+            // Ideally, we'd get rid of this behavior across all Unity GI systems in the future.
+            // Note that this is distinct from the separate issue that URP is generally off by PI in its output.
+            private const bool k_ConformToUnityGIFormat = true;
+
+            private const float k_EmissiveTriangleIntensityMultiplier = k_ConformToUnityGIFormat ? 1.0f / Mathf.PI : 1.0f;
 
             private static VolumeParameterSet GetVolumeParametersOrDefaults(SurfaceCacheGIVolumeOverride volume)
             {
@@ -534,6 +559,7 @@ namespace UnityEngine.Rendering.Universal
                         CascadeCount = newCascadeCount
                     };
                     _cache = new SurfaceCache(_coreResources, newVolParams);
+                    _cache.SetEmissiveTriangleIntensityMultiplier(k_EmissiveTriangleIntensityMultiplier);
                     _frameIdx = 0;
                 }
 
@@ -662,9 +688,29 @@ namespace UnityEngine.Rendering.Universal
                 // the case for the standard ambient probe lighting, which is assumed to be in gamma space and then converted to
                 // linear space. We will make this more coherent for the ambient probe in the future.
                 // Similarly, the ambient colors are all defined in sRGB space and must be converted to linear.
-                _worldAdapter.Update(_sceneTracker, RenderSettings.ambientMode, RenderSettings.skybox,
-                    RenderSettings.ambientSkyColor.linear, RenderSettings.ambientEquatorColor.linear, RenderSettings.ambientGroundColor.linear,
-                    RenderSettings.ambientIntensity, _world);
+                if (_legacyWorldAdapter != null)
+                {
+                    Debug.Assert(_sceneTracker != null);
+                    Debug.Assert(_objDispatcher == null);
+                    _legacyWorldAdapter.Update(_sceneTracker, RenderSettings.ambientMode, RenderSettings.skybox,
+                        RenderSettings.ambientSkyColor.linear, RenderSettings.ambientEquatorColor.linear, RenderSettings.ambientGroundColor.linear,
+                        RenderSettings.ambientIntensity, k_ConformToUnityGIFormat, _world);
+                }
+                else
+                {
+                    Debug.Assert(_objDispatcher != null);
+                    Debug.Assert(_sceneTracker == null);
+                    _worldAdapter.Update(
+                        _objDispatcher,
+                        RenderSettings.ambientMode,
+                        RenderSettings.skybox,
+                        RenderSettings.ambientSkyColor.linear,
+                        RenderSettings.ambientEquatorColor.linear,
+                        RenderSettings.ambientGroundColor.linear,
+                        RenderSettings.ambientIntensity,
+                        k_ConformToUnityGIFormat,
+                        _world);
+                }
 
                 using (var builder = renderGraph.AddUnsafePass("Surface Cache World Update", out WorldUpdatePassData passData))
                 {
@@ -1015,9 +1061,35 @@ namespace UnityEngine.Rendering.Universal
             var worldLoadResult = worldResources.LoadFromRenderPipelineResources();
             Debug.Assert(worldLoadResult);
 
+            var coreRpResources = GraphicsSettings.GetRenderPipelineSettings<Rendering.SurfaceCacheRenderPipelineResourceSet>();
+            Debug.Assert(coreRpResources != null);
+
             var coreResources = new Rendering.SurfaceCacheResourceSet((uint)SystemInfo.computeSubGroupSize);
-            var coreResourceLoadResult = coreResources.LoadFromRenderPipelineResources(_rtContext);
-            Debug.Assert(coreResourceLoadResult);
+
+            Object punctualLightSamplingUnifiedObj;
+            Object estimationUnifiedObj;
+            if (_rtContext.BackendType == RayTracingBackend.Compute)
+            {
+                punctualLightSamplingUnifiedObj = coreRpResources.punctualLightSamplingComputeShader;
+                estimationUnifiedObj = coreRpResources.estimationComputeShader;
+            }
+            else
+            {
+                punctualLightSamplingUnifiedObj = coreRpResources.punctualLightSamplingRayTracingShader;
+                estimationUnifiedObj = coreRpResources.estimationRayTracingShader;
+            }
+            IRayTracingShader punctualLightSamplingShader = _rtContext.CreateRayTracingShader(punctualLightSamplingUnifiedObj);
+            IRayTracingShader estimationShader = _rtContext.CreateRayTracingShader(estimationUnifiedObj);
+
+            coreResources.Load(
+                coreRpResources.scrollingShader,
+                coreRpResources.evictionShader,
+                coreRpResources.patchAllocationShader,
+                coreRpResources.spatialFilteringShader,
+                coreRpResources.temporalFilteringShader,
+                coreRpResources.defragShader,
+                punctualLightSamplingShader,
+                estimationShader);
 
             // Use defaults for initial volume configuration; runtime values come from the Volume override per-frame
             var volParams = new SurfaceCacheVolumeParameterSet

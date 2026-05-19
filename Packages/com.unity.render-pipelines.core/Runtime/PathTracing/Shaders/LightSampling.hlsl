@@ -30,6 +30,8 @@ TextureCube<float4>             g_EnvTex;
 SamplerState                    sampler_g_EnvTex;
 float                           g_EnvIntensityMultiplier;
 
+// TODO: Pass light state in as parameters instead of globals, perhaps via a new struct?
+// https://jira.unity3d.com/browse/GFXLIGHT-2259
 int                             g_LightPickingMethod;
 StructuredBuffer<PTLight>       g_LightList;
 StructuredBuffer<float>         g_LightFalloff;
@@ -37,6 +39,9 @@ StructuredBuffer<float>         g_LightFalloffLUTRange;
 uint                            g_LightFalloffLUTLength;
 uint                            g_NumLights;
 uint                            g_NumEmissiveMeshes;
+StructuredBuffer<PTLight>       g_MainDirectionalLight;
+int                             g_HasMainDirectionalLight;
+int                             g_HasEnvironmentLight;
 
 // Light cookies
 Texture2DArray<float4>          g_CookieAtlas;
@@ -873,6 +878,7 @@ PTLight FetchLight(int lightIndex)
     return g_LightList[lightIndex];
 }
 
+
 uint PackLightInfo(PTLight light)
 {
     uint bitmask = 0;
@@ -923,7 +929,8 @@ uint GetNumLights(float3 origin)
     return g_NumLights;
 }
 
-PTLight GetLightInCell(float3 origin, uint lightIndex)
+// Converts a light index in a specific grid cell to an index in the global light list.
+uint LocalToGlobalLightIndex(float3 origin, uint lightIndex)
 {
     if (g_LightPickingMethod == LIGHT_PICKING_METHOD_RESERVOIR_GRID  || g_LightPickingMethod == LIGHT_PICKING_METHOD_LIGHT_GRID)
     {
@@ -933,7 +940,7 @@ PTLight GetLightInCell(float3 origin, uint lightIndex)
         lightIndex = reservoir.lightIndex;
     }
 
-    return FetchLight(lightIndex);
+    return lightIndex;
 }
 
 bool SampleLight(PTLight light, float3 shadowRayOrigin, float3 normal, bool isDirect, uint enabledLightsLayerMask, StructuredBuffer<UnifiedRT::InstanceData> instanceList, float2 rand0, float2 rand1, out ReservoirLightSample lightSample)
@@ -982,7 +989,7 @@ struct SampleLightsOptions
     uint numLightCandidates;
 };
 
-PTLight PickLight(float pickingSample, float3 receiverOrigin, out float lightPickingPmf)
+uint PickLightIndex(float pickingSample, float3 receiverOrigin, out float lightPickingPmf)
 {
     uint lightIndex;
     if (g_LightPickingMethod == LIGHT_PICKING_METHOD_RESERVOIR_GRID || g_LightPickingMethod == LIGHT_PICKING_METHOD_LIGHT_GRID)
@@ -990,10 +997,10 @@ PTLight PickLight(float pickingSample, float3 receiverOrigin, out float lightPic
     else
         PickLightUniformly(pickingSample, lightIndex, lightPickingPmf);
 
-    return FetchLight(lightIndex);
+    return lightIndex;
 }
 
-bool SampleLightsRadianceRIS(
+bool SampleRadianceFromLightGridRIS(
     UnifiedRT::DispatchInfo dispatchInfo, UnifiedRT::RayTracingAccelStruct accelStruct, StructuredBuffer<UnifiedRT::InstanceData> instanceList,
     float3 receiverOrigin, float3 receiverNormal, SampleLightsOptions options, inout PathTracingSampler rngState, out LightSample resLightSample)
 {
@@ -1021,7 +1028,8 @@ bool SampleLightsRadianceRIS(
         float winnerSample = winnerSelectionRng.GetSample();
 
         float lightPickingPmf;
-        PTLight light = PickLight(pickingSample, receiverOrigin, lightPickingPmf);
+        uint lightIndex = PickLightIndex(pickingSample, receiverOrigin, lightPickingPmf);
+        PTLight light = FetchLight(lightIndex);
 
         ReservoirLightSample lightSample;
         float2 sampleRand0 = sampleGenerationRng.GetSample(RAND_DIM_LIGHT_SELECTION + 1);
@@ -1068,15 +1076,19 @@ bool SampleLightsRadianceRIS(
 }
 
 // Uniform sampling of the light list, used for reference / debuging
-bool SampleLightsRadianceMC(
+bool SampleRadianceFromLightGridUniform(
     UnifiedRT::DispatchInfo dispatchInfo, UnifiedRT::RayTracingAccelStruct accelStruct, StructuredBuffer<UnifiedRT::InstanceData> instanceList,
     float3 receiverOrigin, float3 receiverNormal, SampleLightsOptions options, inout PathTracingSampler rngState, out LightSample resLightSample)
 {
     resLightSample = (LightSample)0;
 
+    if (GetNumLights(receiverOrigin) == 0)
+        return false;
+
     float pickingSample = rngState.GetSample1D(RAND_DIM_LIGHT_SELECTION);
     float lightPickingPmf;
-    PTLight light = PickLight(pickingSample, receiverOrigin, lightPickingPmf);
+    uint lightIndex = PickLightIndex(pickingSample, receiverOrigin, lightPickingPmf);
+    PTLight light = FetchLight(lightIndex);
 
     ReservoirLightSample lightSample;
     float2 sampleRand0 = rngState.GetSample2D(RAND_DIM_LIGHT_SELECTION + 1);
@@ -1107,16 +1119,11 @@ bool SampleLightRadiance(
 {
     resLightSample = (LightSample)0;
 
-    uint numLights = GetNumLights(receiverOrigin);
-    float lightPickingPmf = rcp(numLights);
-
     ReservoirLightSample lightSample;
     float2 sampleRand0 = rngState.GetSample2D(RAND_DIM_LIGHT_SELECTION + 1);
     float2 sampleRand1 = rngState.GetSample2D(RAND_DIM_LIGHT_SELECTION + 2);
     if (!SampleLight(light, receiverOrigin, receiverNormal, options.isDirect, options.lightsRenderingLayerMask, instanceList, sampleRand0, sampleRand1, lightSample))
         return false;
-
-    lightSample.pdf *= lightPickingPmf;
 
     float3 attenuation = 1.0f;
     float2 shadowSample = rngState.GetSample2D(RAND_DIM_JITTERED_SHADOW);
@@ -1132,18 +1139,38 @@ bool SampleLightRadiance(
     return true;
 }
 
+// Sample radiance from a specific light in g_LightList, and take 1/numLights into account in the light PDF.
+bool SampleLightRadianceRoundRobin(
+    UnifiedRT::DispatchInfo dispatchInfo, UnifiedRT::RayTracingAccelStruct accelStruct, StructuredBuffer<UnifiedRT::InstanceData> instanceList,
+    float3 receiverOrigin, float3 receiverNormal, SampleLightsOptions options, int lightIndex, inout PathTracingSampler rngState, out LightSample resLightSample)
+{
+	resLightSample = (LightSample)0;
+
+    PTLight light = FetchLight(lightIndex);
+    if (SampleLightRadiance(dispatchInfo, accelStruct, g_AccelStructInstanceList, receiverOrigin, receiverNormal, options, light, rngState, resLightSample))
+    {
+        uint numLights = GetNumLights(receiverOrigin);
+        resLightSample.radiance *= numLights;
+        resLightSample.risSourcePdf *= rcp(numLights);
+        return true;
+    }
+    return false;
+}
+
 // Sample incoming radiance from a random light, picked using either RIS or raw monte carlo.
-bool SampleLightsRadiance(
+bool SampleRadianceFromLightGrid(
     UnifiedRT::DispatchInfo dispatchInfo, UnifiedRT::RayTracingAccelStruct accelStruct, StructuredBuffer<UnifiedRT:: InstanceData> instanceList,
     float3 receiverOrigin, float3 receiverNormal, SampleLightsOptions options, inout PathTracingSampler rngState, out LightSample resLightSample)
 {
 #if defined(LIGHT_SAMPLING_RIS)
-    return SampleLightsRadianceRIS(dispatchInfo, accelStruct, instanceList, receiverOrigin, receiverNormal, options, rngState, resLightSample);
+    return SampleRadianceFromLightGridRIS(dispatchInfo, accelStruct, instanceList, receiverOrigin, receiverNormal, options, rngState, resLightSample);
 #else
-    return SampleLightsRadianceMC(dispatchInfo, accelStruct, instanceList, receiverOrigin, receiverNormal, options, rngState, resLightSample);
+    return SampleRadianceFromLightGridUniform(dispatchInfo, accelStruct, instanceList, receiverOrigin, receiverNormal, options, rngState, resLightSample);
 #endif
 }
 
+// Samples f(X)/p(X) where f is the integrand of the direct lighting
+// integral (BRDF * L_i * dot(N, L)) and where p is the used PDF.
 float3 EvalDirectIllumination(
     UnifiedRT::DispatchInfo dispatchInfo, UnifiedRT::RayTracingAccelStruct accelStruct, StructuredBuffer<UnifiedRT::InstanceData> instanceList,
     bool isDirect, uint shadowRayMask, PTHitGeom hitGeom, MaterialProperties material, uint maxLightEvaluations, inout PathTracingSampler rngState)
@@ -1158,15 +1185,45 @@ float3 EvalDirectIllumination(
     options.lightsRenderingLayerMask = hitGeom.renderingLayerMask;
     options.numLightCandidates = maxLightEvaluations;
 
+    // Sample a light from the light grid
     LightSample lightSample;
-    if (SampleLightsRadiance(dispatchInfo, accelStruct, instanceList, shadowRayOrigin, hitGeom.worldNormal, options, rngState, lightSample))
+    if (SampleRadianceFromLightGrid(dispatchInfo, accelStruct, instanceList, shadowRayOrigin, hitGeom.worldNormal, options, rngState, lightSample))
     {
-        float3 eval = EvalDiffuseBrdf(material.baseColor) * ClampedCosine(hitGeom.worldNormal, lightSample.direction) * lightSample.radiance;
-        eval *= EmissiveMISWeightForLightRay(lightSample.lightType, lightSample.direction, lightSample.risSourcePdf, hitGeom.worldNormal);
-        irradiance = ClampRadiance(eval);
+        float3 eval = ClampedCosine(hitGeom.worldNormal, lightSample.direction) * lightSample.radiance;
+        irradiance += eval * EmissiveMISWeightForLightRay(lightSample.lightType, lightSample.direction, lightSample.risSourcePdf, hitGeom.worldNormal);
     }
 
-    return irradiance;
+    // TODO: Specialize sampling codepaths for different light types: https://jira.unity3d.com/browse/GFXLIGHT-2260
+    // Sample the main directional light
+    if (g_HasMainDirectionalLight)
+    {
+        PTLight directionalLight = g_MainDirectionalLight[0];
+        LightSample directionalLightSample;
+        SampleLightRadiance(dispatchInfo, accelStruct, instanceList, shadowRayOrigin, hitGeom.worldNormal, options, directionalLight, rngState, directionalLightSample);
+
+        irradiance += ClampedCosine(hitGeom.worldNormal, directionalLightSample.direction) * directionalLightSample.radiance;
+    }
+
+    // Sample the environment
+    if (g_HasEnvironmentLight)
+    {
+        PTLight environmentLight = (PTLight)0;
+        environmentLight.type = ENVIRONMENT_LIGHT;
+        environmentLight.castsShadows = 1;
+        environmentLight.contributesToDirectLighting = 1;
+        environmentLight.layerMask = UINT_MAX;
+        LightSample environmentLightSample;
+        SampleLightRadiance(dispatchInfo, accelStruct, instanceList, shadowRayOrigin, hitGeom.worldNormal, options, environmentLight, rngState, environmentLightSample);
+
+        float3 eval = ClampedCosine(hitGeom.worldNormal, environmentLightSample.direction) * environmentLightSample.radiance;
+        irradiance += eval * EmissiveMISWeightForLightRay(environmentLightSample.lightType, environmentLightSample.direction, environmentLightSample.risSourcePdf, hitGeom.worldNormal);
+    }
+
+    float3 integrand = irradiance * EvalDiffuseBrdf(material.baseColor);
+    if (any(integrand > 0))
+        integrand = ClampRadiance(integrand);
+
+    return integrand;
 }
 
 // Evaluate direct shadows from a single light given the index of the light. Used for baking.

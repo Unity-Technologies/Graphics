@@ -24,13 +24,13 @@ namespace UnityEditor.VFX.Test
         {
             AssetDatabase.DeleteAsset("Assets/" + testFolder);
             AssetDatabase.CreateFolder("Assets", testFolder);
-            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.CloseAllVFXWindow();
         }
 
         [OneTimeTearDown]
         public void OneTimeCleanup()
         {
-            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.CloseAllVFXWindow();
             VFXTestCommon.DeleteAllTemporaryGraph();
         }
         [UnityTest]
@@ -100,7 +100,7 @@ namespace UnityEditor.VFX.Test
             // Arrange
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var window = VFXViewWindow.GetWindow(graph, true);
+            var window = VFXTestCommon.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
             VFXBlackboard blackboard = window.graphView.blackboard;
             yield return null;
@@ -125,7 +125,7 @@ namespace UnityEditor.VFX.Test
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var categoryName = "new category";
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var window = VFXViewWindow.GetWindow(graph, true);
+            var window = VFXTestCommon.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
             VFXBlackboard blackboard = window.graphView.blackboard;
             yield return null;
@@ -152,7 +152,7 @@ namespace UnityEditor.VFX.Test
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var categoryName = "new category";
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var window = VFXViewWindow.GetWindow(graph, true);
+            var window = VFXTestCommon.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
             VFXBlackboard blackboard = window.graphView.blackboard;
             yield return null;
@@ -184,7 +184,7 @@ namespace UnityEditor.VFX.Test
             // Arrange
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var window = VFXViewWindow.GetWindow(graph, true);
+            var window = VFXTestCommon.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
             VFXBlackboard blackboard = window.graphView.blackboard;
             yield return null;
@@ -209,7 +209,7 @@ namespace UnityEditor.VFX.Test
             // Arrange
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var window = VFXViewWindow.GetWindow(graph, true);
+            var window = VFXTestCommon.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
             VFXBlackboard blackboard = window.graphView.blackboard;
             yield return null;
@@ -235,7 +235,7 @@ namespace UnityEditor.VFX.Test
             // Arrange
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var subgraph = VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>($"Assets/{testFolder}/vfx_{GUID.Generate()}.vfxoperator");
-            var window = VFXViewWindow.GetWindow(subgraph.GetResource(), true);
+            var window = VFXTestCommon.GetWindow(subgraph.GetResource(), true);
             window.LoadResource(subgraph.GetResource());
             yield return null;
 
@@ -263,7 +263,7 @@ namespace UnityEditor.VFX.Test
             // Arrange
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var window = VFXViewWindow.GetWindow(graph, true);
+            var window = VFXTestCommon.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
             VFXBlackboard blackboard = window.graphView.blackboard;
             yield return null;
@@ -301,7 +301,7 @@ namespace UnityEditor.VFX.Test
             // Arrange
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var window = VFXViewWindow.GetWindow(graph, true);
+            var window = VFXTestCommon.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
             VFXBlackboard blackboard = window.graphView.blackboard;
             yield return null;
@@ -333,7 +333,7 @@ namespace UnityEditor.VFX.Test
             // Arrange
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var window = VFXViewWindow.GetWindow(graph, true);
+            var window = VFXTestCommon.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
             VFXBlackboard blackboard = window.graphView.blackboard;
             yield return null;
@@ -382,7 +382,7 @@ namespace UnityEditor.VFX.Test
             // Arrange
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var window = VFXViewWindow.GetWindow(graph, true);
+            var window = VFXTestCommon.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
             VFXBlackboard blackboard = window.graphView.blackboard;
             yield return null;
@@ -413,7 +413,7 @@ namespace UnityEditor.VFX.Test
             // Arrange
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var window = VFXViewWindow.GetWindow(graph, true);
+            var window = VFXTestCommon.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
             VFXBlackboard blackboard = window.graphView.blackboard;
             yield return null;
@@ -445,7 +445,7 @@ namespace UnityEditor.VFX.Test
             // Arrange
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var window = VFXViewWindow.GetWindow(graph, true);
+            var window = VFXTestCommon.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
             VFXBlackboard blackboard = window.graphView.blackboard;
             yield return null;
@@ -485,7 +485,7 @@ namespace UnityEditor.VFX.Test
             // Arrange
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var window = VFXViewWindow.GetWindow(graph, true);
+            var window = VFXTestCommon.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
             VFXBlackboard blackboard = window.graphView.blackboard;
             yield return null;
@@ -518,7 +518,7 @@ namespace UnityEditor.VFX.Test
             // Arrange
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var window = VFXViewWindow.GetWindow(graph, true);
+            var window = VFXTestCommon.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
             VFXBlackboard blackboard = window.graphView.blackboard;
             yield return null;
@@ -544,7 +544,7 @@ namespace UnityEditor.VFX.Test
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var subgraphPath = $"Assets/{testFolder}/vfx_{GUID.Generate()}.vfxoperator";
             var subgraph = VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>(subgraphPath);
-            var window = VFXViewWindow.GetWindow(subgraph.GetResource(), true);
+            var window = VFXTestCommon.GetWindow(subgraph.GetResource(), true);
             window.LoadResource(subgraph.GetResource());
             yield return null;
 
@@ -563,7 +563,7 @@ namespace UnityEditor.VFX.Test
 
             // Open a second window with a basic graph
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var window2 = VFXViewWindow.GetWindow(graph, true);
+            var window2 = VFXTestCommon.GetWindow(graph, true);
             window2.LoadResource(graph.visualEffectResource);
             var blackboard2 = window.graphView.blackboard;
             yield return null;
@@ -593,7 +593,7 @@ namespace UnityEditor.VFX.Test
             // Arrange
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var window = VFXViewWindow.GetWindow(graph, true);
+            var window = VFXTestCommon.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
             VFXBlackboard blackboard = window.graphView.blackboard;
             yield return null;
@@ -632,7 +632,7 @@ namespace UnityEditor.VFX.Test
             // Arrange
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var window = VFXViewWindow.GetWindow(graph, true);
+            var window = VFXTestCommon.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
             VFXBlackboard blackboard = window.graphView.blackboard;
             yield return null;
@@ -654,14 +654,14 @@ namespace UnityEditor.VFX.Test
         {
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var window = VFXViewWindow.GetWindow(graph, true);
+            var window = VFXTestCommon.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
             VFXTestCommon.CreateSystems(window.graphView, window.graphView.controller, 1, 0);
             window.graphView.OnSave();
 
             // Create a subgraph with a custom attribute (used in a set attribute block)
             var subgraph = VFXTestCommon.MakeTemporarySubGraphBlock();
-            var subgraphGraph = subgraph.GetResource().GetOrCreateGraph();
+            var subgraphGraph = subgraph.GetResource().GetGraph();
             subgraphGraph.TryAddCustomAttribute("myattribute", VFXValueType.Boolean, string.Empty, false, out var attribute);
             var subgraphBlockContext = (VFXBlockSubgraphContext)subgraphGraph.children.Single(x => x is VFXBlockSubgraphContext);
             var setAttribute = (SetAttribute)VFXLibrary.GetBlocks().First(x => x.modelType == typeof(SetAttribute)).CreateInstance();
@@ -714,13 +714,13 @@ namespace UnityEditor.VFX.Test
         {
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var window = VFXViewWindow.GetWindow(graph, true);
+            var window = VFXTestCommon.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
             VFXTestCommon.CreateSystems(window.graphView, window.graphView.controller, 1, 0);
 
             // Create a subgraph with a custom attribute (used in a Get attribute operator)
             var subgraph = VFXTestCommon.MakeTemporarySubGraphOperator();
-            var subgraphGraph = subgraph.GetResource().GetOrCreateGraph();
+            var subgraphGraph = subgraph.GetResource().GetGraph();
             subgraphGraph.TryAddCustomAttribute("myattribute", VFXValueType.Boolean, string.Empty, false, out var attribute);
             var getAttribute = (VFXAttributeParameter)VFXLibrary.GetOperators().First(x => x.modelType == typeof(VFXAttributeParameter)).CreateInstance();
             getAttribute.SetSettingValue("attribute", attribute.name);

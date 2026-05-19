@@ -48,7 +48,7 @@ namespace UnityEditor.VFX.HDRP
         public class VolumetricFogMaskProperties
         {
             [Tooltip("The 3D texture used to modify the color and density of the fog.")]
-            public Texture3D mask = VFXResources.tileableGradientNoise;
+            public Texture3D mask = VFXResources.defaultResources.tileableGradientNoise;
             [Tooltip("Modifies the tiling of the mask texture on each axis individually.")]
             public Vector3 uvScale = Vector3.one;
             [Tooltip("Offsets the texture UVs on each axis individually..")]

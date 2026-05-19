@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             var name = GetName();
             graphicsResource = new GraphicsBuffer(desc.target, desc.usageFlags, desc.count, desc.stride);
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             graphicsResource.name = name == "" ? $"RenderGraphBuffer_{desc.count}_{desc.stride}_{desc.target}" : name;
 #endif
         }

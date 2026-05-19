@@ -43,6 +43,23 @@ struct __VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE)
         this.writeAccess = true;
         this.rangeCheck = false;
     }
+	
+	__VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE) GetRange(uint from, uint count)
+	{
+		from = min(from, size - 1);
+		count = min(count, size - from);
+		
+		__VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE) rangeBuffer;
+        rangeBuffer.buffer = buffer;
+        rangeBuffer.bufferRW = bufferRW;
+        rangeBuffer.offset = offset + from;
+        rangeBuffer.size = count;
+        rangeBuffer.readAccess = readAccess;
+        rangeBuffer.writeAccess = writeAccess;
+        rangeBuffer.rangeCheck = rangeCheck;
+		
+		return rangeBuffer;
+	}
 
     bool LoadData(out __VFX_STRUCTURED_BUFFER_TYPE data, uint index)
     {

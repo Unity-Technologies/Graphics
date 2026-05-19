@@ -13,7 +13,7 @@
 
 UNIFIED_RT_DECLARE_ACCEL_STRUCT(g_SceneAccelStruct);
 
-RWStructuredBuffer<float3> g_Positions;
+StructuredBuffer<float3> g_Positions;
 RWStructuredBuffer<float> g_Validity;
 uint g_PositionsOffset;
 uint g_SampleCount;

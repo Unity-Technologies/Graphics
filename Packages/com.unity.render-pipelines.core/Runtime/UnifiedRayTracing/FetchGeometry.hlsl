@@ -9,6 +9,7 @@
 #define INTERPOLATE_ATTRIBUTE(attr, barCoords) v.attr = v0.attr * (1.0 - barCoords.x - barCoords.y) + v1.attr * barCoords.x + v2.attr * barCoords.y
 
 StructuredBuffer<UnifiedRT::InstanceData>     g_AccelStructInstanceList;
+StructuredBuffer<UnifiedRT::TerrainData>      g_TerrainList;
 
 StructuredBuffer<uint>             g_globalIndexBuffer;
 StructuredBuffer<uint>             g_globalVertexBuffer;
@@ -116,6 +117,11 @@ HitGeomAttributes FetchHitGeomAttributesInWorldSpace(UnifiedRT::InstanceData ins
 InstanceData GetInstance(uint instanceID)
 {
     return g_AccelStructInstanceList[instanceID];
+}
+
+TerrainData GetTerrain(int terrainIndex)
+{
+    return g_TerrainList[terrainIndex];
 }
 
 } // namespace UnifiedRT

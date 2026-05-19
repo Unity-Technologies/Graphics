@@ -27,8 +27,14 @@ namespace UnityEngine.Rendering.Universal
             SerializedProperty provider = serializedObject.FindProperty("m_ShadowShape2DProvider");
             SerializedProperty component = serializedObject.FindProperty("m_ShadowShape2DComponent");
             lightType.intValue = m_SourceType;
-            provider.boxedValue = m_Provider;
-            component.boxedValue = m_Component;
+
+            foreach (var obj in serializedObject.targetObjects)
+            {
+                ShadowCaster2D shadowCaster2D = obj as ShadowCaster2D;
+                shadowCaster2D.shadowShape2DProvider = m_Provider as ShadowShape2DProvider;
+            }
+
+            component.objectReferenceValue = m_Component;
 
             m_Provider.OnSelected();
             serializedObject.ApplyModifiedProperties();

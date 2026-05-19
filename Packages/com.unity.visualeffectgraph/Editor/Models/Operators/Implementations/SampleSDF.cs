@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.Operator
         public class InputProperties
         {
             [Tooltip("Sets the Signed Distance Field texture to sample from.")]
-            public Texture3D texture = null;
+            public Texture3D texture = VFXResources.defaultResources.signedDistanceField;
             [Tooltip("Sets the oriented box containing the SDF.")]
             public OrientedBox orientedBox = OrientedBox.defaultValue;
             [Tooltip("Sets the position from which to sample.")]

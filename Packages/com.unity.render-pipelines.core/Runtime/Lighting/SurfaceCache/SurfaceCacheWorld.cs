@@ -1,5 +1,3 @@
-#if SURFACE_CACHE
-
 using System;
 using System.Collections.Generic;
 using Unity.Collections.LowLevel.Unsafe;
@@ -167,7 +165,7 @@ namespace UnityEngine.Rendering
                 return desc.Transform.GetColumn(2).normalized;
             }
 
-            static DirectionalLight ConvertDirectionalLight(LightDescriptor desc)
+            private static DirectionalLight ConvertDirectionalLight(LightDescriptor desc)
             {
                 return new DirectionalLight()
                 {
@@ -176,7 +174,7 @@ namespace UnityEngine.Rendering
                 };
             }
 
-            static PunctualLight ConvertSpotLight(LightDescriptor desc)
+            private static PunctualLight ConvertSpotLight(LightDescriptor desc)
             {
                 float cosOuterAngle = Mathf.Cos(desc.OuterSpotAngle * Mathf.Deg2Rad * 0.5f);
                 float cosInnerAngle = Mathf.Cos(desc.InnerSpotAngle * Mathf.Deg2Rad * 0.5f);
@@ -206,7 +204,7 @@ namespace UnityEngine.Rendering
                 };
             }
 
-            static PunctualLight ConvertPointLight(LightDescriptor desc)
+            private static PunctualLight ConvertPointLight(LightDescriptor desc)
             {
                 return new PunctualLight()
                 {
@@ -518,6 +516,11 @@ namespace UnityEngine.Rendering
             return handles;
         }
 
+        public LightHandle AddLight(LightDescriptor lightDesc)
+        {
+            return _lights.Add(lightDesc);
+        }
+
         public void UpdateLights(LightHandle[] lightHandles, Span<LightDescriptor> lightDescriptors)
         {
             Debug.Assert(lightHandles.Length == lightDescriptors.Length);
@@ -529,12 +532,22 @@ namespace UnityEngine.Rendering
             }
         }
 
+        public void UpdateLight(LightHandle handle, LightDescriptor descriptor)
+        {
+            _lights.Update(handle, descriptor);
+        }
+
         public void RemoveLights(Span<LightHandle> lightHandles)
         {
             foreach (var lightHandle in lightHandles)
             {
                 _lights.Remove(lightHandle);
             }
+        }
+
+        public void RemoveLight(LightHandle handle)
+        {
+            _lights.Remove(handle);
         }
 
         public void Commit(CommandBuffer cmdBuf, ref GraphicsBuffer scratchBuffer, uint envCubemapResolution, UnityEngine.Light sun, out bool viewAndProjectionMatricesChanged)
@@ -547,5 +560,3 @@ namespace UnityEngine.Rendering
         }
     }
 }
-
-#endif

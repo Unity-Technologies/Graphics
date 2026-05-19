@@ -1415,7 +1415,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(orignalSize);
                 actualWidth = scaledSize.x;
                 actualHeight = scaledSize.y;
-                globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, UpsampleSyncPoint() <= DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField);
+
+                // Calculate mip bias: use upscaler's recommendation when active, otherwise fall back to DynamicResolutionHandler
+                bool shouldApplyMipBias = UpsampleSyncPoint() <= DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField;
+                bool isUpscaling = scaledSize.x <= nonScaledViewport.x || scaledSize.y <= nonScaledViewport.y;
+#if ENABLE_UPSCALER_FRAMEWORK
+                if (IsIUpscalerEnabled() && IsIUpscalerTemporalUpscaler())
+                {
+                    // Temporal upscaler is active - use its mip bias calculation directly, bypassing TAA settings
+                    if (shouldApplyMipBias && isUpscaling)
+                    {
+                        IUpscaler upscaler = HDRenderPipeline.currentPipeline.upscaling.activeUpscaler;
+                        if (upscaler != null)
+                            globalMipBias += upscaler.CalculateMipBias(scaledSize, nonScaledViewport);
+                    }
+                }
+                else
+#endif
+                {
+                    globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, shouldApplyMipBias);
+                }
 
                 //setting up constants for low resolution rendering (i.e. transparent low res)
                 lowResScale = DynamicResolutionHandler.instance.GetLowResMultiplier(lowResScale);

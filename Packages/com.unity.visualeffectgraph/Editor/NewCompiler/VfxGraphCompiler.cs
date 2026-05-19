@@ -18,7 +18,7 @@ namespace UnityEditor.VFX
             m_DataWriter.Register(attributeDataWriter);
             m_DataWriter.Register(new ParticleSystemDataDescriptionWriter(attributeDataWriter));
             m_DataWriter.Register(new StructuredDataDescriptionWriter());
-            m_DataWriter.Register(new SpawnerDataDescriptionWriter());
+            m_DataWriter.Register(new EventListDataDescriptionWriter(attributeDataWriter));
 
             m_GraphCompiler = new(new VfxGraphLegacyOutputPass(),
                 new AttributeLayoutPass(),

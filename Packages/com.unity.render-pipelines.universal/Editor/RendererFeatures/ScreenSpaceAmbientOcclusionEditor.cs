@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -23,6 +24,7 @@ namespace UnityEditor.Rendering.Universal
 
         private bool m_IsInitialized = false;
         private HeaderBool m_ShowQualitySettings;
+        private HeaderBool m_ShowDeprecatedSettings;
         private bool m_ShowAfterOpaqueTileOnlyError;
 
         private static readonly string k_AfterOpaqueIncompatibleWithTileOnlyMode = L10n.Tr("'After Opaque' is incompatible with the enabled 'Tile-Only Mode'. Disable After Opaque.");
@@ -76,6 +78,7 @@ namespace UnityEditor.Rendering.Universal
         private void Init()
         {
             m_ShowQualitySettings = new HeaderBool($"SSAO.QualityFoldout", false);
+            m_ShowDeprecatedSettings = new HeaderBool("SSAO.DeprecatedFoldout", false);
 
             SerializedProperty settings = serializedObject.FindProperty("m_Settings");
 
@@ -100,6 +103,51 @@ namespace UnityEditor.Rendering.Universal
             if (!m_IsInitialized)
                 Init();
 
+#if MODERN_SSAO
+            bool volumeActive = SceneHasActiveSSAOVolumeOverride();
+            if (volumeActive)
+            {
+                EditorGUILayout.HelpBox(
+                    "A Screen Space Ambient Occlusion Volume Override is active in the scene and controls all SSAO settings. " +
+                    "The settings below are kept as fallback only and will not take effect while the Volume Override is present.",
+                    MessageType.Info);
+            }
+            else
+            {
+                using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+                {
+                    EditorGUILayout.LabelField(
+                        new GUIContent(
+                            "Configuring SSAO via the SSAO Renderer Feature is deprecated. Use the new Screen Space Ambient Occlusion Volume Override instead.",
+                            EditorGUIUtility.IconContent("console.infoicon").image),
+                        EditorStyles.wordWrappedLabel);
+
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        GUILayout.FlexibleSpace();
+                        if (GUILayout.Button("Add Volume Override"))
+                            MigrateSettingsToVolume();
+                    }
+                }
+            }
+
+            EditorGUILayout.Space(5);
+            m_ShowDeprecatedSettings.SetValue(EditorGUILayout.Foldout(m_ShowDeprecatedSettings.value, "Settings (Deprecated)"));
+            EditorGUI.BeginDisabledGroup(volumeActive);
+            if (m_ShowDeprecatedSettings.value)
+            {
+                EditorGUI.indentLevel++;
+                DrawSsaoSettingsGUI();
+                EditorGUI.indentLevel--;
+            }
+            EditorGUI.EndDisabledGroup();
+#else
+            DrawSsaoSettingsGUI();
+#endif
+        }
+
+        void DrawSsaoSettingsGUI()
+        {
             EditorGUILayout.PropertyField(m_AOMethod, Styles.AOMethod);
             EditorGUILayout.PropertyField(m_Intensity, Styles.Intensity);
             EditorGUILayout.PropertyField(m_Radius, Styles.Radius);
@@ -148,6 +196,95 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel--;
             }
         }
+
+#if MODERN_SSAO
+        static bool SceneHasActiveSSAOVolumeOverride()
+        {
+            var stack = VolumeManager.instance.stack;
+            if (stack == null)
+                return false;
+
+            var ssaoVolume = stack.GetComponent<ScreenSpaceAmbientOcclusionVolumeOverride>();
+            return ssaoVolume != null && ssaoVolume.AnyPropertiesIsOverridden();
+        }
+
+        static void CreateSSAOGlobalVolume(out Volume volume, out ScreenSpaceAmbientOcclusionVolumeOverride ssaoOverride)
+        {
+            var go = new GameObject("SSAO Global Volume");
+            Undo.RegisterCreatedObjectUndo(go, "Create SSAO Global Volume");
+            volume = go.AddComponent<Volume>();
+            volume.isGlobal = true;
+
+            Scene scene = go.scene;
+            var profile = VolumeProfileFactory.CreateVolumeProfile(scene, "SSAO Volume Profile");
+
+            volume.sharedProfile = profile;
+            // AnyPropertiesIsOverridden() must return true for the runtime volume takeover path to activate.
+            ssaoOverride = profile.Add<ScreenSpaceAmbientOcclusionVolumeOverride>(overrides: true);
+            AssetDatabase.AddObjectToAsset(ssaoOverride, profile);
+        }
+
+        void MigrateSettingsToVolume()
+        {
+            if (SceneHasActiveSSAOVolumeOverride())
+            {
+                bool proceed = EditorUtility.DisplayDialog(
+                    "SSAO Volume Already Exists",
+                    "An SSAO Volume Override already exists in the scene. " +
+                    "A new global volume will be created which may conflict with the existing one. Continue?",
+                    "Create Anyway", "Cancel");
+                if (!proceed)
+                    return;
+            }
+
+            CreateSSAOGlobalVolume(out var volume, out var ssaoOverride);
+
+            Undo.RecordObject(ssaoOverride, "Migrate SSAO Settings to Volume");
+
+            var feature = (ScreenSpaceAmbientOcclusion)target;
+#pragma warning disable CS0618
+            ref var settings = ref feature.settings;
+#pragma warning restore CS0618
+
+            ssaoOverride.mode = ScreenSpaceAmbientOcclusionMode.Standard;
+            ssaoOverride.quality = ScreenSpaceAmbientOcclusionQuality.Custom;
+            ssaoOverride.intensity = settings.Intensity;
+            ssaoOverride.radius = settings.Radius;
+            ssaoOverride.falloffDistance = settings.Falloff;
+            ssaoOverride.directLightingStrength = settings.DirectLightingStrength;
+            ssaoOverride.downsample = settings.Downsample;
+            ssaoOverride.afterOpaque = settings.AfterOpaque;
+
+            ssaoOverride.method = settings.AOMethod == ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise
+                ? ScreenSpaceAmbientOcclusionNoiseMethod.BlueNoise
+                : ScreenSpaceAmbientOcclusionNoiseMethod.InterleavedGradient;
+
+            ssaoOverride.depthSource = (ScreenSpaceAmbientOcclusionDepthSource)(int)settings.Source;
+            ssaoOverride.normalQuality = (ScreenSpaceAmbientOcclusionNormalQuality)(int)settings.NormalSamples;
+            ssaoOverride.blurQuality = settings.BlurQuality switch
+            {
+                ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.High => ScreenSpaceAmbientOcclusionBlurQuality.High,
+                ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.Medium => ScreenSpaceAmbientOcclusionBlurQuality.Medium,
+                _ => ScreenSpaceAmbientOcclusionBlurQuality.Low
+            };
+
+            ssaoOverride.sampleCount = settings.Samples switch
+            {
+                ScreenSpaceAmbientOcclusionSettings.AOSampleOption.High => ScreenSpaceAmbientOcclusionSampleCount.High,
+                ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Medium => ScreenSpaceAmbientOcclusionSampleCount.Medium,
+                _ => ScreenSpaceAmbientOcclusionSampleCount.Low
+            };
+
+            EditorUtility.SetDirty(ssaoOverride);
+            EditorUtility.SetDirty(volume.sharedProfile);
+            AssetDatabase.SaveAssets();
+
+            string profilePath = AssetDatabase.GetAssetPath(volume.sharedProfile);
+            Selection.activeGameObject = volume.gameObject;
+            EditorGUIUtility.PingObject(volume.gameObject);
+            Debug.Log($"[SSAO Migration] Global volume '{volume.gameObject.name}' created with SSAO settings migrated. Volume profile: {profilePath}");
+        }
+#endif
 
         private bool RendererIsDeferred()
         {

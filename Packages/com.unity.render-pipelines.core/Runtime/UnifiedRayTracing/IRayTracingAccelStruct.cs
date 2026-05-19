@@ -3,13 +3,16 @@ using System;
 namespace UnityEngine.Rendering.UnifiedRayTracing
 {
     /// <summary>
-    /// Parameters used to configure the creation of instances that are part of a <see cref="IRayTracingAccelStruct"/>.
+    /// Parameters used to configure the creation of mesh instances that are part of a <see cref="IRayTracingAccelStruct"/>.
     /// </summary>
     public struct MeshInstanceDesc
     {
         /// <summary>
         /// The Mesh used to build this instance's geometry.
         /// </summary>
+        /// <remarks>
+        /// The Mesh must remain valid until <see cref="IRayTracingAccelStruct.Build"/> is called.
+        /// </remarks>
         public Mesh mesh;
 
         /// <summary>
@@ -53,8 +56,8 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         /// </summary>
         /// <remarks>
         /// When an instance's opaqueGeometry field is set to false, the AnyHitExecute shader function will be invoked during the ray traversal when a hit is found.
-        /// This alows the user to programmatically decide whether to reject or accept the candidate hit. This feature can, for example, be used to implement alpha cutout transparency.
-        /// For best performance, prefer to set this parameter to false for as many geometries as possibe.
+        /// This allows the user to programmatically decide whether to reject or accept the candidate hit. This feature can, for example, be used to implement alpha cutout transparency.
+        /// For best performance, prefer to set this parameter to true for as many geometries as possible.
         /// </remarks>
         public bool opaqueGeometry;
 
@@ -77,6 +80,61 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
     }
 
     /// <summary>
+    /// Parameters used to configure the creation of procedural instances that are part of a <see cref="IRayTracingAccelStruct"/>.
+    /// </summary>
+    public struct ProceduralInstanceDesc
+    {
+        /// <summary>
+        /// The GraphicsBuffer that defines a list of axis-aligned bounding boxes (AABBs).
+        /// </summary>
+        /// <remarks>
+        /// The buffer must remain valid until <see cref="IRayTracingAccelStruct.Build"/> is called.
+        /// You retain ownership of this buffer and are responsible for its disposal.
+        /// </remarks>
+        public GraphicsBuffer aabbBuffer;
+
+        /// <summary>
+        /// The number of AABBs Unity uses when you build the acceleration structure for this ray tracing instance.
+        /// </summary>
+        public uint aabbCount;
+
+        /// <summary>
+        /// The transformation matrix of the instance.
+        /// </summary>
+        public Matrix4x4 localToWorldMatrix;
+
+        /// <summary>
+        /// The instance mask.
+        /// </summary>
+        /// <remarks>
+        /// Instances in the acceleration structure contain an 8-bit user defined instance mask.
+        /// The TraceRayClosestHit/TraceRayAnyHit HLSL functions have an 8-bit input parameter, InstanceInclusionMask which gets ANDed with the instance mask from
+        /// any instance that is a candidate for intersection during acceleration structure traversal on the GPU.
+        /// If the result of the AND operation is zero, the GPU ignores the intersection.
+        /// </remarks>
+        public uint mask;
+
+        /// <summary>
+        /// Instance identifier. Can be accessed in the HLSL via the instanceID member of Hit (Hit is returned by the TraceRayClosestHit/TraceRayAnyHit HLSL functions).
+        /// </summary>
+        public uint instanceID;
+
+        /// <summary>
+        /// Creates a ProceduralInstanceDesc.
+        /// </summary>
+        /// <param name="aabbBuffer">The GraphicsBuffer that defines a list of axis-aligned bounding boxes (AABBs).</param>
+        /// <param name="aabbCount">The number of AABBs Unity uses when you build the acceleration structure for this ray tracing instance.</param>
+        public ProceduralInstanceDesc(GraphicsBuffer aabbBuffer, uint aabbCount)
+        {
+            this.aabbBuffer = aabbBuffer;
+            this.aabbCount = aabbCount;
+            localToWorldMatrix = Matrix4x4.identity;
+            mask = 0xFFFFFFFF;
+            instanceID = 0xFFFFFFFF;
+        }
+    }
+
+    /// <summary>
     /// A data structure used to represent a collection of instances and geometries that are used for GPU ray tracing.
     /// It can be created by calling <see cref="RayTracingContext.CreateAccelerationStructure"/>.
     /// </summary>
@@ -89,6 +147,14 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         /// <returns>A value representing a handle that you can use to perform later actions (e.g. RemoveInstance...)</returns>
         /// <exception cref="UnifiedRayTracingException">Thrown if the instance cannot be added. Inspect <see cref="UnifiedRayTracingException.errorCode"/> for the reason.</exception>
         int AddInstance(MeshInstanceDesc meshInstance);
+
+        /// <summary>
+        /// Adds a procedural instance to the RayTracingAccelerationStructure.
+        /// </summary>
+        /// <param name="proceduralInstance">The parameters describing this procedural instance.</param>
+        /// <returns>A value representing a handle that you can use to perform later actions (e.g. RemoveInstance...)</returns>
+        /// <exception cref="UnifiedRayTracingException">Thrown if the instance cannot be added. Inspect <see cref="UnifiedRayTracingException.errorCode"/> for the reason.</exception>
+        int AddInstance(ProceduralInstanceDesc proceduralInstance);
 
         /// <summary>
         /// Removes an instance.

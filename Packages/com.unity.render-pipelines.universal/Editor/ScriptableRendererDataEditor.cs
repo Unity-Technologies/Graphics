@@ -365,6 +365,8 @@ namespace UnityEditor.Rendering.Universal
         private void ForceSave()
         {
             EditorUtility.SetDirty(target);
+            AssetDatabase.SaveAssetIfDirty(target);
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(target));
         }
     }
 

@@ -19,9 +19,7 @@ namespace UnityEditor.VFX.Update
         [UnityTest, Timeout(4 * 60 * 60 * 1000)]
         public IEnumerator Upgrade_And_Save_VFX()
         {
-            VFXAssetManager.Build(true);
-            yield return null;
-            AssetDatabase.SaveAssets();
+            VFXAssetManager.BuildAndSave();
             yield return null;
         }
 

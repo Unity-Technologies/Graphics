@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public List<ResourceHandle> implicitReadsList = new List<ResourceHandle>();
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_ENABLE_CHECKS
         public RenderGraph.DebugData.PassScriptInfo debugScriptInfo { get; set; }
 #endif
 
@@ -280,7 +280,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
             else
             {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                 // You tried to do SetRenderAttachment(tex1, 1, ..); SetRenderAttachment(tex2, 1, ..); that is not valid for different textures on the same index
                 throw new InvalidOperationException(
                     $"In pass '{name}' when trying to call SetRenderAttachment with resource of type {resource.handle.type} at index {index} - " +
@@ -301,7 +301,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
             else
             {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
                 // You tried to do SetRenderAttachment(tex1, 1, ..); SetRenderAttachment(tex2, 1, ..); that is not valid for different textures on the same index
                 throw new InvalidOperationException(
                     $"In pass '{name}' when trying to call SetInputAttachment with resource of type {resource.handle.type} at index {index} - " +
@@ -351,7 +351,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             {
                 depthAccess = new TextureAccess(resource, accessFlags, mipLevel, depthSlice);
             }
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             else
             {
                 throw new InvalidOperationException(

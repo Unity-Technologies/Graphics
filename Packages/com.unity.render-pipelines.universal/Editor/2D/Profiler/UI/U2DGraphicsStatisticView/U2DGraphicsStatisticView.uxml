@@ -1,0 +1,76 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:ui="UnityEngine.UIElements"
+         xmlns:uie="UnityEditor.UIElements"
+         noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd">
+    <Style src="./U2DGraphicsStatisticView.uss"/>
+    <ui:VisualElement class="root-container">
+        <ui:Label text="2D Graphics Statistics" class="title"/>
+        <ui:Toggle label="Live Update" name="EnableStatisticsToggle" class="live-toggle">
+        </ui:Toggle>
+
+        <ui:ScrollView>
+            <ui:Foldout text="Normal Maps" class="section-header">
+                <ui:VisualElement class="counter-row">
+                    <ui:Label text="Normal Textures:" class="counter-label"/>
+                    <ui:Label text="0" name="NormalTexturesLabel" class="counter-value"/>
+                </ui:VisualElement>
+            </ui:Foldout>
+
+            <ui:Foldout text="Lights" class="section-header">
+                <ui:VisualElement class="counter-row">
+                    <ui:Label text="Light Textures:" class="counter-label"/>
+                    <ui:Label text="0" name="LightTexturesLabel" class="counter-value"/>
+                </ui:VisualElement>
+
+                <ui:VisualElement class="counter-row">
+                    <ui:Label text="Light Batches:" class="counter-label"/>
+                    <ui:Label text="0" name="LightBatchesLabel" class="counter-value"/>
+                </ui:VisualElement>
+
+                <ui:VisualElement class="counter-row">
+                    <ui:Label text="Light Triangles:" class="counter-label"/>
+                    <ui:Label text="0" name="LightTrianglesLabel" class="counter-value"/>
+                </ui:VisualElement>
+            </ui:Foldout>
+
+            <ui:Foldout text="Shadows" class="section-header">
+                <ui:VisualElement class="counter-row">
+                    <ui:Label text="Shadow Textures:" class="counter-label"/>
+                    <ui:Label text="0" name="ShadowTexturesLabel" class="counter-value"/>
+                </ui:VisualElement>
+
+                <ui:VisualElement class="counter-row">
+                    <ui:Label text="Shadow Casters Draw Calls:" class="counter-label"/>
+                    <ui:Label text="0" name="ShadowCastersLabel" class="counter-value"/>
+                </ui:VisualElement>
+
+                <ui:VisualElement class="counter-row">
+                    <ui:Label text="Shadow Triangles:" class="counter-label"/>
+                    <ui:Label text="0" name="ShadowTrianglesLabel" class="counter-value"/>
+                </ui:VisualElement>
+            </ui:Foldout>
+
+            <ui:Foldout text="Timing" class="section-header">
+                <ui:VisualElement class="counter-row">
+                    <ui:Label text="Render Pass Time:" class="counter-label"/>
+                    <ui:Label text="0.00 ms" name="RenderPassTimeLabel" class="counter-value"/>
+                </ui:VisualElement>
+
+                <ui:VisualElement class="counter-row">
+                    <ui:Label text="Draw Shadow Time:" class="counter-label"/>
+                    <ui:Label text="0.00 ms" name="DrawShadowTimeLabel" class="counter-value"/>
+                </ui:VisualElement>
+
+                <ui:VisualElement class="counter-row">
+                    <ui:Label text="Normal Pass Time:" class="counter-label"/>
+                    <ui:Label text="0.00 ms" name="NormalPassTimeLabel" class="counter-value"/>
+                </ui:VisualElement>
+
+                <ui:VisualElement class="counter-row">
+                    <ui:Label text="Shadow Pass Time:" class="counter-label"/>
+                    <ui:Label text="0.00 ms" name="ShadowPassTimeLabel" class="counter-value"/>
+                </ui:VisualElement>
+            </ui:Foldout>
+        </ui:ScrollView>
+    </ui:VisualElement>
+</ui:UXML>

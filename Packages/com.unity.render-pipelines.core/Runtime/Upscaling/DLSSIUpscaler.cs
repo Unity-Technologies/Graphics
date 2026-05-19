@@ -207,6 +207,14 @@ public class DLSSIUpscaler : AbstractUpscaler
         }
     }
 
+    public override float CalculateMipBias(Vector2Int preUpscaleResolution, Vector2Int postUpscaleResolution)
+    {
+        // NVUnityPlugin should provide this value.
+        float xBias = Mathf.Log((float)preUpscaleResolution.x / postUpscaleResolution.x, 2f);
+        float yBias = Mathf.Log((float)preUpscaleResolution.y / postUpscaleResolution.y, 2f);
+        return Mathf.Min(xBias, yBias) - 1.0f;
+    }
+
     static int CalculateJitterPhaseCount(float upscaleRatio)
     {
         const float k_BasePhaseCount = 8.0f;

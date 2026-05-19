@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.Universal
             if (renderers == null)
             {
                 Debug.LogError($"The {nameof(SupportedOnRendererAttribute)} parameters cannot be null.");
+                rendererTypes = Array.Empty<Type>();
                 return;
             }
 
@@ -40,7 +41,8 @@ namespace UnityEngine.Rendering.Universal
                 var r = renderers[i];
                 if (r == null || !typeof(ScriptableRendererData).IsAssignableFrom(r))
                 {
-                    Debug.LogError($"The {nameof(SupportedOnRendererAttribute)} Attribute targets an invalid {nameof(ScriptableRendererData)}. One of the types cannot be assigned from {nameof(ScriptableRendererData)}");
+                    Debug.LogError($"The {nameof(SupportedOnRendererAttribute)} Attribute targets an invalid {nameof(ScriptableRendererData)}. One of the types cannot be assigned from {nameof(ScriptableRendererData)}.");
+                    rendererTypes = Array.Empty<Type>();
                     return;
                 }
             }

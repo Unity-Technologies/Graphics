@@ -1,4 +1,4 @@
-#if ENABLE_UIELEMENTS_MODULE && (UNITY_EDITOR || DEVELOPMENT_BUILD)
+#if ENABLE_UIELEMENTS_MODULE && UNITY_ENABLE_CHECKS
 #define ENABLE_RENDERING_DEBUGGER_UI
 #endif
 
@@ -20,6 +20,8 @@ namespace UnityEngine.Rendering
         bool m_PortraitOrientation;
         bool m_IsDirty;
 
+        int m_UIVersion = 0;
+
         void Awake()
         {
             DebugManager.instance.onSetDirty -= RequestRecreateGUI;
@@ -38,11 +40,16 @@ namespace UnityEngine.Rendering
             m_PanelRenderer.RegisterUIReloadCallback(OnUIReload);
         }
 
-        internal void OnUIReload(PanelRenderer renderer, VisualElement rootElement)
+        internal void OnUIReload(PanelRenderer renderer, VisualElement rootElement, int version)
         {
             // Called on initial load AND on any asset change
             if (rootElement == null || rootElement.childCount == 0)
                 return;
+
+            if (version == m_UIVersion)
+                return;
+
+            m_UIVersion = version;
 
             m_PanelRootElement = rootElement;
             m_RootVisualElement = rootElement[0];

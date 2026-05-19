@@ -28,8 +28,7 @@ namespace UnityEditor.VFX
         public Action<VFXObject, bool> onModified;
         void OnValidate()
         {
-            if (!VFXGraph.restoringGraph)
-                Modified(false);
+            Modified(false);
         }
 
         public void Modified(bool uiChange)
@@ -72,6 +71,7 @@ namespace UnityEditor.VFX
 
         public virtual void OnEnable()
         {
+         //   if (AssetDatabase.Ispersistant)
             if (m_Children == null)
                 m_Children = new List<VFXModel>();
             else
@@ -84,7 +84,7 @@ namespace UnityEditor.VFX
 
         public virtual void Sanitize(int version) { }
 
-        public virtual void CheckGraphBeforeImport() { }
+        public virtual void ResyncDependencies() { }
 
         public virtual void OnUnknownChange() { }
 
@@ -96,12 +96,15 @@ namespace UnityEditor.VFX
                 child.GetSourceDependentAssets(dependencies);
         }
 
-        public virtual void GetImportDependentAssets(HashSet<EntityId> dependencies)
+        public virtual bool IsDependentOnAnyOf(HashSet<EntityId> dependencies)
         {
             foreach (var child in children)
             {
-                child.GetImportDependentAssets(dependencies);
+                if (child.IsDependentOnAnyOf(dependencies))
+                    return true;
             }
+
+            return false;
         }
 
         public virtual void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
@@ -386,11 +389,13 @@ namespace UnityEditor.VFX
         {
         }
 
+        public VFXModel flattenedParent { get; set; }
+
         protected internal virtual void Invalidate(VFXModel model, InvalidationCause cause)
         {
             OnInvalidate(model, cause);
-            if (m_Parent != null)
-                m_Parent.Invalidate(model, cause);
+            m_Parent?.Invalidate(model, cause);
+
             if (cause is InvalidationCause.kParamChanged or InvalidationCause.kExpressionValueInvalidated or InvalidationCause.kExpressionInvalidated or InvalidationCause.kSettingChanged)
                 RefreshErrors();
         }
@@ -609,6 +614,7 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         protected VFXModel m_Parent;
+        private VFXModel m_FlattenedParent; // transient for subgraph elements
 
         [SerializeField]
         protected List<VFXModel> m_Children;

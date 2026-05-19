@@ -1,14 +1,23 @@
-﻿using UnityEditor.Rendering.Universal;
+using UnityEditor.Rendering.Universal;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering
 {
-    class ScreenSpaceAmbientOcclusionDynamicResourcesStripper : IRenderPipelineGraphicsSettingsStripper<ScreenSpaceAmbientOcclusionDynamicResources>
+    class ScreenSpaceAmbientOcclusionBlueNoiseResourcesStripper : IRenderPipelineGraphicsSettingsStripper<ScreenSpaceAmbientOcclusionBlueNoiseResources>
     {
         public bool active => URPBuildData.instance.buildingPlayerForUniversalRenderPipeline;
 
-        public bool CanRemoveSettings(ScreenSpaceAmbientOcclusionDynamicResources resources)
+        static bool RequiresBlueNoiseResources(ScreenSpaceAmbientOcclusion occlusion)
+        {
+#if MODERN_SSAO
+            return true;
+#else
+            return occlusion.settings.AOMethod == ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise;
+#endif
+        }
+
+        public bool CanRemoveSettings(ScreenSpaceAmbientOcclusionBlueNoiseResources resources)
         {
             if (GraphicsSettings.TryGetRenderPipelineSettings<URPShaderStrippingSetting>(out var urpShaderStrippingSettings) && !urpShaderStrippingSettings.stripUnusedVariants)
                 return false;
@@ -21,7 +30,7 @@ namespace UnityEditor.Rendering
                 foreach (var rendererFeature in rendererData.rendererFeatures)
                 {
                     if (rendererFeature is ScreenSpaceAmbientOcclusion { isActive: true } occlusion
-                        && occlusion.settings.AOMethod == ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise)
+                        && RequiresBlueNoiseResources(occlusion))
                         return false;
                 }
             }
@@ -30,11 +39,11 @@ namespace UnityEditor.Rendering
         }
     }
 
-    class ScreenSpaceAmbientOcclusionPersistentResourcesStripper : IRenderPipelineGraphicsSettingsStripper<ScreenSpaceAmbientOcclusionPersistentResources>
+    class ScreenSpaceAmbientOcclusionCoreResourcesStripper : IRenderPipelineGraphicsSettingsStripper<ScreenSpaceAmbientOcclusionCoreResources>
     {
         public bool active => URPBuildData.instance.buildingPlayerForUniversalRenderPipeline;
 
-        public bool CanRemoveSettings(ScreenSpaceAmbientOcclusionPersistentResources resources)
+        public bool CanRemoveSettings(ScreenSpaceAmbientOcclusionCoreResources resources)
         {
             if (GraphicsSettings.TryGetRenderPipelineSettings<URPShaderStrippingSetting>(out var urpShaderStrippingSettings) && !urpShaderStrippingSettings.stripUnusedVariants)
                 return false;

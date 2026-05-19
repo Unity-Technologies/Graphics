@@ -11,6 +11,7 @@ using UnityEngine.Profiling;
 using UnityEngine.Pool;
 using Object = UnityEngine.Object;
 using UnityEditor.ShaderGraph.ProviderSystem;
+using UnityEditor.ShaderGraph.ProviderSystem.Hints;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -47,7 +48,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Transparent icon to trick search window into indenting items
             m_Icon = new Texture2D(1, 1);
-            m_Icon.SetPixel(0, 0, new Color(0, 0, 0, 0));
+            m_Icon.SetPixel(0, 0, new UnityEngine.Color(0, 0, 0, 0));
             m_Icon.Apply();
         }
 
@@ -180,7 +181,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateSubgraphAssets");
             foreach (var asset in NodeClassCache.knownSubGraphAssets)
             {
-                if (asset == null)
+                if (asset == null || asset.isDeprecated)
                     continue;
 
                 var node = new SubGraphNode { asset = asset };
@@ -208,6 +209,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             HashSet<string> providerCollisions = new();
             foreach (var provider in ProviderLibrary.Instance.AllProvidersByType<IShaderFunction>())
             {
+                if (!provider.IsValid || !provider.Definition.Hints.ContainsKey(Func.kProviderKey))
+                    continue;
+
                 if (!ProviderTypeCache.TryCreateModel(provider.ProviderKey, out var model) || model is not ProviderNode node)
                     node = new ProviderNode();
 

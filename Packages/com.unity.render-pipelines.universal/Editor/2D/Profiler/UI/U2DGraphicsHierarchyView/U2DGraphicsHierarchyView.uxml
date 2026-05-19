@@ -1,0 +1,18 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:ui="UnityEngine.UIElements"
+         xmlns:uie="UnityEditor.UIElements"
+         noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd">
+    <Style src="./U2DGraphicsHierarchyView.uss"/>
+    <ui:VisualElement class="container">
+        <ui:Label name = "noDataLabel" text = "No data to show. Select another frame." />
+        <ui:MultiColumnTreeView name="Table" show-alternating-row-backgrounds="ContentOnly" horizontal-scrolling="true"
+                                sorting-mode="Default" class="table">
+            <ui:Columns primary-column-name="Name" resize-preview="false">
+                <ui:Column name="Name" title="Name" binding-path="name" width="200px"/>
+                <ui:Column name="Triangles" title="Triangles" binding-path="triangleCount" width="150px"/>
+                <ui:Column name="Vertices" title="Vertices" binding-path="vertexCount" width="150px"/>
+                <ui:Column name="DrawCount" title="DrawCount" binding-path="m_DrawCountLabel" width="150px"/>
+            </ui:Columns>
+        </ui:MultiColumnTreeView>
+    </ui:VisualElement>
+</ui:UXML>

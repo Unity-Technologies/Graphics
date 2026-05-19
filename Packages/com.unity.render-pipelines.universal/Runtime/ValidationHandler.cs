@@ -23,13 +23,13 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         public void OnBeginRenderGraphFrame()
         {
             
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         public void OnBeforeRendering(RenderGraph renderGraph, UniversalResourceData resourceData)
         {
             // Will be null and therefor remove the validation layer when onTileValidation is off
@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         public void OnBeforeGBuffers(RenderGraph renderGraph, UniversalResourceData resourceData)
         {
             if (m_OnTileValidationLayer != null && active)

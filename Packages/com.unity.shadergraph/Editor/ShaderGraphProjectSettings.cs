@@ -96,77 +96,74 @@ namespace UnityEditor.ShaderGraph
 
         void OnGUIHandler(string searchContext)
         {
-            m_SerializedObject.Update();
-
-            EditorGUI.BeginChangeCheck();
-
-            var doOverride = EditorGUILayout.Toggle(Styles.overrideShaderVariantLimitLabel, m_overrideShaderVariantLimit.boolValue);
-            if (doOverride != m_overrideShaderVariantLimit.boolValue)
+            using (var scope = new LabelWidthScope(10, 300))
             {
-                m_overrideShaderVariantLimit.boolValue = doOverride;
-                if (ShaderGraphPreferences.onVariantLimitChanged != null)
-                    ShaderGraphPreferences.onVariantLimitChanged();
-            }
+                m_SerializedObject.Update();
+                EditorGUI.BeginChangeCheck();
 
-            using (new EditorGUI.DisabledScope(!doOverride))
-            {
-                var newVariantLimitValue = EditorGUILayout.DelayedIntField(Styles.shaderVariantLimitLabel, m_shaderVariantLimit.intValue);
-                newVariantLimitValue = Mathf.Max(0, newVariantLimitValue);
-                if (newVariantLimitValue != m_shaderVariantLimit.intValue)
+                var doOverride = EditorGUILayout.Toggle(Styles.overrideShaderVariantLimitLabel, m_overrideShaderVariantLimit.boolValue);
+                if (doOverride != m_overrideShaderVariantLimit.boolValue)
                 {
-                    m_shaderVariantLimit.intValue = newVariantLimitValue;
+                    m_overrideShaderVariantLimit.boolValue = doOverride;
                     if (ShaderGraphPreferences.onVariantLimitChanged != null)
                         ShaderGraphPreferences.onVariantLimitChanged();
                 }
-            }
 
-            EditorGUILayout.LabelField(Styles.CustomInterpLabel, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
+                using (new EditorGUI.DisabledScope(!doOverride))
+                {
+                    var newVariantLimitValue = EditorGUILayout.DelayedIntField(Styles.shaderVariantLimitLabel, m_shaderVariantLimit.intValue);
+                    newVariantLimitValue = Mathf.Max(0, newVariantLimitValue);
+                    if (newVariantLimitValue != m_shaderVariantLimit.intValue)
+                    {
+                        m_shaderVariantLimit.intValue = newVariantLimitValue;
+                        if (ShaderGraphPreferences.onVariantLimitChanged != null)
+                            ShaderGraphPreferences.onVariantLimitChanged();
+                    }
+                }
 
-            int oldError = m_customInterpError.intValue;
-            int oldWarn = m_customInterpWarn.intValue;
+                EditorGUILayout.LabelField(Styles.CustomInterpLabel, EditorStyles.boldLabel);
 
-            int newError = EditorGUILayout.DelayedIntField(Styles.CustomInterpErrorThresholdLabel, oldError);
-            int newWarn = EditorGUILayout.DelayedIntField(Styles.CustomInterpWarnThresholdLabel, oldWarn);
+                int oldError = m_customInterpError.intValue;
+                int oldWarn = m_customInterpWarn.intValue;
 
-            m_customInterpError.intValue = Mathf.Clamp(newError, oldWarn, kMaxChannelThreshold);
-            m_customInterpWarn.intValue = Mathf.Clamp(newWarn, kMinChannelThreshold, oldError);
+                int newError = EditorGUILayout.DelayedIntField(Styles.CustomInterpErrorThresholdLabel, oldError);
+                int newWarn = EditorGUILayout.DelayedIntField(Styles.CustomInterpWarnThresholdLabel, oldWarn);
 
-            GUILayout.BeginVertical(EditorStyles.helpBox);
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(EditorGUIUtility.GetHelpIcon(MessageType.Info), Styles.helpBoxIconStyle);
-            GUILayout.Label(kCustomInterpolatorHelpBox, EditorStyles.wordWrappedMiniLabel);
-            GUILayout.EndHorizontal();
-            GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button(Styles.kLearnMore, Styles.learnMoreStyle))
-            {
-                System.Diagnostics.Process.Start(kCustomInterpolatorDocumentationURL);
-            }
-            EditorGUIUtility.AddCursorRect(GUILayoutUtility.GetLastRect(), MouseCursor.Link);
-            GUILayout.EndHorizontal();
-            GUILayout.EndVertical();
-            EditorGUI.indentLevel--;
+                m_customInterpError.intValue = Mathf.Clamp(newError, oldWarn, kMaxChannelThreshold);
+                m_customInterpWarn.intValue = Mathf.Clamp(newWarn, kMinChannelThreshold, oldError);
 
-            EditorGUILayout.LabelField(Styles.HeatmapSectionLabel, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            var oldHeatValues = (ShaderGraphHeatmapValues) m_HeatValues.objectReferenceValue;
-            var newHeatValues = EditorGUILayout.ObjectField(Styles.HeatmapAssetLabel, oldHeatValues, typeof(ShaderGraphHeatmapValues), false);
-            if (oldHeatValues != newHeatValues)
-            {
-                m_HeatValues.objectReferenceValue = newHeatValues;
-            }
+                GUILayout.BeginVertical(EditorStyles.helpBox);
+                GUILayout.BeginHorizontal();
+                GUILayout.Label(EditorGUIUtility.GetHelpIcon(MessageType.Info), Styles.helpBoxIconStyle);
+                GUILayout.Label(kCustomInterpolatorHelpBox, EditorStyles.wordWrappedMiniLabel);
+                GUILayout.EndHorizontal();
+                GUILayout.BeginHorizontal();
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button(Styles.kLearnMore, Styles.learnMoreStyle))
+                {
+                    System.Diagnostics.Process.Start(kCustomInterpolatorDocumentationURL);
+                }
+                EditorGUIUtility.AddCursorRect(GUILayoutUtility.GetLastRect(), MouseCursor.Link);
+                GUILayout.EndHorizontal();
+                GUILayout.EndVertical();
 
-            EditorGUI.indentLevel--;
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                m_SerializedObject.ApplyModifiedProperties();
-                ShaderGraphProjectSettings.instance.Save();
-
+                EditorGUILayout.LabelField(Styles.HeatmapSectionLabel, EditorStyles.boldLabel);
+                var oldHeatValues = (ShaderGraphHeatmapValues) m_HeatValues.objectReferenceValue;
+                var newHeatValues = EditorGUILayout.ObjectField(Styles.HeatmapAssetLabel, oldHeatValues, typeof(ShaderGraphHeatmapValues), false);
                 if (oldHeatValues != newHeatValues)
                 {
-                    ShaderGraphHeatmapValuesEditor.UpdateShaderGraphWindows();
+                    m_HeatValues.objectReferenceValue = newHeatValues;
+                }
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    m_SerializedObject.ApplyModifiedProperties();
+                    ShaderGraphProjectSettings.instance.Save();
+
+                    if (oldHeatValues != newHeatValues)
+                    {
+                        ShaderGraphHeatmapValuesEditor.UpdateShaderGraphWindows();
+                    }
                 }
             }
         }

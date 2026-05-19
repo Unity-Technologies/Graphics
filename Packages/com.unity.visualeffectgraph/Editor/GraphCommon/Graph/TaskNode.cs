@@ -49,20 +49,23 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
     readonly struct TaskNodeInfo
     {
-        public TaskNodeInfo(TaskNodeId id, ITask task)
+        public TaskNodeInfo(TaskNodeId id, ITask task, string name)
         {
             Id = id;
             Task = task;
+            Name = name;
         }
 
         public TaskNodeId Id { get; }
         public ITask Task { get; }
+        public string Name { get; }
     }
 
     /// <summary>
     /// Represents a node in the graph that contains a task.
     /// </summary>
-    /*public*/ readonly struct TaskNode
+    /*public*/
+    readonly struct TaskNode
     {
         readonly IIndexable<GraphNode<TaskNodeId>, TaskNode> m_NodeConverter;
         readonly GraphNode<TaskNodeId> m_Node;
@@ -79,6 +82,11 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// Gets the task associated with this node. Returns null if the graph is not valid.
         /// </summary>
         public ITask Task => m_Graph.Valid ? m_Info.Task : null;
+
+        /// <summary>
+        /// Gets the name of this node. Returns null if the graph is not valid.
+        /// </summary>
+        public string Name => m_Graph.Valid ? m_Info.Name : null;
 
         /// <summary>
         /// Gets the parent task nodes connected to this task node.

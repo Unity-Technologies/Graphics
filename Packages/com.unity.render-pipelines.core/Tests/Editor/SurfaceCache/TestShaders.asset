@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81b438b79c4c45b47a4828b11e40fec6, type: 3}
+  m_Name: TestShaders
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Editor.Tests::UnityEngine.Rendering.Tests.TestShaderAsset
+  scrolling: {fileID: 7200000, guid: 47bbc3edf61978b498603cc2a1b87eea, type: 3}
+  eviction: {fileID: 7200000, guid: c9f2aeed6ef396f4d9134e4da1edfe19, type: 3}
+  patchAllocation: {fileID: 7200000, guid: b271ec1ddd8048458fa529e8e7cfe960, type: 3}
+  spatialFiltering: {fileID: 7200000, guid: 63e59de460463bb4c9d64bc58051d12c, type: 3}
+  temporalFiltering: {fileID: 7200000, guid: c23523f04780d754f927b9daf4f975b9, type: 3}
+  defrag: {fileID: 7200000, guid: a183a2d0b1da4904fb3bd71c6111ebb1, type: 3}
+  punctualLightSamplingComputeShader: {fileID: -6772857160820960102, guid: f32463968f29423cad25aee15a14b9f1, type: 3}
+  punctualLightSamplingRayTracingShader: {fileID: -5126288278712620388, guid: f32463968f29423cad25aee15a14b9f1, type: 3}
+  estimationComputeShader: {fileID: -6772857160820960102, guid: 94a39d12848d8d64ca962a72b74e7c50, type: 3}
+  estimationRayTracingShader: {fileID: -5126288278712620388, guid: 94a39d12848d8d64ca962a72b74e7c50, type: 3}

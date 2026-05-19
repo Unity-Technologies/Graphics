@@ -169,7 +169,7 @@ void GTAOCompute(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 
     float3 positionVS = GetPositionVS(positionSS, rawDepth_o, config.depthToViewParams);
-    half3 V = normalize(-positionVS);
+    half3 V = GetViewVectorVS(positionVS);
     half3 normal_o = half3(LoadSceneNormals(fullResCoords));
 
     _AOOutput[pixelCoords] = EvaluateGTAO(config, uv, positionSS, positionVS, V, normal_o, rawDepth_o, linearDepth_o, halfLinearDepth_o);

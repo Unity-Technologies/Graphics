@@ -32,6 +32,7 @@ namespace UnityEditor.VFX.Test
             graph.visualEffectResource.cullingFlags = VFXCullingFlags.CullNone;
             VFXSpace space = (VFXSpace)systemSpace;
             graph.children.OfType<VFXBasicInitialize>().First().space = space;
+            VFXTestCommon.ReimportVFXGraph(graph);
 
             var gameObj = new GameObject("GameObjectToCheck");
             gameObj.transform.position = m_Translation;
@@ -41,7 +42,7 @@ namespace UnityEditor.VFX.Test
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
 
-            VFXViewWindow window = VFXViewWindow.GetWindow(vfxComponent.visualEffectAsset, true);
+            VFXViewWindow window = VFXTestCommon.GetWindow(vfxComponent.visualEffectAsset, true);
             VFXView view = window.graphView;
             VFXViewController controller = VFXViewController.GetController(vfxComponent.visualEffectAsset.GetResource(), true);
             view.controller = controller;

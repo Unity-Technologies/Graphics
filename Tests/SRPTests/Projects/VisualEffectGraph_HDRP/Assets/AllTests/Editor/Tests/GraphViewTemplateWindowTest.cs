@@ -424,7 +424,7 @@ namespace UnityEditor.VFX.Test
                 EditorWindow.GetWindow<GraphViewTemplateWindow>()?.Close();
             }
             VFXTestCommon.DeleteAllTemporaryGraph();
-            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.CloseAllVFXWindow();
 
             if (Directory.Exists(k_SampleExpectedPath))
                 AssetDatabase.DeleteAsset(k_SampleExpectedPath);

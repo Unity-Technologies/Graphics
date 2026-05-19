@@ -8,10 +8,6 @@ namespace UnityEditor.VFX.UI
     [UxmlElement]
     partial class VFXBoundsSelector : VisualElement, ISelection
     {
-        [Obsolete("VFXBoundsSelectorFactory is deprecated and will be removed. Use UxmlElementAttribute instead.", false)]
-        class VFXBoundsSelectorFactory : UxmlFactory<VFXBoundsSelector>
-        { }
-
         public VFXBoundsSelector()
         {
             selection = new List<ISelectable>();

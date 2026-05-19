@@ -235,6 +235,7 @@ namespace UnityEditor.VFX.Test
             {
                 GetShaderGraphFromTempFile("Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Unlit/sg-for-autotest.shadergraph_2");
                 var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
+                vfxAsset.GetResource().GetGraph().PrepareGraph(); //CheckGraphBeforeImport will resync slot
                 var updatedOutputContext = ((VFXGraph)vfxAsset.GetResource().graph).children.OfType<VFXPlanarPrimitiveOutput>().Single();
 
                 Assert.AreEqual(3, updatedOutputContext.inputSlots.Count);

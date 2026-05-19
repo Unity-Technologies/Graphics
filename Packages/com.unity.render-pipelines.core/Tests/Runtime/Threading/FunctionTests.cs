@@ -8,6 +8,9 @@ using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
+#if UNITY_ANDROID
+using Unity.TestUtilities;
+#endif
 
 class ThreadingEmulationFunctionTests : IPrebuildSetup
 {
@@ -180,10 +183,24 @@ class ThreadingEmulationFunctionTests : IPrebuildSetup
     }
 
     [Test]
-    // [UnityPlatform(exclude = new[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WSAPlayerX64, RuntimePlatform.WindowsPlayer })] //https://jira.unity3d.com/browse/UUM-78016
     [Ignore("Unstable: https://jira.unity3d.com/browse/UUM-111743")]
     public void WaveTest([Values]Kernel kernel, [Values]WaveSizeKeyword waveSizeKeyword)
     {
+#if UNITY_ANDROID
+        // ReadAtBroadcast with the native wave size returns 0 on the Samsung Galaxy S20 FE
+        // (Adreno 650, Vulkan). However, Quest2 is passing even though it has the same GPU,
+        // so it seems to be the S20 FE driver specifically, not Adreno 650 in general. Suspected
+        // driver/cross-compiler bug around WaveReadLaneAt with a WaveGetLaneCount()-derived
+        // (dynamically-uniform but not literal-constant) lane index — the shuffle variant works.
+        if (AndroidUtilities.AndroidDeviceId == "r8q" // r8q == Samsung Galaxy S20 FE
+            && SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan
+            && kernel == Kernel.ReadAtBroadcast
+            && waveSizeKeyword == WaveSizeKeyword.WAVE_SIZE_NATIVE)
+        {
+            Assert.Ignore("ReadAtBroadcast/native wave broken on Adreno 650 / Samsung Galaxy S20 FE (Vulkan)");
+        }
+#endif
+
         int groupSize = (int)GroupSizeKeyword.GROUP_SIZE_128;
 
         // Ensure that the wave tests are capable of running on the current device

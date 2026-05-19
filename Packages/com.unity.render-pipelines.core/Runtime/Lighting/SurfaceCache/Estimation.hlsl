@@ -42,6 +42,7 @@ float3 _VolumeTargetPos;
 float _MaterialAtlasTexelSize; // The size of 1 texel in the atlases above
 float _AlbedoBoost;
 float _EnvironmentIntensityMultiplier;
+float _EmissiveTriangleIntensityMultiplier;
 uint _PunctualLightSampleCount;
 float3 _DirectionalLightDirection;
 float3 _DirectionalLightIntensity;
@@ -178,6 +179,7 @@ void SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
             _MultiBounce,
             _EnvironmentCubemap,
             _EnvironmentIntensityMultiplier,
+            _EmissiveTriangleIntensityMultiplier,
             sampler_EnvironmentCubemap,
             _PatchIrradiances,
             patchStatistics,

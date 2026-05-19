@@ -48,8 +48,8 @@ MonoBehaviour:
           tips</b>\n\n\u2022 When using Lumens with a Spot light, use the <b>Reflector</b>
           mode (enabled by default), in order to have a correct simulation of the
           light intensity based on the cone angle of the Spot light. If you cannot
-          see this checkbox, \"Show Additional Properties\" via the 3-dots menu in
-          the Emission foldout.\n\n\u2022 To optimize performance, keep the Emission
+          see this checkbox, enable \"Show Additional Properties\" via the 3-dots
+          menu in the Emission foldout.\n\n\u2022 To optimize performance, keep the Emission
           and Shadow <b>Fade Distance</b> properties as low as possible, so that
           the light and its shadows disappear beyond a certain distance (in meters)."
       m_Tutorial: {fileID: 0}

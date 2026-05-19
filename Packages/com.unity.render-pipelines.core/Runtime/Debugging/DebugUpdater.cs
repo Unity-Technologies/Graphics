@@ -1,4 +1,4 @@
-#if ENABLE_UIELEMENTS_MODULE && (UNITY_EDITOR || DEVELOPMENT_BUILD)
+#if ENABLE_UIELEMENTS_MODULE && UNITY_ENABLE_CHECKS
 #define ENABLE_RENDERING_DEBUGGER_UI
 #endif
 #if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void RuntimeInit()
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_ENABLE_CHECKS
             if (DebugManager.instance.enableRuntimeUI)
                 EnableRuntime();
 #endif

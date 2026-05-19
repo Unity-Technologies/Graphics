@@ -27,6 +27,35 @@ namespace UnityEditor.VFX
             return $" cannot be compiled because a Shader Graph with GUID '{guid}' is missing.\nYou might find the missing file by searching on your disk this guid in .meta files.";
         }
 
+        private static T LoadAssetAtPath<T>(string assetPath) where T : UnityEngine.Object
+        {
+            var found = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+            if (found == null)
+            {
+                //Issue specific to SG access during import, see UUM-86821
+                var allAssets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+                foreach (var asset in allAssets)
+                {
+                    if (asset is T foundType)
+                    {
+                        found = foundType;
+                        break;
+                    }
+                }
+            }
+            return found;
+        }
+
+        public static ShaderGraphVfxAsset LoadShaderGraphAssetAtPath(string assetPath)
+        {
+            return LoadAssetAtPath<ShaderGraphVfxAsset>(assetPath);
+        }
+
+        public static Material LoadMaterialAtPath(string assetPath)
+        {
+            return LoadAssetAtPath<Material>(assetPath);
+        }
+
         private static Type GetPropertyType(AbstractShaderProperty property)
         {
             switch (property.propertyType)

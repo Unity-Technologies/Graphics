@@ -2,9 +2,9 @@
 
 ## Description
 
-Some input [Ports](Port.md) might have **Port Bindings**. This means there is an expectation of the data that should be supplied to the [Port](Port.md), such as a **Normal Vector** or **UV**. However, a **Port Binding** only affects a [Port](Port.md) that does not have a connected [Edge](Edge.md). These [Ports](Port.md) still have a regular [Data Type](Data-Types.md) that define what [Edges](Edge.md) can be connected to them.
+Some input [Ports](Port.md) might have **Port Bindings**. This means there is an expectation of the data that should be supplied to the [Port](Port.md), such as a **Normal Vector** or **UV**. However, a **Port Binding** only affects a [Port](Port.md) that does not have a connected [Wire](Wire.md). These [Ports](Port.md) still have a regular [Data Type](Data-Types.md) that define what [Wires](Wire.md) can be connected to them.
 
-In practice this means that if no [Edge](Edge.md) is connected to the [Port](Port.md) the default data used in that port will be taken from its **Port Binding**. A full list of **Port Bindings** and their associated default options is found below.
+In practice this means that if no [Wire](Wire.md) is connected to the [Port](Port.md) the default data used in that port will be taken from its **Port Binding**. A full list of **Port Bindings** and their associated default options is found below.
 
 ## Port Bindings List
 

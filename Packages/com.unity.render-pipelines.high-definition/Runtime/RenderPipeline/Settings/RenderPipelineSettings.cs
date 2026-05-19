@@ -433,7 +433,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         public LightProbeSystem lightProbeSystem;
         [SerializeField]
-        [FormerlySerializedAs("lightProbeSystem")]
         internal LightProbeSystem oldLightProbeSystem;
 
         /// <summary>Probe Volume Memory Budget.</summary>

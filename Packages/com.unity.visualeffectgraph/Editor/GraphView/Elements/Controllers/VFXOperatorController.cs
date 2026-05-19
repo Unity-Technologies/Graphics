@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
                 // Prevent breaking the editor opening.
                 try
                 {
-                    subgraphOperator.RecreateCopy();
+                    subgraphOperator.RecreateCopyIfNeeded();
                     model.ResyncSlots(false);
                     model.MarkOutputExpressionsAsOutOfDate();
                     model.UpdateOutputExpressionsIfNeeded();

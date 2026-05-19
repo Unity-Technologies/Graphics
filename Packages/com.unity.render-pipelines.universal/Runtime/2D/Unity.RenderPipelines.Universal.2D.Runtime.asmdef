@@ -10,7 +10,8 @@
         "GUID:caccfbdb442cdc64fa722b4c5585521f",
         "GUID:2665a8d13d1b3f18800f46e256720795",
         "GUID:c3352a8bbbe14fb4ab52ae7bfff927ea",
-        "RenderAs2DModule"
+        "RenderAs2DModule",
+        "GUID:b46779583a009f04ba9f5f31d0e7e6ac"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -51,9 +52,14 @@
             "define": "ENABLE_XR_MODULE"
         },
         {
-          "name": "com.unity.2d.common",
-          "expression": "13.0.0",
-          "define": "USING_2DCOMMON"
+            "name": "com.unity.2d.common",
+            "expression": "13.0.0",
+            "define": "USING_2DCOMMON"
+        },
+        {
+            "name": "com.unity.profiling.core",
+            "expression": "1.0.3",
+            "define": "PROFILER_INSTALLED"
         }
     ],
     "noEngineReferences": false

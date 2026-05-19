@@ -8,6 +8,7 @@
         "UnityEngine.TestTools.Graphics.Performance.Editor",
         "UnityEngine.TestTools.Graphics.Performance",
         "Unity.Testing.VisualEffectGraph.PerformanceRuntimeTests",
+        "Unity.Testing.VisualEffectGraph.EditorTests",
         "Unity.VisualEffectGraph.Editor",
         "UnityEngine.TestTools.Graphics"
     ],

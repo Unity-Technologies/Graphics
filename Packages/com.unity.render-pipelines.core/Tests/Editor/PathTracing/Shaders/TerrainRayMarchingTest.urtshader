@@ -1,0 +1,128 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
+
+// Terrain resources
+#define TERRAIN_RAY_MARCHING_ENABLED
+Texture2DArray<float> _TerrainTexture;
+SamplerState sampler_TerrainTexture;
+float _TerrainTextureInvWidth;
+#include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/TerrainRayMarching.hlsl"
+
+// Use the same include pattern as PathTracing.hlsl — define raygen macro, include TraceRayPathTracing
+// (which defines payload, macros, includes TraceRay.hlsl, and provides TraceRayClosestHit)
+#define UNIFIED_RT_RAYGEN_FUNC TestRayGenExecute
+#include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/TraceRayPathTracing.hlsl"
+
+UNIFIED_RT_DECLARE_ACCEL_STRUCT(g_SceneAccelStruct);
+
+struct TestHitResult
+{
+    float3 worldPosition;
+    float hitDistance;
+    float3 worldNormal;
+    uint isValid;
+    float2 uv;
+    float2 padding;
+};
+
+struct TestRay
+{
+    UnifiedRT::Ray ray;
+    uint rayMask;
+    uint padding0;
+    uint padding1;
+    uint padding2;
+};
+
+StructuredBuffer<TestRay> _TestRays;
+RWStructuredBuffer<TestHitResult> _TestResults;
+
+// Terrain intersection — called by TraceRay when a procedural AABB is hit
+bool IntersectionExecute(UnifiedRT::HitContext hitContext, out float hitT, out float2 uvAttributes, out ProceduralIntersectionAttribs additionalAttribs)
+{
+    bool frontFaceHit = false;
+    float2 hitUv = 0;
+    bool hit = RayMarchTerrainTile(hitContext.InstanceID(), hitContext.PrimitiveIndex(),
+        hitContext.WorldRayOrigin(), hitContext.WorldRayDirection(),
+        hitContext.RayTCurrent(), hitT, frontFaceHit, hitUv);
+
+    if (hit && hitT < hitContext.RayTCurrent() && hitT >= hitContext.RayTMin())
+    {
+        uvAttributes = hitUv;
+        additionalAttribs.isFrontFace = frontFaceHit;
+        return true;
+    }
+    return false;
+}
+
+// AnyHit — accept all hits (terrain is opaque)
+uint AnyHitExecute(UnifiedRT::HitContext hitContext, inout PathTracingPayload payload)
+{
+    return UnifiedRT::kAcceptHit;
+}
+
+// ClosestHit — store hit data in payload
+void ClosestHitExecute(UnifiedRT::HitContext hitContext, inout PathTracingPayload payload, ProceduralIntersectionAttribs proceduralHitAttribs)
+{
+    if (payload.IsShadowRay())
+    {
+        payload.MarkHit();
+    }
+    else
+    {
+        UnifiedRT::Hit hit = (UnifiedRT::Hit)0;
+        hit.instanceID = hitContext.InstanceID();
+        hit.primitiveIndex = hitContext.PrimitiveIndex();
+        hit.uvBarycentrics = hitContext.UvBarycentrics();
+        hit.isFrontFace = hitContext.PrimitiveType() == UnifiedRT::kCommittedProceduralHit
+            ? proceduralHitAttribs.isFrontFace : hitContext.IsFrontFace();
+        hit.hitDistance = hitContext.RayTCurrent();
+        payload.SetHit(hit);
+    }
+}
+
+// RayGen — trace test rays and write results
+void TestRayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
+{
+    TestRay testRay = _TestRays[dispatchInfo.globalThreadIndex];
+    UnifiedRT::Ray ray = testRay.ray;
+    uint rayMask = testRay.rayMask;
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(g_SceneAccelStruct);
+
+    UnifiedRT::Hit hit = TraceRayClosestHit(dispatchInfo, accelStruct, rayMask, ray, 0);
+
+    TestHitResult result = (TestHitResult)0;
+    if (hit.IsValid())
+    {
+        UnifiedRT::InstanceData instance = UnifiedRT::GetInstance(hit.instanceID);
+        float3 worldPosition = ray.origin + ray.direction * hit.hitDistance;
+
+        result.worldPosition = worldPosition;
+        result.hitDistance = hit.hitDistance;
+        result.isValid = 1;
+
+        if (instance.terrainIndex >= 0)
+        {
+            UnifiedRT::TerrainData terrainData = UnifiedRT::GetTerrain(instance.terrainIndex);
+            float3 terrainOrigin = mul(float4(0, 0, 0, 1), instance.localToWorld);
+            float2 heightmapUV = (worldPosition.xz - terrainOrigin.xz) * terrainData.invTerrainScale.xz;
+
+            float3 localPos, localNormal;
+            ComputeTerrainLocalPosAndNormal(terrainData, instance.terrainIndex, heightmapUV, localPos, localNormal);
+
+            result.worldNormal = normalize(mul((float3x3)instance.localToWorldNormals, localNormal));
+            // Mirror production's GetTerrainHitGeomInfo: the lightmap UV comes straight
+            // from hit.uvBarycentrics. This must match the mesh path's vertex UVs
+            // (cellCoord / resolution) — see TerrainToMesh.cs.
+            result.uv = hit.uvBarycentrics;
+        }
+        else
+        {
+            UnifiedRT::HitGeomAttributes attrs = UnifiedRT::FetchHitGeomAttributes(hit);
+            result.worldNormal = normalize(mul((float3x3)instance.localToWorldNormals, attrs.normal));
+            result.uv = attrs.uv0;
+        }
+    }
+
+    _TestResults[dispatchInfo.globalThreadIndex] = result;
+}

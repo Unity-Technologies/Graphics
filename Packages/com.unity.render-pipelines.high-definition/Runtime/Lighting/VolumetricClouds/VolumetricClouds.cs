@@ -394,6 +394,14 @@ namespace UnityEngine.Rendering.HighDefinition
         [AdditionalProperty]
         public ClampedFloatParameter erosionOcclusion = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
+        // UUM-141999: globalWindSpeed and orientation each share a serialized name with an
+        // [Obsolete]-but-still-serialized companion field declared in VolumetricClouds.Migration.cs
+        // (m_ObsoleteWindSpeed / m_ObsoleteOrientation, both carrying [FormerlySerializedAs(...)]).
+        // The version-based migration in that file copies the obsolete values into these fields once
+        // on Awake, but the obsolete fields keep being persisted, so on subsequent loads the FSA
+        // races against the same-name binding. The principled fix is to drop the obsolete fields and
+        // their migration step (#from(2022.1) is old enough that the migration is dead-letter).
+#pragma warning disable UAC1018
         /// <summary>
         /// Sets the global horizontal wind speed in kilometers per hour. This value can be relative to the Global Wind Speed defined in the Visual Environment.
         /// </summary>
@@ -405,6 +413,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Controls the orientation of the wind relative to the X world vector.\nThis value can be relative to the Global Wind Orientation defined in the Visual Environment.")]
         public WindOrientationParameter orientation = new WindOrientationParameter();
+#pragma warning restore UAC1018
 
         /// <summary>
         /// Controls the intensity of the wind-based altitude distortion of the clouds.

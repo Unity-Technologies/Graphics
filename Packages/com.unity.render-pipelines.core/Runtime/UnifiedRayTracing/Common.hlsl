@@ -1,6 +1,8 @@
 #ifndef _UNIFIEDRAYTRACING_COMMON_HLSL_
 #define _UNIFIEDRAYTRACING_COMMON_HLSL_
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
 #define K_T_MAX                 400000
 #ifndef FLT_EPSILON
 #define FLT_EPSILON             1.192092896e-07F
@@ -14,7 +16,7 @@
 
 float Max3(float3 val)
 {
-    return max(max(val.x, val.y), val.z);
+    return Max3(val.x, val.y, val.z);
 }
 
 // Adapted from RayTracing Gems, A Fast and Robust Method for Avoiding Self-Intersection

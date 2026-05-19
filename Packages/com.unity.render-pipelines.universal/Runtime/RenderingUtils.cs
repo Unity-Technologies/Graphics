@@ -221,7 +221,7 @@ namespace UnityEngine.Rendering.Universal
 
         // This is used to render materials that contain built-in shader passes not compatible with URP.
         // It will render those legacy passes with error/pink shader.
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         internal static void CreateRendererParamsObjectsWithError(ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags, ref RendererListParams param)
         {
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
@@ -239,7 +239,7 @@ namespace UnityEngine.Rendering.Universal
 
         // This is used to render materials that contain built-in shader passes not compatible with URP.
         // It will render those legacy passes with error/pink shader.
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         internal static void CreateRendererListObjectsWithError(RenderGraph renderGraph, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags, ref RendererListHandle rl)
         {
             // TODO: When importing project, AssetPreviewUpdater::CreatePreviewForAsset will be called multiple times.
@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering.Universal
             rl = renderGraph.CreateRendererList(param);
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_ENABLE_CHECKS")]
         internal static void DrawRendererListObjectsWithError(RasterCommandBuffer cmd, ref RendererList rl)
         {
             cmd.DrawRendererList(rl);
@@ -762,7 +762,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 perObjectData = renderingData.perObjectData,
                 mainLightIndex = lightData.mainLightIndex,
-                enableDynamicBatching = renderingData.supportsDynamicBatching,
 
                 // Disable instancing for preview cameras. This is consistent with the built-in forward renderer. Also fixes case 1127324.
                 enableInstancing = camera.cameraType != CameraType.Preview,

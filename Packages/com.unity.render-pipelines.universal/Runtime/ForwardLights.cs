@@ -222,12 +222,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             var localLights = lights.GetSubArray(firstLocalLightIdx, localLightCount);
 
             var reflectionProbeCount = math.min(probes.Length, UniversalRenderPipeline.maxVisibleReflectionProbes);
-            // Ensure reflection probes without textures aren't used.
-            for (var i = 0; i < probes.Length; i++)
-            {
-                if (!probes[i].texture)
-                    reflectionProbeCount--;
-            }
 
             var itemsPerTile = localLights.Length + reflectionProbeCount;
             wordsPerTile = (itemsPerTile + 31) / 32;
@@ -257,27 +251,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Necessary to avoid negative bin count when the farClipPlane is set to Infinity in the editor.
             binCount = Math.Max(binCount, 0);
-
-            // Should probe come after otherProbe?
-            static bool IsProbeGreater(VisibleReflectionProbe probe, VisibleReflectionProbe otherProbe)
-            {
-                return otherProbe.texture != null && (probe.texture == null || probe.importance < otherProbe.importance ||
-                    (probe.importance == otherProbe.importance && probe.bounds.extents.sqrMagnitude > otherProbe.bounds.extents.sqrMagnitude));
-            }
-
-            // Used probes.Length to check that we use the most relevant probes.
-            for (var i = 1; i < probes.Length; i++)
-            {
-                var probe = probes[i];
-                var j = i - 1;
-                while (j >= 0 && IsProbeGreater(probes[j], probe))
-                {
-                    probes[j + 1] = probes[j];
-                    j--;
-                }
-
-                probes[j + 1] = probe;
-            }
 
             var minMaxZs = new NativeArray<float2>(itemsPerTile * viewCount, Allocator.TempJob);
 
@@ -318,8 +291,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 isOrthographic = isOrthographic
             };
             var zBinningHandle = zBinningJob.ScheduleParallel(zBinningBatchCount * viewCount, 1, reflectionProbeMinMaxZHandle);
-
-            reflectionProbeMinMaxZHandle.Complete();
 
             GetViewParams(isOrthographic, viewToClips[0], out float viewPlaneBottom0, out float viewPlaneTop0, out float4 viewToViewportScaleBias0);
             GetViewParams(isOrthographic, viewToClips[1], out float viewPlaneBottom1, out float viewPlaneTop1, out float4 viewToViewportScaleBias1);

@@ -3,10 +3,11 @@
 
 #pragma warning(error: 3206) // Implicit truncation of vector type
 
-#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/CommonStructs.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
+// Include this last so PI doesn't get redefined if it was already defined
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Common.hlsl"
 
 // Force uniform sampling of the skybox for debugging / ground truth generation
 //#define UNIFORM_ENVSAMPLING
@@ -25,7 +26,7 @@
 #define PYRAMID_LIGHT 5
 #define BOX_LIGHT 6
 #define EMISSIVE_MESH 8 // Must match the variable in UnityEngine.PathTracing.Core.World
-#define ENVIRONMENT_LIGHT 9 // Must match the variable in UnityEngine.PathTracing.Core.World
+#define ENVIRONMENT_LIGHT 9
 
 #define LIGHT_PICKING_METHOD_UNIFORM 0
 #define LIGHT_PICKING_METHOD_RESERVOIR_GRID 1
@@ -141,8 +142,44 @@ struct PTHitGeom
     }
 };
 
+#ifdef TERRAIN_RAY_MARCHING_ENABLED
+PTHitGeom GetTerrainHitGeomInfo(UnifiedRT::InstanceData instanceInfo, UnifiedRT::Hit hit)
+{
+    UnifiedRT::TerrainData terrainData = UnifiedRT::GetTerrain(instanceInfo.terrainIndex);
+
+    // hit.uvBarycentrics is in extent-convention UV space (cellCoord / (resolution-1)).
+    // Multiply by numCells to recover cell-space coordinates for position/normal.
+    float numCells = terrainData.heightmapWidthInTexels - 1.0;
+    float2 heightmapUV = hit.uvBarycentrics * numCells;
+
+    float3 localPos, localNormal;
+    ComputeTerrainLocalPosAndNormal(terrainData, instanceInfo.terrainIndex, heightmapUV, localPos, localNormal);
+
+    float3 worldPosition = mul(float4(localPos, 1), instanceInfo.localToWorld).xyz;
+    float3 worldNormal = normalize(mul((float3x3)instanceInfo.localToWorldNormals, localNormal));
+
+    PTHitGeom res = (PTHitGeom)0;
+    res.worldPosition = worldPosition;
+    res.lastWorldPosition = worldPosition;
+    res.worldNormal = worldNormal;
+    res.worldFaceNormal = worldNormal;
+    // UVs must match TerrainToMesh convention: vertex.xz / resolution = cellCoord / resolution
+    res.uv0 = hit.uvBarycentrics;
+    res.uv1 = hit.uvBarycentrics;
+    res.renderingLayerMask = instanceInfo.renderingLayerMask;
+    res.triangleArea = terrainData.terrainScale.x * terrainData.terrainScale.z * 0.5;
+
+    return res;
+}
+#endif
+
 PTHitGeom GetHitGeomInfo(UnifiedRT::InstanceData instanceInfo, UnifiedRT::Hit hit)
 {
+#ifdef TERRAIN_RAY_MARCHING_ENABLED
+    if (instanceInfo.terrainIndex >= 0)
+        return GetTerrainHitGeomInfo(instanceInfo, hit);
+#endif
+
     UnifiedRT::HitGeomAttributes attributes = UnifiedRT::FetchHitGeomAttributes(hit);
 
     PTHitGeom res;

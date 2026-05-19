@@ -1,7 +1,7 @@
-using UnityEngine.Experimental.Rendering;
 using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Collections.LowLevel.Unsafe;
+using UnityEngine.Rendering.Universal.U2D.Profiler;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -60,7 +60,6 @@ namespace UnityEngine.Rendering.Universal
     // identified from the Blue Channel of the Vertex Colors (Solely used for this purpose). This can batch a maximum of kLightMod meshes in best-case scenario. Simple but no optizations have been added yet
     internal class LightBatch
     {
-        static readonly ProfilingSampler profilingDrawBatched = new ProfilingSampler("Light2D Batcher");
         static readonly int k_BufferOffset = Shader.PropertyToID("_BatchBufferOffset");
         static int sBatchIndexCounter = 0; // For LightMesh asset conditioning to facilitate batching.
 
@@ -240,7 +239,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (batchCount > 0)
             {
-                using (new ProfilingScope(cmd, profilingDrawBatched))
+                using (new ProfilingScope(cmd, ProfilerMarkers.s_ProfilingDrawBatched))
                 {
                     SetBuffer();
                     cmd.SetGlobalInt(k_BufferOffset, lightCount);
@@ -249,6 +248,10 @@ namespace UnityEngine.Rendering.Universal
 
                 lightCount = lightCount + maxIndex + 1;
             }
+#if ENABLE_PROFILER && PROFILER_INSTALLED
+            if (Renderer2D.canProfilerCapture)
+                ProfilerMarkers.s_U2DLightBatchCounterValue.Value++;
+#endif
             for (int i = 0; i < batchCount; ++i)
                 lightMeshes[i] = null;
             ResetInternals();

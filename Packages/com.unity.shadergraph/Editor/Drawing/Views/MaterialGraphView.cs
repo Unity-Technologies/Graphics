@@ -1222,6 +1222,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if (ValidateObjectForDrop(obj))
                     {
+                        DragAndDrop.AcceptDrag();
                         CreateNode(obj, localPos);
                     }
                 }

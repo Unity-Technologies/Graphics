@@ -118,7 +118,7 @@ namespace UnityEditor.VFX
             var asset = effect.visualEffectAsset;
             if (asset != null && asset.GetResource() != null)
             {
-                var graph = asset.GetResource().GetOrCreateGraph();
+                var graph = asset.GetResource().GetGraph();
 
                 if (graph)
                 {
@@ -230,7 +230,7 @@ namespace UnityEditor.VFX
             if (effect.visualEffectAsset == null)
                 return null;
 
-            VFXGraph graph = resource.graph as VFXGraph;
+            VFXGraph graph = resource.GetGraph();
             if (graph == null)
                 return null;
 

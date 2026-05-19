@@ -6,8 +6,8 @@
 #include "PathTracing.hlsl"
 #include "LightSampling.hlsl"
 
-RWStructuredBuffer<float3> g_Positions;
-RWStructuredBuffer<int> g_PerProbeLightIndices;
+StructuredBuffer<float3> g_Positions;
+StructuredBuffer<int> g_PerProbeLightIndices;
 RWStructuredBuffer<float> g_Occlusion;
 uint g_ExpansionOffset;
 uint g_PositionsOffset;
@@ -46,7 +46,12 @@ void IntegrateOcclusion(UnifiedRT::DispatchInfo dispatchInfo)
         int lightIndex = g_PerProbeLightIndices[perProbeLightIndicesIdx];
         if (lightIndex >= 0)
         {
-            PTLight light = FetchLight(lightIndex);
+            PTLight light;
+            if (lightIndex >= int(g_NumLights))
+                light = g_MainDirectionalLight[0];
+            else
+                light = FetchLight(lightIndex);
+
             if (light.type == SPOT_LIGHT || light.type == POINT_LIGHT || light.type == DIRECTIONAL_LIGHT)
             {
                 float3 attenuation = 1.0f;

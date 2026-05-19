@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -16,7 +15,6 @@ public class SetupMipMapModeAndRender : MonoBehaviour
     public DebugMipMapStatusMode mipMapStatusMode = DebugMipMapStatusMode.Material;
     public bool mipMapShowStatusCode = true;
 
-    [Conditional("UNITY_ENABLE_CHECKS"), Conditional("UNITY_EDITOR")]
     void Start()
     {
         const int sceneRequiredStreamingTexMem = 8; // 8 MB -- a littler higher than really needed for our test scene, just to be sure.
@@ -25,7 +23,6 @@ public class SetupMipMapModeAndRender : MonoBehaviour
         UnityEngine.Debug.Log($"'Texture.nonStreamingTextureMemory' is currently at {nonStreamingTexMemInMegabytes} MBs. 'QualitySettings.streamingMipmapsMemoryBudget' has been set to {QualitySettings.streamingMipmapsMemoryBudget} MBs.");
     }
 
-    [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
     void Update()
     {
         HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;

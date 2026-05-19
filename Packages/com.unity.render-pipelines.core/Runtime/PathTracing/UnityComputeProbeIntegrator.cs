@@ -158,7 +158,17 @@ namespace UnityEngine.PathTracing.Integration
             for (int lightIndex = 0; lightIndex < lightIndexMapping.Length; lightIndex++)
             {
                 var lightHandle = _world.LightHandles[lightIndex];
-                int worldLightIndex = _world.PathTracingWorld.LightHandleToLightListIndex[lightHandle];
+                int worldLightIndex;
+                if (lightHandle == _world.PathTracingWorld.MainDirectionaLightHandle)
+                {
+                    // The main directional light isn't in the light list, so we can't store it's index.
+                    // Instead, use the index `LightCount` to mean 'the main directional light'.
+                    worldLightIndex = _world.PathTracingWorld.LightList.Count;
+                }
+                else
+                {
+                    worldLightIndex = _world.PathTracingWorld.LightHandleToLightListIndex[lightHandle];
+                }
                 lightIndexMapping[lightIndex] = worldLightIndex;
             }
             if (lightIndexMapping.Length == 0) // Avoid 0-sized buffer in case of no lights in scene

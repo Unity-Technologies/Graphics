@@ -68,7 +68,6 @@ namespace UnityEngine.Rendering.Universal
             var drawingSettings = new DrawingSettings(k_MotionOnlyShaderTagId, sortingSettings)
             {
                 perObjectData = PerObjectData.MotionVectors,
-                enableDynamicBatching = false,
                 enableInstancing = true,
             };
             drawingSettings.SetShaderPassName(0, k_MotionOnlyShaderTagId);

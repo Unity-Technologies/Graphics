@@ -2449,8 +2449,8 @@ namespace UnityEngine.Rendering.Tests
                                                useMipMap: false,
                                                autoGenerateMips: false,
                                                name: "DummyPoolTexture");
-            // Release it into the pool
-            texturePool.ReleaseResource(0, resIn, 0);
+            // Release it into the pool (frameIndex=0, executionCount=0)
+            texturePool.ReleaseResource(0, resIn, 0, 0);
 
             Assert.IsTrue(texturePool.GetMemorySizeInMB() > 0);
             Assert.IsTrue(texturePool.GetNumResourcesAvailable() == 1);
@@ -2477,12 +2477,13 @@ namespace UnityEngine.Rendering.Tests
                                                useMipMap: false,
                                                autoGenerateMips: false,
                                                name: "DummyPoolTexture");
-            // Release it into the pool
-            texturePool.ReleaseResource(0, resIn, 0);
+            // Release it into the pool (frameIndex=0, executionCount=0)
+            texturePool.ReleaseResource(0, resIn, 0, 0);
 
             // Retrieve it from the pool and make sure this is the right one
             RTHandle resOut;
-            texturePool.TryGetResource(0, out resOut);
+            // Use frameIndex=1, executionCount=1 to ensure reuse (different frame and execution)
+            texturePool.TryGetResource(0, out resOut, 1, 1);
             Assert.IsTrue(resIn.GetUniqueID() == resOut.GetUniqueID());
 
             texturePool.Cleanup();
@@ -2860,6 +2861,239 @@ namespace UnityEngine.Rendering.Tests
             };
 
             m_Camera.Render();
+        }
+
+        [Test]
+        public void IntraFrameMemoryAliasing_WhenEnabled_ResourcesCanBeReusedWithinSameFrame()
+        {
+            const int kWidth = 256;
+            const int kHeight = 256;
+
+            EntityId pass1ResourceID = default;
+            EntityId pass2ResourceID = default;
+
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                // Enable intra-frame memory aliasing
+                m_RenderGraph.SetIntraFrameMemoryAliasing(true);
+
+                // TODO: Create texture 1 with enableRandomWrite to allow UAV access (compute/non-fragment usage).
+                // This prevents memoryless detection on Metal. When textures are used as fragment attachments
+                // (render targets), Metal's compiler marks them as memoryless even with disablePassMerging=true,
+                // which modifies TextureDesc.memoryless and breaks resource pooling hash matching.
+                // Using compute passes with UAV access avoids the fragment attachment path entirely.
+                var texture1 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "Texture1" });
+
+                using (var builder = m_RenderGraph.AddComputePass<RenderGraphTestPassData>("Pass1_WriteTexture1", out var passData))
+                {
+                    passData.textures[0] = texture1;
+                    builder.UseTexture(texture1, AccessFlags.Write);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, ComputeGraphContext ctx) =>
+                    {
+                        RTHandle rtHandle = data.textures[0];
+                        if (rtHandle != null && rtHandle.rt != null)
+                            pass1ResourceID = rtHandle.rt.GetEntityId();
+                    });
+                }
+
+                // Read texture1 to complete its lifetime (this will cause it to be released after this pass)
+                using (var builder = m_RenderGraph.AddComputePass<RenderGraphTestPassData>("Pass1b_ReadTexture1", out var passData))
+                {
+                    builder.UseTexture(texture1, AccessFlags.Read);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, ComputeGraphContext ctx) => { });
+                }
+
+                // Create texture 2 with same spec (should reuse texture1's resource when intra-frame aliasing is enabled)
+                var texture2 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "Texture2" });
+
+                using (var builder = m_RenderGraph.AddComputePass<RenderGraphTestPassData>("Pass2_WriteTexture2", out var passData))
+                {
+                    passData.textures[0] = texture2;
+                    builder.UseTexture(texture2, AccessFlags.Write);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, ComputeGraphContext ctx) =>
+                    {
+                        RTHandle rtHandle = data.textures[0];
+                        if (rtHandle != null && rtHandle.rt != null)
+                            pass2ResourceID = rtHandle.rt.GetEntityId();
+                    });
+                }
+            };
+
+            m_Camera.Render();
+
+            // When intra-frame memory aliasing is enabled (default), both textures should share the same underlying RenderTexture
+            Assert.AreNotEqual(default(EntityId), pass1ResourceID, "Pass 1 resource ID should not be default");
+            Assert.AreNotEqual(default(EntityId), pass2ResourceID, "Pass 2 resource ID should not be default");
+            Assert.AreEqual(pass1ResourceID, pass2ResourceID, "With intra-frame aliasing enabled, both textures should reuse the same underlying RenderTexture");
+        }
+
+        [Test]
+        public void IntraFrameMemoryAliasing_WhenDisabled_ResourcesCannotBeReusedWithinSameFrame()
+        {
+            const int kWidth = 256;
+            const int kHeight = 256;
+
+            EntityId pass1ResourceID = default;
+            EntityId pass2ResourceID = default;
+
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                // Disable intra-frame memory aliasing
+                m_RenderGraph.SetIntraFrameMemoryAliasing(false);
+
+                // Create texture 1, write to it, then read from it so it has a complete lifetime
+                var texture1 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, name = "Texture1" });
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Pass1_WriteTexture1", out var passData))
+                {
+                    passData.textures[0] = texture1;
+                    builder.SetRenderAttachment(texture1, 0, AccessFlags.Write);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext ctx) =>
+                    {
+                        RTHandle rtHandle = data.textures[0];
+                        if (rtHandle != null && rtHandle.rt != null)
+                            pass1ResourceID = rtHandle.rt.GetEntityId();
+                    });
+                }
+
+                // Read texture1 to complete its lifetime (this will cause it to be released after this pass)
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Pass1b_ReadTexture1", out var passData))
+                {
+                    builder.UseTexture(texture1, AccessFlags.Read);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext ctx) => { });
+                }
+
+                // Create texture 2 with same spec (should NOT reuse texture1's resource when intra-frame aliasing is disabled)
+                var texture2 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, name = "Texture2" });
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Pass2_WriteTexture2", out var passData))
+                {
+                    passData.textures[0] = texture2;
+                    builder.SetRenderAttachment(texture2, 0, AccessFlags.Write);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext ctx) =>
+                    {
+                        RTHandle rtHandle = data.textures[0];
+                        if (rtHandle != null && rtHandle.rt != null)
+                            pass2ResourceID = rtHandle.rt.GetEntityId();
+                    });
+                }
+            };
+
+            m_Camera.Render();
+
+            // When intra-frame memory aliasing is disabled, both textures should use different underlying RenderTextures
+            Assert.AreNotEqual(default(EntityId), pass1ResourceID, "Pass 1 resource ID should not be default");
+            Assert.AreNotEqual(default(EntityId), pass2ResourceID, "Pass 2 resource ID should not be default");
+            Assert.AreNotEqual(pass1ResourceID, pass2ResourceID, "With intra-frame aliasing disabled, both textures should use different underlying RenderTextures");
+        }
+
+        [Test]
+        public void IntraFrameMemoryAliasing_RuntimeToggle_AffectsResourcePooling()
+        {
+            const int kWidth = 256;
+            const int kHeight = 256;
+
+            int executionCount = 0;
+            EntityId[] capturedResourceIDs = new EntityId[6];
+
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                int currentExecution = executionCount;
+
+                // Toggle intra-frame memory aliasing based on execution
+                if (currentExecution == 0)
+                {
+                    // Start with enabled
+                    m_RenderGraph.SetIntraFrameMemoryAliasing(true);
+                }
+                else if (currentExecution == 1)
+                {
+                    // Switch to disabled for second execution
+                    m_RenderGraph.SetIntraFrameMemoryAliasing(false);
+                }
+                else if (currentExecution == 2)
+                {
+                    // Switch back to enabled for third execution
+                    m_RenderGraph.SetIntraFrameMemoryAliasing(true);
+                }
+
+                // Create and use two textures with same specs
+                var texture1 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, name = "Texture1" });
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Pass1", out var passData))
+                {
+                    passData.textures[0] = texture1;
+                    builder.SetRenderAttachment(texture1, 0, AccessFlags.Write);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext ctx) =>
+                    {
+                        RTHandle rtHandle = data.textures[0];
+                        if (rtHandle != null && rtHandle.rt != null)
+                            capturedResourceIDs[currentExecution * 2] = rtHandle.rt.GetEntityId();
+                    });
+                }
+
+                // Read texture1 to complete its lifetime
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Pass1b_ReadTexture1", out var passData))
+                {
+                    builder.UseTexture(texture1, AccessFlags.Read);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext ctx) => { });
+                }
+
+                var texture2 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, name = "Texture2" });
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Pass2", out var passData))
+                {
+                    passData.textures[0] = texture2;
+                    builder.SetRenderAttachment(texture2, 0, AccessFlags.Write);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext ctx) =>
+                    {
+                        RTHandle rtHandle = data.textures[0];
+                        if (rtHandle != null && rtHandle.rt != null)
+                            capturedResourceIDs[currentExecution * 2 + 1] = rtHandle.rt.GetEntityId();
+                    });
+                }
+
+                // Read texture2 to ensure it's not culled
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Pass3_Read", out var passData))
+                {
+                    builder.UseTexture(texture2, AccessFlags.Read);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext ctx) => { });
+                }
+
+                executionCount++;
+            };
+
+            // Execute 3 times with different settings
+            m_Camera.Render(); // Execution 0: aliasing enabled
+            m_Camera.Render(); // Execution 1: aliasing disabled
+            m_Camera.Render(); // Execution 2: aliasing enabled again
+
+            Assert.AreEqual(3, executionCount, "Should have executed 3 times");
+
+            // Execution 0: Aliasing enabled - resources should be same
+            Assert.AreNotEqual(default(EntityId), capturedResourceIDs[0], "Resource 0 ID should not be default");
+            Assert.AreNotEqual(default(EntityId), capturedResourceIDs[1], "Resource 1 ID should not be default");
+            Assert.AreEqual(capturedResourceIDs[0], capturedResourceIDs[1], "Execution 0: Resources should be aliased when enabled");
+
+            // Execution 1: Aliasing disabled - resources should be different
+            Assert.AreNotEqual(default(EntityId), capturedResourceIDs[2], "Resource 2 ID should not be default");
+            Assert.AreNotEqual(default(EntityId), capturedResourceIDs[3], "Resource 3 ID should not be default");
+            Assert.AreNotEqual(capturedResourceIDs[2], capturedResourceIDs[3], "Execution 1: Resources should NOT be aliased when disabled");
+
+            // Execution 2: Aliasing enabled again - resources should be same again
+            Assert.AreNotEqual(default(EntityId), capturedResourceIDs[4], "Resource 4 ID should not be default");
+            Assert.AreNotEqual(default(EntityId), capturedResourceIDs[5], "Resource 5 ID should not be default");
+            Assert.AreEqual(capturedResourceIDs[4], capturedResourceIDs[5], "Execution 2: Resources should be aliased again when re-enabled");
         }
     }
 }

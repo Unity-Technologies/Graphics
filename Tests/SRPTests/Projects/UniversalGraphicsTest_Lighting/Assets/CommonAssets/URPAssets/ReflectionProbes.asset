@@ -12,13 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
   m_Name: ReflectionProbes
   m_EditorClassIdentifier: 
-  k_AssetVersion: 12
-  k_AssetPreviousVersion: 12
+  k_AssetVersion: 13
+  k_AssetPreviousVersion: 13
   m_RendererType: 1
   m_RendererData: {fileID: 0}
   m_RendererDataList:
   - {fileID: 11400000, guid: bc60c4bc59aafe74198ea6134790d94b, type: 2}
   - {fileID: 11400000, guid: 121c47ef1b505bb4c9b2c17eda2dd176, type: 2}
+  - {fileID: 11400000, guid: f59607d3476b54858a594ea904187fb5, type: 2}
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 0
   m_RequireOpaqueTexture: 0
@@ -75,7 +76,6 @@ MonoBehaviour:
   m_MixedLightingSupported: 1
   m_SupportsLightCookies: 0
   m_SupportsLightLayers: 0
-  m_DebugLevel: 0
   m_StoreActionsOptimization: 0
   m_UseAdaptivePerformance: 1
   m_ColorGradingMode: 0
@@ -100,7 +100,7 @@ MonoBehaviour:
       m_Values: []
     obsoleteHasProbeVolumes:
       m_Keys: []
-      m_Values: 
+      m_Values: {_typeName: UInt8, _data: }
   m_PrefilteringModeMainLightShadows: 3
   m_PrefilteringModeAdditionalLight: 0
   m_PrefilteringModeAdditionalLightShadows: 0
@@ -108,6 +108,8 @@ MonoBehaviour:
   m_PrefilteringModeForwardPlus: 2
   m_PrefilteringModeDeferredRendering: 0
   m_PrefilteringModeScreenSpaceOcclusion: 0
+  m_PrefilteringModeScreenSpaceReflection: 1
+  m_PrefilterWriteSmoothness: 1
   m_PrefilterDebugKeywords: 1
   m_PrefilterWriteRenderingLayers: 1
   m_PrefilterHDROutput: 1
@@ -129,9 +131,15 @@ MonoBehaviour:
   m_PrefilterSoftShadowsQualityHigh: 1
   m_PrefilterSoftShadows: 0
   m_PrefilterScreenCoord: 1
+  m_PrefilterScreenSpaceIrradiance: 0
   m_PrefilterNativeRenderPass: 1
   m_PrefilterUseLegacyLightmaps: 0
   m_PrefilterBicubicLightmapSampling: 0
+  m_PrefilterReflectionProbeRotation: 0
+  m_PrefilterReflectionProbeBlending: 0
+  m_PrefilterReflectionProbeBoxProjection: 0
+  m_PrefilterReflectionProbeAtlas: 0
+  m_PrefilterPointSamplingUpsampling: 0
   m_ShaderVariantLogLevel: 0
   m_ShadowCascades: 0
   m_Textures:
