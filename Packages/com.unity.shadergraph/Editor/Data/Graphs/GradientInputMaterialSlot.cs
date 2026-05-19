@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            if (generationMode != GenerationMode.Preview)
+            if (!generationMode.IsPreview())
                 return;
 
             GradientUtil.GetGradientPropertiesForPreview(properties, matOwner.GetVariableNameForSlot(id), value);

@@ -280,6 +280,10 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             slot.hideConnector = header.isStatic && dir == SlotType.Input;
             slot.hidden = header.isLocal;
             slot.bareResource = header.isBareResource;
+
+            if (header.hasCustomBinding)
+                slot.CustomBinding = header.customBinding;
+
             return slot;
         }
 

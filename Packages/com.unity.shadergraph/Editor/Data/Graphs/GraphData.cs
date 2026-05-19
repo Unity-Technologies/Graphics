@@ -1376,7 +1376,7 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 // ugh, this needs to be moved to the gradient property implementation
-                if (prop is GradientShaderProperty gradientProp && generationMode == GenerationMode.Preview)
+                if (prop is GradientShaderProperty gradientProp && generationMode.IsPreview())
                 {
                     GradientUtil.GetGradientPropertiesForPreview(collector, gradientProp.referenceName, gradientProp.value);
                     continue;

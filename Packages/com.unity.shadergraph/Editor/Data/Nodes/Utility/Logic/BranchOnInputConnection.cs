@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph
             var notconnected = GetSlotValue(NotConnectedSlotId, generationMode);
             var output = GetVariableNameForSlot(OutSlotId);
 
-            if (generationMode == GenerationMode.Preview)
+            if (generationMode.IsPreview())
                 sb.AppendLine($"{dynamicType} {output} = {notconnected};");
             else
                 sb.AppendLine($"{dynamicType} {output} = {input} ? {connected} : {notconnected};");

@@ -231,7 +231,7 @@ Shader ""Hidden/GraphErrorShader2""
             AssetCollection assetCollection = new AssetCollection();
             MinimalGraphData.GatherMinimalDependenciesFromFile(assetPath, assetCollection);
 
-            var textGraph = File.ReadAllText(path, Encoding.UTF8);
+            var textGraph = FileUtilities.ReadAllTextUTF8(assetPath);
             var graph = new GraphData
             {
                 messageManager = new MessageManager(),

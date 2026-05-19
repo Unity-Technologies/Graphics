@@ -116,6 +116,7 @@ namespace UnityEditor.Rendering.Universal
         Shader m_StencilDeferred = Shader.Find("Hidden/Universal Render Pipeline/StencilDeferred");
         Shader m_ClusterDeferred = Shader.Find("Hidden/Universal Render Pipeline/ClusterDeferred");
         Shader m_UberPostShader = Shader.Find("Hidden/Universal Render Pipeline/UberPost");
+        Shader m_FinalPostShader = Shader.Find("Hidden/Universal Render Pipeline/FinalPost");
         Shader m_HDROutputBlitShader = Shader.Find("Hidden/Universal/BlitHDROverlay");
         Shader m_DataDrivenLensFlareShader = Shader.Find("Hidden/Universal Render Pipeline/LensFlareDataDriven");
         Shader m_ScreenSpaceLensFlareShader = Shader.Find("Hidden/Universal Render Pipeline/LensFlareScreenSpace");
@@ -197,6 +198,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_Instancing;
         LocalKeyword m_DotsInstancing;
         LocalKeyword m_ProceduralInstancing;
+        LocalKeyword m_PointSampling;
 
         private LocalKeyword TryGetLocalKeyword(Shader shader, string name)
         {
@@ -268,6 +270,7 @@ namespace UnityEditor.Rendering.Universal
             m_FilmGrain = TryGetLocalKeyword(shader, ShaderKeywordStrings.FilmGrain);
             m_SHPerVertex = TryGetLocalKeyword(shader, ShaderKeywordStrings.EVALUATE_SH_VERTEX);
             m_SHMixed = TryGetLocalKeyword(shader, ShaderKeywordStrings.EVALUATE_SH_MIXED);
+            m_PointSampling = TryGetLocalKeyword(shader, ShaderKeywordStrings.PointSampling);
 
             m_Instancing = TryGetLocalKeyword(shader, "INSTANCING_ON");
             m_DotsInstancing = TryGetLocalKeyword(shader, "DOTS_INSTANCING_ON");
@@ -819,6 +822,14 @@ namespace UnityEditor.Rendering.Universal
             return !strippingData.IsShaderFeatureEnabled(ShaderFeatures.LODCrossFade);
         }
 
+        internal bool StripUnusedFeatures_PointSamplingUpsampling(ref IShaderScriptableStrippingData strippingData, ref ShaderStripTool<ShaderFeatures> stripTool)
+        {
+            if (strippingData.shader != m_UberPostShader && strippingData.shader != m_FinalPostShader)
+                return false;
+
+            return stripTool.StripMultiCompile(m_PointSampling, ShaderFeatures.PointSamplingUpsampling);
+        }
+
         internal bool StripUnusedFeatures(ref IShaderScriptableStrippingData strippingData)
         {
             if (StripUnusedFeatures_DebugDisplay(ref strippingData))
@@ -927,6 +938,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedFeatures_XRMotionVector(ref strippingData))
+                return true;
+
+            if (StripUnusedFeatures_PointSamplingUpsampling(ref strippingData, ref stripTool))
                 return true;
 
             return false;

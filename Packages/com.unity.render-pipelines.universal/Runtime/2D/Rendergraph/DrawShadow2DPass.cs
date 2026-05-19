@@ -33,6 +33,7 @@ namespace UnityEngine.Rendering.Universal
             internal Renderer2DData rendererData;
             internal TextureHandle[] shadowTextures;
             internal TextureHandle shadowDepth;
+            internal bool isVolumetric;
         }
 
         public void Render(RenderGraph graph, ContextContainer frameData, int batchIndex, bool isVolumetric = false)
@@ -52,6 +53,7 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = graph.AddUnsafePass<PassData>(passName, out var passData, LayerDebug.GetProfilingSampler(passName, profilingSampler)))
             {
+                passData.isVolumetric = isVolumetric;
                 passData.layerBatch = layerBatch;
                 passData.rendererData = rendererData;
                 passData.shadowTextures = universal2DResourceData.shadowTextures[batchIndex];
@@ -71,6 +73,9 @@ namespace UnityEngine.Rendering.Universal
                         var cmd = context.cmd;
                         var index = data.layerBatch.shadowIndices[i];
                         var light = data.layerBatch.lights[index];
+
+                        if (data.isVolumetric && !RendererLighting.CanCastVolumetricShadows(light, data.layerBatch.endLayerValue))
+                            continue;
 
                         // Shadow Pass
                         ExecuteShadowPass(cmd, data, light, i);

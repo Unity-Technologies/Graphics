@@ -78,7 +78,8 @@ namespace UnityEngine.Rendering.Universal
                     layerBatch.endLayerValue != light.GetTopMostLitLayer()))
                     continue;
 
-                var useShadows = passData.layerBatch.lightStats.useShadows && layerBatch.shadowIndices.Contains(j);
+                var useShadows = (!passData.isVolumetric && passData.layerBatch.lightStats.useShadows) || (passData.isVolumetric && passData.layerBatch.lightStats.useVolumetricShadowLights);
+                useShadows &= layerBatch.shadowIndices.Contains(j);
                 var lightMaterial = passData.rendererData.GetLightMaterial(light, passData.isVolumetric, useShadows);
                 var lightMesh = light.lightMesh;
 
@@ -174,15 +175,11 @@ namespace UnityEngine.Rendering.Universal
         {
             Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            var layerBatch = frameData.Get<Universal2DRenderingData>().layerBatches[batchIndex];
+            Universal2DRenderingData rendering2DData = frameData.Get<Universal2DRenderingData>();
+            var layerBatch = rendering2DData.layerBatches[batchIndex];
 
-            DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
-            var isLightingActive = debugHandler?.IsLightingActive ?? true;
-
-#if UNITY_EDITOR
-            if (cameraData.isSceneViewCamera && UnityEditor.SceneView.currentDrawingSceneView != null)
-                isLightingActive &= UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
-#endif
+            // Check for lighting in scene/prefab/preview camera 
+            var isLightingActive = rendering2DData.isLightingActive;
 
             if (!layerBatch.lightStats.useLights ||
                 isVolumetric && !layerBatch.lightStats.useVolumetricLights ||

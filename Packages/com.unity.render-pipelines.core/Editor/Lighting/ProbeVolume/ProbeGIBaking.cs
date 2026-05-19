@@ -892,6 +892,7 @@ namespace UnityEngine.Rendering
                 Lightmapping.bakeStarted += OnBakeStarted;
                 Lightmapping.bakeCancelled += OnBakeCancelled;
                 Lightmapping.inputExtraction += OnInputExtraction;
+                AssemblyReloadEvents.beforeAssemblyReload += CleanUp;
             }
         }
 

@@ -555,8 +555,9 @@ namespace UnityEditor.Rendering.HighDefinition
 #endif
 
                 height += Styles.defaultLineSpace; // sorting criteria;
-                height += Styles.defaultLineSpace; // vrs
             }
+
+            height += Styles.defaultLineSpace; // vrs (always shown, see DoPassGUI)
 
             return height;
         }
