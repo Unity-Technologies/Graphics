@@ -1444,7 +1444,7 @@ namespace UnityEditor.VFX
                 taskDesc.parameters = cpuMappings.Concat(contextData.parameters).Concat(additionalParameters).ToArray();
                 taskDesc.instanceSplitIndex = AddInstanceSplitDesc(instanceSplitDescs, instancingSplitDescValues);
                 taskDesc.shaderSourceIndex = compiledData.taskToCompiledData[task].indexInShaderSource;
-                taskDesc.model = context;
+                taskDesc.modelId = context.GetEntityId();
                 taskDesc.usesMaterialVariant = compilationMode == VFXCompilationMode.Edition && context.usesMaterialVariantInEditMode;
 
                 if (context is IVFXMultiMeshOutput multiMeshOutput && multiMeshOutput.meshCount > 0) // If the context is a multi mesh output, split and patch task desc into several tasks
@@ -1477,7 +1477,7 @@ namespace UnityEditor.VFX
                             sortTaskDesc.type = UnityEngine.VFX.VFXTaskType.PerOutputSort;
                             sortTaskDesc.processor = null;
                             sortTaskDesc.shaderSourceIndex = -1;
-                            sortTaskDesc.model = context;
+                            sortTaskDesc.modelId = context.GetEntityId();
 
                             sortTaskDesc.buffers = new VFXMapping[3];
                             sortTaskDesc.buffers[0] = new VFXMapping("srcBuffer", GetBufferIndex(task, k_IndirectBufferName) + j);

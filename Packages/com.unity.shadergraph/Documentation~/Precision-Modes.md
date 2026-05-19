@@ -32,7 +32,7 @@ To set the default precision for the entire graph to **Single** or **Half**, ope
 Select a node to access its precision setting. The precision you set for a node determines the precision of the data types which that node uses for its calculations.
 
 ### Precision Inheritance
-All nodes use the **Inherit** precision mode by default. In this mode, a node that has one or more edge connections takes on the precision mode of an incoming [edge](Edge.md). Nodes that do not have any edge connections take on **Graph Precision**. If you change the **Graph Precision** mode, the precision of those nodes also changes.
+All nodes use the **Inherit** precision mode by default. In this mode, a node that has one or more wire connections takes on the precision mode of an incoming [wire](Wire.md). Nodes that do not have any wire connections take on **Graph Precision**. If you change the **Graph Precision** mode, the precision of those nodes also changes.
 
 | **Inputs on the node**                 | **Final precision determined by inheritance**  |
 |------------------------------------|--------------------------------------------|
@@ -49,7 +49,7 @@ All nodes use the **Inherit** precision mode by default. In this mode, a node th
 
 Simple inheritance refers to the inheritance behaviour of a node with only one precision type on its inputs.
 
-In the figure below, Node A has the **Inherit** mode. Because it has no incoming edge, it takes the **Graph Precision**, which is **Half**. Node B also has the **Inherit** mode, so it inherits the **Half** precision mode from Node A.
+In the figure below, Node A has the **Inherit** mode. Because it has no incoming wire, it takes the **Graph Precision**, which is **Half**. Node B also has the **Inherit** mode, so it inherits the **Half** precision mode from Node A.
 
 ![Diagram showing a simple precision inheritance.](images/precisionmodes1.png)
 
@@ -59,7 +59,7 @@ Complex inheritance refers to the inheritance behaviour of a node with multiple 
 
 A node reads precision settings from each input port. If you connect a node to several others with a variety of precision modes, the node with the highest resolution determines the precision mode for the group.
 
-In the figure below, node D has the **Inherit** mode. It receives input from the adjacent edges via inputs 1 and 2. Node B passes the **Half** mode through input 1. Node C passes the **Single** mode through input 2. Because **Single** is 32-bit and **Half** only 16-bit, **Single** takes precedence, so Node D uses **Single** precision.
+In the figure below, node D has the **Inherit** mode. It receives input from the adjacent wires via inputs 1 and 2. Node B passes the **Half** mode through input 1. Node C passes the **Single** mode through input 2. Because **Single** is 32-bit and **Half** only 16-bit, **Single** takes precedence, so Node D uses **Single** precision.
 
 ![Diagram showing a complex precision inheritance.](images/precisionmodes2.png)
 

@@ -8,11 +8,14 @@ namespace UnityEngine.Rendering.Universal
 
         internal int batchCount;
 
+        internal bool isLightingActive;
+
         public override void Reset()
         {
             renderingData = null;
             layerBatches = null;
             batchCount = 0;
+            isLightingActive = true;
         }
     }
 }

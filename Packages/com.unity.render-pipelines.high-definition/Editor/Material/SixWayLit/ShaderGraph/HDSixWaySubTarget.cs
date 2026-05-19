@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public HDSixWaySubTarget() => displayName = "Six-way Smoke Lit";
 
-        static readonly GUID kSubTargetSourceCodeGuid = new GUID("b20b7afb3a1f43afafc0ac6ea3f2cb26");  // HDSixWaySubTarget.cs
+        static readonly UnityEngine.GUID kSubTargetSourceCodeGuid = new UnityEngine.GUID("b20b7afb3a1f43afafc0ac6ea3f2cb26");  // HDSixWaySubTarget.cs
 
         static string[] passTemplateMaterialDirectories = new string[]
         {
@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Six-way Lit Subshader", "");
         protected override string subShaderInclude => CoreIncludes.kSixWayLit;
         protected override ShaderID shaderID => ShaderID.SG_SixWay;
-        protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
+        protected override UnityEngine.GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
 
         protected override bool supportLighting => true;
 

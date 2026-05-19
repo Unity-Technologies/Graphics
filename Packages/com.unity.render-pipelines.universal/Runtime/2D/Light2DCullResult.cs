@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.Universal
                     returnStats.totalNormalMapUsage++;
                 if (light.volumeIntensity > 0 && light.volumetricEnabled)
                     returnStats.totalVolumetricUsage++;
-                if (light.volumeIntensity > 0 && light.volumetricEnabled && RendererLighting.CanCastShadows(light, layerID))
+                if (RendererLighting.CanCastVolumetricShadows(light, layer.endLayerValue))
                     returnStats.totalVolumetricShadowUsage++;
 
                 returnStats.blendStylesUsed |= (uint)(1 << light.blendStyleIndex);
