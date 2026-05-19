@@ -1617,7 +1617,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var needCulling = true;
 
                 // In XR multipass, culling results can be shared if the pass has the same culling id
-                if (xrPass.multipassId > 0)
+                if (!xrPass.isFirstCameraPass)
                 {
                     foreach (var req in renderRequests)
                     {

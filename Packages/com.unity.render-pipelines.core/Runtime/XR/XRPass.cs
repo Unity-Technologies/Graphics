@@ -25,7 +25,7 @@ namespace UnityEngine.Experimental.Rendering
         internal bool copyDepth;
         internal bool hasMotionVectorPass;
         internal bool spaceWarpRightHandedNDC;
-        internal bool isLastCameraPass;
+        internal XRLayoutType xrLayoutType;
         internal Vector4 uvScales;
         internal Vector4 uvOffsets;
 
@@ -55,7 +55,7 @@ namespace UnityEngine.Experimental.Rendering
             m_Views = new List<XRView>(2);
             m_OcclusionMesh = new XROcclusionMesh(this);
             m_VisibleMesh = new XRVisibleMesh(this);
-            isLastCameraPass = true;    // default to last camera pass when creating from default constructor
+            xrLayoutType = XRLayoutType.Unknown;
             uvScales = Vector4.one;
             uvOffsets = Vector4.zero;
         }
@@ -137,9 +137,41 @@ namespace UnityEngine.Experimental.Rendering
         public bool isFirstCameraPass => multipassId == 0;
 
         /// <summary>
-        /// If true, is the last pass of a xr camera
+        /// XR rendering mode.
         /// </summary>
-        public bool isLastCameraPass { get; private set; }
+        public XRLayoutType xrLayoutType { get; private set; }
+
+        /// <summary>
+        /// Gets the total number of rendering passes required for the camera this frame,
+        /// inferred from the XR layout type.
+        /// </summary>
+        public int totalCameraPasses
+        {
+            get
+            {
+                switch (xrLayoutType)
+                {
+                    case XRLayoutType.TwoPassStereo:
+                    case XRLayoutType.TwoPassQuadViews:
+                        return 2;
+
+                    // All other supported modes are single-pass
+                    case XRLayoutType.SinglePassStereo:
+                    default:
+                        return 1;
+                }
+            }
+        }
+
+        /// <summary>
+        /// If true, this is the last rendering pass for the current camera.
+        /// </summary>
+        public bool isLastCameraPass => multipassId == totalCameraPasses - 1;
+
+        /// <summary>
+        /// Returns true when this pass renders the inner (foveal) views of a Quad View layout.
+        /// </summary>
+        public bool isQuadViewInnerPass => xrLayoutType == XRLayoutType.TwoPassQuadViews && isLastCameraPass;
 
         /// <summary>
         /// The scale factors used to map the current view's UV coordinates to the
@@ -587,7 +619,7 @@ namespace UnityEngine.Experimental.Rendering
             m_OcclusionMesh.SetMaterial(createInfo.occlusionMeshMaterial);
             occlusionMeshScale = createInfo.occlusionMeshScale;
             foveatedRenderingInfo = createInfo.foveatedRenderingInfo;
-            isLastCameraPass = createInfo.isLastCameraPass;
+            xrLayoutType = createInfo.xrLayoutType;
             uvScales = createInfo.uvScales;
             uvOffsets = createInfo.uvOffsets;
         }

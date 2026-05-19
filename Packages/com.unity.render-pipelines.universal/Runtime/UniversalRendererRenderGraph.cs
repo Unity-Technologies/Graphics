@@ -335,13 +335,11 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData != null && cameraData.historyManager != null)
             {
                 // XR multipass renders the frame twice, avoid updating camera history twice.
-                bool xrMultipassEnabled = false;
-                int multipassId = 0;
+                bool isNewFrame = true;
 #if ENABLE_VR && ENABLE_XR_MODULE
-                xrMultipassEnabled = cameraData.xr.enabled && !cameraData.xr.singlePassEnabled;
-                multipassId = cameraData.xr.multipassId;
+                if (cameraData.xr.enabled)
+                    isNewFrame = cameraData.xr.isFirstCameraPass;
 #endif
-                bool isNewFrame = !xrMultipassEnabled || (multipassId == 0);
 
                 if (isNewFrame)
                 {

@@ -346,7 +346,7 @@ public class OnTilePostProcessPass : ScriptableRenderPass
                 Vector4 vignetteXRCenter;
                 var xrLayout = XRSystem.currentLayout;
 
-                if (xrLayout != null && xrPass.viewCount > 1 && xrPass.multipassId == 1 && xrPass.isLastCameraPass)
+                if (xrPass.isQuadViewInnerPass)
                 {
                     // Second pass (inner views): Reuse the cached peripheral vignette center
                     // This ensures vignette is calculated in the outer UV space after remapping

@@ -148,8 +148,8 @@ namespace UnityEngine.Rendering.Universal
                     passSupportsFoveation &= !Experimental.Rendering.XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster);
                     builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
 
-                    // Apply MultiviewRenderRegionsCompatible flag only to the peripheral view in Quad Views
-                    if (cameraData.xr.multipassId == 0)
+                    // Multiview render regions are incompatible with the inner (foveal) pass in Quad View
+                    if (!cameraData.xr.isQuadViewInnerPass)
                     {
                         builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
                     }
@@ -535,7 +535,7 @@ namespace UnityEngine.Rendering.Universal
                     Vector2 center = vignetteParams2;
                     var xrLayout = XRSystem.currentLayout;
 
-                    if (xrLayout != null && xrPass.viewCount > 1 && xrPass.multipassId == 1 && xrPass.isLastCameraPass)
+                    if (xrPass.isQuadViewInnerPass)
                     {
                         // Second pass (inner views): Reuse the cached peripheral vignette center
                         // This ensures vignette is calculated in the outer UV space after remapping
@@ -580,7 +580,7 @@ namespace UnityEngine.Rendering.Universal
                     // center since the version of the shader that is not single-pass will use the value in _Vignette_Params2
                     center = xrPass.ApplyXRViewCenterOffset(center);
                 }
-                if (xrPass != null && xrPass.singlePassEnabled && xrPass.viewCount > 1 && xrPass.multipassId == 1 && xrPass.isLastCameraPass)
+                if (xrPass != null && xrPass.isQuadViewInnerPass)
                 {
                     // In quad view we need to also apply the aspect ratio correction to the vignette as the UV remapping will cause it to be stretched/squashed if not corrected
                     aspectRatio *= xrPass.uvScales.y / xrPass.uvScales.x;
