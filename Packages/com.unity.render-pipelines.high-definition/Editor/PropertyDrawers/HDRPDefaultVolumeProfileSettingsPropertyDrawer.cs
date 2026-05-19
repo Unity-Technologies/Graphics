@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected override VisualElement CreateAssetFieldUI()
         {
             var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
-            return DrawDefaultVolumeObjectField<HDRenderPipeline, HDRPDefaultVolumeProfileSettings>(defaultVolumeProfileSettings);
+            return DrawDefaultVolumeObjectField<HDRenderPipeline, HDRenderPipelineAsset, HDRPDefaultVolumeProfileSettings>(defaultVolumeProfileSettings);
         }
 
         public class HDRPDefaultVolumeProfileSettingsContextMenu : DefaultVolumeProfileSettingsContextMenu2<HDRPDefaultVolumeProfileSettings, HDRenderPipeline>

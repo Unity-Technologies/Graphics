@@ -279,7 +279,7 @@ namespace UnityEngine.Rendering
                 globalDefaultVolumeProfile = defaultVolumeProfileSettings?.defaultVolumeProfile;
             }
 #endif
-            LoadBaseTypes(GraphicsSettings.currentRenderPipelineAssetType, globalDefaultVolumeProfile);
+            m_BaseComponentTypeArray = GetBaseComponentTypesForPipeline(GraphicsSettings.currentRenderPipelineAssetType, globalDefaultVolumeProfile);
         }
 
         //This is called by test where the basetypes are tuned for the purpose of the test.
@@ -321,7 +321,7 @@ namespace UnityEngine.Rendering
         /// <param name="profile">The VolumeProfile to use as the global default profile.</param>
         public void SetGlobalDefaultProfile(VolumeProfile profile)
         {
-            LoadBaseTypes(GraphicsSettings.currentRenderPipelineAssetType, profile);
+            m_BaseComponentTypeArray = GetBaseComponentTypesForPipeline(GraphicsSettings.currentRenderPipelineAssetType, profile);
             globalDefaultProfile = profile;
             EvaluateVolumeDefaultState();
         }
@@ -430,46 +430,27 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// LoadBaseTypes is responsible for loading the list of VolumeComponent types that will be used to build the default state of the VolumeStack. It uses the provided global default profile to determine which component types are relevant for the current render pipeline.
-        /// This will be called only once at runtime on app boot
+        /// Returns the VolumeComponent types compatible with the given pipeline asset type. Pure lookup — does
+        /// not touch VolumeManager state, safe to call for a pipeline that is not currently active.
+        /// In the editor, scans every VolumeComponent in the project via reflection so newly added types are
+        /// picked up. In a player, uses the components stored in the provided default volume profile.
         /// </summary>
-        /// <param name="rpType">The Pipeline Type used to check if each VolumeComponent is supported.</param>
-        /// <param name="globalDefaultVolumeProfile">The global default volume profile to use to build the base component type array.</param>
-        internal void LoadBaseTypesByDefaultVolume(Type rpType, VolumeProfile globalDefaultVolumeProfile)
+        /// <param name="pipelineAssetType">The Pipeline Asset Type used to check if each VolumeComponent is supported.</param>
+        /// <param name="globalDefaultVolumeProfile">In a player build, the source of components to consider. Ignored in the editor.</param>
+        internal static Type[] GetBaseComponentTypesForPipeline(Type pipelineAssetType, VolumeProfile globalDefaultVolumeProfile = null)
         {
-            if (globalDefaultVolumeProfile == null)
-            {
-                m_BaseComponentTypeArray = Array.Empty<Type>();
-                return;
-            }
-
-            using (ListPool<Type>.Get(out var list))
-            {
-                foreach (var comp in globalDefaultVolumeProfile.components)
-                {
-                    if (comp == null)
-                        continue;
-
-                    var componentType = comp.GetType();
-                    if (!SupportedOnRenderPipelineAttribute.IsTypeSupportedOnRenderPipeline(componentType, rpType))
-                        continue;
-
-                    list.Add(componentType);
-                }
-
-                m_BaseComponentTypeArray = list.ToArray();
-            }
+#if UNITY_EDITOR
+            return GetBaseComponentTypesByReflection(pipelineAssetType);
+#else
+            return GetBaseComponentTypesFromProfile(pipelineAssetType, globalDefaultVolumeProfile);
+#endif
         }
 
 #if UNITY_EDITOR
-        /// <summary>
-        /// This should only be called when we need to load base types without being able to trust default profiles are up to date. This is slow and uses Reflection!
-        /// Will be called only once at runtime and on domain reload / pipeline switch in the editor as we need to keep track of any compatible component in the project
-        /// </summary>
-        /// <param name="pipelineAssetType">The Pipeline Type used to check if each VolumeComponent is supported.</param>
-        internal Type[] LoadBaseTypesByReflection(Type pipelineAssetType)
+        // Editor-only: scan every VolumeComponent type in the project via reflection. Slow, used during
+        // initialization, on domain reload, or whenever we need an authoritative list independent of any profile.
+        static Type[] GetBaseComponentTypesByReflection(Type pipelineAssetType)
         {
-            // Grab all the component types we can find that are compatible with current pipeline
             using (ListPool<Type>.Get(out var list))
             {
                 foreach (var t in CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>())
@@ -485,25 +466,34 @@ namespace UnityEngine.Rendering
 
                     list.Add(t);
                 }
-                m_BaseComponentTypeArray = list.ToArray();
+                return list.ToArray();
             }
-
-            return m_BaseComponentTypeArray;
         }
-#endif
-        /// <summary>
-        /// Helper to choose a type loading depending if we are in Editor and Standalone.
-        /// </summary>
-        /// <param name="pipelineAssetType">The Pipeline Type used to check if each VolumeComponent is supported.</param>
-        /// <param name="globalDefaultVolumeProfile">The global default volume profile to use to build the base component type array.</param>
-        void LoadBaseTypes(Type pipelineAssetType, VolumeProfile globalDefaultVolumeProfile = null)
-        {
-#if UNITY_EDITOR
-            LoadBaseTypesByReflection(pipelineAssetType);
 #else
-            LoadBaseTypesByDefaultVolume(pipelineAssetType, globalDefaultVolumeProfile);
-#endif
+        // Player builds can't use reflection here, so we read the supported types from the components already
+        // present in the global default volume profile shipped with the build.
+        static Type[] GetBaseComponentTypesFromProfile(Type pipelineAssetType, VolumeProfile globalDefaultVolumeProfile)
+        {
+            if (globalDefaultVolumeProfile == null)
+                return Array.Empty<Type>();
+
+            using (ListPool<Type>.Get(out var list))
+            {
+                foreach (var comp in globalDefaultVolumeProfile.components)
+                {
+                    if (comp == null)
+                        continue;
+
+                    var componentType = comp.GetType();
+                    if (!SupportedOnRenderPipelineAttribute.IsTypeSupportedOnRenderPipeline(componentType, pipelineAssetType))
+                        continue;
+
+                    list.Add(componentType);
+                }
+                return list.ToArray();
+            }
         }
+#endif
 
         internal void InitializeVolumeComponents()
         {

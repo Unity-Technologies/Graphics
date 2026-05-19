@@ -64,30 +64,38 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
-        /// Assign the global default profile to VolumeManager. Ensures that defaultVolumeProfile contains
-        /// overrides for every component. If defaultValueSource is provided, it will be used as the source for
-        /// default values instead of default-constructing them.
-        /// If components will be added to the profile, a confirmation dialog is displayed.
+        /// Ensure the given profile contains overrides for every component compatible with the assigned render
+        /// pipeline, then, if <typeparamref name="TRenderPipeline"/> is the active pipeline, push the profile to
+        /// the live <see cref="VolumeManager"/>. The profile asset is updated regardless of whether the pipeline
+        /// is active so the change is picked up on next pipeline initialization.
+        /// If components will be added to the profile, a confirmation dialog is displayed; cancelling leaves the
+        /// asset untouched.
         /// </summary>
         /// <param name="globalDefaultVolumeProfile">VolumeProfile asset assigned in pipeline global settings.</param>
         /// <param name="defaultValueSource">An optional VolumeProfile asset containing default values to use for
         /// any components that are added to <see cref="globalDefaultVolumeProfile"/>.</param>
-        /// <typeparam name="TRenderPipeline">The type of RenderPipeline that this VolumeProfile is used for. If it is
-        /// not the active pipeline, the function does nothing.</typeparam>
+        /// <typeparam name="TRenderPipeline">The type of RenderPipeline that this VolumeProfile is used for. The
+        /// live <see cref="VolumeManager"/> is only updated when this matches the active pipeline.</typeparam>
         /// <returns>Whether the operation was confirmed</returns>
         public static bool UpdateGlobalDefaultVolumeProfileWithConfirmation<TRenderPipeline>(VolumeProfile globalDefaultVolumeProfile, VolumeProfile defaultValueSource = null)
             where TRenderPipeline : RenderPipeline
         {
+            // See UpdateGlobalDefaultVolumeProfile for why the public overload guards on the active pipeline.
             if (RenderPipelineManager.currentPipeline is not TRenderPipeline)
                 return false;
+            return UpdateGlobalDefaultVolumeProfileWithConfirmation<TRenderPipeline>(globalDefaultVolumeProfile, GraphicsSettings.currentRenderPipelineAssetType, defaultValueSource);
+        }
 
-            int numComponentsMissingFromProfile = GetTypesMissingFromDefaultProfile(globalDefaultVolumeProfile).Count;
+        internal static bool UpdateGlobalDefaultVolumeProfileWithConfirmation<TRenderPipeline>(VolumeProfile globalDefaultVolumeProfile, Type pipelineAssetType, VolumeProfile defaultValueSource = null)
+            where TRenderPipeline : RenderPipeline
+        {
+            int numComponentsMissingFromProfile = GetTypesMissingFromDefaultProfile(globalDefaultVolumeProfile, pipelineAssetType).Count;
             if (numComponentsMissingFromProfile == 0 ||
                 EditorUtility.DisplayDialog(
                     "New Default Volume Profile",
                     $"Assigning {globalDefaultVolumeProfile.name} as the Default Volume Profile will add {numComponentsMissingFromProfile} Volume Components to it. Are you sure?", "Yes", "Cancel"))
             {
-                UpdateGlobalDefaultVolumeProfile<TRenderPipeline>(globalDefaultVolumeProfile, defaultValueSource);
+                UpdateGlobalDefaultVolumeProfile<TRenderPipeline>(globalDefaultVolumeProfile, pipelineAssetType, defaultValueSource);
                 return true;
             }
 
@@ -95,27 +103,38 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
-        /// Assign the global default default profile to VolumeManager. Ensures that defaultVolumeProfile contains
-        /// overrides for every component. If defaultValueSource is provided, it will be used as the source for
-        /// default values instead of default-constructing them.
+        /// Ensure the given profile contains overrides for every component compatible with the currently active render
+        /// pipeline, then push the profile to the live <see cref="VolumeManager"/>.
         /// </summary>
         /// <param name="globalDefaultVolumeProfile">VolumeProfile asset assigned in pipeline global settings.</param>
         /// <param name="defaultValueSource">An optional VolumeProfile asset containing default values to use for
         /// any components that are added to <see cref="globalDefaultVolumeProfile"/>.</param>
-        /// <typeparam name="TRenderPipeline">The type of RenderPipeline that this VolumeProfile is used for. If it is
-        /// not the active pipeline, the function does nothing.</typeparam>
+        /// <typeparam name="TRenderPipeline">The type of RenderPipeline that this VolumeProfile is used for. The
+        /// live <see cref="VolumeManager"/> is only updated when this matches the active pipeline.</typeparam>
         public static void UpdateGlobalDefaultVolumeProfile<TRenderPipeline>(VolumeProfile globalDefaultVolumeProfile, VolumeProfile defaultValueSource = null)
             where TRenderPipeline : RenderPipeline
         {
+            // The missing-types check uses GraphicsSettings.currentRenderPipelineAssetType,
+            // so a TRenderPipeline mismatch would write the wrong pipeline's components into the profile. Callers that
+            // need the inactive-pipeline path go through the internal overload with an explicit pipelineAssetType.
             if (RenderPipelineManager.currentPipeline is not TRenderPipeline)
                 return;
+            UpdateGlobalDefaultVolumeProfile<TRenderPipeline>(globalDefaultVolumeProfile, GraphicsSettings.currentRenderPipelineAssetType, defaultValueSource);
+        }
 
+        internal static void UpdateGlobalDefaultVolumeProfile<TRenderPipeline>(VolumeProfile globalDefaultVolumeProfile, Type pipelineAssetType, VolumeProfile defaultValueSource = null)
+            where TRenderPipeline : RenderPipeline
+        {
             Undo.RecordObject(globalDefaultVolumeProfile, $"Ensure {globalDefaultVolumeProfile.name} has all Volume Components");
             foreach (var comp in globalDefaultVolumeProfile.components)
                 Undo.RecordObject(comp, $"Save {comp.name} state");
 
-            EnsureAllOverridesForDefaultProfile(globalDefaultVolumeProfile, defaultValueSource);
-            VolumeManager.instance.SetGlobalDefaultProfile(globalDefaultVolumeProfile);
+            EnsureAllOverridesForDefaultProfile(globalDefaultVolumeProfile, pipelineAssetType, defaultValueSource);
+
+            // Skip when the live pipeline isn't ours — SetGlobalDefaultProfile would corrupt the other pipeline's
+            // VolumeManager state. The serialized assignment is picked up on this pipeline's next initialization.
+            if (RenderPipelineManager.currentPipeline is TRenderPipeline)
+                VolumeManager.instance.SetGlobalDefaultProfile(globalDefaultVolumeProfile);
         }
 
         // Helper extension method: Returns the VolumeComponent of given type from the profile if present, or null
@@ -136,12 +155,10 @@ namespace UnityEditor.Rendering
             return profile.GetVolumeComponentOfType(type) ?? (VolumeComponent) ScriptableObject.CreateInstance(type);
         }
 
-        static List<Type> GetTypesMissingFromDefaultProfile(VolumeProfile profile)
+        static List<Type> GetTypesMissingFromDefaultProfile(VolumeProfile profile, Type pipelineAssetType)
         {
             List<Type> missingTypes = new List<Type>();
-
-            var volumeComponentTypes = VolumeManager.instance.isInitialized ?
-                VolumeManager.instance.baseComponentTypeArray : VolumeManager.instance.LoadBaseTypesByReflection(GraphicsSettings.currentRenderPipelineAssetType);
+            var volumeComponentTypes = VolumeManager.GetBaseComponentTypesForPipeline(pipelineAssetType);
             foreach (var type in volumeComponentTypes)
             {
                 if (profile.components.Find(c => c.GetType() == type) == null)
@@ -162,8 +179,16 @@ namespace UnityEditor.Rendering
         /// <param name="profile">VolumeProfile to use.</param>
         /// <param name="defaultValueSource">An optional VolumeProfile asset containing default values to use for
         /// any components that are added to <see cref="profile"/>.</param>
-        public static void EnsureAllOverridesForDefaultProfile(VolumeProfile profile, VolumeProfile defaultValueSource = null) => TryEnsureAllOverridesForDefaultProfile(profile, defaultValueSource);
+        public static void EnsureAllOverridesForDefaultProfile(VolumeProfile profile, VolumeProfile defaultValueSource = null)
+            => TryEnsureAllOverridesForDefaultProfile(profile, GraphicsSettings.currentRenderPipelineAssetType, defaultValueSource);
+
+        internal static void EnsureAllOverridesForDefaultProfile(VolumeProfile profile, Type pipelineAssetType, VolumeProfile defaultValueSource = null)
+            => TryEnsureAllOverridesForDefaultProfile(profile, pipelineAssetType, defaultValueSource);
+
         internal static bool TryEnsureAllOverridesForDefaultProfile(VolumeProfile profile, VolumeProfile defaultValueSource = null)
+            => TryEnsureAllOverridesForDefaultProfile(profile, GraphicsSettings.currentRenderPipelineAssetType, defaultValueSource);
+
+        internal static bool TryEnsureAllOverridesForDefaultProfile(VolumeProfile profile, Type pipelineAssetType, VolumeProfile defaultValueSource = null)
         {
             // It's possible that the volume profile is assigned to the default asset inside the HDRP package. In
             // this case it cannot be modified. User is expected to use HDRP Wizard "Fix" to create a local profile.
@@ -214,7 +239,7 @@ namespace UnityEditor.Rendering
             }
 
             // Add missing VolumeComponents to profile
-            var missingTypes = GetTypesMissingFromDefaultProfile(profile);
+            var missingTypes = GetTypesMissingFromDefaultProfile(profile, pipelineAssetType);
             foreach (var type in missingTypes)
             {
                 var comp = profile.Add(type, overrides: true);
