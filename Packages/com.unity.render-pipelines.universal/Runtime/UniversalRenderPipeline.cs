@@ -1242,12 +1242,8 @@ namespace UnityEngine.Rendering.Universal
                     baseCameraData.stackAnyPostProcessingEnabled = stackAnyPostProcessingEnabled;
                     baseCameraData.stackLastCameraOutputToHDR = finalOutputHDR;
 
-                    // Render the offscreen overlay UI only in the first base camera.
-                    var rendersOffscreenUI = baseCameraData.rendersOverlayUI && finalOutputHDR && !offscreenUIRenderedInCurrentFrame;
-                    if (rendersOffscreenUI)
-                        offscreenUIRenderedInCurrentFrame = true;
-                    baseCameraData.rendersOffscreenUI = rendersOffscreenUI;
-                    baseCameraData.blitsOffscreenUICover = rendersOffscreenUI && requireOffscreenUICoverPrepass;
+                    // Render the HDR offscreen overlay UI only in the first base camera if it renders overlay UI.
+                    UpdateOffscreenUIRendering(baseCameraData, finalOutputHDR);
 
                     RenderSingleCamera(context, baseCameraData);
                 }
@@ -1298,6 +1294,10 @@ namespace UnityEngine.Rendering.Universal
 
                                 overlayCameraData.stackAnyPostProcessingEnabled = stackAnyPostProcessingEnabled;
                                 overlayCameraData.stackLastCameraOutputToHDR = finalOutputHDR;
+
+                                // Render the HDR offscreen overlay UI from the stack's last camera if earlier base camera did not render overlay UI.
+                                if (isLastOverlayCamera)
+                                    UpdateOffscreenUIRendering(overlayCameraData, finalOutputHDR);
 
                                 xrLayout.ReconfigurePass(overlayCameraData.xr, overlayCamera);
 
@@ -1377,6 +1377,16 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 #endif
+        }
+
+        static void UpdateOffscreenUIRendering(UniversalCameraData cameraData, bool finalOutputHDR)
+        {
+            // The first eligible camera in the frame draws HDR offscreen overlay UI.
+            var rendersOffscreenUI = cameraData.rendersOverlayUI && finalOutputHDR && !offscreenUIRenderedInCurrentFrame;
+            if (rendersOffscreenUI)
+                offscreenUIRenderedInCurrentFrame = true;
+            cameraData.rendersOffscreenUI = rendersOffscreenUI;
+            cameraData.blitsOffscreenUICover = rendersOffscreenUI && requireOffscreenUICoverPrepass;
         }
 
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
