@@ -124,9 +124,15 @@ namespace UnityEditor.Rendering.Universal
                         if(content.text.GetHashCode() == newSelectedContent.text.GetHashCode())
                         {
                             Provider2DSources<T, U>.UpdateSelectionFromIndex(targetSources, j);
+                            // Persist the selection change by updating both the provider selection and m_LightType
+                            targetProperty.boxedValue = targetSources;
+                            Provider2DSources<T, U>.SetSourceType(targetProperty);
                         }
                     }
                 }
+
+                // Force all Inspector windows to repaint so the Light Type dropdown updates
+                InspectorWindow.RepaintAllInspectors();
             }
 
             EditorGUI.EndProperty();
