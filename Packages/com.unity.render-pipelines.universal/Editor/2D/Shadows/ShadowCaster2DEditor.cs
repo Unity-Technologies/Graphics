@@ -60,7 +60,23 @@ namespace UnityEditor.Rendering.Universal
 
 #if USING_2DCOMMON
         [EditorTool("Edit Shadow Caster Shape", typeof(ShadowCaster2D))]
-        class ShadowCaster2DShadowCasterShapeTool : ShadowCaster2DShapeTool { };
+        class ShadowCaster2DShadowCasterShapeTool : ShadowCaster2DShapeTool
+        {
+            public override bool IsAvailable()
+            {
+                if (!base.IsAvailable())
+                    return false;
+
+                foreach (var obj in targets)
+                {
+                    var shadowCaster = obj as ShadowCaster2D;
+                    if (shadowCaster != null && shadowCaster.shadowCastingSource != ShadowCaster2D.ShadowCastingSources.ShapeEditor)
+                        return false;
+                }
+
+                return true;
+            }
+        };
 
 #endif
 
@@ -184,9 +200,20 @@ namespace UnityEditor.Rendering.Universal
                 new Shadow2DSource_ShapeEditor(Styles.shapeEditor, int.MinValue),
             };
 
-            Shadow2DProviderSources.SetAdditionalSources(m_SelectionSources, additionalSources);
+            // Cannot use the serialized property m_SelectionSources here as setting the additional sources is only applied to a single object.
+            for (int i=0;i<targets.Length;i++)
+            {
+                ShadowCaster2D target = targets[i] as ShadowCaster2D;
+                SerializedObject targetObj = new SerializedObject(target);
+                SerializedProperty selectionSources = targetObj.FindProperty("m_SelectionSources");
+                Shadow2DProviderSources.SetAdditionalSources(selectionSources, additionalSources);
+            }
+
+
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_SelectionSources, Styles.castingSourcePrefixLabel);
-            Shadow2DProviderSources.SetSourceType(m_SelectionSources);
+            if(EditorGUI.EndChangeCheck())
+                Shadow2DProviderSources.SetSourceType(m_SelectionSources);
 
             EditorGUILayout.PropertyField(m_CastingOption, Styles.castingOption);
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.sortingLayerPrefixLabel, null);
