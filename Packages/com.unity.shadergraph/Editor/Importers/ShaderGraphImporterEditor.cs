@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
             serializedObject.Update();
             GraphData GetGraphData(AssetImporter importer)
             {
-                var textGraph = File.ReadAllText(importer.assetPath, Encoding.UTF8);
+                var textGraph = FileUtilities.ReadAllTextUTF8(importer.assetPath);
                 var graphObject = CreateInstance<GraphObject>();
                 graphObject.hideFlags = HideFlags.HideAndDontSave;
                 bool isSubGraph;
