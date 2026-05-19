@@ -51,11 +51,19 @@ namespace UnityEditor.Rendering.Universal
 
         private void OnEnable()
         {
-            m_RendererFeatures = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatures));
-            m_RendererFeaturesMap = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatureMap));
+            InitializeIfNeeded();
             var editorObj = new SerializedObject(this);
             m_FalseBool = editorObj.FindProperty(nameof(falseBool));
             UpdateEditorList();
+        }
+
+        void InitializeIfNeeded()
+        {
+            if (m_RendererFeatures == null)
+                m_RendererFeatures = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatures));
+
+            if (m_RendererFeaturesMap == null)
+                m_RendererFeaturesMap = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatureMap));
         }
 
         private void OnDisable()
@@ -261,10 +269,13 @@ namespace UnityEditor.Rendering.Universal
 
         internal void AddComponent(Type type)
         {
+            InitializeIfNeeded();
+
             serializedObject.Update();
 
             ScriptableObject component = CreateInstance(type);
             component.name = $"{type.Name}";
+            component.hideFlags |= HideFlags.HideInHierarchy;
             Undo.RegisterCreatedObjectUndo(component, "Add Renderer Feature");
 
             // Store this new effect as a sub-asset so we can reference it safely afterwards
@@ -297,6 +308,8 @@ namespace UnityEditor.Rendering.Universal
 
         private void RemoveComponent(int id)
         {
+            InitializeIfNeeded();
+
             SerializedProperty property = m_RendererFeatures.GetArrayElementAtIndex(id);
             Object component = property.objectReferenceValue;
             property.objectReferenceValue = null;
@@ -365,8 +378,6 @@ namespace UnityEditor.Rendering.Universal
         private void ForceSave()
         {
             EditorUtility.SetDirty(target);
-            AssetDatabase.SaveAssetIfDirty(target);
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(target));
         }
     }
 
