@@ -1,5 +1,3 @@
-using System;
-using UnityEditor;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal.U2D.Profiler;
 using CommonResourceData = UnityEngine.Rendering.Universal.UniversalResourceData;
@@ -189,11 +187,10 @@ namespace UnityEngine.Rendering.Universal
         {
             Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            Universal2DRenderingData rendering2DData = frameData.Get<Universal2DRenderingData>();
-            var layerBatch = rendering2DData.layerBatches[batchIndex];
+            var layerBatch = frameData.Get<Universal2DRenderingData>().layerBatches[batchIndex];
 
             // Check for lighting in scene/prefab/preview camera 
-            var isLightingActive = rendering2DData.isLightingActive;
+            var isLightingActive = Renderer2D.IsSceneViewOrPreviewLightingActive(cameraData);
 
             if (!layerBatch.lightStats.useLights ||
                 isVolumetric && !layerBatch.lightStats.useVolumetricLights ||

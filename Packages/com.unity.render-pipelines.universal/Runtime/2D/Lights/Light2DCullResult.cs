@@ -41,14 +41,16 @@ namespace UnityEngine.Rendering.Universal
         public List<Light2D> visibleLights => m_VisibleLights;
         private HashSet<ShadowCasterGroup2D> m_VisibleShadows = new HashSet<ShadowCasterGroup2D>();
         public HashSet<ShadowCasterGroup2D> visibleShadows => m_VisibleShadows;
+        bool m_IsSceneLit;
 
 #if UNITY_EDITOR
         bool m_IsGameView;
 #endif
 
+        // Checks if the scene has any lights, even if they are culled
         public bool IsSceneLit()
         {
-            return Light2DManager.lights.Count > 0;
+            return m_IsSceneLit;
         }
 
 #if UNITY_EDITOR
@@ -126,41 +128,48 @@ namespace UnityEngine.Rendering.Universal
 
             Profiler.BeginSample("Cull 2D Lights and Shadow Casters");
             m_VisibleLights.Clear();
-            foreach (var light in Light2DManager.lights)
+            m_IsSceneLit = false;
+
+            if (Light2DManager.TryGetLights(camera.gameObject, out var lights))
             {
-                if ((camera.cullingMask & (1 << light.gameObject.layer)) == 0)
-                    continue;
+                m_IsSceneLit = lights.Count > 0;
+
+                foreach (var light in lights)
+                {
+                    if ((camera.cullingMask & (1 << light.gameObject.layer)) == 0)
+                        continue;
 
 #if UNITY_EDITOR
-                if (!UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(light.gameObject, camera))
-                    continue;
+                    if (!UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(light.gameObject, camera))
+                        continue;
 #endif
 
-                if (light.lightType == Light2D.LightType.Global)
-                {
-                    m_VisibleLights.Add(light);
-                    continue;
-                }
-
-                Profiler.BeginSample("Test Planes");
-                var position = light.boundingSphere.position;
-                var culled = false;
-                for (var i = 0; i < cullingParameters.cullingPlaneCount; ++i)
-                {
-                    var plane = cullingParameters.GetCullingPlane(i);
-                    // most of the time is spent getting world position
-                    var distance = math.dot(position, plane.normal) + plane.distance;
-                    if (distance < -light.boundingSphere.radius)
+                    if (light.lightType == Light2D.LightType.Global)
                     {
-                        culled = true;
-                        break;
+                        m_VisibleLights.Add(light);
+                        continue;
                     }
-                }
-                Profiler.EndSample();
-                if (culled)
-                    continue;
 
-                m_VisibleLights.Add(light);
+                    Profiler.BeginSample("Test Planes");
+                    var position = light.boundingSphere.position;
+                    var culled = false;
+                    for (var i = 0; i < cullingParameters.cullingPlaneCount; ++i)
+                    {
+                        var plane = cullingParameters.GetCullingPlane(i);
+                        // most of the time is spent getting world position
+                        var distance = math.dot(position, plane.normal) + plane.distance;
+                        if (distance < -light.boundingSphere.radius)
+                        {
+                            culled = true;
+                            break;
+                        }
+                    }
+                    Profiler.EndSample();
+                    if (culled)
+                        continue;
+
+                    m_VisibleLights.Add(light);
+                }
             }
 
             // must be sorted here because light order could change
