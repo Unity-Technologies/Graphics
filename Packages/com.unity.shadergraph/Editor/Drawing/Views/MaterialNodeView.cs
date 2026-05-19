@@ -410,7 +410,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var mode = (GenerationMode)action.userData;
 
             string path = String.Format("Temp/GeneratedFromGraph-{0}-{1}-{2}{3}.shader", SanitizeName(name),
-                SanitizeName(node.name), node.objectId, mode == GenerationMode.Preview ? "-Preview" : "");
+                SanitizeName(node.name), node.objectId, mode.IsPreview() ? "-Preview" : "");
             if (GraphUtil.WriteToFile(path, ConvertToShader(mode)))
                 GraphUtil.OpenFile(path);
         }

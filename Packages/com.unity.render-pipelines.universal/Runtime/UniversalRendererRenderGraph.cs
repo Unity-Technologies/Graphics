@@ -1421,6 +1421,9 @@ namespace UnityEngine.Rendering.Universal
                 if (isTargetBackbuffer)
                 {
                     target = backbuffer;
+
+                    // Switch target to backbuffer for post processing pass
+                    resourceData.SwitchActiveTexturesToBackbuffer();
                 }
                 else
                 {
@@ -1475,11 +1478,6 @@ namespace UnityEngine.Rendering.Universal
                 // Handle any after-post rendering debugger overlays
                 if (cameraData.resolveFinalTarget)
                     SetupAfterPostRenderGraphFinalPassDebug(renderGraph, frameData);
-
-                if (isTargetBackbuffer)
-                {
-                    resourceData.SwitchActiveTexturesToBackbuffer();
-                }
             }
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingPostProcessing);
@@ -2014,7 +2012,12 @@ namespace UnityEngine.Rendering.Universal
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             DrawScreenSpaceUIPass.ConfigureOffscreenUITextureDesc(ref descriptor);
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_OffscreenUIColorHandle, descriptor, name: "_OverlayUITexture");
-            resourceData.overlayUITexture = renderGraph.ImportTexture(m_OffscreenUIColorHandle);
+            // Clear the texture to avoid stale data from previous frames
+            ImportResourceParams importParams = new ImportResourceParams();
+            importParams.clearOnFirstUse = true;
+            importParams.clearColor = Color.clear;
+            importParams.discardOnLastUse = true;
+            resourceData.overlayUITexture = renderGraph.ImportTexture(m_OffscreenUIColorHandle, importParams);
         }
 
         void DepthNormalPrepassRender(RenderGraph renderGraph, RenderPassInputSummary renderPassInputs, in TextureHandle depthTarget, uint batchLayerMask, bool setGlobalDepth, bool setGlobalTextures, bool partialPass)

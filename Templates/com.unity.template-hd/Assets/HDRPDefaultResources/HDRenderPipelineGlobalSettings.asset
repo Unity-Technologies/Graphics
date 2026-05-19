@@ -52,8 +52,6 @@ MonoBehaviour:
   lensAttenuationMode: 0
   colorGradingSpace: 0
   m_ObsoleteDiffusionProfileSettingsList:
-  - {fileID: 11400000, guid: 78322c7f82657514ebe48203160e3f39, type: 2}
-  - {fileID: 11400000, guid: 26bdddf49760c61438938733f07fa2a2, type: 2}
   - {fileID: 11400000, guid: 5a9a2dc462c7bde4f86d0615a19c2c72, type: 2}
   - {fileID: 11400000, guid: 2b7005ba3a4d8474b8cdc34141ad766e, type: 2}
   specularFade: 0
@@ -192,11 +190,8 @@ MonoBehaviour:
       - rid: 5053671556450091036
       - rid: 5053671556450091037
       - rid: 5053671556450091038
-      - rid: 5053671556450091039
       - rid: 5053671556450091040
-      - rid: 5053671556450091041
       - rid: 5053671556450091042
-      - rid: 4677160270076837892
     m_RuntimeSettings:
       m_List: []
   renderingLayerNames:
@@ -247,19 +242,6 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: 4677160270076837892
-      type: {class: RayTracingRenderPipelineResources, ns: UnityEngine.Rendering.UnifiedRayTracing, asm: Unity.UnifiedRayTracing.Runtime}
-      data:
-        m_Version: 1
-        m_GeometryPoolKernels: {fileID: 7200000, guid: 98e3d58cae7210c4786f67f504c9e899, type: 3}
-        m_CopyBuffer: {fileID: 7200000, guid: 1b95b5dcf48d1914c9e1e7405c7660e3, type: 3}
-        m_CopyPositions: {fileID: 7200000, guid: 1ad53a96b58d3c3488dde4f14db1aaeb, type: 3}
-        m_BitHistogram: {fileID: 7200000, guid: 8670f7ce4b60cef43bed36148aa1b0a2, type: 3}
-        m_BlockReducePart: {fileID: 7200000, guid: 4e034cc8ea2635c4e9f063e5ddc7ea7a, type: 3}
-        m_BlockScan: {fileID: 7200000, guid: 4d6d5de35fa45ef4a92119397a045cc9, type: 3}
-        m_BuildHlbvh: {fileID: 7200000, guid: 2d70cd6be91bd7843a39a54b51c15b13, type: 3}
-        m_RestructureBvh: {fileID: 7200000, guid: 56641cb88dcb31a4398a4997ef7a7a8c, type: 3}
-        m_Scatter: {fileID: 7200000, guid: a2eaeefdac4637a44b734e85b7be9186, type: 3}
     - rid: 5053671556450091008
       type: {class: HDRPRayTracingResources, ns: UnityEngine.Rendering.HighDefinition, asm: Unity.RenderPipelines.HighDefinition.Runtime}
       data:
@@ -849,11 +831,6 @@ MonoBehaviour:
       data:
         m_Version: 1
         m_ProbeVolumeDisableStreamingAssets: 0
-    - rid: 5053671556450091039
-      type: {class: LightmapSamplingSettings, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
-      data:
-        m_Version: 1
-        m_UseBicubicLightmapSampling: 0
     - rid: 5053671556450091040
       type: {class: ShaderStrippingSetting, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
       data:
@@ -861,33 +838,6 @@ MonoBehaviour:
         m_ExportShaderVariants: 1
         m_ShaderVariantLogLevel: 0
         m_StripRuntimeDebugShaders: 1
-    - rid: 5053671556450091041
-      type: {class: VrsRenderPipelineRuntimeResources, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
-      data:
-        m_TextureComputeShader: {fileID: 7200000, guid: cacb30de6c40c7444bbc78cb0a81fd2a, type: 3}
-        m_VisualizationShader: {fileID: 4800000, guid: 620b55b8040a88d468e94abe55bed5ba, type: 3}
-        m_VisualizationLookupTable:
-          m_Data:
-          - {r: 1, g: 0, b: 0, a: 1}
-          - {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-          - {r: 1, g: 1, b: 1, a: 1}
-          - {r: 0, g: 1, b: 0, a: 1}
-          - {r: 0.75, g: 0.75, b: 0, a: 1}
-          - {r: 0, g: 0.75, b: 0.55, a: 1}
-          - {r: 0.5, g: 0, b: 0.5, a: 1}
-          - {r: 0.5, g: 0.5, b: 0.5, a: 1}
-          - {r: 0, g: 0, b: 1, a: 1}
-        m_ConversionLookupTable:
-          m_Data:
-          - {r: 1, g: 0, b: 0, a: 1}
-          - {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-          - {r: 1, g: 1, b: 1, a: 1}
-          - {r: 0, g: 1, b: 0, a: 1}
-          - {r: 0.75, g: 0.75, b: 0, a: 1}
-          - {r: 0, g: 0.75, b: 0.55, a: 1}
-          - {r: 0.5, g: 0, b: 0.5, a: 1}
-          - {r: 0.5, g: 0.5, b: 0.5, a: 1}
-          - {r: 0, g: 0, b: 1, a: 1}
     - rid: 5053671556450091042
       type: {class: RenderGraphUtilsResources, ns: UnityEngine.Rendering.RenderGraphModule.Util, asm: Unity.RenderPipelines.Core.Runtime}
       data:

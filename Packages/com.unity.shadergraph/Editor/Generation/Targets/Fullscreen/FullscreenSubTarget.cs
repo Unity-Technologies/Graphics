@@ -543,7 +543,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 
         public void CollectRenderStateShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-            if (generationMode != GenerationMode.Preview && fullscreenData.allowMaterialOverride)
+            if (!generationMode.IsPreview() && fullscreenData.allowMaterialOverride)
             {
                 // When blend mode is disabled, we can't override
                 if (fullscreenData.blendMode != FullscreenBlendMode.Disabled)

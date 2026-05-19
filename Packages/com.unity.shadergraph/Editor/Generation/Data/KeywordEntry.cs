@@ -10,6 +10,9 @@ namespace UnityEditor.ShaderGraph
         public string displayName;
         public string referenceName;
 
+        // Is this entry the "none" keyword (i.e. "_")
+        public bool IsNoneKeyword => string.IsNullOrEmpty(referenceName);
+
         // In this case, we will handle the actual IDs later
         public KeywordEntry(string displayName, string referenceName)
         {
