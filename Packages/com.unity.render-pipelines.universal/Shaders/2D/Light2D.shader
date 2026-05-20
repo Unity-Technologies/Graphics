@@ -26,10 +26,12 @@ Shader "Hidden/Light2D"
             #pragma multi_compile_local USE_VOLUMETRIC __
             #pragma multi_compile_local USE_POINT_LIGHT_COOKIES __
             #pragma multi_compile_local LIGHT_QUALITY_FAST __
+            #pragma multi_compile_fragment _LIGHT_LAYERS __
 
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/ShapeLightShared.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
 
             struct Attributes
             {
@@ -59,6 +61,8 @@ Shader "Hidden/Light2D"
             TEXTURE2D(_LightLookup);
             SAMPLER(sampler_LightLookup);
             half4 _LightLookup_TexelSize;
+
+            TYPED_TEXTURE2D_X(uint, _CameraRenderingLayersTexture);
 
 #if USE_POINT_LIGHT_COOKIES
             TEXTURE2D(_PointLightCookieTex);
@@ -132,7 +136,6 @@ Shader "Hidden/Light2D"
 
             Varyings vert(Attributes attributes)
             {
-
                 PerLight2D light;
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT2D_DATA
                 light = GetPerLight2D(attributes.color);
@@ -249,6 +252,14 @@ Shader "Hidden/Light2D"
 
             FragmentOutput frag(Varyings i)
             {
+#if _LIGHT_LAYERS && !USE_VOLUMETRIC
+                uint2 pixelCoords = i.positionCS.xy;
+                uint lightLayers = _L2D_LIGHT_RENDERING_LAYER;
+    
+                uint meshRenderingLayers = LOAD_TEXTURE2D_X(_CameraRenderingLayersTexture, pixelCoords);
+                if (!IsMatchingLightLayer(lightLayers, meshRenderingLayers))
+                    discard;
+#endif
 
                 PerLight2D light;
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT2D_DATA
@@ -257,24 +268,18 @@ Shader "Hidden/Light2D"
 
                 switch (_L2D_LIGHT_TYPE)
                 {
-                    case 0:
-                    case 1:
-                    case 2:
-                    case 5:
-                    {
-                        FragmentOutput output = frag_shape(i, light);
-                        return output;
-                    }
-                    break;
                     case 3:
                     {
                         FragmentOutput output = frag_point(i, light);
                         return output;
                     }
+                    break;
+                    default:
+                    {
+                        FragmentOutput output = frag_shape(i, light);
+                        return output;
+                    }
                 }
-
-                half4 color = i.color;
-                return ToFragmentOutput(color);
             }
             ENDHLSL
         }

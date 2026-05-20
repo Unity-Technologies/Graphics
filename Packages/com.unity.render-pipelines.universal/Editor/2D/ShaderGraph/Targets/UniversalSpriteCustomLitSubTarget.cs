@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 gui = typeof(VFXGenericShaderGraphMaterialGUI);
 #endif
             context.AddCustomEditorForRenderPipeline(gui.FullName, universalRPType);
-            context.AddSubShader(PostProcessSubShader(SubShaders.SpriteLit(target)));
+            context.AddSubShader(PostProcessSubShader(SubShaders.SpriteCustomLit(target)));
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region SubShader
         static class SubShaders
         {
-            public static SubShaderDescriptor SpriteLit(UniversalTarget target)
+            public static SubShaderDescriptor SpriteCustomLit(UniversalTarget target)
             {
                 SubShaderDescriptor result = new SubShaderDescriptor()
                 {
@@ -74,6 +74,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     {
                         { SpriteCustomLitPasses.CustomLit(target) },
                         { SpriteCustomLitPasses.Normal(target) },
+                        { SpriteCustomLitPasses.RenderingLayerMask(target) },
                         // Currently neither of these passes (selection/picking) can be last for the game view for
                         // UI shaders to render correctly. Verify [1352225] before changing this order.
                         { CorePasses._2DSceneSelection(target) },
@@ -155,7 +156,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
-
                     renderStates = target.sort3DAs2DCompatible ? Universal2DSubTargetDescriptors.RenderStateCollections.Sort3DAs2DCompatible : CoreRenderStates.Default,
                     pragmas = CorePragmas._2DDefault,
                     defines = new DefineCollection(),
@@ -169,6 +169,51 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 if (target.disableTint)
                     result.defines.Add(Canvas.ShaderGraph.CanvasSubTarget<Target>.CanvasKeywords.DisableTint, 1);
+
+                SpriteSubTargetUtility.AddAlphaClipControlToPass(ref result, target);
+
+                return result;
+            }
+
+            public static PassDescriptor RenderingLayerMask(UniversalTarget target)
+            {
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "Rendering Layer Mask",
+                    referenceName = "SHADERPASS_2D",
+                    lightMode = "RenderingLayerMask",
+                    useInPreview = true,
+
+                    // Template
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
+                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = SpriteLitBlockMasks.FragmentLit,
+
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = SpriteLitRequiredFields.Lit,
+                    fieldDependencies = CoreFieldDependencies.Default,
+
+                    // Conditional State
+                    renderStates = Universal2DSubTargetDescriptors.RenderStateCollections.RenderingLayerMask,
+                    pragmas = CorePragmas._2DDefault,
+                    defines = new DefineCollection(),
+                    keywords = SpriteCustomLitKeywords.Lit,
+                    includes = SpriteCustomLitIncludes.RenderingLayerMask,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+
+                if (target.disableTint)
+                    result.defines.Add(Canvas.ShaderGraph.CanvasSubTarget<Target>.CanvasKeywords.DisableTint, 1);
+
+                if (target.sort3DAs2DCompatible)
+                    result.defines.Add(Universal2DSubTargetDescriptors.Keywords.Sort3DAs2DCompatible, 1);
 
                 SpriteSubTargetUtility.AddAlphaClipControlToPass(ref result, target);
 
@@ -306,6 +351,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             const string k2DNormal = "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl";
             const string kSpriteNormalPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/SpriteNormalPass.hlsl";
             const string kSpriteForwardPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/SpriteForwardPass.hlsl";
+            const string kRenderingLayerMaskPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/RenderingLayerMaskPass.hlsl";
 
             public static IncludeCollection Unlit = new IncludeCollection
             {
@@ -331,6 +377,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
                 { kSpriteNormalPass, IncludeLocation.Postgraph },
+            };
+
+            public static IncludeCollection RenderingLayerMask = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+                { kSpriteCore2D, IncludeLocation.Pregraph },
+
+                // Post-graph
+                { CoreIncludes.CorePostgraph },
+                { kRenderingLayerMaskPass, IncludeLocation.Postgraph },
             };
 
             public static IncludeCollection Forward = new IncludeCollection

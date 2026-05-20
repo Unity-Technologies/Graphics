@@ -176,6 +176,8 @@ namespace UnityEngine.Rendering.Universal
         [Range(0, 1)]
         [SerializeField] float m_ShadowVolumeIntensity = 0.75f;
 
+        [SerializeField] RenderingLayerMask m_RenderingLayersMask = RenderingLayerMask.defaultRenderingLayerMask;
+
         Mesh m_Mesh;
 
         [NonSerialized]
@@ -376,6 +378,18 @@ namespace UnityEngine.Rendering.Universal
                         layers.Add(layerID);
                 }
                 m_ApplyToSortingLayers = layers.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the rendering layer mask for the light.
+        /// </summary>
+        public RenderingLayerMask renderingLayerMask
+        {
+            get { return m_RenderingLayersMask; }
+            set
+            {
+                m_RenderingLayersMask = value;
             }
         }
 

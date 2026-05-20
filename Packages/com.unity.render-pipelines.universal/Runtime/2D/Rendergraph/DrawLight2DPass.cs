@@ -65,6 +65,10 @@ namespace UnityEngine.Rendering.Universal
             if (!passData.isVolumetric)
                 RendererLighting.EnableBlendStyle(cmd, indicesIndex, true);
 
+            // Enable Rendering Layers
+            if (passData.useRenderingLayers)
+                cmd.EnableKeyword(ShaderGlobalKeywords.LightLayers);
+
             var lights = passData.layerBatch.lights;
 
             for (int j = 0; j < lights.Count; ++j)
@@ -132,6 +136,11 @@ namespace UnityEngine.Rendering.Universal
 #endif
             }
             RendererLighting.EnableBlendStyle(cmd, indicesIndex, false);
+
+            // Disable Rendering Layers
+            if (passData.useRenderingLayers)
+                cmd.DisableKeyword(ShaderGlobalKeywords.LightLayers);
+
             cmd.EndSample(blendOpName);
         }
 
@@ -145,6 +154,8 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle[] shadowTextures;
 
             internal int lightTextureIndex;
+            internal bool useRenderingLayers;
+            internal RenderingLayerUtils.MaskSize maskSize;
         }
 
         void InitializeRenderPass(IRasterRenderGraphBuilder builder, ContextContainer frameData, PassData passData, int batchIndex, bool isVolumetric = false)
@@ -175,6 +186,11 @@ namespace UnityEngine.Rendering.Universal
                     builder.UseTexture(light.m_CookieSpriteTextureHandle);
             }
 
+            if (rendererData.useRenderingLayers)
+                builder.UseTexture(universal2DResourceData.renderingLayersTexture);
+
+            passData.useRenderingLayers = rendererData.useRenderingLayers;
+            passData.maskSize = rendererData.renderingLayersMaskSize;
             passData.layerBatch = layerBatch;
             passData.rendererData = rendererData;
             passData.isVolumetric = isVolumetric;
@@ -217,6 +233,8 @@ namespace UnityEngine.Rendering.Universal
 
                         builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                         {
+                            RenderingLayerUtils.SetupProperties(context.cmd, data.maskSize);
+
                             Execute(context.cmd, data, data.layerBatch, data.lightTextureIndex);
                         });
                     }
@@ -240,6 +258,8 @@ namespace UnityEngine.Rendering.Universal
 
                     builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                     {
+                        RenderingLayerUtils.SetupProperties(context.cmd, data.maskSize);
+
                         for (var i = 0; i < data.layerBatch.activeBlendStylesIndices.Length; ++i)
                             Execute(context.cmd, data, data.layerBatch, i);
                     });

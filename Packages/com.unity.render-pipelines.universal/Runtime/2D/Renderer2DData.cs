@@ -84,6 +84,8 @@ namespace UnityEngine.Rendering.Universal
         internal int cameraSortingLayerTextureBound => m_CameraSortingLayersTextureBound;
         internal Downsampling cameraSortingLayerDownsamplingMethod => m_CameraSortingLayerDownsamplingMethod;
         internal LayerMask layerMask => m_LayerMask;
+        internal bool useRenderingLayers { get { return UniversalRenderPipeline.asset.useRenderingLayers; } }
+        internal RenderingLayerUtils.MaskSize renderingLayersMaskSize { get; set; }
 
         /// <summary>
         /// Creates the instance of the Renderer2D.

@@ -60,6 +60,7 @@ namespace UnityEngine.Rendering.Universal
         Material m_SamplingMaterial;
 
         // 2D specific render passes
+        CameraRenderingLayerMaskPass m_RenderingLayerMaskPass = new CameraRenderingLayerMaskPass();
         DrawNormal2DPass m_NormalPass = new DrawNormal2DPass();
         DrawLight2DPass m_LightPass = new DrawLight2DPass();
         DrawShadow2DPass m_ShadowPass = new DrawShadow2DPass();
@@ -496,8 +497,9 @@ namespace UnityEngine.Rendering.Universal
 
             CreateShadowTextures(renderGraph, width, height);
 
-            if (m_Renderer2DData.useCameraSortingLayerTexture)
-                CreateCameraSortingLayerTexture(renderGraph, cameraTargetDescriptor, width, height);
+            CreateCameraSortingLayerTexture(renderGraph, cameraTargetDescriptor, width, height);
+
+            CreateRenderingLayersTexture(renderGraph, width, height);
 
             // Create the attachments
             if (cameraData.renderType == CameraRenderType.Base) // require intermediate textures
@@ -708,14 +710,34 @@ namespace UnityEngine.Rendering.Universal
 
         void CreateCameraSortingLayerTexture(RenderGraph renderGraph, RenderTextureDescriptor cameraDesc, int width, int height)
         {
-            Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
+            if (m_Renderer2DData.useCameraSortingLayerTexture)
+            {
+                Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
 
-            var desc = new RenderTextureDescriptor(width, height);
-            desc.graphicsFormat = cameraDesc.graphicsFormat;
+                var desc = new RenderTextureDescriptor(width, height);
+                desc.graphicsFormat = cameraDesc.graphicsFormat;
 
-            CopyCameraSortingLayerPass.ConfigureDescriptor(m_Renderer2DData.cameraSortingLayerDownsamplingMethod, ref desc, out var filterMode);
-            RenderingUtils.ReAllocateHandleIfNeeded(ref m_CameraSortingLayerHandle, desc, filterMode, TextureWrapMode.Clamp, name: CopyCameraSortingLayerPass.k_CameraSortingLayerTexture);
-            resourceData.cameraSortingLayerTexture = renderGraph.ImportTexture(m_CameraSortingLayerHandle);
+                CopyCameraSortingLayerPass.ConfigureDescriptor(m_Renderer2DData.cameraSortingLayerDownsamplingMethod, ref desc, out var filterMode);
+                RenderingUtils.ReAllocateHandleIfNeeded(ref m_CameraSortingLayerHandle, desc, filterMode, TextureWrapMode.Clamp, name: CopyCameraSortingLayerPass.k_CameraSortingLayerTexture);
+                resourceData.cameraSortingLayerTexture = renderGraph.ImportTexture(m_CameraSortingLayerHandle);
+            }
+        }
+
+        void CreateRenderingLayersTexture(RenderGraph renderGraph, int width, int height)
+        {
+            if (m_Renderer2DData.useRenderingLayers)
+            {
+                var resourceData = frameData.Get<Universal2DResourceData>();
+
+                int count = RenderingLayerMask.GetRenderingLayerCount();
+                m_Renderer2DData.renderingLayersMaskSize = RenderingLayerUtils.GetMaskSize(count);
+
+                var desc = new RenderTextureDescriptor(width, height);
+                desc.graphicsFormat = RenderingLayerUtils.GetFormat(m_Renderer2DData.renderingLayersMaskSize);
+                desc.autoGenerateMips = false;
+
+                resourceData.renderingLayersTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, CameraRenderingLayerMaskPass.k_RenderingLayersTextureName, true);
+            }
         }
 
         bool RequiresDepthCopyPass()
@@ -906,6 +928,9 @@ namespace UnityEngine.Rendering.Universal
             GlobalPropertiesPass.Setup(renderGraph, frameData, useLights);
 
             // Main render passes
+
+            // Rendering Layer Mask Prepass
+            m_RenderingLayerMaskPass.Render(renderGraph, frameData);
 
             // Normal Pass
             for (var i = 0; i < batchCount; i++)

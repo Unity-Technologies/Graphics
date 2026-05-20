@@ -69,6 +69,7 @@ namespace UnityEngine.Rendering.Universal
         private static readonly int k_L2DVolumeOpacity = Shader.PropertyToID("L2DVolumeOpacity");
         private static readonly int k_L2DShadowIntensity = Shader.PropertyToID("L2DShadowIntensity");
         private static readonly int k_L2DLightType = Shader.PropertyToID("L2DLightType");
+        private static readonly int k_L2DLightRenderingLayer = Shader.PropertyToID("L2DLightRenderingLayer");
 
         // Light Batcher.
         internal static LightBatch lightBatch = new LightBatch();
@@ -221,6 +222,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalColor(k_L2DColor, color);
                 cmd.SetGlobalFloat(k_L2DVolumeOpacity, volumeIntensity);
                 cmd.SetGlobalInt(k_L2DLightType, (int)light.lightType);
+                cmd.SetGlobalInt(k_L2DLightRenderingLayer, (int)light.renderingLayerMask.value);
                 cmd.SetGlobalFloat(k_L2DShadowIntensity, hasShadows ? (isVolumetric ? (1 - light.shadowVolumeIntensity) : (1 - light.shadowIntensity)) : 1);
             }
 
