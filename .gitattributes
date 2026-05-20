@@ -235,6 +235,12 @@ Runtime/Resources/Assets/DefaultResourcesExtra/Nature/SpeedTree9.shader filter=l
 **/HDRP_RuntimeTests/Assets/Scenes/002-HDMaterials/cloud2.asset filter=lfs diff=lfs-text merge=lfs-text -text
 **/HDRP_RuntimeTests/Assets/Scenes/002-HDMaterials/perlin.asset filter=lfs diff=lfs-text merge=lfs-text -text
 
+############################
+# OVERRIDES
+############################
+
+# These patterns override settings for specific files.
+
 # YamlMerge test data files are YAML text fixtures used for merge testing.
 # They must not be tracked by LFS — the tests compare merge output byte-for-byte
 # against expected files, and LFS round-tripping can alter whitespace/formatting.
