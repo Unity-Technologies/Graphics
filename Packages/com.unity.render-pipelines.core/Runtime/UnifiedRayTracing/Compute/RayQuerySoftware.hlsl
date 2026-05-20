@@ -313,35 +313,44 @@ struct RayQuery
                 int nodePrimCount = GET_LEAF_NODE_PRIM_COUNT(currentNodeIndex);
                 uint triangleCullMode = (currentInstance.flags & kCullModeMask);
                 bool nonOpaqueInstance = (currentInstance.flags & kNonOpaqueInstanceBit);
-                bool proceduralInstance = (currentInstance.flags & kProceduralInstanceBit);
 
-                while (currentLeafPrimIndex < nodePrimCount)
+                #ifdef UNIFIED_RT_INTERSECTION_FUNC
+                bool proceduralInstance = (currentInstance.flags & kProceduralInstanceBit);
+                if (proceduralInstance)
                 {
-                    uint4 leafNode = accelStruct.bottom_bvh_leaves[currentInstance.bvhLeavesOffset + (firstPrim + currentLeafPrimIndex)];
-                    if (proceduralInstance)
+                    if (currentLeafPrimIndex < nodePrimCount)
                     {
+                        uint4 leafNode = accelStruct.bottom_bvh_leaves[currentInstance.bvhLeavesOffset + (firstPrim + currentLeafPrimIndex)];
                         candidateHit.isFrontFace_isProc_primitiveIndex = kHiProceduralPrimitiveBit | leafNode.w;
                         return true;
                     }
-
-                    if (IntersectLeafTriangle(
-                        accelStruct.vertexBuffer, currentInstance.vertexOffset, leafNode, triangleCullMode,
-                        rayDirection, rayOrigin, tMin, tMax,
-                        candidateHit))
+                }
+                else
+                #endif
+                {
+                    while (currentLeafPrimIndex < nodePrimCount)
                     {
-                        if (nonOpaqueInstance && transparencyEnabled)
-                            return true;
+                        uint4 leafNode = accelStruct.bottom_bvh_leaves[currentInstance.bvhLeavesOffset + (firstPrim + currentLeafPrimIndex)];
 
-                        _CommitCandidateHit();
-
-                        if (rayFlags & kRayFlagAcceptFirstHitAndEndSearch)
+                        if (IntersectLeafTriangle(
+                            accelStruct.vertexBuffer, currentInstance.vertexOffset, leafNode, triangleCullMode,
+                            rayDirection, rayOrigin, tMin, tMax,
+                            candidateHit))
                         {
-                            Abort();
-                            return false;
-                        }
-                    }
+                            if (nonOpaqueInstance && transparencyEnabled)
+                                return true;
 
-                    currentLeafPrimIndex++;
+                            _CommitCandidateHit();
+
+                            if (rayFlags & kRayFlagAcceptFirstHitAndEndSearch)
+                            {
+                                Abort();
+                                return false;
+                            }
+                        }
+
+                        currentLeafPrimIndex++;
+                    }
                 }
 
                 currentLeafPrimIndex = 0;
