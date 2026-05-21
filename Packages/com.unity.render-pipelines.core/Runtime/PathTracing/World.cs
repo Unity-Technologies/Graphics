@@ -405,6 +405,11 @@ namespace UnityEngine.PathTracing.Core
             return envTex;
         }
 
+        public bool HasTerrains()
+        {
+            return _rayTracingAccelerationStructure.TerrainCount > 0;
+        }
+
         public void BindLightAccelerationStructure(CommandBuffer cmd, IRayTracingShader shader)
         {
             // As we don't use shader variants, we need to bind buffers for all types of supported light sampling

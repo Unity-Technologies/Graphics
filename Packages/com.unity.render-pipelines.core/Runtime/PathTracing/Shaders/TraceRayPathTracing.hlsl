@@ -60,9 +60,11 @@ struct ProceduralIntersectionAttribs
 #endif
 #define UNIFIED_RT_ANYHIT_FUNC AnyHitExecute
 #define UNIFIED_RT_CLOSESTHIT_FUNC ClosestHitExecute
+#ifdef TERRAIN_RAY_MARCHING_ENABLED
 #define UNIFIED_RT_INTERSECTION_FUNC IntersectionExecute
-#define UNIFIED_RT_PAYLOAD PathTracingPayload
 #define UNIFIED_RT_ADDITIONAL_INTERSECTION_ATTRIBS ProceduralIntersectionAttribs
+#endif
+#define UNIFIED_RT_PAYLOAD PathTracingPayload
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/TraceRay.hlsl"
 
 UnifiedRT::Hit TraceRayClosestHit(UnifiedRT::DispatchInfo dispatchInfo, UnifiedRT::RayTracingAccelStruct accelStruct, uint instanceMask, UnifiedRT::Ray ray, uint rayFlags)

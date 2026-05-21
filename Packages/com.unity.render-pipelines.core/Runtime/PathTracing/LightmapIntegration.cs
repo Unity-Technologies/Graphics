@@ -146,6 +146,12 @@ namespace UnityEngine.PathTracing.Integration
             Util.SetEmissiveSamplingKeyword(cmd, _directionalAndEnvironmentShader, emissiveSamplingMode);
         }
 
+        public void SetTerrainKeyword(CommandBuffer cmd, bool hasTerrains)
+        {
+            Util.SetTerrainRayMarchingKeyword(cmd, _stochasticLightShader, hasTerrains);
+            Util.SetTerrainRayMarchingKeyword(cmd, _directionalAndEnvironmentShader, hasTerrains);
+        }
+
         public void Prepare(IRayTracingShader stochasticLightShader, IRayTracingShader directionalAndEnvironmentShader, ComputeShader normalizationShader, ComputeShader expansionHelpers, SamplingResources samplingResources, RTHandle emptyExposureTexture)
         {
             _stochasticLightShader = stochasticLightShader;
@@ -326,6 +332,11 @@ namespace UnityEngine.PathTracing.Integration
             Util.SetEmissiveSamplingKeyword(cmd, _accumulationShader, emissiveSamplingMode);
         }
 
+        public void SetTerrainKeyword(CommandBuffer cmd, bool hasTerrains)
+        {
+            Util.SetTerrainRayMarchingKeyword(cmd, _accumulationShader, hasTerrains);
+        }
+
         public void Prepare(IRayTracingShader accumulationShader, ComputeShader normalizationShader, ComputeShader expansionHelpers, SamplingResources samplingResources, RTHandle emptyExposureTexture)
         {
             _accumulationShader = accumulationShader;
@@ -457,6 +468,11 @@ namespace UnityEngine.PathTracing.Integration
         {
             Util.SetLightSamplingKeyword(cmd, _accumulationShader, lightSamplingMode);
             Util.SetEmissiveSamplingKeyword(cmd, _accumulationShader, emissiveSamplingMode);
+        }
+
+        public void SetTerrainKeyword(CommandBuffer cmd, bool hasTerrains)
+        {
+            Util.SetTerrainRayMarchingKeyword(cmd, _accumulationShader, hasTerrains);
         }
 
         public void Prepare(IRayTracingShader accumulationShader, ComputeShader normalizationShader, ComputeShader expansionHelpers, SamplingResources samplingResources, RTHandle emptyExposureTexture)
@@ -593,6 +609,11 @@ namespace UnityEngine.PathTracing.Integration
             _accumulationDispatchBuffer?.Dispose();
         }
 
+        public void SetTerrainKeyword(CommandBuffer cmd, bool hasTerrains)
+        {
+            Util.SetTerrainRayMarchingKeyword(cmd, _accumulationShader, hasTerrains);
+        }
+
         public void Prepare(IRayTracingShader accumulationShader, ComputeShader normalizationShader, ComputeShader expansionHelpers, SamplingResources samplingResources, RTHandle emptyExposureTexture)
         {
             _accumulationShader = accumulationShader;
@@ -710,6 +731,11 @@ namespace UnityEngine.PathTracing.Integration
             _accumulationDispatchBuffer?.Dispose();
         }
 
+        public void SetTerrainKeyword(CommandBuffer cmd, bool hasTerrains)
+        {
+            Util.SetTerrainRayMarchingKeyword(cmd, _accumulationShader, hasTerrains);
+        }
+
         public void Prepare(IRayTracingShader accumulationShader, ComputeShader normalizationShader, ComputeShader expansionHelpers, SamplingResources samplingResources, RTHandle emptyExposureTexture)
         {
             _accumulationShader = accumulationShader;
@@ -823,6 +849,11 @@ namespace UnityEngine.PathTracing.Integration
         public void Dispose()
         {
             _accumulationDispatchBuffer?.Dispose();
+        }
+
+        public void SetTerrainKeyword(CommandBuffer cmd, bool hasTerrains)
+        {
+            Util.SetTerrainRayMarchingKeyword(cmd, _accumulationShader, hasTerrains);
         }
 
         public void Prepare(IRayTracingShader accumulationShader, ComputeShader normalizationShader, ComputeShader expansionHelpers, SamplingResources samplingResources, RTHandle emptyExposureTexture)
@@ -943,6 +974,11 @@ namespace UnityEngine.PathTracing.Integration
 
         public GBufferDebug()
         {
+        }
+
+        public void SetTerrainKeyword(CommandBuffer cmd, bool hasTerrains)
+        {
+            Util.SetTerrainRayMarchingKeyword(cmd, _accumulationShader, hasTerrains);
         }
 
         public void Prepare(IRayTracingShader accumulationShader, ComputeShader expansionHelpers)

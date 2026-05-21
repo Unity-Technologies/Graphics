@@ -9,6 +9,14 @@
 // Include this last so PI doesn't get redefined if it was already defined
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Common.hlsl"
 
+// Terrain procedural ray marching resources
+#ifdef TERRAIN_RAY_MARCHING_ENABLED
+Texture2DArray<float> _TerrainTexture;
+SamplerState sampler_TerrainTexture;
+float _TerrainTextureInvWidth;
+#include "TerrainRayMarching.hlsl"
+#endif
+
 // Force uniform sampling of the skybox for debugging / ground truth generation
 //#define UNIFORM_ENVSAMPLING
 

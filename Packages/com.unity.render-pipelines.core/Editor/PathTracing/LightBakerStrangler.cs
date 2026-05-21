@@ -927,6 +927,17 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             lightmappingContext.IntegratorContext.LightmapDirectBRDFIntegrator.SetupLightSamplingKeywords(cmd, lightmapBakeSettings.DirectEmissiveSamplingMode);
             lightmappingContext.IntegratorContext.LightmapIndirectIntegrator.SetupLightSamplingKeywords(cmd, lightmapBakeSettings.IndirectLightSamplingMode, lightmapBakeSettings.IndirectEmissiveSamplingMode);
 
+            // Setup terrain ray marching keyword
+            bool hasTerrains = world.PathTracingWorld.HasTerrains();
+            lightmappingContext.IntegratorContext.LightmapDirectIntegrator.SetTerrainKeyword(cmd, hasTerrains);
+            lightmappingContext.IntegratorContext.LightmapDirectBRDFIntegrator.SetTerrainKeyword(cmd, hasTerrains);
+            lightmappingContext.IntegratorContext.LightmapIndirectIntegrator.SetTerrainKeyword(cmd, hasTerrains);
+            lightmappingContext.IntegratorContext.LightmapAOIntegrator.SetTerrainKeyword(cmd, hasTerrains);
+            lightmappingContext.IntegratorContext.LightmapValidityIntegrator.SetTerrainKeyword(cmd, hasTerrains);
+            lightmappingContext.IntegratorContext.LightmapShadowMaskIntegrator.SetTerrainKeyword(cmd, hasTerrains);
+            lightmappingContext.IntegratorContext.GBufferDebugShader.SetTerrainKeyword(cmd, hasTerrains);
+            Util.SetTerrainRayMarchingKeyword(cmd, lightmappingContext.IntegratorContext.GBufferShader, hasTerrains);
+
             // Chart identification happens in multithreaded fashion on the CPU. We start it immediately so it can run in tandem with other work.
             bool usesChartIdentification = AnyLightmapRequestHasOutput(lightmapRequestData.requests, LightmapRequestOutputType.ChartIndex) ||
                                            AnyLightmapRequestHasOutput(lightmapRequestData.requests, LightmapRequestOutputType.OverlapPixelIndex);
