@@ -769,13 +769,13 @@ namespace UnityEngine.Rendering
                 m_ReadOperationScratchBuffers.Push(buffer.Reinterpret<byte>(UnsafeUtility.SizeOf<T>()));
         }
 
-        void PruneCellIndexList(List<int> cellIndices, List<int> prunedIndexList)
+        internal void PruneCellIndexList(List<int> cellIndices, List<int> prunedIndexList)
         {
             prunedIndexList.Clear();
             foreach (var cellIndex in cellIndices)
             {
                 // When clearing data only partially (ie: not all scenes are loaded), there can be left over indices here but no cells in the set.
-                if (!cellDataMap.ContainsKey(cellIndex))
+                if (!cellDataMap.ContainsKey(cellIndex) && cellDescs.ContainsKey(cellIndex))
                 {
                     prunedIndexList.Add(cellIndex);
                 }
