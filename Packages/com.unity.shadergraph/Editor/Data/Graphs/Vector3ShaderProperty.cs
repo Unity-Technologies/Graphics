@@ -45,9 +45,9 @@ namespace UnityEditor.ShaderGraph.Internal
             };
         }
 
-        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
+        internal override void ForeachHLSLProperty(GenerationMode mode, Action<HLSLProperty> action)
         {
-            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            HLSLDeclaration decl = ResolveHLSLDeclaration(mode);
             action(new HLSLProperty(HLSLType._float3, referenceName, decl, concretePrecision));
         }
 

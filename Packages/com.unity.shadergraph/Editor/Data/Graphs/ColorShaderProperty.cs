@@ -51,9 +51,9 @@ namespace UnityEditor.ShaderGraph.Internal
             return $"{concreteShaderValueType.ToShaderString(precisionString)} {referenceName}";
         }
 
-        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
+        internal override void ForeachHLSLProperty(GenerationMode mode, Action<HLSLProperty> action)
         {
-            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            HLSLDeclaration decl = ResolveHLSLDeclaration(mode);
             action(new HLSLProperty(HLSLType._float4, referenceName, decl, concretePrecision));
         }
 
@@ -99,7 +99,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override string GetHLSLVariableName(bool isSubgraphProperty, GenerationMode mode)
         {
-            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            HLSLDeclaration decl = ResolveHLSLDeclaration(mode);
             if (decl == HLSLDeclaration.HybridPerInstance)
                 return $"UNITY_ACCESS_HYBRID_INSTANCED_PROP({referenceName}, {concretePrecision.ToShaderString()}4)";
             else

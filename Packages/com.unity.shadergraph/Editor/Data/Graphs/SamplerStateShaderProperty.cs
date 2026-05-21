@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph
 
         internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => false; // disable UI, nothing to choose
 
-        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
+        internal override void ForeachHLSLProperty(GenerationMode mode, Action<HLSLProperty> action)
         {
             action(new HLSLProperty(HLSLType._SamplerState, propertyReferenceName, HLSLDeclaration.Global));
         }

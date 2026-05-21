@@ -56,44 +56,6 @@ namespace UnityEditor.VFX
             return LoadAssetAtPath<Material>(assetPath);
         }
 
-        private static Type GetPropertyType(AbstractShaderProperty property)
-        {
-            switch (property.propertyType)
-            {
-                case PropertyType.Color:
-                    return typeof(Color);
-                case PropertyType.Texture2D:
-                    return typeof(Texture2D);
-                case PropertyType.Texture2DArray:
-                    return typeof(Texture2DArray);
-                case PropertyType.Texture3D:
-                    return typeof(Texture3D);
-                case PropertyType.Cubemap:
-                    return typeof(Cubemap);
-                case PropertyType.Gradient:
-                    return null;
-                case PropertyType.Boolean:
-                    return typeof(bool);
-                case PropertyType.Float:
-                    return typeof(float);
-                case PropertyType.Vector2:
-                    return typeof(Vector2);
-                case PropertyType.Vector3:
-                    return typeof(Vector3);
-                case PropertyType.Vector4:
-                    return typeof(Vector4);
-                case PropertyType.Matrix2:
-                    return null;
-                case PropertyType.Matrix3:
-                    return null;
-                case PropertyType.Matrix4:
-                    return typeof(Matrix4x4);
-                case PropertyType.SamplerState:
-                default:
-                    return null;
-            }
-        }
-
         private static object GetPropertyValue(AbstractShaderProperty property)
         {
             switch (property.propertyType)
@@ -108,7 +70,7 @@ namespace UnityEditor.VFX
                     return ((Texture2DArrayShaderProperty) property).value.textureArray;
                 default:
                 {
-                    var type = GetPropertyType(property);
+                    var type = AbstractShaderProperty.GetVfxType(property.propertyType);
                     PropertyInfo info = property.GetType().GetProperty("value",
                         BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
                     return VFXConverter.ConvertTo(info?.GetValue(property), type);
@@ -162,7 +124,7 @@ namespace UnityEditor.VFX
                     if (IsExcludedFromSlot(shaderProperty))
                         continue;
 
-                    var type = GetPropertyType(shaderProperty);
+                    var type = AbstractShaderProperty.GetVfxType(shaderProperty.propertyType);
                     if (type == null)
                         continue;
 
@@ -258,7 +220,7 @@ namespace UnityEditor.VFX
                 {
                     if (IsExcludedFromSlot(shaderProperty))
                     {
-                        var type = GetPropertyType(shaderProperty);
+                        var type = AbstractShaderProperty.GetVfxType(shaderProperty.propertyType);
                         if (type == null)
                             continue;
 

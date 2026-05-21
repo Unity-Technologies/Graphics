@@ -318,8 +318,20 @@ namespace UnityEditor.ShaderGraph
                 firstArg = false;
                 sb.Append(arg);
             }
-            sb.Append(");");
-            sb.AppendNewLine();
+
+            if (asset.hasPromotedPropertiesInInspector)
+            {
+                sb.AppendNewLine();
+                sb.AppendLine("#ifdef HAVE_VFX_MODIFICATION");
+                sb.AppendLine(", PROP");
+                sb.AppendLine("#endif");
+                sb.AppendLine(");");
+            }
+            else
+            {
+                sb.Append(");");
+                sb.AppendNewLine();
+            }
         }
 
         public void OnEnable()

@@ -1405,25 +1405,16 @@ namespace UnityEditor.ShaderGraph
             return edges;
         }
 
-        public void ForeachHLSLProperty(Action<HLSLProperty> action)
+        public void ForeachHLSLProperty(GenerationMode mode, Action<HLSLProperty> action)
         {
             foreach (var prop in properties)
-                prop.ForeachHLSLProperty(action);
+                prop.ForeachHLSLProperty(mode, action);
         }
 
         public void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             foreach (var prop in properties)
             {
-                // For VFX Shader generation, we must omit exposed properties from the Material CBuffer.
-                // This is because VFX computes properties on the fly in the vertex stage, and packed into interpolator.
-                // this case does not apply to texture2d, which cannot change per element, and are always global
-                if (prop is not Texture2DShaderProperty && generationMode == GenerationMode.VFX && prop.isExposed)
-                {
-                    prop.overrideHLSLDeclaration = true;
-                    prop.hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare;
-                }
-
                 // ugh, this needs to be moved to the gradient property implementation
                 if (prop is GradientShaderProperty gradientProp && generationMode.IsPreview())
                 {

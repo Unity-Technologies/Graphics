@@ -212,7 +212,7 @@ namespace UnityEditor.ShaderGraph
             if (outputNode == null)
             {
                 bool hasDotsProperties = false;
-                m_GraphData.ForeachHLSLProperty(h =>
+                m_GraphData.ForeachHLSLProperty(m_Mode, h =>
                 {
                     if (h.declaration == HLSLDeclaration.HybridPerInstance)
                         hasDotsProperties = true;
@@ -1087,11 +1087,24 @@ namespace UnityEditor.ShaderGraph
                     propertyBuilder.AppendLine($"struct {k_GraphPropertiesStruct}");
                     using (propertyBuilder.BlockSemicolonScope())
                     {
-                        m_GraphData.ForeachHLSLProperty(h =>
+                        HashSet<string> alreadyRegisteredNames = new();
+                        Action<HLSLProperty> appendProperty = h =>
                         {
-                            if (!h.IsObjectType() && h.declaration != HLSLDeclaration.Global)
+                            if (alreadyRegisteredNames.Add(h.name))
                                 h.AppendTo(propertyBuilder);
-                        });
+                        };
+
+                        foreach (var shaderProperty in m_GraphData.properties)
+                        {
+                            if (shaderProperty.IsVfxPerElement(m_Mode))
+                                shaderProperty.ForeachHLSLProperty(m_Mode, appendProperty);
+                        }
+
+                        foreach (var promotedInput in m_GraphData.GetPromotedInputs())
+                        {
+                            if (promotedInput is AbstractShaderProperty shaderProperty && shaderProperty.IsVfxPerElement(m_Mode))
+                                shaderProperty.ForeachHLSLProperty(m_Mode, appendProperty);
+                        }
                     }
                 }
 

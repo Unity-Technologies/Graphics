@@ -24,19 +24,92 @@ namespace UnityEditor.ShaderGraph.Internal
             set { }
         }
 
-        internal bool isPerElementVFX => overrideHLSLDeclaration && hlslDeclarationOverride != HLSLDeclaration.Global;
+        internal bool IsVfxPerElement(GenerationMode mode)
+        {
+            if (mode != GenerationMode.VFX)
+                return false;
+
+            if (overrideHLSLDeclaration)
+            {
+                // Targets pin built-in properties (HDRP's _BlendMode, _DoubleSidedConstants, _RayTracing, ...) with
+                // hidden=true + overrideHLSLDeclaration=true to keep them in the cbuffer. Never per-element.
+                if (hidden)
+                    return false;
+
+                // Only an explicit Global override means "this is not VFX-per-element".
+                // UnityPerMaterial / HybridPerInstance / DoNotDeclare overrides all keep the per-element semantic
+                if (hlslDeclarationOverride == HLSLDeclaration.Global)
+                    return false;
+            }
+
+            if (!IsVfxPerElementCompatible(propertyType))
+                return false;
+
+            return isExposed;
+        }
+
+        internal bool IsVfxPerElementCompatible(PropertyType t)
+        {
+            var type = GetVfxType(t);
+            if (type == null)
+                return false;
+
+            return !typeof(Texture).IsAssignableFrom(type);
+        }
+
+        //This helpers live in com.unity.shadergraph and is actually consumed by com.unity.visualeffectgraph
+        //This function is a single source of truth instead of being duplicated across both packages.
+        internal static Type GetVfxType(PropertyType propertyType)
+        {
+            switch (propertyType)
+            {
+                case PropertyType.Color:
+                    return typeof(Color);
+                case PropertyType.Texture2D:
+                    return typeof(Texture2D);
+                case PropertyType.Texture2DArray:
+                    return typeof(Texture2DArray);
+                case PropertyType.Texture3D:
+                    return typeof(Texture3D);
+                case PropertyType.Cubemap:
+                    return typeof(Cubemap);
+                case PropertyType.Gradient:
+                    return null;
+                case PropertyType.Boolean:
+                    return typeof(bool);
+                case PropertyType.Float:
+                    return typeof(float);
+                case PropertyType.Vector2:
+                    return typeof(Vector2);
+                case PropertyType.Vector3:
+                    return typeof(Vector3);
+                case PropertyType.Vector4:
+                    return typeof(Vector4);
+                case PropertyType.Matrix2:
+                    return null;
+                case PropertyType.Matrix3:
+                    return null;
+                case PropertyType.Matrix4:
+                    return typeof(Matrix4x4);
+                case PropertyType.SamplerState:
+                default:
+                    return null;
+            }
+        }
+
+        // For VFX-per-element properties in case of GenerationMode.VFX, force DoNotDeclare so the cbuffer skips them
+        internal HLSLDeclaration ResolveHLSLDeclaration(GenerationMode mode)
+        {
+            if (IsVfxPerElement(mode))
+                return HLSLDeclaration.DoNotDeclare;
+            return GetDefaultHLSLDeclaration();
+        }
 
         internal virtual string GetHLSLVariableName(bool isSubgraphProperty, GenerationMode mode)
         {
-            if (mode == GenerationMode.VFX)
-            {
-                // Per-element exposed properties are provided by the properties structure filled by VFX.
-                if (isPerElementVFX)
-                    return $"PROP.{referenceName}";
-                // For un-exposed global properties, just read from the cbuffer.
-                else
-                    return referenceName;
-            }
+            // Per-element exposed properties are provided by the properties structure filled by VFX.
+            if (IsVfxPerElement(mode))
+                return $"PROP.{referenceName}";
 
             return referenceName;
         }
@@ -166,7 +239,7 @@ namespace UnityEditor.ShaderGraph.Internal
             builder.AppendLine(propertyBlockString);
         }
 
-        internal abstract void ForeachHLSLProperty(Action<HLSLProperty> action);
+        internal abstract void ForeachHLSLProperty(GenerationMode mode, Action<HLSLProperty> action);
 
         internal virtual string GetPropertyAsArgumentStringForVFX(string precisionString)
         {
