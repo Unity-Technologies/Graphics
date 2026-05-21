@@ -208,6 +208,9 @@ namespace UnityEditor.ShaderGraph
 
         public string GetKeywordPreviewDeclarationString()
         {
+            if (keywordDefinition == KeywordDefinition.Predefined)
+                return string.Empty;
+
             if (this.IsDynamic)
             {
                 switch(keywordType)
