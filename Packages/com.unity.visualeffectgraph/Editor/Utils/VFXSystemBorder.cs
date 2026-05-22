@@ -141,7 +141,8 @@ namespace UnityEditor.VFX.UI
 
         void OnTitleChange(ChangeEvent<string> e)
         {
-            title = m_TitleField.value;
+            title = m_TitleField.text;
+            title = title.Length <= kMaximumSystemNameLength ? title : title.Substring(0, kMaximumSystemNameLength);
             RecomputeBounds();
         }
 

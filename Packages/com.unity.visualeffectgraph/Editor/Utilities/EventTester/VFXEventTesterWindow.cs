@@ -269,6 +269,7 @@ namespace UnityEditor.VFX
                 }
             }
             m_CustomEvent = EditorGUILayout.TextField("Custom Event Name", m_CustomEvent);
+            m_CustomEvent = m_CustomEvent is not { Length: > 256 } ? m_CustomEvent : m_CustomEvent[..256];
             EditorGUI.EndDisabled();
         }
 

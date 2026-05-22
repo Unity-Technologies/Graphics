@@ -337,6 +337,8 @@ namespace UnityEditor.VFX.UI
     }
     class VFXParameterController : VFXController<VFXParameter>, IPropertyRMProvider, IGizmoController, IGizmoable
     {
+        public const int kMaxExposedNameLength = 128;
+
         VFXSubParameterController[] m_SubControllers;
 
         VFXSlot m_Slot;
@@ -383,8 +385,6 @@ namespace UnityEditor.VFX.UI
         {
             m_Slot = isOutput ? model.inputSlots[0] : model.outputSlots[0];
             viewController.RegisterNotification(m_Slot, OnSlotChanged);
-
-            exposedName = MakeNameUnique(viewController, exposedName);
 
             if (VFXGizmoUtility.HasGizmo(model.type))
                 m_Gizmoables = new IGizmoable[] { this };
@@ -452,11 +452,11 @@ namespace UnityEditor.VFX.UI
             { var infos = t.Value.infos; return infos != null && infos.linkedSlots != null && infos.linkedSlots.Any(u => u.inputSlot == slot); }).Value;
         }
 
-        public static string MakeNameUnique(VFXViewController viewController, string candidateName)
+        public static string MakeNameUnique(VFXViewController viewController, string candidateName, int maxLength = 0)
         {
             var allNames = new HashSet<string>(viewController.parameterControllers.Select(t => t.exposedName));
 
-            return MakeNameUnique(candidateName, allNames);
+            return MakeNameUnique(candidateName, allNames, true, maxLength, null);
         }
 
         public IPropertyRMProvider GetMemberController(string memberPath)
@@ -562,21 +562,28 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public static string MakeNameUnique(string name, HashSet<string> allNames, bool allowSpace = true, List<string> rejectedCandidateNames = null)
+        public static string MakeNameUnique(string name, HashSet<string> allNames, bool allowSpace = true, int maxLength = 0, List<string> rejectedCandidateNames = null)
         {
             if (string.IsNullOrEmpty(name))
             {
                 name = "parameter";
             }
-            string candidateName = name.Trim();
+            string candidateName = name.Trim(allowSpace ? ' ' : '_');
             if (candidateName.Length < 1)
             {
                 return null;
             }
+            bool forceSuffix = false;
+            if (maxLength > 0 && candidateName.Length > maxLength)
+            {
+                candidateName = candidateName.Substring(0, maxLength);
+                forceSuffix = true;
+            }
             string candidateMainPart = null;
             int cpt = 0;
-            while (allNames.Contains(candidateName, StringComparer.OrdinalIgnoreCase))
+            while (forceSuffix || allNames.Contains(candidateName, StringComparer.OrdinalIgnoreCase))
             {
+                forceSuffix = false;
                 if (candidateMainPart == null)
                 {
                     int spaceIndex = candidateName.LastIndexOf(allowSpace ? ' ' : '_');
@@ -598,9 +605,17 @@ namespace UnityEditor.VFX.UI
                 }
                 ++cpt;
 
-                candidateName = allowSpace
-                    ? $"{candidateMainPart} {cpt}"
-                    : $"{candidateMainPart}_{cpt}";
+                // Do not exceed the character count limit when appending a suffix
+                var suffix = allowSpace ? $" {cpt}" : $"_{cpt}";
+                if (maxLength > 0)
+                {
+                    var maxMainPartLength = Math.Max(0, (int)maxLength - suffix.Length);
+                    candidateName = $"{candidateMainPart.Substring(0, Math.Min(candidateMainPart.Length, maxMainPartLength))}{suffix}";
+                }
+                else
+                {
+                    candidateName = $"{candidateMainPart}{suffix}";
+                }
                 rejectedCandidateNames?.Add(candidateName);
             }
 
@@ -609,7 +624,7 @@ namespace UnityEditor.VFX.UI
 
         public void CheckNameUnique(HashSet<string> allNames)
         {
-            string candidateName = MakeNameUnique(base.model.exposedName, allNames);
+            string candidateName = MakeNameUnique(base.model.exposedName, allNames, false, kMaxExposedNameLength);
             if (candidateName != base.model.exposedName)
             {
                 model.SetSettingValue("m_ExposedName", candidateName);
@@ -622,13 +637,14 @@ namespace UnityEditor.VFX.UI
 
             set
             {
-                string candidateName = MakeNameUnique(viewController, value);
+                string candidateName = MakeNameUnique(viewController, value, kMaxExposedNameLength);
                 if (candidateName != null && candidateName != model.exposedName)
                 {
                     model.SetSettingValue("m_ExposedName", candidateName);
                 }
             }
         }
+
         public bool exposed
         {
             get { return model.exposed; }

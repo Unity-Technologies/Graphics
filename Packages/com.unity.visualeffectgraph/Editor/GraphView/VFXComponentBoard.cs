@@ -805,6 +805,7 @@ namespace UnityEditor.VFX.UI
         {
             AddToClassList("row");
             m_EventName = this.Query<TextField>("event-name");
+            m_EventName.maxLength = 256;
             m_EventName.isDelayed = true;
             m_EventName.RegisterCallback<ChangeEvent<string>>(OnChangeName);
             m_EventSend = this.Query<Button>("event-send");

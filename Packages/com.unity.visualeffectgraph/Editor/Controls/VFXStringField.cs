@@ -1,6 +1,4 @@
-using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
 
 
 namespace UnityEditor.VFX.UI
@@ -9,21 +7,17 @@ namespace UnityEditor.VFX.UI
     {
         protected TextField m_TextField;
 
-
-        public TextField textfield
-        {
-            get { return m_TextField; }
-        }
+        public TextField textfield => m_TextField;
 
         void CreateTextField()
         {
-            m_TextField = new TextField(-1, false, false, '*');
+            m_TextField = new TextField(128, false, false, '*');
             m_TextField.AddToClassList("textfield");
             m_TextField.RegisterCallback<ChangeEvent<string>>(OnTextChanged);
             m_TextField.value = "";
         }
 
-        public VFXStringField(string label) : base(label)
+        protected VFXStringField(string label) : base(label)
         {
             CreateTextField();
 

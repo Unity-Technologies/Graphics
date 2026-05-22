@@ -1,22 +1,22 @@
 using UnityEngine.UIElements;
 using UnityEditor.Experimental.GraphView;
 
-using PositionType = UnityEngine.UIElements.Position;
-
 namespace UnityEditor.VFX.UI
 {
     interface IBlackBoardElementWithTitle
     {
         string text { get; }
-        void OpenTextEditor();
+        bool OpenTextEditor();
     }
 
     class VFXBlackboardCategory : VFXBlackboardFieldBase
     {
+        public const int kMaxCategoryNameLength = 64;
         private readonly IParameterItem m_Category;
 
         public VFXBlackboardCategory(IParameterItem category) : base($"cat:{category.title}")
         {
+            maxTextLength = kMaxCategoryNameLength;
             m_Category = category;
 
             var tpl = VFXView.LoadUXML("VFXBlackboardCategory");
@@ -25,10 +25,9 @@ namespace UnityEditor.VFX.UI
             if (m_Category.canRename)
             {
                 capabilities |= Capabilities.Deletable;
-                m_TextField = this.Q<TextField>("titleEdit");
-                m_TextField.selectAllOnMouseUp = false;
-                m_TextField.RegisterCallback<KeyDownEvent>(OnTextFieldKeyPressed, TrickleDown.TrickleDown);
-                m_TextField.RegisterCallback<FocusOutEvent>(OnEditTextSucceed, TrickleDown.TrickleDown);
+                var textField = this.Q<TextField>("titleEdit");
+                textField.selectAllOnMouseUp = false;
+                SetTextField(textField);
                 RegisterCallback<MouseDownEvent>(OnMouseDown, TrickleDown.TrickleDown);
             }
             else
@@ -39,12 +38,12 @@ namespace UnityEditor.VFX.UI
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
 
-        protected override void OnEditTextSucceed(FocusOutEvent evt)
+        protected override void OnEditTextSucceed(TextField textField)
         {
-            base.OnEditTextSucceed(evt);
-            if (this.title != m_TextField.value)
+            base.OnEditTextSucceed(textField);
+            if (this.title != textField.value)
             {
-                GetFirstAncestorOfType<VFXBlackboard>()?.SetCategoryName(this, m_TextField.value);
+                GetFirstAncestorOfType<VFXBlackboard>()?.SetCategoryName(this, textField.value);
             }
         }
 

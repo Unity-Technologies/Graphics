@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
                 var container = new VisualElement();
                 container.SetEnabled(!customAttributeDescriptor.isReadOnly);
 
-                this.m_NameField = new TextField("Name", 128, false, false, '*') { value = customAttributeDescriptor.attributeName, isDelayed = true };
+                this.m_NameField = new TextField("Name", VFXParameterController.kMaxExposedNameLength, false, false, '*') { value = customAttributeDescriptor.attributeName, isDelayed = true };
                 this.m_NameField.RegisterCallback<ChangeEvent<string>>(this.OnNameChanged, TrickleDown.TrickleDown);
                 this.m_NameField.bindingPath = "m_AttributeName";
                 container.Add(this.m_NameField);

@@ -2093,6 +2093,25 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(1, rangeParameterController.value);
             Assert.AreEqual(100, rangeParameterController.maxValue);
         }
+
+        [Test]
+        public void MakeNameUnique_WithConflict_AndZeroMaxLength_DoesNotThrow()
+        {
+            // Reproduces calls made by DuplicateBlackBoardCategory (VFXView.cs:3329)
+            // and AddCategory (VFXBlackboard.cs:819) which pass maxLength=0 (default)
+            // while the candidate name conflicts with an existing one.
+            var existingNames = new HashSet<string> { "Speed" };
+
+            string uniqueName = null;
+            Assert.DoesNotThrow(() =>
+            {
+                uniqueName = VFXParameterController.MakeNameUnique("Speed", existingNames, true, 0, null);
+            });
+
+            Assert.IsNotNull(uniqueName);
+            Assert.AreNotEqual("Speed", uniqueName);
+            Assert.IsFalse(existingNames.Contains(uniqueName));
+        }
     }
 }
 #endif

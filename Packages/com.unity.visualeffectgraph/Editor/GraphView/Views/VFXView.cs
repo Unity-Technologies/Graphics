@@ -3460,7 +3460,7 @@ namespace UnityEditor.VFX.UI
 
             if (string.IsNullOrEmpty(newCategoryName))
             {
-                newCategoryName = VFXParameterController.MakeNameUnique(category, controller.graph.UIInfos.categories?.Select(x => x.name).ToHashSet() ?? new HashSet<string>());
+                newCategoryName = VFXParameterController.MakeNameUnique(category, controller.graph.UIInfos.categories?.Select(x => x.name).ToHashSet() ?? new HashSet<string>(), true, VFXBlackboardCategory.kMaxCategoryNameLength);
             }
 
             controller.graph.UIInfos.categories ??= new List<VFXUI.CategoryInfo>();
@@ -3502,7 +3502,7 @@ namespace UnityEditor.VFX.UI
             if (IsLocked())
                 return null;
 
-            var copyName = VFXParameterController.MakeNameUnique(m_Controller, blackboardField.controller.exposedName);
+            var copyName = VFXParameterController.MakeNameUnique(m_Controller, blackboardField.controller.exposedName, VFXParameterController.kMaxExposedNameLength);
             var newVfxParameter = VFXParameter.Duplicate(copyName, blackboardField.controller.model);
             controller.AddVFXModel(Vector2.zero, newVfxParameter);
 

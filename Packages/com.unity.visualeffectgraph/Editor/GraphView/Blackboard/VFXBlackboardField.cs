@@ -34,12 +34,10 @@ namespace UnityEditor.VFX.UI
             m_TypeLabel = new Label { name = "typeLabel" };
             m_TypeLabel.pickingMode = PickingMode.Ignore;
             Add(m_TypeLabel);
-            m_TextField = new TextField { name = "textField"};
-            Add(m_TextField);
-            m_TextField.style.display = DisplayStyle.None;
-
-            m_TextField.RegisterCallback<KeyDownEvent>(OnTextFieldKeyPressed, TrickleDown.TrickleDown);
-            m_TextField.RegisterCallback<FocusOutEvent>(OnEditTextSucceed, TrickleDown.TrickleDown);
+            var textField = new TextField { name = "textField"};
+            Add(textField);
+            textField.style.display = DisplayStyle.None;
+            SetTextField(textField);
 
             ClearClassList();
             AddToClassList("blackboardField");
@@ -86,20 +84,25 @@ namespace UnityEditor.VFX.UI
                 AddToClassList("unused");
         }
 
-        public override void OpenTextEditor()
+        public override bool OpenTextEditor()
         {
-            base.OpenTextEditor();
-            m_TypeLabel.style.display = DisplayStyle.None;
-            m_Pill.style.display = DisplayStyle.None;
+            if (base.OpenTextEditor())
+            {
+                m_TypeLabel.style.display = DisplayStyle.None;
+                m_Pill.style.display = DisplayStyle.None;
+                return true;
+            }
+
+            return false;
         }
 
-        protected override void OnEditTextSucceed(FocusOutEvent evt)
+        protected override void OnEditTextSucceed(TextField textField)
         {
-            if (controller.exposedName != m_TextField.value)
+            if (controller.exposedName != textField.value)
             {
-                controller.exposedName = m_TextField.value;
+                controller.exposedName = textField.value;
             }
-            base.OnEditTextSucceed(evt);
+            base.OnEditTextSucceed(textField);
         }
 
         protected override void CleanupNameField()

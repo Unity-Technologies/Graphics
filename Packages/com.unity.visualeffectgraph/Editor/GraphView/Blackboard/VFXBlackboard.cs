@@ -297,7 +297,7 @@ namespace UnityEditor.VFX.UI
             m_PathLabel = labelContainer.Q<Label>("subTitleLabel");
             m_PathLabel.RegisterCallback<MouseDownEvent>(OnMouseDownSubTitle);
 
-            m_PathTextField = new TextField();
+            m_PathTextField = new TextField(128, false, false, '*');
             m_PathTextField.style.display = DisplayStyle.None;
             m_PathTextField.Q(TextField.textInputUssName).RegisterCallback<FocusOutEvent>(OnEditPathTextFinished, TrickleDown.TrickleDown);
             m_PathTextField.Q(TextField.textInputUssName).RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed, TrickleDown.TrickleDown);
@@ -489,7 +489,7 @@ namespace UnityEditor.VFX.UI
                 {
                     m_IsChangingSelection = false;
                 }
-                    
+
                 return DragVisualMode.Move;
             }
 
@@ -816,7 +816,7 @@ namespace UnityEditor.VFX.UI
         public void AddCategory(string initialName)
         {
             var categories = m_Controller.graph.UIInfos.categories.Select(x => x.name).ToHashSet();
-            var newCategoryName = VFXParameterController.MakeNameUnique(initialName, categories);
+            var newCategoryName = VFXParameterController.MakeNameUnique(initialName, categories, true, VFXBlackboardCategory.kMaxCategoryNameLength);
 
             controller.graph.UIInfos.categories ??= new List<VFXUI.CategoryInfo>();
             controller.graph.UIInfos.categories.Add(new VFXUI.CategoryInfo { name = newCategoryName });
@@ -834,7 +834,7 @@ namespace UnityEditor.VFX.UI
         public string DuplicateCategory(string category, string[] parametersToDuplicate = null)
         {
             // Create treeview item first so that duplicated category's parameters (if any) will find the parent category
-            var newCategoryName = VFXParameterController.MakeNameUnique(category, controller.graph.UIInfos.categories?.Select(x => x.name).ToHashSet() ?? new HashSet<string>());
+            var newCategoryName = VFXParameterController.MakeNameUnique(category, controller.graph.UIInfos.categories?.Select(x => x.name).ToHashSet() ?? new HashSet<string>(), true, VFXParameterController.kMaxExposedNameLength);
             var parentId = m_ParametersController.SelectMany(GetDataRecursive).Single(x => x.children.Any(x => string.Compare(x.data.title, category, StringComparison.OrdinalIgnoreCase) == 0)).id;
             var newId = m_Treeview.viewController.GetAllItemIds().Max() + 1;
             m_Treeview.AddItem(new TreeViewItemData<IParameterItem>(newId, new PropertyCategory(newCategoryName, newId, false, true)), parentId, -1, true);
@@ -1149,7 +1149,7 @@ namespace UnityEditor.VFX.UI
 
         private void OnAddCustomAttribute(object parameter)
         {
-            var newName = m_Controller.graph.attributesManager.FindUniqueName("CustomAttribute");
+            var newName = m_Controller.graph.attributesManager.FindUniqueName(VFXAttributesManager.s_DefaultCustomAttributeName);
             if (m_Controller.graph.TryAddCustomAttribute(newName, (VFXValueType)parameter, string.Empty, false, out var newCustomAttribute))
             {
                 var parentTreeviewItem = m_ParametersController.SelectMany(GetDataRecursive).Single(x => string.Compare(x.data.title, CustomAttributeCategory.Title, StringComparison.OrdinalIgnoreCase) == 0);
