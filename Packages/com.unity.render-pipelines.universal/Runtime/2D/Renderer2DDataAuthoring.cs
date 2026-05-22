@@ -1,5 +1,3 @@
-using UnityEditor;
-
 namespace UnityEngine.Rendering.Universal
 {
     public partial class Renderer2DData
@@ -59,10 +57,10 @@ namespace UnityEngine.Rendering.Universal
             const string suggestedNamesKey = "SecondarySpriteTexturePropertyNames";
             const string maskTex = "_MaskTex";
             const string normalMap = "_NormalMap";
-            string suggestedNamesPrefs = EditorPrefs.GetString(suggestedNamesKey);
+            string suggestedNamesPrefs = UnityEditor.EditorPrefs.GetString(suggestedNamesKey);
 
             if (string.IsNullOrEmpty(suggestedNamesPrefs))
-                EditorPrefs.SetString(suggestedNamesKey, maskTex + "," + normalMap);
+                UnityEditor.EditorPrefs.SetString(suggestedNamesKey, maskTex + "," + normalMap);
             else
             {
                 if (!suggestedNamesPrefs.Contains(maskTex))
@@ -71,7 +69,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!suggestedNamesPrefs.Contains(normalMap))
                     suggestedNamesPrefs += ("," + normalMap);
 
-                EditorPrefs.SetString(suggestedNamesKey, suggestedNamesPrefs);
+                UnityEditor.EditorPrefs.SetString(suggestedNamesKey, suggestedNamesPrefs);
             }
 
             ReloadAllNullProperties();

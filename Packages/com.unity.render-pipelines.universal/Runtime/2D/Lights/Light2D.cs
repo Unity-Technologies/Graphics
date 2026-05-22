@@ -5,10 +5,6 @@ using UnityEngine.U2D;
 using UnityEngine.Rendering.RenderGraphModule;
 using System.Collections.Generic;
 
-#if UNITY_EDITOR
-using System.Linq;
-#endif
-
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -688,12 +684,24 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         private void OnSortingLayerAdded(SortingLayer layer)
         {
-            m_ApplyToSortingLayers = m_ApplyToSortingLayers.Append(layer.id).ToArray();
+            var newArray = new int[m_ApplyToSortingLayers.Length + 1];
+            for (int i = 0; i < m_ApplyToSortingLayers.Length; i++)
+            {
+                newArray[i] = m_ApplyToSortingLayers[i];
+            }
+            newArray[m_ApplyToSortingLayers.Length] = layer.id;
+            m_ApplyToSortingLayers = newArray;
         }
 
         private void OnSortingLayerRemoved(SortingLayer layer)
         {
-            m_ApplyToSortingLayers = m_ApplyToSortingLayers.Where(x => x != layer.id && SortingLayer.IsValid(x)).ToArray();
+            var tempList = new List<int>();
+            foreach (var x in m_ApplyToSortingLayers)
+            {
+                if (x != layer.id && SortingLayer.IsValid(x))
+                    tempList.Add(x);
+            }
+            m_ApplyToSortingLayers = tempList.ToArray();
         }
 #endif
 
