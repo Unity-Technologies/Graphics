@@ -323,6 +323,17 @@ namespace UnityEngine.Rendering.RenderGraphModule
             current = null;
         }
 
+        internal void EnableIntraFrameMemoryAliasing(bool enabled)
+        {
+            for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
+            {
+                if (m_RenderGraphResources[i].pool != null)
+                {
+                    m_RenderGraphResources[i].pool.IntraFrameMemoryAliasing = enabled;
+                }
+            }
+        }
+
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void CheckHandleValidity(in ResourceHandle res)
@@ -1034,7 +1045,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             var resource = m_RenderGraphResources[type].resourceArray[index];
             if (!resource.imported)
             {
-                resource.CreatePooledGraphicsResource(rgContext.forceResourceCreation);
+                resource.CreatePooledGraphicsResource(m_CurrentFrameIndex, m_ExecutionCount);
 
                 if (m_RenderGraphDebug.enableLogging)
                     resource.LogCreation(m_FrameInformationLogger);
@@ -1109,7 +1120,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     resource.LogRelease(m_FrameInformationLogger);
                 }
 
-                resource.ReleasePooledGraphicsResource(m_CurrentFrameIndex);
+                resource.ReleasePooledGraphicsResource(m_CurrentFrameIndex, m_ExecutionCount);
             }
         }
 
