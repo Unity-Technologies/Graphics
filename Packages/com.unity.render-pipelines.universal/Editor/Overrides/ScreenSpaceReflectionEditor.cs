@@ -23,6 +23,9 @@ namespace UnityEditor.Rendering.Universal
 
         // Serialized properties, authoring settings
         SerializedDataParameter m_Mode;
+        SerializedDataParameter m_ReflectionStrength;
+        SerializedDataParameter m_ClampReflectedColor;
+        SerializedDataParameter m_MaxColorValue;
         SerializedDataParameter m_AfterOpaque;
         SerializedDataParameter m_RoughReflections;
         SerializedDataParameter m_RoughnessScale;
@@ -41,6 +44,9 @@ namespace UnityEditor.Rendering.Universal
             var o = new PropertyFetcher<ScreenSpaceReflectionVolumeSettings>(serializedObject);
 
             m_Mode = Unpack(o.Find(x => x.mode));
+            m_ReflectionStrength = Unpack(o.Find(x => x.reflectionStrength));
+            m_ClampReflectedColor = Unpack(o.Find(x => x.clampReflectedColor));
+            m_MaxColorValue = Unpack(o.Find(x => x.maxColorValue));
             m_Resolution = Unpack(o.Find(x => x.resolution));
             m_UpscalingMethod = Unpack(o.Find(x => x.upscalingMethod));
             m_LinearMarching = Unpack(o.Find(x => x.linearMarching));
@@ -122,12 +128,27 @@ namespace UnityEditor.Rendering.Universal
             // Authoring related settings (not part of preset).
             DrawHeader("Visual Quality");
             PropertyField(m_Mode);
+            PropertyField(m_ReflectionStrength);
+            PropertyField(m_ClampReflectedColor);
+            if (m_ClampReflectedColor.value.boolValue)
+            {
+                using (new EditorGUI.DisabledScope(!m_ClampReflectedColor.overrideState.boolValue))
+                {
+                    using (new IndentLevelScope())
+                    {
+                        PropertyField(m_MaxColorValue);
+                    }
+                }
+            }
             PropertyField(m_RoughReflections);
             if (m_RoughReflections.value.enumValueIndex != (int)RoughReflectionsQuality.Disabled)
             {
                 using (new EditorGUI.DisabledScope(!m_RoughReflections.overrideState.boolValue))
                 {
-                    PropertyField(m_RoughnessScale);
+                    using (new IndentLevelScope())
+                    {
+                        PropertyField(m_RoughnessScale);
+                    }
                 }
             }
 

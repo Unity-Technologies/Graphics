@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.Universal
             internal static readonly int _LastFrameCameraDepthTexture = Shader.PropertyToID("_LastFrameCameraDepthTexture");
             internal static readonly int _SsrDepthPyramidMaxMip = Shader.PropertyToID("_SsrDepthPyramidMaxMip");
             internal static readonly int _SsrDepthPyramid = Shader.PropertyToID("_DepthPyramid");
-            internal static readonly int _MinimumSmoothnessAndFadeStart = Shader.PropertyToID("_MinimumSmoothnessAndFadeStart");
+            internal static readonly int _SmoothnessAndStrengthAndClamp = Shader.PropertyToID("_SmoothnessAndStrengthAndClamp");
             internal static readonly int _ScreenEdgeFadeAndViewConeDot = Shader.PropertyToID("_ScreenEdgeFadeAndViewConeDot");
             internal static readonly int _ReflectSky = Shader.PropertyToID("_ReflectSky");
             internal static readonly int _HitRefinementSteps = Shader.PropertyToID("_HitRefinementSteps");
@@ -215,6 +215,8 @@ namespace UnityEngine.Rendering.Universal
             internal int maxRaySteps;
             internal int resolutionScale;
             internal float roughnessScale;
+            internal float reflectionStrength;
+            internal float clampValue;
             internal bool reflectSky;
             internal bool afterOpaque;
             internal bool linearMarching;
@@ -287,6 +289,9 @@ namespace UnityEngine.Rendering.Universal
                     passData.maxRaySteps = settings.maxRaySteps.value;
                     passData.resolutionScale = (int)settings.resolution.value;
                     passData.roughnessScale = settings.roughnessScale.value;
+                    passData.reflectionStrength = settings.reflectionStrength.value;
+                    // 65504 is the max representable FP16 value - use it to avoid an additional branch in shader.
+                    passData.clampValue = settings.clampReflectedColor.value ? settings.maxColorValue.value : 65504.0f;
                     passData.material = m_Material;
                     passData.localKeywords = m_LocalKeywords;
                     passData.mipsInfo = m_PackedMipChainInfo;
@@ -542,7 +547,7 @@ namespace UnityEngine.Rendering.Universal
             data.material.SetMatrixArray(ShaderConstants._CameraViews, data.cameraViews);
             data.material.SetMatrixArray(ShaderConstants._CameraInverseViewProjections, data.cameraInverseViewProjections);
             data.material.SetMatrixArray(ShaderConstants._CameraViewProjections, data.cameraViewProjections);
-            data.material.SetVector(ShaderConstants._MinimumSmoothnessAndFadeStart, new Vector4(data.minimumSmoothness, data.smoothnessFadeStart));
+            data.material.SetVector(ShaderConstants._SmoothnessAndStrengthAndClamp, new Vector4(data.minimumSmoothness, data.smoothnessFadeStart, data.reflectionStrength, data.clampValue));
             data.material.SetVector(ShaderConstants._ScreenEdgeFadeAndViewConeDot, new Vector4(data.screenEdgeFade, 1.0f - data.screenEdgeFade, 2.0f * data.normalFade - 1.0f));
             data.material.SetInteger(ShaderConstants._ReflectSky, data.reflectSky ? 1 : 0);
             data.material.SetInteger(ShaderConstants._HitRefinementSteps, data.hitRefinementSteps);

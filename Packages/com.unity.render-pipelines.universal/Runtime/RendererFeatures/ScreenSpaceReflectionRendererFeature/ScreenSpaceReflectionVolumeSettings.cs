@@ -129,6 +129,19 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("The mode determining which objects to reflect using Screen Space Reflections. 'Opaques Only' will only render opaque objects in reflections, while 'Opaques And Transparents' will also render transparent objects in reflections.")]
         public EnumParameter<ReflectionMode> mode = new(ReflectionMode.OpaquesOnly);
 
+        /// <summary>Scales the overall SSR contribution. A value of 0 disables the effect, 1 is full reflection strength.</summary>
+        [Tooltip("Scales the overall SSR contribution. A value of 0 disables the effect, 1 is full reflectionStrength.")]
+        public ClampedFloatParameter reflectionStrength = new(1.0f, 0.0f, 1.0f);
+
+        /// <summary>Whether to clamp the reflected color to avoid very bright values causing issues.</summary>
+        [Tooltip("Whether to clamp the reflected color to avoid very bright values causing issues.")]
+        public BoolParameter clampReflectedColor = new(false);
+
+        /// <summary>The maximum color value of reflected colors when clamping is enabled.</summary>
+        [Tooltip("The maximum color value of reflected colors when clamping is enabled.")]
+        [InspectorName("Max Color Value")]
+        public MinFloatParameter maxColorValue = new(1.0f, 0f);
+
         /// <summary>The resolution to render Screen Space Reflections at.</summary>
         [Tooltip("The resolution to render Screen Space Reflections at. Lower values will yield better performance, but lower quality.")]
         public EnumParameter<Resolution> resolution = new(DefaultPreset.resolution, true);

@@ -44,7 +44,7 @@ uint _Downsample;
 int _HiZTrace;
 int _HitRefinementSteps;
 float4 _ThicknessScaleAndBias;
-float4 _MinimumSmoothnessAndFadeStart;
+float4 _SmoothnessAndStrengthAndClamp;
 float4 _ScreenEdgeFadeAndViewConeDot;
 int _ReflectSky;
 
@@ -90,7 +90,17 @@ float2 GetScreenEdgeFade()
 
 float GetMinimumSmoothness()
 {
-    return _MinimumSmoothnessAndFadeStart.x;
+    return _SmoothnessAndStrengthAndClamp.x;
+}
+
+float GetStrength()
+{
+    return _SmoothnessAndStrengthAndClamp.z;
+}
+
+float GetClampValue()
+{
+    return _SmoothnessAndStrengthAndClamp.w * GetCurrentExposureMultiplier();
 }
 
 #if defined(USING_STEREO_MATRICES)
@@ -348,6 +358,13 @@ float SampleSmoothness(float2 uv)
     return SAMPLE_TEXTURE2D_X(_SmoothnessTexture, sampler_SmoothnessTexture, uv).a;
 }
 
+float3 ClampColor(float3 color)
+{
+    float maxChannel = Max3(color.r, color.g, color.b);
+    float scale = maxChannel > GetClampValue() ? GetClampValue() / maxChannel : 1;
+    return scale * color;
+}
+
 float4 ComputeSSR(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -367,7 +384,7 @@ float4 ComputeSSR(Varyings input) : SV_Target
         // If the pixel is showing an object, output 1 alpha ->
         //   avoids bleeding 0 alpha into reflections when blurring, which would cause peter-panning.
         float alpha = deviceDepth != UNITY_RAW_FAR_CLIP_VALUE;
-        return float4(SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, positionNDC, 0).rgb, alpha);
+        return float4(ClampColor(SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, positionNDC, 0).rgb), alpha);
     }
 
     // Calculate ray origin and direction in world space
@@ -468,7 +485,7 @@ float4 ComputeSSR(Varyings input) : SV_Target
         // value instead.
         const float k_MinimumWeight = 1e-3;
         if (weightSum < k_MinimumWeight)
-            return float4(SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, positionNDC, 0).rgb, 0);
+            return float4(ClampColor(SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, positionNDC, 0).rgb), 0);
         else
             hitColor /= weightSum;
         #else
@@ -496,13 +513,16 @@ float4 ComputeSSR(Varyings input) : SV_Target
         float2 edgeDist = smoothstep(0, GetScreenEdgeFade().x, rayHitPosNDC.xy) * smoothstep(1, GetScreenEdgeFade().y, rayHitPosNDC.xy);
         fade *= edgeDist.x * edgeDist.y;
 
-        return float4(hitColor, fade);
+        // Scale the SSR contribution by the user-defined strength.
+        fade *= GetStrength();
+
+        return float4(ClampColor(hitColor), fade);
     }
 
     // Even if we hit nothing, we output the framebuffer color (but with 0 weight).
     // This provides the blur/upscale kernel with data needed to avoid blurring black into
     // the reflections, which leads to ugly borders.
-    return float4(SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, positionNDC, 0).rgb, 0);
+    return float4(ClampColor(SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, positionNDC, 0).rgb), 0);
 }
 
 // ------------------------------------------------------------------
