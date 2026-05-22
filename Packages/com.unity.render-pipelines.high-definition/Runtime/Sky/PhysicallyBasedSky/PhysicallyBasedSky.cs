@@ -631,10 +631,20 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         static void Init()
         {
+            s_DefaultMaterial = null;
+
             if (GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>(out var materials))
             {
                 s_DefaultMaterial = materials.pbrSkyMaterial;
             }
         }
+
+#if UNITY_EDITOR
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticsOnLoad()
+        {
+            s_DefaultMaterial = null;
+        }
+#endif
     }
 }
