@@ -213,7 +213,7 @@ namespace UnityEngine.Rendering
             {
                 using (k_ProcessRendererMaterialAndMeshChangesSort.Auto())
                 {
-                    sortedExcludedRenderers.Reinterpret<int>().ParallelSort().Complete();
+                    sortedExcludedRenderers.Reinterpret<ulong>().ParallelSort().Complete();
                 }
             }
 
