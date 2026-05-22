@@ -1904,13 +1904,15 @@ namespace UnityEngine.Rendering.Universal
         void CreateOffscreenUITexture(RenderGraph renderGraph, TextureDesc descriptor)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             DrawScreenSpaceUIPass.ConfigureOffscreenUITextureDesc(ref descriptor);
             RenderingUtils.ReAllocateHandleIfNeeded(ref s_OffscreenUIColorHandle, descriptor, name: "_OverlayUITexture");
+
             // Clear the texture to avoid stale data from previous frames
             ImportResourceParams importParams = new ImportResourceParams();
-            importParams.clearOnFirstUse = true;
+            importParams.clearOnFirstUse = cameraData.rendersOffscreenUI;
             importParams.clearColor = Color.clear;
-            importParams.discardOnLastUse = true;
+            importParams.discardOnLastUse = false;
             resourceData.overlayUITexture = renderGraph.ImportTexture(s_OffscreenUIColorHandle, importParams);
         }
 
