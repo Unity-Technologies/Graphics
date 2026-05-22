@@ -121,9 +121,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool config = ValidateHighQualityLineRenderingConfiguration(m_BuildData.renderPipelineAssets);
                 validConfiguration &= config;
             }
-            
+
             {
                 bool config = ValidateGraphicsCompositorConfiguration(m_BuildData.renderPipelineAssets);
+                validConfiguration &= config;
+            }
+
+            {
+                bool config = ValidateScreenSpaceGlobalIlluminationConfiguration(m_BuildData.renderPipelineAssets);
                 validConfiguration &= config;
             }
 
@@ -477,6 +482,28 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (hdrpAsset != null)
                 {
                     isValidConfiguration &= CheckHDAssetValid(hdrpAsset);
+                }
+            }
+
+            return isValidConfiguration;
+        }
+
+        internal static bool ValidateScreenSpaceGlobalIlluminationConfiguration(List<HDRenderPipelineAsset> assetsList)
+        {
+            if (!EditorGraphicsSettings.ShouldValidateGraphicsForActiveBuildTarget())
+                return true;
+
+            bool isValidConfiguration = true;
+            var validationSettings = HDProjectSettings.validationSettings;
+            foreach (var hdrpAsset in assetsList)
+            {
+                if (hdrpAsset != null)
+                {
+                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportSSGI && !validationSettings.k_ScreenSpaceGlobalIllumination_Recommended)
+                    {
+                        Debug.LogWarning($"HDRP Build Validation - Screen Space Global Illumination: Enabled for the active platform. {HDRenderPipelineUI.Styles.featureNotRecommendedWarning}\nAsset: {AssetDatabase.GetAssetPath(hdrpAsset)}", hdrpAsset);
+                        isValidConfiguration = false;
+                    }
                 }
             }
 

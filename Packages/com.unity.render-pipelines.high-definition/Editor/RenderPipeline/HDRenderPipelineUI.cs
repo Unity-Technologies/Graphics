@@ -1599,6 +1599,16 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSAO, Styles.supportSSAOContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSGI, Styles.supportSSGIContent);
+            if (EditorGraphicsSettings.ShouldValidateGraphicsForActiveBuildTarget())
+            {
+                var validationSettings = HDProjectSettings.validationSettings;
+                bool ssgiEnabled = serialized.renderPipelineSettings.supportSSGI.boolValue;
+                if (ssgiEnabled && !validationSettings.k_ScreenSpaceGlobalIllumination_Recommended)
+                {
+                    HDEditorUtils.ShowFeatureOptimisationWarning(Styles.supportSSGIContent.text);
+                }
+            }
+
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportLightLayers, Styles.supportLightLayerContent);
 
             EditorGUI.BeginChangeCheck();

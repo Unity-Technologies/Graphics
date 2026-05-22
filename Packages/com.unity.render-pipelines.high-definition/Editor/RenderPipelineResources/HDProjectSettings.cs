@@ -127,6 +127,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Graphics Compositor
             public readonly bool k_GraphicsCompositor_Recommended = false;
+
+            // SSGI
+            public readonly bool k_ScreenSpaceGlobalIllumination_Recommended = false;
         }
 
         [NonSerialized]
