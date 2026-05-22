@@ -5,6 +5,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
+#define unity_CameraWorldClipPlanes _FrustumPlanes
+
 void VFXEncodeMotionVector(float2 motionVec, out float4 outBuffer)
 {
     EncodeMotionVector(motionVec, outBuffer);
