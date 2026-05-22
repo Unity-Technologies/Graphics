@@ -343,6 +343,26 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Computes a hash of the current state of every parameter on this component
+        /// (values and override flags). Intended for change detection — for example,
+        /// invalidating a cached render target when any parameter changes.
+        /// </summary>
+        /// <remarks>
+        /// This value mutates as parameters change, so it must not be used as a key in
+        /// a <see cref="System.Collections.Generic.Dictionary{TKey,TValue}"/>,
+        /// <see cref="System.Collections.Generic.HashSet{T}"/>, or any other structure
+        /// that assumes a stable hash. Use <see cref="object.GetHashCode"/> for that.
+        /// </remarks>
+        /// <returns>A hash that changes whenever any parameter's value or override state changes.</returns>
+        public int GetStateHash()
+        {
+            var hash = HashFNV1A32.Create();
+            for (int i = 0; i < parameterList.Length; i++)
+                hash.Append(parameterList[i].GetHashCode());
+            return hash.value;
+        }
+
+        /// <summary>
         /// Unity calls this method before the object is destroyed.
         /// </summary>
         protected virtual void OnDestroy() => Release();
