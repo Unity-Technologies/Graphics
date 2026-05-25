@@ -36,7 +36,8 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_Space = (CoordinateSpace)value.selectedEntry;
-                Dirty(ModificationScope.Graph);
+                Dirty(ModificationScope.Topological);
+                owner?.ValidateGraph();
             }
         }
         public CoordinateSpace space => m_Space;

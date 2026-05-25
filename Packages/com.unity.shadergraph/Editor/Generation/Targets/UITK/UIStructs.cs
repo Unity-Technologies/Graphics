@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph
         {
             name = "Varyings",
             packFields = true,
-            populateWithCustomInterpolators = false,
+            populateWithCustomInterpolators = true,
             fields = new[]
             {
                 StructFields.Varyings.positionCS,
@@ -28,10 +28,10 @@ namespace UnityEditor.ShaderGraph
             }
         };
 
-        // Overrides the default Float4 uv1 with Uint4 because UIE packs integer IDs into TEXCOORD1.
+        // Overrides the default Float4 uv4 with Uint4 because UIE packs integer IDs into TEXCOORD4.
         internal static readonly FieldDescriptor PackedIdsAttribute = new FieldDescriptor(
-            "Attributes", "uv1", "ATTRIBUTES_NEED_TEXCOORD1", ShaderValueType.Uint4,
-            "TEXCOORD1", subscriptOptions: StructFieldOptions.Optional);
+            "Attributes", "uv4", "ATTRIBUTES_NEED_TEXCOORD4", ShaderValueType.Uint4,
+            "TEXCOORD4", subscriptOptions: StructFieldOptions.Optional);
 
         public static StructDescriptor Attributes = new StructDescriptor()
         {
@@ -44,7 +44,12 @@ namespace UnityEditor.ShaderGraph
                 StructFields.Attributes.color,
                 StructFields.Attributes.uv0,        // .xy = uv, .zw = layoutUV
                 PackedIdsAttribute,                 // .x:[xform|clip] .y:[opacity|textcoreOrGrad] .z:[tex|flags] .w:reserved
-                StructFields.Attributes.uv2,        // .xy outer | .zw inner | .x text-extra-dilate
+                StructFields.Attributes.uv5,        // .xy outer | .zw inner | .x text-extra-dilate
+                StructFields.Attributes.uv1,        // optional stream-1 ExtraVertexChannels.TexCoord1
+                StructFields.Attributes.uv2,        // optional stream-1 ExtraVertexChannels.TexCoord2
+                StructFields.Attributes.uv3,        // optional stream-1 ExtraVertexChannels.TexCoord3
+                StructFields.Attributes.normalOS,   // optional stream-1 ExtraVertexChannels.Normal
+                StructFields.Attributes.tangentOS,  // optional stream-1 ExtraVertexChannels.Tangent
                 StructFields.Attributes.instanceID,
                 StructFields.Attributes.vertexID,
             }
@@ -68,6 +73,10 @@ namespace UnityEditor.ShaderGraph
                 StructFields.VertexDescriptionInputs.InstanceID,
 
                 StructFields.VertexDescriptionInputs.ObjectSpaceNormal,
+                StructFields.VertexDescriptionInputs.ObjectSpaceTangent,
+                StructFields.VertexDescriptionInputs.uv1,
+                StructFields.VertexDescriptionInputs.uv2,
+                StructFields.VertexDescriptionInputs.uv3,
                 StructFields.VertexDescriptionInputs.NDCPosition,
                 StructFields.VertexDescriptionInputs.PixelPosition,
 

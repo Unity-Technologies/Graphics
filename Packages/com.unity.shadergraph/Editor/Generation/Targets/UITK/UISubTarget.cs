@@ -1,7 +1,9 @@
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using UnityEditor.Graphing;
 using UnityEngine.UIElements;
 using UnityEditor.Rendering.BuiltIn.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Slots;
@@ -199,6 +201,8 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
 
                 //definitions
                 defines  = GetPassDefines(),
+
+                customInterpolators = UITKCustomInterpolators.Common,
             };
             return DefaultUITKPass;
         }
@@ -218,8 +222,18 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             return "UISubTarget";
         }
 
-        const string kUVErrorMessageNode = "UI Material does not support UV1-7. Consider using 'UV0'.";
-        const string kUVErrorMessageSubGraph = "UI Material does not support UV1-7. Consider using 'UV0' in the subgraph.";
+        const string kUVErrorMessageNode = "UI Material only supports UV0-UV3. To use UV1-3, enable the matching channel under PanelSettings.extraVertexChannels.";
+        const string kUVErrorMessageSubGraph = "UI Material only supports UV0-UV3 in the subgraph. To use UV1-3, enable the matching channel under PanelSettings.extraVertexChannels.";
+        const string kGeometryFragmentStageError = "{0} cannot be used in the fragment stage on UI Toolkit shaders. UI Toolkit does not provide a per-element transform that would make the value meaningful in the fragment shader. Route the value through a Custom Interpolator (vertex stage to fragment stage) to read the raw vertex data in the fragment shader.";
+        const string kGeometryNonObjectSpaceError = "{0}'s Space must be set to Object on UI Toolkit shaders. UI Toolkit does not provide a meaningful per-element world transform; other spaces would apply the batched-group transform and produce incorrect data. The Object space option returns the value as it was packed into the vertex stream.";
+
+        static bool IsAllowedUVChannel(UnityEditor.ShaderGraph.Internal.UVChannel channel)
+        {
+            return channel == UnityEditor.ShaderGraph.Internal.UVChannel.UV0
+                || channel == UnityEditor.ShaderGraph.Internal.UVChannel.UV1
+                || channel == UnityEditor.ShaderGraph.Internal.UVChannel.UV2
+                || channel == UnityEditor.ShaderGraph.Internal.UVChannel.UV3;
+        }
 
         public INodeValidationExtension.Status GetValidationStatus(AbstractMaterialNode node, out string msg)
         {
@@ -311,7 +325,7 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
 
             foreach (var uvSlot in uvSlots)
             {
-                if (uvSlot.channel != UnityEditor.ShaderGraph.Internal.UVChannel.UV0)
+                if (!IsAllowedUVChannel(uvSlot.channel))
                 {
                     warningMessage = kUVErrorMessageNode;
                     return true;
@@ -321,7 +335,7 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             UVNode uvNode = node as UVNode;
             if (uvNode != null)
             {
-                if (uvNode.uvChannel != UnityEditor.ShaderGraph.Internal.UVChannel.UV0)
+                if (!IsAllowedUVChannel(uvNode.uvChannel))
                 {
                     warningMessage = kUVErrorMessageNode;
                     return true;
@@ -332,45 +346,77 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             return false;
         }
 
-        public override bool ValidateNodeCompatibility(AbstractMaterialNode node, out string warningMessage, out Rendering.ShaderCompilerMessageSeverity severity)
+        static bool ValidateGeometryNode(AbstractMaterialNode node, out string errorMessage)
         {
-            List<UVMaterialSlot> uvSlots = new();
-            node.GetInputSlots<UVMaterialSlot>(uvSlots);
-            severity = ShaderCompilerMessageSeverity.Warning;
+            errorMessage = null;
 
-            if (ValidateUV(node, out warningMessage))
-                return true;
+            if (node is not GeometryNode geometryNode)
+                return false;
 
-            foreach (var uvSlot in uvSlots)
+            // PositionNode and ViewDirectionNode are blocked outright via m_UnsupportedNodes;
+            // only the three vector nodes reach this validator on UITK.
+            if (geometryNode is not (NormalVectorNode or TangentVectorNode or BitangentVectorNode))
+                return false;
+
+            var outputSlot = node.FindOutputSlot<MaterialSlot>(0);
+            if (outputSlot == null)
+                return false;
+
+            var capability = NodeUtils.GetEffectiveShaderStageCapability(outputSlot, goingBackwards: false);
+            // capability == All means disconnected (no edges traversed); only flag actual fragment-stage paths.
+            if (capability != ShaderStageCapability.All && (capability & ShaderStageCapability.Fragment) != 0)
             {
-                if (uvSlot.channel != UnityEditor.ShaderGraph.Internal.UVChannel.UV0)
+                errorMessage = string.Format(kGeometryFragmentStageError, node.name);
+                return true;
+            }
+
+            if (geometryNode.space != CoordinateSpace.Object)
+            {
+                errorMessage = string.Format(kGeometryNonObjectSpaceError, node.name);
+                return true;
+            }
+
+            return false;
+        }
+
+        static bool ValidateSubGraph(AbstractMaterialNode node, out string warningMessage)
+        {
+            warningMessage = null;
+
+            if (node is not SubGraphNode subGraphNode)
+                return false;
+
+            SubGraphAsset subGraphAsset = subGraphNode.asset;
+            if (subGraphAsset == null)
+                return false;
+
+            foreach (var item in subGraphAsset.requirements.requiresMeshUVs)
+            {
+                if (!IsAllowedUVChannel(item))
                 {
-                    warningMessage = kUVErrorMessageNode;
+                    warningMessage = kUVErrorMessageSubGraph;
                     return true;
                 }
             }
 
-            SubGraphNode subGraphNode = node as SubGraphNode;
-            if (subGraphNode != null)
+            return false;
+        }
+
+        public override bool ValidateNodeCompatibility(AbstractMaterialNode node, out string warningMessage, out Rendering.ShaderCompilerMessageSeverity severity)
+        {
+            severity = ShaderCompilerMessageSeverity.Warning;
+
+            if (ValidateGeometryNode(node, out warningMessage))
             {
-                SubGraphAsset subGraphAsset = subGraphNode.asset;
-                if (subGraphAsset == null)
-                {
-                    warningMessage = null;
-                    return false;
-                }
-                else
-                {
-                    foreach (var item in subGraphAsset.requirements.requiresMeshUVs)
-                    {
-                        if (item != UnityEditor.ShaderGraph.Internal.UVChannel.UV0)
-                        {
-                            warningMessage = kUVErrorMessageSubGraph;
-                            return true;
-                        }
-                    }
-                }
+                severity = ShaderCompilerMessageSeverity.Error;
+                return true;
             }
+
+            if (ValidateUV(node, out warningMessage))
+                return true;
+
+            if (ValidateSubGraph(node, out warningMessage))
+                return true;
 
             warningMessage = null;
             return false;
@@ -387,11 +433,12 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
                 m_UnsupportedNodes.Add(typeof(TriplanarNode));
                 m_UnsupportedNodes.Add(typeof(IsFrontFaceNode));
 
-                // Node deviring from GeometryNode
-                m_UnsupportedNodes.Add(typeof(BitangentVectorNode));
-                m_UnsupportedNodes.Add(typeof(NormalVectorNode));
+                // Nodes deriving from GeometryNode.
+                // Normal / Tangent / Bitangent are now allowed: the corresponding streams are
+                // opt-in via PanelSettings.extraVertexChannels (Normal, Tangent). When the
+                // matching channel isn't enabled the stream is zero, so the user is responsible
+                // for opting in to get meaningful values.
                 m_UnsupportedNodes.Add(typeof(PositionNode));
-                m_UnsupportedNodes.Add(typeof(TangentVectorNode));
                 m_UnsupportedNodes.Add(typeof(ViewDirectionNode));
 
                 // Vertex attribute related node which cannot be correctly handled in UITK.
@@ -456,14 +503,16 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             StructFields.Attributes.color,
             StructFields.Attributes.uv0,
             UIStructs.PackedIdsAttribute, // Uint4 instead of Float4
-            StructFields.Attributes.uv2,
+            StructFields.Attributes.uv5,
 
             StructFields.Varyings.positionCS,
             StructFields.Varyings.color,
-            StructFields.Varyings.texCoord0,
-            StructFields.Varyings.texCoord1,
-            StructFields.Varyings.texCoord3,
+            // UITK internals: texCoord4 = uvClip, texCoord5 = typeTexSettings, texCoord6 = textCoreLoc + layoutUV, texCoord7 = circle.
+            // texCoord0-3 are reserved for user UV0-UV3 (opt-in via PanelSettings.extraVertexChannels) and only pulled in on demand.
             StructFields.Varyings.texCoord4,
+            StructFields.Varyings.texCoord5,
+            StructFields.Varyings.texCoord6,
+            StructFields.Varyings.texCoord7,
         };
     }
 #endregion
@@ -552,6 +601,22 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             {Pragma.Target(ShaderModel.Target35)},
             {Pragma.Vertex("uie_custom_vert")},
             {Pragma.Fragment("uie_custom_frag")},
+        };
+    }
+#endregion
+
+#region CustomInterpolators
+    static class UITKCustomInterpolators
+    {
+        // CopyToSDI: pass-through assignments that copy each custom interpolator from Varyings
+        // to SurfaceDescriptionInputs inside BuildSurfaceDescriptionInputs.
+        // PreSurface: defines CustomInterpolatorPassThroughFunc(Varyings, VertexDescription),
+        // which uie_custom_vert calls to copy custom interpolators from the vertex graph
+        // output into the Varyings before packing.
+        public static readonly CustomInterpSubGen.Collection Common = new CustomInterpSubGen.Collection
+        {
+            CustomInterpSubGen.Descriptor.MakeBlock(CustomInterpSubGen.Splice.k_spliceCopyToSDI, "output", "input"),
+            CustomInterpSubGen.Descriptor.MakeFunc(CustomInterpSubGen.Splice.k_splicePreSurface, "CustomInterpolatorPassThroughFunc", "Varyings", "VertexDescription", "CUSTOMINTERPOLATOR_VARYPASSTHROUGH_FUNC", "FEATURES_GRAPH_VERTEX"),
         };
     }
 #endregion

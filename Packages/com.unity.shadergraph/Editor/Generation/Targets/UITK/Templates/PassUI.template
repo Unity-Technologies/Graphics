@@ -39,6 +39,8 @@ Pass
    $Attributes.uv1:                        #define ATTRIBUTES_NEED_TEXCOORD1
    $Attributes.uv2:                        #define ATTRIBUTES_NEED_TEXCOORD2
    $Attributes.uv3:                        #define ATTRIBUTES_NEED_TEXCOORD3
+   $Attributes.uv4:                        #define ATTRIBUTES_NEED_TEXCOORD4
+   $Attributes.uv5:                        #define ATTRIBUTES_NEED_TEXCOORD5
    $Attributes.color:                      #define ATTRIBUTES_NEED_COLOR
    $Attributes.vertexID:                   #define ATTRIBUTES_NEED_VERTEXID
    $Attributes.instanceID:                 #define ATTRIBUTES_NEED_INSTANCEID
