@@ -1,5 +1,5 @@
-#if !PLATFORM_PS5 || UNITY_EDITOR
-#define PLATFORM_SUPPORTS_COMPUTE_BACKEND
+#if INCLUDE_UNIFIED_RAYTRACING_COMPUTE_BACKEND || UNITY_EDITOR
+#define INCLUDE_COMPUTE_BACKEND
 #endif
 using System;
 
@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             BackendType = backend;
             if (backend == RayTracingBackend.Hardware)
                 m_Backend = new HardwareRayTracingBackend(resources);
-#if PLATFORM_SUPPORTS_COMPUTE_BACKEND
+#if INCLUDE_COMPUTE_BACKEND
             else if (backend == RayTracingBackend.Compute)
                 m_Backend = new ComputeRayTracingBackend(resources);
 #endif
@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         {
             if (backend == RayTracingBackend.Hardware)
                 return SystemInfo.supportsRayTracing;
-#if PLATFORM_SUPPORTS_COMPUTE_BACKEND
+#if INCLUDE_COMPUTE_BACKEND
             else if (backend == RayTracingBackend.Compute)
                 return SystemInfo.supportsComputeShaders;
 #endif
