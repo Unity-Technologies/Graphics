@@ -675,10 +675,9 @@ namespace UnityEditor.Rendering.Universal
 
             if (m_ProviderFoldout.value)
             {
-
                 EditorGUILayout.PropertyField(m_ShapeLightFalloffSize, Styles.generalFalloffSize);
-                if (m_ShapeLightFalloffSize.floatValue < 0)
-                    m_ShapeLightFalloffSize.floatValue = 0;
+                if (m_ShapeLightFalloffSize.floatValue < 0 || m_ShapeLightFalloffSize.floatValue > Light2D.k_MaxFalloffSize)
+                    m_ShapeLightFalloffSize.floatValue = Mathf.Clamp(m_ShapeLightFalloffSize.floatValue, 0, Light2D.k_MaxFalloffSize);
 
                 EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
 
