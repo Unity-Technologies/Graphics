@@ -82,22 +82,7 @@ namespace UnityEngine.Rendering.Universal
         // Private Variables
         Material m_Material;
         Material m_BlitMaterial;
-        LocalKeywordSet m_LocalKeywords;
         bool m_AfterOpaque;
-
-        struct LocalKeywordSet
-        {
-            public LocalKeyword hiZTraceKeyword;
-            public LocalKeyword useMotionVectorsKeyword;
-            public LocalKeyword refineDepthKeyword;
-
-            public void Init(Shader shader)
-            {
-                hiZTraceKeyword = new(shader, k_HiZTrace);
-                useMotionVectorsKeyword = new(shader, k_UseMotionVectors);
-                refineDepthKeyword = new(shader, k_RefineDepth);
-            }
-        };
 
         readonly ProfilingSampler m_ProfilingSampler = URPProfilingSamplers.SSR;
         readonly ProfilingSampler m_DepthPyramidSampler = new("SSR - Depth Pyramid Generation");
@@ -128,7 +113,6 @@ namespace UnityEngine.Rendering.Universal
                 m_Material = material;
                 if (m_Material != null)
                 {
-                    m_LocalKeywords.Init(m_Material.shader);
                 }
             }
 
@@ -176,9 +160,8 @@ namespace UnityEngine.Rendering.Universal
             internal Matrix4x4[] cameraViews = new Matrix4x4[2];
             internal Vector4[] depthPyramidMipOffsets = new Vector4[15];
 
-            // Material containg SSR pass, and keywords.
+            // Material containing SSR pass.
             internal Material material;
-            internal LocalKeywordSet localKeywords;
 
             // MipInfo for HiZ marching.
             internal PackedMipChainInfo mipsInfo;
@@ -293,7 +276,6 @@ namespace UnityEngine.Rendering.Universal
                     // 65504 is the max representable FP16 value - use it to avoid an additional branch in shader.
                     passData.clampValue = settings.clampReflectedColor.value ? settings.maxColorValue.value : 65504.0f;
                     passData.material = m_Material;
-                    passData.localKeywords = m_LocalKeywords;
                     passData.mipsInfo = m_PackedMipChainInfo;
                     passData.cameraColor = cameraColorTexture;
                     passData.cameraDepth = cameraDepthTexture;
@@ -385,7 +367,8 @@ namespace UnityEngine.Rendering.Universal
                         SetupKeywordsAndParameters(ref ssrData);
 
                         var cmd = rgContext.cmd;
-                        ssrData.material.SetVector(ShaderConstants._SourceSize, PostProcessUtils.CalcShaderSourceSize(ssrData.cameraColor));
+                        Vector4 finalTextureSourceSize = PostProcessUtils.CalcShaderSourceSize(ssrData.cameraColor);
+                        ssrData.material.SetVector(ShaderConstants._SourceSize, finalTextureSourceSize);
 
                         ssrData.material.SetTexture(ShaderConstants._CameraDepthTexture, ssrData.cameraDepth);
 
@@ -411,37 +394,32 @@ namespace UnityEngine.Rendering.Universal
                         // Main SSR Pass
                         Blitter.BlitTexture(cmd, ssrData.ssrTexture, new Vector4(1, 1, 0, 0), ssrData.material, (int)ShaderPasses.Reflection);
 
-                        if (!ssrData.afterOpaque)
-                        {
-                            // We only want URP shaders to sample SSR if After Opaque is disabled...
-                            cmd.SetGlobalVector(ShaderConstants._ReflectionParam, new Vector4(1f, ssrData.minimumSmoothness, ssrData.smoothnessFadeStart, 0));
-                        }
+                        cmd.SetGlobalVector(ShaderConstants._ReflectionParam, new Vector4(1f, ssrData.minimumSmoothness, ssrData.smoothnessFadeStart, 0));
 
                         // This handles asymetric projections as well as orthographic ones. We only take into account the first eye as both eyes have the same "width", even
                         // if the projection is "flipped"
                         Vector3 right = ssrData.cameraInverseProjections[0].MultiplyPoint(new Vector3(1, 0, 0));
                         Vector3 left = ssrData.cameraInverseProjections[0].MultiplyPoint(new Vector3(-1, 0, 0));
-
-                        Vector4 ssrTextureSourceSize = PostProcessUtils.CalcShaderSourceSize(ssrData.ssrTexture);
-                        float ssrTextureLastMipIndex = Mathf.Log(ssrTextureSourceSize.x) / Mathf.Log(2);
-                        float ssrTextureLastValidMipIndex = ssrTextureLastMipIndex;
+                        
+                        float finalTextureLastMipIndex = Mathf.Log(finalTextureSourceSize.x) / Mathf.Log(2);
+                        float finalTextureLastValidMipIndex = finalTextureLastMipIndex;
                         // With gaussian blurring, we do not compute mips that are under k_MinimumResolutionGaussian pixels wide.
                         // See MipGenerator.RenderColorGaussianPyramid
                         if (ssrData.useGaussianBlur)
                         {
                             float mipOffset = Mathf.Log((float)MipGenerator.k_MinimumResolutionGaussian) / Mathf.Log(2);
-                            ssrTextureLastValidMipIndex = Mathf.Max(0, ssrTextureLastValidMipIndex - mipOffset);
+                            finalTextureLastValidMipIndex = Mathf.Max(0, finalTextureLastValidMipIndex - mipOffset);
                         }
 
                         const float k_SSRBlurReferenceLastMipIndex = 10.0f;
-                        float ssrTextureMipOffset = ssrTextureLastMipIndex - k_SSRBlurReferenceLastMipIndex;
+                        float finalTextureMipOffset = finalTextureLastMipIndex - k_SSRBlurReferenceLastMipIndex;
 
                         // Multiply by the ratio between a reference screen width and the actual width so we are independent of field of view.
                         const float k_SSRBlurReferenceScreenHalfWidth = 1.0f;
                         const float k_BlurrinessBase = 100f;
                         float screenHalfWidthAtOne = 0.5f * Math.Abs(left.x / left.z - right.x / right.z);
                         float blurriness = k_BlurrinessBase * Mathf.Pow(2f, ssrData.roughnessScale) * k_SSRBlurReferenceScreenHalfWidth / Math.Max(0.01f, screenHalfWidthAtOne);
-                        cmd.SetGlobalVector(ShaderConstants._ReflectionParam2, new Vector4(blurriness, ssrTextureMipOffset, ssrTextureLastValidMipIndex, 0));
+                        cmd.SetGlobalVector(ShaderConstants._ReflectionParam2, new Vector4(blurriness, finalTextureMipOffset, finalTextureLastValidMipIndex, 0));
                     });
                 }
 
@@ -568,9 +546,9 @@ namespace UnityEngine.Rendering.Universal
                 data.material.SetTexture(ShaderConstants._SsrDepthPyramid, data.depthPyramidTexture);
             }
 
-            CoreUtils.SetKeyword(data.material, data.localKeywords.hiZTraceKeyword, !data.linearMarching);
-            CoreUtils.SetKeyword(data.material, data.localKeywords.refineDepthKeyword, data.hitRefinementSteps > 0);
-            CoreUtils.SetKeyword(data.material, data.localKeywords.useMotionVectorsKeyword, !data.afterOpaque && !cameraData.isSceneViewCamera);
+            CoreUtils.SetKeyword(data.material, k_HiZTrace, !data.linearMarching);
+            CoreUtils.SetKeyword(data.material, k_RefineDepth, data.hitRefinementSteps > 0);
+            CoreUtils.SetKeyword(data.material, k_UseMotionVectors, !data.afterOpaque && !cameraData.isSceneViewCamera);
         }
 
         // Instead of calculating the 'floor' depth by adding a constant thickness to the linear depth from the depth buffer, we treat thickness as a multiplier

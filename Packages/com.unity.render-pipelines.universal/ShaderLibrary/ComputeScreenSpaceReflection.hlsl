@@ -394,25 +394,22 @@ float4 ComputeSSR(Varyings input) : SV_Target
     float3 rayDirWS = reflect(-positionToCamWS, normalWS);
 
     // Apply normal bias with the magnitude dependent on the distance from the camera.
-    #ifdef _HIZ_TRACE
     float3 camPosWS = GetCurrentViewPosition();
-    positionWS = camPosWS + (positionWS - camPosWS) * (1 - 0.001 * rcp(max(dot(normalWS, positionToCamWS), FLT_EPS)));
+    positionWS = camPosWS + (positionWS - camPosWS) * (1 - 0.001 * _Downsample * rcp(max(dot(normalWS, positionToCamWS), FLT_EPS)));
     deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(positionWS, _CameraViewProjections[unity_eyeIndex]).z;
-    #endif
 
     // Transform ray origin and direction to view space.
     float3 positionVS = mul(_CameraViews[unity_eyeIndex], float4(positionWS, 1)).xyz;
     float3 rayDirVS = SafeNormalize(mul(_CameraViews[unity_eyeIndex], float4(rayDirWS, 0)).xyz);
 
-    // Calculate ray end position in view space and screen space
-    float rayLength = 1;
-
-    #ifndef _HIZ_TRACE
     // Clamp ray length such that the end point is in front of the camera.
-    // Not needed for Hi-Z path as there is no end point, only a direction.
-    rayLength = rayDirVS.z > 0 ? min(GetMaxRayLength(), -positionVS.z / rayDirVS.z * 0.999) : GetMaxRayLength();
+    float maxRayLength = 1;
+    #ifndef _HIZ_TRACE
+    maxRayLength = GetMaxRayLength();
     #endif
+    float rayLength = rayDirVS.z > 0 ? min(maxRayLength, -positionVS.z / rayDirVS.z * 0.999) : maxRayLength;
 
+    // Calculate ray end position in view space and screen space
     float3 endPosVS = positionVS + rayDirVS * rayLength;
     float3 startPosNDC = float3(positionNDC, deviceDepth);
     float3 endPosNDC = ComputeNormalizedDeviceCoordinatesWithZ(endPosVS, _CameraProjections[unity_eyeIndex]);
@@ -505,7 +502,7 @@ float4 ComputeSSR(Varyings input) : SV_Target
             float4 rayHitPosCS = ComputeClipSpacePosition(rayHitPosNDC.xy, rayHitPosNDC.z);
             float4 rayHitPosVS = mul(_CameraInverseProjections[unity_eyeIndex], rayHitPosCS);
             rayHitPosVS.xyz /= rayHitPosVS.w;
-            fade *= smoothstep(GetMaxRayLength(), GetRayLengthFadeStart(), distance(positionVS, rayHitPosVS.xyz));
+            fade *= smoothstep(maxRayLength, GetRayLengthFadeStart(), distance(positionVS, rayHitPosVS.xyz));
         }
         #endif
 
@@ -548,7 +545,9 @@ float4 CompositeSSRAfterOpaque(Varyings input) : SV_Target
 
     // Fade out reflections with smoothness.
     // Not physically correct, but we can't do much better without more data.
-    reflColor.a *= perceptualSmoothness;
+    float fadeStart = _ScreenSpaceReflectionParam.y;
+    float fadeEnd = _ScreenSpaceReflectionParam.z;
+    reflColor.a *= smoothstep(fadeStart, fadeEnd, perceptualSmoothness);
 
     return reflColor;
 }
