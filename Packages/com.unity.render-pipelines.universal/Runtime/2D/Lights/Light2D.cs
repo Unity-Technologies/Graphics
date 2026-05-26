@@ -103,10 +103,11 @@ namespace UnityEngine.Rendering.Universal
             Version_Unserialized = 0,
             Version_1 = 1,
             Version_2 = 2,
-            Version_3 = 3
+            Version_3 = 3,
+            Version_4 = 4
         }
 
-        const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_3;
+        const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_4;
         [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
 
         static Bounds kEmptyBounds = new Bounds(Vector3.zero, Vector3.zero);
@@ -140,7 +141,7 @@ namespace UnityEngine.Rendering.Universal
         [Reload("Textures/2D/Sparkle.png")]
         [SerializeField] Sprite m_LightCookieSprite;
 
-        [FormerlySerializedAs("m_LightCookieSprite")]
+        [Obsolete("Use m_LightCookieSprite instead")]
         [SerializeField] Sprite m_DeprecatedPointLightCookieSprite;
 
         [SerializeField] int m_LightOrder = 0;
@@ -308,7 +309,6 @@ namespace UnityEngine.Rendering.Universal
         [Obsolete("#from(2023.1)")]
         public bool volumeIntensityEnabled { get => m_LightVolumeEnabled; set => m_LightVolumeEnabled = value; }
 
-
         /// <summary>
         /// Enables or disables the light's volume
         /// </summary>
@@ -318,7 +318,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// The Sprite that's used by the Sprite Light type to control the shape light
         /// </summary>
-        public Sprite lightCookieSprite { get { return lightType != LightType.Point ? m_LightCookieSprite : m_DeprecatedPointLightCookieSprite; } set => m_LightCookieSprite = value; }
+        public Sprite lightCookieSprite { get { return m_LightCookieSprite; } set => m_LightCookieSprite = value; }
 
         /// <summary>
         /// Controls the brightness and distance of the fall off (edge) of the light
@@ -708,19 +708,28 @@ namespace UnityEngine.Rendering.Universal
                 m_ComponentVersion = ComponentVersions.Version_1;
             }
 
-            if(m_ComponentVersion < ComponentVersions.Version_2)
+            if (m_ComponentVersion < ComponentVersions.Version_2)
             {
                 m_ShadowSoftness = 0;
             }
 
 
-            if(m_ComponentVersion < ComponentVersions.Version_3)
+            if (m_ComponentVersion < ComponentVersions.Version_3)
             {
 #if UNITY_EDITOR
                 m_SelectionSources.selectedHashCode = (int)m_LightType;
 #endif 
             }
+
+            if (m_ComponentVersion < ComponentVersions.Version_4)
+            {
+#pragma warning disable CS0618
+                if (m_LightType == LightType.Point && (object)m_DeprecatedPointLightCookieSprite != null)
+                {
+                    m_LightCookieSprite = m_DeprecatedPointLightCookieSprite;
+                }
+#pragma warning restore CS0618
+            }
         }
     }
-
 }
