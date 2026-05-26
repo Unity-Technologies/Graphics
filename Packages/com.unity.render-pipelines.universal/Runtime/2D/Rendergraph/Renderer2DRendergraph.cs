@@ -374,7 +374,6 @@ namespace UnityEngine.Rendering.Universal
 
             layerBatches = LayerUtility.CalculateBatches(renderData.renderingData, out var batchCount);
             renderData.batchCount = batchCount;
-            renderData.isLightingActive = IsSceneViewOrPreviewLightingActive(cameraData);
 
             // Initialize textures dependent on batch size
             if (resourceData.normalsTexture.Length != batchCount)
@@ -610,6 +609,7 @@ namespace UnityEngine.Rendering.Universal
 
         void CreateLightTextures(RenderGraph renderGraph, int width, int height)
         {
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
             var layerBatches = frameData.Get<Universal2DRenderingData>().layerBatches;
 
@@ -622,7 +622,7 @@ namespace UnityEngine.Rendering.Universal
                 for (var j = 0; j < layerBatches[i].activeBlendStylesIndices.Length; ++j)
                 {
                     var index = layerBatches[i].activeBlendStylesIndices[j];
-                    if (!Light2DManager.GetGlobalColor(layerBatches[i].startLayerID, index, out var clearColor))
+                    if (!Light2DManager.GetGlobalColor(layerBatches[i].startLayerID, index, cameraData.camera, out var clearColor))
                         clearColor = Color.black;
 
                     resourceData.lightTextures[i][j] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, RendererLighting.k_ShapeLightTextureIDs[index], true, clearColor, FilterMode.Bilinear);
@@ -1130,7 +1130,7 @@ namespace UnityEngine.Rendering.Universal
             get => !IsGLESDevice();
         }
 
-        static internal bool IsSceneViewOrPreviewLightingActive(UniversalCameraData cameraData)
+        internal static bool IsSceneViewOrPreviewLightingActive(UniversalCameraData cameraData)
         {
             DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(cameraData);
             var isLightingActive = debugHandler?.IsLightingActive ?? true;
@@ -1138,9 +1138,6 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             if (cameraData.isSceneViewCamera && UnityEditor.SceneView.currentDrawingSceneView != null)
                 isLightingActive &= UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
-
-            if (cameraData.isPreviewCamera && cameraData.camera.name == "Preview Scene Camera")
-                isLightingActive = false;
 #endif
 
             return isLightingActive;

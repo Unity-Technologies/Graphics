@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering.RenderGraphModule;
 using CommonResourceData = UnityEngine.Rendering.Universal.UniversalResourceData;
@@ -95,7 +94,7 @@ namespace UnityEngine.Rendering.Universal
             var layerBatch = rendering2DData.layerBatches[batchIndex];
 
             // Check for lighting in scene/prefab/preview camera 
-            var isLightingActive = rendering2DData.isLightingActive;
+            var isLightingActive = Renderer2D.IsSceneViewOrPreviewLightingActive(cameraData);
 
             // Preset global light textures for first batch
             if (batchIndex == 0)
@@ -188,6 +187,7 @@ namespace UnityEngine.Rendering.Universal
 
         void SetGlobalLightTextures(RenderGraph graph, IRasterRenderGraphBuilder builder, ContextContainer frameData, int batchIndex, bool isLightingActive)
         {
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             Renderer2DData rendererData = frameData.Get<Universal2DRenderingData>().renderingData;
             var layerBatch = frameData.Get<Universal2DRenderingData>().layerBatches[batchIndex];
             var lightTextures = frameData.Get<Universal2DResourceData>().lightTextures[batchIndex];
