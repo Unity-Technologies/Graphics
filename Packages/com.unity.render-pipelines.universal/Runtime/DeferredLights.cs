@@ -156,6 +156,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal int GBufferInputAttachmentCount { get { return 4 + (UseShadowMask ? 1 : 0); } }
 
+        // Keep these formats in sync with the formats in GBufferOutputFormat.hlsl
         internal GraphicsFormat GetGBufferFormat(int index)
         {
             if (index == GBufferAlbedoIndex) // sRGB albedo, materialFlags
