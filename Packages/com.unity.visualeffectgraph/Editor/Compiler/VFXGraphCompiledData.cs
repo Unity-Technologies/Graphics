@@ -877,21 +877,25 @@ namespace UnityEditor.VFX
             {
                 var descs = new VFXShaderSourceDesc[generatedCodeData.Count];
                 var assetName = string.Empty;
-                if (resource.asset != null)
+                //Primary source: assetPathString is set by the importer before compilation, reliable across rename
+                if (!string.IsNullOrEmpty(resource.assetPathString))
                 {
-                    assetName = resource.asset.name; //Most Common case, asset is already available
+                    assetName = Path.GetFileNameWithoutExtension(resource.assetPathString);
+                }
+                //Fallbacks kept for consistency
+                else if (resource.asset != null)
+                {
+                    assetName = resource.asset.name;
+                }
+                else if (!string.IsNullOrEmpty(resource.name))
+                {
+                    assetName = resource.name;
                 }
                 else
                 {
-                    var assetPath = AssetDatabase.GetAssetPath(resource); //Can occur during Copy/Past or Rename
+                    var assetPath = AssetDatabase.GetAssetPath(resource);
                     if (!string.IsNullOrEmpty(assetPath))
-                    {
                         assetName = Path.GetFileNameWithoutExtension(assetPath);
-                    }
-                    else if (resource.name != null) //Unable to retrieve asset path, last fallback use serialized resource name
-                    {
-                        assetName = resource.name;
-                    }
                 }
 
                 for (int i = 0; i < generatedCodeData.Count; ++i)

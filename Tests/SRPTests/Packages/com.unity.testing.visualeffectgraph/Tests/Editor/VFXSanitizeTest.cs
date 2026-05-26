@@ -664,5 +664,28 @@ namespace UnityEditor.VFX.Test
 
             Assert.IsFalse(FindInShaderSource(mainGraphAsset.GetResource(), "void Gravity"));
         }
+
+        [UnityTest, Description("Cover UUM-142861")]
+        public IEnumerator Repro_Rename_VFX_Keep_Shader_Name_In_Sync()
+        {
+            var graph = VFXTestCommon.CreateGraph_And_System();
+            var path = AssetDatabase.GetAssetPath(graph);
+            var filename = Path.GetFileNameWithoutExtension(path);
+
+            var resource = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path).GetResource();
+            Assert.IsTrue(resource.GetShaderSourceCount() > 0);
+            Assert.IsTrue(resource.GetShaderSourceName(0).Contains(filename), "Can't find {0} in {1}", filename, resource.GetShaderSourceName(0));
+            yield return null;
+
+            var newName = "ABCDEFGH";
+            var newPath = path.Replace(filename, newName);
+            AssetDatabase.RenameAsset(path, newName);
+            yield return null;
+
+            resource = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(newPath).GetResource();
+            Assert.IsTrue(resource.GetShaderSourceCount() > 0);
+            Assert.IsFalse(resource.GetShaderSourceName(0).Contains(filename), "Unexpected found {0} in {1}", filename, resource.GetShaderSourceName(0));
+            Assert.IsTrue(resource.GetShaderSourceName(0).Contains(newName), "Can't find {0} in {1}", filename, resource.GetShaderSourceName(0));
+        }
     }
 }

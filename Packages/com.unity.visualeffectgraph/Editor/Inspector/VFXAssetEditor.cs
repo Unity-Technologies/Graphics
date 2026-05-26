@@ -31,8 +31,26 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             return true;
         return false;
     }
-
 #endif
+    
+    static void ShowGeneratedShaderFile(string assetPath, string shaderName, string shaderSource, bool isCompute, int line = 0)
+    {
+        var ext = isCompute ? "compute" : "shader";
+        shaderName = string.Join("_", shaderName.Split(Path.GetInvalidFileNameChars()));
+        var assetName = Path.GetFileNameWithoutExtension(assetPath);
+        var path = Path.Combine("Temp", $"VFX-Shader-{assetName}-{shaderName}.{ext}");
+        using (var fileWriter = new StreamWriter(path))
+        {
+            fileWriter.WriteLine("// This is a copy of the source shader. Modifying this file will not affect the original shader.");
+            fileWriter.Write(shaderSource);
+        }
+
+        var fullPath = Path.GetFullPath(path);
+        var opened = InternalEditorUtility.OpenFileAtLineExternal(fullPath, line);
+        if (!opened)
+            Debug.LogWarning($"Unable to open {fullPath}: Check external editor in preferences");
+    }
+
     [OnOpenAsset(1)]
     public static bool OnOpenVFX(EntityId entityId, int line)
     {
@@ -44,19 +62,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             Selection.activeEntityId = entityId;
             return true;
         }
-        else if (obj is VisualEffectAsset vfxAsset)
-        {
-            var window = VFXViewWindow.GetWindow(vfxAsset, false);
-            if (window == null)
-            {
-                window = VFXViewWindow.GetWindow(vfxAsset, true);
-            }
-
-            window.LoadAsset(vfxAsset, null);
-            window.Focus();
-            return true;
-        }
-        else if (obj is VisualEffectSubgraph)
+        else if (obj is VisualEffectObject)
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(AssetDatabase.GetAssetPath(obj));
             var window = VFXViewWindow.GetWindow(resource, false);
@@ -76,12 +82,10 @@ class VisualEffectAssetEditor : UnityEditor.Editor
                 var resource = VisualEffectResource.GetResourceAtPath(path);
                 if (resource != null)
                 {
-                    int index = resource.GetShaderIndex(obj);
-                    //Shader Sources aren't kept in library, index can return -1 in that case
-                    //This behavior might be fixed after retrieving 02d730ef10eb5fc898d37682254c47588c3b8bed changes
+                    var index = resource.GetShaderIndex(obj);
                     if (index >= 0)
                     {
-                        resource.ShowGeneratedShaderFile(index, line);
+                        ShowGeneratedShaderFile(path, resource.GetShaderSourceName(index), resource.GetShaderSource(index), obj is ComputeShader, line);
                         return true;
                     }
                 }
@@ -839,31 +843,25 @@ class VisualEffectAssetEditor : UnityEditor.Editor
                 if (showShadersCategory)
                 {
                     string assetPath = AssetDatabase.GetAssetPath(asset);
-                    UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(assetPath);
-
-                    foreach (var shader in objects)
+                    int shaderSourceCount = resource.GetShaderSourceCount();
+                    for (int shaderIndex = 0; shaderIndex < shaderSourceCount; shaderIndex++)
                     {
-                        if (shader is ComputeShader or Shader)
+                        var shaderName = resource.GetShaderSourceName(shaderIndex);
+                        GUILayout.BeginHorizontal();
+                        EditorGUILayout.LabelField(shaderName.Replace('\n', ' '));
+                        if (GUILayout.Button("Show Generated", GUILayout.Width(110)))
                         {
-                            GUILayout.BeginHorizontal();
-                            int index = resource.GetShaderIndex(shader);
-                            EditorGUILayout.LabelField(shader.name.Replace('\n', ' '));
-
-                            if (index >= 0)
-                            {
-                                if (GUILayout.Button("Show Generated", GUILayout.Width(110)))
-                                {
-                                    resource.ShowGeneratedShaderFile(index);
-                                }
-                            }
-
-                            if (GUILayout.Button("Select", GUILayout.Width(50)))
-                            {
-                                Selection.activeObject = shader;
-                            }
-
-                            GUILayout.EndHorizontal();
+                            var source = resource.GetShaderSource(shaderIndex);
+                            var shader = resource.GetShader(shaderIndex);
+                            ShowGeneratedShaderFile(assetPath, shaderName, source, shader is ComputeShader);
                         }
+
+                        if (GUILayout.Button("Select", GUILayout.Width(50)))
+                        {
+                            Selection.activeObject = resource.GetShader(shaderIndex);
+                        }
+
+                        GUILayout.EndHorizontal();
                     }
                 }
             }
