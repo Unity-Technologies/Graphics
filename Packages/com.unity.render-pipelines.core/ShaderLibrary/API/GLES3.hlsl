@@ -38,6 +38,7 @@
 #define GLES3_1_AEP 0
 #endif
 
+// This define must be preserved for Shader Graph BiRP includes, don't use it in SRP.
 // GLES3 causes a performance regression in some devices when using CBUFFER.
 // WebGL needs to put LightShadow uniforms into a uniform buffer,
 // despite being a GLES3 API. Some mobile devices, such as Adreno GPUs,

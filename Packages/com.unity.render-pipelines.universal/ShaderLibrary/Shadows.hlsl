@@ -64,11 +64,7 @@ TEXTURE2D_SHADOW(_MainLightShadowmapTexture);
 TEXTURE2D_SHADOW(_AdditionalLightsShadowmapTexture);
 SAMPLER_CMP(sampler_LinearClampCompare);
 
-// GLES3 causes a performance regression in some devices when using CBUFFER.
-#ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_START(LightShadows)
-#endif
-
 // Last cascade is initialized with a no-op matrix. It always transforms
 // shadow coord to half3(0, 0, NEAR_PLANE). We use this trick to avoid
 // branching since ComputeCascadeIndex can return cascade index = MAX_SHADOW_CASCADES
@@ -99,10 +95,7 @@ float4      _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];         // Per-light da
 float4x4    _AdditionalLightsWorldToShadow[MAX_VISIBLE_LIGHTS];  // Per-shadow-slice-data
 #endif
 #endif
-
-#ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
-#endif
 
 #if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
     #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
