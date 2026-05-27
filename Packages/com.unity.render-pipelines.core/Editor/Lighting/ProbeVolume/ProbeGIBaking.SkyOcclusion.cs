@@ -157,6 +157,7 @@ namespace UnityEngine.Rendering
             GraphicsBuffer scratchBuffer;
             GraphicsBuffer probePositionsBuffer;
             GraphicsBuffer sobolBuffer;
+            bool m_HasTerrains;
 
             public override ulong currentStep => step;
             public override ulong stepCount => (ulong)probeCount;
@@ -183,7 +184,7 @@ namespace UnityEngine.Rendering
                     directionResults = new NativeArray<Vector3>(probeCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
                 // Create acceleration structure
-                m_AccelerationStructure = BuildAccelerationStructure();
+                m_AccelerationStructure = BuildAccelerationStructure(out m_HasTerrains);
                 var skyOcclusionShader = s_TracingContext.shaderSO;
                 bool skyDirection = shadingDirections.IsCreated;
 
@@ -203,7 +204,7 @@ namespace UnityEngine.Rendering
                 sobolBuffer.SetData(SobolData.SobolMatrices);
             }
 
-            static AccelStructAdapter BuildAccelerationStructure()
+            static AccelStructAdapter BuildAccelerationStructure(out bool hasTerrains)
             {
                 var accelStruct = s_TracingContext.CreateAccelerationStructure();
                 var contributors = m_BakingBatch.contributors;
@@ -226,11 +227,28 @@ namespace UnityEngine.Rendering
                     accelStruct.AddInstance(EntityId.ToULong(renderer.component.GetEntityId()), renderer.component, perSubMeshMask, matIndices, perSubMeshOpaqueness, 1);
                 }
 
+                hasTerrains = false;
 #if ENABLE_TERRAIN_MODULE
                 foreach (var terrain in contributors.terrains)
                 {
                     uint mask = GetInstanceMask(terrain.component.shadowCastingMode);
-                    accelStruct.AddInstance(EntityId.ToULong(terrain.component.GetEntityId()), terrain.component, new uint[1] { mask }, new uint[1] { 0 }, new bool[1] { true }, 1);
+
+                    hasTerrains = true;
+
+                    ExtractTerrainData(terrain.component, out var heightData, out var heightmapResolution,
+                        out var heightmapScale, out var holeData, out var holeResolution);
+
+                    accelStruct.AddTerrainInstance(
+                        EntityId.ToULong(terrain.component.GetEntityId()),
+                        heightData,
+                        heightmapResolution,
+                        heightmapScale,
+                        holeData,
+                        holeResolution,
+                        terrain.component.transform.localToWorldMatrix,
+                        0,           // materialID
+                        1,
+                        mask); // renderingLayerMask
                 }
 #endif
 
@@ -251,6 +269,7 @@ namespace UnityEngine.Rendering
 
                 var cmd = new CommandBuffer();
                 var skyOccShader = s_TracingContext.shaderSO;
+                skyOccShader.SetKeyword(cmd, skyOccShader.CreateLocalKeyword("TERRAIN_RAY_MARCHING_ENABLED"), m_HasTerrains);
 
                 // Divide the job into batches of 128k probes to reduce memory usage.
                 int batchCount = CoreUtils.DivRoundUp(job.probeCount, k_MaxProbeCountPerBatch);
@@ -265,6 +284,8 @@ namespace UnityEngine.Rendering
 
                 s_TracingContext.BindSamplingTextures(cmd);
                 m_AccelerationStructure.Bind(cmd, "_AccelStruct", skyOccShader);
+                if (m_HasTerrains)
+                    m_AccelerationStructure.BindTerrainResources(cmd, skyOccShader);
 
                 skyOccShader.SetIntParam(cmd, _BakeSkyShadingDirection, shadingDirections.IsCreated ? 1 : 0);
                 skyOccShader.SetIntParam(cmd, _BackFaceCulling, skyOcclusionBackFaceCulling);

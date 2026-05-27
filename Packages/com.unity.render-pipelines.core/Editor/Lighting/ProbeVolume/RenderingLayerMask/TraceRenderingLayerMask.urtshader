@@ -1,4 +1,5 @@
 #pragma only_renderers d3d11 xboxone xboxseries vulkan metal webgpu
+#pragma multi_compile _ TERRAIN_RAY_MARCHING_ENABLED
 #define UNIFIED_RT_GROUP_SIZE_X 64
 #define UNIFIED_RT_GROUP_SIZE_Y 1
 #pragma exclude_renderers webgpu
@@ -7,7 +8,16 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ShaderVariablesProbeVolumes.cs.hlsl"
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl"
+
+#ifdef TERRAIN_RAY_MARCHING_ENABLED
+// Terrain ray marching resources
+Texture2DArray<float> _TerrainTexture;
+SamplerState sampler_TerrainTexture;
+float _TerrainTextureInvWidth;
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/TerrainRayMarching.hlsl"
+#endif
+#include "Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/TraceRayProbeVolume.hlsl"
 
 #define SAMPLE_COUNT 32
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
@@ -40,7 +50,7 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
         ray.direction = MapSquareToSphere(u);
 
         uint hitMask = 0;
-        UnifiedRT::Hit hit = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, ray, 0);
+        UnifiedRT::Hit hit = TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, ray, 0);
 
         if (hit.IsValid() & hit.isFrontFace)
         {

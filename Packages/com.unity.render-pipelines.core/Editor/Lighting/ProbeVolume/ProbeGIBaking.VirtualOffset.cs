@@ -80,6 +80,7 @@ namespace UnityEngine.Rendering
             private GraphicsBuffer probeBuffer;
             private GraphicsBuffer offsetBuffer;
             private GraphicsBuffer scratchBuffer;
+            private bool m_HasTerrains;
 
             public override ulong currentStep => (ulong)batchPosIdx;
             public override ulong stepCount => batchResult == null ? 0 : (ulong)positions.Length;
@@ -114,7 +115,7 @@ namespace UnityEngine.Rendering
                     | GraphicsBuffer.Target.Structured;
 
                 // Create acceletation structure
-                m_AccelerationStructure = BuildAccelerationStructure(voSettings.collisionMask);
+                m_AccelerationStructure = BuildAccelerationStructure(voSettings.collisionMask, out m_HasTerrains);
                 var virtualOffsetShader = s_TracingContext.shaderVO;
 
                 probeBuffer = new GraphicsBuffer(computeBufferTarget, k_MaxProbeCountPerBatch, Marshal.SizeOf<ProbeData>());
@@ -128,7 +129,7 @@ namespace UnityEngine.Rendering
                 cmd.Dispose();
             }
 
-            static AccelStructAdapter BuildAccelerationStructure(int mask)
+            static AccelStructAdapter BuildAccelerationStructure(int mask, out bool hasTerrains)
             {
                 var accelStruct = s_TracingContext.CreateAccelerationStructure();
                 var contributors = m_BakingBatch.contributors;
@@ -154,6 +155,7 @@ namespace UnityEngine.Rendering
                     accelStruct.AddInstance(EntityId.ToULong(renderer.component.GetEntityId()), renderer.component, maskAndMatDummy, maskAndMatDummy, perSubMeshOpaqueness, 1);
                 }
 
+                hasTerrains = false;
 #if ENABLE_TERRAIN_MODULE
                 foreach (var terrain in contributors.terrains)
                 {
@@ -161,7 +163,22 @@ namespace UnityEngine.Rendering
                     if ((layerMask & mask) == 0)
                         continue;
 
-                    accelStruct.AddInstance(EntityId.ToULong(terrain.component.GetEntityId()), terrain.component, new uint[1] { 0xFFFFFFFF }, new uint[1] { 0xFFFFFFFF }, new bool[1] { true }, 1);
+                    hasTerrains = true;
+
+                    ExtractTerrainData(terrain.component, out var heightData, out var heightmapResolution,
+                        out var heightmapScale, out var holeData, out var holeResolution);
+
+                    accelStruct.AddTerrainInstance(
+                        EntityId.ToULong(terrain.component.GetEntityId()),
+                        heightData,
+                        heightmapResolution,
+                        heightmapScale,
+                        holeData,
+                        holeResolution,
+                        terrain.component.transform.localToWorldMatrix,
+                        0xFFFFFFFF,  // materialID
+                        1, // renderingLayerMask
+                        0xFFFFFFFF); // mask
                 }
 #endif
 
@@ -231,7 +248,11 @@ namespace UnityEngine.Rendering
                 // Execute job
                 var cmd = new CommandBuffer();
                 var virtualOffsetShader = s_TracingContext.shaderVO;
+                virtualOffsetShader.SetKeyword(cmd, virtualOffsetShader.CreateLocalKeyword("TERRAIN_RAY_MARCHING_ENABLED"), m_HasTerrains);
+
                 m_AccelerationStructure.Bind(cmd, "_AccelStruct", virtualOffsetShader);
+                if (m_HasTerrains)
+                    m_AccelerationStructure.BindTerrainResources(cmd, virtualOffsetShader);
                 virtualOffsetShader.SetBufferParam(cmd, _Probes, probeBuffer);
                 virtualOffsetShader.SetBufferParam(cmd, _Offsets, offsetBuffer);
 
@@ -471,6 +492,50 @@ namespace UnityEngine.Rendering
             }
 
             return instanceMask;
+        }
+
+        static void ExtractTerrainData(
+            Terrain terrain,
+            out short[] heightData,
+            out int heightmapResolution,
+            out Unity.Mathematics.float3 heightmapScale,
+            out byte[] holeData,
+            out int holeResolution)
+        {
+            var terrainData = terrain.terrainData;
+            heightmapResolution = terrainData.heightmapResolution;
+            heightmapScale = new Unity.Mathematics.float3(
+                terrainData.heightmapScale.x,
+                terrainData.heightmapScale.y,
+                terrainData.heightmapScale.z);
+
+            var heights = terrainData.GetHeights(0, 0, heightmapResolution, heightmapResolution);
+            heightData = new short[heightmapResolution * heightmapResolution];
+            for (int y = 0; y < heightmapResolution; y++)
+            {
+                for (int x = 0; x < heightmapResolution; x++)
+                {
+                    int idx = y * heightmapResolution + x;
+                    heightData[idx] = (short)(heights[y, x] * 32766.0f);
+                }
+            }
+
+            // Extract holes if present
+            holeData = null;
+            holeResolution = 0;
+            if (terrainData.holesResolution > 0)
+            {
+                holeResolution = terrainData.holesResolution;
+                var holes = terrainData.GetHoles(0, 0, holeResolution, holeResolution);
+                holeData = new byte[holeResolution * holeResolution];
+                for (int y = 0; y < holeResolution; y++)
+                {
+                    for (int x = 0; x < holeResolution; x++)
+                    {
+                        holeData[y * holeResolution + x] = holes[y, x] ? (byte)1 : (byte)0;
+                    }
+                }
+            }
         }
 
         static uint[] GetMaterialIndices(Renderer renderer)

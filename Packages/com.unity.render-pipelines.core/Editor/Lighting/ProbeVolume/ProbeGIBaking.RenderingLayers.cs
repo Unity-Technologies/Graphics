@@ -66,6 +66,7 @@ namespace UnityEngine.Rendering
             GraphicsBuffer scratchBuffer;
             GraphicsBuffer probePositionsBuffer;
             GraphicsBuffer sobolBuffer;
+            bool m_HasTerrains;
 
             public override ulong currentStep => (ulong)batchIndex;
             public override ulong stepCount => (ulong)batchCount;
@@ -88,7 +89,7 @@ namespace UnityEngine.Rendering
                 layerMask = new NativeArray<uint>(probePositions.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
                 // Create acceleration structure
-                m_AccelerationStructure = BuildAccelerationStructure();
+                m_AccelerationStructure = BuildAccelerationStructure(out m_HasTerrains);
 
                 int batchSize = Mathf.Min(k_MaxProbeCountPerBatch, probePositions.Length);
                 probePositionsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, batchSize, Marshal.SizeOf<Vector3>());
@@ -105,7 +106,7 @@ namespace UnityEngine.Rendering
                 cmd.Clear();
             }
 
-            static AccelStructAdapter BuildAccelerationStructure()
+            static AccelStructAdapter BuildAccelerationStructure(out bool hasTerrains)
             {
                 var accelStruct = s_TracingContext.CreateAccelerationStructure();
                 var contributors = m_BakingBatch.contributors;
@@ -130,12 +131,29 @@ namespace UnityEngine.Rendering
                     accelStruct.AddInstance(EntityId.ToULong(renderer.component.GetEntityId()), renderer.component, perSubMeshMask, matIndices, perSubMeshOpaqueness, 1);
                 }
 
+                hasTerrains = false;
 #if ENABLE_TERRAIN_MODULE
                 foreach (var terrain in contributors.terrains)
                 {
                     uint mask = GetInstanceMask(terrain.component.shadowCastingMode);
-                    uint materialID = terrain.component.renderingLayerMask; // repurpose the material id as we don't need it here
-                    accelStruct.AddInstance(EntityId.ToULong(terrain.component.GetEntityId()), terrain.component, new uint[1] { mask }, new uint[1] { materialID }, new bool[1] { true }, 1);
+                    uint materialID = terrain.component.renderingLayerMask; // Using rendering layer as material ID (intentional)
+
+                    hasTerrains = true;
+
+                    ExtractTerrainData(terrain.component, out var heightData, out var heightmapResolution,
+                        out var heightmapScale, out var holeData, out var holeResolution);
+
+                    accelStruct.AddTerrainInstance(
+                        EntityId.ToULong(terrain.component.GetEntityId()),
+                        heightData,
+                        heightmapResolution,
+                        heightmapScale,
+                        holeData,
+                        holeResolution,
+                        terrain.component.transform.localToWorldMatrix,
+                        materialID,  // Using renderingLayerMask as materialID (intentional)
+                        1,
+                        mask);
                 }
 #endif
 
@@ -148,12 +166,15 @@ namespace UnityEngine.Rendering
                     return true;
 
                 var shader = s_TracingContext.shaderRL;
+                shader.SetKeyword(cmd, shader.CreateLocalKeyword("TERRAIN_RAY_MARCHING_ENABLED"), m_HasTerrains);
 
                 int batchOffset = batchIndex * k_MaxProbeCountPerBatch;
                 int batchSize = Mathf.Min(probePositions.Length - batchOffset, k_MaxProbeCountPerBatch);
                 cmd.SetBufferData(probePositionsBuffer, probePositions.GetSubArray(batchOffset, batchSize));
 
                 m_AccelerationStructure.Bind(cmd, "_AccelStruct", shader);
+                if (m_HasTerrains)
+                    m_AccelerationStructure.BindTerrainResources(cmd, shader);
                 shader.SetVectorParam(cmd, _RenderingLayerMasks, regionMasks);
                 shader.SetBufferParam(cmd, _ProbePositions, probePositionsBuffer);
                 shader.SetBufferParam(cmd, _LayerMasks, layerMaskBuffer);
