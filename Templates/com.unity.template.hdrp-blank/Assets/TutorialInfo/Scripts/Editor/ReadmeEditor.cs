@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using System;
 using System.IO;
 using System.Reflection;
 
@@ -10,6 +9,7 @@ using System.Reflection;
 [InitializeOnLoad]
 public class ReadmeEditor : Editor
 {
+
     static readonly string s_ShowedReadmeSessionStateName = "ReadmeEditor.showedReadme";
     static readonly string s_ReadmeSourceDirectory = "Assets/TutorialInfo";
 

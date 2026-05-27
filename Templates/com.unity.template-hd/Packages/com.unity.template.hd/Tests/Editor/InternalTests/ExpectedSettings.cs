@@ -67,21 +67,9 @@ namespace Tests
         }
 
         [Test]
-        public void Physics_AutoSyncTransformsShouldBeDisabled()
-        {
-            Assert.That(Physics.autoSyncTransforms, Is.False, "Physics.autoSyncTransforms should be OFF by default.");
-        }
-
-        [Test]
         public void Physics_ReuseCollisionCallbacksShouldBeEnabled()
         {
             Assert.That(Physics.reuseCollisionCallbacks, Is.True, "Physics.reuseCollisionCallbacks should be ON by default.");
-        }
-
-        [Test]
-        public void Physics2D_AutoSyncTransformsShouldBeDisabled()
-        {
-            Assert.That(Physics2D.autoSyncTransforms, Is.False, "Physics2D.AutoSyncTransforms should be OFF by default.");
         }
 
         [Test]

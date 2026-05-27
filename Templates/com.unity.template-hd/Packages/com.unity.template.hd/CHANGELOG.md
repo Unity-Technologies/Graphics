@@ -4,6 +4,16 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [16.2.0] - 2026-04-29
+
+### Added
+
+- Added support for fast enter playmode [COPT-3750]
+
+### Changed
+
+- Upgraded version to 6000.6.0a5
+
 ## [16.1.2] - 2025-12-08
 
 ### Added
