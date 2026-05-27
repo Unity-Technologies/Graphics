@@ -9,6 +9,7 @@ using Object = UnityEngine.Object;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.UI;
 using UnityEditor.Compilation;
+using UnityEditor.AssetPackage;
 
 //Not strictly test, these helpers are used to upgrade project
 namespace UnityEditor.VFX.Update
@@ -75,7 +76,7 @@ namespace UnityEditor.VFX.Update
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 exportedPackageAssetList.Add(path);
             }
-            AssetDatabase.ExportPackage(exportedPackageAssetList.ToArray(), absolutePath, ExportPackageOptions.Recurse);
+            Package.Export(new ExportPackageParameters(exportedPackageAssetList.ToArray(), absolutePath, "", ExportPackageOptions.Recurse));
             yield return null;
 
             AssetDatabase.DeleteAsset(expectedDirectory);

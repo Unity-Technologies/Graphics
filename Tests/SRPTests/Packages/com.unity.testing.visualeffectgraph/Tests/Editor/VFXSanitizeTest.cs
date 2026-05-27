@@ -123,7 +123,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Sanitize_Subgraph_Scenario_All()
         {
             var packagePath = $"Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/VFXSubgraphRepro_H_61.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
             VFXAssetManager.BuildAndSave();
             for (int i = 0; i < 4; ++i)
                 yield return null;
@@ -133,7 +133,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Sanitize_Subgraph_Scenario([ValueSource(nameof(kScenarios))] string scenario)
         {
             var packagePath = $"Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/VFXSubgraphRepro_{scenario}.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
             AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
             yield return null;
 
@@ -199,7 +199,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Subgraph_Block_Which_Uses_GetData()
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_Subgraph_With_Euler.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
             AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
 
             yield return null;
@@ -229,7 +229,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Change_SG_Exposed_Properties_With_Order_Two_Subgraph([ValueSource(nameof(kFalseOrTrue))] bool sanitizeRoot, [ValueSource(nameof(kFalseOrTrue))] bool sanitizeChild)
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_SG_Subgraph_Missing_Sanitize.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
             AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
 
             var sgAPath = VFXTestCommon.tempBasePath + "VFX_SG_A.shadergraph";
@@ -313,7 +313,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Change_VFX_Exposed_Properties_With_Order_Two_Subgraph([ValueSource(nameof(kFalseOrTrue))] bool sanitizeRoot, [ValueSource(nameof(kFalseOrTrue))] bool sanitizeChild)
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_VFX_SubgraphBlocks.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
             AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
             yield return null;
 
@@ -462,7 +462,7 @@ namespace UnityEditor.VFX.Test
             yield return null;
             Assert.AreEqual(0, SanitizeTest_PostProcessor.Count);
 
-            AssetDatabase.ImportPackageImmediately(kInsure_OnPostprocessAllAssets_PackagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(kInsure_OnPostprocessAllAssets_PackagePath);
             for (int i = 0; i < 4; i++)
                 yield return null;
             Assert.AreEqual(1, SanitizeTest_PostProcessor.Count);
@@ -512,7 +512,7 @@ namespace UnityEditor.VFX.Test
 
                 //Restore for next loop
                 SanitizeTest_PostProcessor.Count = 0;
-                AssetDatabase.ImportPackageImmediately(kInsure_OnPostprocessAllAssets_PackagePath);
+                UnityEditor.AssetPackage.Utility.ImportPackageImmediately(kInsure_OnPostprocessAllAssets_PackagePath);
                 for (int i = 0; i < 4; i++)
                     yield return null;
                 Assert.AreEqual(1, SanitizeTest_PostProcessor.Count);
@@ -620,7 +620,7 @@ namespace UnityEditor.VFX.Test
                 Assert.IsTrue(SanitizeTest_PostProcessor.LastImportedAssets.Contains(mainAssetPath), "Can't find mainAsset: {0} after change of: {1}", mainAssetPath, basePath);
 
                 SanitizeTest_PostProcessor.Count = 0;
-                AssetDatabase.ImportPackageImmediately(kInsure_OnPostprocessAllAssets_PackagePath);
+                UnityEditor.AssetPackage.Utility.ImportPackageImmediately(kInsure_OnPostprocessAllAssets_PackagePath);
                 yield return null;
                 Assert.AreEqual(1, SanitizeTest_PostProcessor.Count);
             }
@@ -642,7 +642,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Repro_Simplest_Subgraph_Chain()
         {
             VFXTestCommon.CloseAllVFXWindow();
-            AssetDatabase.ImportPackageImmediately("Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_Simplest_Subgraph_Chain.unitypackage");
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately("Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_Simplest_Subgraph_Chain.unitypackage");
             AssetDatabase.Refresh();
             yield return null;
 

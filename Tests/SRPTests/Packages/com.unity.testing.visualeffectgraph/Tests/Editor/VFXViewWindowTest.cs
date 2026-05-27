@@ -410,7 +410,7 @@ namespace UnityEditor.VFX.Test
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_84307.unitypackage";
             var vfxPath = VFXTestCommon.tempBasePath + "/Repro_84307.vfx";
 
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
             AssetDatabase.SaveAssets();
             yield return null;
 
@@ -565,7 +565,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Subgraph_Update_With_Main_Window_Opened()
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_Subgraph_Add_Exposed_Input.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
 
             var vfxPathMain = VFXTestCommon.tempBasePath + "/Repro_Subgraph_Main.vfx";
             var vfxPath_A = VFXTestCommon.tempBasePath + "/Repro_Subgraph_A.vfxoperator";
@@ -957,7 +957,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Open_Graph_And_Delete_And_Restore()
         {
             var packagePath = Path.Combine("Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/", "Repro_Delete_And_Reimport.unitypackage");
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
 
             var vfxPath = Path.Combine(VFXTestCommon.tempBasePath, "Delete_And_Reimport.vfx");
             var subgraphPath = Path.Combine(VFXTestCommon.tempBasePath, "Delete_And_Reimport.vfxoperator");
@@ -965,7 +965,7 @@ namespace UnityEditor.VFX.Test
             VFXTestCommon.CloseAllVFXWindow();
             for (int i = 0; i < 3; i++)
             {
-                AssetDatabase.ImportPackageImmediately(packagePath);
+                UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
                 var vfxResource = VisualEffectResource.GetResourceAtPath(vfxPath);
                 var subgraphResource = VisualEffectResource.GetResourceAtPath(subgraphPath);
                 Assert.IsNotNull(vfxResource);
@@ -1040,7 +1040,7 @@ namespace UnityEditor.VFX.Test
         [UnityTest, Description("Corner case discovered while verifying #73468")]
         public IEnumerator ConvertToSubGraph_With_CustomHLSL()
         {
-            AssetDatabase.ImportPackage("Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_Subgraph_CustomHLSL.unitypackage", false);
+            UnityEditor.AssetPackage.Package.Import("Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_Subgraph_CustomHLSL.unitypackage", false);
             yield return null;
 
             var scene = SceneManagement.EditorSceneManager.OpenScene("Assets/TmpTests/Repro_Subgraph_CustomHLSL.unity");

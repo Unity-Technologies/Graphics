@@ -1738,7 +1738,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator SubgraphNested_Unexpected_ExpressionCount()
         {
             var packagePath = "Assets/AllTests/Editor/Tests/Repro_SubgraphNested_ExpressionCount.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
             yield return null;
 
             var mainPath = "Assets/TmpTests/Repro_NestedSubgraph_ExpressionCount.vfx";
@@ -1836,7 +1836,7 @@ namespace UnityEditor.VFX.Test
         {
             //N.B.: The "Bis" package doesn't use activation slot
             var packagePath = $"Assets/AllTests/Editor/Tests/Repro_Subgraph_ActivationSlot{(useVariant ? "_Bis" : string.Empty)}.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
             yield return null;
 
             var mainPath = $"Assets/TmpTests/Repro_Subgraph_ActivationSlot{(useVariant ? "_Bis" : string.Empty)}.vfx";
@@ -1943,7 +1943,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Subgraph_Dont_Invalidate_MainGraph_Infinitely()
         {
             var packagePath = "Assets/AllTests/Editor/Tests/Repro_Subgraph_Infinite_Compilation.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
             yield return null;
 
             var mainPath = "Assets/TmpTests/Repro_Subgraph_Infinite_Compilation.vfx";

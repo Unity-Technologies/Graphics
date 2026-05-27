@@ -478,7 +478,7 @@ internal class SampleDependencyImporter : IPackageManagerExtension
         if (Directory.Exists(packageFullPath) && !importingTextMeshProEssentialResources && !essentialResourcesImported)
         {
             importingTextMeshProEssentialResources = true;
-            AssetDatabase.ImportPackage(packageFullPath + "/Package Resources/TMP Essential Resources.unitypackage", interactive: false);
+            UnityEditor.AssetPackage.Package.Import(packageFullPath + "/Package Resources/TMP Essential Resources.unitypackage", interactive: false);
         }
     }
 

@@ -9,6 +9,7 @@ using UnityEditor.VFX.Block;
 using UnityEngine.TestTools;
 using System.Collections;
 using UnityEditor.Rendering;
+using UnityEditor.AssetPackage;
 
 namespace UnityEditor.VFX.Test
 {
@@ -69,7 +70,7 @@ namespace UnityEditor.VFX.Test
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/VFXShaderGraphOutput_Migration.unitypackage";
             var vfxPath = VFXTestCommon.tempBasePath + "/SG_Outputs.vfx";
 
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            AssetPackage.Utility.ImportPackageImmediately(packagePath);
             AssetDatabase.SaveAssets(); //ease potential debug while looking at final data
             var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
             Assert.IsNotNull(vfxAsset);
@@ -261,7 +262,7 @@ namespace UnityEditor.VFX.Test
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/DualOutput_ContextLetters.unitypackage";
             var vfxPath = VFXTestCommon.tempBasePath + "/DualOutput.vfx";
 
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            AssetPackage.Utility.ImportPackageImmediately(packagePath);
             AssetDatabase.SaveAssets(); //ease potential debug while looking at final data
 
             var allAssets = AssetDatabase.LoadAllAssetsAtPath(vfxPath);
@@ -489,7 +490,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator ShaderGraph_With_Gradient_In_Blackboard()
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/VFXSG_Gradient_Repro_69751.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            AssetPackage.Utility.ImportPackageImmediately(packagePath);
             AssetDatabase.SaveAssets();
             yield return null;
 
@@ -535,7 +536,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator ShaderGraph_Strip_Without_Any_Warnings()
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_92778.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            AssetPackage.Utility.ImportPackageImmediately(packagePath);
             AssetDatabase.SaveAssets();
             yield return null;
 
@@ -583,7 +584,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Output_Mesh_With_Strip_System([ValueSource(nameof(kChangeMeshLodCount))] bool changeMeshLodCount)
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_97850.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            AssetPackage.Utility.ImportPackageImmediately(packagePath);
             AssetDatabase.SaveAssets();
             yield return null;
 
@@ -638,7 +639,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Check_Validate_Graph_With_Sample_Gradient()
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_97805.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            AssetPackage.Utility.ImportPackageImmediately(packagePath);
             AssetDatabase.SaveAssets();
             yield return null;
 

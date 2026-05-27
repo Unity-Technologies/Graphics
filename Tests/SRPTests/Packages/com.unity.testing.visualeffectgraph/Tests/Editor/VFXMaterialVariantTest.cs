@@ -85,7 +85,7 @@ namespace UnityEditor.VFX.Test
 
             for (int i = 0; i < 3; ++i)
             {
-                AssetDatabase.ImportPackageImmediately(packagePath);
+                UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
                 AssetDatabase.ImportAsset(vfxPath);
                 var materials = AssetDatabase.LoadAllAssetsAtPath(vfxPath).OfType<Material>().ToArray();
                 var shaders = AssetDatabase.LoadAllAssetsAtPath(vfxPath).OfType<Shader>().ToArray();
@@ -99,7 +99,7 @@ namespace UnityEditor.VFX.Test
         {
             GetVFXMaterialVariantUpgradeAsset(out var packagePath, out var vfxPath);
 
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
             var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
             var vfxGraph = vfxAsset.GetResource().GetGraph();
             vfxGraph.PrepareGraph();
@@ -170,7 +170,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Failing_SG_Target_With_Current_Pipeline()
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_115004.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
             yield return null;
 
             var vfxPath = VFXTestCommon.tempBasePath + "Repro_UUM_115004.vfx";
@@ -345,7 +345,7 @@ namespace UnityEditor.VFX.Test
         {
             var baseDataPath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/";
             var packagePath = baseDataPath + "/Repro_97849.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
             yield return null;
 
             var shaderGraphPath_A = AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(VFXTestCommon.tempBasePath + "/VFX_With_SG_A.shadergraph");
@@ -901,7 +901,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsFalse(source.Contains("_SquareRoot_"));
 
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_Live_Edition_With_SG.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
             yield return null;
 
             var pathSgA = Path.Combine(VFXTestCommon.tempBasePath, "Live_Edition_With_SG_A.shadergraph");
