@@ -4,7 +4,6 @@ using System;
 using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.PathTracing.Core;
-using UnityEngine.Rendering.LiveGI;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.UnifiedRayTracing;
 
@@ -307,9 +306,6 @@ namespace UnityEngine.Rendering.Universal
             private RTHandle _lowResScreenNdcDepths;
             private GraphicsBuffer _worldUpdateScratch;
 
-            private readonly SceneUpdatesTracker _sceneTracker;
-            private readonly SurfaceCacheLegacyWorldAdapter _legacyWorldAdapter;
-
             private readonly SurfaceCacheWorldAdapter _worldAdapter;
             private readonly InternalBridge.ObjectDispatcher _objDispatcher;
 
@@ -412,17 +408,8 @@ namespace UnityEngine.Rendering.Universal
                 _world = new SurfaceCacheWorld();
                 _world.Init(_rtContext, worldResources);
 
-                bool useLegacyAdapter = true;
-                if (useLegacyAdapter)
-                {
-                    _sceneTracker = new();
-                    _legacyWorldAdapter = new SurfaceCacheLegacyWorldAdapter(_world, fallbackMaterial);
-                }
-                else
-                {
-                    _objDispatcher = new();
-                    _worldAdapter = new SurfaceCacheWorldAdapter(_objDispatcher, _world, fallbackMaterial);
-                }
+                _objDispatcher = new();
+                _worldAdapter = new SurfaceCacheWorldAdapter(_objDispatcher, _world, fallbackMaterial);
             }
 
             public void Dispose()
@@ -435,10 +422,8 @@ namespace UnityEngine.Rendering.Universal
                 _lowResScreenIrradiancesL12?.Release();
                 _lowResScreenNdcDepths?.Release();
                 _cache.Dispose();
-                _sceneTracker?.Dispose();
-                _legacyWorldAdapter?.Dispose();
-                _worldAdapter?.CleanUp(_world);
-                _objDispatcher?.Dispose();
+                _worldAdapter.CleanUp(_world);
+                _objDispatcher.Dispose();
                 _world.Dispose();
                 _worldUpdateScratch?.Dispose();
             }
@@ -688,29 +673,16 @@ namespace UnityEngine.Rendering.Universal
                 // the case for the standard ambient probe lighting, which is assumed to be in gamma space and then converted to
                 // linear space. We will make this more coherent for the ambient probe in the future.
                 // Similarly, the ambient colors are all defined in sRGB space and must be converted to linear.
-                if (_legacyWorldAdapter != null)
-                {
-                    Debug.Assert(_sceneTracker != null);
-                    Debug.Assert(_objDispatcher == null);
-                    _legacyWorldAdapter.Update(_sceneTracker, RenderSettings.ambientMode, RenderSettings.skybox,
-                        RenderSettings.ambientSkyColor.linear, RenderSettings.ambientEquatorColor.linear, RenderSettings.ambientGroundColor.linear,
-                        RenderSettings.ambientIntensity, k_ConformToUnityGIFormat, _world);
-                }
-                else
-                {
-                    Debug.Assert(_objDispatcher != null);
-                    Debug.Assert(_sceneTracker == null);
-                    _worldAdapter.Update(
-                        _objDispatcher,
-                        RenderSettings.ambientMode,
-                        RenderSettings.skybox,
-                        RenderSettings.ambientSkyColor.linear,
-                        RenderSettings.ambientEquatorColor.linear,
-                        RenderSettings.ambientGroundColor.linear,
-                        RenderSettings.ambientIntensity,
-                        k_ConformToUnityGIFormat,
-                        _world);
-                }
+                _worldAdapter.Update(
+                    _objDispatcher,
+                    RenderSettings.ambientMode,
+                    RenderSettings.skybox,
+                    RenderSettings.ambientSkyColor.linear,
+                    RenderSettings.ambientEquatorColor.linear,
+                    RenderSettings.ambientGroundColor.linear,
+                    RenderSettings.ambientIntensity,
+                    k_ConformToUnityGIFormat,
+                    _world);
 
                 using (var builder = renderGraph.AddUnsafePass("Surface Cache World Update", out WorldUpdatePassData passData))
                 {
