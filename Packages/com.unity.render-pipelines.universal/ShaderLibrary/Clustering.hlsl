@@ -135,12 +135,12 @@ bool ClusterNext(inout ClusterIterator it, out uint entityIndex)
     }
 #endif
     bool hasNext = it.tileMask != 0;
-    uint bitIndex = FIRST_BIT_LOW(it.tileMask);
+    uint bitIndex = firstbitlow(it.tileMask);
     it.tileMask ^= (1u << bitIndex);
 #if MAX_LIGHTS_PER_TILE > 32 || CLUSTER_HAS_REFLECTION_PROBES
     // Subtract 32 because it stores the index of the _next_ word to fetch, but we want the current.
     // The upper 16 bits and bits representing values < 32 are masked out. The latter is due to the fact that it will be
-    // included in what FIRST_BIT_LOW returns.
+    // included in what firstbitlow returns.
     entityIndex = (((it.entityIndexNextMax - 32) & (0xFFFFu & ~31))) + bitIndex;
 #else
     entityIndex = bitIndex;

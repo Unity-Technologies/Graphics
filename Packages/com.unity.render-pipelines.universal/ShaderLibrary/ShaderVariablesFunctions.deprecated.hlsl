@@ -14,4 +14,7 @@ float4 ComputeScreenPos(float4 positionCS)
     return o;
 }
 
+// Deprecated: Call 'firstbitlow' directly instead.
+#define FIRST_BIT_LOW firstbitlow
+
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_DEPRECATED_INCLUDED
