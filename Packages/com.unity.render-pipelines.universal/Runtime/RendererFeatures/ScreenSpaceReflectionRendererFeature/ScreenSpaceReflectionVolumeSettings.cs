@@ -25,9 +25,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public enum UpscalingMethod
         {
-            None,
-            Kawase,
-            Gaussian,
+            Bilinear,
             Bilateral,
         }
 
@@ -79,7 +77,7 @@ namespace UnityEngine.Rendering.Universal
             new()
             {
                 resolution = Resolution.Quarter,
-                upscalingMethod = UpscalingMethod.Kawase,
+                upscalingMethod = UpscalingMethod.Bilinear,
                 linearMarching = true,
                 hitRefinementSteps = 3,
                 finalThicknessMultiplier = 0.15f,
@@ -91,7 +89,7 @@ namespace UnityEngine.Rendering.Universal
             new()
             {
                 resolution = Resolution.Half,
-                upscalingMethod = UpscalingMethod.Gaussian,
+                upscalingMethod = UpscalingMethod.Bilinear,
                 linearMarching = true,
                 hitRefinementSteps = 5,
                 finalThicknessMultiplier = 0.05f,
@@ -103,7 +101,7 @@ namespace UnityEngine.Rendering.Universal
             new()
             {
                 resolution = Resolution.Half,
-                upscalingMethod = UpscalingMethod.Gaussian,
+                upscalingMethod = UpscalingMethod.Bilateral,
                 linearMarching = false,
                 hitRefinementSteps = 5,
                 finalThicknessMultiplier = 0.16f,
@@ -115,7 +113,7 @@ namespace UnityEngine.Rendering.Universal
             new()
             {
                 resolution = Resolution.Full,
-                upscalingMethod = UpscalingMethod.Gaussian,
+                upscalingMethod = UpscalingMethod.Bilateral,
                 linearMarching = false,
                 hitRefinementSteps = 5,
                 finalThicknessMultiplier = 0.16f,
@@ -168,7 +166,7 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>Controls how blurry rough reflections appear on a logarithmic scale. A value of 0 is neutral, negative values reduce blurriness, positive values increase it.</summary>
         [Tooltip("Controls how blurry rough reflections appear on a logarithmic scale. A value of 0 is neutral, negative values reduce blurriness, positive values increase it.")]
-        public ClampedFloatParameter roughnessScale = new(0.0f, -2.0f, 2.0f);
+        public ClampedFloatParameter roughnessScale = new(0.0f, -10.0f, 10.0f);
 
         /// <summary>The minimum amount of surface smoothness at which Screen Space Reflections are used.</summary>
         [Tooltip("The minimum amount of surface smoothness at which Screen Space Reflections are used. Higher values will result in less objects receiving Screen Space Reflections.")]

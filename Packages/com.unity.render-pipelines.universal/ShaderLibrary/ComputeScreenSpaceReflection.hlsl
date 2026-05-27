@@ -529,7 +529,7 @@ float4 CompositeSSRAfterOpaque(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    float2 uv = UnityStereoTransformScreenSpaceTex(input.texcoord);
+    float2 uv = input.texcoord;
 
     // Reconstruct world position
     float2 positionNDC = uv;
@@ -553,199 +553,66 @@ float4 CompositeSSRAfterOpaque(Varyings input) : SV_Target
 }
 
 // ------------------------------------------------------------------
-// Bilateral Blur
+// Upscaling
 // ------------------------------------------------------------------
-#define SAMPLE_BASEMAP(uv) float4(SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_BlitTexture, UnityStereoTransformScreenSpaceTex(uv)));
+float4 BilinearUpscale(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+    return SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, input.texcoord);
+}
 
 float CompareNormal(float3 d1, float3 d2)
 {
     return smoothstep(0.8, 1.0, dot(d1, d2));
 }
 
-// Geometry-aware separable bilateral filter
-float4 BilateralBlur(const float2 uv, const float2 delta) : SV_Target
-{
-    float4 p0 =  SAMPLE_BASEMAP(uv);
-    float4 p1a = SAMPLE_BASEMAP(uv - delta * 1.3846153846);
-    float4 p1b = SAMPLE_BASEMAP(uv + delta * 1.3846153846);
-    float4 p2a = SAMPLE_BASEMAP(uv - delta * 3.2307692308);
-    float4 p2b = SAMPLE_BASEMAP(uv + delta * 3.2307692308);
-
-    float3 n0 =  SampleSceneNormals(uv);
-    float3 n1a = SampleSceneNormals(uv - delta * 1.3846153846);
-    float3 n1b = SampleSceneNormals(uv + delta * 1.3846153846);
-    float3 n2a = SampleSceneNormals(uv - delta * 3.2307692308);
-    float3 n2b = SampleSceneNormals(uv + delta * 3.2307692308);
-
-    float w0  = float(0.2270270270);
-    float w1a = CompareNormal(n0, n1a) * float(0.3162162162);
-    float w1b = CompareNormal(n0, n1b) * float(0.3162162162);
-    float w2a = CompareNormal(n0, n2a) * float(0.0702702703);
-    float w2b = CompareNormal(n0, n2b) * float(0.0702702703);
-
-    float4 s = 0.0;
-    s += p0 * w0;
-    s += p1a * w1a;
-    s += p1b * w1b;
-    s += p2a * w2a;
-    s += p2b * w2b;
-    s *= rcp(w0 + w1a + w1b + w2a + w2b);
-
-    return s;
-}
-
-// Geometry-aware bilateral filter (single pass/small kernel)
-float4 BilateralBlurSinglePass(const float2 uv, const float2 delta)
-{
-    float4 p0 = SAMPLE_BASEMAP(uv                            );
-    float4 p1 = SAMPLE_BASEMAP(uv + float2(-delta.x, -delta.y));
-    float4 p2 = SAMPLE_BASEMAP(uv + float2( delta.x, -delta.y));
-    float4 p3 = SAMPLE_BASEMAP(uv + float2(-delta.x,  delta.y));
-    float4 p4 = SAMPLE_BASEMAP(uv + float2( delta.x,  delta.y));
-
-    float3 n0 =  SampleSceneNormals(uv);
-    float3 n1a = SampleSceneNormals(uv - delta * 1.3846153846);
-    float3 n1b = SampleSceneNormals(uv + delta * 1.3846153846);
-    float3 n2a = SampleSceneNormals(uv - delta * 3.2307692308);
-    float3 n2b = SampleSceneNormals(uv + delta * 3.2307692308);
-
-    float w0 = 1.0;
-    float w1 = CompareNormal(n0, n1a);
-    float w2 = CompareNormal(n0, n1b);
-    float w3 = CompareNormal(n0, n2a);
-    float w4 = CompareNormal(n0, n2b);
-
-    float4 s = 0.0;
-    s += p0 * w0;
-    s += p1 * w1;
-    s += p2 * w2;
-    s += p3 * w3;
-    s += p4 * w4;
-
-    return s *= rcp(w0 + w1 + w2 + w3 + w4);
-}
-
-float4 HorizontalBilateralBlur(Varyings input) : SV_Target
+float4 BilateralUpscale(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    const float2 uv = input.texcoord;
-    const float2 delta = float2(_SourceSize.z * _Downsample, 0.0);
-    return BilateralBlur(uv, delta);
-}
+    float4 texelSize = _BlitTexture_TexelSize;
+    float2 uv = input.texcoord;
+    // Position of texel, [0; LowResTextureSize]
+    float2 texelPos = uv * texelSize.zw - 0.5;
+    // Position of top-left texel center in bilinear neighborhood, [0; LowResTextureSize]
+    float2 topLeftTexelPos = floor(texelPos) + 0.5;
+    // Offset in texel, [0; 1]
+    float2 offsetInTexel = frac(texelPos);
 
-float4 VerticalBilateralBlur(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+    float3 normalRef = SampleSceneNormals(uv);
 
-    const float2 uv = input.texcoord;
-    const float2 delta = float2(0.0, _SourceSize.w * _Downsample);
-    return BilateralBlur(uv, delta);
-}
-
-float4 FinalBilateralBlur(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-    const float2 uv = input.texcoord;
-    const float2 delta = _SourceSize.zw * _Downsample;
-    return BilateralBlurSinglePass(uv, delta );
-}
-
-// ------------------------------------------------------------------
-// Gaussian Blur
-// ------------------------------------------------------------------
-float4 GaussianBlur(float2 uv, float2 pixelOffset)
-{
-    float4 colOut = 0;
-
-    // Kernel width 7 x 7
-    const int stepCount = 2;
-
-    const half gWeights[stepCount] ={
-        0.44908,
-        0.05092
-     };
-    const half gOffsets[stepCount] ={
-        0.53805,
-        2.06278
-     };
-
-    UNITY_UNROLL
-    for( int i = 0; i < stepCount; i++ )
+    float4 result = 0;
+    float weightSum = 0;
+    for (int dx = 0; dx < 2; dx++)
     {
-        float2 texCoordOffset = gOffsets[i] * pixelOffset;
-        float4 p1 = SAMPLE_BASEMAP(uv + texCoordOffset);
-        float4 p2 = SAMPLE_BASEMAP(uv - texCoordOffset);
-        float4 col = p1 + p2;
-        colOut += gWeights[i] * col;
+        for (int dy = 0; dy < 2; dy++)
+        {
+            // Reject off-screen samples.
+            float2 sampleTexelPos = topLeftTexelPos + float2(dx, dy);
+            const bool isInView = all(0 <= sampleTexelPos && sampleTexelPos < texelSize.zw);
+            if (!isInView)
+                continue;
+
+            // Sample color and normal from bilinear neighborhood.
+            float2 sampleUvPos = sampleTexelPos * texelSize.xy;
+            float4 sampleColor = LOAD_TEXTURE2D_X(_BlitTexture, sampleTexelPos);
+            float3 sampleNormal = SampleSceneNormals(sampleUvPos);
+
+            // Bilinear weight.
+            float weight =
+                (dx ? offsetInTexel.x : 1.0 - offsetInTexel.x) *
+                (dy ? offsetInTexel.y : 1.0 - offsetInTexel.y);
+
+            // Bilateral weight. Clamped to prevent division by 0, and also to ensure we get a
+            // reasonable value when none of the samples pass the normal comparison condition.
+            const float k_MinWeight = 0.01;
+            weight *= max(k_MinWeight, CompareNormal(normalRef, sampleNormal));
+
+            result += sampleColor * weight;
+            weightSum += weight;
+        }
     }
-
-    return colOut;
-}
-
-float4 HorizontalGaussianBlur(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-    float2 uv = input.texcoord;
-    float2 delta = float2(_SourceSize.z * _Downsample, 0.0);
-    return GaussianBlur(uv, delta);
-}
-
-float4 VerticalGaussianBlur(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-    float2 uv = input.texcoord;
-    float2 delta = float2(0.0, _SourceSize.w * _Downsample);
-    return GaussianBlur(uv, delta);
-}
-
-// ------------------------------------------------------------------
-// Kawase Blur
-// ------------------------------------------------------------------
-float4 KawaseBlurFilter(float2 texCoord, float2 pixelSize)
-{
-    float2 texCoordSample;
-    float2 halfPixelSize = pixelSize * 0.5;
-    float2 dUV = halfPixelSize.xy;
-
-    float4 cOut;
-
-    // Sample top left pixel
-    texCoordSample.x = texCoord.x - dUV.x;
-    texCoordSample.y = texCoord.y + dUV.y;
-    cOut = SAMPLE_BASEMAP(texCoordSample);
-
-    // Sample top right pixel
-    texCoordSample.x = texCoord.x + dUV.x;
-    texCoordSample.y = texCoord.y + dUV.y;
-    cOut += SAMPLE_BASEMAP(texCoordSample);
-
-    // Sample bottom right pixel
-    texCoordSample.x = texCoord.x + dUV.x;
-    texCoordSample.y = texCoord.y - dUV.y;
-    cOut += SAMPLE_BASEMAP(texCoordSample);
-
-    // Sample bottom left pixel
-    texCoordSample.x = texCoord.x - dUV.x;
-    texCoordSample.y = texCoord.y - dUV.y;
-    cOut += SAMPLE_BASEMAP(texCoordSample);
-
-    // Average
-    cOut *= 0.25;
-
-    return cOut;
-}
-
-float4 KawaseBlur(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-    float2 uv = input.texcoord;
-    float2 texelSize = _SourceSize.zw * _Downsample;
-    return KawaseBlurFilter(uv, texelSize);
+    return result * rcp(weightSum);
 }
 
 #endif //UNIVERSAL_SSR_INCLUDED

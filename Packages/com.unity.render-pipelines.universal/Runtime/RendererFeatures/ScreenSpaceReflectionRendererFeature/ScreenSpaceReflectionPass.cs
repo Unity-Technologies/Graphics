@@ -28,18 +28,8 @@ namespace UnityEngine.Rendering.Universal
         {
             Reflection = 0, // Generate reflected color texture
             BlitAfterOpaque = 1, // Blit to screen (only when using After Opaque mode)
-
-            // Bilateral blur passes, 8-12 taps each.
-            BilateralBlurHorizontal = 2,
-            BilateralBlurVertical = 3,
-            BilateralBlurFinal = 4,
-
-            // Gaussian blur passes, 4 taps each
-            GaussianBlurHorizontal = 5,
-            GaussianBlurVertical = 6,
-
-            // Single pass kawase blur.
-            KawaseBlur = 7,
+            BilinearUpscale = 2, // Single pass bilinear upscale
+            BilateralUpscale = 3, // Single pass normal-weighted bilinear upscale
         }
 
         // Constants
@@ -218,7 +208,6 @@ namespace UnityEngine.Rendering.Universal
                 resourceData,
                 settings,
                 out TextureHandle ssrTexture,
-                out TextureHandle blurTexture,
                 out TextureHandle upscaleTexture,
                 out TextureHandle mipGenTexture,
                 out TextureHandle finalTexture,
@@ -400,7 +389,7 @@ namespace UnityEngine.Rendering.Universal
                         // if the projection is "flipped"
                         Vector3 right = ssrData.cameraInverseProjections[0].MultiplyPoint(new Vector3(1, 0, 0));
                         Vector3 left = ssrData.cameraInverseProjections[0].MultiplyPoint(new Vector3(-1, 0, 0));
-                        
+
                         float finalTextureLastMipIndex = Mathf.Log(finalTextureSourceSize.x) / Mathf.Log(2);
                         float finalTextureLastValidMipIndex = finalTextureLastMipIndex;
                         // With gaussian blurring, we do not compute mips that are under k_MinimumResolutionGaussian pixels wide.
@@ -431,32 +420,15 @@ namespace UnityEngine.Rendering.Universal
                     {
                         fullResSSRTexture = upscaleTexture;
 
-                        if (settings.upscalingMethod == UpscalingMethod.None)
+                        if (settings.upscalingMethod == UpscalingMethod.Bilinear)
                         {
-                            var blitParam = new BlitMaterialParameters(ssrTexture, upscaleTexture, Vector2.one, Vector2.zero, m_BlitMaterial, 0);
-                            renderGraph.AddBlitPass(blitParam, passName: "Nearest");
-                        }
-                        else if (settings.upscalingMethod == UpscalingMethod.Kawase)
-                        {
-                            var blitParam = new BlitMaterialParameters(ssrTexture, upscaleTexture, Vector2.one, Vector2.zero, m_Material, (int)ShaderPasses.KawaseBlur);
-                            renderGraph.AddBlitPass(blitParam, passName: "KawaseBlur");
-                        }
-                        else if (settings.upscalingMethod == UpscalingMethod.Gaussian)
-                        {
-                            var blitParam = new BlitMaterialParameters(ssrTexture, blurTexture, Vector2.one, Vector2.zero, m_Material, (int)ShaderPasses.GaussianBlurHorizontal);
-                            renderGraph.AddBlitPass(blitParam, passName: "GaussianBlurHorizontal");
-                            blitParam = new BlitMaterialParameters(blurTexture, upscaleTexture, Vector2.one, Vector2.zero, m_Material, (int)ShaderPasses.GaussianBlurVertical);
-                            renderGraph.AddBlitPass(blitParam, passName: "GaussianBlurVertical");
+                            var blitParam = new BlitMaterialParameters(ssrTexture, upscaleTexture, Vector2.one, Vector2.zero, m_Material, (int)ShaderPasses.BilinearUpscale);
+                            renderGraph.AddBlitPass(blitParam, passName: "BilinearUpscale");
                         }
                         else if (settings.upscalingMethod == UpscalingMethod.Bilateral)
                         {
-                            var blitParam = new BlitMaterialParameters(ssrTexture, blurTexture, Vector2.one, Vector2.zero, m_Material, (int)ShaderPasses.BilateralBlurHorizontal);
-                            renderGraph.AddBlitPass(blitParam, passName: "BilateralBlurHorizontal");
-                            blitParam = new BlitMaterialParameters(blurTexture, ssrTexture, Vector2.one, Vector2.zero, m_Material, (int)ShaderPasses.BilateralBlurVertical);
-                            renderGraph.AddBlitPass(blitParam, passName: "BilateralBlurVertical");
-
-                            blitParam = new BlitMaterialParameters(ssrTexture, upscaleTexture, Vector2.one, Vector2.zero, m_Material, (int)ShaderPasses.BilateralBlurFinal);
-                            renderGraph.AddBlitPass(blitParam, passName: "BilateralBlurFinal");
+                            var blitParam = new BlitMaterialParameters(ssrTexture, upscaleTexture, Vector2.one, Vector2.zero, m_Material, (int)ShaderPasses.BilateralUpscale);
+                            renderGraph.AddBlitPass(blitParam, passName: "BilateralUpscale");
                         }
                     }
                 }
@@ -578,7 +550,6 @@ namespace UnityEngine.Rendering.Universal
             UniversalResourceData resourceData,
             ScreenSpaceReflectionVolumeSettings settings,
             out TextureHandle ssrTexture,
-            out TextureHandle blurTexture,
             out TextureHandle upscaleTexture,
             out TextureHandle mipGenTexture,
             out TextureHandle finalTexture,
@@ -616,14 +587,6 @@ namespace UnityEngine.Rendering.Universal
             // Main output texture for SSR pass. Potentially low res. Only needs mips if we are relying on automips rather than gaussian mipchain, so there is no mipGenTexture.
             TextureDesc ssrTextureDescriptor = boxBlurRoughness ? lowResWithMips : lowResNoMips;
             ssrTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, ssrTextureDescriptor, "_SSR_ReflectionTexture", false, Color.clear, FilterMode.Bilinear);
-
-            // Temporary texture for bilateral and gaussian blur. No mips.
-            bool gaussian = settings.upscalingMethod.value == UpscalingMethod.Gaussian;
-            bool bilateral = settings.upscalingMethod.value == UpscalingMethod.Bilateral;
-            if (settings.resolution != ScreenSpaceReflectionVolumeSettings.Resolution.Full && (gaussian || bilateral))
-                blurTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, lowResNoMips, "_SSR_BlurTexture", false, Color.clear, FilterMode.Bilinear);
-            else
-                blurTexture = TextureHandle.nullHandle;
 
             // Temporary texture storing output of upscale. Only needs mips if we are relying on automips rather than gaussian mipchain, so there is no mipGenTexture.
             TextureDesc upscaleTextureDescriptor = boxBlurRoughness ? fullResWithMips : fullResNoMips;
