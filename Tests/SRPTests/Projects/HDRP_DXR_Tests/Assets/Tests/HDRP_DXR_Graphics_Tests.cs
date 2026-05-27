@@ -109,6 +109,11 @@ namespace UnityEngine.Rendering.HighDefinition.DXR_Tests
                 RuntimePlatform.GameCoreXboxSeries
             }
         )]
+        [IgnoreGraphicsTest(
+            "902_Materials_SG_Variants_Fabric|902_Materials_SG_Variants_Hair|902_Materials_SG_Variants_Eye|2002_Debug_ScreenSpaceReflectionsOnTransparents|2003_Debug_RecursiveRendering|2001_Debug_ScreenSpaceReflections|2004_Debug_ContactShadows|3001_AreaShadowsDeferred",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-143001",
+            RuntimePlatform.GameCoreXboxSeries, RuntimePlatform.WindowsEditor
+        )]
         public IEnumerator Run(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);
