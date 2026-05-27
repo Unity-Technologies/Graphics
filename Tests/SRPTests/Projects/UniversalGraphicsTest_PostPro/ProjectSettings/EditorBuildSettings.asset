@@ -230,5 +230,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/400_OcclusionCulling_RenderScale.unity
     guid: f1830625a97eb7246a86205545f61297
+  - enabled: 1
+    path: Assets/Scenes/1104_CopyDepth_DynamicResolution.unity
+    guid: cefc068a9cdac384e84b8f6a537ab43c	
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
