@@ -425,23 +425,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
         int ComputeLUTHash(HDCamera hdCamera)
         {
-            return m_Tonemapping.GetHashCode() * 23 +
-                   m_WhiteBalance.GetHashCode() * 23 +
-                   m_ColorAdjustments.GetHashCode() * 23 +
-                   m_ChannelMixer.GetHashCode() * 23 +
-                   m_SplitToning.GetHashCode() * 23 +
-                   m_LiftGammaGain.GetHashCode() * 23 +
-                   m_ShadowsMidtonesHighlights.GetHashCode() * 23 +
-                   m_Curves.GetHashCode() * 23 +
-                   m_TonemappingFS.GetHashCode() * 23 +
-                   m_ColorGradingFS.GetHashCode() * 23 +
-                   HDROutputActiveForCameraType(hdCamera).GetHashCode()
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 23 + m_Tonemapping.GetStateHash();
+                hash = hash * 23 + m_WhiteBalance.GetStateHash();
+                hash = hash * 23 + m_ColorAdjustments.GetStateHash();
+                hash = hash * 23 + m_ChannelMixer.GetStateHash();
+                hash = hash * 23 + m_SplitToning.GetStateHash();
+                hash = hash * 23 + m_LiftGammaGain.GetStateHash();
+                hash = hash * 23 + m_ShadowsMidtonesHighlights.GetStateHash();
+                hash = hash * 23 + m_Curves.GetStateHash();
+                hash = hash * 23 + m_TonemappingFS.GetHashCode();
+                hash = hash * 23 + m_ColorGradingFS.GetHashCode();
+                hash = hash * 23 + HDROutputActiveForCameraType(hdCamera).GetHashCode();
 #if UNITY_EDITOR
-                   * 23
-                   + m_ColorGradingSettings.space.GetHashCode() * 23 +
-                   + UnityEditor.PlayerSettings.hdrBitDepth.GetHashCode()
+                hash = hash * 23 + m_ColorGradingSettings.space.GetHashCode();
+                hash = hash * 23 + UnityEditor.PlayerSettings.hdrBitDepth.GetHashCode();
 #endif
-                   ;
+                return hash;
+            }
         }
 
         static void ValidateComputeBuffer(ref ComputeBuffer cb, int size, int stride, ComputeBufferType type = ComputeBufferType.Default)
