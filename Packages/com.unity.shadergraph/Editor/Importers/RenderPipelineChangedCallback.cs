@@ -10,6 +10,9 @@ namespace UnityEditor.ShaderGraph
         [InitializeOnLoadMethod]
         private static void RegisterSRPChangeCallback()
         {
+            if (AssetDatabase.IsAssetImportWorkerProcess())
+                return;
+
             RenderPipelineManager.activeRenderPipelineTypeChanged -= SRPChanged;
             RenderPipelineManager.activeRenderPipelineTypeChanged += SRPChanged;
             SRPChanged();
