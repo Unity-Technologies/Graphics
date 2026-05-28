@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -40,6 +41,9 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var hdAsset in HDRPBuildData.instance.renderPipelineAssets)
             {
                 var strippedByPreprocessor = false;
+
+                // Setup SupportedRenderingFeatures for the current HDRenderPipelineAsset
+                HDRenderPipeline.InitializeSupportedRenderingFeatures(hdAsset);
 
                 // Call list of strippers
                 // Note that all strippers cumulate each other, so be aware of any conflict here

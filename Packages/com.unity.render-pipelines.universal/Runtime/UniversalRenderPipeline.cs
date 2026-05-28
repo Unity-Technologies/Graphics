@@ -1468,24 +1468,21 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
-        static void SetSupportedRenderingFeatures(UniversalRenderPipelineAsset pipelineAsset)
+        internal static void SetSupportedRenderingFeatures(UniversalRenderPipelineAsset pipelineAsset)
         {
 #if UNITY_EDITOR
-            SupportedRenderingFeatures.active = new SupportedRenderingFeatures()
-            {
-                reflectionProbeModes = SupportedRenderingFeatures.ReflectionProbeModes.Rotation,
-                defaultMixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.Subtractive,
-                mixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.Subtractive | SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly | SupportedRenderingFeatures.LightmapMixedBakeModes.Shadowmask,
-                lightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed | LightmapBakeType.Realtime,
-                lightmapsModes = LightmapsMode.CombinedDirectional | LightmapsMode.NonDirectional,
-                lightProbeProxyVolumes = false,
-                motionVectors = true,
-                receiveShadows = false,
-                reflectionProbes = false,
-                reflectionProbesBlendDistance = true,
-                particleSystemInstancing = true,
-                overridesEnableLODCrossFade = true
-            };
+            SupportedRenderingFeatures.active.reflectionProbeModes = SupportedRenderingFeatures.ReflectionProbeModes.Rotation;
+            SupportedRenderingFeatures.active.defaultMixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.Subtractive;
+            SupportedRenderingFeatures.active.mixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.Subtractive | SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly | SupportedRenderingFeatures.LightmapMixedBakeModes.Shadowmask;
+            SupportedRenderingFeatures.active.lightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed | LightmapBakeType.Realtime;
+            SupportedRenderingFeatures.active.lightmapsModes = LightmapsMode.CombinedDirectional | LightmapsMode.NonDirectional;
+            SupportedRenderingFeatures.active.lightProbeProxyVolumes = false;
+            SupportedRenderingFeatures.active.motionVectors = true;
+            SupportedRenderingFeatures.active.receiveShadows = false;
+            SupportedRenderingFeatures.active.reflectionProbes = false;
+            SupportedRenderingFeatures.active.reflectionProbesBlendDistance = true;
+            SupportedRenderingFeatures.active.particleSystemInstancing = true;
+            SupportedRenderingFeatures.active.overridesEnableLODCrossFade = true;
 
             SceneViewDrawMode.SetupDrawMode();
 #endif
@@ -1497,7 +1494,7 @@ namespace UnityEngine.Rendering.Universal
                         : SupportedRenderingFeatures.ReflectionProbeModes.None;
             }
 
-            SupportedRenderingFeatures.active.supportsHDR = pipelineAsset.supportsHDR;
+            SupportedRenderingFeatures.active.supportsHDR = pipelineAsset != null && pipelineAsset.supportsHDR;
             SupportedRenderingFeatures.active.rendersUIOverlay = true;
         }
 

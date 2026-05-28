@@ -1639,7 +1639,7 @@ namespace UnityEngine.Rendering.Universal
             }
 #else
             // If Enlighten realtime GI isn't active, we don't extract lights.
-            if (SupportedRenderingFeatures.active.enlighten == false || ((int)SupportedRenderingFeatures.active.lightmapBakeTypes | (int)LightmapBakeType.Realtime) == 0)
+            if (SupportedRenderingFeatures.active.enlighten == false || ((int)SupportedRenderingFeatures.active.lightmapBakeTypes & (int)LightmapBakeType.Realtime) == 0)
             {
                 for (int i = 0; i < requests.Length; i++)
                 {

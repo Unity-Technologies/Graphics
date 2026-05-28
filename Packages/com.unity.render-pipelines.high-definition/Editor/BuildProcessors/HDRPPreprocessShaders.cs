@@ -71,7 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition
             bool isSceneSelectionPass = snippet.passName == "SceneSelectionPass";
             bool isScenePickingPass = snippet.passName == "ScenePickingPass";
             bool metaPassUnused = (snippet.passName == "META") && (SupportedRenderingFeatures.active.enlighten == false ||
-                ((int)SupportedRenderingFeatures.active.lightmapBakeTypes | (int)LightmapBakeType.Realtime) == 0);
+                ((int)SupportedRenderingFeatures.active.lightmapBakeTypes & (int)LightmapBakeType.Realtime) == 0);
             bool editorVisualization = inputData.shaderKeywordSet.IsEnabled(m_EditorVisualization);
             if (isSceneSelectionPass || isScenePickingPass || metaPassUnused || editorVisualization)
                 return true;

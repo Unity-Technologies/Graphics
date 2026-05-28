@@ -519,6 +519,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugDisplaySettings = DebugDisplaySerializer.GetOrCreate<DebugDisplaySettings>();
 
             m_ValidAPI = true;
+            apvIsEnabled = m_Asset != null && m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
 
             SetRenderingFeatures();
 
@@ -667,11 +668,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeLightLoop(m_IBLFilterArray);
 
-            apvIsEnabled = m_Asset != null && m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
-
-            SupportedRenderingFeatures.active.overridesLightProbeSystem = apvIsEnabled;
-            SupportedRenderingFeatures.active.rendererProbes = !apvIsEnabled;
-            SupportedRenderingFeatures.active.skyOcclusion = apvIsEnabled;
             if (apvIsEnabled)
             {
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
@@ -810,39 +806,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PreviousShadowMaskMode = QualitySettings.shadowmaskMode;
             QualitySettings.shadowmaskMode = ShadowmaskMode.DistanceShadowmask;
 
-            SupportedRenderingFeatures.active = new SupportedRenderingFeatures()
-            {
-                reflectionProbeModes = SupportedRenderingFeatures.ReflectionProbeModes.Rotation,
-                defaultMixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly,
-                mixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly | (m_Asset.currentPlatformRenderPipelineSettings.supportShadowMask ? SupportedRenderingFeatures.LightmapMixedBakeModes.Shadowmask : 0),
-                lightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed | LightmapBakeType.Realtime,
-                lightmapsModes = LightmapsMode.NonDirectional | LightmapsMode.CombinedDirectional,
-                lightProbeProxyVolumes = true,
-                motionVectors = true,
-                receiveShadows = false,
-                reflectionProbes = false,
-                rendererPriority = true,
-                overridesFog = true,
-                overridesOtherLightingSettings = true,
-                editableMaterialRenderQueue = false,
-                enlighten = true
-                ,
-                overridesLODBias = true
-                ,
-                overridesMaximumLODLevel = true
-                ,
-                overridesShadowmask = true // Don't display the shadow mask UI in Quality Settings
-                ,
-                overridesRealtimeReflectionProbes = true // Don't display the real time reflection probes checkbox UI in Quality Settings
-                ,
-                ambientProbeBaking = false
-                ,
-                defaultReflectionProbeBaking = false
-                ,
-                rendersUIOverlay = true,
-                supportsHDR = true,
-                supportsClouds = true
-            };
+            InitializeSupportedRenderingFeatures(m_Asset);
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
 
@@ -859,6 +823,38 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugDisplaySettings.nvidiaDebugView.Reset();
 #endif
             HDDynamicResolutionPlatformCapabilities.SetupFeatures();
+        }
+
+        internal static void InitializeSupportedRenderingFeatures(HDRenderPipelineAsset hdrpAsset)
+        {
+            bool apvIsEnabled = hdrpAsset != null && hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume;
+
+            SupportedRenderingFeatures.active.reflectionProbeModes = SupportedRenderingFeatures.ReflectionProbeModes.Rotation;
+            SupportedRenderingFeatures.active.defaultMixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly;
+            SupportedRenderingFeatures.active.mixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly | (hdrpAsset != null && hdrpAsset.currentPlatformRenderPipelineSettings.supportShadowMask ? SupportedRenderingFeatures.LightmapMixedBakeModes.Shadowmask : 0);
+            SupportedRenderingFeatures.active.lightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed | LightmapBakeType.Realtime;
+            SupportedRenderingFeatures.active.lightmapsModes = LightmapsMode.NonDirectional | LightmapsMode.CombinedDirectional;
+            SupportedRenderingFeatures.active.lightProbeProxyVolumes = true;
+            SupportedRenderingFeatures.active.motionVectors = true;
+            SupportedRenderingFeatures.active.receiveShadows = false;
+            SupportedRenderingFeatures.active.reflectionProbes = false;
+            SupportedRenderingFeatures.active.rendererPriority = true;
+            SupportedRenderingFeatures.active.overridesFog = true;
+            SupportedRenderingFeatures.active.overridesOtherLightingSettings = true;
+            SupportedRenderingFeatures.active.editableMaterialRenderQueue = false;
+            SupportedRenderingFeatures.active.enlighten = true;
+            SupportedRenderingFeatures.active.overridesLODBias = true;
+            SupportedRenderingFeatures.active.overridesMaximumLODLevel = true;
+            SupportedRenderingFeatures.active.overridesShadowmask = true; // Don't display the shadow mask UI in Quality Setting
+            SupportedRenderingFeatures.active.overridesRealtimeReflectionProbes = true; // Don't display the real time reflection probes checkbox UI in Quality Setting
+            SupportedRenderingFeatures.active.ambientProbeBaking = false;
+            SupportedRenderingFeatures.active.defaultReflectionProbeBaking = false;
+            SupportedRenderingFeatures.active.rendersUIOverlay = true;
+            SupportedRenderingFeatures.active.supportsHDR = true;
+            SupportedRenderingFeatures.active.supportsClouds = true;
+            SupportedRenderingFeatures.active.overridesLightProbeSystem = apvIsEnabled;
+            SupportedRenderingFeatures.active.rendererProbes = !apvIsEnabled;
+            SupportedRenderingFeatures.active.skyOcclusion = apvIsEnabled;
         }
 
         bool CheckAPIValidity()

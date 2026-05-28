@@ -1126,13 +1126,19 @@ namespace UnityEditor.Rendering.Universal
             // Meta pass is needed for Enlighten and Surface Cache realtime GI systems.
             if (strippingData.passType == PassType.Meta)
             {
-                if (SupportedRenderingFeatures.active.enlighten == false
-                    && ((int)SupportedRenderingFeatures.active.lightmapBakeTypes | (int)LightmapBakeType.Realtime) == 0
 #if SURFACE_CACHE
-                    && !strippingData.IsShaderFeatureEnabled(ShaderFeatures.SurfaceCache)
+                // Keep Meta pass for Surface Cache feature
+                if (strippingData.IsShaderFeatureEnabled(ShaderFeatures.SurfaceCache))
+                    return false;
 #endif
-                   )
-                    return true;
+                // Keep Meta pass for Enlighten realtime GI
+                if (SupportedRenderingFeatures.active.enlighten
+                    && ((int)SupportedRenderingFeatures.active.lightmapBakeTypes & (int)LightmapBakeType.Realtime) != 0
+                    )
+                    return false;
+
+                // Remove Meta pass by default
+                return true;
             }
             return false;
         }
@@ -1343,6 +1349,9 @@ namespace UnityEditor.Rendering.Universal
         {
             if (shader != null)
                 InitializeLocalShaderKeywords(shader);
+
+            // Set SupportedRenderingFeatures for the shader
+            UniversalRenderPipeline.SetSupportedRenderingFeatures(UniversalRenderPipeline.asset);
         }
 
         public void AfterShaderStripping(Shader shader)
