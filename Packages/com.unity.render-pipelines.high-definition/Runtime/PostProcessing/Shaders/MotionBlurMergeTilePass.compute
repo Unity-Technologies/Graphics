@@ -25,7 +25,7 @@ void TileMerge(uint3 dispatchID : SV_DispatchThreadID)
     if (maxVelLen > TILE_SIZE*0.5f)
     {
         int tileCount = maxVelLen / TILE_SIZE;
-        if (tileCount > 4) tileCount = 4;
+        tileCount = clamp(tileCount, 1, 4);
 
         minVel = 999999.0f;
         // This is sub-optimal, but the texture is tiny and should be fairly cache efficient.
