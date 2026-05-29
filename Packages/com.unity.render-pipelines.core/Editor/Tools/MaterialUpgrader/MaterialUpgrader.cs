@@ -29,8 +29,10 @@ namespace UnityEditor.Rendering
         /// Retrieves path to old shader.
         /// </summary>
         public string OldShaderPath => m_OldShader;
-
-        MaterialFinalizer m_Finalizer;
+        /// <summary>
+        /// Material finalizer.
+        /// </summary>
+        public MaterialFinalizer Finalizer { get; private set;}
 
         Dictionary<string, string> m_TextureRename = new Dictionary<string, string>();
         Dictionary<string, string> m_FloatRename = new Dictionary<string, string>();
@@ -103,7 +105,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="material">Material to upgrade.</param>
         /// <param name="flags">Upgrade flag</param>
-        public void Upgrade(Material material, UpgradeFlags flags)
+        public virtual void Upgrade(Material material, UpgradeFlags flags)
         {
             if (material == null)
                 throw new ArgumentNullException(nameof(material));
@@ -114,7 +116,7 @@ namespace UnityEditor.Rendering
                 Debug.LogError($"Unable to find destination shader {m_NewShader} when trying to upgrade {material.name}");
                 return;
             }
-            
+
             Material newMaterial;
             if ((flags & UpgradeFlags.CleanupNonUpgradedProperties) != 0)
             {
@@ -135,7 +137,7 @@ namespace UnityEditor.Rendering
             material.CopyPropertiesFromMaterial(newMaterial);
             UnityEngine.Object.DestroyImmediate(newMaterial);
 
-            m_Finalizer?.Invoke(material);
+            Finalizer?.Invoke(material);
         }
 
         // Overridable function to implement custom material upgrading functionality
@@ -237,7 +239,7 @@ namespace UnityEditor.Rendering
         {
             m_OldShader = oldName;
             m_NewShader = newName;
-            m_Finalizer = finalizer;
+            Finalizer = finalizer;
         }
 
         /// <summary>
