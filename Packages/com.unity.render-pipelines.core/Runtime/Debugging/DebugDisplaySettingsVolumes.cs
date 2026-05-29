@@ -414,6 +414,8 @@ namespace UnityEngine.Rendering
                             displayName = name,
                             getter = () => (Object[])parameterType.GetProperty("value").GetValue(param, null),
                             type = parameterType,
+                            // Result column reads a pool-rented buffer whose tail is null-padded; hide it.
+                            trimTrailingNulls = isResultParameter,
                             isHiddenCallback = isHiddenCallback
                         };
                     }
