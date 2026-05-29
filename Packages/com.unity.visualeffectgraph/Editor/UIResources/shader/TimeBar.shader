@@ -27,38 +27,25 @@ Shader "Hidden/VFX/TimeBar"
             {
                 uint id : SV_VertexID;
                 float4 vertex : POSITION;
-                float2 leftPoint : TEXCOORD0;
-                float2 rightPoint : TEXCOORD1;
             };
 
             struct v2f
             {
                 float4 vertex : SV_POSITION;
-                float2 clipUV : TEXCOORD0;
             };
 
             fixed4 _Color;
             float _AbscissaOffset;
 
-            uniform float4x4 _ClipMatrix;
-            sampler2D _GUIClipTexture;
-
             v2f vert(vs_input i)
             {
                 v2f o;
-                float2 shrinkedPoint = float2(i.vertex.x + _AbscissaOffset, i.vertex.y);
-                float2 screenPos = UnityObjectToViewPos(float3(shrinkedPoint, 0.0)).xy;
-                o.vertex = float4(2.0 * screenPos - 1.0, 0, 1);
-                o.clipUV = (mul(_ClipMatrix, float4(screenPos, 0, 1)).xy - float2(0.5, 0.5)) * 0.88 + float2(0.5,0.5);
-
+                o.vertex = UnityObjectToClipPos(float4(i.vertex.x + _AbscissaOffset, i.vertex.y, 0, 1));
                 return o;
             }
 
             fixed4 frag(v2f i) : SV_Target
             {
-                float clip = tex2D(_GUIClipTexture, i.clipUV).a;
-                if (clip < 0.1)
-                    discard;
                 return _Color;
             }
 
