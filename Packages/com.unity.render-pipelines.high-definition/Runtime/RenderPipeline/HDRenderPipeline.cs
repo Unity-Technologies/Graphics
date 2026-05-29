@@ -2190,11 +2190,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RequireOffscreenUICoverPrepass = HDROutputForMainDisplayIsActive() && SupportedRenderingFeatures.active.rendersUIOverlay && !CoreUtils.IsScreenFullyCoveredByCameras(cameras);
             m_OffscreenUIRenderedInCurrentFrame = false;
 
-            // Reallocate the offscreen UI buffer when the resolution changes.
-            ReAllocateOffscreenUIColorBufferIfNeeded();
-
             if (!m_ValidAPI || cameraCount == 0)
                 return;
+
+            // Reallocate the offscreen UI buffer when the resolution changes.
+            ReAllocateOffscreenUIColorBufferIfNeeded();
 
             GPUResidentDrawer.ReinitializeIfNeeded();
 
@@ -3486,7 +3486,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ReAllocateOffscreenUIColorBufferIfNeeded()
         {
-            if (m_OffscreenUIColorBuffer.IsValueCreated)
+            if (m_OffscreenUIColorBuffer != null && m_OffscreenUIColorBuffer.IsValueCreated)
             {
                 if (Screen.width != m_OffscreenUIColorBuffer.Value.rt.width || Screen.height != m_OffscreenUIColorBuffer.Value.rt.height)
                 {
