@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Return true if the RTHandles were reallocated.
-        internal bool Update(UniversalCameraData cameraData, bool xrMultipassEnabled = false)
+        internal bool Update(UniversalCameraData cameraData, bool xrMultipassEnabled = false, in RenderTextureDescriptor? cameraDescOverride = null)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             int eyeIndex = (cameraData.xr.enabled && !cameraData.xr.singlePassEnabled) ? cameraData.xr.multipassId : 0;
@@ -162,7 +162,15 @@ namespace UnityEngine.Rendering.Universal
                 m_JitterOffsets[stableIndex + 2 * eyeIndex] = cameraData.jitter;
             }
 
-            ref RenderTextureDescriptor cameraDesc = ref cameraData.cameraTargetDescriptor;
+            RenderTextureDescriptor cameraDesc;
+            if (cameraDescOverride.HasValue)
+            {
+                cameraDesc = cameraDescOverride.Value;
+            }
+            else
+            {
+                cameraDesc = cameraData.cameraTargetDescriptor;
+            }
 
             if (cameraDesc.width > 0 && cameraDesc.height > 0 && cameraDesc.graphicsFormat != GraphicsFormat.None)
             {

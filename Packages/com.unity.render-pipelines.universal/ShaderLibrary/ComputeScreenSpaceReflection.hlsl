@@ -615,4 +615,39 @@ float4 BilateralUpscale(Varyings input) : SV_Target
     return result * rcp(weightSum);
 }
 
+// ------------------------------------------------------------------
+// Temporal Filtering
+// ------------------------------------------------------------------
+TEXTURE2D_X(_ReflectionHistoryTexture);
+float _BaseBlendFactor;
+
+float4 SSRTemporalFiltering(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    // Reproject pixel position, get current and last frame color
+    int2 pixelCoord = input.positionCS.xy;
+    float2 reprojectedUv = input.texcoord - SampleMotionVector(input.texcoord);
+    float4 current = LOAD_TEXTURE2D_X(_BlitTexture, pixelCoord);
+    float4 history = SAMPLE_TEXTURE2D_X(_ReflectionHistoryTexture, sampler_LinearClamp, reprojectedUv);
+
+    // Take 4 taps around center in a cross pattern
+    float4 nb0 = LOAD_TEXTURE2D_X(_BlitTexture, pixelCoord + int2( 0,  1));
+    float4 nb1 = LOAD_TEXTURE2D_X(_BlitTexture, pixelCoord + int2( 0, -1));
+    float4 nb2 = LOAD_TEXTURE2D_X(_BlitTexture, pixelCoord + int2( 1,  0));
+    float4 nb3 = LOAD_TEXTURE2D_X(_BlitTexture, pixelCoord + int2(-1,  0));
+
+    // Neighborhood clamping
+    float4 boxMin = min(min(min(min(current, nb0), nb1), nb2), nb3);
+    float4 boxMax = max(max(max(max(current, nb0), nb1), nb2), nb3);
+    history = clamp(history, boxMin, boxMax);
+
+    // If outside screen, ignore history
+    float blendFactor = _BaseBlendFactor;
+    if (any(reprojectedUv < 0) || any(reprojectedUv > 1))
+        blendFactor = 0.0;
+
+    return lerp(current, history, blendFactor);
+}
+
 #endif //UNIVERSAL_SSR_INCLUDED

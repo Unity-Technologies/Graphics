@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.Universal
             BlitAfterOpaque = 1, // Blit to screen (only when using After Opaque mode)
             BilinearUpscale = 2, // Single pass bilinear upscale
             BilateralUpscale = 3, // Single pass normal-weighted bilinear upscale
+            TemporalFiltering = 4,
         }
 
         // Constants
@@ -67,6 +68,8 @@ namespace UnityEngine.Rendering.Universal
             internal static readonly int _DepthPyramidMipLevelOffsets = Shader.PropertyToID("_DepthPyramidMipLevelOffsets");
             internal static readonly int _SourceSize = Shader.PropertyToID("_SourceSize");
             internal static readonly int _CameraDeltaJitterOffset = Shader.PropertyToID("_CameraDeltaJitterOffset");
+            internal static readonly int _ReflectionHistoryTexture = Shader.PropertyToID("_ReflectionHistoryTexture");
+            internal static readonly int _BaseBlendFactor = Shader.PropertyToID("_BaseBlendFactor");
         }
 
         // Private Variables
@@ -129,8 +132,8 @@ namespace UnityEngine.Rendering.Universal
             // Write smoothness to alpha of depth normals texture so we can sample it in SSR pass.
             renderingData.writesSmoothnessToDepthNormalsAlpha = true;
 
-            // Before opaque needs motion vectors for reprojection.
-            if (!m_AfterOpaque && (cameraType == CameraType.VR || cameraType == CameraType.Game))
+            // Motion vectors are needed for reprojection (before opaque) and temporal filtering.
+            if ((!m_AfterOpaque || settings.temporalFiltering.value) && (cameraType == CameraType.VR || cameraType == CameraType.Game))
                 requiredInputs |= ScriptableRenderPassInput.Motion;
 
             ConfigureInput(requiredInputs);
@@ -194,6 +197,15 @@ namespace UnityEngine.Rendering.Universal
             internal bool afterOpaque;
             internal bool linearMarching;
             internal bool useGaussianBlur;
+        }
+
+        private class TemporalFilteringPassData
+        {
+            internal Material material;
+            internal TextureHandle ssrTexture;
+            internal TextureHandle reflectionHistory;
+            internal TextureHandle motionVectors;
+            internal float baseBlendFactor;
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
@@ -410,6 +422,68 @@ namespace UnityEngine.Rendering.Universal
                         float blurriness = k_BlurrinessBase * Mathf.Pow(2f, ssrData.roughnessScale) * k_SSRBlurReferenceScreenHalfWidth / Math.Max(0.01f, screenHalfWidthAtOne);
                         cmd.SetGlobalVector(ShaderConstants._ReflectionParam2, new Vector4(blurriness, finalTextureMipOffset, finalTextureLastValidMipIndex, 0));
                     });
+                }
+
+                // Temporal filtering pass.
+                if (settings.temporalFiltering.value &&
+                    cameraData.historyManager != null &&
+                    input.HasFlag(ScriptableRenderPassInput.Motion))
+                {
+                    int multipassId = 0;
+                    bool xrMultipassEnabled = false;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    xrMultipassEnabled = cameraData.xr.enabled && !cameraData.xr.singlePassEnabled;
+                    multipassId = cameraData.xr.multipassId;
+#endif
+                    cameraData.historyManager.RequestAccess<ScreenSpaceReflectionColorHistory>();
+                    var ssrHistory = cameraData.historyManager.GetHistoryForWrite<ScreenSpaceReflectionColorHistory>();
+                    if (ssrHistory != null)
+                    {
+                        // Get history descriptor.
+                        TextureDesc ssrHistoryDesc = ssrTexture.GetDescriptor(renderGraph);
+                        var ssrDesc = cameraData.cameraTargetDescriptor;
+                        ssrDesc.width = ssrHistoryDesc.width;
+                        ssrDesc.height = ssrHistoryDesc.height;
+                        ssrDesc.graphicsFormat = ssrHistoryDesc.format;
+                        ssrDesc.depthStencilFormat = GraphicsFormat.None;
+                        ssrDesc.msaaSamples = 1;
+                        ssrDesc.useMipMap = false;
+                        ssrDesc.autoGenerateMips = false;
+                        ssrDesc.enableRandomWrite = false;
+
+                        // Apply temporal filtering resolve.
+                        bool isNewAlloc = ssrHistory.Update(cameraData, xrMultipassEnabled, ssrDesc);
+                        RTHandle prevRT = ssrHistory.GetPreviousTexture(multipassId);
+                        RTHandle currRT = ssrHistory.GetCurrentTexture(multipassId);
+                        if (prevRT != null && currRT != null)
+                        {
+                            TextureHandle historyTexture = renderGraph.ImportTexture(prevRT);
+                            TextureHandle currentHistoryTexture = renderGraph.ImportTexture(currRT);
+
+                            using (var builder = renderGraph.AddRasterRenderPass<TemporalFilteringPassData>("SSR - Temporal Filtering", out var passData))
+                            {
+                                passData.material = m_Material;
+                                passData.ssrTexture = ssrTexture;
+                                passData.reflectionHistory = historyTexture;
+                                passData.motionVectors = motionVectorColorTexture;
+                                passData.baseBlendFactor = isNewAlloc ? 0.0f : settings.baseBlendFactor.value;
+
+                                builder.SetRenderAttachment(currentHistoryTexture, 0);
+                                builder.UseTexture(ssrTexture);
+                                builder.UseTexture(historyTexture);
+                                builder.UseTexture(motionVectorColorTexture);
+
+                                builder.SetRenderFunc<TemporalFilteringPassData>(static (data, ctx) =>
+                                {
+                                    data.material.SetTexture(ShaderConstants._ReflectionHistoryTexture, data.reflectionHistory);
+                                    data.material.SetTexture(ShaderConstants._MotionVectorColorTexture, data.motionVectors);
+                                    data.material.SetFloat(ShaderConstants._BaseBlendFactor, data.baseBlendFactor);
+                                    Blitter.BlitTexture(ctx.cmd, data.ssrTexture, Vector2.one, data.material, (int)ShaderPasses.TemporalFiltering);
+                                });
+                            }
+                            ssrTexture = currentHistoryTexture;
+                        }
+                    }
                 }
 
                 // Upscale pass.

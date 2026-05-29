@@ -83,5 +83,20 @@ Shader "Hidden/Universal Render Pipeline/ComputeScreenSpaceReflection"
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ComputeScreenSpaceReflection.hlsl"
             ENDHLSL
         }
+
+        // ------------------------------------------------------------------
+        // Temporal Filtering
+        // ------------------------------------------------------------------
+        Pass
+        {
+            Name "SSR_TemporalFiltering"
+
+            HLSLPROGRAM
+                #pragma vertex Vert
+                #pragma fragment SSRTemporalFiltering
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ComputeScreenSpaceReflection.hlsl"
+            ENDHLSL
+        }
+
     }
 }

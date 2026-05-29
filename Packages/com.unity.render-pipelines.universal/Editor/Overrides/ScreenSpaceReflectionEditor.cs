@@ -34,6 +34,8 @@ namespace UnityEditor.Rendering.Universal
         SerializedDataParameter m_NormalFade;
         SerializedDataParameter m_ScreenEdgeFade;
         SerializedDataParameter m_ReflectSky;
+        SerializedDataParameter m_TemporalFiltering;
+        SerializedDataParameter m_BaseBlendFactor;
 
         PerformancePreset m_CurrentPreset = PerformancePreset.Custom;
         bool m_IgnorePresetChange = false;
@@ -63,6 +65,8 @@ namespace UnityEditor.Rendering.Universal
             m_RayLengthFade = Unpack(o.Find(x => x.rayLengthFade));
             m_MaxRaySteps = Unpack(o.Find(x => x.maxRaySteps));
             m_ObjectThickness = Unpack(o.Find(x => x.objectThickness));
+            m_TemporalFiltering = Unpack(o.Find(x => x.temporalFiltering));
+            m_BaseBlendFactor = Unpack(o.Find(x => x.baseBlendFactor));
 
             // Determine current preset
             DetectCurrentPreset();
@@ -166,6 +170,17 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
             PropertyField(m_ReflectSky);
+            PropertyField(m_TemporalFiltering);
+            if (m_TemporalFiltering.value.boolValue)
+            {
+                using (new EditorGUI.DisabledScope(!m_TemporalFiltering.overrideState.boolValue))
+                {
+                    using (new IndentLevelScope())
+                    {
+                        PropertyField(m_BaseBlendFactor);
+                    }
+                }
+            }
         }
 
         void DetectCurrentPreset()

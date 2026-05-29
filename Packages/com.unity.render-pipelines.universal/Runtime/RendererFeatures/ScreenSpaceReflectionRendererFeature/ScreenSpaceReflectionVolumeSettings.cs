@@ -204,6 +204,14 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("How close to the depth buffer a ray must be to be considered a hit. Higher values will result in less accurate reflections, but may help mitigate shimmering artifacts.")]
         public ClampedFloatParameter objectThickness = new(DefaultPreset.objectThickness, 0f, 1f, true);
 
+        /// <summary>Whether to use temporal filtering to stabilize reflections.</summary>
+        [Tooltip("Whether to use temporal filtering to stabilize reflections. Reduces flickering and temporal instability, but may introduce ghosting.")]
+        public BoolParameter temporalFiltering = new(false);
+
+        /// <summary>Determines how much the history buffer is blended together with the current frame result.</summary>
+        [Tooltip("Determines how much the history buffer is blended together with the current frame result. Higher values means more history contribution, which leads to more stable reflections with less flickering, but is also more prone to ghosting.")]
+        public ClampedFloatParameter baseBlendFactor = new(0.95f, 0.4f, 0.99f);
+
         // Helpers
         internal bool ShouldRenderTransparents() => mode.value == ReflectionMode.OpaquesAndTransparents;
         internal bool ShouldUseGaussianBlurRoughness() => roughReflections.value == RoughReflectionsQuality.GaussianBlur;
