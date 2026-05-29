@@ -59,8 +59,8 @@ namespace UnityEngine.Rendering.Universal
             if (!TryPrepareResources(universalRenderingData.transparentLayerMask, settings))
                 return;
 
-            if (!settings.linearMarching.value && !SystemInfo.supportsComputeShaders)
-                Debug.LogWarning("Screen Space Reflection settings are incompatible with the current platform. Linear Marching must be enabled on platforms without computer shader support. Falling back to linear marching.");
+            if (settings.marchingMethod.value == ScreenSpaceReflectionVolumeSettings.MarchingMethod.Hierarchical && !SystemInfo.supportsComputeShaders)
+                Debug.LogWarning("Screen Space Reflection settings are incompatible with the current platform. Linear Marching Method must be used on platforms without computer shader support. Falling back to Linear marching.");
 
             bool shouldAdd = m_SSRPass.Setup(renderer, m_Material, m_BlitMaterial, afterOpaque, universalRenderingData, universalCameraData.cameraType);
             if (shouldAdd)

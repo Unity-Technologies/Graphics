@@ -629,8 +629,8 @@ namespace UnityEngine.Rendering.Universal
             out TextureHandle finalTexture,
             out TextureHandle depthPyramidTexture)
         {
-            bool needRoughnessMips = settings.roughReflections.value != RoughReflectionsQuality.Disabled;
-            bool boxBlurRoughness = settings.roughReflections.value == RoughReflectionsQuality.BoxBlur;
+            bool needRoughnessMips = settings.roughnessFilter.value != RoughReflectionsQuality.Disabled;
+            bool boxBlurRoughness = settings.roughnessFilter.value == RoughReflectionsQuality.BoxBlur;
 
             TextureDesc cameraDesc = resourceData.cameraColor.GetDescriptor(renderGraph);
             bool useHdrRendering = GraphicsFormatUtility.IsHDRFormat(cameraDesc.format);

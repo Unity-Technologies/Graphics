@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.Universal
         // Serialized properties, performance settings
         SerializedDataParameter m_Resolution;
         SerializedDataParameter m_UpscalingMethod;
-        SerializedDataParameter m_LinearMarching;
+        SerializedDataParameter m_MarchingMethod;
         SerializedDataParameter m_HitRefinementSteps;
         SerializedDataParameter m_FinalThicknessMultiplier;
         SerializedDataParameter m_MaxRayLength;
@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedDataParameter m_ClampReflectedColor;
         SerializedDataParameter m_MaxColorValue;
         SerializedDataParameter m_AfterOpaque;
-        SerializedDataParameter m_RoughReflections;
+        SerializedDataParameter m_RoughnessFilter;
         SerializedDataParameter m_RoughnessScale;
         SerializedDataParameter m_MinimumSmoothness;
         SerializedDataParameter m_SmoothnessFadeStart;
@@ -51,10 +51,10 @@ namespace UnityEditor.Rendering.Universal
             m_MaxColorValue = Unpack(o.Find(x => x.maxColorValue));
             m_Resolution = Unpack(o.Find(x => x.resolution));
             m_UpscalingMethod = Unpack(o.Find(x => x.upscalingMethod));
-            m_LinearMarching = Unpack(o.Find(x => x.linearMarching));
+            m_MarchingMethod = Unpack(o.Find(x => x.marchingMethod));
             m_HitRefinementSteps = Unpack(o.Find(x => x.hitRefinementSteps));
             m_FinalThicknessMultiplier = Unpack(o.Find(x => x.finalThicknessMultiplier));
-            m_RoughReflections = Unpack(o.Find(x => x.roughReflections));
+            m_RoughnessFilter = Unpack(o.Find(x => x.roughnessFilter));
             m_RoughnessScale = Unpack(o.Find(x => x.roughnessScale));
             m_MinimumSmoothness = Unpack(o.Find(x => x.minimumSmoothness));
             m_SmoothnessFadeStart =  Unpack(o.Find(x => x.smoothnessFadeStart));
@@ -115,10 +115,10 @@ namespace UnityEditor.Rendering.Universal
             PropertyField(m_UpscalingMethod);
             PropertyField(m_MaxRaySteps);
             PropertyField(m_ObjectThickness);
-            PropertyField(m_LinearMarching);
-            if (m_LinearMarching.value.boolValue)
+            PropertyField(m_MarchingMethod);
+            if (m_MarchingMethod.value.enumValueIndex == (int)MarchingMethod.Linear)
             {
-                using (new EditorGUI.DisabledScope(!m_LinearMarching.overrideState.boolValue))
+                using (new EditorGUI.DisabledScope(!m_MarchingMethod.overrideState.boolValue))
                 {
                     using (new IndentLevelScope())
                     {
@@ -144,10 +144,10 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
             }
-            PropertyField(m_RoughReflections);
-            if (m_RoughReflections.value.enumValueIndex != (int)RoughReflectionsQuality.Disabled)
+            PropertyField(m_RoughnessFilter);
+            if (m_RoughnessFilter.value.enumValueIndex != (int)RoughReflectionsQuality.Disabled)
             {
-                using (new EditorGUI.DisabledScope(!m_RoughReflections.overrideState.boolValue))
+                using (new EditorGUI.DisabledScope(!m_RoughnessFilter.overrideState.boolValue))
                 {
                     using (new IndentLevelScope())
                     {
@@ -161,9 +161,9 @@ namespace UnityEditor.Rendering.Universal
             m_SmoothnessFadeStart.value.floatValue = Mathf.Max(m_MinimumSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
             PropertyField(m_ScreenEdgeFade);
             PropertyField(m_NormalFade);
-            if (m_LinearMarching.value.boolValue)
+            if (m_MarchingMethod.value.enumValueIndex == (int)MarchingMethod.Linear)
             {
-                using (new EditorGUI.DisabledScope(!m_LinearMarching.overrideState.boolValue))
+                using (new EditorGUI.DisabledScope(!m_MarchingMethod.overrideState.boolValue))
                 {
                     PropertyField(m_RayLengthFade);
                     m_RayLengthFade.value.floatValue = Mathf.Min(m_MaxRayLength.value.floatValue, m_RayLengthFade.value.floatValue);
@@ -201,7 +201,7 @@ namespace UnityEditor.Rendering.Universal
         {
             return m_Resolution.value.enumValueFlag == (int)preset.resolution &&
                    m_UpscalingMethod.value.enumValueFlag == (int)preset.upscalingMethod &&
-                   m_LinearMarching.value.boolValue == preset.linearMarching &&
+                   m_MarchingMethod.value.enumValueFlag == (int)preset.marchingMethod &&
                    m_HitRefinementSteps.value.intValue == preset.hitRefinementSteps &&
                    Mathf.Approximately(m_FinalThicknessMultiplier.value.floatValue, preset.finalThicknessMultiplier) &&
                    Mathf.Approximately(m_MaxRayLength.value.floatValue, preset.maxRayLength) &&
@@ -222,8 +222,8 @@ namespace UnityEditor.Rendering.Universal
             m_Resolution.value.intValue = (int)settings.resolution;
             m_UpscalingMethod.value.enumValueIndex = (int)settings.upscalingMethod;
             m_UpscalingMethod.overrideState.boolValue = true;
-            m_LinearMarching.value.boolValue = settings.linearMarching;
-            m_LinearMarching.overrideState.boolValue = true;
+            m_MarchingMethod.value.enumValueIndex = (int)settings.marchingMethod;
+            m_MarchingMethod.overrideState.boolValue = true;
             m_HitRefinementSteps.value.intValue = settings.hitRefinementSteps;
             m_HitRefinementSteps.overrideState.boolValue = true;
             m_FinalThicknessMultiplier.value.floatValue = settings.finalThicknessMultiplier;
