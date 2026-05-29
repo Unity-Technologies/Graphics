@@ -46,8 +46,6 @@ namespace UnityEditor.Rendering
         {
 #if ENABLE_RENDERING_DEBUGGER_UI
             RecreateGUI();
-
-            UpdateWidgetStates();
 #else
             var helpBox = new HelpBox(
                 "UIElements Module is disabled. In order to use Rendering Debugger, enable the module in Package Manager > Built-in. ",
@@ -76,7 +74,7 @@ namespace UnityEditor.Rendering
         VisualElement m_LeftPaneElement;
         VisualElement m_RightPaneElement;
 
-        const string k_UssCommon = "Packages/com.unity.render-pipelines.core/Runtime/DEbugging/Runtime UI Resources/DebugWindowCommon.uss";
+        const string k_UssCommon = "Packages/com.unity.render-pipelines.core/Runtime/Debugging/Runtime UI Resources/DebugWindowCommon.uss";
         const string k_Uss = "Packages/com.unity.render-pipelines.core/Editor/Debugging/DebugWindow.uss";
         const string k_Uxml = "Packages/com.unity.render-pipelines.core/Editor/Debugging/DebugWindow.uxml";
 
@@ -94,16 +92,10 @@ namespace UnityEditor.Rendering
             hideFlags = HideFlags.HideAndDontSave;
             autoRepaintOnSceneChange = true;
 
-            if (m_WidgetStates == null || !AreWidgetStatesValid())
-                m_WidgetStates = new WidgetStateDictionary();
-            if (s_WidgetStateMap == null || s_TypeMapDirty)
-                RebuildTypeMaps();
-
             DebugManager.instance.onSetDirty += MarkDirty;
 
             GraphicsToolLifetimeAnalytic.WindowOpened<DebugWindow>();
 
-            HookLegacyWidgetStateHandlingCallbacks();
             HookValueChangedAnalytics();
         }
 
@@ -174,8 +166,6 @@ namespace UnityEditor.Rendering
             };
 
             DebugManager.instance.onSetDirty -= MarkDirty;
-
-            DestroyWidgetStates();
         }
 
         private void OnDisable()
@@ -194,7 +184,6 @@ namespace UnityEditor.Rendering
             // some debug values need to be refresh/recreated as well (e.g. frame settings on HD)
             if (DebugManager.instance.refreshEditorRequested)
             {
-                ReloadWidgetStates();
                 m_IsDirty = true;
                 DebugManager.instance.refreshEditorRequested = false;
             }
