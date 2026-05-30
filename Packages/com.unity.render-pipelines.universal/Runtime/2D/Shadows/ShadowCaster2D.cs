@@ -99,6 +99,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal int m_PreviousEdgeProcessing;
         [SerializeField] internal int m_PreviousShadowCastingSource;
         [SerializeField] internal Component m_PreviousShadowShape2DSource = null;
+        [SerializeField] internal int m_PreviousShadowShape2DProviderHash;
 
 #if UNITY_EDITOR
         [SerializeReference] internal Shadow2DProviderSources m_SelectionSources = new Shadow2DProviderSources();
@@ -382,12 +383,8 @@ namespace UnityEngine.Rendering.Universal
 
             if (m_ShadowMesh == null)
             {
-                ShadowMesh2D newShadowMesh = new ShadowMesh2D();
-                SetShadowShape(newShadowMesh);
-                m_ShadowMesh = newShadowMesh;
+                m_ShadowMesh = new ShadowMesh2D();
             }
-
-
 #if USING_PHYSICS2D_MODULE
             else
             {
@@ -396,6 +393,18 @@ namespace UnityEngine.Rendering.Universal
                     bounds = collider.bounds;
             }
 #endif
+
+            if (m_ShadowMesh.trimEdge == ShadowMesh2D.k_TrimEdgeUninitialized)
+                SetShadowShape(m_ShadowMesh);
+        }
+
+        internal void EnsureMeshInitialized()
+        {
+            if (m_ShadowMesh == null)
+                m_ShadowMesh = new ShadowMesh2D();
+
+            if (m_ShadowMesh.trimEdge == ShadowMesh2D.k_TrimEdgeUninitialized)
+                SetShadowShape(m_ShadowMesh);
         }
 
         /// <summary>
@@ -441,6 +450,8 @@ namespace UnityEngine.Rendering.Universal
             bool rebuildMesh = LightUtility.CheckForChange((int)m_ShadowCastingSource, ref m_PreviousShadowCastingSource);
             rebuildMesh |= LightUtility.CheckForChange((int)edgeProcessing, ref m_PreviousEdgeProcessing);
             rebuildMesh |= edgeProcessing != EdgeProcessing.None && LightUtility.CheckForChange(trimEdge, ref m_PreviousTrimEdge);
+            int providerHash = m_ShadowShape2DProvider != null ? m_ShadowShape2DProvider.TypeIdentifierHash : 0;
+            rebuildMesh |= LightUtility.CheckForChange(providerHash, ref m_PreviousShadowShape2DProviderHash);
             rebuildMesh |= m_ForceShadowMeshRebuild;
 
             if (m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
@@ -550,6 +561,7 @@ namespace UnityEngine.Rendering.Universal
             m_PreviousShadowCasterGroup = null;
             m_PreviousShadowCastingSource = -1;
             m_PreviousShadowShape2DSource = null;
+            m_PreviousShadowShape2DProviderHash = 0;
             m_PreviousTrimEdge = 0;
             m_PreviousEdgeProcessing = -1;
             m_ForceShadowMeshRebuild = true;

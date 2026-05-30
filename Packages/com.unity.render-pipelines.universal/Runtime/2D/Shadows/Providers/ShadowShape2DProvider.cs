@@ -62,5 +62,28 @@ namespace UnityEngine.Rendering.Universal
 
         internal override GUIContent Internal_ProviderName(string componentName) { return ProviderName(componentName); }
         internal override bool Internal_IsRequiredComponentData(Component sourceComponent) { return IsRequiredComponentData(sourceComponent); }
+
+        // Cached stable identifier hash for this provider's concrete type. Computed lazily on
+        // first access and cached for the lifetime of the instance, so per-frame change detection
+        // does not pay the string/CRC cost. Uses assembly name + full type name so two providers
+        // sharing a class name in different assemblies do not collide, and excludes assembly
+        // version so version bumps do not invalidate the hash.
+        [NonSerialized] int m_TypeIdentifierHash;
+
+        internal int TypeIdentifierHash
+        {
+            get
+            {
+                if (m_TypeIdentifierHash == 0)
+                {
+                    Type type = GetType();
+                    string qualified = type.Assembly.GetName().Name + "::" + type.FullName;
+                    int hash = unchecked((int)URP2D_Crc32.Compute(qualified));
+                    // Reserve 0 as "uncomputed" sentinel.
+                    m_TypeIdentifierHash = hash == 0 ? 1 : hash;
+                }
+                return m_TypeIdentifierHash;
+            }
+        }
     }
 }
