@@ -167,7 +167,10 @@ float4 _FPParams2;
 StructuredBuffer<LightData> _AdditionalLightsBuffer;
 StructuredBuffer<int> _AdditionalLightsIndices;
 #else
+// GLES3 causes a performance regression in some devices when using CBUFFER.
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_START(AdditionalLights)
+#endif
 float4 _AdditionalLightsPosition[MAX_VISIBLE_LIGHTS];
 // In Forward+, .a stores whether the light is using subtractive mixed mode.
 half4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
@@ -175,7 +178,9 @@ half4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
 float _AdditionalLightsLayerMasks[MAX_VISIBLE_LIGHTS]; // we want uint[] but Unity api does not support it.
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
+#endif
 #endif
 
 #if USE_CLUSTER_LIGHT_LOOP
@@ -193,13 +198,17 @@ float urp_ReflProbes_Count;
 // 2023.3 Deprecated. This is for backwards compatibility. Remove in the future.
 #define samplerurp_ReflProbes_Atlas sampler_LinearClamp
 
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_START(urp_ReflectionProbeBuffer)
+#endif
 float4 urp_ReflProbes_BoxMax[MAX_REFLECTION_PROBES];          // w contains the blend distance
 float4 urp_ReflProbes_BoxMin[MAX_REFLECTION_PROBES];          // w contains the importance
 float4 urp_ReflProbes_ProbePosition[MAX_REFLECTION_PROBES];   // w is positive for box projection, |w| is max mip level
 float4 urp_ReflProbes_MipScaleOffset[MAX_REFLECTION_PROBES * 7];
 float4 urp_ReflProbes_Rotation[MAX_REFLECTION_PROBES];
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
+#endif
 
 #endif
 
