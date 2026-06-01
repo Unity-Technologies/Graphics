@@ -516,9 +516,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Debug data.
         /// </summary>
-        public DebugData data { get => m_Data; }
-
-        internal Action resetAction { private get; set; }
+        public DebugData data => m_Data;
 
         // Had to keep those public because HDRP tests using it (as a workaround to access proper enum values for this debug)
         /// <summary>List of Full Screen Rendering Debug mode names.</summary>
@@ -533,6 +531,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal DebugDisplaySettings()
         {
+            m_ResetAction = () =>
+            {
+                m_Data = new DebugData();
+
+                // This is not a debug property owned by `DebugData`, it is a static property on `Texture`.
+                // When the user hits reset, we want to make sure texture mip caching is enabled again (regardless of whether the
+                // user toggled this in the Rendering Debugger UI or changed it using the scripting API).
+                Texture.streamingTextureDiscardUnusedMips = false;
+            };
         }
 
         void InitializeDebugEnums()
@@ -558,11 +565,12 @@ namespace UnityEngine.Rendering.HighDefinition
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateSpecularColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Metal or SpecularColor");
         }
 
+        private Action m_ResetAction;
         /// <summary>
         /// Get Reset action.
         /// </summary>
         /// <returns></returns>
-        Action IDebugData.GetReset() => resetAction;
+        Action IDebugData.GetReset() => m_ResetAction;
 
         internal float[] GetDebugMaterialIndexes()
         {
