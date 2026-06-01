@@ -1014,6 +1014,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                         lightmappingContext.ClearOutputs();
 
                         IRayTracingShader normalShader = lightmapResourceLib.NormalAccumulationShader;
+                        Util.SetTerrainRayMarchingKeyword(cmd, normalShader, hasTerrains);
                         GraphicsBuffer compactedGBufferLength = lightmappingContext.CompactedGBufferLength;
                         GraphicsBuffer indirectDispatchBuffer = lightmappingContext.IndirectDispatchBuffer;
                         GraphicsBuffer indirectRayTracingDispatchBuffer = lightmappingContext.IndirectDispatchRayTracingBuffer;
