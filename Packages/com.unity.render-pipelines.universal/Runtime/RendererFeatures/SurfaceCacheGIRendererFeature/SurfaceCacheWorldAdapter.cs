@@ -25,9 +25,9 @@ namespace UnityEngine.Rendering.Universal
         {
             _lights = new LightSet();
             _sharedMaterials = new SharedMaterialSet(fallbackMaterial);
-            _meshRenderers = new MeshRendererSet(_sharedMaterials, fallbackMaterial, world);
+            _meshRenderers = new MeshRendererSet(fallbackMaterial);
 #if ENABLE_TERRAIN_MODULE
-            _terrains = new TerrainSet(_sharedMaterials, fallbackMaterial, world);
+            _terrains = new TerrainSet(fallbackMaterial);
 #endif
 
 #if UNITY_EDITOR
@@ -223,25 +223,33 @@ namespace UnityEngine.Rendering.Universal
         class MeshRendererSet
         {
             readonly Dictionary<EntityId, InstanceHandle> _entityIdsToWorldInstanceHandles = new();
-            readonly EntityId _fallbackMaterialEntityId;
-            readonly MaterialHandle _fallbackMaterialHandle;
+            readonly Material _fallbackMaterial;
+            readonly List<Material> _scratch = new();
 
-            // Whenever a MeshRenderer points to no material then the material Entity ID in this
-            // dictionary must be set to EntityId.None.
-            Dictionary<EntityId, EntityId[]> _entityIdsToMaterialEntityIdArrays = new();
+            // Materials assigned to the MeshRenderer the last time we checked.
+            // "null materials" must be set to EntityId.None.
+            Dictionary<EntityId, EntityId[]> _entityIdsToInputMaterialEntityIdArrays = new();
 
-            public MeshRendererSet(SharedMaterialSet sharedMaterials, Material fallbackMaterial, SurfaceCacheWorld world)
+            // Materials that are currently acquired. This may include the fallback material.
+            Dictionary<EntityId, EntityId[]> _entityIdsToAcquiredMaterialEntityIdArrays = new();
+
+            public MeshRendererSet(Material fallbackMaterial)
             {
-                _fallbackMaterialEntityId = fallbackMaterial.GetEntityId();
-                _fallbackMaterialHandle = sharedMaterials.Acquire(_fallbackMaterialEntityId, fallbackMaterial, world);
+                _fallbackMaterial = fallbackMaterial;
             }
 
             public void CleanUp(SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
             {
-                foreach (var instanceHandle in _entityIdsToWorldInstanceHandles.Values)
+                foreach (var kvp in _entityIdsToWorldInstanceHandles)
+                {
+                    var entityId = kvp.Key;
+                    var instanceHandle = kvp.Value;
+
                     world.RemoveInstance(instanceHandle);
 
-                sharedMaterials.Release(_fallbackMaterialEntityId, world);
+                    foreach (var matEntityId in _entityIdsToAcquiredMaterialEntityIdArrays[entityId])
+                        sharedMaterials.Release(matEntityId, world);
+                }
             }
 
             public bool Contains(EntityId meshRendererEntityId)
@@ -256,7 +264,9 @@ namespace UnityEngine.Rendering.Universal
                 var meshFilter = renderer.GetComponent<MeshFilter>();
                 var mesh = meshFilter?.sharedMesh;
                 var shouldExist = renderer.enabled && renderer.gameObject.activeInHierarchy && mesh != null && mesh.vertexCount != 0;
-                var rendererMaterials = renderer.sharedMaterials;
+                Debug.Assert(_scratch.Count == 0);
+                var inputMats = _scratch;
+                renderer.GetSharedMaterials(inputMats); // We call GetSharedMaterials to avoid heap allocation.
 
                 if (exists)
                 {
@@ -272,43 +282,26 @@ namespace UnityEngine.Rendering.Universal
                         }
                         else
                         {
-                            Span<EntityId> instanceMaterials = stackalloc EntityId[mesh.subMeshCount];
-                            for (int i = 0; i < instanceMaterials.Length; i++)
-                            {
-                                Material material = i < rendererMaterials.Length ? rendererMaterials[i] : null;
-                                instanceMaterials[i] = material != null ? material.GetEntityId() : EntityId.None;
-                            }
+                            Span<EntityId> inputMatIds = stackalloc EntityId[mesh.subMeshCount];
+                            ResolveMaterialIds(inputMats, inputMatIds);
 
-                            var materialsChanged = !((ReadOnlySpan<EntityId>)instanceMaterials).SequenceEqual(_entityIdsToMaterialEntityIdArrays[entityId]);
+                            var materialsChanged = !((ReadOnlySpan<EntityId>)inputMatIds).SequenceEqual(_entityIdsToInputMaterialEntityIdArrays[entityId]);
 
                             if (materialsChanged)
                             {
-                                Span<MaterialHandle> materialHandles = stackalloc MaterialHandle[mesh.subMeshCount];
-                                for (int i = 0; i < materialHandles.Length; i++)
-                                {
-                                    Material material = i < rendererMaterials.Length ? rendererMaterials[i] : null;
-                                    MaterialHandle handle;
-                                    if (material != null)
-                                        handle = sharedMaterials.Acquire(material.GetEntityId(), material, world);
-                                    else
-                                        handle = _fallbackMaterialHandle;
-                                    materialHandles[i] = handle;
-                                }
+                                Span<MaterialHandle> acquiredMatHandles = stackalloc MaterialHandle[mesh.subMeshCount];
+                                Span<EntityId> acquiredMatIds = stackalloc EntityId[mesh.subMeshCount];
                                 Span<uint> masks = stackalloc uint[mesh.subMeshCount];
-                                for (int i = 0; i < masks.Length; i++)
-                                {
-                                    masks[i] = i < rendererMaterials.Length && rendererMaterials[i] != null ? 1u : 0u;
-                                }
+                                ResolveMaterialHandlesAndMasks(world, sharedMaterials, renderer, inputMats, _fallbackMaterial, acquiredMatHandles, acquiredMatIds, masks);
 
-                                Debug.Assert(_entityIdsToMaterialEntityIdArrays.ContainsKey(entityId));
-                                foreach (var matEntityId in _entityIdsToMaterialEntityIdArrays[entityId])
-                                {
-                                    if (matEntityId != EntityId.None)
-                                        sharedMaterials.Release(matEntityId, world);
-                                }
-                                _entityIdsToMaterialEntityIdArrays[entityId] = instanceMaterials.ToArray();
+                                Debug.Assert(_entityIdsToAcquiredMaterialEntityIdArrays.ContainsKey(entityId));
+                                foreach (var matEntityId in _entityIdsToAcquiredMaterialEntityIdArrays[entityId])
+                                    sharedMaterials.Release(matEntityId, world);
 
-                                world.UpdateInstanceMaterials(instanceHandle, materialHandles);
+                                _entityIdsToInputMaterialEntityIdArrays[entityId] = inputMatIds.ToArray();
+                                _entityIdsToAcquiredMaterialEntityIdArrays[entityId] = acquiredMatIds.ToArray();
+
+                                world.UpdateInstanceMaterials(instanceHandle, acquiredMatHandles);
                                 world.UpdateInstanceMask(instanceHandle, masks);
                             }
                         }
@@ -325,56 +318,78 @@ namespace UnityEngine.Rendering.Universal
                     {
                         // Mesh renderer does not exist and it should exist, so we must create it.
 
-                        var instanceMaterials = new EntityId[mesh.subMeshCount];
-                        Span<MaterialHandle> materialHandles = stackalloc MaterialHandle[mesh.subMeshCount];
-                        for (int i = 0; i < materialHandles.Length; i++)
-                        {
-                            Material material = i < rendererMaterials.Length ? rendererMaterials[i] : null;
-                            MaterialHandle handle;
-                            EntityId matEntityId;
-                            if (material != null)
-                            {
-                                matEntityId = material.GetEntityId();
-                                handle = sharedMaterials.Acquire(matEntityId, material, world);
-                            }
-                            else
-                            {
-                                matEntityId = EntityId.None;
-                                handle = _fallbackMaterialHandle;
-                            }
-                            instanceMaterials[i] = matEntityId;
-                            materialHandles[i] = handle;
-                        }
-                        Span<uint> masks = stackalloc uint[mesh.subMeshCount];
-                        for (int i = 0; i < masks.Length; i++)
-                        {
-                            masks[i] = i < rendererMaterials.Length && rendererMaterials[i] != null ? 1u : 0u;
-                        }
+                        Span<EntityId> inputMatIds = stackalloc EntityId[mesh.subMeshCount];
+                        ResolveMaterialIds(inputMats, inputMatIds);
 
-                        InstanceHandle instance = world.AddInstance(mesh, materialHandles, masks, renderer.transform.localToWorldMatrix);
+                        Span<MaterialHandle> acquiredMatHandles = stackalloc MaterialHandle[mesh.subMeshCount];
+                        Span<EntityId> acquiredMatIds = stackalloc EntityId[mesh.subMeshCount];
+                        Span<uint> masks = stackalloc uint[mesh.subMeshCount];
+                        ResolveMaterialHandlesAndMasks(world, sharedMaterials, renderer, inputMats, _fallbackMaterial, acquiredMatHandles, acquiredMatIds, masks);
+
+                        InstanceHandle instance = world.AddInstance(mesh, acquiredMatHandles, masks, renderer.transform.localToWorldMatrix);
                         Debug.Assert(!_entityIdsToWorldInstanceHandles.ContainsKey(entityId));
-                        Debug.Assert(!_entityIdsToMaterialEntityIdArrays.ContainsKey(entityId));
+                        Debug.Assert(!_entityIdsToInputMaterialEntityIdArrays.ContainsKey(entityId));
+                        Debug.Assert(!_entityIdsToAcquiredMaterialEntityIdArrays.ContainsKey(entityId));
                         _entityIdsToWorldInstanceHandles.Add(entityId, instance);
-                        _entityIdsToMaterialEntityIdArrays.Add(entityId, instanceMaterials);
+                        _entityIdsToInputMaterialEntityIdArrays.Add(entityId, inputMatIds.ToArray());
+                        _entityIdsToAcquiredMaterialEntityIdArrays.Add(entityId, acquiredMatIds.ToArray());
                     }
+                }
+
+                _scratch.Clear();
+            }
+
+            public void Remove(EntityId rendererId, SharedMaterialSet adapterMaterials, SurfaceCacheWorld world)
+            {
+                Debug.Assert(_entityIdsToWorldInstanceHandles.ContainsKey(rendererId));
+                Debug.Assert(_entityIdsToInputMaterialEntityIdArrays.ContainsKey(rendererId));
+                Debug.Assert(_entityIdsToAcquiredMaterialEntityIdArrays.ContainsKey(rendererId));
+
+                world.RemoveInstance(_entityIdsToWorldInstanceHandles[rendererId]);
+
+                foreach (var matEntityId in _entityIdsToAcquiredMaterialEntityIdArrays[rendererId])
+                    adapterMaterials.Release(matEntityId, world);
+
+                _entityIdsToWorldInstanceHandles.Remove(rendererId);
+                _entityIdsToInputMaterialEntityIdArrays.Remove(rendererId);
+                _entityIdsToAcquiredMaterialEntityIdArrays.Remove(rendererId);
+            }
+
+            static void ResolveMaterialHandlesAndMasks(SurfaceCacheWorld world, SharedMaterialSet sharedMaterials, MeshRenderer renderer, List<Material> rendererMats, Material fallbackMaterial, Span<MaterialHandle> acquiredMaterialHandles, Span<EntityId> acquiredMaterialEntityIds, Span<uint> masks)
+            {
+                for (int i = 0; i < acquiredMaterialHandles.Length; i++)
+                {
+                    Material inputMat = i < rendererMats.Count ? rendererMats[i] : null;
+
+                    masks[i] = inputMat == null ? 0u : 1u;
+
+                    bool matIsSet = inputMat != null;
+                    bool matIsSetAndHasMetaPass = matIsSet && inputMat.FindPass("Meta") != -1;
+                    bool matIsUnsetOrNoMetaPass = !matIsSetAndHasMetaPass;
+                    bool matIsSetAndNoMetaPass = matIsSet && matIsUnsetOrNoMetaPass;
+
+                    if (matIsSetAndNoMetaPass)
+                        Debug.LogError($"The material '{inputMat.name}' used by Game Object '{renderer.gameObject.name}' does not have a 'Meta' shader pass and cannot be used by Surface Cache Global Illumination. A fallback material will be used for this material instead.", inputMat);
+
+                    // Using fallback material when there is no input material is redundant, but we do it anyway
+                    // because this buys us the simplifying assumption that we always have some material handle.
+                    var acquiredMat = inputMat;
+                    if (matIsUnsetOrNoMetaPass)
+                        acquiredMat = fallbackMaterial;
+
+                    var acquiredMatEntityId = acquiredMat.GetEntityId();
+                    acquiredMaterialHandles[i] = sharedMaterials.Acquire(acquiredMatEntityId, acquiredMat, world);
+                    acquiredMaterialEntityIds[i] = acquiredMatEntityId;
                 }
             }
 
-            public void Remove(EntityId renderer, SharedMaterialSet adapterMaterials, SurfaceCacheWorld world)
+            static void ResolveMaterialIds(List<Material> rendererMaterials, Span<EntityId> materialEntityIds)
             {
-                Debug.Assert(_entityIdsToWorldInstanceHandles.ContainsKey(renderer));
-                Debug.Assert(_entityIdsToMaterialEntityIdArrays.ContainsKey(renderer));
-
-                world.RemoveInstance(_entityIdsToWorldInstanceHandles[renderer]);
-
-                foreach (var matEntityId in _entityIdsToMaterialEntityIdArrays[renderer])
+                for (int i = 0; i < materialEntityIds.Length; i++)
                 {
-                    if (matEntityId != EntityId.None)
-                        adapterMaterials.Release(matEntityId, world);
+                    Material material = i < rendererMaterials.Count ? rendererMaterials[i] : null;
+                    materialEntityIds[i] = material != null ? material.GetEntityId() : EntityId.None;
                 }
-
-                _entityIdsToWorldInstanceHandles.Remove(renderer);
-                _entityIdsToMaterialEntityIdArrays.Remove(renderer);
             }
         }
 
@@ -385,7 +400,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 public Terrain Terrain;
                 public InstanceHandle InstanceHandle;
-                public EntityId MaterialEntityId;
+                // The material assigned the last time we checked. This may be EntityId.None.
+                public EntityId InputMaterialEntityId;
+                // The material currently acquired (this may be the fallback material).
+                public EntityId AcquiredMaterialEntityId;
                 public EntityId TerrainDataEntityId;
             }
 
@@ -394,8 +412,7 @@ namespace UnityEngine.Rendering.Universal
             // Scratch buffer reused by RebuildConsumers to snapshot ids before mutating _entries.
             readonly List<EntityId> _terrainEntityIdScratch = new();
 
-            readonly EntityId _fallbackMaterialEntityId;
-            readonly MaterialHandle _fallbackMaterialHandle;
+            readonly Material _fallbackMaterial;
 
 #if UNITY_EDITOR
             struct DeferredRebuild
@@ -409,10 +426,9 @@ namespace UnityEngine.Rendering.Universal
             readonly List<EntityId> _deferredRebuildScratch = new();
 #endif
 
-            public TerrainSet(SharedMaterialSet sharedMaterials, Material fallbackMaterial, SurfaceCacheWorld world)
+            public TerrainSet(Material fallbackMaterial)
             {
-                _fallbackMaterialEntityId = fallbackMaterial.GetEntityId();
-                _fallbackMaterialHandle = sharedMaterials.Acquire(_fallbackMaterialEntityId, fallbackMaterial, world);
+                _fallbackMaterial = fallbackMaterial;
             }
 
             public void CleanUp(SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
@@ -420,11 +436,8 @@ namespace UnityEngine.Rendering.Universal
                 foreach (var entry in _entries.Values)
                 {
                     world.RemoveInstance(entry.InstanceHandle);
-                    if (entry.MaterialEntityId != EntityId.None)
-                        sharedMaterials.Release(entry.MaterialEntityId, world);
+                    sharedMaterials.Release(entry.AcquiredMaterialEntityId, world);
                 }
-
-                sharedMaterials.Release(_fallbackMaterialEntityId, world);
             }
 
             public bool Contains(EntityId terrainEntityId)
@@ -456,25 +469,22 @@ namespace UnityEngine.Rendering.Universal
                             return;
                         }
 
-                        var newMaterial = terrain.splatBaseMaterial;
-                        var newMaterialEntityId = newMaterial != null ? newMaterial.GetEntityId() : EntityId.None;
-                        if (newMaterialEntityId != entry.MaterialEntityId)
+                        var inputMat = terrain.splatBaseMaterial;
+                        var inputMatEntityId = inputMat != null ? inputMat.GetEntityId() : EntityId.None;
+                        if (inputMatEntityId != entry.InputMaterialEntityId)
                         {
-                            MaterialHandle newHandle;
-                            if (newMaterial != null)
-                                newHandle = sharedMaterials.Acquire(newMaterialEntityId, newMaterial, world);
-                            else
-                                newHandle = _fallbackMaterialHandle;
+                            ResolveMaterialHandleAndMask(terrain, inputMat, inputMatEntityId, sharedMaterials, world, _fallbackMaterial,
+                                out EntityId acquiredMatEntityId, out MaterialHandle acquiredMatHandle, out uint mask);
 
-                            Span<MaterialHandle> materialHandles = stackalloc MaterialHandle[1] { newHandle };
-                            Span<uint> masks = stackalloc uint[1] { newMaterial != null ? 1u : 0u };
-                            world.UpdateInstanceMaterials(entry.InstanceHandle, materialHandles);
+                            Span<MaterialHandle> matHandles = stackalloc MaterialHandle[1] { acquiredMatHandle };
+                            Span<uint> masks = stackalloc uint[1] { mask };
+                            world.UpdateInstanceMaterials(entry.InstanceHandle, matHandles);
                             world.UpdateInstanceMask(entry.InstanceHandle, masks);
 
-                            if (entry.MaterialEntityId != EntityId.None)
-                                sharedMaterials.Release(entry.MaterialEntityId, world);
+                            sharedMaterials.Release(entry.AcquiredMaterialEntityId, world);
 
-                            entry.MaterialEntityId = newMaterialEntityId;
+                            entry.InputMaterialEntityId = inputMatEntityId;
+                            entry.AcquiredMaterialEntityId = acquiredMatEntityId;
                             _entries[entityId] = entry;
                         }
                     }
@@ -541,8 +551,7 @@ namespace UnityEngine.Rendering.Universal
                 Debug.Assert(_entries.ContainsKey(terrainEntityId));
                 var entry = _entries[terrainEntityId];
                 world.RemoveInstance(entry.InstanceHandle);
-                if (entry.MaterialEntityId != EntityId.None)
-                    sharedMaterials.Release(entry.MaterialEntityId, world);
+                sharedMaterials.Release(entry.AcquiredMaterialEntityId, world);
                 _entries.Remove(terrainEntityId);
 #if UNITY_EDITOR
                 _deferredRebuilds.Remove(terrainEntityId);
@@ -554,28 +563,18 @@ namespace UnityEngine.Rendering.Universal
                 Debug.Assert(!_entries.ContainsKey(terrainEntityId));
                 var terrainData = terrain.terrainData;
                 Debug.Assert(terrainData != null);
+                var inputMaterial = terrain.splatBaseMaterial;
+                EntityId inputMatEntityId = inputMaterial != null ? inputMaterial.GetEntityId() : EntityId.None;
+                ResolveMaterialHandleAndMask(terrain, inputMaterial, inputMatEntityId, sharedMaterials, world, _fallbackMaterial,
+                    out EntityId acquiredMatEntityId, out MaterialHandle matHandle, out uint mask);
 
-                var material = terrain.splatBaseMaterial;
-                MaterialHandle materialHandle;
-                EntityId materialEntityId;
-                if (material != null)
-                {
-                    materialEntityId = material.GetEntityId();
-                    materialHandle = sharedMaterials.Acquire(materialEntityId, material, world);
-                }
-                else
-                {
-                    materialEntityId = EntityId.None;
-                    materialHandle = _fallbackMaterialHandle;
-                }
-
-                uint mask = material != null ? 1u : 0u;
-                var instance = world.AddInstance(terrain, materialHandle, mask, terrain.transform.localToWorldMatrix);
+                var instance = world.AddInstance(terrain, matHandle, mask, terrain.transform.localToWorldMatrix);
                 _entries[terrainEntityId] = new Entry
                 {
                     Terrain = terrain,
                     InstanceHandle = instance,
-                    MaterialEntityId = materialEntityId,
+                    InputMaterialEntityId = inputMatEntityId,
+                    AcquiredMaterialEntityId = acquiredMatEntityId,
                     TerrainDataEntityId = terrainData.GetEntityId(),
                 };
             }
@@ -585,15 +584,42 @@ namespace UnityEngine.Rendering.Universal
                 Debug.Assert(_entries.ContainsKey(terrainEntityId));
                 Debug.Assert(terrain.terrainData != null);
 
-                var oldMaterialEntityId = _entries[terrainEntityId].MaterialEntityId;
+                var oldAcquiredMaterialEntityId = _entries[terrainEntityId].AcquiredMaterialEntityId;
 
                 world.RemoveInstance(_entries[terrainEntityId].InstanceHandle);
                 _entries.Remove(terrainEntityId);
 
                 AddInstance(terrain, terrainEntityId, sharedMaterials, world);
 
-                if (oldMaterialEntityId != EntityId.None)
-                    sharedMaterials.Release(oldMaterialEntityId, world);
+                sharedMaterials.Release(oldAcquiredMaterialEntityId, world);
+            }
+
+            static void ResolveMaterialHandleAndMask(Terrain terrain, Material inputMat, EntityId inputMatEntityId, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world, Material fallbackMaterial, out EntityId acquiredMatEntityId, out MaterialHandle acquiredMatHandle, out uint mask)
+            {
+                mask = inputMat == null ? 0u : 1u;
+
+                bool matIsSet = inputMat != null;
+                bool matIsSetAndHasMetaPass = matIsSet && inputMat.FindPass("Meta") != -1;
+                bool matIsUnsetOrNoMetaPass = !matIsSetAndHasMetaPass;
+                bool matIsSetAndNoMetaPass = matIsSet && matIsUnsetOrNoMetaPass;
+
+                if (matIsSetAndNoMetaPass)
+                    Debug.LogError($"The material '{inputMat.name}' used by terrain '{terrain.gameObject.name}' does not have a 'Meta' shader pass and cannot be used by Surface Cache Global Illumination. A fallback material will be used for this material instead.", inputMat);
+
+                // Using fallback material when there is no input material is redundant, but we do it anyway
+                // because this buys us the simplifying assumption that we always have some material handle.
+                Material acquiredMat;
+                if (matIsUnsetOrNoMetaPass)
+                {
+                    acquiredMatEntityId = fallbackMaterial.GetEntityId();
+                    acquiredMat = fallbackMaterial;
+                }
+                else
+                {
+                    acquiredMatEntityId = inputMatEntityId;
+                    acquiredMat = inputMat;
+                }
+                acquiredMatHandle = sharedMaterials.Acquire(acquiredMatEntityId, acquiredMat, world);
             }
         }
 #endif
