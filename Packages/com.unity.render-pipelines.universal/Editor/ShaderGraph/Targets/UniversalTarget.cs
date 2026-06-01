@@ -1315,7 +1315,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
-                renderStates = CoreRenderStates.ScenePicking(target),
+                renderStates = CoreRenderStates.ScenePicking2D,
                 pragmas = CorePragmas._2DDefault,
                 defines = new DefineCollection { CoreDefines.ScenePicking, { CoreKeywordDescriptors.AlphaClipThreshold, 0 } },
                 keywords = new KeywordCollection(),
@@ -1609,6 +1609,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             return result;
         }
+
+        public static RenderStateCollection ScenePicking2D = new RenderStateCollection
+        {
+            { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
+            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
+        };
     }
     #endregion
 
