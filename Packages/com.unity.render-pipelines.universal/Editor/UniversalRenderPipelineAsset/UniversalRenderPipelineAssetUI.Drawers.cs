@@ -15,8 +15,8 @@ namespace UnityEditor.Rendering.Universal
     static class StringBuilderPool
     {
         internal static readonly UnityEngine.Pool.ObjectPool<StringBuilder> s_Pool = new (
-            () => new StringBuilder(), 
-            null, 
+            () => new StringBuilder(),
+            null,
             sb => sb.Clear()    //clear on release
             );
 
@@ -294,12 +294,12 @@ namespace UnityEditor.Rendering.Universal
         {
             DrawHDR(serialized, ownerEditor);
 
-            EditorGUILayout.PropertyField(serialized.msaa, Styles.msaaText);            
+            EditorGUILayout.PropertyField(serialized.msaa, Styles.msaaText);
             DisplayTileOnlyHelpBox(
-                serialized.msaa, 
+                serialized.msaa,
                 p => p.intValue != (int)MsaaQuality.Disabled
                     // This operation is actually ok on Quest
-                    && !IsAndroidXRTargetted(), 
+                    && !IsAndroidXRTargetted(),
                 Styles.msaaText, MessageType.Info, Styles.msaaTileOnlyInfo);
 
             using (new EditorGUI.MixedValueScope(serialized.renderScale.hasMultipleDifferentValues))
@@ -310,7 +310,7 @@ namespace UnityEditor.Rendering.Universal
                     serialized.renderScale.floatValue = newRenderScale;
             }
             DisplayTileOnlyHelpBox(
-                serialized.renderScale, 
+                serialized.renderScale,
                 p =>
                 {
                     // Duplicating logic from UniversalRenderPipeline.InitializeStackedCameraData
@@ -318,10 +318,10 @@ namespace UnityEditor.Rendering.Universal
                     bool canRequireIntermediateTexture = Mathf.Abs(1.0f - p.floatValue) >= kRenderScaleThreshold;
                     if (!canRequireIntermediateTexture)
                         return false;
-                    
+
                     // This operation is actually ok on Quest
                     return !IsAndroidXRTargetted();
-                }, 
+                },
                 Styles.renderScaleText);
 
             DrawUpscalingFilterDropdownAndOptions(serialized, ownerEditor);
@@ -404,7 +404,7 @@ namespace UnityEditor.Rendering.Universal
                 {
                     ++EditorGUI.indentLevel;
                     EditorGUILayout.PropertyField(serialized.fsrOverrideSharpness, Styles.fsrOverrideSharpness);
-                    
+
                     // We put the FSR sharpness override value behind an override checkbox so we can tell when the user intends to use a custom value rather than the default.
                     if (serialized.fsrOverrideSharpness.boolValue)
                     {
@@ -437,7 +437,7 @@ namespace UnityEditor.Rendering.Universal
                     {
                         EditorGUILayout.HelpBox(Styles.stpMobilePlatformWarning, MessageType.Warning, true);
                     }
-                    
+
                     break;
             }
 #else
@@ -768,6 +768,28 @@ namespace UnityEditor.Rendering.Universal
             DrawCascades(serialized, cascadeCount, useMetric, baseMetric);
             EditorGUI.indentLevel++;
 
+            if ((GPUResidentDrawerMode)serialized.gpuResidentDrawerMode.intValue != GPUResidentDrawerMode.Disabled)
+            {
+               var shadowSmallMeshScreenPctStyles = new [] { Styles.shadowSmallMeshPct1, Styles.shadowSmallMeshPct2, Styles.shadowSmallMeshPct3, Styles.shadowSmallMeshPct4};
+
+               using (new EditorGUI.MixedValueScope(serialized.shadowSmallMeshScreenPercentages.hasMultipleDifferentValues))
+               {
+                   EditorGUI.BeginChangeCheck();
+                   Vector4 newShadowSmallMeshScreenPercentages = new Vector4();
+
+                   for (int i = 0; i < 4; i++)
+                   {
+                       newShadowSmallMeshScreenPercentages[i] =
+                           Mathf.Clamp(
+                               EditorGUILayout.FloatField(shadowSmallMeshScreenPctStyles[i],
+                                   serialized.shadowSmallMeshScreenPercentages.vector4Value[i]), 0.0f, 50.0f);
+                   }
+
+                   if (EditorGUI.EndChangeCheck())
+                       serialized.shadowSmallMeshScreenPercentages.vector4Value = newShadowSmallMeshScreenPercentages;
+               }
+            }
+
             using (new EditorGUI.MixedValueScope(serialized.shadowDepthBiasProp.hasMultipleDifferentValues))
             {
                 EditorGUI.BeginChangeCheck();
@@ -1073,7 +1095,7 @@ namespace UnityEditor.Rendering.Universal
             //   - Additionally for both, for Post Processing section: only show names where Post Processing is enabled
 
             lastTileOnlyModeInfos = default;
-            
+
             // If impacted section are not opened, early exit
             if (!(k_ExpandedState[Expandable.Rendering] || k_ExpandedState[Expandable.Quality] || k_ExpandedState[Expandable.PostProcessing]))
                 return;
@@ -1095,18 +1117,18 @@ namespace UnityEditor.Rendering.Universal
                 {
                     yield return iterator;
                     iterator.NextVisible(enterChildren: false);
-                } 
+                }
             }
-            
+
             // Helper to filter the list and get only unique result of UniversalRendererData that have Tile-Only Mode.
-            // The returned IDisposable is for being able to return the HashSet to the pool when Dispose is call like at end of Using. 
+            // The returned IDisposable is for being able to return the HashSet to the pool when Dispose is call like at end of Using.
             IDisposable SelectUniqueAndCast(IEnumerable<SerializedProperty> properties, out HashSet<UniversalRendererData> uniques)
             {
                 var e = properties.GetEnumerator();
                 var disposer = HashSetPool<UniversalRendererData>.Get(out uniques);
                 while (e.MoveNext())
-                    if (!e.Current.hasMultipleDifferentValues 
-                        && e.Current.boxedValue is UniversalRendererData universalData 
+                    if (!e.Current.hasMultipleDifferentValues
+                        && e.Current.boxedValue is UniversalRendererData universalData
                         && universalData.tileOnlyMode)
                         uniques.Add(universalData);
                 return disposer;
@@ -1119,7 +1141,7 @@ namespace UnityEditor.Rendering.Universal
                 var secondPart = FormatRendererNames(wronglyPositioned, Styles.suffixWhenDifferentPositionTileOnlyMode);
                 if (string.IsNullOrEmpty(firstPart))
                     return secondPart;
-                if (string.IsNullOrEmpty(secondPart)) 
+                if (string.IsNullOrEmpty(secondPart))
                     return firstPart;
                 return $"{firstPart}, {secondPart}";
             }
@@ -1184,7 +1206,7 @@ namespace UnityEditor.Rendering.Universal
                         movingPositions.Remove(stablePositionElement);
 
                     if (k_ExpandedState[Expandable.Rendering] || k_ExpandedState[Expandable.Quality])
-                        names = ConcatCollectionInName(stablePositions, movingPositions);                        
+                        names = ConcatCollectionInName(stablePositions, movingPositions);
                 }
 
                 lastTileOnlyModeInfos = new TileOnlyModeInfos(

@@ -417,6 +417,12 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent enableOcclusionCullingInCameras = EditorGUIUtility.TrTextContent("GPU Occlusion Culling", "Enables GPU occlusion culling in Game and SceneView cameras.");
             public static readonly GUIContent useDepthPrepassForOccluders = EditorGUIUtility.TrTextContent("Occluders From Depth Prepass", "Always builds occluders from the depth pre-pass. If this flag is on, or the Full Depth Prepass within Deferred frame setting is enabled, or Lit Shader Mode is Forward Only, occluders are built during the depth pre-pass.  Otherwise occluders are built during the gbuffer pass.");
 
+            public static readonly string shadowSmallMeshPctToolTip = "Default minimum shadow screen percentage (0-50%) gpu-driven Renderers can cover before getting culled. If a Renderer is part of a LODGroup, this will be ignored.";
+            public static readonly GUIContent shadowSmallMeshPct1 = EditorGUIUtility.TrTextContent("Cascade 1 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip);
+            public static readonly GUIContent shadowSmallMeshPct2 = EditorGUIUtility.TrTextContent("Cascade 2 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip);
+            public static readonly GUIContent shadowSmallMeshPct3 = EditorGUIUtility.TrTextContent("Cascade 3 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip);
+            public static readonly GUIContent shadowSmallMeshPct4 = EditorGUIUtility.TrTextContent("Cascade 4 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip);
+
             public static GUIContent brgShaderStrippingErrorMessage =
                 EditorGUIUtility.TrTextContent("\"BatchRendererGroup Variants\" setting must be \"Keep All\". To fix, modify Graphics settings and set \"BatchRendererGroup Variants\" to \"Keep All\".");
             public static GUIContent staticBatchingInfoMessage =

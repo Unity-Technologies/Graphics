@@ -215,4 +215,8 @@
 {"gpuResidentDrawerSettings.mode":"Disabled"},
 {"gpuResidentDrawerSettings.smallMeshScreenPercentage":"0"},
 {"gpuResidentDrawerSettings.enableOcclusionCullingInCameras":"False"},
-{"gpuResidentDrawerSettings.useDepthPrepassForOccluders":"True"}
+{"gpuResidentDrawerSettings.useDepthPrepassForOccluders":"True"},
+{"gpuResidentDrawerSettings.shadowSmallMeshScreenPercentages.x":"0"},
+{"gpuResidentDrawerSettings.shadowSmallMeshScreenPercentages.y":"0"},
+{"gpuResidentDrawerSettings.shadowSmallMeshScreenPercentages.z":"0"},
+{"gpuResidentDrawerSettings.shadowSmallMeshScreenPercentages.w":"0"}

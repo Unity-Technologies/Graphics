@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.Rendering;
+using Unity.Mathematics;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
@@ -250,6 +251,7 @@ namespace UnityEngine.Rendering.HighDefinition
             enableOcclusionCulling = m_RenderPipelineSettings.gpuResidentDrawerSettings.enableOcclusionCullingInCameras,
             allowInEditMode = true,
             smallMeshScreenPercentage = m_RenderPipelineSettings.gpuResidentDrawerSettings.smallMeshScreenPercentage,
+            shadowSmallMeshScreenPercentages = m_RenderPipelineSettings.gpuResidentDrawerSettings.shadowSmallMeshScreenPercentages,
 #if UNITY_EDITOR
             pickingShader = Shader.Find("Hidden/HDRP/BRGPicking"),
 #endif

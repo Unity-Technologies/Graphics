@@ -125,6 +125,11 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent gpuResidentDrawerMode = EditorGUIUtility.TrTextContent("GPU Resident Drawer", "Enables draw submission through the GPU Resident Drawer, which can improve CPU performance.");
             public static GUIContent smallMeshScreenPercentage = EditorGUIUtility.TrTextContent("Small-Mesh Screen-Percentage", "Default minimum screen percentage (0-20%) gpu-driven Renderers can cover before getting culled. If a Renderer is part of a LODGroup, this will be ignored.");
             public static GUIContent gpuResidentDrawerEnableOcclusionCullingInCameras = EditorGUIUtility.TrTextContent("GPU Occlusion Culling", "Enables GPU occlusion culling in Game and SceneView cameras.");
+            public static string shadowSmallMeshPctToolTip = "Default per-cascade minimum screen percentage (0-50%) gpu-driven Renderers can cover before getting shadows culled. If a Renderer is part of a LODGroup, this will be ignored.";
+            public static readonly GUIContent shadowSmallMeshPct1 = EditorGUIUtility.TrTextContent("Cascade 1 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip);
+            public static readonly GUIContent shadowSmallMeshPct2 = EditorGUIUtility.TrTextContent("Cascade 2 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip);
+            public static readonly GUIContent shadowSmallMeshPct3 = EditorGUIUtility.TrTextContent("Cascade 3 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip);
+            public static readonly GUIContent shadowSmallMeshPct4 = EditorGUIUtility.TrTextContent("Cascade 4 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip);
 
             // Adaptive performance settings
             public static GUIContent useAdaptivePerformance = EditorGUIUtility.TrTextContent("Use adaptive performance", "Allows Adaptive Performance to adjust rendering quality during runtime");

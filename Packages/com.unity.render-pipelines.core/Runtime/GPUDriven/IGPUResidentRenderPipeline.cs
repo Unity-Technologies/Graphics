@@ -1,4 +1,5 @@
 using System;
+using Unity.Mathematics;
 
 namespace UnityEngine.Rendering
 {
@@ -47,6 +48,11 @@ namespace UnityEngine.Rendering
         /// Default minimum screen percentage (0-20%) gpu-driven Renderers can cover before getting culled.
         /// </summary>
         public float smallMeshScreenPercentage;
+
+        /// <summary>
+        /// Default minimum shadow map screen percentage (0-50%) gpu-driven Renderers can cover before getting culled.
+        /// </summary>
+        public float4 shadowSmallMeshScreenPercentages;
 
 #if UNITY_EDITOR
         /// <summary>

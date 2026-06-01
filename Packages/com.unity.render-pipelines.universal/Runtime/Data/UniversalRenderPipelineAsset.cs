@@ -6,11 +6,12 @@ using System.IO;
 using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
 #endif
 using System.ComponentModel;
+using System.Numerics;
 using UnityEngine.Serialization;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Assertions;
-using System.Collections.Generic;
+using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -324,7 +325,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Defines the upscaling filter selected by the user the universal render pipeline asset.
     /// </summary>
-    /// 
+    ///
 #if ENABLE_UPSCALER_FRAMEWORK
     [Obsolete("UpscalingFilterSelection is obsolete. #from(6000.3)", false)]
 #endif
@@ -594,6 +595,8 @@ namespace UnityEngine.Rendering.Universal
         private GPUResidentDrawerMode m_GPUResidentDrawerMode = GPUResidentDrawerMode.Disabled;
         [SerializeField] float m_SmallMeshScreenPercentage = 0.0f;
 
+        [SerializeField] private Vector4 m_ShadowSmallMeshScreenPercentages = Vector4.zero;
+
         [SerializeField] bool m_GPUResidentDrawerEnableOcclusionCullingInCameras;
 
         GPUResidentDrawerSettings IGPUResidentRenderPipeline.gpuResidentDrawerSettings => new()
@@ -603,6 +606,7 @@ namespace UnityEngine.Rendering.Universal
             supportDitheringCrossFade = m_EnableLODCrossFade,
             allowInEditMode = true,
             smallMeshScreenPercentage = m_SmallMeshScreenPercentage,
+            shadowSmallMeshScreenPercentages = m_ShadowSmallMeshScreenPercentages,
 #if UNITY_EDITOR
             pickingShader = Shader.Find("Hidden/Universal Render Pipeline/BRGPicking"),
 #endif
@@ -953,7 +957,7 @@ namespace UnityEngine.Rendering.Universal
 
                 index = m_DefaultRendererIndex; //out of range index fallback on default
             }
-            
+
             result = m_RendererDataList[index];
             return result != null;
         }
@@ -1793,6 +1797,22 @@ namespace UnityEngine.Rendering.Universal
                     return;
 
                 m_SmallMeshScreenPercentage = Mathf.Clamp(value, 0.0f, 20.0f);
+                OnValidate();
+            }
+        }
+
+        /// <summary>
+        /// Default per-cascade minimum screen percentage (0-50%) gpu-driven Renderers can cover before getting shadows in cascades are culled.
+        /// </summary>
+        public Vector4 shadowSmallMeshScreenPercentages
+        {
+            get => m_ShadowSmallMeshScreenPercentages;
+            set
+            {
+                if ((value - m_ShadowSmallMeshScreenPercentages).sqrMagnitude < float.Epsilon * float.Epsilon)
+                    return;
+
+                m_ShadowSmallMeshScreenPercentages = math.clamp(value, 0.0f, 50.0f);
                 OnValidate();
             }
         }

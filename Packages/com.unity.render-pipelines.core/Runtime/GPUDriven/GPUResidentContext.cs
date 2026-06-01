@@ -1,5 +1,6 @@
 #if !UNITY_WEBGL_RENDERER_ONLY
 using System;
+using Unity.Mathematics;
 using Unity.Collections;
 
 namespace UnityEngine.Rendering
@@ -24,6 +25,7 @@ namespace UnityEngine.Rendering
 
         public SphericalHarmonicsL2 cachedAmbientProbe;
         public readonly float smallMeshScreenPercentage;
+        public readonly float4 shadowSmallMeshScreenPercentages;
 
         public GPUResidentContext(in GPUResidentDrawerSettings settings,
             InstanceDataSystem instanceDataSystem,
@@ -42,6 +44,7 @@ namespace UnityEngine.Rendering
             m_DebugStats = new DebugRendererBatcherStats(); // for now, always allow the possibility of reading counter stats from the cullers.
             cachedAmbientProbe = RenderSettings.ambientProbe;
             smallMeshScreenPercentage = settings.smallMeshScreenPercentage;
+            shadowSmallMeshScreenPercentages = settings.shadowSmallMeshScreenPercentages;
         }
 
         public void Dispose()

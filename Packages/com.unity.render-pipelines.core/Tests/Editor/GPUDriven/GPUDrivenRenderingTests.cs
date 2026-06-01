@@ -111,13 +111,14 @@ namespace UnityEngine.Rendering.Tests
             QualitySettings.enableLODCrossFade = m_OldEnableLodCrossFade;
         }
 
-        private void InitializeGPUResidentDrawer(OnCullingCompleteCallback onCompleteCallback = null, bool supportDitheringCrossFade = false, float smallMeshScreenPercentage = 0f)
+        private void InitializeGPUResidentDrawer(OnCullingCompleteCallback onCompleteCallback = null, bool supportDitheringCrossFade = false, float smallMeshScreenPercentage = 0f, float4 shadowSmallMeshScreenPercentage = default)
         {
             m_GPUResidentDrawer = new GPUResidentDrawer(new GPUResidentDrawerSettings
             {
                 mode = GPUResidentDrawerMode.InstancedDrawing,
                 supportDitheringCrossFade = supportDitheringCrossFade,
-                smallMeshScreenPercentage = smallMeshScreenPercentage
+                smallMeshScreenPercentage = smallMeshScreenPercentage,
+                shadowSmallMeshScreenPercentages = shadowSmallMeshScreenPercentage,
             },
             new InternalGPUResidentDrawerSettings
             {
@@ -570,6 +571,107 @@ namespace UnityEngine.Rendering.Tests
             m_MeshRendererProcessor.DestroyInstances(instanceIDs.AsArray());
 
             QualitySettings.lodBias = lastLodBias;
+
+            mainCamera = null;
+            GameObject.DestroyImmediate(cameraObject);
+
+            instanceIDs.Dispose();
+            ShutdownGPUResidentDrawer();
+        }
+
+        [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
+        [Ignore("Unstable - see https://jira.unity3d.com/browse/UUM-134437")]
+        public void TestGpuDrivenSmallMeshShadowCulling()
+        {
+            if (Coverage.enabled)
+                Assert.Ignore("Test disabled for code coverage runs.");
+
+            var expectedMeshIDs = new List<int>();
+            var expectedDrawCommandCount = new BoxedCounter();
+
+            var lastLodBias = QualitySettings.lodBias;
+            QualitySettings.lodBias = 1.0f;
+            var lastShadowCascades = QualitySettings.shadowCascades;
+            QualitySettings.shadowCascades = 4;
+
+            OnCullingCompleteCallback onCompleteCallback = (JobHandle jobHandle, in BatchCullingContext cc, in BatchCullingOutput cullingOutput) =>
+            {
+                jobHandle.Complete();
+
+                if (cc.viewType != BatchCullingViewType.Light)
+                    return;
+
+                BatchCullingOutputDrawCommands drawCommands = cullingOutput.drawCommands[0];
+
+                unsafe
+                {
+                    Assert.AreEqual(1, drawCommands.drawRangeCount);
+                    BatchDrawRange range = drawCommands.drawRanges[0];
+                    Assert.AreEqual(expectedDrawCommandCount.Value, range.drawCommandsCount, " Incorrect draw Command Count");
+                    for (int i = 0; i < range.drawCommandsCount; ++i)
+                    {
+                        BatchDrawCommand cmd = drawCommands.drawCommands[range.drawCommandsBegin + i];
+                        Assert.AreEqual(cmd.meshID.value, expectedMeshIDs[i], "Incorrect mesh rendered");
+                    }
+                }
+            };
+
+            InitializeGPUResidentDrawer(shadowSmallMeshScreenPercentage: new float4(10.0f,10.0f,10.0f,10.0f), onCompleteCallback: onCompleteCallback);
+
+            var gameObject = new GameObject("Root");
+            var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            sphere.transform.parent = gameObject.transform;
+
+            var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube.AddComponent<DisallowSmallMeshCulling>();
+            cube.transform.parent = gameObject.transform;
+
+            var light1 = new GameObject();
+            var dirLight = gameObject.AddComponent<Light>();
+            dirLight.type = LightType.Directional;
+            light1.transform.parent = gameObject.transform;
+
+            var objList = new List<MeshRenderer>();
+            objList.Add(sphere.GetComponent<MeshRenderer>());
+            objList.Add(cube.GetComponent<MeshRenderer>());
+
+            var instanceIDs = new NativeList<EntityId>(Allocator.TempJob);
+
+            var simpleDots = Shader.Find("Unlit/SimpleDots");
+            var simpleDotsMat = new Material(simpleDots);
+
+            foreach (var obj in objList)
+            {
+                obj.material = simpleDotsMat;
+                instanceIDs.Add(obj.GetEntityId());
+            }
+
+            instanceIDs.Add(light1.GetEntityId());
+
+            m_MeshRendererProcessor.ProcessGameObjectChanges(instanceIDs.AsArray());
+
+            var cameraObject = new GameObject("myCamera");
+            var mainCamera = cameraObject.AddComponent<Camera>();
+            mainCamera.fieldOfView = 60;
+
+            //Test 0 - (1m) Should render both spheres.
+            expectedMeshIDs.Add(1);
+            expectedMeshIDs.Add(2);
+            expectedDrawCommandCount.Value = 2;
+            cameraObject.transform.position = new Vector3(0.0f, 0.0f, -1.0f);
+            SubmitCameraRenderRequest(mainCamera);
+
+            //Test 2 - (10m) Should only render sphere1.
+            expectedMeshIDs.Clear();
+            expectedMeshIDs.Add(2);
+            expectedDrawCommandCount.Value = 1;
+            cameraObject.transform.position = new Vector3(0.0f, 0.0f, -10.0f);
+            SubmitCameraRenderRequest(mainCamera);
+
+            m_MeshRendererProcessor.DestroyInstances(instanceIDs.AsArray());
+
+            QualitySettings.lodBias = lastLodBias;
+            QualitySettings.shadowCascades = lastShadowCascades;
 
             mainCamera = null;
             GameObject.DestroyImmediate(cameraObject);

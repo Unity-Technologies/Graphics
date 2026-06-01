@@ -13,7 +13,8 @@ namespace UnityEngine.Rendering.HighDefinition
             mode = GPUResidentDrawerMode.Disabled,
             smallMeshScreenPercentage = 0.0f,
             enableOcclusionCullingInCameras = false,
-            useDepthPrepassForOccluders = true
+            useDepthPrepassForOccluders = true,
+            shadowSmallMeshScreenPercentages = Vector4.zero
         };
 
         /// <summary>batching mode of macro batcher.</summary>
@@ -29,5 +30,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Uses the depth prepass for occluders</summary>
         public bool useDepthPrepassForOccluders;
+
+        /// <summary> Default minimum screen percentages (0-50%) gpu-driven Renderers can cover before getting culled in shadow cascades</summary>
+        public Vector4 shadowSmallMeshScreenPercentages;
+
     }
 }

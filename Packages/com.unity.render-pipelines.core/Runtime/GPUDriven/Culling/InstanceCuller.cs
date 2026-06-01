@@ -200,6 +200,7 @@ namespace UnityEngine.Rendering
         [ReadOnly] public float sqrMeshLodSelectionConstant;
         [ReadOnly] public float sqrScreenRelativeMetric;
         [ReadOnly] public float minScreenRelativeHeight;
+        [ReadOnly] public float4 shadowMinScreenRelativeHeights;
         [ReadOnly] public bool isOrtho;
         [ReadOnly] public bool cullLightmappedShadowCasters;
         [ReadOnly] public int maxLOD;
@@ -237,31 +238,22 @@ namespace UnityEngine.Rendering
                 : math.clamp(packed, 128, 254);
         }
 
-        unsafe uint CalculateLODVisibility(int instanceIndex, bool smallMeshCulling)
+        unsafe uint CalculateLODVisibility(GPUInstanceIndex lodGroupIndex, uint lodMask, bool smallMeshCulling, float cameraSqrDist, float worldSpaceSize)
         {
-            GPUInstanceIndex lodGroupIndex = renderWorld.lodGroupIndices[instanceIndex];
-            uint lodMask = renderWorld.lodMasks[instanceIndex];
-
             if (lodGroupIndex.Equals(GPUInstanceIndex.Invalid) && lodMask == 0)
             {
                 if (viewType >= BatchCullingViewType.SelectionOutline || !smallMeshCulling || minScreenRelativeHeight == 0.0f)
                     return k_LODFadeOff;
 
-                // If no LODGroup available - small mesh culling.
-                ref readonly AABB worldAABB = ref renderWorld.worldAABBs.ElementAt(instanceIndex);
-                var cameraSqrDist = isOrtho ? sqrScreenRelativeMetric : LODRenderingUtils.CalculateSqrPerspectiveDistance(worldAABB.center, cameraPosition, sqrScreenRelativeMetric);
-                var cameraDist = math.sqrt(cameraSqrDist);
-
-                var aabbSize = worldAABB.extents * 2.0f;
-                var worldSpaceSize = math.max(math.max(aabbSize.x, aabbSize.y), aabbSize.z);
                 var maxDist = LODRenderingUtils.CalculateLODDistance(minScreenRelativeHeight, worldSpaceSize);
-                if (maxDist < cameraDist)
+                // If no LODGroup available - small mesh culling.
+                if (math.square(maxDist) < cameraSqrDist)
                     return k_LODFadeZeroPacked;
 
                 var transitionHeight = minScreenRelativeHeight + k_SmallMeshTransitionWidth * minScreenRelativeHeight;
                 var fadeOutRange = Mathf.Max(0.0f,maxDist - LODRenderingUtils.CalculateLODDistance(transitionHeight, worldSpaceSize));
 
-                var lodPercent = (maxDist - cameraDist) / fadeOutRange;
+                var lodPercent = (maxDist - math.sqrt(cameraSqrDist)) / fadeOutRange;
                 return lodPercent > 1.0f ? k_LODFadeOff : PackFloatToUint8(lodPercent);
             }
 
@@ -485,11 +477,45 @@ namespace UnityEngine.Rendering
                 return;
             }
 
-            var crossFadeValue = CalculateLODVisibility(instanceIndex, rendererSettings.SmallMeshCulling);
+            GPUInstanceIndex lodGroupIndex = renderWorld.lodGroupIndices[instanceIndex];
+            uint lodMask = renderWorld.lodMasks[instanceIndex];
+
+            ref readonly AABB worldAABB = ref renderWorld.worldAABBs.ElementAt(instanceIndex);
+            var cameraSqrDist = isOrtho
+                ? sqrScreenRelativeMetric
+                : LODRenderingUtils.CalculateSqrPerspectiveDistance(worldAABB.center, cameraPosition,
+                    sqrScreenRelativeMetric);
+
+            var aabbSize = worldAABB.extents * 2.0f;
+            var worldSpaceSize = math.max(math.max(aabbSize.x, aabbSize.y), aabbSize.z);
+
+            var crossFadeValue = CalculateLODVisibility(lodGroupIndex, lodMask, rendererSettings.SmallMeshCulling, cameraSqrDist, worldSpaceSize);
+
             if (crossFadeValue == k_LODFadeZeroPacked)
             {
                 rendererVisibilityMasks[instance.index] = (byte)k_VisibilityMaskNotVisible;
                 return;
+            }
+
+            // If rendering shadows and there is no LODGroup, do per cascade small mesh culling
+            if (viewType == BatchCullingViewType.Light && lodGroupIndex.Equals(GPUInstanceIndex.Invalid) &&
+                lodMask == 0 && rendererSettings.SmallMeshCulling)
+            {
+                for (int i = 0; i < frustumSplitInfos.Length; i++)
+                {
+                    var maxDist = LODRenderingUtils.CalculateLODDistance(
+                        frustumSplitInfos.Length == 6 ? shadowMinScreenRelativeHeights[0]
+                            : shadowMinScreenRelativeHeights[i], worldSpaceSize);
+                    if (math.square(maxDist) < cameraSqrDist)
+                        visibilityMask &= ~(1U << i);
+                }
+
+                // If all cascades are culled, return
+                if (visibilityMask == k_VisibilityMaskNotVisible)
+                {
+                    rendererVisibilityMasks[instance.index] = (byte)k_VisibilityMaskNotVisible;
+                    return;
+                }
             }
 
             if (binningConfig.supportsMotionCheck)
@@ -2012,6 +2038,7 @@ namespace UnityEngine.Rendering
             NativeList<LODGroupCullingData> lodGroupCullingData,
             in BinningConfig binningConfig,
             float smallMeshScreenPercentage,
+            float4 shadowSmallMeshScreenPercentages,
             OcclusionCullingCommon occlusionCullingCommon,
             in IncludeExcludeListFilter includeExcludeListFilter,
             NativeArray<byte> rendererVisibilityMasks,
@@ -2064,6 +2091,7 @@ namespace UnityEngine.Rendering
                 sqrMeshLodSelectionConstant = meshLodConstant * meshLodConstant,
                 sqrScreenRelativeMetric = screenRelativeMetric * screenRelativeMetric,
                 minScreenRelativeHeight = smallMeshScreenPercentage * 0.01f,
+                shadowMinScreenRelativeHeights = shadowSmallMeshScreenPercentages * 0.01f,
                 isOrtho = context.lodParameters.isOrthographic,
                 maxLOD = QualitySettings.maximumLODLevel,
                 cullingLayerMask = context.cullingLayerMask,
@@ -2132,6 +2160,7 @@ namespace UnityEngine.Rendering
             CPUDrawInstanceData drawInstanceData,
             NativeParallelHashMap<GPUArchetypeHandle, BatchID> batchIDs,
             float smallMeshScreenPercentage,
+            float4 shadowSmallMeshScreenPercentages,
             OcclusionCullingCommon occlusionCullingCommon,
             in IncludeExcludeListFilter includeExcludeListFilter)
         {
@@ -2162,6 +2191,7 @@ namespace UnityEngine.Rendering
                 lodGroupCullingData,
                 binningConfig,
                 smallMeshScreenPercentage,
+                shadowSmallMeshScreenPercentages,
                 occlusionCullingCommon,
                 includeExcludeListFilter,
                 rendererVisibilityMasks,

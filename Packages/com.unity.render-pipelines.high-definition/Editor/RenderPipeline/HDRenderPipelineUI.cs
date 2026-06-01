@@ -578,7 +578,7 @@ namespace UnityEditor.Rendering.HighDefinition
             bool ShouldSkipAdvancedUpscaler(string upscalerName)
             {
                 // Filter out DLSS/FSR2/STP IUpscaler implementations since HDRP already lists these upscalers as builtin.
-                // We skip these upscalers since IUpscalers don't have per-camera overrides while the builtin do, 
+                // We skip these upscalers since IUpscalers don't have per-camera overrides while the builtin do,
                 // leading to potential for user confusion and bad UX.
                 // If we need to test these IUpscalers in HDRP, remove the condition from here + update numIUpscalersToDisplay
                 // count below to reflect the correct number of options to display.
@@ -1573,6 +1573,23 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 ++EditorGUI.indentLevel;
                 gpuResidentDrawerSettings.smallMeshScreenPercentage.floatValue = Mathf.Clamp(EditorGUILayout.FloatField(Styles.smallMeshScreenPercentage, gpuResidentDrawerSettings.smallMeshScreenPercentage.floatValue), 0.0f, 20.0f);
+                var serializedGPUResidentDrawer = serialized.renderPipelineSettings.gpuResidentDrawerSettings;
+
+                var shadowSmallMeshScreenPctContent = new[]{ Styles.shadowSmallMeshPct1, Styles.shadowSmallMeshPct2, Styles.shadowSmallMeshPct3, Styles.shadowSmallMeshPct4 };
+
+                using (new EditorGUI.MixedValueScope(serializedGPUResidentDrawer.shadowSmallMeshScreenPercentages.hasMultipleDifferentValues))
+                {
+                    Vector4 shadowSmallMeshScreenPercentages = new Vector4();
+
+                    EditorGUI.BeginChangeCheck();
+
+                    for (int i = 0; i < 4; i++)
+                        shadowSmallMeshScreenPercentages[i] = Mathf.Clamp(EditorGUILayout.FloatField(shadowSmallMeshScreenPctContent[i], serializedGPUResidentDrawer.shadowSmallMeshScreenPercentages.vector4Value[i]),0.0f, 50.0f);
+
+                    if (EditorGUI.EndChangeCheck())
+                        serializedGPUResidentDrawer.shadowSmallMeshScreenPercentages.vector4Value = shadowSmallMeshScreenPercentages;
+                }
+
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.gpuResidentDrawerSettings.enableOcclusionCullingInCameras, Styles.enableOcclusionCullingInCameras);
                 if ((GPUResidentDrawerMode)gpuResidentDrawerSettings.mode.intValue == GPUResidentDrawerMode.InstancedDrawing && gpuResidentDrawerSettings.enableOcclusionCullingInCameras.boolValue)
                 {

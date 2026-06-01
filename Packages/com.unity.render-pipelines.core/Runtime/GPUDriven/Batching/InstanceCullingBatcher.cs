@@ -414,6 +414,7 @@ namespace UnityEngine.Rendering
                 m_DrawInstanceData,
                 m_BatchIDs,
                 m_GRDContext.smallMeshScreenPercentage,
+                m_GRDContext.shadowSmallMeshScreenPercentages,
                 allowOcclusionCulling ? m_GRDContext.occlusionCullingCommon : null,
                 includeExcludeListFilter);
 
