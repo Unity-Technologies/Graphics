@@ -836,6 +836,7 @@ PlayerSettings:
     - -warnaserror+
     - -warnaserror-:UAC0024
     - -warnaserror-:UAC1009
+    - -warnaserror-:UAC0025
   platformArchitecture: {}
   scriptingBackend:
     Android: 0
