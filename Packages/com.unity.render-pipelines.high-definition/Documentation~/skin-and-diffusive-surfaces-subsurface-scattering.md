@@ -49,11 +49,11 @@ To add subsurface scattering to a Material:
 3. In the Surface Inputs section, select [Diffusion Profile](diffusion-profile-reference.md) and assign a diffusion profile.
 4. If a warning box appears below the Diffusion Profile property, select **Fix**.
 
-The following image displays grass in an environment scene. In the left image the grass renders correctly. The grass in the right image has the bright green tint that HDRP applies to a Material that doesn't have a valid diffusion profile:
+The following image displays grass in an environment scene. In the left image the grass renders correctly. The grass in the right image has the bright magenta tint that HDRP applies to a Material that doesn't have a valid diffusion profile:
 
 ![Grass in an environment scene: In the left image the grass renders correctly. The grass in the right image has the bright green tint that HDRP applies to a Material that doesn't have a valid diffusion profile.](Images/missing_profile.png)
 
-The Material appears bright green in the following cases:
+The Material appears bright magenta in the following cases:
 
 - The Material doesn't have a diffusion profile assigned.
 
