@@ -14,6 +14,8 @@ using UnityEditor;
 using UnityEngine.Assemblies;
 #endif
 
+#pragma warning disable CS0618 // Type or member is obsolete
+
 namespace UnityEngine.Rendering.PostProcessing
 {
     using SceneManagement;
@@ -1330,3 +1332,5 @@ namespace UnityEngine.Rendering.PostProcessing
         #endregion
     }
 }
+
+#pragma warning restore CS0618 // Type or member is obsolete

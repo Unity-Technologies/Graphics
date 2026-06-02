@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 
+#pragma warning disable CS0618 // Type or member is obsolete
+
 namespace UnityEngine.Rendering.PostProcessing
 {
 #if (ENABLE_VR_MODULE && ENABLE_VR)
@@ -434,3 +436,5 @@ namespace UnityEngine.Rendering.PostProcessing
         }
     }
 }
+
+#pragma warning restore CS0618 // Type or member is obsolete

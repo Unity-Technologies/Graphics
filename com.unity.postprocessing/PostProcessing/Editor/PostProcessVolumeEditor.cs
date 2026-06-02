@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 
+#pragma warning disable CS0618 // Type or member is obsolete
+
 namespace UnityEditor.Rendering.PostProcessing
 {
     [CanEditMultipleObjects, CustomEditor(typeof(PostProcessVolume))]
@@ -164,3 +166,5 @@ namespace UnityEditor.Rendering.PostProcessing
         }
     }
 }
+
+#pragma warning restore CS0618 // Type or member is obsolete

@@ -6,6 +6,8 @@ using UnityEngine.Rendering.PostProcessing;
 using UnityEditorInternal;
 using System.IO;
 
+#pragma warning disable CS0618 // Type or member is obsolete
+
 namespace UnityEditor.Rendering.PostProcessing
 {
     using SerializedBundleRef = PostProcessLayer.SerializedBundleRef;
@@ -427,3 +429,5 @@ namespace UnityEditor.Rendering.PostProcessing
         }
     }
 }
+
+#pragma warning restore CS0618 // Type or member is obsolete

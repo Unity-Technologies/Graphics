@@ -61,6 +61,7 @@ namespace UnityEngine.Rendering.PostProcessing
     [ExecuteInEditMode]
 #endif
     [AddComponentMenu("Rendering/Post-process Volume", 1001)]
+    [System.Obsolete("Post Processing Stack v2 is deprecated. Use URP or HDRP's Volume-based post-processing instead.", false)]
     public sealed class PostProcessVolume : MonoBehaviour
     {
         /// <summary>

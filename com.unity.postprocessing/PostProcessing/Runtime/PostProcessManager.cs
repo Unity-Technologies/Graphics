@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Assertions;
 
+#pragma warning disable CS0618 // Type or member is obsolete
+
 namespace UnityEngine.Rendering.PostProcessing
 {
     /// <summary>
@@ -460,3 +462,5 @@ namespace UnityEngine.Rendering.PostProcessing
         }
     }
 }
+
+#pragma warning restore CS0618 // Type or member is obsolete
