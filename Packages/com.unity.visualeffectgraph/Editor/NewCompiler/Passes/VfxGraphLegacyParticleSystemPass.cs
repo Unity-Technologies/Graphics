@@ -1,6 +1,7 @@
 using Unity.GraphCommon.LowLevel.Editor;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace UnityEditor.VFX
 {
@@ -12,7 +13,7 @@ namespace UnityEditor.VFX
 
             foreach (var taskNode in context.graph.TaskNodes)
             {
-                if (taskNode.Task is PlaceholderSystemTask systemTask)
+                if (taskNode.Task is ParticleSystemTask systemTask)
                 {
                     systemTaskNodeIds.Add(taskNode.Id);
                 }
@@ -55,7 +56,7 @@ namespace UnityEditor.VFX
                     continue;
                 }
 
-                if (taskNode.Task is TemplatedTask templatedTask)
+                if (taskNode.Task is VfxTemplatedTask templatedTask)
                 {
                     UnityEngine.VFX.VFXTaskType taskType = UnityEngine.VFX.VFXTaskType.None;
                     switch (templatedTask.TemplateName)
@@ -82,11 +83,11 @@ namespace UnityEditor.VFX
                         default:
                             continue;
                     }
-                    var task = new VfxGraphLegacyParticleSystemContainer.Task(taskNode.Name ?? templatedTask.TemplateName, taskNode.Id, taskType);
+                    var task = new VfxGraphLegacyParticleSystemContainer.Task(taskNode.Name ?? templatedTask.TemplateName, taskNode.Id, taskType, templatedTask.SourceModelId);
                     particleSystem.Tasks.Add(task);
                 }
 
-                if (taskNode.Task is PlaceholderSystemTask)
+                if (taskNode.Task is ParticleSystemTask)
                 {
                     var task = new VfxGraphLegacyParticleSystemContainer.Task("System", taskNode.Id, UnityEngine.VFX.VFXTaskType.None);
                     particleSystem.SetSystemTask(task);
@@ -155,12 +156,14 @@ namespace UnityEditor.VFX
             public string Name { get; }
             public TaskNodeId Id { get; }
             public UnityEngine.VFX.VFXTaskType TaskType { get; }
+            public EntityId ModelId { get; }
 
-            public Task(string name, TaskNodeId id, UnityEngine.VFX.VFXTaskType taskType)
+            public Task(string name, TaskNodeId id, UnityEngine.VFX.VFXTaskType taskType, EntityId modelId = default)
             {
                 Name = name;
                 Id = id;
                 TaskType = taskType;
+                ModelId = modelId;
             }
         }
     }

@@ -3,11 +3,11 @@ using System.Reflection;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using UnityEditor.VFX;
+using Unity.GraphCommon.LowLevel.Editor;
 
-namespace Unity.GraphCommon.LowLevel.Editor
+namespace UnityEditor.VFX
 {
-    class TemplateCodeGenerationPass : CompilationPass
+    class VfxTemplateCodeGenerationPass : CompilationPass
     {
         readonly IncludeFileShaderWriter m_IncludeFileShaderWriter = new();
         readonly ComputeShaderWriter m_ComputeShaderWriter = new();
@@ -17,7 +17,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
         HashSet<DataBindingId> m_DataBindingsWithView = new();
 
-        public TemplateCodeGenerationPass(DataDescriptionWriterRegistry dataWriter)
+        public VfxTemplateCodeGenerationPass(DataDescriptionWriterRegistry dataWriter)
         {
             m_DataWriter = dataWriter;
         }
@@ -37,7 +37,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
             foreach (var taskNode in context.graph.TaskNodes)
             {
-                if (taskNode.Task is TemplatedTask templatedTask)
+                if (taskNode.Task is VfxTemplatedTask templatedTask)
                 {
                     //TODO: The ImportContext, when present, must be accounted for during compilation (see usage of CreateShaderAsset & CreateComputeShaderAsset)
                     string sourceCode;
@@ -93,7 +93,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
         string GenerateTemplatedTaskSourceCode_Compute(TaskNode taskNode, CompilationContext context)
         {
-            TemplatedTask templatedTask = taskNode.Task as TemplatedTask;
+            VfxTemplatedTask templatedTask = taskNode.Task as VfxTemplatedTask;
             //TODO: Generate proper name
             string shaderName = taskNode.Name ?? templatedTask.TemplateName;
 
@@ -122,7 +122,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
         string GenerateTemplatedTaskSourceCode_Rendering(TaskNode taskNode, CompilationContext context)
         {
-            TemplatedTask templatedTask = taskNode.Task as TemplatedTask;
+            VfxTemplatedTask templatedTask = taskNode.Task as VfxTemplatedTask;
             //TODO: Generate proper name
             string shaderName = taskNode.Name ?? templatedTask.TemplateName;
 
@@ -186,20 +186,20 @@ namespace Unity.GraphCommon.LowLevel.Editor
             }
         }
 
-        void GenerateAttributeSets(ShaderWriter shaderWriter, TaskNode taskNode, TemplatedTask templatedTask,
+        void GenerateAttributeSets(ShaderWriter shaderWriter, TaskNode taskNode, VfxTemplatedTask templatedTask,
             CompilationContext context)
         {
             var attributeSourceManager = context.data.GetOrCreate<AttributeSourceManager>();
             foreach (var attributeKeyMapping in templatedTask.AttributeKeyMappings)
             {
                 var structType = attributeKeyMapping.Key.ToString();
-                var bindingRelativePath = attributeKeyMapping.Value;
+                var (bindingKey, subDataPath) = attributeKeyMapping.Value;
                 DataView dataView = new();
-                foreach (var binding in taskNode.DataBindings) // TODO: refactor linear search method?
+                foreach (var binding in taskNode.DataBindings)
                 {
-                    if (binding.BindingDataKey == bindingRelativePath.BindingKey)
+                    if (binding.BindingDataKey.Equals(bindingKey))
                     {
-                        bool found = binding.DataView.FindSubData(bindingRelativePath.SubDataPath, out dataView);
+                        bool found = binding.DataView.FindSubData(subDataPath, out dataView);
                         Debug.Assert(found);
                         break;
                     }
@@ -229,7 +229,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             }
         }
 
-        void GenerateDataViews(ShaderWriter shaderWriter, TaskNode taskNode, TemplatedTask templatedTask,
+        void GenerateDataViews(ShaderWriter shaderWriter, TaskNode taskNode, VfxTemplatedTask templatedTask,
             CompilationContext context)
         {
             void LocateDataView(DataView dataView, ref DataView usedDataView, ref DataView readDataView, ref DataView writtenDataView)
@@ -300,7 +300,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             return !dataView.IsRoot || containerName != bindingName;
         }
 
-        void WriteProcessBlocksDeclaration(ShaderWriter shaderWriter, TemplatedTask templatedTask)
+        void WriteProcessBlocksDeclaration(ShaderWriter shaderWriter, VfxTemplatedTask templatedTask)
         {
             shaderWriter.Indent();
             shaderWriter.Write("void VFXProcessBlocks(");
@@ -308,7 +308,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             foreach (var attributeKeyMapping in templatedTask.AttributeKeyMappings)
             {
                 var structType = attributeKeyMapping.Key.ToString();
-                var structName = attributeKeyMapping.Key == templatedTask.DefaultAttributeKey ? "attributes" : $"{char.ToLowerInvariant(structType[0])}{structType.Substring(1)}";
+                var structName = $"{char.ToLowerInvariant(structType[0])}{structType.Substring(1)}";
                 if (!first)
                 {
                     shaderWriter.Write(", ");
@@ -330,7 +330,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             shaderWriter.IncludeFile("Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl");
         }
 
-        void ForwardDeclarations(ShaderWriter shaderWriter, TemplatedTask templatedTask)
+        void ForwardDeclarations(ShaderWriter shaderWriter, VfxTemplatedTask templatedTask)
         {
             shaderWriter.NewLine();
             WriteProcessBlocksDeclaration(shaderWriter, templatedTask);
@@ -487,7 +487,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             }
         }
 
-        void GenerateSnippetFunctions(ShaderWriter shaderWriter, TemplatedTask templatedTask)
+        void GenerateSnippetFunctions(ShaderWriter shaderWriter, VfxTemplatedTask templatedTask)
         {
             shaderWriter.NewLine();
             WriteProcessBlocksDeclaration(shaderWriter, templatedTask);
@@ -516,16 +516,5 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
         public string Find(DataContainerId dataContainerId) => m_DataContainerSourceCodes.TryGetValue(dataContainerId, out string sourceCode) ? sourceCode : null;
         public string Find(TaskNodeId taskNodeId) => m_TaskNodeSourceCodes.TryGetValue(taskNodeId, out string sourceCode) ? sourceCode : null;
-    }
-
-    class AttributeSourceManager
-    {
-        readonly Dictionary<DataViewId, IDataKey> m_AttributeSources = new();
-
-        public void Add(DataViewId dataViewId, IDataKey attributeSourceKey) => m_AttributeSources.Add(dataViewId, attributeSourceKey);
-
-        public bool TryGetAttributeSource(DataViewId dataViewId, out IDataKey attributeSourceKey) => m_AttributeSources.TryGetValue(dataViewId, out attributeSourceKey);
-
-        public void Clear() => m_AttributeSources.Clear();
     }
 }

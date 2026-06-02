@@ -156,7 +156,7 @@ namespace UnityEditor.VFX
                 {
                     foreach (var childDataNode in dataNode.Children)
                     {
-                        if (childDataNode.TaskNode.Task is GpuKernelTask or PlaceholderSystemTask or RenderingTask or SpawnerTask)
+                        if (childDataNode.TaskNode.Task is GpuKernelTask or ParticleSystemTask or RenderingTask or SpawnerTask)
                         {
                             uint vfxExpressionIndex = AddExpressionRecursively(expressionTask.Expression);
                             m_ValuesExpressionIndices.Add(childDataNode.Id, vfxExpressionIndex);
@@ -526,7 +526,7 @@ namespace UnityEditor.VFX
             // Find graph values buffer in bindings
             foreach (var dataBinding in taskNode.DataBindings)
             {
-                if (dataBinding.BindingDataKey == TemplatedTask.GraphValuesBufferKey)
+                if (dataBinding.BindingDataKey == ParticleSystemTask.GraphValuesBindingKey)
                 {
                     graphValuesContainerId = dataBinding.DataView.DataContainer.Id;
                     break;
@@ -695,6 +695,7 @@ namespace UnityEditor.VFX
 
             taskDesc.values = valueMappings.ToArray();
             taskDesc.buffers = HashSetToArray(bufferMappings);
+            taskDesc.modelId = task.ModelId;
 
             return true;
         }

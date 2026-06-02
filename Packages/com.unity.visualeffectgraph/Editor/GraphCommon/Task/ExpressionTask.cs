@@ -12,30 +12,23 @@ namespace Unity.GraphCommon.LowLevel.Editor
             Expression = expression;
         }
 
-        public bool GetDataUsage(IDataKey dataKey, out DataPathSet readUsage, out DataPathSet writeUsage)
+        public BindingUsage GetBindingUsage(IDataKey dataKey, DataPathSet readUsage = null, DataPathSet writeUsage = null)
         {
             if (dataKey is IndexDataKey indexDataKey)
             {
                 if (indexDataKey.Index < Expression.Parents.Count)
                 {
-                    readUsage = new DataPathSet();
-                    writeUsage = new DataPathSet();
-                    readUsage.Add(DataPath.Empty);
-                    return true;
+                    readUsage?.Add(DataPath.Root);
+                    return BindingUsage.Read;
                 }
             }
-
-            if (dataKey == Value)
+            else if (dataKey == Value)
             {
-                readUsage = new DataPathSet();
-                writeUsage = new DataPathSet();
-                writeUsage.Add(DataPath.Empty);
-                return true;
+                writeUsage?.Add(DataPath.Root);
+                return BindingUsage.Write;
             }
 
-            readUsage = null;
-            writeUsage = null;
-            return false;
+            return BindingUsage.Unknown;
         }
     }
 }

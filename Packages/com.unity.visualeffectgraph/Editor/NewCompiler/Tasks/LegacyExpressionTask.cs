@@ -4,38 +4,32 @@ namespace UnityEditor.VFX
 {
     class LegacyExpressionTask : ITask
     {
+        public static UniqueDataKey Value { get; } = new($"{nameof(Value)}");
+
         public VFXExpression Expression { get; private set; }
-        public static UniqueDataKey Value { get; } = new("Out");
 
         public LegacyExpressionTask(VFXExpression expression)
         {
             Expression = expression;
         }
 
-        public bool GetDataUsage(IDataKey dataKey, out DataPathSet readUsage, out DataPathSet writeUsage)
+        public BindingUsage GetBindingUsage(IDataKey dataKey, DataPathSet readUsage = null, DataPathSet writeUsage = null)
         {
             if (dataKey is IndexDataKey indexDataKey)
             {
                 if (indexDataKey.Index < Expression.parents.Length)
                 {
-                    readUsage = new DataPathSet();
-                    writeUsage = new DataPathSet();
-                    readUsage.Add(DataPath.Empty);
-                    return true;
+                    readUsage?.Add(DataPath.Root);
+                    return BindingUsage.Read;
                 }
             }
-
-            if (dataKey == Value)
+            else if (dataKey == Value)
             {
-                readUsage = new DataPathSet();
-                writeUsage = new DataPathSet();
-                writeUsage.Add(DataPath.Empty);
-                return true;
+                writeUsage?.Add(DataPath.Root);
+                return BindingUsage.Write;
             }
 
-            readUsage = null;
-            writeUsage = null;
-            return false;
+            return BindingUsage.Unknown;
         }
     }
 }

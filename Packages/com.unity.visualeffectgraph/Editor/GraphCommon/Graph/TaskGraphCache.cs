@@ -141,7 +141,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
                     var (success, usage) = getUsage(task, dataBinding);
                     if (success)
                     {
-                        foreach (var path in usage.DataPaths)
+                        foreach (var path in usage)
                         {
                             var subdataViewId = GetSubdata(dataViewId, path);
                             if (!subdataViewId.IsValid)
@@ -173,20 +173,24 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
         LinearMultiTree<DataViewId> BuildDataNodeToReadDataViews()
         {
+            DataPathSet readUsage = new();
             return BuildDataNodeToDataViews((task, dataBinding) =>
             {
-                bool success = task.GetDataUsage(dataBinding.BindingDataKey, out DataPathSet readUsage, out _);
-                success &= readUsage != null;
+                readUsage.Clear();
+                BindingUsage usage = task.GetBindingUsage(dataBinding.BindingDataKey, readUsage, null);
+                bool success = usage.HasFlag(BindingUsage.Read);
                 return (success, readUsage);
             });
         }
 
         LinearMultiTree<DataViewId> BuildDataNodeToWrittenDataViews()
         {
+            DataPathSet writeUsage = new();
             return BuildDataNodeToDataViews((task, dataBinding) =>
             {
-                bool success = task.GetDataUsage(dataBinding.BindingDataKey, out _, out DataPathSet writeUsage);
-                success &= writeUsage != null;
+                writeUsage.Clear();
+                BindingUsage usage = task.GetBindingUsage(dataBinding.BindingDataKey, null, writeUsage);
+                bool success = usage.HasFlag(BindingUsage.Write);
                 return (success, writeUsage);
             });
         }

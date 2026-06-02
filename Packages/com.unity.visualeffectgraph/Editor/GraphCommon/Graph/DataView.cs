@@ -167,7 +167,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         public bool FindSubData(DataPath subdataPath, out DataView subDataView)
         {
             subDataView = this;
-            foreach (var key in subdataPath.PathSequence)
+            foreach (var key in subdataPath)
             {
                 if (key == null) continue; // TODO: Hack to make it work, investigate DataPath class
                 if (!subDataView.FindSubData(key, out subDataView))

@@ -22,10 +22,7 @@ void main(ThreadData threadData)
 
         ParticleDataBinding.particleAttributeBuffer.StoreData(particleAttributes, particleIndex);
 
-        if (particleAttributes.alive)
-        {
-        }
-        else
+        if (!particleAttributes.alive)
         {
             ParticleDataBinding.DeleteParticle(particleIndex);
         }

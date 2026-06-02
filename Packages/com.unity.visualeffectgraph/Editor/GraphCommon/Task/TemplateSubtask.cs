@@ -17,26 +17,35 @@ namespace Unity.GraphCommon.LowLevel.Editor
             AttributeSets = attributeSets;
         }
 
-        public bool GetDataUsage(IDataKey dataKey, out DataPathSet readUsage, out DataPathSet writeUsage)
+        public BindingUsage GetBindingUsage(IDataKey dataKey, DataPathSet readUsage = null, DataPathSet writeUsage = null)
         {
-            if (AttributeSets != null && AttributeSets.TryGetValue(dataKey, out var attributeSet))
+            BindingUsage usage = BindingUsage.Unknown;
+
+            if (AttributeSets?.TryGetValue(dataKey, out var attributeSet) ?? false)
             {
-                DataPath dataPath = new(dataKey);
-                readUsage = new DataPathSet();
-                foreach (var attribute in attributeSet.ReadAttributes)
+                DataPath dataPath = DataPath.Root + dataKey;
+
+                if (attributeSet.ReadAttributes.Count > 0)
                 {
-                    readUsage.Add(new DataPath(dataPath, new AttributeKey(attribute)));
+                    usage |= BindingUsage.Read;
+                    if (readUsage != null)
+                    {
+                        foreach (var attribute in attributeSet.ReadAttributes)
+                            readUsage.Add(dataPath + new AttributeKey(attribute));
+                    }
                 }
-                writeUsage = new DataPathSet();
-                foreach (var attribute in attributeSet.WriteAttributes)
+                if (attributeSet.WriteAttributes.Count > 0)
                 {
-                    writeUsage.Add(new DataPath(dataPath, new AttributeKey(attribute)));
+                    usage |= BindingUsage.Write;
+                    if (writeUsage != null)
+                    {
+                        foreach (var attribute in attributeSet.WriteAttributes)
+                            writeUsage.Add(dataPath + new AttributeKey(attribute));
+                    }
                 }
-                return true;
             }
-            readUsage = null;
-            writeUsage = null;
-            return false;
+
+            return usage;
         }
     }
 }

@@ -1,183 +1,72 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Unity.GraphCommon.LowLevel.Editor
 {
     /// <summary>
-    /// Represents a set of attributes located at a specific relative path within a data structure.
+    /// Base class for templated task bindings, tracking read and write paths.
     /// </summary>
-    /*public*/ struct LocatedAttributeSet
+    /*public*/ abstract class TemplatedTaskBinding
     {
         /// <summary>
-        /// The relative path that binds the attribute set to a specific location.
+        /// The binding key associated with this binding, if any.
         /// </summary>
-        public BindingRelativePath BindingRelativePath;
+        public IDataKey Key { get; }
 
-        /// <summary>
-        /// The set of attributes associated with the specified binding path.
-        /// </summary>
-        public AttributeSet AttributeSet;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LocatedAttributeSet"/> struct.
-        /// </summary>
-        /// <param name="bindingKey">The key used to bind the attribute set.</param>
-        /// <param name="attributePath">The relative path within the data structure where the attributes are located.</param>
-        /// <param name="attributeSet">The set of attributes to associate with the binding.</param>
-        public LocatedAttributeSet(IDataKey bindingKey, DataPath attributePath, AttributeSet attributeSet)
-        {
-            BindingRelativePath = new BindingRelativePath(bindingKey, attributePath);
-            AttributeSet = attributeSet;
-        }
-    }
-
-    /// <summary>
-    /// Represents a relative path used to bind data within a data structure.
-    /// </summary>
-    /*public*/ struct BindingRelativePath
-    {
-        /// <summary>
-        /// The key used to identify the binding within the data structure.
-        /// </summary>
-        public IDataKey BindingKey;
-
-        /// <summary>
-        /// The relative path within the data structure where the binding applies.
-        /// </summary>
-        public DataPath SubDataPath;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BindingRelativePath"/> struct.
-        /// </summary>
-        /// <param name="bindingKey">The key used to identify the binding.</param>
-        /// <param name="subDataPath">The relative path within the data structure where the binding applies.</param>
-        public BindingRelativePath(IDataKey bindingKey, DataPath subDataPath)
-        {
-            BindingKey = bindingKey;
-            SubDataPath = subDataPath;
-        }
-    }
-
-    /// <summary>
-    /// Represents the paths used for reading and writing data bindings within a system.
-    /// </summary>
-    /*public*/ class BindingUsagePaths
-    {
         /// <summary>
         /// The set of paths used for reading data bindings.
         /// </summary>
-        public DataPathSet Read { get; } = new();
+        public DataPathSet ReadPathSet { get; } = new();
 
         /// <summary>
         /// The set of paths used for writing data bindings.
         /// </summary>
-        public DataPathSet Write { get; } = new();
+        public DataPathSet WritePathSet { get; } = new();
 
         /// <summary>
-        /// Adds the read and write paths from another <see cref="BindingUsagePaths"/> instance
-        /// to this instance.
+        /// Initializes a new instance of the <see cref="TemplatedTaskBinding"/> class with the specified binding key.
         /// </summary>
-        /// <param name="other">
-        /// The <see cref="BindingUsagePaths"/> instance whose paths will be added.
-        /// </param>
-        public void Add(BindingUsagePaths other)
+        /// <param name="key">The data key associated with this binding.</param>
+        protected TemplatedTaskBinding(IDataKey key)
         {
-            Read.Add(other.Read);
-            Write.Add(other.Write);
+            Key = key;
         }
 
         /// <summary>
-        /// Adds attribute read and write paths for the specified attribute set, using the provided base data path.
+        /// Adds a path to both the read and write path sets.
         /// </summary>
-        /// <param name="attributesPath">
-        /// The base <see cref="DataPath"/> under which attribute keys will be added.
-        /// </param>
-        /// <param name="attributeSet">
-        /// The <see cref="AttributeSet"/> containing the attributes to be read and written.
-        /// </param>
-        public void Add(DataPath attributesPath, AttributeSet attributeSet)
+        /// <param name="path">The path to add.</param>
+        public void AddReadWrite(DataPath path)
         {
-            foreach (var attribute in attributeSet.ReadAttributes)
-            {
-                Read.Add(new DataPath(attributesPath, new AttributeKey(attribute)));
-            }
-            foreach (var attribute in attributeSet.WriteAttributes)
-            {
-                Write.Add(new DataPath(attributesPath, new AttributeKey(attribute)));
-            }
+            ReadPathSet.Add(path);
+            WritePathSet.Add(path);
         }
     }
 
     /// <summary>
-    /// Represents a binding for a templated task, associating a data type with its usage paths.
+    /// Represents a binding for a templated task with a specific data description type.
     /// </summary>
-    /*public*/ class TemplatedTaskBinding
+    /// <typeparam name="T">The data description type, must implement <see cref="IDataDescription"/>.</typeparam>
+    /*public*/ class TemplatedTaskBinding<T> : TemplatedTaskBinding where T : IDataDescription
     {
         /// <summary>
-        /// Gets the type of data associated with this binding.
-        /// Must implement <see cref="IDataDescription"/>.
+        /// Initializes a new instance of the <see cref="TemplatedTaskBinding{T}"/> class with the specified binding key.
         /// </summary>
-        public System.Type DataType { get; }
-
-        /// <summary>
-        /// Gets the <see cref="BindingUsagePaths"/> describing how the data is read and written.
-        /// </summary>
-        public BindingUsagePaths UsagePaths { get; } = new();
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TemplatedTaskBinding"/> class
-        /// with the specified data type and usage paths.
-        /// </summary>
-        /// <param name="dataType">
-        /// The type of data to bind, which must implement <see cref="IDataDescription"/>.
-        /// </param>
-        /// <param name="usagePaths">
-        /// The usage paths indicating how the data is read and written. If not null, its paths are added to <see cref="UsagePaths"/>.
-        /// </param>
-        /// <exception cref="System.ArgumentException">
-        /// Thrown if <paramref name="dataType"/> does not implement <see cref="IDataDescription"/>.
-        /// </exception>
-        public TemplatedTaskBinding(System.Type dataType, BindingUsagePaths usagePaths)
+        /// <param name="key">The data key associated with this binding.</param>
+        public TemplatedTaskBinding(IDataKey key) : base(key)
         {
-            Debug.Assert(typeof(IDataDescription).IsAssignableFrom(dataType));
-            DataType = dataType;
-
-            if (usagePaths != null)
-            {
-                UsagePaths.Add(usagePaths);
-            }
         }
-    }
-
-    /// <summary>
-    /// Arguments used to initialize a <see cref="TemplatedTask"/>.
-    /// </summary>
-    /*public*/ struct TemplatedTaskArgs
-    {
-        /// <summary>
-        /// The collection of subtasks to compose the task.
-        /// </summary>
-        public List<SubtaskDescription> Subtasks;
 
         /// <summary>
-        /// The data key used for the default attribute set.
+        /// Creates a new <see cref="TemplatedTaskBinding"/> with the specified data description type and binding key.
         /// </summary>
-        public IDataKey DefaultAttributeKey;
-
-        /// <summary>
-        /// Mappings from generic attribute keys to their corresponding data paths.
-        /// </summary>
-        public Dictionary<IDataKey, BindingRelativePath> AttributeKeyMappings;
-
-        /// <summary>
-        /// List of all the task bindings and their subdata path.
-        /// </summary>
-        public Dictionary<IDataKey, TemplatedTaskBinding> Bindings;
-
-        /// <summary>
-        /// List of all the expressions used by the task.
-        /// </summary>
-        public List<IDataKey> ExpressionBindingKeys;
+        /// <param name="dataDescriptionType">The type of the data description, must implement <see cref="IDataDescription"/>.</param>
+        /// <param name="key">The data key associated with this binding.</param>
+        /// <returns>A new instance of <see cref="TemplatedTaskBinding"/> with the specified type and key.</returns>
+        public static TemplatedTaskBinding Create(System.Type dataDescriptionType, IDataKey key)
+        {
+            var genericType = typeof(TemplatedTaskBinding<>).MakeGenericType(dataDescriptionType);
+            return (TemplatedTaskBinding)System.Activator.CreateInstance(genericType, key);
+        }
     }
 
     /// <summary>
@@ -185,10 +74,23 @@ namespace Unity.GraphCommon.LowLevel.Editor
     /// </summary>
     /*public*/ class TemplatedTask : ITask
     {
-        readonly Dictionary<IDataKey, BindingUsagePaths> m_BindingToUsage = new();
-        readonly Dictionary<IDataKey, BindingRelativePath> m_AttributeKeyMappings;
+        /// <summary>
+        /// Arguments used to initialize a <see cref="TemplatedTask"/>.
+        /// </summary>
+        public struct Args
+        {
+            /// <summary>
+            /// The collection of subtasks to compose the task.
+            /// </summary>
+            public List<SubtaskDescription> Subtasks;
 
-        readonly List<IDataKey> m_ExpressionBindingKeys = new();
+            /// <summary>
+            /// List of all the task bindings.
+            /// </summary>
+            public List<TemplatedTaskBinding> Bindings;
+        }
+
+        readonly Dictionary<IDataKey, TemplatedTaskBinding> m_Bindings = new();
 
         /// <summary>
         /// Gets the name of the template associated with the task.
@@ -201,174 +103,92 @@ namespace Unity.GraphCommon.LowLevel.Editor
         public List<SubtaskDescription> Subtasks { get; } = new();
 
         /// <summary>
-        /// Gets a value indicating whether the task is a compute task.
-        /// </summary>
-        public bool IsCompute { get; } = true;
-
-        /// <summary>
-        /// The data key used for the default attribute set.
-        /// </summary>
-        public IDataKey DefaultAttributeKey { get; }
-
-        /// <summary>
-        /// Gets the mappings from attribute keys to their corresponding binding relative paths.
-        /// </summary>
-        public IEnumerable<KeyValuePair<IDataKey, BindingRelativePath>> AttributeKeyMappings => m_AttributeKeyMappings;
-
-        //TODO: These two keys are legacy and should be moved somewhere else.
-        /// <summary>
-        /// Unique data key that represents the graph values data used by this task.
-        /// </summary>
-        public static UniqueDataKey GraphValuesBufferKey { get; } = new UniqueDataKey("GraphValuesBuffer");
-        /// <summary>
-        /// Unique data key that represents the (legacy) context data used by this task.
-        /// </summary>
-        public static UniqueDataKey ContextDataKey { get; } = new UniqueDataKey("ContextData");
-        public static UniqueDataKey MaxParticleCountKey { get; } = new UniqueDataKey("maxParticleCount");
-        public static UniqueDataKey SystemSeedKey { get; } = new UniqueDataKey("systemSeed");
-        public static UniqueDataKey InitSpawnIndexKey { get; } = new UniqueDataKey("initSpawnIndex");
-
-        public static DataPath MaxParticleCountPath => new(MaxParticleCountKey);
-        public static DataPath SystemSeedPath => new(SystemSeedKey);
-        public static DataPath InitSpawnIndexPath => new(InitSpawnIndexKey);
-        /// <summary>
         /// Initializes a new instance of the <see cref="TemplatedTask"/> class using the specified template name and arguments.
         /// </summary>
         /// <param name="templateName">The name of the template associated with the task.</param>
-        /// <param name="args">The parameters to setup the templated task <see cref="TemplatedTaskArgs"/>.</param>
-        public TemplatedTask(string templateName, TemplatedTaskArgs args) : this(templateName, args, true) { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TemplatedTask"/> class using the specified template name, arguments, and compute flag.
-        /// </summary>
-        /// <param name="templateName">The name of the template associated with the task.</param>
-        /// <param name="args">The parameters to setup the templated task <see cref="TemplatedTaskArgs"/>.</param>
-        /// <param name="isCompute">Indicates if the task is a compute task.</param>
-        public TemplatedTask(string templateName, TemplatedTaskArgs args, bool isCompute)
+        /// <param name="args">The parameters to setup the templated task <see cref="Args"/>.</param>
+        public TemplatedTask(string templateName, Args args)
         {
             TemplateName = templateName;
-            Subtasks.AddRange(args.Subtasks);
 
-            IsCompute = isCompute;
-
-            m_AttributeKeyMappings = args.AttributeKeyMappings != null ? new(args.AttributeKeyMappings) : new();
-
-            if (args.ExpressionBindingKeys != null)
-            {
-                AddExpressionsBindingKeys(args.ExpressionBindingKeys);
-            }
-
+            // Build bindings dictionary from the list using each binding's key
             if (args.Bindings != null)
             {
                 foreach (var binding in args.Bindings)
                 {
-                    if (!m_BindingToUsage.TryGetValue(binding.Key, out var bindingToUsage))
-                    {
-                        bindingToUsage = new();
-                        m_BindingToUsage.Add(binding.Key, bindingToUsage);
-                    }
-                    bindingToUsage.Add(binding.Value.UsagePaths);
+                    m_Bindings.Add(binding.Key, binding);
                 }
             }
 
-            DefaultAttributeKey = args.DefaultAttributeKey;
-
-            foreach (var attributeKeyMapping in args.AttributeKeyMappings)
+            Subtasks.AddRange(args.Subtasks);
+            foreach (var subtaskDescription in args.Subtasks)
             {
-                Debug.Assert(m_BindingToUsage.ContainsKey(attributeKeyMapping.Value.BindingKey));
-            }
-
-            foreach (var block in args.Subtasks)
-            {
-                if (block.Task is TemplateSubtask subtask)
+                if (subtaskDescription.Bindings != null)
                 {
-                    foreach (var kvp in subtask.AttributeSets)
+                    foreach (var binding in subtaskDescription.Bindings)
                     {
-                        var attributeKey = kvp.Key;
-                        if (attributeKey == AttributeData.DefaultKey)
-                        {
-                            //attributeKey = default attribute mapping
-                        }
-                        if (m_AttributeKeyMappings.TryGetValue(attributeKey, out var mappedKeyPath))
-                        {
-                            IDataKey bindingKey = mappedKeyPath.BindingKey;
-                            DataPath attributesPath = mappedKeyPath.SubDataPath;
-
-                            var snippetAttributeSet = kvp.Value;
-                            if (!m_BindingToUsage.ContainsKey(bindingKey))
-                            {
-                                m_BindingToUsage.Add(bindingKey, new());
-                            }
-                            //TODO MAYBE ?: Consider attributes that are written and THEN read as write only in the scope of the task.
-                            foreach (var attribute in snippetAttributeSet.ReadAttributes)
-                            {
-                                m_BindingToUsage[bindingKey].Read
-                                    .Add(new DataPath(attributesPath, new AttributeKey(attribute)));
-                            }
-
-                            foreach (var attribute in snippetAttributeSet.WriteAttributes)
-                            {
-                                m_BindingToUsage[bindingKey].Write
-                                    .Add(new DataPath(attributesPath, new AttributeKey(attribute)));
-                            }
-                        }
-                        else
-                        {
-                            Debug.LogWarning($"Attribute set \"{kvp.Key}\" not found in task {this}");
-                        }
+                        binding.ReadPathSet.Add(DataPath.Root);
+                        m_Bindings.TryAdd(binding.Key, binding);
                     }
                 }
-                AddExpressionsBindingKeys(block.ExpressionBindingKeys);
-            }
-            foreach (var bindingKey in m_ExpressionBindingKeys)
-            {
-                var bindingUsagePath = new BindingUsagePaths();
-                bindingUsagePath.Read.Add(DataPath.Empty);
-                m_BindingToUsage.TryAdd(bindingKey, bindingUsagePath);
             }
         }
 
-        /// <inheritdoc />
-        public bool GetDataUsage(IDataKey dataKey, out DataPathSet readUsage, out DataPathSet writeUsage)
-        {
-            if (m_BindingToUsage.ContainsKey(dataKey))
-            {
-                readUsage = m_BindingToUsage[dataKey].Read;
-                writeUsage = m_BindingToUsage[dataKey].Write;
-                return true;
-            }
+        /// <summary>
+        /// Checks if a binding with the specified key exists.
+        /// </summary>
+        /// <param name="key">The data key to check.</param>
+        /// <returns>True if a binding with the key exists, false otherwise.</returns>
+        protected bool HasBinding(IDataKey key) => m_Bindings.ContainsKey(key);
 
-            readUsage = null;
-            writeUsage = null;
-            return false;
+        /// <summary>
+        /// Adds a read path to the binding with the specified key.
+        /// </summary>
+        /// <param name="bindingKey">The binding key.</param>
+        /// <param name="path">The path to add.</param>
+        protected void AddReadPath(IDataKey bindingKey, DataPath path)
+        {
+            m_Bindings[bindingKey].ReadPathSet.Add(path);
+        }
+
+        /// <summary>
+        /// Adds a write path to the binding with the specified key.
+        /// </summary>
+        /// <param name="bindingKey">The binding key.</param>
+        /// <param name="path">The path to add.</param>
+        protected void AddWritePath(IDataKey bindingKey, DataPath path)
+        {
+            m_Bindings[bindingKey].WritePathSet.Add(path);
         }
 
         /// <inheritdoc />
-        public bool GetBindingUsage(IDataKey dataKey, out BindingUsage usage)
+        public BindingUsage GetBindingUsage(IDataKey dataKey, DataPathSet readUsage = null, DataPathSet writeUsage = null)
         {
-            if(GetDataUsage(dataKey, out var readUsage, out var writeUsage))
+            BindingUsage usage = BindingUsage.Unknown;
+
+            if (m_Bindings.TryGetValue(dataKey, out var binding))
             {
-                usage = BindingUsage.Unknown;
-                if (readUsage != null && !readUsage.Empty)
+                if (!binding.ReadPathSet.Empty)
                 {
                     usage |= BindingUsage.Read;
+                    if (readUsage != null)
+                    {
+                        foreach (var path in binding.ReadPathSet)
+                            readUsage.Add(path);
+                    }
                 }
-                if (writeUsage != null && !writeUsage.Empty)
+                if (!binding.WritePathSet.Empty)
                 {
                     usage |= BindingUsage.Write;
+                    if (writeUsage != null)
+                    {
+                        foreach (var path in binding.WritePathSet)
+                            writeUsage.Add(path);
+                    }
                 }
-                return true;
             }
-            usage = BindingUsage.Unknown;
-            return true;
-        }
 
-        void AddExpressionsBindingKeys(List<IDataKey> expressionBindingKeys)
-        {
-            foreach (var bindingKey in expressionBindingKeys)
-            {
-                m_ExpressionBindingKeys.Add(bindingKey);
-            }
+            return usage;
         }
     }
 }

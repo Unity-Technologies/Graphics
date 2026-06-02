@@ -25,17 +25,23 @@ Varyings vert(uint id : SV_VertexID, VertexInput vs_input)
     {
         VFXProcessBlocks(particleAttributes);
 
-        float3 position = particleAttributes.position;
-        float size = particleAttributes.size;
+        float4x4 elementToVFXMatrix = GetElementToVFXMatrix(
+            particleAttributes.axisX,
+            particleAttributes.axisY,
+            particleAttributes.axisZ,
+            float3(particleAttributes.angleX, particleAttributes.angleY, particleAttributes.angleZ),
+            float3(particleAttributes.pivotX, particleAttributes.pivotY, particleAttributes.pivotZ),
+            float3(particleAttributes.scaleX, particleAttributes.scaleY, particleAttributes.scaleZ) * particleAttributes.size,
+            particleAttributes.position);
+
         float2 varyingUV;
         varyingUV.x = float(id & 1);
         varyingUV.y = (id & 2) * 0.5f;
-        const float2 vOffsets = varyingUV.xy - 0.5f;
-        float3 inputVertexPosition = float3(vOffsets, 0.0f);
-        float3 vPos = position + inputVertexPosition * size ;
 
+        const float2 offsets = varyingUV.xy - 0.5f;
+        float3 posVFX = mul(elementToVFXMatrix, float4(offsets, 0.0f, 1.0f)).xyz;
 
-        o.pos = TransformPositionVFXToClip(vPos);
+        o.pos = TransformPositionVFXToClip(posVFX);
         o.uv = varyingUV;
         o.color = float4(particleAttributes.color, particleAttributes.alpha);
     }

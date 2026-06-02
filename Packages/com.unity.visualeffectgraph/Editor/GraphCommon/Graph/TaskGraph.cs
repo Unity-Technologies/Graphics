@@ -217,7 +217,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         public DataViewId GetSubdata(DataViewId parentDataViewId, DataPath subdataPath)
         {
             var currentDataViewId = parentDataViewId;
-            foreach (var subDataKey in subdataPath.PathSequence)
+            foreach (var subDataKey in subdataPath)
             {
                 currentDataViewId = subDataKey != null ? GetSubdata(currentDataViewId, subDataKey) : currentDataViewId;
                 //currentDataViewId = GetSubdata(currentDataViewId, subDataKey);
@@ -227,10 +227,31 @@ namespace Unity.GraphCommon.LowLevel.Editor
             return currentDataViewId;
         }
 
+        void ResolveBindingUsage(TaskNodeId taskNodeId, IDataKey bindingKey, ref BindingUsage usage,
+            out DataPathSet readPaths, out DataPathSet writePaths)
+        {
+            readPaths = new();
+            writePaths = new();
+            var usageFromTask = m_TaskNodes[taskNodeId].Task.GetBindingUsage(bindingKey, readPaths, writePaths);
+
+            if (usage != BindingUsage.Unknown)
+            {
+                if (usageFromTask != BindingUsage.Unknown && usage != usageFromTask)
+                {
+                    Debug.LogWarning($"Provided binding usage {usage} doesn't match binding usage {usageFromTask} from task node");
+                    usage = BindingUsage.Unknown;
+                }
+            }
+            else
+            {
+                usage = usageFromTask;
+            }
+        }
+
         /// <inheritdoc cref="IBuildableGraph"/>
         public void BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId, BindingUsage usage = BindingUsage.Unknown)
         {
-            Debug.Assert(DataViewsCacheInfo.Valid);
+            ResolveBindingUsage(taskNodeId, bindingKey, ref usage, out var readPaths, out var writePaths);
 
             IEnumerable<DataNodeId> parentNodeIds = Array.Empty<DataNodeId>();
             if (usage.HasFlag(BindingUsage.Read))
@@ -238,37 +259,28 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 parentNodeIds = FindImplicitParentDataNodes(dataViewId);
             }
 
-            BindData(taskNodeId, bindingKey, dataViewId, usage, parentNodeIds);
+            BindData(taskNodeId, bindingKey, dataViewId, usage, parentNodeIds, readPaths, writePaths);
         }
 
         /// <inheritdoc cref="IMutableGraph"/>
         public void BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId, BindingUsage usage,
             IEnumerable<DataNodeId> parentNodeIds)
         {
-            Version++;
+            ResolveBindingUsage(taskNodeId, bindingKey, ref usage, out var readPaths, out var writePaths);
+            BindData(taskNodeId, bindingKey, dataViewId, usage, parentNodeIds, readPaths, writePaths);
+        }
 
-            if (!m_TaskNodes[taskNodeId].Task.GetBindingUsage(bindingKey, out var usageFromTask))
-            {
-                Debug.LogWarning("The task is not using this data. Skipping binding data.");
-                return;
-            }
-            if (usage == BindingUsage.Unknown)
-            {
-                usage = usageFromTask;
-            }
-            else if (usageFromTask != BindingUsage.Unknown && usage != usageFromTask)
-            {
-                //TODO: Let's skip usage validation for now
-                //Debug.LogWarning($"Provided binding usage {usage} doesn't match binding usage {usageFromTask} from task node");
-                //return;
-            }
+        void BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId, BindingUsage usage,
+            IEnumerable<DataNodeId> parentNodeIds, DataPathSet readPaths, DataPathSet writePaths)
+        {
+            Debug.Assert(dataViewId.IsValid);
+
             if (usage == BindingUsage.Unknown)
             {
                 Debug.LogWarning("Binding usage cannot be determined. Skipping binding data.");
                 return;
             }
-
-            Debug.Assert(usage != BindingUsage.Unknown);
+            Version++;
 
             m_DataBindings.Allocate(out var dataBindingId) =
                 new DataBindingInfo(dataBindingId, taskNodeId, dataViewId, bindingKey, usage);
@@ -286,35 +298,32 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 AddDataDependency(dataNodeId, parentNodeId);
             }
 
-            var task = m_TaskNodes[taskNodeId].Task;
-            bool usesData = task.GetDataUsage(bindingKey, out DataPathSet readUsage, out DataPathSet writeUsage);
-            if (usesData)
+            if (!readPaths.Empty)
             {
-                if(readUsage != null)
+                Debug.Assert(usage.HasFlag(BindingUsage.Read));
+                foreach (var path in readPaths)
                 {
-                    foreach (var path in readUsage.DataPaths)
+                    var currentDataViewId = dataViewId;
+                    foreach (var key in path)
                     {
-                        var currentDataViewId = dataViewId;
-                        foreach (var key in path.PathSequence)
-                        {
-                            currentDataViewId = key != null ? GetSubdata(currentDataViewId, key) : currentDataViewId;
-                            if (!currentDataViewId.IsValid)
-                                break;
-                        }
+                        currentDataViewId = key != null ? GetSubdata(currentDataViewId, key) : currentDataViewId;
+                        if (!currentDataViewId.IsValid)
+                            break;
                     }
                 }
+            }
 
-                if(writeUsage != null)
+            if (!writePaths.Empty)
+            {
+                Debug.Assert(usage.HasFlag(BindingUsage.Write));
+                foreach (var path in writePaths)
                 {
-                    foreach (var path in writeUsage.DataPaths)
+                    var currentDataViewId = dataViewId;
+                    foreach (var key in path)
                     {
-                        var currentDataViewId = dataViewId;
-                        foreach (var key in path.PathSequence)
-                        {
-                            currentDataViewId = key != null ? GetSubdata(currentDataViewId, key) : currentDataViewId;
-                            if (!currentDataViewId.IsValid)
-                                break;
-                        }
+                        currentDataViewId = key != null ? GetSubdata(currentDataViewId, key) : currentDataViewId;
+                        if (!currentDataViewId.IsValid)
+                            break;
                     }
                 }
             }

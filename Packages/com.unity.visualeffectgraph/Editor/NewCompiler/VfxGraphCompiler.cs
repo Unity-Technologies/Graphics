@@ -6,7 +6,7 @@ namespace UnityEditor.VFX
     class VfxGraphCompiler
     {
         private Compiler<VfxGraphLegacyCompilationOutput> m_GraphCompiler;
-        private VfxIntermediateGraphBuilder m_GraphBuilder = new();
+        private IntermediateGraphBuilder m_GraphBuilder = new();
 
         private DataDescriptionWriterRegistry m_DataWriter;
 
@@ -24,7 +24,7 @@ namespace UnityEditor.VFX
                 new AttributeLayoutPass(),
                 new VfxGraphLegacyParticleSystemPass(),
                 new DataLayoutPass(),
-                new TemplateCodeGenerationPass(m_DataWriter));
+                new VfxTemplateCodeGenerationPass(m_DataWriter));
         }
 
         public VFXGraphCompiledData.VFXCompileOutput Compile(VFXGraph graph, VFXCompilationMode compilationMode, bool generateShadersDebugSymbols)

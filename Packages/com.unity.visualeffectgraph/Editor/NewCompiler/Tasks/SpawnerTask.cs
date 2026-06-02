@@ -29,24 +29,31 @@ namespace UnityEditor.VFX
         }
 
         /// <inheritdoc />
-        public bool GetDataUsage(IDataKey dataKey, out DataPathSet readUsage, out DataPathSet writeUsage)
+        public BindingUsage GetBindingUsage(IDataKey dataKey, DataPathSet readUsage = null, DataPathSet writeUsage = null)
         {
+            BindingUsage usage = BindingUsage.Unknown;
+
             if (dataKey.Equals(SpawnDataKey))
             {
-                readUsage = new DataPathSet();
-                writeUsage = new DataPathSet();
-                writeUsage.Add(DataPath.Empty);
-                DataPath attributeDataPath = new(EventData.AttributeDataKey);
-                writeUsage.Add(attributeDataPath);
-                if (Attribute != null)
+                if (writeUsage != null)
                 {
-                    writeUsage.Add(new DataPath(attributeDataPath, new AttributeKey(Attribute)));
+                    writeUsage.Add(DataPath.Root);
+                    DataPath attributeDataPath = DataPath.Root + EventData.AttributeDataKey;
+                    writeUsage.Add(attributeDataPath);
+                    if (Attribute != null)
+                    {
+                        writeUsage.Add(attributeDataPath + new AttributeKey(Attribute));
+                    }
                 }
-                return true;
+                usage |= BindingUsage.Write;
             }
-            readUsage = null;
-            writeUsage = null;
-            return false;
+            else if (dataKey is NameDataKey) // Expression values are read by the spawner
+            {
+                readUsage?.Add(DataPath.Root);
+                usage |= BindingUsage.Read;
+            }
+
+            return usage;
         }
     }
 }

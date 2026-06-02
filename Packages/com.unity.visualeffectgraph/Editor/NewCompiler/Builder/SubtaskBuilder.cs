@@ -6,17 +6,9 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    class VfxSubTaskBuilder
+    class SubtaskBuilder
     {
         private ExpressionWriter m_ExpressionWriter = new ExpressionWriter();
-        private IDataKey m_DefaultAttributeKey;
-        private IDataKey m_SourceAttributeKey;
-
-        public VfxSubTaskBuilder(IDataKey defaultAttributeKey, IDataKey sourceAttributeKey)
-        {
-            m_DefaultAttributeKey = defaultAttributeKey;
-            m_SourceAttributeKey = sourceAttributeKey;
-        }
 
         public List<SubtaskDescription> GenerateSubtasks(VFXContext context, VFXExpressionGraph expressionGraph)
         {
@@ -31,7 +23,7 @@ namespace UnityEditor.VFX
                 m_ExpressionWriter.StartBlock();
                 var subTaskDesc = new SubtaskDescription();
                 subTaskDesc.Name = block.name;
-                subTaskDesc.ExpressionBindingKeys = new List<IDataKey>();
+                subTaskDesc.Bindings = new List<TemplatedTaskBinding>();
 
                 StringBuilder blockCodeBuilder = new StringBuilder(block.source);
                 StringBuilder expressionCodeBuilder = new StringBuilder();
@@ -64,7 +56,10 @@ namespace UnityEditor.VFX
                     else
                     {
                         string bindingName = uniformMapper.GetName(reduced);
-                        subTaskDesc.ExpressionBindingKeys.Add(new NameDataKey(bindingName));
+                        var valueType = VFXExpression.TypeToType(reduced.valueType);
+                        var dataDescriptionType = ValueData.Create(valueType).GetType();
+                        var binding = TemplatedTaskBinding<IDataDescription>.Create(dataDescriptionType, new NameDataKey(bindingName));
+                        subTaskDesc.Bindings.Add(binding);
                         rightHandSide = reduced.Is(VFXExpression.Flags.Constant) ? reduced.GetCodeString(null) : bindingName;
                     }
                     expressionCodeBuilder.Append($"{leftHandSide} = {rightHandSide};\n");
@@ -74,15 +69,18 @@ namespace UnityEditor.VFX
 
                 // Workaround to handle RAND which implicitly uses the seed attribute
                 if(block.source.Contains("RAND"))
+                {
                     blockCodeBuilder.Insert(0, "uint seed = attributes.seed;\n");
+                    blockCodeBuilder.Append("attributes.seed = seed;\n");
+                }
 
                 blockCodeBuilder.Insert(0, expressionCodeBuilder.ToString());
 
                 Dictionary<IDataKey, AttributeSet> attributeSets = new Dictionary<IDataKey, AttributeSet>();
-                attributeSets.Add(m_DefaultAttributeKey, defaultAttributeSet);
+                attributeSets.Add(IntermediateGraphBuilder.DefaultAttributeKey, defaultAttributeSet);
                 if (!sourceAttributeSet.IsEmpty())
                 {
-                    attributeSets.Add(m_SourceAttributeKey, sourceAttributeSet);
+                    attributeSets.Add(IntermediateGraphBuilder.SourceAttributeKey, sourceAttributeSet);
                 }
 
                 subTaskDesc.Task = new TemplateSubtask(block.name, blockCodeBuilder.ToString(), attributeSets);
@@ -98,7 +96,7 @@ namespace UnityEditor.VFX
             if (expression is VFXAttributeExpression attributeExpression)
             {
                 var attributeSet = attributeExpression.attributeLocation == VFXAttributeLocation.Source ? sourceAttributeSet : defaultAttributeSet;
-                attributeSet.AddAttribute(VFXAttributesManager.ConvertToNewCompiler(attributeExpression.attribute), GetAttributeUsage(VFXAttributeMode.Read));
+                attributeSet.AddAttribute(VFXAttributesManager.ConvertToNewCompiler(attributeExpression.attribute), AttributeUsage.Read);
             }
 
             foreach (var expressionParent in expression.parents)

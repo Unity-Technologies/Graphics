@@ -11,13 +11,13 @@ namespace Unity.GraphCommon.LowLevel.Editor
         private HashSet<Attribute> readAttributes = new();
         private HashSet<Attribute> writeAttributes = new();
         /// <summary>
-        /// An enumerable containing all the attributes that are read.
+        /// A collection containing all the attributes that are read.
         /// </summary>
-        public IEnumerable<Attribute> ReadAttributes => readAttributes;
+        public IReadOnlyCollection<Attribute> ReadAttributes => readAttributes;
         /// <summary>
-        /// An enumerable containing all the attributes that are written to.
+        /// A collection containing all the attributes that are written to.
         /// </summary>
-        public IEnumerable<Attribute> WriteAttributes => writeAttributes;
+        public IReadOnlyCollection<Attribute> WriteAttributes => writeAttributes;
 
         /// <summary>
         /// Adds an attribute to the attribute set, with its usage.
@@ -56,6 +56,31 @@ namespace Unity.GraphCommon.LowLevel.Editor
         public bool IsEmpty()
         {
             return readAttributes.Count == 0 && writeAttributes.Count == 0;
+        }
+
+        /// <summary>
+        /// Clears the read attributes.
+        /// </summary>
+        public void ClearRead()
+        {
+            readAttributes.Clear();
+        }
+
+        /// <summary>
+        /// Clears the write attributes.
+        /// </summary>
+        public void ClearWrite()
+        {
+            writeAttributes.Clear();
+        }
+
+        /// <summary>
+        /// Clears both the read and write attributes.
+        /// </summary>
+        public void Clear()
+        {
+            ClearRead();
+            ClearWrite();
         }
 
         /// <summary>
