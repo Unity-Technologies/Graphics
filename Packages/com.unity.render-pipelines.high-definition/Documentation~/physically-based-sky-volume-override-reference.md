@@ -18,7 +18,7 @@ The Physically Based Sky’s atmosphere has three types of particles:
 
 * Air particles with [Rayleigh scattering](<https://en.wikipedia.org/wiki/Rayleigh_scattering>).
 * Aerosol particles with anisotropic [Mie scattering](https://en.wikipedia.org/wiki/Mie_scattering). You can use aerosols to model pollution, height fog, or mist.
-* Ozone particles, which do not contribute to scattering but absorp light. It contributes greatly to the blue color of the sky during twilight.
+* Ozone particles, which do not contribute to scattering but absorb light. It contributes greatly to the blue color of the sky during twilight.
 
 You can use the Physically Based Sky to simulate the sky during both daytime and night-time. You can change the time of day at runtime without reducing performance.
 
