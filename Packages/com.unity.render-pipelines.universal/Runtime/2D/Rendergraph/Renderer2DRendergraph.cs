@@ -660,7 +660,7 @@ namespace UnityEngine.Rendering.Universal
         {
             var renderPassInputs = GetRenderPassInputs(cameraData);
             bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture;
-            bool cameraHasPostProcessingWithDepth = cameraData.postProcessEnabled && m_PostProcessPassRenderGraph != null && cameraData.postProcessingRequiresDepthTexture;
+            bool cameraHasPostProcessingWithDepth = cameraData.postProcessEnabled && m_PostProcessPassRenderGraph != null && (cameraData.postProcessingRequiresDepthTexture || !LensFlareCommonSRP.Instance.IsEmpty());
             bool requiresDepthCopyPass = (cameraHasPostProcessingWithDepth || requiresDepthTexture) && m_CreateDepthTexture;
 
             return requiresDepthCopyPass;
