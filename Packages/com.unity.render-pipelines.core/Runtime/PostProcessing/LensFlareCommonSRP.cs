@@ -474,15 +474,15 @@ namespace UnityEngine.Rendering
         {
             if (isLocalLight)
             {
-                return WorldToViewportLocal(isCameraRelative, viewProjMatrix, camera.transform.position, positionWS);
+                return WorldToViewportLocal(isCameraRelative, viewProjMatrix, camera.transform.position, positionWS, !camera.orthographic);
             }
             else
             {
-                return WorldToViewportDistance(camera, positionWS);
+                return WorldToViewportDistance(camera, positionWS, !camera.orthographic);
             }
         }
 
-        static Vector3 WorldToViewportLocal(bool isCameraRelative, Matrix4x4 viewProjMatrix, Vector3 cameraPosWS, Vector3 positionWS)
+        static Vector3 WorldToViewportLocal(bool isCameraRelative, Matrix4x4 viewProjMatrix, Vector3 cameraPosWS, Vector3 positionWS, bool isPerspective)
         {
             Vector3 localPositionWS = positionWS;
             if (isCameraRelative)
@@ -491,7 +491,8 @@ namespace UnityEngine.Rendering
             }
             Vector4 viewportPos4 = viewProjMatrix * localPositionWS;
             Vector3 viewportPos = new Vector3(viewportPos4.x, viewportPos4.y, 0f);
-            viewportPos /= viewportPos4.w;
+            if (isPerspective)
+                viewportPos /= viewportPos4.w;
             viewportPos.x = viewportPos.x * 0.5f + 0.5f;
             viewportPos.y = viewportPos.y * 0.5f + 0.5f;
             viewportPos.y = 1.0f - viewportPos.y;
@@ -499,12 +500,13 @@ namespace UnityEngine.Rendering
             return viewportPos;
         }
 
-        static Vector3 WorldToViewportDistance(Camera cam, Vector3 positionWS)
+        static Vector3 WorldToViewportDistance(Camera cam, Vector3 positionWS, bool isPerspective)
         {
             Vector4 camPos = cam.worldToCameraMatrix * positionWS;
             Vector4 viewportPos4 = cam.projectionMatrix * camPos;
             Vector3 viewportPos = new Vector3(viewportPos4.x, viewportPos4.y, 0f);
-            viewportPos /= viewportPos4.w;
+            if (isPerspective)
+                viewportPos /= viewportPos4.w;
             viewportPos.x = viewportPos.x * 0.5f + 0.5f;
             viewportPos.y = viewportPos.y * 0.5f + 0.5f;
             viewportPos.z = viewportPos4.w;
