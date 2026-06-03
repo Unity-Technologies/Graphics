@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [4.0.0] - 2026-06-01
 
 ### Deprecated
 - **The entire `com.unity.postprocessing` package is now deprecated and no longer actively developed.**
@@ -13,7 +13,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - See [Post-processing Overview](https://docs.unity3d.com/Manual/PostProcessingOverview.html) for migration guidance.
 - Added `[Obsolete]` attributes to `PostProcessVolume`, `PostProcessLayer`, and `PostProcessProfile` classes.
 - Added startup dialog notification that appears once per Unity session, with optional "Don't ask again on this computer" checkbox for permanent dismissal.
-- Package Manager UI now displays deprecation warning for all package sources.
 
 ## [3.5.4] - 2026-03-13
 
