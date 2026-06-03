@@ -169,16 +169,82 @@
 #   define UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_90  1
 #   define UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_180 2
 #   define UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_270 3
-float4 ApplyPretransformRotation(float4 v)
+
+// Applies the display pre-rotation to a clip-space position. Call this in vertex shader after calculating final clip-space position
+// so that SV_Position is oriented correctly when rendering to the backbuffer.
+float4 ApplyPretransformRotation(float4 positionCS)
 {
-    switch (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM)
-    {
-    default:
-    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_0: break;
-    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_90: v.xy = float2(v.y, -v.x); break;
-    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_180: v.xy = -v.xy; break;
-    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_270: v.xy = float2(-v.y, v.x); break;
+    if (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM == UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_90)
+    { 
+        positionCS.xy = float2(positionCS.y, -positionCS.x);
     }
-    return v;
+    else if (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM == UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_180)
+    {
+        positionCS.xy = -positionCS.xy;
+    }
+    else if (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM == UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_270)
+    {
+        positionCS.xy = float2(-positionCS.y, positionCS.x);
+    }
+    
+    return positionCS;
+}
+
+// When sampling global textures (AO, depth, normals, etc.) with a shader targeting the backbuffer, the textures are in the logical rotation
+// but the sampling UVs are in the physical orientation. Use this to correct sampling UVs, if UVs are calculated 
+// by using SV_Position and screenParams. 
+float2 RemovePretransformRotation(float2 uv, float4 screenParam)
+{
+    float2 result = uv;
+    // Handle extents swaps for right/left landscape (90/270° rotation)
+    // The screenParam.zw = 1 + rcp(screenParam.xy), so rcp(x) = z - 1.0 and rcp(y) = w - 1.0 
+    float widthOverHeight = screenParam.x * (screenParam.w - 1.0); // x/y
+    float heightOverWidth = screenParam.y * (screenParam.z - 1.0); // y/x
+
+    if (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM == UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_90)
+    {   
+        result = float2((1.0 - uv.y) * heightOverWidth, uv.x * widthOverHeight);
+    }
+    else if (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM == UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_180)
+    {
+        result = float2(1.0 - uv.x, 1.0 - uv.y);
+    }
+    else if (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM == UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_270)
+    {
+        result = float2(1.0 - (1.0 - uv.y) * heightOverWidth, 1.0 - uv.x * widthOverHeight);
+    }
+
+    return result;
+}
+
+// Use this when the sampling UVs are calculated using perspective divide (projCoord.xy / projCoord.w)
+float2 RemovePretransformRotation(float2 positionNDC)
+{
+#if UNITY_UV_STARTS_AT_TOP
+    float scale = 1.0;
+#else
+    float scale = -1.0;
+#endif
+    
+    // Shift to origin, and undo the Y-flip so rotation is axis-aligned
+    float2 hc = float2(positionNDC.x - 0.5, (positionNDC.y - 0.5) * scale);
+
+    if (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM == UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_90)
+    {   
+        hc = float2(-hc.y, hc.x);
+    }
+    else if (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM == UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_180)
+    {
+        hc = -hc;
+    }
+    else if (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM == UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_270)
+    {
+        hc = float2(hc.y, -hc.x);
+    }
+
+    // Reapply the Y-flip and back to [0, 1] range
+    positionNDC = float2(hc.x + 0.5, hc.y * scale + 0.5);
+
+    return positionNDC;
 }
 #endif

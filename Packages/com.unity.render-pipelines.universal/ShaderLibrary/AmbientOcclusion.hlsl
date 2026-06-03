@@ -19,6 +19,9 @@ struct AmbientOcclusionFactor
 half SampleAmbientOcclusion(float2 normalizedScreenSpaceUV)
 {
     float2 uv = UnityStereoTransformScreenSpaceTex(normalizedScreenSpaceUV);
+    #if defined(UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION)
+        uv = RemovePretransformRotation(uv, GetScaledScreenParams());
+    #endif
     return half(SAMPLE_TEXTURE2D_X(_ScreenSpaceOcclusionTexture, sampler_LinearClamp, uv).x);
 }
 
