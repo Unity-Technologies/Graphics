@@ -101,6 +101,19 @@ namespace UnityEngine.Rendering.Universal
                 //     deviceType == GraphicsDeviceType.PlayStation4 || deviceType == GraphicsDeviceType.PlayStation5 || deviceType == GraphicsDeviceType.XboxOne);
             }
         }
+        
+        // Persistent CBUFFERs exist on C# side as Graphics/ComputeBuffer and are filled with SetData(), unlike transient CBUFFERs that have no real existence on C# side
+        internal static bool usePersistentConstantBuffer
+        {
+            get
+            {
+                // - On GLES3 non-WebGL, CBs are disabled (not even transient, see LIGHT_SHADOWS_NO_CBUFFER) due to Adreno perf issues with large CBs
+                // - On WebGL, CBs remains temporarily transient due to a graphics buffer bug
+                // - On WebGPU, CBs remains temporarily transient due to the current problematic need to explicitly bind CBUFFERs even when not used
+                // - Everywhere else we use the persistent CB path for optimal performance at shader setup on native engine side.
+                return SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 && SystemInfo.graphicsDeviceType != GraphicsDeviceType.WebGPU;
+            }
+        }
 
         internal static bool SupportsLightLayers(GraphicsDeviceType type)
         {

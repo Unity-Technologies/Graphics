@@ -173,14 +173,17 @@ CBUFFER_START(AdditionalLights)
 #endif
 float4 _AdditionalLightsPosition[MAX_VISIBLE_LIGHTS];
 // In Forward+, .a stores whether the light is using subtractive mixed mode.
-half4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
-float _AdditionalLightsLayerMasks[MAX_VISIBLE_LIGHTS]; // we want uint[] but Unity api does not support it.
+float4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
+float4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
+float4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
+float4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
 #ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
 #endif
+
+// Keeping mask buffer outside of AdditionalLights due to padding issue (std140 vs Metal MSL)
+// We want uint[] but the Unity API does not support it.
+float _AdditionalLightsLayerMasks[MAX_VISIBLE_LIGHTS];
 #endif
 
 #if USE_CLUSTER_LIGHT_LOOP

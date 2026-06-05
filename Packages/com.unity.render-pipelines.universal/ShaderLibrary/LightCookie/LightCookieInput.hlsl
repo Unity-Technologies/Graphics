@@ -12,21 +12,27 @@ TEXTURE2D(_AdditionalLightsCookieAtlasTexture);
 SAMPLER(sampler_MainLightCookieTexture);
 
 // Buffers
+#if !USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
 // GLES3 causes a performance regression in some devices when using CBUFFER.
 #ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_START(LightCookies)
 #endif
-    float4x4 _MainLightWorldToLight;
-    float _AdditionalLightsCookieEnableBits[(MAX_VISIBLE_LIGHTS + 31) / 32];
-    float _MainLightCookieTextureFormat;
-    float _AdditionalLightsCookieAtlasTextureFormat;
-#if !USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
     float4x4 _AdditionalLightsWorldToLights[MAX_VISIBLE_LIGHTS];
     float4 _AdditionalLightsCookieAtlasUVRects[MAX_VISIBLE_LIGHTS]; // (xy: uv size, zw: uv offset)
-    float _AdditionalLightsLightTypes[MAX_VISIBLE_LIGHTS];
-#endif
 #ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
+#endif
+#endif
+
+float4x4 _MainLightWorldToLight;
+float _MainLightCookieTextureFormat;
+float _AdditionalLightsCookieAtlasTextureFormat;
+
+// Cannot be included in the CBUFFER, float[] arrays padding differs between std140 (CBUFFER)
+// and Metal MSL when packed alongside float4/float4x4 arrays.
+float _AdditionalLightsCookieEnableBits[(MAX_VISIBLE_LIGHTS + 31) / 32];
+#if !USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+float _AdditionalLightsLightTypes[MAX_VISIBLE_LIGHTS];
 #endif
 
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
