@@ -431,7 +431,9 @@ namespace UnityEditor.Rendering
             using var scope = new EditorGUI.IndentLevelScope();
 
             var lightmapper = ProbeVolumeLightingTab.GetLightingSettings().lightmapper;
+#pragma warning disable 618 // ProgressiveCPU is deprecated; comparison guards APV sky-occlusion UI when CPU is selected.
             bool cpuLightmapperSelected = lightmapper == LightingSettings.Lightmapper.ProgressiveCPU;
+#pragma warning restore 618
             if (cpuLightmapperSelected)
             {
                 EditorGUILayout.HelpBox(Styles.cpuLightmapperNotSupportedWarning.text, MessageType.Warning);

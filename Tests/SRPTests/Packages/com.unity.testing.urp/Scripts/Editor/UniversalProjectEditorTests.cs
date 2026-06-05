@@ -24,8 +24,10 @@ public class UniversalProjectEditorTests
             LightingSettings lightingSettings = AssetDatabase.LoadAssetAtPath<LightingSettings>(path);
             if (lightingSettings.bakedGI)
             {
+#pragma warning disable 618 // ProgressiveCPU is deprecated but still accepted here to preserve existing coverage.
                 Assert.IsTrue(lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveCPU || lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveGPU,
                     $"Lighting settings ({path}) uses deprecated lightmapper {lightingSettings.lightmapper}.");
+#pragma warning restore 618
                 Assert.IsTrue(lightingSettings.filteringMode == LightingSettings.FilterMode.None,
                     $"Lighting settings ({path}) have baked GI with filter mode enabled. It is recommended to turn off filter mode to reduce halo effect (If you still want to use it please contact URP team first).");
             }
