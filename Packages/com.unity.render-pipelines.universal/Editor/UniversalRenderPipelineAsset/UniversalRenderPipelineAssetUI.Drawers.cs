@@ -175,8 +175,10 @@ namespace UnityEditor.Rendering.Universal
             var brgStrippingError = EditorGraphicsSettings.batchRendererGroupShaderStrippingMode != BatchRendererGroupStrippingMode.KeepAll;
             var lightingModeError = !HasCorrectLightingModes(serialized.asset);
             var staticBatchingWarning = PlayerSettings.GetStaticBatchingForPlatform(EditorUserBuildSettings.activeBuildTarget);
-            var webGL2TargetError = Array.Exists(PlayerSettings.GetGraphicsAPIs(EditorUserBuildSettings.activeBuildTarget),
-                api => api == GraphicsDeviceType.OpenGLES3);
+            var graphicsApis = PlayerSettings.GetGraphicsAPIs(EditorUserBuildSettings.activeBuildTarget);
+            var gles3Index = Array.IndexOf(graphicsApis, GraphicsDeviceType.OpenGLES3);
+            var webGpuIndex = Array.IndexOf(graphicsApis, GraphicsDeviceType.WebGPU);
+            var webGL2TargetError = gles3Index >= 0 && (webGpuIndex == -1 || gles3Index < webGpuIndex);
 
             if ((GPUResidentDrawerMode)serialized.gpuResidentDrawerMode.intValue != GPUResidentDrawerMode.Disabled)
             {

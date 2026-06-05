@@ -154,12 +154,7 @@ PackedVaryings vert(Attributes input)
 #ifdef UNITY_VIRTUAL_TEXTURING
 #define VT_BUFFER_TARGET SV_Target1
 #define EXTRA_BUFFER_TARGET SV_Target2
-#if defined(SHADER_API_PSSL)
-//For exact packing on pssl, we want to write exact 16 bit unorm (respect exact bit packing).
-//In some sony platforms, the default is FMT_16_ABGR, which would incur in loss of precision.
-//Thus, when VT is enabled, we force FMT_32_ABGR
-#pragma PSSL_target_output_format(target 1 FMT_32_ABGR)
-#endif
+#pragma rendertarget_format_hint MRT1 R16G16_UNorm
 #else
 #define EXTRA_BUFFER_TARGET SV_Target1
 #endif

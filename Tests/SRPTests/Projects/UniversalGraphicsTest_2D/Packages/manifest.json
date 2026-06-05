@@ -4,7 +4,7 @@
   "dependencies": {
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.2d.tilemap": "1.0.0",
-    "com.unity.cinemachine": "3.1.6",
+    "com.unity.cinemachine": "6.6.0",
     "com.unity.ext.nunit": "1.0.0",
     "com.unity.external.test-protocol": "2.0.0-exp.2",
     "com.unity.feature.2d": "file:../../../../../Packages/com.unity.feature.2d",

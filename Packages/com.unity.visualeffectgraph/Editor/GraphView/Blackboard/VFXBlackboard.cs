@@ -526,42 +526,45 @@ namespace UnityEditor.VFX.UI
 
             var parentItem = m_Treeview.GetItemDataForId<IParameterItem>(arg.parentId);
 
-            if (arg.dropPosition == DragAndDropPosition.OverItem)
+            switch (arg.dropPosition)
             {
-                foreach (var selectedItem in m_Treeview.selectedItems)
-                {
-                    if (selectedItem is PropertyItem)
+                case DragAndDropPosition.OverItem:
+                    if (parentItem is PropertyCategory)
                     {
-                        return DragVisualMode.Move;
+                        // Allow properties to be moved into a category
+                        if (m_Treeview.selectedItems.All(x => x is PropertyItem))
+                        {
+                            return DragVisualMode.Move;
+                        }
                     }
+                    break;
 
-                    if (selectedItem is PropertyCategory { isRoot: false })
+                case DragAndDropPosition.BetweenItems:
+                    if (parentItem is PropertyCategory propertyCategory)
                     {
-                        return parentItem.Accept(selectedItem as IParameterItem) ? DragVisualMode.Move : DragVisualMode.Rejected;
+                        // Allow properties to be moved and reordered inside any property category
+                        if (m_Treeview.selectedItems.All(x => x is PropertyItem))
+                        {
+                            return DragVisualMode.Move;
+                        }
+                        // Allow categories to be reordered inside the root category
+                        else if (propertyCategory.isRoot && m_Treeview.selectedItems.All(x => x is PropertyCategory))
+                        {
+                            return DragVisualMode.Move;
+                        }
                     }
-                }
-            }
-            // Allow properties or categories to be moved inside the root category
-            else if (arg.dropPosition == DragAndDropPosition.BetweenItems && parentItem is PropertyCategory { isRoot: true})
-            {
-                return DragVisualMode.Move;
-            }
-            // Allow properties only to be moved inside a non-root category
-            else if (arg.dropPosition == DragAndDropPosition.BetweenItems && parentItem is PropertyCategory && m_Treeview.selectedItems.All(x => x is PropertyAttribute))
-            {
-                return DragVisualMode.Move;
-            }
-            else if (arg.dropPosition == DragAndDropPosition.BetweenItems && parentItem is CustomAttributeCategory && m_Treeview.selectedItems.All(x => x is AttributeItem))
-            {
-                return DragVisualMode.Move;
-            }
-            else if (arg.dropPosition == DragAndDropPosition.OutsideItems)
-            {
-                return DragVisualMode.Move;
-            }
-            else if (arg.dropPosition == DragAndDropPosition.BetweenItems && parentItem is PropertyCategory && m_Treeview.selectedItem is PropertyItem)
-            {
-                return DragVisualMode.Move;
+                    else if (parentItem is CustomAttributeCategory)
+                    {
+                        // Allow custom attributes to be reordered
+                        if (m_Treeview.selectedItems.All(x => x is AttributeItem))
+                        {
+                            return DragVisualMode.Move;
+                        }
+                    }
+                    break;
+
+                case DragAndDropPosition.OutsideItems:
+                    return DragVisualMode.Move;
             }
 
             return DragVisualMode.Rejected;

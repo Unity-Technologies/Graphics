@@ -8,8 +8,8 @@ namespace UnityEditor.Rendering.Universal
     [CustomEditor(typeof(SurfaceCacheGIVolumeOverride))]
     internal class SurfaceCacheGIVolumeEditor : VolumeComponentEditor
     {
-        protected SerializedDataParameter m_Quality;
-
+        protected SurfaceCacheGIVolumeOverride.PresetQuality m_Quality;
+        private bool m_QualityDirty = true;
         protected SerializedDataParameter m_MultiBounce;
         protected SerializedDataParameter m_BouncePatchAllocation;
         protected SerializedDataParameter m_SampleCount;
@@ -31,69 +31,6 @@ namespace UnityEditor.Rendering.Universal
         protected SerializedDataParameter m_CascadeMovement;
 
         protected SerializedDataParameter m_DefragCount;
-
-        struct LightTransportSetting
-        {
-            public bool multiBounce;
-            public bool bouncePatchAllocation;
-            public int sampleCount;
-        }
-
-        struct PatchFilteringSetting
-        {
-            public float temporalSmoothing;
-            public bool spatialFilterEnabled;
-            public int spatialSampleCount;
-            public float spatialRadius;
-            public bool temporalPostFilter;
-        }
-
-        struct ScreenFilteringSetting
-        {
-            public int lookupSampleCount;
-            public float upsamplingKernelSize;
-            public int upsamplingSampleCount;
-        }
-
-        struct QualitySetting
-        {
-            public LightTransportSetting lightTransport;
-            public PatchFilteringSetting patchFiltering;
-            public ScreenFilteringSetting screenFiltering;
-        }
-
-        // Quality preset definitions; indexed by SurfaceCacheGIQuality (Low=0, Medium=1, High=2, Ultra=3).
-        static readonly QualitySetting[] k_QualityPresets =
-        {
-            // Low
-            new QualitySetting
-            {
-                lightTransport  = new LightTransportSetting  { multiBounce = false, bouncePatchAllocation = false, sampleCount = 1 },
-                patchFiltering  = new PatchFilteringSetting  { temporalSmoothing = 0.9f, spatialFilterEnabled = false, spatialSampleCount = 4, spatialRadius = 1.0f, temporalPostFilter = false },
-                screenFiltering = new ScreenFilteringSetting { lookupSampleCount = 4, upsamplingKernelSize = 2.0f, upsamplingSampleCount = 1 },
-            },
-            // Medium
-            new QualitySetting
-            {
-                lightTransport  = new LightTransportSetting  { multiBounce = true, bouncePatchAllocation = true, sampleCount = 2 },
-                patchFiltering  = new PatchFilteringSetting  { temporalSmoothing = 0.8f, spatialFilterEnabled = true, spatialSampleCount = 4, spatialRadius = 1.0f, temporalPostFilter = true },
-                screenFiltering = new ScreenFilteringSetting { lookupSampleCount = 6, upsamplingKernelSize = 4.0f, upsamplingSampleCount = 2 },
-            },
-            // High
-            new QualitySetting
-            {
-                lightTransport  = new LightTransportSetting  { multiBounce = true, bouncePatchAllocation = true, sampleCount = 4 },
-                patchFiltering  = new PatchFilteringSetting  { temporalSmoothing = 0.7f, spatialFilterEnabled = true, spatialSampleCount = 6, spatialRadius = 1.5f, temporalPostFilter = true },
-                screenFiltering = new ScreenFilteringSetting { lookupSampleCount = 8, upsamplingKernelSize = 5.0f, upsamplingSampleCount = 4 },
-            },
-            // Ultra
-            new QualitySetting
-            {
-                lightTransport  = new LightTransportSetting  { multiBounce = true, bouncePatchAllocation = true, sampleCount = 8 },
-                patchFiltering  = new PatchFilteringSetting  { temporalSmoothing = 0.6f, spatialFilterEnabled = true, spatialSampleCount = 8, spatialRadius = 2.0f, temporalPostFilter = true },
-                screenFiltering = new ScreenFilteringSetting { lookupSampleCount = 8, upsamplingKernelSize = 7.0f, upsamplingSampleCount = 8 },
-            },
-        };
 
         static GUIContent s_Quality = EditorGUIUtility.TrTextContent("Quality", "Quality preset for Surface Cache GI. Select Custom to manually adjust individual parameters.");
         static GUIContent s_MultiBounce = EditorGUIUtility.TrTextContent("Multi Bounce", "Enable multi-bounce global illumination for more accurate light propagation.");
@@ -124,36 +61,51 @@ namespace UnityEditor.Rendering.Universal
         {
             var o = new PropertyFetcher<SurfaceCacheGIVolumeOverride>(serializedObject);
 
-            m_Quality = Unpack(o.Find(x => x.quality));
-            m_MultiBounce = Unpack(o.Find("m_MultiBounce"));
-            m_BouncePatchAllocation = Unpack(o.Find("m_BouncePatchAllocation"));
-            m_SampleCount = Unpack(o.Find("m_SampleCount"));
-            m_TemporalSmoothing = Unpack(o.Find("m_TemporalSmoothing"));
-            m_SpatialFilterEnabled = Unpack(o.Find("m_SpatialFilterEnabled"));
-            m_SpatialSampleCount = Unpack(o.Find("m_SpatialSampleCount"));
-            m_SpatialRadius = Unpack(o.Find("m_SpatialRadius"));
-            m_TemporalPostFilter = Unpack(o.Find("m_TemporalPostFilter"));
-            m_LookupSampleCount = Unpack(o.Find("m_LookupSampleCount"));
-            m_UpsamplingKernelSize = Unpack(o.Find("m_UpsamplingKernelSize"));
-            m_UpsamplingSampleCount = Unpack(o.Find("m_UpsamplingSampleCount"));
-            m_VolumeSize = Unpack(o.Find("m_VolumeSize"));
-            m_VolumeResolution = Unpack(o.Find("m_VolumeResolution"));
-            m_VolumeCascadeCount = Unpack(o.Find("m_VolumeCascadeCount"));
-            m_CascadeMovement = Unpack(o.Find("m_CascadeMovement"));
-            m_DefragCount = Unpack(o.Find("m_DefragCount"));
+            m_MultiBounce = Unpack(o.Find(obj => obj.multiBounce));
+            m_BouncePatchAllocation = Unpack(o.Find(obj => obj.bouncePatchAllocation));
+            m_SampleCount = Unpack(o.Find(obj => obj.sampleCount));
+            m_TemporalSmoothing = Unpack(o.Find(obj => obj.temporalSmoothing));
+            m_SpatialFilterEnabled = Unpack(o.Find(obj => obj.spatialFilterEnabled));
+            m_SpatialSampleCount = Unpack(o.Find(obj => obj.spatialSampleCount));
+            m_SpatialRadius = Unpack(o.Find(obj => obj.spatialRadius));
+            m_TemporalPostFilter = Unpack(o.Find(obj => obj.temporalPostFilter));
+            m_LookupSampleCount = Unpack(o.Find(obj => obj.lookupSampleCount));
+            m_UpsamplingKernelSize = Unpack(o.Find(obj => obj.upsamplingKernelSize));
+            m_UpsamplingSampleCount = Unpack(o.Find(obj => obj.upsamplingSampleCount));
+            m_VolumeSize = Unpack(o.Find(obj => obj.volumeSize));
+            m_VolumeResolution = Unpack(o.Find(obj => obj.volumeResolution));
+            m_VolumeCascadeCount = Unpack(o.Find(obj => obj.volumeCascadeCount));
+            m_CascadeMovement = Unpack(o.Find(obj => obj.cascadeMovement));
+            m_DefragCount = Unpack(o.Find(obj => obj.defragCount));
+
+            // Re-detect preset when property changed
+            ((SurfaceCacheGIVolumeOverride)target).propertyChanged += MarkQualityDirty;
+        }
+
+        public override void OnDisable()
+        {
+            ((SurfaceCacheGIVolumeOverride)target).propertyChanged -= MarkQualityDirty;
         }
 
         public override void OnInspectorGUI()
         {
             // Quality preset dropdown. Switching to a named preset writes its values into the
             // backing fields so users can see the preset values and make fine adjustments from there.
-            EditorGUI.BeginChangeCheck();
-            PropertyField(m_Quality, s_Quality);
-            if (EditorGUI.EndChangeCheck())
+            var quality = (SurfaceCacheGIVolumeOverride.PresetQuality)EditorGUILayout.EnumPopup(s_Quality, m_Quality, (e) => (SurfaceCacheGIVolumeOverride.PresetQuality)e != SurfaceCacheGIVolumeOverride.PresetQuality.Custom, false);
+            if (m_Quality != quality && quality != SurfaceCacheGIVolumeOverride.PresetQuality.Custom)
             {
-                var quality = (SurfaceCacheGIQuality)m_Quality.value.enumValueIndex;
-                if (quality != SurfaceCacheGIQuality.Custom)
-                    ApplyQualityPreset(quality);
+                Undo.RecordObjects(serializedObject.targetObjects, "Applied preset");
+                m_Quality = quality;
+                foreach (var targetObj in serializedObject.targetObjects)
+                {
+                    (targetObj as SurfaceCacheGIVolumeOverride).ApplyPreset(m_Quality);
+                }
+                serializedObject.Update();
+            }
+            else if (m_QualityDirty)
+            {
+                m_Quality = (serializedObject.targetObject as SurfaceCacheGIVolumeOverride).GetPresetQuality();
+                m_QualityDirty = false;
             }
 
             // Light Transport section
@@ -163,8 +115,6 @@ namespace UnityEditor.Rendering.Universal
             PropertyField(m_MultiBounce, s_MultiBounce);
             PropertyField(m_BouncePatchAllocation, s_BouncePatchAllocation);
             PropertyField(m_SampleCount, s_SampleCount);
-            if (EditorGUI.EndChangeCheck())
-                SwitchToCustomIfNeeded();
 
             // Patch Filtering section
             EditorGUILayout.Space();
@@ -178,8 +128,6 @@ namespace UnityEditor.Rendering.Universal
                 PropertyField(m_SpatialRadius, s_SpatialRadius);
             }
             PropertyField(m_TemporalPostFilter, s_TemporalPostFilter);
-            if (EditorGUI.EndChangeCheck())
-                SwitchToCustomIfNeeded();
 
             // Screen Filtering section
             EditorGUILayout.Space();
@@ -188,8 +136,6 @@ namespace UnityEditor.Rendering.Universal
             PropertyField(m_LookupSampleCount, s_LookupSampleCount);
             PropertyField(m_UpsamplingKernelSize, s_UpsamplingKernelSize);
             PropertyField(m_UpsamplingSampleCount, s_UpsamplingSampleCount);
-            if (EditorGUI.EndChangeCheck())
-                SwitchToCustomIfNeeded();
 
             // Volume Configuration section (always editable, not affected by quality preset)
             EditorGUILayout.Space();
@@ -211,44 +157,9 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        // Switches quality to Custom when the user edits a preset-controlled field while a preset is active.
-        void SwitchToCustomIfNeeded()
+        private void MarkQualityDirty()
         {
-            if ((SurfaceCacheGIQuality)m_Quality.value.enumValueIndex != SurfaceCacheGIQuality.Custom)
-            {
-                m_Quality.value.enumValueIndex = (int)SurfaceCacheGIQuality.Custom;
-                m_Quality.overrideState.boolValue = true;
-            }
-        }
-
-        // Writes preset values into the backing serialized fields so users can inspect them
-        // and use them as a starting point when switching to Custom.
-        void ApplyQualityPreset(SurfaceCacheGIQuality quality)
-        {
-            var settings = k_QualityPresets[(int)quality];
-
-            m_MultiBounce.value.boolValue = settings.lightTransport.multiBounce;
-            m_MultiBounce.overrideState.boolValue = true;
-            m_BouncePatchAllocation.value.boolValue = settings.lightTransport.bouncePatchAllocation;
-            m_BouncePatchAllocation.overrideState.boolValue = true;
-            m_SampleCount.value.intValue = settings.lightTransport.sampleCount;
-            m_SampleCount.overrideState.boolValue = true;
-            m_TemporalSmoothing.value.floatValue = settings.patchFiltering.temporalSmoothing;
-            m_TemporalSmoothing.overrideState.boolValue = true;
-            m_SpatialFilterEnabled.value.boolValue = settings.patchFiltering.spatialFilterEnabled;
-            m_SpatialFilterEnabled.overrideState.boolValue = true;
-            m_SpatialSampleCount.value.intValue = settings.patchFiltering.spatialSampleCount;
-            m_SpatialSampleCount.overrideState.boolValue = true;
-            m_SpatialRadius.value.floatValue = settings.patchFiltering.spatialRadius;
-            m_SpatialRadius.overrideState.boolValue = true;
-            m_TemporalPostFilter.value.boolValue = settings.patchFiltering.temporalPostFilter;
-            m_TemporalPostFilter.overrideState.boolValue = true;
-            m_LookupSampleCount.value.intValue = settings.screenFiltering.lookupSampleCount;
-            m_LookupSampleCount.overrideState.boolValue = true;
-            m_UpsamplingKernelSize.value.floatValue = settings.screenFiltering.upsamplingKernelSize;
-            m_UpsamplingKernelSize.overrideState.boolValue = true;
-            m_UpsamplingSampleCount.value.intValue = settings.screenFiltering.upsamplingSampleCount;
-            m_UpsamplingSampleCount.overrideState.boolValue = true;
+            m_QualityDirty = true;
         }
     }
 }

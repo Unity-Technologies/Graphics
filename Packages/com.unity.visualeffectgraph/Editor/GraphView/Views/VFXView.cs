@@ -833,7 +833,7 @@ namespace UnityEditor.VFX.UI
             if (playModeState == PlayModeStateChange.EnteredEditMode ||
                 playModeState == PlayModeStateChange.EnteredPlayMode)
             {
-                controller.graph.PrepareGraph();
+                controller?.graph?.PrepareGraph();
             }
 
             if (playModeState == PlayModeStateChange.EnteredEditMode)

@@ -187,7 +187,7 @@ namespace UnityEditor.Rendering.Universal
         {
             for (int i = 0; i < k_PerformancePresets.Length; i++)
             {
-                if (MatchesPreset(k_PerformancePresets[i]))
+                if (MatchesPreset(in k_PerformancePresets[i]))
                 {
                     m_CurrentPreset = (PerformancePreset)i;
                     return;
@@ -197,7 +197,7 @@ namespace UnityEditor.Rendering.Universal
         }
 
         // Ignores authoring and debugging settings.
-        bool MatchesPreset(PerformancePresetValues preset)
+        bool MatchesPreset(in PerformancePresetValues preset)
         {
             return m_Resolution.value.enumValueFlag == (int)preset.resolution &&
                    m_UpscalingMethod.value.enumValueFlag == (int)preset.upscalingMethod &&
@@ -216,7 +216,7 @@ namespace UnityEditor.Rendering.Universal
 
             m_IgnorePresetChange = true;
 
-            var settings = k_PerformancePresets[(int)preset];
+            ref readonly var settings = ref k_PerformancePresets[(int)preset];
 
             m_Resolution.overrideState.boolValue = true;
             m_Resolution.value.intValue = (int)settings.resolution;

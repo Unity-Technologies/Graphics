@@ -29,6 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         internal override MaterialResetter setupMaterialKeywordsAndPassFunc => ShaderGraphAPI.ValidateTerrain;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "TerrainLit SubShader", "");
         protected override string subShaderInclude => CoreIncludes.kTerrainLit;
+        protected override bool subShaderIncludeWithPragmas => true;
         protected override string postDecalsInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl";
         protected override string raytracingInclude => CoreIncludes.kTerrainRaytracing;
 
@@ -647,7 +648,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
             { TerrainIncludes.kTerrainLitSurfaceData, IncludeLocation.Pregraph },
             { TerrainIncludes.kSplatmap, IncludeLocation.Pregraph },
-            { CoreIncludes.kPassForward, IncludeLocation.Postgraph },
+            { CoreIncludes.kPassForward, IncludeLocation.Postgraph, true },
         };
         #endregion
 
@@ -997,9 +998,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     includes.Add(TerrainIncludes.kTerrainLitSurfaceData, IncludeLocation.Pregraph);
                     includes.Add(TerrainIncludes.kSplatmap, IncludeLocation.Pregraph);
                     if (supportLighting)
-                        includes.Add(CoreIncludes.kPassForward, IncludeLocation.Postgraph);
+                        includes.Add(CoreIncludes.kPassForward, IncludeLocation.Postgraph, true);
                     else
-                        includes.Add(CoreIncludes.kPassForwardUnlit, IncludeLocation.Postgraph);
+                        includes.Add(CoreIncludes.kPassForwardUnlit, IncludeLocation.Postgraph, true);
 
                     return includes;
                 }

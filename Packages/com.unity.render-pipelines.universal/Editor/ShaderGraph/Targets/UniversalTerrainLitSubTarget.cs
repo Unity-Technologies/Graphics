@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 context.AddCustomEditorForRenderPipeline(typeof(ShaderGraphTerrainLitGUI).FullName, universalRPType);
 
             // terrain shaders are always opaque, so these values are hardcoded to not inherit from the Universal Target
-            var renderTypeOpaque = RenderType.Opaque.ToString();
+            var renderTypeOpaque = UnityEditor.ShaderGraph.RenderType.Opaque.ToString();
             var renderQueue = target.alphaClip?RenderQueue.AlphaTest.ToString():RenderQueue.Geometry.ToString();
 
             context.AddSubShader(PostProcessSubShader(TerrainSubShaders.LitComputeDotsSubShader(target, renderTypeOpaque, renderQueue, blendModePreserveSpecular)));

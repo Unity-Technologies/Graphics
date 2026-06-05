@@ -60,12 +60,7 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
     #define OUT_GBUFFER_OPTIONAL_SLOT_1 outGBuffer5
     #define OUT_GBUFFER_OPTIONAL_SLOT_2 outGBuffer6
     #if (SHADERPASS == SHADERPASS_GBUFFER)
-        #if defined(SHADER_API_PSSL)
-            //For exact packing on pssl, we want to write exact 16 bit unorm (respect exact bit packing).
-            //In some sony platforms, the default is FMT_16_ABGR, which would incur in loss of precision.
-            //Thus, when VT is enabled, we force FMT_32_ABGR
-            #pragma PSSL_target_output_format(target 4 FMT_32_ABGR)
-        #endif
+        #pragma rendertarget_format_hint MRT4 R16G16_UNorm
     #endif
 #else
     #define OUT_GBUFFER_OPTIONAL_SLOT_1 outGBuffer4
@@ -388,7 +383,7 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
     // If the fragment that we are processing has clear cloat, we want to export the clear coat's perceptual roughness and geometric normal
     // instead of the base layer's roughness and the shader normal to be use by SSR
     #if (SHADERPASS == SHADERPASS_DEPTH_ONLY) || (SHADERPASS == SHADERPASS_MOTION_VECTORS) || (SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS)
-    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) && surfaceData.coatMask > 0.0)
     {
         normalData.normalWS = surfaceData.geomNormalWS;
         normalData.perceptualRoughness = CLEAR_COAT_SSR_PERCEPTUAL_ROUGHNESS;

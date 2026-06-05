@@ -439,36 +439,36 @@ namespace UnityEngine.Rendering.Universal
 
             private static VolumeParameterSet GetVolumeParametersOrDefaults(SurfaceCacheGIVolumeOverride volume)
             {
-                if (volume != null && volume.IsActive())
+                if (volume != null)
                 {
                     // Use volume parameters
                     return new VolumeParameterSet
                     {
                         EstimationParams = new SurfaceCacheEstimationParameterSet
                         {
-                            MultiBounce = volume.multiBounce,
-                            BouncePatchAllocation = volume.bouncePatchAllocation,
-                            SampleCount = (uint)volume.sampleCount,
+                            MultiBounce = volume.multiBounce.value,
+                            BouncePatchAllocation = volume.bouncePatchAllocation.value,
+                            SampleCount = (uint)volume.sampleCount.value,
                         },
                         PatchFilteringParams = new SurfaceCachePatchFilteringParameterSet
                         {
-                            TemporalSmoothing = volume.temporalSmoothing,
-                            SpatialFilterEnabled = volume.spatialFilterEnabled,
-                            SpatialFilterSampleCount = (uint)volume.spatialSampleCount,
-                            SpatialFilterRadius = volume.spatialRadius,
-                            TemporalPostFilterEnabled = volume.temporalPostFilter
+                            TemporalSmoothing = volume.temporalSmoothing.value,
+                            SpatialFilterEnabled = volume.spatialFilterEnabled.value,
+                            SpatialFilterSampleCount = (uint)volume.spatialSampleCount.value,
+                            SpatialFilterRadius = volume.spatialRadius.value,
+                            TemporalPostFilterEnabled = volume.temporalPostFilter.value
                         },
                         ScreenFilteringParams = new SurfaceCacheScreenFilteringParameterSet
                         {
-                            LookupSampleCount = (uint)volume.lookupSampleCount,
-                            UpsamplingKernelSize = volume.upsamplingKernelSize,
-                            UpsamplingSampleCount = (uint)volume.upsamplingSampleCount,
+                            LookupSampleCount = (uint)volume.lookupSampleCount.value,
+                            UpsamplingKernelSize = volume.upsamplingKernelSize.value,
+                            UpsamplingSampleCount = (uint)volume.upsamplingSampleCount.value,
                         },
-                        CascadeMovement = volume.cascadeMovement,
-                        VolumeSize = volume.volumeSize,
-                        VolumeResolution = (uint)volume.volumeResolution,
-                        VolumeCascadeCount = (uint)volume.volumeCascadeCount,
-                        DefragCount = (uint)volume.defragCount
+                        CascadeMovement = volume.cascadeMovement.value,
+                        VolumeSize = volume.volumeSize.value,
+                        VolumeResolution = (uint)volume.volumeResolution.value,
+                        VolumeCascadeCount = (uint)volume.volumeCascadeCount.value,
+                        DefragCount = (uint)volume.defragCount.value
                     };
                 }
                 else

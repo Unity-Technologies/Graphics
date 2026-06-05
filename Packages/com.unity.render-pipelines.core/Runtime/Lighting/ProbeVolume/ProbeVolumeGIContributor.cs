@@ -111,7 +111,10 @@ namespace UnityEngine.Rendering
         internal static bool ContributesGI(GameObject go) =>
             (GameObjectUtility.GetStaticEditorFlags(go) & StaticEditorFlags.ContributeGI) != 0;
 
-        internal static Vector3[] m_Vertices = new Vector3[8];
+        // Scratch buffer reused across calls to avoid per-call allocation. Every code path fully
+        // writes all 8 elements before reading, so no per-Play-Mode reset is needed (a readonly
+        // array of unmanaged elements is exempt from the statics-cleanup analyzer).
+        static readonly Vector3[] m_Vertices = new Vector3[8];
 
         static Bounds TransformBounds(Bounds bounds, Matrix4x4 transform)
         {

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine.SceneManagement;
 using Unity.Mathematics;
+using Unity.Scripting.LifecycleManagement;
 
 namespace UnityEngine.Rendering
 {
@@ -20,8 +21,9 @@ namespace UnityEngine.Rendering
             public Bounds bounds = new();
         }
 
-        internal class SceneToBakingSet
+        internal partial class SceneToBakingSet
         {
+            [AutoStaticsCleanup]
             static Dictionary<string, ProbeVolumeBakingSetWeakReference> sceneToBakingSet = null;
 
             internal static Dictionary<string, ProbeVolumeBakingSetWeakReference> Instance

@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Unlit SubShader", "");
         protected override string raytracingInclude => CoreIncludes.kUnlitRaytracing;
         protected override string subShaderInclude => CoreIncludes.kUnlit;
+        protected override bool subShaderIncludeWithPragmas => true;
 
         protected override bool supportDistortion => true;
         protected override bool supportForward => true;

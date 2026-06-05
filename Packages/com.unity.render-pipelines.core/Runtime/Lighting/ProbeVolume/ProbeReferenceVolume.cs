@@ -10,6 +10,7 @@ using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Profiling;
 using Unity.Profiling.LowLevel;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.SceneManagement;
 using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
@@ -863,20 +864,8 @@ namespace UnityEngine.Rendering
         /// </summary>
         public ProbeVolumeTextureMemoryBudget memoryBudget => m_MemoryBudget;
 
+        [AutoStaticsCleanup]
         static ProbeReferenceVolume s_Instance = new ProbeReferenceVolume();
-
-#if UNITY_EDITOR
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-        static void ResetStaticsOnLoad()
-        {
-            s_Instance = new ProbeReferenceVolume();
-            // From ProbeReferenceVolume.Debug.cs
-            probeSamplingDebugData = new ProbeSamplingDebugData();
-#if PROBEREFERENCEVOLUME_DEBUG
-            Array.Clear(s_BoundsArray, 0, s_BoundsArray.Length);
-#endif
-        }
-#endif
 
         internal List<ProbeVolumePerSceneData> perSceneDataList { get; private set; } = new List<ProbeVolumePerSceneData>();
 

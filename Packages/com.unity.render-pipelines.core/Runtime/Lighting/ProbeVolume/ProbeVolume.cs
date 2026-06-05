@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Rendering
@@ -181,6 +182,7 @@ namespace UnityEngine.Rendering
             }
         }
 
+        [AutoStaticsCleanup]
         internal static List<ProbeVolume> instances = new();
 
         void OnEnable()

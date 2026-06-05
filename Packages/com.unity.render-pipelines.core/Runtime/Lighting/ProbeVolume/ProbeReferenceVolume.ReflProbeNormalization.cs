@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 #if UNITY_EDITOR
 using UnityEditor;
+using Unity.Scripting.LifecycleManagement;
 #endif
 
 namespace UnityEngine.Rendering
@@ -12,13 +13,14 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// A manager to enqueue extra probe rendering outside of probe volumes.
     /// </summary>
-    public class AdditionalGIBakeRequestsManager
+    public partial class AdditionalGIBakeRequestsManager
     {
         // The baking ID for the extra requests
         // TODO: Need to ensure this never conflicts with bake IDs from others interacting with the API.
         // In our project, this is ProbeVolumes.
         internal static readonly int s_BakingID = 912345678;
 
+        [AutoStaticsCleanup]
         private static AdditionalGIBakeRequestsManager s_Instance = new AdditionalGIBakeRequestsManager();
         /// <summary>
         /// Get the manager that governs the additional light probe rendering requests.
@@ -29,8 +31,11 @@ namespace UnityEngine.Rendering
         const float kInvalidValidity = 1f;
         const float kValidSHThresh = 0.33f;
 
+        [AutoStaticsCleanup]
         private static Dictionary<EntityId, SphericalHarmonicsL2> m_SHCoefficients = new Dictionary<EntityId, SphericalHarmonicsL2>();
+        [AutoStaticsCleanup]
         private static Dictionary<EntityId, float> m_SHValidity = new Dictionary<EntityId, float>();
+        [AutoStaticsCleanup]
         private static Dictionary<EntityId, Vector3> m_RequestPositions = new Dictionary<EntityId, Vector3>();
 
         /// <summary>

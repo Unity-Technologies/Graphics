@@ -488,9 +488,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 }
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
                 if (supportLighting)
-                    includes.Add(CoreIncludes.kPassForward, IncludeLocation.Postgraph);
+                    includes.Add(CoreIncludes.kPassForward, IncludeLocation.Postgraph, true);
                 else
-                    includes.Add(CoreIncludes.kPassForwardUnlit, IncludeLocation.Postgraph);
+                    includes.Add(CoreIncludes.kPassForwardUnlit, IncludeLocation.Postgraph, true);
 
                 return includes;
             }
@@ -545,9 +545,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 }
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
                 if (supportLighting)
-                    includes.Add(CoreIncludes.kPassForward, IncludeLocation.Postgraph);
+                    includes.Add(CoreIncludes.kPassForward, IncludeLocation.Postgraph, true);
                 else
-                    includes.Add(CoreIncludes.kPassForwardUnlit, IncludeLocation.Postgraph);
+                    includes.Add(CoreIncludes.kPassForwardUnlit, IncludeLocation.Postgraph, true);
 
                 return includes;
             }
@@ -865,7 +865,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph },
             { CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { CoreIncludes.kPassForward, IncludeLocation.Postgraph },
+            { CoreIncludes.kPassForward, IncludeLocation.Postgraph, true },
         };
 
         #endregion
