@@ -447,13 +447,6 @@ namespace UnityEngine.Rendering.Universal
                 supportedRenderingFeatures.gpuOcclusionCulling = false;
                 supportedRenderingFeatures.deferredLighting = false;
                 supportedRenderingFeatures.overlayCamera = false;
-
-                // If a device requires explicit msaa resolve, that means that the backbuffer
-                // can't have msaa. In regular rendering, we can render to msaa intermediate
-                // textures and blit the resolved textures. However, in on-tile mode, this
-                // would break the render pass so we need to ensure the intermediate textures
-                // have the same msaa count as the backbuffer (ie 1).
-                supportedRenderingFeatures.msaa = !UniversalRenderer.PlatformRequiresExplicitMsaaResolve() && SystemInfo.supportsMultisampledBackBuffer && !supportedRenderingFeatures.deferredLighting;
             }
             else
             {
@@ -466,7 +459,6 @@ namespace UnityEngine.Rendering.Universal
                 supportedRenderingFeatures.gpuOcclusionCulling = true;
                 supportedRenderingFeatures.deferredLighting = renderingModeRequested is RenderingMode.Deferred or RenderingMode.DeferredPlus;
                 supportedRenderingFeatures.overlayCamera = !supportedRenderingFeatures.deferredLighting;
-                supportedRenderingFeatures.msaa = !supportedRenderingFeatures.deferredLighting;
             }
 
             foreach (var feature in rendererFeatures)
@@ -478,6 +470,7 @@ namespace UnityEngine.Rendering.Universal
                     supportedRenderingFeatures.postProcessing   |= feature.supportedRenderingFeatures.postProcessing;
                 }
             }
+            supportedRenderingFeatures.msaa = !supportedRenderingFeatures.deferredLighting;
 
             // Setting the engine wide feature flags here as well. We can likely phase these out. 
             SupportedRenderingFeatures.active.supportsHDR = supportedRenderingFeatures.supportsHDR;
@@ -777,18 +770,23 @@ namespace UnityEngine.Rendering.Universal
                 inputSummary.requiresNormalsTexture = true;
         }
 
+        // Returns true when URP must render MSAA into an intermediate texture and resolve it into the
+        // back buffer, instead of rendering MSAA directly to the back buffer in a render pass. This is
+        // required when the render pass can't resolve a multisampled back buffer: with no auto-resolve and
+        // an emulated native render pass (e.g. Intel/AMD Macs), the emulation layer can't handle an MSAA
+        // back buffer attachment. The Built-in Render Pipeline is unaffected because it renders MSAA
+        // directly to the back buffer without going through a render pass.
+        // Note: supportsMultisampleAutoResolve is the usable signal here because every platform that allows
+        // a multisampled back buffer also couples it to native render pass support; the strictly-correct
+        // test would also account for native render pass, which isn't exposed to script.
+        // Always true in editor: Game View RT is forced to samples=1.
         internal static bool PlatformRequiresExplicitMsaaResolve()
         {
 #if UNITY_EDITOR
-            // In the editor play-mode we use a Game View Render Texture, with
-            // samples count forced to 1 so we always need to do an explicit MSAA resolve.
             return true;
 #else
-            // On Metal/iOS the MSAA resolve is done implicitly as part of the renderpass, so we do not need an extra intermediate pass for the explicit autoresolve.
-            // Note: On Vulkan Standalone, despite SystemInfo.supportsMultisampleAutoResolve being true, the backbuffer has only 1 sample, so we still require
-            // the explicit resolve on non-mobile platforms with supportsMultisampleAutoResolve.
-            return !(SystemInfo.supportsMultisampleAutoResolve && Application.isMobilePlatform)
-                && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal;
+            return !SystemInfo.supportsMultisampleAutoResolve
+                || !SystemInfo.supportsMultisampledBackBuffer;
 #endif
         }
 

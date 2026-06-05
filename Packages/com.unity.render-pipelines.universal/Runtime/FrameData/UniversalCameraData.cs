@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -179,6 +180,8 @@ namespace UnityEngine.Rendering.Universal
         /// Render texture settings used to create intermediate camera textures for rendering.
         /// </summary>
         public RenderTextureDescriptor cameraTargetDescriptor;
+        internal RenderTargetInfo backbufferColor;
+        internal RenderTargetInfo backbufferDepth;
         internal Rect pixelRect;
         internal bool useScreenCoordOverride;
         internal Vector4 screenSizeOverride;
@@ -634,6 +637,8 @@ namespace UnityEngine.Rendering.Universal
             renderType = CameraRenderType.Base;
             targetTexture = null;
             cameraTargetDescriptor = default;
+            backbufferColor = default;
+            backbufferDepth = default;
             pixelRect = default;
             useScreenCoordOverride = false;
             screenSizeOverride = default;

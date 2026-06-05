@@ -114,6 +114,9 @@ EditorBuildSettings:
     path: Assets/Scenes/146_MSAA_RenderToBackbuffer.unity
     guid: aee9f891d65e44daf811d30053402efd
   - enabled: 1
+    path: Assets/Scenes/146_MSAA_TileOnly_RenderToBackbuffer.unity
+    guid: 243b969502624f699ba8e17007f8f2ec
+  - enabled: 1
     path: Assets/Scenes/150_TAA.unity
     guid: 3b35fafd77d2d4677aeb56ab2ba0f743
   - enabled: 1

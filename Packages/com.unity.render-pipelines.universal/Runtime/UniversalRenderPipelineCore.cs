@@ -5,6 +5,8 @@ using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.RenderGraphModule;
+using static UnityEngine.Rendering.Universal.UniversalRenderPipeline.Profiling.Pipeline;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
 namespace UnityEngine.Rendering.Universal
@@ -1502,58 +1504,119 @@ namespace UnityEngine.Rendering.Universal
                 return GraphicsFormat.R8G8B8A8_UNorm;
         }
 
+        // Populates cameraData.backbufferColor/backbufferDepth for screen and targetTexture paths.
+        // XR overrides these later in UpdateCameraData with the XR eye texture properties.
+        internal static void CreateBackbufferInfo(Camera camera, UniversalCameraData cameraData, bool needsAlpha)
+        {
+            var colorFormatProxy = MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, cameraData.hdrColorBufferPrecision, needsAlpha);
+            var depthStencilFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil);
+
+            if (camera.targetTexture == null)
+            {
+                // Describe the real backbuffer's live MSAA. UpdateCameraData later overrides this
+                // with the XR eye texture properties when an XR pass is actually active.
+                cameraData.backbufferColor = new RenderTargetInfo
+                {
+                    width = Screen.width,
+                    height = Screen.height,
+                    volumeDepth = 1,
+                    msaaSamples = Screen.currentBackbufferMSAASamples,
+                    format = colorFormatProxy,
+                };
+                cameraData.backbufferDepth = cameraData.backbufferColor;
+                cameraData.backbufferDepth.format = depthStencilFormat;
+            }
+            else
+            {
+                cameraData.backbufferColor = new RenderTargetInfo
+                {
+                    width = camera.targetTexture.width,
+                    height = camera.targetTexture.height,
+                    volumeDepth = camera.targetTexture.volumeDepth,
+                    msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(camera.targetTexture.descriptor),
+                    format = camera.targetTexture.graphicsFormat,
+                };
+                cameraData.backbufferDepth = cameraData.backbufferColor;
+                cameraData.backbufferDepth.format = camera.targetTexture.depthStencilFormat;
+                if (cameraData.backbufferDepth.format == GraphicsFormat.None)
+                {
+                    cameraData.backbufferDepth.format = depthStencilFormat;
+                    Debug.LogWarning("In the render graph API, the output Render Texture must have a depth buffer. When you select a Render Texture in any camera's Output Texture property, the Depth Stencil Format property of the texture must be set to a value other than None.");
+                }
+            }
+        }
+        internal static int GetIntermediateTexturesMSAA(UniversalCameraData cameraData, ScriptableRenderer renderer)
+        {
+            bool rendererSupportsMSAA = renderer != null && renderer.supportedRenderingFeatures.msaa;
+            var camera = cameraData.camera;
+
+            int msaaSamples = 1;
+
+            if (rendererSupportsMSAA && camera.allowMSAA)
+            {
+                if (camera.targetTexture == null)
+                {  
+                    msaaSamples = asset.msaaSampleCount;                    
+                }
+                else
+                {
+                    msaaSamples = camera.targetTexture.antiAliasing;
+                }
+            }
+
+            // In tile-only mode the backbuffer and intermediates share a native render pass,
+            // so their MSAA counts must match the live backbuffer value.
+            // TODO: warn the user when this overrides camera.allowMSAA or asset.msaaSampleCount.
+            // TODO: deferred rendering doesn't support MSAA but will soon support tile-only mode.
+            // When multiple cameras share the same backbuffer with mixed renderers (forward + deferred),
+            // the deferred camera can't match backbuffer MSAA in tile-only mode. Needs a strategy for
+            // forcing intermediates or disabling backbuffer MSAA when deferred is in the mix.
+            bool tileOnlyMode = renderer is UniversalRenderer { useTileOnlyMode: true };
+            msaaSamples = (tileOnlyMode) ? cameraData.backbufferColor.msaaSamples : msaaSamples;
+
+            return msaaSamples;
+        }
+
+        // Creates the descriptor for URP's intermediate render textures (cameraColor, cameraDepth).
+        // Shares most properties with the backbuffer (format, depth format) but uses render-scaled
+        // dimensions and independently configured MSAA. Stored as cameraData.cameraTargetDescriptor
+        // for external users; internal code should use TextureDesc from renderGraph.GetDescriptor().
         internal static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, UniversalCameraData cameraData,
-            bool isHdrEnabled, HDRColorBufferPrecision requestHDRColorBufferPrecision, int msaaSamples, bool needsAlpha)
+            int msaaSamples)
         {
             RenderTextureDescriptor desc;
 
             if (camera.targetTexture == null)
             {
-                desc = new RenderTextureDescriptor(cameraData.scaledWidth, cameraData.scaledHeight);
-                desc.graphicsFormat = MakeRenderTextureGraphicsFormat(isHdrEnabled, requestHDRColorBufferPrecision, needsAlpha);
-                desc.depthBufferBits = (int)CoreUtils.GetDefaultDepthBufferBits();
-                desc.depthStencilFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil);
-                desc.msaaSamples = msaaSamples;
-                desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+                desc = new RenderTextureDescriptor(cameraData.scaledWidth, cameraData.scaledHeight);           
             }
             else
             {
-                // Note: External texture replaces internal (intermediate) color buffer here, ignoring the configured internal rendering color buffer format.
-                // This is incorrect. We should use the internal rendering format throughout and blit the result to the external texture at the end (blit could be skipped if the formats match).
-                // However, this would lead to breaking changes in the URP asset as we would need to move the internal rendering format to the renderer asset.
-                // This way it could be selected separately for each target.
-                // Current workflow/workaround is to simply pick a suitable format for the external texture.
+                // Note: the intermediate color buffer inherits the external texture's format instead of using the
+                // configured internal rendering format. This is incorrect but kept for backward compatibility.
+                // Ideally we'd use the internal format throughout and blit to the external texture at the end.
                 desc = camera.targetTexture.descriptor;
-                desc.msaaSamples = msaaSamples;
-                // Note: This does not scale the underlying target size.
-                // Instead, it is the scaled viewport rect size which means the viewport offset into the target is always (0,0).
+                
                 desc.width = cameraData.scaledWidth;
                 desc.height = cameraData.scaledHeight;
-
-                if (camera.cameraType == CameraType.SceneView && !isHdrEnabled)
-                {
-                    desc.graphicsFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
-                }
-                // SystemInfo.SupportsRenderTextureFormat(camera.targetTexture.descriptor.colorFormat)
-                // will assert on R8_SINT since it isn't a valid value of RenderTextureFormat.
-                // If this is fixed then we can implement debug statement to the user explaining why some
-                // RenderTextureFormats available resolves in a black render texture when no warning or error
-                // is given.
             }
 
+            desc.graphicsFormat = cameraData.backbufferColor.format;
+            if (camera.cameraType == CameraType.SceneView && !cameraData.isHdrEnabled)
+                desc.graphicsFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+            desc.depthStencilFormat = cameraData.backbufferDepth.format;
+            desc.msaaSamples = msaaSamples;
             desc.enableRandomWrite = false;
             desc.bindMS = false;
             desc.useDynamicScale = camera.allowDynamicResolution;
 
-            // check that the requested MSAA samples count is supported by the current platform. If it's not supported,
-            // replace the requested desc.msaaSamples value with the actual value the engine falls back to
+            // Check that the requested MSAA samples count is supported by the current platform. If it's not supported,
+            // replace the requested desc.msaaSamples value with the actual value the engine falls back to.
+            // NOTE: this uses a different validation path than backbuffer MSAA (per-format kUsageMSAANx flags
+            // vs hardware-level sample count support). In tile-only mode the caller sets msaaSamples to
+            // currentBackbufferMSAASamples, but this clamp could reduce it below the backbuffer value
+            // (e.g. Mali-G78 doesn't support 2x for RTs while the GPU handles 2x in tile memory).
             desc.msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(desc);
-
-            // if the target platform doesn't support storing multisampled RTs and we are doing any offscreen passes, using a Load load action on the subsequent passes
-            // will result in loading Resolved data, which on some platforms is discarded, resulting in losing the results of the previous passes.
-            // As a workaround we disable MSAA to make sure that the results of previous passes are stored. (fix for Case 1247423).
-            if (!SystemInfo.supportsStoreAndResolveAction)
-                desc.msaaSamples = 1;
 
             return desc;
         }

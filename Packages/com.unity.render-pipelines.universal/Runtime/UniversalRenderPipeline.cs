@@ -278,13 +278,6 @@ namespace UnityEngine.Rendering.Universal
         // Flag to check if offscreen UI for HDR output is rendered in this frame at the first base camera.
         [NoAutoStaticsCleanup] internal static bool offscreenUIRenderedInCurrentFrame;
 
-        // In some specific cases, we modify Screen.msaaSamples to reduce GPU bandwidth
-        [NoAutoStaticsCleanup] internal static bool canOptimizeScreenMSAASamples { get; private set; }
-
-        // For iOS and macOS players, the Screen API MSAA samples change request is only applied in the next frame (UUM-42825)
-        // To adress this, we need to store here the MSAA sample count at the beginning of the frame
-        [NoAutoStaticsCleanup] internal static int startFrameScreenMSAASamples { get; private set; }
-
         // Reference to the asset associated with the pipeline.
         // When a pipeline asset is switched in `GraphicsSettings`, the `UniversalRenderPipelineCore.asset` member
         // becomes unreliable for the purpose of pipeline and renderer clean-up in the `Dispose` call from
@@ -374,15 +367,14 @@ namespace UnityEngine.Rendering.Universal
 
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
 
-            // In QualitySettings.antiAliasing disabled state uses value 0, where in URP 1
-            int qualitySettingsMsaaSampleCount = QualitySettings.antiAliasing > 0 ? QualitySettings.antiAliasing : 1;
-            bool msaaSampleCountNeedsUpdate = qualitySettingsMsaaSampleCount != asset.msaaSampleCount;
-
-            // Let engine know we have MSAA on for cases where we support MSAA backbuffer
-            if (msaaSampleCountNeedsUpdate)
-            {
-                QualitySettings.antiAliasing = asset.msaaSampleCount;
-            }
+            // Sync engine MSAA state to the URP asset.
+            // QualitySettings.antiAliasing is the persistent config field other code reads; its setter does
+            // NOT trigger back buffer reallocation. Screen.SetMSAASamples is what actually recreates the back buffer.
+            QualitySettings.antiAliasing = asset.msaaSampleCount;
+            // Keep the back buffer single-sampled when MSAA must be resolved explicitly: otherwise we would
+            // allocate a physical MSAA back buffer that the (emulated) render pass can't resolve. In that case
+            // MSAA is rendered to an intermediate texture and resolved into the back buffer instead.
+            Screen.SetMSAASamples(UniversalRenderer.PlatformRequiresExplicitMsaaResolve() ? 1 : asset.msaaSampleCount);
 
             var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<URPDefaultVolumeProfileSettings>();
             VolumeManager.instance.Initialize(defaultVolumeProfileSettings.volumeProfile, asset.volumeProfile);
@@ -493,8 +485,6 @@ namespace UnityEngine.Rendering.Universal
             CameraMetadataCache.Clear();
             requireOffscreenUICoverPrepass = false;
             offscreenUIRenderedInCurrentFrame = false;
-            canOptimizeScreenMSAASamples = false;
-            startFrameScreenMSAASamples = 0;
         }
 
         // If the URP gets destroyed, we must clean up all the added URP specific camera data and
@@ -578,9 +568,6 @@ namespace UnityEngine.Rendering.Universal
             // When HDR output is enabled, SRP renders the overlay UI per camera viewport, so any screen area not covered by viewports won’t display the UI.
             // The offscreen UI cover prepass ensures the overlay UI covers the entire display by blitting UI to the screen first, even when the combined camera viewports do not fill the screen.
             requireOffscreenUICoverPrepass = HDROutputForMainDisplayIsActive() && asset.supportsHDR && SupportedRenderingFeatures.active.rendersUIOverlay && !CoreUtils.IsScreenFullyCoveredByCameras(cameras);
-
-            // Bandwidth optimization with Render Graph in some circumstances
-            SetupScreenMSAASamplesState(cameraCount);
 
             GPUResidentDrawer.ReinitializeIfNeeded();
 
@@ -1335,6 +1322,19 @@ namespace UnityEngine.Rendering.Universal
             baseCameraData.pixelHeight = (int)System.Math.Round(camPixelRect.height + camPixelRect.y) - (int)System.Math.Round(camPixelRect.y);
             baseCameraData.aspectRatio = (float)baseCameraData.pixelWidth / (float)baseCameraData.pixelHeight;
 
+            // XR backbuffer info — sourced directly from the XR render target descriptor.
+            baseCameraData.backbufferColor = new RenderTargetInfo
+            {
+                width = xr.renderTargetDesc.width,
+                height = xr.renderTargetDesc.height,
+                volumeDepth = xr.renderTargetDesc.volumeDepth,
+                msaaSamples = xr.renderTargetDesc.msaaSamples,
+                format = xr.renderTargetDesc.graphicsFormat,
+                bindMS = xr.renderTargetDesc.msaaSamples > 1 && !UniversalRenderer.PlatformRequiresExplicitMsaaResolve(),
+            };
+            baseCameraData.backbufferDepth = baseCameraData.backbufferColor;
+            baseCameraData.backbufferDepth.format = xr.renderTargetDesc.depthStencilFormat;
+
             // Update cameraData cameraTargetDescriptor for XR. This descriptor is mainly used for configuring intermediate screen space textures
             var originalTargetDesc = baseCameraData.cameraTargetDescriptor;
             baseCameraData.cameraTargetDescriptor = xr.renderTargetDesc;
@@ -1545,18 +1545,6 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
 
-            bool rendererSupportsMSAA = renderer != null && renderer.supportedRenderingFeatures.msaa;
-
-            int msaaSamples = 1;
-            if (camera.allowMSAA && asset.msaaSampleCount > 1 && rendererSupportsMSAA)
-                msaaSamples = (camera.targetTexture != null) ? camera.targetTexture.antiAliasing : asset.msaaSampleCount;
-
-            // Use XR's MSAA if camera is XR camera. XR MSAA needs special handle here because it is not per Camera.
-            // Multiple cameras could render into the same XR display and they should share the same MSAA level.
-            // However it should still respect the sample count of the target texture camera is rendering to.
-            if (cameraData.xrRendering && rendererSupportsMSAA && camera.targetTexture == null)
-                msaaSamples = (int)XRSystem.GetDisplayMSAASamples();
-
 #if ENABLE_MULTI_WINDOWING && PLATFORM_SUPPORTS_PER_WINDOW_TRANSPARENCY && !UNITY_EDITOR
             bool needsAlphaChannel = GameWindowManager.IsGameWindowTransparent(cameraData.camera.targetDisplay);
 #else
@@ -1564,8 +1552,12 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             cameraData.hdrColorBufferPrecision = asset ? asset.hdrColorBufferPrecision : HDRColorBufferPrecision._32Bits;
-            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData,
-                cameraData.isHdrEnabled, cameraData.hdrColorBufferPrecision, msaaSamples, needsAlphaChannel);
+
+            CreateBackbufferInfo(camera, cameraData, needsAlphaChannel);
+
+            int msaaSamples = GetIntermediateTexturesMSAA(cameraData, renderer);
+
+            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData, msaaSamples);
 
             uint count = GraphicsFormatUtility.GetAlphaComponentCount(cameraData.cameraTargetDescriptor.graphicsFormat);
             cameraData.isAlphaOutputEnabled = GraphicsFormatUtility.HasAlphaChannel(cameraData.cameraTargetDescriptor.graphicsFormat);
@@ -2793,14 +2785,6 @@ namespace UnityEngine.Rendering.Universal
                 // by setting rendersUIOverlay (public API) to false in a callback added to RenderPipelineManager.beginContextRendering
                 SupportedRenderingFeatures.active.rendersUIOverlay = true;
             }
-        }
-
-        private static void SetupScreenMSAASamplesState(int cameraCount)
-        {
-            // Enable potential bandwidth optimization only when rendering a single base camera
-            canOptimizeScreenMSAASamples = (cameraCount == 1);
-            // Save ScreenMSAASamples value at beginning of the frame, useful for iOS/macOS
-            startFrameScreenMSAASamples = Screen.msaaSamples;
         }
 
 #if UNITY_EDITOR

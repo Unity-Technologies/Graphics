@@ -370,9 +370,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                // Backbuffer is the final render target, we obtain its number of MSAA samples through Screen API
-                // in some cases we disable multisampling for optimization purpose
-                int numSamples = AdjustAndGetScreenMSAASamples(renderGraph, m_CreateColorTexture);
+                int numSamples = AdjustAndGetScreenMSAASamples();
 
                 //NOTE: Careful what you use here as many of the properties bake-in the camera rect so for example
                 //cameraData.cameraTargetDescriptor.width is the width of the rectangle but not the actual render target

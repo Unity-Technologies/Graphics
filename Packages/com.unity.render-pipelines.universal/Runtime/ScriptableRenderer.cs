@@ -1219,36 +1219,13 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private protected int AdjustAndGetScreenMSAASamples(RenderGraph renderGraph, bool intermediateTexturesAreSampledAsTextures)
+        // UUM-134600: there was a bandwidth optimization here that set Screen MSAA to 1
+        // when rendering to intermediate textures. It was disabled because different
+        // renderers can be used within a single frame, and the MSAA samples were never
+        // restored — causing a silent visual regression.
+        private protected int AdjustAndGetScreenMSAASamples()
         {
-            // In the editor (ConfigureTargetTexture in PlayModeView.cs) and many platforms, the system render target is always allocated without MSAA
-            if (!SystemInfo.supportsMultisampledBackBuffer) return 1;
-
-            
-            // For mobile platforms, when URP main rendering is done to an intermediate target and NRP enabled
-            // we disable multisampling for the system render target as a bandwidth optimization
-            // doing so, we avoid storing costly MSAA samples back to system memory for nothing
-            bool canOptimizeScreenMSAASamples = UniversalRenderPipeline.canOptimizeScreenMSAASamples
-                                                && intermediateTexturesAreSampledAsTextures
-                                                && Screen.msaaSamples > 1;
-
-            // We need to fix an issue where the MSAA samples are never set back to the Quality setting.
-            // The MSAA samples only seem to be set when the URP asset is changed. The optimization
-            // in this function seems fragile, because different renderers can be used, even
-            // in a single frame. If we change a renderer from rendering to the backbuffer (or on-tile),
-            // to a renderer that renders to the intermediate textures then they render without MSAA,
-            // without the user knowing. This is a functional/visual bug.
-            // https://jira.unity3d.com/browse/UUM-134600
-
-            if (canOptimizeScreenMSAASamples)
-            {
-                Screen.SetMSAASamples(1);
-            }            
-
-            // iOS and macOS corner case
-            bool screenAPIHasOneFrameDelay = (Application.platform == RuntimePlatform.OSXPlayer || Application.platform == RuntimePlatform.IPhonePlayer);
-
-            return screenAPIHasOneFrameDelay ? Mathf.Max(UniversalRenderPipeline.startFrameScreenMSAASamples, 1) : Mathf.Max(Screen.msaaSamples, 1);
+            return Screen.currentBackbufferMSAASamples;
         }
 
         internal static void SortStable(List<ScriptableRenderPass> list)

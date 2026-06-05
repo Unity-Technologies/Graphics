@@ -301,6 +301,15 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.autoGenerateMips = desc.autoGenerateMips;
         }
 
+        // True if dimensions, msaa samples and slices match. If false, then the attachments cannot be used in the same native render pass.
+        internal static bool HasMatchingAttachmentProperties(in RenderTargetInfo rtInfo, in TextureDesc texDesc)
+        {
+            return Mathf.Max(rtInfo.msaaSamples, 1) == Mathf.Max((int)texDesc.msaaSamples, 1)
+                && rtInfo.width == texDesc.width
+                && rtInfo.height == texDesc.height
+                && rtInfo.volumeDepth == texDesc.slices;
+        }
+
         internal static TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, in TextureDesc desc, string name, bool clear, Color clearColor,
                 FilterMode filterMode = FilterMode.Point, TextureWrapMode wrapMode = TextureWrapMode.Clamp, bool discardOnLastUse = false)
         {
@@ -392,6 +401,9 @@ namespace UnityEngine.Rendering.Universal
 
             if (requireIntermediateAttachments)
             {
+                Debug.Assert(!useTileOnlyMode || HasMatchingAttachmentProperties(cameraData.backbufferColor, cameraDescriptor),
+                    "Tile-only mode requires intermediate textures to be compatible with the backbuffer (matching MSAA, width, height).");
+
                 cameraDescriptor.format = cameraData.cameraTargetDescriptor.graphicsFormat;
 
                 if (!isCameraTargetOffscreenDepth)
@@ -1476,12 +1488,8 @@ namespace UnityEngine.Rendering.Universal
                     var backbufferInfo = renderGraph.GetRenderTargetInfo(resourceData.backBufferDepth);
                     var cameraDepthDesc = renderGraph.GetTextureDesc(in cameraDepth);
 
-                    bool matchingDimensions = backbufferInfo.msaaSamples == (int) cameraDepthDesc.msaaSamples
-                        && backbufferInfo.width == cameraDepthDesc.width && backbufferInfo.height == cameraDepthDesc.height
-                        && backbufferInfo.volumeDepth == cameraDepthDesc.slices;
-
                     // Using the cameraDepth avoids switching the depth target, that would break the native render pass.
-                    depth = (matchingDimensions) ? cameraDepth : resourceData.activeDepthTexture;
+                    depth = HasMatchingAttachmentProperties(backbufferInfo, cameraDepthDesc) ? cameraDepth : resourceData.activeDepthTexture;
                 }
                 else
                 {
@@ -1641,7 +1649,14 @@ namespace UnityEngine.Rendering.Universal
             // The on-tile renderer guarantees a single native render pass for the draw passes to the backbuffer, even though
             // it potentially uses the intermediate textures as temporary attachments inside of the NRP.
             bool intermediateTexturesAreSampledAsTextures = s_RequiresIntermediateAttachments && !useTileOnlyMode;
-            bool noStoreOnlyResolveBBColor = !intermediateTexturesAreSampledAsTextures && !isNativeRenderingAfterURP && (cameraData.cameraTargetDescriptor.msaaSamples > 1);
+
+            // RenderGraph can't derive the size of BuiltinRenderTextureType / RenderTexture-backed RTHandles
+            // through the RenderTargetIdentifier wrapper chain, so we provide it via RenderTargetInfo.
+            // Backbuffer info was built once in CreateBackbufferInfo / UpdateCameraData (XR).
+            RenderTargetInfo importInfo = cameraData.backbufferColor;
+            RenderTargetInfo importInfoDepth = cameraData.backbufferDepth;
+
+            bool noStoreOnlyResolveBBColor = !intermediateTexturesAreSampledAsTextures && !isNativeRenderingAfterURP && (importInfo.msaaSamples > 1);
 
             TextureUVOrigin backbufferTextureUVOrigin = RenderingUtils.GetBackBufferUVOrientation(cameraData);
 
@@ -1669,93 +1684,6 @@ namespace UnityEngine.Rendering.Universal
                 importBackbufferDepthParams.discardOnLastUse = false;
             }
 #endif
-
-            // For BuiltinRenderTextureType wrapping RTHandles RenderGraph can't know what they are so we have to pass it in.
-            RenderTargetInfo importInfo = new RenderTargetInfo();
-            RenderTargetInfo importInfoDepth = new RenderTargetInfo();
-
-            bool isBuiltInTexture = (cameraData.targetTexture == null);
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled)
-            {
-                isBuiltInTexture = false;
-            }
-#endif
-            // So the render target we pass into render graph is
-            // RTHandles(RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget))
-            // or
-            // RTHandles(RenderTargetIdentifier(RenderTexture(cameraData.targetTexture)))
-            //
-            // Because of the RenderTargetIdentifier in the "wrapper chain" the graph can't know
-            // the size of the passed in textures so we need to provide it for the graph.
-            // The amount of texture handle wrappers and their subtleties is probably something to be investigated.
-            if (isBuiltInTexture)
-            {
-                // Backbuffer is the final render target, we obtain its number of MSAA samples through Screen API
-                // in some cases we disable multisampling for optimization purpose
-                //int numSamples = AdjustAndGetScreenMSAASamples(renderGraph, intermediateTexturesAreSampledAsTextures);
-
-                // We need to fix an issue where the MSAA samples are never set back to the Quality setting.
-                // The MSAA samples only seem to be set when the URP asset is changed. The optimization
-                // in this function seems fragile, because different renderers can be used, even
-                // in a single frame. If we change a renderer from rendering to the backbuffer (or on-tile),
-                // to a renderer that renders to the intermediate textures then they render without MSAA,
-                // without the user knowing. This is a functional/visual bug.
-                // https://jira.unity3d.com/browse/UUM-134600
-                // This optimization is temporarely disabled until we fix this functional issue.
-                int numSamples = (!SystemInfo.supportsMultisampledBackBuffer) ? 1 : Mathf.Max(Screen.msaaSamples, 1);
-
-
-                //BuiltinRenderTextureType.CameraTarget so this is either system render target or camera.targetTexture if non null
-                //NOTE: Careful what you use here as many of the properties bake-in the camera rect so for example
-                //cameraData.cameraTargetDescriptor.width is the width of the rectangle but not the actual render target
-                //same with cameraData.camera.pixelWidth
-                importInfo.width = Screen.width;
-                importInfo.height = Screen.height;
-                importInfo.volumeDepth = 1;
-                importInfo.msaaSamples = numSamples;
-                importInfo.format = cameraData.cameraTargetDescriptor.graphicsFormat;
-
-                importInfoDepth = importInfo;
-                importInfoDepth.format = cameraData.cameraTargetDescriptor.depthStencilFormat;
-            }
-            else
-            {
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled)
-                {
-                    importInfo.width = cameraData.xr.renderTargetDesc.width;
-                    importInfo.height = cameraData.xr.renderTargetDesc.height;
-                    importInfo.volumeDepth = cameraData.xr.renderTargetDesc.volumeDepth;
-                    importInfo.msaaSamples = cameraData.xr.renderTargetDesc.msaaSamples;
-                    importInfo.format = cameraData.xr.renderTargetDesc.graphicsFormat;
-                    if (!PlatformRequiresExplicitMsaaResolve())
-                        importInfo.bindMS = importInfo.msaaSamples > 1;
-
-                    importInfoDepth = importInfo;
-                    importInfoDepth.format = cameraData.xr.renderTargetDesc.depthStencilFormat;
-                }
-                else
-#endif
-                {
-                    importInfo.width = cameraData.targetTexture.width;
-                    importInfo.height = cameraData.targetTexture.height;
-                    importInfo.volumeDepth = cameraData.targetTexture.volumeDepth;
-                    importInfo.msaaSamples = cameraData.targetTexture.antiAliasing;
-                    importInfo.format = cameraData.targetTexture.graphicsFormat;
-
-                    importInfoDepth = importInfo;
-                    importInfoDepth.format = cameraData.targetTexture.depthStencilFormat;
-                }
-
-                // We let users know that a depth format is required for correct usage, but we fallback to the old default depth format behaviour to avoid regressions
-                if (importInfoDepth.format == GraphicsFormat.None)
-                {
-                    importInfoDepth.format = SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil);
-                    Debug.LogWarning("In the render graph API, the output Render Texture must have a depth buffer. When you select a Render Texture in any camera's Output Texture property, the Depth Stencil Format property of the texture must be set to a value other than None.");
-                }
-            }
 
             if (!isCameraTargetOffscreenDepth)
                 resourceData.backBufferColor = renderGraph.ImportTexture(m_TargetColorHandle, importInfo, importBackbufferColorParams);

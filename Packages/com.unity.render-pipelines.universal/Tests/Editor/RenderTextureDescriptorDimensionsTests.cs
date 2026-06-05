@@ -53,18 +53,15 @@ namespace UnityEditor.Rendering.Universal.Tests
 
         public RenderTextureDescriptor CreateRenderTextureDescriptor()
         {
-            bool isHdrEnabled = false;
-            HDRColorBufferPrecision requestHDRColorBufferPrecision = HDRColorBufferPrecision._64Bits;
             int msaaSamples = 1;
             bool needsAlpha = false;
+
+            UniversalRenderPipeline.CreateBackbufferInfo(m_Camera, m_CameraData, needsAlpha);
 
             return UniversalRenderPipeline.CreateRenderTextureDescriptor(
                 m_Camera,
                 m_CameraData,
-                isHdrEnabled,
-                requestHDRColorBufferPrecision,
-                msaaSamples,
-                needsAlpha);
+                msaaSamples);
         }
 
         public void CheckDimensions(RenderTextureDescriptor desc, RenderScaleTestCase testCase)
