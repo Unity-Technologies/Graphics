@@ -18,35 +18,114 @@ namespace UnityEditor.Rendering.Universal
             return EditorGUI.Popup(popupRect, label, selectedIndex, menuOptions);   // Will not deal well with duplicates.
         }
 
+
+        public void UpdateCommonContent(ref GUIContent[] content, ref List<GUIContent> commonContent)
+        {
+            List<GUIContent> returnContent = new List<GUIContent>();
+            if (commonContent == null)
+            {
+                for(int i=0;i < content.Length;i++)
+                    returnContent.Add(content[i]);
+            }
+            else
+            {
+                for (int i = 0; i < commonContent.Count; i++)
+                {
+                    GUIContent curContent = commonContent[i];
+                    for (int j=0;j < content.Length; j++)
+                    {
+                        if (curContent.text.GetHashCode() == content[j].text.GetHashCode())
+                        {
+                            returnContent.Add(curContent);
+                        }
+                    }
+                }
+            }
+            commonContent = returnContent;
+        }
+
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             EditorGUI.BeginProperty(position, label, property);
             position.height = EditorGUIUtility.singleLineHeight;
 
             property.serializedObject.Update();
-            
 
-            Component component = property.serializedObject.targetObject as Component;
-            IProvider2DSources providerSources = property.boxedValue as IProvider2DSources;
-            if (providerSources != null)
+
+            // I need 2 lists. First a list of content for each ShadowCaster2D. Second a list of common menu items 
+            List<GUIContent[]> guiContent = new List<GUIContent[]>();
+            List<GUIContent> commonContent = null;
+            GUIContent selectedContent = null;
+            bool showMixedContent = false;
+
+            UnityEngine.Object[] targets = property.serializedObject.targetObjects;
+            for(int i=0;i<targets.Length;i++)
             {
-                bool forceUpdate = false;
-                int prevSourceIndex = Provider2DSources<T, U>.RefreshSources(providerSources, component.gameObject, GetProviderType());
+                Component targetComponent = targets[i] as Component;
+                SerializedObject serializedTarget = new SerializedObject(targetComponent);
+                SerializedProperty targetProperty = serializedTarget.FindProperty("m_SelectionSources");
+                Provider2DSources<T, U> targetSources = targetProperty.boxedValue as Provider2DSources<T, U>;
 
-                // If we didn't have a previously selected source
-                if(prevSourceIndex < 0)
+                // Here we need to build a list
+                int targetSelIndex = Provider2DSources<T, U>.RefreshSources(targetSources, targetComponent.gameObject, GetProviderType());
+                GUIContent[] content = targetSources.GetSourceNames();
+
+                // Update all the content which is saved for later
+                if (selectedContent == null)
                 {
-                    forceUpdate = true;
-                    prevSourceIndex = 0;  // This needs to be 0 so its it correctly shown in the dropdown.
+                    selectedContent = content[targetSelIndex < 0 ? 0 : targetSelIndex];
                 }
-
-                int newSourceIndex = DrawDropdown(position, label, prevSourceIndex, providerSources.GetSourceNames());
-
-                if ((prevSourceIndex != newSourceIndex) || forceUpdate)
+                else
                 {
-                    Provider2DSources<T, U>.UpdateSelectionFromIndex(providerSources, newSourceIndex);
-                    property.boxedValue = providerSources;
-                    property.serializedObject.ApplyModifiedProperties();
+                    if (content[targetSelIndex < 0 ? 0 : targetSelIndex].text.GetHashCode() != selectedContent.text.GetHashCode())
+                        showMixedContent = true;
+                    
+                }
+                guiContent.Add(content);
+                UpdateCommonContent(ref content, ref commonContent);
+            }
+
+            if (!property.serializedObject.isEditingMultipleObjects)
+                showMixedContent = false;
+
+
+            // Find the selected content index in commonContent
+            int selectedIndex = -1;
+            for(int i = 0; i < commonContent.Count; i++)
+            {
+                if (commonContent[i].text.GetHashCode() == selectedContent.text.GetHashCode())
+                {
+                    selectedIndex = i;
+                }
+            }
+
+
+            EditorGUI.showMixedValue = showMixedContent;
+
+            EditorGUI.BeginChangeCheck();
+            int newSelectedIndex = DrawDropdown(position, label, selectedIndex, commonContent.ToArray());
+            EditorGUI.showMixedValue = false;
+
+            if(EditorGUI.EndChangeCheck())
+            {
+                GUIContent newSelectedContent = commonContent[newSelectedIndex];
+                for (int i = 0; i < targets.Length; i++)
+                {
+                    // Now we need to find the selected item index for each of the providers
+                    Component targetComponent = targets[i] as Component;
+                    SerializedObject serializedTarget = new SerializedObject(targetComponent);
+                    SerializedProperty targetProperty = serializedTarget.FindProperty("m_SelectionSources");
+                    Provider2DSources<T, U> targetSources = targetProperty.boxedValue as Provider2DSources<T, U>;
+
+                    GUIContent[] savedGuiContent = guiContent[i];
+                    for (int j=0; j < savedGuiContent.Length; j++)
+                    {
+                        GUIContent content = savedGuiContent[j];
+                        if(content.text.GetHashCode() == newSelectedContent.text.GetHashCode())
+                        {
+                            Provider2DSources<T, U>.UpdateSelectionFromIndex(targetSources, j);
+                        }
+                    }
                 }
             }
 
