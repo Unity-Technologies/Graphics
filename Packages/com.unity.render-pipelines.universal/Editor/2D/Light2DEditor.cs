@@ -575,7 +575,9 @@ namespace UnityEditor.Rendering.Universal
 
         bool DrawLightCommon()
         {
-            var meshChanged = false;
+            bool meshChanged = false;
+
+            EditorGUI.BeginChangeCheck();
 
             List<SelectionSource> additionalSources = new List<SelectionSource>
             {
@@ -593,14 +595,19 @@ namespace UnityEditor.Rendering.Universal
 
             // Color and intensity
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
-            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_LightIntensity, Styles.generalLightIntensity);
-            if (EditorGUI.EndChangeCheck())
-                m_LightIntensity.floatValue = Mathf.Max(m_LightIntensity.floatValue, 0);
 
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.generalSortingLayerPrefixLabel, AnalyticsTrackChanges);
 
             serializedObject.ApplyModifiedProperties();
+            
+            // Only check for duplicates when properties change (avoid spam on every repaint)
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_LightIntensity.floatValue = Mathf.Max(m_LightIntensity.floatValue, 0);
+                Light2D light = (Light2D)target;
+                LightUtility.CheckForExistingGlobalLight(light.gameObject);
+            }
 
 
             return meshChanged;
