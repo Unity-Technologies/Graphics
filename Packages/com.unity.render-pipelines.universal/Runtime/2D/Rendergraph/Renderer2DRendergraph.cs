@@ -1062,14 +1062,21 @@ namespace UnityEngine.Rendering.Universal
             bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcess != null;
             bool anyPostProcessing = postProcessingData.isEnabled && m_PostProcess != null;
 
+#if ENABLE_UPSCALER_FRAMEWORK
+            bool fsr1Enabled = cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_FSR1;
+#else
+            bool fsr1Enabled = cameraData.upscalingFilter == ImageUpscalingFilter.FSR;
+#endif
+
             bool requirePixelPerfectUpscale = IsPixelPerfectCameraEnabled(cameraData, out var ppc) && ppc.requiresUpscalePass;
 
             // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
             // and only upscale the low-res RT to fullscreen when blitting it to camera target. Also, final post processing pass is not run in this case,
             // so FXAA is not supported (you don't want to apply FXAA when everything is intentionally pixelated).
+            // FSR1 also requires the final pass (unlike upscalers using IUpscaler, it does not self-schedule).
             bool applyFinalPostProcessing = cameraData.resolveFinalTarget && !ppcUpscaleRT && anyPostProcessing &&
                                             ((cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing) ||
-                                             (cameraData.imageScalingMode == ImageScalingMode.Upscaling && cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
+                                            (cameraData.imageScalingMode == ImageScalingMode.Upscaling && fsr1Enabled));
 
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing || (x as ScriptableRenderPass2D)?.renderPassEvent2D == RenderPassEvent2D.AfterRenderingPostProcessing) != null;
             bool needsColorEncoding = !resolveToDebugScreen;

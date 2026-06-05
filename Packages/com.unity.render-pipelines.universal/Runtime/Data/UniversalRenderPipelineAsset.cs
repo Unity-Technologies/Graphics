@@ -5,6 +5,7 @@ using UnityEditor.ProjectWindowCallback;
 using System.IO;
 using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
 #endif
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Numerics;
 using UnityEngine.Serialization;

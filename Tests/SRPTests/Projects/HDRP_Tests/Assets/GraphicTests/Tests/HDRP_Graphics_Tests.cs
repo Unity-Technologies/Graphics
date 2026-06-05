@@ -51,11 +51,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
-        {                    
+        {
             SceneManager.LoadScene("GraphicsTestTransitionScene", LoadSceneMode.Single);
 
-            // Standard resolution for backbuffer capture is 1080p  
-            Screen.SetResolution(1920, 1080, true);  
+            // Standard resolution for backbuffer capture is 1080p
+            Screen.SetResolution(1920, 1080, true);
 
             #if UNITY_EDITOR
             GameViewSize.SetGameViewSize(1920, 1080);
@@ -64,10 +64,10 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 
         [UnityOneTimeSetUp]
         public IEnumerable UnityOneTimeSetUp()
-        {            
-            // Required to fix inconsistencies on some platforms                    
+        {
+            // Required to fix inconsistencies on some platforms
             yield return GlobalResolutionSetter.SetResolutionWithRetry(1920, 1080, true);
-        } 
+        }
 
         [SetUp]
         public void SetUpContext()
@@ -459,6 +459,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "9920_WaterSurface",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-141715",
              RuntimePlatform.WindowsEditor
+        )]
+        [IgnoreGraphicsTest(
+            "^(?!.*(4088_DRS-DLSS-Hardware|4089_DRS-DLSS-Software|4090_DRS-Hardware|4096_DRS-TAAU-Hardware|4100_DRS-STP-Hardware|4102_DRS-CAS-AfterPost|4103_DRS-DLSS-AfterPost|4104_DRS-STP-AfterPost|4106_DRS-TAAU-AfterPost|4107_DRS-FSR2-Hardware|4109_DRS-FSR2-AfterPost|4110_DRS-FSR2-With-CustomPass|4111_DRS-DLSS-With-CustomPass)).*",
+            "Upscaler-only job — non-upscaler tests excluded when ENABLE_UPSCALER_FRAMEWORK is defined",
+            UpscalerFrameworkContext.UpscalerFrameworkEnabled
         )]
         public IEnumerator Run(SceneGraphicsTestCase testCase)
         {
