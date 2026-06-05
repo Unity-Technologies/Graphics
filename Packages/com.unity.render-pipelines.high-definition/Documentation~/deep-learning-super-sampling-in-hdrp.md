@@ -84,9 +84,9 @@ Available presets are marked as '1' in the table below.
 |- |- |- |- |- |- |- |- |
 | Preset F |   |   |  | 1 | 1 | Marked for deprecation in upcoming DLSS releases. Don't use for new projects. | CNN |
 | Preset J | 1 | 1 | 1| 1 | 1 | Slightly lowers ghosting but increases flickering.<br/>NVIDIA recommends using **Preset K** instead of **Preset J**. | Transformer |
-| Preset K | 1 | 1 | 1| 1 | 1 | Default preset for DLAA/Balanced/Quality modes. Requires fewer resources than Preset L. | Transformer |
-| Preset L |   |   |  | 1 |   | Delivers a sharper, more stable image with less ghosting than Preset J, K, but lowers performance. Recommended for RTX 40 Series GPUs and above. | Transformer Gen 2 |
-Provides about the same image quality as **Preset L**. This preset is slower than presets **J** and **K**, but faster than preset **L**. Recommended for RTX 40 Series GPUs and above.
+| Preset K | 1 | 1 | 1| 1 | 1 | Default preset for DLAA/Balanced/Quality modes. Requires fewer resources than **Preset L**. | Transformer |
+| Preset L |   |   |  | 1 |   | Delivers a sharper, more stable image with less ghosting than **Preset J** and **Preset K**, but lowers performance. Recommended for RTX 40 Series GPUs and above. | Transformer Gen 2 | 
+| Preset M | | | 1| | | Provides about the same image quality as **Preset L**. This preset is slower than **Preset J** and **Preset K**, but faster than **Preset L**. Recommended for RTX 40 Series GPUs and above. | Transformer Gen 2 |
 
 The defaults for each quality mode are:
 
