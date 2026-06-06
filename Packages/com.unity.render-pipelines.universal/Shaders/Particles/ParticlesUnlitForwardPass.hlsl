@@ -55,15 +55,15 @@ void InitializeInputData(VaryingsParticle input, SurfaceData surfaceData, out In
 void InitializeSurfaceData(ParticleParams particleParams, out SurfaceData surfaceData)
 {
     surfaceData = (SurfaceData)0;
-    half4 albedo = SampleAlbedo(TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap), particleParams);
-    half3 normalTS = SampleNormalTS(particleParams.uv, particleParams.blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+    half4 albedo = SampleAlbedo(UnityBuildTexture2DStructNoScaleNoTexelSize(_BaseMap), particleParams);
+    half3 normalTS = SampleNormalTS(particleParams.uv, particleParams.blendUv, UnityBuildTexture2DStructNoScaleNoTexelSize(_BumpMap));
 
     #if defined (_DISTORTION_ON)
     albedo.rgb = Distortion(albedo, normalTS, _DistortionStrengthScaled, _DistortionBlend, particleParams.projectedPosition);
     #endif
 
     #if defined(_EMISSION)
-    half3 emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), particleParams.uv, particleParams.blendUv).rgb * _EmissionColor.rgb;
+    half3 emission = BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_EmissionMap), particleParams.uv, particleParams.blendUv).rgb * _EmissionColor.rgb;
     #else
     const half3 emission = 0;
     #endif
@@ -94,8 +94,8 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
-    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
+    VertexPositionInputs vertexInput = GetParticleVertexPositionInputs(input.positionOS.xyz);
+    VertexNormalInputs normalInput = GetParticleVertexNormalInputs(input.normalOS, input.tangentOS);
 
     half fogFactor = 0.0;
 #if !defined(_FOG_FRAGMENT)

@@ -1,14 +1,11 @@
 #ifndef UNIVERSAL_PARTICLES_INCLUDED
 #define UNIVERSAL_PARTICLES_INCLUDED
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ParticlesInstancing.hlsl"
-#include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
-
+#include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/Particles.hlsl"
 
 struct ParticleParams
 {
@@ -94,7 +91,8 @@ float SoftParticles(float near, float far, float4 projection)
         uv = RemovePretransformRotation(uv);
 #endif
         uv = FoveatedRemapLinearToNonUniform(uv);
-        float rawDepth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_PointClamp, uv).r;
+
+        float rawDepth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, uv).r;
         float sceneZ = (unity_OrthoParams.w == 0) ? LinearEyeDepth(rawDepth, _ZBufferParams) : LinearDepthToEyeDepth(rawDepth);
         float thisZ = LinearEyeDepth(projection.z / projection.w, _ZBufferParams);
         fade = saturate(far * ((sceneZ - near) - thisZ));
@@ -138,7 +136,6 @@ half3 AlphaModulateAndPremultiply(half3 albedo, half alpha)
     return albedo;
 }
 
-
 half3 Distortion(float4 baseColor, float3 normal, half strength, half blend, float4 projection)
 {
     float2 screenUV = (projection.xy / projection.w) + normal.xy * strength * baseColor.a;
@@ -148,21 +145,21 @@ half3 Distortion(float4 baseColor, float3 normal, half strength, half blend, flo
 }
 
 // Sample a texture and do blending for texture sheet animation if needed
-half4 BlendTexture(TEXTURE2D_PARAM(_Texture, sampler_Texture), float2 uv, float3 blendUv)
+half4 BlendTexture(UnityTexture2D _Texture, float2 uv, float3 blendUv)
 {
-    half4 color = half4(SAMPLE_TEXTURE2D(_Texture, sampler_Texture, uv));
+    half4 color = half4(SAMPLE_TEXTURE2D(_Texture.tex, _Texture.samplerstate, uv));
 #ifdef _FLIPBOOKBLENDING_ON
-    half4 color2 = half4(SAMPLE_TEXTURE2D(_Texture, sampler_Texture, blendUv.xy));
+    half4 color2 = half4(SAMPLE_TEXTURE2D(_Texture.tex, _Texture.samplerstate, blendUv.xy));
     color = lerp(color, color2, half(blendUv.z));
 #endif
     return color;
 }
 
 // Sample a normal map in tangent space
-half3 SampleNormalTS(float2 uv, float3 blendUv, TEXTURE2D_PARAM(bumpMap, sampler_bumpMap), half scale = half(1.0))
+half3 SampleNormalTS(float2 uv, float3 blendUv, UnityTexture2D bumpMap, half scale = half(1.0))
 {
 #if defined(_NORMALMAP)
-    half4 n = BlendTexture(TEXTURE2D_ARGS(bumpMap, sampler_bumpMap), uv, blendUv);
+    half4 n = BlendTexture(bumpMap, uv, blendUv);
     #if BUMP_SCALE_NOT_SUPPORTED
         return UnpackNormal(n);
     #else
@@ -171,72 +168,6 @@ half3 SampleNormalTS(float2 uv, float3 blendUv, TEXTURE2D_PARAM(bumpMap, sampler
 #else
     return half3(0.0, 0.0, 1.0);
 #endif
-}
-
-half4 GetParticleColor(half4 color)
-{
-#if defined(UNITY_PARTICLE_INSTANCING_ENABLED)
-#if !defined(UNITY_PARTICLE_INSTANCE_DATA_NO_COLOR)
-    UNITY_PARTICLE_INSTANCE_DATA data = unity_ParticleInstanceData[unity_InstanceID];
-    color = lerp(half4(1.0, 1.0, 1.0, 1.0), color, unity_ParticleUseMeshColors);
-    color *= half4(UnpackFromR8G8B8A8(data.color));
-#endif
-#endif
-    return color;
-}
-
-void GetParticleTexcoords(out float2 outputTexcoord, out float3 outputTexcoord2AndBlend, in float4 inputTexcoords, in float inputBlend)
-{
-#if defined(UNITY_PARTICLE_INSTANCING_ENABLED)
-    if (unity_ParticleUVShiftData.x != 0.0)
-    {
-        UNITY_PARTICLE_INSTANCE_DATA data = unity_ParticleInstanceData[unity_InstanceID];
-
-        float numTilesX = unity_ParticleUVShiftData.y;
-        float2 animScale = unity_ParticleUVShiftData.zw;
-#ifdef UNITY_PARTICLE_INSTANCE_DATA_NO_ANIM_FRAME
-        float sheetIndex = 0.0;
-#else
-        float sheetIndex = data.animFrame;
-#endif
-
-        float index0 = floor(sheetIndex);
-        float vIdx0 = floor(index0 / numTilesX);
-        float uIdx0 = floor(index0 - vIdx0 * numTilesX);
-        float2 offset0 = float2(uIdx0 * animScale.x, (1.0 - animScale.y) - vIdx0 * animScale.y); // Copied from built-in as is and it looks like upside-down flip
-
-        outputTexcoord = inputTexcoords.xy * animScale.xy + offset0.xy;
-
-#ifdef _FLIPBOOKBLENDING_ON
-        float index1 = floor(sheetIndex + 1.0);
-        float vIdx1 = floor(index1 / numTilesX);
-        float uIdx1 = floor(index1 - vIdx1 * numTilesX);
-        float2 offset1 = float2(uIdx1 * animScale.x, (1.0 - animScale.y) - vIdx1 * animScale.y);
-
-        outputTexcoord2AndBlend.xy = inputTexcoords.xy * animScale.xy + offset1.xy;
-        outputTexcoord2AndBlend.z = frac(sheetIndex);
-#endif
-    }
-    else
-#endif
-    {
-        outputTexcoord = inputTexcoords.xy;
-#ifdef _FLIPBOOKBLENDING_ON
-        outputTexcoord2AndBlend.xy = inputTexcoords.zw;
-        outputTexcoord2AndBlend.z = inputBlend;
-#endif
-    }
-
-#ifndef _FLIPBOOKBLENDING_ON
-    outputTexcoord2AndBlend.xy = inputTexcoords.xy;
-    outputTexcoord2AndBlend.z = 0.5;
-#endif
-}
-
-void GetParticleTexcoords(out float2 outputTexcoord, in float2 inputTexcoord)
-{
-    float3 dummyTexcoord2AndBlend = 0.0;
-    GetParticleTexcoords(outputTexcoord, dummyTexcoord2AndBlend, inputTexcoord.xyxy, 0.0);
 }
 
 #endif // UNIVERSAL_PARTICLES_INCLUDED

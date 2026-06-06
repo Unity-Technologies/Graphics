@@ -32,16 +32,9 @@ TEXTURE2D(_MetallicGlossMap);   SAMPLER(sampler_MetallicGlossMap);
 #define CAMERA_NEAR_FADE _CameraFadeParams.x
 #define CAMERA_INV_FADE_DISTANCE _CameraFadeParams.y
 
-// Pre-multiplied alpha helper
-#if defined(_ALPHAPREMULTIPLY_ON)
-#define ALBEDO_MUL albedo
-#else
-#define ALBEDO_MUL albedo.a
-#endif
-
-half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor, float4 projectedPosition, TEXTURE2D_PARAM(albedoMap, sampler_albedoMap))
+half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor, float4 projectedPosition, UnityTexture2D albedoMap)
 {
-    half4 albedo = BlendTexture(TEXTURE2D_ARGS(albedoMap, sampler_albedoMap), uv, blendUv) * color;
+    half4 albedo = BlendTexture(albedoMap, uv, blendUv) * color;
 
     half4 colorAddSubDiff = half4(0, 0, 0, 0);
 #if defined (_COLORADDSUBDIFF_ON)
@@ -63,9 +56,9 @@ half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor,
     return albedo;
 }
 
-half4 SampleAlbedo(TEXTURE2D_PARAM(albedoMap, sampler_albedoMap), ParticleParams params)
+half4 SampleAlbedo(UnityTexture2D albedoMap, ParticleParams params)
 {
-    half4 albedo = BlendTexture(TEXTURE2D_ARGS(albedoMap, sampler_albedoMap), params.uv, params.blendUv) * params.baseColor;
+    half4 albedo = BlendTexture(albedoMap, params.uv, params.blendUv) * params.baseColor;
 
     half4 colorAddSubDiff = half4(0, 0, 0, 0);
 #if defined (_COLORADDSUBDIFF_ON)
@@ -89,18 +82,18 @@ half4 SampleAlbedo(TEXTURE2D_PARAM(albedoMap, sampler_albedoMap), ParticleParams
 
 inline void InitializeParticleLitSurfaceData(float2 uv, float3 blendUv, float4 particleColor, float4 projectedPosition, out SurfaceData outSurfaceData)
 {
-    half4 albedo = SampleAlbedo(uv, blendUv, _BaseColor, particleColor, projectedPosition, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
+    half4 albedo = SampleAlbedo(uv, blendUv, _BaseColor, particleColor, projectedPosition, UnityBuildTexture2DStructNoScaleNoTexelSize(_BaseMap));
 
 #if defined(_METALLICSPECGLOSSMAP)
-    half2 metallicGloss = BlendTexture(TEXTURE2D_ARGS(_MetallicGlossMap, sampler_MetallicGlossMap), uv, blendUv).ra * half2(1.0, _Smoothness);
+    half2 metallicGloss = BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_MetallicGlossMap), uv, blendUv).ra * half2(1.0, _Smoothness);
 #else
     half2 metallicGloss = half2(_Metallic, _Smoothness);
 #endif
 
-    half3 normalTS = SampleNormalTS(uv, blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale);
+    half3 normalTS = SampleNormalTS(uv, blendUv, UnityBuildTexture2DStructNoScaleNoTexelSize(_BumpMap), _BumpScale);
 
 #if defined(_EMISSION)
-    half3 emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), uv, blendUv).rgb * _EmissionColor.rgb;
+    half3 emission = BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_EmissionMap), uv, blendUv).rgb * _EmissionColor.rgb;
 #else
     half3 emission = half3(0, 0, 0);
 #endif
@@ -127,18 +120,18 @@ inline void InitializeParticleLitSurfaceData(float2 uv, float3 blendUv, float4 p
 
 inline void InitializeParticleLitSurfaceData(ParticleParams params, out SurfaceData outSurfaceData)
 {
-    half4 albedo = SampleAlbedo(TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap), params);
+    half4 albedo = SampleAlbedo(UnityBuildTexture2DStructNoScaleNoTexelSize(_BaseMap), params);
 
     #if defined(_METALLICSPECGLOSSMAP)
-        half2 metallicGloss = BlendTexture(TEXTURE2D_ARGS(_MetallicGlossMap, sampler_MetallicGlossMap), params.uv, params.blendUv).ra * half2(1.0, _Smoothness);
+        half2 metallicGloss = BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_MetallicGlossMap), params.uv, params.blendUv).ra * half2(1.0, _Smoothness);
     #else
         half2 metallicGloss = half2(_Metallic, _Smoothness);
     #endif
 
-    half3 normalTS = SampleNormalTS(params.uv, params.blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale);
+    half3 normalTS = SampleNormalTS(params.uv, params.blendUv, UnityBuildTexture2DStructNoScaleNoTexelSize(_BumpMap), _BumpScale);
 
     #if defined(_EMISSION)
-        half3 emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), params.uv, params.blendUv).rgb * _EmissionColor.rgb;
+        half3 emission = BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_EmissionMap), params.uv, params.blendUv).rgb * _EmissionColor.rgb;
     #else
         half3 emission = half3(0, 0, 0);
     #endif

@@ -67,16 +67,16 @@ inline void InitializeParticleSimpleLitSurfaceData(VaryingsParticle input, out S
     ParticleParams particleParams;
     InitParticleParams(input, particleParams);
 
-    outSurfaceData.normalTS = SampleNormalTS(particleParams.uv, particleParams.blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
-    half4 albedo = SampleAlbedo(TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap), particleParams);
+    outSurfaceData.normalTS = SampleNormalTS(particleParams.uv, particleParams.blendUv, UnityBuildTexture2DStructNoScaleNoTexelSize(_BumpMap));
+    half4 albedo = SampleAlbedo(UnityBuildTexture2DStructNoScaleNoTexelSize(_BaseMap), particleParams);
     outSurfaceData.albedo = AlphaModulate(albedo.rgb, albedo.a);
     outSurfaceData.alpha = albedo.a;
 #if defined(_EMISSION)
-    outSurfaceData.emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), particleParams.uv, particleParams.blendUv).rgb * _EmissionColor.rgb;
+    outSurfaceData.emission = BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_EmissionMap), particleParams.uv, particleParams.blendUv).rgb * _EmissionColor.rgb;
 #else
     outSurfaceData.emission = half3(0, 0, 0);
 #endif
-    half4 specularGloss = SampleSpecularSmoothness(particleParams.uv, particleParams.blendUv, albedo.a, _SpecColor, TEXTURE2D_ARGS(_SpecGlossMap, sampler_SpecGlossMap));
+    half4 specularGloss = SampleSpecularSmoothness(particleParams.uv, particleParams.blendUv, albedo.a, _SpecColor, UnityBuildTexture2DStructNoScaleNoTexelSize(_SpecGlossMap));
     outSurfaceData.specular = specularGloss.rgb;
     outSurfaceData.smoothness = specularGloss.a;
 
@@ -100,8 +100,8 @@ VaryingsParticle ParticlesLitGBufferVertex(AttributesParticle input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
-    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
+    VertexPositionInputs vertexInput = GetParticleVertexPositionInputs(input.positionOS.xyz);
+    VertexNormalInputs normalInput = GetParticleVertexNormalInputs(input.normalOS, input.tangentOS);
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 
 #ifdef _NORMALMAP

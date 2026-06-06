@@ -10,8 +10,8 @@ VaryingsDepthNormalsParticle DepthNormalsVertex(AttributesDepthNormalsParticle i
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
-    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangent);
+    VertexPositionInputs vertexInput = GetParticleVertexPositionInputs(input.vertex.xyz);
+    VertexNormalInputs normalInput = GetParticleVertexNormalInputs(input.normal, input.tangent);
 
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 
@@ -65,7 +65,7 @@ half4 DepthNormalsFragment(VaryingsDepthNormalsParticle input) : SV_TARGET
     #if defined(_ALPHATEST_ON)
         half4 vertexColor = input.color;
         half4 baseColor = _BaseColor;
-        half4 albedo = BlendTexture(TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap), uv, blendUv) * baseColor;
+        half4 albedo = BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_BaseMap), uv, blendUv) * baseColor;
 
         half4 colorAddSubDiff = half4(0, 0, 0, 0);
         #if defined(_COLORADDSUBDIFF_ON)
@@ -78,7 +78,7 @@ half4 DepthNormalsFragment(VaryingsDepthNormalsParticle input) : SV_TARGET
 
     // Normals...
     #ifdef _NORMALMAP
-        half3 normalTS = SampleNormalTS(uv, blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale);
+        half3 normalTS = SampleNormalTS(uv, blendUv, UnityBuildTexture2DStructNoScaleNoTexelSize(_BumpMap), _BumpScale);
         float3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
     #else
         float3 normalWS = input.normalWS;
@@ -87,7 +87,7 @@ half4 DepthNormalsFragment(VaryingsDepthNormalsParticle input) : SV_TARGET
     half outputAlpha = 0;
     #if defined(_WRITE_SMOOTHNESS)
         #if defined(_METALLICSPECGLOSSMAP)
-            outputAlpha = BlendTexture(TEXTURE2D_ARGS(_MetallicGlossMap, sampler_MetallicGlossMap), uv, blendUv).a * _Smoothness;
+            outputAlpha = BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_MetallicGlossMap), uv, blendUv).a * _Smoothness;
         #else
             outputAlpha = _Smoothness;
         #endif

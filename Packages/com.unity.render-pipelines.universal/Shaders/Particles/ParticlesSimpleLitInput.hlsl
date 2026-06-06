@@ -33,9 +33,9 @@ TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
 
 #define _BumpScale 1.0
 
-half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor, float4 projectedPosition, TEXTURE2D_PARAM(albedoMap, sampler_albedoMap))
+half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor, float4 projectedPosition, UnityTexture2D albedoMap)
 {
-    half4 albedo = BlendTexture(TEXTURE2D_ARGS(albedoMap, sampler_albedoMap), uv, blendUv) * color;
+    half4 albedo = BlendTexture(albedoMap, uv, blendUv) * color;
 
     half4 colorAddSubDiff = half4(0, 0, 0, 0);
 #if defined (_COLORADDSUBDIFF_ON)
@@ -56,9 +56,9 @@ half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor,
     return albedo;
 }
 
-half4 SampleAlbedo(TEXTURE2D_PARAM(albedoMap, sampler_albedoMap), ParticleParams params)
+half4 SampleAlbedo(UnityTexture2D albedoMap, ParticleParams params)
 {
-    half4 albedo = BlendTexture(TEXTURE2D_ARGS(albedoMap, sampler_albedoMap), params.uv, params.blendUv) * params.baseColor;
+    half4 albedo = BlendTexture(albedoMap, params.uv, params.blendUv) * params.baseColor;
 
     half4 colorAddSubDiff = half4(0, 0, 0, 0);
     #if defined (_COLORADDSUBDIFF_ON)
@@ -79,11 +79,11 @@ half4 SampleAlbedo(TEXTURE2D_PARAM(albedoMap, sampler_albedoMap), ParticleParams
     return albedo;
 }
 
-half4 SampleSpecularSmoothness(float2 uv, float3 blendUv, half alpha, half4 specColor, TEXTURE2D_PARAM(specGlossMap, sampler_specGlossMap))
+half4 SampleSpecularSmoothness(float2 uv, float3 blendUv, half alpha, half4 specColor, UnityTexture2D specGlossMap)
 {
     half4 specularGloss = half4(0, 0, 0, 1);
 #ifdef _SPECGLOSSMAP
-    specularGloss = BlendTexture(TEXTURE2D_ARGS(specGlossMap, sampler_specGlossMap), uv, blendUv);
+    specularGloss = BlendTexture(specGlossMap, uv, blendUv);
 #elif defined(_SPECULAR_COLOR)
     specularGloss = specColor;
 #endif

@@ -29,9 +29,9 @@ CBUFFER_END
 
 #define _BumpScale 1.0
 
-half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor, float4 projectedPosition, TEXTURE2D_PARAM(albedoMap, sampler_albedoMap))
+half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor, float4 projectedPosition, UnityTexture2D albedoMap)
 {
-    half4 albedo = BlendTexture(TEXTURE2D_ARGS(albedoMap, sampler_albedoMap), uv, blendUv) * color;
+    half4 albedo = BlendTexture(albedoMap, uv, blendUv) * color;
 
     // No distortion Support
     half4 colorAddSubDiff = half4(0, 0, 0, 0);
@@ -55,9 +55,9 @@ half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor,
     return albedo;
 }
 
-half4 SampleAlbedo(TEXTURE2D_PARAM(albedoMap, sampler_albedoMap), ParticleParams params)
+half4 SampleAlbedo(UnityTexture2D albedoMap, ParticleParams params)
 {
-    half4 albedo = BlendTexture(TEXTURE2D_ARGS(albedoMap, sampler_albedoMap), params.uv, params.blendUv) * params.baseColor;
+    half4 albedo = BlendTexture(albedoMap, params.uv, params.blendUv) * params.baseColor;
 
     // No distortion Support
     #if defined (_COLORADDSUBDIFF_ON)

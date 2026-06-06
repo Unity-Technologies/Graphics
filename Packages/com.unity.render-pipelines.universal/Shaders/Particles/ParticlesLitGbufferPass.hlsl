@@ -71,8 +71,8 @@ VaryingsParticle ParticlesGBufferVertex(AttributesParticle input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
-    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
+    VertexPositionInputs vertexInput = GetParticleVertexPositionInputs(input.positionOS.xyz);
+    VertexNormalInputs normalInput = GetParticleVertexNormalInputs(input.normalOS, input.tangentOS);
 
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
     half3 vertexLight = VertexLighting(vertexInput.positionWS, half3(normalInput.normalWS));
@@ -90,7 +90,7 @@ VaryingsParticle ParticlesGBufferVertex(AttributesParticle input)
 
     output.positionWS.xyz = vertexInput.positionWS;
     output.clipPos = vertexInput.positionCS;
-    output.color = input.color;
+    output.color = GetParticleColor(input.color);
 
 #if defined(_FLIPBOOKBLENDING_ON)
 #if defined(UNITY_PARTICLE_INSTANCING_ENABLED)

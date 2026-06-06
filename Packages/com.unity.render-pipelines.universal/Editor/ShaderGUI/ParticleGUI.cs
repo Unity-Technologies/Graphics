@@ -152,12 +152,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             /// <summary>
             /// The string for color vertex stream.
             /// </summary>
-            public static string streamColorText = "Color (COLOR.xyzw)";
-
-            /// <summary>
-            /// The string for color instanced vertex stream.
-            /// </summary>
-            public static string streamColorInstancedText = "Color (INSTANCED0.xyzw)";
+            public static string streamColorText = "Color (COLOR.xyzw | INSTANCED0.xyzw)";
 
             /// <summary>
             /// The string for UV vertex stream.
@@ -423,11 +418,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 useNormalMap = material.GetTexture("_BumpMap");
 
             bool useGPUInstancing = ShaderUtil.HasProceduralInstancing(material.shader);
-            if (useGPUInstancing && renderers.Count > 0)
-            {
-                if (!renderers[0].enableGPUInstancing || renderers[0].renderMode != ParticleSystemRenderMode.Mesh)
-                    useGPUInstancing = false;
-            }
 
             // Build the list of expected vertex streams
             List<ParticleSystemVertexStream> streams = new List<ParticleSystemVertexStream>();
@@ -448,24 +438,21 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             }
 
             streams.Add(ParticleSystemVertexStream.Color);
-            streamList.Add(useGPUInstancing ? Styles.streamColorInstancedText : Styles.streamColorText);
+            streamList.Add(Styles.streamColorText);
             streams.Add(ParticleSystemVertexStream.UV);
             streamList.Add(Styles.streamUVText);
 
             List<ParticleSystemVertexStream> instancedStreams = new List<ParticleSystemVertexStream>(streams);
 
-            if (useGPUInstancing)
-            {
-                instancedStreams.Add(ParticleSystemVertexStream.AnimFrame);
-                streamList.Add(Styles.streamAnimFrameText);
-            }
-            else if (useFlipbookBlending && !useGPUInstancing)
+            if (useFlipbookBlending)
             {
                 streams.Add(ParticleSystemVertexStream.UV2);
                 streamList.Add(Styles.streamUV2Text);
                 streams.Add(ParticleSystemVertexStream.AnimBlend);
                 streamList.Add(Styles.streamAnimBlendText);
             }
+            instancedStreams.Add(ParticleSystemVertexStream.AnimFrame);
+            streamList.Add(Styles.streamAnimFrameText);
 
             vertexStreamList = new ReorderableList(streamList, typeof(string), false, true, false, false);
 

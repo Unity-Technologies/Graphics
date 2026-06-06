@@ -22,7 +22,7 @@ VaryingsParticle vertParticleEditor(AttributesParticle input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+    VertexPositionInputs vertexInput = GetParticleVertexPositionInputs(input.positionOS.xyz);
 
     output.clipPos = vertexInput.positionCS;
     output.color = GetParticleColor(input.color);
@@ -49,7 +49,7 @@ void fragParticleSceneClip(VaryingsParticle input)
 
     float4 projectedPosition = float4(0, 0, 0, 0);
 
-    half4 albedo = SampleAlbedo(uv, blendUv, _BaseColor, input.color, projectedPosition, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
+    half4 albedo = SampleAlbedo(uv, blendUv, _BaseColor, input.color, projectedPosition, UnityBuildTexture2DStructNoScaleNoTexelSize(_BaseMap));
     half alpha = albedo.a;
 
 #ifdef _ALPHATEST_ON

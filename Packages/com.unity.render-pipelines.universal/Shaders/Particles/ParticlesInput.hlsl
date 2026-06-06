@@ -63,6 +63,41 @@ struct VaryingsParticle
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
+struct AttributesShadowCasterParticle
+{
+    float4 positionOS                   : POSITION;
+    float3 normalOS                     : NORMAL;
+
+    #if defined(_ALPHATEST_ON)
+        half4 color                     : COLOR;
+
+        #if defined(_FLIPBOOKBLENDING_ON) && !defined(UNITY_PARTICLE_INSTANCING_ENABLED)
+            float4 texcoords            : TEXCOORD0;
+            float texcoordBlend         : TEXCOORD1;
+        #else
+            float2 texcoords            : TEXCOORD0;
+        #endif
+    #endif
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+};
+
+struct VaryingsShadowCasterParticle
+{
+    float4 positionCS                   : SV_POSITION;
+
+    #if defined(_ALPHATEST_ON)
+        half4 color                     : COLOR;
+        float2 texcoord                 : TEXCOORD0;
+
+        #if defined(_FLIPBOOKBLENDING_ON)
+            float3 texcoord2AndBlend    : TEXCOORD5;
+        #endif
+    #endif
+
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+    UNITY_VERTEX_OUTPUT_STEREO
+};
+
 struct AttributesDepthOnlyParticle
 {
     float4 vertex                       : POSITION;
