@@ -57,6 +57,7 @@
     * [Create custom nodes with HLSL](Custom-nodes-hlsl-landing.md)
         * [Introduction to HLSL in Shader Graph](Custom-nodes-hlsl-introduction.md)
         * [Create a custom node by reflection from HLSL](Custom-nodes-hlsl-create-node-by-reflection.md)
+        * [Reflected function hints reference](Custom-nodes-hlsl-reflection-hints-reference.md)
 * [Node Library](Node-Library.md)
     * [Artistic](Artistic-Nodes.md)
         * Adjustment
@@ -275,6 +276,7 @@
             * [Rounded Rectangle](Rounded-Rectangle-Node.md)
     * [Property](Property-Node.md)
     * [Redirect](Redirect-Node.md)
+    * [Reflected Function](Reflected-Function-Node.md)
     * [SpeedTree](SpeedTree8-SubGraphAssets.md)
     * [Sub Graphs](Sub-graph-Node.md)
         * [UVCombine](UVCombine-Node.md)
