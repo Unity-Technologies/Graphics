@@ -123,6 +123,7 @@ namespace UnityEditor.Rendering.Universal
         Shader m_XROcclusionMeshShader = Shader.Find("Hidden/Universal Render Pipeline/XR/XROcclusionMesh");
         Shader m_XRMirrorViewShader = Shader.Find("Hidden/Universal Render Pipeline/XR/XRMirrorView");
         Shader m_XRMotionVectorShader = Shader.Find("Hidden/Universal Render Pipeline/XR/XRMotionVector");
+        Shader m_Light2DShader = Shader.Find("Hidden/Light2D");
 
         // Pass names
         public static readonly string kPassNameUniversal2D = "Universal2D";
@@ -1284,6 +1285,38 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
+        // Hidden/Light2D variant stripping. Independent of stripUnusedVariants — runs whenever
+        // strip2DUnusedVariants is enabled. OR-semantics across URP assets: keep the variant if
+        // ANY asset says KeepAll or includes its combo in the analyzed kept-combo list. Only
+        // strip when every asset says StripAll OR the variant's combo is not in any StripUnused
+        // asset's combos.
+        internal bool CanRemoveLight2DVariant(Shader shader, ShaderCompilerData variantData)
+        {
+            if (m_Light2DShader == null || shader != m_Light2DShader)
+                return false;
+
+            var entries = ShaderBuildPreprocessor.s_Light2DPrefilteringPerAsset;
+            if (entries == null || entries.Count == 0)
+                return false;
+
+            string combo = null;
+            foreach (var entry in entries)
+            {
+                if (entry.mode == UniversalRenderPipelineAsset.Light2DPrefilteringMode.KeepAll)
+                    return false;
+
+                if (entry.mode == UniversalRenderPipelineAsset.Light2DPrefilteringMode.StripUnused)
+                {
+                    // Lazy-build combo string the first time a StripUnused asset is seen.
+                    combo ??= Light2DPrefilteringAnalysis.BuildComboString(variantData.shaderKeywordSet, shader);
+                    if (entry.combos != null && System.Array.IndexOf(entry.combos, combo) >= 0)
+                        return false;
+                }
+                // StripAll → contributes a "strip" vote; fall through to next entry.
+            }
+            return true;
+        }
+
 
         /*********************************************************
                             Main Callbacks
@@ -1291,6 +1324,12 @@ namespace UnityEditor.Rendering.Universal
 
         public bool CanRemoveVariant([DisallowNull] Shader shader, ShaderSnippetData passData, ShaderCompilerData variantData)
         {
+            // Light2D variant stripping is per-URP-asset (Renderer2DData presence varies per
+            // asset, scene-analyzed combos are project-wide), so it's evaluated outside the
+            // per-renderer-feature supportedFeaturesList iteration below.
+            if (CanRemoveLight2DVariant(shader, variantData))
+                return true;
+
             IShaderScriptableStrippingData strippingData = new StrippingData()
             {
                 volumeFeatures = ShaderBuildPreprocessor.volumeFeatures,

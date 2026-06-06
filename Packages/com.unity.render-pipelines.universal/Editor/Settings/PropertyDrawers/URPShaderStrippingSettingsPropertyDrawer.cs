@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering.Universal
     {
         protected override string[] relativePropertiesNames => new[]
         {
-            "m_StripUnusedPostProcessingVariantsAndResources", "m_StripUnusedVariants", "m_StripScreenCoordOverrideVariants"
+            "m_StripUnusedPostProcessingVariantsAndResources", "m_StripUnusedVariants", "m_Strip2DUnusedVariants", "m_StripScreenCoordOverrideVariants"
         };
     }
 }

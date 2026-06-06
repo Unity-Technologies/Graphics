@@ -138,6 +138,21 @@ namespace UnityEditor.Rendering.Universal
         public static bool s_Strip2DPasses;
         public static bool s_UseSoftShadowQualityLevelKeywords;
         public static bool s_StripXRVariants;
+        public static bool s_Strip2DUnusedVariants;
+        // Cached scene-scan result for Hidden/Light2D shader_feature combos. Populated once per
+        // build (in GatherShaderFeatures) when s_Strip2DUnusedVariants is true; null otherwise.
+        public static string[] s_Light2DAnalyzedCombos;
+
+        // Per-URP-asset Light2D prefiltering decisions. Populated by ApplyLight2DPrefiltering as
+        // each asset is processed during GatherShaderFeatures. ShaderScriptableStripper reads this
+        // to decide whether to keep or strip a given Hidden/Light2D variant: keep when any asset
+        // says KeepAll, or when any StripUnused asset's combo list contains the variant's combo.
+        internal struct Light2DAssetPrefilteringEntry
+        {
+            public UniversalRenderPipelineAsset.Light2DPrefilteringMode mode;
+            public string[] combos;
+        }
+        public static List<Light2DAssetPrefilteringEntry> s_Light2DPrefilteringPerAsset = new();
 
         public static List<ShaderFeatures> supportedFeaturesList
         {
@@ -273,7 +288,13 @@ namespace UnityEditor.Rendering.Universal
         internal static void GatherShaderFeatures()
         {
             s_SupportedFeaturesList.Clear();
+            s_Light2DPrefilteringPerAsset.Clear();
             GetGlobalAndPlatformSettings();
+
+            // Run the Light2D scene scan once per build, before per-asset prefiltering is computed.
+            // Skipped when 2D variant stripping is off — every asset's Light2D mode is KeepAll in
+            // that case and the scan would be wasted work.
+            s_Light2DAnalyzedCombos = s_Strip2DUnusedVariants ? Light2DPrefilteringAnalysis.AnalyzeBuildScenes() : null;
 
             // If stripping of unused volume features is disabled, the s_VolumeFeatures
             // variable is set to include every keyword used by volumes shaders.
@@ -292,6 +313,50 @@ namespace UnityEditor.Rendering.Universal
                 GetEveryShaderFeatureAndUpdateURPAssets(s_SupportedFeaturesList);
         }
 
+        // Computes the Light2D prefiltering mode + kept-combo list for a given URP asset and
+        // writes them into the supplied ShaderPrefilteringData. Mode depends on the global
+        // strip2DUnusedVariants setting and whether this asset has any Renderer2DData.
+        private static void ApplyLight2DPrefiltering(UniversalRenderPipelineAsset urpAsset, ref ShaderPrefilteringData spd)
+        {
+            if (!s_Strip2DUnusedVariants)
+            {
+                spd.light2DPrefilteringMode = UniversalRenderPipelineAsset.Light2DPrefilteringMode.KeepAll;
+                spd.light2DKeptVariantCombos = null;
+                return;
+            }
+
+            bool hasRenderer2DData = false;
+            ScriptableRendererData[] rendererDataArray = urpAsset.m_RendererDataList;
+            if (rendererDataArray != null)
+            {
+                for (int i = 0; i < rendererDataArray.Length; i++)
+                {
+                    if (rendererDataArray[i] is Renderer2DData)
+                    {
+                        hasRenderer2DData = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!hasRenderer2DData)
+            {
+                spd.light2DPrefilteringMode = UniversalRenderPipelineAsset.Light2DPrefilteringMode.StripAll;
+                spd.light2DKeptVariantCombos = null;
+            }
+            else
+            {
+                spd.light2DPrefilteringMode = UniversalRenderPipelineAsset.Light2DPrefilteringMode.StripUnused;
+                spd.light2DKeptVariantCombos = s_Light2DAnalyzedCombos ?? System.Array.Empty<string>();
+            }
+
+            s_Light2DPrefilteringPerAsset.Add(new Light2DAssetPrefilteringEntry
+            {
+                mode = spd.light2DPrefilteringMode,
+                combos = spd.light2DKeptVariantCombos,
+            });
+        }
+
         // Retrieves the global and platform settings used in the project...
         private static void GetGlobalAndPlatformSettings()
         {
@@ -305,6 +370,7 @@ namespace UnityEditor.Rendering.Universal
                 s_StripUnusedPostProcessingVariants = urpShaderStrippingSettings.stripUnusedPostProcessingVariants;
                 s_StripUnusedVariants               = urpShaderStrippingSettings.stripUnusedVariants;
                 s_StripScreenCoordOverrideVariants  = urpShaderStrippingSettings.stripScreenCoordOverrideVariants;
+                s_Strip2DUnusedVariants             = urpShaderStrippingSettings.strip2DUnusedVariants;
             }
 
             if (GraphicsSettings.TryGetRenderPipelineSettings<LightmapSamplingSettings>(out var lightmapSamplingSettings))
@@ -447,6 +513,9 @@ namespace UnityEditor.Rendering.Universal
                     if (urpAsset == null)
                         continue;
 
+                    // Light2D prefiltering is computed per asset (Renderer2DData presence varies).
+                    ApplyLight2DPrefiltering(urpAsset, ref spd);
+
                     // Update the Prefiltering settings for this URP asset
                     urpAsset.UpdateShaderKeywordPrefiltering(ref spd);
 
@@ -520,6 +589,9 @@ namespace UnityEditor.Rendering.Universal
                     s_StripUnusedVariants,
                     ref ssaoRendererFeatures
                     );
+
+                // Light2D prefiltering is computed per asset (Renderer2DData presence varies).
+                ApplyLight2DPrefiltering(urpAsset, ref spd);
 
                 // Update the Prefiltering settings for this URP asset
                 urpAsset.UpdateShaderKeywordPrefiltering(ref spd);

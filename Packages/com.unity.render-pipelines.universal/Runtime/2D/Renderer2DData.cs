@@ -142,6 +142,20 @@ namespace UnityEngine.Rendering.Universal
 
         // transient data
         internal Dictionary<uint, Material> lightMaterials { get; } = new Dictionary<uint, Material>();
+
+        /// <summary>
+        /// Clears the cached light materials, forcing them to be recreated.
+        /// Called when shader variants or settings change.
+        /// </summary>
+        internal void ClearLightMaterialCache()
+        {
+            foreach (var mat in lightMaterials.Values)
+            {
+                if (mat != null)
+                    CoreUtils.Destroy(mat);
+            }
+            lightMaterials.Clear();
+        }
         internal Material spriteSelfShadowMaterial { get; set; }
         internal Material spriteUnshadowMaterial { get; set; }
         internal Material spriteSelfShadowMaterialSkinned { get; set; }

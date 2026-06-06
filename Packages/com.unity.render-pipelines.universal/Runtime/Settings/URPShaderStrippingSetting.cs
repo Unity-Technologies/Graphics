@@ -65,6 +65,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         [Tooltip("Controls whether Screen Coordinates Override shader variants are automatically stripped.")]
         bool m_StripScreenCoordOverrideVariants = true;
+
+        [SerializeField]
+        [Tooltip("Controls whether unused 2D light shader variants are stripped based on scene analysis.")]
+        bool m_Strip2DUnusedVariants = false;
         #endregion
 
         #region Data Accessors
@@ -96,6 +100,15 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_StripScreenCoordOverrideVariants;
             set => this.SetValueAndNotify(ref m_StripScreenCoordOverrideVariants, value);
+        }
+
+        /// <summary>
+        /// Controls whether unused 2D light shader variants are stripped based on scene analysis.
+        /// </summary>
+        public bool strip2DUnusedVariants
+        {
+            get => m_Strip2DUnusedVariants;
+            set => this.SetValueAndNotify(ref m_Strip2DUnusedVariants, value);
         }
         #endregion
     }

@@ -16,6 +16,14 @@ namespace UnityEngine.Rendering.Universal
             SelectOnly                  // Selects the keyword and removes others
         }
 
+        // How the Hidden/Light2D shader's multi_compile_local variants should be filtered for this URP asset.
+        internal enum Light2DPrefilteringMode
+        {
+            KeepAll,        // strip2DUnusedVariants is off: ship all 64 combos.
+            StripAll,       // strip2DUnusedVariants is on and this asset has no Renderer2DData: shader is unreachable, strip every variant.
+            StripUnused,    // strip2DUnusedVariants is on and Light2Ds were found in build scenes: keep only the analyzed combos.
+        }
+
         internal enum PrefilteringModeMainLightShadows
         {
             Remove,                     // Removes the keyword
@@ -223,6 +231,16 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.PointSampling)]
         [SerializeField] private bool m_PrefilterPointSamplingUpsampling = false;
 
+        // Hidden/Light2D variant prefiltering. The 6-keyword combo space (USE_NORMAL_MAP,
+        // USE_SHADOW_MAP, USE_ADDITIVE_BLENDING, USE_VOLUMETRIC, USE_POINT_LIGHT_COOKIES,
+        // LIGHT_QUALITY_FAST) is too dynamic to express with declarative ShaderKeywordFilter
+        // attributes; ShaderScriptableStripper reads these fields and trims variants programmatically.
+        [SerializeField] private Light2DPrefilteringMode m_Light2DPrefilteringMode = Light2DPrefilteringMode.KeepAll;
+        [SerializeField] private string[] m_Light2DKeptVariantCombos = null;
+
+        internal Light2DPrefilteringMode light2DPrefilteringMode => m_Light2DPrefilteringMode;
+        internal string[] light2DKeptVariantCombos => m_Light2DKeptVariantCombos;
+
         /// <summary>
         /// Data used for Shader Prefiltering. Gathered after going through the URP Assets,
         /// Renderers and Renderer Features in OnPreprocessBuild() inside ShaderPreprocessor.cs.
@@ -275,6 +293,10 @@ namespace UnityEngine.Rendering.Universal
             // Keyword used by the DepthNormalOnly pass to write smoothness into alpha channel for screen space reflections.
             public bool stripWriteSmoothness;
 
+            // Hidden/Light2D variant filtering. See Light2DPrefilteringMode.
+            public Light2DPrefilteringMode light2DPrefilteringMode;
+            public string[] light2DKeptVariantCombos;
+
             public static ShaderPrefilteringData GetDefault()
             {
                 return new ShaderPrefilteringData()
@@ -286,6 +308,8 @@ namespace UnityEngine.Rendering.Universal
                     additionalLightsShadowsPrefilteringMode = PrefilteringMode.Select,
                     screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Select,
                     screenSpaceReflectionPrefilteringMode = PrefilteringMode.Select,
+                    light2DPrefilteringMode = Light2DPrefilteringMode.KeepAll,
+                    light2DKeptVariantCombos = null,
                 };
             }
         }
@@ -342,6 +366,9 @@ namespace UnityEngine.Rendering.Universal
             m_PrefilterScreenSpaceIrradiance         = prefilteringData.stripScreenSpaceIrradiance;
 
             m_PrefilterWriteSmoothness               = prefilteringData.stripWriteSmoothness;
+
+            m_Light2DPrefilteringMode                = prefilteringData.light2DPrefilteringMode;
+            m_Light2DKeptVariantCombos               = prefilteringData.light2DKeptVariantCombos;
         }
     }
 }
