@@ -1,3 +1,4 @@
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering
@@ -5,9 +6,17 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Utility class providing default textures compatible in any XR setup.
     /// </summary>
-    public static class TextureXR
+    public static partial class TextureXR
     {
-        // Property set by XRSystem
+        [OnCodeInitializing]
+        static void ResetStaticsOnLoad()
+        {
+            Cleanup();
+            s_MaxViews = 1;
+        }
+
+        // Property set by XRSystem — manually reset alongside textures in Cleanup()
+        [NoAutoStaticsCleanup]
         private static int s_MaxViews = 1;
         /// <summary>
         /// Maximum number of views handled by the XR system.
@@ -66,9 +75,14 @@ namespace UnityEngine.Rendering
         }
 
         // Need to keep both the Texture and the RTHandle in order to be able to track lifetime properly.
+        // Manually cleaned up via Cleanup() which calls RTHandles.Release()
+        [NoAutoStaticsCleanup]
         static Texture s_BlackUIntTexture2DArray;
+        [NoAutoStaticsCleanup]
         static Texture s_BlackUIntTexture;
+        [NoAutoStaticsCleanup]
         static RTHandle s_BlackUIntTexture2DArrayRTH;
+        [NoAutoStaticsCleanup]
         static RTHandle s_BlackUIntTextureRTH;
         /// <summary>
         /// Default black unsigned integer texture.
@@ -76,9 +90,13 @@ namespace UnityEngine.Rendering
         /// <returns>The default black unsigned integer texture.</returns>
         public static RTHandle GetBlackUIntTexture() { return useTexArray ? s_BlackUIntTexture2DArrayRTH : s_BlackUIntTextureRTH; }
 
+        [NoAutoStaticsCleanup]
         static Texture2DArray s_ClearTexture2DArray;
+        [NoAutoStaticsCleanup]
         static Texture2D s_ClearTexture;
+        [NoAutoStaticsCleanup]
         static RTHandle s_ClearTexture2DArrayRTH;
+        [NoAutoStaticsCleanup]
         static RTHandle s_ClearTextureRTH;
         /// <summary>
         /// Default clear color (0, 0, 0, 1) texture.
@@ -86,9 +104,13 @@ namespace UnityEngine.Rendering
         /// <returns>The default clear color texture.</returns>
         public static RTHandle GetClearTexture() { return useTexArray ? s_ClearTexture2DArrayRTH : s_ClearTextureRTH; }
 
+        [NoAutoStaticsCleanup]
         static Texture2DArray s_MagentaTexture2DArray;
+        [NoAutoStaticsCleanup]
         static Texture2D s_MagentaTexture;
+        [NoAutoStaticsCleanup]
         static RTHandle s_MagentaTexture2DArrayRTH;
+        [NoAutoStaticsCleanup]
         static RTHandle s_MagentaTextureRTH;
         /// <summary>
         /// Default magenta texture.
@@ -96,11 +118,17 @@ namespace UnityEngine.Rendering
         /// <returns>The default magenta texture.</returns>
         public static RTHandle GetMagentaTexture() { return useTexArray ? s_MagentaTexture2DArrayRTH : s_MagentaTextureRTH; }
 
+        [NoAutoStaticsCleanup]
         static Texture2D s_BlackTexture;
+        [NoAutoStaticsCleanup]
         static Texture3D s_BlackTexture3D;
+        [NoAutoStaticsCleanup]
         static Texture2DArray s_BlackTexture2DArray;
+        [NoAutoStaticsCleanup]
         static RTHandle s_BlackTexture2DArrayRTH;
+        [NoAutoStaticsCleanup]
         static RTHandle s_BlackTextureRTH;
+        [NoAutoStaticsCleanup]
         static RTHandle s_BlackTexture3DRTH;
         /// <summary>
         /// Default black texture.
@@ -118,8 +146,11 @@ namespace UnityEngine.Rendering
         /// <returns>The default black texture 3D.</returns>
         public static RTHandle GetBlackTexture3D() { return s_BlackTexture3DRTH; }
 
+        [NoAutoStaticsCleanup]
         static Texture2DArray s_WhiteTexture2DArray;
+        [NoAutoStaticsCleanup]
         static RTHandle s_WhiteTexture2DArrayRTH;
+        [NoAutoStaticsCleanup]
         static RTHandle s_WhiteTextureRTH;
         /// <summary>
         /// Default white texture.

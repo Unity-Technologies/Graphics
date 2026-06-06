@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering
@@ -7,7 +8,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Utility class to connect SRP to automated test framework.
     /// </summary>
-    public static class XRGraphicsAutomatedTests
+    public static partial class XRGraphicsAutomatedTests
     {
         // XR tests can be enabled from the command line. Cache result to avoid GC.
         static bool activatedFromCommandLine
@@ -24,11 +25,13 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Used by render pipelines to initialize XR tests.
         /// </summary>
+        [AutoStaticsCleanup]
         public static bool enabled { get; set; } = activatedFromCommandLine;
 
         /// <summary>
         /// Set by automated test framework and read by render pipelines.
         /// </summary>
+        [AutoStaticsCleanup]
         public static bool running = false;
 
         // Helper function to override the XR default layout using settings of new camera

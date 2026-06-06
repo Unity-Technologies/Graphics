@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Rendering;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -47,27 +48,52 @@ namespace UnityEngine.Experimental.Rendering
     /// <summary>
     /// Used by render pipelines to control the active XR shader variant.
     /// </summary>
-    public static class SinglepassKeywords
+    public static partial class SinglepassKeywords
     {
         /// <summary> XR shader keyword used by multiview rendering </summary>
+        [AutoStaticsCleanup]
         public static GlobalKeyword STEREO_MULTIVIEW_ON;
         /// <summary> XR shader keywordused by single pass instanced rendering </summary>
+        [AutoStaticsCleanup]
         public static GlobalKeyword STEREO_INSTANCING_ON;
     }
 
     /// <summary>
     /// Used by render pipelines to communicate with XR SDK.
     /// </summary>
-    public static class XRSystem
+    public static partial class XRSystem
     {
-        // Keep track of only one XR layout
+        [OnCodeInitializing]
+        static void ResetStaticsOnLoad()
+        {
+            // Drain any remaining layouts to return pooled XRPass/XRLayout resources
+            while (s_Layout != null && s_Layout.hasLayout)
+                s_Layout.Release();
+            s_Layout = new XRLayoutStack();
+
+            // Dispose materials before nulling — requires custom disposal logic
+            CoreUtils.Destroy(s_OcclusionMeshMaterial);
+            s_OcclusionMeshMaterial = null;
+            CoreUtils.Destroy(s_MirrorViewMaterial);
+            s_MirrorViewMaterial = null;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            s_OcclusionMeshScaling = 1.0f;
+#endif
+        }
+
+        // Keep track of only one XR layout — manually drained in ResetStaticsOnLoad()
+        [NoAutoStaticsCleanup]
         static XRLayoutStack s_Layout = new ();
 
         // Delegate allocations of XRPass to the render pipeline
+        [AutoStaticsCleanup]
         static Func<XRPassCreateInfo, XRPass> s_PassAllocator = null;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
+        [AutoStaticsCleanup]
         static List<XRDisplaySubsystem> s_DisplayList = new List<XRDisplaySubsystem>();
+        [AutoStaticsCleanup]
         static XRDisplaySubsystem s_Display;
 
         /// <summary>
@@ -80,21 +106,27 @@ namespace UnityEngine.Experimental.Rendering
 #endif
 
         // MSAA level (number of samples per pixel) shared by all XR displays
+        [AutoStaticsCleanup]
         static MSAASamples s_MSAASamples = MSAASamples.None;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-        // Occlusion Mesh scaling factor
+        // Occlusion Mesh scaling factor — manually reset; captured into XRPassCreateInfo
+        [NoAutoStaticsCleanup]
         static float s_OcclusionMeshScaling = 1.0f;
 
         // Return true if wants to enable visibility mesh passes
+        [AutoStaticsCleanup]
         static bool s_UseVisibilityMesh = true;
 #endif
 
-        // Internal resources used by XR rendering
+        // Internal resources used by XR rendering — manually cleaned up via CoreUtils.Destroy()
+        [NoAutoStaticsCleanup]
         static Material s_OcclusionMeshMaterial;
+        [NoAutoStaticsCleanup]
         static Material s_MirrorViewMaterial;
 
         // Ability to override the default XR layout
+        [AutoStaticsCleanup]
         static Action<XRLayout, Camera> s_LayoutOverride = null;
 
         /// <summary>
@@ -124,21 +156,25 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Valid empty pass when a camera is not using XR.
         /// </summary>
+        [NoAutoStaticsCleanup]
         public static readonly XRPass emptyPass = new XRPass();
 
         /// <summary>
         /// If true, the system will try to create a layout compatible with single-pass rendering.
         /// </summary>
+        [AutoStaticsCleanup]
         static public bool singlePassAllowed { get; set; } = true;
 
         /// <summary>
         /// Cached value of SystemInfo.foveatedRenderingCaps.
         /// </summary>
+        [AutoStaticsCleanup]
         static public FoveatedRenderingCaps foveatedRenderingCaps { get; set; }
 
         /// <summary>
         /// If true, the system will log some information about the layout to the console.
         /// </summary>
+        [AutoStaticsCleanup]
         static public bool dumpDebugInfo { get; set; } = false;
 
         /// <summary>

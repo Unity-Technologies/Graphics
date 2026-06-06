@@ -1,13 +1,16 @@
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal static class XRSystemUniversal
+    internal static partial class XRSystemUniversal
     {
         // Prevent GC by keeping an array pre-allocated
+        [AutoStaticsCleanup]
         static Matrix4x4[] s_projMatrix = new Matrix4x4[2];
 
 #if ENABLE_VR && ENABLE_XR_MODULE
+        [AutoStaticsCleanup]
         static MaterialPropertyBlock s_XRSharedPropertyBlock = new MaterialPropertyBlock();
         internal static MaterialPropertyBlock GetMaterialPropertyBlock()
         {
