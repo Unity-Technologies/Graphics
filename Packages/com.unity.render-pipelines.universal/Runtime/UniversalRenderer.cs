@@ -410,8 +410,8 @@ namespace UnityEngine.Rendering.Universal
             m_HistoryRawDepthCopyPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingPostProcessing, copyDephPS, false, customPassName: "Copy Depth Raw History");
 
             m_DrawOffscreenUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.BeforeRenderingPostProcessing);
-            m_DrawOverlayUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset); // after m_FinalBlitPass
-                        
+            m_DrawOverlayUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, shadersResources?.uiBackdropFilterCompositePS, shadersResources?.coreBlitPS); // after m_FinalBlitPass
+
             if (postProcessEnabled)
             {
                 Debug.Assert(data.postProcessData != null);

@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
@@ -324,11 +325,12 @@ namespace UnityEngine.Rendering.Universal
             return renderGraph.CreateTexture(outDesc);
         }
 
-        bool RequiresIntermediateAttachments(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs, bool requireCopyFromDepth, bool applyPostProcessing)
+        bool RequiresIntermediateAttachments(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs, bool requireCopyFromDepth, bool applyPostProcessing, bool overlayUIRequiresComposition)
         {
             var requireColorTexture = HasActiveRenderFeatures(rendererFeatures) && m_IntermediateTextureMode == IntermediateTextureMode.Always;
             requireColorTexture |= HasPassesRequiringIntermediateTexture(activeRenderPassQueue);
             requireColorTexture |= RequiresIntermediateColorTexture(cameraData, in renderPassInputs, usesDeferredLighting, applyPostProcessing);
+            requireColorTexture |= overlayUIRequiresComposition;
 
             bool requestedDepthHistory = (cameraData.historyManager == null) ? false : cameraData.historyManager.IsAccessRequested<RawDepthHistory>();
 
@@ -645,6 +647,8 @@ namespace UnityEngine.Rendering.Universal
             bool isCameraTargetOffscreenDepth = cameraData.camera.targetTexture != null && cameraData.camera.targetTexture.format == RenderTextureFormat.Depth;
             bool applyPostProcessing = cameraData.postProcessEnabled && this.postProcessEnabled;
 
+            m_DrawOverlayUIPass.Setup(cameraData);
+
             //First get the input requirements for the the ScriptableRenderPasses. These are all user passes plus potentially some that URP adds.
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(activeRenderPassQueue);
             //Then add all the requirements of internal features that are not implemented as ScriptableRenderPass's. After this call we have a complete view on the render pass input requirements for the entire frame.
@@ -664,7 +668,7 @@ namespace UnityEngine.Rendering.Universal
             // We configure this for the first camera of the stack and overlay camera will reuse create color/depth var
             // to pick the correct target, as if there is an intermediate texture, overlay cam should use them
             if (cameraData.renderType == CameraRenderType.Base)
-                s_RequiresIntermediateAttachments = RequiresIntermediateAttachments(cameraData, in renderPassInputs, requireCopyFromDepth, applyPostProcessing);
+                s_RequiresIntermediateAttachments = RequiresIntermediateAttachments(cameraData, in renderPassInputs, requireCopyFromDepth, applyPostProcessing, m_DrawOverlayUIPass.RequiresComposition());
 
             CreateRenderGraphCameraRenderTargets(renderGraph, isCameraTargetOffscreenDepth, s_RequiresIntermediateAttachments, depthTextureIsDepthFormat);
 
@@ -1412,7 +1416,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (applyPostProcessing)
             {
-                bool isTargetBackbuffer = cameraData.resolveFinalTarget && !applyFinalPostProcessing && !hasPassesAfterPostProcessing && !hasCaptureActions;
+                bool isTargetBackbuffer = cameraData.resolveFinalTarget && !applyFinalPostProcessing && !hasPassesAfterPostProcessing && !hasCaptureActions && !m_DrawOverlayUIPass.RequiresComposition();
                 var isSingleCamera = cameraData.resolveFinalTarget && cameraData.renderType == CameraRenderType.Base;
 
                 if (isTargetBackbuffer)
@@ -1451,6 +1455,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_CapturePass.RecordRenderGraph(renderGraph, frameData);
             }
+
+            // Composite needs cameraColor, so blit it into the overlay buffer before RenderFinalPostProcessing
+            // swaps cameraColor to the backbuffer. Skipped once the active target is already the backbuffer.
+            bool renderOverlayComposite = m_DrawOverlayUIPass.RequiresComposition() && !resourceData.isActiveTargetBackBuffer;
+            if (renderOverlayComposite)
+                m_DrawOverlayUIPass.BlitCameraColorToOverlayCompositeBuffer(renderGraph, resourceData, cameraData.pixelRect, cameraDepthAttachmentFormat);
 
             if (applyFinalPostProcessing)
             {
@@ -1496,7 +1506,14 @@ namespace UnityEngine.Rendering.Universal
                     depth = resourceData.activeDepthTexture;
                 }
 
-                m_DrawOverlayUIPass.RenderOverlayUIToolkitAndUGUI(renderGraph, frameData, in color, in depth);
+                if (renderOverlayComposite)
+                {
+                    m_DrawOverlayUIPass.RenderOverlayUIToolkitAndUGUIComposite(renderGraph, frameData, in color);
+                }
+                else
+                {
+                    m_DrawOverlayUIPass.RenderOverlayUIToolkitAndUGUI(renderGraph, frameData, in color, in depth);
+                }
 
                 // IMGUI uses an Unsafe pass and is therefore not supported by the on-tile renderer.
                 if(!(useTileOnlyMode && cameraData.cameraType == CameraType.Game))
