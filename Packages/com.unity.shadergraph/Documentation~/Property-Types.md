@@ -42,158 +42,117 @@ Additional parameters available when you set the Float property **Mode** to **Sl
 
 Defines a **Vector 2** value. Displays a **Vector 4** input field in the material inspector, where the z and w components are not used.
 
-| Data Type    | Modes |
-|:-------------|:------|
-| Vector 2 |  |
-
-| Field        | Type  | Description |
-|:-------------|:------|:------------|
-| Default | Vector 2 | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
+| Parameter | Description |
+| :--- | :--- |
+| **Default Value** | Sets the initial value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html).<br />A 2D vector value (Vector2). |
 
 ## Vector 3
 
 Defines a **Vector 3** value. Displays a **Vector 4** input field in the material inspector, where the w component is not used.
 
-| Data Type    | Modes |
-|:-------------|:------|
-| Vector 3 |  |
-
-| Field        | Type  | Description |
-|:-------------|:------|:------------|
-| Default | Vector 3 | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
+| Parameter | Description |
+| :--- | :--- |
+| **Default Value** | Sets the initial value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html).<br />A 3D vector value (Vector3). |
 
 ## Vector 4
 
 Defines a **Vector 4** value. Displays a **Vector 4** input field in the material inspector.
 
-| Data Type    | Modes |
-|:-------------|:------|
-| Vector 4 |  |
-
-| Field        | Type  | Description |
-|:-------------|:------|:------------|
-| Default | Vector 4 | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
+| Parameter | Description |
+| :--- | :--- |
+| **Default Value** | Sets the initial value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html).<br />A 4D vector value (Vector4). |
 
 ## Color
 
 Defines a **Color** value.  If the Property Inspector displays **Main Color**, this is the [Main Color](https://docs.unity3d.com/Manual/SL-Properties.html) for the shader. To select or deselect this node as the **Main Color**, right-click it in the graph or Blackboard and select **Set as Main Color** or **Clear Main Color**. Corresponds to the [`MainColor`](https://docs.unity3d.com/Manual/SL-Properties.html) ShaderLab Properties attribute.
 
-| Data Type    | Modes |
-|:-------------|:------|
-| Color | Default, HDR |
+| Parameter | Description |
+| :--- | :--- |
+| **Default Value** | Sets the initial value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
+| **Mode** | Selects the color input mode.<br /><br />The options are:<ul><li>**Default**: Allows to select a standard sRGB color.</li><li>**HDR**: Allows to select an HDR color and sets its intensity from -10 to 10 exposure stops.</li></ul> |
 
-#### Default
+**Note:** In versions prior to 10.0, Shader Graph didn't correct HDR colors for the project colorspace. Version 10.0 corrected this behavior. HDR color properties that you created with older versions maintain the old behavior, but you can use the [Graph Inspector](Internal-Inspector.md) to upgrade them. To mimic the old behavior in a gamma space project, you can use the [Colorspace Conversion Node](Colorspace-Conversion-Node.md) to convert a new HDR **Color** property from **RGB** to **Linear** space.
 
-Displays an sRGB color field in the material inspector.
+## Boolean
 
-| Field        | Type  | Description |
-|:-------------|:------|:------------|
-| Default | Vector 4 | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
+Defines a **Boolean** value. Displays a **ToggleUI** field in the material inspector. Note that internally to the shader this value is a **Float**. The **Boolean** type in Shader Graph is merely for usability.
 
-#### HDR
-
-Displays an HDR color field in the material inspector.
-
-| Field        | Type  | Description |
-|:-------------|:------|:------------|
-| Default | Vector 4 | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
-
-NOTE: In versions prior to 10.0, Shader Graph didn't correct HDR colors for the project colorspace. Version 10.0 corrected this behavior. HDR color properties that you created with older versions maintain the old behavior, but you can use the [Graph Inspector](Internal-Inspector.md) to upgrade them. To mimic the old behavior in a gamma space project, you can use the [Colorspace Conversion Node](Colorspace-Conversion-Node.md) to convert a new HDR **Color** property from **RGB** to **Linear** space.
+| Parameter | Description |
+| :--- | :--- |
+| **Default Value** | Sets the initial value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html).<br />A boolean value. |
 
 ## Texture 2D
 
 Defines a [Texture 2D](https://docs.unity3d.com/Manual/class-TextureImporter.html) value. Displays an object field of type [Texture](https://docs.unity3d.com/Manual/class-TextureImporter.html) in the material inspector. If the Property Inspector displays **Main Texture**, this is the `Main Texture` for the shader. To select or deselect this node as the `Main Texture`, right-click on it in the graph or Blackboard and select **Set as Main Texture** or **Clear Main Texture**. Corresponds to the [`MainTexture`](https://docs.unity3d.com/Manual/SL-Properties.html) ShaderLab Properties attribute.
 
-| Data Type    | Modes |
-|:-------------|:------|
-| Texture | White, Black, Grey, Bump |
-
-| Field        | Type  | Description |
-|:-------------|:------|:------------|
-| Default | Texture | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
-| Use Tiling and Offset | Boolean | When set to false, activates the property [NoScaleOffset](https://docs.unity3d.com/Manual/SL-Properties.html), to enable manipulation of scale and offset separately from other texture properties. See [SplitTextureTransformNode](Split-Texture-Transform-Node.md).|
-
-## Texture 3D
-
-Defines a [Texture 3D](https://docs.unity3d.com/Manual/class-TextureImporter.html) value. Displays an object field of type [Texture 3D](https://docs.unity3d.com/Manual/class-TextureImporter.html) in the material inspector.
-
-| Data Type    | Modes |
-|:-------------|:------|
-| Texture |  |
-
-| Field        | Type  | Description |
-|:-------------|:------|:------------|
-| Default | Texture | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
+| Parameter | Description |
+| :--- | :--- |
+| **Default Value** | Sets the initial value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html).<br />A texture asset reference. |
+| **Mode** | Defines the fallback texture Unity uses when none is provided.<br /><br />The options are:<ul><li>**White**: Sets a solid white (1,1,1) texture to ensure full-intensity sampling.</li><li>**Black**: Sets a solid black (0,0,0) texture to yield zero contribution.</li><li>**Grey**: Sets a mid-grey in sRGB (~0.5) as a neutral fallback.</li><li>**Normal Map**: Sets a flat normal value to keep surfaces flat without a normal texture.</li><li>**Linear Grey**: Sets a mid-grey in linear color space.</li><li>**Red**: Sets a solid red (1,0,0) texture, useful for data expected in the red channel.</li></ul> |
+| **Use Tiling and Offset** | Toggles the property `NoScaleOffset` to enable manipulating scale and offset separately from other texture properties; see [SplitTextureTransformNode](Split-Texture-Transform-Node.md).<br />A boolean value. |
+| **Use TexelSize** | Uses the size of texels expressed in UV space. |
+| **Is HDR** | Allows any node that samples the texture to automatically decode the sampled value if the texture is stored in an encoded HDR format (for example, dLDR). |
 
 ## Texture 2D Array
 
 Defines a [Texture 2D Array](https://docs.unity3d.com/Manual/class-TextureImporter.html) value. Displays an object field of type [Texture 2D Array](https://docs.unity3d.com/Manual/class-TextureImporter.html) in the material inspector.
 
-| Data Type    | Modes |
-|:-------------|:------|
-| Texture |  |
+| Parameter | Description |
+| :--- | :--- |
+| **Default Value** | Sets the initial value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html).<br />A texture asset reference. |
+| **Is HDR** | Allows any node that samples the texture to automatically decode the sampled value if the texture is stored in an encoded HDR format (for example, dLDR). |
 
-| Field        | Type  | Description |
-|:-------------|:------|:------------|
-| Default | Texture | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
+## Texture 3D
+
+Defines a [Texture 3D](https://docs.unity3d.com/Manual/class-TextureImporter.html) value. Displays an object field of type [Texture 3D](https://docs.unity3d.com/Manual/class-TextureImporter.html) in the material inspector.
+
+| Parameter | Description |
+| :--- | :--- |
+| **Default Value** | Sets the initial value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html).<br />A texture asset reference. |
+| **Is HDR** | Allows any node that samples the texture to automatically decode the sampled value if the texture is stored in an encoded HDR format (for example, dLDR). |
 
 ## Cubemap
 
 Defines a [Cubemap](https://docs.unity3d.com/Manual/class-Cubemap.html) value. Displays an object field of type [Texture](https://docs.unity3d.com/Manual/class-TextureImporter.html) in the material inspector.
 
-| Data Type    | Modes |
-|:-------------|:------|
-| Cubemap |  |
-
-| Field        | Type  | Description |
-|:-------------|:------|:------------|
-| Default | Cubemap | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
+| Parameter | Description |
+| :--- | :--- |
+| **Default Value** | Sets the initial value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html).<br />A cubemap asset reference. |
+| **Is HDR** | Allows any node that samples the texture to automatically decode the sampled value if the texture is stored in an encoded HDR format (for example, dLDR). |
 
 <a name="virtual-texture"> </a>
 ## Virtual Texture
 
 Defines a [Texture Stack](https://docs.unity3d.com/Manual/svt-use-in-shader-graph.html), which appears as object fields of type  [Texture](https://docs.unity3d.com/Manual/class-TextureImporter.html) in the Material Inspector. The number of fields corresponds to the number of layers in the property.
 
-| Data Type | Modes |
-|:----------|-------|
-| Virtual Texture | |
+| Parameter | Description |
+| :--- | :--- |
+| **Layers** | Manages the collection of layers in the stack.<br /><br />The options are:<ul><li>**Add (+)**: Adds a new layer.</li><li>**Remove (-)**: Removes the selected layer.</li></ul><br/>Select the active layer to edit its parameters. | 
+| **Layer Name** | Displays the user-defined name for the selected layer. |
+| **Layer Reference** | Defines the internal identifier used to reference the selected layer. |
+| **Layer Texture** | Assigns the default texture asset for the selected layer. |
+| **Layer Texture Type** | Specifies the expected data type for the selected layer’s texture, which determines import settings and sampling behavior, such as sRGB vs Linear and normal map decoding.<br /><br />The options are:<ul><li>**Normal tangent space**: Encodes per-texel normals relative to the mesh’s tangent basis so surface detail follows UVs and local orientation.</li><li>**Normal object space**: Preserves per-texel normals in object coordinates.</li></ul> |
 
-| Field        | Type  | Description |
-|:-------------|:------|:------------|
-| Default | Texture | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
-
-## Boolean
-
-Defines a **Boolean** value. Displays a **ToggleUI** field in the material inspector. Note that internally to the shader this value is a **Float**. The **Boolean** type in Shader Graph is merely for usability.
-
-| Data Type    | Modes |
-|:-------------|:------|
-| Boolean |  |
-
-| Field        | Type  | Description |
-|:-------------|:------|:------------|
-| Default | Boolean | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
-
-## Matrix 2x2
+## Matrix 2
 
 Defines a Matrix 2. Matrices do not display in the **Inspector** window of the material.
 
-| Field   | Type     |
-|:--------|:---------|
-| Default | Matrix 2 |
+| Parameter | Description |
+| :--- | :--- |
+| **Default Value** | Sets the initial value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html).<br />A 2×2 matrix value (Matrix2). |
 
-## Matrix 3x3
+## Matrix 3
 
 Defines a Matrix 3 value. Can't be displayed in the material inspector.
 
-| Field   | Type     |
-|:--------|:---------|
-| Default | Matrix 3 |
+| Parameter | Description |
+| :--- | :--- |
+| **Default Value** | Sets the initial value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html).<br />A 3×3 matrix value (Matrix3). |
 
-## Matrix 4x4
+## Matrix 4
 
 Defines a Matrix 4 value. Can't be displayed in the material inspector.
 
-| Field   | Type     |
-|:--------|:---------|
-| Default | Matrix 4 |
+| Parameter | Description |
+| :--- | :--- |
+| **Default Value** | Sets the initial value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html).<br />A 4×4 matrix value (Matrix4). |
