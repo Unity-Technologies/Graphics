@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             SearcherWindow.Show(m_editorWindow,
                 searcherProvider.LoadSearchWindow(),
-                item => item != null && searcherProvider.OnSearcherSelectEntry(item, position),
+                item => searcherProvider.OnSearcherSelectEntry(item, position),
                 position, null);
             m_SearchWindowProvider.regenerateEntries = true; //entries no longer necessarily relevant, need to regenerate
         }
