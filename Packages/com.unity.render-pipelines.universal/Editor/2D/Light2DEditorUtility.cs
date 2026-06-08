@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -7,9 +8,112 @@ namespace UnityEditor.Rendering.Universal
 {
     internal static class Light2DEditorUtility
     {
+        private static class Styles
+        {
+            public static GUIContent lightTypeFreeform = new GUIContent("Freeform", Resources.Load("InspectorIcons/FreeformLight") as Texture);
+            public static GUIContent lightTypeSprite = new GUIContent("Sprite", Resources.Load("InspectorIcons/SpriteLight") as Texture);
+            public static GUIContent lightTypePoint = new GUIContent("Spot", Resources.Load("InspectorIcons/PointLight") as Texture);
+            public static GUIContent lightTypeGlobal = new GUIContent("Global", Resources.Load("InspectorIcons/GlobalLight") as Texture);
+        }
+
         static Material s_TexCapMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Internal-GUITexture"));
         static Mesh k_MeshQuad_Cache;
         static Mesh k_MeshQuad => k_MeshQuad_Cache == null || k_MeshQuad_Cache.Equals(null) ? (k_MeshQuad_Cache = Resources.GetBuiltinResource<Mesh>("Quad.fbx")) : k_MeshQuad_Cache;
+
+        /// <summary>
+        /// Draws the Light Type dropdown for a Light2D component using the provider system.
+        /// </summary>
+        /// <remarks>
+        /// This method provides a unified way to render the Light Type dropdown in both the Inspector and Light Explorer windows.
+        /// It automatically scans for custom Light2DProvider components on the GameObject and includes them in the dropdown
+        /// alongside built-in light types (Spot, Freeform, Sprite, Global).
+        ///
+        /// The method handles:
+        /// - Scanning for custom providers on the GameObject
+        /// - Synchronizing the dropdown selection with the actual light type value
+        /// - Detecting and applying user changes only when necessary
+        /// - Supporting both layout-based (Inspector) and rect-based (Light Explorer) rendering
+        /// </remarks>
+        /// <param name="position">The rect to draw the control in. This parameter is ignored when <paramref name="layoutMode"/> is true.</param>
+        /// <param name="label">The label to display next to the dropdown. Pass <see cref="GUIContent.none"/> for no label.</param>
+        /// <param name="serializedObject">The SerializedObject containing the Light2D component. Must not be null.</param>
+        /// <param name="layoutMode">If true, uses EditorGUILayout for automatic layout. If false, uses EditorGUI with the provided <paramref name="position"/> rect.</param>
+        public static void DrawLightTypePopup(Rect position, GUIContent label, SerializedObject serializedObject, bool layoutMode)
+        {
+            serializedObject.Update();
+
+            SerializedProperty selectionSources = serializedObject.FindProperty("m_SelectionSources");
+            SerializedProperty lightType = serializedObject.FindProperty("m_LightType");
+
+            if (selectionSources == null || lightType == null)
+                return;
+
+            // Get the Light2D component and its GameObject
+            Light2D light2D = serializedObject.targetObject as Light2D;
+            if (light2D == null)
+                return;
+
+            Light2DProviderSources sources = selectionSources.boxedValue as Light2DProviderSources;
+            if (sources == null)
+                return;
+
+            // Set up the built-in light types
+            List<SelectionSource> additionalSources = new List<SelectionSource>
+            {
+                new Light2DSource_BuiltIn(Styles.lightTypePoint, Light2D.LightType.Point, 0),
+                new Light2DSource_BuiltIn(Styles.lightTypeFreeform, Light2D.LightType.Freeform, 0),
+                new Light2DSource_BuiltIn(Styles.lightTypeSprite, Light2D.LightType.Sprite, 0),
+                new Light2DSource_BuiltIn(Styles.lightTypeGlobal, Light2D.LightType.Global, 0),
+            };
+
+            // Refresh sources to scan for custom providers on the GameObject
+            int selectedIndex = Provider2DSources<Light2DProvider, Light2DProviderSource>.RefreshSources(sources, light2D.gameObject, 0);
+
+            // Add built-in types
+            var additionalSourcesList = sources.GetAdditionalSources();
+            if (additionalSourcesList != null)
+            {
+                additionalSourcesList.Clear();
+                foreach (var source in additionalSources)
+                    additionalSourcesList.Add(source);
+            }
+
+            // Refresh again to include the built-in types
+            selectedIndex = Provider2DSources<Light2DProvider, Light2DProviderSource>.RefreshSources(sources, light2D.gameObject, 0);
+
+            // Sync m_SelectionSources with the actual m_LightType value
+            // This is needed because Light Explorer may have changed m_LightType directly
+            if (lightType.intValue != (int)Light2D.LightType.Provider && sources.selectedHashCode != lightType.intValue)
+            {
+                sources.selectedHashCode = lightType.intValue;
+                selectedIndex = Provider2DSources<Light2DProvider, Light2DProviderSource>.RefreshSources(sources, light2D.gameObject, 0);
+            }
+
+            // Get all source names for the dropdown
+            GUIContent[] sourceNames = sources.GetSourceNames();
+
+            // Track change
+            EditorGUI.BeginChangeCheck();
+
+            int newSelectedIndex;
+            // Draw the dropdown using the appropriate mode
+            if (layoutMode)
+            {
+                newSelectedIndex = EditorGUILayout.Popup(label, selectedIndex, sourceNames);
+            }
+            else
+            {
+                newSelectedIndex = EditorGUI.Popup(position, selectedIndex, sourceNames);
+            }
+
+            // Only apply changes if the user actually changed the value
+            if (EditorGUI.EndChangeCheck())
+            {
+                Provider2DSources<Light2DProvider, Light2DProviderSource>.UpdateSelectionFromIndex(sources, newSelectedIndex);
+                selectionSources.boxedValue = sources;
+                Light2DProviderSources.SetSourceType(selectionSources);
+            }
+        }
 
         static internal bool ContainsVisibleInspectorProperites(Provider2D provider)
         {
@@ -126,7 +230,7 @@ namespace UnityEditor.Rendering.Universal
                 return 0;
         }
 
-        public static Renderer2DData GetRenderer2DData()
+        internal static Renderer2DData GetRenderer2DData()
         {
             UniversalRenderPipelineAsset pipelineAsset = UniversalRenderPipeline.asset;
             if (pipelineAsset == null)
@@ -150,7 +254,7 @@ namespace UnityEditor.Rendering.Universal
             return rendererData;
         }
 
-        public static bool IsUsing2DRenderer()
+        internal static bool IsUsing2DRenderer()
         {
             return GetRenderer2DData() != null;
         }

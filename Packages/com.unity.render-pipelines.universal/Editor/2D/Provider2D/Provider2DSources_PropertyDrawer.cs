@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEditorInternal;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -124,9 +125,17 @@ namespace UnityEditor.Rendering.Universal
                         if(content.text.GetHashCode() == newSelectedContent.text.GetHashCode())
                         {
                             Provider2DSources<T, U>.UpdateSelectionFromIndex(targetSources, j);
+                            // Persist the selection change by updating both the provider selection and m_LightType
+                            targetProperty.boxedValue = targetSources;
+                            Provider2DSources<T, U>.SetSourceType(targetProperty);
                         }
                     }
                 }
+
+                // Force all editor views to repaint so the Light Type dropdown updates.
+                // (Trunk uses InspectorWindow.RepaintAllInspectors() but that type is not
+                // accessible from the URP editor assembly on 6000.5/staging.)
+                InternalEditorUtility.RepaintAllViews();
             }
 
             EditorGUI.EndProperty();

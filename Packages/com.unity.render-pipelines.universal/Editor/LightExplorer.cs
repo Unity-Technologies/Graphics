@@ -37,6 +37,35 @@ namespace UnityEditor
         }
 
         /// <inheritdoc />
+        protected override LightingExplorerTableColumn[] Get2DLightColumns()
+        {
+            // Get the base columns from DefaultLightingExplorerExtension
+            var baseColumns = base.Get2DLightColumns();
+
+            // Replace the Light Type column (index 2) with our custom implementation that supports providers
+            var typeHeader = EditorGUIUtility.TrTextContent("Type");
+            baseColumns[2] = new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, typeHeader, "m_LightType", 100, (r, prop, dep) =>
+            {
+                if (prop != null && prop.serializedObject.targetObject != null)
+                {
+                    if (prop.intValue != (int)UnityEngine.Rendering.Universal.Light2D.LightType.Parametric)
+                    {
+                        // Use the shared utility method that includes provider support
+                        UnityEditor.Rendering.Universal.Light2DEditorUtility.DrawLightTypePopup(r, GUIContent.none, prop.serializedObject, layoutMode: false);
+                    }
+                    else
+                    {
+                        // Handle deprecated Parametric type
+                        var parametricStyle = EditorGUIUtility.TrTextContentWithIcon("Parametric", "Parametric Lights have been deprecated. To continue, upgrade your Parametric Lights to Freeform Lights to enjoy similar light functionality.", MessageType.Warning);
+                        EditorGUI.LabelField(r, parametricStyle);
+                    }
+                }
+            });
+
+            return baseColumns;
+        }
+
+        /// <inheritdoc />
         protected override LightingExplorerTableColumn[] GetReflectionProbeColumns()
         {
             return new[]

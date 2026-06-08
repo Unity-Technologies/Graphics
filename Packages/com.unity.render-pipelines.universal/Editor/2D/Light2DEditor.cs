@@ -579,17 +579,8 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUI.BeginChangeCheck();
 
-            List<SelectionSource> additionalSources = new List<SelectionSource>
-            {
-                new Light2DSource_BuiltIn(Styles.lightTypePoint, Light2D.LightType.Point, 0),
-                new Light2DSource_BuiltIn(Styles.lightTypeFreeform, Light2D.LightType.Freeform, 0),
-                new Light2DSource_BuiltIn(Styles.lightTypeSprite, Light2D.LightType.Sprite, 0),
-                new Light2DSource_BuiltIn(Styles.lightTypeGlobal, Light2D.LightType.Global, 0),
-            }; 
-            
-            Light2DProviderSources.SetAdditionalSources(m_SelectionSources, additionalSources);
-            EditorGUILayout.PropertyField(m_SelectionSources, Styles.generalLightType);  // This should call serializedObject.ApplyModifiedProperties();
-            Light2DProviderSources.SetSourceType(m_SelectionSources);
+            // Use shared utility method for Light Type dropdown
+            Light2DEditorUtility.DrawLightTypePopup(default(Rect), Styles.generalLightType, serializedObject, layoutMode: true);
 
             serializedObject.Update();
 
