@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.Universal
             TryToSetPersistantShapeData(spriteSkin, persistantShadowShape, true);
         }
 
-        public override void OnBeforeRender(Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
+        public override void OnBeforeRender(Camera camera, Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
         {
             SpriteSkin spriteSkin = (SpriteSkin)sourceComponent;
             if (spriteSkin != null && spriteSkin.vertexDeformationHash != m_LastDeformedVertexHash)

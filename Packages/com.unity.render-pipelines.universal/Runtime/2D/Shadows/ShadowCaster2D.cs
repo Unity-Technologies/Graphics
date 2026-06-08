@@ -108,6 +108,16 @@ namespace UnityEngine.Rendering.Universal
         internal ShadowCasterGroup2D m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D m_PreviousShadowCasterGroup = null;
 
+        internal bool isTransformable
+        {
+            get
+            {
+                if (m_ShadowMesh != null)
+                    return m_ShadowMesh.isTransformable;
+                else
+                    return true;  // This is the old default
+            }
+        }
 
         internal bool m_ForceShadowMeshRebuild;
 
@@ -499,7 +509,7 @@ namespace UnityEngine.Rendering.Universal
 
 
 #if UNITY_EDITOR
-        internal void DrawPreviewOutline(Transform t, float trimionDistance)
+        internal void DrawPreviewOutline(Matrix4x4 previewMat, float trimionDistance)
         {
             Vector3[] vertices = mesh.vertices;
             int[] triangles = mesh.triangles;
@@ -524,14 +534,9 @@ namespace UnityEngine.Rendering.Universal
                 Vector3 trimPt1 = new Vector3(pt1.x + trimionDistance * tan1.x, pt1.y + trimionDistance * tan1.y, 0);
                 Vector3 trimPt2 = new Vector3(pt2.x + trimionDistance * tan2.x, pt2.y + trimionDistance * tan2.y, 0);
 
-                bool flipX, flipY;
-                m_ShadowMesh.GetFlip(out flipX, out flipY);
-                Vector3 scale = new Vector3(t.lossyScale.x * (flipX ? -1 : 1), t.lossyScale.y * (flipY ? -1 : 1), 1);
-                Matrix4x4 mat = Matrix4x4.TRS(t.position, t.rotation, scale);
-
-                trimPt0 = mat.MultiplyPoint(trimPt0);
-                trimPt1 = mat.MultiplyPoint(trimPt1);
-                trimPt2 = mat.MultiplyPoint(trimPt2);
+                trimPt0 = previewMat.MultiplyPoint(trimPt0);
+                trimPt1 = previewMat.MultiplyPoint(trimPt1);
+                trimPt2 = previewMat.MultiplyPoint(trimPt2);
 
                 if (pt0.z == 0 && pt1.z == 0)
                     Handles.DrawAAPolyLine(4, new Vector3[] { trimPt0, trimPt1 });
@@ -546,10 +551,20 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_ShadowMesh != null && mesh != null && m_ShadowCastingSource != ShadowCastingSources.None && enabled)
             {
+
+                Matrix4x4 outlineMat = Matrix4x4.identity;
+                if (isTransformable)
+                {
+                    bool flipX, flipY;
+                    m_ShadowMesh.GetFlip(out flipX, out flipY);
+                    Vector3 scale = new Vector3(transform.lossyScale.x * (flipX ? -1 : 1), transform.lossyScale.y * (flipY ? -1 : 1), 1);
+                    outlineMat = Matrix4x4.TRS(transform.position, transform.rotation, scale);
+                }
+                
                 if (edgeProcessing == EdgeProcessing.None)
-                    DrawPreviewOutline(transform, trimEdge);
+                    DrawPreviewOutline(outlineMat, trimEdge);
                 else
-                    DrawPreviewOutline(transform, 0);
+                    DrawPreviewOutline(outlineMat, 0);
             }
         }
 

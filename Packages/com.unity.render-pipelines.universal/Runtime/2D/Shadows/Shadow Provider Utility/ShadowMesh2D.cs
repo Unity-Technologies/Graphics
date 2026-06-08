@@ -24,6 +24,8 @@ namespace UnityEngine.Rendering.Universal
         NativeArray<ShadowMeshVertex>       m_NativeVertices;
         NativeArray<int>                    m_NativeIndices;
 
+        [SerializeField] bool               m_IsTransformable = true;
+
 
         [SerializeField] Bounds m_LocalBounds;
         [SerializeField] EdgeProcessing m_EdgeProcessing = EdgeProcessing.Clipping;
@@ -48,6 +50,9 @@ namespace UnityEngine.Rendering.Universal
             m_Vertices = null;
             m_Indices = null;
         }
+
+
+        public bool isTransformable => m_IsTransformable;
 
         public  BoundingSphere boundingSphere { get => m_BoundingSphere; }
         internal BoundingSphere m_BoundingSphere;   // update to world space
@@ -224,123 +229,43 @@ namespace UnityEngine.Rendering.Universal
 
         public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<float> radii, Matrix4x4 transform, ShadowShape2D.WindingOrder windingOrder = ShadowShape2D.WindingOrder.Clockwise, bool allowTriming = true, bool createInteriorGeometry = false)
         {
-            if (m_TrimEdge == k_TrimEdgeUninitialized)
-                m_TrimEdge = m_InitialTrim;
-
-            if (indices.Length == 0)
-            {
-                Clear();
-                return;
-            }
+            m_IsTransformable = true;
 
             bool reverseWindingOrder = windingOrder == ShadowShape2D.WindingOrder.CounterClockwise;
 
-
-            int circleCount = 0;
-            int capsuleCount = 0;
-            for (int i = 0; i < indices.Length; i += 2)
-            {
-                int index0 = indices[i];
-                int index1 = indices[i + 1];
-
-                if (radii[index0] > 0 || radii[index1] > 0)
-                {
-                    if (index0 == index1)
-                        circleCount++;
-                    else
-                        capsuleCount++;
-                }
-            }
-
-            int capsuleStraightSegments = capsuleCount * 2;
-            int capsuleCapSegments = capsuleCount * k_CapsuleCapSegments;  // This can be refined later
-            int circleSegments = circleCount * 2 * k_CapsuleCapSegments;
-
-            int lineCount = (indices.Length >> 1) - (capsuleCount + circleCount);
-            int indexCount = 2 * (lineCount + capsuleStraightSegments + (2 * capsuleCapSegments) + circleSegments);
-            int vertexCount = indexCount;  // Keep this simple for now
-
-            NativeArray<Vector3> generatedVertices = new NativeArray<Vector3>(vertexCount, Allocator.Temp);
-            NativeArray<int> generatedIndices = new NativeArray<int>(indexCount, Allocator.Temp);
-
-            int vertexWritePos = 0;
-            int indexWritePos = 0;
-            int indicesProcessed = 0;
-            while (indicesProcessed < indices.Length)
-            {
-                int v0 = indices[indicesProcessed];
-                int v1 = indices[indicesProcessed + 1];
-
-                float r0 = radii[v0];
-                float r1 = radii[v1];
-
-                if (radii[v0] > 0 || radii[v1] > 0)
-                {
-                    Vector3 pt0 = vertices[v0];
-                    Vector3 pt1 = vertices[v1];
-
-                    if (vertices[v0].x == vertices[v1].x && vertices[v0].y == vertices[v1].y)
-                        AddCircle(pt0, r0, generatedVertices, generatedIndices, reverseWindingOrder, ref vertexWritePos, ref indexWritePos);
-                    else
-                        AddCapsule(pt0, pt1, r0, r1, generatedVertices, generatedIndices, reverseWindingOrder, ref vertexWritePos, ref indexWritePos);
-
-                    indicesProcessed += 2;
-                }
-                else
-                {
-                    // Will add edges or polygons
-                    indicesProcessed = AddShape(vertices, indices, indicesProcessed, generatedVertices, generatedIndices, ref vertexWritePos, ref indexWritePos);
-                }
-            }
+            GenerateShapeWithRadiiShared_Internal(vertices, indices, radii, reverseWindingOrder, out NativeArray<Vector3> generatedVertices, out NativeArray<int> generatedIndices);
 
             for (int i = 0; i < generatedVertices.Length; i++)
                 generatedVertices[i] = transform.MultiplyPoint(generatedVertices[i]);
 
-            NativeArray<ShadowEdge> calculatedEdges;
-            NativeArray<int> calculatedStartingEdges;
-            NativeArray<bool> calculatedIsClosedArray;
-
-            ShadowUtility.CalculateEdgesFromLines(ref generatedIndices, out calculatedEdges, out calculatedStartingEdges, out calculatedIsClosedArray);
-
-            if (reverseWindingOrder)
-                ShadowUtility.ReverseWindingOrder(ref calculatedStartingEdges, ref calculatedEdges);
-
-            if (m_EdgeProcessing == EdgeProcessing.Clipping)
-            {
-                NativeArray<Vector3> clippedVertices;
-                NativeArray<ShadowEdge> clippedEdges;
-                NativeArray<int> clippedStartingIndices;
-
-                ShadowUtility.ClipEdges(ref generatedVertices, ref calculatedEdges, ref calculatedStartingEdges, ref calculatedIsClosedArray, trimEdge, out clippedVertices, out clippedEdges, out clippedStartingIndices);
-
-                if (clippedStartingIndices.Length > 0)
-                {
-                    m_LocalBounds = ShadowUtility.GenerateShadowGeometry(ref m_NativeVertices, ref m_NativeIndices, clippedVertices, clippedEdges, clippedStartingIndices, calculatedIsClosedArray, true, createInteriorGeometry, ShadowShape2D.OutlineTopology.Lines);
-                    m_IsDirty = true;
-                }
-                else
-                {
-                    m_LocalBounds = new Bounds();
-                    Clear();
-                }
-
-                clippedVertices.Dispose();
-                clippedEdges.Dispose();
-                clippedStartingIndices.Dispose();
-            }
-            else
-            {
-                m_LocalBounds = ShadowUtility.GenerateShadowGeometry(ref m_NativeVertices, ref m_NativeIndices, generatedVertices, calculatedEdges, calculatedStartingEdges, calculatedIsClosedArray, true, createInteriorGeometry, ShadowShape2D.OutlineTopology.Lines);
-                m_IsDirty = true;
-            }
+            ProcessShapeWithRadiiShared_Internal(generatedVertices, generatedIndices, reverseWindingOrder, createInteriorGeometry, out NativeArray<ShadowEdge> calculatedEdges, out NativeArray<int> calculatedStartingEdges, out NativeArray<bool> calculatedIsClosedArray);
 
             generatedVertices.Dispose();
             generatedIndices.Dispose();
             calculatedEdges.Dispose();
             calculatedIsClosedArray.Dispose();
             calculatedStartingEdges.Dispose();
-
         }
+
+
+        public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<float> radii, ShadowShape2D.WindingOrder windingOrder = ShadowShape2D.WindingOrder.Clockwise, bool allowTriming = true, bool createInteriorGeometry = false, bool inWorldSpace = false)
+        {
+            m_IsTransformable = !inWorldSpace;
+
+            bool reverseWindingOrder = windingOrder == ShadowShape2D.WindingOrder.CounterClockwise;
+
+            GenerateShapeWithRadiiShared_Internal(vertices, indices, radii, reverseWindingOrder, out NativeArray<Vector3> generatedVertices, out NativeArray<int> generatedIndices);
+
+            ProcessShapeWithRadiiShared_Internal(generatedVertices, generatedIndices, reverseWindingOrder, createInteriorGeometry, out NativeArray<ShadowEdge> calculatedEdges, out NativeArray<int> calculatedStartingEdges, out NativeArray<bool> calculatedIsClosedArray);
+
+            generatedVertices.Dispose();
+            generatedIndices.Dispose();
+            calculatedEdges.Dispose();
+            calculatedIsClosedArray.Dispose();
+            calculatedStartingEdges.Dispose();
+        }
+
+
 
 
         bool AreDegenerateVertices(NativeArray<Vector3> vertices)
@@ -361,8 +286,10 @@ namespace UnityEngine.Rendering.Universal
             return true;
         }
 
-        public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, ShadowShape2D.OutlineTopology outlineTopology, ShadowShape2D.WindingOrder windingOrder = ShadowShape2D.WindingOrder.Clockwise, bool allowTrimming = true,  bool createInteriorGeometry = false)
+        public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, ShadowShape2D.OutlineTopology outlineTopology, ShadowShape2D.WindingOrder windingOrder = ShadowShape2D.WindingOrder.Clockwise, bool allowTrimming = true,  bool createInteriorGeometry = false, bool inWorldSpace = false)
         {
+            m_IsTransformable = !inWorldSpace;
+
             if (AreDegenerateVertices(vertices) || indices == null || indices.Length == 0)
             {
                 Clear();
@@ -403,7 +330,7 @@ namespace UnityEngine.Rendering.Universal
 
                 ShadowUtility.ClipEdges(ref vertices, ref edges, ref shapeStartingIndices, ref shapeIsClosedArray, trimEdge, out clippedVertices, out clippedEdges, out clippedStartingIndices);
 
-                m_LocalBounds = ShadowUtility.GenerateShadowGeometry(ref m_NativeVertices, ref m_NativeIndices, clippedVertices, clippedEdges, clippedStartingIndices, shapeIsClosedArray, allowTrimming, createInteriorGeometry, outlineTopology);
+                m_LocalBounds = ShadowUtility.GenerateShadowGeometry(ref m_NativeVertices, ref m_NativeIndices, clippedVertices, clippedEdges, clippedStartingIndices, createInteriorGeometry, outlineTopology);
                 m_IsDirty = true;
 
                 clippedVertices.Dispose();
@@ -412,7 +339,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                m_LocalBounds = ShadowUtility.GenerateShadowGeometry(ref m_NativeVertices, ref m_NativeIndices, vertices, edges, shapeStartingIndices, shapeIsClosedArray, allowTrimming, createInteriorGeometry, outlineTopology);
+                m_LocalBounds = ShadowUtility.GenerateShadowGeometry(ref m_NativeVertices, ref m_NativeIndices, vertices, edges, shapeStartingIndices, createInteriorGeometry, outlineTopology);
                 m_IsDirty = true;
             }
 
@@ -428,6 +355,28 @@ namespace UnityEngine.Rendering.Universal
             shapeStartingIndices.Dispose();
             shapeIsClosedArray.Dispose();
         }
+
+        public override void SetShapeDirect(NativeArray<Vector3> vertices, NativeArray<int> indices, bool inWorldSpace = false)
+        {
+            m_IsTransformable = !inWorldSpace;
+
+            NativeArray<ShadowEdge> edges = indices.Reinterpret<ShadowEdge>(sizeof(int));
+
+            // Create a shape starting indices array indicating a single shape starting at edge 0
+            NativeArray<int> shapeStartingIndices = new NativeArray<int>(1, Allocator.Temp);
+            shapeStartingIndices[0] = 0;
+
+            m_LocalBounds = ShadowUtility.GenerateShadowGeometry(ref m_NativeVertices, ref m_NativeIndices, vertices, edges, shapeStartingIndices, false, OutlineTopology.Lines);
+            m_IsDirty = true;
+
+            if (m_Mesh == null)
+                m_Mesh = new Mesh();
+
+            ShadowUtility.GenerateShadowMesh(ref m_Mesh, m_NativeVertices, m_NativeIndices);
+
+            shapeStartingIndices.Dispose();
+        }
+
 
         public void SetShapeWithLines(NativeArray<Vector3> vertices, NativeArray<int> indices, bool allowTrimming)
         {
@@ -454,8 +403,15 @@ namespace UnityEngine.Rendering.Universal
 
         public void UpdateBoundingSphere(Transform transform)
         {
-            var maxBound = transform.TransformPoint(m_LocalBounds.max);
-            var minBound = transform.TransformPoint(m_LocalBounds.min);
+            var maxBound = m_LocalBounds.max;
+            var minBound = m_LocalBounds.min;
+
+            if (isTransformable)
+            {
+                maxBound = transform.TransformPoint(m_LocalBounds.max);
+                minBound = transform.TransformPoint(m_LocalBounds.min);
+            }
+
             var center = 0.5f * (maxBound + minBound);
             var radius = Vector3.Magnitude(maxBound - center);
 
@@ -469,6 +425,117 @@ namespace UnityEngine.Rendering.Universal
 
             if(m_NativeVertices.IsCreated)
                 m_NativeVertices.Dispose();
+        }
+
+        private void GenerateShapeWithRadiiShared_Internal(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<float> radii, bool reverseWindingOrder, out NativeArray<Vector3> generatedVertices, out NativeArray<int> generatedIndices)
+        {
+            if (m_TrimEdge == k_TrimEdgeUninitialized)
+                m_TrimEdge = m_InitialTrim;
+
+            if (indices.Length == 0)
+            {
+                Clear();
+                generatedIndices = new NativeArray<int>();
+                generatedVertices = new NativeArray<Vector3>();
+                return;
+            }
+
+
+            int circleCount = 0;
+            int capsuleCount = 0;
+            for (int i = 0; i < indices.Length; i += 2)
+            {
+                int index0 = indices[i];
+                int index1 = indices[i + 1];
+
+                if (radii[index0] > 0 || radii[index1] > 0)
+                {
+                    if (index0 == index1)
+                        circleCount++;
+                    else
+                        capsuleCount++;
+                }
+            }
+
+            int capsuleStraightSegments = capsuleCount * 2;
+            int capsuleCapSegments = capsuleCount * k_CapsuleCapSegments;  // This can be refined later
+            int circleSegments = circleCount * 2 * k_CapsuleCapSegments;
+
+            int lineCount = (indices.Length >> 1) - (capsuleCount + circleCount);
+            int indexCount = 2 * (lineCount + capsuleStraightSegments + (2 * capsuleCapSegments) + circleSegments);
+            int vertexCount = indexCount;  // Keep this simple for now
+
+            generatedVertices = new NativeArray<Vector3>(vertexCount, Allocator.Temp);
+            generatedIndices = new NativeArray<int>(indexCount, Allocator.Temp);
+
+            int vertexWritePos = 0;
+            int indexWritePos = 0;
+            int indicesProcessed = 0;
+            while (indicesProcessed < indices.Length)
+            {
+                int v0 = indices[indicesProcessed];
+                int v1 = indices[indicesProcessed + 1];
+
+                float r0 = radii[v0];
+                float r1 = radii[v1];
+
+                if (radii[v0] > 0 || radii[v1] > 0)
+                {
+                    Vector3 pt0 = vertices[v0];
+                    Vector3 pt1 = vertices[v1];
+
+                    if (vertices[v0].x == vertices[v1].x && vertices[v0].y == vertices[v1].y)
+                        AddCircle(pt0, r0, generatedVertices, generatedIndices, reverseWindingOrder, ref vertexWritePos, ref indexWritePos);
+                    else
+                        AddCapsule(pt0, pt1, r0, r1, generatedVertices, generatedIndices, reverseWindingOrder, ref vertexWritePos, ref indexWritePos);
+
+                    indicesProcessed += 2;
+                }
+                else
+                {
+                    // Will add edges or polygons
+                    indicesProcessed = AddShape(vertices, indices, indicesProcessed, generatedVertices, generatedIndices, ref vertexWritePos, ref indexWritePos);
+                }
+            }
+        }
+
+
+        private void ProcessShapeWithRadiiShared_Internal(NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, bool reverseWindingOrder, bool createInteriorGeometry, out NativeArray<ShadowEdge> calculatedEdges, out NativeArray<int> calculatedStartingEdges, out NativeArray<bool> calculatedIsClosedArray)
+        {
+            ShadowUtility.CalculateEdgesFromLines(ref generatedIndices, out calculatedEdges, out calculatedStartingEdges, out calculatedIsClosedArray);
+
+            if (reverseWindingOrder)
+                ShadowUtility.ReverseWindingOrder(ref calculatedStartingEdges, ref calculatedEdges);
+
+            if (m_EdgeProcessing == EdgeProcessing.Clipping)
+            {
+                NativeArray<Vector3> clippedVertices;
+                NativeArray<ShadowEdge> clippedEdges;
+                NativeArray<int> clippedStartingIndices;
+
+                ShadowUtility.ClipEdges(ref generatedVertices, ref calculatedEdges, ref calculatedStartingEdges, ref calculatedIsClosedArray, trimEdge, out clippedVertices, out clippedEdges, out clippedStartingIndices);
+
+                if (clippedStartingIndices.Length > 0)
+                {
+                    m_LocalBounds = ShadowUtility.GenerateShadowGeometry(ref m_NativeVertices, ref m_NativeIndices, clippedVertices, clippedEdges, clippedStartingIndices, createInteriorGeometry, ShadowShape2D.OutlineTopology.Lines);
+                    m_IsDirty = true;
+                }
+                else
+                {
+                    m_LocalBounds = new Bounds();
+                    Clear();
+                }
+
+                clippedVertices.Dispose();
+                clippedEdges.Dispose();
+                clippedStartingIndices.Dispose();
+            }
+            else
+            {
+                m_LocalBounds = ShadowUtility.GenerateShadowGeometry(ref m_NativeVertices, ref m_NativeIndices, generatedVertices, calculatedEdges, calculatedStartingEdges, createInteriorGeometry, ShadowShape2D.OutlineTopology.Lines);
+                m_IsDirty = true;
+            }
+
         }
     }
 }

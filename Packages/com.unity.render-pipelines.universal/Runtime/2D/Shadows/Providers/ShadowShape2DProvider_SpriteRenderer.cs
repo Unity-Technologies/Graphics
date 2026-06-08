@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.Universal
             TryToSetPersistantShapeData(spriteRenderer, persistantShadowShape, true);
         }
 
-        public override void OnBeforeRender(Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
+        public override void OnBeforeRender(Camera camera, Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
         {
             SpriteRenderer spriteRenderer = (SpriteRenderer)sourceComponent;
             persistantShadowShape.SetFlip(spriteRenderer.flipX, spriteRenderer.flipY);

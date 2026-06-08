@@ -11,12 +11,12 @@ namespace UnityEngine.Rendering.Universal
 {
     internal class ShapeProviderUtility
     {
-        static public void CallOnBeforeRender(ShadowShape2DProvider shapeProvider, Component component, ShadowMesh2D shadowMesh, Bounds bounds)
+        static public void CallOnBeforeRender(ShadowShape2DProvider shapeProvider, Component component, ShadowMesh2D shadowMesh, Bounds bounds, Camera camera)
         {
             if (component != null)
             {
                 if (shapeProvider != null && component.gameObject.activeInHierarchy)
-                    shapeProvider.OnBeforeRender(component, bounds, shadowMesh);
+                    shapeProvider.OnBeforeRender(camera, component, bounds, shadowMesh);
             }
             else if (shadowMesh != null && shadowMesh.mesh != null)
             {

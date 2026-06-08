@@ -45,6 +45,8 @@ namespace UnityEngine.Rendering.Universal
         private static readonly Color k_ShadowColorLookup = new Color(0, 0, 1, 0);
         private static readonly Color k_UnshadowColorLookup = new Color(0, 1, 0, 0);
 
+        static readonly string k_NotTransformable = "NOT_TRANSFORMABLE";
+
         private static Material CreateMaterial(Shader shader, int offset, int pass)
         {
             Material material = CoreUtils.CreateEngineMaterial(shader);
@@ -266,7 +268,7 @@ namespace UnityEngine.Rendering.Universal
                             ShadowCaster2D shadowCaster = shadowCasters[shadowCasterIndex];
                             if (shadowCaster != null && shadowCaster.shadowCastingSource == ShadowCaster2D.ShadowCastingSources.ShapeProvider)
                             {
-                                ShapeProviderUtility.CallOnBeforeRender(shadowCaster.shadowShape2DProvider, shadowCaster.shadowShape2DComponent, shadowCaster.m_ShadowMesh, bounds);
+                                ShapeProviderUtility.CallOnBeforeRender(shadowCaster.shadowShape2DProvider, shadowCaster.shadowShape2DComponent, shadowCaster.m_ShadowMesh, bounds, camera);
                             }
                         }
                     }
@@ -285,6 +287,11 @@ namespace UnityEngine.Rendering.Universal
             cmdBuffer.SetGlobalMatrix(k_ShadowModelMatrixID, shadowCaster.m_CachedShadowMatrix);
             cmdBuffer.SetGlobalMatrix(k_ShadowModelInvMatrixID, shadowCaster.m_CachedInverseShadowMatrix);
             cmdBuffer.SetGlobalFloat(k_ShadowSoftnessFalloffIntensityID, light.shadowSoftnessFalloffIntensity);
+
+            if (!shadowCaster.isTransformable)
+                cmdBuffer.EnableShaderKeyword(k_NotTransformable);
+            else
+                cmdBuffer.DisableShaderKeyword(k_NotTransformable);
 
             if (shadowCaster.edgeProcessing == ShadowCaster2D.EdgeProcessing.None)
                 cmdBuffer.SetGlobalFloat(k_ShadowContractionDistanceID, shadowCaster.trimEdge);

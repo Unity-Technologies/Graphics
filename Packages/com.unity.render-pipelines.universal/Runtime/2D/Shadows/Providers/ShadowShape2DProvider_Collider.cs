@@ -354,7 +354,7 @@ namespace UnityEngine.Rendering.Universal
             m_LastColliderSpace = Matrix4x4.identity;
         }
 
-        public override void OnBeforeRender(Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
+        public override void OnBeforeRender(Camera camera, Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
         {
             Collider2D collider = (Collider2D)sourceComponent;
             CalculateShadows(collider, persistantShadowShape, worldCullingBounds);

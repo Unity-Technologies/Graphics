@@ -60,9 +60,16 @@ float3 SoftShadowDir(float3 lightDir, float3 vertex0, float3 vertex1, float angl
 
 float4 ProjectShadowVertexToWS(float2 vertex, float2 otherEndPt, float2 contractDir, float shadowType, float3 lightPos, float3 shadowModelScale, float4x4 shadowModelMatrix, float4x4 shadowModelInvMatrix, float shadowContractionDistance, float shadowRadius, float softShadowAngle)
 {
-    float3 vertexOS0 = float3(vertex.x * shadowModelScale.x, vertex.y * shadowModelScale.y, 0);
-    float3 vertexOS1 = float3(otherEndPt.x * shadowModelScale.x, otherEndPt.y * shadowModelScale.y, 0);  // the tangent has the adjacent point stored in zw
-    float3 lightPosOS = float3(mul(shadowModelInvMatrix, float4(lightPos.x, lightPos.y, lightPos.z, 1)).xy, 0);  // Transform the light into local space
+
+    #if NOT_TRANSFORMABLE
+        float3 vertexOS0 = float3(vertex.x, vertex.y, 0);
+        float3 vertexOS1 = float3(otherEndPt.x, otherEndPt.y, 0);  // the tangent has the adjacent point stored in zw
+        float3 lightPosOS = float3(lightPos.xy, 0);  // Transform the light into local space
+    #else
+        float3 vertexOS0 = float3(vertex.x * shadowModelScale.x, vertex.y * shadowModelScale.y, 0);
+        float3 vertexOS1 = float3(otherEndPt.x * shadowModelScale.x, otherEndPt.y * shadowModelScale.y, 0);  // the tangent has the adjacent point stored in zw
+        float3 lightPosOS = float3(mul(shadowModelInvMatrix, float4(lightPos.x, lightPos.y, lightPos.z, 1)).xy, 0);  // Transform the light into local space
+    #endif
 
     float3 unnormalizedLightDir0 = vertexOS0 - lightPosOS;
     float3 unnormalizedLightDir1 = vertexOS1 - lightPosOS;
@@ -92,7 +99,11 @@ float4 ProjectShadowVertexToWS(float2 vertex, float2 otherEndPt, float2 contract
     // If we are suppose to extrude this point, then
     float3 finalVertexOS = isShadowVertex * (lightPosOS + shadowOffset) + (1 - isShadowVertex) * contractedVertexPos;
 
-    return mul(shadowModelMatrix, float4(finalVertexOS, 1));
+    #if NOT_TRANSFORMABLE
+        return float4(finalVertexOS, 1);
+    #else
+        return mul(shadowModelMatrix, float4(finalVertexOS, 1));
+    #endif
 }
 
 

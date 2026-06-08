@@ -37,9 +37,12 @@ Shader "Hidden/ShadowProjected2D"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/ShadowProjectVertex.hlsl"
 
+            #pragma multi_compile _ NOT_TRANSFORMABLE
+
             TEXTURE2D(_FalloffLookup);
             SAMPLER(sampler_FalloffLookup);
             half _ShadowSoftnessFalloffIntensity;
+            
 
             Varyings vert (Attributes v)
             {
@@ -83,6 +86,8 @@ Shader "Hidden/ShadowProjected2D"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/ShadowProjectVertex.hlsl"
+
+            #pragma multi_compile _ NOT_TRANSFORMABLE
 
             TEXTURE2D(_FalloffLookup);
             SAMPLER(sampler_FalloffLookup);

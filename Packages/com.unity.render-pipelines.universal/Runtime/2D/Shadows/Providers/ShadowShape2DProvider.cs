@@ -3,10 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -44,13 +40,18 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="persistantShadowShape">An instance of <c>ShadowShape2D</c> that is used by the <c>ShadowCaster2D</c></param>
         public virtual void OnInitialized(Component sourceComponent, ShadowShape2D persistantShadowShape) { }
 
+
+        [Obsolete("Use latest OnBeforeRender")]
+        public virtual void OnBeforeRender(Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape) { }
+
         /// <summary>
         /// Called before 2D lighting is rendered each frame
         /// </summary>
+        /// <param name="camera">The camera being rendered</param>
         /// <param name="sourceComponent">The component associated with the provider</param>
         /// <param name="worldCullingBounds">The bounds enclosing the region of the view frustum and all visible lights</param>
         /// <param name="persistantShadowShape">An instance of <c>ShadowShape2D</c> that is used by the <c>ShadowCaster2D</c></param>
-        public virtual void OnBeforeRender(Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape) { }
+        public virtual void OnBeforeRender(Camera camera, Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape) { }
 
         /// <summary>
         /// Called for each component on a <c>ShadowCaster2D's</c> <c>GameObject</c>. Returns true if the provided component is the data source of the <c>ShadowShapeProvider</c>.

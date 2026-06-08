@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 namespace UnityEngine.Rendering.Universal
 {
+    [StructLayout(LayoutKind.Sequential)]
     internal struct ShadowEdge
     {
         public int v0;
