@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.Universal
     [CoreRPHelpURL("2DShadows", "com.unity.render-pipelines.universal")]
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
-
+    [Icon("UnityEngine/UI/Shadow Icon")]
     [AddComponentMenu("Rendering/2D/Shadow Caster 2D")]
     [MovedFrom(false, "UnityEngine.Experimental.Rendering.Universal", "com.unity.render-pipelines.universal")]
 
