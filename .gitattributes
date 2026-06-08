@@ -402,3 +402,6 @@ Editor/Resources/unity[[:space:]]editor[[:space:]]resources filter=lfs diff=lfs 
 /Tests/EditModeAndPlayModeTests/NetcodeSamples/**/*.[jJ][pP][gG] filter=lfs diff=lfs merge=lfs -text
 /Tests/EditModeAndPlayModeTests/NetcodeSamples/**/*.[tT][iI][fF] filter=lfs diff=lfs merge=lfs -text
 /Tests/EditModeAndPlayModeTests/NetcodeSamples/**/*.[fF][bB][xX] filter=lfs diff=lfs merge=lfs -text
+
+# documentation images
+Documentation/ManualDocs/uploads/Main/unity-xr-tech-stack.png filter=lfs diff=lfs merge=lfs -text
