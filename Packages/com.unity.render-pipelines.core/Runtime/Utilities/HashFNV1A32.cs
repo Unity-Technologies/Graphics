@@ -95,10 +95,8 @@ namespace UnityEngine.Rendering
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Append(in Vector2 input)
         {
-            unchecked
-            {
-                m_Hash = (m_Hash ^ (uint)input.GetHashCode()) * k_Prime;
-            }
+            Append(input.x);
+            Append(input.y);
         }
 
         /// <summary>Mixes a <see cref="Vector3"/> into the running hash.</summary>
@@ -106,10 +104,9 @@ namespace UnityEngine.Rendering
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Append(in Vector3 input)
         {
-            unchecked
-            {
-                m_Hash = (m_Hash ^ (uint)input.GetHashCode()) * k_Prime;
-            }
+            Append(input.x);
+            Append(input.y);
+            Append(input.z);
         }
 
         /// <summary>Mixes a <see cref="Vector4"/> into the running hash.</summary>
@@ -117,10 +114,10 @@ namespace UnityEngine.Rendering
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Append(in Vector4 input)
         {
-            unchecked
-            {
-                m_Hash = (m_Hash ^ (uint)input.GetHashCode()) * k_Prime;
-            }
+            Append(input.x);
+            Append(input.y);
+            Append(input.z);
+            Append(input.w);
         }
 
         /// <summary>Mixes any value-type input into the running hash via its <see cref="object.GetHashCode"/>.</summary>
