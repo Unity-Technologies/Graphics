@@ -11,7 +11,7 @@ PostProcessing_OSX_Metal_playmode_mono_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
     commands:
-        - command: |-
+      - command: |-
           brew tap Unity-Technologies/homebrew-unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git;
           brew trust unity-technologies/unity;
           brew install Unity-Technologies/homebrew-unity/unity-downloader-cli; 
