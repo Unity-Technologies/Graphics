@@ -1,6 +1,104 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-4539434316174315048
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ac8020f36911b4458ec9257ceb20861, type: 3}
+  m_Name: GraphicsTestBuildSettings
+  m_EditorClassIdentifier: UnityEngine.TestTools.Graphics::UnityEngine.TestTools.Graphics.GraphicsTestBuildSettings
+  m_AutoBuildTestCases: 1
+  m_TestContentBundlePaths:
+  - default-linear-windowsplayer-vulkan-none-0
+  - default-linear-windowsplayer-vulkan-none-1
+  - default-linear-windowsplayer-vulkan-none-2
+  - default-linear-windowsplayer-vulkan-none-3
+  - default-linear-windowsplayer-vulkan-none-4
+  m_ImageResultsPath: 
+  m_SaveActualImages: 0
+  m_OverrideIgnoreAttributes: 0
+  m_ShaderWarningsAsErrors: 0
+  m_PreviousScenesPaths:
+  - Assets/Scenes/0001_Std_Empty_Forward_LDR_NoMSAA.unity
+  - Assets/Scenes/0002_Std_Empty_Forward_HDR_NoMSAA.unity
+  - Assets/Scenes/0003_Std_Empty_Forward_LDR_MSAA.unity
+  - Assets/Scenes/0004_Std_Empty_Forward_HDR_MSAA.unity
+  - Assets/Scenes/0005_Std_Empty_Deferred_LDR.unity
+  - Assets/Scenes/0006_Std_Empty_Deferred_HDR.unity
+  - Assets/Scenes/0010_Std_NaN_Killer.unity
+  - Assets/Scenes/0011_Std_Blending_FloatColor.unity
+  - Assets/Scenes/0012_Std_Blending_Texture2D.unity
+  - Assets/Scenes/0100_Std_FXAA.unity
+  - Assets/Scenes/0101_Std_FXAA_Fast.unity
+  - Assets/Scenes/0102_Std_SMAA.unity
+  - Assets/Scenes/0200_Std_Vignette.unity
+  - Assets/Scenes/0201_Std_LensDistort.unity
+  - Assets/Scenes/0202_Std_LensUnDistort.unity
+  - Assets/Scenes/0203_Std_ChromaticAberration.unity
+  - Assets/Scenes/0204_Std_ChromaticAberration_Fast.unity
+  - Assets/Scenes/0205_Std_Grain.unity
+  - Assets/Scenes/0206_Std_Grain_Colored.unity
+  - Assets/Scenes/0207_Std_Bloom_HDR.unity
+  - Assets/Scenes/0208_Std_Bloom_HDR_Fast.unity
+  - Assets/Scenes/0209_Std_Bloom_LDR.unity
+  - Assets/Scenes/0210_Std_Bloom_LDR_Fast.unity
+  - Assets/Scenes/0211_Std_LensDirt.unity
+  - Assets/Scenes/0212_Std_ColorGrading_HDR_Neutral.unity
+  - Assets/Scenes/0213_Std_ColorGrading_LDR_Neutral.unity
+  - Assets/Scenes/0214_Std_ColorGrading_HDR_Mix.unity
+  - Assets/Scenes/0215_Std_ColorGrading_LDR_Mix.unity
+  - Assets/Scenes/0216_Std_SSAO_Forward_NoMSAA.unity
+  - Assets/Scenes/0217_Std_SSAO_Forward_MSAA.unity
+  - Assets/Scenes/0218_Std_MSVO_Deferred.unity
+  - Assets/Scenes/0219_Std_MSVO_Deferred_AmbientOnly.unity
+  - Assets/Scenes/0220_Std_DepthOfField.unity
+  - Assets/Scenes/0221_Std_AutoExposure.unity
+  m_PreviousScenesEnabled: 01010101010101010101010101010101010101010101010101010101010101010001y
+  m_ReloadDomainWhenEditingTestSceneAssets: 1
+  m_AutoOptimizeReferenceImages: 0
+  m_EnableShaderStripping: 1
+  m_ShouldCleanUpAfterBuild: 1
+  m_HeatmapColorScheme: 2
+  m_MaxConcurrentImageOptimizations: 11
+  m_PlatformSchemata:
+  - name: Default
+    rootPath: Assets/ReferenceImages
+    nodes:
+    - ColorSpace
+    - RuntimePlatform
+    - Architecture
+    - GraphicsDeviceType
+    - XrDevice
+    typeString: UnityEngine.ColorSpace, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;UnityEngine.RuntimePlatform, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;System.Runtime.InteropServices.Architecture, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;UnityEngine.Rendering.GraphicsDeviceType, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;UnityEngine.TestTools.Graphics.Platforms.XrDevice, UnityEngine.TestTools.Graphics, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - name: Default Base
+    rootPath: Assets/ReferenceImagesBase
+    nodes: []
+    typeString: 
+  m_BuildPlatformSchemata:
+  - name: Default
+    rootPath: Assets/ReferenceImages
+    nodes:
+    - ColorSpace
+    - RuntimePlatform
+    - Architecture
+    - GraphicsDeviceType
+    - XrDevice
+    typeString: UnityEngine.ColorSpace, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;UnityEngine.RuntimePlatform, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;System.Runtime.InteropServices.Architecture, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;UnityEngine.Rendering.GraphicsDeviceType, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;UnityEngine.TestTools.Graphics.Platforms.XrDevice, UnityEngine.TestTools.Graphics, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - name: Default Base
+    rootPath: Assets/ReferenceImagesBase
+    nodes: []
+    typeString: 
+  m_BuildPlatformNames:
+  - default-linear-windowseditor-vulkan-none
+  - default-base-
+  m_SceneLists:
+  - {fileID: 2859106188757200009}
+--- !u!114 &2859106188757200009
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -52,96 +150,3 @@ MonoBehaviour:
     methodName: Run
     parameterTypeNames:
     - UnityEngine.TestTools.Graphics.SceneGraphicsTestCase
---- !u!114 &11400000
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3ac8020f36911b4458ec9257ceb20861, type: 3}
-  m_Name: GraphicsTestBuildSettings
-  m_EditorClassIdentifier: UnityEngine.TestTools.Graphics::UnityEngine.TestTools.Graphics.GraphicsTestBuildSettings
-  m_AutoBuildTestCases: 1
-  m_TestContentBundlePaths: []
-  m_ImageResultsPath: 
-  m_SaveActualImages: 0
-  m_OverrideIgnoreAttributes: 0
-  m_ShaderWarningsAsErrors: 0
-  m_PreviousScenesPaths:
-  - Assets/Scenes/0001_Std_Empty_Forward_LDR_NoMSAA.unity
-  - Assets/Scenes/0002_Std_Empty_Forward_HDR_NoMSAA.unity
-  - Assets/Scenes/0003_Std_Empty_Forward_LDR_MSAA.unity
-  - Assets/Scenes/0004_Std_Empty_Forward_HDR_MSAA.unity
-  - Assets/Scenes/0005_Std_Empty_Deferred_LDR.unity
-  - Assets/Scenes/0006_Std_Empty_Deferred_HDR.unity
-  - Assets/Scenes/0010_Std_NaN_Killer.unity
-  - Assets/Scenes/0011_Std_Blending_FloatColor.unity
-  - Assets/Scenes/0012_Std_Blending_Texture2D.unity
-  - Assets/Scenes/0100_Std_FXAA.unity
-  - Assets/Scenes/0101_Std_FXAA_Fast.unity
-  - Assets/Scenes/0102_Std_SMAA.unity
-  - Assets/Scenes/0200_Std_Vignette.unity
-  - Assets/Scenes/0201_Std_LensDistort.unity
-  - Assets/Scenes/0202_Std_LensUnDistort.unity
-  - Assets/Scenes/0203_Std_ChromaticAberration.unity
-  - Assets/Scenes/0204_Std_ChromaticAberration_Fast.unity
-  - Assets/Scenes/0205_Std_Grain.unity
-  - Assets/Scenes/0206_Std_Grain_Colored.unity
-  - Assets/Scenes/0207_Std_Bloom_HDR.unity
-  - Assets/Scenes/0208_Std_Bloom_HDR_Fast.unity
-  - Assets/Scenes/0209_Std_Bloom_LDR.unity
-  - Assets/Scenes/0210_Std_Bloom_LDR_Fast.unity
-  - Assets/Scenes/0211_Std_LensDirt.unity
-  - Assets/Scenes/0212_Std_ColorGrading_HDR_Neutral.unity
-  - Assets/Scenes/0213_Std_ColorGrading_LDR_Neutral.unity
-  - Assets/Scenes/0214_Std_ColorGrading_HDR_Mix.unity
-  - Assets/Scenes/0215_Std_ColorGrading_LDR_Mix.unity
-  - Assets/Scenes/0216_Std_SSAO_Forward_NoMSAA.unity
-  - Assets/Scenes/0217_Std_SSAO_Forward_MSAA.unity
-  - Assets/Scenes/0218_Std_MSVO_Deferred.unity
-  - Assets/Scenes/0219_Std_MSVO_Deferred_AmbientOnly.unity
-  - Assets/Scenes/0220_Std_DepthOfField.unity
-  - Assets/Scenes/0221_Std_AutoExposure.unity
-  m_PreviousScenesEnabled: 01010101010101010101010101010101010101010101010101010101010101010001y
-  m_ReloadDomainWhenEditingTestSceneAssets: 1
-  m_AutoOptimizeReferenceImages: 0
-  m_EnableShaderStripping: 1
-  m_ShouldCleanUpAfterBuild: 0
-  m_HeatmapColorScheme: 2
-  m_MaxConcurrentImageOptimizations: 11
-  m_PlatformSchemata:
-  - name: Default
-    rootPath: Assets/ReferenceImages
-    nodes:
-    - ColorSpace
-    - RuntimePlatform
-    - Architecture
-    - GraphicsDeviceType
-    - XrDevice
-    typeString: UnityEngine.ColorSpace, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;UnityEngine.RuntimePlatform, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;System.Runtime.InteropServices.Architecture, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;UnityEngine.Rendering.GraphicsDeviceType, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;UnityEngine.TestTools.Graphics.Platforms.XrDevice, UnityEngine.TestTools.Graphics, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  - name: Default Base
-    rootPath: Assets/ReferenceImagesBase
-    nodes: []
-    typeString: 
-  m_BuildPlatformSchemata:
-  - name: Default
-    rootPath: Assets/ReferenceImages
-    nodes:
-    - ColorSpace
-    - RuntimePlatform
-    - Architecture
-    - GraphicsDeviceType
-    - XrDevice
-    typeString: UnityEngine.ColorSpace, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;UnityEngine.RuntimePlatform, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;System.Runtime.InteropServices.Architecture, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;UnityEngine.Rendering.GraphicsDeviceType, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;UnityEngine.TestTools.Graphics.Platforms.XrDevice, UnityEngine.TestTools.Graphics, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  - name: Default Base
-    rootPath: Assets/ReferenceImagesBase
-    nodes: []
-    typeString: 
-  m_BuildPlatformNames:
-  - default-linear-windowseditor-vulkan-none
-  - default-base-
-  m_SceneLists:
-  - {fileID: -4539434316174315048}
