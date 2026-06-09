@@ -30,12 +30,17 @@ void MainUpdateIndexBuffer32(uint3 dispatchThreadID : SV_DispatchThreadID, int3 
 
 groupshared uint _ldsIndexCache[GROUP_SIZE_X_HALF + 1];
 
-
 [numthreads(GROUP_SIZE_X,1,1)]
 void MainUpdateIndexBuffer16(uint3 dispatchThreadID : SV_DispatchThreadID, uint groupIndex : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
-    if (groupIndex < (GROUP_SIZE_X_HALF + 1))
-        _ldsIndexCache[groupIndex] = _InputIndexBuffer.Load((GROUP_SIZE_X_HALF * (groupID.x) + groupIndex + (uint)(_InputIBBaseOffset + _DispatchIndexOffset) / 2) << 2u);
+    uint uintPos = GROUP_SIZE_X_HALF * groupID.x + groupIndex + (uint)(_InputIBBaseOffset + _DispatchIndexOffset) / 2;
+    uint indexPos = uintPos * 2;   // There are two indices per word
+
+    if (groupIndex < (GROUP_SIZE_X_HALF + 1) && indexPos < (uint)(_InputIBBaseOffset + _InputIBCount))
+    {
+        uint bytePos = uintPos << 2u;
+        _ldsIndexCache[groupIndex] = _InputIndexBuffer.Load(bytePos);
+    }
 
     GroupMemoryBarrierWithGroupSync();
 

@@ -1,4 +1,4 @@
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5 switch2
 
 #pragma multi_compile_local SUB_GROUP_SIZE_8 SUB_GROUP_SIZE_16 SUB_GROUP_SIZE_32 SUB_GROUP_SIZE_48 SUB_GROUP_SIZE_64
 

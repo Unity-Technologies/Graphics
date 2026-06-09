@@ -1,6 +1,9 @@
 #if INCLUDE_UNIFIED_RAYTRACING_COMPUTE_BACKEND || UNITY_EDITOR
 #define INCLUDE_COMPUTE_BACKEND
 #endif
+#if INCLUDE_UNIFIED_RAYTRACING_HARDWARE_BACKEND || UNITY_EDITOR
+#define INCLUDE_HARDWARE_BACKEND
+#endif
 using System;
 
 #if UNITY_EDITOR
@@ -53,10 +56,12 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                 throw new System.InvalidOperationException("Unsupported backend: " + backend.ToString());
 
             BackendType = backend;
+#if INCLUDE_HARDWARE_BACKEND
             if (backend == RayTracingBackend.Hardware)
                 m_Backend = new HardwareRayTracingBackend(resources);
+#endif
 #if INCLUDE_COMPUTE_BACKEND
-            else if (backend == RayTracingBackend.Compute)
+            if (m_Backend == null && backend == RayTracingBackend.Compute)
                 m_Backend = new ComputeRayTracingBackend(resources);
 #endif
 
@@ -101,10 +106,12 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         /// <returns>Whether the specified bakend is supported.</returns>
         static public bool IsBackendSupported(RayTracingBackend backend)
         {
+#if INCLUDE_HARDWARE_BACKEND
             if (backend == RayTracingBackend.Hardware)
                 return SystemInfo.supportsRayTracing;
+#endif
 #if INCLUDE_COMPUTE_BACKEND
-            else if (backend == RayTracingBackend.Compute)
+            if (backend == RayTracingBackend.Compute)
                 return SystemInfo.supportsComputeShaders;
 #endif
 

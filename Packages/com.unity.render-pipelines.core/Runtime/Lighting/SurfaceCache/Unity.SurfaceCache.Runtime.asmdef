@@ -12,6 +12,7 @@
         "Editor",
         "LinuxStandalone64",
         "macOSStandalone",
+        "Switch2",
         "PS5",
         "WindowsStandalone64"
     ],

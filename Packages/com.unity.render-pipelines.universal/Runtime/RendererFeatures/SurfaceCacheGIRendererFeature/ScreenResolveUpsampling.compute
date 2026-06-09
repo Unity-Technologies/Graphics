@@ -1,4 +1,4 @@
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5 switch2
 
 #pragma kernel Upsample
 
