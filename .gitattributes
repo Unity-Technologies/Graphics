@@ -348,6 +348,9 @@ Editor/Resources/unity[[:space:]]editor[[:space:]]resources filter=lfs diff=lfs 
 **/HDRP_RuntimeTests/Assets/Scenes/002-HDMaterials/cloud2.asset filter=lfs diff=lfs merge=lfs -text
 **/HDRP_RuntimeTests/Assets/Scenes/002-HDMaterials/perlin.asset filter=lfs diff=lfs merge=lfs -text
 
+# Gfx ML acceleration test assets
+**/MachineLearning/**/*.bytes filter=lfs diff=lfs merge=lfs -text
+
 #GfxTests
 **/GfxTestProjectFolder/**/*.[hH][dD][rR] filter=lfs diff=lfs merge=lfs -text
 **/GfxTestProjectFolder/**/*.[tT][gG][aA] filter=lfs diff=lfs merge=lfs -text
