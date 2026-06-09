@@ -147,7 +147,7 @@ namespace UnityEditor.VFX.Block
     class HLSLFunctionParameter
     {
         // Match inout/in/out accessor then any whitespace then the parameter type then optionally a template type any whitespace and then the parameter name
-        static readonly Regex s_ParametersParser = new Regex(@"(?<access>(inout|in|out)\b)?\s*(?<type>\w+)(?:[<](?<template>\w+)[>])?\s*(?<parameter>\w+)(?:\s*,\s*)?", RegexOptions.Compiled);
+        static readonly Regex s_ParametersParser = new Regex(@"\s*(?<access>(inout|in|out)\b)?\s*(?<type>\w+)(?:[<](?<template>\w+)[>])?\s*(?<parameter>\w+)(?:\s*,\s*)?", RegexOptions.Compiled);
 
         readonly string m_RawCode;
 
@@ -162,7 +162,8 @@ namespace UnityEditor.VFX.Block
 
         public static IEnumerable<HLSLFunctionParameter> Parse(string hlsl, Dictionary<string, string> doc)
         {
-            var matches = s_ParametersParser.Matches(hlsl.Trim());
+            var strippedHLSL = HLSLParser.StripCommentedCode(hlsl.Trim());
+            var matches = s_ParametersParser.Matches(strippedHLSL);
             for (var i = 0; i < matches.Count; i++)
             {
                 var match = matches[i];
@@ -243,7 +244,7 @@ namespace UnityEditor.VFX.Block
         static HLSLFunction()
         {
             var supportedReturnTypes = string.Join("|", HLSLParser.s_KnownTypes.Keys);
-            var pattern = @"^(?<doc>(^/{3}.*\n)*)(?<returnType>" + supportedReturnTypes + @")\s+(?<name>\w+)\((?<parameters>[^\)]*)\)\s*";
+            var pattern = @"^(?<doc>(///.*\n)*)(?<returnType>" + supportedReturnTypes + @")\s+(?<name>\w+)\((?<parameters>[^)]*)\)";
             s_FunctionParser = new Regex(pattern, RegexOptions.Compiled | RegexOptions.Multiline);
         }
 
@@ -531,6 +532,15 @@ namespace UnityEditor.VFX.Block
         };
 
         static readonly Regex s_IncludeParser = new Regex(@"^#include ""(?<filepath>.*)""", RegexOptions.Compiled | RegexOptions.Multiline);
+        static readonly Regex s_SinglelineCommentsParser = new Regex(@"^\s*//.*$$", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace);
+        static readonly Regex s_MultilineCommentsParser = new Regex(@"/\*[\s\S]*?\*/", RegexOptions.Compiled | RegexOptions.Multiline);
+
+        public static string StripCommentedCode(string hlsl)
+        {
+            return string.IsNullOrEmpty(hlsl)
+                ? string.Empty
+                : s_SinglelineCommentsParser.Replace(s_MultilineCommentsParser.Replace(hlsl, string.Empty), string.Empty).Trim('\n', '\r');
+        }
 
         public static Type HLSLToUnityType(string type)
         {

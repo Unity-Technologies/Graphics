@@ -1,8 +1,11 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using Moq;
+
 using NUnit.Framework;
+
 using UnityEditor.VFX.Block;
 using UnityEngine;
 
@@ -419,6 +422,83 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(new [] { "VFXAttributes", "float3", "float" }, function.inputs.Select(x => x.rawType));
             Assert.AreEqual(new [] { HLSLAccess.INOUT, HLSLAccess.IN, HLSLAccess.IN }, function.inputs.Select(x => x.access));
 
+        }
+
+        public static IEnumerable<TestCaseData> HLSL_Code_With_Comments()
+        {
+            var codeTemplate = "float FloatFunction(\n" +
+                "{0}\n" +
+                "in float value)\n" +
+                "{{\n" +
+                "return value;\n" +
+                "}}\n";
+            yield return new TestCaseData(string.Format(codeTemplate, "// "));
+            yield return new TestCaseData(string.Format(codeTemplate, "/* some comments */"));
+            yield return new TestCaseData(string.Format(codeTemplate,
+                "/*\n" +
+                "some comments\n" +
+                "*/"));
+        }
+
+        [TestCaseSource(nameof(HLSL_Code_With_Comments))]
+        [Test, Description("Covers issue UUM-135217")]
+        public void HLSL_Comments_In_Parameters(string hlslCode)
+        {
+            // Act
+            var functions = HLSLFunction.Parse(this.attributesManager, hlslCode).ToArray();
+
+            // Assert
+            CollectionAssert.IsNotEmpty(functions);
+            var parameters = functions[0].inputs.ToArray();
+            Assert.AreEqual(1, parameters.Length);
+            Assert.AreEqual("float", parameters[0].rawType);
+            Assert.AreEqual(typeof(float), parameters[0].type);
+            Assert.AreEqual(HLSLAccess.IN, parameters[0].access);
+        }
+
+        [Test, Description("Covers issue UUM-135217")]
+        public void HLSL_Many_Comments_HLSL_File()
+        {
+            // Prepare
+            var hlslCode = File.ReadAllText("Assets/AllTests/Editor/Tests/HelixFile.hlsl");
+
+            // Act
+            var functions = HLSLFunction.Parse(this.attributesManager, hlslCode).ToArray();
+
+            // Assert
+            CollectionAssert.IsNotEmpty(functions);
+            var parameters = functions[0].inputs.ToArray();
+            Assert.AreEqual(6, parameters.Length);
+
+            Assert.AreEqual("VFXAttributes", parameters[0].rawType);
+            Assert.AreEqual(typeof(VFXAttribute), parameters[0].type);
+            Assert.AreEqual("attributes", parameters[0].name);
+            Assert.AreEqual(HLSLAccess.INOUT, parameters[0].access);
+
+            Assert.AreEqual("float3", parameters[1].rawType);
+            Assert.AreEqual(typeof(Vector3), parameters[1].type);
+            Assert.AreEqual("Center", parameters[1].name);
+            Assert.AreEqual(HLSLAccess.IN, parameters[1].access);
+
+            Assert.AreEqual("float", parameters[2].rawType);
+            Assert.AreEqual(typeof(float), parameters[2].type);
+            Assert.AreEqual("Radius", parameters[2].name);
+            Assert.AreEqual(HLSLAccess.IN, parameters[2].access);
+
+            Assert.AreEqual("float", parameters[3].rawType);
+            Assert.AreEqual(typeof(float), parameters[3].type);
+            Assert.AreEqual("RotationSpeed", parameters[3].name);
+            Assert.AreEqual(HLSLAccess.IN, parameters[3].access);
+
+            Assert.AreEqual("float", parameters[4].rawType);
+            Assert.AreEqual(typeof(float), parameters[4].type);
+            Assert.AreEqual("RiseSpeed", parameters[4].name);
+            Assert.AreEqual(HLSLAccess.IN, parameters[4].access);
+
+            Assert.AreEqual("float", parameters[5].rawType);
+            Assert.AreEqual(typeof(float), parameters[5].type);
+            Assert.AreEqual("TotalTime", parameters[5].name);
+            Assert.AreEqual(HLSLAccess.IN, parameters[5].access);
         }
     }
 }
