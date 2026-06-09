@@ -191,6 +191,11 @@ namespace UnityEngine.Rendering.HighDefinition.DXR_Tests
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-134774",
             RuntimePlatform.GameCoreXboxSeries
         )]
+        [IgnoreGraphicsTest(
+            "9003_VFX_PointShadow",
+            "Unstable: https://jira.unity3d.com/browse/UUM-143755",
+            RuntimePlatform.GameCoreXboxSeries
+        )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);
@@ -254,11 +259,6 @@ namespace UnityEngine.Rendering.HighDefinition.DXR_Tests
         [UnityTest]
         [SceneGraphicsTest(@"Assets/GRDScenes/^[0-9]+")]
         [Timeout(450 * 1000)] // Set timeout to 450 sec. to handle complex scenes with many shaders (previous timeout was 300s)
-        [IgnoreGraphicsTest(
-            "9003_VFX_PointShadow",
-            "Unstable: https://jira.unity3d.com/browse/UUM-143755",
-            RuntimePlatform.GameCoreXboxSeries
-        )]
         public IEnumerator Run(SceneGraphicsTestCase testCase)
         {
             if (testCase.Name.Contains("11000_HDRP_Lit_Shaders"))
