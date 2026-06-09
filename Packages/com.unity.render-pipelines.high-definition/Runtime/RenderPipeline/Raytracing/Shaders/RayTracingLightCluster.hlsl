@@ -46,7 +46,7 @@ uint GetClusterCellIndex(uint width, uint height, uint depth)
 
 uint GetClusterCellIndex(float3 positionWS)
 {
-    uint3 gridPosition = (uint3)((positionWS - _MinClusterPos) / (_MaxClusterPos - _MinClusterPos) * (float3)CLUSTER_SIZE);
+    uint3 gridPosition = (uint3)((positionWS - _MinClusterPos.xyz) / (_MaxClusterPos.xyz - _MinClusterPos.xyz) * (float3)CLUSTER_SIZE);
     return GetClusterCellIndex(gridPosition.x, gridPosition.y, gridPosition.z);
 }
 

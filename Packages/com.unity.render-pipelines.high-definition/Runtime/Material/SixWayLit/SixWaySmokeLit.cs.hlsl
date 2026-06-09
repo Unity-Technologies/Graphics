@@ -53,7 +53,7 @@ struct BSDFData
     real4 diffuseColor;
     real ambientOcclusion;
     float3 normalWS;
-    float4 tangentWS;
+    float3 tangentWS;
     float3 bitangentWS;
     real3 rightTopBack;
     real3 leftBottomFront;
@@ -69,7 +69,7 @@ struct SurfaceData
     float absorptionRange;
     real4 baseColor;
     float3 normalWS;
-    float4 tangentWS;
+    float3 tangentWS;
     float3 bitangentWS;
     real ambientOcclusion;
     real3 rightTopBack;
@@ -103,10 +103,10 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             result = IsNormalized(bsdfdata.normalWS)? bsdfdata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_SIXWAYSMOKELIT_BSDFDATA_TANGENT:
-            result = bsdfdata.tangentWS.xyz;
+            result = bsdfdata.tangentWS;
             break;
         case DEBUGVIEW_SIXWAYSMOKELIT_BSDFDATA_TANGENT_WORLD_SPACE:
-            result = bsdfdata.tangentWS.xyz;
+            result = bsdfdata.tangentWS;
             break;
         case DEBUGVIEW_SIXWAYSMOKELIT_BSDFDATA_BITANGENT:
             result = bsdfdata.bitangentWS;
@@ -153,10 +153,10 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_TANGENT:
-            result = surfacedata.tangentWS.xyz;
+            result = surfacedata.tangentWS;
             break;
         case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_TANGENT_WORLD_SPACE:
-            result = surfacedata.tangentWS.xyz;
+            result = surfacedata.tangentWS;
             break;
         case DEBUGVIEW_SIXWAYSMOKELIT_SURFACEDATA_BITANGENT:
             result = surfacedata.bitangentWS;

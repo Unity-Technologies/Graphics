@@ -127,7 +127,7 @@ Shader "Hidden/HDRP/DebugLightCluster"
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
                 // Compute the csize of each cell
-                float3 clusterCellSize = (_MaxClusterPos - _MinClusterPos) * rcp((float3)CLUSTER_SIZE);
+                float3 clusterCellSize = (_MaxClusterPos.xyz - _MinClusterPos.xyz) * rcp((float3)CLUSTER_SIZE);
 
                 // Compute the camera relative position
                 float3 positionOS = cubeVertices[cubeTriangles[vertID % 48]];
@@ -140,7 +140,7 @@ Shader "Hidden/HDRP/DebugLightCluster"
                 int depth = instanceID / (CLUSTER_SIZE.x * CLUSTER_SIZE.y);
 
                 // Compute the world space coordinate of this cell
-                positionRWS = _MinClusterPos + float3( clusterCellSize.x * width, clusterCellSize.y * height, clusterCellSize.z * depth) + GetAbsolutePositionWS(positionRWS);
+                positionRWS = _MinClusterPos.xyz + float3( clusterCellSize.x * width, clusterCellSize.y * height, clusterCellSize.z * depth) + GetAbsolutePositionWS(positionRWS);
 
                 // Given that we have the cell index, get the number of lights
                 uint numLights = GetTotalLightClusterCellCount(GetClusterCellIndex(width, height, depth));
@@ -197,7 +197,7 @@ Shader "Hidden/HDRP/DebugLightCluster"
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
                 // Compute the csize of each cell
-                float3 clusterCellSize = (_MaxClusterPos - _MinClusterPos) * rcp((float3)CLUSTER_SIZE);
+                float3 clusterCellSize = (_MaxClusterPos.xyz - _MinClusterPos.xyz) * rcp((float3)CLUSTER_SIZE);
 
                 // Compute the camera relative position
                 float3 positionOS = cubeVertices[cubeLines[vertID % 48]];
@@ -210,7 +210,7 @@ Shader "Hidden/HDRP/DebugLightCluster"
                 int depth = instanceID / (CLUSTER_SIZE.x * CLUSTER_SIZE.y);
 
                 // Compute the world space coordinate of this cell
-                positionRWS = _MinClusterPos + float3( clusterCellSize.x * width, clusterCellSize.y * height, clusterCellSize.z * depth) + GetAbsolutePositionWS(positionRWS);
+                positionRWS = _MinClusterPos.xyz + float3( clusterCellSize.x * width, clusterCellSize.y * height, clusterCellSize.z * depth) + GetAbsolutePositionWS(positionRWS);
 
                 // Given that we have the cell index, get the number of lights
                 uint numLights = GetTotalLightClusterCellCount(GetClusterCellIndex(width, height, depth));
