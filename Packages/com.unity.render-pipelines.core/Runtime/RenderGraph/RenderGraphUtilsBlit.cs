@@ -160,8 +160,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             bool returnBuilder = false
 #if !CORE_PACKAGE_DOCTOOLS
             , [CallerFilePath] string file = "",
-            [CallerLineNumber] int line = 0)
+            [CallerLineNumber] int line = 0
 #endif
+            )
         {
             var sourceInfo = graph.GetRenderTargetInfo(source);
             var destinationInfo = graph.GetRenderTargetInfo(destination);
@@ -255,8 +256,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             string passName = "Copy Pass Utility"
 #if !CORE_PACKAGE_DOCTOOLS
             , [CallerFilePath] string file = "",
-            [CallerLineNumber] int line = 0)
+            [CallerLineNumber] int line = 0
 #endif
+            )
         {
             AddCopyPass(graph, source, destination, passName, false, file, line);
         }
@@ -370,8 +372,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             bool returnBuilder = false
 #if !CORE_PACKAGE_DOCTOOLS
                 , [CallerFilePath] string file = "",
-                [CallerLineNumber] int line = 0)
+                [CallerLineNumber] int line = 0
 #endif
+            )
         {
             if (!source.IsValid())
             {
@@ -928,8 +931,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             bool returnBuilder = false
 #if !CORE_PACKAGE_DOCTOOLS
                 , [CallerFilePath] string file = "",
-                [CallerLineNumber] int line = 0)
+                [CallerLineNumber] int line = 0
 #endif
+            )
         {
             if (!blitParameters.destination.IsValid())
             {

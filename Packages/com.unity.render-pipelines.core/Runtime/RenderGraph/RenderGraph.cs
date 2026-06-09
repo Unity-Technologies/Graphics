@@ -1041,8 +1041,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public IRasterRenderGraphBuilder AddRasterRenderPass<PassData>(string passName, out PassData passData
 #if !CORE_PACKAGE_DOCTOOLS
             , [CallerFilePath] string file = "",
-            [CallerLineNumber] int line = 0) where PassData : class, new()
+            [CallerLineNumber] int line = 0
 #endif
+            ) where PassData : class, new()
         {
             return AddRasterRenderPass(passName, out passData, GetDefaultProfilingSampler(passName), file, line);
         }
@@ -1060,8 +1061,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public IRasterRenderGraphBuilder AddRasterRenderPass<PassData>(string passName, out PassData passData, ProfilingSampler sampler
 #if !CORE_PACKAGE_DOCTOOLS
             ,[CallerFilePath] string file = "",
-            [CallerLineNumber] int line = 0) where PassData : class, new()
+            [CallerLineNumber] int line = 0
 #endif
+            ) where PassData : class, new()
         {
             CheckNotUsedWhenRecordingPass();
 
@@ -1096,8 +1098,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public IComputeRenderGraphBuilder AddComputePass<PassData>(string passName, out PassData passData
 #if !CORE_PACKAGE_DOCTOOLS
         , [CallerFilePath] string file = "",
-        [CallerLineNumber] int line = 0) where PassData : class, new()
+        [CallerLineNumber] int line = 0
 #endif
+            ) where PassData : class, new()
         {
             return AddComputePass(passName, out passData, GetDefaultProfilingSampler(passName), file, line);
         }
@@ -1115,8 +1118,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public IComputeRenderGraphBuilder AddComputePass<PassData>(string passName, out PassData passData, ProfilingSampler sampler
 #if !CORE_PACKAGE_DOCTOOLS
             ,[CallerFilePath] string file = "",
-            [CallerLineNumber] int line = 0) where PassData : class, new()
+            [CallerLineNumber] int line = 0
 #endif
+            ) where PassData : class, new()
         {
             CheckNotUsedWhenRecordingPass();
 
@@ -1157,8 +1161,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public IUnsafeRenderGraphBuilder AddUnsafePass<PassData>(string passName, out PassData passData
 #if !CORE_PACKAGE_DOCTOOLS
             , [CallerFilePath] string file = "",
-            [CallerLineNumber] int line = 0) where PassData : class, new()
+            [CallerLineNumber] int line = 0
 #endif
+            ) where PassData : class, new()
         {
             return AddUnsafePass(passName, out passData, GetDefaultProfilingSampler(passName), file, line);
         }
@@ -1182,8 +1187,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public IUnsafeRenderGraphBuilder AddUnsafePass<PassData>(string passName, out PassData passData, ProfilingSampler sampler
 #if !CORE_PACKAGE_DOCTOOLS
             , [CallerFilePath] string file = "",
-            [CallerLineNumber] int line = 0) where PassData : class, new()
+            [CallerLineNumber] int line = 0
 #endif
+            ) where PassData : class, new()
         {
             CheckNotUsedWhenRecordingPass();
 
