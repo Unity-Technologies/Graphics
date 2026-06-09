@@ -193,6 +193,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
+            "3006_TileCluster_Cluster$",
+            "https://jira.unity3d.com/browse/UUM-144350 - Localized tile/cluster artifact on NVIDIA A10 in the XR playmode job after the win11-22H2-x64-azure-nvidia image update. XR and non-XR share one reference image (xr-reuse-tests), so the ignore is scoped to DX11+WindowsEditor.",
+            GraphicsDeviceType.Direct3D11, RuntimePlatform.WindowsEditor
+        )]
+        [IgnoreGraphicsTest(
             "3005_VertexDensity",
             "Unstable: https://jira.unity3d.com/browse/UUM-135177",
             RuntimePlatform.WindowsEditor
