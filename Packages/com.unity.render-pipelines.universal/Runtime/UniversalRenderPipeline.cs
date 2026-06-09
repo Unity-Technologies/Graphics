@@ -1307,14 +1307,16 @@ namespace UnityEngine.Rendering.Universal
                 particleSystemInstancing = true,
                 overridesEnableLODCrossFade = true
             };
-            if (GraphicsSettings.TryGetRenderPipelineSettings<URPReflectionProbeSettings>(out var reflectionProbeSettings)
-                && !reflectionProbeSettings.UseReflectionProbeRotation)
-            {
-                SupportedRenderingFeatures.active.reflectionProbeModes = SupportedRenderingFeatures.ReflectionProbeModes.None;
-            }
 
             SceneViewDrawMode.SetupDrawMode();
 #endif
+            if (GraphicsSettings.TryGetRenderPipelineSettings<URPReflectionProbeSettings>(out var reflectionProbeSettings))
+            {
+                SupportedRenderingFeatures.active.reflectionProbeModes =
+                    reflectionProbeSettings.UseReflectionProbeRotation
+                        ? SupportedRenderingFeatures.ReflectionProbeModes.Rotation
+                        : SupportedRenderingFeatures.ReflectionProbeModes.None;
+            }
 
             SupportedRenderingFeatures.active.supportsHDR = pipelineAsset.supportsHDR;
             SupportedRenderingFeatures.active.rendersUIOverlay = true;
