@@ -4,7 +4,7 @@
 
 Fade Transition is a method of adding noise to add variation while a function transitions from on to off. This node takes in a fade value and remaps it using the noise value (usually from a texture). When FadeValue is 0, the output is always 0, and when FadeValue is 1, the output is always exactly 1. In between 0 and 1 the transition will follow the pattern in the noise.
 
-This [Node](Node.md) is commonly used as an input to **Alpha** on a [Master Node](Master-Node.md) to provide an LOD transition.
+This [Node](Node.md) is commonly used as an input to the **Alpha** block in the [Master Stack](Master-Stack.md) to provide an LOD transition.
 
 ## Ports
 
