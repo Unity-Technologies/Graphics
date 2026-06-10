@@ -864,7 +864,8 @@ namespace UnityEngine.Rendering
         /// </summary>
         public ProbeVolumeTextureMemoryBudget memoryBudget => m_MemoryBudget;
 
-        [AutoStaticsCleanup]
+        // GPU resources are released by the render-pipeline-driven Cleanup() (HDRP/URP); auto re-creation here would orphan them.
+        [NoAutoStaticsCleanup]
         static ProbeReferenceVolume s_Instance = new ProbeReferenceVolume();
 
         internal List<ProbeVolumePerSceneData> perSceneDataList { get; private set; } = new List<ProbeVolumePerSceneData>();

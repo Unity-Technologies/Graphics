@@ -238,7 +238,8 @@ namespace UnityEngine.Rendering
 
         Texture m_DisplayNumbersTexture;
 
-        [AutoStaticsCleanup]
+        // Owns a GraphicsBuffer released by CleanupDebug() on the pipeline-driven Cleanup path; auto re-creation would orphan that GPU allocation.
+        [NoAutoStaticsCleanup]
         internal static ProbeSamplingDebugData probeSamplingDebugData = new ProbeSamplingDebugData();
 
         Mesh m_DebugOffsetMesh;
@@ -447,6 +448,8 @@ namespace UnityEngine.Rendering
             CoreUtils.Destroy(m_DebugOffsetMaterial);
             CoreUtils.Destroy(m_DebugFragmentationMaterial);
             CoreUtils.SafeRelease(probeSamplingDebugData?.positionNormalBuffer);
+            if (probeSamplingDebugData != null)
+                probeSamplingDebugData.positionNormalBuffer = null;
 
 #if UNITY_EDITOR
             UnityEditor.Lightmapping.lightingDataCleared -= OnClearLightingdata;
