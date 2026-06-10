@@ -164,6 +164,16 @@ PackedVaryingsToPS Domain(TessellationFactors tessFactors, const OutputPatch<Pac
     varying.vmesh.positionRWS = PhongTessellation(  varying.vmesh.positionRWS,
                                                     p0, p1, p2, n0, n1, n2,
                                                     baryCoords, _TessellationShapeFactor);
+    #ifdef VARYINGS_NEED_PASS
+    // Apply the same Phong smoothing to the previous-frame position so the motion vector pass keeps current/previous geometry consistent.
+    varying.vpass.previousPositionRWS = PhongTessellation(  varying.vpass.previousPositionRWS,
+                                                            varying0.vpass.previousPositionRWS,
+                                                            varying1.vpass.previousPositionRWS,
+                                                            varying2.vpass.previousPositionRWS,
+                                                            n0, n1, n2,
+                                                            baryCoords, _TessellationShapeFactor);
+    #endif
+    
 #endif
 #ifdef VARYINGS_DS_NEED_POSITIONPREDISPLACEMENT
     varying.vmesh.positionPredisplacementRWS = varying.vmesh.positionRWS;
