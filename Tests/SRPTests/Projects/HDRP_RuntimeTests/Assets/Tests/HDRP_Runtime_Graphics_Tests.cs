@@ -66,12 +66,6 @@ public class HDRP_Runtime_Graphics_Tests
         GraphicsDeviceType.Metal
     )]
     [IgnoreGraphicsTest(
-        "003-VirtualTexturing$",
-        "https://jira.unity3d.com/browse/UUM-135501 Unstable on PS4",
-        RuntimePlatform.PS4,
-        RenderingThreadingMode.MultiThreaded
-    )]
-    [IgnoreGraphicsTest(
         "004-CloudsFlaresDecals$",
         "Area with cloud-coverage is blue on Intel-based MacOS (CI).",
         GraphicsDeviceType.Metal,
