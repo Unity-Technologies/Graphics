@@ -16,7 +16,7 @@ float3 MapUVToSkyDirection(float2 uv)
 {
     float phi = TWO_PI * (1.0 - uv.x);
     float cosTheta = 2.0 * uv.y - 1.0;
-    return TransformGLtoDX(SphericalToCartesian(phi, cosTheta));
+    return TransformGLtoDX(SphericalToCartesian((real)phi, (real)cosTheta));
 }
 
 // Dichotomic search

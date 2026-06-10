@@ -22,7 +22,7 @@ uint ReverseBits32(uint bits)
 
 real VanDerCorputBase2(uint i)
 {
-    return ReverseBits32(i) * rcp(4294967296.0); // 2^-32
+    return (real)((float)ReverseBits32(i) * rcp(4294967296.0)); // 2^-32
 }
 
 real2 Hammersley2dSeq(uint i, uint sequenceLength)

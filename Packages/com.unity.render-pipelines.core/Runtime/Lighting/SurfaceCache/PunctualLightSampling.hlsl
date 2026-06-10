@@ -44,7 +44,7 @@ void SamplePunctualLights(UnifiedRT::DispatchInfo dispatchInfo)
     ray.origin = light.position;
     {
         float2 coneSample = rng.GetSample(1);
-        float3 localDir = SampleConeUniform(coneSample.x, coneSample.y, light.cosOuterAngle);
+        float3 localDir = SampleConeUniform((real)coneSample.x, (real)coneSample.y, (real)light.cosOuterAngle);
         float3x3 spotBasis = OrthoBasisFromVector(light.direction);
         ray.direction = mul(spotBasis, localDir);
     }

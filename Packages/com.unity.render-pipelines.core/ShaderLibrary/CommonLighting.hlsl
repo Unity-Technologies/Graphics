@@ -87,7 +87,7 @@ real DistanceWindowing(float distSquare, real rangeAttenuationScale, real rangeA
     // Else
     //   rangeAttenuationScale = 2^12 / r^2
     //   rangeAttenuationBias  = 2^24
-    return saturate(rangeAttenuationBias - Sq(distSquare * rangeAttenuationScale));
+    return (real)saturate(rangeAttenuationBias - Sq(distSquare * rangeAttenuationScale));
 }
 
 real SmoothDistanceWindowing(real distSquare, real rangeAttenuationScale, real rangeAttenuationBias)
@@ -370,7 +370,7 @@ real GetSpecularOcclusionFromBentAO(real3 V, real3 bentNormalWS, real3 normalWS,
 
     float expFactor1 = exp(umLength1 - umLength2 + us - vs);
 
-    return saturate(expFactor1 * (d1 * umLength2) / (d2 * umLength1));
+    return (real)saturate(expFactor1 * (d1 * umLength2) / (d2 * umLength1));
 }
 
 // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
@@ -384,8 +384,8 @@ real3 ComputeWrappedNormal(real3 N, real3 L, real w)
 {
     real NdotL = dot(N, L);
     real wrappedNdotL = saturate((NdotL + w) / (1 + w));
-    real sinPhi = lerp(w, 0.f, wrappedNdotL);
-    real cosPhi = sqrt(1.0f - sinPhi * sinPhi);
+    real sinPhi = lerp(w, (real)0.0, wrappedNdotL);
+    real cosPhi = sqrt((real)1.0 - sinPhi * sinPhi);
     return normalize(cosPhi * N + sinPhi * cross(cross(N, L), N));
 }
 
@@ -503,7 +503,7 @@ real3x3 GetLocalFrame(real3 localZ)
     real x  = localZ.x;
     real y  = localZ.y;
     real z  = localZ.z;
-    real sz = FastSign(z);
+    real sz = (real)FastSign(z);
     real a  = 1 / (sz + z);
     real ya = y * a;
     real b  = x * ya;

@@ -185,8 +185,8 @@ bool ShouldSkipAO(float rawDepth, half halfLinearDepth, half falloff)
 {
     if (rawDepth < SKY_DEPTH_VALUE)
         return true;
-
-    return halfLinearDepth > falloff;
+    else
+        return halfLinearDepth > falloff;
 }
 
 
@@ -333,27 +333,30 @@ half IntegrateSlice(GTAOConfig config, int dirIdx, float2 uv, float2 positionSS,
     {
         return 1.0;
     }
-    half cosN = dot(projN / projNLen, V);
+    else
+    {
+        half cosN = dot(projN / projNLen, V);
 
-    half3 T = cross(V, sliceN);
-    float N = -sign(dot(projN, T)) * FastACos(saturate(cosN));
+        half3 T = cross(V, sliceN);
+        float N = -sign(dot(projN, T)) * FastACos(saturate(cosN));
 
-    float sinN = sin(N);
-    float initialHorizon0 = sinN;   // positive direction
-    float initialHorizon1 = -sinN;  // negative direction
+        float sinN = sin(N);
+        float initialHorizon0 = sinN;   // positive direction
+        float initialHorizon1 = -sinN;  // negative direction
 
-    // Find horizons (pass dirIdx for R1 sequence distribution)
-    float2 maxHorizons;
-    maxHorizons.x = HorizonLoop(config, positionVS, V, positionSS, dir, rayOffset, fovCorrectedRadiusSS, initialHorizon0, dirIdx);
-    maxHorizons.y = HorizonLoop(config, positionVS, V, positionSS, negDir, rayOffset, fovCorrectedRadiusSS, initialHorizon1, dirIdx);
+        // Find horizons (pass dirIdx for R1 sequence distribution)
+        float2 maxHorizons;
+        maxHorizons.x = HorizonLoop(config, positionVS, V, positionSS, dir, rayOffset, fovCorrectedRadiusSS, initialHorizon0, dirIdx);
+        maxHorizons.y = HorizonLoop(config, positionVS, V, positionSS, negDir, rayOffset, fovCorrectedRadiusSS, initialHorizon1, dirIdx);
 
-    // Now we find the actual horizon angles
-    maxHorizons.x = -FastACos(maxHorizons.x);
-    maxHorizons.y = FastACos(maxHorizons.y);
-    maxHorizons.x = N + max(maxHorizons.x - N, -HALF_PI);
-    maxHorizons.y = N + min(maxHorizons.y - N, HALF_PI);
+        // Now we find the actual horizon angles
+        maxHorizons.x = -FastACos(maxHorizons.x);
+        maxHorizons.y = FastACos(maxHorizons.y);
+        maxHorizons.x = N + max(maxHorizons.x - N, -HALF_PI);
+        maxHorizons.y = N + min(maxHorizons.y - N, HALF_PI);
 
-    return AnyIsNaN(maxHorizons) ? 1.0 : IntegrateArcCosWeighted(maxHorizons, N, cosN);
+        return AnyIsNaN(maxHorizons) ? 1.0 : IntegrateArcCosWeighted(maxHorizons, N, cosN);
+    }
 }
 
 half4 EvaluateGTAO(GTAOConfig config, float2 uv, float2 positionSS, float3 positionVS, half3 V, half3 normal, float rawDepth, float linearDepth, half halfLinearDepth)
@@ -361,42 +364,44 @@ half4 EvaluateGTAO(GTAOConfig config, float2 uv, float2 positionSS, float3 posit
     // Invalid depth check
     if (rawDepth == UNITY_RAW_FAR_CLIP_VALUE)
         return PackAONormal(HALF_ZERO, normal);
-
-    half3 normalVS = TransformWorldToViewNormal(normal);
-    normalVS = half3(normalVS.xy, -normalVS.z);
+    else
+    {
+        half3 normalVS = TransformWorldToViewNormal(normal);
+        normalVS = half3(normalVS.xy, -normalVS.z);
 
 #if defined(_ORTHOGRAPHIC)
-    half fovCorrectedRadiusSS = clamp(config.radius * config.gtaoFOVCorrection, GTAO_STEP_COUNT, config.gtaoMaxRadiusPixels);
+        half fovCorrectedRadiusSS = clamp(config.radius * config.gtaoFOVCorrection, GTAO_STEP_COUNT, config.gtaoMaxRadiusPixels);
 #else
-    half fovCorrectedRadiusSS = clamp(config.radius * config.gtaoFOVCorrection * rcp(linearDepth), GTAO_STEP_COUNT, config.gtaoMaxRadiusPixels);
+        half fovCorrectedRadiusSS = clamp(config.radius * config.gtaoFOVCorrection * rcp(linearDepth), GTAO_STEP_COUNT, config.gtaoMaxRadiusPixels);
 #endif
 #if defined(_BLUE_NOISE)
-    half rayOffset = GetOffsetGTAO_BlueNoise(uv, config.blueNoiseOffset, config.blueNoiseScale, config.temporalOffset);
+        half rayOffset = GetOffsetGTAO_BlueNoise(uv, config.blueNoiseOffset, config.blueNoiseScale, config.temporalOffset);
 #else
-    half rayOffset = GetOffsetGTAO_IGN((uint2)positionSS, config.temporalOffset);
+        half rayOffset = GetOffsetGTAO_IGN((uint2)positionSS, config.temporalOffset);
 #endif
 
-    const half rcpDirectionCount = half(rcp(GTAO_DIRECTION_COUNT));
-    half integral = 0.0;
+        const half rcpDirectionCount = half(rcp(GTAO_DIRECTION_COUNT));
+        half integral = 0.0;
 
-    // Unroll for performance on the fragment path. On the compute path, keep the loop dynamic to support runtime quality settings
-    // except when temporal filtering forces direction count to 1, where unrolling is safe.
+        // Unroll for performance on the fragment path. On the compute path, keep the loop dynamic to support runtime quality settings
+        // except when temporal filtering forces direction count to 1, where unrolling is safe.
 #if !defined(GTAO_COMPUTE_PATH) || defined(_TEMPORAL_FILTERING)
-    UNITY_UNROLL
+        UNITY_UNROLL
 #endif
-    for (int dirIdx = 0; dirIdx < GTAO_DIRECTION_COUNT; dirIdx++)
-    {
-        integral += IntegrateSlice(config, dirIdx, uv, positionSS, positionVS, V, normalVS, fovCorrectedRadiusSS, rayOffset, rcpDirectionCount);
+        for (int dirIdx = 0; dirIdx < GTAO_DIRECTION_COUNT; dirIdx++)
+        {
+            integral += IntegrateSlice(config, dirIdx, uv, positionSS, positionVS, V, normalVS, fovCorrectedRadiusSS, rayOffset, rcpDirectionCount);
+        }
+        integral *= rcpDirectionCount;
+
+        half falloff = HALF_ONE - halfLinearDepth * half(rcp(config.falloff));
+        falloff = falloff * falloff;
+        half ao = HALF_ONE - saturate(integral);
+        ao = PositivePow(saturate(ao * config.intensity * falloff), kContrast);
+
+        // Return the packed ao + normals
+        return PackAONormal(ao, normal);
     }
-    integral *= rcpDirectionCount;
-
-    half falloff = HALF_ONE - halfLinearDepth * half(rcp(config.falloff));
-    falloff = falloff * falloff;
-    half ao = HALF_ONE - saturate(integral);
-    ao = PositivePow(saturate(ao * config.intensity * falloff), kContrast);
-
-    // Return the packed ao + normals
-    return PackAONormal(ao, normal);
 }
 
 

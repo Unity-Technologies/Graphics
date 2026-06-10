@@ -20,7 +20,9 @@
 #define SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod)
 #endif
 
+#ifndef PI
 #define PI          3.14159265358979323846
+#endif
 #define TWO_PI      6.28318530717958647693
 #define FOUR_PI     12.5663706143591729538
 #define INV_PI      0.31830988618379067154

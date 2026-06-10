@@ -192,12 +192,14 @@ bool SampleRectangularLight(float2 rng, float3 P, PTLight light, inout LightShap
     float cosTheta = -dot(lightSample.L, light.forward);
     if (cosTheta < 0.001)
         return false;
+    else
+    {
+        float d = lightSample.distanceToLight;
+        float lightArea = light.width * light.height;
+        lightSample.weight = lightArea * cosTheta / (d * d);
 
-    float d = lightSample.distanceToLight;
-    float lightArea = light.width * light.height;
-    lightSample.weight = lightArea * cosTheta / (d * d);
-
-    return true;
+        return true;
+    }
 
 #else
     // Solid angle sampling
@@ -267,45 +269,47 @@ bool SampleRectangularLight(float2 rng, float3 P, PTLight light, inout LightShap
 
     if (squad.S < 0.00001 || isnan(squad.S))
         return false;
+    else
+    {
+        // 1. compute ’cu’
+        float au = u * squad.S + squad.k;
+        float fu = (cos(au) * squad.b0 - squad.b1) / sin(au);
+        float cu = 1 / sqrt(fu * fu + squad.b0sq);// *(fu > 0 ? +1 : -1);
+        cu = (fu > 0.0f) ? cu : -cu;
+        cu = clamp(cu, -1, 1); // avoid NaNs
 
-    // 1. compute ’cu’
-    float au = u * squad.S + squad.k;
-    float fu = (cos(au) * squad.b0 - squad.b1) / sin(au);
-    float cu = 1 / sqrt(fu * fu + squad.b0sq);// *(fu > 0 ? +1 : -1);
-    cu = (fu > 0.0f) ? cu : -cu;
-    cu = clamp(cu, -1, 1); // avoid NaNs
+        // 2. compute ’xu’
+        float xu = -(cu * squad.z0) / sqrt(1 - cu * cu);
+        xu = clamp(xu, squad.x0, squad.x1); // avoid Infs
 
-    // 2. compute ’xu’
-    float xu = -(cu * squad.z0) / sqrt(1 - cu * cu);
-    xu = clamp(xu, squad.x0, squad.x1); // avoid Infs
+        // 3. compute ’yv’
+        float d = sqrt(xu * xu + squad.z0sq);
+        float h0 = squad.y0 / sqrt(d * d + squad.y0sq);
+        float h1 = squad.y1 / sqrt(d * d + squad.y1sq);
+        float hv = h0 + v * (h1 - h0);
+        float hv2 = hv * hv;
+        float eps = 0.0001;
+        float yv = (hv2 < 1.0 - eps) ? (hv * d) / sqrt(1.0 - hv2) : squad.y1;
 
-    // 3. compute ’yv’
-    float d = sqrt(xu * xu + squad.z0sq);
-    float h0 = squad.y0 / sqrt(d * d + squad.y0sq);
-    float h1 = squad.y1 / sqrt(d * d + squad.y1sq);
-    float hv = h0 + v * (h1 - h0);
-    float hv2 = hv * hv;
-    float eps = 0.0001;
-    float yv = (hv2 < 1.0 - eps) ? (hv * d) / sqrt(1.0 - hv2) : squad.y1;
+        // 4. transform (xu,yv,z0) to world coords
+        float3 position = (squad.o + xu * squad.x + yv * squad.y + squad.z0 * squad.z);
 
-    // 4. transform (xu,yv,z0) to world coords
-    float3 position = (squad.o + xu * squad.x + yv * squad.y + squad.z0 * squad.z);
+        lightSample.lightVector = position - P;
+        lightSample.distanceToLight = length(lightSample.lightVector);
+        lightSample.L = lightSample.lightVector * rcp(lightSample.distanceToLight);
+        lightSample.weight = squad.S;
 
-    lightSample.lightVector = position - P;
-    lightSample.distanceToLight = length(lightSample.lightVector);
-    lightSample.L = lightSample.lightVector * rcp(lightSample.distanceToLight);
-    lightSample.weight = squad.S;
+        // Cookie texture coordinates
+        lightSample.uv = float2((xu - squad.x0) / (squad.x1 - squad.x0) - 0.5, (yv - squad.y0) / (squad.y1 - squad.y0) - 0.5);
+        lightSample.uv.y = 1.0 - lightSample.uv.y;
+        lightSample.materialIndex = -1;
 
-    // Cookie texture coordinates
-    lightSample.uv = float2((xu - squad.x0) / (squad.x1 - squad.x0) - 0.5, (yv - squad.y0) / (squad.y1 - squad.y0) - 0.5);
-    lightSample.uv.y = 1.0 - lightSample.uv.y;
-    lightSample.materialIndex = -1;
-
-    float cosTheta = -dot(lightSample.L, light.forward);
-    if (cosTheta < eps)
-        return false;
-
-    return true;
+        float cosTheta = -dot(lightSample.L, light.forward);
+        if (cosTheta < eps)
+            return false;
+        else
+            return true;
+    }
 #endif
 }
 
@@ -314,7 +318,7 @@ bool SampleDiscLight(float2 rng, float3 P, PTLight light, inout LightShapeSample
     float u = rng.x;
     float v = rng.y;
 
-    float2 coord = SampleDiskUniform(u, v);
+    float2 coord = SampleDiskUniform((real)u, (real)v);
     const float radius = light.width;
     float3 posOnDisk = radius * (coord.x * light.right + coord.y * light.up);
     float3 position = light.position + posOnDisk;
@@ -639,7 +643,7 @@ float PunctualLightAngleAttenuation(float4 distances, float rangeAttenuationScal
     float distRcp = distances.z;
     float distProj = distances.w;
     float cosFwd = distProj * distRcp;
-    float attenuation = AngleAttenuation(cosFwd, lightAngleScale, lightAngleOffset);
+    float attenuation = AngleAttenuation((real)cosFwd, (real)lightAngleScale, (real)lightAngleOffset);
     return Sq(attenuation);
 }
 
@@ -734,11 +738,13 @@ float3 GetDirectionalEmission(PTLight light, LightShapeSample lightSample)
 float3 GetRectangularLightEmission(PTLight light, LightShapeSample lightSample)
 {
     if (light.range < lightSample.distanceToLight)
-        return 0.f;
-    float3 emission = light.intensity;
-
-    float3 cookieAttenuation = AreaCookieAttenuation(light, lightSample);
-    return emission * cookieAttenuation;
+        return float3(0.f, 0.f, 0.f);
+    else
+    {
+        float3 emission = light.intensity;
+        float3 cookieAttenuation = AreaCookieAttenuation(light, lightSample);
+        return emission * cookieAttenuation;
+    }
 }
 
 float3 GetDiscLightEmission(PTLight light, LightShapeSample lightSample)
