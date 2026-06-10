@@ -544,7 +544,7 @@ namespace UnityEditor.VFX.Test
             graph.SetExpressionValueDirty();
             Assert.IsFalse(graph.IsExpressionGraphDirty());
             
-            graph.RecompileIfNeeded(); //Expecting an invocation of compiledData.UpdateValues();
+            graph.UpdateValuesIfDirty();
 
             Assert.AreEqual(2u, vfx.GetUInt(uintExposedName));
             Assert.AreEqual(m_texture2D_B, vfx.GetTexture(textureExposedName));
@@ -655,7 +655,7 @@ namespace UnityEditor.VFX.Test
             {
                 expectedValue = new Vector2(5.0f, 6.0f);
                 parameter.value = expectedValue;
-                graph.RecompileIfNeeded(false);
+                graph.UpdateValuesIfDirty();
             }
 
             if (modifyValue)
@@ -1747,7 +1747,7 @@ VisualEffect:Vector4.animation_expected_vector4.z
                     }
                 };
                 curveSlot.value = new AnimationCurve(new Keyframe(0, nextExpectedValue.w), new Keyframe(1, nextExpectedValue.w));
-                graph.RecompileIfNeeded(); //This recompile is expecting to invoke UpdateValues 
+                graph.UpdateValuesIfDirty();
 
                 s_Constant_Curve_And_Gradient_Readback = Vector4.zero;
                 request = AsyncGPUReadback.Request(structuredBuffer, Constant_Curve_And_Gradient_Readback);

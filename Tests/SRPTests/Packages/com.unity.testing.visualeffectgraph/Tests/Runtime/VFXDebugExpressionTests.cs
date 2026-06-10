@@ -79,7 +79,8 @@ namespace UnityEditor.VFX.Test
             graph.AddChild(spawnerContext);
 
             VFXTestCommon.ReimportVFXGraph(graph);
-            var expressionIndex = graph.FindReducedExpressionIndexFromSlotCPU(slotRate);
+            graph.Compile();
+            var expressionIndex = graph.compiledData.FindReducedExpressionIndexFromSlotCPU(slotRate);
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());

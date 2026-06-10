@@ -1179,12 +1179,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public uint FindReducedExpressionIndexFromSlotCPU(VFXSlot slot)
-        {
-            RecompileIfNeeded(false);
-            return compiledData.FindReducedExpressionIndexFromSlotCPU(slot);
-        }
-
         public void SetCompilationMode(VFXCompilationMode mode)
         {
             if (m_CompilationMode != mode && !GetResource().isSubgraph)
@@ -1401,8 +1395,6 @@ namespace UnityEditor.VFX
                 Debug.Log($"VfxGraph::PrepareGraph {this.GetEntityId()} {name} {AssetDatabase.GetAssetPath(this)} {Environment.StackTrace}");
 
             // We arrive from AssetPostProcess so dependencies are already loaded no need to worry about them (FB #1364156)
-            
-
             ResyncGraphDependencies();
 
             SanitizeGraph();
@@ -1422,10 +1414,13 @@ namespace UnityEditor.VFX
             bool generateShadersDebugSymbols = VFXViewPreference.generateShadersWithDebugSymbols || m_ForceShaderDebugSymbols;
             if (VFXViewPreference.advancedLogs)
                 Debug.Log($"VfxGraph::Compile {this.GetEntityId()} {AssetDatabase.GetAssetPath(this)} {m_CompilationMode}");
-            if (VFXViewPreference.useNewCompiler)
-                return m_NewCompiler.Compile(this, m_CompilationMode, generateShadersDebugSymbols);
-            else
-                return compiledData.Compile(m_CompilationMode, generateShadersDebugSymbols, VFXAnalytics.GetInstance());
+
+            var output = VFXViewPreference.useNewCompiler
+                ? m_NewCompiler.Compile(this, m_CompilationMode, generateShadersDebugSymbols)
+                : compiledData.Compile(m_CompilationMode, generateShadersDebugSymbols, VFXAnalytics.GetInstance());
+
+            errorManager.GenerateErrors();
+            return output;
         }
 
         private static System.Reflection.PropertyInfo kGetAllowLocking = typeof(Material).GetProperty("allowLocking", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
@@ -1532,7 +1527,6 @@ namespace UnityEditor.VFX
                 Debug.Log($"VfxGraph::GenerateVisualAssetDesc {this.GetEntityId()} {name} {AssetDatabase.GetAssetPath(this)}");
 
             var output = Compile();
-            errorManager.GenerateErrors();
 
             var previewShaders = new List<UnityObject>();
             var desc = GenerateVisualEffectAssetDesc(output, instancingEnabled, compileInitialVariant, m_CompilationMode, ctx, previewShaders);
@@ -1707,45 +1701,31 @@ namespace UnityEditor.VFX
             return (generate.output, instancingEnabled, initialVariant, m_CompilationMode);
         }
 
-        public VFXGraphCompiledData.VFXCompileOutput RecompileIfNeeded(bool preventRecompilation = false)
+        internal void UpdateMaterialIfDirty()
         {
-            var output = new VFXGraphCompiledData.VFXCompileOutput
+            if (GetResource().isSubgraph)
+                return;
+
+            if (m_MaterialsDirty && GetResource().asset != null)
             {
-                success = false
-            };
-
-            if (!GetResource().isSubgraph)
-            {
-                bool considerGraphDirty = m_ExpressionGraphDirty && !preventRecompilation;
-                if (considerGraphDirty)
-                {
-                    BuildSubgraphDependencies();
-                    PrepareSubgraphs();
-                    output = Compile();
-                }
-                else
-                {
-                    if (m_ExpressionValuesDirty && !m_ExpressionGraphDirty)
-                        output.assetDesc.sheet.values = compiledData.UpdateValues();
-                    if (m_MaterialsDirty && GetResource().asset != null)
-                        UnityEngine.VFX.VFXManager.ResyncMaterials(GetResource().asset);
-                }
-
-                if (considerGraphDirty)
-                    m_ExpressionGraphDirty = false;
-
-                m_ExpressionValuesDirty = false;
+                UnityEngine.VFX.VFXManager.ResyncMaterials(GetResource().asset);
                 m_MaterialsDirty = false;
             }
-            else if (m_ExpressionGraphDirty && !preventRecompilation)
+        }
+
+        internal VFXExpressionValueContainerDesc[] UpdateValuesIfDirty()
+        {
+            if (GetResource().isSubgraph)
+                return null;
+
+            VFXExpressionValueContainerDesc[] updatedValues = null;
+            if (m_ExpressionValuesDirty && !m_ExpressionGraphDirty)
             {
-                BuildSubgraphDependencies();
-                PrepareSubgraphs();
-                m_ExpressionGraphDirty = false;
+                updatedValues = compiledData.UpdateValues();
+                m_ExpressionValuesDirty = false;
             }
 
-            errorManager.GenerateErrors();
-            return output;
+            return updatedValues;
         }
 
         public void RegisterCompileError(string error, string description, VFXModel model)
@@ -1759,7 +1739,7 @@ namespace UnityEditor.VFX
             m_CompiledData = null;
         }
 
-        private VFXGraphCompiledData compiledData
+        internal VFXGraphCompiledData compiledData
         {
             get
             {

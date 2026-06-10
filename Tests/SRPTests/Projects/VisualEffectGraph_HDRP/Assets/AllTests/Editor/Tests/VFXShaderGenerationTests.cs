@@ -48,16 +48,16 @@ namespace UnityEditor.VFX.Test
             graph.AddChild(float4);
             graph.AddChild(length);
 
-            graph.RecompileIfNeeded();
+            VFXTestCommon.ReimportVFXGraph(graph);
 
             attributeParameter.outputSlots[0].Link(blockSetVelocity.inputSlots[0]);
-            graph.RecompileIfNeeded();
+            VFXTestCommon.ReimportVFXGraph(graph);
 
             attributeParameter.outputSlots[0].Link(add.inputSlots[0]);
             float4.outputSlots[0].Link(add.inputSlots[1]);
             add.outputSlots[0].Link(length.inputSlots[0]);
             length.outputSlots[0].Link(blockSetVelocity.inputSlots[0]);
-            graph.RecompileIfNeeded();
+            VFXTestCommon.ReimportVFXGraph(graph);
         }
 
         void GraphWithImplicitBehavior_Internal(VFXBlock[] initBlocks)
@@ -82,7 +82,7 @@ namespace UnityEditor.VFX.Test
                 initContext.AddChild(initBlock);
             }
 
-            graph.RecompileIfNeeded();
+            VFXTestCommon.ReimportVFXGraph(graph);
         }
 
         [Test]

@@ -1923,6 +1923,20 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public static void UpdateAssetValues(VFXGraph graph)
+        {
+            if (graph == null)
+                return;
+
+            var sheet = graph.UpdateValuesIfDirty();
+            graph.UpdateMaterialIfDirty();
+            if (sheet != null)
+            {
+                var assetGuid = AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(graph));
+                VFXGraph.UpdateAuthoringValues(assetGuid, sheet);
+            }
+        }
+
         public static void CompileAndUpdateAsset(VFXGraph graph)
         {
             var asset = graph.GetResource().asset;
@@ -1934,26 +1948,15 @@ namespace UnityEditor.VFX.UI
             VFXGraph.UpdateAuthoringCompileData(assetGuid, output.output, output.instancingEnabled, output.initialVariant, output.mode);
         }
 
-        public static void RecompileIfNeeded(VFXGraph graph)
-        {
-            var output = graph.RecompileIfNeeded(true);
-            if (output.assetDesc.sheet.values != null)
-            {
-                var assetGuid = AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(graph));
-                VFXGraph.UpdateAuthoringValues(assetGuid, output.assetDesc.sheet.values);
-            }
-        }
-
         internal void Compile()
         {
             VFXLibrary.LogUnsupportedSRP();
 
             if (controller.model.isSubgraph)
-                controller.graph.RecompileIfNeeded(false);
+                controller.graph.PrepareGraph();
             else
-            {
                 CompileAndUpdateAsset(controller.graph);
-            }
+
             foreach (var model in m_ModelsWithHiddenBadges)
             {
                 model.RefreshErrors();
