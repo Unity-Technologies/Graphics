@@ -469,7 +469,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             SearcherWindow.Show(m_EditorWindow,
                 searcherProvider.LoadSearchWindow(),
-                item => item != null && searcherProvider.OnSearcherSelectEntry(item, displayPosition),
+                item => searcherProvider.OnSearcherSelectEntry(item, displayPosition),
                 displayPosition, null, new SearcherWindow.Alignment(SearcherWindow.Alignment.Vertical.Center, SearcherWindow.Alignment.Horizontal.Left));
         }
 
