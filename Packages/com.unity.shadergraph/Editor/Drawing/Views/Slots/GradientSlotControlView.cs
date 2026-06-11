@@ -21,7 +21,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
         [SerializeField]
         SerializedObject m_SerializedObject;
 
-        public GradientSlotControlView(GradientInputMaterialSlot slot)
+        GradientField m_Field;
+        public bool isShowingGradientEditor => GradientPicker.visible && m_Field.isShowingGradientPicker;
+
+        public GradientSlotControlView(GradientInputMaterialSlot slot, bool showGradientEditor)
         {
             m_Slot = slot;
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/GradientSlotControlView"));
@@ -33,9 +36,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
             m_GradientObject.gradient.SetKeys(m_Slot.value.colorKeys, m_Slot.value.alphaKeys);
             m_GradientObject.gradient.mode = m_Slot.value.mode;
 
-            var gradientField = new GradientField() { value = m_GradientObject.gradient, colorSpace = ColorSpace.Linear, hdr = true };
-            gradientField.RegisterValueChangedCallback(OnValueChanged);
-            Add(gradientField);
+            m_Field = new GradientField() { value = m_GradientObject.gradient, colorSpace = ColorSpace.Linear, hdr = true };
+            m_Field.RegisterValueChangedCallback(OnValueChanged);
+            Add(m_Field);
+
+            if (showGradientEditor)
+                m_Field.ShowGradientPicker();
         }
 
         void OnValueChanged(ChangeEvent<Gradient> evt)
