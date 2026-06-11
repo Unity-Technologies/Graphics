@@ -167,6 +167,25 @@ namespace UnityEngine.Rendering
         }
     }
 
+    internal enum CullingDebugCounter
+    {
+        RenderingDisabled,  // MeshRenderer.enabled=false or GameObject inactive (runtime toggled)
+        LayerCulled,
+        FrustumCulled,
+        OcclusionCulled,    // CPU occlusion (occlusion buffer)
+        // GPU occlusion has no enum value here — CullingJob counts CPU-visible only, and the
+        // final GPU count is finalized post-job via DebugRendererBatcherStats.cameraGPUOcclusionCulled.
+        LODGroupCulled,
+        SmallMeshCulled,
+        OtherCulled,        // Editor-only paths (scene mask, selection outline) + shadow-mode mismatches + lightmapped shadow casters
+        Visible,
+        LOD0,
+        LOD1,
+        LOD2,
+        LOD3Plus,
+        Count
+    }
+
     [BurstCompile]
     internal struct CullingJob : IJobParallelFor
     {
@@ -227,6 +246,26 @@ namespace UnityEngine.Rendering
 
         public RenderWorld.PerCameraInstanceData perCameraInstanceData;
 
+        [NativeDisableContainerSafetyRestriction, NativeDisableParallelForRestriction]
+        public NativeArray<int> cullingDebugCounters;
+
+        unsafe void IncrementCullingCounter(CullingDebugCounter counter)
+        {
+            if (viewType == BatchCullingViewType.Camera && cullingDebugCounters.IsCreated)
+            {
+                int* counters = (int*)cullingDebugCounters.GetUnsafePtr();
+                Interlocked.Add(ref UnsafeUtility.AsRef<int>(counters + (int)counter), 1);
+            }
+        }
+
+        void IncrementLODLevelCounter(int lodLevel)
+        {
+            if (lodLevel <= 0) IncrementCullingCounter(CullingDebugCounter.LOD0);
+            else if (lodLevel == 1) IncrementCullingCounter(CullingDebugCounter.LOD1);
+            else if (lodLevel == 2) IncrementCullingCounter(CullingDebugCounter.LOD2);
+            else IncrementCullingCounter(CullingDebugCounter.LOD3Plus);
+        }
+
         // float [-1.0f... 1.0f] -> uint [0...254]
         static uint PackFloatToUint8(float percent)
         {
@@ -248,7 +287,10 @@ namespace UnityEngine.Rendering
                 var maxDist = LODRenderingUtils.CalculateLODDistance(minScreenRelativeHeight, worldSpaceSize);
                 // If no LODGroup available - small mesh culling.
                 if (math.square(maxDist) < cameraSqrDist)
+                {
+                    IncrementCullingCounter(CullingDebugCounter.SmallMeshCulled);
                     return k_LODFadeZeroPacked;
+                }
 
                 var transitionHeight = minScreenRelativeHeight + k_SmallMeshTransitionWidth * minScreenRelativeHeight;
                 var fadeOutRange = Mathf.Max(0.0f,maxDist - LODRenderingUtils.CalculateLODDistance(transitionHeight, worldSpaceSize));
@@ -261,7 +303,18 @@ namespace UnityEngine.Rendering
 
             ref var lodGroup = ref lodGroupCullingData.ElementAt(lodGroupIndex.index);
             if (lodGroup.forceLODMask != 0)
-                return (lodGroup.forceLODMask & lodMask) != 0 ? k_LODFadeOff : k_LODFadeZeroPacked;
+            {
+                uint activeBits = lodGroup.forceLODMask & lodMask;
+                if (activeBits != 0)
+                {
+                    // tzcnt on the intersection (not lodMask alone) — when lodMask is multi-bit
+                    // during crossfade, only the forced bit is actually displayed.
+                    IncrementLODLevelCounter(math.tzcnt(activeBits));
+                    return k_LODFadeOff;
+                }
+                IncrementCullingCounter(CullingDebugCounter.LODGroupCulled);
+                return k_LODFadeZeroPacked;
+            }
 
             float cameraSqrDistToLODCenter = isOrtho ? sqrScreenRelativeMetric : LODRenderingUtils.CalculateSqrPerspectiveDistance(lodGroup.worldSpaceReferencePoint, cameraPosition, sqrScreenRelativeMetric);
 
@@ -294,11 +347,17 @@ namespace UnityEngine.Rendering
 
                 // Instance is in neither this LOD Level nor next - invisible
                 if (type == CrossFadeType.kDisabled)
+                {
+                    IncrementCullingCounter(CullingDebugCounter.LODGroupCulled);
                     return k_LODFadeZeroPacked;
+                }
 
                 // Instance is in both this and the next lod. No need to fade - fully visible
                 if (type == CrossFadeType.kVisible)
+                {
+                    IncrementLODLevelCounter(m);
                     return k_LODFadeOff;
+                }
 
                 var distanceToLodCenter = math.sqrt(cameraSqrDistToLODCenter);
                 var maxDist = math.sqrt(lodRangeSqrMax);
@@ -309,10 +368,12 @@ namespace UnityEngine.Rendering
                     // The fading-in instance is not visible but the fading-out is visible and it does the speed tree vertex deformation.
                     if (type == CrossFadeType.kCrossFadeIn)
                     {
+                        IncrementLODLevelCounter(m);
                         return k_LODFadeZeroPacked + 1;
                     }
                     else if (type == CrossFadeType.kCrossFadeOut)
                     {
+                        IncrementLODLevelCounter(m);
                         var minDist = m > 0
                             ? math.sqrt(lodGroup.sqrDistances[m - 1])
                             : lodGroup.worldSpaceSize;
@@ -334,44 +395,79 @@ namespace UnityEngine.Rendering
                         if (type == CrossFadeType.kCrossFadeIn)
                             lodPercent = -lodPercent;
 
+                        IncrementLODLevelCounter(m);
                         return PackFloatToUint8(lodPercent);
                     }
 
-                    return type == CrossFadeType.kCrossFadeOut ? k_LODFadeOff : k_LODFadeZeroPacked;
+                    if (type == CrossFadeType.kCrossFadeOut)
+                    {
+                        IncrementLODLevelCounter(m);
+                        return k_LODFadeOff;
+                    }
+                    IncrementCullingCounter(CullingDebugCounter.LODGroupCulled);
+                    return k_LODFadeZeroPacked;
                 }
             }
 
+            IncrementCullingCounter(CullingDebugCounter.LODGroupCulled);
             return k_LODFadeZeroPacked;
         }
 
         private uint CalculateVisibilityMask(int instanceIndex, ShadowCastingMode shadowCastingMode, bool affectsLightmaps)
         {
+            // Runtime-disabled renderers (MeshRenderer.enabled=false, GameObject.activeInHierarchy=false) are tracked
+            // per-frame in renderWorld.renderingEnabled. They MUST be rejected here — they are still in the GRD path
+            // (filter classifies them as InactiveOrDisabled only at registration time, not when toggled at runtime).
             if (!renderWorld.renderingEnabled.Get(instanceIndex))
+            {
+                IncrementCullingCounter(CullingDebugCounter.RenderingDisabled);
                 return 0;
+            }
 
             if (cullingLayerMask == 0)
+            {
+                IncrementCullingCounter(CullingDebugCounter.LayerCulled);
                 return 0;
+            }
 
             if ((cullingLayerMask & (1 << renderWorld.rendererSettings[instanceIndex].ObjectLayer)) == 0)
+            {
+                IncrementCullingCounter(CullingDebugCounter.LayerCulled);
                 return 0;
+            }
 
             if (cullLightmappedShadowCasters && affectsLightmaps)
+            {
+                IncrementCullingCounter(CullingDebugCounter.OtherCulled);
                 return 0;
+            }
 
 #if UNITY_EDITOR
             if ((sceneCullingMask & renderWorld.sceneCullingMasks[instanceIndex]) == 0)
+            {
+                IncrementCullingCounter(CullingDebugCounter.OtherCulled);
                 return 0;
+            }
 
             if (viewType == BatchCullingViewType.SelectionOutline && !includeExcludeListFilter.DoesPassFilter(renderWorld.instanceIDs[instanceIndex]))
+            {
+                IncrementCullingCounter(CullingDebugCounter.OtherCulled);
                 return 0;
+            }
 #endif
 
             // cull early for camera and shadow views based on the shadow culling mode
             if (viewType == BatchCullingViewType.Camera && shadowCastingMode == ShadowCastingMode.ShadowsOnly)
+            {
+                IncrementCullingCounter(CullingDebugCounter.OtherCulled);
                 return 0;
+            }
 
             if (viewType == BatchCullingViewType.Light && shadowCastingMode == ShadowCastingMode.Off)
+            {
+                IncrementCullingCounter(CullingDebugCounter.OtherCulled);
                 return 0;
+            }
 
             ref readonly AABB worldAABB = ref renderWorld.worldAABBs.ElementAt(instanceIndex);
             uint visibilityMask = FrustumPlaneCuller.ComputeSplitVisibilityMask(frustumPlanePackets, frustumSplitInfos, worldAABB);
@@ -379,9 +475,18 @@ namespace UnityEngine.Rendering
             if (visibilityMask != 0 && receiverSplitInfos.Length > 0)
                 visibilityMask &= ReceiverSphereCuller.ComputeSplitVisibilityMask(lightFacingFrustumPlanes, receiverSplitInfos, worldToLightSpaceRotation, worldAABB);
 
-            // Perform an occlusion test on the instance bounds if we have an occlusion buffer available and the instance is still visible
-            if (visibilityMask != 0 && occlusionBuffer != IntPtr.Zero)
-                visibilityMask = BatchRendererGroup.OcclusionTestAABB(occlusionBuffer, worldAABB.ToBounds()) ? visibilityMask : 0;
+            if (visibilityMask == 0)
+            {
+                IncrementCullingCounter(CullingDebugCounter.FrustumCulled);
+                return 0;
+            }
+
+            // Perform an occlusion test on the instance bounds if we have an occlusion buffer available
+            if (occlusionBuffer != IntPtr.Zero && !BatchRendererGroup.OcclusionTestAABB(occlusionBuffer, worldAABB.ToBounds()))
+            {
+                IncrementCullingCounter(CullingDebugCounter.OcclusionCulled);
+                return 0;
+            }
 
             return visibilityMask;
         }
@@ -555,6 +660,7 @@ namespace UnityEngine.Rendering
             rendererVisibilityMasks[instance.index] = (byte)visibilityMask;
             rendererMeshLodSettings[instance.index] = (byte)meshLodLevel;
             rendererCrossFadeValues[instance.index] = (byte)(crossFadeValue & 0xFF);
+            IncrementCullingCounter(CullingDebugCounter.Visible);
         }
     }
 
@@ -1926,6 +2032,10 @@ namespace UnityEngine.Rendering
         private int m_CullInstancesKernel;
 
         private DebugRendererBatcherStats m_DebugStats;
+#if ENABLE_PROFILER
+        private GRDDebugStats m_AdvancedDebugStats;
+#endif
+        private NativeArray<int> m_CullingDebugCounters;
         private InstanceCullerSplitDebugArray m_SplitDebugArray;
         private InstanceOcclusionEventDebugArray m_OcclusionEventDebugArray;
         private ProfilingSampler m_ProfilingSampleInstanceOcclusionTest;
@@ -1981,6 +2091,16 @@ namespace UnityEngine.Rendering
             m_LODParamsToCameraID = new NativeParallelHashMap<int, AnimatedFadeData>(16, Allocator.Persistent);
         }
 
+#if ENABLE_PROFILER
+        internal void InitializeAdvancedDebugStats(GRDDebugStats advancedDebugStats)
+        {
+            m_AdvancedDebugStats = advancedDebugStats;
+            // Only allocate when there's a consumer for the data. Without this, every CullingJob
+            // would still pay the per-instance Interlocked.Add cost even with the Profiler off.
+            if (m_AdvancedDebugStats != null)
+                m_CullingDebugCounters = new NativeArray<int>((int)CullingDebugCounter.Count, Allocator.Persistent);
+        }
+#endif
 
         // This relies on the fact that camera culling is scheduled ahead of shadow culling.
         private JobHandle AnimateCrossFades(in RenderWorld renderWorld,
@@ -2075,6 +2195,11 @@ namespace UnityEngine.Rendering
             if (!perCameraInstanceData.IsCreated)
                 perCameraInstanceData = emptyPerCameraInstanceData; // Set struct with empty NativeArray otherwise safety checks will complain
 
+            // Skip per-instance counter increments when nobody will read them this frame.
+            // Passing default leaves cullingDebugCounters.IsCreated == false in the job, so
+            // IncrementCullingCounter short-circuits before the Interlocked.Add.
+            bool collectCounters = m_CullingDebugCounters.IsCreated && UnityEngine.Profiling.Profiler.enabled;
+
             var cullingJob = new CullingJob
             {
                 renderWorld = renderWorld,
@@ -2106,6 +2231,7 @@ namespace UnityEngine.Rendering
                 rendererMeshLodSettings = rendererMeshLodSettings,
                 rendererCrossFadeValues = rendererCrossFadeValues,
                 perCameraInstanceData = perCameraInstanceData,
+                cullingDebugCounters = collectCounters ? m_CullingDebugCounters : default,
             }
             .Schedule(renderWorld.instanceCount, 64, animatedCrossFadesJob);
 
@@ -2828,12 +2954,70 @@ namespace UnityEngine.Rendering
 
         private void FlushDebugCounters()
         {
-            if (GPUResidentDrawer.debugDisplaySettings?.displayBatcherStats ?? false)
+            // Both consumers (Rendering Debugger overlay and Profiler module) need the same
+            // GPU occlusion totals — finalize whenever EITHER is active. Profiler-side path also
+            // requires Profiler to be live; otherwise the per-frame debug counters are stale by
+            // design (we still ran the job with cullingDebugCounters allocated, but no one will read).
+            bool legacyDebugActive = GPUResidentDrawer.debugDisplaySettings?.displayBatcherStats ?? false;
+#if ENABLE_PROFILER
+            bool advancedActive = m_AdvancedDebugStats != null
+                && m_CullingDebugCounters.IsCreated
+                && UnityEngine.Profiling.Profiler.enabled;
+#else
+            const bool advancedActive = false;
+#endif
+
+            if (legacyDebugActive || advancedActive)
             {
                 m_SplitDebugArray.MoveToDebugStatsAndClear(m_DebugStats);
                 m_OcclusionEventDebugArray.MoveToDebugStatsAndClear(m_DebugStats);
                 m_DebugStats.FinalizeInstanceCullerViewStats();
             }
+
+#if ENABLE_PROFILER
+            if (advancedActive)
+            {
+                ref var stats = ref m_AdvancedDebugStats.cullingStats;
+                stats.renderingDisabledCount = m_CullingDebugCounters[(int)CullingDebugCounter.RenderingDisabled];
+                stats.layerCulledCount = m_CullingDebugCounters[(int)CullingDebugCounter.LayerCulled];
+                stats.frustumCulledCount = m_CullingDebugCounters[(int)CullingDebugCounter.FrustumCulled];
+                stats.occlusionCulledCount = m_CullingDebugCounters[(int)CullingDebugCounter.OcclusionCulled];
+                stats.lodGroupCulledCount = m_CullingDebugCounters[(int)CullingDebugCounter.LODGroupCulled];
+                stats.smallMeshCulledCount = m_CullingDebugCounters[(int)CullingDebugCounter.SmallMeshCulled];
+                stats.otherCulledCount = m_CullingDebugCounters[(int)CullingDebugCounter.OtherCulled];
+                stats.visibleInstances = m_CullingDebugCounters[(int)CullingDebugCounter.Visible];
+
+                // GPU occlusion runs after CullingJob, so instances counted as "Visible" by CPU
+                // may be subsequently culled on the GPU. Camera-only aggregate; see
+                // DebugRendererBatcherStats.cameraGPUOcclusionCulled for why mixing views breaks
+                // this subtraction.
+                stats.gpuOcclusionCulledCount = m_DebugStats.cameraGPUOcclusionCulled;
+                stats.visibleInstances = Math.Max(0, stats.visibleInstances - stats.gpuOcclusionCulledCount);
+
+                stats.totalInstances =
+                    stats.visibleInstances
+                    + stats.renderingDisabledCount
+                    + stats.layerCulledCount
+                    + stats.frustumCulledCount
+                    + stats.occlusionCulledCount
+                    + stats.gpuOcclusionCulledCount
+                    + stats.lodGroupCulledCount
+                    + stats.smallMeshCulledCount
+                    + stats.otherCulledCount;
+
+                ref var lodStats = ref m_AdvancedDebugStats.lodStats;
+                lodStats.lod0Count = m_CullingDebugCounters[(int)CullingDebugCounter.LOD0];
+                lodStats.lod1Count = m_CullingDebugCounters[(int)CullingDebugCounter.LOD1];
+                lodStats.lod2Count = m_CullingDebugCounters[(int)CullingDebugCounter.LOD2];
+                lodStats.lod3PlusCount = m_CullingDebugCounters[(int)CullingDebugCounter.LOD3Plus];
+            }
+
+            // Always zero between flushes — even when advancedActive was false this flush, the
+            // job may have written counters earlier (mid-frame Profiler toggle). Stale values
+            // would otherwise corrupt the next flush that finds advancedActive == true.
+            if (m_CullingDebugCounters.IsCreated)
+                m_CullingDebugCounters.FillArray(0);
+#endif
         }
 
         private void OnBeginSceneViewCameraRendering()
@@ -2879,6 +3063,11 @@ namespace UnityEngine.Rendering
             DisposeCompactVisibilityMasks();
             m_IndirectStorage.Dispose();
             m_DebugStats = null;
+#if ENABLE_PROFILER
+            m_AdvancedDebugStats = null;
+#endif
+            if (m_CullingDebugCounters.IsCreated)
+                m_CullingDebugCounters.Dispose();
             m_OcclusionEventDebugArray.Dispose();
             m_SplitDebugArray.Dispose();
             m_ShaderVariables.Dispose();

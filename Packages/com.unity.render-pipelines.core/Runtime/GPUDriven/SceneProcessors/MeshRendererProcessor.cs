@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering
         /// parallel jobs, uploads the buffer to the GPU, then scatter-writes each component
         /// into the instance data buffer.
         /// </summary>
-        static readonly ProfilerMarker k_UploadGPUComponentOverrides =
+        internal static readonly ProfilerMarker k_UploadGPUComponentOverrides =
             new ProfilerMarker(ProfilerCategory.Render, "UploadGPUComponentOverrides", MarkerFlags.VerbosityAdvanced);
 
         /// <summary>
@@ -116,6 +116,7 @@ namespace UnityEngine.Rendering
             new ProfilerMarker(ProfilerCategory.Render, "DeepValidation.NoInstanceUsesBlendProbes", MarkerFlags.VerbosityAdvanced);
 
         private GPUDrivenProcessor m_GPUDrivenProcessor;
+        private GPUResidentContext m_GRDContext;
         private InstanceCullingBatcher m_CullingBatcher;
         private NativeReference<GPUArchetypeManager> m_ArchetypeManager;
         private InstanceDataSystem m_InstanceDataSystem;
@@ -127,6 +128,7 @@ namespace UnityEngine.Rendering
         public MeshRendererProcessor(GPUDrivenProcessor gpuDrivenProcessor, GPUResidentContext grdContext)
         {
             m_GPUDrivenProcessor = gpuDrivenProcessor;
+            m_GRDContext = grdContext;
             m_CullingBatcher = grdContext.batcher;
             m_ArchetypeManager = grdContext.instanceDataSystem.archetypeManager;
             m_InstanceDataSystem = grdContext.instanceDataSystem;
@@ -496,6 +498,13 @@ namespace UnityEngine.Rendering
                 m_GPUDrivenProcessor.DisableGPUDrivenRendering(rendererData.invalidRenderer);
                 DestroyInstances(rendererData.invalidRenderer);
             }
+
+#if ENABLE_PROFILER
+            m_GRDContext.advancedDebugStats?.RecordRenderers(
+                rendererData.renderer,
+                rendererData.invalidRenderer,
+                rendererData.invalidRendererReason);
+#endif
 
             if (rendererData.renderer.Length == 0)
                 return;

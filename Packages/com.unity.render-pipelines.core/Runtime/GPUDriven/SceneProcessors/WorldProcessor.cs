@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering
         /// camera, LOD group, mesh renderer, material, and mesh events, then flushes all queued
         /// update batches and motion updates.
         /// </summary>
-        static readonly ProfilerMarker k_Update =
+        internal static readonly ProfilerMarker k_Update =
             new ProfilerMarker(ProfilerCategory.Render, "WorldProcessor.Update");
 
         /// <summary>
@@ -108,6 +108,7 @@ namespace UnityEngine.Rendering
 
         private GPUDrivenProcessor m_GPUDrivenProcessor;
         private ObjectDispatcher m_ObjectDispatcher;
+        private GPUResidentContext m_GRDContext;
         private InstanceDataSystem m_InstanceDataSystem;
         private InstanceCullingBatcher m_Batcher;
         private MeshRendererProcessor m_MeshRendererProcessor;
@@ -126,6 +127,7 @@ namespace UnityEngine.Rendering
         {
             m_GPUDrivenProcessor = gpuDrivenProcessor;
             m_ObjectDispatcher = objectDispatcher;
+            m_GRDContext = context;
             m_InstanceDataSystem = context.instanceDataSystem;
             m_Batcher = context.batcher;
             m_LODGroupProcessor = new LODGroupProcessor(gpuDrivenProcessor, context);
@@ -202,6 +204,20 @@ namespace UnityEngine.Rendering
                 {
                     m_GPUDrivenProcessor.DisableGPUDrivenRendering(unsupportedRenderers.AsArray());
                     m_MeshRendererProcessor.DestroyInstances(unsupportedRenderers.AsArray());
+#if ENABLE_PROFILER
+                    // These renderers still exist in the scene but cannot be on the GRD path due to
+                    // unsupported materials. Record them as excluded so coverage stats stay accurate.
+                    // ClassifyMaterials returns "unsupported" without distinguishing missing shader vs
+                    // failed IsShaderSupported(). The latter (missing DOTS_INSTANCING_ON) dominates this
+                    // runtime-material-change path in practice, so MissingDOTSInstancing is the catch-all
+                    // label here. Rare null-shader cases are reported as MissingDOTSInstancing as well.
+                    var advStats = m_GRDContext.advancedDebugStats;
+                    if (advStats != null)
+                    {
+                        advStats.UnregisterRenderers(unsupportedRenderers.AsArray());
+                        advStats.RegisterExcludedRenderers(unsupportedRenderers.AsArray(), GRDExclusionReason.MissingDOTSInstancing);
+                    }
+#endif
                 }
             }
 
@@ -257,7 +273,12 @@ namespace UnityEngine.Rendering
             }
 
             if (rendererData.destroyedID.Length > 0)
+            {
                 m_MeshRendererProcessor.DestroyInstances(rendererData.destroyedID);
+#if ENABLE_PROFILER
+                m_GRDContext.advancedDebugStats?.UnregisterRenderers(rendererData.destroyedID);
+#endif
+            }
 
             using (k_ProcessRendererMaterialAndMeshChanges.Auto())
             {
@@ -330,7 +351,12 @@ namespace UnityEngine.Rendering
                 m_LODGroupProcessor.DestroyInstances(batch);
 
             foreach (var batch in m_MeshRendererDeletionBatches)
+            {
                 m_MeshRendererProcessor.DestroyInstances(batch);
+#if ENABLE_PROFILER
+                m_GRDContext.advancedDebugStats?.UnregisterRenderers(batch);
+#endif
+            }
 
             // Update LODs before instances otherwise some LODGroupIDs might be unknown when updating the instances
             for (int i = 0; i < m_LODGroupUpdateBatches.Length; i++)

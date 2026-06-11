@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering
         /// Uploads SH and occlusion probe data to the GPU instance buffer via a compute shader
         /// scatter-write. Includes a <c>ComputeBuffer.SetData</c> call and an immediate dispatch.
         /// </summary>
-        static readonly ProfilerMarker k_DispatchProbeUpdateCommand =
+        internal static readonly ProfilerMarker k_DispatchProbeUpdateCommand =
             new ProfilerMarker(ProfilerCategory.Render, "DispatchProbeUpdateCommand", MarkerFlags.VerbosityAdvanced);
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering
         /// shader scatter-write to enable per-object motion vectors. Includes a
         /// <c>ComputeBuffer.SetData</c> call and an immediate dispatch.
         /// </summary>
-        static readonly ProfilerMarker k_DispatchMotionUpdateCommand =
+        internal static readonly ProfilerMarker k_DispatchMotionUpdateCommand =
             new ProfilerMarker(ProfilerCategory.Render, "DispatchMotionUpdateCommand", MarkerFlags.VerbosityAdvanced);
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering
         /// a compute shader scatter-write. Optionally uploads bounding spheres when enabled.
         /// Includes <c>ComputeBuffer.SetData</c> calls and an immediate dispatch.
         /// </summary>
-        static readonly ProfilerMarker k_DispatchTransformUpdateCommand =
+        internal static readonly ProfilerMarker k_DispatchTransformUpdateCommand =
             new ProfilerMarker(ProfilerCategory.Render, "DispatchTransformUpdateCommand", MarkerFlags.VerbosityAdvanced);
 
         /// <summary>
