@@ -156,7 +156,11 @@ BRDFData CreateClearCoatBRDFData(SurfaceData surfaceData, inout BRDFData brdfDat
 // Computes the specular term for EnvironmentBRDF
 half3 EnvironmentBRDFSpecular(BRDFData brdfData, half fresnelTerm)
 {
+#if (UNITY_PLATFORM_META_QUEST) // This is platform specific change targeting performance only
+    half surfaceReduction = half(1.0) / (brdfData.roughness2 + half(1.0));
+#else
     float surfaceReduction = 1.0 / (brdfData.roughness2 + 1.0);
+#endif
     return half3(surfaceReduction * lerp(brdfData.specular, brdfData.grazingTerm, fresnelTerm));
 }
 
@@ -170,7 +174,6 @@ half3 EnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSp
 // Environment BRDF without diffuse for clear coat
 half3 EnvironmentBRDFClearCoat(BRDFData brdfData, half clearCoatMask, half3 indirectSpecular, half fresnelTerm)
 {
-    float surfaceReduction = 1.0 / (brdfData.roughness2 + 1.0);
     return indirectSpecular * EnvironmentBRDFSpecular(brdfData, fresnelTerm) * clearCoatMask;
 }
 

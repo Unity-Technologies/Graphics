@@ -52,11 +52,22 @@ struct Light
 
 // Matches Unity Vanilla HINT_NICE_QUALITY attenuation
 // Attenuation smoothly decreases to light range.
+#if (UNITY_PLATFORM_META_QUEST) // This is platform specific change targeting performance only
+float DistanceAttenuation(float distanceSqr, half2 distanceAttenuation, float distRsqrt)
+#else
 float DistanceAttenuation(float distanceSqr, half2 distanceAttenuation)
+#endif
 {
     // We use a shared distance attenuation for additional directional and puctual lights
     // for directional lights attenuation will be 1
+#if (UNITY_PLATFORM_META_QUEST) // This is platform specific change targeting performance only
+    // distRsqrt is rsqrt(distanceSqr), already computed at the call site for light direction
+    // normalization. We reuse it here: distRsqrt² = rsqrt(d²)² = 1/d², avoiding a separate
+    // rcp(distanceSqr) call and saving one EFU (complex) instruction per light.
+    float lightAtten = distRsqrt * distRsqrt;
+#else
     float lightAtten = rcp(distanceSqr);
+#endif
     float2 distanceAttenuationFloat = float2(distanceAttenuation);
 
     // Use the smoothing factor also used in the Unity lightmapper.
@@ -164,14 +175,23 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     float3 lightVector = lightPositionWS.xyz - positionWS * lightPositionWS.w;
     float distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
 
-    half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
-    // full-float precision required on some platforms
-#if (META_QUEST_NO_SPOTLIGHTS_LIGHT_LOOP)
-    float attenuation = DistanceAttenuation(distanceSqr, distanceAndSpotAttenuation.xy);
+#if (UNITY_PLATFORM_META_QUEST) // This is platform specific change targeting performance only
+    float distRsqrt = rsqrt(distanceSqr);
+    half3 lightDirection = half3(lightVector * distRsqrt);
+    float distAtten = DistanceAttenuation(distanceSqr, distanceAndSpotAttenuation.xy, distRsqrt);
 #else
-    float attenuation = DistanceAttenuation(distanceSqr, distanceAndSpotAttenuation.xy) * AngleAttenuation(spotDirection.xyz, lightDirection, distanceAndSpotAttenuation.zw);
+    half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
+    float distAtten = DistanceAttenuation(distanceSqr, distanceAndSpotAttenuation.xy);
 #endif
-    
+
+#if (META_QUEST_NO_SPOTLIGHTS_LIGHT_LOOP)
+    // full-float precision required on some platforms
+    float attenuation = distAtten;
+#else
+    // full-float precision required on some platforms
+    float attenuation = distAtten * AngleAttenuation(spotDirection.xyz, lightDirection, distanceAndSpotAttenuation.zw);
+#endif
+
     Light light;
     light.direction = lightDirection;
     light.distanceAttenuation = attenuation;

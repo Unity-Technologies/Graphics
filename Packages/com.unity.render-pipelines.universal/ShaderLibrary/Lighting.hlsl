@@ -395,7 +395,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     lightingData.vertexLightingColor += inputData.vertexLighting * brdfData.diffuse;
     #endif
 
-#if REAL_IS_HALF
+#if REAL_IS_HALF && !defined(UNITY_PLATFORM_META_QUEST) // This is platform specific change targeting performance only
     // Clamp any half.inf+ to HALF_MAX
     return min(CalculateFinalColor(lightingData, surfaceData.alpha), HALF_MAX);
 #else

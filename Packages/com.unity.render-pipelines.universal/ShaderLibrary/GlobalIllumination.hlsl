@@ -527,8 +527,19 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
     half3 bakedGI, half occlusion, float3 positionWS,
     half3 normalWS, half3 viewDirectionWS, float2 normalizedScreenSpaceUV)
 {
+// Prevent calling 'reflect' from causing NdotV to be computed twice on Adreno GPUs
+#if (UNITY_PLATFORM_META_QUEST) // This is platform specific change targeting performance only
+    half NdotV = dot(normalWS, viewDirectionWS);
+    half NdotV2 = NdotV + NdotV;    // 2.0h * normalWS * NdotV was resulting in promotion to 32 bit precision
+    half3 reflectVector = normalWS * NdotV2 - viewDirectionWS;    // reflect(i,n) = i - 2 * n * dot(i n)
+                                                                  // reflect(-viewDirection, normalWS) = -viewDirection - 2 * normalWS * dot(-viewDirection, normalWS)
+                                                                  //                                   = -viewDirection + 2 * normalWS * dot(viewDirection, normalWS)
+                                                                  //                                   = 2 * normalWS * dot(viewDirection, normalWS) - viewDirection
+    half NoV = saturate(NdotV);
+#else
     half3 reflectVector = reflect(-viewDirectionWS, normalWS);
     half NoV = saturate(dot(normalWS, viewDirectionWS));
+#endif
     half fresnelTerm = Pow4(1.0 - NoV);
 
     half3 indirectDiffuse = bakedGI;
@@ -576,8 +587,19 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
     half3 bakedGI, half occlusion,
     half3 normalWS, half3 viewDirectionWS)
 {
+// Prevent calling 'reflect' from causing NdotV to be computed twice on Adreno GPUs
+#if (UNITY_PLATFORM_META_QUEST) // This is platform specific change targeting performance only
+    half NdotV = dot(normalWS, viewDirectionWS);
+    half NdotV2 = NdotV + NdotV;    // 2.0h * normalWS * NdotV was resulting in promotion to 32 bit precision
+    half3 reflectVector = normalWS * NdotV2 - viewDirectionWS;    // reflect(i,n) = i - 2 * n * dot(i n)
+                                                                  // reflect(-viewDirection, normalWS) = -viewDirection - 2 * normalWS * dot(-viewDirection, normalWS)
+                                                                  //                                   = -viewDirection + 2 * normalWS * dot(viewDirection, normalWS)
+                                                                  //                                   = 2 * normalWS * dot(viewDirection, normalWS) - viewDirection
+    half NoV = saturate(NdotV);
+#else
     half3 reflectVector = reflect(-viewDirectionWS, normalWS);
     half NoV = saturate(dot(normalWS, viewDirectionWS));
+#endif
     half fresnelTerm = Pow4(1.0 - NoV);
 
     half3 indirectDiffuse = bakedGI;
