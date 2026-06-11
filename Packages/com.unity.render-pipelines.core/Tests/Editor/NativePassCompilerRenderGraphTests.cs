@@ -1566,7 +1566,6 @@ namespace UnityEngine.Rendering.Tests
             // Goes into possible alloc path
             Assert.IsFalse(passes[0].lastGraphPass - passes[0].firstGraphPass + 1 == passes[0].numGraphPasses);
 
-
             ValidateNoGCAllocs(() =>
             {
                 passes[0].GraphPasses(result.contextData);
@@ -2137,6 +2136,207 @@ namespace UnityEngine.Rendering.Tests
 
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
             }
+        }
+
+        [Test]
+        public void CompactedNonCulledRasterPassesWorks_FirstPassIsCulled()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass0", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(true);
+            }
+
+            // Same attachments, we should merge in the same subpass as Pass0's one
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass1", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[2], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Unsafe pass, we break the previous native renderpass
+            using (var builder = g.AddUnsafePass<RenderGraphTestPassData>("Pass2", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, UnsafeGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // New native renderpass
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass3", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Same attachments, we should merge in the same subpass as Pass3's one
+            // This pass is being culled
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass4", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[2], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Same attachments, we should merge in the same subpass as Pass4's one
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass5", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            // Only 2 native passes and 3 passes in the last one
+            Assert.IsTrue(passes != null && passes.Count == 2 && passes[1].numGraphPasses == 3);
+
+            // No need of the compact algorithm for this test.
+            Assert.IsTrue(result.contextData.compactedNonCulledRasterPasses.Length == 0);
+            Assert.IsTrue(passes[1].firstCompactedNonCulledRasterPass == -1 && passes[1].lastCompactedNonCulledRasterPass == -1);
+        }
+
+        [Test]
+        public void CompactedNonCulledRasterPassesWorks_MiddlePassIsCulled()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass0", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Same attachments, we should merge in the same subpass as Pass0's one
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass1", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[2], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Unsafe pass, we break the previous native renderpass
+            using (var builder = g.AddUnsafePass<RenderGraphTestPassData>("Pass2", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, UnsafeGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // New native renderpass
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass3", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Same attachments, we should merge in the same subpass as Pass3's one
+            // This pass is being culled
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass4", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[2], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(true);
+            }
+
+            // Same attachments, we should merge in the same subpass as Pass4's one
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass5", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            // Only 2 native passes and 2 passes in the last one
+            Assert.IsTrue(passes != null && passes.Count == 2 && passes[1].numGraphPasses == 2);
+
+            // Pass 3 and Pass 5 are copied so they are contiguous in memory (Pass 4 is skipped since it's a culled pass).
+            Assert.IsTrue(result.contextData.compactedNonCulledRasterPasses.Length == 2);
+
+            // First index is pointing Pass 3 (element 0 of nonCulledPassData) and last index Pass 5 (element 1 of nonCulledPassData)
+            // They are now contiguous in memory.
+            Assert.IsTrue(passes[1].firstCompactedNonCulledRasterPass == 0 && passes[1].lastCompactedNonCulledRasterPass == 1);
+        }
+
+        [Test]
+        public void CompactedNonCulledRasterPassesWorks_LastPassIsCulled()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass0", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Same attachments, we should merge in the same subpass as Pass0's one
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass1", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[2], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Unsafe pass, we break the previous native renderpass
+            using (var builder = g.AddUnsafePass<RenderGraphTestPassData>("Pass2", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, UnsafeGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // New native renderpass
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass3", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Same attachments, we should merge in the same subpass as Pass3's one
+            // This pass is being culled
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass4", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[2], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Same attachments, we should merge in the same subpass as Pass4's one
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Pass5", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(true);
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            // Only 2 native passes and 2 passes in the last one
+            Assert.IsTrue(passes != null && passes.Count == 2 && passes[1].numGraphPasses == 2);
+
+            // Pass 3 and Pass 4 are copied so they are contiguous in memory (Pass 5 is skipped since it's a culled pass).
+            Assert.IsTrue(result.contextData.compactedNonCulledRasterPasses.Length == 2);
+
+            // First index is pointing Pass 3 (element 0 of nonCulledPassData) and last index Pass 4 (element 1 of nonCulledPassData)
+            // They are now contiguous in memory.
+            Assert.IsTrue(passes[1].firstCompactedNonCulledRasterPass == 0 && passes[1].lastCompactedNonCulledRasterPass == 1);
         }
     }
 }

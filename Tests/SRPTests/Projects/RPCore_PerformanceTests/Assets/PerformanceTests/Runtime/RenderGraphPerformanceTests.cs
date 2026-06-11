@@ -69,7 +69,8 @@ namespace PerformanceTests.Runtime
         public enum TestCase
         {
             SimplePass,
-            ComplexPass
+            ComplexPass,
+            SimplePassWithCulledPasses
         }
 
         // This is a [Test] because we don't want to measure overhead from executing a full frame.
@@ -153,6 +154,9 @@ namespace PerformanceTests.Runtime
                 case TestCase.ComplexPass:
                     AddComplexPasses();
                     break;
+                case TestCase.SimplePassWithCulledPasses:
+                    RecordSimplePassesWithCulledPasses();
+                    break;
                 default:
                     throw new NotImplementedException();
             }
@@ -176,20 +180,53 @@ namespace PerformanceTests.Runtime
                 depthBufferBits = DepthBits.Depth32
             });
 
-            void AddSimplePass()
+            for (int i = 0; i < m_NumPasses; ++i)
             {
-                using (var builder = m_RenderGraph.AddRasterRenderPass<SimplePassData>("Simple Pass", out var passData))
-                {
-                    builder.SetRenderAttachment(colorTarget, 0, AccessFlags.Write);
-                    builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
-                    builder.AllowPassCulling(false);
-                    builder.SetRenderFunc((SimplePassData data, RasterGraphContext context) => { });
-                }
+                AddSimplePass(colorTarget, depthTarget);
             }
+        }
+
+        void AddSimplePass(TextureHandle colorTarget, TextureHandle depthTarget)
+        {
+            using (var builder = m_RenderGraph.AddRasterRenderPass<SimplePassData>("Simple Pass", out var passData))
+            {
+                builder.SetRenderAttachment(colorTarget, 0, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((SimplePassData data, RasterGraphContext context) => { });
+            }
+        }
+
+        void RecordSimplePassesWithCulledPasses()
+        {
+            var colorTarget = m_RenderGraph.CreateTexture(new TextureDesc(1920, 1080)
+            {
+                colorFormat = GraphicsFormat.R8G8B8A8_UNorm
+            });
+            var depthTarget = m_RenderGraph.CreateTexture(new TextureDesc(1920, 1080)
+            {
+                colorFormat = GraphicsFormat.None,
+                depthBufferBits = DepthBits.Depth32
+            });
 
             for (int i = 0; i < m_NumPasses; i++)
             {
-                AddSimplePass();
+                if ((i + 1) % 4 == 0) // Every 4 passes
+                {
+                    AddSimpleCulledPass();
+                    continue;
+                }
+
+                AddSimplePass(colorTarget, depthTarget);
+            }
+        }
+
+        void AddSimpleCulledPass()
+        {
+            using (var builder = m_RenderGraph.AddRasterRenderPass<SimplePassData>("Simple Culled Pass", out var passData))
+            {
+                builder.AllowPassCulling(true);
+                builder.SetRenderFunc((SimplePassData data, RasterGraphContext context) => { });
             }
         }
 
