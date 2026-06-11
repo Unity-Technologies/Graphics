@@ -178,12 +178,6 @@ half3 EnvironmentBRDFClearCoat(BRDFData brdfData, half clearCoatMask, half3 indi
 // NOTE: needs to be multiplied with reflectance f0, i.e. specular color to complete
 half DirectBRDFSpecular(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS)
 {
-    float3 lightDirectionWSFloat3 = float3(lightDirectionWS);
-    float3 halfDir = SafeNormalize(lightDirectionWSFloat3 + float3(viewDirectionWS));
-
-    float NoH = saturate(dot(float3(normalWS), halfDir));
-    half LoH = half(saturate(dot(lightDirectionWSFloat3, halfDir)));
-
     // GGX Distribution multiplied by combined approximation of Visibility and Fresnel
     // BRDFspec = (D * V * F) / 4.0
     // D = roughness^2 / ( NoH^2 * (roughness^2 - 1) + 1 )^2
@@ -194,10 +188,52 @@ half DirectBRDFSpecular(BRDFData brdfData, half3 normalWS, half3 lightDirectionW
     // Final BRDFspec = roughness^2 / ( NoH^2 * (roughness^2 - 1) + 1 )^2 * (LoH^2 * (roughness + 0.5) * 4.0)
     // We further optimize a few light invariant terms
     // brdfData.normalizationTerm = (roughness + 0.5) * 4.0 rewritten as roughness * 4.0 + 2.0 to a fit a MAD.
-    float d = NoH * NoH * brdfData.roughness2MinusOne + 1.00001f;
+#if (UNITY_PLATFORM_META_QUEST) // Platform-specific; performance verified on Meta Quest only
+    // Derive NoH^2 and LoH^2 from scalar dot products.
+    // This avoids computing halfDir using SafeNormalize (which has 1 rsqrt EFU and more ALU instructions) and two vec3 dot products.
 
+    // Where H = half-direction vector, L = light direction, V = view direction,
+    // Given H = normalize(L + V):
+    //   NoH^2 = (NdotL + NdotV)^2 / (2 + 2*LdotV)
+    //   LoH^2 = (1 + LdotV) / 2
+    //
+    // Skip NoH^2 computation and avoid the rcp(2 + 2*LdotV) EFU.
+    // Since 2 + 2*LdotV = 4*LoH^2 and we determined that 0.00001 is not necessary, we substitute d = NoH^2 * (roughness^2 - 1) + 1.00001 as:
+    //   dNum = d * 4*LoH^2 = NdotLpV^2 * (roughness^2 - 1) + 4*LoH^2
+    //   d^2 = dNum^2 / (16*LoH^2^2)
+    //
+    // Now BRDFspec = roughness^2 * 16 * LoH^2^2 / (dNum^2 * max(0.1,LoH^2) * normalizationTerm)
+    //
+    // Approximate LoH^2^2 / max(0.1, LoH^2) as max(0.1, LoH^2) to save 2 multiplications.
+    // Exact when LoH^2 >= 0.1; below 0.1 (LdotV < -0.8) the numerator is clamped rather
+    // than tapering to zero. The downstream REAL_IS_HALF clamp bounds any resulting overflow.
+    //
+    // This further simplifies BRDFspec = roughness^2 * 16 * max(0.1,LoH^2) / (dNum^2 * normalizationTerm)
+    half NdotL = dot(normalWS, lightDirectionWS);
+    half NdotV = dot(normalWS, viewDirectionWS);
+    half LdotV = dot(lightDirectionWS, viewDirectionWS);
+
+    // Clamp the sum, not the individual terms — clamping individually breaks the
+    // identity N.(L+V) = N.L + N.V when N.V < 0 (normal mapping at grazing angles),
+    // inflating NdotLpV and allowing dNum to reach zero (division by zero).
+    half NdotLpV = max(0.0h, NdotL + NdotV);
+    half FourLoH2 = 2.0h + 2.0h * LdotV;
+
+    float dNum = float(NdotLpV * NdotLpV * brdfData.roughness2MinusOne) + float(FourLoH2);
+
+    half specularTerm = brdfData.roughness2 * (4.0h * max(0.4h, FourLoH2))
+        / (half(dNum * dNum) * brdfData.normalizationTerm);
+#else
+    float3 lightDirectionWSFloat3 = float3(lightDirectionWS);
+    float3 halfDir = SafeNormalize(lightDirectionWSFloat3 + float3(viewDirectionWS));
+
+    float NoH = saturate(dot(float3(normalWS), halfDir));
+    half LoH = half(saturate(dot(lightDirectionWSFloat3, halfDir)));
+
+    float d = NoH * NoH * brdfData.roughness2MinusOne + 1.00001f;
     half LoH2 = LoH * LoH;
     half specularTerm = brdfData.roughness2 / ((d * d) * max(0.1h, LoH2) * brdfData.normalizationTerm);
+#endif
 
     // On platforms where half actually means something, the denominator has a risk of overflow
     // clamp below was added specifically to "fix" that, but dx compiler (we convert bytecode to metal/gles)
