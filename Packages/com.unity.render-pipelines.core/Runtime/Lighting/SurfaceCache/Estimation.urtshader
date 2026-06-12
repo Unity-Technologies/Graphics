@@ -1,4 +1,4 @@
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5 switch2
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal ps5 switch2
 // We're binding a large number of structured buffers in this shader, more than certain platforms accept
 // by default. Using this pragma extends this limit on these platforms at the expense
 // of some extra indirections. On platforms that don't have this limit, this is a no-op.

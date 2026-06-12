@@ -16,6 +16,9 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.PathTracing.Runtime")]
 [assembly: InternalsVisibleTo("Unity.PathTracing.Editor")]
 
+// Access to RenderGraph internals (e.g. RenderGraphParameters.invalidContextForTesting) for SurfaceCache core tests
+[assembly: InternalsVisibleTo("Unity.SurfaceCache.Tests")]
+
 // Smoke test project visibility
 [assembly: InternalsVisibleTo("SRPSmoke.Runtime")]
 [assembly: InternalsVisibleTo("SRPSmoke.Runtime.Tests")]

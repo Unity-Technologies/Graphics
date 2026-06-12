@@ -17,7 +17,6 @@ namespace UnityEngine.Rendering.Tests
         public Vector3 L12;
     }
 
-    // Each fixture owns one of these.
     internal sealed class TestHarness : IDisposable
     {
         sealed class WorldUpdatePassData
@@ -41,13 +40,41 @@ namespace UnityEngine.Rendering.Tests
         public SurfaceCacheWorld World => _world;
         public SurfaceCacheResourceSet Resources => _coreResources;
 
-        public TestHarness(RayTracingBackend backend = RayTracingBackend.Compute)
+        // Call from [SetUp] before constructing the harness, so a skip fires before any GPU resource is allocated.
+        public static void EnsureSupportedOrIgnore(RayTracingBackend backend = RayTracingBackend.Compute)
         {
             Assume.That(RayTracingContext.IsBackendSupported(backend), Is.True,
                 $"SurfaceCache Core tests require ray-tracing backend '{backend}' to be supported.");
             Assume.That(SystemInfo.computeSubGroupSize, Is.GreaterThan(0),
                 "SurfaceCache Core tests require real wave-size / sub-group support.");
+        }
 
+        static RayTracingResources CreateRayTracingResources(TestResourceAsset testResources) => new RayTracingResources
+        {
+            geometryPoolKernels = testResources.geometryPoolKernels,
+            copyBuffer = testResources.copyBuffer,
+            copyPositions = testResources.copyPositions,
+            bitHistogram = testResources.bitHistogram,
+            blockReducePart = testResources.blockReducePart,
+            blockScan = testResources.blockScan,
+            buildHlbvh = testResources.buildHlbvh,
+            restructureBvh = testResources.restructureBvh,
+            scatter = testResources.scatter,
+        };
+
+        static WorldResourceSet CreateWorldResourceSet(TestResourceAsset testResources) => new WorldResourceSet
+        {
+            BlitCubemap = testResources.blitCubemap,
+            BlitGrayScaleCookie = testResources.blitGrayScaleCookie,
+            SetAlphaChannelShader = testResources.setAlphaChannelShader,
+            EnvironmentImportanceSamplingBuild = testResources.environmentImportanceSamplingBuild,
+            SkyBoxMesh = testResources.skyBoxMesh,
+            SixFaceSkyBoxMesh = testResources.sixFaceSkyBoxMesh,
+            BuildLightGridShader = testResources.buildLightGridShader,
+        };
+
+        public TestHarness(RayTracingBackend backend = RayTracingBackend.Compute)
+        {
             var volParams = new SurfaceCacheVolumeParameterSet
             {
                 Resolution = 4,
@@ -55,34 +82,32 @@ namespace UnityEngine.Rendering.Tests
                 Size = 1f
             };
 
-            var rtResources = new RayTracingResources();
-            rtResources.Load();
-            _rtContext = new RayTracingContext(backend, rtResources);
-
-            var shaders = UnityEngine.Resources.Load<TestShaderAsset>("TestShaders");
-            Assert.That(shaders, Is.Not.Null,
+            var testResources = UnityEngine.Resources.Load<TestResourceAsset>("TestShaders");
+            Assert.That(testResources, Is.Not.Null,
                 "TestShaders.asset not found under any Resources/ folder. "
-                + "Expected at Packages/com.unity.render-pipelines.core/Tests/Editor/SurfaceCache/Resources/.");
+                + "Expected at Packages/com.unity.render-pipelines.core/Tests/Runtime/SurfaceCache/Resources/.");
+
+            _rtContext = new RayTracingContext(backend, CreateRayTracingResources(testResources));
 
             Object punctualLightSamplingUnifiedObj;
             Object estimationUnifiedObj;
             if (backend == RayTracingBackend.Compute)
             {
-                punctualLightSamplingUnifiedObj = shaders.punctualLightSamplingComputeShader;
-                estimationUnifiedObj = shaders.estimationComputeShader;
+                punctualLightSamplingUnifiedObj = testResources.punctualLightSamplingComputeShader;
+                estimationUnifiedObj = testResources.estimationComputeShader;
             }
             else
             {
-                punctualLightSamplingUnifiedObj = shaders.punctualLightSamplingRayTracingShader;
-                estimationUnifiedObj = shaders.estimationRayTracingShader;
+                punctualLightSamplingUnifiedObj = testResources.punctualLightSamplingRayTracingShader;
+                estimationUnifiedObj = testResources.estimationRayTracingShader;
             }
             IRayTracingShader punctualLightSamplingShader = _rtContext.CreateRayTracingShader(punctualLightSamplingUnifiedObj);
             IRayTracingShader estimationShader = _rtContext.CreateRayTracingShader(estimationUnifiedObj);
 
             _coreResources = new SurfaceCacheResourceSet((uint)SystemInfo.computeSubGroupSize);
             _coreResources.Load(
-                shaders.scrolling, shaders.eviction, shaders.patchAllocation,
-                shaders.spatialFiltering, shaders.temporalFiltering, shaders.defrag,
+                testResources.scrolling, testResources.eviction, testResources.patchAllocation,
+                testResources.spatialFiltering, testResources.temporalFiltering, testResources.defrag,
                 punctualLightSamplingShader, estimationShader);
             foreach (var field in typeof(SurfaceCacheResourceSet).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
@@ -109,18 +134,14 @@ namespace UnityEngine.Rendering.Tests
                 TemporalPostFilterEnabled = false
             });
 
-            var worldResources = new WorldResourceSet();
-            worldResources.LoadFromAssetDatabase();
             _world = new SurfaceCacheWorld();
-            _world.Init(_rtContext, worldResources);
+            _world.Init(_rtContext, CreateWorldResourceSet(testResources));
             _renderGraph = new RenderGraph("TestHarness");
         }
 
         public void BeginFrame()
         {
-            // Fresh CommandBuffer per frame: avoids any cross-frame buffer-lifecycle race that
-            // could occur if Graphics.ExecuteCommandBuffer's deep-copy contract is unreliable
-            // under -force-gfx-jobs split (worker-thread submission).
+            // Fresh CommandBuffer per frame avoids a cross-frame buffer race under -force-gfx-jobs split.
             _cmd = new CommandBuffer { name = $"TestHarness Frame {_frameIdx}" };
             var rgParams = new RenderGraphParameters
             {
@@ -173,7 +194,7 @@ namespace UnityEngine.Rendering.Tests
             return data[0];
         }
 
-        // Configure patches; seeds geometry, ring config, and irradiance buffers (0 and 2) directly.
+        // Seeds geometry, ring config, and irradiance buffers 0 and 2 directly.
         public void SetPatches(
             Vector3[] worldPositions,
             Vector3[] worldNormals,

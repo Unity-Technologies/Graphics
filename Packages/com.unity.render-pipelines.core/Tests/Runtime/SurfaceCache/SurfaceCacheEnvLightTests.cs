@@ -1,10 +1,8 @@
 using NUnit.Framework;
-using UnityEngine.TestTools;
 
 namespace UnityEngine.Rendering.Tests
 {
     [TestFixture]
-    [PrebuildSetup(typeof(TestPrebuildSetup))]
     internal class SurfaceCacheUniformEnvLightTests
     {
         TestHarness m_Harness;
@@ -12,10 +10,16 @@ namespace UnityEngine.Rendering.Tests
         [SetUp]
         public void SetUp()
         {
-            // Assert.Ignore (not Assume.That) — UTR maps Inconclusive into the failure bucket;
-            // Ignore is reported as Skipped, like the [Ignore] attribute.
+            // Assert.Ignore (not Assume.That): UTR reports Ignore as Skipped but maps Inconclusive to failure.
             if (SystemInfo.renderingThreadingMode == RenderingThreadingMode.NativeGraphicsJobsSplitThreading)
                 Assert.Ignore("Skipping under NativeGraphicsJobsSplitThreading; tracked in GFXLIGHT-2292.");
+
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+                Assert.Ignore("Skipping on OpenGL; SurfaceCache requires Vulkan/D3D12/Metal (SSBO binding budget).");
+
+            TestHarness.EnsureSupportedOrIgnore();
+
             m_Harness = new TestHarness();
         }
 
