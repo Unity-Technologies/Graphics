@@ -144,7 +144,7 @@ Shader "HDRP/TerrainLit"
             #pragma multi_compile_fragment _ RENDERING_LAYERS
 
             #define SHADERPASS SHADERPASS_GBUFFER
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap.hlsl"
 
             ENDHLSL
@@ -175,7 +175,7 @@ Shader "HDRP/TerrainLit"
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #pragma shader_feature EDITOR_VISUALIZATION
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap.hlsl"
 
             ENDHLSL
@@ -205,7 +205,7 @@ Shader "HDRP/TerrainLit"
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
             #define SHADERPASS SHADERPASS_SHADOWS
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap.hlsl"
 
             ENDHLSL
@@ -246,7 +246,7 @@ Shader "HDRP/TerrainLit"
             #pragma multi_compile _ WRITE_MSAA_DEPTH
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
             #ifdef WRITE_NORMAL_BUFFER
                 #if defined(_NORMALMAP)
                     #define OVERRIDE_SPLAT_SAMPLER_NAME sampler_Normal0
@@ -307,7 +307,7 @@ Shader "HDRP/TerrainLit"
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
             #define SHADERPASS SHADERPASS_FORWARD
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap.hlsl"
 
             ENDHLSL
@@ -333,7 +333,7 @@ Shader "HDRP/TerrainLit"
             #pragma editor_sync_compilation
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define SCENESELECTIONPASS
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap.hlsl"
 
             ENDHLSL
