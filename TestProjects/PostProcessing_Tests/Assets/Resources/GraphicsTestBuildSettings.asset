@@ -63,6 +63,7 @@ MonoBehaviour:
   m_AutoOptimizeReferenceImages: 0
   m_EnableShaderStripping: 1
   m_ShouldCleanUpAfterBuild: 1
+  m_EnableShaderStripping: 0
   m_HeatmapColorScheme: 2
   m_MaxConcurrentImageOptimizations: 11
   m_PlatformSchemata:
