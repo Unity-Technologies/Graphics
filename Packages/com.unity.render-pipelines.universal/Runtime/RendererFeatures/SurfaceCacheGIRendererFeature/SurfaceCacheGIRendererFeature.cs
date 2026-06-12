@@ -1094,18 +1094,39 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             if (CheckStaticBatchingStatus())
                 return;
-
-            if (!ResourcesCreated()) // can happen if static batching is disabled after the SurfaceCacheGIRendererFeature has been created
-                Create();
 #endif
 
-            ScriptableRenderPassInput inputs = ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Normal;
-            if (UseMotionVectorPatchSeeding(renderingData.cameraData.cameraType))
+            var cameraType = renderingData.cameraData.cameraType;
+            if (cameraType != CameraType.Game && cameraType != CameraType.SceneView)
+                return;
+
+            var surfaceCacheOverride = VolumeManager.instance.stack.GetComponent<SurfaceCacheGIVolumeOverride>();
+            bool enabled = surfaceCacheOverride == null || surfaceCacheOverride.enabled.value;
+
+            if (!enabled)
             {
-                inputs |= ScriptableRenderPassInput.Motion;
+                if (ResourcesCreated())
+                    ClearResources();
             }
-            _pass.ConfigureInput(inputs);
-            renderer.EnqueuePass(_pass);
+            else
+            {
+                // Resources may be absent here after being released while disabled, or after static
+                // batching was disabled following feature creation.
+                if (!ResourcesCreated())
+                    Create();
+
+                // Create() leaves _pass null when the feature is inactive.
+                if (!ResourcesCreated())
+                    return;
+
+                ScriptableRenderPassInput inputs = ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Normal;
+                if (UseMotionVectorPatchSeeding(renderingData.cameraData.cameraType))
+                {
+                    inputs |= ScriptableRenderPassInput.Motion;
+                }
+                _pass.ConfigureInput(inputs);
+                renderer.EnqueuePass(_pass);
+            }
         }
 
         protected override void Dispose(bool disposing)

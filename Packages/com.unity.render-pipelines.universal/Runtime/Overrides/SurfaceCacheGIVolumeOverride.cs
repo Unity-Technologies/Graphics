@@ -12,6 +12,14 @@ namespace UnityEngine.Rendering.Universal
     public class SurfaceCacheGIVolumeOverride : VolumeComponent
     {
         const PresetQuality k_defaultPresetQuality = PresetQuality.Medium;
+
+        /// <summary>
+        /// Enables or disables Surface Cache Global Illumination. When disabled, the feature
+        /// performs no work and contributes no indirect lighting.
+        /// </summary>
+        [Tooltip("Enables Surface Cache Global Illumination. When disabled, the feature performs no work.")]
+        public BoolParameter enabled = new BoolParameter(true);
+
         // ====================
         // Sampling Parameters
         // ====================

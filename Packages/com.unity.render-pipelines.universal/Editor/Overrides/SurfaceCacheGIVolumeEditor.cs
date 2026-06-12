@@ -10,6 +10,7 @@ namespace UnityEditor.Rendering.Universal
     {
         protected SurfaceCacheGIVolumeOverride.PresetQuality m_Quality;
         private bool m_QualityDirty = true;
+        protected SerializedDataParameter m_Enabled;
         protected SerializedDataParameter m_MultiBounce;
         protected SerializedDataParameter m_BouncePatchAllocation;
         protected SerializedDataParameter m_SampleCount;
@@ -32,6 +33,7 @@ namespace UnityEditor.Rendering.Universal
 
         protected SerializedDataParameter m_DefragCount;
 
+        static GUIContent s_Enabled = EditorGUIUtility.TrTextContent("Enabled", "Enables Surface Cache Global Illumination. When disabled, the feature performs no work.");
         static GUIContent s_Quality = EditorGUIUtility.TrTextContent("Quality", "Quality preset for Surface Cache GI. Select Custom to manually adjust individual parameters.");
         static GUIContent s_MultiBounce = EditorGUIUtility.TrTextContent("Multi Bounce", "Enable multi-bounce global illumination for more accurate light propagation.");
         static GUIContent s_BouncePatchAllocation = EditorGUIUtility.TrTextContent("Bounce Patch Allocation", "When enabled, new patches are allocated at ray hit locations when multi-bounce cache lookups fail");
@@ -61,6 +63,7 @@ namespace UnityEditor.Rendering.Universal
         {
             var o = new PropertyFetcher<SurfaceCacheGIVolumeOverride>(serializedObject);
 
+            m_Enabled = Unpack(o.Find(obj => obj.enabled));
             m_MultiBounce = Unpack(o.Find(obj => obj.multiBounce));
             m_BouncePatchAllocation = Unpack(o.Find(obj => obj.bouncePatchAllocation));
             m_SampleCount = Unpack(o.Find(obj => obj.sampleCount));
@@ -89,6 +92,9 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
+            PropertyField(m_Enabled, s_Enabled);
+            EditorGUI.BeginDisabledGroup(!m_Enabled.value.boolValue);
+
             // Quality preset dropdown. Switching to a named preset writes its values into the
             // backing fields so users can see the preset values and make fine adjustments from there.
             var quality = (SurfaceCacheGIVolumeOverride.PresetQuality)EditorGUILayout.EnumPopup(s_Quality, m_Quality, (e) => (SurfaceCacheGIVolumeOverride.PresetQuality)e != SurfaceCacheGIVolumeOverride.PresetQuality.Custom, false);
@@ -155,6 +161,8 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.LabelField("Advanced", EditorStyles.boldLabel);
                 PropertyField(m_DefragCount, s_DefragCount);
             }
+
+            EditorGUI.EndDisabledGroup();
         }
 
         private void MarkQualityDirty()
