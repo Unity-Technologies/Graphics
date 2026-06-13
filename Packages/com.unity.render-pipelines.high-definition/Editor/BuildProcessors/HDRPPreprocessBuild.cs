@@ -103,6 +103,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private bool ProceedWithBuild()
         {
+            if (HDEditorUtils.IsInTestSuiteOrBatchMode())
+                return true;
+
             var title = "Build Configuration Issues Detected";
             var body = new StringBuilder();
 

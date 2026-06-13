@@ -16,6 +16,13 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     class HDEditorUtils
     {
+        internal static bool IsInTestSuiteOrBatchMode()
+        {
+            string commandLineOptions = System.Environment.CommandLine;
+            bool inTestSuite = commandLineOptions.Contains("-testResults");
+            return inTestSuite || Application.isBatchMode;
+        }
+
         internal const string QualitySettingsSheetPath =
             @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/QualitySettings";
 
