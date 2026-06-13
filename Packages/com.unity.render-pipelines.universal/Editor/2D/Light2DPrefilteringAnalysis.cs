@@ -43,6 +43,8 @@ namespace UnityEditor.Rendering.Universal
         /// </summary>
         internal const string kEmptyComboSentinel = "<none>";
 
+        internal static List<int> blendStylesIndices = new List<int>();
+
         /// <summary>
         /// Walks every enabled build scene and returns the set of comma-joined keyword combos
         /// that <see cref="RendererLighting.CreateLightMaterial"/> could legitimately request at
@@ -86,12 +88,25 @@ namespace UnityEditor.Rendering.Universal
         static void AnalyzeSceneForLights(Scene scene, HashSet<string> combos)
         {
             GameObject[] rootObjects = scene.GetRootGameObjects();
+            List<Light2D> lights = new List<Light2D>();
+
             foreach (var rootObject in rootObjects)
+                lights.AddRange(rootObject.GetComponentsInChildren<Light2D>(true));
+
+            blendStylesIndices.Clear();
+
+            // Populate used blend style indices
+            // Eg. If blend styles 0 and 3 are used, we only need to know indices 0 and 1 will be used for MRT and strip accordingly
+            foreach (var light in lights)
             {
-                Light2D[] lights = rootObject.GetComponentsInChildren<Light2D>(true);
-                foreach (var light in lights)
-                    AnalyzeLight(light, combos);
+                if (!blendStylesIndices.Contains(light.blendStyleIndex))
+                    blendStylesIndices.Add(light.blendStyleIndex);
             }
+
+            blendStylesIndices.Sort();
+
+            foreach (var light in lights)
+                AnalyzeLight(light, combos);
         }
 
         static void AnalyzeLight(Light2D light, HashSet<string> combos)
@@ -155,7 +170,7 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
-                int blendStyleIndex = light.blendStyleIndex;
+                int blendStyleIndex = blendStylesIndices.IndexOf(light.blendStyleIndex);
                 if (blendStyleIndex >= 0 && blendStyleIndex < kShapeLightTypeKeywords.Length)
                     AddCombo(combos, keywords, kShapeLightTypeKeywords[blendStyleIndex]);
                 if (blendStyleIndex != 0)
