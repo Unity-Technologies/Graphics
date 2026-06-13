@@ -795,14 +795,16 @@ namespace UnityEngine.Rendering.Universal
             // Must be configured during the recording timeline before adding other XR intermediate passes.
             cameraData.xrUniversal.canFoveateIntermediatePasses = !PlatformAutoDetect.isXRMobile || isDefaultXRViewport;
 
-            using (var builder = renderGraph.AddRasterRenderPass<BeginXRPassData>("BeginXRRendering", out var passData,
+            // Since cmd.ConfigureFoveatedRendering will dispatch a compute shader we run into issues if it happens inside native render pass (especially true for DX12)
+            // As a workaround we use unsafe pass here
+            using (var builder = renderGraph.AddUnsafePass<BeginXRPassData>("BeginXRRendering", out var passData,
                 Profiling.beginXRRendering))
             {
                 passData.cameraData = cameraData;
 
                 builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((BeginXRPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc((BeginXRPassData data, UnsafeGraphContext context) =>
                 {
                     if (data.cameraData.xr.enabled)
                     {
