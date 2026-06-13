@@ -10,7 +10,7 @@ Flipbook textures are texture sheets that consist of multiple smaller sub-images
 
 To generate a Flipbook, use external digital content creation tools.
 
-To set an output to use flipbooks, change its **UV Mode** to **Flipbook**. For more information on the different UV Modes, refer to the documentation for the various output Contexts.
+To set an output to use flipbooks, change its **UV Mode** to **Flipbook**. For more information on the different UV Modes, refer to the documentation for the various output contexts. If you use a Shader Graph output context, refer to [Use the Flipbook Player with a Shader Graph output](#use-the-flipbook-player-with-a-shadergraph-output).
 
 There are two different modes to control the playback: **Frame Rate** and **Cycles**. Additionally, in both modes, you can control the **Animation Range**.
 
@@ -47,6 +47,26 @@ You can select a subset of frames to be played:
 - **Flipbook Row**: Only play the frames in the row selected by **Index**.
 - **Flipbook Column**: Only play the frames in the column selected by **Index**.
 - **Start End Frames**: Specify the start and end frames of the animation, inclusive.
+
+## Use the Flipbook Player with a Shader Graph output
+
+Shader graph output contexts, such as **Output Particle ShaderGraph Quad**, do not have a **UV Mode** setting. Instead, set up flipbook texture sampling inside the shader graph.
+
+To use the Flipbook Player block with a Shader Graph output:
+
+1. Open your shader graph in the Shader Graph window.
+2. In the **Graph Settings** tab, enable **Support VFX Graph**. For more information, refer to [Working with Shader Graph in the Visual Effect Graph](sg-working-with.md).
+3. In the **Blackboard**, add a **Float** property and name it **Particle TexIndex**. 
+4. Add a [**Flipbook**](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/Flipbook-Node.html) node to the graph.
+5. Connect the **Particle TexIndex** property node to the **Tile** input of the **Flipbook** node.
+6. Set the **Width** and **Height** inputs of the **Flipbook** node to the column and row count of your flipbook texture.
+7. Connect the **Out** output of the **Flipbook** node to the **UV** input of a **Sample Texture 2D** node, and connect your flipbook texture to the **Texture** input.
+8. Assign the shader graph to an **Output Particle ShaderGraph** output context in your Visual Effect Graph.
+9. In the output context, add a **[Get Attribute: texIndex](Operator-GetAttributeTexIndex.md)** operator and connect its output to the **Particle TexIndex** port.
+
+The Flipbook Player block updates the `texIndex` attribute each frame. The shader graph uses this value to select the correct sub-image from the flipbook texture.
+
+**Note**: The Visual Effect Graph package includes sample shader graphs for flipbook effects. To access the sample shader graphs, go to **Window** > **Package Manager**, select **Visual Effect Graph**, and import the **VFX Graph Additions** sample.
 
 ## Block compatibility
 
