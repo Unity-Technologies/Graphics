@@ -996,7 +996,18 @@ namespace UnityEngine.Rendering.Universal
                 // RenderingData takes a copy of the CameraData.
                 // UniversalRenderingData needs to be created here to avoid copying cullResults.
                 var data = frameData.Create<UniversalRenderingData>();
-                data.cullResults = context.Cull(ref cullingParameters);
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
+                {
+                    var xrPassUniversal = cameraData.xr as XRPassUniversal;
+                    if (!cameraData.xr.isQuadViewInnerPass)
+                        xrPassUniversal.cullingResults = context.Cull(ref cullingParameters);
+                    data.cullResults = xrPassUniversal.cullingResults;
+                }
+                else
+#endif
+                    data.cullResults = context.Cull(ref cullingParameters);
 
                 GPUResidentDrawer.PostCullBeginCameraRendering(new RenderRequestBatcherContext { commandBuffer = cmd });
 
@@ -1152,10 +1163,16 @@ namespace UnityEngine.Rendering.Universal
             var xrLayout = XRSystem.NewLayout();
             xrLayout.AddCamera(baseCamera, xrRendering);
 
+            XRPassUniversal prevXRPassUniversal = null;
+
             // With XR multi-pass enabled, each camera can be rendered multiple times with different parameters
             foreach ((Camera _, XRPass xrPass) in xrLayout.GetActivePasses())
             {
                 var xrPassUniversal = xrPass as XRPassUniversal;
+                // For inner QuadView pass: copy cached culling results from the outer pass so RenderSingleCamera
+                // can reuse them without issuing a second context.Cull() call.
+                if (prevXRPassUniversal != null && xrPassUniversal != null && xrPass.isQuadViewInnerPass)
+                    xrPassUniversal.cullingResults = prevXRPassUniversal.cullingResults;
                 if (xrPass.enabled)
                 {
                     xrActive = true;
@@ -1293,6 +1310,7 @@ namespace UnityEngine.Rendering.Universal
                         }
                     }
                 }
+                prevXRPassUniversal = xrPassUniversal;
             }
 
             if (xrActive)

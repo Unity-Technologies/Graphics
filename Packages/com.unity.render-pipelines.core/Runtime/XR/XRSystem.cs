@@ -585,14 +585,22 @@ namespace UnityEngine.Experimental.Rendering
             for (int renderPassIndex = 0; renderPassIndex < renderPassCount; ++renderPassIndex)
             {
                 s_Display.GetRenderPass(renderPassIndex, out var renderPass);
-                s_Display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
 
                 int renderParameterCount = renderPass.GetRenderParameterCount();
+                s_Display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
+
                 bool isLastPass = renderPassIndex == renderPassCount - 1;
                 // This parameter makes sure we are in 2 pass quad view's second pass, which is the only case we need to apply special UV scale and offset.
                 bool isQuadViewLastPass = isLastPass && layoutType == XRLayoutType.TwoPassQuadViews;
+                bool isQuadViewFirstPass = renderPassIndex == 0 && layoutType == XRLayoutType.TwoPassQuadViews;
                 Vector4 uvScales = Vector4.one;
                 Vector4 uvOffsets = Vector4.zero;
+                if (isQuadViewFirstPass)
+                {
+                    s_Display.GetRenderPass(renderPassIndex + 1, out var innerRenderPass);
+                    SetSplitCullingPlanes(camera, innerRenderPass.cullingPassIndex, ref cullingParams);
+                }
+
                 if (isQuadViewLastPass)
                 {
                     // Calculate UV scales and offsets from pre-computed view bounds
@@ -605,6 +613,7 @@ namespace UnityEngine.Experimental.Rendering
                     uvOffsets.y = -(pass1View0Bounds.w - pass0View0Bounds.w) / pass0View0Bounds.y;
                     uvOffsets.z = (pass1View1Bounds.z - pass0View1Bounds.z) / pass0View1Bounds.x;
                     uvOffsets.w = -(pass1View1Bounds.w - pass0View1Bounds.w) / pass0View1Bounds.y;
+
                 }
 
                 if (CanUseSinglePass(camera, renderPass))
@@ -645,6 +654,15 @@ namespace UnityEngine.Experimental.Rendering
                 Debug.Assert(xrPass.singlePassEnabled || renderPass.GetRenderParameterCount() == 1);
 
                 s_Display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
+
+                // For the outer QuadView pass, re-derive split planes from the inner pass every frame.
+                // This must happen after BeginCameraRendering, which may have moved the camera.
+                if (xrPass.xrLayoutType == XRLayoutType.TwoPassQuadViews && !xrPass.isQuadViewInnerPass)
+                {
+                    s_Display.GetRenderPass(xrPass.multipassId + 1, out var innerRenderPass);
+                    SetSplitCullingPlanes(camera, innerRenderPass.cullingPassIndex, ref cullingParams);
+                }
+
                 xrPass.AssignCullingParams(renderPass.cullingPassIndex, cullingParams);
 
                 for (int renderParamIndex = 0; renderParamIndex < renderPass.GetRenderParameterCount(); ++renderParamIndex)
@@ -659,6 +677,15 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
+        static void SetSplitCullingPlanes(Camera camera, int innerCullingPassIndex, ref ScriptableCullingParameters cullingParams)
+        {
+            Debug.Assert(s_Display != null);
+            s_Display.GetCullingParameters(camera, innerCullingPassIndex, out var innerParams);
+            cullingParams.splitPlaneCount = innerParams.cullingPlaneCount;
+            for (int i = 0; i < innerParams.cullingPlaneCount; ++i)
+                cullingParams.SetSplitCullingPlane(i, innerParams.GetCullingPlane(i));
+        }
+
         static bool CanUseSinglePass(Camera camera, XRDisplaySubsystem.XRRenderPass renderPass)
         {
             if (!singlePassAllowed)

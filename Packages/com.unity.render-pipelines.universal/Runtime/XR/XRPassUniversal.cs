@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.Universal
             pass.canMarkLateLatch = false;
             pass.hasMarkedLateLatch = false;
             pass.canFoveateIntermediatePasses = true;
+            pass.cullingResults = default;
 
             return pass;
         }
@@ -34,5 +35,8 @@ namespace UnityEngine.Rendering.Universal
 
         /// If false, foveated rendering should not be applied to intermediate render passes that are not the final pass.
         internal bool canFoveateIntermediatePasses { get; set; }
+
+        /// Cached culling results from the first camera pass, shared with subsequent passes in the same XR layout.
+        internal CullingResults cullingResults;
     }
 }

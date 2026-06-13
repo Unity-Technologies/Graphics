@@ -887,7 +887,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         lightData.visibleLights[i].lightType == LightType.Point)
                     {
                         // Light type is supported
-                        perObjectLightIndexMap[i] -= globalDirectionalLightsCount;
+                        perObjectLightIndexMap[i] = i - globalDirectionalLightsCount;
                     }
                     else
                     {

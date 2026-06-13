@@ -770,6 +770,11 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData, UniversalLightData lightData, SortingCriteria sortingCriteria)
         {
             Camera camera = cameraData.camera;
+            CullingSplitMask mask = CullingSplitMask.DrawAll;
+
+            if (cameraData.xr.enabled)
+                mask = cameraData.xr.isQuadViewInnerPass ? CullingSplitMask.DrawSplitOnly : CullingSplitMask.DrawCullingOnly;
+
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };
             DrawingSettings settings = new DrawingSettings(shaderTagId, sortingSettings)
             {
@@ -780,6 +785,8 @@ namespace UnityEngine.Rendering.Universal
                 enableInstancing = camera.cameraType != CameraType.Preview,
                 // stencil-based LOD doesn't support native render pass for now.
                 lodCrossFadeStencilMask = renderingData.stencilLodCrossFadeEnabled ? (int)UniversalRendererStencilRef.CrossFadeStencilRef_All : 0,
+
+                splitMask = mask
             };
             return settings;
         }
