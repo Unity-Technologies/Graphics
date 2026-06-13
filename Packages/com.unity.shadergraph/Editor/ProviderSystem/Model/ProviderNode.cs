@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
 using System;
+using Unity.GraphAuthoring.Editor.ProviderSystem;
 
 namespace UnityEditor.ShaderGraph.ProviderSystem
 {
@@ -9,6 +10,9 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
     // This Model object can work with any sort of function provider, interpret the function definition,
     // and generate a valid model representation of that object. This abstracts the need for node definitions
     // to be aware of how the model functions.
+
+    // NOTE: There exists an ExpressionProvider currently, so it's not a problem to have Models that are specializations,
+    // but ideally the expression input type would be gracefully handled in a generic way and it wouldn't be necessary.
     [Serializable]
     [HasDependencies(typeof(MinimalProviderNode))]
     internal class ProviderNode : AbstractMaterialNode, IHasAssetDependencies, IGeneratesBodyCode, IGeneratesFunction
@@ -21,13 +25,20 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
             public void GetSourceAssetDependencies(AssetCollection assetCollection)
             {
-                if (m_provider?.AssetID != default)
-                    assetCollection.AddAssetDependency(m_provider.AssetID,
-                        AssetCollection.Flags.SourceDependency
-                        | AssetCollection.Flags.ArtifactDependency
-                        | AssetCollection.Flags.IncludeInExportPackage);
+                if (m_provider == null || m_provider.AssetID == default)
+                    return;
+
+                assetCollection.AddAssetDependency(m_provider.AssetID,
+                    AssetCollection.Flags.SourceDependency
+                    | AssetCollection.Flags.ArtifactDependency
+                    | AssetCollection.Flags.IncludeInExportPackage);
             }
         }
+
+
+        // Reserves a control for the function selector. This is a bit of a hack.
+        [GroupVariantControl]
+        internal ProviderNode groupVariantSentinel => this;
 
         [SerializeReference]
         IProvider<IShaderFunction> m_provider;
@@ -45,6 +56,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         public override bool hasUserAuthoredCode => true;
 
         public override bool canSetPrecision => Header?.allowPrecision ?? false;
+
+        public override string documentationURL => Header?.helpUrl ?? base.documentationURL;
 
         internal override bool ExposeToSearcher => false;
 
@@ -76,7 +89,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
         public bool Reload(HashSet<string> changedAssetGuids)
         {
-            if (changedAssetGuids.Contains(Provider.AssetID.ToString()))
+            // Scripted providers don't react to asset changes — their definition is in-memory.
+            if (Provider.AssetID != default && changedAssetGuids.Contains(Provider.AssetID.ToString()))
             {
                 Refresh();
                 return true;
@@ -177,6 +191,12 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             RemoveSlotsNameNotMatching(usedSlotIds, true);
             SetSlotOrder(desiredSlotOrder);
         }
+
+        static Rendering.ShaderCompilerMessageSeverity ToCompilerSeverity(MessageType severity) => severity switch
+        {
+            MessageType.Error => Rendering.ShaderCompilerMessageSeverity.Error,
+            _                  => Rendering.ShaderCompilerMessageSeverity.Warning,
+        };
 
         void AddSlotFromParameter(ParameterHeader header, int slotId, SlotType dir)
         {
@@ -284,6 +304,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             if (Provider == null || !Provider.IsValid || Provider.Definition == null)
                 return;
 
+            // Asset-backed providers contribute their source .hlsl as an include; scripted
+            // providers carry their source inline via the generated function body below.
             if (Provider.AssetID != default)
             {
                 var includePath = AssetDatabase.GUIDToAssetPath(Provider.AssetID);
@@ -313,17 +335,12 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             }
             else
             {
-                foreach(var msg in Header.Messages)
-                {
-                    owner?.AddValidationError(this.objectId, msg, Rendering.ShaderCompilerMessageSeverity.Warning);
-                }
-                foreach(var param in ParamHeaders.Values)
-                {
-                    foreach(var msg in param.Messages)
-                    {
-                        owner?.AddValidationError(this.objectId, msg, Rendering.ShaderCompilerMessageSeverity.Warning);
-                    }
-                }
+                foreach (var (msg, severity) in Header.Messages)
+                    owner?.AddValidationError(this.objectId, msg, ToCompilerSeverity(severity));
+
+                foreach (var param in ParamHeaders.Values)
+                    foreach (var (msg, severity) in param.Messages)
+                        owner?.AddValidationError(this.objectId, msg, ToCompilerSeverity(severity));
             }
         }
     }

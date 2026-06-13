@@ -11,7 +11,8 @@ using UnityEngine.Profiling;
 using UnityEngine.Pool;
 using Object = UnityEngine.Object;
 using UnityEditor.ShaderGraph.ProviderSystem;
-using UnityEditor.ShaderGraph.ProviderSystem.Hints;
+using Unity.GraphAuthoring.Editor.ProviderSystem;
+using Unity.GraphAuthoring.Editor.ProviderSystem.Hints;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -206,28 +207,31 @@ namespace UnityEditor.ShaderGraph.Drawing
             Profiler.EndSample();
 
             Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateProviders");
-            HashSet<string> providerCollisions = new();
-            foreach (var provider in ProviderLibrary.Instance.AllProvidersByType<IShaderFunction>())
+            if (ProviderLibrary.TryGetInstance(out var lib))
             {
-                if (!provider.IsValid || !provider.Definition.Hints.ContainsKey(Func.kProviderKey))
-                    continue;
+                HashSet<string> providerCollisions = new();
+                foreach (var provider in lib.MainProviders<IShaderFunction>())
+                {
+                    if (!provider.IsValid)
+                        continue;
 
-                if (!ProviderTypeCache.TryCreateModel(provider.ProviderKey, out var model) || model is not ProviderNode node)
-                    node = new ProviderNode();
+                    if (!ProviderTypeCache.TryCreateModel(provider.ProviderKey, out var model) || model is not ProviderNode node)
+                        node = new ProviderNode();
 
-                node.InitializeFromProvider(provider);
-                var header = node.Header;
+                    node.InitializeFromProvider(provider);
+                    var header = node.Header;
 
-                string rawTitle = $"{header.searchCategory}/{header.searchName}";
+                    string rawTitle = $"{header.searchCategory}/{header.searchName}";
 
-                int orderFound = 0;
-                while (providerCollisions.Contains(rawTitle))
-                    rawTitle += $", ({++orderFound})";
+                    int orderFound = 0;
+                    while (providerCollisions.Contains(rawTitle))
+                        rawTitle += $", ({++orderFound})";
 
-                providerCollisions.Add(rawTitle);
+                    providerCollisions.Add(rawTitle);
 
-                var title = new List<string>(rawTitle.Split('/'));
-                AddEntries(node, title.ToArray(), nodeEntries);
+                    var title = new List<string>(rawTitle.Split('/'));
+                    AddEntries(node, title.ToArray(), nodeEntries);
+                }
             }
             Profiler.EndSample();
 

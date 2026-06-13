@@ -1,8 +1,20 @@
 using System;
+using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using Unity.GraphAuthoring.Editor.ProviderSystem;
 
 namespace UnityEditor.ShaderGraph.ProviderSystem
 {
+    // Stateless filter that defers to ShaderGraph's keyword tables.
+    // Defined here rather than in com.unity.graph-authoring so it can reference NodeUtils,
+    // and serialized via [SerializeReference] in ExpressionProvider.
+    [Serializable]
+    sealed class ShaderGraphKeywordFilter : ExpressionProvider.IKeywordFilter
+    {
+        public bool IsReserved(string name)
+            => NodeUtils.IsShaderLabKeyWord(name) || NodeUtils.IsShaderGraphKeyWord(name) || NodeUtils.IsHLSLKeyword(name);
+    }
+
     [Serializable]
     [ProviderModel(ExpressionProvider.kExpressionProviderKey)]
     internal class ExpressionNode : ProviderNode
@@ -11,6 +23,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
         string hlslFunctionName => $"ExpressionNode_{this.objectId}";
 
+        static readonly ShaderGraphKeywordFilter s_keywordFilter = new();
+
         enum SupportedTypes { Vector1, Vector2, Vector3, Vector4 }
 
         [EnumControl("Type")]
@@ -18,8 +32,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             get => FromTypeName(TypedProvider.ShaderType);
             set
             {
-                string typeName = ToTypeName(value);
-                TypedProvider.UpdateExpression(hlslFunctionName, Expression, typeName);
+                TypedProvider.UpdateExpression(hlslFunctionName, Expression, ToTypeName(value), s_keywordFilter);
                 Refresh();
             }
         }
@@ -34,12 +47,20 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             {
                 if (value == null) // Text control can misbehave in undo redo scenarios; we'll need to visit that separately.
                     return;
-                TypedProvider.UpdateExpression(hlslFunctionName, value, TypedProvider.ShaderType);
+                TypedProvider.UpdateExpression(hlslFunctionName, value, TypedProvider.ShaderType, s_keywordFilter);
                 Refresh();
             }
         }
 
         public ExpressionNode() { }
+
+        public override void UpdateNodeAfterDeserialization()
+        {
+            // Ensure the keyword filter is in place before base calls Refresh() → Provider.Reload().
+            // Handles fresh nodes and graphs saved before [SerializeReference] was introduced.
+            TypedProvider?.UpdateExpression(hlslFunctionName, TypedProvider.Expression, TypedProvider.ShaderType, s_keywordFilter);
+            base.UpdateNodeAfterDeserialization();
+        }
 
         static SupportedTypes FromTypeName(string stype)
         {

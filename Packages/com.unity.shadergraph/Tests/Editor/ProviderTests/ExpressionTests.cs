@@ -1,11 +1,23 @@
 using System.Collections.Generic;
 using NUnit.Framework;
+using Unity.GraphAuthoring.Editor.ProviderSystem;
+using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
 {
     [TestFixture]
     class ExpressionTests
     {
+        // Adapter that bridges the shader-reserved keyword check to the production
+        // ExpressionProvider.IKeywordFilter contract.
+        sealed class ShaderKeywordFilter : ExpressionProvider.IKeywordFilter
+        {
+            public bool IsReserved(string name) =>
+                NodeUtils.IsShaderLabKeyWord(name) || NodeUtils.IsShaderGraphKeyWord(name) || NodeUtils.IsHLSLKeyword(name);
+        }
+
+        static readonly ShaderKeywordFilter s_keywordFilter = new();
+
         private static void DoTest(string expression, string[] expectedParamNames, string expectedExpression = null)
         {
             List<IShaderField> fields = new();
@@ -17,17 +29,13 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
             if (string.IsNullOrEmpty(expectedExpression))
                 expectedExpression = expression;
 
-
-
-            var expected = new ShaderFunction("Test", null, fields, type, $"return {expectedExpression};",
-                new Dictionary<string, string>() {
-                    { Hints.Common.kDisplayName, "Expression" },
-                });
+            // Hints not compared here — generateHints:false excludes them from the code comparison.
+            var expected = new ShaderFunction("Test", null, fields, type, $"return {expectedExpression};", null);
 
             // this operation produces a 'cleaned' expression; for now, we're just stripping comments
             // For now, we allow keywords and illegal characters (even semicolons), though they ought to
             // result in compilation failure and give appropriate feedback to the user.
-            var actual = ExpressionProvider.ExpressionToShaderFunction("Test", expression, "float", out var actualExpression);
+            var actual = ExpressionProvider.ExpressionToShaderFunction("Test", expression, "float", out var actualExpression, s_keywordFilter);
 
             Assert.AreEqual(expectedExpression, actualExpression);
 

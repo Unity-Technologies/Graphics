@@ -1,4 +1,6 @@
-using System.Collections.Generic;
+using Unity.GraphAuthoring.Editor.ProviderSystem;
+using Unity.GraphAuthoring.Editor.ProviderSystem.Hints;
+using static Unity.GraphAuthoring.Editor.ProviderSystem.HintUtils;
 
 namespace UnityEditor.ShaderGraph.ProviderSystem
 {
@@ -46,95 +48,69 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         internal bool hasCustomBinding { get; private set; }
         internal string customBinding { get; private set; }
 
-        private static HintRegistry<IShaderField> s_HintRegistry;
-        protected override HintRegistry<IShaderField> GetHintRegistry()
-        {
-            if (s_HintRegistry == null)
-            {
-                s_HintRegistry = new();
-                s_HintRegistry.RegisterStrongHint(new Hints.DisplayName<IShaderField>());
-                s_HintRegistry.RegisterStrongHint(new Hints.Tooltip<IShaderField>());
-
-                s_HintRegistry.RegisterStrongHint(new Hints.Flag<IShaderField>(Hints.Param.kLocal, new string[] { Hints.Param.kAccessModifier }));
-
-                s_HintRegistry.RegisterStrongHint(new Hints.Literal());
-                s_HintRegistry.RegisterStrongHint(new Hints.Static());
-                s_HintRegistry.RegisterStrongHint(new Hints.Color());
-                s_HintRegistry.RegisterStrongHint(new Hints.Range());
-                s_HintRegistry.RegisterStrongHint(new Hints.Dropdown());
-                s_HintRegistry.RegisterStrongHint(new Hints.Default());
-                s_HintRegistry.RegisterStrongHint(new Hints.External());
-                s_HintRegistry.RegisterStrongHint(new Hints.Referable());
-                s_HintRegistry.RegisterStrongHint(new Hints.Dynamic());
-                s_HintRegistry.RegisterStrongHint(new Hints.Linkage());
-                s_HintRegistry.RegisterStrongHint(new Hints.CustomBinding());
-            }
-            return s_HintRegistry;
-        }
-
-        // Read processed data and make it more accessible to work with.
         protected override void OnProcess(IShaderField param, IProvider provider)
         {
             referenceName = param.Name;
 
-            isInput = param.IsInput;
+            isInput  = param.IsInput;
             isOutput = param.IsOutput;
             shaderType = param.ShaderType;
 
-            // TODO: improve type handling.
             string typeTest = shaderType.Name.ToLowerInvariant();
             bool isSampler = typeTest.Contains("sampler");
             bool isTexture = typeTest.Contains("texture");
             isBareResource = !typeTest.Contains("unity") && (isSampler || isTexture);
 
-            displayName = Get<string>(Hints.Common.kDisplayName);
-            tooltip = Get<string>(Hints.Common.kTooltip);
+            displayName = param.Hints.GetHint<DisplayName>()?.Value as string;
+            tooltip     = param.Hints.GetHint<Tooltip>()?.Value as string;
 
-            isStatic = this.Has(Hints.Param.kStatic);
-            isLocal = this.Has(Hints.Param.kLocal);
+            isStatic = param.Hints.GetHint<Static>()?.IsResolved ?? false;
+            isLocal  = param.Hints.GetHint<Local>()?.IsResolved ?? false;
 
-            if (isDropdown = this.Has(Hints.Param.kDropdown))
-                options = this.Get<string[]>(Hints.Param.kDropdown);
+            var dropdown = param.Hints.GetHint<Dropdown>();
+            if (isDropdown = dropdown?.IsResolved ?? false)
+                options = dropdown.Value as string[];
 
-            isColor = this.Has(Hints.Param.kColor);
+            isColor = param.Hints.GetHint<Color>()?.IsResolved ?? false;
 
-            if (isSlider = this.Has(Hints.Param.kRange))
+            var range = param.Hints.GetHint<Range>();
+            if (isSlider = range?.IsResolved ?? false)
             {
-                var range = this.Get<float[]>(Hints.Param.kRange);
-                sliderMin = range[0];
-                sliderMax = range[1];
+                var r = range.Value as float[];
+                sliderMin = r[0];
+                sliderMax = r[1];
             }
 
-            if (this.Has(Hints.Param.kDefault))
+            var defaultHint = param.Hints.GetHint<Default>();
+            if (defaultHint?.IsResolved ?? false)
             {
-                defaultString = this.Get<string>(Hints.Param.kDefault);
-                defaultValue = HeaderUtils.LazyTokenFloat(defaultString);
+                defaultString = defaultHint.Value as string;
+                defaultValue  = LazyTokenFloat(defaultString);
             }
 
             externalQualifiedTypeName = typeName;
-            var externalNamespace = Get<string>(Hints.Param.kExternal);
+            var externalNamespace = param.Hints.GetHint<External>()?.Value as string;
             if (!string.IsNullOrWhiteSpace(externalNamespace))
                 externalQualifiedTypeName = $"{externalNamespace}::{typeName}";
 
-            isLiteral = Has(Hints.Param.kLiteral);
+            isLiteral = param.Hints.GetHint<Literal>()?.IsResolved ?? false;
 
-            if (isReferable = Has(Hints.Param.kReferable))
+            var referableHint = param.Hints.GetHint<Referable>();
+            if (isReferable = referableHint?.IsResolved ?? false)
+                Referable = referableHint.Value as string;
+
+            isDynamic = param.Hints.GetHint<Dynamic>()?.IsResolved ?? false;
+
+            var linkage = param.Hints.GetHint<Linkage>();
+            if (isLinkage = linkage?.IsResolved ?? false)
             {
-                Referable = Get<string>(Hints.Param.kReferable);
+                linkTarget = linkage.Value as string;
+                isLocal    = true;
             }
 
-            isDynamic = Has(Hints.Param.kDynamic);
-
-            if (isLinkage = Has(Hints.Param.kLinkage))
-            {
-                linkTarget = Get<string>(Hints.Param.kLinkage);
-                isLocal = true;
-            }
-
-            if (hasCustomBinding = Has(Hints.Param.kCustomBinding))
-            {
-                customBinding = Get<string>(Hints.Param.kCustomBinding);
-            }
+            var customBindingHint = param.Hints.GetHint<CustomBinding>();
+            if (hasCustomBinding = customBindingHint?.IsResolved ?? false)
+                customBinding = customBindingHint.Value as string;
         }
 
         internal ParameterHeader(IShaderField param, IProvider provider)
@@ -145,9 +121,10 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         // For returns.
         internal ParameterHeader(string displayName, IShaderType shaderType, string tooltip, IProvider provider)
         {
-            var hints = new Dictionary<string, string>() {
-                { Hints.Common.kDisplayName, displayName },
-                { Hints.Common.kTooltip, tooltip },
+            var hints = new IStrongHint[]
+            {
+                new DisplayName(Common.kDisplayName, displayName, true),
+                new Tooltip(Common.kTooltip, tooltip, true),
             };
 
             var field = new ShaderField("__UNITY_SHADERGRAPH_UNUSED", false, true, shaderType, hints);

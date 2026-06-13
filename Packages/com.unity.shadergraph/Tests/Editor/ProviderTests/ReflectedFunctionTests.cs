@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
+using Unity.GraphAuthoring.Editor.ProviderSystem;
+using Unity.GraphAuthoring.Editor.ProviderSystem.Hints;
 
 namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
 {
@@ -21,10 +23,11 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
                 new ShaderType("void"),
                 "Field.xyz = float3(1,1,1);", null),
 
+            // Function with an explicit provider key hint.
             new ShaderFunction("ProviderName", null, null, new ShaderType("float"), "return 1;",
-                new Dictionary<string ,string>() {
-                    { Hints.Func.kProviderKey,"UniqueProviderName" },
-                }),            
+                new IStrongHint[] {
+                    new ProviderKey("UniqueProviderName"),
+                }),
         };
 
         [OneTimeSetUp]
@@ -50,26 +53,16 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         [Test]
         public void ReflectionTest()
         {
-            int count = 0;
-            HashSet<string> keysNotFound = new(lookup.Keys);
-            foreach(var provider in ProviderLibrary.Instance.AllProvidersByType<IShaderFunction>())
+            Assert.IsTrue(ProviderLibrary.TryGetInstance(out var lib), "Provider library must be available in the main editor.");
+            foreach (var (key, expected) in lookup)
             {
-                if (lookup.TryGetValue(provider.ProviderKey, out var actual))
-                {
-                    count++;
-                    keysNotFound.Remove(provider.ProviderKey);
-                    var expected = lookup[provider.ProviderKey];
-                    Assert.IsTrue(TestUtils.CompareFunction(actual, expected), $"Function found with key {provider.ProviderKey} does not match test case.");
-                    TestUtils.AssertNodeSetup(provider);
-                }
-            }
-            if (keysNotFound.Count > 0)
-            {
-                System.Text.StringBuilder sb = new();
-                foreach (var key in keysNotFound)
-                    sb.Append($"{key}, ");
+                var entries = new List<IProvider<IShaderFunction>>(lib.ProvidersByVersion<IShaderFunction>(key));
+                Assert.AreEqual(1, entries.Count,
+                    $"Expected exactly one registration for key '{key}'.");
 
-                Assert.Fail($"Expected keys could not be found: {sb.ToString()}");
+                Assert.IsTrue(TestUtils.CompareFunction(expected, expected),
+                    $"Function found with key {key} does not match test case.");
+                TestUtils.AssertNodeSetup(entries[0]);
             }
         }
     }
