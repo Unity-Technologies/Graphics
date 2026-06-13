@@ -55,7 +55,7 @@
                 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLitRayTracing.hlsl"
             #endif
         #else
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #if defined(SHADER_STAGE_RAY_TRACING)
                 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRayTracing.hlsl"
             #endif
