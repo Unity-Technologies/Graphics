@@ -345,7 +345,7 @@ namespace UnityEngine.PathTracing.Core
 
             _lightState = new LightState();
 
-            _cubemapRender = new CubemapRender(worldResources.SkyBoxMesh, worldResources.SixFaceSkyBoxMesh);
+            _cubemapRender = new CubemapRender(worldResources.SkyBoxMesh, worldResources.SixFaceSkyBoxMesh, worldResources.SolidColorShader);
             _cubemapRender.SetMode(CubemapRender.Mode.Material);
             _environmentSampling = new EnvironmentImportanceSampling(worldResources.EnvironmentImportanceSamplingBuild);
             _reservoirGrid = new RegirLightGrid(worldResources.BuildLightGridShader);

@@ -43,10 +43,13 @@ namespace UnityEngine.Rendering.Tests
         // Call from [SetUp] before constructing the harness, so a skip fires before any GPU resource is allocated.
         public static void EnsureSupportedOrIgnore(RayTracingBackend backend = RayTracingBackend.Compute)
         {
-            Assume.That(RayTracingContext.IsBackendSupported(backend), Is.True,
-                $"SurfaceCache Core tests require ray-tracing backend '{backend}' to be supported.");
-            Assume.That(SystemInfo.computeSubGroupSize, Is.GreaterThan(0),
-                "SurfaceCache Core tests require real wave-size / sub-group support.");
+            // No UnifiedRayTracing compute backend on this platform; matches UnifiedRayTracing_RuntimeTests.
+            if (backend == RayTracingBackend.Compute && Application.platform == RuntimePlatform.PS5)
+                Assert.Ignore("SurfaceCache Core tests do not support the Compute ray-tracing backend on this platform.");
+            if (!RayTracingContext.IsBackendSupported(backend))
+                Assert.Ignore($"SurfaceCache Core tests require ray-tracing backend '{backend}' to be supported.");
+            if (SystemInfo.computeSubGroupSize <= 0)
+                Assert.Ignore("SurfaceCache Core tests require real wave-size / sub-group support.");
         }
 
         static RayTracingResources CreateRayTracingResources(TestResourceAsset testResources) => new RayTracingResources
@@ -71,6 +74,7 @@ namespace UnityEngine.Rendering.Tests
             SkyBoxMesh = testResources.skyBoxMesh,
             SixFaceSkyBoxMesh = testResources.sixFaceSkyBoxMesh,
             BuildLightGridShader = testResources.buildLightGridShader,
+            SolidColorShader = testResources.solidColorShader,
         };
 
         public TestHarness(RayTracingBackend backend = RayTracingBackend.Compute)

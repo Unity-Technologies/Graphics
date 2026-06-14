@@ -31,6 +31,9 @@ namespace UnityEngine.PathTracing.Core
         };
         private readonly Mesh _skyboxMesh;
         private readonly Mesh _sixFaceSkyboxMesh;
+        private readonly Shader _solidColorShader;
+        private Material _colorMaterial;
+        private MaterialPropertyBlock _colorProperties;
         private RenderTexture _cubemap;
         private int _hash;
         private Mode _mode = Mode.Color;
@@ -46,18 +49,26 @@ namespace UnityEngine.PathTracing.Core
             new(new float4(-1, 0, 0, 0), new float4(0, 1, 0, 0),  new float4(0, 0, 1, 0),  new float4(0, 0, 0, 1)),
         };
 
+        private static readonly int s_ColorID = Shader.PropertyToID("_Color");
+
         public int Hash => _hash;
 
-        public CubemapRender(Mesh skyboxMesh, Mesh sixFaceSkyboxMesh)
+        public CubemapRender(Mesh skyboxMesh, Mesh sixFaceSkyboxMesh, Shader solidColorShader)
         {
             _skyboxMesh = skyboxMesh;
             _sixFaceSkyboxMesh = sixFaceSkyboxMesh;
+            _solidColorShader = solidColorShader;
             _hash = 0;
         }
 
         public void Dispose()
         {
             ReleaseCubemapIfExists();
+            if (_colorMaterial != null)
+            {
+                CoreUtils.Destroy(_colorMaterial);
+                _colorMaterial = null;
+            }
         }
 
         public void SetMaterial(Material mat)
@@ -151,11 +162,17 @@ namespace UnityEngine.PathTracing.Core
         {
             EnsureCubemapExistsWithParticularResolution(1);
 
+            // Draw the color rather than ClearRenderTarget it: on some platforms a fast clear
+            // collapses a non-{0,1} HDR clear color to ~white, while a fullscreen draw is exact.
+            _colorMaterial ??= CoreUtils.CreateEngineMaterial(_solidColorShader);
+            _colorProperties ??= new MaterialPropertyBlock();
+
             for (int faceIndex = 0; faceIndex < 6; ++faceIndex)
             {
                 cmd.SetRenderTarget(new RenderTargetIdentifier(_cubemap, 0, (CubemapFace) faceIndex));
                 cmd.SetViewport(new Rect(0, 0, 1, 1));
-                cmd.ClearRenderTarget(false, true, _faceColors[faceIndex]);
+                _colorProperties.SetVector(s_ColorID, _faceColors[faceIndex]);
+                CoreUtils.DrawFullScreen(cmd, _colorMaterial, _colorProperties);
             }
         }
 

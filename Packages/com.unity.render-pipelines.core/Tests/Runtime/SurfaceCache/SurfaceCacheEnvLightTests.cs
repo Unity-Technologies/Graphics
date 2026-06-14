@@ -1,11 +1,18 @@
+using System;
 using NUnit.Framework;
+using UnityEngine.Rendering.UnifiedRayTracing;
 
 namespace UnityEngine.Rendering.Tests
 {
-    [TestFixture]
+    [TestFixture("Compute")]
+    [TestFixture("Hardware")]
     internal class SurfaceCacheUniformEnvLightTests
     {
+        readonly RayTracingBackend m_Backend;
         TestHarness m_Harness;
+
+        public SurfaceCacheUniformEnvLightTests(string backendAsString)
+            => m_Backend = Enum.Parse<RayTracingBackend>(backendAsString);
 
         [SetUp]
         public void SetUp()
@@ -18,9 +25,9 @@ namespace UnityEngine.Rendering.Tests
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
                 Assert.Ignore("Skipping on OpenGL; SurfaceCache requires Vulkan/D3D12/Metal (SSBO binding budget).");
 
-            TestHarness.EnsureSupportedOrIgnore();
+            TestHarness.EnsureSupportedOrIgnore(m_Backend);
 
-            m_Harness = new TestHarness();
+            m_Harness = new TestHarness(m_Backend);
         }
 
         [TearDown]

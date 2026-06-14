@@ -32,5 +32,6 @@ namespace UnityEngine.Rendering.Tests
         public Mesh skyBoxMesh;
         public Mesh sixFaceSkyBoxMesh;
         public ComputeShader buildLightGridShader;
+        public Shader solidColorShader;
     }
 }

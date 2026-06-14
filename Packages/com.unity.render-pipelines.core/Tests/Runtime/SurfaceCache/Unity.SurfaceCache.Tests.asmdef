@@ -13,6 +13,7 @@
         "Editor",
         "LinuxStandalone64",
         "macOSStandalone",
+        "PS5",
         "WindowsStandalone64"
     ],
     "excludePlatforms": [],
