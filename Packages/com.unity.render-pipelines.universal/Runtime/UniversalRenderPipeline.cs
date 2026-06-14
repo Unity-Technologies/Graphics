@@ -821,11 +821,11 @@ namespace UnityEngine.Rendering.Universal
         internal static void RenderSingleCameraInternal(ScriptableRenderContext context, Camera camera, bool isLastBaseCamera = true)
         {
             UniversalAdditionalCameraData additionalCameraData = null;
-            #if URP_SCREEN_SPACE_REFLECTION
+            #if URP_SCREEN_SPACE_REFLECTION || MODERN_SSAO
             camera.gameObject.TryGetComponent(out additionalCameraData);
 
-            // We need this to support screen space reflections in the scene view, as it requires color history,
-            // which in turn requires a UniversalAdditionalCameraData component to be present on the scene view camera.
+            // Some scene view effects require camera history, which is owned by UniversalAdditionalCameraData.
+            // Add the component on demand so those effects can access a history manager for the scene view camera.
             if (camera.cameraType == CameraType.SceneView && additionalCameraData == null)
                 additionalCameraData = camera.gameObject.AddComponent<UniversalAdditionalCameraData>();
             #else

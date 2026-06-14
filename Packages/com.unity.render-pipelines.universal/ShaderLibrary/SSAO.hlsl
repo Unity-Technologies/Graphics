@@ -4,7 +4,7 @@
 // Quality Constants
 #if defined(_SAMPLE_COUNT_HIGH)
     static const int SAMPLE_COUNT               = 12;
-    static const int GTAO_STEP_COUNT            = 4;
+    static const int GTAO_STEP_COUNT            = 6;
     static const int GTAO_DIRECTION_COUNT       = 4;
 #elif defined(_SAMPLE_COUNT_MEDIUM)
     static const int SAMPLE_COUNT               = 8;
@@ -128,7 +128,7 @@ half GetRandomVal(half u, half sampleIndex)
 }
 
 // Sample point picker
-half3 PickSamplePoint(float2 uv, int sampleIndex, half sampleIndexHalf, half rcpSampleCount, half3 normal_o, float2 pixelDensity)
+half3 PickSamplePoint(float2 uv, int sampleIndex, half sampleIndexHalf, half rcpSampleCount, half3 centerNormal, float2 pixelDensity)
 {
     half3 v;
 #if defined(_BLUE_NOISE)
@@ -141,7 +141,7 @@ half3 PickSamplePoint(float2 uv, int sampleIndex, half sampleIndexHalf, half rcp
     sincos(theta, sinTheta, cosTheta);
 
     v = half3(u2 * cosTheta, u2 * sinTheta, u);
-    v *= (dot(normal_o, v) >= HALF_ZERO) * HALF_TWO - HALF_ONE;
+    v *= (dot(centerNormal, v) >= HALF_ZERO) * HALF_TWO - HALF_ONE;
     v *= lerp(0.1, 1.0, lerpVal * lerpVal);
 #else
     const float2 positionSS = GetScreenSpacePosition(uv, DOWNSAMPLE);
@@ -154,7 +154,7 @@ half3 PickSamplePoint(float2 uv, int sampleIndex, half sampleIndexHalf, half rcp
 
     v = half3(u2 * cosTheta, u2 * sinTheta, u);
     v *= sqrt((sampleIndexHalf + HALF_ONE) * rcpSampleCount);
-    v = faceforward(v, -normal_o, v);
+    v = faceforward(v, -centerNormal, v);
 #endif
 
     v *= RADIUS;
@@ -283,11 +283,11 @@ half4 FragSSAO(Varyings input)
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     float2 uv = input.texcoord;
 
-    float rawDepth_o = SampleDepth(uv, DOWNSAMPLE);
-    float linearDepth_o = GetLinearEyeDepth(rawDepth_o);
-    half halfLinearDepth_o = half(linearDepth_o);
-    if (ShouldSkipAO(rawDepth_o, halfLinearDepth_o, FALLOFF))
-        return PackAONormal(HALF_ZERO, HALF_ZERO);
+    float centerRawDepth = SampleDepth(uv, DOWNSAMPLE);
+    float centerLinearDepth = GetLinearEyeDepth(centerRawDepth);
+    half centerHalfLinearDepth = half(centerLinearDepth);
+    if (ShouldSkipAO(centerRawDepth, centerHalfLinearDepth, FALLOFF))
+        return PackAOAndNormal(HALF_ZERO, HALF_ZERO);
 
     float2 pixelDensity;
     #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
@@ -302,10 +302,10 @@ half4 FragSSAO(Varyings input)
     }
 
     // Normal for this fragment
-    half3 normal_o = SampleNormal(uv, linearDepth_o, pixelDensity);
+    half3 centerNormal = SampleNormal(uv, centerLinearDepth, pixelDensity);
 
     // View position for this fragment
-    float3 vpos_o = ReconstructViewPos(uv, linearDepth_o);
+    float3 centerViewPos = ReconstructViewPos(uv, centerLinearDepth);
 
     // Parameters used in coordinate conversion
     half3 camTransform000102 = half3(_CameraViewProjections[unity_eyeIndex]._m00, _CameraViewProjections[unity_eyeIndex]._m01, _CameraViewProjections[unity_eyeIndex]._m02);
@@ -320,8 +320,8 @@ half4 FragSSAO(Varyings input)
         sHalf += HALF_ONE;
 
         // Sample point
-        half3 v_s1 = PickSamplePoint(uv, s, sHalf, rcpSampleCount, normal_o, pixelDensity);
-        half3 vpos_s1 = half3(vpos_o + v_s1);
+        half3 v_s1 = PickSamplePoint(uv, s, sHalf, rcpSampleCount, centerNormal, pixelDensity);
+        half3 vpos_s1 = half3(centerViewPos + v_s1);
         half2 spos_s1 = half2(
             camTransform000102.x * vpos_s1.x + camTransform000102.y * vpos_s1.y + camTransform000102.z * vpos_s1.z,
             camTransform101112.x * vpos_s1.x + camTransform101112.y * vpos_s1.y + camTransform101112.z * vpos_s1.z
@@ -330,7 +330,7 @@ half4 FragSSAO(Varyings input)
         half zDist;
         half2 uv_s1_01;
         #if defined(_ORTHOGRAPHIC)
-            zDist = halfLinearDepth_o;
+            zDist = centerHalfLinearDepth;
             uv_s1_01 = saturate((spos_s1 + HALF_ONE) * HALF_HALF);
         #else
             zDist = half(-dot(UNITY_MATRIX_V[2].xyz, vpos_s1));
@@ -354,10 +354,10 @@ half4 FragSSAO(Varyings input)
         isInsideRadius *= rawDepth_s > SKY_DEPTH_VALUE ? 1.0 : 0.0;
 
         // Relative postition of the sample point
-        half3 v_s2 = half3(ReconstructViewPos(uv_s1_01, linearDepth_s) - vpos_o);
+        half3 v_s2 = half3(ReconstructViewPos(uv_s1_01, linearDepth_s) - centerViewPos);
 
         // Estimate the obscurance value
-        half dotVal = dot(v_s2, normal_o) - kBeta * halfLinearDepth_o;
+        half dotVal = dot(v_s2, centerNormal) - kBeta * centerHalfLinearDepth;
         half a1 = max(dotVal, HALF_ZERO);
         half a2 = dot(v_s2, v_s2) + kEpsilon;
         ao += a1 * rcp(a2) * isInsideRadius;
@@ -367,14 +367,14 @@ half4 FragSSAO(Varyings input)
     ao *= RADIUS;
 
     // Calculate falloff...
-    half falloff = HALF_ONE - halfLinearDepth_o * half(rcp(FALLOFF));
+    half falloff = HALF_ONE - centerHalfLinearDepth * half(rcp(FALLOFF));
     falloff = falloff*falloff;
 
     // Apply contrast + intensity + falloff^2
     ao = PositivePow(saturate(ao * INTENSITY * falloff * rcpSampleCount), kContrast);
 
     // Return the packed ao + normals
-    return PackAONormal(ao, normal_o);
+    return PackAOAndNormal(ao, centerNormal);
 }
 
 
@@ -389,11 +389,9 @@ half4 FragGTAO(Varyings input)
 
     GTAOConfig config = CreateGTAOConfig(_SSAOParams, _SSAOParams2, _AODepthToViewParams, BlueNoiseScale, BlueNoiseOffset, TemporalRotation, TemporalOffset);
 
-    float rawDepth_o = SampleDepth(uv, config.downsample);
-    float linearDepth_o = GetLinearEyeDepth(rawDepth_o);
-    half halfLinearDepth_o = half(linearDepth_o);
-    if (ShouldSkipAO(rawDepth_o, halfLinearDepth_o, config.falloff))
-        return PackAONormal(HALF_ZERO, HALF_ZERO);
+    float centerRawDepth = SampleDepth(uv, config.downsample);
+    float centerLinearDepth = GetLinearEyeDepth(centerRawDepth);
+    half centerHalfLinearDepth = half(centerLinearDepth);
 
     float2 pixelDensity;
     #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
@@ -406,13 +404,16 @@ half4 FragGTAO(Varyings input)
     {
         pixelDensity = float2(1.0f, 1.0f);
     }
+    half3 centerNormal = SampleNormal(uv, centerLinearDepth, pixelDensity);
+
+    if (ShouldSkipAO(centerRawDepth, centerHalfLinearDepth, config.falloff))
+        return PackAOAndNormal(HALF_ZERO, centerNormal);
 
     float2 positionSS = GetScreenSpacePosition(uv, config.downsample);
-    float3 positionVS = GetPositionVS(positionSS, rawDepth_o, config.depthToViewParams);
+    float3 positionVS = GetPositionVS(positionSS, centerRawDepth, config.depthToViewParams);
     half3 V = GetViewVectorVS(positionVS);
-    half3 normal_o = SampleNormal(uv, linearDepth_o, pixelDensity);
 
-    return EvaluateGTAO(config, uv, positionSS, positionVS, V, normal_o, rawDepth_o, linearDepth_o, halfLinearDepth_o);
+    return EvaluateGTAO(config, uv, positionSS, positionVS, V, centerNormal, centerLinearDepth);
 }
 
 // ------------------------------------------------------------------
@@ -457,7 +458,7 @@ half4 Blur(const float2 uv, const float2 delta) : SV_Target
     s += GetPackedAO(p2b) * w2b;
     s *= rcp(w0 + w1a + w1b + w2a + w2b);
 
-    return PackAONormal(s, n0);
+    return PackAOAndNormal(s, n0);
 }
 
 // Geometry-aware bilateral filter (single pass/small kernel)

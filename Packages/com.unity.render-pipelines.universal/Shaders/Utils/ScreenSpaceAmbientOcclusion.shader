@@ -215,5 +215,34 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             ENDHLSL
         }
 
+        // 10 - Box After Opaque
+        Pass
+        {
+            Name "SSAO_Box_AfterOpaque"
+
+            ZTest Off
+            ZWrite Off
+            Cull Off
+            Blend One SrcAlpha, Zero One
+            BlendOp Add, Add
+
+            HLSLPROGRAM
+                #pragma vertex Vert
+                #pragma fragment FragBoxAfterOpaque
+
+                #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
+
+                half4 FragBoxAfterOpaque(Varyings input) : SV_Target
+                {
+                    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+                    half ao = HALF_ONE - SSAO_COMMON_SAMPLE_BASEMAP_R(input.texcoord);
+                    return half4(0.0, 0.0, 0.0, ao);
+                }
+
+            ENDHLSL
+        }
+
     }
 }

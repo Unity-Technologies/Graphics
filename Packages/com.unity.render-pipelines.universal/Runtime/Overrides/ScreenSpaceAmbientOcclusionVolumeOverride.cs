@@ -137,6 +137,24 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+    /// Spatial filter for GTAO compute path.
+    /// </summary>
+    public enum ScreenSpaceAmbientOcclusionSpatialFilter
+    {
+        /// <summary>
+        /// Two-pass normal-guided bilateral filter.
+        /// </summary>
+        [InspectorName("Bilateral")]
+        Bilateral = 0,
+
+        /// <summary>
+        /// Normal-guided box filter with tangent-plane depth rejection.
+        /// </summary>
+        [InspectorName("Box")]
+        Box = 1
+    }
+
+    /// <summary>
     /// Quality presets for ambient occlusion settings.
     /// </summary>
     public enum ScreenSpaceAmbientOcclusionQuality
@@ -215,7 +233,7 @@ namespace UnityEngine.Rendering.Universal
         }
         [Tooltip("Controls the strength of the ambient occlusion effect. Increase this value to produce darker areas.")]
         [SerializeField]
-        private MinFloatParameter m_Intensity = new MinFloatParameter(1f, 0f);
+        private ClampedFloatParameter m_Intensity = new ClampedFloatParameter(1f, 0f, 5f);
 
         /// <summary>
         /// Radius around each point for ambient occlusion calculation.
@@ -227,7 +245,7 @@ namespace UnityEngine.Rendering.Universal
         }
         [Tooltip("The radius around a given point where Unity calculates and applies the effect. Larger values cover more area but may reduce performance due to increased texture sampling.")]
         [SerializeField]
-        private MinFloatParameter m_Radius = new MinFloatParameter(0.3f, 0.001f);
+        private ClampedFloatParameter m_Radius = new ClampedFloatParameter(0.3f, 0.01f, 5f);
 
         /// <summary>
         /// Controls how much the ambient occlusion affects direct lighting.
@@ -367,16 +385,16 @@ namespace UnityEngine.Rendering.Universal
         // ====================
 
         /// <summary>
-        /// Maximum radius in pixels for GTAO sampling.
+        /// Minimum radius in pixels for GTAO sampling. Acts as a screen-space floor on the projected world-space <see cref="radius"/> so the effect does not vanish at a distance.
         /// </summary>
-        public int maximumRadiusInPixels
+        public int minimumRadiusInPixels
         {
-            get => m_MaximumRadiusInPixels.value;
-            set => m_MaximumRadiusInPixels.value = value;
+            get => m_MinimumRadiusInPixels.value;
+            set => m_MinimumRadiusInPixels.value = value;
         }
-        [Tooltip("Maximum screen-space extent in pixels for the ambient occlusion sampling area. Works together with Radius to control the visible range of the effect.")]
+        [Tooltip("Minimum radius in pixels guaranteed by GTAO. Acts as a screen-space floor on the world-space Radius so the effect remains visible at a distance.")]
         [SerializeField]
-        private ClampedIntParameter m_MaximumRadiusInPixels = new ClampedIntParameter(40, 16, 256);
+        private ClampedIntParameter m_MinimumRadiusInPixels = new ClampedIntParameter(40, 1, 256);
 
         /// <summary>
         /// When enabled, uses compute shaders for GTAO calculation.
@@ -391,46 +409,60 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         private BoolParameter m_UseComputeShader = new BoolParameter(false);
 
+        /// <summary>
+        /// Spatial filter used by the GTAO compute path.
+        /// </summary>
+        public ScreenSpaceAmbientOcclusionSpatialFilter spatialFilter
+        {
+            get => m_SpatialFilter.value;
+            set => m_SpatialFilter.value = value;
+        }
+        [Tooltip("Spatial filter used by the GTAO compute path.")]
+        [SerializeField]
+        private ScreenSpaceAmbientOcclusionSpatialFilterParameter m_SpatialFilter = new ScreenSpaceAmbientOcclusionSpatialFilterParameter(ScreenSpaceAmbientOcclusionSpatialFilter.Bilateral);
+
         // ============================
         // Temporal Filter Parameters
         // ============================
 
         /// <summary>
         /// Enable temporal filtering for noise reduction and temporal stability.
-        /// When enabled, direction count is fixed to 1 (rotates over 6 frames).
+        /// When enabled, sample rotation and offsets vary over time.
         /// </summary>
         public bool temporalFilter
         {
             get => m_TemporalFilter.value;
             set => m_TemporalFilter.value = value;
         }
-        [Tooltip("Enable temporal filtering to reduce noise and improve stability over time. Requires Motion Vectors. When enabled, Direction Count is ignored and fixed to 1.")]
+        [Tooltip("Enable temporal filtering to reduce noise and improve stability over time. Requires Motion Vectors.")]
         [SerializeField]
         private BoolParameter m_TemporalFilter = new BoolParameter(false);
 
         /// <summary>
-        /// Variance scale for temporal AABB clamping. Higher values allow more ghosting but smoother results.
+        /// Controls how aggressively temporal accumulation reduces ghosting.
+        /// Higher values reject more history, reducing ghosting at the cost of temporal stability.
         /// </summary>
-        public float temporalScale
+        public float ghostingMitigation
         {
-            get => m_TemporalScale.value;
-            set => m_TemporalScale.value = value;
+            get => m_GhostingMitigation.value;
+            set => m_GhostingMitigation.value = value;
         }
-        [Tooltip("Controls how much variation is allowed between frames. Higher values produce smoother results but may cause ghosting artifacts.")]
+        [Tooltip("Controls how aggressively temporal accumulation reduces ghosting. Higher values reject more history but can increase noise.")]
         [SerializeField]
-        private ClampedFloatParameter m_TemporalScale = new ClampedFloatParameter(1.25f, 0.5f, 2.0f);
+        private ClampedFloatParameter m_GhostingMitigation = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         /// <summary>
-        /// Blend weight for previous frame's result. Higher values allow more ghosting but smoother results.
+        /// Length of the temporal history used by temporal accumulation.
+        /// Higher values accumulate more frames for smoother, more stable results.
         /// </summary>
-        public float temporalResponse
+        public float historyLength
         {
-            get => m_TemporalResponse.value;
-            set => m_TemporalResponse.value = value;
+            get => m_HistoryLength.value;
+            set => m_HistoryLength.value = value;
         }
-        [Tooltip("Controls how much of the previous frame's result is kept. Higher values produce smoother, more stable results but may cause ghosting.")]
+        [Tooltip("Controls the length of the temporal history. Higher values produce smoother, more stable results but can increase ghosting.")]
         [SerializeField]
-        private ClampedFloatParameter m_TemporalResponse = new ClampedFloatParameter(0.9f, 0.0f, 0.98f);
+        private ClampedFloatParameter m_HistoryLength = new ClampedFloatParameter(0.9f, 0.0f, 1.0f);
 
         // ============================
         // GTAO Compute Parameters
@@ -518,7 +550,7 @@ namespace UnityEngine.Rendering.Universal
         {
             ScreenSpaceAmbientOcclusionQuality.Low      => 2,
             ScreenSpaceAmbientOcclusionQuality.Medium   => 4,
-            _                                           => 4, // High
+            _                                           => 6, // High
         };
 
         /// <summary>
@@ -626,6 +658,20 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public ScreenSpaceAmbientOcclusionBlurQualityParameter(ScreenSpaceAmbientOcclusionBlurQuality value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="ScreenSpaceAmbientOcclusionSpatialFilter"/> value.
+    /// </summary>
+    [Serializable]
+    public sealed class ScreenSpaceAmbientOcclusionSpatialFilterParameter : VolumeParameter<ScreenSpaceAmbientOcclusionSpatialFilter>
+    {
+        /// <summary>
+        /// Creates a new <see cref="ScreenSpaceAmbientOcclusionSpatialFilterParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public ScreenSpaceAmbientOcclusionSpatialFilterParameter(ScreenSpaceAmbientOcclusionSpatialFilter value, bool overrideState = false) : base(value, overrideState) { }
     }
 
     /// <summary>

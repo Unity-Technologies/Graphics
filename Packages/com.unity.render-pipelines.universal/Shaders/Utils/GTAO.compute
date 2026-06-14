@@ -3,11 +3,12 @@
 
 // #pragma enable_d3d11_debug_symbols
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2 glcore gles3 webgpu
 
-#pragma kernel GTAOCompute
+#pragma kernel ComputeAO
 #pragma kernel BilateralBlurH
 #pragma kernel BilateralBlurV
+#pragma kernel BoxSpatialFilter
 #pragma kernel TemporalFilter
 #pragma kernel CopyHistory
 #pragma kernel FinalBlit
@@ -26,7 +27,6 @@
 // Textures and Caller-defined macros for sampling (must be defined before SSAOCommon include)
 TEXTURE2D_HALF(_BlueNoiseTexture);
 SAMPLER(sampler_BlitTexture);
-#define SSAO_COMMON_SAMPLE_BASEMAP(uv)                              half4(SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_BlitTexture, UnityStereoTransformScreenSpaceTex(uv), 0))
 #define SSAO_COMMON_SAMPLE_BASEMAP_R(uv)                            half(SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_BlitTexture, UnityStereoTransformScreenSpaceTex(uv), 0).r)
 #define SSAO_COMMON_SAMPLE_BLUE_NOISE(uv)                           SAMPLE_TEXTURE2D_LOD(_BlueNoiseTexture, sampler_PointRepeat, UnityStereoTransformScreenSpaceTex(uv), 0).a
 #define SSAO_COMMON_FETCH_DEPTH(samplePos, screenSize, downsample)  LoadSceneDepth(uint2(samplePos * rcp(downsample)))
@@ -35,13 +35,11 @@ SAMPLER(sampler_BlitTexture);
 // Compute path uses dynamic values instead of compile-time constants
 int _GTAODirectionCount;
 int _GTAOStepCount;
+int _GTAOSpatialFilter;
+float _GTAOBoxFilterStep; // a-trous step width, height
 
 #define GTAO_STEP_COUNT             _GTAOStepCount
-#if defined(_TEMPORAL_FILTERING)
-    #define GTAO_DIRECTION_COUNT    1
-#else
-    #define GTAO_DIRECTION_COUNT    _GTAODirectionCount
-#endif
+#define GTAO_DIRECTION_COUNT        _GTAODirectionCount
 
 // Includes
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
@@ -51,32 +49,47 @@ int _GTAOStepCount;
 
 RW_TEXTURE2D(half4, _AOOutput);
 RW_TEXTURE2D(half4, _BlurOutput);
-RW_TEXTURE2D(half4, _TemporalOutput);
-RW_TEXTURE2D(half4, _HistoryOutput);
+RW_TEXTURE2D(half4, _OcclusionTexture);
+RW_TEXTURE2D(half4, _AOOutputHistory);
 RW_TEXTURE2D(half4, _FinalOutput);
 
 TEXTURE2D_X_HALF(_ScreenSpaceOcclusionTexture);
-TEXTURE2D_X_HALF(_SSAOHistoryTexture);
+TEXTURE2D_X(_AOPackedHistory);
 TEXTURE2D_X(_MotionVectorTexture);
 
 // Compute-specific defines
+#define SSAO_GROUP_SIZE 8
 #define DOWNSAMPLE              _SSAOParams.z
 #define DOWNSAMPLED_SCREEN_SIZE uint2(_SourceSize.xy * DOWNSAMPLE)
 #define DOWNSAMPLED_TEXEL_SIZE  (_SourceSize.zw * rcp(DOWNSAMPLE))
 
+static const float kMaxTemporalHistoryFrameCount = 64.0;
+static const float kInvMaxTemporalHistoryFrameCount = 1.0 / kMaxTemporalHistoryFrameCount;
+static const int kGTAOSpatialFilterBilateral = 0;
+// SVGF-style normal edge-stop: weight = pow(max(0, dot(nCenter, nSample)), kNormalRejectionPower) instead of a hard threshold.
+// A higher power tightens the accepted normal cone (Schied et al. 2017).
+static const float kNormalRejectionPower = 16.0; // empirical (SVGF uses 128)
 
+// Scales the relative off-plane depth deviation in the range weight: exp(-kDepthRejectionScale * |delta|).
+// Larger values reject across depth more aggressively. (SVGF depth term; Schied et al. 2017)
+static const float kDepthRejectionScale = 2000.0; // empirical
+
+static const float kMotionWeightScale = 5.0;
+static const float kHistoryDepthRatioMin = 0.5;
+static const float kHistoryDepthRatioMax = 2.0;
+static const float kCoherenceContrastScale = 5.0; // Coherence-contrast scale: scales |neighborhoodAvg - currentAO|; spatialCoherence reaches 0 once that contrast exceeds ~1/this (about 0.2 AO).
+static const float kClampMargin = 0.05;
 // ------------------------------------------------------------------
 // Compute-Specific Functions
 // ------------------------------------------------------------------
 
-// Bilateral blur -- takes fully explicit inputs; no global access apart from texture sampling.
-half4 ComputeBilateralBlur(float2 uv, float2 delta)
+half4 ComputeBilateralBlur(TEXTURE2D_X_PARAM(blurredAO, samplerBlurredAO), float2 uv, float2 delta)
 {
-    half4 p0 = SSAO_COMMON_SAMPLE_BASEMAP(uv);
-    half4 p1a = SSAO_COMMON_SAMPLE_BASEMAP(uv - delta * 1.3846153846);
-    half4 p1b = SSAO_COMMON_SAMPLE_BASEMAP(uv + delta * 1.3846153846);
-    half4 p2a = SSAO_COMMON_SAMPLE_BASEMAP(uv - delta * 3.2307692308);
-    half4 p2b = SSAO_COMMON_SAMPLE_BASEMAP(uv + delta * 3.2307692308);
+    half4 p0 = half4(SAMPLE_TEXTURE2D_X_LOD(blurredAO, samplerBlurredAO, UnityStereoTransformScreenSpaceTex(uv), 0));
+    half4 p1a = half4(SAMPLE_TEXTURE2D_X_LOD(blurredAO, samplerBlurredAO, UnityStereoTransformScreenSpaceTex(uv - delta * 1.3846153846), 0));
+    half4 p1b = half4(SAMPLE_TEXTURE2D_X_LOD(blurredAO, samplerBlurredAO, UnityStereoTransformScreenSpaceTex(uv + delta * 1.3846153846), 0));
+    half4 p2a = half4(SAMPLE_TEXTURE2D_X_LOD(blurredAO, samplerBlurredAO, UnityStereoTransformScreenSpaceTex(uv - delta * 3.2307692308), 0));
+    half4 p2b = half4(SAMPLE_TEXTURE2D_X_LOD(blurredAO, samplerBlurredAO, UnityStereoTransformScreenSpaceTex(uv + delta * 3.2307692308), 0));
 
     half3 n0 = GetPackedNormal(p0);
 
@@ -94,53 +107,41 @@ half4 ComputeBilateralBlur(float2 uv, float2 delta)
     s += GetPackedAO(p2b) * w2b;
     s *= rcp(w0 + w1a + w1b + w2a + w2b);
 
-    return PackAONormal(s, n0);
+    return PackAOAndNormal(s, n0);
 }
 
-float2 SampleMotionVectors(float2 uv)
+float2 SampleMotionVectors(TEXTURE2D_X_PARAM(motionVectors, samplerMotionVectors), float2 uv)
 {
-    return SAMPLE_TEXTURE2D_X_LOD(_MotionVectorTexture, sampler_PointClamp, UnityStereoTransformScreenSpaceTex(uv), 0).xy;
+    return SAMPLE_TEXTURE2D_X_LOD(motionVectors, samplerMotionVectors, UnityStereoTransformScreenSpaceTex(uv), 0).xy;
 }
 
-half SampleHistory(float2 uv)
+// HDRP-style temporal denoise neighborhood on the blurred AO texture.
+float3 FindMinMaxAvgAO(TEXTURE2D_X(blurredAO), uint2 centralPixelCoords)
 {
-    return SAMPLE_TEXTURE2D_X_LOD(_SSAOHistoryTexture, sampler_LinearClamp, UnityStereoTransformScreenSpaceTex(uv), 0).r;
-}
-
-// Temporal filter -- takes explicit params so it does not read any globals.
-half4 ComputeTemporalFilter(float2 uv, half2 screenSize, half temporalScale, half temporalResponse)
-{
-    half2 velocity = SampleMotionVectors(uv);
-
-    half minColor = HALF_ZERO;
-    half maxColor = HALF_ONE;
-    half filterColor = HALF_ZERO;
-    ResolverAABB(temporalScale, uv, screenSize, minColor, maxColor, filterColor);
-
-    half currColor = filterColor;
-
-    half2 historyUV = uv - velocity;
-    half lastColor = SampleHistory(historyUV);
-    lastColor = clamp(lastColor, minColor, maxColor);
-
-    if (historyUV.x < 0 || historyUV.x > 1 || historyUV.y < 0 || historyUV.y > 1)
+    float minAO = 2.0;
+    float maxAO = -2.0;
+    float avg = 0.0;
+    const int2 maxCoord = int2(DOWNSAMPLED_SCREEN_SIZE) - 1;
+    for (int i = -1; i <= 1; ++i)
     {
-        lastColor = filterColor;
+        for (int j = -1; j <= 1; ++j)
+        {
+            int2 p = clamp(int2(centralPixelCoords) + int2(i, j), 0, maxCoord);
+            half currAO = half(LOAD_TEXTURE2D_X_LOD(blurredAO, p, 0).r);
+            avg += currAO;
+            minAO = min(minAO, currAO);
+            maxAO = max(maxAO, currAO);
+        }
     }
 
-    half weight = saturate(clamp(temporalResponse, HALF_ZERO, half(0.98)) * (HALF_ONE - length(velocity) * half(8.0)));
-    half result = lerp(currColor, lastColor, weight);
-
-    return half4(result, result, result, HALF_ONE);
+    return float3(minAO, maxAO, avg * (1.0 / 9.0));
 }
-
-#define SSAO_GROUP_SIZE 8
 
 // ------------------------------------------------------------------
 // GTAO Compute Kernel
 // ------------------------------------------------------------------
 [numthreads(SSAO_GROUP_SIZE, SSAO_GROUP_SIZE, 1)]
-void GTAOCompute(uint3 dispatchThreadId : SV_DispatchThreadID)
+void ComputeAO(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     const uint2 pixelCoords = dispatchThreadId.xy;
     if (any(pixelCoords >= DOWNSAMPLED_SCREEN_SIZE))
@@ -157,22 +158,24 @@ void GTAOCompute(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float2 positionSS = float2(pixelCoords) + 0.5;
     float2 uv = positionSS * DOWNSAMPLED_TEXEL_SIZE;
-    uint2 fullResCoords = uint2(float2(pixelCoords) * rcp(config.downsample));
+    uint2 fullResCoords = uint2(positionSS * rcp(config.downsample));
 
-    float rawDepth_o = LoadSceneDepth(fullResCoords);
-    float linearDepth_o = GetLinearEyeDepth(rawDepth_o);
-    half halfLinearDepth_o = half(linearDepth_o);
-    if (ShouldSkipAO(rawDepth_o, halfLinearDepth_o, config.falloff))
+    float centerRawDepth = LoadSceneDepth(fullResCoords);
+    float centerLinearDepth = GetLinearEyeDepth(centerRawDepth);
+    half centerHalfLinearDepth = half(centerLinearDepth);
+    half3 centerNormal = half3(LoadSceneNormals(fullResCoords));
+
+    if (ShouldSkipAO(centerRawDepth, centerHalfLinearDepth, config.falloff))
     {
-        _AOOutput[pixelCoords] = PackAONormal(HALF_ZERO, HALF_ZERO);
+        _AOOutput[pixelCoords] = PackAOAndNormal(HALF_ZERO, centerNormal);
         return;
     }
 
-    float3 positionVS = GetPositionVS(positionSS, rawDepth_o, config.depthToViewParams);
+    float3 positionVS = GetPositionVS(positionSS, centerRawDepth, config.depthToViewParams);
     half3 V = GetViewVectorVS(positionVS);
-    half3 normal_o = half3(LoadSceneNormals(fullResCoords));
 
-    _AOOutput[pixelCoords] = EvaluateGTAO(config, uv, positionSS, positionVS, V, normal_o, rawDepth_o, linearDepth_o, halfLinearDepth_o);
+    half ao = EvaluateGTAOValue(config, uv, positionSS, positionVS, V, centerNormal, centerLinearDepth);
+    _AOOutput[pixelCoords] = PackAOAndNormal(ao, centerNormal);
 }
 
 // ------------------------------------------------------------------
@@ -187,7 +190,7 @@ void BilateralBlurH(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float2 uv = (float2(pixelCoords) + 0.5) * DOWNSAMPLED_TEXEL_SIZE;
     float2 delta = float2(DOWNSAMPLED_TEXEL_SIZE.x, 0.0);
-    half4 result = ComputeBilateralBlur(uv, delta);
+    half4 result = ComputeBilateralBlur(TEXTURE2D_X_ARGS(_BlitTexture, sampler_BlitTexture), uv, delta);
     _BlurOutput[pixelCoords] = result;
 }
 
@@ -203,8 +206,91 @@ void BilateralBlurV(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float2 uv = (float2(pixelCoords) + 0.5) * DOWNSAMPLED_TEXEL_SIZE;
     float2 delta = float2(0.0, DOWNSAMPLED_TEXEL_SIZE.y);
-    half4 result = ComputeBilateralBlur(uv, delta);
+    half4 result = ComputeBilateralBlur(TEXTURE2D_X_ARGS(_BlitTexture, sampler_BlitTexture), uv, delta);
     _BlurOutput[pixelCoords] = result;
+}
+
+// ------------------------------------------------------------------
+// GTAO Box Spatial Filter Kernel
+// ------------------------------------------------------------------
+[numthreads(SSAO_GROUP_SIZE, SSAO_GROUP_SIZE, 1)]
+void BoxSpatialFilter(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    const uint2 pixelCoords = dispatchThreadId.xy;
+    if (any(pixelCoords >= DOWNSAMPLED_SCREEN_SIZE))
+        return;
+
+    const float invDownsample = rcp(DOWNSAMPLE);
+    const int2 downsampledScreenMax = int2(DOWNSAMPLED_SCREEN_SIZE) - 1;
+    const int2 pixelCoordsI = int2(pixelCoords);
+    const float2 positionSS = float2(pixelCoords) + 0.5;
+    const uint2 fullResCoords = uint2(positionSS * invDownsample);
+
+    half4 center = half4(LOAD_TEXTURE2D_X_LOD(_BlitTexture, pixelCoords, 0));
+    half centerAO = GetPackedAO(center);
+    half3 centerNormal = GetPackedNormal(center);
+
+    half temporalRotation = 0;
+    uint temporalOffset = 0u;
+#if defined(_TEMPORAL_FILTERING)
+    temporalRotation = _SSAOTemporalRotation;
+    temporalOffset = _SSAOTemporalOffset;
+#endif
+
+    GTAOConfig config = CreateGTAOConfig(_SSAOParams, _SSAOParams2, _AODepthToViewParams, BlueNoiseScale, BlueNoiseOffset, temporalRotation, temporalOffset);
+    float centerRawDepth = LoadSceneDepth(fullResCoords);
+    float centerLinearDepth = GetLinearEyeDepth(centerRawDepth);
+
+    if (ShouldSkipAO(centerRawDepth, half(centerLinearDepth), config.falloff))
+    {
+        _BlurOutput[pixelCoords] = PackAOAndNormal(HALF_ZERO, centerNormal);
+        return;
+    }
+
+    float3 centerPositionVS = GetPositionVS(positionSS, centerRawDepth, config.depthToViewParams);
+    half3 centerNormalVS = TransformWorldToViewNormal(centerNormal);
+    centerNormalVS = half3(centerNormalVS.xy, -centerNormalVS.z);
+    float planeDistance = dot(centerPositionVS, float3(centerNormalVS));
+
+    float sumAO = centerAO;
+    float sumWeight = 1.0;
+
+    const static int2 sampleOffsets[4] =
+    {
+        int2(-1,  0),
+        int2( 0, -1),
+        int2( 1,  0),
+        int2( 0,  1)
+    };
+
+    float filterStep = max(_GTAOBoxFilterStep * DOWNSAMPLE, 1.0);
+
+    UNITY_UNROLL
+    for (uint i = 0u; i < 4u; ++i)
+    {
+        int2 sampleOffset = int2(round(float2(sampleOffsets[i]) * filterStep));
+        int2 samplePixelCoords = clamp(pixelCoordsI + sampleOffset, int2(0, 0), downsampledScreenMax);
+        half4 sampleValue = half4(LOAD_TEXTURE2D_X_LOD(_BlitTexture, samplePixelCoords, 0));
+        half sampleAO = GetPackedAO(sampleValue);
+        half3 sampleNormal = GetPackedNormal(sampleValue);
+
+        float2 samplePositionSS = float2(samplePixelCoords) + 0.5;
+        uint2 sampleFullResCoords = uint2(samplePositionSS * invDownsample);
+        float sampleRawDepth = LoadSceneDepth(sampleFullResCoords);
+        float3 samplePositionVS = GetPositionVS(samplePositionSS, sampleRawDepth, config.depthToViewParams);
+
+        float planeDelta = abs(dot(samplePositionVS, float3(centerNormalVS)) - planeDistance);
+        float depthDifference = planeDelta / max(centerLinearDepth, 1.0e-4);
+        float depthWeight = exp(-kDepthRejectionScale * depthDifference);
+        float normalWeight = pow(max(0.0, dot(centerNormal, sampleNormal)), kNormalRejectionPower);
+        float sampleWeight = depthWeight * normalWeight;
+
+        sumAO += float(sampleAO) * sampleWeight;
+        sumWeight += sampleWeight;
+    }
+
+    half filteredAO = half(sumAO * rcp(max(sumWeight, 1.0e-4)));
+    _BlurOutput[pixelCoords] = PackAOAndNormal(filteredAO, centerNormal);
 }
 
 // ------------------------------------------------------------------
@@ -218,9 +304,78 @@ void TemporalFilter(uint3 dispatchThreadId : SV_DispatchThreadID)
         return;
 
     float2 uv = (float2(pixelCoords) + 0.5) * DOWNSAMPLED_TEXEL_SIZE;
-    const half2 screenSize = half2(_SourceSize.xy * DOWNSAMPLE);
-    half4 result = ComputeTemporalFilter(uv, screenSize, _SSAOTemporalParams.x, _SSAOTemporalParams.y);
-    _TemporalOutput[pixelCoords] = result;
+    half temporalRotation = 0;
+    uint temporalOffset = 0u;
+#if defined(_TEMPORAL_FILTERING)
+    temporalRotation = _SSAOTemporalRotation;
+    temporalOffset = _SSAOTemporalOffset;
+#endif
+    GTAOConfig config = CreateGTAOConfig(_SSAOParams, _SSAOParams2, _AODepthToViewParams, BlueNoiseScale, BlueNoiseOffset, temporalRotation, temporalOffset);
+    uint2 fullResCoords = uint2((float2(pixelCoords) + 0.5) * rcp(config.downsample));
+    float currDepth = LoadSceneDepth(fullResCoords);
+
+    bool outputPackedNormal = _GTAOSpatialFilter == kGTAOSpatialFilterBilateral;
+    half4 currValue = half4(LOAD_TEXTURE2D_X_LOD(_BlitTexture, pixelCoords, 0));
+    half currAO = currValue.r;
+
+    if (currDepth == UNITY_RAW_FAR_CLIP_VALUE || currDepth < SKY_DEPTH_VALUE)
+    {
+        _OcclusionTexture[pixelCoords] = outputPackedNormal
+            ? half4(HALF_ZERO, currValue.g, currValue.b, currValue.a)
+            : half4(HALF_ZERO, HALF_ZERO, HALF_ZERO, HALF_ONE);
+        _AOOutputHistory[pixelCoords] = half4(CreateHistoryData(0.0, 0.0, 0.0));
+        return;
+    }
+
+    float2 velocity = SampleMotionVectors(TEXTURE2D_X_ARGS(_MotionVectorTexture, sampler_PointClamp), uv);
+    float motionVecLength = length(velocity);
+    float motionVecWeighting = saturate(motionVecLength * kMotionWeightScale);
+
+    float2 historyUV = uv - velocity;
+    bool validHistoryUV = historyUV.x >= 0.0 && historyUV.x <= 1.0 && historyUV.y >= 0.0 && historyUV.y <= 1.0;
+
+    float2 historyUVStereo = UnityStereoTransformScreenSpaceTex(historyUV);
+
+    float2 prevHistoryData = SAMPLE_TEXTURE2D_X_LOD(_AOPackedHistory, sampler_LinearClamp, historyUVStereo, 0).zw;
+    float prevAO = prevHistoryData.x;
+    float prevNormalizedHistoryFrameCount = saturate(prevHistoryData.y);
+
+    float2 prevPackedDepth = SAMPLE_TEXTURE2D_X_LOD(_AOPackedHistory, sampler_PointClamp, historyUVStereo, 0).xy;
+    float prevDepth = UnpackFloatFromR8G8Safe(prevPackedDepth);
+
+    float3 minMaxAvg = FindMinMaxAvgAO(_BlitTexture, pixelCoords);
+    float minAO = minMaxAvg.x;
+    float maxAO = minMaxAvg.y;
+    float avgAO = minMaxAvg.z;
+
+    float motionStability = 1.0 - motionVecWeighting;
+    float ghostingMitigation = saturate(_SSAOGhostingMitigation);
+    float spatialCoherence = saturate(1.0 - kCoherenceContrastScale * abs(avgAO - currAO));
+
+    float clampStrength = ghostingMitigation * motionStability * spatialCoherence;
+    float clampedPrevAO = clamp(prevAO, minAO - kClampMargin, maxAO + kClampMargin);
+    prevAO = lerp(prevAO, clampedPrevAO, clampStrength);
+
+    float depthRatio = prevDepth / max(currDepth, 1e-6);
+    bool depthValid = depthRatio >= kHistoryDepthRatioMin && depthRatio <= kHistoryDepthRatioMax;
+
+    float historyLength = saturate(_SSAOHistoryLength);
+    float historyValidity = (validHistoryUV && depthValid) ? 1.0 : 0.0;
+    float maxHistoryFrameCount = lerp(1.0, kMaxTemporalHistoryFrameCount, historyLength);
+    float prevHistoryFrameCount = prevNormalizedHistoryFrameCount * kMaxTemporalHistoryFrameCount;
+    float retainedHistoryFrameCount = prevHistoryFrameCount * historyValidity * motionStability;
+    float historyFrameCount = min(retainedHistoryFrameCount + 1.0, maxHistoryFrameCount);
+
+    float currentFrameWeight = rcp(historyFrameCount);
+    float newAO = lerp(prevAO, currAO, currentFrameWeight);
+    half4 occlusionResult = outputPackedNormal
+        ? half4(newAO, currValue.g, currValue.b, currValue.a)
+        : half4(newAO, newAO, newAO, HALF_ONE);
+    float rcpHistoryFrameCount = historyFrameCount * kInvMaxTemporalHistoryFrameCount;
+    float4 historyPacked = CreateHistoryData(newAO, currDepth, rcpHistoryFrameCount);
+
+    _OcclusionTexture[pixelCoords] = occlusionResult;
+    _AOOutputHistory[pixelCoords] = half4(historyPacked);
 }
 
 // ------------------------------------------------------------------
@@ -233,9 +388,17 @@ void CopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (any(pixelCoords >= DOWNSAMPLED_SCREEN_SIZE))
         return;
 
-    float2 uv = (float2(pixelCoords) + 0.5) * DOWNSAMPLED_TEXEL_SIZE;
-    half4 result = SSAO_COMMON_SAMPLE_BASEMAP(uv);
-    _HistoryOutput[pixelCoords] = result;
+    half ao = half(LOAD_TEXTURE2D_X_LOD(_BlitTexture, pixelCoords, 0).r);
+    GTAOConfig config = CreateGTAOConfig(_SSAOParams, _SSAOParams2, _AODepthToViewParams, BlueNoiseScale, BlueNoiseOffset, 0, 0u);
+    uint2 fullResCoords = uint2((float2(pixelCoords) + 0.5) * rcp(config.downsample));
+    float depth = LoadSceneDepth(fullResCoords);
+    if (depth == UNITY_RAW_FAR_CLIP_VALUE || depth < SKY_DEPTH_VALUE)
+    {
+        _AOOutputHistory[pixelCoords] = half4(CreateHistoryData(0.0, 0.0, 0.0));
+        return;
+    }
+
+    _AOOutputHistory[pixelCoords] = half4(CreateHistoryData(ao, depth, kInvMaxTemporalHistoryFrameCount));
 }
 
 // ------------------------------------------------------------------

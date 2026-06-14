@@ -14,6 +14,7 @@
 //   GTAO_DIRECTION_COUNT     - runtime uniform (vs compile-time constant in fragment path)
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 
 #define SCREEN_PARAMS               GetScaledScreenParams()
 
@@ -34,8 +35,8 @@ uint _SSAOTemporalOffset;    // Valid range: [0,3]
 static const half TemporalRotation  = 0;
 static const uint TemporalOffset    = 0;
 #endif
-half4 _SSAOTemporalParams;   // x: TemporalScale (AABB variance), y: TemporalResponse (blend weight)
-float4 _MotionVectorTexture_TexelSize;
+half _SSAOHistoryLength;
+half _SSAOGhostingMitigation;
 
 #if defined(_BLUE_NOISE)
 half4 _SSAOBlueNoiseParams;
@@ -49,25 +50,26 @@ static const half2 BlueNoiseOffset  = 0;
 #endif // SSAO_COMMON_DECLARE_UNIFORMS
 
 // Constants
-static const half kContrast         = half(0.6);
-static const half kGeometryCoeff    = half(0.8);
-static const half kBeta             = half(0.004);
-static const half kEpsilon          = half(0.0001);
+static const half kContrast = half(0.6);
+static const half kGeometryCoeff = half(0.8);
+static const half kBeta = half(0.004);
+static const half kEpsilon = half(0.0001);
+static const float kFalloffFadeStartScale = 0.75;
 
-static const float GOLDEN_RATIO     = 1.6180339887;
-static const uint  R1_ALPHA_UINT    = 2654435769u;  // (golden_ratio - 1) * (1 << 32)
-static const float SKY_DEPTH_VALUE  = 0.00001;
-static const half  HALF_POINT_ONE   = half(0.1);
-static const half  HALF_MINUS_ONE   = half(-1.0);
-static const half  HALF_ZERO        = half(0.0);
-static const half  HALF_HALF        = half(0.5);
-static const half  HALF_ONE         = half(1.0);
-static const half4 HALF4_ONE        = half4(1.0, 1.0, 1.0, 1.0);
-static const half  HALF_TWO         = half(2.0);
-static const half  HALF_TWO_PI      = half(6.28318530717958647693);
-static const half  HALF_FOUR        = half(4.0);
-static const half  HALF_INV_NINE    = half(0.11111111111111111111);
-static const half  HALF_HUNDRED     = half(100.0);
+static const float GOLDEN_RATIO = 1.6180339887;
+static const uint R1_ALPHA_UINT = 2654435769u;  // (golden_ratio - 1) * (1 << 32)
+static const float SKY_DEPTH_VALUE = 0.00001;
+static const half HALF_POINT_ONE = half(0.1);
+static const half HALF_MINUS_ONE = half(-1.0);
+static const half HALF_ZERO = half(0.0);
+static const half HALF_HALF = half(0.5);
+static const half HALF_ONE = half(1.0);
+static const half4 HALF4_ONE = half4(1.0, 1.0, 1.0, 1.0);
+static const half HALF_TWO = half(2.0);
+static const half HALF_TWO_PI = half(6.28318530717958647693);
+static const half HALF_FOUR = half(4.0);
+static const half HALF_INV_NINE = half(0.11111111111111111111);
+static const half HALF_HUNDRED = half(100.0);
 
 struct GTAOConfig
 {
@@ -76,8 +78,7 @@ struct GTAOConfig
     half downsample;
     half falloff;
     float4 depthToViewParams;
-    half gtaoMaxRadiusPixels;
-    half gtaoInvRadiusSq;
+    half gtaoMinimumRadiusInPixels;
     half gtaoFOVCorrection;
     half2 blueNoiseScale;
     half2 blueNoiseOffset;
@@ -88,18 +89,17 @@ struct GTAOConfig
 GTAOConfig CreateGTAOConfig(half4 ssaoParams, half4 ssaoParams2, float4 depthToViewParams, half2 blueNoiseScale, half2 blueNoiseOffset, half temporalRotation, uint temporalOffset)
 {
     GTAOConfig config;
-    config.intensity           = ssaoParams.x;
-    config.radius              = ssaoParams.y;
-    config.downsample          = ssaoParams.z;
-    config.falloff             = ssaoParams.w;
-    config.depthToViewParams   = depthToViewParams;
-    config.gtaoMaxRadiusPixels = ssaoParams2.x;
-    config.gtaoInvRadiusSq     = ssaoParams2.y;
-    config.gtaoFOVCorrection   = ssaoParams2.z;
-    config.blueNoiseScale      = blueNoiseScale;
-    config.blueNoiseOffset     = blueNoiseOffset;
-    config.temporalRotation    = temporalRotation;
-    config.temporalOffset      = temporalOffset;
+    config.intensity = ssaoParams.x;
+    config.radius = ssaoParams.y;
+    config.downsample = ssaoParams.z;
+    config.falloff = ssaoParams.w;
+    config.depthToViewParams = depthToViewParams;
+    config.gtaoMinimumRadiusInPixels = ssaoParams2.x;
+    config.gtaoFOVCorrection = ssaoParams2.z;
+    config.blueNoiseScale = blueNoiseScale;
+    config.blueNoiseOffset = blueNoiseOffset;
+    config.temporalRotation = temporalRotation;
+    config.temporalOffset = temporalOffset;
     return config;
 }
 
@@ -117,7 +117,7 @@ float SampleDepth(float2 uv, half downsample)
 // ------------------------------------------------------------------
 // Shared Helper Functions
 // ------------------------------------------------------------------
-half4 PackAONormal(half ao, half3 n)
+half4 PackAOAndNormal(half ao, half3 n)
 {
     n *= HALF_HALF;
     n += HALF_HALF;
@@ -181,49 +181,70 @@ half3 GetViewVectorVS(float3 positionVS)
 }
 
 // Checks if the fragment should skip AO (sky or beyond falloff).
-bool ShouldSkipAO(float rawDepth, half halfLinearDepth, half falloff)
+inline bool ShouldSkipAO(float rawDepth, half halfLinearDepth, half falloff)
 {
-    if (rawDepth < SKY_DEPTH_VALUE)
-        return true;
-    else
-        return halfLinearDepth > falloff;
+    return rawDepth == UNITY_RAW_FAR_CLIP_VALUE || rawDepth < SKY_DEPTH_VALUE || halfLinearDepth > falloff;
 }
 
+// Packing.hlsl uses `real`, which can resolve to min16float in this compute path.
+// Use float math for history depth packing to avoid precision/overflow issues near 1.0.
+float2 PackFloatToR8G8Safe(float value)
+{
+    uint packedBits = (uint)round(saturate(value) * 65535.0);
+    return float2((packedBits & 0xFFu) / 255.0, ((packedBits >> 8) & 0xFFu) / 255.0);
+}
+
+float UnpackFloatFromR8G8Safe(float2 value)
+{
+    uint lo = (uint)round(saturate(value.x) * 255.0);
+    uint hi = (uint)round(saturate(value.y) * 255.0);
+    return ((hi << 8) | lo) / 65535.0;
+}
+
+float4 CreateHistoryData(float ao, float depth, float reciprocalHistoryFrameCount)
+{
+    float4 historyData;
+    historyData.xy = PackFloatToR8G8Safe(depth);
+    historyData.z = saturate(ao);
+    historyData.w = saturate(reciprocalHistoryFrameCount);
+    return historyData;
+}
 
 // ------------------------------------------------------------------
 // Shared GTAO Functions
 // ------------------------------------------------------------------
 
-half2 GetDirectionGTAO_BlueNoise(float2 uv, int dirIdx, half rcpDirectionCount, half2 blueNoiseOffset, half2 blueNoiseScale, half temporalRotation)
+float2 FastAcosGTAO(float2 x)
 {
-    const half lerpVal = half(dirIdx) * rcpDirectionCount;
-    half blueNoise = SSAO_COMMON_SAMPLE_BLUE_NOISE((uv + blueNoiseOffset) * blueNoiseScale + lerpVal);
-#if defined(_TEMPORAL_FILTERING)
-    blueNoise = frac(blueNoise + temporalRotation);
-#endif
-    // Randomized slice angle in [0, PI]
-    const float sliceAngle = (lerpVal + blueNoise * rcpDirectionCount) * PI;
-    float sinAngle, cosAngle;
-    sincos(sliceAngle, sinAngle, cosAngle);
-    return half2(cosAngle, sinAngle);
+    float2 outVal = -0.156583 * abs(x) + HALF_PI;
+    outVal *= sqrt(saturate(1.0 - abs(x)));
+    return lerp(PI - outVal, outVal, step(0.0, x));
 }
 
-half2 GetDirectionGTAO_IGN(float2 positionSS, int dirIdx, half temporalRotation)
+float2 GetDirectionGTAO_BlueNoise(float2 uv, int dirIdx, float rcpDirectionCount, float2 blueNoiseOffset, float2 blueNoiseScale, float temporalRotation)
+{
+    const float lerpVal = float(dirIdx) * rcpDirectionCount;
+    float noise = SSAO_COMMON_SAMPLE_BLUE_NOISE((uv + blueNoiseOffset) * blueNoiseScale + lerpVal);
+#if defined(_TEMPORAL_FILTERING)
+    noise = frac(noise + temporalRotation);
+#endif
+    const float sliceAngle = (float(dirIdx) + noise) * PI * rcpDirectionCount;
+    float sinAngle, cosAngle;
+    sincos(sliceAngle, sinAngle, cosAngle);
+    return float2(cosAngle, sinAngle);
+}
+
+float2 GetDirectionGTAO_IGN(float2 positionSS, int dirIdx, float temporalRotation, half rcpDirectionCount)
 {
     float noise = InterleavedGradientNoise(positionSS, 0);
-
 #if defined(_TEMPORAL_FILTERING)
-    half rotation = temporalRotation;
-#else
-    static const half rotations[6] = { 60.0, 300.0, 180.0, 240.0, 120.0, 0.0 };
-    half rotation = (rotations[dirIdx] / 360.0);
+    static const float rotations[6] = { 60.0, 300.0, 180.0, 240.0, 120.0, 0.0 };
+    noise = frac(noise + temporalRotation + (rotations[(uint)dirIdx % 6] / 360.0));
 #endif
-
-    // Randomized slice angle in [0, PI]
-    noise = (noise + rotation) * PI;
+    const float sliceAngle = (float(dirIdx) + noise) * PI * rcpDirectionCount;
     float sinAngle, cosAngle;
-    sincos(noise, sinAngle, cosAngle);
-    return half2(cosAngle, sinAngle);
+    sincos(sliceAngle, sinAngle, cosAngle);
+    return float2(cosAngle, sinAngle);
 }
 
 half GetOffsetGTAO_BlueNoise(float2 uv, half2 blueNoiseOffset, half2 blueNoiseScale, uint temporalOffset)
@@ -240,13 +261,16 @@ half GetOffsetGTAO_BlueNoise(float2 uv, half2 blueNoiseOffset, half2 blueNoiseSc
 
 half GetOffsetGTAO_IGN(uint2 positionSS, uint temporalOffset)
 {
-    // 4 evenly-spaced offsets from screen position parity
-    float offset = 0.25 * ((positionSS.y - positionSS.x) & 0x3);
 #if defined(_TEMPORAL_FILTERING)
+    // Use a stable 4-phase pattern for temporal accumulation.
+    float offset = 0.25 * ((positionSS.y - positionSS.x) & 0x3);
     static const float offsets[4] = { 0.0, 0.5, 0.25, 0.75 };
-    offset += offsets[temporalOffset];
+    offset = frac(offset + offsets[temporalOffset]);
+#else
+    // Different seed than slice angle's IGN to decorrelate X/Y noise.
+    float offset = InterleavedGradientNoise(float2(positionSS), 1);
 #endif
-    return frac(offset);
+    return offset;
 }
 
 float GetHorizonAngle(float maxH, float candidateH, float distSq, half invRadiusSq)
@@ -254,26 +278,10 @@ float GetHorizonAngle(float maxH, float candidateH, float distSq, half invRadius
     // Quadratic falloff to zero at radius boundary
     half falloff = saturate(1.0 - (distSq * invRadiusSq));
     // Raise horizon blended by falloff
-    return (candidateH > maxH) ? lerp(maxH, candidateH, falloff) : lerp(maxH, candidateH, 0.03);
+    return max(maxH, lerp(maxH, candidateH, falloff));
 }
 
-float2 GetDepthSamplePos(int stepIdx, half2 rayStart, half2 rayDir, half2 screenSize, half rayOffset, half maxRadiusPixels, float minS, int sliceIdx, int stepCount)
-{
-    // R1 sequence using integer arithmetic for bit-exact frac()
-    uint stepSeed = uint(sliceIdx + stepIdx * stepCount) * R1_ALPHA_UINT;
-    float stepNoise = frac(rayOffset + UintToFloat01(stepSeed));
-
-    float rayStep = (float(stepIdx) + stepNoise) / float(stepCount);
-    rayStep = rayStep * rayStep;
-    rayStep += minS;
-
-    // Final sample position in pixels
-    float offset = rayStep * maxRadiusPixels;
-
-    return clamp(rayStart + offset * rayDir, 2.0, screenSize - 2.0);
-}
-
-void UpdateHorizon(inout float maxHorizon, float2 samplePos, half3 V, float3 positionVS, float sampleDepth, float4 depthToViewParams, half invRadiusSq)
+void UpdateHorizon(inout float maxHorizon, float2 samplePos, float3 V, float3 positionVS, float sampleDepth, float4 depthToViewParams, half invRadiusSq)
 {
     float3 samplePosVS = GetPositionVS(samplePos, sampleDepth, depthToViewParams);
     float3 deltaPos = samplePosVS - positionVS;
@@ -283,125 +291,124 @@ void UpdateHorizon(inout float maxHorizon, float2 samplePos, half3 V, float3 pos
     maxHorizon = GetHorizonAngle(maxHorizon, currHorizon, deltaLenSq, invRadiusSq);
 }
 
-float HorizonLoop(GTAOConfig config, float3 positionVS, half3 V, float2 rayStart, half2 rayDir,
-                  half rayOffset, half maxRadiusPixels, float initialHorizon, int sliceIdx)
+half IntegrateArcCosWeighted(float2 horizonAngles, float n, float sinN, float cosN)
 {
-    float maxHorizon = initialHorizon;
-    const half2 screenSize = SCREEN_PARAMS.xy * config.downsample;
+    // Double the horizon angles for the double-angle cosine terms
+    float doubledHorizon0 = horizonAngles.x * 2.0;
+    float doubledHorizon1 = horizonAngles.y * 2.0;
+    // Analytical cosine-weighted arc integral (GTAO paper)
+    return 0.25 * ((-cos(doubledHorizon0 - n) + cosN + doubledHorizon0 * sinN) + (-cos(doubledHorizon1 - n) + cosN + doubledHorizon1 * sinN));
+}
 
-    // Min distance to start sampling from to avoid sampling from the center pixel
-    const float pixelTooCloseThreshold = 1.3;
-    const float minS = pixelTooCloseThreshold / maxRadiusPixels;
+float2 EstimateSliceVisibility(GTAOConfig config, int dirIdx, float2 uv, float2 positionSS, float3 positionVS, half3 V, float3 normalVS, float fovCorrectedRadiusSS, half invRadiusSq, half rayOffset, half rcpDirectionCount)
+{
+#if defined(_BLUE_NOISE)
+    float2 dir = GetDirectionGTAO_BlueNoise(uv, dirIdx, rcpDirectionCount, config.blueNoiseOffset, config.blueNoiseScale, config.temporalRotation);
+#else
+    float2 dir = GetDirectionGTAO_IGN(positionSS, dirIdx, config.temporalRotation, rcpDirectionCount);
+#endif
 
+    float3 sliceN = normalize(cross(float3(dir.xy, 0.0), V));
+    float3 projN = normalVS - sliceN * dot(normalVS, sliceN);
+    float projNLen = length(projN);
+    float cosN = saturate(dot(projN / projNLen, V));
+
+    float3 T = cross(V, sliceN);
+    float N = -sign(dot(projN, T)) * acos(cosN);
+
+    // Per-slice horizon accumulator: x = positive direction, y = negative direction.
+    float sinN = sin(N);
+    float2 maxHorizons = float2(sinN, -sinN);
+
+    const half2 screenSize              = SCREEN_PARAMS.xy * config.downsample;
+    const float pixelTooCloseThreshold  = 1.3;
+    const float minStepFraction         = pixelTooCloseThreshold / fovCorrectedRadiusSS;
+    const float rcpStepCount            = rcp(GTAO_STEP_COUNT);
+
+    // Single step loop driving both directions. Step stride/noise computed once and reused.
     // Unroll for performance on the fragment path. On the compute path, keep the loop dynamic to support runtime quality settings.
 #ifndef GTAO_COMPUTE_PATH
     UNITY_UNROLL
 #endif
     for (int stepIdx = 0; stepIdx < GTAO_STEP_COUNT; stepIdx++)
     {
-        float2 samplePos = GetDepthSamplePos(stepIdx, rayStart, rayDir, screenSize, rayOffset, maxRadiusPixels, minS, sliceIdx, GTAO_STEP_COUNT);
+        // R1 sequence using integer arithmetic for bit-exact frac()
+        uint  stepSeed  = uint(dirIdx + stepIdx * GTAO_STEP_COUNT) * R1_ALPHA_UINT;
+        float stepNoise = frac(rayOffset + UintToFloat01(stepSeed));
+        float rayStep   = (float(stepIdx) + stepNoise) * rcpStepCount;
+        rayStep         = rayStep * rayStep + minStepFraction;
+        float2 stepVec  = round(rayStep * fovCorrectedRadiusSS * dir);
+
+        // positive direction
+        float2 samplePos = positionSS + stepVec;
         float sampleDepth = SSAO_COMMON_FETCH_DEPTH(samplePos, screenSize, config.downsample);
-        UpdateHorizon(maxHorizon, samplePos, V, positionVS, sampleDepth, config.depthToViewParams, config.gtaoInvRadiusSq);
+        UpdateHorizon(maxHorizons.x, samplePos, V, positionVS, sampleDepth, config.depthToViewParams, invRadiusSq);
+
+        // negative direction
+        samplePos = positionSS - stepVec;
+        sampleDepth = SSAO_COMMON_FETCH_DEPTH(samplePos, screenSize, config.downsample);
+        UpdateHorizon(maxHorizons.y, samplePos, V, positionVS, sampleDepth, config.depthToViewParams, invRadiusSq);
     }
 
-    return maxHorizon;
+    // Convert horizon cosines to signed angles relative to slice normal N.
+    float2 horizonAcos = FastAcosGTAO(maxHorizons);
+    maxHorizons.x = N + max(-horizonAcos.x - N, -HALF_PI);
+    maxHorizons.y = N + min( horizonAcos.y - N,  HALF_PI);
+
+    // (visibility, maxVisibility) summed across slices and divided once by the caller.
+    // maxVisibility = the integral with horizons fully open, normalizing visibility into [0, 1].
+    return float2(projNLen * IntegrateArcCosWeighted(maxHorizons, N, sinN, cosN), projNLen * (N * sinN + cosN));
 }
 
-float IntegrateArcCosWeighted(float2 horizonAngles, float n, float cosN)
+half EvaluateGTAOValue(GTAOConfig config, float2 uv, float2 positionSS, float3 positionVS, half3 V, half3 normal, float linearDepth)
 {
-    // Double the horizon angles for the double-angle cosine terms
-    float h1_2 = horizonAngles.x * 2.0;
-    float h2_2 = horizonAngles.y * 2.0;
-    float sinN = sin(n);
-    // Analytical cosine-weighted arc integral (GTAO paper)
-    return 0.25 * ((-cos(h1_2 - n) + cosN + h1_2 * sinN) + (-cos(h2_2 - n) + cosN + h2_2 * sinN));
-}
+    float3 normalVS = TransformWorldToViewNormal(normal);
+    normalVS = float3(normalVS.xy, -normalVS.z);
 
-half IntegrateSlice(GTAOConfig config, int dirIdx, float2 uv, float2 positionSS, float3 positionVS, half3 V, half3 normalVS, half fovCorrectedRadiusSS, half rayOffset, half rcpDirectionCount)
-{
-#if defined(_BLUE_NOISE)
-    half2 dir = GetDirectionGTAO_BlueNoise(uv, dirIdx, rcpDirectionCount, config.blueNoiseOffset, config.blueNoiseScale, config.temporalRotation);
-#else
-    half2 dir = GetDirectionGTAO_IGN(positionSS, dirIdx, config.temporalRotation);
-#endif
-    half2 negDir = -dir + 1e-30;
-
-    half3 sliceN = normalize(cross(half3(dir.xy, 0.0), V));
-    half3 projN = normalVS - sliceN * dot(normalVS, sliceN);
-    half projNLen = length(projN);
-    if (projNLen < half(1e-4))
-    {
-        return 1.0;
-    }
-    else
-    {
-        half cosN = dot(projN / projNLen, V);
-
-        half3 T = cross(V, sliceN);
-        float N = -sign(dot(projN, T)) * FastACos(saturate(cosN));
-
-        float sinN = sin(N);
-        float initialHorizon0 = sinN;   // positive direction
-        float initialHorizon1 = -sinN;  // negative direction
-
-        // Find horizons (pass dirIdx for R1 sequence distribution)
-        float2 maxHorizons;
-        maxHorizons.x = HorizonLoop(config, positionVS, V, positionSS, dir, rayOffset, fovCorrectedRadiusSS, initialHorizon0, dirIdx);
-        maxHorizons.y = HorizonLoop(config, positionVS, V, positionSS, negDir, rayOffset, fovCorrectedRadiusSS, initialHorizon1, dirIdx);
-
-        // Now we find the actual horizon angles
-        maxHorizons.x = -FastACos(maxHorizons.x);
-        maxHorizons.y = FastACos(maxHorizons.y);
-        maxHorizons.x = N + max(maxHorizons.x - N, -HALF_PI);
-        maxHorizons.y = N + min(maxHorizons.y - N, HALF_PI);
-
-        return AnyIsNaN(maxHorizons) ? 1.0 : IntegrateArcCosWeighted(maxHorizons, N, cosN);
-    }
-}
-
-half4 EvaluateGTAO(GTAOConfig config, float2 uv, float2 positionSS, float3 positionVS, half3 V, half3 normal, float rawDepth, float linearDepth, half halfLinearDepth)
-{
-    // Invalid depth check
-    if (rawDepth == UNITY_RAW_FAR_CLIP_VALUE)
-        return PackAONormal(HALF_ZERO, normal);
-    else
-    {
-        half3 normalVS = TransformWorldToViewNormal(normal);
-        normalVS = half3(normalVS.xy, -normalVS.z);
+    // Shrink origin toward camera at grazing angles to avoid the surface itself being a horizon.
+    positionVS *= lerp(0.997, 1.0, abs(dot(normalVS, V)));
 
 #if defined(_ORTHOGRAPHIC)
-        half fovCorrectedRadiusSS = clamp(config.radius * config.gtaoFOVCorrection, GTAO_STEP_COUNT, config.gtaoMaxRadiusPixels);
+    float fovCorrectedRadiusSS = max(config.radius * config.gtaoFOVCorrection, config.gtaoMinimumRadiusInPixels);
+    float invEffectiveRadius   = config.gtaoFOVCorrection / fovCorrectedRadiusSS;
 #else
-        half fovCorrectedRadiusSS = clamp(config.radius * config.gtaoFOVCorrection * rcp(linearDepth), GTAO_STEP_COUNT, config.gtaoMaxRadiusPixels);
+    float fovCorrectedRadiusSS = max(config.radius * config.gtaoFOVCorrection * rcp(linearDepth), config.gtaoMinimumRadiusInPixels);
+    float invEffectiveRadius   = config.gtaoFOVCorrection / (fovCorrectedRadiusSS * linearDepth);
 #endif
+    half invRadiusSq = invEffectiveRadius * invEffectiveRadius;
+
 #if defined(_BLUE_NOISE)
         half rayOffset = GetOffsetGTAO_BlueNoise(uv, config.blueNoiseOffset, config.blueNoiseScale, config.temporalOffset);
 #else
         half rayOffset = GetOffsetGTAO_IGN((uint2)positionSS, config.temporalOffset);
 #endif
 
-        const half rcpDirectionCount = half(rcp(GTAO_DIRECTION_COUNT));
-        half integral = 0.0;
+    const half rcpDirectionCount = half(rcp(GTAO_DIRECTION_COUNT));
+    float2 acc = 0;
 
-        // Unroll for performance on the fragment path. On the compute path, keep the loop dynamic to support runtime quality settings
-        // except when temporal filtering forces direction count to 1, where unrolling is safe.
-#if !defined(GTAO_COMPUTE_PATH) || defined(_TEMPORAL_FILTERING)
-        UNITY_UNROLL
+    // Unroll for performance on the fragment path. On the compute path, keep the loop dynamic to support runtime quality settings.
+#if !defined(GTAO_COMPUTE_PATH)
+    UNITY_UNROLL
 #endif
-        for (int dirIdx = 0; dirIdx < GTAO_DIRECTION_COUNT; dirIdx++)
-        {
-            integral += IntegrateSlice(config, dirIdx, uv, positionSS, positionVS, V, normalVS, fovCorrectedRadiusSS, rayOffset, rcpDirectionCount);
-        }
-        integral *= rcpDirectionCount;
-
-        half falloff = HALF_ONE - halfLinearDepth * half(rcp(config.falloff));
-        falloff = falloff * falloff;
-        half ao = HALF_ONE - saturate(integral);
-        ao = PositivePow(saturate(ao * config.intensity * falloff), kContrast);
-
-        // Return the packed ao + normals
-        return PackAONormal(ao, normal);
+    for (int dirIdx = 0; dirIdx < GTAO_DIRECTION_COUNT; dirIdx++)
+    {
+        acc += EstimateSliceVisibility(config, dirIdx, uv, positionSS, positionVS, V, normalVS, fovCorrectedRadiusSS, invRadiusSq, rayOffset, rcpDirectionCount);
     }
+
+    half integral = acc.y > half(1e-5) ? saturate(acc.x / acc.y) : HALF_ONE;
+    half ao = HALF_ONE - PositivePow(integral, config.intensity);
+
+    half fadeFactor = smoothstep(config.falloff * kFalloffFadeStartScale, config.falloff, linearDepth);
+    ao *= (HALF_ONE - fadeFactor);
+
+    return ao;
+}
+
+half4 EvaluateGTAO(GTAOConfig config, float2 uv, float2 positionSS, float3 positionVS, half3 V, half3 normal, float linearDepth)
+{
+    half ao = EvaluateGTAOValue(config, uv, positionSS, positionVS, V, normal, linearDepth);
+    // Return the packed ao + normals
+    return PackAOAndNormal(ao, normal);
 }
 
 

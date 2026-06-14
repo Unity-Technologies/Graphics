@@ -57,6 +57,8 @@ namespace UnityEngine.Rendering.Universal
 
             KawaseBlur = 8,
             KawaseAfterOpaque = 9,
+
+            BoxAfterOpaque = 10,
         }
 
         // Camera view data aggregated into a struct to avoid scattered arrays.

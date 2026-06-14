@@ -1,4 +1,4 @@
-#if MODERN_SSAO
+﻿#if MODERN_SSAO
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
@@ -12,10 +12,11 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent qualitySettings = EditorGUIUtility.TrTextContent("Quality Settings");
             public static readonly GUIContent temporalAccumulation = EditorGUIUtility.TrTextContent("Temporal Accumulation");
             public static readonly GUIContent enable = EditorGUIUtility.TrTextContent("Enable", "Enable temporal filtering to reduce noise and improve stability over time.");
-            public static readonly GUIContent maximumRadius = EditorGUIUtility.TrTextContent("Maximum Radius", "Maximum screen-space extent in pixels for the ambient occlusion sampling area. Works together with Radius to control the visible range of the effect.");
-            public static readonly GUIContent temporalScale = EditorGUIUtility.TrTextContent("Scale", "Controls how much variation is allowed between frames. Higher values produce smoother results but may cause ghosting artifacts.");
-            public static readonly GUIContent temporalBlendFactor = EditorGUIUtility.TrTextContent("Accumulation Factor", "Controls how much of the previous frame's result is kept. Higher values produce smoother, more stable results but may cause ghosting.");
+            public static readonly GUIContent minimumRadiusInPixels = EditorGUIUtility.TrTextContent("Minimum Radius (Pixels)", "Minimum radius in pixels guaranteed by GTAO. Acts as a screen-space floor on the world-space Radius so the effect remains visible at a distance.");
+            public static readonly GUIContent ghostingMitigation = EditorGUIUtility.TrTextContent("Ghosting Mitigation", "Controls how aggressively temporal accumulation reduces ghosting. Higher values reject more history but can increase noise.");
+            public static readonly GUIContent historyLength = EditorGUIUtility.TrTextContent("History Length", "Controls the length of the temporal history. Higher values produce smoother, more stable results but can increase ghosting.");
             public static readonly GUIContent useComputeShader = EditorGUIUtility.TrTextContent("Use Compute Shader", "When enabled, uses compute shaders for GTAO calculation. Provides temporal filtering support and configurable direction/step counts.");
+            public static readonly GUIContent spatialFilter = EditorGUIUtility.TrTextContent("Spatial Filter", "Spatial filter used by the GTAO compute path.");
         }
 
         SerializedDataParameter m_Mode;
@@ -35,12 +36,13 @@ namespace UnityEditor.Rendering.Universal
         SerializedDataParameter m_DepthSource;
         SerializedDataParameter m_NormalQuality;
 
-        SerializedDataParameter m_MaximumRadiusInPixels;
+        SerializedDataParameter m_MinimumRadiusInPixels;
         SerializedDataParameter m_UseComputeShader;
+        SerializedDataParameter m_SpatialFilter;
 
         SerializedDataParameter m_TemporalFilter;
-        SerializedDataParameter m_TemporalScale;
-        SerializedDataParameter m_TemporalResponse;
+        SerializedDataParameter m_GhostingMitigation;
+        SerializedDataParameter m_HistoryLength;
 
         SerializedDataParameter m_DirectionCount;
         SerializedDataParameter m_StepCount;
@@ -68,12 +70,13 @@ namespace UnityEditor.Rendering.Universal
             m_DepthSource = Unpack(o.Find("m_DepthSource"));
             m_NormalQuality = Unpack(o.Find("m_NormalQuality"));
 
-            m_MaximumRadiusInPixels = Unpack(o.Find("m_MaximumRadiusInPixels"));
+            m_MinimumRadiusInPixels = Unpack(o.Find("m_MinimumRadiusInPixels"));
             m_UseComputeShader = Unpack(o.Find("m_UseComputeShader"));
+            m_SpatialFilter = Unpack(o.Find("m_SpatialFilter"));
 
             m_TemporalFilter = Unpack(o.Find("m_TemporalFilter"));
-            m_TemporalScale = Unpack(o.Find("m_TemporalScale"));
-            m_TemporalResponse = Unpack(o.Find("m_TemporalResponse"));
+            m_GhostingMitigation = Unpack(o.Find("m_GhostingMitigation"));
+            m_HistoryLength = Unpack(o.Find("m_HistoryLength"));
 
             m_DirectionCount = Unpack(o.Find("m_DirectionCount"));
             m_StepCount = Unpack(o.Find("m_StepCount"));
@@ -102,11 +105,16 @@ namespace UnityEditor.Rendering.Universal
 
             if (isGTAO)
             {
-                PropertyField(m_MaximumRadiusInPixels, Styles.maximumRadius);
+                PropertyField(m_MinimumRadiusInPixels, Styles.minimumRadiusInPixels);
                 PropertyField(m_UseComputeShader, Styles.useComputeShader);
             }
 
             bool useComputeShader = isGTAO && m_UseComputeShader.value.boolValue;
+            if (useComputeShader)
+            {
+                using (new IndentLevelScope())
+                    PropertyField(m_SpatialFilter, Styles.spatialFilter);
+            }
 
             if (!SystemInfo.supportsComputeShaders && useComputeShader)
             {
@@ -186,8 +194,8 @@ namespace UnityEditor.Rendering.Universal
                 {
                     using (new IndentLevelScope())
                     {
-                        PropertyField(m_TemporalScale, Styles.temporalScale);
-                        PropertyField(m_TemporalResponse, Styles.temporalBlendFactor);
+                        PropertyField(m_GhostingMitigation, Styles.ghostingMitigation);
+                        PropertyField(m_HistoryLength, Styles.historyLength);
                     }
                 }
             }

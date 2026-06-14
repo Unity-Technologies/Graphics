@@ -48,13 +48,14 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal ScreenSpaceAmbientOcclusionMode Mode = ScreenSpaceAmbientOcclusionMode.Standard;
 
         // GTAO Mode Parameters
-        [SerializeField] internal int GTAOMaxRadiusPixels = 80;
+        [SerializeField] internal int GTAOMinimumRadiusInPixels = 40;
         [SerializeField] internal bool UseComputeShader = false;
         [SerializeField] internal bool GTAOTemporalFilterEnabled = false;
-        [SerializeField] internal float GTAOTemporalScale = 1.25f;
-        [SerializeField] internal float GTAOTemporalResponse = 0.9f;
+        [SerializeField] internal float GTAOGhostingMitigation = 0.5f;
+        [SerializeField] internal float GTAOHistoryLength = 0.9f;
         [SerializeField] internal int GTAODirectionCount = 2;
         [SerializeField] internal int GTAOStepCount = 4;
+        [SerializeField] internal ScreenSpaceAmbientOcclusionSpatialFilter GTAOSpatialFilter = ScreenSpaceAmbientOcclusionSpatialFilter.Bilateral;
 
         internal bool NeedsComputeShader => Mode == ScreenSpaceAmbientOcclusionMode.GTAO && UseComputeShader;
         internal bool IsTemporalFilterActive => NeedsComputeShader && GTAOTemporalFilterEnabled;

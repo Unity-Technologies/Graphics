@@ -119,7 +119,7 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.LabelField(
                         new GUIContent(
                             "Configuring SSAO via the SSAO Renderer Feature is deprecated. Use the new Screen Space Ambient Occlusion Volume Override instead.",
-                            EditorGUIUtility.IconContent("console.infoicon").image),
+                            EditorGUIUtility.GetHelpIcon(MessageType.Info)),
                         EditorStyles.wordWrappedLabel);
 
                     using (new EditorGUILayout.HorizontalScope())
@@ -167,15 +167,16 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel++;
 
                 // Selecting source is not available for Deferred Rendering...
-                GUI.enabled = !isDeferredRenderingMode;
-                EditorGUILayout.PropertyField(m_Source, Styles.Source);
+                using (new EditorGUI.DisabledScope(isDeferredRenderingMode))
+                    EditorGUILayout.PropertyField(m_Source, Styles.Source);
 
                 // We only enable this field when depth source is selected...
-                GUI.enabled = !isDeferredRenderingMode && m_Source.enumValueIndex == (int)ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth;
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_NormalQuality, Styles.NormalQuality);
-                EditorGUI.indentLevel--;
-                GUI.enabled = true;
+                using (new EditorGUI.DisabledScope(isDeferredRenderingMode || m_Source.enumValueIndex != (int)ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth))
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_NormalQuality, Styles.NormalQuality);
+                    EditorGUI.indentLevel--;
+                }
 
                 EditorGUILayout.PropertyField(m_Downsample, Styles.Downsample);
                 EditorGUILayout.PropertyField(m_AfterOpaque, Styles.AfterOpaque);
@@ -280,9 +281,15 @@ namespace UnityEditor.Rendering.Universal
             AssetDatabase.SaveAssets();
 
             string profilePath = AssetDatabase.GetAssetPath(volume.sharedProfile);
-            Selection.activeGameObject = volume.gameObject;
-            EditorGUIUtility.PingObject(volume.gameObject);
-            Debug.Log($"[SSAO Migration] Global volume '{volume.gameObject.name}' created with SSAO settings migrated. Volume profile: {profilePath}");
+
+            var volumeGo = volume.gameObject;
+            EditorApplication.delayCall += () =>
+            {
+                if (volumeGo == null)
+                    return;
+                Selection.activeGameObject = volumeGo;
+                EditorGUIUtility.PingObject(volumeGo);
+            };
         }
 #endif
 

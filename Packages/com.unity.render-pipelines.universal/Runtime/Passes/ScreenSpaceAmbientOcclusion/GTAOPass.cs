@@ -26,7 +26,6 @@ namespace UnityEngine.Rendering.Universal
         private ComputePathState m_ComputePathState;
 
         // Constants
-        private const float k_GTAOMaxRadiusReferencePixelCount = 960.0f * 540.0f;
         private const float k_DegreesPerRotation = 360.0f;
         private const int k_TemporalOffsetCount = 4;
 
@@ -37,20 +36,23 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
             public static readonly int _AOOutput = Shader.PropertyToID("_AOOutput");
             public static readonly int _BlurOutput = Shader.PropertyToID("_BlurOutput");
-            public static readonly int _TemporalOutput = Shader.PropertyToID("_TemporalOutput");
-            public static readonly int _HistoryOutput = Shader.PropertyToID("_HistoryOutput");
+            public static readonly int _OcclusionTexture = Shader.PropertyToID("_OcclusionTexture");
+            public static readonly int _AOOutputHistory = Shader.PropertyToID("_AOOutputHistory");
             public static readonly int _FinalOutput = Shader.PropertyToID("_FinalOutput");
 
             // Temporal filter
-            public static readonly int _SSAOHistoryTexture = Shader.PropertyToID("_SSAOHistoryTexture");
+            public static readonly int _AOPackedHistory = Shader.PropertyToID("_AOPackedHistory");
             public static readonly int _MotionVectorTexture = Shader.PropertyToID("_MotionVectorTexture");
-            public static readonly int _SSAOTemporalParams = Shader.PropertyToID("_SSAOTemporalParams");
+            public static readonly int _SSAOHistoryLength = Shader.PropertyToID("_SSAOHistoryLength");
+            public static readonly int _SSAOGhostingMitigation = Shader.PropertyToID("_SSAOGhostingMitigation");
             public static readonly int _SSAOTemporalRotation = Shader.PropertyToID("_SSAOTemporalRotation");
             public static readonly int _SSAOTemporalOffset = Shader.PropertyToID("_SSAOTemporalOffset");
 
             // GTAO compute parameters
             public static readonly int _GTAODirectionCount = Shader.PropertyToID("_GTAODirectionCount");
             public static readonly int _GTAOStepCount = Shader.PropertyToID("_GTAOStepCount");
+            public static readonly int _GTAOSpatialFilter = Shader.PropertyToID("_GTAOSpatialFilter");
+            public static readonly int _GTAOBoxFilterStep = Shader.PropertyToID("_GTAOBoxFilterStep");
         }
 
         // Temporal rotation/offset arrays for GTAO temporal filtering
@@ -79,6 +81,7 @@ namespace UnityEngine.Rendering.Universal
             public int gtaoKernel;
             public int blurHKernel;
             public int blurVKernel;
+            public int boxSpatialFilterKernel;
             public int temporalKernel;
             public int copyHistoryKernel;
             public int finalBlitKernel;
@@ -87,13 +90,27 @@ namespace UnityEngine.Rendering.Universal
 
             public void Init(ComputeShader cs)
             {
+                Debug.Assert(SystemInfo.supportsComputeShaders, "ComputePathState must not be initialized when the platform does not support compute shaders.");
+
                 shader = cs;
+
                 if (shader == null)
                     return;
 
-                gtaoKernel = shader.FindKernel("GTAOCompute");
+                Debug.Assert(
+                    shader.HasKernel("ComputeAO") &&
+                    shader.HasKernel("BilateralBlurH") &&
+                    shader.HasKernel("BilateralBlurV") &&
+                    shader.HasKernel("BoxSpatialFilter") &&
+                    shader.HasKernel("TemporalFilter") &&
+                    shader.HasKernel("CopyHistory") &&
+                    shader.HasKernel("FinalBlit"),
+                    "The GTAO compute shader does not have the expected kernels.");
+
+                gtaoKernel = shader.FindKernel("ComputeAO");
                 blurHKernel = shader.FindKernel("BilateralBlurH");
                 blurVKernel = shader.FindKernel("BilateralBlurV");
+                boxSpatialFilterKernel = shader.FindKernel("BoxSpatialFilter");
                 temporalKernel = shader.FindKernel("TemporalFilter");
                 copyHistoryKernel = shader.FindKernel("CopyHistory");
                 finalBlitKernel = shader.FindKernel("FinalBlit");
@@ -114,7 +131,8 @@ namespace UnityEngine.Rendering.Universal
             public Vector4 depthToViewParams;
             public Vector4 sourceSize;
             public Vector4 blueNoiseParams;
-            public Vector4 temporalParams;
+            public float historyLength;
+            public float ghostingMitigation;
             public Vector4 projectionParams2;
             public bool orthographicCamera;
             public float temporalRotation;
@@ -123,7 +141,8 @@ namespace UnityEngine.Rendering.Universal
 
         private struct TemporalHistoryState
         {
-            public TextureHandle historyTexture;
+            public TextureHandle historyReadTexture;
+            public TextureHandle historyWriteTexture;
             public SSAOHistory ssaoHistory;
             public bool historyReady;
             public bool isNewFrame;
@@ -137,9 +156,10 @@ namespace UnityEngine.Rendering.Universal
             public Vector2Int dispatchSize;
             public bool useBlueNoise;
             public LocalKeywordSet localKeywords;
-            public bool temporalEnabled;
+            public bool willRunTemporalFilter;
             public int directionCount;
             public int stepCount;
+            public ScreenSpaceAmbientOcclusionSpatialFilter spatialFilter;
             public GTAOComputeParams computeParams;
             public Matrix4x4[] cameraViewProjections = new Matrix4x4[2];
             public Vector4[] cameraTopLeftCorner = new Vector4[2];
@@ -159,7 +179,19 @@ namespace UnityEngine.Rendering.Universal
             public int dstPropertyId;
             public Vector2Int dispatchSize;
             public TextureHandle srcTexture;
+            public TextureHandle depthTexture;
             public TextureHandle dstTexture;
+            public float boxFilterStep;
+        }
+
+        private class GTAOCopyHistoryPassData
+        {
+            public ComputeShader cs;
+            public int kernel;
+            public Vector2Int dispatchSize;
+            public TextureHandle srcTexture;
+            public TextureHandle depthTexture;
+            public TextureHandle historyTexture;
         }
 
         private class GTAOTemporalPassData
@@ -168,9 +200,12 @@ namespace UnityEngine.Rendering.Universal
             public int kernel;
             public Vector2Int dispatchSize;
             public TextureHandle aoTexture;
-            public TextureHandle historyTexture;
+            public TextureHandle depthTexture;
+            public TextureHandle historyReadTexture;
+            public TextureHandle historyWriteTexture;
             public TextureHandle motionVectorTexture;
             public TextureHandle temporalTexture;
+            public ScreenSpaceAmbientOcclusionSpatialFilter spatialFilter;
         }
 
         private class GTAOFinalBlitPassData
@@ -188,6 +223,7 @@ namespace UnityEngine.Rendering.Universal
             public Material material;
             public Vector4 sourceSize;
             public Vector4 ssaoParams;
+            public int shaderPass;
             public TextureHandle sourceTexture;
             public TextureHandle targetTexture;
         }
@@ -198,7 +234,7 @@ namespace UnityEngine.Rendering.Universal
             m_Material = CoreUtils.CreateEngineMaterial(shader);
             m_BlueNoiseTextures = blueNoiseTextures;
 
-            if (GraphicsSettings.TryGetRenderPipelineSettings<ScreenSpaceAmbientOcclusionCoreResources>(out var ssaoCoreResources))
+            if (m_SupportsComputeShader && GraphicsSettings.TryGetRenderPipelineSettings<ScreenSpaceAmbientOcclusionCoreResources>(out var ssaoCoreResources))
                 m_ComputePathState.Init(ssaoCoreResources.GTAOComputeShader);
         }
 
@@ -230,7 +266,7 @@ namespace UnityEngine.Rendering.Universal
             };
 
             // GTAO mode parameters
-            settings.GTAOMaxRadiusPixels = volume.maximumRadiusInPixels;
+            settings.GTAOMinimumRadiusInPixels = volume.minimumRadiusInPixels;
             settings.Source = ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
             settings.BlurQuality = ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.High;
             settings.NormalSamples = ScreenSpaceAmbientOcclusionSettings.NormalQuality.High;
@@ -239,9 +275,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 settings.GTAODirectionCount = volume.directionCount;
                 settings.GTAOStepCount = volume.stepCount;
+                settings.GTAOSpatialFilter = volume.spatialFilter;
                 settings.GTAOTemporalFilterEnabled = volume.temporalFilter;
-                settings.GTAOTemporalScale = volume.temporalScale;
-                settings.GTAOTemporalResponse = volume.temporalResponse;
+                settings.GTAOGhostingMitigation = volume.ghostingMitigation;
+                settings.GTAOHistoryLength = volume.historyLength;
             }
         }
 
@@ -258,17 +295,12 @@ namespace UnityEngine.Rendering.Universal
             }
 
             float invHalfTanFOV = cameraData.camera.projectionMatrix.m11;
-            int downsampleDivider = settings.Downsample ? 2 : 1;
-            Vector2 runningRes = new Vector2(cameraColorDesc.width / (float)downsampleDivider, cameraColorDesc.height / (float)downsampleDivider);
+            float downsampleMultiplier = 1.0f / (settings.Downsample ? 2 : 1);
+            Vector2 runningRes = new Vector2(cameraColorDesc.width, cameraColorDesc.height) * downsampleMultiplier;
             float aspectRatio = runningRes.y / runningRes.x;
-            float fovCorrection = orthographicCamera
-                ? runningRes.y * invHalfTanFOV * 0.5f   // if orthographic, m11 = (1 / orthoSize). So pixelsPerWorldUnit = resY / (2 * orthoSize) = resY * m11 * 0.5.
-                : runningRes.y * invHalfTanFOV * 0.25f;
+            float fovCorrection = runningRes.y * invHalfTanFOV * 0.5f;
 
-            float scaleFactor = (runningRes.x * runningRes.y) / k_GTAOMaxRadiusReferencePixelCount;
-            float radInPixels = Mathf.Max(16, settings.GTAOMaxRadiusPixels * Mathf.Sqrt(scaleFactor));
-
-            ssaoParams2 = new Vector4(radInPixels, 1.0f / (radius * radius), fovCorrection, 0.0f);
+            ssaoParams2 = new Vector4(settings.GTAOMinimumRadiusInPixels * downsampleMultiplier, 0.0f, fovCorrection, 0.0f);
             depthToViewParams = new Vector4(
                 2.0f / (invHalfTanFOV * aspectRatio * runningRes.x),
                 2.0f / (invHalfTanFOV * runningRes.y),
@@ -277,9 +309,8 @@ namespace UnityEngine.Rendering.Universal
             );
         }
 
-        private static void CalculateTemporalParams(ScreenSpaceAmbientOcclusionSettings settings, out Vector4 temporalParams, out float temporalRotation, out int temporalOffset)
+        private static void CalculateTemporalParams(ScreenSpaceAmbientOcclusionSettings settings, out float temporalRotation, out int temporalOffset)
         {
-            temporalParams = new Vector4(settings.GTAOTemporalScale, settings.GTAOTemporalResponse, 0.0f, 0.0f);
             temporalRotation = 0.0f;
             temporalOffset = 0;
 
@@ -315,13 +346,19 @@ namespace UnityEngine.Rendering.Universal
             if (settings.AOMethod == ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise && blueNoiseTexture != null)
                 computeParams.blueNoiseParams = SSAOUtils.CalculateBlueNoiseParams(cameraData, blueNoiseTexture);
 
-            CalculateTemporalParams(settings, out computeParams.temporalParams, out computeParams.temporalRotation, out computeParams.temporalOffset);
+            computeParams.historyLength = settings.GTAOHistoryLength;
+            computeParams.ghostingMitigation = settings.GTAOGhostingMitigation;
+            CalculateTemporalParams(settings, out computeParams.temporalRotation, out computeParams.temporalOffset);
             return computeParams;
         }
 
-        private static TemporalHistoryState GetTemporalHistoryState(RenderGraph renderGraph, ScreenSpaceAmbientOcclusionSettings settings, UniversalCameraData cameraData, bool supportsR8RenderTextureFormat, bool useComputeShader)
+        private static TemporalHistoryState GetTemporalHistoryState(RenderGraph renderGraph, ScreenSpaceAmbientOcclusionSettings settings, UniversalCameraData cameraData, bool useComputeShader)
         {
-            var state = new TemporalHistoryState { historyTexture = TextureHandle.nullHandle };
+            var state = new TemporalHistoryState
+            {
+                historyReadTexture = TextureHandle.nullHandle,
+                historyWriteTexture = TextureHandle.nullHandle,
+            };
 
             if (!settings.IsTemporalFilterActive || cameraData.historyManager == null)
                 return state;
@@ -335,7 +372,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             xrMultipassEnabled = cameraData.xr.enabled && !cameraData.xr.singlePassEnabled;
 #endif
-            bool wasReallocated = state.ssaoHistory.Update(cameraData, settings.Downsample, supportsR8RenderTextureFormat, useComputeShader, xrMultipassEnabled);
+            bool wasReallocated = state.ssaoHistory.Update(cameraData, settings.Downsample, useComputeShader, xrMultipassEnabled);
 
             int multipassId = 0;
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -345,12 +382,13 @@ namespace UnityEngine.Rendering.Universal
             bool isPreview = cameraData.camera.cameraType == CameraType.Preview;
             bool isRenderRequest = cameraData.camera.isProcessingRenderRequest;
             state.isNewFrame = !isPreview && !isRenderRequest && accumulationVersion != Time.frameCount;
-            RTHandle accumulationTexture = state.ssaoHistory.GetAccumulationTexture(multipassId);
-            if (accumulationTexture != null)
-            {
-                state.historyTexture = renderGraph.ImportTexture(accumulationTexture);
-                state.historyReady = !wasReallocated && state.isNewFrame && accumulationVersion >= 0;
-            }
+            RTHandle historyWrite = state.ssaoHistory.GetCurrentTexture(multipassId);
+            RTHandle historyRead = state.ssaoHistory.GetPreviousTexture(multipassId);
+            Debug.Assert(historyWrite != null && historyRead != null, "SSAO temporal history textures should be allocated here.");
+
+            state.historyWriteTexture = renderGraph.ImportTexture(historyWrite);
+            state.historyReadTexture = renderGraph.ImportTexture(historyRead);
+            state.historyReady = !wasReallocated && accumulationVersion >= 0;
 
             return state;
         }
@@ -385,7 +423,7 @@ namespace UnityEngine.Rendering.Universal
                 m_CurrentSettings, m_SupportsR8RenderTextureFormat, m_BlurType, enableRandomWrite: useComputeShader,
                 out TextureHandle aoTexture, out TextureHandle blurTexture, out TextureHandle temporalTexture, out TextureHandle finalTexture);
 
-            var temporalHistory = GetTemporalHistoryState(renderGraph, m_CurrentSettings, cameraData, m_SupportsR8RenderTextureFormat, useComputeShader);
+            var temporalHistory = GetTemporalHistoryState(renderGraph, m_CurrentSettings, cameraData, useComputeShader);
 
             SSAOUtils.SetupCameraViewMatrices(cameraData, ref m_CameraViewData);
             m_BlueNoiseTextureIndex = SSAOUtils.AdvanceBlueNoiseIndex(m_CurrentSettings, m_BlueNoiseTextures, m_BlueNoiseTextureIndex);
@@ -419,8 +457,11 @@ namespace UnityEngine.Rendering.Universal
             TextureHandle motionVectorTexture = resourceData.motionVectorColor;
             bool temporalEnabled = m_CurrentSettings.IsTemporalFilterActive;
             bool isTemporalTextureValid = temporalTexture.IsValid();
-            bool isHistoryTextureValid = temporalHistory.historyTexture.IsValid();
-            bool shouldWriteHistory = temporalEnabled && temporalHistory.isNewFrame && isHistoryTextureValid;
+            bool isHistoryReadTextureValid = temporalHistory.historyReadTexture.IsValid();
+            bool isHistoryWriteTextureValid = temporalHistory.historyWriteTexture.IsValid();
+            bool hasTemporalResources = temporalEnabled && isTemporalTextureValid && isHistoryReadTextureValid && isHistoryWriteTextureValid;
+            bool shouldSeedHistory = hasTemporalResources && temporalHistory.isNewFrame && !temporalHistory.historyReady;
+            bool willRunTemporalFilter = hasTemporalResources && (temporalHistory.historyReady || shouldSeedHistory);
 
             TextureDesc aoDesc = aoTexture.GetDescriptor(renderGraph);
             Vector2Int aoSize = new Vector2Int(aoDesc.width, aoDesc.height);
@@ -434,35 +475,49 @@ namespace UnityEngine.Rendering.Universal
             var computeParams = CreateGTAOComputeParams(m_CurrentSettings, cameraData, cameraColorDesc, blueNoiseTexture);
 
             // GTAO
-            RecordGTAOMainPass(renderGraph, cameraData, computeParams, blueNoiseHandle, cameraDepthTexture, cameraNormalsTexture, aoTexture, aoDispatchSize);
+            RecordGTAOMainPass(renderGraph, cameraData, computeParams, blueNoiseHandle, cameraDepthTexture, cameraNormalsTexture, aoTexture, aoDispatchSize, willRunTemporalFilter);
 
-            // Spatial filter (BlurH, BlurV)
-            if (blurTexture.IsValid())
+            // Spatial filter
+            TextureHandle spatialFilteredTexture = aoTexture;
+            Debug.Assert(blurTexture.IsValid(), "GTAO compute path requires an allocated blur texture.");
+
+            if (m_CurrentSettings.GTAOSpatialFilter == ScreenSpaceAmbientOcclusionSpatialFilter.Box)
+            {
+                RecordComputeDispatchPass(renderGraph, "GTAO Box Spatial Filter 1", m_ComputePathState.boxSpatialFilterKernel, aoDispatchSize, aoTexture, blurTexture, ShaderIDs._BlurOutput, cameraDepthTexture, 4.0f);
+                RecordComputeDispatchPass(renderGraph, "GTAO Box Spatial Filter 2", m_ComputePathState.boxSpatialFilterKernel, aoDispatchSize, blurTexture, aoTexture, ShaderIDs._BlurOutput, cameraDepthTexture, 2.0f);
+                RecordComputeDispatchPass(renderGraph, "GTAO Box Spatial Filter 3", m_ComputePathState.boxSpatialFilterKernel, aoDispatchSize, aoTexture, blurTexture, ShaderIDs._BlurOutput, cameraDepthTexture, 1.0f);
+                spatialFilteredTexture = blurTexture;
+            }
+            else
             {
                 RecordComputeDispatchPass(renderGraph, "GTAO BlurH", m_ComputePathState.blurHKernel, aoDispatchSize, aoTexture, blurTexture, ShaderIDs._BlurOutput);
                 RecordComputeDispatchPass(renderGraph, "GTAO BlurV", m_ComputePathState.blurVKernel, aoDispatchSize, blurTexture, aoTexture, ShaderIDs._BlurOutput);
+                spatialFilteredTexture = aoTexture;
             }
 
             // Temporal filter and history update
-            if (isHistoryTextureValid)
+            if (willRunTemporalFilter)
             {
-                if (temporalEnabled && temporalHistory.historyReady && isTemporalTextureValid)
-                    RecordTemporalFilterPass(renderGraph, aoDispatchSize, aoTexture, temporalHistory.historyTexture, motionVectorTexture, temporalTexture);
+                if (shouldSeedHistory)
+                    RecordCopyHistoryPass(renderGraph, "GTAO SeedHistory", aoDispatchSize, spatialFilteredTexture, cameraDepthTexture, temporalHistory.historyReadTexture);
 
-                if (shouldWriteHistory)
-                {
-                    TextureHandle historySource = (temporalHistory.historyReady && isTemporalTextureValid) ? temporalTexture : aoTexture;
-                    RecordComputeDispatchPass(renderGraph, "GTAO CopyHistory", m_ComputePathState.copyHistoryKernel, aoDispatchSize, historySource, temporalHistory.historyTexture, ShaderIDs._HistoryOutput);
-                }
+                // Scene View and editor redraws can render the same frame again after history has been advanced.
+                // Keep resolving against history, but stop reprojection motion for those redraws.
+                TextureHandle activeMotionVectorTexture = temporalHistory.isNewFrame ? motionVectorTexture : renderGraph.defaultResources.blackTexture;
+                RecordTemporalFilterPass(renderGraph, aoDispatchSize, spatialFilteredTexture, cameraDepthTexture, temporalHistory.historyReadTexture, temporalHistory.historyWriteTexture, activeMotionVectorTexture, temporalTexture);
             }
 
             // Determine the final source for downstream passes
-            TextureHandle resultTexture = (temporalEnabled && temporalHistory.historyReady && isTemporalTextureValid) ? temporalTexture : aoTexture;
+            TextureHandle resultTexture = willRunTemporalFilter ? temporalTexture : spatialFilteredTexture;
 
             // Final / AfterOpaque blit
             if (m_CurrentSettings.AfterOpaque)
             {
-                RecordAfterOpaqueBlitPass(renderGraph, computeParams, resultTexture, resourceData.activeColorTexture);
+                bool useBlitAfterOpaquePass = m_CurrentSettings.GTAOSpatialFilter == ScreenSpaceAmbientOcclusionSpatialFilter.Box;
+                int afterOpaqueShaderPass = useBlitAfterOpaquePass
+                    ? (int)SSAOUtils.ShaderPasses.BoxAfterOpaque
+                    : (int)SSAOUtils.ShaderPasses.BilateralAfterOpaque;
+                RecordAfterOpaqueBlitPass(renderGraph, computeParams, resultTexture, resourceData.activeColorTexture, afterOpaqueShaderPass);
             }
             else if (finalTexture.IsValid())
             {
@@ -472,7 +527,7 @@ namespace UnityEngine.Rendering.Universal
                 RecordFinalBlitPass(renderGraph, resultTexture, finalTexture, m_CurrentSettings.DirectLightingStrength, finalDispatchSize);
             }
 
-            if (shouldWriteHistory && temporalHistory.ssaoHistory != null)
+            if (willRunTemporalFilter && temporalHistory.isNewFrame && temporalHistory.ssaoHistory != null)
             {
                 int multipassId = 0;
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -483,7 +538,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         private void RecordGTAOMainPass(RenderGraph renderGraph, UniversalCameraData cameraData, GTAOComputeParams computeParams,
-            TextureHandle blueNoiseTexture, TextureHandle depthTexture, TextureHandle normalsTexture, TextureHandle aoTexture, Vector2Int dispatchSize)
+            TextureHandle blueNoiseTexture, TextureHandle depthTexture, TextureHandle normalsTexture, TextureHandle aoTexture, Vector2Int dispatchSize, bool willRunTemporalFilter)
         {
             using (var builder = renderGraph.AddComputePass<GTAOComputePassData>("GTAO Compute", out var passData, m_ProfilingSampler))
             {
@@ -493,9 +548,10 @@ namespace UnityEngine.Rendering.Universal
                 passData.computeParams = computeParams;
                 passData.useBlueNoise = m_CurrentSettings.AOMethod == ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise;
                 passData.localKeywords = m_ComputePathState.keywords;
-                passData.temporalEnabled = m_CurrentSettings.IsTemporalFilterActive;
+                passData.willRunTemporalFilter = willRunTemporalFilter;
                 passData.directionCount = m_CurrentSettings.GTAODirectionCount;
                 passData.stepCount = m_CurrentSettings.GTAOStepCount;
+                passData.spatialFilter = m_CurrentSettings.GTAOSpatialFilter;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 int eyeCount = cameraData.xr.enabled && cameraData.xr.singlePassEnabled ? 2 : 1;
@@ -531,7 +587,7 @@ namespace UnityEngine.Rendering.Universal
 
                     cmd.SetKeyword(cs, data.localKeywords.blueNoise, data.useBlueNoise);
                     cmd.SetKeyword(cs, data.localKeywords.interleavedGradient, !data.useBlueNoise);
-                    cmd.SetKeyword(cs, data.localKeywords.temporalFiltering, data.temporalEnabled);
+                    cmd.SetKeyword(cs, data.localKeywords.temporalFiltering, data.willRunTemporalFilter);
                     cmd.SetKeyword(cs, data.localKeywords.orthographic, computeParams.orthographicCamera);
 
                     cmd.SetComputeVectorParam(cs, SSAOUtils.ShaderConstants._SSAOParams, computeParams.ssaoParams);
@@ -546,13 +602,15 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetComputeVectorArrayParam(cs, SSAOUtils.ShaderConstants._CameraViewZExtent, data.cameraZExtent);
                     cmd.SetComputeIntParam(cs, ShaderIDs._GTAODirectionCount, data.directionCount);
                     cmd.SetComputeIntParam(cs, ShaderIDs._GTAOStepCount, data.stepCount);
+                    cmd.SetComputeIntParam(cs, ShaderIDs._GTAOSpatialFilter, (int)data.spatialFilter);
 
                     cmd.SetComputeVectorParam(cs, SSAOUtils.ShaderConstants._SSAOBlueNoiseParams, computeParams.blueNoiseParams);
                     cmd.SetComputeTextureParam(cs, data.kernel, SSAOUtils.ShaderConstants._BlueNoiseTexture, data.blueNoiseTexture);
 
-                    if (data.temporalEnabled)
+                    if (data.willRunTemporalFilter)
                     {
-                        cmd.SetComputeVectorParam(cs, ShaderIDs._SSAOTemporalParams, computeParams.temporalParams);
+                        cmd.SetComputeFloatParam(cs, ShaderIDs._SSAOHistoryLength, computeParams.historyLength);
+                        cmd.SetComputeFloatParam(cs, ShaderIDs._SSAOGhostingMitigation, computeParams.ghostingMitigation);
                         cmd.SetComputeFloatParam(cs, ShaderIDs._SSAOTemporalRotation, computeParams.temporalRotation);
                         cmd.SetComputeIntParam(cs, ShaderIDs._SSAOTemporalOffset, computeParams.temporalOffset);
                     }
@@ -565,7 +623,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private void RecordComputeDispatchPass(RenderGraph renderGraph, string passName, int kernel, Vector2Int dispatchSize, TextureHandle srcTexture, TextureHandle dstTexture, int dstPropertyId)
+        private void RecordComputeDispatchPass(RenderGraph renderGraph, string passName, int kernel, Vector2Int dispatchSize, TextureHandle srcTexture, TextureHandle dstTexture, int dstPropertyId, TextureHandle depthTexture = default, float boxFilterStep = 0.0f)
         {
             using (var builder = renderGraph.AddComputePass<GTAOSingleDispatchPassData>(passName, out var passData, m_ProfilingSampler))
             {
@@ -573,22 +631,55 @@ namespace UnityEngine.Rendering.Universal
                 passData.kernel = kernel;
                 passData.dispatchSize = dispatchSize;
                 passData.srcTexture = srcTexture;
+                passData.depthTexture = depthTexture;
                 passData.dstTexture = dstTexture;
                 passData.dstPropertyId = dstPropertyId;
+                passData.boxFilterStep = boxFilterStep;
 
                 builder.UseTexture(srcTexture, AccessFlags.Read);
+                if (depthTexture.IsValid())
+                    builder.UseTexture(depthTexture, AccessFlags.Read);
                 builder.UseTexture(dstTexture, AccessFlags.Write);
 
                 builder.SetRenderFunc(static (GTAOSingleDispatchPassData data, ComputeGraphContext ctx) =>
                 {
                     ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, SSAOUtils.ShaderConstants._BlitTexture, data.srcTexture);
+                    if (data.depthTexture.IsValid())
+                        ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, ShaderIDs._CameraDepthTexture, data.depthTexture);
+                    ctx.cmd.SetComputeFloatParam(data.cs, ShaderIDs._GTAOBoxFilterStep, data.boxFilterStep);
                     ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, data.dstPropertyId, data.dstTexture);
                     ctx.cmd.DispatchCompute(data.cs, data.kernel, data.dispatchSize.x, data.dispatchSize.y, 1);
                 });
             }
         }
 
-        private void RecordTemporalFilterPass(RenderGraph renderGraph, Vector2Int dispatchSize, TextureHandle aoTexture, TextureHandle historyTexture, TextureHandle motionVectorTexture, TextureHandle temporalTexture)
+        private void RecordCopyHistoryPass(RenderGraph renderGraph, string passName, Vector2Int dispatchSize, TextureHandle srcTexture, TextureHandle depthTexture, TextureHandle historyTexture)
+        {
+            using (var builder = renderGraph.AddComputePass<GTAOCopyHistoryPassData>(passName, out var passData, m_ProfilingSampler))
+            {
+                passData.cs = m_ComputePathState.shader;
+                passData.kernel = m_ComputePathState.copyHistoryKernel;
+                passData.dispatchSize = dispatchSize;
+                passData.srcTexture = srcTexture;
+                passData.depthTexture = depthTexture;
+                passData.historyTexture = historyTexture;
+
+                builder.UseTexture(srcTexture, AccessFlags.Read);
+                builder.UseTexture(depthTexture, AccessFlags.Read);
+                builder.UseTexture(historyTexture, AccessFlags.Write);
+
+                builder.SetRenderFunc(static (GTAOCopyHistoryPassData data, ComputeGraphContext ctx) =>
+                {
+                    var cmd = ctx.cmd;
+                    cmd.SetComputeTextureParam(data.cs, data.kernel, SSAOUtils.ShaderConstants._BlitTexture, data.srcTexture);
+                    cmd.SetComputeTextureParam(data.cs, data.kernel, ShaderIDs._CameraDepthTexture, data.depthTexture);
+                    cmd.SetComputeTextureParam(data.cs, data.kernel, ShaderIDs._AOOutputHistory, data.historyTexture);
+                    cmd.DispatchCompute(data.cs, data.kernel, data.dispatchSize.x, data.dispatchSize.y, 1);
+                });
+            }
+        }
+
+        private void RecordTemporalFilterPass(RenderGraph renderGraph, Vector2Int dispatchSize, TextureHandle aoTexture, TextureHandle depthTexture, TextureHandle historyReadTexture, TextureHandle historyWriteTexture, TextureHandle motionVectorTexture, TextureHandle temporalTexture)
         {
             using (var builder = renderGraph.AddComputePass<GTAOTemporalPassData>("GTAO Temporal", out var passData, m_ProfilingSampler))
             {
@@ -596,11 +687,16 @@ namespace UnityEngine.Rendering.Universal
                 passData.kernel = m_ComputePathState.temporalKernel;
                 passData.dispatchSize = dispatchSize;
                 passData.aoTexture = aoTexture;
-                passData.historyTexture = historyTexture;
+                passData.depthTexture = depthTexture;
+                passData.historyReadTexture = historyReadTexture;
+                passData.historyWriteTexture = historyWriteTexture;
                 passData.temporalTexture = temporalTexture;
+                passData.spatialFilter = m_CurrentSettings.GTAOSpatialFilter;
 
                 builder.UseTexture(aoTexture, AccessFlags.Read);
-                builder.UseTexture(historyTexture, AccessFlags.Read);
+                builder.UseTexture(depthTexture, AccessFlags.Read);
+                builder.UseTexture(historyReadTexture, AccessFlags.Read);
+                builder.UseTexture(historyWriteTexture, AccessFlags.Write);
                 builder.UseTexture(temporalTexture, AccessFlags.Write);
 
                 Debug.Assert(motionVectorTexture.IsValid(), "Motion vector texture is invalid. GTAO temporal filter requires a motion vector texture.");
@@ -611,9 +707,12 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var cmd = ctx.cmd;
                     cmd.SetComputeTextureParam(data.cs, data.kernel, SSAOUtils.ShaderConstants._BlitTexture, data.aoTexture);
-                    cmd.SetComputeTextureParam(data.cs, data.kernel, ShaderIDs._SSAOHistoryTexture, data.historyTexture);
+                    cmd.SetComputeTextureParam(data.cs, data.kernel, ShaderIDs._CameraDepthTexture, data.depthTexture);
+                    cmd.SetComputeTextureParam(data.cs, data.kernel, ShaderIDs._AOPackedHistory, data.historyReadTexture);
+                    cmd.SetComputeTextureParam(data.cs, data.kernel, ShaderIDs._AOOutputHistory, data.historyWriteTexture);
                     cmd.SetComputeTextureParam(data.cs, data.kernel, ShaderIDs._MotionVectorTexture, data.motionVectorTexture);
-                    cmd.SetComputeTextureParam(data.cs, data.kernel, ShaderIDs._TemporalOutput, data.temporalTexture);
+                    cmd.SetComputeTextureParam(data.cs, data.kernel, ShaderIDs._OcclusionTexture, data.temporalTexture);
+                    cmd.SetComputeIntParam(data.cs, ShaderIDs._GTAOSpatialFilter, (int)data.spatialFilter);
                     cmd.DispatchCompute(data.cs, data.kernel, data.dispatchSize.x, data.dispatchSize.y, 1);
                 });
             }
@@ -646,13 +745,14 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private void RecordAfterOpaqueBlitPass(RenderGraph renderGraph, GTAOComputeParams computeParams, TextureHandle sourceTexture, TextureHandle targetTexture)
+        private void RecordAfterOpaqueBlitPass(RenderGraph renderGraph, GTAOComputeParams computeParams, TextureHandle sourceTexture, TextureHandle targetTexture, int shaderPass)
         {
             using (var builder = renderGraph.AddRasterRenderPass<GTAOAfterOpaqueBlitPassData>("GTAO AfterOpaque Blit", out var passData, m_ProfilingSampler))
             {
                 passData.material = m_Material;
                 passData.sourceSize = computeParams.sourceSize;
                 passData.ssaoParams = computeParams.ssaoParams;
+                passData.shaderPass = shaderPass;
                 passData.sourceTexture = sourceTexture;
                 passData.targetTexture = targetTexture;
 
@@ -664,7 +764,7 @@ namespace UnityEngine.Rendering.Universal
                     Vector4 viewScaleBias = SSAOUtils.ComputeScaleBias(data.sourceTexture, SSAOUtils.IsYFlip(ctx, in data.sourceTexture, in data.targetTexture));
                     data.material.SetVector(SSAOUtils.ShaderConstants._SourceSize, data.sourceSize);
                     data.material.SetVector(SSAOUtils.ShaderConstants._SSAOParams, data.ssaoParams);
-                    Blitter.BlitTexture(ctx.cmd, data.sourceTexture, viewScaleBias, data.material, (int)SSAOUtils.ShaderPasses.BilateralAfterOpaque);
+                    Blitter.BlitTexture(ctx.cmd, data.sourceTexture, viewScaleBias, data.material, data.shaderPass);
                 });
             }
         }
