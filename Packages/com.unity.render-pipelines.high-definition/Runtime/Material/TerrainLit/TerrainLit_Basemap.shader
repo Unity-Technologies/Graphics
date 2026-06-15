@@ -98,7 +98,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
             #pragma multi_compile_fragment _ RENDERING_LAYERS
 
             #define SHADERPASS SHADERPASS_GBUFFER
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Basemap.hlsl"
 
             ENDHLSL
@@ -126,7 +126,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Basemap.hlsl"
 
             ENDHLSL
@@ -154,7 +154,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
             #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_SHADOWS
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Basemap.hlsl"
 
             ENDHLSL
@@ -193,7 +193,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
             #pragma multi_compile _ WRITE_MSAA_DEPTH
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Basemap.hlsl"
 
             ENDHLSL
@@ -243,7 +243,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
             #define SHADERPASS SHADERPASS_FORWARD
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Basemap.hlsl"
 
             ENDHLSL
