@@ -1036,6 +1036,10 @@ namespace UnityEngine.Rendering.Universal
                     ApplyAdaptivePerformance(frameData);
 #endif
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+                shadowData.supportShadowMapCaching = cameraData.xr.enabled && cameraData.xr.xrLayoutType == XRLayoutType.TwoPassQuadViews;
+                shadowData.useCachedShadowMap = shadowData.supportShadowMapCaching && cameraData.xr.isQuadViewInnerPass;
+#endif
                 CreateShadowAtlasAndCullShadowCasters(lightData, shadowData, cameraData, ref data.cullResults, ref context);
 
                 renderer.AddRenderPasses(ref legacyRenderingData);
@@ -1063,7 +1067,10 @@ namespace UnityEngine.Rendering.Universal
 
             if (shadowData.supportsAdditionalLightShadows)
                 shadowData.shadowAtlasLayout = BuildAdditionalLightsShadowAtlasLayout(lightData, shadowData, cameraData);
-
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (shadowData.useCachedShadowMap)
+                return;
+#endif
             shadowData.visibleLightsShadowCullingInfos = ShadowCulling.CullShadowCasters(ref context, shadowData, ref shadowData.shadowAtlasLayout, ref cullResults);
         }
 

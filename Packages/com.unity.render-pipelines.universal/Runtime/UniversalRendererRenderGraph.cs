@@ -793,13 +793,29 @@ namespace UnityEngine.Rendering.Universal
             if (m_MainLightShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData))
             {
                 renderShadows = true;
-                resourceData.mainShadowsTexture = m_MainLightShadowCasterPass.Render(renderGraph, frameData);
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (shadowData.useCachedShadowMap)
+                {
+                    resourceData.mainShadowsTexture = m_MainLightShadowCasterPass.FetchShadowMapAndSetParameters(renderGraph, frameData);
+                }
+                else
+#endif
+                {
+                    resourceData.mainShadowsTexture = m_MainLightShadowCasterPass.Render(renderGraph, frameData);
+                }
             }
 
             if (m_AdditionalLightsShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData))
             {
                 renderShadows = true;
-                resourceData.additionalShadowsTexture = m_AdditionalLightsShadowCasterPass.Render(renderGraph, frameData);
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (shadowData.useCachedShadowMap)
+                {
+                    resourceData.additionalShadowsTexture = m_AdditionalLightsShadowCasterPass.FetchShadowMapAndSetParameters(renderGraph, frameData);
+                }
+                else
+#endif
+                    resourceData.additionalShadowsTexture = m_AdditionalLightsShadowCasterPass.Render(renderGraph, frameData);
             }
 
             // The camera need to be setup again after the shadows since those passes override some settings

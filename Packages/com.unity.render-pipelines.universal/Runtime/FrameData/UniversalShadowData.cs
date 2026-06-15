@@ -95,6 +95,13 @@ namespace UnityEngine.Rendering.Universal
         internal NativeArray<URPLightShadowCullingInfos> visibleLightsShadowCullingInfos;
         internal AdditionalLightsShadowAtlasLayout shadowAtlasLayout;
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+        /// <summary>True when this camera pass should reuse the shadow map rendered in the previous XR pass.</summary>
+        internal bool useCachedShadowMap;
+        /// <summary>True when the camera is in a QuadView XR setup that supports shadow map caching.</summary>
+        internal bool supportShadowMapCaching;
+#endif
+
         /// <inheritdoc/>
         public override void Reset()
         {
@@ -120,6 +127,11 @@ namespace UnityEngine.Rendering.Universal
 
             visibleLightsShadowCullingInfos = default;
             shadowAtlasLayout = default;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            useCachedShadowMap = false;
+            supportShadowMapCaching = false;
+#endif
         }
     }
 }
