@@ -1046,6 +1046,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">The Camera data.</param>
         /// <returns>A clear flag that tells if color and/or depth should be cleared.</returns>
         /// <seealso cref="CameraData"/>
+        [Obsolete("GetCameraClearFlag is no longer used and will be removed. #from(6000.6)", false)]
         protected static ClearFlag GetCameraClearFlag(ref CameraData cameraData)
         {
             var universalCameraData = cameraData.universalCameraData;
@@ -1058,6 +1059,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">The Camera data.</param>
         /// <returns>A clear flag that tells if color and/or depth should be cleared.</returns>
         /// <seealso cref="CameraData"/>
+        [Obsolete("GetCameraClearFlag is no longer used and will be removed. #from(6000.6)", false)]
         protected static ClearFlag GetCameraClearFlag(UniversalCameraData cameraData)
         {
             var cameraClearFlags = cameraData.camera.clearFlags;
