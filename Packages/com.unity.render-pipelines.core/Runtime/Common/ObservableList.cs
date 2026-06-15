@@ -45,8 +45,8 @@ namespace UnityEngine.Rendering
     /// <typeparam name="T">Type of the list.</typeparam>
     public class ObservableList<T> : IList<T>
     {
-        List<T> m_List;
-        private readonly Comparison<T> m_Comparison;
+        readonly List<T> m_List;
+        readonly Comparison<T> m_Comparison;
 
         /// <summary>
         /// Added item event.
@@ -120,8 +120,7 @@ namespace UnityEngine.Rendering
 
         void OnEvent(ListChangedEventHandler<T> e, int index, T item)
         {
-            if (e != null)
-                e(this, new ListChangedEventArgs<T>(index, item));
+            e?.Invoke(this, new ListChangedEventArgs<T>(index, item));
         }
 
         /// <summary>
@@ -166,6 +165,30 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Add a collection of items to the list.
+        /// </summary>
+        /// <param name="items">Items to add to the list.</param>
+        public void AddRange(IEnumerable<T> items)
+        {
+            if (items is IList<T> added)
+            {
+                m_List.AddRange(added);
+                Sort();
+                OnItemsAdded(added);
+            }
+            else
+            {
+                using (ListPool<T>.Get(out var buffer))
+                {
+                    buffer.AddRange(items);
+                    m_List.AddRange(buffer);
+                    Sort();
+                    OnItemsAdded(buffer);
+                }
+            }
+        }
+
+        /// <summary>
         /// Insert an item in the list.
         /// </summary>
         /// <param name="index">Index at which to insert the new item.</param>
@@ -174,7 +197,44 @@ namespace UnityEngine.Rendering
         {
             m_List.Insert(index, item);
             Sort();
-            OnEvent(ItemAdded, index, item);
+            OnEvent(ItemAdded, m_Comparison == null ? index : m_List.IndexOf(item), item);
+        }
+
+        /// <summary>
+        /// Insert a collection of items in the list.
+        /// </summary>
+        /// <param name="index">Index at which to insert the new items.</param>
+        /// <param name="items">Items to insert in the list.</param>
+        public void InsertRange(int index, IEnumerable<T> items)
+        {
+            if (items is IList<T> inserted)
+            {
+                m_List.InsertRange(index, inserted);
+                Sort();
+                OnItemsAdded(inserted);
+            }
+            else
+            {
+                using (ListPool<T>.Get(out var buffer))
+                {
+                    buffer.AddRange(items);
+                    m_List.InsertRange(index, buffer);
+                    Sort();
+                    OnItemsAdded(buffer);
+                }
+            }
+        }
+
+        void OnItemsAdded(IList<T> items)
+        {
+            // For sorted lists, we must use IndexOf after sorting to find actual position
+            // For unsorted lists with duplicates, IndexOf still returns first match, which may be wrong
+            // but this is the best we can do without tracking original indices
+            for (int i = 0; i < items.Count; i++)
+            {
+                var item = items[i];
+                OnEvent(ItemAdded, m_List.IndexOf(item), item);
+            }
         }
 
         /// <summary>
