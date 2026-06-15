@@ -3,7 +3,7 @@
     "com.unity.ide.visualstudio": "2.0.25",
     "com.unity.postprocessing": "file:../../../com.unity.postprocessing",
     "com.unity.test-framework": "2.0.1-exp.2",
-    "com.unity.testframework.graphics": "9.0.0-pre.8",
+    "com.unity.testframework.graphics": "9.0.0-pre.12",
     "com.unity.external.test-protocol": "2.0.0-exp.2",
     "com.unity.modules.animation": "1.0.0",
     "com.unity.modules.assetbundle": "1.0.0",
