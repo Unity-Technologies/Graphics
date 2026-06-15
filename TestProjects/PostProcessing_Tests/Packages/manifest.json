@@ -1,14 +1,4 @@
 {
-  "enableLockFile": false,
-  "scopedRegistries": [
-    {
-      "name": "Unity Internal",
-      "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
-      "scopes": [
-        "com.unity.testframework.graphics"
-      ]
-    }
-  ],
   "dependencies": {
     "com.unity.ide.visualstudio": "2.0.25",
     "com.unity.postprocessing": "file:../../../com.unity.postprocessing",
