@@ -298,7 +298,9 @@ namespace UnityEditor.VFX.Test
             }
         }
 
+        // Sign your package to re-enable this test.
         [UnityTest, Description("Covers UUM-121936")]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Check_Install_Dependencies_Learning_Sample_Button()
         {
             var installButton = window.rootVisualElement.Q<Button>("InstallButton");

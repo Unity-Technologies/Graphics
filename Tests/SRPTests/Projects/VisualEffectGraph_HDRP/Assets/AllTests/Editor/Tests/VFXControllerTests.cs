@@ -1734,7 +1734,9 @@ namespace UnityEditor.VFX.Test
             yield return null;
         }
 
+        // Sign your package to re-enable this test.
         [UnityTest, Description("Repro from nested subgraph and live authoring")]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator SubgraphNested_Unexpected_ExpressionCount()
         {
             var packagePath = "Assets/AllTests/Editor/Tests/Repro_SubgraphNested_ExpressionCount.unitypackage";
@@ -1831,7 +1833,9 @@ namespace UnityEditor.VFX.Test
         }
 
         static readonly bool[] kSubgraph_ActivationSlot_Unexpected_ExpressionCount_Variant = { false, true };
+        // Sign your package to re-enable this test.
         [UnityTest, Description("Repro from subgraph using activation slot and live authoring (repro from UUM-131445)")]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Subgraph_ActivationSlot_Unexpected_ExpressionCount([ValueSource(nameof(kSubgraph_ActivationSlot_Unexpected_ExpressionCount_Variant))] bool useVariant)
         {
             //N.B.: The "Bis" package doesn't use activation slot
@@ -1939,7 +1943,9 @@ namespace UnityEditor.VFX.Test
             yield return null;
         }
 
+        // Sign your package to re-enable this test.
         [UnityTest, Description("Check simple subgraph setup and insure we are compiling indefinitely")]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Subgraph_Dont_Invalidate_MainGraph_Infinitely()
         {
             var packagePath = "Assets/AllTests/Editor/Tests/Repro_Subgraph_Infinite_Compilation.unitypackage";

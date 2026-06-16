@@ -404,7 +404,9 @@ namespace UnityEditor.VFX.Test
             yield return null;
         }
 
+        // Sign your package to re-enable this test.
         [UnityTest, Description("Repro UUM-84307")]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Repro_CustomHLSL_In_Subgraph()
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_84307.unitypackage";
@@ -561,7 +563,9 @@ namespace UnityEditor.VFX.Test
         }
 
 
+        // Sign your package to re-enable this test.
         [UnityTest]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Subgraph_Update_With_Main_Window_Opened()
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_Subgraph_Add_Exposed_Input.unitypackage";
@@ -953,7 +957,9 @@ namespace UnityEditor.VFX.Test
             }
         }
 
+        // Sign your package to re-enable this test.
         [UnityTest, Description("Repro expected behavior from importing same package twice while having the window opened")]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Open_Graph_And_Delete_And_Restore()
         {
             var packagePath = Path.Combine("Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/", "Repro_Delete_And_Reimport.unitypackage");
@@ -1037,7 +1043,9 @@ namespace UnityEditor.VFX.Test
         }
 
 
+        // Sign your package to re-enable this test.
         [UnityTest, Description("Corner case discovered while verifying #73468")]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator ConvertToSubGraph_With_CustomHLSL()
         {
             UnityEditor.AssetPackage.Package.Import("Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_Subgraph_CustomHLSL.unitypackage", false);

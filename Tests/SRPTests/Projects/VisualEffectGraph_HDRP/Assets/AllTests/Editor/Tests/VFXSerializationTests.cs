@@ -1334,7 +1334,9 @@ namespace UnityEditor.VFX.Test
             Assert.IsNull(staticMeshOutputContext.GetSetting("shader").value, "The shader was expected to be null but it didn't. Probably the previous value has been restored when saving");
         }
 
+        // Sign your package to re-enable this test.
         [UnityTest, Description("Cover case UUM-553")]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Unexpected_Import_Issue_With_Diffusion_Profile()
         {
             var packagePath = "Assets/AllTests/Editor/Tests/Import_Diffusion_Profile_Repro_553.unitypackage";

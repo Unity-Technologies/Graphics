@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEditor.PackageManager.UI;
+using UnityEngine;
 using UnityEngine.TestTools;
 
 namespace UnityEditor.Rendering.Tests
@@ -29,7 +30,9 @@ namespace UnityEditor.Rendering.Tests
             }
         }
 
+        // Sign your package to re-enable this test.
         [UnityTest, TestCaseSource(nameof(PackageSampleCases))]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator ImportSamples(Sample sample)
         {
             sample.Import(Sample.ImportOptions.OverridePreviousImports | Sample.ImportOptions.HideImportWindow);
