@@ -296,7 +296,7 @@ namespace UnityEngine.Rendering
             var debugWindow = EditorWindow.GetWindow<DebugWindow>();
             debugWindow.titleContent = DebugWindow.s_TitleContent;
             debugWindow.Show();
-            DebugManager.instance.RequestEditorWindowPanel(ProbeReferenceVolume.k_DebugPanelName);
+            DebugManager.instance.RequestPanelSelection(ProbeReferenceVolume.k_DebugPanelName);
 #endif
         }
 

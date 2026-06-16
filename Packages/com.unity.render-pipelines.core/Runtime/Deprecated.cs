@@ -101,6 +101,62 @@ namespace UnityEngine.Rendering
     public sealed partial class DebugManager
     {
         /// <summary>
+        /// Force an editor request.
+        /// </summary>
+        [Obsolete("Polling pattern is deprecated. Subscribe to onRecreateDebugUI event instead. #from(6000.6)", false)]
+        public bool refreshEditorRequested;
+
+        /// <summary>
+        /// Refresh the debug window.
+        /// </summary>
+        [Obsolete("Use RecreateDebugUI() instead. RefreshEditor only marks widgets dirty, it doesn't recreate panel structure. #from(6000.6) (UnityUpgradable) -> RecreateDebugUI(*)", true)]
+        public void RefreshEditor()
+        {
+            refreshEditorRequested = true;
+        }
+
+        /// <summary>
+        /// Request the runtime debug UI be redrawn on the next update.
+        /// </summary>
+        [Obsolete("Use RecreateDebugUI() instead. #from(6000.6) (UnityUpgradable) -> RecreateDebugUI(*)", true)]
+        public void ReDrawOnScreenDebug()
+        {
+            RecreateDebugUI();
+        }
+
+        /// <summary>
+        /// Request DebugWindow to open the specified panel.
+        /// </summary>
+        /// <param name="index">Index of the debug window panel to activate.</param>
+        [Obsolete("Use RequestEditorWindowPanelName instead. #from(6000.5)")]
+        public void RequestEditorWindowPanelIndex(int index)
+        {
+            if (m_Panels[index] != null)
+                RequestPanelSelection(m_Panels[index].displayName);
+        }
+
+        /// <summary>
+        /// Request DebugWindow to open the specified panel.
+        /// </summary>
+        /// <param name="panelName">Name of window panel to activate.</param>
+        [Obsolete("Use RequestPanelSelection instead. #from(6000.6) (UnityUpgradable) -> RequestPanelSelection(*)", true)]
+        public void RequestEditorWindowPanel(string panelName)
+        {
+            RequestPanelSelection(panelName);
+        }
+
+        /// <summary>
+        /// Returns the panel display name
+        /// </summary>
+        /// <param name="panelIndex">The panelIndex for the panel to get the name</param>
+        /// <returns>The display name of the panel, or empty string otherwise</returns>
+        [Obsolete("Method is obsolete. Use PanelDisplayName instead. #from(6000.4) (UnityUpgradable) -> PanelDisplayName", true)]
+        public string PanelDiplayName(int panelIndex)
+        {
+            return PanelDisplayName(panelIndex);
+        }
+
+        /// <summary>
         /// Toggle the debug window.
         /// </summary>
         /// <param name="open">State of the debug window.</param>
