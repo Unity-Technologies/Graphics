@@ -8,9 +8,8 @@ using UnityEngine.SceneManagement;
 public class PostProcessingGraphicsTests
 {
     [UnityTest, Category("PostProcessing")]
-    [PrebuildSetup("SetupGraphicsTestCases")]
-    [UseGraphicsTestCases]
-    public IEnumerator Run(GraphicsTestCase testCase)
+    [SceneGraphicsTest("Assets/Scenes")]
+    public IEnumerator Run(SceneGraphicsTestCase testCase)
     {
         SceneManager.LoadScene(testCase.ScenePath);
 
@@ -30,14 +29,14 @@ public class PostProcessingGraphicsTests
         for (int i = 0; i < settings.WaitFrames; i++)
             yield return null;
 
-        ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings.ImageComparisonSettings);
+        ImageAssert.AreEqual(testCase.ReferenceImage.Image, camera, settings.ImageComparisonSettings);
     }
 
 #if UNITY_EDITOR
     [TearDown]
     public void DumpImagesInEditor()
     {
-        UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
+        // TearDown is handled automatically by the graphics test framework
     }
 
 #endif

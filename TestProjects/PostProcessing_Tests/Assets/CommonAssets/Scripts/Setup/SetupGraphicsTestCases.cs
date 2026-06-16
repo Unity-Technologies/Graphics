@@ -4,9 +4,8 @@ public class SetupGraphicsTestCases : IPrebuildSetup
 {
     public void Setup()
     {
-        // Work around case #1033694, unable to use PrebuildSetup types directly from assemblies that don't have special names.
-        // Once that's fixed, this class can be deleted and the SetupGraphicsTestCases class in Unity.TestFramework.Graphics.Editor
-        // can be used directly instead.
-        UnityEditor.TestTools.Graphics.SetupGraphicsTestCases.Setup("Assets/ReferenceImages");
+        // This setup is no longer needed as of the new Graphics Test Framework.
+        // The setup is done automatically. If you wish to override the default settings,
+        // use the GraphicsTestBuildSettings asset instead.
     }
 }
