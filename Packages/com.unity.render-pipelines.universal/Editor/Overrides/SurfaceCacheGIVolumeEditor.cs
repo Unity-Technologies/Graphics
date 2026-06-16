@@ -32,6 +32,7 @@ namespace UnityEditor.Rendering.Universal
         protected SerializedDataParameter m_CascadeMovement;
 
         protected SerializedDataParameter m_DefragCount;
+        protected SerializedDataParameter m_RenderingLayerMask;
 
         static GUIContent s_Enabled = EditorGUIUtility.TrTextContent("Enabled", "Enables Surface Cache Global Illumination. When disabled, the feature performs no work.");
         static GUIContent s_Quality = EditorGUIUtility.TrTextContent("Quality", "Quality preset for Surface Cache GI. Select Custom to manually adjust individual parameters.");
@@ -58,6 +59,7 @@ namespace UnityEditor.Rendering.Universal
         static GUIContent s_VolumeConfigurationHeader = EditorGUIUtility.TrTextContent("Volume Configuration", "Defines the spatial extent and grid density of the surface cache volume. Size can be changed freely at runtime. Resolution and cascade count changes reallocate internal buffers, which may cause a brief hitch.");
         static GUIContent s_VolumeBehaviorHeader = EditorGUIUtility.TrTextContent("Volume Behavior", "Controls how the volume cascades move relative to the camera during gameplay.");
         static GUIContent s_DefragCount = EditorGUIUtility.TrTextContent("Defrag Count", "Number of surface cache patches to defragment per frame. Higher values reduce memory fragmentation at a small per-frame cost.");
+        static GUIContent s_RenderingLayerMask = EditorGUIUtility.TrTextContent("Rendering Layer Mask", "Only renderers whose Rendering Layer Mask intersects this mask contribute to Surface Cache GI.");
 
         public override void OnEnable()
         {
@@ -80,6 +82,7 @@ namespace UnityEditor.Rendering.Universal
             m_VolumeCascadeCount = Unpack(o.Find(obj => obj.volumeCascadeCount));
             m_CascadeMovement = Unpack(o.Find(obj => obj.cascadeMovement));
             m_DefragCount = Unpack(o.Find(obj => obj.defragCount));
+            m_RenderingLayerMask = Unpack(o.Find(obj => obj.renderingLayerMask));
 
             // Re-detect preset when property changed
             ((SurfaceCacheGIVolumeOverride)target).propertyChanged += MarkQualityDirty;
@@ -160,6 +163,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Advanced", EditorStyles.boldLabel);
                 PropertyField(m_DefragCount, s_DefragCount);
+                PropertyField(m_RenderingLayerMask, s_RenderingLayerMask);
             }
 
             EditorGUI.EndDisabledGroup();

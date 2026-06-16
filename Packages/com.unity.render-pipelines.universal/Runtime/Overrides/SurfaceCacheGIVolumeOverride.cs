@@ -130,6 +130,13 @@ namespace UnityEngine.Rendering.Universal
         [AdditionalProperty]
         public ClampedIntParameter defragCount = new ClampedIntParameter(2, 1, 32);
 
+        /// <summary>
+        /// Only renderers whose Rendering Layer Mask intersects this mask contribute to Surface Cache Global Illumination.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Only renderers whose Rendering Layer Mask intersects this mask contribute to Surface Cache Global Illumination.")]
+        public RenderingLayerMaskParameter renderingLayerMask = new RenderingLayerMaskParameter(0xFFFFFFFF);
+
         // =======================
         // Preset Utility
         // =======================

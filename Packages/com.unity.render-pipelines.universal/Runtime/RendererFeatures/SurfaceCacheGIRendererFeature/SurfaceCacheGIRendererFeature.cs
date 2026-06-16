@@ -468,7 +468,8 @@ namespace UnityEngine.Rendering.Universal
                         VolumeSize = volume.volumeSize.value,
                         VolumeResolution = (uint)volume.volumeResolution.value,
                         VolumeCascadeCount = (uint)volume.volumeCascadeCount.value,
-                        DefragCount = (uint)volume.defragCount.value
+                        DefragCount = (uint)volume.defragCount.value,
+                        RenderingLayerMask = volume.renderingLayerMask.value
                     };
                 }
                 else
@@ -500,7 +501,8 @@ namespace UnityEngine.Rendering.Universal
                         VolumeSize = DEFAULT_VOLUME_SIZE,
                         VolumeResolution = DEFAULT_VOLUME_RESOLUTION,
                         VolumeCascadeCount = DEFAULT_VOLUME_CASCADE_COUNT,
-                        DefragCount = DEFAULT_DEFRAG_COUNT
+                        DefragCount = DEFAULT_DEFRAG_COUNT,
+                        RenderingLayerMask = 0xFFFFFFFF
                     };
                 }
             }
@@ -682,6 +684,7 @@ namespace UnityEngine.Rendering.Universal
                     RenderSettings.ambientGroundColor.linear,
                     RenderSettings.ambientIntensity,
                     k_ConformToUnityGIFormat,
+                    volumeParams.RenderingLayerMask,
                     _world);
 
                 using (var builder = renderGraph.AddUnsafePass("Surface Cache World Update", out WorldUpdatePassData passData))
@@ -993,6 +996,7 @@ namespace UnityEngine.Rendering.Universal
             public uint VolumeResolution;
             public uint VolumeCascadeCount;
             public uint DefragCount;
+            public uint RenderingLayerMask;
         }
 
         bool ResourcesCreated()
