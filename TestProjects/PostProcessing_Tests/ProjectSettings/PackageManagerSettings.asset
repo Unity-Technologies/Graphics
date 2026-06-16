@@ -20,7 +20,7 @@ MonoBehaviour:
   oneTimeWarningShown: 0
   m_Registries:
   - m_Id: main
-    m_Name: 
+    m_Name:
     m_Url: https://packages.unity.com
     m_Scopes: []
     m_IsDefault: 1
