@@ -276,7 +276,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         natCmd.SetComputeBufferParam(data.ssGICS, data.traceKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, data.offsetBuffer);
                         natCmd.SetComputeBufferParam(data.ssGICS, data.traceKernel, HDShaderIDs.g_vLightListTile, data.lightList);
                         natCmd.SetComputeFloatParam(data.ssGICS, HDShaderIDs._RayMarchingLowResPercentageInv, 1.0f / data.lowResPercentage);
-                        natCmd.SetComputeFloatParam(data.ssGICS, HDShaderIDs._SSGILayerMask, (uint)data.apvLayerMask);
+                        natCmd.SetComputeIntParam(data.ssGICS, HDShaderIDs._SSGILayerMask, (int)data.apvLayerMask);
 
                         // Do the ray marching
                         natCmd.DispatchCompute(data.ssGICS, data.traceKernel, numTilesXHR, numTilesYHR, data.viewCount);

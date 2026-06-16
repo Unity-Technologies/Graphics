@@ -78,6 +78,7 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
     #if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
     // If we are using APV with mixed lighting on a probe-lit renderer, occlusion is stored in APV.
     float3 unusedDiffuseLighting;
+    float3 unusedBackDiffuseLighting;
     EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS),
         normalWS,
         backNormalWS,
@@ -85,7 +86,7 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
         posInput.positionSS,
         builtinData.renderingLayers,
         unusedDiffuseLighting,
-        unusedDiffuseLighting,
+        unusedBackDiffuseLighting,
         shadowMask);
     #else
     // Otherwise occlusion is stored in shadowmask texture, or in unity_ProbesOcclusion for renderers lit by legacy probes.
