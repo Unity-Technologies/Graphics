@@ -1020,11 +1020,8 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count());
 
-            using (var customLogHandler = new CustomLogHandler())
-            {
-                customLogHandler.ExpectedLog(LogType.Error, "Already registered");
-                VFXGraph.RegisterAuthoringCompileData(guid);
-            }
+            LogAssert.Expect(LogType.Error, new Regex(@".*Already registered.*"));
+            VFXGraph.RegisterAuthoringCompileData(guid);
 
             VFXTestCommon.CloseAllVFXWindow();
             yield return null;
@@ -1032,11 +1029,8 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(0, VFXViewWindow.GetAllWindows().Count());
             Assert.AreEqual(VFXCompilationMode.Runtime, VisualEffectAssetUtility.GetCompilationMode(resource.asset));
 
-            using (var customLogHandler = new CustomLogHandler())
-            {
-                customLogHandler.ExpectedLog(LogType.Error, "unknown authoring guid");
-                VFXGraph.UnregisterAuthoringCompileData(guid);
-            }
+            LogAssert.Expect(LogType.Error, new Regex(@".*unknown authoring guid.*"));
+            VFXGraph.UnregisterAuthoringCompileData(guid);
 
             Assert.DoesNotThrow(() => VFXGraph.RegisterAuthoringCompileData(guid));
             Assert.DoesNotThrow(() => VFXGraph.UnregisterAuthoringCompileData(guid));

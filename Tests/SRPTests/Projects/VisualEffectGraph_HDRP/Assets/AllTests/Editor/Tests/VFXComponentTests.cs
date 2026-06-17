@@ -341,10 +341,8 @@ namespace UnityEditor.VFX.Test
 
             getPosition.outputSlots[0].Link(initializeContext.inputSlots[0][0]);
 
-            //LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("Exception while compiling expression graph:*")); < Incorrect with our katana configuration
-            Debug.unityLogger.logEnabled = false;
+            LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex(@".*Unity cannot compile the VisualEffectAsset.*"));
             VFXTestCommon.ReimportVFXGraph(graph);
-            Debug.unityLogger.logEnabled = true;
             Assert.Throws(typeof(IndexOutOfRangeException), () => VFXTestCommon.GetSpawnerState(vfxComponent, 0)); //This is the exception which matters for this test
         }
 

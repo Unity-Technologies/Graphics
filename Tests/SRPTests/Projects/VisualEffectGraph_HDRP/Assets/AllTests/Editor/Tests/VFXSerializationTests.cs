@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Collections;
+using System.Text.RegularExpressions;
 
 using NUnit.Framework;
 using UnityEditor.VFX.Block;
@@ -1418,13 +1419,10 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXSerializationTestsWithCustomLogger
     {
-        private CustomLogHandler m_CustomLogHandler;
-
         [OneTimeSetUp]
         public void SetUp()
         {
             VFXTestCommon.CloseAllVFXWindow();
-            m_CustomLogHandler = new CustomLogHandler();
         }
 
 
@@ -1432,9 +1430,8 @@ namespace UnityEditor.VFX.Test
         [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })] // Unstable on WindowsEditor: https://jira.unity3d.com/browse/UUM-131297
         public IEnumerator Unexpected_Failure_With_Missing_Type()
         {
-            m_CustomLogHandler.Reset();
-            m_CustomLogHandler.ExpectedLog(LogType.Error, "Exception while sanitizing model");
-            m_CustomLogHandler.ExpectedLog(LogType.Error, "Unable to find type: ShaderGlobalsVFXStruct");
+            LogAssert.Expect(LogType.Error, new Regex(@".*Exception while sanitizing model.*"));
+            LogAssert.Expect(LogType.Error, new Regex(@".*Unable to find type: ShaderGlobalsVFXStruct.*"));
 
             //For reference the former type serialized in this package was something like
             //[VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
@@ -1478,17 +1475,13 @@ namespace UnityEditor.VFX.Test
         [UnityTest, Description("Cover regression UUM-5728")]
         public IEnumerator ShaderGraph_Lit_On_Unlit()
         {
-            LogAssert.Expect(LogType.Error, "Invalid VFX Particle System. It is skipped.");
-
             var reproContent = "Assets/AllTests/Editor/Tests/VFXSerialization_Repro_5728.zip";
             var tempDest = VFXTestCommon.tempBasePath + "/Repro_5728";
 
-            System.IO.Compression.ZipFile.ExtractToDirectory(reproContent, tempDest);
+            LogAssert.Expect(LogType.Error, new Regex(@".*You must use an unlit vfx master node with an unlit output.*"));
+            LogAssert.Expect(LogType.Error, new Regex(@".*Invalid VFX Particle System.*"));
 
-            m_CustomLogHandler.Reset();
-            m_CustomLogHandler.ExpectedLog(LogType.Error, "You must use an unlit vfx master node with an unlit output");
-            m_CustomLogHandler.ExpectedLog(LogType.Error, "Invalid VFX Particle System. It is skipped.");
-            m_CustomLogHandler.ExpectedException(typeof(InvalidOperationException), "Unhandled log message: '[Error] Unity cannot compile the VisualEffectAsset at path \"Assets/TmpTests/Repro_5728/Repro_5728.vfx\"");
+            System.IO.Compression.ZipFile.ExtractToDirectory(reproContent, tempDest);
 
             AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
             yield return null;
@@ -1510,20 +1503,20 @@ namespace UnityEditor.VFX.Test
             var reproContent = "Assets/AllTests/Editor/Tests/VFXSerialization_Repro_13863.zip";
             var tempDest = VFXTestCommon.tempBasePath + "/Repro_13863";
 
+            var diffusionProfileError = new Regex(@".*Diffusion Profile blackboard properties.*");
+
             System.IO.Compression.ZipFile.ExtractToDirectory(reproContent, tempDest);
 
-            m_CustomLogHandler.Reset();
-            m_CustomLogHandler.ExpectedLog(LogType.Error, "Gradient, Diffusion Profile, Virtual Texture, blackboard properties in Shader Graph are not currently supported in Visual Effect Shaders.");
-            m_CustomLogHandler.ExpectedLog(LogType.Error, "Diffusion Profile blackboard properties in Shader Graph are not currently supported in Visual Effect Shaders.");
-
+            // With OOP import enabled, this error may appear twice (worker & main process)
+            LogAssert.Expect(LogType.Error, diffusionProfileError);
             AssetDatabase.Refresh();
             yield return null;
-
-            m_CustomLogHandler.Clear();
 
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(tempDest + "/Repro_13863.vfx");
             Assert.IsNotNull(asset);
 
+            // With OOP import enabled, this error may appear twice (worker & main process)
+            LogAssert.Expect(LogType.Error, diffusionProfileError);
             VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0);
             var window = VFXTestCommon.GetWindow(asset);
             window.LoadAsset(asset, null);
@@ -1536,19 +1529,20 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotEmpty(backupSGContent);
             Assert.IsNotEmpty(newSGContent);
 
-            //Modify SG once
+            // With OOP import enabled, this error may appear twice (worker & main process)
+            LogAssert.Expect(LogType.Error, diffusionProfileError);
             File.WriteAllBytes(baseFilePath, newSGContent);
             AssetDatabase.Refresh();
             for (int i = 0; i < 4; ++i)
                 yield return null;
 
-            //Restore
+            // With OOP import enabled, this error may appear twice (worker & main process)
+            LogAssert.Expect(LogType.Error, diffusionProfileError);
             File.WriteAllBytes(baseFilePath, backupSGContent);
             AssetDatabase.Refresh();
 
             for (int i = 0; i < 4; ++i)
                 yield return null; //Crash is occurring here
-
 
             window.Close();
             for (int i = 0; i < 4; ++i)
@@ -1565,7 +1559,6 @@ namespace UnityEditor.VFX.Test
         public void CleanUp()
         {
             VFXTestCommon.DeleteAllTemporaryGraph();
-            m_CustomLogHandler.Dispose();
         }
     }
 }

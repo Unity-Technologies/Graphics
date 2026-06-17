@@ -900,8 +900,7 @@ float3 DummyFunction()
             }
             else
             {
-                using var customLogHandler = new CustomLogHandler();
-                customLogHandler.ExpectedLog(LogType.Error, "Unity cannot compile the VisualEffectAsset at path");
+                LogAssert.Expect(LogType.Error, new Regex(@".*Unity cannot compile the VisualEffectAsset.*"));
                 VFXTestCommon.ReimportVFXGraph(graph);
             }
 
