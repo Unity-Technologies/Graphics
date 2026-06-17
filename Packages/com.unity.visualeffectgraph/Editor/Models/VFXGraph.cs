@@ -176,7 +176,7 @@ namespace UnityEditor.VFX
                     graph.ForceShaderDebugSymbols(VFXViewPreference.generateShadersWithDebugSymbols);
                     graph.SetCompilationMode(VFXViewPreference.forceEditionCompilation ? VFXCompilationMode.Edition : VFXCompilationMode.Runtime);
 
-                    graph.PrepareGraph();
+                    graph.PrepareGraph(true);
                     graph.errorManager.RefreshCompilationReport();
 
                     bool instancingEnabled = resource.instancingMode != VFXInstancingMode.Disabled;
@@ -1231,6 +1231,12 @@ namespace UnityEditor.VFX
 
         public void BuildSubgraphDependencies()
         {
+            if (AssetDatabase.IsAssetImportWorkerProcess())
+            {
+                Debug.LogWarning("Unexpected invocation of BuildSubgraphDependencies from importer");
+                return;
+            }
+
             if (m_SubgraphDependencies == null)
                 m_SubgraphDependencies = new List<VisualEffectObject>();
             else
@@ -1383,23 +1389,31 @@ namespace UnityEditor.VFX
 
         public void ResyncGraphDependencies()
         {
+            if (AssetDatabase.IsAssetImportWorkerProcess())
+            {
+                Debug.LogWarning("Unexpected invocation of ResyncGraphDependencies from importer");
+                return;
+            }
+
             foreach (var child in children)
                 child.ResyncDependencies();
         }
 
-        public void PrepareGraph()
+        public void PrepareGraph(bool forImportOnly = false)
         {
             using var scope = k_ProfilerMarkerPrepareGraph.Auto();
 
             if (VFXViewPreference.advancedLogs)
                 Debug.Log($"VfxGraph::PrepareGraph {this.GetEntityId()} {name} {AssetDatabase.GetAssetPath(this)} {Environment.StackTrace}");
 
-            // We arrive from AssetPostProcess so dependencies are already loaded no need to worry about them (FB #1364156)
-            ResyncGraphDependencies();
+            if (!forImportOnly)
+                ResyncGraphDependencies();
 
             SanitizeGraph();
 
-            BuildSubgraphDependencies();
+            if (!forImportOnly)
+                BuildSubgraphDependencies();
+
             PrepareSubgraphs();
 
             SyncCustomAttributes();
