@@ -222,6 +222,10 @@ half SampleScreenSpaceShadowmap(float4 shadowCoord)
     // The stereo transform has to happen after the manual perspective divide
     shadowCoord.xy = UnityStereoTransformScreenSpaceTex(shadowCoord.xy);
 
+#if defined(UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION)
+    shadowCoord.xy = RemovePretransformRotation(shadowCoord.xy);
+#endif
+
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
     half attenuation = SAMPLE_TEXTURE2D_ARRAY(_ScreenSpaceShadowmapTexture, sampler_PointClamp, shadowCoord.xy, unity_StereoEyeIndex).x;
 #else
