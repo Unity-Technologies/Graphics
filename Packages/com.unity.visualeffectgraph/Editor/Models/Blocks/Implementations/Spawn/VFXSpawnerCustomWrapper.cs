@@ -19,23 +19,25 @@ namespace UnityEditor.VFX
                 m_SpawnerCallbacksTypes = VFXLibrary.FindConcreteSubclasses(typeof(VFXSpawnerCallbacks)).ToArray();
                 m_SpawnerCallbacksGuids = new();
                 m_SpawnerCallbacksPaths = new(StringComparer.OrdinalIgnoreCase);
-                foreach (var type in SpawnerCallbacksTypes)
+                foreach (var type in m_SpawnerCallbacksTypes)
                 {
-                    var guids = AssetDatabase.FindAssets($"{type.Name}");
-                    if (guids.Length == 0)
-                        Debug.LogError($"Can't find Source File for: {type}");
-
-                    foreach (var guid in guids)
+                    var monoScript = MonoScript.FromType(type);
+                    if (monoScript != null && AssetDatabase.TryGetGUIDAndLocalFileIdentifier(monoScript, out string guidString, out long _))
                     {
-                        var path = AssetDatabase.GUIDToAssetPath(guid);
-                        // LoadAssetAtPath<T>() cannot be used while Unity is gathering dependencies.
-                        // Ideally, we would load the asset as ScriptableObject and verify its type, but this must be avoided in this context.
-                        // Since these hash sets are used only for dependency filtering, having multiple matches of the same type is acceptable.
-                        if (path.EndsWith("cs", StringComparison.OrdinalIgnoreCase))
+                        var path = AssetDatabase.GetAssetPath(monoScript);
+                        if (!string.IsNullOrEmpty(path) && path.EndsWith("cs", StringComparison.OrdinalIgnoreCase))
                         {
-                            m_SpawnerCallbacksGuids.Add(new GUID(guid));
-                            m_SpawnerCallbacksPaths.Add(path); 
+                            m_SpawnerCallbacksGuids.Add(new GUID(guidString));
+                            m_SpawnerCallbacksPaths.Add(path);
                         }
+                        else
+                        {
+                            Debug.LogError($"Unexpected Source File for: {type}");
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError($"Can't find Source File for: {type}");
                     }
                 }
             }
