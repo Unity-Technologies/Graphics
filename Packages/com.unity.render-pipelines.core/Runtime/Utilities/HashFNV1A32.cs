@@ -67,28 +67,25 @@ namespace UnityEngine.Rendering
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Append(in Vector2 input)
         {
-            unchecked
-            {
-                m_Hash = (m_Hash ^ (uint)input.GetHashCode()) * k_Prime;
-            }
+            Append(input.x);
+            Append(input.y);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Append(in Vector3 input)
         {
-            unchecked
-            {
-                m_Hash = (m_Hash ^ (uint)input.GetHashCode()) * k_Prime;
-            }
+            Append(input.x);
+            Append(input.y);
+            Append(input.z);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Append(in Vector4 input)
         {
-            unchecked
-            {
-                m_Hash = (m_Hash ^ (uint)input.GetHashCode()) * k_Prime;
-            }
+            Append(input.x);
+            Append(input.y);
+            Append(input.z);
+            Append(input.w);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
