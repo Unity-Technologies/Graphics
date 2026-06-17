@@ -34,9 +34,9 @@ bool IsOcclusionVisible(float3 frontCenterPosRWS, float2 centerPosNDC, float2 ra
     float radiusInPixels = length((radialPosNDC - centerPosNDC) * _DepthSizeInOccluderPixels.xy);
 
     // log2 of the radius in pixels for the gather4 mip level
-    int mipLevel = 0;
-    float mipPartUnused = frexp(radiusInPixels, mipLevel);
-    mipLevel = max(mipLevel + 1, 0);
+    float mipPartExponent = 0.0f;
+    frexp(radiusInPixels, mipPartExponent);
+    int mipLevel = max((int) mipPartExponent + 1, 0);
     if (mipLevel < OCCLUSIONCULLINGCOMMONCONFIG_MAX_OCCLUDER_MIPS && !isBehindCamera)
     {
         // scale our coordinate to this mip
