@@ -12,9 +12,7 @@ namespace UnityEditor.VFX.Test
 {
     public class VFXGraphicsStateCollectionTest
     {
-        // Sign your package to re-enable this test.
         [UnityTest]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator GraphicsStateCollection_IsFilled()
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/GraphicsStateCollectionTest.unitypackage";

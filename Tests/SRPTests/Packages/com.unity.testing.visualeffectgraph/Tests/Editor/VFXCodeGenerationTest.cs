@@ -64,9 +64,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(initialHash, finalHash);
         }
 
-        // Sign your package to re-enable this test.
         [Test]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public void Migration_ShaderGraph_Output_To_Composed()
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/VFXShaderGraphOutput_Migration.unitypackage";
@@ -258,9 +256,7 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        // Sign your package to re-enable this test.
         [Test]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public void CheckContextLetterInShaderName()
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/DualOutput_ContextLetters.unitypackage";
@@ -490,9 +486,7 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        // Sign your package to re-enable this test.
         [UnityTest, Description("UUM-69751")]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator ShaderGraph_With_Gradient_In_Blackboard()
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/VFXSG_Gradient_Repro_69751.unitypackage";
@@ -538,9 +532,7 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        // Sign your package to re-enable this test.
         [UnityTest, Description("UUM-92778")]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator ShaderGraph_Strip_Without_Any_Warnings()
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_92778.unitypackage";
@@ -588,9 +580,7 @@ namespace UnityEditor.VFX.Test
 
         public static bool[] kChangeMeshLodCount =  { false, true };
 
-        // Sign your package to re-enable this test.
-        [UnityTest, Description("UUM-97850")]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
+		[UnityTest, Description("UUM-97850")]
         public IEnumerator Output_Mesh_With_Strip_System([ValueSource(nameof(kChangeMeshLodCount))] bool changeMeshLodCount)
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_97850.unitypackage";
@@ -645,9 +635,7 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        // Sign your package to re-enable this test.
         [UnityTest, Description("UUM-97805")]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Check_Validate_Graph_With_Sample_Gradient()
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_97805.unitypackage";

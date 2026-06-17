@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.Tests
             }
         }
 
-        // Sign your package to re-enable this test.
+        // Sign your package to re-enable this test. (UUM-144949)
         [UnityTest, TestCaseSource(nameof(PackageSampleCases))]
         [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator ImportSamples(Sample sample)

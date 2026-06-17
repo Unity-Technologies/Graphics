@@ -5,6 +5,8 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using System.Collections;
 using System.IO;
+using System.Reflection;
+using System.Threading.Tasks;
 using Object = UnityEngine.Object;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.UI;
@@ -22,6 +24,83 @@ namespace UnityEditor.VFX.Update
         {
             VFXAssetManager.BuildAndSave();
             yield return null;
+        }
+        
+        static string[] s_AllTestUnityPackages;
+        public static IEnumerable<string> AllTestUnityPackages
+        {
+            get
+            {
+                if (s_AllTestUnityPackages != null)
+                    return s_AllTestUnityPackages;
+
+                var found = new List<string>();
+                foreach (var guid in AssetDatabase.FindAssets(string.Empty, new[] {"Assets", "Packages/com.unity.testing.visualeffectgraph", "Packages/com.unity.testing.common-graphics"}))
+                {
+                    var path = AssetDatabase.GUIDToAssetPath(guid);
+                    if (path.EndsWith(".unitypackage", StringComparison.OrdinalIgnoreCase))
+                        found.Add(path);
+                }
+                s_AllTestUnityPackages = found.ToArray();
+                return s_AllTestUnityPackages;
+            }
+        }
+
+        [UnityTest, Timeout(10 * 60 * 1000), Description("Run from an Editor launched with -organization-id XXXXXXXXXXXXX"), Ignore("This helper is only useful locally")]
+        public IEnumerator Sign_UnityPackage([ValueSource(nameof(AllTestUnityPackages))] string unityPackagePath)
+        {
+            bool alreadySigned = false;
+            try
+            {
+                using var file = File.OpenRead(unityPackagePath);
+                using var gz = new System.IO.Compression.GZipStream(file, System.IO.Compression.CompressionMode.Decompress);
+
+                //Tar begins with a 512 byte header, the first 100 bytes are the entry name
+                var header = new byte[100];
+                int read = 0, n;
+                while (read < header.Length && (n = gz.Read(header, read, header.Length - read)) > 0)
+                    read += n;
+
+                int nameLen = Array.IndexOf(header, (byte)0, 0, read);
+                if (nameLen < 0) nameLen = read;
+                var firstEntry = System.Text.Encoding.ASCII.GetString(header, 0, nameLen);
+                alreadySigned = firstEntry == "package/.attestation.p7m";
+            }
+            catch { /* treat unreadable as error */ }
+
+            if (alreadySigned)
+                Assert.Ignore("Package is already signed.");
+
+            //See GetFirstValueForARGV("organization-id") in Modules/AssetPackageEditor/AssetPackage.cpp
+            string ownerOrgId = null;
+            var args = Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length - 1; i++)
+            {
+                if (args[i] == "-organization-id")
+                {
+                    ownerOrgId = args[i + 1];
+                    break;
+                }
+            }
+            Assert.IsFalse(string.IsNullOrEmpty(ownerOrgId), "Missing -organization-id on the Editor command line");
+
+            //SignedAssetPackage and SignatureService are internal to AssetPackageEditor, reproduce attestation usage from RequestAttestationFromPackageRegistry
+            var asm = typeof(ExportPackageParameters).Assembly;
+            var signedAssetPackageType = asm.GetType("UnityEditor.AssetPackage.SignedAssetPackage", true);
+            var signatureServiceType = asm.GetType("UnityEditor.AssetPackage.SignatureService", true);
+            var insertAttestationMethod = signedAssetPackageType.GetMethod("InsertAttestationFileIntoTarball", BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.IsNotNull(insertAttestationMethod, "SignedAssetPackage.InsertAttestationFileIntoTarball not found");
+
+            //Request signature
+            var signatureService = Activator.CreateInstance(signatureServiceType);
+            var task = (Task)insertAttestationMethod.Invoke(null, new [] { unityPackagePath, unityPackagePath, ownerOrgId, signatureService });
+            while (!task.IsCompleted)
+                yield return null;
+
+            if (task.IsFaulted)
+                throw task.Exception.GetBaseException();
+
+            Debug.Log($"{unityPackagePath} successfully signed.");
         }
 
 #if VFX_TESTS_HAS_HDRP

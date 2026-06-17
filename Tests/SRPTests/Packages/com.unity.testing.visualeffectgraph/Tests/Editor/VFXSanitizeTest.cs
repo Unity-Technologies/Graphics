@@ -129,9 +129,7 @@ namespace UnityEditor.VFX.Test
                 yield return null;
         }
 
-        // Sign your package to re-enable this test.
         [UnityTest, Timeout(360 * 1000)]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Sanitize_Subgraph_Scenario([ValueSource(nameof(kScenarios))] string scenario)
         {
             var packagePath = $"Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/VFXSubgraphRepro_{scenario}.unitypackage";
@@ -197,9 +195,7 @@ namespace UnityEditor.VFX.Test
             yield return null;
         }
 
-        // Sign your package to re-enable this test.
         [UnityTest]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Subgraph_Block_Which_Uses_GetData()
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_Subgraph_With_Euler.unitypackage";
@@ -229,9 +225,7 @@ namespace UnityEditor.VFX.Test
 
         public static readonly bool[] kFalseOrTrue = { false, true };
 
-        // Sign your package to re-enable this test.
         [UnityTest, Description("Cover UUM-99970")]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Change_SG_Exposed_Properties_With_Order_Two_Subgraph([ValueSource(nameof(kFalseOrTrue))] bool sanitizeRoot, [ValueSource(nameof(kFalseOrTrue))] bool sanitizeChild)
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_SG_Subgraph_Missing_Sanitize.unitypackage";
@@ -315,9 +309,7 @@ namespace UnityEditor.VFX.Test
             yield return null;
         }
 
-        // Sign your package to re-enable this test.
         [UnityTest]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Change_VFX_Exposed_Properties_With_Order_Two_Subgraph([ValueSource(nameof(kFalseOrTrue))] bool sanitizeRoot, [ValueSource(nameof(kFalseOrTrue))] bool sanitizeChild)
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_VFX_SubgraphBlocks.unitypackage";
@@ -477,9 +469,7 @@ namespace UnityEditor.VFX.Test
             SanitizeTest_PostProcessor.Count = 0;
         }
 
-        // Sign your package to re-enable this test.
         [UnityTest, Description("Integration Test: Verify that Open VFX recompiles automatically when a VFX resource changes, and ensure that multiple post-process events are triggered during OnPostprocessAllAssets when assets change on disk.")]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Insure_OnPostprocessAllAssets_Called_Once_Per_Frame()
         {
             yield return Insure_OnPostprocessAllAssets_Common();
@@ -541,9 +531,7 @@ namespace UnityEditor.VFX.Test
             return subAssets;
         }
 
-        // Sign your package to re-enable this test.
         [UnityTest, Description("Integration Test: Verify expected behavior from GetVisualEffectDynamicDependencies with OnPostprocessAllAssets invocation")]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Insure_OnPostprocessAllAssets_GetVisualEffectDynamicDependencies_Isolation()
         {
             yield return Insure_OnPostprocessAllAssets_Common();
@@ -608,9 +596,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(shaderIncludePath, subAssetPath);
         }
 
-        // Sign your package to re-enable this test.
         [UnityTest, Description("Integration Test: Verify expected behavior from GetVisualEffectDynamicDependencies with OnPostprocessAllAssets invocation")]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Insure_OnPostprocessAllAssets_Called_On_Dependency_Changed()
         {
             yield return Insure_OnPostprocessAllAssets_Common();
@@ -652,9 +638,7 @@ namespace UnityEditor.VFX.Test
             return false;
         }
 
-        // Sign your package to re-enable this test.
         [UnityTest, Description("Cover UUM-133319")]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Repro_Simplest_Subgraph_Chain()
         {
             VFXTestCommon.CloseAllVFXWindow();

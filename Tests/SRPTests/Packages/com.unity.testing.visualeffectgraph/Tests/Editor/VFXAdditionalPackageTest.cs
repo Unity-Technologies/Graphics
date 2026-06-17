@@ -18,9 +18,8 @@ namespace UnityEditor.VFX.Test
 
         private static readonly string kSampleExpectedPath = "Assets/Samples";
 
-        // Sign your package to re-enable this test.
         [Test]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
+		[UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })] // Sign your package to re-enable this test. (UUM-144949) 
         public void ImportSampleDependencies_Reflection_Still_Valid()
         {
             var packageInfo = PackageManager.PackageInfo.FindForAssetPath(VisualEffectGraphPackageInfo.assetPackagePath);

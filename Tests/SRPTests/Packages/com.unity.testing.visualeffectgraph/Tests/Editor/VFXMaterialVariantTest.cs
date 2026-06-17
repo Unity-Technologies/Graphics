@@ -78,9 +78,7 @@ namespace UnityEditor.VFX.Test
         }
 
 
-        // Sign your package to re-enable this test.
         [Test(Description = "Cover UUM-67336 (check importer behavior)")]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public void Import_Twice_Same_Package_Sanitize_Still_Applied_Import()
         {
             GetVFXMaterialVariantUpgradeAsset(out var packagePath, out var vfxPath);
@@ -96,9 +94,7 @@ namespace UnityEditor.VFX.Test
             }
         }
         
-        // Sign your package to re-enable this test.
         [Test]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public void Migration_Material_Settings()
         {
             GetVFXMaterialVariantUpgradeAsset(out var packagePath, out var vfxPath);
@@ -170,9 +166,7 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        // Sign your package to re-enable this test.
         [UnityTest, Description("Covers UUM-115004, N.B.: This coverage can't be full without cross SRP project")]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Failing_SG_Target_With_Current_Pipeline()
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_115004.unitypackage";
@@ -346,9 +340,7 @@ namespace UnityEditor.VFX.Test
             Assert.Contains("materialSettings", allSettings);
         }
 
-        // Sign your package to re-enable this test.
         [UnityTest]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Switch_ShaderGraph_And_Undo()
         {
             var baseDataPath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/";
@@ -898,9 +890,7 @@ namespace UnityEditor.VFX.Test
             throw new InvalidOperationException("Can't find generated shader");
         }
 
-        // Sign your package to re-enable this test.
         [UnityTest, Description("Cover external change of unregistered ShaderGraph which is indirectly triggers the compilation of parent VisualEffectAsset")]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator VFX_Auto_Compile_On_SG_Change()
         {
             var graph = VFXTestCommon.CreateGraph_And_System();

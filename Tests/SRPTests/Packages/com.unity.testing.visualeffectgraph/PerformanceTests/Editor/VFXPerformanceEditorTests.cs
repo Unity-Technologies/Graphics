@@ -392,9 +392,7 @@ namespace UnityEditor.VFX.PerformanceTest
             }
         }
 
-        // Sign your package to re-enable this test.
         [Timeout(k_BuildTimeout * 10), UnityTest, Version(k_Version), Performance]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator ImportManyVFX([ValueSource(nameof(allActiveSRP))] string srp)
         {
             var quietLog = new QuietLogHandler()
