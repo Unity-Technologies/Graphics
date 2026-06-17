@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering
         public static readonly int unity_MatrixPreviousMI = Shader.PropertyToID("unity_MatrixPreviousMI");
         public static readonly int unity_WorldBoundingSphere = Shader.PropertyToID("unity_WorldBoundingSphere");
         public static readonly int unity_RendererUserValuesPropertyEntry = Shader.PropertyToID("unity_RendererUserValuesPropertyEntry");
+        public static readonly int unity_LightProbeUsagePropertyEntry = Shader.PropertyToID("unity_LightProbeUsagePropertyEntry");
 
         public static readonly int[] DOTS_ST_WindParams = new int[InstanceDataSystem.k_STMaxWindParamsCount];
         public static readonly int[] DOTS_ST_WindHistoryParams = new int[InstanceDataSystem.k_STMaxWindParamsCount];
@@ -38,6 +39,7 @@ namespace UnityEngine.Rendering
         public readonly GPUComponentHandle matrixPreviousM;
         public readonly GPUComponentHandle matrixPreviousMI;
         public readonly GPUComponentHandle rendererUserValues;
+        public readonly GPUComponentHandle lightProbeUsages;
         public readonly GPUComponentHandle boundingSphere;
         public readonly NativeArray<GPUComponentHandle> speedTreeWind;
         public readonly NativeArray<GPUComponentHandle> speedTreeWindHistory;
@@ -59,6 +61,7 @@ namespace UnityEngine.Rendering
             matrixPreviousM = archetypeManager.CreateComponent<PackedMatrix>(DefaultShaderPropertyID.unity_MatrixPreviousM, true);
             matrixPreviousMI = archetypeManager.CreateComponent<PackedMatrix>(DefaultShaderPropertyID.unity_MatrixPreviousMI, true);
             rendererUserValues = archetypeManager.CreateComponent<uint>(DefaultShaderPropertyID.unity_RendererUserValuesPropertyEntry, true);
+            lightProbeUsages = archetypeManager.CreateComponent<uint>(DefaultShaderPropertyID.unity_LightProbeUsagePropertyEntry, true);
 
             boundingSphere = enableBoundingSpheresInstanceData
                 ? archetypeManager.CreateComponent<Vector4>(DefaultShaderPropertyID.unity_WorldBoundingSphere, true)
@@ -81,6 +84,7 @@ namespace UnityEngine.Rendering
                 matrixPreviousM,
                 matrixPreviousMI,
                 rendererUserValues,
+                lightProbeUsages,
             };
 
             if (enableBoundingSpheresInstanceData)

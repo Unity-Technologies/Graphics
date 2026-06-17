@@ -509,13 +509,20 @@ namespace UnityEngine.Rendering
             if (rendererData.renderer.Length == 0)
                 return;
 
-            var gpuComponents = new NativeArray<GPUComponent>(2, Allocator.Temp);
+            var gpuComponents = new NativeArray<GPUComponent>(3, Allocator.Temp);
             gpuComponents[0] = new GPUComponent(DefaultShaderPropertyID.unity_LightmapST, UnsafeUtility.SizeOf<Vector4>());
             gpuComponents[1] = new GPUComponent(DefaultShaderPropertyID.unity_RendererUserValuesPropertyEntry, UnsafeUtility.SizeOf<uint>());
+            gpuComponents[2] = new GPUComponent(DefaultShaderPropertyID.unity_LightProbeUsagePropertyEntry, UnsafeUtility.SizeOf<uint>());
 
-            var gpuComponentUpdates = new NativeArray<GPUComponentUpdate>(2, Allocator.Temp);
+            // Widen byte-staged lightProbeUsages to uint for the uint-sized GPU instancing slot.
+            var lightProbeUsagesU32 = new NativeArray<uint>(rendererData.lightProbeUsages.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            for (int i = 0; i < rendererData.lightProbeUsages.Length; ++i)
+                lightProbeUsagesU32[i] = rendererData.lightProbeUsages[i];
+
+            var gpuComponentUpdates = new NativeArray<GPUComponentUpdate>(3, Allocator.Temp);
             gpuComponentUpdates[0] = GPUComponentUpdate.FromArray(gpuComponents[0], rendererData.lightmapScaleOffset);
             gpuComponentUpdates[1] = GPUComponentUpdate.FromArray(gpuComponents[1], rendererData.rendererUserValues);
+            gpuComponentUpdates[2] = GPUComponentUpdate.FromArray(gpuComponents[2], lightProbeUsagesU32);
 
             const MeshRendererComponentMask UpdateMask = MeshRendererComponentMask.LocalToWorld
                 | MeshRendererComponentMask.PrevLocalToWorld

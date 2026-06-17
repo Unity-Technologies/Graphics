@@ -176,10 +176,20 @@ CBUFFER_END
 
 static const uint unity_RendererUserValue = asuint(unity_RenderingLayer.y);
 
-#endif // UNITY_DOTS_INSTANCING_ENABLED
+static const uint unity_LightProbeUsage = asuint(unity_RenderingLayer.z);
+
+#endif // !DOTS_INSTANCING_ON
 
 // The renderer user values are packed in unity_RenderingLayer. So we need a dummy property to be able to use Shader.PropertyToID.
 uint unity_RendererUserValuesPropertyEntry;
+
+// Dummy declaration like above so Shader.PropertyToID("unity_LightProbeUsagePropertyEntry") works.
+uint unity_LightProbeUsagePropertyEntry;
+
+// Must be a macro: unity_LightProbeUsage is overridden by macros in UnityInstancing.hlsl /
+// UniversalDOTSInstancing.hlsl that are included after this file. A function would bind to the
+// static-const fallback at parse time and miss the per-instance override.
+#define IsLightProbeSamplingEnabled() (unity_LightProbeUsage != 0u)
 
 #if defined(USING_STEREO_MATRICES)
 CBUFFER_START(UnityStereoViewBuffer)

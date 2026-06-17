@@ -88,7 +88,7 @@ float3 shadergraph_LWBakedGI(float3 positionWS, float3 normalWS, uint2 positionS
 #endif
 #else
     #if (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
-    if (_EnableProbeVolumes)
+    if (_EnableProbeVolumes && IsLightProbeSamplingEnabled())
     {
         float3 bakeDiffuseLighting;
         EvaluateAdaptiveProbeVolume(positionWS, normalWS, GetWorldSpaceNormalizeViewDir(positionWS), positionSS, bakeDiffuseLighting);

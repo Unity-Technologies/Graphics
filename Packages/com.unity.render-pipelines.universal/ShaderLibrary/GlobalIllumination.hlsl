@@ -84,7 +84,8 @@ half3 SampleProbeVolumeVertex(in float3 absolutePositionWS, in float3 normalWS, 
 
 #if defined(EVALUATE_SH_VERTEX) || defined(EVALUATE_SH_MIXED)
     half3 bakedGI;
-    if (_EnableProbeVolumes)
+    // APV per-renderer. When MeshRenderer.lightProbeUsage == Off, fall back to the ambient sky probe (matches LightProbeGroup behavior).
+    if (_EnableProbeVolumes && IsLightProbeSamplingEnabled())
     {
         EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, GetMeshRenderingLayer(), bakedGI, probeOcclusion);
     }
@@ -110,7 +111,7 @@ half3 SampleProbeVolumePixel(in half3 vertexValue, in float3 absolutePositionWS,
     return vertexValue;
 #elif defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     half3 bakedGI;
-    if (_EnableProbeVolumes)
+    if (_EnableProbeVolumes && IsLightProbeSamplingEnabled())
     {
         EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, GetMeshRenderingLayer(), bakedGI, probeOcclusion);
     }

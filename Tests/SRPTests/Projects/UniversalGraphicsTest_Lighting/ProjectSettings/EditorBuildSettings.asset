@@ -173,5 +173,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/240_Lighting_Bicubic_Sampling.unity
     guid: 9c375b78be67ea4428234deee1bfc581
+  - enabled: 1
+    path: Assets/Scenes/353_LightProbeUsageOff.unity
+    guid: 2933fd527d4464c46953f2a7c025e3c6
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
