@@ -125,7 +125,7 @@ VisualEffectResource:
             return AssetDatabase.LoadAssetAtPath<T>(path);
         }
 
-        [MenuItem("Assets/Create/Visual Effects/Visual Effect Graph", false, 306)]
+        [MenuItem("Assets/Create/Visual Effects/Visual Effect Graph...", false, 306)]
         public static void CreateVisualEffectAsset()
         {
             VFXLibrary.LogUnsupportedSRP();
