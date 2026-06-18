@@ -457,6 +457,10 @@ namespace UnityEngine.Rendering.Universal
 
             Blitter.Cleanup();
 
+#if ENABLE_PROFILER
+            UniversalRenderPipelineDebugDisplaySettings.Instance?.renderingSettings?.SetBatchingTypeDebugEnabled(false);
+#endif
+
             base.Dispose(disposing);
 
             pipelineAsset.DestroyRenderers();

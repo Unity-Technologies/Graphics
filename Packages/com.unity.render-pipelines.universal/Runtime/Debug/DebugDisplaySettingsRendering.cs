@@ -107,6 +107,30 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public DebugFullScreenMode fullScreenDebugMode { get; set; } = DebugFullScreenMode.None;
 
+        /// <summary>
+        /// The Batching type view enable flag.
+        /// </summary>
+        public bool batchingTypeViewEnabled { get; private set; }
+
+#if ENABLE_PROFILER
+        internal static event Action<bool> onBatchingTypeViewChanged;
+#endif
+
+        internal void SetBatchingTypeDebugEnabled(bool enabled)
+        {
+#if ENABLE_PROFILER
+            if (batchingTypeViewEnabled == enabled)
+            {
+                return;
+            }
+            batchingTypeViewEnabled = enabled;
+
+            GPUResidentDrawer.SetBatchingTypeDebugView(enabled);
+
+            onBatchingTypeViewChanged?.Invoke(enabled);
+#endif
+        }
+
         internal int stpDebugViewIndex { get; set; } = 0;
 
         /// <summary>
@@ -215,7 +239,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         internal bool blockSTPOverlay {
             get {
-                var asset = UniversalRenderPipeline.asset; 
+                var asset = UniversalRenderPipeline.asset;
                 return asset != null && fullScreenDebugMode == DebugFullScreenMode.STP &&
 #if ENABLE_UPSCALER_FRAMEWORK
                     asset.upscalerName != STPIUpscaler.upscalerName;
@@ -261,6 +285,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly NameAndTooltip AdditionalWireframeModes = new() { name = "Additional Wireframe Modes", tooltip = "Debug the scene with additional wireframe shader views that are different from those in the scene view." };
             public static readonly NameAndTooltip WireframeNotSupportedWarning = new() { name = "Warning: This platform might not support wireframe rendering.", tooltip = "Some platforms, for example, mobile platforms using OpenGL ES and Vulkan, might not support wireframe rendering." };
             public static readonly NameAndTooltip OverdrawMode = new() { name = "Overdraw Mode", tooltip = "Debug anywhere materials that overdrawn pixels top of each other." };
+            public static readonly NameAndTooltip BatchingType = new() { name = "Batching Type", tooltip = "Display batching type colors (GRD (Green), SRP Batcher (Blue), Unbatched (Orange), Untracked (Grey))" };
             public static readonly NameAndTooltip MaxOverdrawCount = new() { name = "Max Overdraw Count", tooltip = "Maximum overdraw count allowed for a single pixel." };
             public static readonly NameAndTooltip MipMapDisableMipCaching = new() {name = "Disable Mip Caching", tooltip = "By disabling mip caching, the data on GPU accurately reflects what the TextureStreamer calculates. While this can significantly increase CPU-to-GPU traffic, it can be an invaluable tool to validate that the Streamer behaves as expected."};
             public static readonly NameAndTooltip MipMapDebugView = new() { name = "Debug View", tooltip = "Use the drop-down to select a mipmap property to debug." };
@@ -382,6 +407,22 @@ namespace UnityEngine.Rendering.Universal
                 setter = (value) => data.overdrawMode = (DebugOverdrawMode)value,
                 getIndex = () => (int)data.overdrawMode,
                 setIndex = (value) => data.overdrawMode = (DebugOverdrawMode)value
+            };
+
+            internal static DebugUI.Widget CreateBatchingTypeViewEnabled(DebugDisplaySettingsRendering data) => new DebugUI.BoolField
+            {
+                nameAndTooltip = Strings.BatchingType,
+                getter = () => data.batchingTypeViewEnabled,
+                setter = (value) => data.SetBatchingTypeDebugEnabled(value),
+                isHiddenCallback = () =>
+                {
+#if UNITY_EDITOR
+                    var asset = UniversalRenderPipeline.asset;
+                    return !asset || asset.gpuResidentDrawerMode == GPUResidentDrawerMode.Disabled;
+#else
+                    return true;
+#endif
+                }
             };
 
             internal static DebugUI.Widget CreateMaxOverdrawCount(DebugDisplaySettingsRendering data) => new DebugUI.Container()
@@ -616,6 +657,7 @@ namespace UnityEngine.Rendering.Universal
                         WidgetFactory.CreateAdditionalWireframeShaderViews(data),
                         WidgetFactory.CreateWireframeNotSupportedWarning(data),
                         WidgetFactory.CreateOverdrawMode(data),
+                        WidgetFactory.CreateBatchingTypeViewEnabled(data),
                         WidgetFactory.CreateMaxOverdrawCount(data),
                         WidgetFactory.CreateMipMapDebugWidget(data)
                     }
@@ -666,6 +708,7 @@ namespace UnityEngine.Rendering.Universal
         public bool AreAnySettingsActive => (postProcessingDebugMode != DebugPostProcessingMode.Auto) ||
         (fullScreenDebugMode != DebugFullScreenMode.None) ||
         (sceneOverrideMode != DebugSceneOverrideMode.None) ||
+        batchingTypeViewEnabled ||
         (mipInfoMode != DebugMipInfoMode.None) ||
         (validationMode != DebugValidationMode.None) ||
         !enableMsaa ||

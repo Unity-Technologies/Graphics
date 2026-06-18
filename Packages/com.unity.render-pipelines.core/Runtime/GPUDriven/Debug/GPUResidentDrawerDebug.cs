@@ -66,6 +66,18 @@ namespace UnityEngine.Rendering
         Count
     }
 
+    /// <summary>
+    /// The type of batch about the renderer.
+    /// </summary>
+    internal enum GRDBatchingType : byte
+    {
+        Untracked = 0,
+        Unbatched = 1,
+        GRD = 2,
+        SRPBatcher = 3,
+        NotRendered = 4,
+    }
+
     internal static class GRDExclusionReasonExtensions
     {
         /// <summary>Maps each exclusion reason to its Coverage category.</summary>
@@ -76,6 +88,28 @@ namespace UnityEngine.Rendering
             GRDExclusionReason.MissingMesh        => GRDExclusionCategory.NonRendering,
             GRDExclusionReason.InactiveOrDisabled => GRDExclusionCategory.Inactive,
             _                                     => GRDExclusionCategory.Excluded,
+        };
+
+        /// <summary>Maps each exclusion reason to batch type.</summary>
+        public static GRDBatchingType GetBatchingType(this GRDExclusionReason reason) => reason.GetCategory() switch
+        {
+            GRDExclusionCategory.OnPath => GRDBatchingType.GRD,
+
+            GRDExclusionCategory.NonRendering or GRDExclusionCategory.Inactive => GRDBatchingType.NotRendered,
+
+            // Excluded from the GRD path but still drawn via the standard SRP path.
+            // The SRPBatcher/Unbatched split is INFERRED from the exclusion reason — a rough proxy for
+            // SRP Batcher eligibility (shader compatibility), not observed from the actual draw.
+            // Runtime batch breaking is a separate, draw-order-dependent concern and is not tracked here.
+            GRDExclusionCategory.Excluded => reason switch
+            {
+                GRDExclusionReason.MissingDOTSInstancing => GRDBatchingType.SRPBatcher,
+                GRDExclusionReason.LODAnimateCrossFading => GRDBatchingType.SRPBatcher,
+                GRDExclusionReason.GPUDrivenDisabled => GRDBatchingType.SRPBatcher,
+                _ => GRDBatchingType.Unbatched,
+            },
+
+            _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, $"Unmapped category for {reason}"),
         };
     }
 
@@ -203,6 +237,9 @@ namespace UnityEngine.Rendering
         private readonly int[] m_PerReasonCount = new int[(int)GRDExclusionReason.Count];
         private readonly int[] m_PerCategoryCount = new int[(int)GRDExclusionCategory.Count]; // indexed by GRDExclusionCategory; OnPath slot unused
 
+        private readonly Dictionary<EntityId, uint> m_SaveShaderValues = new Dictionary<EntityId, uint>();
+        private bool m_BatchingTypeViewActive = false;
+
         /// <summary>Per-frame count of GRD-path renderers whose <c>renderingEnabled</c> bit is
         /// false (toggled disabled at runtime after registration). Updated by
         /// <see cref="GPUResidentDrawer"/> once per frame before counter emit.</summary>
@@ -246,6 +283,11 @@ namespace UnityEngine.Rendering
         /// <summary>Clear all statistics.</summary>
         public void Clear()
         {
+            if (m_BatchingTypeViewActive)
+            {
+                RestoreBatchingTypeUserValues();
+            }
+
             cullingStats.Clear();
             lodStats.Clear();
             m_GRDRendererSet.Clear();
@@ -257,6 +299,94 @@ namespace UnityEngine.Rendering
 
         public void Dispose() => Clear();
 
+        internal void ApplyBatchingTypeUserValues()
+        {
+            if (m_BatchingTypeViewActive)
+            {
+                Debug.LogWarning("GPUResidentDrawer: BatchingType debug view is already active");
+                return;
+            }
+
+            m_BatchingTypeViewActive = true;
+            m_SaveShaderValues.Clear();
+
+            foreach (var id in m_GRDRendererSet)
+            {
+                SetBatchingTypeUserValue(id, GRDExclusionReason.None);
+            }
+
+            foreach (var entityIdAndReason in m_ExcludedRendererDict)
+            {
+                SetBatchingTypeUserValue(entityIdAndReason.Key, entityIdAndReason.Value);
+            }
+        }
+
+        internal void RestoreBatchingTypeUserValues()
+        {
+            m_BatchingTypeViewActive = false;
+
+            foreach (var entityIdAndShaderValue in m_SaveShaderValues)
+            {
+                if (Resources.EntityIdToObject(entityIdAndShaderValue.Key) is MeshRenderer renderer)
+                {
+                    renderer.SetShaderUserValue(entityIdAndShaderValue.Value);
+                }
+            }
+
+            m_SaveShaderValues.Clear();
+        }
+
+        private void RestoreBatchingTypeUserValue(EntityId entityId)
+        {
+            if (!m_SaveShaderValues.Remove(entityId, out var originalShaderValue))
+            {
+                return;
+            }
+
+            if (Resources.EntityIdToObject(entityId) is MeshRenderer renderer)
+            {
+                renderer.SetShaderUserValue(originalShaderValue);
+            }
+        }
+
+        private void SetBatchingTypeUserValue(EntityId entityId, GRDExclusionReason reason)
+        {
+            if (Resources.EntityIdToObject(entityId) is not MeshRenderer renderer)
+            {
+                return;
+            }
+
+            var batchingType = reason.GetBatchingType();
+            if (batchingType == GRDBatchingType.NotRendered)
+            {
+                return;
+            }
+
+            if (!m_SaveShaderValues.ContainsKey(entityId))
+            {
+                var currentShaderValue = renderer.GetShaderUserValue();
+                m_SaveShaderValues[entityId] = currentShaderValue;
+            }
+
+            renderer.SetShaderUserValue((uint)batchingType);
+        }
+
+        private void CheckSetBatchingTypeUserValue(EntityId entityId, GRDExclusionReason reason)
+        {
+            if (m_BatchingTypeViewActive)
+            {
+                SetBatchingTypeUserValue(entityId, reason);
+            }
+        }
+
+        private void CheckRestoreBatchingTypeUserValue(EntityId entityId)
+        {
+            if (m_BatchingTypeViewActive)
+            {
+                RestoreBatchingTypeUserValue(entityId);
+            }
+        }
+
         internal void UnregisterRenderers(NativeArray<EntityId> ids)
         {
             foreach (var id in ids)
@@ -267,6 +397,8 @@ namespace UnityEngine.Rendering
                     m_PerReasonCount[(int)reason]--;
                     m_PerCategoryCount[(int)reason.GetCategory()]--;
                 }
+
+                CheckRestoreBatchingTypeUserValue(id);
             }
         }
 
@@ -280,6 +412,8 @@ namespace UnityEngine.Rendering
                     m_PerCategoryCount[(int)oldReason.GetCategory()]--;
                 }
                 m_GRDRendererSet.Add(id); // HashSet.Add is idempotent — re-registering an already-tracked renderer is a no-op.
+
+                CheckSetBatchingTypeUserValue(id, GRDExclusionReason.None);
             }
         }
 
@@ -289,6 +423,9 @@ namespace UnityEngine.Rendering
             {
                 var id = ids[i];
                 var reason = (GRDExclusionReason)reasons[i];
+
+                m_GRDRendererSet.Remove(id);
+
                 if (m_ExcludedRendererDict.TryGetValue(id, out var oldReason))
                 {
                     m_PerReasonCount[(int)oldReason]--;
@@ -297,18 +434,21 @@ namespace UnityEngine.Rendering
                 m_PerReasonCount[(int)reason]++;
                 m_PerCategoryCount[(int)reason.GetCategory()]++;
                 m_ExcludedRendererDict[id] = reason;
+
+                CheckSetBatchingTypeUserValue(id, reason);
             }
         }
 
         /// <summary>
         /// Records renderers as excluded from GRD, all with the same reason.
-        /// Assumes renderers have already been removed from the GRD set (via UnregisterRenderers).
         /// </summary>
         internal void RegisterExcludedRenderers(NativeArray<EntityId> ids, GRDExclusionReason reason)
         {
             int newCategoryIndex = (int)reason.GetCategory();
             foreach (var id in ids)
             {
+                m_GRDRendererSet.Remove(id);
+
                 if (m_ExcludedRendererDict.TryGetValue(id, out var oldReason))
                 {
                     m_PerReasonCount[(int)oldReason]--;
@@ -317,6 +457,8 @@ namespace UnityEngine.Rendering
                 m_PerReasonCount[(int)reason]++;
                 m_PerCategoryCount[newCategoryIndex]++;
                 m_ExcludedRendererDict[id] = reason;
+
+                CheckSetBatchingTypeUserValue(id, reason);
             }
         }
 
@@ -334,13 +476,11 @@ namespace UnityEngine.Rendering
             {
                 Assert.AreEqual(excluded.Length, excludedReasons.Length,
                     "excluded and excludedReasons arrays must have equal length.");
-                UnregisterRenderers(excluded);
                 RegisterExcludedRenderers(excluded, excludedReasons);
             }
             if (accepted.Length > 0)
                 RegisterGRDRenderers(accepted);
         }
-
     }
 
     #endregion

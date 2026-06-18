@@ -103,6 +103,14 @@ namespace UnityEngine.Rendering.Universal
                 return modifiedDrawingSettings;
             }
 
+            if (m_DebugHandler.IsBatchingTypeViewActive)
+            {
+                DrawingSettings modifiedDrawingSettings = drawingSettings;
+                modifiedDrawingSettings.overrideMaterial = m_DebugHandler.BatchingTypeDebugMaterial;
+                modifiedDrawingSettings.overrideMaterialPassIndex = 0;
+                return modifiedDrawingSettings;
+            }
+
             // No overrides, return original
             return drawingSettings;
         }
@@ -140,7 +148,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // Disable culling to see all lines
                     renderStateBlock.rasterState = new RasterState(
-                        cullingMode: CullMode.Off        
+                        cullingMode: CullMode.Off
                     );
 
                     renderStateBlock.mask = RenderStateMask.Raster;

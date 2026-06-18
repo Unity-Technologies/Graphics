@@ -196,6 +196,37 @@ namespace UnityEngine.Rendering
             s_Instance?.m_OcclusionCullingCommon.RenderDebugOccluderOverlay(renderGraph, debugSettings, screenPos, maxHeight, colorBuffer);
         }
 
+        /// <summary>
+        /// Enables or disables the Batching Type debug view for the active GPU Resident Drawer(GRD).
+        /// </summary>
+        /// <remarks>
+        /// While enabled, each tracked <see cref="MeshRenderer"/> is tagged with a shader user value that
+        /// encodes how it is batched — GRD, SRP Batcher, or unbatched — so a debug shader can color it accordingly.
+        /// The renderers' original shader user values are saved on enable and restored on disable.
+        /// </remarks>
+        /// <param name="enabled">
+        /// <c>true</c> to enable the debug view; <c>false</c> to disable it and restore the renderers' original shader user values.
+        /// </param>
+        public static void SetBatchingTypeDebugView(bool enabled)
+        {
+#if ENABLE_PROFILER
+            var stats = s_Instance?.m_GRDContext.advancedDebugStats;
+            if (stats == null)
+            {
+                return;
+            }
+
+            if (enabled)
+            {
+                stats.ApplyBatchingTypeUserValues();
+            }
+            else
+            {
+                stats.RestoreBatchingTypeUserValues();
+            }
+#endif
+        }
+
         #endregion
 
         internal static bool IsEnabledFromSettings() => GetGlobalSettingsFromRPAsset().mode != GPUResidentDrawerMode.Disabled;
@@ -369,7 +400,7 @@ namespace UnityEngine.Rendering
         private static void Cleanup()
         {
 			RenderPipelineManager.activeRenderPipelineDisposed -= Cleanup;
-			
+
             if (s_Instance == null)
                 return;
 
@@ -880,6 +911,7 @@ namespace UnityEngine.Rendering
         public static void ReinitializeIfNeeded() {}
         public static void RenderDebugOcclusionTestOverlay(RenderGraph renderGraph, DebugDisplayGPUResidentDrawer debugSettings, EntityId viewID, TextureHandle colorBuffer) {}
         public static void RenderDebugOccluderOverlay(RenderGraph renderGraph, DebugDisplayGPUResidentDrawer debugSettings, Vector2 screenPos, float maxHeight, TextureHandle colorBuffer) {}
+        public static void SetBatchingTypeDebugView(bool enabled) {}
 
         // Internal stubs (for e.g. IGPUResidentRenderPipeline)
         internal static bool IsInitialized() => false;

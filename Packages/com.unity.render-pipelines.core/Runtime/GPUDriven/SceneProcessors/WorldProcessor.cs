@@ -214,7 +214,6 @@ namespace UnityEngine.Rendering
                     var advStats = m_GRDContext.advancedDebugStats;
                     if (advStats != null)
                     {
-                        advStats.UnregisterRenderers(unsupportedRenderers.AsArray());
                         advStats.RegisterExcludedRenderers(unsupportedRenderers.AsArray(), GRDExclusionReason.MissingDOTSInstancing);
                     }
 #endif
