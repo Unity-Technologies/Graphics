@@ -117,6 +117,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-138001",
             RuntimePlatform.WindowsEditor
         )]
+        [IgnoreGraphicsTest(
+            "9701_CustomPass_DrawRenderers",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-145446",
+            RuntimePlatform.WindowsEditor
+        )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);
