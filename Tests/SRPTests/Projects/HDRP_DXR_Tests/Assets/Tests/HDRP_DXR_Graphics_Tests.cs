@@ -201,6 +201,11 @@ namespace UnityEngine.Rendering.HighDefinition.DXR_Tests
             "Unstable: https://jira.unity3d.com/browse/UUM-144615",
             RuntimePlatform.GameCoreXboxSeries
         )]
+        [IgnoreGraphicsTest(
+            "902_Materials_SG_Variants_Fabric",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-144615",
+            RuntimePlatform.GameCoreXboxSeries
+        )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);
