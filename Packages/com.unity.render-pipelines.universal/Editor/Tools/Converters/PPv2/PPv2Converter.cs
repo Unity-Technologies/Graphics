@@ -5,6 +5,8 @@ using UnityEditor.Rendering.Converter;
 using UnityEngine.Categorization;
 using UnityEngine.Rendering.Universal;
 
+#pragma warning disable CS0618 // Type or member is obsolete
+
 #if PPV2_EXISTS
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -496,3 +498,5 @@ namespace UnityEditor.Rendering.Universal
 #endif
     }
 }
+
+#pragma warning restore CS0618 // Type or member is obsolete
