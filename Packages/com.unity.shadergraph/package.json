@@ -60,6 +60,15 @@
         "com.unity.render-pipelines.core/Samples~/Common",
         "com.unity.shadergraph/Samples~/Common"
       ]
+    },
+    {
+      "displayName": "Particle Shaders",
+      "description": "This sample helps you create customized shaders for your Particle Systems.",
+      "path": "Samples~/ParticleShaders",
+      "dependencies": [
+        "com.unity.render-pipelines.core/Samples~/Common",
+        "com.unity.shadergraph/Samples~/Common"
+      ]
     }
   ]
 }
