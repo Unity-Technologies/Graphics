@@ -12,15 +12,35 @@ namespace UnityEditor.Rendering.Universal
         private bool m_IsInitialized;
 
         // Debug parameters
+        private SerializedProperty _debugLogFocusTarget;
         private SerializedProperty _debugEnabled;
         private SerializedProperty _debugViewMode;
         private SerializedProperty _debugShowSamplePosition;
 
         private struct TextContent
         {
+            public static GUIContent DebugLogFocusTarget = EditorGUIUtility.TrTextContent("Debug Focus Target", "Show the per-frame primary camera and focus position below.");
+            public static GUIContent PrimaryCamera = EditorGUIUtility.TrTextContent("Primary Camera", "The camera selected to drive the cascade origin this frame.");
+            public static GUIContent FocusPosition = EditorGUIUtility.TrTextContent("Focus Position", "World-space position the cascades are centered on.");
             public static GUIContent DebugEnabled = EditorGUIUtility.TrTextContent("Debug Enabled", "Enable debug visualization.");
             public static GUIContent DebugViewMode = EditorGUIUtility.TrTextContent("Debug View Mode", "Debug visualization mode.");
             public static GUIContent DebugShowSamplePosition = EditorGUIUtility.TrTextContent("Debug Show Sample Position", "Show sample positions in debug view.");
+        }
+
+        private void OnEnable()
+        {
+            EditorApplication.update += RepaintWhileShowingFocusTarget;
+        }
+
+        private void OnDisable()
+        {
+            EditorApplication.update -= RepaintWhileShowingFocusTarget;
+        }
+
+        private void RepaintWhileShowingFocusTarget()
+        {
+            if (m_IsInitialized && _debugLogFocusTarget != null && _debugLogFocusTarget.boolValue)
+                Repaint();
         }
 
         private void Init()
@@ -29,6 +49,7 @@ namespace UnityEditor.Rendering.Universal
 
             SerializedProperty paramSets = serializedObject.FindProperty("_parameterSet");
 
+            _debugLogFocusTarget = paramSets.FindPropertyRelative("DebugLogFocusTarget");
             _debugEnabled = paramSets.FindPropertyRelative("DebugEnabled");
             _debugViewMode = paramSets.FindPropertyRelative("DebugViewMode");
             _debugShowSamplePosition = paramSets.FindPropertyRelative("DebugShowSamplePosition");
@@ -74,6 +95,17 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(_debugEnabled, TextContent.DebugEnabled);
             EditorGUILayout.PropertyField(_debugViewMode, TextContent.DebugViewMode);
             EditorGUILayout.PropertyField(_debugShowSamplePosition, TextContent.DebugShowSamplePosition);
+            EditorGUILayout.PropertyField(_debugLogFocusTarget, TextContent.DebugLogFocusTarget);
+
+            if (_debugLogFocusTarget.boolValue)
+            {
+                var feature = (SurfaceCacheGIRendererFeature)target;
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    EditorGUILayout.LabelField(TextContent.PrimaryCamera, new GUIContent(string.IsNullOrEmpty(feature.debugPrimaryCameraName) ? "—" : feature.debugPrimaryCameraName));
+                    EditorGUILayout.LabelField(TextContent.FocusPosition, new GUIContent(feature.debugFocusPos.ToString("F2")));
+                }
+            }
 
             serializedObject.ApplyModifiedProperties();
         }
