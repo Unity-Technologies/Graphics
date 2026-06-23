@@ -848,7 +848,7 @@ namespace UnityEditor.Graphing
 
         public static bool IsShaderLabKeyWord(string id)
         {
-            bool isShaderLabKeyword = m_ShaderLabKeywords.Contains(id.ToLower());
+            bool isShaderLabKeyword = m_ShaderLabKeywords.Contains(id.ToLowerInvariant());
             return isShaderLabKeyword;
         }
 

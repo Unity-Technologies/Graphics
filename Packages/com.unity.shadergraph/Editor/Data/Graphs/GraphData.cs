@@ -1652,7 +1652,7 @@ namespace UnityEditor.ShaderGraph
                 case ShaderKeyword keyword:
                 {
                     // must deduplicate ref names against keywords, dropdowns, and properties, as they occupy the same name space
-                    sanitizedName = sanitizedName.ToUpper();
+                    sanitizedName = sanitizedName.ToUpperInvariant();
                     sanitizedName = GraphUtil.DeduplicateName(existingNames, "{0}_{1}", sanitizedName);
                 }
                 break;
@@ -3135,13 +3135,13 @@ namespace UnityEditor.ShaderGraph
                 string actionToTake;
                 if (errorSourceSlot.stageCapability != ShaderStageCapability.None)
                 {
-                    var validStageName = errorSourceSlot.stageCapability.ToString().ToLower();
+                    var validStageName = errorSourceSlot.stageCapability.ToString().ToLowerInvariant();
                     actionToTake = $"reconnect to a {validStageName} block or delete invalid connection";
                 }
                 else
                     actionToTake = "delete invalid connection";
 
-                var invalidStageName = expectedShaderStage.ToString().ToLower();
+                var invalidStageName = expectedShaderStage.ToString().ToLowerInvariant();
                 string message = $"{errorSource} is not compatible with {invalidStageName} block {initialSlot.RawDisplayName()}, {actionToTake}.";
                 AddValidationError(errorNode.objectId, message, ShaderCompilerMessageSeverity.Error);
             }

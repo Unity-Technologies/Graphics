@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph
         };
 
         // With ShaderInclude asset type, it should no longer be necessary to soft-check the extension.
-        public static HashSet<string> s_ValidExtensions = new HashSet<string>() { ".hlsl", ".cginc", ".cg" };
+        public static HashSet<string> s_ValidExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".hlsl", ".cginc", ".cg" };
         const string k_InvalidFileType = "Source file is not a valid file type. Valid file extensions are .hlsl, .cginc, and .cg";
         const string k_MissingFile = "Source file does not exist. A valid .hlsl, .cginc, or .cg file must be referenced";
         const string k_MissingOutputSlot = "A Custom Function Node must have at least one output slot";
@@ -374,7 +374,7 @@ namespace UnityEditor.ShaderGraph
                 if (string.IsNullOrEmpty(path))
                     path = functionSource;
 
-                string extension = Path.GetExtension(path).ToLower();
+                string extension = Path.GetExtension(path);
                 return s_ValidExtensions.Contains(extension);
             }
         }
@@ -424,7 +424,7 @@ namespace UnityEditor.ShaderGraph
                     string path = AssetDatabase.GUIDToAssetPath(functionSource);
                     if (!string.IsNullOrEmpty(path) && AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path) != null)
                     {
-                        string extension = path.Substring(path.LastIndexOf('.')).ToLower();
+                        string extension = Path.GetExtension(path);
                         if (!s_ValidExtensions.Contains(extension))
                         {
                             fileStatus = SourceFileStatus.Invalid;

@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (Resizer direction in new[] { Resizer.Top, Resizer.Bottom, Resizer.Left, Resizer.Right })
             {
-                VisualElement resizer = this.Q(direction.ToString().ToLower() + "-resize");
+                VisualElement resizer = this.Q(direction.ToString().ToLowerInvariant() + "-resize");
                 if (resizer != null)
                 {
                     var manipulator = new ElementResizer(this, direction);
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (Resizer vertical in new[] { Resizer.Top, Resizer.Bottom })
                 foreach (Resizer horizontal in new[] { Resizer.Left, Resizer.Right })
                 {
-                    VisualElement resizer = this.Q(vertical.ToString().ToLower() + "-" + horizontal.ToString().ToLower() + "-resize");
+                    VisualElement resizer = this.Q(vertical.ToString().ToLowerInvariant() + "-" + horizontal.ToString().ToLowerInvariant() + "-resize");
                     if (resizer != null)
                     {
                         var manipulator = new ElementResizer(this, vertical | horizontal);

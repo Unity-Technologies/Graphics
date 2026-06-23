@@ -162,7 +162,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             BuildReferenceNameField(propertySheet);
             BuildPromoteField(propertySheet);
             BuildNoConnectorField(propertySheet);
-            BuildPropertyFields(propertySheet);            
+            BuildPropertyFields(propertySheet);
             BuildKeywordFields(propertySheet, shaderInput);
             BuildDropdownFields(propertySheet, shaderInput);
             BuildAttributesFields(propertySheet);
@@ -270,7 +270,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     );
 
                 toggleRow.SetEnabled(shaderInput.isExposable);
-                propertySheet.Add(toggleRow);                
+                propertySheet.Add(toggleRow);
                 exposedToggle = exposedToggleVisualElement as Toggle;
             }
         }
@@ -2097,7 +2097,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     this._preChangeValueCallback("Edit Enum Keyword Entry");
 
                     displayName = GetSanitizedDisplayName(displayName);
-                    referenceName = GetSanitizedReferenceName(displayName.ToUpper());
+                    referenceName = GetSanitizedReferenceName(displayName.ToUpperInvariant());
                     var duplicateIndex = FindDuplicateKeywordReferenceNameIndex(entry.id, referenceName);
                     if (duplicateIndex != -1)
                     {
@@ -2256,14 +2256,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             name = name.Trim();
             // Get de-duplicated display and reference names
             displayName = GetDuplicateSafeEnumDisplayName(id, name);
-            referenceName = GetDuplicateSafeReferenceName(id, displayName.ToUpper());
+            referenceName = GetDuplicateSafeReferenceName(id, displayName.ToUpperInvariant());
             // Check when the simple reference name should be for the display name.
             // If these don't match then there will be a desync which causes the enum entry to not work.
             // An example where this happens is ["new 1", "NEW_1"] already exists.
             // The display name "New_1" is added.
             // This new display name doesn't exist, but it finds the reference name of "NEW_1" already exists so we get the pair ["New_1", "NEW_2"] which is invalid.
             // The easiest fix in this case is to just use the safe reference name as the new display name which is guaranteed to be unique.
-            var simpleReferenceName = Regex.Replace(displayName.ToUpper(), m_ReferenceNameDisallowedPattern, "_");
+            var simpleReferenceName = Regex.Replace(displayName.ToUpperInvariant(), m_ReferenceNameDisallowedPattern, "_");
             if (referenceName != simpleReferenceName)
                 displayName = referenceName;
         }

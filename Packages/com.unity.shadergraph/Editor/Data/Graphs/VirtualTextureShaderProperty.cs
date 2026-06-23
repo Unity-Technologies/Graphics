@@ -144,7 +144,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         builder.Append(",");
                         builder.Append("TEXTURETYPE_");
-                        builder.Append(value.layers[i].layerTextureType.ToString().ToUpper());
+                        builder.Append(value.layers[i].layerTextureType.ToString().ToUpperInvariant());
                     }
                     builder.Append(")");
                     builder.AppendNewLine();

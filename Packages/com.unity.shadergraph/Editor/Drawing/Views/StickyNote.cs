@@ -166,11 +166,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (m_Theme != value)
                 {
-                    RemoveFromClassList("theme-" + value.ToString().ToLower());
+                    RemoveFromClassList("theme-" + value.ToString().ToLowerInvariant());
                 }
                 else
                 {
-                    AddToClassList("theme-" + value.ToString().ToLower());
+                    AddToClassList("theme-" + value.ToString().ToLowerInvariant());
                 }
             }
         }
@@ -181,11 +181,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (m_TextSize != value)
                 {
-                    RemoveFromClassList("size-" + value.ToString().ToLower());
+                    RemoveFromClassList("size-" + value.ToString().ToLowerInvariant());
                 }
                 else
                 {
-                    AddToClassList("size-" + value.ToString().ToLower());
+                    AddToClassList("size-" + value.ToString().ToLowerInvariant());
                 }
             }
         }

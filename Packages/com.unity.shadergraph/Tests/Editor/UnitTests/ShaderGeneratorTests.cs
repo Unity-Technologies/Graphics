@@ -653,5 +653,28 @@ struct PackedInput
                 Assert.AreEqual(0, compare, "Unexpected generated function:\n" + structDeclaration);
             }
         }
+
+        [TestCase("")]
+        [TestCase("en-US")]
+        [TestCase("tr-TR")]
+        [TestCase("az-Latn-AZ")]
+        public void KeywordReferenceNameUsesInvariantCasing(string cultureName)
+        {
+            var previousCulture = CultureInfo.CurrentCulture;
+            try
+            {
+                CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
+
+                var graph = new GraphData();
+                var keyword = new ShaderKeyword();
+                var referenceName = graph.SanitizeGraphInputReferenceName(keyword, "blit");
+
+                Assert.AreEqual("BLIT", referenceName);
+            }
+            finally
+            {
+                CultureInfo.CurrentCulture = previousCulture;
+            }
+        }
     }
 }
