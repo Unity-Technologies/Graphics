@@ -11,6 +11,8 @@ namespace UnityEditor.Rendering.Universal
     {
         private bool m_IsInitialized;
 
+        private SerializedProperty _primaryView;
+
         // Debug parameters
         private SerializedProperty _debugLogFocusTarget;
         private SerializedProperty _debugEnabled;
@@ -19,6 +21,7 @@ namespace UnityEditor.Rendering.Universal
 
         private struct TextContent
         {
+            public static GUIContent PrimaryView = EditorGUIUtility.TrTextContent("Primary View", "When multiple views are present, selects the type of view to prioritize for cascade origin.");
             public static GUIContent DebugLogFocusTarget = EditorGUIUtility.TrTextContent("Debug Focus Target", "Show the per-frame primary camera and focus position below.");
             public static GUIContent PrimaryCamera = EditorGUIUtility.TrTextContent("Primary Camera", "The camera selected to drive the cascade origin this frame.");
             public static GUIContent FocusPosition = EditorGUIUtility.TrTextContent("Focus Position", "World-space position the cascades are centered on.");
@@ -49,6 +52,7 @@ namespace UnityEditor.Rendering.Universal
 
             SerializedProperty paramSets = serializedObject.FindProperty("_parameterSet");
 
+            _primaryView = paramSets.FindPropertyRelative("PrimaryView");
             _debugLogFocusTarget = paramSets.FindPropertyRelative("DebugLogFocusTarget");
             _debugEnabled = paramSets.FindPropertyRelative("DebugEnabled");
             _debugViewMode = paramSets.FindPropertyRelative("DebugViewMode");
@@ -87,6 +91,10 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUILayout.HelpBox("Many Surface Cache settings are controlled via the Volume system. Add a 'Surface Cache Global Illumination' volume override to your scene to adjust these settings per-scene.", MessageType.Info);
             }
+
+            EditorGUILayout.Space();
+
+            EditorGUILayout.PropertyField(_primaryView, TextContent.PrimaryView);
 
             EditorGUILayout.Space();
 

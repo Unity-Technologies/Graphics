@@ -97,6 +97,12 @@ namespace UnityEngine.Rendering.Universal
             FlatNormal
         }
 
+        public enum PrimaryViewPreference
+        {
+            SceneView,
+            GameView
+        }
+
         public static readonly string k_StaticBatchingErrorMesssage = "Surface Cache GI cannot run because it is incompatible with Static Batching. You can disable the option in the Player Settings.";
 
         private const uint DEFAULT_DEFRAG_COUNT = 2; // Default value for how many patches to defragment per frame.
@@ -122,13 +128,13 @@ namespace UnityEngine.Rendering.Universal
 
         static bool IsEligibleCamera(Camera camera)
         {
-            if (camera.cameraType != CameraType.Game && camera.cameraType != CameraType.SceneView)
+            if (camera.cameraType != CameraType.Game && camera.cameraType != CameraType.SceneView && camera.cameraType != CameraType.Preview)
                 return false;
 
             return camera.cullingMask != 0;
         }
 
-        static Camera SelectPrimaryCamera(List<Camera> cameras)
+        static Camera SelectPrimaryCamera(List<Camera> cameras, PrimaryViewPreference preference)
         {
             Camera best = null;
             foreach (var cam in cameras)
@@ -136,17 +142,17 @@ namespace UnityEngine.Rendering.Universal
                 if (cam == null) // destroyed since last frame
                     continue;
 
-                if (best == null || CompareCameraPriority(cam, best) < 0)
+                if (best == null || CompareCameraPriority(cam, best, preference) < 0)
                     best = cam;
             }
 
             return best;
         }
 
-        static int CompareCameraPriority(Camera a, Camera b)
+        static int CompareCameraPriority(Camera a, Camera b, PrimaryViewPreference preference)
         {
-            int rankA = a.cameraType == CameraType.SceneView ? 0 : 1;
-            int rankB = b.cameraType == CameraType.SceneView ? 0 : 1;
+            int rankA = PreferenceRank(a, preference);
+            int rankB = PreferenceRank(b, preference);
             if (rankA != rankB)
                 return rankA.CompareTo(rankB);
 
@@ -154,6 +160,14 @@ namespace UnityEngine.Rendering.Universal
                 return a.targetDisplay.CompareTo(b.targetDisplay);
 
             return a.GetEntityId().CompareTo(b.GetEntityId());
+        }
+
+        // 0 for the preferred view type, 1 for the other.
+        static int PreferenceRank(Camera camera, PrimaryViewPreference preference)
+        {
+            bool isSceneView = camera.cameraType == CameraType.SceneView;
+            bool isPreferred = preference == PrimaryViewPreference.SceneView ? isSceneView : !isSceneView;
+            return isPreferred ? 0 : 1;
         }
 
         private static VolumeParameterSet GetVolumeParametersOrDefaults(SurfaceCacheGIVolumeOverride volume)
@@ -1070,6 +1084,9 @@ namespace UnityEngine.Rendering.Universal
         [Serializable]
         class ParameterSet
         {
+            // Which view type drives the cache update and focus when multiple cameras render in a frame.
+            public PrimaryViewPreference PrimaryView = PrimaryViewPreference.SceneView;
+
             // Debug settings (will be moved to rendering debugger in the future)
             public bool DebugLogFocusTarget = false;
             public bool DebugEnabled = false;
@@ -1278,7 +1295,7 @@ namespace UnityEngine.Rendering.Universal
                     ReconfigureCache(volumeParams);
                 _frameIdx = volumeReconfigured ? 0u : _frameIdx + 1u;
 
-                Camera primaryCamera = SelectPrimaryCamera(_frameCameras);
+                Camera primaryCamera = SelectPrimaryCamera(_frameCameras, _parameterSet.PrimaryView);
                 _frameCameras.Clear();
 
                 var focusPos = primaryCamera != null ? primaryCamera.transform.position : camera.transform.position;
