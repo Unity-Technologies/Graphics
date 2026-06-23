@@ -2,6 +2,9 @@
 
 Use the Expression node to specify a complex mathematical expression as a string instead of using multiple [Math nodes](Math-Nodes.md).
 
+> [!NOTE]
+> Unity injects the provided expression into the shader code as HLSL and validates it through preview shader compilation. Ensure that the provided expression conforms to HLSL syntax.
+
 ## Input ports
 
 The number and type of input ports automatically adjust to the values of the [node controls](#controls). Unity adds an input port for each variable in the expression in the text field.
