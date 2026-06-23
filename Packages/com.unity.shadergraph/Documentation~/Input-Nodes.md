@@ -113,3 +113,5 @@ Supply shaders with essential data such as constants, mesh attributes, gradients
 | [Element Texture UV](element-texture-uv-node.md) | Provides the texture coordinates (UV) typically used to sample the texture assigned to a UI element. |
 | [Element Layout UV](element-layout-uv-node.md) | Provides the layout UV coordinates within a UI element's layout rectangle. |
 | [Element Texture Size](element-texture-size-node.md) | Provides the size of the texture assigned to a UI element. |
+| [Element Tint](element-tint-node.md) | Provides the tint color (vertex color combined with the dynamic color) of a UI element. |
+| [Element Opacity](element-opacity-node.md) | Provides the opacity of a UI element. |

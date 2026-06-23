@@ -48,12 +48,16 @@ namespace UnityEditor.ShaderGraph
             {
                 bool hasTint = GetInputNodeFromSlot(k_InputSlotIdTint) != null;
                 sb.AppendLine("SdfTextFragInput Unity_UIE_EvaluateSdfTextNode_Input;");
-                sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.tint = {0};", hasTint ? GetSlotValue(k_InputSlotIdTint, generationMode) : "IN.color");
+                // The tint is straight (not premultiplied); SDF text needs a premultiplied face color,
+                // a step that used to happen in the vertex. Opacity is applied at the end of the fragment.
+                sb.AppendLine("float4 Unity_UIE_EvaluateSdfTextNode_Tint = {0};", hasTint ? GetSlotValue(k_InputSlotIdTint, generationMode) : "IN.color");
+                sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Tint.rgb *= Unity_UIE_EvaluateSdfTextNode_Tint.a;");
+                sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.tint = Unity_UIE_EvaluateSdfTextNode_Tint;");
                 sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.textureSlot = IN.typeTexSettings.y;");
                 sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.uv = IN.uvClip.xy;");
                 sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.extraDilate = IN.circle.x;");
                 sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.textCoreLoc = round(IN.textCoreLoc);");
-                sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.opacity = IN.typeTexSettings.z;");
+                sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.opacity = 1.0;");
                 sb.AppendLine("CommonFragOutput Unity_UIE_EvaluateSdfTextNode_Output = uie_std_frag_sdf_text(Unity_UIE_EvaluateSdfTextNode_Input);");
                 sb.AppendLine("{0} = Unity_UIE_EvaluateSdfTextNode_Output.color;", outputVarName);
             }
