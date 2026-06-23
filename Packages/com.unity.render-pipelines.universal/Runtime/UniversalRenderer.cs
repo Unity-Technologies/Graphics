@@ -142,7 +142,6 @@ namespace UnityEngine.Rendering.Universal
         DrawSkyboxPass m_DrawSkyboxPass;
         CopyDepthPass m_CopyDepthPass;
         CopyColorPass m_CopyColorPass;
-        TransparentSettingsPass m_TransparentSettingsPass;
         DrawObjectsPass m_RenderTransparentForwardPass;
         InvokeOnRenderObjectCallbackPass m_OnRenderObjectCallbackPass;
         FinalBlitPass m_FinalBlitPass;
@@ -398,7 +397,6 @@ namespace UnityEngine.Rendering.Universal
             if (needTransparencyPass)
 #endif
             {
-                m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
                 m_RenderTransparentForwardPass = new DrawObjectsPass(URPProfilingSamplers.DrawTransparentObjects, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             }
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
@@ -485,6 +483,7 @@ namespace UnityEngine.Rendering.Universal
             m_OffscreenUICoverPrepass?.Dispose();
             m_DrawOffscreenUIPass?.Dispose();
             m_DrawOverlayUIPass?.Dispose();
+            m_AdditionalLightsShadowCasterPass?.Dispose();
 
             m_CopyDepthPass?.Dispose();
 #if UNITY_EDITOR
@@ -528,7 +527,7 @@ namespace UnityEngine.Rendering.Universal
         internal override void ReleaseRenderTargets()
         {
             m_MainLightShadowCasterPass?.Dispose();
-            m_AdditionalLightsShadowCasterPass?.Dispose();
+            m_AdditionalLightsShadowCasterPass?.ReleaseRenderTargets();
         }
 
         /// <summary>

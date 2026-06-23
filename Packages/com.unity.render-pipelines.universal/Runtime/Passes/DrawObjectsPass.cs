@@ -166,6 +166,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
 
             internal UniversalCameraData cameraData;
+            internal UniversalShadowData shadowData;
             internal bool isOpaque;
             internal bool shouldTransparentsReceiveShadows;
 #if URP_SCREEN_SPACE_REFLECTION
@@ -186,9 +187,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// Initialize the shared pass data.
         /// </summary>
         /// <param name="passData"></param>
-        internal void InitPassData(UniversalCameraData cameraData, ref PassData passData, uint batchLayerMask, bool isActiveTargetBackBuffer = false)
+        internal void InitPassData(UniversalCameraData cameraData, UniversalShadowData shadowData, ref PassData passData, uint batchLayerMask, bool isActiveTargetBackBuffer = false)
         {
             passData.cameraData = cameraData;
+            passData.shadowData = shadowData;
             passData.isOpaque = m_IsOpaque;
             passData.shouldTransparentsReceiveShadows = m_ShouldTransparentsReceiveShadows;
 #if URP_SCREEN_SPACE_REFLECTION
@@ -250,6 +252,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
+            UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
             bool disableZWrite = CanDisableZWrite(cameraData, m_IsOpaque);
 
@@ -257,7 +260,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 builder.UseAllGlobalTextures(true);
 
-                InitPassData(cameraData, ref passData, batchLayerMask, resourceData.isActiveTargetBackBuffer);
+                InitPassData(cameraData, shadowData, ref passData, batchLayerMask, resourceData.isActiveTargetBackBuffer);
 
                 if (colorTarget.IsValid())
                 {
@@ -336,10 +339,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
-                    // Currently we only need to call this additional pass when the user
-                    // doesn't want transparent objects to receive shadows
+                    // Currently we only need to call this when the user doesn't want transparent objects to receive shadows
                     if (!data.isOpaque && !data.shouldTransparentsReceiveShadows)
-                        TransparentSettingsPass.ExecutePass(context.cmd);
+                    {
+                        MainLightShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd);
+                        AdditionalLightsShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd, data.shadowData);
+                    }
 
                     bool yFlip = RenderingUtils.IsHandleYFlipped(context, in (data.albedoHdl.IsValid() ? ref data.albedoHdl : ref data.depthHdl));
 
@@ -406,8 +411,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
                 UniversalLightData lightData = frameData.Get<UniversalLightData>();
+                UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
-                InitPassData(cameraData, ref passData.basePassData, batchLayerMask);
+                InitPassData(cameraData, shadowData, ref passData.basePassData, batchLayerMask);
 
                 passData.maskSize = maskSize;
 
@@ -472,7 +478,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // Currently we only need to call this additional pass when the user
                     // doesn't want transparent objects to receive shadows
                     if (!data.basePassData.isOpaque && !data.basePassData.shouldTransparentsReceiveShadows)
-                        TransparentSettingsPass.ExecutePass(context.cmd);
+                    {
+                        MainLightShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd);
+                        AdditionalLightsShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd, data.basePassData.shadowData);
+                    }
 
                     bool yFlip = RenderingUtils.IsHandleYFlipped(context, in (data.basePassData.albedoHdl.IsValid() ? ref data.basePassData.albedoHdl : ref data.basePassData.depthHdl));
 

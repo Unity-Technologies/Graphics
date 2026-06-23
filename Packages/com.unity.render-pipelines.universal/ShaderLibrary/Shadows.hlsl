@@ -64,11 +64,6 @@ TEXTURE2D_SHADOW(_MainLightShadowmapTexture);
 TEXTURE2D_SHADOW(_AdditionalLightsShadowmapTexture);
 SAMPLER_CMP(sampler_LinearClampCompare);
 
-// GLES3 causes a performance regression in some devices when using CBUFFER.
-#ifndef LIGHT_SHADOWS_NO_CBUFFER
-CBUFFER_START(LightShadows)
-#endif
-
 // Last cascade is initialized with a no-op matrix. It always transforms
 // shadow coord to half3(0, 0, NEAR_PLANE). We use this trick to avoid
 // branching since ComputeCascadeIndex can return cascade index = MAX_SHADOW_CASCADES
@@ -95,14 +90,19 @@ float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width an
 // blocks bigger than 8kb while others have a 64kb max uniform block size. This number ensures size of buffer
 // AdditionalLightShadows stays reasonable. It also avoids shader compilation errors on SHADER_API_GLES30
 // devices where max number of uniforms per shader GL_MAX_FRAGMENT_UNIFORM_VECTORS is low (224)
-float4      _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];         // Per-light data: (x: shadowStrength, y: softShadows, z: light type (Spot: 0, Point: 1), w: perLightFirstShadowSliceIndex)
-float4x4    _AdditionalLightsWorldToShadow[MAX_VISIBLE_LIGHTS];  // Per-shadow-slice-data
-#endif
-#endif
 
+// GLES3 causes a performance regression in some devices when using CBUFFER.
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
+CBUFFER_START(AdditionalLightShadows)
+#endif
+float4x4    _AdditionalLightsWorldToShadow[MAX_VISIBLE_LIGHTS];  // Per-shadow-slice-data
+float4      _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];         // Per-light data: (x: shadowStrength, y: softShadows, z: light type (Spot: 0, Point: 1), w: perLightFirstShadowSliceIndex)
 #ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
 #endif
+#endif
+#endif
+
 
 #if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
     #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA

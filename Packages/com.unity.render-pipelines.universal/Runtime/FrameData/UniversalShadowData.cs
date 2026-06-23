@@ -95,6 +95,9 @@ namespace UnityEngine.Rendering.Universal
         internal NativeArray<URPLightShadowCullingInfos> visibleLightsShadowCullingInfos;
         internal AdditionalLightsShadowAtlasLayout shadowAtlasLayout;
 
+        // Owned by AdditionalLightsShadowCasterPass
+        internal GraphicsBuffer emptyAdditionalLightShadowsBuffer;
+
 #if ENABLE_VR && ENABLE_XR_MODULE
         /// <summary>True when this camera pass should reuse the shadow map rendered in the previous XR pass.</summary>
         internal bool useCachedShadowMap;
@@ -127,6 +130,8 @@ namespace UnityEngine.Rendering.Universal
 
             visibleLightsShadowCullingInfos = default;
             shadowAtlasLayout = default;
+
+            emptyAdditionalLightShadowsBuffer = null;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             useCachedShadowMap = false;

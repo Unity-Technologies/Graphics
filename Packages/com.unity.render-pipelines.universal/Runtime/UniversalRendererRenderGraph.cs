@@ -1314,7 +1314,7 @@ namespace UnityEngine.Rendering.Universal
                 m_RenderTransparentForwardPass.shouldTransparentsReceiveSSR = ssrSettings.ShouldRenderTransparents();
 #endif
 
-                m_RenderTransparentForwardPass.m_ShouldTransparentsReceiveShadows = !m_TransparentSettingsPass.Setup();
+                m_RenderTransparentForwardPass.m_ShouldTransparentsReceiveShadows = shadowTransparentReceive;
                 m_RenderTransparentForwardPass.Render(
                     renderGraph,
                     frameData,

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
@@ -38,6 +39,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
 
         private readonly bool m_UseStructuredBuffer;
+        private readonly bool m_UsePersistentConstantBuffer;
+        private readonly int m_MaxVisibleAdditionalLights;
         private float m_MaxShadowDistanceSq;
         private float m_CascadeBorder;
         private bool[] m_VisibleLightIndexToIsCastingShadows;                          // maps a "global" visible light index (index to lightData.visibleLights) to a shadow casting state (Is the light casting shadows or not?)
@@ -50,7 +53,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private readonly List<short> m_ShadowSliceToAdditionalLightIndex = new();               // For each shadow slice, store the "additional light indices" of the punctual light that casts it
         private readonly Dictionary<int, ulong> m_ShadowRequestsHashes = new();                 // used to keep track of changes in the shadow requests and shadow atlas configuration (per camera)
         private readonly ProfilingSampler m_ProfilingSetupSampler = new ("Setup Additional Shadows");
-        private RenderTextureDescriptor m_AdditionalLightShadowDescriptor;
+        private RenderTextureDescriptor m_AdditionalLightShadowDescriptor;                      // Never modified after initialization
 
         // Constants and Statics
         private const int k_ShadowmapBufferBits = 16;
@@ -59,6 +62,18 @@ namespace UnityEngine.Rendering.Universal.Internal
         private const float k_LightTypeIdentifierInShadowParams_Spot = 0;
         private const float k_LightTypeIdentifierInShadowParams_Point = 1;
         private const string k_AdditionalLightShadowMapTextureName = "_AdditionalLightsShadowmapTexture";
+
+        // Persistent constant buffer backing store (non-SSBO mode).
+        private const int k_WorldToShadowChannel = 0;
+        private const int k_ShadowParamsChannel = 4;
+        private const int k_AdditionalLightShadowsChannelCount = k_ShadowParamsChannel + 1; // 4 (matrix) + 1 (shadow params)
+        private const string k_AdditionalLightShadowsCBName = "Additional Light Shadows Buffer";
+        private const string k_EmptyAdditionalLightShadowsCBName = "Empty Additional Light Shadows Buffer";
+
+        private NativeArray<Vector4> m_AdditionalLightShadowsData;
+        private GraphicsBuffer m_AdditionalLightShadowsBuffer;
+        private GraphicsBuffer m_EmptyAdditionalLightShadowsBuffer;
+
         // x is used in RenderAdditionalShadowMapAtlas to skip shadow map rendering for non-shadow-casting lights.
         // w is perLightFirstShadowSliceIndex, used in Lighting shader to find if Additional light casts shadows.
         private static readonly Vector4 c_DefaultShadowParams = new (0, 0, 0, -1);
@@ -78,6 +93,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _AdditionalLightsShadowmapID = Shader.PropertyToID(k_AdditionalLightShadowMapTextureName);
             public static readonly int _AdditionalLightsWorldToShadow_SSBO = Shader.PropertyToID("_AdditionalLightsWorldToShadow_SSBO");
             public static readonly int _AdditionalShadowParams_SSBO = Shader.PropertyToID("_AdditionalShadowParams_SSBO");
+            public static readonly int _AdditionalLightShadowsBufferID = Shader.PropertyToID("AdditionalLightShadows");
         }
 
         private class PassData
@@ -86,6 +102,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal bool emptyShadowmap;
             internal bool setKeywordForEmptyShadowmap;
             internal bool useStructuredBuffer;
+            internal bool usePersistentConstantBuffer;
             internal bool stripShadowsOffVariants;
             internal Vector2Int allocatedShadowAtlasSize;
             internal TextureHandle shadowmapTexture;
@@ -106,12 +123,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             renderPassEvent = evt;
 
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
+            m_UsePersistentConstantBuffer = RenderingUtils.usePersistentConstantBuffer;
+            m_MaxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
 
             // Pre-allocated a fixed size. CommandBuffer.SetGlobal* does allow this data to grow.
-            int maxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
             const int maxMainLights = 1;
-            int maxVisibleLights = maxVisibleAdditionalLights + maxMainLights;
-            int maxAdditionalLightShadowParams = m_UseStructuredBuffer ? maxVisibleLights : Math.Min(maxVisibleLights, maxVisibleAdditionalLights);
+            int maxVisibleLights = m_MaxVisibleAdditionalLights + maxMainLights;
+            int maxAdditionalLightShadowParams = m_UseStructuredBuffer ? maxVisibleLights : Math.Min(maxVisibleLights, m_MaxVisibleAdditionalLights);
 
             // These array sizes should be as big as ScriptableCullingParameters.maximumVisibleLights (that is defined during ScriptableRenderer.SetupCullingParameters).
             // We initialize these array sizes with the number of visible lights allowed by the UniversalRenderer.
@@ -125,15 +143,70 @@ namespace UnityEngine.Rendering.Universal.Internal
             for (int i = 0; i < s_EmptyAdditionalLightIndexToShadowParams.Length; i++)
                 s_EmptyAdditionalLightIndexToShadowParams[i] = c_DefaultShadowParams;
 
-            // Uniform buffers are faster on some platforms, but they have stricter size limitations
-            if (!m_UseStructuredBuffer)
-                m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[maxVisibleAdditionalLights];
+            m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[m_MaxVisibleAdditionalLights];
+
+            EnsureBuffersCreated();
+        }
+
+        /// <summary>
+        /// Ensures persistent constant buffers are created. Called lazily from Setup
+        /// in case buffers were destroyed (e.g., domain reload, graphics device reset).
+        /// </summary>
+        private void EnsureBuffersCreated()
+        {
+            if (!m_UsePersistentConstantBuffer || m_AdditionalLightShadowsBuffer != null)
+                return;
+
+            int length = m_MaxVisibleAdditionalLights * k_AdditionalLightShadowsChannelCount;
+            if (length <= 0)
+                return;
+
+            m_AdditionalLightShadowsData = new NativeArray<Vector4>(length, Allocator.Persistent);
+
+            m_AdditionalLightShadowsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Constant, length, UnsafeUtility.SizeOf<Vector4>())
+            {
+                name = k_AdditionalLightShadowsCBName
+            };
+
+            m_EmptyAdditionalLightShadowsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Constant, length, UnsafeUtility.SizeOf<Vector4>())
+            {
+                name = k_EmptyAdditionalLightShadowsCBName
+            };
+
+            // Pre-fill with empty shadow params (matrices are zeroed, params set to default)
+            var emptyData = new NativeArray<Vector4>(length, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            int shadowParamsOffset = m_MaxVisibleAdditionalLights * k_ShadowParamsChannel;
+
+            int copyLength = Math.Min(m_MaxVisibleAdditionalLights, s_EmptyAdditionalLightIndexToShadowParams.Length);
+            NativeArray<Vector4>.Copy(s_EmptyAdditionalLightIndexToShadowParams, 0, emptyData, shadowParamsOffset, copyLength);
+
+            m_EmptyAdditionalLightShadowsBuffer.SetData(emptyData);
+            emptyData.Dispose();
         }
 
         /// <summary>
         /// Cleans up resources used by the pass.
         /// </summary>
         public void Dispose()
+        {
+            ReleaseRenderTargets();
+
+            if (m_UsePersistentConstantBuffer)
+            {
+                if (m_AdditionalLightShadowsData.IsCreated)
+                    m_AdditionalLightShadowsData.Dispose();
+
+                Shader.SetGlobalConstantBuffer(AdditionalShadowsConstantBuffer._AdditionalLightShadowsBufferID, (ComputeBuffer)null, 0, 0);
+
+                m_AdditionalLightShadowsBuffer?.Dispose();
+                m_AdditionalLightShadowsBuffer = null;
+
+                m_EmptyAdditionalLightShadowsBuffer?.Dispose();
+                m_EmptyAdditionalLightShadowsBuffer = null;
+            }
+        }
+
+        internal void ReleaseRenderTargets()
         {
             m_AdditionalLightsShadowmapHandle?.Release();
         }
@@ -367,6 +440,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             using var profScope = new ProfilingScope(m_ProfilingSetupSampler);
 
+            // Lazy init: ensure buffers exist (may have been destroyed by domain reload or graphics device reset)
+            EnsureBuffersCreated();
+
+            // Populate shadowData with empty buffer info for TransparentSettingsPass
+            shadowData.emptyAdditionalLightShadowsBuffer = m_EmptyAdditionalLightShadowsBuffer;
+
             bool shadowsEnabled = shadowData.additionalLightShadowsEnabled;
             if (!shadowsEnabled)
             {
@@ -427,7 +506,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_VisibleLightIndexToIsCastingShadows = new bool[visibleLights.Length];
             }
 
-            int maxAdditionalLightShadowParams = m_UseStructuredBuffer ? visibleLights.Length : Math.Min(visibleLights.Length, UniversalRenderPipeline.maxVisibleAdditionalLights);
+            int maxAdditionalLightShadowParams = m_UseStructuredBuffer ? visibleLights.Length : Math.Min(visibleLights.Length, m_MaxVisibleAdditionalLights);
             if (m_AdditionalLightIndexToVisibleLightIndex.Length < maxAdditionalLightShadowParams)
             {
                 m_AdditionalLightIndexToVisibleLightIndex = new short[maxAdditionalLightShadowParams];
@@ -435,6 +514,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             int totalShadowSlicesCount = atlasLayout.GetTotalShadowSlicesCount();
+            // When not using structured buffer, cap shadow slices to shader constant buffer limit
             int totalShadowResolutionRequestCount = atlasLayout.GetTotalShadowResolutionRequestCount();
             int shadowSlicesScaleFactor = atlasLayout.GetShadowSlicesScaleFactor();
             bool hasTooManyShadowMaps = atlasLayout.HasTooManyShadowMaps();
@@ -464,8 +544,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_AdditionalLightsShadowSlices == null || m_AdditionalLightsShadowSlices.Length < totalShadowSlicesCount)
                 m_AdditionalLightsShadowSlices = new ShadowSliceData[totalShadowSlicesCount];
 
-            if (m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix == null ||
-                (m_UseStructuredBuffer && (m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length < totalShadowSlicesCount)))   // m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix can be resized when using SSBO to pass shadow data (no size limitation)
+            bool willResizeWorldShadowMatrix = m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix == null ||
+                (m_UseStructuredBuffer && (m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length < totalShadowSlicesCount));
+
+            if (willResizeWorldShadowMatrix)
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[totalShadowSlicesCount];
 
             // initialize _AdditionalShadowParams
@@ -727,7 +809,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (isAdditionalShadowParamsDirty)
             {
                 isAdditionalShadowParamsDirty = false;
-                Debug.LogWarning($"The number of visible additional lights {visibleLights.Length} exceeds the maximum supported lights {UniversalRenderPipeline.maxVisibleAdditionalLights}." +
+                Debug.LogWarning($"The number of visible additional lights {visibleLights.Length} exceeds the maximum supported lights {m_MaxVisibleAdditionalLights}." +
                     $" Please refer URP documentation to change maximum number of visible lights or" +
                     $" reduce the number of lights to maximum allowed additional lights.");
             }
@@ -791,7 +873,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_GlobalShadowSliceIndexToPerLightShadowSliceIndex.Clear();
         }
 
-        internal static void SetShadowParamsForEmptyShadowmap(RasterCommandBuffer rasterCommandBuffer)
+        internal static void SetShadowParamsForEmptyShadowmap(RasterCommandBuffer rasterCommandBuffer, UniversalShadowData shadowData)
         {
             rasterCommandBuffer.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowFadeParams, s_EmptyAdditionalShadowFadeParams);
 
@@ -801,7 +883,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 shadowParamsBuffer.SetData(s_EmptyAdditionalLightIndexToShadowParams);
                 rasterCommandBuffer.SetGlobalBuffer(AdditionalShadowsConstantBuffer._AdditionalShadowParams_SSBO, shadowParamsBuffer);
             }
-            else if (s_EmptyAdditionalLightIndexToShadowParams.Length <= UniversalRenderPipeline.maxVisibleAdditionalLights)
+            else if (RenderingUtils.usePersistentConstantBuffer && shadowData.emptyAdditionalLightShadowsBuffer != null)
+            {
+                var bufferSize = shadowData.emptyAdditionalLightShadowsBuffer.count * shadowData.emptyAdditionalLightShadowsBuffer.stride;
+                rasterCommandBuffer.SetGlobalConstantBuffer(shadowData.emptyAdditionalLightShadowsBuffer, AdditionalShadowsConstantBuffer._AdditionalLightShadowsBufferID, 0, bufferSize);
+            }
+            else
             {
                 rasterCommandBuffer.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowParams, s_EmptyAdditionalLightIndexToShadowParams);
             }
@@ -881,11 +968,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             ShadowUtils.SetSoftShadowQualityShaderKeywords(cmd, data.shadowData);
 
             if (anyShadowSliceRenderer)
-                SetupAdditionalLightsShadowReceiverConstants(cmd, data.allocatedShadowAtlasSize, data.useStructuredBuffer, softShadows);
+                SetupAdditionalLightsShadowReceiverConstants(cmd, data.allocatedShadowAtlasSize, data.useStructuredBuffer, data.usePersistentConstantBuffer, softShadows);
         }
 
         // Set constant buffer data that will be used during the lighting/shadowing pass
-        private void SetupAdditionalLightsShadowReceiverConstants(RasterCommandBuffer cmd, Vector2Int allocatedShadowAtlasSize, bool useStructuredBuffer, bool softShadows)
+        private void SetupAdditionalLightsShadowReceiverConstants(RasterCommandBuffer cmd, Vector2Int allocatedShadowAtlasSize, bool useStructuredBuffer, bool usePersistentCBuffer, bool softShadows)
         {
             if (useStructuredBuffer)
             {
@@ -899,10 +986,32 @@ namespace UnityEngine.Rendering.Universal.Internal
                 shadowSliceMatricesBuffer.SetData(m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix);
                 cmd.SetGlobalBuffer(AdditionalShadowsConstantBuffer._AdditionalLightsWorldToShadow_SSBO, shadowSliceMatricesBuffer);
             }
+            else if (usePersistentCBuffer)
+            {
+                if (m_AdditionalLightShadowsData.IsCreated && m_AdditionalLightShadowsBuffer != null)
+                {
+                    // Pack per-channel managed arrays into the Vector4 backing store, matching CBUFFER(AdditionalLightShadows) layout.
+                    int worldToShadowOffset = m_MaxVisibleAdditionalLights * k_WorldToShadowChannel;
+                    int shadowParamsOffset = m_MaxVisibleAdditionalLights * k_ShadowParamsChannel;
+
+                    if (m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix != null && m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length > 0)
+                    {
+                        m_AdditionalLightShadowsData.GetSubArray(worldToShadowOffset, shadowParamsOffset).Reinterpret<Matrix4x4>(UnsafeUtility.SizeOf<Vector4>()).CopyFrom(m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix);
+                    }
+
+                    if (m_AdditionalLightIndexToShadowParams != null && m_AdditionalLightIndexToShadowParams.Length > 0)
+                    {
+                        m_AdditionalLightShadowsData.GetSubArray(shadowParamsOffset, m_MaxVisibleAdditionalLights).CopyFrom(m_AdditionalLightIndexToShadowParams);
+                    }
+
+                    m_AdditionalLightShadowsBuffer.SetData(m_AdditionalLightShadowsData);
+                    cmd.SetGlobalConstantBuffer(m_AdditionalLightShadowsBuffer, AdditionalShadowsConstantBuffer._AdditionalLightShadowsBufferID, 0, m_AdditionalLightShadowsData.Length * UnsafeUtility.SizeOf<Vector4>());
+                }
+            }
             else
             {
-                cmd.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowParams, m_AdditionalLightIndexToShadowParams);                         // per-light data
-                cmd.SetGlobalMatrixArray(AdditionalShadowsConstantBuffer._AdditionalLightsWorldToShadow, m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix); // per-shadow-slice data
+                cmd.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowParams, m_AdditionalLightIndexToShadowParams);
+                cmd.SetGlobalMatrixArray(AdditionalShadowsConstantBuffer._AdditionalLightsWorldToShadow, m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix);
             }
 
             ShadowUtils.GetScaleAndBiasForLinearDistanceFade(m_MaxShadowDistanceSq, m_CascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
@@ -936,6 +1045,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             passData.emptyShadowmap = m_CreateEmptyShadowmap;
             passData.setKeywordForEmptyShadowmap = m_SetKeywordForEmptyShadowmap;
             passData.useStructuredBuffer = m_UseStructuredBuffer;
+            passData.usePersistentConstantBuffer = m_UsePersistentConstantBuffer;
         }
 
         private void InitRendererLists(ref CullingResults cullResults, ref PassData passData, RenderGraph renderGraph)
@@ -1016,7 +1126,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     {
                         if (data.setKeywordForEmptyShadowmap)
                             rasterCommandBuffer.EnableKeyword(ShaderGlobalKeywords.AdditionalLightShadows);
-                        SetShadowParamsForEmptyShadowmap(rasterCommandBuffer);
+                        SetShadowParamsForEmptyShadowmap(rasterCommandBuffer, data.shadowData);
                     }
                 });
 
@@ -1072,7 +1182,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     {
                         if (data.setKeywordForEmptyShadowmap)
                             rasterCommandBuffer.EnableKeyword(ShaderGlobalKeywords.AdditionalLightShadows);
-                        SetShadowParamsForEmptyShadowmap(rasterCommandBuffer);
+                        SetShadowParamsForEmptyShadowmap(rasterCommandBuffer, data.shadowData);
                     }
                 });
 
