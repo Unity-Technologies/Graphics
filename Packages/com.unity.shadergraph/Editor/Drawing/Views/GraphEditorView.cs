@@ -190,7 +190,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         static GUIContent HelpIcon =>
             helpIcon ??= new GUIContent(EditorGUIUtility.IconContent("_Help").image, "Open Shader Graph User Manual");
 
-        public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager, string graphName)
+        public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager, string graphName, bool disablePreviewsForTesting = false)
         {
             m_GraphViewGroupTitleChanged = OnGroupTitleChanged;
             m_GraphViewElementsAddedToGroup = OnElementsAddedToGroup;
@@ -201,7 +201,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Graph = graph;
             m_AssetName = graphName;
             m_MessageManager = messageManager;
-            previewManager = new PreviewManager(graph, messageManager);
+            previewManager = new PreviewManager(graph, messageManager, disablePreviewsForTesting);
             previewManager.RenderPreviews(m_EditorWindow, false);
 
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));

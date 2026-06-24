@@ -2,7 +2,6 @@ using System.Linq;
 using System.IO;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.TestTools;
 using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph.UnitTests
@@ -276,7 +275,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
         }
 
         [Test]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })] // Unstable: https://jira.unity3d.com/browse/UUM-141869
         public void CanBuildMultipleShaders()
         {
             GraphData graph = new GraphData();

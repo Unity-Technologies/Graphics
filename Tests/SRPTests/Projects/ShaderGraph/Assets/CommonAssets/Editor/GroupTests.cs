@@ -54,6 +54,18 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
         }
 
+        [OneTimeTearDown]
+        public void Cleanup()
+        {
+            if (m_Window != null)
+            {
+                m_Window.DiscardChanges();
+                m_Window.Close();
+            }
+            m_Window = null;
+            m_GraphEditorView = null;
+        }
+
         class TestExecuteCommandEvent : ExecuteCommandEvent
         {
             public void SetCommandName(string command)
@@ -72,8 +84,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
                     BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
             var pasteMethodInfo = materialGraphViewType.GetMethod("PasteCallback",
                     BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
-			
-            var mousePositionPropertyInfo = materialGraphViewType.GetProperty("cachedMousePosition", 
+
+            var mousePositionPropertyInfo = materialGraphViewType.GetProperty("cachedMousePosition",
                     typeof(Vector2));
 
             Assert.NotNull(cutMethodInfo, "CutSelectionCallback method not found.");
@@ -84,15 +96,15 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 .Where(x => x.userData.title == "Empty Group")
                 .ToList();
 
-            Assert.AreEqual(1, groupList.Count());    
+            Assert.AreEqual(1, groupList.Count());
 
-                
-            
+
+
             materialGraphView.ClearSelection();
             materialGraphView.AddToSelection(groupList[0]);
 
             cutMethodInfo.Invoke(materialGraphView, null);
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             groupList = materialGraphView.Query<ShaderGroup>()
                 .Where(x => x.userData.title == "Empty Group")
@@ -102,19 +114,19 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             mousePositionPropertyInfo.SetValue(materialGraphView, new Vector2(100,100));
             pasteMethodInfo.Invoke(materialGraphView, null);
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             mousePositionPropertyInfo.SetValue(materialGraphView, new Vector2(100,200));
             pasteMethodInfo.Invoke(materialGraphView, null);
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             groupList = materialGraphView.Query<ShaderGroup>()
                 .Where(x => x.userData.title == "Empty Group")
                 .ToList();
-            
+
             Assert.AreEqual(2, groupList.Count());
 
-            Assert.AreNotEqual(groupList[0].GetPosition().position, groupList[1].GetPosition().position, 
+            Assert.AreNotEqual(groupList[0].GetPosition().position, groupList[1].GetPosition().position,
                 "When the cursor position changes, the pasted group's position should be adjusted accordingly");
         }
 
