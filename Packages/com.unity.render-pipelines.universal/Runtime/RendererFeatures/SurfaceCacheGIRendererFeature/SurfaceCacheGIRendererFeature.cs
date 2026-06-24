@@ -1264,8 +1264,14 @@ namespace UnityEngine.Rendering.Universal
             bool enabled = surfaceCacheVolumeOverride == null || surfaceCacheVolumeOverride.enabled.value;
             if (!enabled)
             {
-                if (ResourcesCreated())
-                    ClearResources();
+                if (_frameCameras.Contains(camera))
+                    _frameCameras.Remove(camera);
+
+                if (_frameCameras.Count == 0)
+                {
+                    if (ResourcesCreated())
+                        ClearResources();
+                }
                 return;
             }
 
