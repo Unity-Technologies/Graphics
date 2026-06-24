@@ -17,6 +17,15 @@ namespace UnityEngine.Rendering.Tests
         public Vector3 L12;
     }
 
+    // Must match the HLSL PatchUtil::PatchStatisticsSet layout.
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct PatchStatisticsSeed
+    {
+        public Vector3 mean;
+        public Vector3 variance;
+        public uint counters;
+    }
+
     internal sealed class TestHarness : IDisposable
     {
         sealed class WorldUpdatePassData
@@ -232,6 +241,9 @@ namespace UnityEngine.Rendering.Tests
 
             _cache.Patches.Irradiances[0].SetData(irradiances, 0, 0, count);
             _cache.Patches.Irradiances[2].SetData(irradiances, 0, 0, count);
+
+            // Allocation normally initializes the stats; this test seeds patches directly, so do it here.
+            _cache.Patches.Statistics.SetData(new PatchStatisticsSeed[_cache.Patches.Statistics.count]);
         }
 
         public static void AssertL0IrradianceApproximatelyEqual(SHRGBL1 expected, SHRGBL1 actual, float epsilon)
