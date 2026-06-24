@@ -41,7 +41,7 @@ namespace UnityEngine.VFX.Test
         [IgnoreGraphicsTest("Readback_ParticleCount", "No reference images provided")]
         [IgnoreGraphicsTest("009_MultiCamera", "See UUM-140411", RuntimePlatform.OSXEditor)]
 
-        [MockHmdSetup(99)]
+        [MockHmdSetup]
         [AssetBundleSetup]
         [UnityTest, Category("VisualEffect")]
         [SceneGraphicsTest("Assets/AllTests/VFXTests/GraphicsTests", "Packages/com.unity.testing.visualeffectgraph/Scenes")]

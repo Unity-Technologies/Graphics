@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.PerformanceTest
         [IgnoreGraphicsTest("NamedObject_ExposedProperties", "No reference images provided")]
         [IgnoreGraphicsTest("PrewarmCompute", "No reference images provided")]
 
-        [MockHmdSetup(99)]
+        [MockHmdSetup]
         [AssetBundleSetup]
         [PerformanceTestSettingsSetup]
         [Timeout(600 * 1000), Version("1"), Performance, UnityTest]
@@ -87,7 +87,7 @@ namespace UnityEditor.VFX.PerformanceTest
         [IgnoreGraphicsTest("NamedObject_ExposedProperties", "No reference images provided")]
         [IgnoreGraphicsTest("PrewarmCompute", "No reference images provided")]
 
-        [MockHmdSetup(99)]
+        [MockHmdSetup]
         [AssetBundleSetup]
         [PerformanceTestSettingsSetup]
         [Timeout(600 * 1000), Version("1"), UnityTest, Performance, Order(0)]

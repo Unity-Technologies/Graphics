@@ -17,7 +17,7 @@ using UnityEngine.Playables;
 namespace UnityEngine.VFX.Test
 {
     [TestFixture]
-    [MockHmdSetup(99)]
+    [MockHmdSetup]
     [AssetBundleSetup]
     public class VFXRuntimeTests
     {

@@ -18,7 +18,7 @@ using UnityEditor;
 namespace UnityEngine.VFX.Test
 {
     [TestFixture]
-    [MockHmdSetup(99)]
+    [MockHmdSetup]
     [AssetBundleSetup]
     public class VFXStressTests
     {
