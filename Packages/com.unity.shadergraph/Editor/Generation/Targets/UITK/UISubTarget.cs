@@ -79,6 +79,10 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
+            // Position is always active so the graph vertex stage can read/write element-local
+            // position. An untouched block defaults to the object-space position, so the pass output
+            // is unchanged for graphs that don't drive Position.
+            context.AddBlock(BlockFields.VertexDescription.Position);
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
         }
@@ -161,8 +165,20 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             };
         }
 
+        static readonly KeywordDescriptor s_AutomaticOpacity = new KeywordDescriptor()
+        {
+            displayName = "Automatic Opacity",
+            referenceName = "UITK_AUTOMATIC_OPACITY",
+            type = KeywordType.Boolean,
+        };
+
         protected virtual DefineCollection GetPassDefines()
-            => new DefineCollection();
+        {
+            var defines = new DefineCollection();
+            if (uiData == null || uiData.automaticOpacity)
+                defines.Add(s_AutomaticOpacity, 1);
+            return defines;
+        }
 
         protected virtual KeywordCollection GetPassKeywords()
             => new KeywordCollection();
@@ -226,6 +242,8 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
         const string kUVErrorMessageSubGraph = "UI Material only supports UV0-UV3 in the subgraph. To use UV1-3, enable the matching channel under PanelSettings.extraVertexChannels.";
         const string kGeometryFragmentStageError = "{0} cannot be used in the fragment stage on UI Toolkit shaders. UI Toolkit does not provide a per-element transform that would make the value meaningful in the fragment shader. Route the value through a Custom Interpolator (vertex stage to fragment stage) to read the raw vertex data in the fragment shader.";
         const string kGeometryNonObjectSpaceError = "{0}'s Space must be set to Object on UI Toolkit shaders. UI Toolkit does not provide a meaningful per-element world transform; other spaces would apply the batched-group transform and produce incorrect data. The Object space option returns the value as it was packed into the vertex stream.";
+        const string kPositionSpaceError = "{0}'s Space must be set to Object or World on UI Toolkit shaders. Object returns the element-local position; World applies the element transform (translation, bone and group). View, Tangent and Absolute World are not supported.";
+        const string kPositionObjectFragmentError = "{0} in Object space is the element-local position and is only available in the vertex stage on UI Toolkit shaders. Use World space to read the position in the fragment stage, or route the Object-space value through a Custom Interpolator (vertex stage to fragment stage).";
 
         static bool IsAllowedUVChannel(UnityEditor.ShaderGraph.Internal.UVChannel channel)
         {
@@ -353,8 +371,38 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             if (node is not GeometryNode geometryNode)
                 return false;
 
-            // PositionNode and ViewDirectionNode are blocked outright via m_UnsupportedNodes;
-            // only the three vector nodes reach this validator on UITK.
+            // Object (element-local) and World (group * bone * (local + translation)) are the only
+            // meaningful UITK position spaces; View/Tangent/AbsoluteWorld would apply an unrelated
+            // transform.
+            if (geometryNode is PositionNode)
+            {
+                if (geometryNode.space != CoordinateSpace.Object && geometryNode.space != CoordinateSpace.World)
+                {
+                    errorMessage = string.Format(kPositionSpaceError, node.name);
+                    return true;
+                }
+
+                // Object is element-local and only available in the vertex stage: the fragment can't
+                // recover it from the panel-root world varying (inverting UNITY_MATRIX_M only reaches
+                // group space). World rides the positionWS varying, so it works in both stages.
+                if (geometryNode.space == CoordinateSpace.Object)
+                {
+                    var positionOutput = node.FindOutputSlot<MaterialSlot>(0);
+                    if (positionOutput != null)
+                    {
+                        var positionCapability = NodeUtils.GetEffectiveShaderStageCapability(positionOutput, goingBackwards: false);
+                        if (positionCapability != ShaderStageCapability.All && (positionCapability & ShaderStageCapability.Fragment) != 0)
+                        {
+                            errorMessage = string.Format(kPositionObjectFragmentError, node.name);
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+            // ViewDirectionNode is blocked outright via m_UnsupportedNodes; only the three vector
+            // nodes reach this point on UITK.
             if (geometryNode is not (NormalVectorNode or TangentVectorNode or BitangentVectorNode))
                 return false;
 
@@ -438,7 +486,8 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
                 // opt-in via PanelSettings.extraVertexChannels (Normal, Tangent). When the
                 // matching channel isn't enabled the stream is zero, so the user is responsible
                 // for opting in to get meaningful values.
-                m_UnsupportedNodes.Add(typeof(PositionNode));
+                // Position is allowed too (Object = element-local, World = element transform); its
+                // spaces are validated in ValidateGeometryNode. ViewDirection stays blocked (no view).
                 m_UnsupportedNodes.Add(typeof(ViewDirectionNode));
 
                 // Vertex attribute related node which cannot be correctly handled in UITK.
@@ -470,7 +519,10 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
     class UITKBlockMasks
     {
         // Port Mask
-        public static BlockFieldDescriptor[] Vertex = null;
+        public static BlockFieldDescriptor[] Vertex =
+        {
+            BlockFields.VertexDescription.Position,
+        };
 
         public static  BlockFieldDescriptor[] Fragment =
         {
@@ -513,6 +565,7 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             StructFields.Varyings.texCoord5,
             StructFields.Varyings.texCoord6,
             StructFields.Varyings.texCoord7,
+            UIStructs.OpacityVarying, // per-element opacity, applied at the end of the fragment
         };
     }
 #endregion

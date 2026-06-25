@@ -14,29 +14,37 @@ PackedVaryings uie_custom_vert(Attributes input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, uieInput);
 
+    Varyings varyings = (Varyings)0;
+
+    // Run the graph vertex stage and write its (possibly modified) element-local Position into the
+    // vertex; uie_std_vert then applies translation -> bone -> group -> clip. A pass-through graph
+    // returns input.positionOS, so the output matches the built-in path. uie_build_vertex also
+    // forwards the custom interpolators into the Varyings.
+#if defined(FEATURES_GRAPH_VERTEX)
+    uieInput.vertex.xyz = uie_build_vertex(input, varyings);
+#endif
+
     v2f uieOutput = uie_std_vert(uieInput);
 
-    Varyings varyings = (Varyings)0;
     varyings.positionCS = uieOutput.pos;
 
-    // Run the shader graph vertex stage so custom interpolators (and any other
-    // VertexDescription outputs) can be written into the Varyings. Position/Normal/
-    // Tangent on VertexDescription are not used here because UITK's vertex transform
-    // is owned by uie_std_vert above; only opt-in CIs are forwarded.
-#if defined(FEATURES_GRAPH_VERTEX)
-    VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
-    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
-    #if defined(CUSTOMINTERPOLATOR_VARYPASSTHROUGH_FUNC)
-        CustomInterpolatorPassThroughFunc(varyings, vertexDescription);
-    #endif
-#endif
+    // Load the element record once and reuse it for opacity and the world position below; uie_std_vert
+    // loads its own copy internally, but sharing here avoids the extra reads on the custom path.
+    uint transformId, opacityId;
+    float2 translation;
+    uie_load_element_info(uieInput, transformId, opacityId, translation);
 
+    // Custom shaders carry the straight tint (vertexColor * dynamicColor, no opacity, no premultiply)
+    // and the per-element opacity separately; opacity is applied at the end of the fragment. This
+    // ignores uie_std_vert's baked color, which is for the built-in path only.
+    varyings.color = uie_element_tint(uieInput.color, uieInput.packedIds);
+    varyings.opacity = ReadShaderInfo(uie_id_to_texel_opacity(opacityId)).a;
+
+    // The element world position is group * bone * (local + translation). uie_local_to_world stops at
+    // group space, so apply the group->world transform on top.
 #ifdef VARYINGS_NEED_POSITION_WS
-    float3 positionWS = TransformObjectToWorld(input.positionOS);
-    varyings.positionWS = positionWS;
+    varyings.positionWS = TransformObjectToWorld(uie_local_to_world(uieInput.vertex, transformId, translation));
 #endif
-    
-    varyings.color = uieOutput.color;
 
     // User UV0-UV3 are forwarded to texCoord0-3 on demand (opt-in via PanelSettings.extraVertexChannels).
     // input.uv0 carries layoutUV in .zw — the surface-input builder strips it before exposing uv0 to graphs.
@@ -71,6 +79,10 @@ UIE_FRAG_T uie_custom_frag(PackedVaryings packedInput) : SV_Target
     Varyings varyings = UnpackVaryings(packedInput);
     SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(varyings);
 
+    // BuildSurfaceDescriptionInputs only populates opacity when a node requires it; force it from the
+    // carried varying so the Element Color node's Opacity output is correct even on its own.
+    surfaceDescriptionInputs.opacity = varyings.opacity;
+
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
     // TODO: In the future, we should try to use surfaceDescription.coverage instead of computing coverage outside
@@ -88,6 +100,14 @@ UIE_FRAG_T uie_custom_frag(PackedVaryings packedInput) : SV_Target
     clip(coverage - 0.003f);
 
     surfaceDescription.Alpha *= coverage;
+
+    // Apply the per-element opacity here, at the very end, instead of baking it into the tint in the
+    // vertex. Authors can disable this (Graph Settings) and apply opacity themselves via the Element
+    // Opacity node's output. Read the raw varying rather than surfaceDescriptionInputs.opacity:
+    // the latter is only populated when a node requires it, but this apply always needs it.
+#if defined(UITK_AUTOMATIC_OPACITY)
+    surfaceDescription.Alpha *= varyings.opacity;
+#endif
 
     return float4(surfaceDescription.BaseColor, surfaceDescription.Alpha);
 }

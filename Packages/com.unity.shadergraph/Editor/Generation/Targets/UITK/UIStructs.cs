@@ -2,6 +2,13 @@ namespace UnityEditor.ShaderGraph
 {
     internal static class UIStructs
     {
+        // Per-element opacity carried to the fragment (custom shaders only). The default shader bakes
+        // opacity into the color in uie_std_vert; the custom path keeps the tint straight and applies
+        // opacity at the end of the fragment, so it needs its own interpolant (packed by the packer).
+        internal static readonly FieldDescriptor OpacityVarying = new FieldDescriptor(
+            "Varyings", "opacity", "VARYINGS_NEED_OPACITY", ShaderValueType.Float,
+            subscriptOptions: StructFieldOptions.Optional);
+
         public static StructDescriptor Varyings = new StructDescriptor()
         {
             name = "Varyings",
@@ -21,6 +28,7 @@ namespace UnityEditor.ShaderGraph
                 StructFields.Varyings.texCoord6,
                 StructFields.Varyings.texCoord7,
                 StructFields.Varyings.color,
+                OpacityVarying,
                 StructFields.Varyings.instanceID,
                 StructFields.Varyings.vertexID,
                 StructFields.Varyings.stereoTargetEyeIndexAsBlendIdx0,
@@ -67,18 +75,41 @@ namespace UnityEditor.ShaderGraph
                 new FieldDescriptor("VertexDescriptionInputs", "uv", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static),
                 new FieldDescriptor("VertexDescriptionInputs", "packedIds", "", ShaderValueType.Uint4, subscriptOptions: StructFieldOptions.Static),
                 new FieldDescriptor("VertexDescriptionInputs", "circle", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static),
+                // Texture UV (dynamic-texture-patched), mirrors SurfaceDescriptionInputs.uvClip so the
+                // Element Texture UV node reads IN.uvClip.xy in the vertex stage as it does in fragment.
+                new FieldDescriptor("VertexDescriptionInputs", "uvClip", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static),
+                // Resolved tint (vertexColor * dynamicColor), mirrors SurfaceDescriptionInputs.color so the
+                // Element Color node reads IN.color in the vertex stage; the fragment uses the carried tint.
+                new FieldDescriptor("VertexDescriptionInputs", "color", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static),
+                // Per-element opacity, mirrors SurfaceDescriptionInputs.opacity so the Element Color node
+                // reads IN.opacity in the vertex stage.
+                new FieldDescriptor("VertexDescriptionInputs", "opacity", "", ShaderValueType.Float, subscriptOptions: StructFieldOptions.Static),
+                // Layout-rect UV, mirrors SurfaceDescriptionInputs.layoutUV so the Element Layout UV node
+                // reads IN.layoutUV.xy in the vertex stage as it does in fragment.
+                new FieldDescriptor("VertexDescriptionInputs", "layoutUV", "", ShaderValueType.Float2, subscriptOptions: StructFieldOptions.Static),
+                // Type/texture settings, mirrors SurfaceDescriptionInputs.typeTexSettings so the Element
+                // Texture Size node reads IN.typeTexSettings.y (the texture slot) in the vertex stage.
+                new FieldDescriptor("VertexDescriptionInputs", "typeTexSettings", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static),
 
                 // optionals
                 StructFields.VertexDescriptionInputs.VertexID,
                 StructFields.VertexDescriptionInputs.InstanceID,
 
+                // Element-local position read (PositionNode Object space) and the per-element world
+                // position (PositionNode World space, built in BuildUIVertexDescriptionInputs).
+                // ObjectSpacePosition is also the default of the always-active Position block.
+                StructFields.VertexDescriptionInputs.ObjectSpacePosition,
+                StructFields.VertexDescriptionInputs.WorldSpacePosition,
+
                 StructFields.VertexDescriptionInputs.ObjectSpaceNormal,
                 StructFields.VertexDescriptionInputs.ObjectSpaceTangent,
+                StructFields.VertexDescriptionInputs.uv0, // Element Texture UV node reads IN.uv0 in preview
                 StructFields.VertexDescriptionInputs.uv1,
                 StructFields.VertexDescriptionInputs.uv2,
                 StructFields.VertexDescriptionInputs.uv3,
                 StructFields.VertexDescriptionInputs.NDCPosition,
                 StructFields.VertexDescriptionInputs.PixelPosition,
+                StructFields.VertexDescriptionInputs.TimeParameters, // e.g. a Time-driven vertex Position offset
 
             }
         };
@@ -96,6 +127,9 @@ namespace UnityEditor.ShaderGraph
                 new FieldDescriptor("SurfaceDescriptionInputs", "circle", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static),
                 new FieldDescriptor("SurfaceDescriptionInputs", "uvClip", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static),
                 new FieldDescriptor("SurfaceDescriptionInputs", "layoutUV", "", ShaderValueType.Float2, subscriptOptions: StructFieldOptions.Static),
+                // Per-element opacity carried from the vertex; read by the Element Color node and applied
+                // at the end of uie_custom_frag (unless disabled).
+                new FieldDescriptor("SurfaceDescriptionInputs", "opacity", "", ShaderValueType.Float, subscriptOptions: StructFieldOptions.Static),
 
                 StructFields.SurfaceDescriptionInputs.uv0,
                 StructFields.SurfaceDescriptionInputs.uv1,

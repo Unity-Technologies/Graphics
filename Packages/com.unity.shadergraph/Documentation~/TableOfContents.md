@@ -177,8 +177,10 @@
             * [Texture Size](Texture-Size-Node.md)
         * UI
             * [Element Layout UV](element-layout-uv-node.md)
+            * [Element Opacity](element-opacity-node.md)
             * [Element Texture Size](element-texture-size-node.md)
             * [Element Texture UV](element-texture-uv-node.md)
+            * [Element Tint](element-tint-node.md)
     * [Keyword](Keyword-Node.md)
         * [Material Quality](Material-Quality-Keyword-Node.md)
         * [Raytracing Quality](Raytracing-Quality-Keyword-Node.md)
