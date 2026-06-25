@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.TestTools.Graphics.Platforms;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
@@ -65,6 +66,16 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "5001_Fog_FogFallback",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-144922",
             RuntimePlatform.LinuxEditor, RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor
+        )]
+        [TestNotSupportedOn(
+            "501[0-5]|5020",
+            "Not XR compatible",
+            StereoRenderingContext.StereoEnabled
+        )]
+        [TestNotSupportedOn(
+            "501[0-5]|5020",
+            "Not XR compatible",
+            XrDevice.OculusLoader, XrDevice.OpenXRLoader
         )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {

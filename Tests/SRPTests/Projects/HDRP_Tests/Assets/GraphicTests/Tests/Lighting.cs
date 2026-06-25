@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.TestTools.Graphics.Platforms;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
@@ -87,6 +88,16 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             RuntimePlatform.WindowsEditor,
             Architecture.X64,
             GpuResidentDrawerContext.GRDEnabled
+        )]
+        [TestNotSupportedOn(
+            "2004|2224|2318|2319|2320|2551",
+            "Not XR compatible",
+            StereoRenderingContext.StereoEnabled
+        )]
+        [TestNotSupportedOn(
+            "2004|2224|2318|2319|2320|2551",
+            "Not XR compatible",
+            XrDevice.OculusLoader, XrDevice.OpenXRLoader
         )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {

@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Contexts;
 using UnityEngine.TestTools.Graphics.Platforms;
 
 namespace UnityEngine.VFX.Test
@@ -40,6 +41,17 @@ namespace UnityEngine.VFX.Test
         [IgnoreGraphicsTest("PrewarmCompute", "No reference images provided")]
         [IgnoreGraphicsTest("Readback_ParticleCount", "No reference images provided")]
         [IgnoreGraphicsTest("009_MultiCamera", "See UUM-140411", RuntimePlatform.OSXEditor)]
+
+        [TestNotSupportedOn(
+            "008_AssetBundle|025_Flipbook|16_MeshParticles|21_DepthModules|23_ParameterBinders|24_MotionVector|25_PerParticleLOD|32_ExcludeFromTAA|42_CollisionEvents|45_CustomPassCulling|HDRPFogVolumetric|PositionDepthOperator",
+            "Not XR compatible",
+            StereoRenderingContext.StereoEnabled
+        )]
+        [TestNotSupportedOn(
+            "008_AssetBundle|025_Flipbook|16_MeshParticles|21_DepthModules|23_ParameterBinders|24_MotionVector|25_PerParticleLOD|32_ExcludeFromTAA|42_CollisionEvents|45_CustomPassCulling|HDRPFogVolumetric|PositionDepthOperator",
+            "Not XR compatible",
+            XrDevice.OculusLoader, XrDevice.OpenXRLoader
+        )]
 
         [MockHmdSetup]
         [AssetBundleSetup]

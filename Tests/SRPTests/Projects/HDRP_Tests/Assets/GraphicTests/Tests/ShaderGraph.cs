@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.TestTools.Graphics.Platforms;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
@@ -41,6 +42,16 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "(Intel Mac) Bunny in the middle should be translucent-pink, not black.",
             GraphicsDeviceType.Metal,
             Architecture.X64
+        )]
+        [TestNotSupportedOn(
+            "8103|8107|8108|8207_InstanceID|8207_InstancingAPIs|8210|8211",
+            "Not XR compatible",
+            StereoRenderingContext.StereoEnabled
+        )]
+        [TestNotSupportedOn(
+            "8103|8107|8108|8207_InstanceID|8207_InstancingAPIs|8210|8211",
+            "Not XR compatible",
+            XrDevice.OculusLoader, XrDevice.OpenXRLoader
         )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {

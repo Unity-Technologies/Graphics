@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.TestTools.Graphics.Platforms;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
@@ -126,6 +127,16 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "^(?!.*(4088_DRS-DLSS-Hardware|4089_DRS-DLSS-Software|4090_DRS-Hardware|4096_DRS-TAAU-Hardware|4100_DRS-STP-Hardware|4102_DRS-CAS-AfterPost|4103_DRS-DLSS-AfterPost|4104_DRS-STP-AfterPost|4106_DRS-TAAU-AfterPost|4107_DRS-FSR2-Hardware|4109_DRS-FSR2-AfterPost|4110_DRS-FSR2-With-CustomPass|4111_DRS-DLSS-With-CustomPass)).*",
             "Upscaler-only job — non-upscaler tests excluded when ENABLE_UPSCALER_FRAMEWORK is defined",
             UpscalerFrameworkContext.UpscalerFrameworkEnabled
+        )]
+        [TestNotSupportedOn(
+            "4011|4013|4014|4038|4060|4061|4099|4100",
+            "Not XR compatible",
+            StereoRenderingContext.StereoEnabled
+        )]
+        [TestNotSupportedOn(
+            "4011|4013|4014|4038|4060|4061|4099|4100",
+            "Not XR compatible",
+            XrDevice.OculusLoader, XrDevice.OpenXRLoader
         )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {

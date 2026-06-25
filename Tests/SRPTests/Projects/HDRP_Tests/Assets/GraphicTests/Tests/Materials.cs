@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.TestTools.Graphics.Platforms;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
@@ -81,6 +82,16 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             Architecture.X64
         )]
         [IgnoreGraphicsTest("1806_BatchCount$", "Fails everywhere (seems to be missing CPU markers).")]
+        [TestNotSupportedOn(
+            "1227|1805",
+            "Not XR compatible",
+            StereoRenderingContext.StereoEnabled
+        )]
+        [TestNotSupportedOn(
+            "1227|1805",
+            "Not XR compatible",
+            XrDevice.OculusLoader, XrDevice.OpenXRLoader
+        )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);

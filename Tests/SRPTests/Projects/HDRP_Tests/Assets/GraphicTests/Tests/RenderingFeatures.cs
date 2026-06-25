@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.TestTools.Graphics.Platforms;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
@@ -121,6 +122,16 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "9701_CustomPass_DrawRenderers",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-145446",
             RuntimePlatform.WindowsEditor
+        )]
+        [TestNotSupportedOn(
+            "9305|9401|9700|9702|9704|9800|9901|9902|993[012]",
+            "Not XR compatible",
+            StereoRenderingContext.StereoEnabled
+        )]
+        [TestNotSupportedOn(
+            "9305|9401|9700|9702|9704|9800|9901|9902|993[012]",
+            "Not XR compatible",
+            XrDevice.OculusLoader, XrDevice.OpenXRLoader
         )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {

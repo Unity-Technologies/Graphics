@@ -83,6 +83,16 @@ namespace UnityEngine.Rendering.HighDefinition.DXR_Tests
             "Disabled for Instability ",
             RuntimePlatform.GameCoreXboxSeries
         )]
+        [TestNotSupportedOn(
+            "10_BackBufferCapture|105_ReflectionsDenoised|114|1000_RaytracingQualityKeyword_PathTracer",
+            "Not XR compatible",
+            StereoRenderingContext.StereoEnabled
+        )]
+        [TestNotSupportedOn(
+            "10_BackBufferCapture|105_ReflectionsDenoised|114|1000_RaytracingQualityKeyword_PathTracer",
+            "Not XR compatible",
+            XrDevice.OculusLoader, XrDevice.OpenXRLoader
+        )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);
@@ -109,6 +119,16 @@ namespace UnityEngine.Rendering.HighDefinition.DXR_Tests
             "2007_Debug_LightCluster",
             "issue on Yamato/HDRP-3081",
             RuntimePlatform.PS5
+        )]
+        [TestNotSupportedOn(
+            "200[1457]",
+            "Not XR compatible",
+            StereoRenderingContext.StereoEnabled
+        )]
+        [TestNotSupportedOn(
+            "200[1457]",
+            "Not XR compatible",
+            XrDevice.OculusLoader, XrDevice.OpenXRLoader
         )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {
@@ -144,6 +164,16 @@ namespace UnityEngine.Rendering.HighDefinition.DXR_Tests
             "5007_PathTracing_Materials_SG_Lit",
             "issue on Yamato only: jira: https://jira.unity3d.com/browse/UUM-26542",
             RuntimePlatform.WindowsPlayer
+        )]
+        [TestNotSupportedOn(
+            "500[1-8]|501[0-9]|502[01236]|5009|10004",
+            "Not XR compatible",
+            StereoRenderingContext.StereoEnabled
+        )]
+        [TestNotSupportedOn(
+            "500[1-8]|501[0-9]|502[01236]|5009|10004",
+            "Not XR compatible",
+            XrDevice.OculusLoader, XrDevice.OpenXRLoader
         )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {

@@ -6,6 +6,8 @@ using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.TestTools.Graphics.Platforms;
 
 public class BuiltInGraphicsTests
 {
@@ -25,6 +27,16 @@ public class BuiltInGraphicsTests
     [IgnoreGraphicsTest("036_Lighting_Scene_DirectionalBakedDirectional", "Failed from the start when introducing DX12 coverage", RuntimePlatform.WindowsEditor, GraphicsDeviceType.Direct3D12)]
     [IgnoreGraphicsTest("042_Lighting_Scene_VertexLighting", "Failed from the start when introducing DX12 coverage", RuntimePlatform.WindowsEditor, GraphicsDeviceType.Direct3D12)]
     [IgnoreGraphicsTest("118_SkyboxReflectionTestOrthographic", "Failed from the start when introducing DX12 coverage", RuntimePlatform.WindowsEditor, GraphicsDeviceType.Direct3D12)]
+    [TestNotSupportedOn(
+        "118",
+        "Not XR compatible",
+        StereoRenderingContext.StereoEnabled
+    )]
+    [TestNotSupportedOn(
+        "118",
+        "Not XR compatible",
+        XrDevice.OculusLoader, XrDevice.OpenXRLoader
+    )]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {
 		Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");

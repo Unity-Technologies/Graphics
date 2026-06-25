@@ -3,6 +3,8 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.TestTools.Graphics.Platforms;
 using UnityEngine.Rendering;
 using System.Runtime.InteropServices;
 using Unity.Testing.XR.Runtime;
@@ -86,6 +88,16 @@ public class HDRP_Runtime_Graphics_Tests
         "012-SVL_Check$",
         "https://jira.unity3d.com/browse/UUM-70791",
         RuntimePlatform.PS4, RuntimePlatform.PS5, RuntimePlatform.Switch, RuntimePlatform.Switch2
+    )]
+    [TestNotSupportedOn(
+        "012|011",
+        "Not XR compatible",
+        StereoRenderingContext.StereoEnabled
+    )]
+    [TestNotSupportedOn(
+        "012|011",
+        "Not XR compatible",
+        XrDevice.OculusLoader, XrDevice.OpenXRLoader
     )]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {
