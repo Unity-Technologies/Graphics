@@ -7,6 +7,20 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
 {
     internal static class URPProjectAuditorUtilities
     {
+        public static bool IsURPActiveInProject()
+        {
+            if (GraphicsSettings.defaultRenderPipeline is UniversalRenderPipelineAsset)
+                return true;
+
+            bool found = false;
+            QualitySettings.ForEach(() =>
+            {
+                if (QualitySettings.renderPipeline is UniversalRenderPipelineAsset)
+                    found = true;
+            });
+            return found;
+        }
+
         public static List<ScriptableRendererData> GetAllRendererDataAssets()
         {
             var assets = new List<ScriptableRendererData>();

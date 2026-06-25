@@ -454,6 +454,56 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor.Tests
             Assert.IsTrue(analyzer.Descriptor.Title.Contains("Volume Profile"));
         }
 
+        [Test]
+        public void URP0203_ShaderStrippingSettings_HasCorrectDescriptor()
+        {
+            var analyzer = new ShaderStrippingSettingsAnalyzer();
+            Assert.IsNotNull(analyzer.Descriptor);
+            Assert.AreEqual("URP0203", analyzer.Descriptor.Id);
+            Assert.AreEqual(Severity.Moderate, analyzer.Descriptor.DefaultSeverity);
+            Assert.IsTrue(analyzer.Descriptor.Title.Contains("stripping"));
+            Assert.IsNotNull(analyzer.Descriptor.Fixer);
+        }
+
+        [Test]
+        public void IsURPActiveInProject_DetectsURPAssignedOnlyInQualityLevel()
+        {
+            // Arrange: no URP as the default pipeline, but URP assigned on a single quality level. URP shader
+            // stripping still runs for that platform, so the project must be considered URP-active.
+            var urpAsset = ScriptableObject.CreateInstance<UniversalRenderPipelineAsset>();
+            GraphicsSettings.defaultRenderPipeline = null;
+
+            for (int i = 0; i < QualitySettings.names.Length && i < m_PreviousQualitySettings.Length; i++)
+            {
+                QualitySettings.SetQualityLevel(i);
+                QualitySettings.renderPipeline = (i == 0) ? urpAsset : null;
+            }
+
+            // Act / Assert
+            Assert.IsTrue(URPProjectAuditorUtilities.IsURPActiveInProject(),
+                "Should detect URP when assigned only on a quality level, even with no default pipeline");
+
+            // Cleanup (TearDown restores the previous quality/default pipelines)
+            UnityEngine.Object.DestroyImmediate(urpAsset);
+        }
+
+        [Test]
+        public void IsURPActiveInProject_FalseWhenNoURPAnywhere()
+        {
+            // Arrange: no URP as the default pipeline and none on any quality level.
+            GraphicsSettings.defaultRenderPipeline = null;
+
+            for (int i = 0; i < QualitySettings.names.Length && i < m_PreviousQualitySettings.Length; i++)
+            {
+                QualitySettings.SetQualityLevel(i);
+                QualitySettings.renderPipeline = null;
+            }
+
+            // Act / Assert
+            Assert.IsFalse(URPProjectAuditorUtilities.IsURPActiveInProject(),
+                "Should not detect URP when it is not assigned anywhere");
+        }
+
         #endregion
 
         #region SRP and Static Batching Tests (0301-0400)
