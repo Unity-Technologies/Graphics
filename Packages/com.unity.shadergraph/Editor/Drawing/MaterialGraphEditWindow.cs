@@ -55,6 +55,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         int m_customInterpWarn;
         [NonSerialized]
         int m_customInterpErr;
+        [NonSerialized]
+        internal bool m_DisablePreviewsForTesting;
 
         [SerializeField]
         bool m_AssetMaybeChangedOnDisk;
@@ -300,7 +302,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     string graphName = Path.GetFileNameWithoutExtension(assetPath);
                     graphObject.Validate();
 
-                    graphEditorView = new GraphEditorView(this, materialGraph, messageManager, graphName)
+                    graphEditorView = new GraphEditorView(this, materialGraph, messageManager, graphName, m_DisablePreviewsForTesting)
                     {
                         viewDataKey = selectedGuid,
                     };
@@ -1280,7 +1282,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 using (CreateGraphEditorViewMarker.Auto())
                 {
-                    graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager, graphName)
+                    graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager, graphName, m_DisablePreviewsForTesting)
                     {
                         viewDataKey = selectedGuid,
                     };

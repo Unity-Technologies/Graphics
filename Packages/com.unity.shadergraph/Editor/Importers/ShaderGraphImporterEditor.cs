@@ -175,7 +175,7 @@ namespace UnityEditor.ShaderGraph
                 DestroyImmediate(materialEditor);
         }
 
-        internal static bool ShowGraphEditWindow(string path)
+        internal static bool ShowGraphEditWindow(string path, bool disablePreviewsForTesting = false)
         {
             var guid = AssetDatabase.AssetPathToGUID(path);
             var extension = Path.GetExtension(path);
@@ -200,6 +200,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             var window = EditorWindow.CreateWindow<MaterialGraphEditWindow>(typeof(MaterialGraphEditWindow), typeof(SceneView));
+            window.m_DisablePreviewsForTesting = disablePreviewsForTesting;
             window.Initialize(guid);
             window.Focus();
             return true;
