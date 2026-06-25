@@ -607,7 +607,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             graph.owner.RegisterCompleteObjectUndo("Delete Group and Contents");
             var groupItems = graph.GetItemsInGroup(data);
-            graph.RemoveElements(groupItems.OfType<AbstractMaterialNode>().ToArray(), new IEdge[] { }, new[] { data }, groupItems.OfType<StickyNoteData>().ToArray());
+            // Skip undeletable nodes (e.g. SubGraphOutputNode, master output) — RemoveElements throws on them.
+            var nodesToDelete = groupItems.OfType<AbstractMaterialNode>().Where(n => n.canDeleteNode).ToArray();
+            graph.RemoveElements(nodesToDelete, new IEdge[] { }, new[] { data }, groupItems.OfType<StickyNoteData>().ToArray());
         }
 
         private void InitializePrecisionSubMenu(ContextualMenuPopulateEvent evt)
