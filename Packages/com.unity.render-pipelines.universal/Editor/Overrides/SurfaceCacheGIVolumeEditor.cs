@@ -96,7 +96,7 @@ namespace UnityEditor.Rendering.Universal
         public override void OnInspectorGUI()
         {
             PropertyField(m_Enabled, s_Enabled);
-            EditorGUI.BeginDisabledGroup(!m_Enabled.value.boolValue);
+            EditorGUI.BeginDisabledGroup(m_Enabled.overrideState.boolValue && !m_Enabled.value.boolValue);
 
             // Quality preset dropdown. Switching to a named preset writes its values into the
             // backing fields so users can see the preset values and make fine adjustments from there.
