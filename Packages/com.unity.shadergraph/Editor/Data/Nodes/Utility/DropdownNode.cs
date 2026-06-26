@@ -103,7 +103,7 @@ namespace UnityEditor.ShaderGraph
                 AddSlot(slot);
                 slotIds[i] = dropdown.entries[i].id;
             }
-            RemoveSlotsNameNotMatching(slotIds);
+            RemoveSlotsNameNotMatching(slotIds, true);
 
             // Reconnect the edges
             foreach (KeyValuePair<MaterialSlot, List<IEdge>> entry in edgeDict)
