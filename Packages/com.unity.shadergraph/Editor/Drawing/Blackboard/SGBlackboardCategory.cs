@@ -184,6 +184,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 TryDoFoldout(m_ViewModel.isExpanded);
                 m_Foldout.RegisterCallback<ChangeEvent<bool>>(OnFoldoutToggle);
+                // Foldout handles arrow keys with SetValueWithoutNotify, which only flips the triangle without expanding/collapsing.
+                // We intercept NavigationMoveEvent to block this behavior entirely.
+                m_Foldout.RegisterCallback<NavigationMoveEvent>(OnFoldoutNavigationMove, TrickleDown.TrickleDown);
             }
 
             // Remove the header element if this is the default category
@@ -268,6 +271,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                 isExpandedAction.isExpanded = evt.newValue;
                 isExpandedAction.editorPrefsBaseKey = blackboard.controller.editorPrefsBaseKey;
                 viewModel.requestModelChangeAction(isExpandedAction);
+            }
+        }
+
+        // Prevent left/right keyboard from engaging the foldout (the pattern is unintuitive and unsupported in this case).
+        void OnFoldoutNavigationMove(NavigationMoveEvent evt)
+        {
+            if (evt.direction == NavigationMoveEvent.Direction.Left || evt.direction == NavigationMoveEvent.Direction.Right)
+            {
+                evt.StopPropagation();
+                focusController?.IgnoreEvent(evt);
             }
         }
 
@@ -812,6 +825,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             UnregisterCallback<DragPerformEvent>(OnDragPerformEvent);
             UnregisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
             m_Foldout.UnregisterCallback<ChangeEvent<bool>>(OnFoldoutToggle);
+            m_Foldout.UnregisterCallback<NavigationMoveEvent>(OnFoldoutNavigationMove, TrickleDown.TrickleDown);
 
             this.RemoveManipulator(m_ContextMenuManipulator);
             this.RemoveManipulator(m_SelectionDropperManipulator);
