@@ -1221,13 +1221,36 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        // UUM-134600: there was a bandwidth optimization here that set Screen MSAA to 1
-        // when rendering to intermediate textures. It was disabled because different
-        // renderers can be used within a single frame, and the MSAA samples were never
-        // restored — causing a silent visual regression.
-        private protected int AdjustAndGetScreenMSAASamples()
+        // Tells the pipeline this camera needs the real back buffer (the OS surface, not
+        // resourceData.backBuffer) multisampled. The pipeline keeps it single-sampled on frames where no
+        // camera needs MSAA, to save bandwidth.
+        //
+        // Contract: any renderer that renders multisampled content directly into the real back buffer must
+        // call this while rendering, or the pipeline may request a single-sampled surface and that content
+        // is silently rendered without MSAA.
+        private protected void ReportRealBackbufferMSAA(UniversalCameraData cameraData, bool requiresIntermediateAttachments)
         {
-            return Screen.currentBackbufferMSAASamples;
+            if (NeedsRealBackbufferMSAA(cameraData, this, requiresIntermediateAttachments))
+                (RenderPipelineManager.currentPipeline as UniversalRenderPipeline)?.RequireRealBackbufferMSAA();
+        }
+
+        // True when this camera renders multisampled content into the real back buffer, so the surface must
+        // be multisampled. The tile-only case is the subtle one: there the back buffer shares a native render
+        // pass with the MSAA intermediate attachments, so it must match their sample count even though it
+        // isn't rendered to directly.
+        static bool NeedsRealBackbufferMSAA(UniversalCameraData cameraData, ScriptableRenderer renderer, bool requiresIntermediateAttachments)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+                return false;
+#endif
+            if (cameraData.targetTexture != null)
+                return false;
+            if (!(renderer.supportedRenderingFeatures.msaa && cameraData.camera.allowMSAA))
+                return false;
+
+            bool tileOnlyMode = renderer is UniversalRenderer { useTileOnlyMode: true };
+            return tileOnlyMode || !requiresIntermediateAttachments;
         }
 
         internal static void SortStable(List<ScriptableRenderPass> list)

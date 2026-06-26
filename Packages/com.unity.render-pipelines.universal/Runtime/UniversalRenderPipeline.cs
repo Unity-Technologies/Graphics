@@ -257,6 +257,24 @@ namespace UnityEngine.Rendering.Universal
 
         private UniversalRenderPipelineGlobalSettings m_GlobalSettings;
 
+        // Set by any camera that needs the real back buffer multisampled; one camera keeps it on for the
+        // whole frame. Reset and consumed only in Render() so it can never be read stale.
+        private bool m_FrameNeedsRealBackbufferMSAA;
+
+        // Hysteresis on dropping back buffer MSAA to 1: counts consecutive frames not needing back buffer
+        // MSAA so a per-frame flip-flop of the decision doesn't keep reallocating the back buffer.
+        private int m_FramesSinceRealBackbufferMSAANeeded;
+
+        // Must be > 1: when the renderer configuration changes for only a few frames (different render passes
+        // enqueued, e.g. by the volume system), this keeps us from setting back buffer MSAA to 1 and back
+        // again in quick succession, which reallocates the back buffer twice - costly and can stutter.
+        // Because it counts *consecutive* not-needed frames (see above), a configuration that flips every
+        // frame never sets MSAA to 1, so it never thrashes, for any value > 1. A higher value costs little -
+        // the back buffer just stays multisampled for these extra frames after MSAA is genuinely no longer
+        // needed - but is a little harder to follow when debugging or in automated tests. 6 is a conservative
+        // default; raise it if renderer configuration changes cause back buffer thrash.
+        internal const int realBackbufferMSAADowngradeDelayFrames = 6;
+
         internal UniversalRenderPipelineRuntimeTextures runtimeTextures { get; private set; }
 
         /// <summary>
@@ -367,14 +385,13 @@ namespace UnityEngine.Rendering.Universal
 
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
 
-            // Sync engine MSAA state to the URP asset.
-            // QualitySettings.antiAliasing is the persistent config field other code reads; its setter does
-            // NOT trigger back buffer reallocation. Screen.SetMSAASamples is what actually recreates the back buffer.
+            // QualitySettings.antiAliasing syncs engine MSAA state but does not reallocate the back buffer.
             QualitySettings.antiAliasing = asset.msaaSampleCount;
-            // Keep the back buffer single-sampled when MSAA must be resolved explicitly: otherwise we would
-            // allocate a physical MSAA back buffer that the (emulated) render pass can't resolve. In that case
-            // MSAA is rendered to an intermediate texture and resolved into the back buffer instead.
-            Screen.SetMSAASamples(UniversalRenderer.PlatformRequiresExplicitMsaaResolve() ? 1 : asset.msaaSampleCount);
+
+            // Apply the asset's MSAA to the back buffer at bind time so it doesn't lag asset changes by a
+            // frame; ApplyRealBackbufferMSAARequest still turns it off per-frame when no camera needs it.
+            RequestRealBackbufferMSAA(asset.msaaSampleCount);
+            m_FramesSinceRealBackbufferMSAANeeded = 0;
 
             var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<URPDefaultVolumeProfileSettings>();
             VolumeManager.instance.Initialize(defaultVolumeProfileSettings.volumeProfile, asset.volumeProfile);
@@ -563,6 +580,17 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         protected override void Render(ScriptableRenderContext renderContext, List<Camera> cameras)
         {
+            // RenderPipelineManager calls this once per frame: reset the back buffer MSAA request, let each
+            // camera rendered here report its need, then apply. Cameras rendered outside this path (render
+            // requests) are not counted — safe only because they target a destination texture, never the back
+            // buffer. If that changes, this decision becomes incomplete.
+            m_FrameNeedsRealBackbufferMSAA = false;
+            RenderCameras(renderContext, cameras);
+            ApplyRealBackbufferMSAARequest();
+        }
+
+        void RenderCameras(ScriptableRenderContext renderContext, List<Camera> cameras)
+        {
             SetHDRState(cameras);
 
             int cameraCount = cameras.Count;
@@ -654,6 +682,45 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        // Renderers call this (via ScriptableRenderer.ReportRealBackbufferMSAA) to report that a camera needs
+        // the real back buffer multisampled.
+        internal void RequireRealBackbufferMSAA()
+        {
+            m_FrameNeedsRealBackbufferMSAA = true;
+        }
+
+        // Only sets the request for the next frame. The current frame already imported the live back buffer
+        // value (Screen.currentBackbufferMSAASamples) into RenderGraph, so rendering stays correct no matter
+        // when the surface is actually reallocated (deferred to the next frame on platforms like Metal).
+        // Upgrades apply immediately; downgrades wait out the hysteresis, since extra MSAA frames cost only
+        // bandwidth, never correctness.
+        private void ApplyRealBackbufferMSAARequest()
+        {
+            int desired;
+            if (m_FrameNeedsRealBackbufferMSAA)
+            {
+                m_FramesSinceRealBackbufferMSAANeeded = 0;
+                desired = asset.msaaSampleCount;                // upgrade immediately
+            }
+            else if (++m_FramesSinceRealBackbufferMSAANeeded >= realBackbufferMSAADowngradeDelayFrames)
+                desired = 1;                                    // downgrade only after the delay
+            else
+                desired = Screen.msaaSamples;                   // hold current during the delay
+
+            RequestRealBackbufferMSAA(desired);
+        }
+
+        // Sets the real back buffer MSAA count, clamped to 1 where MSAA is resolved explicitly (the
+        // optimization is inactive there). Reallocates only when the count actually changes vs the engine's
+        // currently requested count (Screen.msaaSamples), so this also respects external changes to it.
+        private void RequestRealBackbufferMSAA(int samples)
+        {
+            if (UniversalRenderer.PlatformRequiresExplicitMsaaResolve())
+                samples = 1;
+            if (samples != Screen.msaaSamples)
+                Screen.SetMSAASamples(samples);
+        }
+
         /// <summary>
         /// Check whether RenderRequest is supported
         /// </summary>
@@ -729,9 +796,10 @@ namespace UnityEngine.Rendering.Universal
                     camera.cameraType = CameraType.Preview;
                 camera.targetTexture = temporaryRT ? temporaryRT : destination;
 
+                // Do not call Render() here — it must run once per frame (see its back buffer MSAA bookkeeping).
                 if (standardRequest != null)
                 {
-                    Render(context, new List<Camera>{ camera });
+                    RenderCameras(context, new List<Camera>{ camera });
                 }
                 else
                 {

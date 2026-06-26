@@ -370,7 +370,9 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                int numSamples = AdjustAndGetScreenMSAASamples();
+                // Import the live back buffer sample count; it always matches the real surface even when a
+                // pending Screen.SetMSAASamples request hasn't been applied yet (deferred reallocation).
+                int numSamples = Screen.currentBackbufferMSAASamples;
 
                 //NOTE: Careful what you use here as many of the properties bake-in the camera rect so for example
                 //cameraData.cameraTargetDescriptor.width is the width of the rectangle but not the actual render target
@@ -559,6 +561,10 @@ namespace UnityEngine.Rendering.Universal
                 commonResourceData.activeColorID = m_CreateColorTexture ? ActiveID.Camera : ActiveID.BackBuffer;
                 commonResourceData.activeDepthID = m_CreateDepthTexture ? ActiveID.Camera : ActiveID.BackBuffer;
             }
+
+            // Report this camera's real back buffer MSAA need; a 2D camera renders directly to it only when
+            // no intermediate color texture is created (m_CreateColorTexture == false).
+            ReportRealBackbufferMSAA(cameraData, m_CreateColorTexture);
 
             ImportResourceSummary importSummary = GetImportResourceSummary(renderGraph, cameraData);
 
