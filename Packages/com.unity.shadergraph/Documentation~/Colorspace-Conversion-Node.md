@@ -126,3 +126,7 @@ void Unity_ColorspaceConversion_HSV_HSV_float(float3 In, out float3 Out)
     Out = In;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

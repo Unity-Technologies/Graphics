@@ -39,3 +39,7 @@ float2 _MatrixSplit_M1 = float2(In[1].r, In[1].g);
 float2 _MatrixSplit_M2 = float2(0, 0);
 float2 _MatrixSplit_M3 = float2(0, 0);
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

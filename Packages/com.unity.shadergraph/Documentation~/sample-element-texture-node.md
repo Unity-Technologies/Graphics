@@ -26,3 +26,4 @@ Sampling multiple times with this node is more efficient than using several sepa
 ## Additional resources
 
 - [Introduction to UI Shader Graph](xref:uie-introduction-to-ui-shader-graph)
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

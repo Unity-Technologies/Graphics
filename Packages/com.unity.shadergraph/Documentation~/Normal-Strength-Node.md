@@ -22,3 +22,7 @@ void Unity_NormalStrength_float(float3 In, float Strength, out float3 Out)
     Out = {precision}3(In.rg * Strength, lerp(1, In.b, saturate(Strength)));
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

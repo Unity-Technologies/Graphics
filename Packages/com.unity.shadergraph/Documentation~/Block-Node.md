@@ -5,3 +5,7 @@ Block nodes are a specific type of node for the [Master Stack](Master-Stack.md).
 | Page | Description |
 | :--- | :--- |
 | [Built-In Blocks](Built-In-Blocks.md) | Block nodes that are always available, regardless of the active render pipeline. |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

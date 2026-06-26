@@ -18,3 +18,7 @@ The following example code represents one possible outcome of this node.
 ```
 float _Vector1_Out = X;
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

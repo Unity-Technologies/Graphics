@@ -26,3 +26,7 @@ void Unity_Ellipse_float(float2 UV, float Width, float Height, out float4 Out)
     Out = saturate((1 - d) / fwidth(d));
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

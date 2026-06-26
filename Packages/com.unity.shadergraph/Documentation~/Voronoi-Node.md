@@ -58,3 +58,7 @@ void Unity_Voronoi_float(float2 UV, float AngleOffset, float CellDensity, out fl
     }
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

@@ -20,3 +20,7 @@ The following example code represents one possible outcome of this node.
 ```
 float3 _Vector3_Out = float3(X, Y, Z);
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

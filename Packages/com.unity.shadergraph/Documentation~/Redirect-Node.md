@@ -6,3 +6,7 @@ Redirect nodes don't appear in the node search. To add a redirect node, do one o
 - Double click on a wire.
 - Right click on a wire and select **Add Redirect Node**.
 - Select a wire and press `Ctrl/Cmd + R` on the keyboard.
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

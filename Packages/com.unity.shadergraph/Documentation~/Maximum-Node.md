@@ -22,3 +22,7 @@ void Unity_Maximum_float4(float4 A, float4 B, out float4 Out)
     Out = max(A, B);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

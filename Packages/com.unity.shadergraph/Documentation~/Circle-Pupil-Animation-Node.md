@@ -17,3 +17,7 @@ This node applies a deformation to a normalized IrisUV coordinate to simulate th
 | **Pupil Aperture**          | Input         | float   | Set the current diameter of the pupil opening. |
 | **Maximal Pupil Aperture** | Input         | float   | Define the largest size the pupil opening can reach.               |
 | **Minimal Pupil Aperture** | Input         | float   | Define the smallest size the pupil opening can reach.   |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

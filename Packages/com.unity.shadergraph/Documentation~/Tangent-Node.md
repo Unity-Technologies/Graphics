@@ -21,3 +21,7 @@ void Unity_Tangent_float4(float4 In, out float4 Out)
     Out = tan(In);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

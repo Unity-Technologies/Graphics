@@ -22,3 +22,7 @@ Use the **Type** property to select which exposure value to get. The options are
 - **Inverse Current Multiplier**: Gets the inverse of the camera's exposure value from the current frame.
 - **Previous Multiplier**: Gets the camera's exposure value from the previous frame.
 - **Inverse Previous Multiplier**: Gets the inverse of the camera's exposure value from the previous frame.
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

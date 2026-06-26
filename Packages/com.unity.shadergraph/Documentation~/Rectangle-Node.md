@@ -33,3 +33,7 @@ void Unity_Rectangle_float(float2 UV, float Width, float Height, out float Out)
     Out = saturate(min(d.x, d.y));
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

@@ -32,3 +32,7 @@ void Unity_InvertColors_float4(float4 In, float4 InvertColors, out float4 Out)
     Out = abs(InvertColors - In);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

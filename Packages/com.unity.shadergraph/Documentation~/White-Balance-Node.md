@@ -61,3 +61,7 @@ void Unity_WhiteBalance_float(float3 In, float Temperature, float Tint, out floa
     Out = mul(LMS_2_LIN_MAT, lms);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

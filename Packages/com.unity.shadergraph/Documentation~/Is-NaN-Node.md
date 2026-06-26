@@ -21,3 +21,7 @@ void Unity_IsNan_float(float In, out float Out)
     Out = (In < 0.0 || In > 0.0 || In == 0.0) ? 0 : 1;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

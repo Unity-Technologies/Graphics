@@ -25,3 +25,7 @@ void Unity_CustomDepth_LinearEye_float(float4 UV, out float Out)
     Out = SampleCustomColor(UV.xy);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

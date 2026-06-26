@@ -57,3 +57,7 @@ float _DielectricSpecular_Out = 0.040;
 float _DielectricSpecular_IOR = 1;
 float _DielectricSpecular_Out = pow(_Node_IOR - 1, 2) / pow(_DielectricSpecular_IOR + 1, 2);
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

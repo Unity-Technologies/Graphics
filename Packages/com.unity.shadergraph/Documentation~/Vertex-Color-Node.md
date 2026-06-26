@@ -9,3 +9,7 @@ Provides access to the mesh vertex or fragment's **Vertex Color** value.
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | Out | Output      |    Vector 4 | None | **Vertex Color** for the Mesh Vertex/Fragment. |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

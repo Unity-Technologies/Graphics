@@ -27,3 +27,7 @@ void Unity_InverseLerp_float4(float4 A, float4 B, float4 T, out float4 Out)
     Out = (T - A)/(B - A);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

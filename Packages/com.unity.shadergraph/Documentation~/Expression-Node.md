@@ -32,3 +32,7 @@ If you specify the expression:
 * If you input 1, 2, and 10, the node calculates `1 + 2 * 10 / 2` and outputs the result to the **Out** port.
 
 **Note**: If you use Shader Graph math nodes instead, the example requires three separate nodes: [Divide](Divide-Node.md), [Multiply](Multiply-Node.md), and [Add](Add-Node.md).
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

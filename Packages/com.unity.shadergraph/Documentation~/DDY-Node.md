@@ -21,3 +21,7 @@ void Unity_DDY_float4(float4 In, out float4 Out)
     Out = ddy(In);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

@@ -16,3 +16,7 @@ Clamps the color of the Iris to a given color. This is useful in case the refrac
 | **Iris Color**  | Input         | Color   | Previously sampled or generated color of the Iris.           |
 | **Clamp Color** | Input         | Color   | The color to clamp the Iris to.                              |
 | **Iris Color**  | Output        | Color   | Result Iris color for the rest of the pipeline.              |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

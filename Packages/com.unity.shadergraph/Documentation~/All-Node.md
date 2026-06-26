@@ -21,3 +21,7 @@ void Unity_All_float4(float4 In, out float Out)
     Out = all(In);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

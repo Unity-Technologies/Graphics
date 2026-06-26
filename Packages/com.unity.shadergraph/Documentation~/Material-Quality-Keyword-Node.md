@@ -11,3 +11,4 @@ To manually set the quality level from a C# script, use the `UnityEngine.Renderi
 ## Additional resources:
 
 * [Keywords](Keywords.md)
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

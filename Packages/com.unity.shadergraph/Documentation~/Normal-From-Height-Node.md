@@ -64,3 +64,7 @@ void Unity_NormalFromHeight_World_float(float In, float Strength, float3 Positio
     Out = normalize(TangentMatrix[2].xyz - (Strength * surfGrad));
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

@@ -31,3 +31,7 @@ void Unity_PolarCoordinates_float(float2 UV, float2 Center, float RadialScale, f
     Out = float2(radius, angle);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

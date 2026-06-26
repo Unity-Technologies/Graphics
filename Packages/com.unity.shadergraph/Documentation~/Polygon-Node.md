@@ -34,3 +34,7 @@ void Unity_Polygon_float(float2 UV, float Sides, float Width, float Height, out 
     Out = saturate((1 - distance) / fwidth(distance));
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

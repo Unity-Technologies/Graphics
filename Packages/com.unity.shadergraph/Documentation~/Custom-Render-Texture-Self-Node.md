@@ -21,3 +21,7 @@ The following example code represents one possible outcome of this node.
 ```
 UnityBuildTexture2DStructNoScale(_SelfTexture2D)
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

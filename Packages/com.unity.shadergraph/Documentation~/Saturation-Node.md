@@ -23,3 +23,7 @@ void Unity_Saturation_float(float3 In, float Saturation, out float3 Out)
     Out =  luma.xxx + Saturation.xxx * (In - luma.xxx);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

@@ -42,3 +42,7 @@ The following example code represents one possible outcome of this node.
 float _TexelSize_Width = Texture_TexelSize.z;
 float _TexelSize_Height = Texture_TexelSize.w;
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

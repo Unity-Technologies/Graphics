@@ -59,3 +59,7 @@ void Unity_FresnelEquation_DielectricGeneric(out float3 Fresnel, float cos0, flo
     FresnelValue = F_FresnelConductor(iorMedium/iorSource, iorMediumK/iorSource, cos0);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

@@ -80,3 +80,7 @@ void RoundedPolygon_Func_float(float2 UV, float Width, float Height, float Sides
     Out = saturate((1 - Out) / fwidth(Out));
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

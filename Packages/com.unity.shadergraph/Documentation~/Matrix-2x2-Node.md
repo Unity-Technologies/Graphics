@@ -23,3 +23,7 @@ The following example code represents one possible outcome of this node.
 ```
 float2x2 _Matrix2x2 = float2x2(1, 0, 0, 1);
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

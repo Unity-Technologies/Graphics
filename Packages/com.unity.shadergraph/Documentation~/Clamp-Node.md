@@ -23,3 +23,7 @@ void Unity_Clamp_float4(float4 In, float4 Min, float4 Max, out float4 Out)
     Out = clamp(In, Min, Max);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

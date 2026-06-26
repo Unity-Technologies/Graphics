@@ -42,3 +42,7 @@ void Unity_Multiply_float4x4_float4x4(float4x4 A, float4x4 B, out float4x4 Out)
     Out = mul(A, B);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

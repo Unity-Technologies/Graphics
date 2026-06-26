@@ -23,3 +23,7 @@ The following example code represents one possible outcome of this node.
 ```
 float _Integer = 1;
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

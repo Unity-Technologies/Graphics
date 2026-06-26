@@ -36,3 +36,7 @@ void Unity_ChannelMixer_float(float3 In, float3 _ChannelMixer_Red, float3 _Chann
     Out = float3(dot(In, _ChannelMixer_Red), dot(In, _ChannelMixer_Green), dot(In, _ChannelMixer_Blue));
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

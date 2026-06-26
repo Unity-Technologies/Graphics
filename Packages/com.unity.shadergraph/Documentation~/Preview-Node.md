@@ -24,3 +24,7 @@ void Unity_Preview_float4(float4 In, out float4 Out)
     Out = In;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]
