@@ -20,5 +20,10 @@ namespace Unity.GraphCommon.LowLevel.Editor
         {
             Material = material;
         }
+        public BindingUsage GetBindingUsage(IDataKey dataKey, DataPathSet readUsage = null, DataPathSet writeUsage = null)
+        {
+            readUsage?.Add(DataPath.Root);
+            return BindingUsage.Read;
+        }
     }
 }

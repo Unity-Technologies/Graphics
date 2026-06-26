@@ -62,15 +62,13 @@ namespace UnityEditor.VFX
             shaderWriter.WriteLine(";", ShaderWriter.WriteLineOptions.NoIndent);
         }
 
-        public bool WriteView(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView, DataView writtenDataView, string name, string sourceName, CompilationContext context)
+        public bool WriteView(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode, string name, string sourceName, CompilationContext context)
         {
             usedDataView.FindSubData(EventData.AttributeDataKey, out var attributeUsedDataView);
-            bool needsAttributeData = attributeUsedDataView.Id.IsValid;
+            bool needsAttributeData = attributeUsedDataView.Valid;
             if (needsAttributeData)
             {
-                readDataView.FindSubData(EventData.AttributeDataKey, out var attributeReadDataView);
-                writtenDataView.FindSubData(EventData.AttributeDataKey, out var attributeWrittenDataView);
-                m_AttributeDataWriter.WriteView(shaderWriter, attributeUsedDataView, attributeReadDataView, attributeWrittenDataView, name + "_Attributes", sourceName + "_Attributes", context);
+                m_AttributeDataWriter.WriteView(shaderWriter, attributeUsedDataView, dataNode, name + "_Attributes", sourceName + "_Attributes", context);
                 shaderWriter.NewLine();
             }
             shaderWriter.WriteLine($"struct {name}View");
@@ -105,7 +103,7 @@ namespace UnityEditor.VFX
 
         public IEnumerable<(string, string)> GetUsedResources(string name, DataView usedDataView)
         {
-            if (usedDataView.Id.IsValid)
+            if (usedDataView.Valid)
             {
                 bool isCpu = (usedDataView.DataDescription as EventListData).IsCpu;
                 yield return (isCpu ? "StructuredBuffer<uint>" : "RWStructuredBuffer<uint>", $"_{name}_eventIndexList");

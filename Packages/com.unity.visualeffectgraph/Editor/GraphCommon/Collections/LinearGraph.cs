@@ -12,6 +12,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
         List<T> m_Data = new();
 
         [SerializeField]
+        List<bool> m_Alive = new();
+
+        [SerializeField]
         LinearMultiList<int> m_Parents = new();
 
         [SerializeField]
@@ -35,9 +38,11 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <param name="parentCapacity">Initial capacity for parent connections. Default is 0.</param>
         /// <param name="childCapacity">Initial capacity for child connections. Default is 0.</param>
         /// <returns>The index of the newly added item.</returns>
-        public int AddItem(T item, int parentCapacity = 0, int childCapacity = 0)        {
+        public int AddItem(T item, int parentCapacity = 0, int childCapacity = 0)
+        {
             int index = m_Data.Count;
             m_Data.Add(item);
+            m_Alive.Add(true);
             m_Parents.AddList(parentCapacity);
             m_Children.AddList(childCapacity);
             return index;
@@ -73,6 +78,45 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 m_Children.RemoveItem(parentIndex, itemIndex);
         }
 
+        /// <summary>
+        /// Removes the node at <paramref name="index"/>: marks the slot dead and disconnects it from
+        /// every parent and child so no dangling edges point at (or out of) the removed node.
+        /// </summary>
+        /// <param name="index">The slot index of the node to remove.</param>
+        /// <remarks>
+        /// The slot itself is retained (so indices of other nodes stay stable) but is reported as not
+        /// alive by <see cref="IsAlive"/> and skipped by enumerators.
+        /// </remarks>
+        public void RemoveNode(int index)
+        {
+            if (index < 0 || index >= m_Data.Count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+
+            var parents = m_Parents[index];
+            foreach (var parent in parents)
+            {
+                if (m_Children.FindItem(parent, index, out int itemIndex))
+                    m_Children.RemoveItem(parent, itemIndex);
+            }
+
+            var children = m_Children[index];
+            foreach (var child in children)
+            {
+                if (m_Parents.FindItem(child, index, out int itemIndex))
+                    m_Parents.RemoveItem(child, itemIndex);
+            }
+
+            m_Parents.ClearList(index);
+            m_Children.ClearList(index);
+
+            m_Alive[index] = false;
+            m_Data[index] = default;
+            Version++;
+        }
+
+        /// <inheritdoc cref="IGraph{T}.IsAlive"/>
+        public bool IsAlive(int index) => m_Alive[index];
+
         /// <summary>Gets the capacity of the parents list for the specified node.</summary>
         /// <param name="index">The index of the node.</param>
         /// <returns>The capacity of the parents list.</returns>
@@ -83,11 +127,26 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <returns>The capacity of the children list.</returns>
         public int GetChildrenCapacity(int index) => m_Children[index].Capacity;
 
-        /// <summary>Returns an enumerator that iterates through the graph nodes.</summary>
-        /// <returns>An enumerator for the graph.</returns>
-        public LinearEnumerator<LinearGraph<T>, GraphNode<T>> GetEnumerator() => new(this);
+        /// <summary>Overwrites the data stored at <paramref name="index"/> without touching edges.</summary>
+        public void SetData(int index, T data) => m_Data[index] = data;
+
+        /// <summary>
+        /// Replaces the contents of this graph with a deep copy of <paramref name="other"/>.
+        /// </summary>
+        /// <param name="other">The source graph to copy from.</param>
+        public void CopyFrom(LinearGraph<T> other)
+        {
+            m_Data.Clear();
+            m_Data.AddRange(other.m_Data);
+            m_Alive.Clear();
+            m_Alive.AddRange(other.m_Alive);
+            m_Parents.CopyFrom(other.m_Parents);
+            m_Children.CopyFrom(other.m_Children);
+            Version = other.Version;
+        }
+
         T IGraph<T>.GetData(int index) => m_Data[index];
-        GraphNodeLinks<T> IGraph<T>.GetParents(int index) => new GraphNodeLinks<T>(this, m_Parents, index, m_Parents[index].Count);
-        GraphNodeLinks<T> IGraph<T>.GetChildren(int index) => new GraphNodeLinks<T>(this, m_Children, index, m_Children[index].Count);
+        GraphNodeLinks<T> IGraph<T>.GetParents(int index) => new(this, m_Parents, index, m_Parents[index].Count);
+        GraphNodeLinks<T> IGraph<T>.GetChildren(int index) => new(this, m_Children, index, m_Children[index].Count);
     }
 }

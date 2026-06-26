@@ -52,7 +52,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             shaderWriter.WriteLine(";", ShaderWriter.WriteLineOptions.NoIndent);
         }
 
-        public bool WriteView(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView, DataView writtenDataView, string name, string sourceName, CompilationContext context)
+        public bool WriteView(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode, string name, string sourceName, CompilationContext context)
         {
             var variableName = "data";
 
@@ -73,26 +73,26 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 // That would allow multiple attribute sources for each attribute buffer, overloading the methods
                 // If detached, the attribute set to be used would be included on each attributeSource (.AttributeSet)
                 var attributeSourceTypename = attributeSource.ToString();
-                //if (readDataView.Children.Count > 0)
                 {
                     shaderWriter.NewLine();
                     shaderWriter.WriteLine($"void LoadData(out {attributeSourceTypename} {variableName}, uint index)");
                     shaderWriter.OpenBlock();
                     shaderWriter.WriteLine($"{variableName}.Init();");
-                    foreach (var attributeDataView in readDataView.Children)
+                    foreach (var attributeDataView in usedDataView.Children)
                     {
+                        if (!dataNode.IsRead(attributeDataView.Id)) continue;
                         var attribute = (attributeDataView.SubDataKey as AttributeKey).Attribute;
                         shaderWriter.WriteLine($"{variableName}.{attribute.Name} = buffer.Load_{attribute.Name}(index);");
                     }
                     shaderWriter.CloseBlock();
                 }
-                //if (writtenDataView.Children.Count > 0)
                 {
                     shaderWriter.NewLine();
                     shaderWriter.WriteLine($"void StoreData({attributeSourceTypename} {variableName}, uint index)");
                     shaderWriter.OpenBlock();
-                    foreach (var attributeDataView in writtenDataView.Children)
+                    foreach (var attributeDataView in usedDataView.Children)
                     {
+                        if (!dataNode.IsWritten(attributeDataView.Id)) continue;
                         var attribute = (attributeDataView.SubDataKey as AttributeKey).Attribute;
                         shaderWriter.WriteLine($"buffer.Store_{attribute.Name}({variableName}.{attribute.Name}, index);");
                     }
@@ -105,14 +105,12 @@ namespace Unity.GraphCommon.LowLevel.Editor
             return true;
         }
 
-        public void DefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView,
-            DataView writtenDataView)
+        public void DefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode)
         {
             throw new System.NotImplementedException();
         }
 
-        public void UndefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView,
-            DataView writtenDataView)
+        public void UndefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode)
         {
             throw new System.NotImplementedException();
         }

@@ -105,15 +105,13 @@ namespace UnityEditor.VFX
             shaderWriter.WriteLine(";", ShaderWriter.WriteLineOptions.NoIndent);
         }
 
-        public bool WriteView(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView, DataView writtenDataView, string name, string sourceName, CompilationContext context)
+        public bool WriteView(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode, string name, string sourceName, CompilationContext context)
         {
             usedDataView.FindSubData(ParticleData.AttributeDataKey, out var attributeUsedDataView);
-            bool needsParticleAttributeData = attributeUsedDataView.Id.IsValid;
+            bool needsParticleAttributeData = attributeUsedDataView.Valid;
             if (needsParticleAttributeData)
             {
-                readDataView.FindSubData(ParticleData.AttributeDataKey, out var attributeReadDataView);
-                writtenDataView.FindSubData(ParticleData.AttributeDataKey, out var attributeWrittenDataView);
-                m_AttributeDataWriter.WriteView(shaderWriter, attributeUsedDataView, attributeReadDataView, attributeWrittenDataView, name + "_ParticleAttributeBuffer", sourceName + "_ParticleAttributeBuffer", context);
+                m_AttributeDataWriter.WriteView(shaderWriter, attributeUsedDataView, dataNode, name + "_ParticleAttributeBuffer", sourceName + "_ParticleAttributeBuffer", context);
                 shaderWriter.NewLine();
             }
             shaderWriter.WriteLine($"struct {name}View");
@@ -168,10 +166,10 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void DefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView,
-            DataView writtenDataView)
+        public void DefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode)
         {
-            if(writtenDataView.FindSubData(ParticleData.AttributeDataKey, out var attributeWrittenDataView))
+            if (usedDataView.FindSubData(ParticleData.AttributeDataKey, out var attributeView)
+                && dataNode.IsWritten(attributeView.Id))
             {
                 shaderWriter.Define(AttributeBufferTypeDefine, "RWByteAddressBuffer");
             }
@@ -180,7 +178,8 @@ namespace UnityEditor.VFX
                 shaderWriter.Define(AttributeBufferTypeDefine, "ByteAddressBuffer");
             }
 
-            if (writtenDataView.FindSubData(ParticleData.DeadlistKey, out var _))
+            if (usedDataView.FindSubData(ParticleData.DeadlistKey, out var deadlistView)
+                && dataNode.IsWritten(deadlistView.Id))
             {
                 shaderWriter.Define(DeadlistBufferTypeDefine, "RWStructuredBuffer<uint>");
             }
@@ -190,8 +189,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void UndefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView,
-            DataView writtenDataView)
+        public void UndefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode)
         {
             if (usedDataView.FindSubData(ParticleData.AttributeDataKey, out var _))
             {

@@ -156,7 +156,7 @@ namespace UnityEditor.VFX
                 {
                     foreach (var childDataNode in dataNode.Children)
                     {
-                        if (childDataNode.TaskNode.Task is GpuKernelTask or ParticleSystemTask or RenderingTask or SpawnerTask)
+                        if (childDataNode.TaskNode.Task is VfxTemplatedTask or GpuKernelTask or ParticleSystemTask or RenderingTask or SpawnerTask)
                         {
                             uint vfxExpressionIndex = AddExpressionRecursively(expressionTask.Expression);
                             m_ValuesExpressionIndices.Add(childDataNode.Id, vfxExpressionIndex);
@@ -683,14 +683,6 @@ namespace UnityEditor.VFX
                     string name = dataBinding.DataNode.DataContainer.Name;
                     valueMappings.Add(new VFXMapping(name, (int)expressionIndex));
                 }
-            }
-            if (taskNode.Task is GpuKernelTask gpuKernelTask)
-            {
-                //taskDesc.processor = gpuKernelTask.Shader;
-            }
-            else if (taskNode.Task is RenderingTask renderingTask)
-            {
-                //taskDesc.processor = renderingTask.Material;
             }
 
             taskDesc.values = valueMappings.ToArray();

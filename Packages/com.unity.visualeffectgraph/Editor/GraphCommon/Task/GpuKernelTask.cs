@@ -34,6 +34,13 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
             // Read the binders or perform additional initializations
         }
+
+        public BindingUsage GetBindingUsage(IDataKey dataKey, DataPathSet readUsage = null, DataPathSet writeUsage = null)
+        {
+            readUsage?.Add(DataPath.Root);
+            writeUsage?.Add(DataPath.Root);
+            return BindingUsage.ReadWrite;
+        }
     }
 
 }

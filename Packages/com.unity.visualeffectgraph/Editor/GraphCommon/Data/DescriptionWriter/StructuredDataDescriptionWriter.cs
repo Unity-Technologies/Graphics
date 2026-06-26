@@ -54,13 +54,14 @@ namespace Unity.GraphCommon.LowLevel.Editor
             shaderWriter.CloseBlock();
         }
 
-        public bool WriteView(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView, DataView writtenDataView,
+        public bool WriteView(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode,
             string name, string sourceName, CompilationContext context)
         {
             shaderWriter.WriteLine($"struct {name}View");
             shaderWriter.OpenBlock();
-            foreach (var subDataView in readDataView.Children)
+            foreach (var subDataView in usedDataView.Children)
             {
+                if (!dataNode.IsRead(subDataView.Id)) continue;
                 var subData = subDataView.DataDescription;
                 if (subData is ValueData valueData)
                 {
@@ -72,8 +73,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
             shaderWriter.WriteLine($"void Init({sourceName} buffer)");
             shaderWriter.OpenBlock();
 
-            foreach (var subDataView in readDataView.Children)
+            foreach (var subDataView in usedDataView.Children)
             {
+                if (!dataNode.IsRead(subDataView.Id)) continue;
                 var subData = subDataView.DataDescription;
                 if (subData is ValueData)
                 {
@@ -103,10 +105,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
             return string.Empty;
         }
 
-        public void DefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView,
-            DataView writtenDataView)
+        public void DefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode)
         {
-            if (writtenDataView.Id.IsValid)
+            if (usedDataView.Valid && dataNode.IsWritten(usedDataView.Id))
             {
                 shaderWriter.Define(StructuredBufferTypeDefine, "RWByteAddressBuffer");
                 return;
@@ -115,10 +116,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
             shaderWriter.Define(StructuredBufferTypeDefine, "ByteAddressBuffer");
         }
 
-        public void UndefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView,
-            DataView writtenDataView)
+        public void UndefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode)
         {
-            if (usedDataView.Id.IsValid)
+            if (usedDataView.Valid)
             {
                 shaderWriter.Undefine(StructuredBufferTypeDefine);
             }

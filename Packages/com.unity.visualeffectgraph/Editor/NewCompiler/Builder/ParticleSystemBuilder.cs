@@ -30,7 +30,7 @@ namespace UnityEditor.VFX
         static IDataKey GraphValuesKey { get; } = new NameDataKey("GraphValues");
         static IDataKey EventListDataBindingKey { get; } = new NameDataKey("EventListDataBinding");
         static IDataKey SourceAttributesBindingKey { get; } = new NameDataKey("SourceAttributeDataBinding");
-        static IDataKey MainTextureKey { get; } = new NameDataKey("MainTexture");
+        static IDataKey MainTextureKey { get; } = new NameDataKey("mainTexture");
 
         static IDataKey ContextDataKey { get; } = new NameDataKey("ContextData");
         static IDataKey MaxParticleCountKey { get; } = new NameDataKey("maxParticleCount");
@@ -277,13 +277,11 @@ namespace UnityEditor.VFX
             contextData.AddSubdata(MaxParticleCountKey, ValueData.Create(typeof(uint)));
             contextData.AddSubdata(SystemSeedKey, ValueData.Create(typeof(uint)));
             contextData.AddSubdata(InitSpawnIndexKey, ValueData.Create(typeof(uint)));
-            NameDataKey paddingKey = new NameDataKey("padding");
-            contextData.AddSubdata(paddingKey, ValueData.Create(typeof(uint)));
+            contextData.AddSubdata(new NameDataKey("padding"), ValueData.Create(typeof(uint)));
 
             graphValuesBuffer.AddSubdata(ContextDataKey, contextData); // Adds a default subdata for ContextData, which is expected from the C++ runtime.
 
             contextDataViewId = IntermediateGraph.GetSubdata(graphValuesBufferViewId, ContextDataKey);
-            IntermediateGraph.GetSubdata(contextDataViewId, paddingKey); // Force data view to be registered
 
             UnorderedData graphValuesUnordered = new UnorderedData();
             graphValuesBuffer.AddSubdata(GraphValuesKey, graphValuesUnordered);

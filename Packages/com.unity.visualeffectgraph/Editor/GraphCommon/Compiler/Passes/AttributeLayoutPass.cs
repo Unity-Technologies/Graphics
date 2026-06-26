@@ -5,14 +5,6 @@ namespace Unity.GraphCommon.LowLevel.Editor
 {
     internal class AttributeLayoutPass : CompilationPass
     {
-        static bool Contains(IEnumerable<DataView> dataViews, DataViewId dataViewId)
-        {
-            foreach (var dataView in dataViews)
-            {
-                if(dataView.Id.Equals(dataViewId)) return true;
-            }
-            return false;
-        }
         public bool Execute(ref CompilationContext context)
         {
             // Gather all attribute set datas
@@ -62,8 +54,8 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
                         attributeKeys.TryAdd(dataView.Id, 0);
 
-                        bool isRead = Contains(dataNode.ReadDataViews, dataView.Id);
-                        bool isWritten = Contains(dataNode.WrittenDataViews, dataView.Id);
+                        bool isRead = dataNode.IsRead(dataView.Id);
+                        bool isWritten = dataNode.IsWritten(dataView.Id);
 
                         long readWriteValue = 0;
                         if (isRead)
@@ -83,7 +75,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
                             {
                                 if(dataNode.Id.Equals(parentDataNode.Id))
                                     continue;
-                                if (Contains(parentDataNode.WrittenDataViews, dataView.Id))
+                                if (parentDataNode.IsWritten(dataView.Id))
                                 {
                                     storedAttributes.Add(dataView.Id);
                                     break;

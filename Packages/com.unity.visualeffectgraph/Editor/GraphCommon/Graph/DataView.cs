@@ -1,6 +1,4 @@
-
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace Unity.GraphCommon.LowLevel.Editor
@@ -82,61 +80,78 @@ namespace Unity.GraphCommon.LowLevel.Editor
         readonly IIndexable<MultiTreeNode<DataViewId>, DataView> m_Source;
         readonly MultiTreeNode<DataViewId> m_Node;
 
-        readonly Handle<IReadOnlyGraph> m_Graph;
+        readonly IReadOnlyGraph m_Graph;
         readonly DataViewInfo m_Info;
+
+        private DataViewInfo Info { get { CheckValid();  return m_Info; } }
+        IReadOnlyGraph Graph { get { CheckValid(); return m_Graph; } }
+        private MultiTreeNode<DataViewId> Node { get { CheckValid(); return m_Node; } }
+        private IIndexable<MultiTreeNode<DataViewId>, DataView> SourceProvider { get { CheckValid(); return m_Source; } }
+
+        /// <summary>
+        /// Gets a value indicating whether this data view still refers to a live entry in the graph.
+        /// </summary>
+        public bool Valid => m_Graph != null && m_Graph.IsValid(m_Info.Id);
+
+        void CheckValid() { if (!Valid) throw new InvalidOperationException($"DataView {m_Info.Id} no longer exists in the graph."); }
 
         /// <summary>
         /// Gets the unique identifier for this <see cref="DataView"/>.
-        /// Returns <see cref="DataViewId.Invalid"/> if the graph is not valid.
         /// </summary>
-        public DataViewId Id => m_Graph.Valid ? m_Info.Id : DataViewId.Invalid;
+        /// <exception cref="InvalidOperationException">Thrown when the data view has been removed from the graph.</exception>
+        public DataViewId Id => Info.Id;
 
         /// <summary>
         /// Gets the parent <see cref="DataView"/> of this view, if it exists.
-        /// Returns <c>null</c> if the graph is not valid or if there is no valid parent.
+        /// Returns <c>null</c> if there is no parent.
         /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when the data view has been removed from the graph.</exception>
         public DataView? Parent
         {
             get
             {
-                var parent = m_Graph.Valid ? m_Node.Parent : null;
-                return parent.HasValue ? m_Source[parent.Value] : null;
+                var parent = Node.Parent;
+                return parent.HasValue ? SourceProvider[parent.Value] : null;
             }
         }
 
         /// <summary>
         /// Gets the root <see cref="DataView"/> of the current data view's hierarchy.
         /// </summary>
-        public DataView Root => m_Source[m_Node.Root];
+        /// <exception cref="InvalidOperationException">Thrown when the data view has been removed from the graph.</exception>
+        public DataView Root => SourceProvider[Node.Root];
 
-        public bool IsRoot => Id.IsValid && !Parent.HasValue;
+        public bool IsRoot => !Parent.HasValue;
 
         /// <summary>
         /// Gets the IDataDescription associated with this data view.
-        /// Returns null if the graph is not valid.
         /// </summary>
-        public IDataDescription DataDescription => m_Graph.Valid ? m_Info.DataDescription : null;
+        /// <exception cref="InvalidOperationException">Thrown when the data view has been removed from the graph.</exception>
+        public IDataDescription DataDescription => Info.DataDescription;
 
         /// <summary>
         /// Gets the sub-data key associated with this data view.
-        /// Returns null if the graph is not valid.
         /// </summary>
-        public IDataKey SubDataKey => m_Graph.Valid ? m_Info.SubDataKey : null;
+        /// <exception cref="InvalidOperationException">Thrown when the data view has been removed from the graph.</exception>
+        public IDataKey SubDataKey => Info.SubDataKey;
 
         /// <summary>
         /// Gets an enumerable collection of children <see cref="DataView"/> instances of this view.
         /// </summary>
-        public DataViewChildren Children => m_Graph.Valid ? new(m_Source, m_Node.Children) : new();
+        /// <exception cref="InvalidOperationException">Thrown when the data view has been removed from the graph.</exception>
+        public DataViewChildren Children => new(SourceProvider, Node.Children);
 
         /// <summary>
         /// Enumerates all the data views in this data view tree.
         /// </summary>
-        public DataViewFlatTreeEnumerable Flat => new(this);
+        /// <exception cref="InvalidOperationException">Thrown when the data view has been removed from the graph.</exception>
+        public DataViewFlatTreeEnumerable Flat => new(Node, SourceProvider);
 
         /// <summary>
         /// Gets the DataContainer where this DataView is stored.
         /// </summary>
-        public DataContainer DataContainer => m_Graph.Ref.GetDataContainer(Id);
+        /// <exception cref="InvalidOperationException">Thrown when the data view has been removed from the graph.</exception>
+        public DataContainer DataContainer => Graph.GetDataContainer(Info.Id);
 
         /// <summary>
         /// Tries to find a child data view with the specified data key.
@@ -146,6 +161,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <returns>True if the child data view was found, false otherwise.</returns>
         public bool FindSubData(IDataKey subdataKey, out DataView subDataView)
         {
+            //TODO: maybe use m_DataViewIdDictionary here somehow
             foreach (var child in Children)
             {
                 if (child.SubDataKey.Equals(subdataKey))
@@ -178,11 +194,22 @@ namespace Unity.GraphCommon.LowLevel.Editor
             return true;
         }
 
+        public bool ContainsSubData(DataViewId dataViewId)
+        {
+            if(Id.Equals(dataViewId)) return true;
+            foreach (var child in Children)
+            {
+                if(child.ContainsSubData(dataViewId)) return true;
+            }
+
+            return false;
+        }
+
         internal DataView(IIndexable<MultiTreeNode<DataViewId>, DataView> source, MultiTreeNode<DataViewId> node, IReadOnlyGraph graph, DataViewInfo info)
         {
             m_Source = source;
             m_Node = node;
-            m_Graph = new(graph);
+            m_Graph = graph;
             m_Info = info;
         }
     }
@@ -194,7 +221,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
     /*public*/ readonly struct DataViewChildren : IIndexable<int, DataView>, ICountable
     {
         readonly IIndexable<MultiTreeNode<DataViewId>, DataView> m_Source;
-        readonly MultiTreeNodeEnumerable<SubEnumerable<int>, DataViewId> m_Children;
+        readonly MultiTreeNodeChildren<DataViewId> m_Children;
 
         /// <summary>
         /// Gets the number of children for the parent <see cref="DataView"/>.
@@ -213,127 +240,108 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// </summary>
         /// <param name="source">The provider mapping <see cref="DataViewId"/> to <see cref="DataView"/> instances.</param>
         /// <param name="children">The enumerable collection of child nodes.</param>
-        public DataViewChildren(IIndexable<MultiTreeNode<DataViewId>, DataView> source, MultiTreeNodeEnumerable<SubEnumerable<int>, DataViewId> children)
+        public DataViewChildren(IIndexable<MultiTreeNode<DataViewId>, DataView> source, MultiTreeNodeChildren<DataViewId> children)
         {
             m_Source = source;
             m_Children = children;
         }
 
         /// <summary>
-        /// Returns an enumerator that iterates through the <see cref="DataViewChildren"/>.
+        /// Returns a version-checked enumerator over the child <see cref="DataView"/> instances.
+        /// Composes the child sublist's <see cref="VersionedSublistEnumerator{T}"/> (slot →
+        /// <see cref="MultiTreeNode{T}"/>) with the node → <see cref="DataView"/> projection, so
+        /// concurrent modification of the parent's child list is detected and throws.
         /// </summary>
-        /// <returns>A <see cref="LinearEnumerator{TEnumerable, T}"/> to iterate over the <see cref="DataView"/> children.</returns>
-        public LinearEnumerator<DataViewChildren, DataView> GetEnumerator() => new(this);
+        public ResolvingEnumerator<MultiTreeNode<DataViewId>, DataView,
+            ResolvingEnumerator<int, MultiTreeNode<DataViewId>, VersionedSublistEnumerator<int>>> GetEnumerator() =>
+            new(m_Source, m_Children.GetEnumerator());
     }
 
     /// <summary>
-    /// Represents an enumerable collection of <see cref="DataView"/> instances, based on an indexed source of IDs.
-    /// Combines ID enumeration with the ability to resolve and access <see cref="DataView"/> objects.
+    /// Represents an enumerable collection of <see cref="DataView"/> instances. Wraps a
+    /// <see cref="SubEnumerable{T}"/> of <see cref="DataViewId"/> and projects each id to a
+    /// <see cref="DataView"/> via a provider. Iteration via <c>foreach</c> composes the inner
+    /// <see cref="VersionedSublistEnumerator{T}"/>, so concurrent modification of the backing
+    /// sublist is detected and throws.
     /// </summary>
-    /// <typeparam name="T">
-    /// The type of the indexed source providing the IDs.
-    /// Must implement both <see cref="IIndexable{TIndex, TValue}"/> and <see cref="ICountable"/>.
-    /// </typeparam>
-    /*public*/ readonly struct DataViewEnumerable<T> : IIndexable<int, DataView>, ICountable where T : IIndexable<int, DataViewId>, ICountable
+    /*public*/ readonly struct DataViewEnumerable : IIndexable<int, DataView>, ICountable
     {
         readonly IIndexable<DataViewId, DataView> m_Provider;
-        readonly T m_IdSource;
+        readonly SubEnumerable<DataViewId>        m_IdSource;
 
-        /// <summary>
-        /// Gets the number of items in the enumerable, sourced from the number of IDs in the <typeparamref name="T"/> source.
-        /// </summary>
         public int Count => m_IdSource.Count;
 
-        /// <summary>
-        /// Gets the <see cref="DataView"/> at the specified index, resolving its associated ID.
-        /// </summary>
-        /// <param name="index">The zero-based index of the <see cref="DataView"/>.</param>
-        /// <value>The <see cref="DataView"/> associated with the ID at the specified index.</value>
+        /// <remarks>
+        /// Indexed access bypasses the version check (matches the BCL contract). Use
+        /// <c>foreach</c> for the version-checked path.
+        /// </remarks>
         public DataView this[int index] => m_Provider[m_IdSource[index]];
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DataViewEnumerable{T}"/> struct.
-        /// </summary>
-        /// <param name="provider">The provider that resolves <see cref="DataViewId"/> to <see cref="DataView"/> instances.</param>
-        /// <param name="idSource">The source of <see cref="DataViewId"/> identifiers.</param>
-        public DataViewEnumerable(IIndexable<DataViewId, DataView> provider, T idSource)
+        public DataViewEnumerable(IIndexable<DataViewId, DataView> provider, SubEnumerable<DataViewId> idSource)
         {
             m_Provider = provider;
             m_IdSource = idSource;
         }
 
-        /// <summary>
-        /// Returns an enumerator that iterates through the <see cref="DataViewEnumerable{T}"/>.
-        /// </summary>
-        /// <returns>A <see cref="LinearEnumerator{TEnumerable, T}"/> for iterating through the <see cref="DataView"/> instances.</returns>
-        public LinearEnumerator<DataViewEnumerable<T>, DataView> GetEnumerator() => new(this);
+        public ResolvingEnumerator<DataViewId, DataView, VersionedSublistEnumerator<DataViewId>> GetEnumerator() =>
+            new(m_Provider, m_IdSource.GetEnumerator());
     }
 
     /// <summary>
     /// Flat representation of a <see cref="DataView"/> tree.
     /// </summary>
-    /*public*/ readonly struct DataViewFlatTreeEnumerable : IEnumerable<DataView>
+    /*public*/ readonly struct DataViewFlatTreeEnumerable
     {
-        readonly DataView m_RootDataView;
+        readonly MultiTreeNode<DataViewId> m_RootNode;
+        readonly IIndexable<MultiTreeNode<DataViewId>, DataView> m_Source;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataViewFlatTreeEnumerable"/> struct.
         /// </summary>
-        /// <param name="rootDataView">The root of the <see cref="DataView"/> tree to be enumerated.</param>
-        public DataViewFlatTreeEnumerable(DataView rootDataView)
+        /// <param name="rootNode">The root node of the <see cref="DataView"/> tree to be enumerated.</param>
+        /// <param name="source">The provider that resolves tree nodes to <see cref="DataView"/> instances.</param>
+        public DataViewFlatTreeEnumerable(MultiTreeNode<DataViewId> rootNode, IIndexable<MultiTreeNode<DataViewId>, DataView> source)
         {
-            m_RootDataView = rootDataView;
+            m_RootNode = rootNode;
+            m_Source = source;
         }
 
         /// <summary>
         /// Returns an enumerator that iterates through the <see cref="DataViewFlatTreeEnumerable"/>.
         /// </summary>
         /// <returns>A <see cref="DataViewFlatTreeEnumerator"/> to iterate over the <see cref="DataView"/> children.</returns>
-        public DataViewFlatTreeEnumerator GetEnumerator() => new(m_RootDataView);
-        IEnumerator<DataView> IEnumerable<DataView>.GetEnumerator() => GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public DataViewFlatTreeEnumerator GetEnumerator() => new(m_RootNode, m_Source);
     }
 
     /// <summary>
     /// Enumerator that iterates over all elements of a <see cref="DataView"/> tree.
     /// </summary>
-    /*public*/ struct DataViewFlatTreeEnumerator : IEnumerator<DataView>
+    /*public*/ struct DataViewFlatTreeEnumerator
     {
-        readonly DataView m_RootDataView;
-        Stack<DataView> m_Stack;
+        readonly IMultiTree<DataViewId> m_Tree;
+        readonly IIndexable<MultiTreeNode<DataViewId>, DataView> m_Source;
+        Stack<int> m_Stack;
         DataView m_Current;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataViewFlatTreeEnumerator"/> struct.
         /// </summary>
-        /// <param name="rootDataView">The root of the <see cref="DataView"/> tree to be enumerated.</param>
-        public DataViewFlatTreeEnumerator(DataView rootDataView)
+        /// <param name="rootNode">The root node of the <see cref="DataView"/> tree to be enumerated.</param>
+        /// <param name="source">The provider that resolves tree nodes to <see cref="DataView"/> instances.</param>
+        public DataViewFlatTreeEnumerator(MultiTreeNode<DataViewId> rootNode, IIndexable<MultiTreeNode<DataViewId>, DataView> source)
         {
-            m_Stack = new();
-            m_RootDataView = rootDataView;
-            m_Current = new DataView();
-            if(m_RootDataView.Id.IsValid)
-                m_Stack.Push(m_RootDataView);
+            m_Stack = new Stack<int>();
+            m_Current = default;
+            m_Tree = rootNode.Tree;
+            m_Source = source;
+            if (m_Tree != null)
+                m_Stack.Push(rootNode.Index);
         }
 
         /// <summary>
         /// Gets the current value in the enumeration.
         /// </summary>
-        public DataView Current
-        {
-            get
-            {
-                return m_Current.Id.IsValid ? m_Current : default;
-            }
-        }
-        object IEnumerator.Current => Current;
-
-        /// <summary>
-        /// Disposes the resources used by the enumerator.
-        /// </summary>
-        public void Dispose()
-        {
-        }
+        public DataView Current => m_Current;
 
         /// <summary>
         /// Moves to the next item in the enumeration.
@@ -343,26 +351,19 @@ namespace Unity.GraphCommon.LowLevel.Editor
         {
             while (m_Stack.Count > 0)
             {
-                m_Current = m_Stack.Pop();
-                var connections = m_Current.Children;
-                for (int i = 0; i < connections.Count; i++)
-                {
-                    var childrenDataView = connections[connections.Count - 1 - i];
-                    m_Stack.Push(childrenDataView);
-                }
+                int slot = m_Stack.Pop();
+                if (!m_Tree.IsAlive(slot)) continue;
 
+                m_Current = m_Source[new MultiTreeNode<DataViewId>(m_Tree, slot)];
+
+                var children = m_Tree.GetChildren(slot);
+                int count = children.Count;
+                for (int i = count - 1; i >= 0; --i)
+                    m_Stack.Push(children[i].Index);
                 return true;
             }
             m_Current = default;
             return false;
-        }
-
-        /// <summary>
-        /// Resets the enumeration.
-        /// </summary>
-        public void Reset()
-        {
-            m_Stack.Clear();
         }
     }
 }

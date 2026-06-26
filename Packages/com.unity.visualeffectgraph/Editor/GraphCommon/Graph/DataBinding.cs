@@ -50,17 +50,17 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
     readonly struct DataBindingInfo
     {
-        public DataBindingInfo(DataBindingId id, TaskNodeId taskNodeId, DataViewId dataViewId, IDataKey bindingDataKey, BindingUsage usage)
+        public DataBindingInfo(DataBindingId id, DataNodeId dataNodeId, DataViewId dataViewId, IDataKey bindingDataKey, BindingUsage usage)
         {
             Id = id;
-            TaskNodeId = taskNodeId;
+            DataNodeId = dataNodeId;
             DataViewId = dataViewId;
             BindingDataKey = bindingDataKey;
             Usage = usage;
         }
 
         public DataBindingId Id { get; }
-        public TaskNodeId TaskNodeId { get; }
+        public DataNodeId DataNodeId { get; }
         public DataViewId DataViewId { get; }
         public IDataKey BindingDataKey { get; }
         public BindingUsage Usage { get; }
@@ -71,75 +71,80 @@ namespace Unity.GraphCommon.LowLevel.Editor
     /// </summary>
     /*public*/ readonly struct DataBinding
     {
-        readonly IIndexable<DataBindingId, DataBinding> m_Source;
-
-        readonly Handle<IReadOnlyGraph> m_Graph;
+        readonly IReadOnlyGraph m_Graph;
         readonly DataBindingInfo m_Info;
+
+        DataBindingInfo Info { get { CheckValid(); return m_Info; } }
+        IReadOnlyGraph Graph { get { CheckValid(); return m_Graph; } }
+
+        /// <summary>
+        /// Gets a value indicating whether this data binding still refers to a live entry in the graph.
+        /// </summary>
+        public bool IsValid => m_Graph != null && m_Graph.IsValid(m_Info.Id);
 
         /// <summary>
         /// Gets the unique identifier for this <see cref="DataBinding"/>.
-        /// Returns <see cref="DataBindingId.Invalid"/> if the graph is not valid.
         /// </summary>
-        public DataBindingId Id => m_Graph.Valid ? m_Info.Id : DataBindingId.Invalid;
+        /// <exception cref="InvalidOperationException">Thrown when the data binding has been removed from the graph.</exception>
+        public DataBindingId Id => Info.Id;
+
+        void CheckValid() { if (!IsValid) throw new InvalidOperationException($"DataBinding {m_Info.Id} no longer exists in the graph."); }
 
         /// <summary>
         /// Gets the TaskNode that owns this binding.
         /// </summary>
-        public TaskNode TaskNode => m_Graph.Ref.TaskNodes[m_Info.TaskNodeId];
+        /// <exception cref="InvalidOperationException">Thrown when the data binding has been removed from the graph.</exception>
+        public TaskNode TaskNode => Graph.DataNodes[Info.DataNodeId].TaskNode;
 
         /// <summary>
         /// Gets the DataView associated with this binding.
         /// </summary>
-        public DataView DataView => m_Graph.Ref.DataViews[m_Info.DataViewId];
+        /// <exception cref="InvalidOperationException">Thrown when the data binding has been removed from the graph.</exception>
+        public DataView DataView => Graph.DataViews[Info.DataViewId];
 
         /// <summary>
         /// Gets the BindingDataKey used in this binding.
-        /// Returns null if the graph is not valid.
         /// </summary>
-        public IDataKey BindingDataKey => m_Graph.Valid ? m_Info.BindingDataKey : null;
+        /// <exception cref="InvalidOperationException">Thrown when the data binding has been removed from the graph.</exception>
+        public IDataKey BindingDataKey => Info.BindingDataKey;
 
         /// <summary>
-        /// Gets the BindingDataKey used in this binding.
-        /// Returns BindingUsage.Unknown if the graph is not valid.
+        /// Gets the binding usage.
         /// </summary>
-        public BindingUsage Usage => m_Graph.Valid ? m_Info.Usage : BindingUsage.Unknown;
+        /// <exception cref="InvalidOperationException">Thrown when the data binding has been removed from the graph.</exception>
+        public BindingUsage Usage => Info.Usage;
 
         /// <summary>
         /// Gets the DataNode associated with this binding.
         /// </summary>
-        public DataNode DataNode => m_Graph.Ref.GetDataNode(m_Info.Id);
+        /// <exception cref="InvalidOperationException">Thrown when the data binding has been removed from the graph.</exception>
+        public DataNode DataNode => Graph.DataNodes[Info.DataNodeId];
 
-        internal DataBinding(IIndexable<DataBindingId, DataBinding> source, IReadOnlyGraph graph, DataBindingInfo info)
+        internal DataBinding(IReadOnlyGraph graph, DataBindingInfo info)
         {
-            m_Source = source;
-            m_Graph = new(graph);
+            m_Graph = graph;
             m_Info = info;
         }
     }
 
     /// <summary>
-    /// Represents an enumerable collection of <see cref="DataView"/> instances, based on an indexed source of IDs.
-    /// Combines ID enumeration with the ability to resolve and access <see cref="DataView"/> objects.
+    /// Represents an enumerable collection of <see cref="DataBinding"/> instances. Wraps a
+    /// <see cref="SubEnumerable{T}"/> of <see cref="DataBindingId"/> and projects each id to a
+    /// <see cref="DataBinding"/> via a provider. Iteration via <c>foreach</c> composes the inner
+    /// <see cref="VersionedSublistEnumerator{T}"/>, so concurrent modification of the backing
+    /// sublist is detected and throws.
     /// </summary>
-    /// <typeparam name="T">
-    /// The type of the indexed source providing the IDs.
-    /// Must implement both <see cref="IIndexable{TIndex, TValue}"/> and <see cref="ICountable"/>.
-    /// </typeparam>
-    /*public*/ readonly struct DataBindingEnumerable<T> : IIndexable<int, DataBinding>, ICountable where T : IIndexable<int, DataBindingId>, ICountable
+    /*public*/ readonly struct DataBindingEnumerable : IIndexable<int, DataBinding>, ICountable
     {
         readonly IIndexable<DataBindingId, DataBinding> m_Provider;
-        readonly T m_IdSource;
+        readonly SubEnumerable<DataBindingId>           m_IdSource;
 
-        /// <summary>
-        /// Gets the number of items in the enumerable, sourced from the number of IDs in the <typeparamref name="T"/> source.
-        /// </summary>
         public int Count => m_IdSource.Count;
 
-        /// <summary>
-        /// Gets the <see cref="DataBinding"/> at the specified index, resolving its associated ID.
-        /// </summary>
-        /// <param name="index">The zero-based index of the <see cref="DataBinding"/>.</param>
-        /// <value>The <see cref="DataBinding"/> associated with the ID at the specified index.</value>
+        /// <remarks>
+        /// Indexed access bypasses the version check (matches the BCL contract). Use
+        /// <c>foreach</c> for the version-checked path.
+        /// </remarks>
         public DataBinding this[int index] => m_Provider[m_IdSource[index]];
 
         public DataBinding? this[IDataKey bindingDataKey]
@@ -170,21 +175,13 @@ namespace Unity.GraphCommon.LowLevel.Editor
             return null;
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DataViewEnumerable{T}"/> struct.
-        /// </summary>
-        /// <param name="provider">The provider that resolves <see cref="DataBindingId"/> to <see cref="DataBinding"/> instances.</param>
-        /// <param name="idSource">The source of <see cref="DataBindingId"/> identifiers.</param>
-        public DataBindingEnumerable(IIndexable<DataBindingId, DataBinding> provider, T idSource)
+        public DataBindingEnumerable(IIndexable<DataBindingId, DataBinding> provider, SubEnumerable<DataBindingId> idSource)
         {
             m_Provider = provider;
             m_IdSource = idSource;
         }
 
-        /// <summary>
-        /// Returns an enumerator that iterates through the <see cref="DataBindingEnumerable{T}"/>.
-        /// </summary>
-        /// <returns>A <see cref="LinearEnumerator{TEnumerable, T}"/> for iterating through the <see cref="DataBinding"/> instances.</returns>
-        public LinearEnumerator<DataBindingEnumerable<T>, DataBinding> GetEnumerator() => new(this);
+        public ResolvingEnumerator<DataBindingId, DataBinding, VersionedSublistEnumerator<DataBindingId>> GetEnumerator() =>
+            new(m_Provider, m_IdSource.GetEnumerator());
     }
 }

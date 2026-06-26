@@ -68,78 +68,77 @@ namespace Unity.GraphCommon.LowLevel.Editor
     /// </summary>
     /*public*/ readonly struct DataContainer
     {
-        readonly Handle<IReadOnlyGraph> m_Graph;
+        readonly IReadOnlyGraph m_Graph;
         readonly DataContainerInfo m_Info;
+
+        DataContainerInfo Info { get { CheckValid(); return m_Info; } }
+        IReadOnlyGraph Graph { get { CheckValid(); return m_Graph; } }
+
+        /// <summary>
+        /// Gets a value indicating whether this data container still refers to a live entry in the graph.
+        /// </summary>
+        public bool IsValid => m_Graph != null && m_Graph.IsValid(m_Info.Id);
 
         /// <summary>
         /// Gets the unique identifier for this <see cref="DataContainer"/>.
-        /// Returns <see cref="DataContainerId.Invalid"/> if the graph is not valid.
         /// </summary>
-        public DataContainerId Id => m_Graph.Valid ? m_Info.Id : DataContainerId.Invalid;
+        /// <exception cref="InvalidOperationException">Thrown when the data container has been removed from the graph.</exception>
+        public DataContainerId Id => Info.Id;
 
         /// <summary>
-        /// Gets the name of this container. Returns null if the graph is not valid.
+        /// Gets the name of this container.
         /// </summary>
-        public string Name => m_Graph.Valid ? m_Info.Name : null;
+        /// <exception cref="InvalidOperationException">Thrown when the data container has been removed from the graph.</exception>
+        public string Name => Info.Name;
 
         /// <summary>
-        /// Gets the name of this container. Returns null if the graph is not valid.
+        /// Gets the name of this container as a C# identifier.
         /// </summary>
-        public string IdentifierName => Name.Replace(' ', '_');
+        /// <exception cref="InvalidOperationException">Thrown when the data container has been removed from the graph.</exception>
+        public string IdentifierName => Info.Name?.Replace(' ', '_');
+
+        void CheckValid() { if (!IsValid) throw new InvalidOperationException($"DataContainer {m_Info.Id} no longer exists in the graph."); }
 
         /// <summary>
         /// Gets the root DataView of this container.
         /// </summary>
-        public DataView RootDataView => m_Graph.Ref.DataViews[m_Info.RootDataViewId];
+        /// <exception cref="InvalidOperationException">Thrown when the data container has been removed from the graph.</exception>
+        public DataView RootDataView => Graph.DataViews[Info.RootDataViewId];
 
         internal DataContainer(IReadOnlyGraph graph, DataContainerInfo info)
         {
-            m_Graph = new(graph);
+            m_Graph = graph;
             m_Info = info;
         }
     }
 
     /// <summary>
-    /// Represents an enumerable collection of <see cref="DataView"/> instances, based on an indexed source of IDs.
-    /// Combines ID enumeration with the ability to resolve and access <see cref="DataView"/> objects.
+    /// Represents an enumerable collection of <see cref="DataContainer"/> instances. Wraps a
+    /// <see cref="SubEnumerable{T}"/> of <see cref="DataContainerId"/> and projects each id to a
+    /// <see cref="DataContainer"/> via a provider. Iteration via <c>foreach</c> composes the
+    /// inner <see cref="VersionedSublistEnumerator{T}"/>, so concurrent modification of the
+    /// backing sublist is detected and throws.
     /// </summary>
-    /// <typeparam name="T">
-    /// The type of the indexed source providing the IDs.
-    /// Must implement both <see cref="IIndexable{TIndex, TValue}"/> and <see cref="ICountable"/>.
-    /// </typeparam>
-    /*public*/ readonly struct DataContainerEnumerable<T> : IIndexable<int, DataContainer>, ICountable where T : IIndexable<int, DataContainerId>, ICountable
+    /*public*/ readonly struct DataContainerEnumerable : IIndexable<int, DataContainer>, ICountable
     {
         readonly IIndexable<DataContainerId, DataContainer> m_Provider;
-        readonly T m_IdSource;
+        readonly SubEnumerable<DataContainerId>             m_IdSource;
 
-        /// <summary>
-        /// Gets the number of items in the enumerable, sourced from the number of IDs in the <typeparamref name="T"/> source.
-        /// </summary>
         public int Count => m_IdSource.Count;
 
-        /// <summary>
-        /// Gets the <see cref="DataContainer"/> at the specified index, resolving its associated ID.
-        /// </summary>
-        /// <param name="index">The zero-based index of the <see cref="DataContainer"/>.</param>
-        /// <value>The <see cref="DataContainer"/> associated with the ID at the specified index.</value>
+        /// <remarks>
+        /// Indexed access bypasses the version check (matches the BCL contract). Use
+        /// <c>foreach</c> for the version-checked path.
+        /// </remarks>
         public DataContainer this[int index] => m_Provider[m_IdSource[index]];
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DataContainerEnumerable{T}"/> struct.
-        /// Initializes a new instance of the <see cref="DataContainerEnumerable{T}"/> struct.
-        /// </summary>
-        /// <param name="provider">The provider that resolves <see cref="DataContainerId"/> to <see cref="DataContainer"/> instances.</param>
-        /// <param name="idSource">The source of <see cref="DataContainerId"/> identifiers.</param>
-        public DataContainerEnumerable(IIndexable<DataContainerId, DataContainer> provider, T idSource)
+        public DataContainerEnumerable(IIndexable<DataContainerId, DataContainer> provider, SubEnumerable<DataContainerId> idSource)
         {
             m_Provider = provider;
             m_IdSource = idSource;
         }
 
-        /// <summary>
-        /// Returns an enumerator that iterates through the <see cref="DataContainerEnumerable{T}"/>.
-        /// </summary>
-        /// <returns>A <see cref="LinearEnumerator{TEnumerable, T}"/> for iterating through the <see cref="DataContainer"/> instances.</returns>
-        public LinearEnumerator<DataContainerEnumerable<T>, DataContainer> GetEnumerator() => new(this);
+        public ResolvingEnumerator<DataContainerId, DataContainer, VersionedSublistEnumerator<DataContainerId>> GetEnumerator() =>
+            new(m_Provider, m_IdSource.GetEnumerator());
     }
 }

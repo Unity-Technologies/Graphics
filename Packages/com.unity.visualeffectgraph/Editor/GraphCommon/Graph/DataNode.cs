@@ -72,70 +72,81 @@ namespace Unity.GraphCommon.LowLevel.Editor
         readonly IIndexable<GraphNode<DataNodeId>, DataNode> m_NodeConverter;
         readonly GraphNode<DataNodeId> m_Node;
 
-        readonly Handle<IReadOnlyGraph> m_Graph;
+        readonly IReadOnlyGraph m_Graph;
         readonly DataNodeInfo m_Info;
 
+        DataNodeInfo Info { get { CheckValid(); return m_Info; } }
+        IReadOnlyGraph Graph { get { CheckValid(); return m_Graph; } }
+        GraphNode<DataNodeId> Node { get { CheckValid(); return m_Node; } }
+
         /// <summary>
-        /// Gets the unique identifier for this data node. Returns an invalid ID if the graph is not valid.
+        /// Gets a value indicating whether this data node still refers to a live entry in the graph.
         /// </summary>
-        public DataNodeId Id => m_Graph.Valid ? m_Info.Id : DataNodeId.Invalid;
+        public bool IsValid => m_Graph != null && m_Graph.IsValid(m_Info.Id);
+
+        /// <summary>
+        /// Gets the unique identifier for this data node.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when the data node has been removed from the graph.</exception>
+        public DataNodeId Id => Info.Id;
 
         /// <summary>
         /// Gets the parent data nodes connected to this data node.
         /// </summary>
-        public DataNodeLinks Parents => new(m_NodeConverter, m_Node.Parents);
+        /// <exception cref="InvalidOperationException">Thrown when the data node has been removed from the graph.</exception>
+        public DataNodeLinks Parents => new(m_NodeConverter, Node.Parents);
         /// <summary>
         /// Gets the child data nodes connected to this data node.
         /// </summary>
-        public DataNodeLinks Children => new(m_NodeConverter, m_Node.Children);
+        /// <exception cref="InvalidOperationException">Thrown when the data node has been removed from the graph.</exception>
+        public DataNodeLinks Children => new(m_NodeConverter, Node.Children);
+
+        void CheckValid() { if (!IsValid) throw new InvalidOperationException($"DataNode {m_Info.Id} no longer exists in the graph."); }
 
         /// <summary>
         /// Gets the task node this data node belongs to.
         /// </summary>
-        public TaskNode TaskNode => m_Graph.Ref.TaskNodes[m_Info.TaskNodeId];
+        /// <exception cref="InvalidOperationException">Thrown when the data node has been removed from the graph.</exception>
+        public TaskNode TaskNode => Graph.TaskNodes[Info.TaskNodeId];
 
         /// <summary>
         /// Gets the data container represented by this data node.
         /// </summary>
-        public DataContainer DataContainer => m_Graph.Ref.DataContainers[m_Info.DataContainerId];
+        /// <exception cref="InvalidOperationException">Thrown when the data node has been removed from the graph.</exception>
+        public DataContainer DataContainer => Graph.DataContainers[Info.DataContainerId];
 
         /// <summary>
         /// Gets the data views used by this data node, as a tree.
         /// </summary>
-        public DataView UsedDataViewsRoot => m_Graph.Ref.GetUsedDataViews(Id);
+        /// <exception cref="InvalidOperationException">Thrown when the data node has been removed from the graph.</exception>
+        public DataView UsedDataViewsRoot => Graph.GetUsedDataViews(Info.Id);
 
-        public DataBindingEnumerable<SubEnumerable<DataBindingId>> DataBindings => m_Graph.Ref.GetDataBindings(Id);
+        /// <exception cref="InvalidOperationException">Thrown when the data node has been removed from the graph.</exception>
+        public DataBindingEnumerable DataBindings => Graph.GetDataBindings(Info.Id);
 
         /// <summary>
         /// Gets the data views used by this data node, as an enumerable.
         /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when the data node has been removed from the graph.</exception>
         public DataViewFlatTreeEnumerable UsedDataViews => UsedDataViewsRoot.Flat;
 
         /// <summary>
-        /// Gets the data views read by this data node, as a tree.
+        /// Returns whether the specified data view is read by this data node.
         /// </summary>
-        public DataView ReadDataViewsRoot => m_Graph.Ref.GetReadDataViews(Id);
+        /// <exception cref="InvalidOperationException">Thrown when the data node has been removed from the graph.</exception>
+        public bool IsRead(DataViewId dataViewId) => Graph.IsRead(Info.Id, dataViewId);
 
         /// <summary>
-        /// Gets the data views read by this data node, as an enumerable.
+        /// Returns whether the specified data view is written by this data node.
         /// </summary>
-        public DataViewFlatTreeEnumerable ReadDataViews => ReadDataViewsRoot.Flat;
-
-        /// <summary>
-        /// Gets the data views written by this data node, as a tree.
-        /// </summary>
-        public DataView WrittenDataViewsRoot => m_Graph.Ref.GetWrittenDataViews(Id);
-
-        /// <summary>
-        /// Gets the data views written by this data node, as an enumerable.
-        /// </summary>
-        public DataViewFlatTreeEnumerable WrittenDataViews => WrittenDataViewsRoot.Flat;
+        /// <exception cref="InvalidOperationException">Thrown when the data node has been removed from the graph.</exception>
+        public bool IsWritten(DataViewId dataViewId) => Graph.IsWritten(Info.Id, dataViewId);
 
         internal DataNode(IIndexable<GraphNode<DataNodeId>, DataNode> nodeConverter, GraphNode<DataNodeId> node, IReadOnlyGraph graph, DataNodeInfo info)
         {
             m_NodeConverter = nodeConverter;
             m_Node = node;
-            m_Graph = new(graph);
+            m_Graph = graph;
             m_Info = info;
         }
     }
@@ -172,49 +183,48 @@ namespace Unity.GraphCommon.LowLevel.Editor
         }
 
         /// <summary>
-        /// Returns an enumerator that iterates through the data node links.
+        /// Returns an enumerator that iterates through the data node links and throws on
+        /// concurrent modification of the underlying parents/children sublist. Composes the
+        /// version-checked <see cref="GraphNodeLinksEnumerator{T}"/> with the graph-node-to-
+        /// <see cref="DataNode"/> projection via the node converter.
         /// </summary>
-        /// <returns>An enumerator that can be used to iterate through the data node links.</returns>
-        public LinearEnumerator<DataNodeLinks, DataNode> GetEnumerator() => new(this);
+        public ResolvingEnumerator<GraphNode<DataNodeId>, DataNode, GraphNodeLinksEnumerator<DataNodeId>> GetEnumerator() =>
+            new(m_NodeConverter, m_Links.GetEnumerator());
     }
 
     /// <summary>
-    /// Represents an enumerable collection of data nodes.
+    /// Represents an enumerable collection of data nodes. Wraps a <see cref="SubEnumerable{T}"/>
+    /// of <see cref="DataNodeId"/> and projects each id to a <see cref="DataNode"/> via a provider.
+    /// Iteration via <c>foreach</c> composes the inner <see cref="VersionedSublistEnumerator{T}"/>,
+    /// so concurrent modification of the backing sublist is detected and throws.
     /// </summary>
-    /// <typeparam name="T">The type of the source collection that contains data node IDs.</typeparam>
-    /*public*/ readonly struct DataNodeEnumerable<T> : IIndexable<int, DataNode>, ICountable where T : IIndexable<int, DataNodeId>, ICountable
+    /*public*/ readonly struct DataNodeEnumerable : IIndexable<int, DataNode>, ICountable
     {
         readonly IIndexable<DataNodeId, DataNode> m_Provider;
-        readonly T m_IdSource;
+        readonly SubEnumerable<DataNodeId>        m_IdSource;
 
-        /// <summary>
-        /// Gets the number of data nodes in the collection.
-        /// </summary>
         public int Count => m_IdSource.Count;
 
-        /// <summary>
-        /// Gets the data node at the specified index in the collection.
-        /// </summary>
-        /// <param name="index">The zero-based index of the data node to get.</param>
-        /// <value>The data node at the specified index.</value>
+        /// <remarks>
+        /// Indexed access bypasses the version check (matches the BCL contract:
+        /// <see cref="System.Collections.Generic.List{T}"/>'s indexer doesn't throw on
+        /// concurrent modification either, only its enumerator does). Use <c>foreach</c> for
+        /// the version-checked path.
+        /// </remarks>
         public DataNode this[int index] => m_Provider[m_IdSource[index]];
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DataNodeEnumerable{T}"/> struct.
-        /// </summary>
-        /// <param name="provider">The provider that can retrieve data nodes by ID.</param>
-        /// <param name="idSource">The source collection of data node IDs.</param>
-        public DataNodeEnumerable(IIndexable<DataNodeId, DataNode> provider, T idSource)
+        public DataNodeEnumerable(IIndexable<DataNodeId, DataNode> provider, SubEnumerable<DataNodeId> idSource)
         {
             m_Provider = provider;
             m_IdSource = idSource;
         }
 
         /// <summary>
-        /// Returns an enumerator that iterates through the data nodes.
+        /// Returns a version-checked enumerator. Composes the inner
+        /// <see cref="VersionedSublistEnumerator{T}"/> with the id-to-DataNode projection.
         /// </summary>
-        /// <returns>An enumerator that can be used to iterate through the data nodes.</returns>
-        public LinearEnumerator<DataNodeEnumerable<T>, DataNode> GetEnumerator() => new(this);
+        public ResolvingEnumerator<DataNodeId, DataNode, VersionedSublistEnumerator<DataNodeId>> GetEnumerator() =>
+            new(m_Provider, m_IdSource.GetEnumerator());
     }
 
 }

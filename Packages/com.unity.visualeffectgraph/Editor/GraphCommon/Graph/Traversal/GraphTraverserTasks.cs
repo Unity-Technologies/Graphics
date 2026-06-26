@@ -200,7 +200,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 /// <summary>
                 /// Gets the current task node in the traversal.
                 /// </summary>
-                public TaskNode Current => m_Current.Id.IsValid ? m_Current : default;
+                public TaskNode Current => m_Current.IsValid ? m_Current : default;
 
                 /// <summary>
                 /// Releases all resources used by the enumerator.
@@ -257,9 +257,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
             /// </summary>
             public struct Enumerator
             {
-                IReadOnlyGraph m_Graph;
+                TaskNodeEnumerator m_Inner;
                 OnFilterTaskNode m_OnFilter;
-                private int m_Index;
+                bool m_Stopped;
 
                 /// <summary>
                 /// Initializes a new instance of the <see cref="Enumerator"/> struct.
@@ -268,35 +268,28 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 /// <param name="onFilter">Optional filter callback to control traversal and acceptance of nodes.</param>
                 public Enumerator(IReadOnlyGraph graph,  OnFilterTaskNode onFilter)
                 {
-                    m_Graph = graph;
+                    m_Inner = graph.TaskNodes.GetEnumerator();
                     m_OnFilter = onFilter;
-                    m_Index = -1;
+                    m_Stopped = false;
                 }
 
                 /// <summary>
                 /// Gets the current task node in the traversal.
                 /// </summary>
-                public TaskNode Current => m_Graph.TaskNodes[m_Index];
-
+                public TaskNode Current => m_Inner.Current;
                 /// <summary>
                 /// Advances the enumerator to the next task node that matches the filter.
                 /// </summary>
                 /// <returns>True if a node was found; otherwise, false.</returns>
                 public bool MoveNext()
                 {
-                    while (m_Index < m_Graph.TaskNodes.Count - 1)
+                    if (m_Stopped) return false;
+                    while (m_Inner.MoveNext())
                     {
-                        m_Index++;
-                        var node = m_Graph.TaskNodes[m_Index];
-                        var control = m_OnFilter(node);
-                        if (!control.Continue)
-                        {
-                            m_Index = m_Graph.TaskNodes.Count;
-                        }
-                        if(control.Accept)
-                        {
-                            return true;
-                        }
+                        var control = m_OnFilter(m_Inner.Current);
+                        if (!control.Continue) m_Stopped = true;
+                        if (control.Accept) return true;
+                        if (m_Stopped) return false;
                     }
                     return false;
                 }

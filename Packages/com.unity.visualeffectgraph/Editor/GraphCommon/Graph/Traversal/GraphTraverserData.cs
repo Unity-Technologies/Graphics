@@ -214,7 +214,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 /// <summary>
                 /// Gets the current data node in the traversal.
                 /// </summary>
-                public DataNode Current => m_Current.Id.IsValid ? m_Current : default;
+                public DataNode Current => m_Current.IsValid ? m_Current : default;
 
                 /// <summary>
                 /// Releases all resources used by the enumerator.
@@ -272,9 +272,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
             /// </summary>
             public struct Enumerator
             {
-                private IReadOnlyGraph m_Graph;
+                private DataNodeEnumerator m_Inner;
                 private OnFilterDataNode m_OnFilter;
-                private int m_Index;
+                private bool m_Stopped;
 
                 /// <summary>
                 /// Initializes a new instance of the <see cref="Enumerator"/> struct.
@@ -283,15 +283,15 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 /// <param name="onFilter">Optional filter callback to control traversal and acceptance of nodes.</param>
                 public Enumerator(IReadOnlyGraph graph, OnFilterDataNode onFilter)
                 {
-                    m_Graph = graph;
+                    m_Inner = graph.DataNodes.GetEnumerator();
                     m_OnFilter = onFilter;
-                    m_Index = -1;
+                    m_Stopped = false;
                 }
 
                 /// <summary>
                 /// Gets the current data node in the traversal.
                 /// </summary>
-                public DataNode Current => m_Graph.DataNodes[m_Index];
+                public DataNode Current => m_Inner.Current;
 
                 /// <summary>
                 /// Advances the enumerator to the next data node that matches the filter.
@@ -299,22 +299,14 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 /// <returns>True if a node was found; otherwise, false.</returns>
                 public bool MoveNext()
                 {
-                    while (m_Index < m_Graph.DataNodes.Count - 1)
+                    if (m_Stopped) return false;
+                    while (m_Inner.MoveNext())
                     {
-                        m_Index++;
-                        var node = m_Graph.DataNodes[m_Index];
-                        var control = m_OnFilter(node);
-                        if (!control.Continue)
-                        {
-                            m_Index = m_Graph.DataNodes.Count;
-                        }
-
-                        if (control.Accept)
-                        {
-                            return true;
-                        }
+                        var control = m_OnFilter(m_Inner.Current);
+                        if (!control.Continue) m_Stopped = true;
+                        if (control.Accept) return true;
+                        if (m_Stopped) return false;
                     }
-
                     return false;
                 }
             }

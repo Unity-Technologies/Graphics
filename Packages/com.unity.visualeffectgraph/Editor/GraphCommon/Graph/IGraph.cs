@@ -46,49 +46,24 @@ namespace Unity.GraphCommon.LowLevel.Editor
         IMutableGraph Copy();
 
         /// <summary>
-        /// Creates a new empty graph of the same type.
-        /// </summary>
-        /// <returns>A new empty IMutableGraph.</returns>
-        IMutableGraph EmptyCopy();
-
-        /// <summary>
         /// Retrieves an enumerable collection of data nodes associated with a specified task node.
         /// </summary>
         /// <param name="taskNodeId">The identifier of the task node for which data nodes are to be retrieved.</param>
         /// <returns>
-        /// A <see cref="DataNodeEnumerable{SubEnumerable{DataNodeId}}"/> containing the data nodes
-        /// related to the specified <paramref name="taskNodeId"/>.
+        /// A <see cref="DataNodeEnumerable"/> containing the data nodes related to the specified
+        /// <paramref name="taskNodeId"/>.
         /// </returns>
-        DataNodeEnumerable<SubEnumerable<DataNodeId>> GetDataNodes(TaskNodeId taskNodeId);
-
-        /// <summary>
-        /// Retrieves the data node corresponding to the specified data binding.
-        /// </summary>
-        /// <param name="dataBindingId">The identifier of the data binding for which the data node is to be retrieved.</param>
-        /// <returns>
-        /// The data node corresponding to the specified <paramref name="dataBindingId"/>.
-        /// </returns>
-        public DataNode GetDataNode(DataBindingId dataBindingId);
+        internal DataNodeEnumerable GetDataNodes(TaskNodeId taskNodeId);
 
         /// <summary>
         /// Retrieves an enumerable collection of data bindings associated with a specified task node.
         /// </summary>
-        /// <param name="taskNodeId">The identifier of the task node for which data bindings are to be retrieved.</param>
-        /// <returns>
-        /// A <see cref="DataNodeEnumerable{SubEnumerable{DataBindingId}}"/> containing the data bindings
-        /// related to the specified <paramref name="taskNodeId"/>.
-        /// </returns>
-        DataBindingEnumerable<SubEnumerable<DataBindingId>> GetDataBindings(TaskNodeId taskNodeId);
+        internal DataBindingEnumerable GetDataBindings(TaskNodeId taskNodeId);
 
         /// <summary>
         /// Retrieves an enumerable collection of data bindings associated with a specified data node.
         /// </summary>
-        /// <param name="dataNodeId">The identifier of the data node for which data bindings are to be retrieved.</param>
-        /// <returns>
-        /// A <see cref="DataNodeEnumerable{SubEnumerable{DataBindingId}}"/> containing the data bindings
-        /// related to the specified <paramref name="dataNodeId"/>.
-        /// </returns>
-        DataBindingEnumerable<SubEnumerable<DataBindingId>> GetDataBindings(DataNodeId dataNodeId);
+        internal DataBindingEnumerable GetDataBindings(DataNodeId dataNodeId);
 
         /// <summary>
         /// Retrieves an enumerable collection of data views used in the specified data node.
@@ -97,25 +72,17 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <returns>
         /// The <see cref="DataView"/> subtree containing the data views used by the specified <paramref name="dataNodeId"/>.
         /// </returns>
-        DataView GetUsedDataViews(DataNodeId dataNodeId);
+        internal DataView GetUsedDataViews(DataNodeId dataNodeId);
 
         /// <summary>
-        /// Retrieves an enumerable collection of data views read in the specified data node.
+        /// Returns whether the specified data view is read by the specified data node.
         /// </summary>
-        /// <param name="dataNodeId">The identifier of the data node.</param>
-        /// <returns>
-        /// The <see cref="DataView"/> subtree containing the data views read by the specified <paramref name="dataNodeId"/>.
-        /// </returns>
-        DataView GetReadDataViews(DataNodeId dataNodeId);
+        internal bool IsRead(DataNodeId dataNodeId, DataViewId dataViewId);
 
         /// <summary>
-        /// Retrieves an enumerable collection of data views written in the specified data node.
+        /// Returns whether the specified data view is written by the specified data node.
         /// </summary>
-        /// <param name="dataNodeId">The identifier of the data node.</param>
-        /// <returns>
-        /// The <see cref="DataView"/> subtree containing the data views written by the specified <paramref name="dataNodeId"/>.
-        /// </returns>
-        DataView GetWrittenDataViews(DataNodeId dataNodeId);
+        internal bool IsWritten(DataNodeId dataNodeId, DataViewId dataViewId);
 
         /// <summary>
         /// Retrieves the data container where the specified data view is stored.
@@ -124,93 +91,24 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <returns>
         /// The <see cref="DataContainer"/> where the specified <paramref name="dataNodeId"/> is stored.
         /// </returns>
-        DataContainer GetDataContainer(DataViewId dataViewId);
+        internal DataContainer GetDataContainer(DataViewId dataViewId);
+
+        /// <summary>Returns true if the given data view is alive in this graph.</summary>
+        bool IsValid(DataViewId dataViewId);
+
+        /// <summary>Returns true if the given task node is alive in this graph.</summary>
+        bool IsValid(TaskNodeId taskNodeId);
+
+        /// <summary>Returns true if the given data node is alive in this graph.</summary>
+        bool IsValid(DataNodeId dataNodeId);
+
+        /// <summary>Returns true if the given data binding is alive in this graph.</summary>
+        bool IsValid(DataBindingId dataBindingId);
+
+        /// <summary>Returns true if the given data container is alive in this graph.</summary>
+        bool IsValid(DataContainerId dataContainerId);
     }
 
-    /// <summary>
-    /// Provides access to task nodes in a graph.
-    /// </summary>
-    /*public*/ interface ITaskNodeProvider : IIndexable<int, TaskNode>, IIndexable<TaskNodeId, TaskNode>, ICountable
-    {
-        /// <summary>
-        /// Gets whether the provider contains valid data.
-        /// </summary>
-        bool Valid { get; }
-
-        /// <summary>
-        /// Returns an enumerator that iterates through the task nodes.
-        /// </summary>
-        /// <returns>A linear enumerator for task nodes.</returns>
-        LinearEnumerator<ITaskNodeProvider, TaskNode> GetEnumerator();
-    }
-
-    /// <summary>
-    /// Provides access to data nodes in a graph.
-    /// </summary>
-    /*public*/ interface IDataNodeProvider : IIndexable<int, DataNode>, IIndexable<DataNodeId, DataNode>, ICountable
-    {
-        /// <summary>
-        /// Gets whether the provider contains valid data.
-        /// </summary>
-        bool Valid { get; }
-
-        /// <summary>
-        /// Returns an enumerator that iterates through the data nodes.
-        /// </summary>
-        /// <returns>A linear enumerator for data nodes.</returns>
-        LinearEnumerator<IDataNodeProvider, DataNode> GetEnumerator();
-    }
-
-    /// <summary>
-    /// Provides access to data views in a graph.
-    /// </summary>
-    /*public*/ interface IDataViewProvider : IIndexable<int, DataView>, IIndexable<DataViewId, DataView>, ICountable
-    {
-        /// <summary>
-        /// Gets whether the provider contains valid data.
-        /// </summary>
-        bool Valid { get; }
-
-        /// <summary>
-        /// Returns an enumerator that iterates through the data views.
-        /// </summary>
-        /// <returns>A linear enumerator for data views.</returns>
-        LinearEnumerator<IDataViewProvider, DataView> GetEnumerator();
-    }
-
-    /// <summary>
-    /// Provides access to data bindings in a graph.
-    /// </summary>
-    /*public*/ interface IDataBindingProvider : IIndexable<int, DataBinding>, IIndexable<DataBindingId, DataBinding>, ICountable
-    {
-        /// <summary>
-        /// Gets whether the provider contains valid data.
-        /// </summary>
-        bool Valid { get; }
-
-        /// <summary>
-        /// Returns an enumerator that iterates through the data bindings.
-        /// </summary>
-        /// <returns>A linear enumerator for data bindings.</returns>
-        LinearEnumerator<IDataBindingProvider, DataBinding> GetEnumerator();
-    }
-
-    /// <summary>
-    /// Provides access to data containers in a graph.
-    /// </summary>
-    /*public*/ interface IDataContainerProvider : IIndexable<int, DataContainer>, IIndexable<DataContainerId, DataContainer>, ICountable
-    {
-        /// <summary>
-        /// Gets whether the provider contains valid data.
-        /// </summary>
-        bool Valid { get; }
-
-        /// <summary>
-        /// Returns an enumerator that iterates through the data containers.
-        /// </summary>
-        /// <returns>A linear enumerator for data containers.</returns>
-        LinearEnumerator<IDataContainerProvider, DataContainer> GetEnumerator();
-    }
 
     /// <summary>
     /// Specifies how a task uses data associated with a binding.
@@ -270,14 +168,6 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <returns>The Id associated with the new data node.</returns>
         DataViewId AddData(string name, IDataDescription dataDescription);
 
-        //TODO: TEMPORARY, we don't really support mutability as of now
-        /// <summary>
-        /// Temporary. Overrides the data description of a data view.
-        /// </summary>
-        /// <param name="dataViewId">The ID of the data view to be overriden.</param>
-        /// <param name="dataDescription">The new description of the data.</param>
-        void OverrideDataDescription(DataViewId dataViewId, IDataDescription dataDescription);
-
         /// <summary>
         /// Retrieves or creates a subdata view using a data key to navigate within a parent data view.
         /// </summary>
@@ -320,409 +210,38 @@ namespace Unity.GraphCommon.LowLevel.Editor
     /*public*/ interface IMutableGraph : IBuildableGraph, IReadOnlyGraph
     {
         /// <summary>
-        /// Sets the task used for a specific TaskNodeId.
-        /// </summary>
-        /// <param name="id">The TaskNodeId of the task being set.</param>
-        /// <param name="task">The task to be set for this id.</param>
-        void SetTask(TaskNodeId id, ITask task);
-
-        /// <summary>
-        /// Sets the data used for a specific DataNodeId.
-        /// </summary>
-        /// <param name="id">The DataNodeId of the data being set.</param>
-        /// <param name="dataId">The data id to be set for this id.</param>
-        void SetData(DataNodeId id, DataContainerId dataId);
-
-        /// <summary>
         /// Binds data to a task node with explicit parent data nodes.
         /// </summary>
         /// <param name="taskNodeId">The ID of the task node to bind to.</param>
         /// <param name="bindingKey">The key identifying the binding point in the task.</param>
         /// <param name="dataViewId">The ID of the data view to bind.</param>
-        /// <param name="usage">The usage mode for the binding.</param>
         /// <param name="parentNodeIds">The explicit parent data nodes to establish dependencies with.</param>
-        void BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId, BindingUsage usage, IEnumerable<DataNodeId> parentNodeIds);
+        /// <param name="usage">The usage mode for the binding.</param>
+        /// <returns> The data node associated with the newly bound data.</returns>
+        void BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId,
+            IEnumerable<DataNodeId> parentNodeIds, BindingUsage usage);
 
-        //void RemoveTaskNode(TaskNodeId id);
-        //void RemoveDataNode(DataNodeId id);
-        //void RemoveData(DataId id);
+        /// <summary>
+        /// Removes the task node with the given id together with all data nodes, data bindings,
+        /// task dependencies, and data dependencies that involve it.
+        /// </summary>
+        /// <param name="id">The id of the task node to remove.</param>
+        void RemoveTask(TaskNodeId id);
+
+        /// <summary>
+        /// Removes the data container with the given id together with all data views, data nodes, and data bindings that involve it.
+        /// </summary>
+        /// <param name="dataContainerId">The id of the container to remove.</param>
+        void RemoveDataContainer(DataContainerId dataContainerId);
 
         //void Apply(GraphCommandList graph);
-    }
 
-    /// <summary>
-    /// Represents a graph structure.
-    /// Provides methods to access node data, parent nodes, and child nodes.
-    /// </summary>
-    /// <typeparam name="T">The type of data stored in each graph node.</typeparam>
-    /*public*/ interface IGraph<T> : IIndexable<int, GraphNode<T>>, ICountable, IVersioned
-    {
+        //TODO: TEMPORARY, we don't really support mutability as of now
         /// <summary>
-        /// Gets the data associated with the specified node index.
+        /// Temporary. Overrides the data description of a data view.
         /// </summary>
-        /// <param name="index">The index of the node.</param>
-        /// <returns>The data of type <typeparamref name="T"/> stored in the specified node.</returns>
-        T GetData(int index);
-
-        /// <summary>
-        /// Gets the parent nodes for the specified node index in the graph.
-        /// </summary>
-        /// <param name="index">The index of the node whose parents are to be retrieved.</param>
-        /// <returns>
-        /// A <see cref="GraphNodeLinks{T}"/> containing the parent nodes of the specified node.
-        /// </returns>
-        GraphNodeLinks<T> GetParents(int index);
-
-        /// <summary>
-        /// Gets the child nodes for the specified node index in the graph.
-        /// </summary>
-        /// <param name="index">The index of the node whose children are to be retrieved.</param>
-        /// <returns>
-        /// A <see cref="GraphNodeLinks{T}"/> containing the child nodes of the specified node.
-        /// </returns>
-        GraphNodeLinks<T> GetChildren(int index);
-
-        /// <summary>
-        /// Returns an enumerator that iterates through all nodes in the graph.
-        /// </summary>
-        /// <returns>A <see cref="LinearEnumerator{TEnumerable, T}"/> for iterating through the graph nodes.</returns>
-        LinearEnumerator<IGraph<T>, GraphNode<T>> GetEnumerator() => new(this);
-    }
-
-    /// <summary>
-    /// Represents a node within the graph, providing access to its associated data,
-    /// parent nodes, and child nodes.
-    /// </summary>
-    /// <typeparam name="T">The type of data stored in the node.</typeparam>
-    /*public*/ readonly struct GraphNode<T>
-    {
-        /// <summary>
-        /// Weak reference to the graph containing this node.
-        /// Prevents ownership cycles and retains memory safety.
-        /// </summary>
-        readonly Handle<IGraph<T>> m_Owner;
-
-        /// <summary>
-        /// The index of this node within its graph.
-        /// </summary>
-        readonly int m_Index;
-
-        /// <summary>
-        /// Gets the graph to which this node belongs.
-        /// </summary>
-        public IGraph<T> Graph => m_Owner.Ref;
-
-        /// <summary>
-        /// Gets the data of type <typeparamref name="T"/> associated with this node.
-        /// </summary>
-        public T Data => Graph.GetData(m_Index);
-
-        /// <summary>
-        /// Gets the parent nodes linked to this node within the graph.
-        /// </summary>
-        public GraphNodeLinks<T> Parents => Graph.GetParents(m_Index);
-
-        /// <summary>
-        /// Gets the child nodes linked to this node within the graph.
-        /// </summary>
-        public GraphNodeLinks<T> Children => Graph.GetChildren(m_Index);
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GraphNode{T}"/> struct.
-        /// </summary>
-        /// <param name="graph">The graph to which this node belongs.</param>
-        /// <param name="index">The index of this node within the graph.</param>
-        public GraphNode(IGraph<T> graph, int index)
-        {
-            m_Owner = new(graph);
-            m_Index = index;
-        }
-    }
-
-    /// <summary>
-    /// Represents a collection of links (parents or children) associated with a graph node.
-    /// Provides indexed access to linked nodes.
-    /// </summary>
-    /// <typeparam name="T">The type of data stored in the linked nodes.</typeparam>
-    /*public*/ readonly struct GraphNodeLinks<T> : IIndexable<int, GraphNode<T>>, ICountable
-    {
-        /// <summary>
-        /// Weak reference to the graph containing these links.
-        /// </summary>
-        readonly Handle<IGraph<T>> m_Owner;
-
-        /// <summary>
-        /// Source mapping indices of links (parent or child IDs) for resolution.
-        /// </summary>
-        readonly IIndexable<int, int, int> m_Source;
-
-        /// <summary>
-        /// The index of the current node within the graph.
-        /// </summary>
-        readonly int m_Index;
-
-        /// <summary>
-        /// The total number of links (parents or children) associated with the node.
-        /// </summary>
-        public int Count { get; }
-
-        /// <summary>
-        /// Gets the linked <see cref="GraphNode{T}"/> at the specified index.
-        /// </summary>
-        /// <param name="index">The zero-based index of the link.</param>
-        /// <value>The linked <see cref="GraphNode{T}"/>.</value>
-        public GraphNode<T> this[int index] => m_Owner.Ref[m_Source[m_Index, index]];
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GraphNodeLinks{T}"/> struct.
-        /// </summary>
-        /// <param name="owner">The graph containing these links.</param>
-        /// <param name="source">
-        /// The source mapping indices to resolve links (parent or child IDs).
-        /// </param>
-        /// <param name="index">The index of the current node within the graph.</param>
-        /// <param name="count">The total number of links associated with this node.</param>
-        public GraphNodeLinks(IGraph<T> owner, IIndexable<int, int, int> source, int index, int count)
-        {
-            m_Owner = new(owner);
-            m_Source = source;
-            m_Index = index;
-            Count = count;
-        }
-
-        /// <summary>
-        /// Returns an enumerator that iterates through the links associated with this node.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="LinearEnumerator{TEnumerable, T}"/> for iterating through the linked nodes.
-        /// </returns>
-        public LinearEnumerator<GraphNodeLinks<T>, GraphNode<T>> GetEnumerator() => new(this);
-    }
-
-    /// <summary>
-    /// Represents a multi-rooted hierarchical tree structure where nodes can be indexed, counted, and versioned.
-    /// Provides methods to access node data, root nodes, and child nodes.
-    /// </summary>
-    /// <typeparam name="T">The type of data stored in each tree node.</typeparam>
-    /*public*/ interface IMultiTree<T> : IIndexable<int, MultiTreeNode<T>>, ICountable, IVersioned
-    {
-        /// <summary>
-        /// Gets the enumerable collection of root nodes in the tree.
-        /// </summary>
-        MultiTreeNodeEnumerable<IndirectEnumerable, T> RootNodes { get; }
-
-        /// <summary>
-        /// Gets the data associated with the specified node index.
-        /// </summary>
-        /// <param name="index">The index of the node.</param>
-        /// <returns>The data of type <typeparamref name="T"/> stored in the specified node.</returns>
-        T GetData(int index);
-
-        /// <summary>
-        /// Gets the data associated with the specified node index.
-        /// </summary>
-        /// <param name="index">The index of the node.</param>
-        /// <param name="data">.</param>
-        void SetData(int index, T data);
-
-        /// <summary>
-        /// Gets the root node associated with the specified node index.
-        /// </summary>
-        /// <param name="index">The index of the node.</param>
-        /// <returns>The root node of type <see cref="MultiTreeNode{T}"/>.</returns>
-        MultiTreeNode<T> GetRootNode(int index);
-
-        /// <summary>
-        /// Gets the parent node associated with the specified node index.
-        /// </summary>
-        /// <param name="index">The index of the node.</param>
-        /// <returns>The parent node of type <see cref="MultiTreeNode{T}"/>.</returns>
-        MultiTreeNode<T>? GetParentNode(int index);
-
-        /// <summary>
-        /// Gets the enumerable collection of children for the specified node index.
-        /// </summary>
-        /// <param name="index">The index of the node.</param>
-        /// <returns>
-        /// A <see cref="MultiTreeNodeEnumerable{TEnumerable, T}"/> containing the child nodes of the specified node.
-        /// </returns>
-        MultiTreeNodeEnumerable<SubEnumerable<int>, T> GetChildren(int index);
-
-        /// <summary>
-        /// Returns an enumerator that iterates through all nodes in the tree.
-        /// </summary>
-        /// <returns>A <see cref="LinearEnumerator{TEnumerable, T}"/> for iterating through the tree nodes.</returns>
-        LinearEnumerator<IMultiTree<T>, MultiTreeNode<T>> GetEnumerator() => new(this);
-    }
-
-    /// <summary>
-    /// Represents a node in a multi-rooted hierarchical tree.
-    /// Provides access to the node's data, its root node, and its child nodes.
-    /// </summary>
-    /// <typeparam name="T">The type of data stored in the tree node.</typeparam>
-    /*public*/ readonly struct MultiTreeNode<T>
-    {
-        /// <summary>
-        /// Weak reference to the tree containing this node.
-        /// Prevents ownership cycles and retains memory safety.
-        /// </summary>
-        readonly Handle<IMultiTree<T>> m_Owner;
-
-        /// <summary>
-        /// The index of this node within its tree.
-        /// </summary>
-        readonly int m_Index;
-
-        /// <summary>
-        /// Gets the tree to which this node belongs.
-        /// </summary>
-        public IMultiTree<T> Tree => m_Owner.Ref;
-
-        /// <summary>
-        /// Gets the data of type <typeparamref name="T"/> associated with this node.
-        /// </summary>
-        public T Data => Tree.GetData(m_Index);
-
-        /// <summary>
-        /// Gets the root node associated with this node.
-        /// </summary>
-        public MultiTreeNode<T> Root => Tree.GetRootNode(m_Index);
-
-        /// <summary>
-        /// Gets the parent node associated with this node.
-        /// </summary>
-        public MultiTreeNode<T>? Parent => Tree.GetParentNode(m_Index);
-
-        /// <summary>
-        /// Gets the enumerable collection of child nodes associated with this node.
-        /// </summary>
-        public MultiTreeNodeEnumerable<SubEnumerable<int>, T> Children => Tree.GetChildren(m_Index);
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MultiTreeNode{T}"/> struct.
-        /// </summary>
-        /// <param name="tree">The tree to which this node belongs.</param>
-        /// <param name="index">The index of this node within the tree.</param>
-        public MultiTreeNode(IMultiTree<T> tree, int index)
-        {
-            m_Owner = new(tree);
-            m_Index = index;
-        }
-    }
-
-    /// <summary>
-    /// Represents an enumerable collection of tree nodes.
-    /// Provides indexed and counted access to nodes.
-    /// </summary>
-    /// <typeparam name="TEnumerable">
-    /// The type of the source providing indices for nodes.
-    /// Must implement both <see cref="IIndexable{TIndex, TValue}"/> and <see cref="ICountable"/>.
-    /// </typeparam>
-    /// <typeparam name="T">The type of data stored in the nodes.</typeparam>
-    /*public*/ readonly struct MultiTreeNodeEnumerable<TEnumerable, T> : IIndexable<int, MultiTreeNode<T>>, ICountable where TEnumerable : IIndexable<int, int>, ICountable
-    {
-        /// <summary>
-        /// Weak reference to the tree containing these nodes.
-        /// </summary>
-        readonly Handle<IMultiTree<T>> m_Owner;
-
-        /// <summary>
-        /// The source providing indices for the nodes in the enumerable.
-        /// </summary>
-        readonly TEnumerable m_Source;
-
-        /// <summary>
-        /// Gets the tree to which this enumerable belongs.
-        /// </summary>
-        public IMultiTree<T> Tree => m_Owner.Ref;
-
-        /// <summary>
-        /// Gets the number of nodes in the enumerable.
-        /// </summary>
-        public int Count => m_Source.Count;
-
-        /// <summary>
-        /// Gets the <see cref="MultiTreeNode{T}"/> at the specified index.
-        /// </summary>
-        /// <param name="index">The zero-based index of the node.</param>
-        /// <value>The node of type <see cref="MultiTreeNode{T}"/> at the specified index.</value>
-        public MultiTreeNode<T> this[int index] => Tree[m_Source[index]];
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MultiTreeNodeEnumerable{TEnumerable, T}"/> struct.
-        /// </summary>
-        /// <param name="tree">The tree containing these nodes.</param>
-        /// <param name="source">The source providing indices for the nodes.</param>
-        public MultiTreeNodeEnumerable(IMultiTree<T> tree, TEnumerable source)
-        {
-            m_Owner = new(tree);
-            m_Source = source;
-        }
-
-        /// <summary>
-        /// Returns an enumerator that iterates through the nodes in this enumerable.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="LinearEnumerator{TEnumerable, T}"/> for iterating through the nodes.
-        /// </returns>
-        public LinearEnumerator<MultiTreeNodeEnumerable<TEnumerable, T>, MultiTreeNode<T>> GetEnumerator() => new(this);
-    }
-
-    /// <summary>
-    /// Represents an enumerable collection of data associated with tree nodes.
-    /// Provides indexed and counted access to node data.
-    /// </summary>
-    /// <typeparam name="TEnumerable">
-    /// The type of the source providing indices for the data.
-    /// Must implement both <see cref="IIndexable{TIndex, TValue}"/> and <see cref="ICountable"/>.
-    /// </typeparam>
-    /// <typeparam name="T">The type of data stored in tree nodes.</typeparam>
-    /*public*/ readonly struct MultiTreeDataEnumerable<TEnumerable, T> : IIndexable<int, T>, ICountable where TEnumerable : IIndexable<int, int>, ICountable
-    {
-        /// <summary>
-        /// Weak reference to the tree containing these data nodes.
-        /// </summary>
-        readonly Handle<IMultiTree<T>> m_Owner;
-
-        /// <summary>
-        /// The source providing indices for the data nodes in the enumerable.
-        /// </summary>
-        readonly TEnumerable m_Source;
-
-        /// <summary>
-        /// Gets the tree to which this enumerable belongs.
-        /// </summary>
-        public IMultiTree<T> Tree => m_Owner.Ref;
-
-        /// <summary>
-        /// Gets the number of data nodes in the enumerable.
-        /// </summary>
-        public int Count => m_Source.Count;
-
-        /// <summary>
-        /// Gets the data of type <typeparamref name="T"/> at the specified index.
-        /// </summary>
-        /// <param name="index">The zero-based index of the data.</param>
-        /// <value>The data of type <typeparamref name="T"/> at the specified index.</value>
-        public T this[int index] => Tree[index].Data;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MultiTreeDataEnumerable{TEnumerable, T}"/> struct.
-        /// </summary>
-        /// <param name="tree">The tree containing these data nodes.</param>
-        /// <param name="source">The source providing indices for the data nodes.</param>
-        public MultiTreeDataEnumerable(IMultiTree<T> tree, TEnumerable source)
-        {
-            m_Owner = new(tree);
-            m_Source = source;
-        }
-
-        /// <summary>
-        /// Returns an enumerator that iterates through the data nodes in this enumerable.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="LinearEnumerator{TEnumerable, T}"/> for iterating through the data nodes.
-        /// </returns>
-        public LinearEnumerator<MultiTreeDataEnumerable<TEnumerable, T>, T> GetEnumerator() => new(this);
+        /// <param name="dataViewId">The ID of the data view to be overriden.</param>
+        /// <param name="dataDescription">The new description of the data.</param>
+        void OverrideDataDescription(DataViewId dataViewId, IDataDescription dataDescription);
     }
 }

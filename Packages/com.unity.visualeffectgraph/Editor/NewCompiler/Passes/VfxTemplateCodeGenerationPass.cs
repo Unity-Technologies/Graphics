@@ -37,28 +37,11 @@ namespace UnityEditor.VFX
 
             foreach (var taskNode in context.graph.TaskNodes)
             {
-                if (taskNode.Task is VfxTemplatedTask templatedTask)
+                if (taskNode.Task is VfxTemplatedTask task)
                 {
-                    //TODO: The ImportContext, when present, must be accounted for during compilation (see usage of CreateShaderAsset & CreateComputeShaderAsset)
-                    string sourceCode;
-                    if (templatedTask.IsCompute)
-                    {
-                        sourceCode = GenerateTemplatedTaskSourceCode_Compute(taskNode, context);
-
-                        var computeShader = ShaderUtil.CreateComputeShaderAsset(sourceCode);
-                        computeShader.name = taskNode.Name ?? templatedTask.TemplateName;
-                        var task = new GpuKernelTask(computeShader, 0);
-                        context.graph.SetTask(taskNode.Id, task);
-                    }
-                    else
-                    {
-                        sourceCode = GenerateTemplatedTaskSourceCode_Rendering(taskNode, context);
-                        Shader shader = ShaderUtil.CreateShaderAsset(sourceCode);
-                        shader.name = taskNode.Name ?? templatedTask.TemplateName;
-                        Material material = new Material(shader);
-                        var task = new RenderingTask(material);
-                        context.graph.SetTask(taskNode.Id, task);
-                    }
+                    string sourceCode = task.IsCompute
+                        ? GenerateTemplatedTaskSourceCode_Compute(taskNode, context)
+                        : GenerateTemplatedTaskSourceCode_Rendering(taskNode, context);
                     generatedCodeContainer.Add(taskNode.Id, sourceCode);
                 }
             }
@@ -174,9 +157,9 @@ namespace UnityEditor.VFX
                     shaderWriter.NewLine();
                     //shaderWriter.IncludeFile($"{dataNode.DataContainer.Name}.hlsl");
                     shaderWriter.WriteLine($"// Begin {dataNode.DataContainer.Name}");
-                    dataDescriptionWriter.DefineResourceUsage(shaderWriter, dataNode.UsedDataViewsRoot, dataNode.ReadDataViewsRoot, dataNode.WrittenDataViewsRoot);
+                    dataDescriptionWriter.DefineResourceUsage(shaderWriter, dataNode.UsedDataViewsRoot, dataNode);
                     shaderWriter.WriteLine(generatedCodeContainer.Find(dataNode.DataContainer.Id), ShaderWriter.WriteLineOptions.Multiline);
-                    dataDescriptionWriter.UndefineResourceUsage(shaderWriter, dataNode.UsedDataViewsRoot, dataNode.ReadDataViewsRoot, dataNode.WrittenDataViewsRoot);
+                    dataDescriptionWriter.UndefineResourceUsage(shaderWriter, dataNode.UsedDataViewsRoot, dataNode);
                     shaderWriter.WriteLine($"// End   {dataNode.DataContainer.Name}");
                 }
                 else
@@ -232,15 +215,12 @@ namespace UnityEditor.VFX
         void GenerateDataViews(ShaderWriter shaderWriter, TaskNode taskNode, VfxTemplatedTask templatedTask,
             CompilationContext context)
         {
-            void LocateDataView(DataView dataView, ref DataView usedDataView, ref DataView readDataView, ref DataView writtenDataView)
+            void LocateDataView(DataView dataView, ref DataView usedDataView)
             {
                 if (dataView.Parent.HasValue)
                 {
-                    LocateDataView(dataView.Parent.Value, ref usedDataView, ref readDataView, ref writtenDataView);
-                    var subDataKey = dataView.SubDataKey;
-                    usedDataView.FindSubData(subDataKey, out usedDataView);
-                    readDataView.FindSubData(subDataKey, out readDataView);
-                    writtenDataView.FindSubData(subDataKey, out writtenDataView);
+                    LocateDataView(dataView.Parent.Value, ref usedDataView);
+                    usedDataView.FindSubData(dataView.SubDataKey, out usedDataView);
                 }
             }
 
@@ -253,15 +233,11 @@ namespace UnityEditor.VFX
                 var dataNode = dataBinding.DataNode;
 
                 var usedDataView = dataNode.UsedDataViewsRoot;
-                var readDataView = dataNode.ReadDataViewsRoot;
-                var writtenDataView = dataNode.WrittenDataViewsRoot;
-                LocateDataView(dataView, ref usedDataView, ref readDataView, ref writtenDataView);
+                LocateDataView(dataView, ref usedDataView);
 
                 var dataDescription = dataView.DataDescription;
 
-                Debug.Assert(!usedDataView.Id.IsValid || usedDataView.DataDescription == dataDescription);
-                Debug.Assert(!readDataView.Id.IsValid || readDataView.DataDescription == dataDescription);
-                Debug.Assert(!writtenDataView.Id.IsValid || writtenDataView.DataDescription == dataDescription);
+                Debug.Assert(!usedDataView.Valid || usedDataView.DataDescription == dataDescription);
 
                 shaderWriter.NewLine();
 
@@ -272,7 +248,7 @@ namespace UnityEditor.VFX
                 {
                     if (m_DataWriter.TryGetDataDescriptionWriter(dataDescription, out var dataDescriptionWriter))
                     {
-                        hasView = dataDescriptionWriter.WriteView(shaderWriter, usedDataView, readDataView, writtenDataView, bindingName, typeName, context);
+                        hasView = dataDescriptionWriter.WriteView(shaderWriter, usedDataView, dataNode, bindingName, typeName, context);
                     }
                 }
 
@@ -478,7 +454,7 @@ namespace UnityEditor.VFX
             if (fromDataView.Id.Index != toDataView.Id.Index)
             {
                 var parentDataView = toDataView.Parent.GetValueOrDefault();
-                Debug.Assert(parentDataView.Id.IsValid);
+                Debug.Assert(parentDataView.Valid);
                 if (parentDataView.Id.Index != fromDataView.Id.Index)
                 {
                     WriteSubdataPath(shaderWriter, fromDataView, parentDataView);
