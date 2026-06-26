@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="Vector2Parameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/Vignette")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [URPHelpURL("post-processing-vignette")]
+    [URPHelpURL("urp/post-processing-vignette")]
     public sealed class Vignette : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

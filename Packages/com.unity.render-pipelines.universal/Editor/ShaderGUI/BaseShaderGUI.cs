@@ -24,7 +24,7 @@ namespace UnityEditor
         /// Flags for the foldouts used in the base shader GUI.
         /// </summary>
         [Flags]
-        [URPHelpURL("shaders-in-universalrp")]
+        [URPHelpURL("urp/shaders-in-universalrp")]
         protected enum Expandable
         {
             /// <summary>

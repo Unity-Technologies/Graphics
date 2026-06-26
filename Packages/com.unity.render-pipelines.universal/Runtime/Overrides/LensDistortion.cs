@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="Vector2Parameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/Lens Distortion")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [URPHelpURL("Post-Processing-Lens-Distortion")]
+    [URPHelpURL("urp/Post-Processing-Lens-Distortion")]
     public sealed class LensDistortion : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

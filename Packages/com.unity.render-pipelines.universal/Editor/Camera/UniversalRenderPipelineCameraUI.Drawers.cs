@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.Universal
 
     static partial class UniversalRenderPipelineCameraUI
     {
-        [URPHelpURL("camera-component-reference")]
+        [URPHelpURL("urp/camera-component-reference")]
         public enum Expandable
         {
             /// <summary> Projection</summary>
