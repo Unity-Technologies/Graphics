@@ -1264,7 +1264,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 using (GraphLoadMarker.Auto())
                 {
-                    m_LastSerializedFileContents = File.ReadAllText(path, Encoding.UTF8);
+                    // FileUtilities.ReadAllTextUTF8 uses Unity's FileUtil which handles Windows long paths (>260 chars); plain File.ReadAllText does not.
+                    m_LastSerializedFileContents = FileUtilities.ReadAllTextUTF8(path);
 
                     graphObject = CreateInstance<GraphObject>();
                     graphObject.hideFlags = HideFlags.HideAndDontSave;
