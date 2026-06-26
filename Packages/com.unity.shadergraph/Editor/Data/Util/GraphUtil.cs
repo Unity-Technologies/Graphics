@@ -190,7 +190,7 @@ namespace UnityEditor.ShaderGraph
             if (File.Exists(templateFullPath))
             {
                 // Copy the file manually because we do not want any of the template metadata.
-                var templateString = File.ReadAllText(templateFullPath);
+                var templateString = FileUtilities.ReadAllTextUTF8(templateFullPath);
                 File.WriteAllText(pathName, templateString);
             }
             else
