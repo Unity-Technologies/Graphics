@@ -1946,7 +1946,8 @@ namespace UnityEngine.Rendering.Universal
             shadowData.mainLightShadowCascadesSplit = GetMainLightCascadeSplit(shadowData.mainLightShadowCascadesCount, urpAsset);
             shadowData.mainLightShadowmapWidth = urpAsset.mainLightShadowmapResolution;
             shadowData.mainLightShadowmapHeight = urpAsset.mainLightShadowmapResolution;
-            shadowData.additionalLightsShadowmapWidth = shadowData.additionalLightsShadowmapHeight = urpAsset.additionalLightsShadowmapResolution;
+            shadowData.additionalLightsShadowmapWidth = shadowData.additionalLightsShadowmapHeight =
+                Math.Min(urpAsset.additionalLightsShadowmapResolution, PlatformAutoDetect.maxSupportedShadowAtlasResolution);
 
             // This will be setup in AdditionalLightsShadowCasterPass.
             shadowData.isKeywordAdditionalLightShadowsEnabled = false;
@@ -2088,6 +2089,9 @@ namespace UnityEngine.Rendering.Universal
 
         static void InitializeMainLightShadowResolution(UniversalShadowData shadowData)
         {
+            int maxAtlasResolution = PlatformAutoDetect.maxSupportedShadowAtlasResolution;
+            shadowData.mainLightShadowmapWidth = Mathf.Min(shadowData.mainLightShadowmapWidth, maxAtlasResolution);
+            shadowData.mainLightShadowmapHeight = Mathf.Min(shadowData.mainLightShadowmapHeight, maxAtlasResolution);
             shadowData.mainLightShadowResolution = ShadowUtils.GetMaxTileResolutionInAtlas(shadowData.mainLightShadowmapWidth, shadowData.mainLightShadowmapHeight, shadowData.mainLightShadowCascadesCount);
             shadowData.mainLightRenderTargetWidth = shadowData.mainLightShadowmapWidth;
             shadowData.mainLightRenderTargetHeight = (shadowData.mainLightShadowCascadesCount == 2) ? shadowData.mainLightShadowmapHeight >> 1 : shadowData.mainLightShadowmapHeight;
