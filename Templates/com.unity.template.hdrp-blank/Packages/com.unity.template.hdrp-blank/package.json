@@ -9,7 +9,7 @@
   "dependencies": {
     "com.unity.collab-proxy": "2.12.4",
     "com.unity.feature.development": "1.0.2",
-    "com.unity.render-pipelines.high-definition": "17.6.0",
+    "com.unity.render-pipelines.high-definition": "17.7.0",
     "com.unity.timeline": "6.6.0",
     "com.unity.ugui": "2.6.0",
     "com.unity.visualscripting": "1.9.11",

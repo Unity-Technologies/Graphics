@@ -129,7 +129,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.render-pipelines.core": {
-      "version": "17.6.0",
+      "version": "17.7.0",
       "depth": 1,
       "source": "builtin",
       "dependencies": {
@@ -139,7 +139,7 @@
       }
     },
     "com.unity.render-pipelines.high-definition": {
-      "version": "17.6.0",
+      "version": "17.7.0",
       "depth": 0,
       "source": "builtin",
       "dependencies": {
@@ -148,18 +148,18 @@
         "com.unity.modules.imageconversion": "1.0.0",
         "com.unity.modules.physics": "1.0.0",
         "com.unity.modules.terrain": "1.0.0",
-        "com.unity.render-pipelines.core": "17.6.0",
-        "com.unity.shadergraph": "17.6.0",
-        "com.unity.visualeffectgraph": "17.6.0",
-        "com.unity.render-pipelines.high-definition-config": "17.6.0"
+        "com.unity.render-pipelines.core": "17.7.0",
+        "com.unity.shadergraph": "17.7.0",
+        "com.unity.visualeffectgraph": "17.7.0",
+        "com.unity.render-pipelines.high-definition-config": "17.7.0"
       }
     },
     "com.unity.render-pipelines.high-definition-config": {
-      "version": "17.6.0",
+      "version": "17.7.0",
       "depth": 1,
       "source": "builtin",
       "dependencies": {
-        "com.unity.render-pipelines.core": "17.6.0"
+        "com.unity.render-pipelines.core": "17.7.0"
       }
     },
     "com.unity.searcher": {
@@ -177,11 +177,11 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.shadergraph": {
-      "version": "17.6.0",
+      "version": "17.7.0",
       "depth": 1,
       "source": "builtin",
       "dependencies": {
-        "com.unity.render-pipelines.core": "17.6.0",
+        "com.unity.render-pipelines.core": "17.7.0",
         "com.unity.searcher": "4.9.3"
       }
     },
@@ -206,7 +206,7 @@
         "com.unity.cinemachine": "6.6.0",
         "com.unity.inputsystem": "1.19.0",
         "com.unity.learn.iet-framework": "5.0.4",
-        "com.unity.render-pipelines.high-definition": "17.6.0",
+        "com.unity.render-pipelines.high-definition": "17.7.0",
         "com.unity.timeline": "6.6.0",
         "com.unity.ugui": "2.6.0",
         "com.unity.visualscripting": "1.9.11"
@@ -266,12 +266,12 @@
       }
     },
     "com.unity.visualeffectgraph": {
-      "version": "17.6.0",
+      "version": "17.7.0",
       "depth": 1,
       "source": "builtin",
       "dependencies": {
-        "com.unity.shadergraph": "17.6.0",
-        "com.unity.render-pipelines.core": "17.6.0"
+        "com.unity.shadergraph": "17.7.0",
+        "com.unity.render-pipelines.core": "17.7.0"
       }
     },
     "com.unity.visualscripting": {
