@@ -23,6 +23,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         public delegate T OnNewItemDelegate();
         public OnNewItemDelegate OnNewItemCallback;
 
+        public System.Func<bool> OnCanAddCallback;
+
         internal delegate void DrawItemDelegate(Rect rect, int idx);
         internal DrawItemDelegate DrawItemCallback;
 
@@ -66,6 +68,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_TmpList.Add(false);
                 OnChangeCallback?.Invoke(ListActionType.Add);
             };
+
+            if (OnCanAddCallback != null)
+                m_ReorderableList.onCanAddCallback = _ => OnCanAddCallback();
 
             m_ReorderableList.onRemoveCallback += (ReorderableList list) =>
             {
