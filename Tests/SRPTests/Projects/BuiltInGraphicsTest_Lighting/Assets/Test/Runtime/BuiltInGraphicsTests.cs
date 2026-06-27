@@ -49,7 +49,7 @@ public class BuiltInGraphicsTests
         var settings = Object.FindObjectOfType<BuiltInGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find BuiltInGraphicsTestSettings");
 
-        int waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.XRCompatible, settings.WaitFrames, settings.ImageComparisonSettings);
+        int waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.WaitFrames, settings.ImageComparisonSettings);
 
         Scene scene = SceneManager.GetActiveScene();
 

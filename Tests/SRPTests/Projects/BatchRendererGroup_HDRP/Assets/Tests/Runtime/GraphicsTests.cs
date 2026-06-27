@@ -52,7 +52,7 @@ public class GraphicsTests
 
         if (XRGraphicsAutomatedTests.enabled)
         {
-            waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(true, waitFrames, settings.ImageComparisonSettings);
+            waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(waitFrames, settings.ImageComparisonSettings);
         }
 
         for (int i = 0; i < waitFrames; i++)

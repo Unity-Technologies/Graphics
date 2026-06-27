@@ -19,27 +19,19 @@ namespace Unity.Testing.XR.Runtime
         /// Sets up the XR display subsystem and configures the player resolution to match.
         /// On XR, the player resolution must match the target width and target height specified in the settings.
         /// </summary>
-        /// <param name="xrCompatible">Whether the test scene is compatible with XR.</param>
         /// <param name="waitFrames">Number of frames to wait before test execution.</param>
         /// <param name="settings">Image comparison settings containing target resolution.</param>
         /// <returns>Number of frames to wait. Returns at least 4 frames for XR eye texture resizing when XR is enabled.</returns>
-        static public int SetupTest(bool xrCompatible, int waitFrames, UnityEngine.TestTools.Graphics.ImageComparisonSettings settings)
+        static public int SetupTest(int waitFrames, UnityEngine.TestTools.Graphics.ImageComparisonSettings settings)
         {
 #if ENABLE_VR && USE_XR_MOCK_HMD
             if (XRGraphicsAutomatedTests.enabled)
             {
-                if (xrCompatible)
-                {
-                    ConfigureXRDisplay(xrCompatible, settings);
-                    int resolutionWaitFrames = SetPlayerResolutionForXR(xrCompatible, settings, waitFrames);
+                ConfigureXRDisplay(settings);
+                int resolutionWaitFrames = SetPlayerResolutionForXR(settings, waitFrames);
 
-                    // XR plugin MockHMD requires a few frames to resize eye textures
-                    return Mathf.Max(waitFrames, resolutionWaitFrames);
-                }
-                else
-                {
-                    Assert.Ignore("Test scene is not compatible with XR and will be skipped.");
-                }
+                // XR plugin MockHMD requires a few frames to resize eye textures
+                return Mathf.Max(waitFrames, resolutionWaitFrames);
             }
 #endif
 
@@ -52,12 +44,11 @@ namespace Unity.Testing.XR.Runtime
         /// On XR, configures eye resolution to match the target width and target height specified in the settings.
         /// Safe to call regardless of XR context - will only execute when ENABLE_VR and USE_XR_MOCK_HMD are defined and test is XR compatible.
         /// </summary>
-        /// <param name="xrCompatible">Whether the test scene is compatible with XR.</param>
         /// <param name="settings">Image comparison settings containing target resolution.</param>
-        static public void ConfigureXRDisplay(bool xrCompatible, UnityEngine.TestTools.Graphics.ImageComparisonSettings settings)
+        static public void ConfigureXRDisplay(UnityEngine.TestTools.Graphics.ImageComparisonSettings settings)
         {
         #if ENABLE_VR && USE_XR_MOCK_HMD
-            if (XRGraphicsAutomatedTests.enabled && xrCompatible)
+            if (XRGraphicsAutomatedTests.enabled)
             {
                 XRGraphicsAutomatedTests.running = true;
 
@@ -87,14 +78,13 @@ namespace Unity.Testing.XR.Runtime
         /// On XR, this resolution must match the target width and target height of the test settings.
         /// Safe to call regardless of XR context - will only execute when ENABLE_VR and USE_XR_MOCK_HMD are defined and test is XR compatible.
         /// </summary>
-        /// <param name="xrCompatible">Whether the test scene is compatible with XR.</param>
         /// <param name="settings">Image comparison settings containing target resolution.</param>
         /// <param name="waitFrames">Base number of frames to wait.</param>
         /// <returns>Number of frames to wait (4) for XR eye textures to properly resize, or original waitFrames if not in XR context.</returns>
-        static public int SetPlayerResolutionForXR(bool xrCompatible, UnityEngine.TestTools.Graphics.ImageComparisonSettings settings, int waitFrames)
+        static public int SetPlayerResolutionForXR(UnityEngine.TestTools.Graphics.ImageComparisonSettings settings, int waitFrames)
         {
         #if ENABLE_VR && USE_XR_MOCK_HMD
-            if (XRGraphicsAutomatedTests.enabled && xrCompatible)
+            if (XRGraphicsAutomatedTests.enabled)
             {
                 XRGraphicsAutomatedTests.running = true;
 
@@ -117,13 +107,12 @@ namespace Unity.Testing.XR.Runtime
         /// Only yields frames when ENABLE_VR and USE_XR_MOCK_HMD are defined, XRGraphicsAutomatedTests is enabled, and test is XR compatible.
         /// Otherwise, completes immediately without waiting.
         /// </summary>
-        /// <param name="xrCompatible">Whether the test scene is compatible with XR.</param>
         /// <param name="frameCount">Number of frames to wait.</param>
         /// <returns>IEnumerator for coroutine execution.</returns>
-        static public IEnumerator WaitForXRFrames(bool xrCompatible, int frameCount)
+        static public IEnumerator WaitForXRFrames(int frameCount)
         {
         #if ENABLE_VR && USE_XR_MOCK_HMD
-            if (XRGraphicsAutomatedTests.enabled && xrCompatible)
+            if (XRGraphicsAutomatedTests.enabled)
             {
                 for (int i = 0; i < frameCount; i++)
                 {

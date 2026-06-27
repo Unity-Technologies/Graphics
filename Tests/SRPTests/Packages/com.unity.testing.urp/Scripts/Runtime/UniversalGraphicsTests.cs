@@ -53,19 +53,13 @@ namespace Unity.Rendering.Universal.Tests
                 settings.ImageComparisonSettings.PerPixelCorrectnessThreshold = Math.Max(settings.amdMinThreshold, settings.ImageComparisonSettings.PerPixelCorrectnessThreshold);
             }
 
-#if OCULUS_SDK || OPENXR_SDK
-            if(!settings.XRCompatible)
-            {
-                Assert.Ignore("Quest XR Automation: Test scene is not compatible with XR and will be skipped.");
-            }
-#endif
             int waitFrames = 1;
 
             // for OCULUS_SDK or OPENXR_SDK, this ensures we wait for a reliable image rendering before screen capture and image comparison
 #if OCULUS_SDK || OPENXR_SDK
             waitFrames = 4;
 #elif ENABLE_VR && USE_XR_MOCK_HMD
-            waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.XRCompatible, settings.WaitFrames, settings.ImageComparisonSettings);
+            waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.WaitFrames, settings.ImageComparisonSettings);
 #else
             waitFrames = settings.WaitFrames;
 #endif

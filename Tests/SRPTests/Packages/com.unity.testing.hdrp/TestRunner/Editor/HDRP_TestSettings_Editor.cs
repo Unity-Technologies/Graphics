@@ -17,7 +17,6 @@ public class HDRP_TestSettings_Editor : Editor
     SerializedProperty captureFramerate;
     SerializedProperty waitFrames;
     SerializedProperty ImageComparisonSettings;
-    SerializedProperty xrCompatible;
     SerializedProperty xrThresholdMultiplier;
     SerializedProperty gpuDrivenCompatible;
     SerializedProperty waitForFrameCountMultiple;
@@ -34,7 +33,6 @@ public class HDRP_TestSettings_Editor : Editor
         captureFramerate = serializedObject.FindProperty("captureFramerate");
         waitFrames = serializedObject.FindProperty("waitFrames");
         ImageComparisonSettings = serializedObject.FindProperty("ImageComparisonSettings");
-        xrCompatible = serializedObject.FindProperty("xrCompatible");
         xrThresholdMultiplier = serializedObject.FindProperty("xrThresholdMultiplier");
         gpuDrivenCompatible = serializedObject.FindProperty("gpuDrivenCompatible");
         waitForFrameCountMultiple = serializedObject.FindProperty("waitForFrameCountMultiple");
@@ -55,13 +53,7 @@ public class HDRP_TestSettings_Editor : Editor
 
 
 
-        EditorGUILayout.PropertyField(xrCompatible);
-        if(xrCompatible.boolValue)
-        {
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(xrThresholdMultiplier);
-            EditorGUI.indentLevel--;
-        }
+        EditorGUILayout.PropertyField(xrThresholdMultiplier);
 
         EditorGUILayout.PropertyField(gpuDrivenCompatible);
 

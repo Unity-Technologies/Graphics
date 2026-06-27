@@ -117,7 +117,7 @@ public class HDRP_GraphicTestRunner
 
         // Purpose is to setup proper test aspect ratio for the camera to "see" all objects and trigger related shader compilation tasks.
         int warmupTime = 1;
-        Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.xrCompatible, warmupTime, settings.ImageComparisonSettings);
+        Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(warmupTime, settings.ImageComparisonSettings);
 
         if (!XRGraphicsAutomatedTests.enabled)
             camera.targetTexture = RenderTexture.GetTemporary(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight);
@@ -197,21 +197,14 @@ public class HDRP_GraphicTestRunner
         {
             GraphicsTestLogger.Log(LogType.Log, "XR Automated Tests enabled.");
 
-            if (settings.xrCompatible)
-            {
-                Unity.Testing.XR.Runtime.ConfigureMockHMD.ConfigureXRDisplay(settings.xrCompatible, settings.ImageComparisonSettings);
+            Unity.Testing.XR.Runtime.ConfigureMockHMD.ConfigureXRDisplay(settings.ImageComparisonSettings);
 
-                #if !UNITY_EDITOR
-                // Some tests need time after eye resolution change before setting player resolution
-                yield return Unity.Testing.XR.Runtime.ConfigureMockHMD.WaitForXRFrames(settings.xrCompatible, 1);
-                #endif
+            #if !UNITY_EDITOR
+            // Some tests need time after eye resolution change before setting player resolution
+            yield return Unity.Testing.XR.Runtime.ConfigureMockHMD.WaitForXRFrames(1);
+            #endif
 
-                waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetPlayerResolutionForXR(settings.xrCompatible, settings.ImageComparisonSettings, waitFrames);
-            }
-            else
-            {
-                Assert.Ignore("Test scene is not compatible with XR and will be skipped.");
-            }
+            waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetPlayerResolutionForXR(settings.ImageComparisonSettings, waitFrames);
 
             // Increase tolerance to account for slight changes due to float precision
             settings.ImageComparisonSettings.AverageCorrectnessThreshold *= settings.xrThresholdMultiplier;

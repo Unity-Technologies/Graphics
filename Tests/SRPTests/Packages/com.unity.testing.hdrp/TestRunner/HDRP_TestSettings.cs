@@ -29,9 +29,6 @@ public class HDRP_TestSettings : GraphicsTestSettings
     [Tooltip("Sets the multiple frame count.")]
     public int frameCountMultiple = 8;
 
-    [Tooltip("When enabled, the tests handles XR compatibility.")]
-    public bool xrCompatible = true;
-
     [Tooltip("When enabled, the tests handles GPU Driven compatibility.")]
     public bool gpuDrivenCompatible = true;
 
