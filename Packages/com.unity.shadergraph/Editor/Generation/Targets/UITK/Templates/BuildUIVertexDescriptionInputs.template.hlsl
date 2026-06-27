@@ -46,8 +46,10 @@ VertexDescriptionInputs BuildVertexDescriptionInputs(Attributes input)
     // packed into uv0.zw, the same source the fragment reads via the texCoord6 varying.
     output.layoutUV = input.uv0.zw;
 
-    // Texture slot in typeTexSettings.y (static field) so the Element Texture Size node works in the
-    // vertex stage; it reads IN.typeTexSettings.y. The other components aren't read by any vertex node.
+    // Render type in typeTexSettings.x and texture slot in typeTexSettings.y (static field) so the
+    // Render Type and Element Texture Size nodes work in the vertex stage; they read IN.typeTexSettings.x
+    // and .y. The .z/.w components aren't read by any vertex node.
+    output.typeTexSettings.x = uie_element_frag_type(input.uv4);
     output.typeTexSettings.y = uie_element_texture_slot(input.uv4);
 
     $VertexDescriptionInputs.ObjectSpaceNormal:                         output.ObjectSpaceNormal =                          input.normalOS;
