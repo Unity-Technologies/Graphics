@@ -1,3 +1,4 @@
+#pragma warning disable CS0618 // Type or member is obsolete
 using System;
 using NUnit.Framework;
 using UnityEngine;
@@ -82,3 +83,4 @@ class PostProcessingTests
         UnityEngine.Object.DestroyImmediate(profile);
     }
 }
+#pragma warning restore CS0618 // Type or member is obsolete
