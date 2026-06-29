@@ -87,8 +87,9 @@ namespace UnityEditor.ShaderGraph
                 // Layout-rect UV, mirrors SurfaceDescriptionInputs.layoutUV so the Element Layout UV node
                 // reads IN.layoutUV.xy in the vertex stage as it does in fragment.
                 new FieldDescriptor("VertexDescriptionInputs", "layoutUV", "", ShaderValueType.Float2, subscriptOptions: StructFieldOptions.Static),
-                // Type/texture settings, mirrors SurfaceDescriptionInputs.typeTexSettings so the Element
-                // Texture Size node reads IN.typeTexSettings.y (the texture slot) in the vertex stage.
+                // Type/texture settings, mirrors SurfaceDescriptionInputs.typeTexSettings so the Render
+                // Type node reads IN.typeTexSettings.x (the render type) and the Element Texture Size node
+                // reads IN.typeTexSettings.y (the texture slot) in the vertex stage.
                 new FieldDescriptor("VertexDescriptionInputs", "typeTexSettings", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static),
 
                 // optionals

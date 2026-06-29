@@ -244,6 +244,7 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
         const string kGeometryNonObjectSpaceError = "{0}'s Space must be set to Object on UI Toolkit shaders. UI Toolkit does not provide a meaningful per-element world transform; other spaces would apply the batched-group transform and produce incorrect data. The Object space option returns the value as it was packed into the vertex stream.";
         const string kPositionSpaceError = "{0}'s Space must be set to Object or World on UI Toolkit shaders. Object returns the element-local position; World applies the element transform (translation, bone and group). View, Tangent and Absolute World are not supported.";
         const string kPositionObjectFragmentError = "{0} in Object space is the element-local position and is only available in the vertex stage on UI Toolkit shaders. Use World space to read the position in the fragment stage, or route the Object-space value through a Custom Interpolator (vertex stage to fragment stage).";
+        const string kSampleElementTextureVertexError = "{0} in Standard mip sampling mode samples with implicit derivatives, which the vertex stage does not provide. Set its Mip Sampling Mode to LOD to sample the element texture in the vertex stage.";
 
         static bool IsAllowedUVChannel(UnityEditor.ShaderGraph.Internal.UVChannel channel)
         {
@@ -427,6 +428,34 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             return false;
         }
 
+        static bool ValidateSampleElementTextureNode(AbstractMaterialNode node, out string errorMessage)
+        {
+            errorMessage = null;
+
+            if (node is not SampleElementTextureNode sampleNode)
+                return false;
+
+            // LOD sampling takes an explicit mip and is valid in both stages; only Standard sampling
+            // (implicit derivatives) is fragment-only, so it's the only mode that needs flagging.
+            if (sampleNode.mipSamplingMode != ElementTextureMipSamplingMode.Standard)
+                return false;
+
+            var outputs = new List<MaterialSlot>();
+            node.GetOutputSlots(outputs);
+            foreach (var slot in outputs)
+            {
+                var capability = NodeUtils.GetEffectiveShaderStageCapability(slot, goingBackwards: false);
+                // capability == All means disconnected (no edges traversed); only flag actual vertex paths.
+                if (capability != ShaderStageCapability.All && (capability & ShaderStageCapability.Vertex) != 0)
+                {
+                    errorMessage = string.Format(kSampleElementTextureVertexError, node.name);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         static bool ValidateSubGraph(AbstractMaterialNode node, out string warningMessage)
         {
             warningMessage = null;
@@ -455,6 +484,12 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             severity = ShaderCompilerMessageSeverity.Warning;
 
             if (ValidateGeometryNode(node, out warningMessage))
+            {
+                severity = ShaderCompilerMessageSeverity.Error;
+                return true;
+            }
+
+            if (ValidateSampleElementTextureNode(node, out warningMessage))
             {
                 severity = ShaderCompilerMessageSeverity.Error;
                 return true;
@@ -566,6 +601,14 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             StructFields.Varyings.texCoord6,
             StructFields.Varyings.texCoord7,
             UIStructs.OpacityVarying, // per-element opacity, applied at the end of the fragment
+
+            // uie_custom_frag always computes AA coverage and rect clipping from these, so they must be
+            // copied into SurfaceDescriptionInputs even when no graph node reads them. Otherwise they stay
+            // zero (a constant-color graph loses arc carving and edge AA) — the requiresUITK ConditionalFields
+            // in GenerationUtils only populate them when an IMayRequireUITK node happens to be present.
+            StructFields.SurfaceDescriptionInputs.typeTexSettings,
+            StructFields.SurfaceDescriptionInputs.circle,
+            StructFields.SurfaceDescriptionInputs.uvClip,
         };
     }
 #endregion
