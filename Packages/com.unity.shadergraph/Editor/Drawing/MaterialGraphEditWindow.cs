@@ -351,6 +351,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                         // may also need to re-run validation/concretization
                         graphObject.Validate();
+
+                        // Force the inspector to rebuild so errors from reloaded nodes (e.g. invalid HLSL) show immediately.
+                        graphEditorView?.inspectorView?.TriggerInspectorUpdate(null);
                     }
 
                     m_ChangedFileDependencyGUIDs.Clear();
