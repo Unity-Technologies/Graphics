@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="NoInterpTextureParameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/Film Grain")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [URPHelpURL("Post-Processing-Film-Grain")]
+    [URPHelpURL("urp/Post-Processing-Film-Grain")]
     public sealed class FilmGrain : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

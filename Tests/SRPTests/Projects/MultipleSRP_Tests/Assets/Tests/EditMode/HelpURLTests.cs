@@ -69,8 +69,10 @@ namespace MultipleSRP.EditMode
         public IEnumerator CheckHelpUrlsPointToTheExistingPage(Type type)
         {
             yield return null;
-        
-            DocumentationUtils.TryGetHelpURL(type, out var url);
+
+            if (!DocumentationUtils.TryGetHelpURL(type, out var url))
+                yield break;
+
             var task = Task.Run(() => CheckUrlFor404Async(m_Client, url));
             while (!task.IsCompleted)
                 yield return null;

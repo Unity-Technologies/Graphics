@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
     /// Global settings are unique per Render Pipeline type. In URP, Global Settings contain:
     /// - light layer names
     /// </summary>
-    [URPHelpURL("urp-global-settings")]
+    [URPHelpURL("urp/urp-global-settings")]
     [DisplayInfo(name = "URP Global Settings Asset", order = CoreUtils.Sections.section4 + 2)]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     [DisplayName("URP")]

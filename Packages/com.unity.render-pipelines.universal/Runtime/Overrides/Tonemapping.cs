@@ -176,7 +176,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="BoolParameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/Tonemapping")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [URPHelpURL("post-processing-tonemapping")]
+    [URPHelpURL("urp/post-processing-tonemapping")]
     public sealed class Tonemapping : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

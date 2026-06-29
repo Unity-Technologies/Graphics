@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="TextureCurveParameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/Color Curves")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [URPHelpURL("Post-Processing-Color-Curves")]
+    [URPHelpURL("urp/Post-Processing-Color-Curves")]
     public sealed class ColorCurves : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

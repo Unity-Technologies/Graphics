@@ -191,7 +191,7 @@ namespace UnityEngine.Rendering.Universal
     [DisplayInfo(name = "Screen Space Ambient Occlusion")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     [VolumeRequiresRendererFeatures(typeof(ScreenSpaceAmbientOcclusion))]
-    [URPHelpURL("post-processing-ssao")]
+    [URPHelpURL("urp/post-processing-ssao")]
     public sealed class ScreenSpaceAmbientOcclusionVolumeOverride : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
