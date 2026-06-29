@@ -355,7 +355,7 @@ namespace UnityEditor.Rendering.Universal
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
                         var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
                         var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
-                        if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+                        if (buildTargetSettings != null && buildTargetSettings.Manager != null && buildTargetSettings.Manager.activeLoaders.Count > 0)
                         {
                             isQuest = buildTargetGroup == BuildTargetGroup.Android;
                         }

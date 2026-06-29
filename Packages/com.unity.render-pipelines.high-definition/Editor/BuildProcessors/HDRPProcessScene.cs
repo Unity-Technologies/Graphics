@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
             var buildTargetSettings = XR.Management.XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
 
-            if(buildTargetSettings == null || buildTargetSettings.AssignedSettings == null || buildTargetSettings.AssignedSettings.activeLoaders.Count <= 0)
+            if(buildTargetSettings == null || buildTargetSettings.Manager == null || buildTargetSettings.Manager.activeLoaders.Count <= 0)
                 return;
 
             GameObject[] roots = scene.GetRootGameObjects();
