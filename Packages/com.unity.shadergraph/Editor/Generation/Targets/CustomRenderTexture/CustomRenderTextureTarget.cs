@@ -188,6 +188,8 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
 
         public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline) => true;
 
+        internal override bool prefersSpritePreview => true;
+
         public override bool IsNodeAllowedByTarget(System.Type nodeType)
         {
             SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
