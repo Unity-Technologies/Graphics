@@ -61,6 +61,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             GraphicsDeviceType.Metal,
             Architecture.X64
         )]
+        [IgnoreGraphicsTest(
+            "5001_Fog_FogFallback",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-144922",
+            RuntimePlatform.LinuxEditor, RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor
+        )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);
