@@ -137,7 +137,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             foreach(var param in parameters)
             {
                 var paramHeader = new ParameterHeader(param, Provider);
-                ParamHeaders.Add(param.Name, paramHeader);
+                ParamHeaders.TryAdd(param.Name, paramHeader);
                 paramOrder.Add(paramHeader);
                 if (oldSlotMap.TryGetValue(param.Name, out var idTuple))
                 {
