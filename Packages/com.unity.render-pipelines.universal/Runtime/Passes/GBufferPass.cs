@@ -193,6 +193,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                     builder.SetGlobalTextureAfterPass(resourceData.renderingLayersTexture, s_CameraRenderingLayersTextureID);
             }
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                bool passSupportsFoveation = cameraData.xrUniversal.canFoveateIntermediatePasses || resourceData.isActiveTargetBackBuffer;
+                builder.EnableFoveatedRasterization(
+                    cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
+            }
+#endif
+
             builder.AllowGlobalStateModification(true);
 
             builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>

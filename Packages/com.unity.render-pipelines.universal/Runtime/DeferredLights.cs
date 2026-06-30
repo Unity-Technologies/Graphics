@@ -410,7 +410,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         //We need to cache the array to avoid mem allocs. In general, it's error prone to keep TextureHandles in member variables because they are invalid after the frame.
         internal TextureHandle[] m_GbufferTextureHandles;
 
-        internal void CreateGbufferTextures(RenderGraph renderGraph, UniversalResourceData resourceData, bool hasNormalPrepass)
+        internal void CreateGbufferTextures(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, bool hasNormalPrepass)
         {
             int gbufferSliceCount = GBufferSliceCount;
 
@@ -422,7 +422,21 @@ namespace UnityEngine.Rendering.Universal.Internal
             resourceData.gBuffer = m_GbufferTextureHandles;
 
             bool useCameraRenderingLayersTexture = UseRenderingLayers && !UseLightLayers;
-            Debug.Assert(resourceData.cameraColor.IsValid(), "Deferred Renderer assumes that the intermediate (color) texture is available.");
+
+            TextureDesc descriptor;
+            if (resourceData.isActiveTargetBackBuffer)
+            {
+                var info = cameraData.backbufferColor;
+                UniversalRenderer.GetIntermediateTextureDesc(cameraData, out descriptor);
+                descriptor.width = info.width;
+                descriptor.height = info.height;
+                descriptor.slices = info.volumeDepth;
+                descriptor.msaaSamples = (MSAASamples)Mathf.Max(info.msaaSamples, 1);
+            }
+            else
+            {
+                descriptor = resourceData.cameraColor.GetDescriptor(renderGraph);
+            }
 
             for (int i = 0; i < gbufferSliceCount; ++i)
             {
@@ -432,14 +446,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                     resourceData.gBuffer[i] = resourceData.renderingLayersTexture;
                 else if (i != GBufferLightingIndex)
                 {
-                    var gbufferSlice = resourceData.cameraColor.GetDescriptor(renderGraph);
-                    gbufferSlice.format = GetGBufferFormat(i);
-                    gbufferSlice.name = k_GBufferNames[i];
-                    gbufferSlice.clearBuffer = true;
-                    resourceData.gBuffer[i] = renderGraph.CreateTexture(gbufferSlice);
+                    descriptor.format = GetGBufferFormat(i);
+                    descriptor.name = k_GBufferNames[i];
+                    descriptor.clearBuffer = true;
+                    resourceData.gBuffer[i] = renderGraph.CreateTexture(descriptor);
                 }
                 else
-                    resourceData.gBuffer[i] = resourceData.cameraColor;
+                    resourceData.gBuffer[i] = resourceData.activeColorTexture;
             }
         }
 
@@ -467,9 +480,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_stencilVisLightOffsets.Dispose();
 
 #if UNITY_ENABLE_CHECKS
-            for (int i = 0; i < m_GbufferTextureHandles.Length; i++)
+            if ( m_GbufferTextureHandles != null)
             {
-                m_GbufferTextureHandles[i] = TextureHandle.nullHandle;
+                for (int i = 0; i < m_GbufferTextureHandles.Length; i++)
+                {
+                    m_GbufferTextureHandles[i] = TextureHandle.nullHandle;
+                }
             }
 #endif
         }
@@ -540,7 +556,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return block;
         }
 
-        internal void ExecuteDeferredPass(RasterCommandBuffer cmd, UniversalCameraData cameraData, UniversalLightData lightData, UniversalShadowData shadowData, TextureHandle[] gbuffer)
+        internal void ExecuteDeferredPass(RasterCommandBuffer cmd, UniversalCameraData cameraData, UniversalLightData lightData, UniversalShadowData shadowData, TextureHandle[] gbuffer, RasterGraphContext context)
         {
             // Workaround for bug.
             // When changing the URP asset settings (ex: shadow cascade resolution), all ScriptableRenderers are recreated but
@@ -564,8 +580,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // - non-baked geometry (== non-static geometry) use shadowMask/occlusionProbes to emulate baked shadows influences.
                 cmd.SetKeyword(ShaderGlobalKeywords._DEFERRED_MIXED_LIGHTING, this.UseShadowMask);
 
+                // Query the actual UV origin of the GBuffer depth texture. In Tile-Only Mode, it has TopLeft
+                // origin (backbuffer), while in normal mode it has BottomLeft origin (intermediate texture).
+                // Use this to compute the correct _ScreenToWorld matrix for world position reconstruction.
+                TextureHandle gbufferDepth = gbuffer[GBufferDepthIndex];
+                TextureUVOrigin depthOrigin = context.GetTextureUVOrigin(gbufferDepth);
+
                 // This must be set for each eye in XR mode multipass.
-                SetupMatrixConstants(cmd, cameraData);
+                SetupMatrixConstants(cmd, cameraData, depthOrigin);
 
                 // First directional light will apply SSAO if possible, unless there is none.
                 if (!m_UseDeferredPlus && !HasStencilLightsOfType(LightType.Directional))
@@ -615,7 +637,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetGlobalVector(ShaderConstants._MainLightColor, lightColor);
         }
 
-        internal Matrix4x4[] GetScreenToWorldMatrix(UniversalCameraData cameraData)
+        internal Matrix4x4[] GetScreenToWorldMatrix(UniversalCameraData cameraData, TextureUVOrigin depthTextureOrigin)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             int eyeCount = cameraData.xr.enabled && cameraData.xr.singlePassEnabled ? 2 : 1;
@@ -646,10 +668,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 screenToNDC = renormalizeZ * screenToNDC;
             }
 
+            // The deferred shader uses _ScreenToWorld matrix which requires different flip logic than unity_MatrixInvVP.
+            // - BottomLeft origin (normal mode): Use non-flipped projection (false)
+            // - TopLeft origin (Tile-Only Mode): Use flipped projection (true)
+            bool useFlippedProjection = (depthTextureOrigin == TextureUVOrigin.TopLeft);
+
             for (int eyeIndex = 0; eyeIndex < eyeCount; eyeIndex++)
             {
                 Matrix4x4 view = cameraData.GetViewMatrix(eyeIndex);
-                Matrix4x4 gpuProj = cameraData.GetGPUProjectionMatrix(false, eyeIndex);
+                Matrix4x4 gpuProj = cameraData.GetGPUProjectionMatrix(useFlippedProjection, eyeIndex);
 
                 screenToWorld[eyeIndex] = Matrix4x4.Inverse(gpuProj * view) * screenToNDC;
             }
@@ -657,9 +684,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             return screenToWorld;
         }
 
-        void SetupMatrixConstants(RasterCommandBuffer cmd, UniversalCameraData cameraData)
+        void SetupMatrixConstants(RasterCommandBuffer cmd, UniversalCameraData cameraData, TextureUVOrigin depthTextureOrigin)
         {
-            cmd.SetGlobalMatrixArray(ShaderConstants._ScreenToWorld, GetScreenToWorldMatrix(cameraData));
+            cmd.SetGlobalMatrixArray(ShaderConstants._ScreenToWorld, GetScreenToWorldMatrix(cameraData, depthTextureOrigin));
         }
 
         void PrecomputeLights(

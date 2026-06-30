@@ -301,8 +301,14 @@ namespace UnityEditor.Rendering.Universal
                 serialized.msaa,
                 p => p.intValue != (int)MsaaQuality.Disabled
                     // This operation is actually ok on Quest
-                    && !IsAndroidXRTargetted(),
+                    && !IsAndroidXRTargetted()
+                    // Hide when the more specific deferred warning is taking over.
+                    && !AnyTileOnlyDeferredRenderer(serialized),
                 Styles.msaaText, MessageType.Info, Styles.msaaTileOnlyInfo);
+            DisplayTileOnlyHelpBox(
+                serialized.msaa,
+                p => p.intValue != (int)MsaaQuality.Disabled && AnyTileOnlyDeferredRenderer(serialized),
+                Styles.msaaText, MessageType.Warning, Styles.msaaTileOnlyDeferredWarning);
 
             using (new EditorGUI.MixedValueScope(serialized.renderScale.hasMultipleDifferentValues))
             {
@@ -1216,6 +1222,26 @@ namespace UnityEditor.Rendering.Universal
                     rendererNames: names
                 );
             }
+        }
+
+        // True when any renderer in the asset is a UniversalRendererData with
+        // tileOnlyMode + Deferred(+) rendering mode. Used to gate the stronger
+        // MSAA warning on top of the generic tile-only MSAA info.
+        static bool AnyTileOnlyDeferredRenderer(SerializedUniversalRenderPipelineAsset serialized)
+        {
+            foreach (var target in serialized.serializedObject.targetObjects)
+            {
+                if (target is not UniversalRenderPipelineAsset asset || asset.rendererDataList == null)
+                    continue;
+
+                foreach (var rd in asset.rendererDataList)
+                {
+                    if (rd is UniversalRendererData urd && urd.tileOnlyMode
+                        && (urd.renderingMode == RenderingMode.Deferred || urd.renderingMode == RenderingMode.DeferredPlus))
+                        return true;
+                }
+            }
+            return false;
         }
 
         static void DisplayTileOnlyHelpBox(SerializedProperty prop, Func<SerializedProperty, bool> shouldDisplay, GUIContent label, MessageType messageType = MessageType.Warning, string customMessage = null)

@@ -951,12 +951,13 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="textureUVOrigin">The UV origin of the texture (typically from GetTextureUVOrigin)</param>
         /// <param name="cameraData">Camera data containing view and projection matrices</param>
+        /// <param name="eyeIndex">Eye index used in XR rendering</param>
         /// <returns>The inverse view-projection matrix matching the texture orientation</returns>
-        internal static Matrix4x4 ComputeInverseViewProjectionMatrix(TextureUVOrigin textureUVOrigin, UniversalCameraData cameraData)
+        internal static Matrix4x4 ComputeInverseViewProjectionMatrix(TextureUVOrigin textureUVOrigin, UniversalCameraData cameraData, int eyeIndex = 0)
         {
             bool isFlipped = (textureUVOrigin == TextureUVOrigin.BottomLeft);
-            Matrix4x4 projection = cameraData.GetGPUProjectionMatrix(isFlipped);
-            Matrix4x4 view = cameraData.GetViewMatrix();
+            Matrix4x4 projection = cameraData.GetGPUProjectionMatrix(isFlipped, eyeIndex);
+            Matrix4x4 view = cameraData.GetViewMatrix(eyeIndex);
             Matrix4x4 viewProj = CoreMatrixUtils.MultiplyProjectionMatrix(projection, view, cameraData.camera.orthographic);
             return Matrix4x4.Inverse(viewProj);
         }

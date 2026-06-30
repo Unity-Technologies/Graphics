@@ -210,7 +210,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 var cmd = rgContext.cmd;
 
-                // CRITICAL FIX for Tile-Only Mode and direct-to-backbuffer rendering:
+                // Fix for Tile-Only Mode and direct-to-backbuffer rendering:
                 //
                 // The shader reconstructs world positions from depth using:
                 //   float3 wpos = ComputeWorldSpacePosition(uv, depth, unity_MatrixInvVP);

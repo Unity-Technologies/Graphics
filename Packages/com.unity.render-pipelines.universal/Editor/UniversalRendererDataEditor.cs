@@ -42,8 +42,6 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent warningIntermediateTextureMode = EditorGUIUtility.TrTextContent("'Always' is Obsolete. Change it to Auto. This can improve performance. The setting will disappear once it is corrected to 'Auto'.");
             public static readonly GUIContent tileOnlyMode = EditorGUIUtility.TrTextContent("Tile-Only Mode", "Restricts render passes to avoid memory load/store of main camera targets, keeping them in on‑chip tile memory. This is a potential GPU performance optimization on Tile-Based GPU architectures. It activates additional RenderGaph validation. Some features may be disabled or fall back. See docs for details.");
             public static readonly string tileOnlyModeWarning = L10n.Tr("Tile-Only mode will disable or block features, including Renderer Features and Render Passes, that would trigger GPU memory store/load actions.");
-            public static readonly string deferredTileOnlyModeWarning = L10n.Tr("Deferred rendering path is incompatible with the enabled 'Tile-Only Mode'. Change this to Forward.");
-            public static readonly string deferredPlusTileOnlyModeWarning = L10n.Tr("Deferred+ rendering path is incompatible with the enabled 'Tile-Only Mode'. Change this to Forward+.");
             public static readonly string postProcessingTileOnlyModeWarning = L10n.Tr("'Post-processing' is incompatible with the enabled 'Tile-Only Mode'. Disable this setting. Renderer Features can add On-Tile Post Processing.");
         }
 
@@ -182,19 +180,6 @@ namespace UnityEditor.Rendering.Universal
             {
                 PopulateCompatibleDepthFormats(m_RenderingMode.intValue);
                 depthFormatIndex = GetDepthFormatIndex((DepthFormat)m_DepthAttachmentFormat.intValue, m_RenderingMode.intValue);
-            }
-            
-            if (m_TileOnlyMode.boolValue)
-            {
-                switch ((RenderingMode)m_RenderingMode.intValue)
-                {
-                    case RenderingMode.Deferred:
-                        EditorGUILayout.HelpBox(Styles.deferredTileOnlyModeWarning, MessageType.Error);
-                        break;
-                    case RenderingMode.DeferredPlus:
-                        EditorGUILayout.HelpBox(Styles.deferredPlusTileOnlyModeWarning, MessageType.Error);
-                        break;
-                }
             }
 
             if (m_RenderingMode.intValue == (int)RenderingMode.Deferred || m_RenderingMode.intValue == (int)RenderingMode.DeferredPlus)

@@ -302,6 +302,15 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.autoGenerateMips = desc.autoGenerateMips;
         }
 
+        internal static void GetIntermediateTextureDesc(UniversalCameraData cameraData, out TextureDesc desc)
+        {
+            GetTextureDesc(in cameraData.cameraTargetDescriptor, out desc);
+            desc.useMipMap = false;
+            desc.autoGenerateMips = false;
+            desc.mipMapBias = 0;
+            desc.anisoLevel = 1;
+        }
+
         // True if dimensions, msaa samples and slices match. If false, then the attachments cannot be used in the same native render pass.
         internal static bool HasMatchingAttachmentProperties(in RenderTargetInfo rtInfo, in TextureDesc texDesc)
         {
@@ -395,11 +404,7 @@ namespace UnityEngine.Rendering.Universal
             ImportBackBuffers(renderGraph, cameraData, clearCameraParams.clearValue, isCameraTargetOffscreenDepth);
 
             TextureDesc cameraDescriptor;
-            GetTextureDesc(in cameraData.cameraTargetDescriptor, out cameraDescriptor);
-            cameraDescriptor.useMipMap = false;
-            cameraDescriptor.autoGenerateMips = false;
-            cameraDescriptor.mipMapBias = 0;
-            cameraDescriptor.anisoLevel = 1;
+            GetIntermediateTextureDesc(cameraData, out cameraDescriptor);
 
             if (requireIntermediateAttachments)
             {
@@ -1159,7 +1164,7 @@ namespace UnityEngine.Rendering.Universal
                 m_DeferredLights.ResolveMixedLightingMode(lightData);
                 // Once the mixed lighting mode has been discovered, we know how many MRTs we need for the gbuffer.
                 // Subtractive mixed lighting requires shadowMask output, which is actually used to store unity_ProbesOcclusion values.
-                m_DeferredLights.CreateGbufferTextures(renderGraph, resourceData, isDepthNormalPrepass);
+                m_DeferredLights.CreateGbufferTextures(renderGraph, resourceData, cameraData, isDepthNormalPrepass);
 
                 m_ValidationHandler.OnBeforeGBuffers(renderGraph, resourceData);
 

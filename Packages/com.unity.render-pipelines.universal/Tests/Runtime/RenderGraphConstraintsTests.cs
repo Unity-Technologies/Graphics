@@ -240,6 +240,11 @@ namespace UnityEngine.Rendering.Universal.Tests
         [TestCaseSource(nameof(s_OnTileValidationCases))]
         public IEnumerator URPSettingsShouldNotCauseNonMemorylessTargets(OnTileValidationConfiguration config)
         {
+            // Skip corner case testing
+            bool isOnTileDeferred = config.renderingMode == RenderingMode.Deferred || config.renderingMode == RenderingMode.DeferredPlus;
+            if (isOnTileDeferred && SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5)
+                Assert.Ignore("PS5 GNMP backend has limitation that backbuffer cannot be used as GBuffer.");
+
             // Arrange
             LogAssert.ignoreFailingMessages = true;
             config.ApplyToAssetAndRenderer(m_UniversalRenderPipelineAsset, m_UniversalRendererData);
@@ -249,7 +254,11 @@ namespace UnityEngine.Rendering.Universal.Tests
 
             yield return null;
 
-            Assert.That(OnlyBackbufferOrMemoryless(outputNonMemoryless: true), Is.True, "Non-memoryless intermediate targets were produced.");
+            // No need to go further if we don't support memoryless textures
+            if (SystemInfo.supportsMemorylessTextures)    
+            {
+                Assert.That(OnlyBackbufferOrMemoryless(outputNonMemoryless: true), Is.True, "Non-memoryless intermediate targets were produced.");
+            }
             LogAssert.ignoreFailingMessages = false;
         }
 

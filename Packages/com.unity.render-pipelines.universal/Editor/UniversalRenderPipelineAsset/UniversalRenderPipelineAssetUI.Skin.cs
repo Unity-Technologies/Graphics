@@ -162,6 +162,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly string formatterTileOnlyMode = L10n.Tr("'{0}' will be skipped because it is incompatible with the enabled 'Tile-Only Mode'. Affected renderers: {1}.");
             public static readonly string tileOnlyModeMaybeMessage = L10n.Tr("'{0}' might be skipped when 'Tile-Only Mode' is enabled. Renderer Features can provide this functionality, so behavior can vary. Affected renderers: {1}.");
             public static readonly string msaaTileOnlyInfo = L10n.Tr("'{0}' is supported in 'Tile-Only Mode'. However, in the Editor and on platforms where the back buffer does not support MSAA, URP forces MSAA to None to keep data in Tile Memory. Affected renderers: {1}.");
+            public static readonly string msaaTileOnlyDeferredWarning = L10n.Tr("'{0}' is incompatible with 'Tile-Only Mode' + Deferred rendering. On platforms with MSAA back buffer support, the renderer will silently fall back to Forward(+) at runtime. On other platforms, MSAA is dropped to 1. Set MSAA to Disabled to keep Deferred consistently, or switch the renderer to Forward(+). Affected renderers: {1}.");
             public static readonly string suffixWhenDifferentPositionTileOnlyMode = L10n.Tr(" (different position)");
 
             // Dropdown menu options

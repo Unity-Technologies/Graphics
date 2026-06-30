@@ -1439,7 +1439,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 baseCameraData.cameraTargetDescriptor.graphicsFormat = originalTargetDesc.graphicsFormat;
             }
-            baseCameraData.cameraTargetDescriptor.msaaSamples = originalTargetDesc.msaaSamples;
+
+            // Tile-only must match the cameraTargetDescriptor MSAA with backbufferDescriptor.
+            bool tileOnlyMode = baseCameraData.renderer is UniversalRenderer { useTileOnlyMode: true };
+            baseCameraData.cameraTargetDescriptor.msaaSamples = tileOnlyMode
+                ? baseCameraData.backbufferColor.msaaSamples
+                : originalTargetDesc.msaaSamples;
 
             if (baseCameraData.isDefaultViewport)
             {

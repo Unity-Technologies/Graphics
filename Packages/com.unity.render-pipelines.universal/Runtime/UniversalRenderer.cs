@@ -92,10 +92,19 @@ namespace UnityEngine.Rendering.Universal
         // Rendering mode setup from UI. The final rendering mode used can be different. See renderingModeActual.
         internal RenderingMode renderingModeRequested => m_RenderingMode;
 
+        // Returns current backbuffer MSAA. Under XR the backbuffer MSAA is the XR display MSAA.
+        internal int CurrentBackbufferMSAASamples()
+        {
+            if (frameData.Contains<UniversalCameraData>() && frameData.Get<UniversalCameraData>().xrRendering)
+                return (int)XRSystem.GetDisplayMSAASamples();
+            return Screen.currentBackbufferMSAASamples;
+        }
+
         bool deferredModeUnsupported => GL.wireframe ||
                                               (DebugHandler != null && DebugHandler.IsActiveModeUnsupportedForDeferred) ||
                                               m_DeferredLights == null ||
-                                              !m_DeferredLights.IsRuntimeSupportedThisFrame();
+                                              !m_DeferredLights.IsRuntimeSupportedThisFrame() ||
+                                              (useTileOnlyMode && CurrentBackbufferMSAASamples() > 1);
 
         // Actual rendering mode, which may be different (ex: wireframe rendering, hardware not capable of deferred rendering).
         internal RenderingMode renderingModeActual  {
@@ -265,7 +274,7 @@ namespace UnityEngine.Rendering.Universal
 
             useTileOnlyMode = data.tileOnlyMode;
 
-            // The On-Tile Renderer does not support WebGL. 
+            // The On-Tile Renderer does not support WebGL.
             if (useTileOnlyMode && IsWebGL())
             {
                 useTileOnlyMode = false;
@@ -314,7 +323,7 @@ namespace UnityEngine.Rendering.Universal
             // incompatible settings. The reason is that this automatic fixing has downsides for the users: if they toggle the Tile-Only
             // setting, they get a different mix of settings with different visual results. Also the URP asset can have incompabitle settings.
             // However, because these can be shared between different renderers, we can't log warnings. We also have warnings in the
-            // Inspector UI but these can easily be missed by the user. 
+            // Inspector UI but these can easily be missed by the user.
             if (useTileOnlyMode)
             {
                 if (postProcessEnabled)
@@ -325,11 +334,6 @@ namespace UnityEngine.Rendering.Universal
                     // use this as well. We just make sure we disable the internal post processing on the
                     // renderer because this is not on-tile compatible currently.
                     postProcessEnabled = false;
-                }
-
-                if (renderingModeRequested == RenderingMode.Deferred || renderingModeRequested == RenderingMode.DeferredPlus)
-                {
-                    Debug.LogWarning($"Rendering path Deferred on the URP Renderer '{data.name}' is not compatible with the enabled Tile-Only Mode setting. Change this to Forward(+) on the renderer asset.");
                 }                
             }
 
@@ -434,8 +438,10 @@ namespace UnityEngine.Rendering.Universal
 
         internal override void UpdateSupportedRenderingFeatures()
         {
+            supportedRenderingFeatures.deferredLighting = renderingModeRequested is RenderingMode.Deferred or RenderingMode.DeferredPlus;
+
             if (useTileOnlyMode)
-            {                
+            {
                 supportedRenderingFeatures.supportsHDR = false;         // We need a blit pass to support hdr.
                 supportedRenderingFeatures.postProcessing = false;      // Internal pp does not support on-tile.
                 supportedRenderingFeatures.cameraOpaqueTexture = false;
@@ -443,7 +449,6 @@ namespace UnityEngine.Rendering.Universal
                 supportedRenderingFeatures.upscaling = PlatformAutoDetect.isXRMobile;
                 supportedRenderingFeatures.antiAliasing = false;
                 supportedRenderingFeatures.gpuOcclusionCulling = false;
-                supportedRenderingFeatures.deferredLighting = false;
                 supportedRenderingFeatures.overlayCamera = false;
             }
             else
@@ -455,7 +460,6 @@ namespace UnityEngine.Rendering.Universal
                 supportedRenderingFeatures.upscaling = true;
                 supportedRenderingFeatures.antiAliasing = true;
                 supportedRenderingFeatures.gpuOcclusionCulling = true;
-                supportedRenderingFeatures.deferredLighting = renderingModeRequested is RenderingMode.Deferred or RenderingMode.DeferredPlus;
                 supportedRenderingFeatures.overlayCamera = !supportedRenderingFeatures.deferredLighting;
             }
 
@@ -802,13 +806,15 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.renderType == CameraRenderType.Base && !cameraData.resolveFinalTarget)
                 return true;
 
+            var universalRenderer = cameraData.renderer as UniversalRenderer;
+
             // Always force rendering into intermediate color texture if deferred rendering mode is selected.
             // Reason: without intermediate color texture, the target camera texture is y-flipped.
             // However, the target camera texture is bound during gbuffer pass and deferred pass.
             // Gbuffer pass will not be y-flipped because it is MRT (see ScriptableRenderContext implementation),
             // while deferred pass will be y-flipped, which breaks rendering.
             // This incurs an extra blit into at the end of rendering.
-            if (usesDeferredLighting)
+            if (usesDeferredLighting && universalRenderer != null && !universalRenderer.useTileOnlyMode)
                 return true;
 
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
