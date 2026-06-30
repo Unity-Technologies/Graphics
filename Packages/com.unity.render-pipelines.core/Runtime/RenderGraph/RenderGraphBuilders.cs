@@ -440,7 +440,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         // Shared validation between SetRenderAttachment/SetRenderAttachmentDepth
         [Conditional("UNITY_ENABLE_CHECKS")]
-        private void CheckUseFragment(in TextureHandle tex, bool isDepth)
+        private void CheckUseFragment(in TextureHandle tex, bool isDepth, int depthSlice)
         {
             if (RenderGraph.enableValidityChecks)
             {
@@ -474,6 +474,53 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 {
                     var name = m_Resources.GetRenderGraphResourceName(tex.handle);
                     throw new InvalidOperationException($"In pass '{m_RenderPass.name}' when trying to use resource '{name}' of type {tex.handle.type} at index {tex.handle.index} - " + RenderGraph.RenderGraphExceptionMessages.k_SetRenderAttachmentTextureAlreadyUsed);
+                }
+
+                for (int i = 0; i < m_RenderPass.fragmentInputMaxIndex + 1; ++i)
+                {
+                    if (!m_RenderPass.fragmentInputAccess[i].textureHandle.IsValid()) continue;
+                    ref readonly var input = ref m_RenderPass.fragmentInputAccess[i];
+
+                    if (input.textureHandle.handle.index == tex.handle.index && input.depthSlice != depthSlice)
+                    {
+                        // You can't mix XR style "all slices" with explicit slices int the same pass. It doesn't make sense, when XR is ON, you either want two eye rendering or rendering to a specific eye.
+                        if (depthSlice == -1 || input.depthSlice == -1)
+                        {
+                            var name = m_Resources.GetRenderGraphResourceName(tex.handle);
+                            throw new InvalidOperationException($"In pass '{m_RenderPass.name}' when trying to use a resource '{name}'. The same resource uses different depth slice modes (all slices vs single slice)");
+                        }
+                    }
+                }
+
+                for (int i = 0; i < m_RenderPass.colorBufferMaxIndex + 1; ++i)
+                {
+                    if (!m_RenderPass.colorBufferAccess[i].textureHandle.IsValid()) continue;
+                    ref readonly var input = ref m_RenderPass.colorBufferAccess[i];
+
+                    if (input.textureHandle.handle.index == tex.handle.index && input.depthSlice != depthSlice)
+                    {
+                        // You can't mix XR style "all slices" with explicit slices int the same pass. It doesn't make sense, when XR is ON, you either want two eye rendering or rendering to a specific eye.
+                        if (depthSlice == -1 || input.depthSlice == -1)
+                        {
+                            var name = m_Resources.GetRenderGraphResourceName(tex.handle);
+                            throw new InvalidOperationException($"In pass '{m_RenderPass.name}' when trying to use a resource '{name}'. The same resource uses different depth slice modes (all slices vs single slice)");
+                        }
+                    }
+                }
+
+                if (m_RenderPass.depthAccess.textureHandle.IsValid())
+                {
+                    var input = m_RenderPass.depthAccess;
+
+                    if (input.textureHandle.handle.index == tex.handle.index && input.depthSlice != depthSlice)
+                    {
+                        // You can't mix XR style "all slices" with explicit slices int the same pass. It doesn't make sense, when XR is ON, you either want two eye rendering or rendering to a specific eye.
+                        if (depthSlice == -1 || input.depthSlice == -1)
+                        {
+                            var name = m_Resources.GetRenderGraphResourceName(tex.handle);
+                            throw new InvalidOperationException($"In pass '{m_RenderPass.name}' when trying to use a resource '{name}'. The same resource uses different depth slice modes (all slices vs single slice)");
+                        }
+                    }
                 }
 
                 m_Resources.GetRenderTargetInfo(tex.handle, out var info);
@@ -557,7 +604,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             additionalValidationLayer?.SetRenderAttachment(tex, index, flags, mipLevel, depthSlice);
 #endif
 
-            CheckUseFragment(tex, false);
+            CheckUseFragment(tex, false, depthSlice);
             var versionedTextureHandle = new TextureHandle(UseResource(tex.handle, flags));
             m_RenderPass.SetColorBufferRaw(versionedTextureHandle, index, flags, mipLevel, depthSlice);
         }
@@ -574,12 +621,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if (GraphicsFormatUtility.IsDepthFormat(info.format))
             {
                 CheckInputAttachment(index, true);
-                CheckUseFragment(tex, true);
+                CheckUseFragment(tex, true, depthSlice);
             }
             else
             {
                 CheckInputAttachment(index, false);
-                CheckUseFragment(tex, false);
+                CheckUseFragment(tex, false, depthSlice);
             }
 
             var versionedTextureHandle = new TextureHandle(UseResource(tex.handle, flags));
@@ -592,7 +639,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             additionalValidationLayer?.SetRenderAttachmentDepth(tex, flags, mipLevel, depthSlice);
 #endif
 
-            CheckUseFragment(tex, true);
+            CheckUseFragment(tex, true, depthSlice);
             var versionedTextureHandle = new TextureHandle(UseResource(tex.handle, flags));
             m_RenderPass.SetDepthBufferRaw(versionedTextureHandle, flags, mipLevel, depthSlice);
         }

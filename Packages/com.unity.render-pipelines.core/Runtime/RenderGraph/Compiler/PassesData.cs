@@ -612,6 +612,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         ExtendedFeatureFlagsIncompatible, // Handles the case where flags added via SetExtendedFeatureFlags are not compatible
         PassMergingDisabled, // Wasn't merged because pass merging is disabled
         BackbufferInMultipleRenderTargetsNotSupported, // Prevent RG pass merging if one pass targets the backbuffer and the other pass some user render targets
+        MixedAllDepthSlicesAndSingleDepthSlice, // Prevent RG pass merging if one pass targets all depth slices while the other pass targets an individual depth slice
         Merged, // I actually got merged
 
         Count
@@ -651,6 +652,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             "Extended feature flags are incompatible",
             "Pass merging is disabled so this pass was not merged",
             "One pass targets the backbuffer while the other pass targets some user texture, this is not supported on this platform.",
+            "The passes use the same resource using different depth slice modes (all slices (-1) vs specific single slice).",
             "The next pass got merged into this pass.",
         };
     }
@@ -988,6 +990,19 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             {
                                 alreadyAttached = true;
                                 break;
+                            }
+
+                            // We can't mix "all slices" binding with "single slice" binding for the same resource in a native render pass, so we need to break the merge if we detect this case
+                            // Note generally we do allow mixing "all slices" with explicit slices in a single pass of *different* resources as -1 is often used as a "Default / don't care" argument
+                            // See https://jira.unity3d.com/browse/UUM-145513 for details.
+                            if (nativePass.fragments[i].resource.index == fragment.resource.index)
+                            {
+                                int curDs = nativePass.fragments[i].depthSlice;
+                                int newDS = fragment.depthSlice;
+                                if (curDs != newDS && (curDs == -1 || newDS == -1))
+                                {
+                                    return new PassBreakAudit(PassBreakReason.MixedAllDepthSlicesAndSingleDepthSlice, passIdToMerge);                                
+                                }
                             }
                         }
 

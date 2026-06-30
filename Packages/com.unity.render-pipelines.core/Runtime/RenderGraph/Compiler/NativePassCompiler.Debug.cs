@@ -112,6 +112,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     message += "Mixing backbuffer and custom render textures is not supported on this platform "
                                 + "(see SystemInfo.supportsBackbufferInMultipleRenderTargets).";
                     break;
+                case PassBreakReason.MixedAllDepthSlicesAndSingleDepthSlice:
+                    message += "The passes use the same resource using different depth slice modes (all slices (-1) vs specific single slice).";
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
