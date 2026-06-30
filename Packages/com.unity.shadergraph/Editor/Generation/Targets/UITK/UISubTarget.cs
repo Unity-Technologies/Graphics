@@ -469,6 +469,14 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             StructFields.Varyings.texCoord1,
             StructFields.Varyings.texCoord3,
             StructFields.Varyings.texCoord4,
+
+            // uie_custom_frag always computes AA coverage and rect clipping from these, so they must be
+            // copied into SurfaceDescriptionInputs even when no graph node reads them. Otherwise they stay
+            // zero (a constant-color graph loses arc carving and edge AA) — the requiresUITK ConditionalFields
+            // in GenerationUtils only populate them when an IMayRequireUITK node happens to be present.
+            StructFields.SurfaceDescriptionInputs.typeTexSettings,
+            StructFields.SurfaceDescriptionInputs.circle,
+            StructFields.SurfaceDescriptionInputs.uvClip,
         };
     }
 #endregion
