@@ -206,6 +206,7 @@ namespace UnityEngine.Rendering
                     occlusionResults.Dispose();
                 renderingLayerMasks.Dispose();
 
+                bakePipelineDriver?.ClearProgress();
                 bakePipelineDriver?.Dispose();
             }
         }
