@@ -236,6 +236,11 @@ namespace UnityEngine.Rendering.HighDefinition.DXR_Tests
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-144615",
             RuntimePlatform.GameCoreXboxSeries
         )]
+        [IgnoreGraphicsTest(
+            "9004_VFX_RecursiveRayTracing",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-144615",
+            RuntimePlatform.GameCoreXboxSeries
+        )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);
