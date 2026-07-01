@@ -6,6 +6,7 @@
   "dependencies": {
     "com.unity.burst": "1.8.14",
     "com.unity.collections": "2.4.3",
+    "com.unity.modules.imgui": "1.0.0",
     "com.unity.modules.jsonserialize": "1.0.0",
     "com.unity.profiling.core": "1.0.3"
   }
