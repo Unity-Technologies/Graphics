@@ -173,6 +173,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
 
             #include "SpeedTree7Input.hlsl"
             #include "SpeedTree7Passes.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutputFormat.hlsl"
 
             ENDHLSL
         }

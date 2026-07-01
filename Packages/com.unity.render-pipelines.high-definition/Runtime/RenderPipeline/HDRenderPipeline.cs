@@ -514,15 +514,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             DebugManager.instance.RefreshEditor();
             m_DebugDisplaySettings = DebugDisplaySerializer.GetOrCreate<DebugDisplaySettings>();
-            m_DebugDisplaySettings.resetAction = () =>
-            {
-                m_DebugDisplaySettings = DebugDisplaySerializer.GetOrCreate<DebugDisplaySettings>();
-
-                // This is not a debug property owned by `DebugData`, it is a static property on `Texture`.
-                // When the user hits reset, we want to make sure texture mip caching is enabled again (regardless of whether the
-                // user toggled this in the Rendering Debugger UI or changed it using the scripting API).
-                Texture.streamingTextureDiscardUnusedMips = false;
-            };
 
             m_ValidAPI = true;
 
@@ -1730,6 +1721,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void DetermineVisibleProbesForRequest(in RenderRequest request, Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible)
         {
             var cullingResults = request.cullingResults;
+            var probeFormat = (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
             // Add visible probes to list
             // Reflection probes
             for (var i = 0; i < cullingResults.cullingResults.visibleReflectionProbes.Length; ++i)
@@ -1749,17 +1741,36 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (additionalReflectionData.IsTurnedOff())
                     continue;
 
+                SyncRealtimeProbeTextureFormat(additionalReflectionData, probeFormat);
                 AddVisibleProbeVisibleIndexIfUpdateIsRequired(additionalReflectionData, request, renderRequestIndicesWhereTheProbeIsVisible);
             }
 
             // Planar probes
             for (var i = 0; i < cullingResults.hdProbeCullingResults.visibleProbes.Count; ++i)
             {
-                if (cullingResults.hdProbeCullingResults.visibleProbes[i].IsTurnedOff())
+                var planarProbe = cullingResults.hdProbeCullingResults.visibleProbes[i];
+                if (planarProbe.IsTurnedOff())
                     continue;
 
-                AddVisibleProbeVisibleIndexIfUpdateIsRequired(cullingResults.hdProbeCullingResults.visibleProbes[i], request, renderRequestIndicesWhereTheProbeIsVisible);
+                SyncRealtimeProbeTextureFormat(planarProbe, probeFormat);
+                AddVisibleProbeVisibleIndexIfUpdateIsRequired(planarProbe, request, renderRequestIndicesWhereTheProbeIsVisible);
             }
+        }
+
+        // Keep the realtime texture in sync with the current pipeline format. Without this, an
+        // OnDemand probe whose format mismatches the reflection probe atlas (e.g. after a
+        // QualityLevel switch that changes reflectionProbeFormat) would never get its texture
+        // reallocated, mismatch the atlas, and eventually crash in
+        // RendererScene::NotifyInvisible (UUM-109705). When the format actually changes we also
+        // force a re-render so the freshly-allocated texture isn't left empty (the original
+        // repro symptom is a black game view).
+        void SyncRealtimeProbeTextureFormat(HDProbe probe, GraphicsFormat probeFormat)
+        {
+            if (probe.mode != ProbeSettings.Mode.Realtime)
+                return;
+            if (probe.realtimeTexture != null && probe.realtimeTexture.graphicsFormat != probeFormat)
+                probe.RequestRerenderForFormatChange();
+            probe.AllocTexture(probeFormat);
         }
 
         void AddVisibleProbeVisibleIndexIfUpdateIsRequired(HDProbe probe, in RenderRequest request, Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible)
@@ -1767,9 +1778,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Don't add it if it has already been updated this frame or not a real time probe
             // TODO: discard probes that are baked once per frame and already baked this frame
             if (!probe.requiresRealtimeUpdate)
-                return;
-
-            if (probe.IsTurnedOff())
                 return;
 
             var viewerTransform = request.hdCamera.camera.transform;
@@ -2190,11 +2198,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RequireOffscreenUICoverPrepass = HDROutputForMainDisplayIsActive() && SupportedRenderingFeatures.active.rendersUIOverlay && !CoreUtils.IsScreenFullyCoveredByCameras(cameras);
             m_OffscreenUIRenderedInCurrentFrame = false;
 
-            // Reallocate the offscreen UI buffer when the resolution changes.
-            ReAllocateOffscreenUIColorBufferIfNeeded();
-
             if (!m_ValidAPI || cameraCount == 0)
                 return;
+
+            // Reallocate the offscreen UI buffer when the resolution changes.
+            ReAllocateOffscreenUIColorBufferIfNeeded();
 
             GPUResidentDrawer.ReinitializeIfNeeded();
 
@@ -3486,7 +3494,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ReAllocateOffscreenUIColorBufferIfNeeded()
         {
-            if (m_OffscreenUIColorBuffer.IsValueCreated)
+            if (m_OffscreenUIColorBuffer != null && m_OffscreenUIColorBuffer.IsValueCreated)
             {
                 if (Screen.width != m_OffscreenUIColorBuffer.Value.rt.width || Screen.height != m_OffscreenUIColorBuffer.Value.rt.height)
                 {

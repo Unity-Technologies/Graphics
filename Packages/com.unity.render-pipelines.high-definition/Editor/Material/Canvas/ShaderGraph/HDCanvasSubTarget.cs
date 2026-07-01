@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
         protected override IncludeCollection postgraphIncludes => new IncludeCollection
         {
-            {kHDCanvasPass, IncludeLocation.Postgraph},
+            {kHDCanvasPass, IncludeLocation.Postgraph, true},
         };
 
         HDCanvasData m_CanvasData;

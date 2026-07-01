@@ -72,6 +72,9 @@ EditorBuildSettings:
     path: Assets/Scenes/004_Shadows_Caster_Ortho_011_Casts_Self.unity
     guid: 2ebe6f9707194264dbb7c5ea1a554a63
   - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_012_SpriteSkin_Casts.unity
+    guid: 1b7bc0bfe7ce1354d8eb8b10bdb8e45e
+  - enabled: 1
     path: Assets/Scenes/004_Shadows_Caster_Perspective_010_Casts.unity
     guid: 131bd0d5f9d17c2428d5c3d1ec81c404
   - enabled: 1

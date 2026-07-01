@@ -41,19 +41,27 @@ namespace UnityEngine.Rendering
         /// <param name="scheduledItemCreator">Callback that creates the ScheduledItem.</param>
         internal static void ScheduleTracked(this DebugUI.Widget widget, VisualElement element,  Func<IVisualElementScheduledItem> scheduledItemCreator)
         {
-            // When the element is attached to a panel, we invoke the scheduledItem function to create the scheduler,
-            // and add it to DebugManager's tracking list.
+            ScheduleTracked(widget, element, widget.m_Context, scheduledItemCreator);
+        }
+
+        /// <summary>
+        /// Utility to add a scheduled item to the panel's tracker, using an explicit context for Add/Remove
+        /// rather than reading widget.m_Context lazily. Use this when the same widget instance may be
+        /// rendered into multiple panels (which mutates m_Context), and you want this scheduled item
+        /// tracked under a specific context.
+        /// </summary>
+        internal static void ScheduleTracked(this DebugUI.Widget widget, VisualElement element, DebugUI.Context context, Func<IVisualElementScheduledItem> scheduledItemCreator)
+        {
             element.RegisterCallback<AttachToPanelEvent>(_ =>
             {
                 var scheduledItem = scheduledItemCreator.Invoke();
-                DebugManager.instance.schedulerTracker.Add(widget.m_Context, widget, scheduledItem);
+                DebugManager.instance.schedulerTracker.Add(context, widget, scheduledItem);
                 scheduledItem.Pause(); // All schedulers start paused, and are enabled/disabled by DebugManager based on widget visibility.
             });
 
-            // When the element is detached from a panel, all ScheduledItems corresponding to that element are cleaned up.
             element.RegisterCallback<DetachFromPanelEvent>(_ =>
             {
-                DebugManager.instance.schedulerTracker.Remove(widget.m_Context, widget, element);
+                DebugManager.instance.schedulerTracker.Remove(context, widget, element);
             });
         }
 

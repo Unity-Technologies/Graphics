@@ -1,4 +1,3 @@
-using System;
 using UnityEngine.Rendering.RenderGraphModule;
 using CommonResourceData = UnityEngine.Rendering.Universal.UniversalResourceData;
 
@@ -45,7 +44,6 @@ namespace UnityEngine.Rendering.Universal
 
             return false;
         }
-
 
         private static void Execute(RasterCommandBuffer cmd, PassData passData, LayerBatch layerBatch, int lightTextureIndex)
         {
@@ -109,7 +107,6 @@ namespace UnityEngine.Rendering.Universal
 
                 if (LightBatch.isBatchingSupported)
                 {
-
                     RendererLighting.lightBatch.AddBatch(light, lightMaterial, light.GetMatrix(), lightMesh, 0, lightHash, index);
                     RendererLighting.lightBatch.Flush(cmd);
                 }
@@ -175,11 +172,10 @@ namespace UnityEngine.Rendering.Universal
         {
             Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            Universal2DRenderingData rendering2DData = frameData.Get<Universal2DRenderingData>();
-            var layerBatch = rendering2DData.layerBatches[batchIndex];
+            var layerBatch = frameData.Get<Universal2DRenderingData>().layerBatches[batchIndex];
 
             // Check for lighting in scene/prefab/preview camera 
-            var isLightingActive = rendering2DData.isLightingActive;
+            var isLightingActive = Renderer2D.IsSceneViewOrPreviewLightingActive(cameraData);
 
             if (!layerBatch.lightStats.useLights ||
                 isVolumetric && !layerBatch.lightStats.useVolumetricLights ||

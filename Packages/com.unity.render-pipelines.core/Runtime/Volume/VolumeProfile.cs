@@ -335,6 +335,36 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Computes a hash of the current state of every component on this profile
+        /// (the values and override flags of all their parameters).
+        /// Intended for change detection — for example, detecting that a Volume Profile
+        /// asset has been edited and a dependent cached resource must be rebuilt.
+        /// </summary>
+        /// <remarks>
+        /// This value mutates as parameters change, so it must not be used as a key in
+        /// a <see cref="System.Collections.Generic.Dictionary{TKey,TValue}"/>,
+        /// <see cref="System.Collections.Generic.HashSet{T}"/>, or any other structure
+        /// that assumes a stable hash. Use <see cref="object.GetHashCode"/> for that.
+        ///
+        /// This hash covers parameter state only. To detect changes to the *set* of
+        /// components on the profile (additions/removals), use
+        /// <see cref="GetComponentListHashCode"/>.
+        /// </remarks>
+        /// <returns>A hash that changes whenever any component's state changes.</returns>
+        public int GetStateHash()
+        {
+            var hash = HashFNV1A32.Create();
+            for (int i = 0; i < components.Count; i++)
+            {
+                var comp = components[i];
+                if (comp == null)
+                    continue;
+                hash.Append(comp.GetStateHash());
+            }
+            return hash.value;
+        }
+
+        /// <summary>
         /// Removes any components that were destroyed externally from the iternal list of components
         /// </summary>
         internal void Sanitize()

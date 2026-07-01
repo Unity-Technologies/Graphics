@@ -320,22 +320,29 @@ PackedVaryingsToPS MotionVectorTessellation(VaryingsToPS output, VaryingsToDS in
     }
     else
     {
-        float3 previousPositionRWS = input.vmesh.positionRWS.xyz;
+        // Default: use the previous-frame world position carried through tessellation. It already
+        // accounts for the previous object transform / skinning and the previous-frame Phong smoothing.
+        float3 previousPositionRWS = input.vpass.previousPositionRWS;
 
-        // Need to apply any tessellation animation to the previous worldspace position, if we want it to show up in the motion vector buffer
-#if defined(HAVE_TESSELLATION_MODIFICATION)
-    #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
-        if (_TransparentCameraOnlyMotionVectors == 0)
+        bool cameraOnlyMotion = false;
+#ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
+        cameraOnlyMotion = _TransparentCameraOnlyMotionVectors > 0;
+#endif
+        if (cameraOnlyMotion)
         {
-    #endif
+            // Camera-only motion: previous geometry must equal current geometry.
+            previousPositionRWS = input.vmesh.positionRWS.xyz;
+        }
+        else
+        {
+            // Need to apply any tessellation animation to the previous worldspace position, if we want it to show up in the motion vector buffer
+#if defined(HAVE_TESSELLATION_MODIFICATION)
             VaryingsMeshToDS previousMesh = input.vmesh;
             previousMesh.positionRWS.xyz = input.vpass.previousPositionRWS;
             previousMesh = ApplyTessellationModification(previousMesh, _LastTimeParameters.xyz);
             previousPositionRWS = previousMesh.positionRWS.xyz;
-    #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
-        }
-    #endif
 #endif
+        }
 
         output.vpass.previousPositionCS = mul(UNITY_MATRIX_PREV_VP, float4(previousPositionRWS, 1.0));
     }

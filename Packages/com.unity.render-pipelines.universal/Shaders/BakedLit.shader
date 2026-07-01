@@ -156,6 +156,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             // Lighting include is needed because of GI
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitGBufferPass.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutputFormat.hlsl"
             ENDHLSL
         }
 

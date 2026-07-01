@@ -144,14 +144,12 @@ namespace UnityEditor.Rendering.Universal
         
         SerializedProperty m_LightColor;
         SerializedProperty m_LightIntensity;
-        SerializedProperty m_UseNormalMap;
         SerializedProperty m_ShadowsEnabled;
         SerializedProperty m_ShadowIntensity;
         SerializedProperty m_ShadowSoftness;
         SerializedProperty m_ShadowSoftnessFalloffIntensity;
         SerializedProperty m_ShadowVolumeIntensity;
         SerializedProperty m_ShadowVolumeIntensityEnabled;
-        SerializedProperty m_ApplyToSortingLayers;
         SerializedProperty m_VolumetricIntensity;
         SerializedProperty m_VolumetricEnabled;
         SerializedProperty m_BlendStyleIndex;
@@ -161,21 +159,16 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_LightOrder;
         SerializedProperty m_OverlapOperation;
 
-        SerializedProperty m_Provider2DLightType;
         SerializedProperty m_LightType;
-        SerializedProperty m_Light2DProvider;
 
         // Point Light Properties
         SerializedProperty m_PointInnerAngle;
         SerializedProperty m_PointOuterAngle;
         SerializedProperty m_PointInnerRadius;
         SerializedProperty m_PointOuterRadius;
-        SerializedProperty m_DeprecatedPointLightSprite;
 
         // Shape Light Properties
-        SerializedProperty m_ShapeLightParametricRadius;
         SerializedProperty m_ShapeLightFalloffSize;
-        SerializedProperty m_ShapeLightParametricSides;
         SerializedProperty m_ShapeLightSprite;
 
         SerializedProperty m_SelectionSources;
@@ -226,14 +219,12 @@ namespace UnityEditor.Rendering.Universal
 
             m_LightColor = serializedObject.FindProperty("m_Color");
             m_LightIntensity = serializedObject.FindProperty("m_Intensity");
-            m_UseNormalMap = serializedObject.FindProperty("m_UseNormalMap");
             m_ShadowsEnabled = serializedObject.FindProperty("m_ShadowsEnabled");
             m_ShadowIntensity = serializedObject.FindProperty("m_ShadowIntensity");
             m_ShadowSoftness = serializedObject.FindProperty("m_ShadowSoftness");
             m_ShadowSoftnessFalloffIntensity = serializedObject.FindProperty("m_ShadowSoftnessFalloffIntensity");
             m_ShadowVolumeIntensity = serializedObject.FindProperty("m_ShadowVolumeIntensity");
             m_ShadowVolumeIntensityEnabled = serializedObject.FindProperty("m_ShadowVolumeIntensityEnabled");
-            m_ApplyToSortingLayers = serializedObject.FindProperty("m_ApplyToSortingLayers");
             m_VolumetricIntensity = serializedObject.FindProperty("m_LightVolumeIntensity");
             m_VolumetricEnabled = serializedObject.FindProperty("m_LightVolumeEnabled");
             m_BlendStyleIndex = serializedObject.FindProperty("m_BlendStyleIndex");
@@ -250,12 +241,9 @@ namespace UnityEditor.Rendering.Universal
             m_PointOuterAngle = serializedObject.FindProperty("m_PointLightOuterAngle");
             m_PointInnerRadius = serializedObject.FindProperty("m_PointLightInnerRadius");
             m_PointOuterRadius = serializedObject.FindProperty("m_PointLightOuterRadius");
-            m_DeprecatedPointLightSprite = serializedObject.FindProperty("m_DeprecatedPointLightCookieSprite");
 
             // Shape Light
-            m_ShapeLightParametricRadius = serializedObject.FindProperty("m_ShapeLightParametricRadius");
             m_ShapeLightFalloffSize = serializedObject.FindProperty("m_ShapeLightFalloffSize");
-            m_ShapeLightParametricSides = serializedObject.FindProperty("m_ShapeLightParametricSides");
             m_ShapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
 
             m_SelectionSources = serializedObject.FindProperty("m_SelectionSources");
@@ -587,32 +575,30 @@ namespace UnityEditor.Rendering.Universal
 
         bool DrawLightCommon()
         {
-            var meshChanged = false;
+            bool meshChanged = false;
 
-            List<SelectionSource> additionalSources = new List<SelectionSource>
-            {
-                new Light2DSource_BuiltIn(Styles.lightTypePoint, Light2D.LightType.Point, 0),
-                new Light2DSource_BuiltIn(Styles.lightTypeFreeform, Light2D.LightType.Freeform, 0),
-                new Light2DSource_BuiltIn(Styles.lightTypeSprite, Light2D.LightType.Sprite, 0),
-                new Light2DSource_BuiltIn(Styles.lightTypeGlobal, Light2D.LightType.Global, 0),
-            }; 
-            
-            Light2DProviderSources.SetAdditionalSources(m_SelectionSources, additionalSources);
-            EditorGUILayout.PropertyField(m_SelectionSources, Styles.generalLightType);  // This should call serializedObject.ApplyModifiedProperties();
-            Light2DProviderSources.SetSourceType(m_SelectionSources);
+            EditorGUI.BeginChangeCheck();
+
+            // Use shared utility method for Light Type dropdown
+            Light2DEditorUtility.DrawLightTypePopup(default(Rect), Styles.generalLightType, serializedObject, layoutMode: true);
 
             serializedObject.Update();
 
             // Color and intensity
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
-            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_LightIntensity, Styles.generalLightIntensity);
-            if (EditorGUI.EndChangeCheck())
-                m_LightIntensity.floatValue = Mathf.Max(m_LightIntensity.floatValue, 0);
 
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.generalSortingLayerPrefixLabel, AnalyticsTrackChanges);
 
             serializedObject.ApplyModifiedProperties();
+            
+            // Only check for duplicates when properties change (avoid spam on every repaint)
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_LightIntensity.floatValue = Mathf.Max(m_LightIntensity.floatValue, 0);
+                Light2D light = (Light2D)target;
+                LightUtility.CheckForExistingGlobalLight(light.gameObject);
+            }
 
 
             return meshChanged;
@@ -630,8 +616,8 @@ namespace UnityEditor.Rendering.Universal
                 DrawInnerAndOuterSpotAngle(m_PointInnerAngle, m_PointOuterAngle, Styles.InnerOuterSpotAngle);
                 EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
 
-                if (m_DeprecatedPointLightSprite.objectReferenceValue != null)
-                    EditorGUILayout.PropertyField(m_DeprecatedPointLightSprite, Styles.pointLightSprite);
+                if (m_ShapeLightSprite.objectReferenceValue != null)
+                    EditorGUILayout.PropertyField(m_ShapeLightSprite, Styles.pointLightSprite);
             }
 
 

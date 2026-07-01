@@ -116,9 +116,7 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
 {
     float2 uv = projPos.xy * 0.5f + 0.5f;
     float depth = LOAD_TEXTURE2D_X(Camera_depthBuffer.t, uv*Camera_scaledPixelDimensions).r;
-    #if UNITY_REVERSED_Z
-    depth = 1.0f - depth; // reversed z
-    #endif
+    depth = DecodeDepth(depth);
 
     const float n = Camera_nearPlane;
     const float f = Camera_farPlane;
@@ -154,11 +152,8 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
 
         float depth10 = LOAD_TEXTURE2D_X(Camera_depthBuffer.t, depthPos10).r;
         float depth01 = LOAD_TEXTURE2D_X(Camera_depthBuffer.t, depthPos01).r;
-
-        #if UNITY_REVERSED_Z
-        depth10 = 1.0f - depth10;
-        depth01 = 1.0f - depth01;
-        #endif
+        depth10 = DecodeDepth(depth10);
+        depth01 = DecodeDepth(depth01);
 
         float4 vPos10 = mul(ClipToView,float4(projPos10,depth10 * 2.0f - 1.0f,1.0f));
         float4 vPos01 = mul(ClipToView,float4(projPos01,depth01 * 2.0f - 1.0f,1.0f));

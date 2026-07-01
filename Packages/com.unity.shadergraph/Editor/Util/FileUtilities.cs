@@ -15,6 +15,8 @@ namespace UnityEditor.ShaderGraph
 #if UNITY_EDITOR_WIN
             // Windows has problems with long asset paths. Performing file access through native code works around the
             // issue.
+            if (!UnityEngine.Windows.File.Exists(path))
+                throw new FileNotFoundException();
             contents = UnityEngine.Windows.File.ReadAllBytes(path);
 #else
             contents = File.ReadAllBytes(path);

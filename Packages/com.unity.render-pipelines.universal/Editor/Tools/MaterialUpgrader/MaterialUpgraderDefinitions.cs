@@ -495,6 +495,71 @@ namespace UnityEditor.Rendering.Universal
             RenameShader(oldShaderName, "Universal Render Pipeline/Autodesk Interactive/AutodeskInteractive", MaterialUpgradeUtils.DisableKeywords);
         }
 
+        private bool TryGetShaderUpgrade(Material material, out Shader shader)
+        {
+            if (material == null)
+            {
+                shader = null;
+                return false;
+            }
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineEditorShaders>(out var settings))
+            {
+                shader = null;
+                return false;
+            }
+            shader = null;
+            var legacyRenderingMode = (LegacyRenderingMode)material.GetFloat("_Mode");
+            switch (legacyRenderingMode)
+            {
+                case LegacyRenderingMode.Opaque:
+                    shader = settings.autodeskInteractiveShader;
+                    break;
+                case LegacyRenderingMode.Cutout:
+                    shader = settings.autodeskInteractiveMaskedShader;
+                    break;
+                case LegacyRenderingMode.Fade:
+                    shader = settings.autodeskInteractiveTransparentShader;
+                    break;
+                case LegacyRenderingMode.Transparent:
+                    shader = settings.autodeskInteractiveTransparentShader;
+                    break;
+            }
+            return true;
+        }
+        /// <inheritdoc/>
+        public override void Upgrade(Material material, UpgradeFlags flags)
+        {
+            if (material == null)
+                throw new ArgumentNullException(nameof(material));
+
+            if (!TryGetShaderUpgrade(material, out var shader))
+            {
+                Debug.LogError($"Unable to find destination shader {NewShaderPath} when trying to upgrade {material.name}");
+                return;
+            }
+
+            Material newMaterial;
+            if ((flags & UpgradeFlags.CleanupNonUpgradedProperties) != 0)
+            {
+                newMaterial = new Material(shader);
+            }
+            else
+            {
+                newMaterial = UnityEngine.Object.Instantiate(material) as Material;
+                newMaterial.shader = shader;
+            }
+
+            Convert(material, newMaterial);
+
+            // Material Variants will not change the shader as is a parent only thing
+            if (material.parent == null)
+                material.shader = shader;
+
+            material.CopyPropertiesFromMaterial(newMaterial);
+            UnityEngine.Object.DestroyImmediate(newMaterial);
+
+            Finalizer?.Invoke(material);
+        }
         /// <inheritdoc/>
         public override void Convert(Material srcMaterial, Material dstMaterial)
         {
@@ -508,20 +573,24 @@ namespace UnityEditor.Rendering.Universal
             dstMaterial.SetVector("_UvOffset", srcMaterial.GetTextureOffset("_MainTex"));
             dstMaterial.SetVector("_UvTiling", srcMaterial.GetTextureScale("_MainTex"));
 
+            if (!TryGetShaderUpgrade(srcMaterial, out var shader))
+            {
+                return;
+            }
             var legacyRenderingMode = (LegacyRenderingMode)srcMaterial.GetFloat("_Mode");
             switch (legacyRenderingMode)
             {
                 case LegacyRenderingMode.Opaque:
-                    RenameShader(OldShaderPath, GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineEditorShaders>().autodeskInteractiveShader.name, MaterialUpgradeUtils.DisableKeywords);
                     break;
                 case LegacyRenderingMode.Cutout:
-                    RenameShader(OldShaderPath, GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineEditorShaders>().autodeskInteractiveMaskedShader.name, MaterialUpgradeUtils.DisableKeywords);
                     dstMaterial.SetFloat("_UseOpacityMap", .0f);
                     dstMaterial.SetFloat("_OpacityThreshold", srcMaterial.GetFloat("_Cutoff"));
                     break;
                 case LegacyRenderingMode.Fade:
+                    dstMaterial.SetFloat("_UseOpacityMap", .0f);
+                    dstMaterial.SetFloat("_Opacity", srcMaterial.GetColor("_Color").a);
+                    break;
                 case LegacyRenderingMode.Transparent:
-                    RenameShader(OldShaderPath, GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineEditorShaders>().autodeskInteractiveTransparentShader.name, MaterialUpgradeUtils.DisableKeywords);
                     dstMaterial.SetFloat("_UseOpacityMap", .0f);
                     dstMaterial.SetFloat("_Opacity", srcMaterial.GetColor("_Color").a);
                     break;

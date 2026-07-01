@@ -597,5 +597,24 @@ namespace UnityEngine.Rendering.Universal
                 return hashCode;
             }
         }
+
+        /// <summary>
+        /// Checks if another enabled Global light already exists in the scene
+        /// </summary>
+        internal static void CheckForExistingGlobalLight(GameObject obj)
+        {
+#if UNITY_EDITOR
+            if (Light2DManager.TryGetLights(obj, out var lights))
+            {
+                foreach (var light in lights)
+                {
+                    if (light.lightType == Light2D.LightType.Global && light.enabled)
+                    {
+                        Light2DManager.ErrorIfDuplicateGlobalLight(light);
+                    }
+                }
+            }
+#endif
+        }
     }
 }

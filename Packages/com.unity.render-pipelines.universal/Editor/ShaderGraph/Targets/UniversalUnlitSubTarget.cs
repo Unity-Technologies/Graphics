@@ -586,6 +586,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
                 { kUnlitGBufferPass, IncludeLocation.Postgraph },
+                { CoreIncludes.GBufferOutputFormat },
             };
 
             public static IncludeCollection LightingIncludes = new IncludeCollection

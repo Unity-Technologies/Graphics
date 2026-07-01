@@ -226,6 +226,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
             #pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
 
             // -------------------------------------
             // Unity defined keywords
@@ -238,6 +239,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             // Includes
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitGbufferPass.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutputFormat.hlsl"
             ENDHLSL
         }
 

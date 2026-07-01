@@ -6,6 +6,9 @@ using UnityEditor.Rendering;
 using UnityEditor.Rendering.Universal;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+
 
 
 abstract class MaterialUpgraderTestBase<T> where T : MaterialUpgrader
@@ -28,6 +31,10 @@ abstract class MaterialUpgraderTestBase<T> where T : MaterialUpgrader
     [SetUp]
     public void Setup()
     {
+        var urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+        if (urpAsset == null)
+            Assert.Ignore("Project without URP. Skipping test");
+
         var shader = Shader.Find(m_OldShaderPath);
         Assume.That(shader, Is.Not.Null, $"Shader '{m_OldShaderPath}' not found.");
         m_Material = new Material(shader);

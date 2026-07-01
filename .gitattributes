@@ -348,6 +348,9 @@ Editor/Resources/unity[[:space:]]editor[[:space:]]resources filter=lfs diff=lfs 
 **/HDRP_RuntimeTests/Assets/Scenes/002-HDMaterials/cloud2.asset filter=lfs diff=lfs merge=lfs -text
 **/HDRP_RuntimeTests/Assets/Scenes/002-HDMaterials/perlin.asset filter=lfs diff=lfs merge=lfs -text
 
+# Gfx ML acceleration test assets
+**/MachineLearning/**/*.bytes filter=lfs diff=lfs merge=lfs -text
+
 #GfxTests
 **/GfxTestProjectFolder/**/*.[hH][dD][rR] filter=lfs diff=lfs merge=lfs -text
 **/GfxTestProjectFolder/**/*.[tT][gG][aA] filter=lfs diff=lfs merge=lfs -text
@@ -399,3 +402,6 @@ Editor/Resources/unity[[:space:]]editor[[:space:]]resources filter=lfs diff=lfs 
 /Tests/EditModeAndPlayModeTests/NetcodeSamples/**/*.[jJ][pP][gG] filter=lfs diff=lfs merge=lfs -text
 /Tests/EditModeAndPlayModeTests/NetcodeSamples/**/*.[tT][iI][fF] filter=lfs diff=lfs merge=lfs -text
 /Tests/EditModeAndPlayModeTests/NetcodeSamples/**/*.[fF][bB][xX] filter=lfs diff=lfs merge=lfs -text
+
+# documentation images
+Documentation/ManualDocs/uploads/Main/unity-xr-tech-stack.png filter=lfs diff=lfs merge=lfs -text

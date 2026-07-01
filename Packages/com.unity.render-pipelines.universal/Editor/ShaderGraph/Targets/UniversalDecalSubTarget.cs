@@ -1121,6 +1121,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Post-graph
                 { DecalPostgraph },
+                { CoreIncludes.GBufferOutputFormat },
             };
 
             public static IncludeCollection ScenePicking = new IncludeCollection

@@ -60,12 +60,7 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
     #define OUT_GBUFFER_OPTIONAL_SLOT_1 outGBuffer5
     #define OUT_GBUFFER_OPTIONAL_SLOT_2 outGBuffer6
     #if (SHADERPASS == SHADERPASS_GBUFFER)
-        #if defined(SHADER_API_PSSL)
-            //For exact packing on pssl, we want to write exact 16 bit unorm (respect exact bit packing).
-            //In some sony platforms, the default is FMT_16_ABGR, which would incur in loss of precision.
-            //Thus, when VT is enabled, we force FMT_32_ABGR
-            #pragma PSSL_target_output_format(target 4 FMT_32_ABGR)
-        #endif
+        #pragma rendertarget_format_hint MRT4 R16G16_UNorm
     #endif
 #else
     #define OUT_GBUFFER_OPTIONAL_SLOT_1 outGBuffer4
@@ -1789,7 +1784,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     //
     // Note that the SSR with clear coat is a binary state, which means we should never enter the if condition if we don't have an active
     // clear coat (which is not guaranteed by the HasFlag condition in deferred mode in some cases). We then need to make sure that coatMask is actually non zero.
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) && bsdfData.coatMask >= 0.0)
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) && bsdfData.coatMask > 0.0)
     {
         // We use the coat-traced light according to how similar the base lobe roughness is to the coat roughness
         // (we can assume the coat is always smoother):

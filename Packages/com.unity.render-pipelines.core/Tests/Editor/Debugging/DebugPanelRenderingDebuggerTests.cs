@@ -64,6 +64,7 @@ namespace UnityEditor.Rendering.Tests
                 yield return new TestCaseData(WidgetFactory.CreateVector3Field(data), ctx).SetName($"{ctx}_CreateVector3Field");
                 yield return new TestCaseData(WidgetFactory.CreateVector4Field(data), ctx).SetName($"{ctx}_CreateVector4Field");
                 yield return new TestCaseData(WidgetFactory.CreateObjectField(data), ctx).SetName($"{ctx}_CreateObjectField");
+                yield return new TestCaseData(WidgetFactory.CreateObjectListField(data), ctx).SetName($"{ctx}_CreateObjectListField");
                 yield return new TestCaseData(WidgetFactory.CreateValue(data), ctx).SetName($"{ctx}_CreateValue");
                 yield return new TestCaseData(WidgetFactory.CreateValueTuple(data), ctx).SetName($"{ctx}_CreateValueTuple");
                 yield return new TestCaseData(WidgetFactory.CreateObjectField(data), ctx).SetName($"{ctx}_CreateObjectField_Duplicate");

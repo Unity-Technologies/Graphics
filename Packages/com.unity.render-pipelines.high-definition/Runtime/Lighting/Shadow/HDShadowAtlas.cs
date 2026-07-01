@@ -331,6 +331,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material clearMaterial;
             public bool debugClearAtlas;
             public ScriptableRenderContext renderContext;
+
+            // Read-only reference to the per-frame dataIndex -> lightIndex map built by HDShadowManager.
+            // Do NOT dispose here. Lifetime is managed by HDShadowManager.
+            public NativeHashMap<int, int> dataIndexToLightIndex;
         }
 
         private void SetCommonRenderPassData(RenderShadowMapsCommonPassData passData, in IUnsafeRenderGraphBuilder builder, RenderGraph renderGraph, in ShaderVariablesGlobal globalCBData)
@@ -427,7 +431,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public static Vector4[] frustumPlanesScratchpad = new Vector4[HDShadowRequest.frustumPlanesCount];
-        internal unsafe TextureHandle RenderShadowMaps(RenderGraph renderGraph, ScriptableRenderContext renderContext, CullingResults cullResults, in ShaderVariablesGlobal globalCBData, FrameSettings frameSettings, string shadowPassName)
+        internal unsafe TextureHandle RenderShadowMaps(
+            RenderGraph renderGraph, ScriptableRenderContext renderContext,
+            CullingResults cullResults, NativeHashMap<int, int> dataIndexToLightIndex,
+            in ShaderVariablesGlobal globalCBData, FrameSettings frameSettings, string shadowPassName)
         {
             TextureHandle atlasTexture;
 
@@ -440,6 +447,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.shadowDrawSettings = new ShadowDrawingSettings(cullResults, 0);
                 passData.shadowDrawSettings.useRenderingLayerMaskTest = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
                 passData.renderContext = renderContext;
+                passData.dataIndexToLightIndex = dataIndexToLightIndex;
 
                 builder.SetRenderFunc(
                     static (RenderShadowMapsPassData data, UnsafeGraphContext ctx) =>
@@ -461,6 +469,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         foreach (var shadowRequestHandle in data.shadowRequests)
                         {
                             ref var shadowRequest = ref requestStorageUnsafe.ElementAt(shadowRequestHandle.storageIndexForShadowRequest);
+
+                            if (!data.dataIndexToLightIndex.TryGetValue(shadowRequest.dataIndex, out int currentCorrectIndex))
+                                continue;
+
                             var commonState = CommonPerShadowRequestUpdate(natCmd, data, shadowRequest, shadowRequestHandle, ref planesScratchpad, ref frustumPlanesStorageUnsafe);
                             if (commonState.shouldSkipRequest)
                                 continue;
@@ -478,7 +490,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             if (!commonState.mixedInDynamicAtlas)
                                 CoreUtils.DrawFullScreen(natCmd, data.clearMaterial, null, 0);
 
-                            data.shadowDrawSettings.lightIndex = shadowRequest.lightIndex;
+                            data.shadowDrawSettings.lightIndex = currentCorrectIndex;
                             data.shadowDrawSettings.splitIndex = shadowRequest.cullingSplit.splitIndex;
 
                             //TODO(ddebaets) as the shadowDrawSettings are modified in this loop, we generate this RL very last minute
@@ -735,14 +747,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_ShadowMapOutput;
             }
         }
-        internal TextureHandle RenderShadows(RenderGraph renderGraph, ScriptableRenderContext renderContext, CullingResults cullResults, in ShaderVariablesGlobal globalCB, FrameSettings frameSettings, string shadowPassName)
+        internal TextureHandle RenderShadows(
+            RenderGraph renderGraph, ScriptableRenderContext renderContext,
+            CullingResults cullResults, NativeHashMap<int, int> dataIndexToLightIndex,
+            in ShaderVariablesGlobal globalCB, FrameSettings frameSettings, string shadowPassName)
         {
             if (m_ShadowRequests.Length == 0)
             {
                 return renderGraph.defaultResources.defaultShadowTexture;
             }
 
-            RenderShadowMaps(renderGraph, renderContext, cullResults, globalCB, frameSettings, shadowPassName);
+            RenderShadowMaps(renderGraph, renderContext, cullResults, dataIndexToLightIndex, globalCB, frameSettings, shadowPassName);
 
             if (m_BlurAlgorithm == BlurAlgorithm.EVSM)
             {

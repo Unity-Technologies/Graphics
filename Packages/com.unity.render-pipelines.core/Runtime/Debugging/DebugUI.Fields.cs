@@ -1787,19 +1787,67 @@ namespace UnityEngine.Rendering
             /// <inheritdoc/>
             protected override VisualElement Create()
             {
-                var container = new UIElements.Foldout()
-                {
-                    text = displayName
-                };
-                container.AddToClassList("debug-window-objectlistfield");
-                container.Q(className: "unity-foldout__text").AddToClassList("debug-window-search-filter-target");
+                // Capture the context locally: m_Context is mutated each time ToVisualElement is called,
+                // so if the same widget is rendered into multiple panels (e.g. editor window + runtime overlay),
+                // it would otherwise reflect whichever panel was created last by the time Sync ticks.
+                var context = m_Context;
 
-                // TODO: Allow selection
-                foreach (var o in GetValue())
+                var container = new UIElements.Foldout { text = displayName };
+                container.AddToClassList("debug-window-objectlistfield");
+                container.Q(className: "unity-foldout__text")?.AddToClassList("debug-window-search-filter-target");
+
+                // One-way data -> UI sync.
+                //
+                // The widget is read-only by design: it lives inside the Volume debug Table which is
+                // marked isReadOnly = true, cascading a disabled-state to every cell. There is no
+                // UI -> data path (no ChangeEvent handler on inner fields, no setter on the outer field).
+                //
+                // On each 100ms tick: re-reads GetValue(), updates existing child fields in place via
+                // SetValueWithoutNotify, and only allocates / removes children when the non-null count changes.
+                void SyncToUI()
                 {
-                    var child = new Label(o.name);
+                    var values = GetValue();
+                    int count = values?.Length ?? 0;
+                    // When the source pads with trailing nulls (e.g. pool-rented interpolated VolumeParameters),
+                    // hide them. Interior nulls are still rendered as disabled slots.
+                    if (trimTrailingNulls)
+                    {
+                        while (count > 0 && values[count - 1] == null)
+                            count--;
+                    }
+                    for (int i = 0; i < count; i++)
+                    {
+                        var child = values[i];
+                        BaseField<Object> field;
+                        if (i < container.childCount)
+                        {
+                            field = (BaseField<Object>)container[i];
+                            field.SetValueWithoutNotify(child);
+                        }
+                        else
+                        {
+                            field = null;
+#if UNITY_EDITOR
+                            if (context == Context.Editor)
+                                field = new UnityEditor.UIElements.ObjectField { objectType = child != null ? child.GetType() : typeof(Object) };
+#endif
+                            field ??= new RuntimeObjectField(string.Empty, new Label());
+                            field.AddToClassList("debug-window-objectfield");
+                            container.Add(field);
+
+                            // Defer first set so the ObjectField's picker UI initializes first.
+                            var capturedChild = child;
+                            field.schedule.Execute(() => field.SetValueWithoutNotify(capturedChild));
+                        }
+                        // Null entries render as disabled slots so the displayed shape matches the source array.
+                        field.SetEnabled(child != null);
+                    }
+                    while (container.childCount > count)
+                        container.RemoveAt(container.childCount - 1);
                 }
 
+                SyncToUI();
+                this.ScheduleTracked(container, context, () => container.schedule.Execute(SyncToUI).Every(100));
                 return container;
             }
 #endif
@@ -1808,6 +1856,10 @@ namespace UnityEngine.Rendering
             /// Objects type.
             /// </summary>
             public Type type = typeof(Object);
+
+            // When true, trailing null entries are hidden. Used for sources that pad their array
+            // (e.g. pool-rented interpolated VolumeParameter values).
+            internal bool trimTrailingNulls = false;
         }
 
         /// <summary>

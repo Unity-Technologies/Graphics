@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering
             if (sortedExcludedRenderers.Length > 0)
             {
                 Profiler.BeginSample("ProcessRendererMaterialAndMeshChanges.Sort");
-                sortedExcludedRenderers.Reinterpret<int>().ParallelSort().Complete();
+                sortedExcludedRenderers.Reinterpret<ulong>().ParallelSort().Complete();
                 Profiler.EndSample();
             }
 

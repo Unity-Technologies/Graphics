@@ -226,6 +226,15 @@ float4 LoadTexture(VFXSampler3D s, int4 pixelCoords)
     return s.t.Load(pixelCoords);
 }
 
+float DecodeDepth(float depth)
+{
+#if UNITY_REVERSED_Z
+    return 1.0f - depth;
+#else
+    return depth;
+#endif
+}
+
 float SampleSDF(VFXSampler3D s, float3 coords, float level = 0.0f)
 {
     return SampleTexture(s, coords, level).x;

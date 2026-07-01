@@ -51,12 +51,14 @@ namespace UnityEditor.ShaderGraph
                 else if (owner is SubGraphNode sgNode)
                 {
                     var property = sgNode.GetShaderProperty(id);
-                    return property?.customSlotLabel;
+                    if (property?.useCustomSlotLabel ?? false)
+                        return property.customSlotLabel;
                 }
 
                 else if (owner is PropertyNode propertyNode)
                 {
-                    return propertyNode.property?.customSlotLabel;
+                    if (propertyNode.property?.useCustomSlotLabel ?? false)
+                        return propertyNode.property.customSlotLabel;
                 }
 
                 return null;
@@ -64,7 +66,7 @@ namespace UnityEditor.ShaderGraph
             set { m_CustomBinding = value; }
         }
 
-        internal bool HasCustomBinding => !string.IsNullOrWhiteSpace(CustomBinding);
+        internal bool HasCustomBinding => CustomBinding != null;
 
         protected MaterialSlot() { }
 

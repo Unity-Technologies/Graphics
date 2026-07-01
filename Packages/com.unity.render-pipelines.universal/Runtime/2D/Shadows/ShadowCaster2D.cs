@@ -5,7 +5,6 @@ using UnityEngine.U2D;
 using Unity.Collections;
 
 #if UNITY_EDITOR
-using System.Linq;
 using UnityEditor;
 using UnityEditor.Rendering.Universal;
 using UnityEditor.EditorTools;
@@ -19,7 +18,7 @@ namespace UnityEngine.Rendering.Universal
     [CoreRPHelpURL("2DShadows", "com.unity.render-pipelines.universal")]
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
-
+    [Icon("UnityEngine/UI/Shadow Icon")]
     [AddComponentMenu("Rendering/2D/Shadow Caster 2D")]
     [MovedFrom(false, "UnityEngine.Experimental.Rendering.Universal", "com.unity.render-pipelines.universal")]
 
@@ -200,9 +199,10 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// If selfShadows is true, useRendererSilhoutte specifies that the renderer's sihouette should be considered part of the shadow. If selfShadows is false, useRendererSilhoutte specifies that the renderer's sihouette should be excluded from the shadow
+        /// This property is obsolete and no longer has any effect. Its functionality has been removed because it is no longer required.
+        /// To achieve similar behavior, add a ShadowCaster2D component to an empty parent GameObject instead.
         /// </summary>
-        [Obsolete("useRendererSilhoutte is deprecated. Use selfShadows instead. #from(2023.1)")]
+        [Obsolete("useRendererSilhouette is obsolete and no longer has any effect. To achieve similar behavior, add a ShadowCaster2D component to an empty parent GameObject. #from(2023.1)")]
         public bool useRendererSilhouette
         {
             set { m_UseRendererSilhouette = value; }
@@ -577,12 +577,24 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         private void OnSortingLayerAdded(SortingLayer layer)
         {
-            m_ApplyToSortingLayers = m_ApplyToSortingLayers.Append(layer.id).ToArray();
+            var newArray = new int[m_ApplyToSortingLayers.Length + 1];
+            for (int i = 0; i < m_ApplyToSortingLayers.Length; i++)
+            {
+                newArray[i] = m_ApplyToSortingLayers[i];
+            }
+            newArray[m_ApplyToSortingLayers.Length] = layer.id;
+            m_ApplyToSortingLayers = newArray;
         }
 
         private void OnSortingLayerRemoved(SortingLayer layer)
         {
-            m_ApplyToSortingLayers = m_ApplyToSortingLayers.Where(x => x != layer.id && SortingLayer.IsValid(x)).ToArray();
+            var tempList = new System.Collections.Generic.List<int>();
+            foreach (var x in m_ApplyToSortingLayers)
+            {
+                if (x != layer.id && SortingLayer.IsValid(x))
+                    tempList.Add(x);
+            }
+            m_ApplyToSortingLayers = tempList.ToArray();
         }
 #endif
 
