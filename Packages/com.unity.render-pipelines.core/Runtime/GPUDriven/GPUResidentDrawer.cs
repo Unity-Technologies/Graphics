@@ -296,6 +296,8 @@ namespace UnityEngine.Rendering
 
         private static void CleanUp()
         {
+			RenderPipelineManager.activeRenderPipelineDisposed -= CleanUp;
+
             if (s_Instance == null)
                 return;
 
@@ -309,6 +311,7 @@ namespace UnityEngine.Rendering
             if (IsGPUResidentDrawerSupportedBySRP(settings, out var message, out var severity))
             {
                 s_Instance = new GPUResidentDrawer(settings, 4096, 0);
+				RenderPipelineManager.activeRenderPipelineDisposed += CleanUp;
             }
             else
             {

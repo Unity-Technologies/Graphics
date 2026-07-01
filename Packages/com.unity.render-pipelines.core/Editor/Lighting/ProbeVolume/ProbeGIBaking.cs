@@ -1405,8 +1405,11 @@ namespace UnityEngine.Rendering
                         continue;
 
                     // 3.
-                    // Overwrite lighting data with trilinear sampled data from the brick with highest subdiv level
-                    float brickSize = ProbeReferenceVolume.instance.BrickSize(largestBrick.subdivisionLevel - 1);
+                    // Overwrite lighting data with trilinear sampled data from the brick with highest subdiv level.
+                    // Use minBrickSize from m_ProfileInfo (live bake settings), not ProbeReferenceVolume.instance,
+                    // because that runtime state is restored to the previous bake's snapshot at the end of
+                    // ApplySubdivisionResults and would be stale here. UUM-141983.
+                    float brickSize = ProbeVolumeUtil.BrickSize(minBrickSize, largestBrick.subdivisionLevel - 1);
                     float3 uvw = math.clamp((pos - (Vector3)largestBrick.position * minBrickSize) / brickSize, 0, 3);
 
                     var probe = Vector3Int.FloorToInt(uvw);

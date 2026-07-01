@@ -1368,7 +1368,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
-                renderStates = CoreRenderStates.ScenePicking(target),
+                renderStates = CoreRenderStates.ScenePicking2D,
                 pragmas = CorePragmas._2DDefault,
                 defines = new DefineCollection { CoreDefines.ScenePicking, { CoreKeywordDescriptors.AlphaClipThreshold, 0 } },
                 keywords = new KeywordCollection(),
@@ -1678,6 +1678,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             return result;
         }
+
+        public static RenderStateCollection ScenePicking2D = new RenderStateCollection
+        {
+            { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
+            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
+        };
     }
     #endregion
 
@@ -1773,6 +1779,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kFog = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl";
         const string kRenderingLayers = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl";
         const string kProbeVolumes = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl";
+        const string kGbufferOutputFormat = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutputFormat.hlsl";
 
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {
@@ -1912,6 +1919,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly IncludeCollection LODCrossFade = new IncludeCollection
         {
             { kLODCrossFade, IncludeLocation.Pregraph }
+        };
+
+        public static readonly IncludeCollection GBufferOutputFormat = new IncludeCollection
+        {
+            { kGbufferOutputFormat, IncludeLocation.Postgraph, true }
         };
     }
     #endregion

@@ -4,6 +4,14 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [16.1.3] - 2026-06-11
+
+### Changed
+
+- Upgraded project to 6000.3.12f1 LTS
+- Cleaner setting for handeld devices 
+- Fixing typos and missing links on tutorial
+
 ## [16.1.2] - 2025-12-08
 
 ### Added

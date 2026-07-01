@@ -380,6 +380,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan },
             runtimePlatforms: new[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer }
         )]
+        [IgnoreGraphicsTest(
+            "3006_TileCluster_Cluster$",
+            "https://jira.unity3d.com/browse/UUM-144350 - Localized tile/cluster artifact on NVIDIA A10 in the XR playmode job after the win11-22H2-x64-azure-nvidia image update. XR and non-XR share one reference image (xr-reuse-tests), so the ignore is scoped to DX11+WindowsEditor.",
+            GraphicsDeviceType.Direct3D11, RuntimePlatform.WindowsEditor
+        )]
         public IEnumerator Run(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);

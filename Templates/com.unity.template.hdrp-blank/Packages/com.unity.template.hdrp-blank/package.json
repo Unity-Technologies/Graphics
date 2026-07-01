@@ -1,7 +1,7 @@
 {
   "name": "com.unity.template.hdrp-blank",
   "displayName":"3D HDRP",
-  "version": "17.1.0",
+  "version": "17.1.1",
   "type": "template",
   "host": "hub",
   "unity": "6000.3",
@@ -9,10 +9,10 @@
   "dependencies": {
     "com.unity.collab-proxy": "2.11.4",
     "com.unity.feature.development": "1.0.2",
-    "com.unity.render-pipelines.high-definition": "17.0.4",
+    "com.unity.render-pipelines.high-definition": "17.3.0",
     "com.unity.timeline": "1.8.11",
     "com.unity.ugui": "2.0.0",
-    "com.unity.visualscripting": "1.9.7",
+    "com.unity.visualscripting": "1.9.11",
     "com.unity.inputsystem": "1.19.0"
   }
 }

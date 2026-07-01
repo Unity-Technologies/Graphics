@@ -3,11 +3,13 @@
     "com.unity.collab-proxy": "2.11.4",
     "com.unity.feature.development": "1.0.2",
     "com.unity.inputsystem": "1.19.0",
-    "com.unity.multiplayer.center": "1.0.0",
-    "com.unity.render-pipelines.high-definition": "17.0.4",
+    "com.unity.multiplayer.center": "1.0.1",
+    "com.unity.render-pipelines.high-definition": "17.3.0",
     "com.unity.timeline": "1.8.11",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualscripting": "1.9.11",
-    "com.unity.modules.accessibility": "1.0.0"
+    "com.unity.modules.accessibility": "1.0.0",
+    "com.unity.modules.adaptiveperformance": "1.0.0",
+    "com.unity.modules.vectorgraphics": "1.0.0"
   }
 }

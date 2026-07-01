@@ -90,6 +90,7 @@ namespace UnityEngine.Rendering
             validatedShadingRateFragmentSizeBuffer = null;
 
             m_VisualizationShader = null;
+            CoreUtils.Destroy(m_VisualizationMaterial);
             m_VisualizationMaterial = null;
         }
 
