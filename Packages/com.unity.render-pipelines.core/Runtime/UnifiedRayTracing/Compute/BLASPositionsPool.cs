@@ -61,8 +61,9 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             if (!verticesAllocation.valid)
             {
                 int oldCapacity = m_VerticesAllocator.capacity;
-                // Capping capacity to 2,147,483,647 vertices because m_VerticesAllocator is using NativeList which has int max capacity
-                int maxCapacity = (int)math.min((long)Int32.MaxValue, GraphicsHelpers.MaxGraphicsBufferSizeInBytes / (long)UnsafeUtility.SizeOf<float3>());
+
+                // Cap capacity to int.MaxValue vertices because m_VerticesAllocator is using NativeList which has int max capacity.
+                int maxCapacity = GraphicsHelpers.MaxElementCount(UnsafeUtility.SizeOf<float3>());
 
                 if (!m_VerticesAllocator.GetExpectedGrowthToFitAllocation((int)info.vertexCount, maxCapacity, out int newCapacity))
                     throw new UnifiedRayTracingException($"VerticesAllocator can't grow to {maxCapacity } elements", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
