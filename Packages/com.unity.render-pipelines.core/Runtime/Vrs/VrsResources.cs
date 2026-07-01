@@ -49,12 +49,6 @@ namespace UnityEngine.Rendering
         }
 #endif
 
-        ~VrsResources()
-        {
-            Dispose();
-            GC.SuppressFinalize(this);
-        }
-
         public void Dispose()
         {
 #if UNITY_EDITOR
