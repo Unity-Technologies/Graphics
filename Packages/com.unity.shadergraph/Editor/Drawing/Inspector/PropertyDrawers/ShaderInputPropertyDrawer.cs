@@ -1544,9 +1544,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             propertySheet.Add(gradientPropertyDrawer.CreateGUI(
                 newValue =>
                 {
-                    this._preChangeValueCallback("Change property value");
                     this._changeValueCallback(newValue);
                     this._postChangeValueCallback();
+                    if (this.graphData?.owner != null)
+                        this.graphData.owner.isDirty = true;
                 },
                 gradientShaderProperty.value,
                 "Default Value",

@@ -42,8 +42,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
             m_Field.RegisterValueChangedCallback(OnValueChanged);
             Add(m_Field);
 
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+            RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
+
             if (showGradientEditor)
                 m_Field.ShowGradientPicker();
+        }
+
+        void OnAttachToPanel(AttachToPanelEvent evt)
+        {
+            Undo.undoRedoPerformed += OnUndoRedoPerformed;
         }
 
         void OnValueChanged(ChangeEvent<Gradient> evt)
@@ -51,7 +59,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
             m_SerializedObject.Update();
             if (!evt.newValue.Equals(m_Slot.value))
             {
-                m_Slot.owner.owner.owner.RegisterCompleteObjectUndo("Change Gradient");
+                // Register undo on the temporary GradientObject rather than the graph so the open picker isn't torn down on undo.
+                Undo.RegisterCompleteObjectUndo(m_GradientObject, "Modify Gradient Stop");
 
                 m_GradientObject.gradient.SetKeys(evt.newValue.colorKeys, evt.newValue.alphaKeys);
                 m_GradientObject.gradient.mode = evt.newValue.mode;
@@ -59,7 +68,27 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 
                 m_Slot.value = m_GradientObject.gradient;
                 m_Slot.owner.Dirty(ModificationScope.Node);
+                m_Slot.owner.owner.owner.isDirty = true;
             }
+        }
+
+        void OnUndoRedoPerformed()
+        {
+            if (m_GradientObject == null || m_Slot == null)
+                return;
+
+            m_SerializedObject.Update();
+            m_Slot.value = m_GradientObject.gradient;
+            m_Slot.owner?.Dirty(ModificationScope.Node);
+            var graphObject = m_Slot.owner?.owner?.owner;
+            if (graphObject != null)
+                graphObject.isDirty = true;
+            m_Field.SetValueWithoutNotify(m_GradientObject.gradient);
+        }
+
+        void OnDetachFromPanel(DetachFromPanelEvent evt)
+        {
+            Undo.undoRedoPerformed -= OnUndoRedoPerformed;
         }
     }
 }

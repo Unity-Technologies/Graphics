@@ -44,6 +44,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         [SerializeField]
         SerializedObject m_SerializedObject;
 
+        GradientField m_Field;
+
         public GradientControlView(string label, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
             m_Node = node;
@@ -66,11 +68,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             if (!string.IsNullOrEmpty(label))
                 gradientPanel.Add(new Label(label));
 
-            var gradientField = new GradientField() { value = m_GradientObject.gradient, colorSpace = ColorSpace.Linear, hdr = true };
-            gradientField.RegisterValueChangedCallback(OnValueChanged);
-            gradientPanel.Add(gradientField);
+            m_Field = new GradientField() { value = m_GradientObject.gradient, colorSpace = ColorSpace.Linear, hdr = true };
+            m_Field.RegisterValueChangedCallback(OnValueChanged);
+            gradientPanel.Add(m_Field);
 
             Add(gradientPanel);
+
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+            RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
+        }
+
+        void OnAttachToPanel(AttachToPanelEvent evt)
+        {
+            Undo.undoRedoPerformed += OnUndoRedoPerformed;
         }
 
         void OnValueChanged(ChangeEvent<Gradient> evt)
@@ -79,14 +89,36 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             var value = (Gradient)m_PropertyInfo.GetValue(m_Node, null);
             if (!evt.newValue.Equals(value))
             {
+                // Register undo on the temporary GradientObject rather than the graph so the open picker isn't torn down on undo.
+                Undo.RegisterCompleteObjectUndo(m_GradientObject, "Modify Gradient Stop");
+
                 m_GradientObject.gradient.SetKeys(evt.newValue.colorKeys, evt.newValue.alphaKeys);
                 m_GradientObject.gradient.mode = evt.newValue.mode;
                 m_SerializedObject.ApplyModifiedProperties();
 
-                m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
                 m_PropertyInfo.SetValue(m_Node, m_GradientObject.gradient, null);
+                m_Node.owner.owner.isDirty = true;
                 this.MarkDirtyRepaint();
             }
+        }
+
+        void OnUndoRedoPerformed()
+        {
+            if (m_GradientObject == null || m_Node == null)
+                return;
+
+            m_SerializedObject.Update();
+            m_PropertyInfo.SetValue(m_Node, m_GradientObject.gradient, null);
+            var graphObject = m_Node.owner?.owner;
+            if (graphObject != null)
+                graphObject.isDirty = true;
+            m_Field.SetValueWithoutNotify(m_GradientObject.gradient);
+            this.MarkDirtyRepaint();
+        }
+
+        void OnDetachFromPanel(DetachFromPanelEvent evt)
+        {
+            Undo.undoRedoPerformed -= OnUndoRedoPerformed;
         }
     }
 }
