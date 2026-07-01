@@ -45,6 +45,9 @@ namespace UnityEngine.Rendering
             internal void Step(ref float progress, ref StageName stage) =>
                 Update(true, true, true, out progress, out stage);
 
+            internal void ClearProgress() =>
+                InvokeMethod(new object[] { }, out _);
+
             void SetEnableBakedLightmaps(bool enable) =>
                 InvokeMethod(new object[] { enable }, out _);
 
