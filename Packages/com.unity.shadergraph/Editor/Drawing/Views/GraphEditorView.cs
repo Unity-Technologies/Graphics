@@ -911,11 +911,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_GraphView.wasUndoRedoPerformed = wasUndoRedoPerformed;
 
-            if (wasUndoRedoPerformed || m_InspectorView.doesInspectorNeedUpdate)
+            // On undo, defer inspector/selection until after node views are recreated below.
+            if (!wasUndoRedoPerformed && m_InspectorView.doesInspectorNeedUpdate)
                 m_InspectorView.Update();
-
-            if (wasUndoRedoPerformed)
-                m_GraphView.RestorePersistentSelectionAfterUndoRedo();
 
             m_GroupHashSet.Clear();
 
@@ -1069,6 +1067,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Graph.checkAutoAddRemoveBlocks = false;
                 // We have to re-check any nodes views that need to be removed since we already handled this above. After leaving this function the states on m_Graph will be cleared so we'll lose track of removed blocks.
                 HandleRemovedNodes(lookupTable);
+            }
+
+            // Restore selection after node views are recreated, so GetElementByGuid resolves.
+            if (wasUndoRedoPerformed)
+            {
+                m_GraphView.RestorePersistentSelectionAfterUndoRedo();
+                m_InspectorView.Update();
             }
 
             UpdateBadges();
