@@ -1633,6 +1633,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { TerrainCoreIncludes.CorePostgraph },
                 { TerrainCoreIncludes.kGBuffer, IncludeLocation.Postgraph },
                 { TerrainCoreIncludes.kPBRGBufferPass, IncludeLocation.Postgraph },
+                { CoreIncludes.GBufferOutputFormat },
             };
 
             public static readonly IncludeCollection Meta = new IncludeCollection

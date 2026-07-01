@@ -600,6 +600,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ref HDShadowRequest shadowRequest = ref requestStorageUnsafe.ElementAt(shadowRequestHandle.storageIndexForRequestIndex);
                         int additionalLightDataIndex = directionalUpdateInfo.additionalLightDataIndex;
                         int lightIndex = directionalUpdateInfo.lightIndex;
+                        int dataIndex = visibleLights.visibleLightEntityDataIndices[lightIndex];
                         Vector2 viewportSize = directionalUpdateInfo.viewportSize;
                         VisibleLight* visibleLightPtr = visibleLightsArrayPtr + lightIndex;
                         ref VisibleLight visibleLight = ref UnsafeUtility.AsRef<VisibleLight>(visibleLightPtr);
@@ -619,7 +620,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             SetDirectionalRequestSettings(ref shadowRequest, shadowRequestHandle, visibleLight, worldSpaceCameraPos,
                                 shadowRequest.cullingSplit.invViewProjection, shadowRequest.cullingSplit.projection, shadowRequest.cullingSplit.deviceProjectionMatrix, viewportSize,
-                                lightIndex, directionalShadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
+                                lightIndex, dataIndex, directionalShadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
 
                             shadowRequest.shouldUseCachedShadowData = false;
                             shadowRequest.shouldRenderCachedComponent = true;
@@ -640,7 +641,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             shadowRequest.cullingSplit.deviceProjectionYFlip = _ProjMatrix;
                         }
 
-                        int dataIndex = visibleLights.visibleLightEntityDataIndices[lightIndex];
                         HDAdditionalLightData additionalLightData = lightEntities.hdAdditionalLightData[dataIndex];
                         if (needToUpdateCachedContent && hdCamera.camera.cameraType != CameraType.Reflection)
                         {
@@ -669,7 +669,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         SetDirectionalRequestSettings(ref shadowRequest, shadowRequestHandle, visibleLight, worldSpaceCameraPos,
                             shadowRequest.cullingSplit.invViewProjection, shadowRequest.cullingSplit.projection, shadowRequest.cullingSplit.deviceProjectionMatrix, viewportSize,
-                            lightIndex, directionalShadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
+                            lightIndex, additionalLightDataIndex, directionalShadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
                     }
                 }
 
@@ -786,7 +786,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         SetSpotRequestSettings(ref shadowRequest, shadowRequestHandle, spotUpdateInfo.visibleLight, 0f, worldSpaceCameraPos,
                             shadowRequest.cullingSplit.invViewProjection, shadowRequest.cullingSplit.projection, viewportSize,
-                            lightIndex, shadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
+                            lightIndex, additionalLightDataIndex, shadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
 
                         hasUpdatedRequestData = true;
                         shadowRequest.shouldUseCachedShadowData = false;
@@ -812,7 +812,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         SetSpotRequestSettings(ref shadowRequest, shadowRequestHandle, spotUpdateInfo.visibleLight, 0f, worldSpaceCameraPos,
                             shadowRequest.cullingSplit.invViewProjection, shadowRequest.cullingSplit.projection, viewportSize,
-                            lightIndex, shadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
+                            lightIndex, additionalLightDataIndex, shadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
                     }
                 }
             }
@@ -853,7 +853,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     SetSpotRequestSettings(ref shadowRequest, shadowRequestHandle, spotUpdateInfo.visibleLight, 0f, worldSpaceCameraPos,
                         shadowRequest.cullingSplit.invViewProjection, shadowRequest.cullingSplit.projection, viewportSize,
-                        lightIndex, shadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
+                        lightIndex, additionalLightDataIndex, shadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
                 }
             }
         }
@@ -958,7 +958,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void SetDirectionalRequestSettings(ref HDShadowRequest shadowRequest,
             HDShadowRequestHandle shadowRequestHandle, in VisibleLight visibleLight, Vector3 cameraPos,
-            Matrix4x4 invViewProjection, in Matrix4x4 projection, in Matrix4x4 devProjMatrix, Vector2 viewportSize, int lightIndex, HDShadowFilteringQuality filteringQuality,
+            Matrix4x4 invViewProjection, in Matrix4x4 projection, in Matrix4x4 devProjMatrix, Vector2 viewportSize, int lightIndex, int dataIndex, HDShadowFilteringQuality filteringQuality,
             in HDAdditionalLightDataUpdateInfo additionalLightData, int shaderConfigCameraRelativeRendering, NativeList<float4> frustumPlanesStorage)
         {
             MakeViewAndViewProjectionCameraRelative(ref shadowRequest, ref invViewProjection, shaderConfigCameraRelativeRendering, cameraPos);
@@ -972,7 +972,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float baseBias = GetBaseBias(filteringQuality == HDShadowFilteringQuality.High, 0.0f);
 
             SetCommonShadowRequestSettings(ref shadowRequest, shadowRequestHandle, cameraPos, invViewProjection, projection,
-                viewportSize, lightIndex, additionalLightData, shaderConfigCameraRelativeRendering, frustumPlanesStorage,
+                viewportSize, lightIndex, dataIndex, additionalLightData, shaderConfigCameraRelativeRendering, frustumPlanesStorage,
                 ShadowMapType.CascadedDirectional, zBufferParam, softnessAndRangeScale.x, position, baseBias,
                 true, false);
 
@@ -1004,7 +1004,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void SetAreaRequestSettings(ref HDShadowRequest shadowRequest,
             HDShadowRequestHandle shadowRequestHandle, in VisibleLight visibleLight, float forwardOffset,
-            Vector3 cameraPos, Matrix4x4 invViewProjection, Matrix4x4 projection, Vector2 viewportSize, int lightIndex,
+            Vector3 cameraPos, Matrix4x4 invViewProjection, Matrix4x4 projection, Vector2 viewportSize, int lightIndex, int dataIndex,
             HDAreaShadowFilteringQuality areaFilteringQuality,
             in HDAdditionalLightDataUpdateInfo additionalLightData, int shaderConfigCameraRelativeRendering,
             NativeList<float4> frustumPlanesStorage)
@@ -1019,7 +1019,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float baseBias = GetBaseBias(areaFilteringQuality == HDAreaShadowFilteringQuality.High, softness);
 
             SetCommonShadowRequestSettings(ref shadowRequest, shadowRequestHandle, cameraPos, invViewProjection, projection,
-                viewportSize, lightIndex, additionalLightData, shaderConfigCameraRelativeRendering, frustumPlanesStorage,
+                viewportSize, lightIndex, dataIndex, additionalLightData, shaderConfigCameraRelativeRendering, frustumPlanesStorage,
                 ShadowMapType.AreaLightAtlas, zBufferParam, softness, position, baseBias,
                 false, true);
 
@@ -1035,7 +1035,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void SetSpotRequestSettings(ref HDShadowRequest shadowRequest,
             HDShadowRequestHandle shadowRequestHandle, in VisibleLight visibleLight, float forwardOffset,
-            Vector3 cameraPos, Matrix4x4 invViewProjection, Matrix4x4 projection, Vector2 viewportSize, int lightIndex,
+            Vector3 cameraPos, Matrix4x4 invViewProjection, Matrix4x4 projection, Vector2 viewportSize, int lightIndex, int dataIndex,
             HDShadowFilteringQuality filteringQuality,
             in HDAdditionalLightDataUpdateInfo additionalLightData, int shaderConfigCameraRelativeRendering,
             NativeList<float4> frustumPlanesStorage)
@@ -1060,7 +1060,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float baseBias = GetBaseBias(filteringQuality == HDShadowFilteringQuality.High, softness);
 
             SetCommonShadowRequestSettings(ref shadowRequest, shadowRequestHandle, cameraPos, invViewProjection, projection,
-                viewportSize, lightIndex, additionalLightData, shaderConfigCameraRelativeRendering, frustumPlanesStorage,
+                viewportSize, lightIndex, dataIndex, additionalLightData, shaderConfigCameraRelativeRendering, frustumPlanesStorage,
                 ShadowMapType.PunctualAtlas, zBufferParam, softness, position, baseBias,
                 hasOrthoMatrix, true);
         }
@@ -1068,7 +1068,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void SetPointRequestSettings(ref HDShadowRequest shadowRequest,
             HDShadowRequestHandle shadowRequestHandle, in VisibleLight visibleLight,
-            Vector3 cameraPos, Matrix4x4 invViewProjection, Matrix4x4 projection, Vector2 viewportSize, int lightIndex,
+            Vector3 cameraPos, Matrix4x4 invViewProjection, Matrix4x4 projection, Vector2 viewportSize, int lightIndex, int dataIndex,
             HDShadowFilteringQuality filteringQuality,
             in HDAdditionalLightDataUpdateInfo additionalLightData, int shaderConfigCameraRelativeRendering,
             NativeList<float4> frustumPlanesStorage)
@@ -1082,14 +1082,14 @@ namespace UnityEngine.Rendering.HighDefinition
             float baseBias = GetBaseBias(filteringQuality == HDShadowFilteringQuality.High, softness);
 
             SetCommonShadowRequestSettings(ref shadowRequest, shadowRequestHandle, cameraPos, invViewProjection, projection,
-                viewportSize, lightIndex, additionalLightData, shaderConfigCameraRelativeRendering, frustumPlanesStorage,
+                viewportSize, lightIndex, dataIndex, additionalLightData, shaderConfigCameraRelativeRendering, frustumPlanesStorage,
                 ShadowMapType.PunctualAtlas, zBufferParam, softness, position, baseBias,
                 false, true);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void SetCommonShadowRequestSettings(ref HDShadowRequest shadowRequest,
-            HDShadowRequestHandle shadowRequestHandle, Vector3 cameraPos, Matrix4x4 invViewProjection, Matrix4x4 projection, Vector2 viewportSize, int lightIndex,
+            HDShadowRequestHandle shadowRequestHandle, Vector3 cameraPos, Matrix4x4 invViewProjection, Matrix4x4 projection, Vector2 viewportSize, int lightIndex, int dataIndex,
             in HDAdditionalLightDataUpdateInfo additionalLightData, int shaderConfigCameraRelativeRendering,
             NativeList<float4> frustumPlanesStorage, ShadowMapType shadowMapType, float4 zBufferParam, float softness, Vector3 position, float baseBias, bool hasOrthoMatrix, bool zClip)
         {
@@ -1102,6 +1102,7 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowRequest.shadowToWorld = invViewProjection.transpose;
             shadowRequest.zClip = zClip;
             shadowRequest.lightIndex = lightIndex;
+            shadowRequest.dataIndex = dataIndex;
             // We don't allow shadow resize for directional cascade shadow
             shadowRequest.shadowMapType = shadowMapType;
 

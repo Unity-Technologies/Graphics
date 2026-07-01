@@ -195,6 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // TODO: Remove these field once scriptable culling is here (currently required by ScriptableRenderContext.DrawShadows)
         public int lightIndex;
+        public int dataIndex;
         // end
 
         public float normalBias;
@@ -298,6 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
             zClip = default;
             shadowMapType = ShadowMapType.PunctualAtlas;
             lightIndex = default;
+            dataIndex = HDLightRenderDatabase.InvalidDataIndex;
             normalBias = default;
             worldTexelSize = default;
             slopeBias = default;
@@ -1226,7 +1228,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return m_ShadowRequestCount;
         }
-        
+
         internal void GetUnmanageDataForComputeCullingSplitsJob(ref HDShadowManagerDataForComputeCullingSplitsJob shadowManagerData)
         {
             shadowManagerData.requestCount = GetShadowRequestCount();
@@ -1373,7 +1375,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
-        internal void RenderShadows(RenderGraph renderGraph, ScriptableRenderContext renderContext, in ShaderVariablesGlobal globalCB, HDCamera hdCamera, CullingResults cullResults, ref ShadowResult result)
+        internal void RenderShadows(
+            RenderGraph renderGraph, ScriptableRenderContext renderContext,
+            in ShaderVariablesGlobal globalCB, HDCamera hdCamera,
+            CullingResults cullResults, NativeArray<int> visibleLightEntityIndices,
+            ref ShadowResult result)
         {
             InvalidateAtlasOutputs();
 
@@ -1382,15 +1388,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 (hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects) || hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects)))
             {
                 // Punctual
-                result.cachedPunctualShadowResult = cachedShadowManager.punctualShadowAtlas.RenderShadows(renderGraph, renderContext, cullResults, globalCB, hdCamera.frameSettings, "Render Cached Punctual Lights Shadow Maps");
+                result.cachedPunctualShadowResult = cachedShadowManager.punctualShadowAtlas.RenderShadows(renderGraph, renderContext, cullResults, visibleLightEntityIndices, globalCB, hdCamera.frameSettings, "Render Cached Punctual Lights Shadow Maps");
                 BlitCachedShadows(renderGraph, ShadowMapType.PunctualAtlas);
-                result.punctualShadowResult = m_Atlas.RenderShadows(renderGraph, renderContext, cullResults, globalCB, hdCamera.frameSettings, "Render Punctual Lights Shadow Maps");
+                result.punctualShadowResult = m_Atlas.RenderShadows(renderGraph, renderContext, cullResults, visibleLightEntityIndices, globalCB, hdCamera.frameSettings, "Render Punctual Lights Shadow Maps");
 
                 if (ShaderConfig.s_AreaLights == 1)
                 {
-                    cachedShadowManager.areaShadowAtlas.RenderShadowMaps(renderGraph, renderContext, cullResults, globalCB, hdCamera.frameSettings, "Render Cached Area Lights Shadow Maps");
+                    cachedShadowManager.areaShadowAtlas.RenderShadowMaps(renderGraph, renderContext, cullResults, visibleLightEntityIndices, globalCB, hdCamera.frameSettings, "Render Cached Area Lights Shadow Maps");
                     BlitCachedShadows(renderGraph, ShadowMapType.AreaLightAtlas);
-                    m_AreaLightShadowAtlas.RenderShadowMaps(renderGraph, renderContext, cullResults, globalCB, hdCamera.frameSettings, "Render Area Light Shadow Maps");
+                    m_AreaLightShadowAtlas.RenderShadowMaps(renderGraph, renderContext, cullResults, visibleLightEntityIndices, globalCB, hdCamera.frameSettings, "Render Area Light Shadow Maps");
                     result.areaShadowResult = m_AreaLightShadowAtlas.BlurShadows(renderGraph);
                     result.cachedAreaShadowResult = cachedShadowManager.areaShadowAtlas.BlurShadows(renderGraph);
                 }
@@ -1401,11 +1407,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (cachedShadowManager.directionalLightAtlas.HasShadowRequests())
                     {
                         cachedShadowManager.UpdateDirectionalCacheTexture(renderGraph);
-                        cachedShadowManager.directionalLightAtlas.RenderShadows(renderGraph, renderContext, cullResults, globalCB, hdCamera.frameSettings, "Render Cached Directional Lights Shadow Maps");
+                        cachedShadowManager.directionalLightAtlas.RenderShadows(renderGraph, renderContext, cullResults, visibleLightEntityIndices, globalCB, hdCamera.frameSettings, "Render Cached Directional Lights Shadow Maps");
                     }
                     BlitCachedShadows(renderGraph, ShadowMapType.CascadedDirectional);
                 }
-                result.directionalShadowResult = m_CascadeAtlas.RenderShadows(renderGraph, renderContext, cullResults, globalCB, hdCamera.frameSettings, "Render Directional Light Shadow Maps");
+                result.directionalShadowResult = m_CascadeAtlas.RenderShadows(renderGraph, renderContext, cullResults, visibleLightEntityIndices, globalCB, hdCamera.frameSettings, "Render Directional Light Shadow Maps");
             }
 
             // TODO RENDERGRAPH

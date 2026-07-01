@@ -100,7 +100,7 @@ float3 UnitySkinSprite( in float3 inputData, in uint4 blendIndices, in float4 bl
 
 void SetUpSpriteInstanceProperties()
 {
-#ifdef UNITY_INSTANCING_ENABLED
+#if defined(UNITY_INSTANCING_ENABLED) && !defined(HAVE_VFX_MODIFICATION)
     unity_SpriteProps.xy = unity_SpriteFlip;
 #endif
 }

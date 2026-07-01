@@ -937,6 +937,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePostgraph },
                 { kGBuffer, IncludeLocation.Postgraph },
                 { kPBRGBufferPass, IncludeLocation.Postgraph },
+                { CoreIncludes.GBufferOutputFormat },
             };
 
             public static readonly IncludeCollection Meta = new IncludeCollection

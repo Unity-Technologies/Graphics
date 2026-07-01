@@ -133,18 +133,20 @@ namespace UnityEngine.Rendering
                                                                     // First destination chunks at offset 0 (no explicit member for this).
                                                                     // Then, shared data destination chunks. Can be different from SH data destination in case of blending
                                                                     // (one pool for blending and one other pool for shared data and blending destination).
-                bufferLayout._SharedDestChunksOffset = destChunksSize;
-                bufferLayout._L0L1rxOffset = bufferLayout._SharedDestChunksOffset + destChunksSize;
-                bufferLayout._L1GryOffset = bufferLayout._L0L1rxOffset + m_L0Size * chunkCount;
-                bufferLayout._L1BrzOffset = bufferLayout._L1GryOffset + m_L1Size * chunkCount;
-                bufferLayout._ValidityOffset = bufferLayout._L1BrzOffset + m_L1Size * chunkCount;
-                bufferLayout._ProbeOcclusionOffset = bufferLayout._ValidityOffset + m_ValiditySize * chunkCount;
-                bufferLayout._SkyOcclusionOffset = bufferLayout._ProbeOcclusionOffset + m_ProbeOcclusionSize * chunkCount;
-                bufferLayout._SkyShadingDirectionOffset = bufferLayout._SkyOcclusionOffset + m_SkyOcclusionSize * chunkCount;
-                bufferLayout._L2_0Offset = bufferLayout._SkyShadingDirectionOffset + m_SkyShadingDirectionSize * chunkCount;
-                bufferLayout._L2_1Offset = bufferLayout._L2_0Offset + m_L2Size * chunkCount;
-                bufferLayout._L2_2Offset = bufferLayout._L2_1Offset + m_L2Size * chunkCount;
-                bufferLayout._L2_3Offset = bufferLayout._L2_2Offset + m_L2Size * chunkCount;
+
+                ProbeReferenceVolume.BufferLayoutBuilder layoutBuilder = new(destChunksSize);
+                bufferLayout._SharedDestChunksOffset = layoutBuilder.AddBlock(destChunksSize);
+                bufferLayout._L0L1rxOffset = layoutBuilder.AddBlock(m_L0Size * chunkCount);
+                bufferLayout._L1GryOffset = layoutBuilder.AddBlock(m_L1Size * chunkCount);
+                bufferLayout._L1BrzOffset = layoutBuilder.AddBlock(m_L1Size * chunkCount);
+                bufferLayout._ValidityOffset = layoutBuilder.AddBlock(m_ValiditySize * chunkCount);
+                bufferLayout._SkyOcclusionOffset = layoutBuilder.AddBlock(m_SkyOcclusionSize * chunkCount);
+                bufferLayout._SkyShadingDirectionOffset = layoutBuilder.AddBlock(m_SkyShadingDirectionSize * chunkCount);
+                bufferLayout._L2_0Offset = layoutBuilder.AddBlock(m_L2Size * chunkCount);
+                bufferLayout._L2_1Offset = layoutBuilder.AddBlock(m_L2Size * chunkCount);
+                bufferLayout._L2_2Offset = layoutBuilder.AddBlock(m_L2Size * chunkCount);
+                bufferLayout._L2_3Offset = layoutBuilder.AddBlock(m_L2Size * chunkCount);
+                bufferLayout._ProbeOcclusionOffset = layoutBuilder.AddBlock(m_ProbeOcclusionSize * chunkCount);
 
                 bufferLayout._ProbeCountInChunkLine = ProbeBrickPool.kChunkProbeCountPerDim;
                 bufferLayout._ProbeCountInChunkSlice = ProbeBrickPool.kChunkProbeCountPerDim * ProbeBrickPool.kBrickProbeCountPerDim;
@@ -234,7 +236,7 @@ namespace UnityEngine.Rendering
         {
             if (scratchBuffer.chunkSize != chunkSize)
             {
-                scratchBuffer.Dispose();                
+                scratchBuffer.Dispose();
                 return;
             }
 

@@ -504,7 +504,7 @@ Shader ""Hidden/GraphErrorShader2""
         // this function is used by tests
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, out GraphData graph)
         {
-            var textGraph = File.ReadAllText(path, Encoding.UTF8);
+            var textGraph = FileUtilities.ReadAllTextUTF8(path);
             graph = new GraphData
             {
                 messageManager = new MessageManager(),

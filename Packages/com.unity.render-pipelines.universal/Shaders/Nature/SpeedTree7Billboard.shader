@@ -117,6 +117,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
 
             #include "SpeedTree7BillboardInput.hlsl"
             #include "SpeedTree7BillboardPasses.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutputFormat.hlsl"
 
             ENDHLSL
         }

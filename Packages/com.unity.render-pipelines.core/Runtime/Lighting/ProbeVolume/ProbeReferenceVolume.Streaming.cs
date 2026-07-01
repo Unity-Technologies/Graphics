@@ -109,6 +109,23 @@ namespace UnityEngine.Rendering
             public int _ProbeCountInChunkSlice;
         }
 
+        internal struct BufferLayoutBuilder
+        {
+            int _Offset;
+
+            public BufferLayoutBuilder(int initialOffset = 0)
+            {
+                _Offset = initialOffset;
+            }
+
+            public int AddBlock(int blockSize)
+            {
+                int currentOffset = _Offset;
+                _Offset += blockSize;
+                return currentOffset;
+            }
+        }
+
         internal class CellStreamingScratchBuffer
         {
             public CellStreamingScratchBuffer(int chunkCount, int chunkSize, bool allocateGraphicsBuffers)

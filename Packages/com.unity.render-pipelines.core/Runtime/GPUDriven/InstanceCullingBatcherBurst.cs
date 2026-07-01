@@ -177,6 +177,7 @@ namespace UnityEngine.Rendering
             Span<GPUDrivenPackedMaterialData> packedMaterialDatas = stackalloc GPUDrivenPackedMaterialData[materialsCount];
 
             var supportsIndirect = true;
+            var isMetal = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal;
             for (int matIndex = 0; matIndex < materialsCount; ++matIndex)
             {
                 if (matIndex >= submeshCount)
@@ -198,7 +199,14 @@ namespace UnityEngine.Rendering
                     bool isFound = packedMaterialDataHash.TryGetValue(materialID, out packedMaterialData);
                     Assert.IsTrue(isFound);
                 }
-                supportsIndirect &= packedMaterialData.isIndirectSupported;
+
+                var submeshIndex = startSubMesh + matIndex;
+                var subMesh = rendererData.subMeshDesc[subMeshDescOffset + submeshIndex];
+
+                // The indirect path does not support topology adjustment; use the direct path when this is required.
+                // Concretely, for quads, only use the indirect path if we allow quads natively (e.g. tessellation shaders).
+                supportsIndirect &= subMesh.topology != MeshTopology.Quads || packedMaterialData.hasTessellation;
+                supportsIndirect &= !isMetal || !packedMaterialData.hasTessellation;
 
                 packedMaterialDatas[matIndex] = packedMaterialData;
             }
