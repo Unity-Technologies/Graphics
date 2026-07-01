@@ -1128,16 +1128,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         if (nativePassAttachment.handle.type == RenderGraphResourceType.Texture)
                         {
                             ref ResourceUnversionedData resData = ref contextData.UnversionedResourceData(nativePassAttachment.handle);
-                            if (storeUVOrigin != TextureUVOriginSelection.Unknown && resData.textureUVOrigin != TextureUVOriginSelection.Unknown && resData.textureUVOrigin != storeUVOrigin)
-                            {
-                                ref NativePassAttachment firstStoreNativePassAttachment = ref nativePassData.attachments[firstStoreAttachmentIndex];
-                                var firstStoreAttachmentName = graph.m_ResourcesForDebugOnly.GetRenderGraphResourceName(firstStoreNativePassAttachment.handle);
-                                var name = graph.m_ResourcesForDebugOnly.GetRenderGraphResourceName(nativePassAttachment.handle);
-
-                                throw new InvalidOperationException($"From pass '{contextData.GetPassName(nativePassData.firstGraphPass)}' to pass '{contextData.GetPassName(nativePassData.lastGraphPass)}' when trying to store resource '{name}' of type {nativePassAttachment.handle.type} at index {nativePassAttachment.handle.index} - "
-                                                                    + RenderGraph.RenderGraphExceptionMessages.IncompatibleTextureUVOriginStore(firstStoreAttachmentName, storeUVOrigin, name, resData.textureUVOrigin));
-                            }
-
+                            ValidateConflictingUVOrigins(ref nativePassData, ref nativePassAttachment, ref resData, storeUVOrigin, firstStoreAttachmentIndex);
                             resData.textureUVOrigin = storeUVOrigin;
                         }
                     }
@@ -1702,6 +1693,23 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     );
 
                     nativePass.attachments.Add(newAttachment);
+                }
+            }
+        }
+
+        [Conditional("UNITY_ENABLE_CHECKS")]
+        private void ValidateConflictingUVOrigins(ref NativePassData nativePassData, ref NativePassAttachment nativePassAttachment, ref ResourceUnversionedData resData, TextureUVOriginSelection storeUVOrigin, int firstStoreAttachmentIndex)
+        {
+            if (RenderGraph.enableValidityChecks)
+            {
+                if (storeUVOrigin != TextureUVOriginSelection.Unknown && resData.textureUVOrigin != TextureUVOriginSelection.Unknown && resData.textureUVOrigin != storeUVOrigin)
+                {
+                    ref NativePassAttachment firstStoreNativePassAttachment = ref nativePassData.attachments[firstStoreAttachmentIndex];
+                    var firstStoreAttachmentName = graph.m_ResourcesForDebugOnly.GetRenderGraphResourceName(firstStoreNativePassAttachment.handle);
+                    var name = graph.m_ResourcesForDebugOnly.GetRenderGraphResourceName(nativePassAttachment.handle);
+
+                    throw new InvalidOperationException($"From pass '{contextData.GetPassName(nativePassData.firstGraphPass)}' to pass '{contextData.GetPassName(nativePassData.lastGraphPass)}' when trying to store resource '{name}' of type {nativePassAttachment.handle.type} at index {nativePassAttachment.handle.index} - "
+                                                        + RenderGraph.RenderGraphExceptionMessages.IncompatibleTextureUVOriginStore(firstStoreAttachmentName, storeUVOrigin, name, resData.textureUVOrigin));
                 }
             }
         }
