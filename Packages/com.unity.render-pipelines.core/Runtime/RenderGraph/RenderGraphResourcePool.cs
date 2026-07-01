@@ -10,14 +10,35 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public abstract void Cleanup();
         public abstract void CheckFrameAllocation(bool onException, int frameIndex);
         public abstract void LogResources(RenderGraphLogger logger);
+
+        // When disabled, resources released in the current execution cannot be reused until the next execution.
+        // This is useful for Frame Debugger to ensure each pass uses unique resources within an execution.
+        public bool IntraFrameMemoryAliasing { get; set; } = true;
+    }
+
+    /// <summary>
+    /// Encapsulates a pooled resource along with its frame and execution tracking metadata.
+    /// This allows the pool to track when resources were released for proper reuse and purging decisions.
+    /// </summary>
+    readonly struct PooledResourceEntry<Type> where Type : class
+    {
+        public readonly Type resource;
+        public readonly int frameIndex;
+        public readonly int executionCount;
+
+        public PooledResourceEntry(Type resource, int frameIndex, int executionCount)
+        {
+            this.resource = resource;
+            this.frameIndex = frameIndex;
+            this.executionCount = executionCount;
+        }
     }
 
     abstract class RenderGraphResourcePool<Type> : IRenderGraphResourcePool where Type : class
     {
         // Dictionary tracks resources by hash and stores resources with same hash in a List (list instead of a stack because we need to be able to remove stale allocations, potentially in the middle of the stack).
         // The list needs to be sorted otherwise you could get inconsistent resource usage from one frame to another.
-
-        protected Dictionary<int, SortedList<int, (Type resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, SortedList<int, (Type resource, int frameIndex)>>();
+        protected Dictionary<int, SortedList<long, PooledResourceEntry<Type>>> m_ResourcePool = new Dictionary<int, SortedList<long, PooledResourceEntry<Type>>>();
 
         // This list allows us to determine if all resources were correctly released in the frame when validity checks are enabled.
         // This is useful to warn in case of user error or avoid leaks when a render graph execution error occurs for example.
@@ -31,25 +52,50 @@ namespace UnityEngine.Rendering.RenderGraphModule
         protected abstract string GetResourceTypeName();
         protected abstract int GetSortIndex(Type res);
 
-        public void ReleaseResource(int hash, Type resource, int currentFrameIndex)
+        public void ReleaseResource(int hash, Type resource, int currentFrameIndex, int currentExecutionCount)
         {
             if (!m_ResourcePool.TryGetValue(hash, out var list))
             {
-                list = new SortedList<int, (Type, int)>();
+                list = new SortedList<long, PooledResourceEntry<Type>>();
                 m_ResourcePool.Add(hash, list);
             }
 
-            list.Add(GetSortIndex(resource), (resource, currentFrameIndex));
+            list.Add(GetSortIndex(resource), new PooledResourceEntry<Type>(resource, currentFrameIndex, currentExecutionCount));
         }
 
-        public bool TryGetResource(int hashCode, out Type resource)
+        public bool TryGetResource(int hashCode, out Type resource, int currentFrameIndex, int currentExecutionCount)
         {
-            if (m_ResourcePool.TryGetValue(hashCode, out SortedList<int, (Type resource, int frameIndex)> list) && list.Count > 0)
+            if (m_ResourcePool.TryGetValue(hashCode, out SortedList<long, PooledResourceEntry<Type>> list) && list.Count > 0)
             {
-                var index = list.Count - 1;
-                resource = list.Values[index].resource;
-                list.RemoveAt(index); // O(1) since it's the last element.
-                return true;
+                // When "intra frame memory aliasing" mode is disabled, skip resources that were released in the current execution.
+                // They will only be available for reuse in the next execution.
+                if (!IntraFrameMemoryAliasing)
+                {
+                    // Iterate from the end to find a resource not from the current execution.
+                    for (int i = list.Count - 1; i >= 0; i--)
+                    {
+                        var entry = list.Values[i];
+
+                        // Allow reuse if the resource was released in a previous frame (normal case),
+                        // or in a previous execution within the same frame (Frame Debugger cascade-repaints).
+                        // This handles both standard frame-to-frame reuse and rapid repaints in Frame Debugger.
+                        if (entry.frameIndex < currentFrameIndex || entry.executionCount < currentExecutionCount)
+                        {
+                            resource = entry.resource;
+                            list.RemoveAt(i);
+                            return true;
+                        }
+                    }
+                    // All available resources are from the current execution, so we need to create a new one.
+                }
+                else
+                {
+                    // Normal mode: take the most recent resource.
+                    var index = list.Count - 1;
+                    resource = list.Values[index].resource;
+                    list.RemoveAt(index); // O(1) since it's the last element.
+                    return true;
+                }
             }
 
             resource = null;
@@ -98,7 +144,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     {
                         if (!onException)
                             logMessage = $"{logMessage}\n\t{GetResourceName(value.Item2)}";
-                        ReleaseResource(value.Item1, value.Item2, frameIndex);
+                        // When releasing on exception/error, use -1 as executionCount marker.
+                        // This ensures the resource goes back to the pool but won't interfere with normal execution tracking.
+                        ReleaseResource(value.Item1, value.Item2, frameIndex, -1);
                     }
 
                     Debug.LogWarning(logMessage);
@@ -142,7 +190,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             logger.LogLine($"\nTotal Size [{total:0.00}]");
         }
 
-        static List<int> s_ToRemoveList = new List<int>(32);
+        static List<long> s_ToRemoveList = new List<long>(32);
 
         public override void PurgeUnusedResources(int currentFrameIndex)
         {

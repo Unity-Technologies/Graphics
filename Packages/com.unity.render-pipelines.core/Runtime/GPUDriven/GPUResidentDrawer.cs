@@ -31,6 +31,8 @@ namespace UnityEngine.Rendering
         internal static GPUResidentDrawer instance { get => s_Instance; }
         private static GPUResidentDrawer s_Instance = null;
 
+        private static readonly Action s_onActiveRenderPipelineDisposed = CleanUp;
+
         ////////////////////////////////////////
         // Public API for rendering pipelines //
         ////////////////////////////////////////
@@ -297,6 +299,8 @@ namespace UnityEngine.Rendering
 
         private static void CleanUp()
         {
+            RenderPipelineManager.activeRenderPipelineDisposed -= s_onActiveRenderPipelineDisposed;
+
             if (s_Instance == null)
                 return;
 
@@ -310,6 +314,7 @@ namespace UnityEngine.Rendering
             if (IsGPUResidentDrawerSupportedBySRP(settings, out var message, out var severity))
             {
                 s_Instance = new GPUResidentDrawer(settings, 4096, 0);
+                RenderPipelineManager.activeRenderPipelineDisposed += s_onActiveRenderPipelineDisposed;
             }
             else
             {

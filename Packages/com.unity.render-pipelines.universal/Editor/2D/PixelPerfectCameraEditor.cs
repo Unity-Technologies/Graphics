@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -22,6 +23,7 @@ namespace UnityEditor.Rendering.Universal
             public const string cameraStackingWarning = "Pixel Perfect Camera won't function properly if stacked with another camera.";
             public const string nonRenderer2DWarning = "URP Pixel Perfect Camera requires a camera using a 2D Renderer. Some features, such as Upscale Render Texture, are not supported with other Renderers.";
             public const string nonRenderer2DError = "URP Pixel Perfect Camera requires a camera using a 2D Renderer.";
+            public const string renderScaleWarning = "Render Scale in Quality Settings is {0:F2}. Crop Frame and Upscale Render Texture are not supported when Render Scale is not 1.0.The Render Scale setting will be ignored.";
 
             public GUIStyle centeredLabel;
 
@@ -198,6 +200,22 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUI.BeginDisabledGroup(true);
                     EditorGUILayout.LabelField(m_Style.currentPixelRatio, m_CurrentPixelRatioValue);
                     EditorGUI.EndDisabledGroup();
+                }
+            }
+
+            // Warning for render scale quality setting 
+            var asset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+            if (asset != null && !Mathf.Approximately(asset.renderScale, 1.0f))
+            {
+                bool usingCropFrame = m_CropFrame.enumValueIndex != (int)PixelPerfectCamera.CropFrame.None;
+                bool usingUpscaleRT = m_GridSnapping.enumValueIndex == (int)PixelPerfectCamera.GridSnapping.UpscaleRenderTexture;
+
+                if (usingCropFrame || usingUpscaleRT)
+                {
+                    EditorGUILayout.HelpBox(string.Format(
+                        Style.renderScaleWarning,
+                        asset.renderScale),
+                        MessageType.Warning);
                 }
             }
         }

@@ -62,6 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected virtual string pathtracingInclude => null;
         protected virtual bool supportPathtracing => false;
         protected virtual bool supportRaytracing => false;
+        protected virtual bool subShaderIncludeWithPragmas => false;
         protected virtual string[] sharedTemplatePath => new string[]{
             $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/",
             $"{HDUtils.GetVFXPath()}/Editor/ShaderGraph/Templates"
@@ -171,9 +172,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 foreach (var include in passDescriptor.includes)
                 {
                     var path = include.path;
+                    bool shouldIncludeWithPragmas = include.shouldIncludeWithPragmas;
 
                     if (path == CoreIncludes.kPassPlaceholder)
+                    {
                         path = subShaderInclude;
+                        shouldIncludeWithPragmas = subShaderIncludeWithPragmas;
+                    }
                     if (path == CoreIncludes.kPostDecalsPlaceholder)
                         path = postDecalsInclude;
                     if (path == CoreIncludes.kRaytracingPlaceholder)
@@ -182,7 +187,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                         path = pathtracingInclude;
 
                     if (!String.IsNullOrEmpty(path))
-                        finalIncludes.Add(path, include.location, include.fieldConditions);
+                        finalIncludes.Add(path, include.location, include.fieldConditions, shouldIncludeWithPragmas);
                 }
                 passDescriptor.includes = finalIncludes;
 
@@ -253,9 +258,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             foreach (var include in passDescriptor.includes)
             {
                 var path = include.path;
+                bool shouldIncludeWithPragmas = include.shouldIncludeWithPragmas;
 
                 if (path == CoreIncludes.kPassPlaceholder)
+                {
                     path = subShaderInclude;
+                    shouldIncludeWithPragmas = subShaderIncludeWithPragmas;
+                }
                 if (path == CoreIncludes.kPostDecalsPlaceholder)
                     path = postDecalsInclude;
                 if (path == CoreIncludes.kRaytracingPlaceholder)
@@ -264,7 +273,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     path = pathtracingInclude;
 
                 if (!String.IsNullOrEmpty(path))
-                    finalIncludes.Add(path, include.location, include.fieldConditions);
+                    finalIncludes.Add(path, include.location, include.fieldConditions, shouldIncludeWithPragmas);
             }
             passDescriptor.includes = finalIncludes;
 

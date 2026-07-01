@@ -140,6 +140,7 @@ namespace UnityEngine.Rendering.Universal
             m_DrawOffscreenUIPass?.Dispose();
             m_DrawOverlayUIPass?.Dispose();
             Light2DManager.Dispose();
+            LensFlareCommonSRP.Dispose();
 #if ENABLE_VR && ENABLE_XR_MODULE
             XRSystem.Dispose();
 #endif

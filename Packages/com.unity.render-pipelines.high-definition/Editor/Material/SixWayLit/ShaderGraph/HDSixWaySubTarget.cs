@@ -105,7 +105,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     includes.Add(CoreIncludes.CoreUtility);
 
                     includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-                    includes.Add(CoreIncludes.kPassForward, IncludeLocation.Postgraph);
+                    includes.Add(CoreIncludes.kPassForward, IncludeLocation.Postgraph, true);
 
                     return includes;
                 }
