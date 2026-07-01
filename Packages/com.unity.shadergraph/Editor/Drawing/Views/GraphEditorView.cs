@@ -530,8 +530,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             var inspectorViewModel = new InspectorViewModel() { parentView = this.graphView };
             m_InspectorView = new InspectorView(inspectorViewModel);
             graphView.OnSelectionChange += m_InspectorView.TriggerInspectorUpdate;
-            // Undo/redo actions that only affect selection don't trigger the above callback for some reason, so we also have to do this
-            Undo.undoRedoPerformed += (() => { m_InspectorView?.TriggerInspectorUpdate(graphView?.selection); });
+            // Undo/redo actions that only affect selection don't trigger the above callback for some reason, so we also have to do this.
+            // Skip while a GradientPicker is open so the inspector rebuild doesn't tear it down.
+            Undo.undoRedoPerformed += (() =>
+            {
+                if (GradientPicker.visible)
+                    return;
+                m_InspectorView?.TriggerInspectorUpdate(graphView?.selection);
+            });
 
             graphView.OnSelectionChange += RecordSelectionHistory;
             Selection.RegisterCustomHandler(kSelectionKey, CustomSelectionHandler, CustomValidator);
