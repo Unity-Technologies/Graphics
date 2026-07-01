@@ -1074,6 +1074,8 @@ namespace UnityEngine.Rendering.Universal
         private int _lastFrameCount = -1;
         private uint _frameIdx = uint.MaxValue;
         private readonly List<Camera> _frameCameras = new List<Camera>();
+        private Camera _primaryCamera;
+        private bool _driverEnqueuedThisFrame;
 
         private string _debugPrimaryCameraName;
         private Vector3 _debugFocusPos;
@@ -1145,6 +1147,8 @@ namespace UnityEngine.Rendering.Universal
 
             _lastFrameCount = -1;
             _frameIdx = uint.MaxValue;
+            _primaryCamera = null;
+            _driverEnqueuedThisFrame = false;
             _debugPrimaryCameraName = null;
             _debugFocusPos = Vector3.zero;
             _frameCameras.Clear();
@@ -1255,7 +1259,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             var camera = renderingData.cameraData.camera;
-            var cameraType = renderingData.cameraData.cameraType;
 
             if (!IsEligibleCamera(camera))
                 return;
@@ -1284,44 +1287,50 @@ namespace UnityEngine.Rendering.Universal
 
             var volumeParams = GetVolumeParametersOrDefaults(surfaceCacheVolumeOverride);
 
-            // Only the driver's patch allocation samples motion vectors (Game cameras only); the resolve does not.
             ScriptableRenderPassInput resolveInputs = ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Normal;
-            ScriptableRenderPassInput driverInputs = resolveInputs;
-            if (UseMotionVectorPatchSeeding(cameraType))
-                driverInputs |= ScriptableRenderPassInput.Motion;
 
             bool newFrame = Time.frameCount != _lastFrameCount;
             if (newFrame)
             {
                 _lastFrameCount = Time.frameCount;
+                _primaryCamera = SelectPrimaryCamera(_frameCameras, _parameterSet.PrimaryView);
+                _frameCameras.Clear();
+                _driverEnqueuedThisFrame = false;
+            }
 
+            if (!_frameCameras.Contains(camera))
+                _frameCameras.Add(camera);
+
+            bool runDriver = !_driverEnqueuedThisFrame
+                             && ((_primaryCamera != null && camera == _primaryCamera)
+                                 || (_primaryCamera == null && _frameIdx == uint.MaxValue));
+            if (runDriver)
+            {
                 bool volumeReconfigured = volumeParams.VolumeResolution != _cache.Volume.SpatialResolution
                                           || volumeParams.VolumeCascadeCount != _cache.Volume.CascadeCount;
                 if (volumeReconfigured)
                     ReconfigureCache(volumeParams);
                 _frameIdx = volumeReconfigured ? 0u : _frameIdx + 1u;
 
-                Camera primaryCamera = SelectPrimaryCamera(_frameCameras, _parameterSet.PrimaryView);
-                _frameCameras.Clear();
-
-                var focusPos = primaryCamera != null ? primaryCamera.transform.position : camera.transform.position;
-                _debugPrimaryCameraName = primaryCamera != null ? primaryCamera.name : camera.name;
+                ScriptableRenderPassInput driverInputs = resolveInputs;
+                if (UseMotionVectorPatchSeeding(renderingData.cameraData.cameraType))
+                    driverInputs |= ScriptableRenderPassInput.Motion;
 
                 _driverPass.SetCache(_cache);
                 _driverPass.VolumeParams = volumeParams;
                 _driverPass.FrameIndex = _frameIdx;
-                _driverPass.FocusPos = focusPos;
+                _driverPass.FocusPos = camera.transform.position;
                 _driverPass.ConfigureInput(driverInputs);
                 renderer.EnqueuePass(_driverPass);
-                _debugFocusPos = focusPos;
-            }
 
-            if (!_frameCameras.Contains(camera))
-                _frameCameras.Add(camera);
+                _driverEnqueuedThisFrame = true;
+                _debugPrimaryCameraName = camera.name;
+                _debugFocusPos = camera.transform.position;
+            }
 
             _resolvePass.SetCache(_cache);
             _resolvePass.VolumeParams = volumeParams;
-            _resolvePass.ReuseDriverFlatNormals = newFrame;
+            _resolvePass.ReuseDriverFlatNormals = runDriver;
             _resolvePass.ConfigureInput(resolveInputs);
             renderer.EnqueuePass(_resolvePass);
         }
