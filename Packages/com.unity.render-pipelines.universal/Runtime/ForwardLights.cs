@@ -570,7 +570,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetGlobalVector(LightShaderPropertyId._FPParams2, math.float4(m_BinCount, m_TileResolution.x * m_TileResolution.y, 0, 0));
                 }
 
-                SetupShaderLightConstants(cmd, ref renderingData.cullResults, lightData);
+                SetupShaderLightConstants(cmd, ref renderingData.cullResults, lightData, renderingData.reuseCullingResult);
 
                 bool lightCountCheck = (cameraData.renderer.stripAdditionalLightOffVariants && lightData.supportsAdditionalLights) || additionalLightsCount > 0;
                 cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsVertex, lightCountCheck && additionalLightsPerVertex && !m_UseForwardPlus);
@@ -700,14 +700,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        void SetupShaderLightConstants(UnsafeCommandBuffer cmd, ref CullingResults cullResults, UniversalLightData lightData)
+        void SetupShaderLightConstants(UnsafeCommandBuffer cmd, ref CullingResults cullResults, UniversalLightData lightData, bool reuseCullingResult)
         {
             m_MixedLightingSetup = MixedLightingSetup.None;
 
             // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
             // Universal pipeline also supports only a single shadow light, if available it will be the main light.
             SetupMainLightConstants(cmd, lightData);
-            SetupAdditionalLightConstants(cmd, ref cullResults, lightData);
+            SetupAdditionalLightConstants(cmd, ref cullResults, lightData, reuseCullingResult);
         }
 
         void SetupMainLightConstants(UnsafeCommandBuffer cmd, UniversalLightData lightData)
@@ -727,12 +727,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalInt(LightShaderPropertyId._MainLightLayerMask, (int)lightLayerMask);
         }
 
-        void SetupAdditionalLightConstants(UnsafeCommandBuffer cmd, ref CullingResults cullResults, UniversalLightData lightData)
+        void SetupAdditionalLightConstants(UnsafeCommandBuffer cmd, ref CullingResults cullResults, UniversalLightData lightData, bool reuseCullingResult)
         {
             bool supportsLightLayers = lightData.supportsLightLayers;
             var lights = lightData.visibleLights;
             int maxAdditionalLightsCount = m_MaxVisibleAdditionalLights;
-            int additionalLightsCount = SetupPerObjectLightIndices(cullResults, lightData);
+            int additionalLightsCount = SetupPerObjectLightIndices(cullResults, lightData, reuseCullingResult);
             if (additionalLightsCount > 0)
             {
                 int mainLight = lightData.mainLightIndex;
@@ -858,9 +858,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        int SetupPerObjectLightIndices(CullingResults cullResults, UniversalLightData lightData)
+        int SetupPerObjectLightIndices(CullingResults cullResults, UniversalLightData lightData, bool reuseCullingResult)
         {
             if (lightData.additionalLightsCount == 0 || m_UseForwardPlus)
+                return lightData.additionalLightsCount;
+
+            // SetLightIndexMap was already applied on the previous pass; calling it again would
+            // mutate the shared per-object cull a second time.
+            if (reuseCullingResult)
                 return lightData.additionalLightsCount;
 
             var perObjectLightIndexMap = cullResults.GetLightIndexMap(Allocator.Temp);
@@ -887,7 +892,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         lightData.visibleLights[i].lightType == LightType.Point)
                     {
                         // Light type is supported
-                        perObjectLightIndexMap[i] = i - globalDirectionalLightsCount;
+                        perObjectLightIndexMap[i] -= globalDirectionalLightsCount;
                     }
                     else
                     {

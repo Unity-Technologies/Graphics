@@ -13,6 +13,10 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public CullingResults cullResults;
 
+        // True when cullResults was reused from a previous pass.
+        // Consumers should avoid mutating the culling state.
+        internal bool reuseCullingResult;
+
         /// <summary>
         /// True if the pipeline supports dynamic batching.
         /// This settings doesn't apply when drawing shadow casters. Dynamic batching is always disabled when drawing shadow casters.
@@ -63,6 +67,7 @@ namespace UnityEngine.Rendering.Universal
         public override void Reset()
         {
             cullResults = default;
+            reuseCullingResult = default;
             perObjectData = default;
             renderingMode = default;
             stencilLodCrossFadeEnabled = default;
