@@ -317,7 +317,7 @@ namespace UnityEngine.Rendering.Universal
             return new CameraInfo(worldToView, clipToWorld, new int2(cameraData.pixelWidth, cameraData.pixelHeight));
         }
 
-        class SurfaceCacheDriverPass : ScriptableRenderPass, IDisposable
+        class SurfaceCacheWorldUpdatePass : ScriptableRenderPass, IDisposable
         {
             private class WorldUpdatePassData
             {
@@ -328,6 +328,83 @@ namespace UnityEngine.Rendering.Universal
                 internal Matrix4x4 RestoreProjectionMatrix;
             }
 
+            private readonly SurfaceCacheWorld _world;
+            private readonly SurfaceCacheWorldAdapter _worldAdapter;
+            private readonly InternalBridge.ObjectDispatcher _objDispatcher;
+            private GraphicsBuffer _worldUpdateScratch;
+            private readonly uint _environmentCubemapResolution = 32;
+            private readonly bool _conformToUnityGIFormat;
+
+            internal SurfaceCacheWorld World => _world;
+            internal VolumeParameterSet VolumeParams { get; set; }
+
+            public SurfaceCacheWorldUpdatePass(
+                RayTracingContext rtContext,
+                WorldResourceSet worldResources,
+                Material fallbackMaterial,
+                bool conformToUnityGIFormat)
+            {
+                _conformToUnityGIFormat = conformToUnityGIFormat;
+                _world = new SurfaceCacheWorld();
+                _world.Init(rtContext, worldResources);
+                _objDispatcher = new();
+                _worldAdapter = new SurfaceCacheWorldAdapter(_objDispatcher, _world, fallbackMaterial);
+            }
+
+            public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
+            {
+                UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
+                // RenderSettings.ambientIntensity is used directly as a linear value for Surface Cache, which is not currently
+                // the case for the standard ambient probe lighting, which is assumed to be in gamma space and then converted to
+                // linear space. We will make this more coherent for the ambient probe in the future.
+                // Similarly, the ambient colors are all defined in sRGB space and must be converted to linear.
+                _worldAdapter.Update(
+                    _objDispatcher,
+                    RenderSettings.ambientMode,
+                    RenderSettings.skybox,
+                    RenderSettings.ambientSkyColor.linear,
+                    RenderSettings.ambientEquatorColor.linear,
+                    RenderSettings.ambientGroundColor.linear,
+                    RenderSettings.ambientIntensity,
+                    _conformToUnityGIFormat,
+                    VolumeParams.RenderingLayerMask,
+                    _world);
+
+                using (var builder = renderGraph.AddUnsafePass("Surface Cache World Update", out WorldUpdatePassData passData))
+                {
+                    passData.World = _world;
+                    passData.EnvCubemapResolution = _environmentCubemapResolution;
+                    passData.Sun = RenderSettings.sun;
+                    passData.RestoreProjectionMatrix = cameraData.GetProjectionMatrix();
+                    passData.RestoreViewMatrix = cameraData.GetViewMatrix();
+
+                    builder.AllowGlobalStateModification(true);
+                    builder.SetRenderFunc((WorldUpdatePassData data, UnsafeGraphContext graphCtx) => UpdateWorld(data, graphCtx, ref _worldUpdateScratch));
+                }
+            }
+
+            static void UpdateWorld(WorldUpdatePassData data, UnsafeGraphContext graphCtx, ref GraphicsBuffer scratch)
+            {
+                var cmd = CommandBufferHelpers.GetNativeCommandBuffer(graphCtx.cmd);
+                data.World.Commit(cmd, ref scratch, data.EnvCubemapResolution, data.Sun, out bool viewAndProjectionMatricesChanged);
+                if (viewAndProjectionMatricesChanged)
+                {
+                    cmd.SetViewProjectionMatrices(data.RestoreViewMatrix, data.RestoreProjectionMatrix);
+                }
+            }
+
+            public void Dispose()
+            {
+                _worldAdapter.CleanUp(_world);
+                _objDispatcher.Dispose();
+                _world.Dispose();
+                _worldUpdateScratch?.Dispose();
+            }
+        }
+
+        class SurfaceCacheDriverPass : ScriptableRenderPass, IDisposable
+        {
             private class FlatNormalResolutionPassData
             {
                 internal ComputeShader Shader;
@@ -381,25 +458,17 @@ namespace UnityEngine.Rendering.Universal
             private RTHandle _lowResScreenIrradiancesL11;
             private RTHandle _lowResScreenIrradiancesL12;
             private RTHandle _lowResScreenNdcDepths;
-            private GraphicsBuffer _worldUpdateScratch;
-
-            private readonly SurfaceCacheWorldAdapter _worldAdapter;
-            private readonly InternalBridge.ObjectDispatcher _objDispatcher;
-            private readonly SurfaceCacheWorld _world;
+            private SurfaceCacheWorld _world;
 
             private readonly ComputeShader _patchAllocationShader;
             private readonly ComputeShader _flatNormalResolutionShader;
-            private readonly RayTracingContext _rtContext;
             private readonly int _patchAllocationKernel;
             private readonly int _flatNormalResolutionKernel;
             private uint3 _patchAllocationKernelGroupSize;
             private uint3 _flatNormalResolutionKernelGroupSize;
 
             private Matrix4x4 _prevClipToWorldTransform = Matrix4x4.identity;
-            private readonly uint _environmentCubemapResolution = 32;
             private const int k_UpscaleFactor = 4;
-
-            private readonly bool _conformToUnityGIFormat;
 
             internal Vector3 FocusPos { get; set; }
             internal uint FrameIndex { get; set; }
@@ -407,6 +476,7 @@ namespace UnityEngine.Rendering.Universal
             internal uint LastOutputIrradianceBufferIdx { get; private set; }
             internal SurfaceCache Cache { get; private set; }
             internal void SetCache(SurfaceCache cache) => Cache = cache;
+            internal void SetWorld(SurfaceCacheWorld world) => _world = world;
             internal RTHandle LowResIrradiancesL0 => _lowResScreenIrradiancesL0;
             internal RTHandle LowResIrradiancesL10 => _lowResScreenIrradiancesL10;
             internal RTHandle LowResIrradiancesL11 => _lowResScreenIrradiancesL11;
@@ -418,29 +488,17 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle FlatNormalsHandle { get; private set; }
 
             public SurfaceCacheDriverPass(
-                RayTracingContext rtContext,
-                WorldResourceSet worldResources,
                 ComputeShader patchAllocationShader,
-                ComputeShader flatNormalResolutionShader,
-                Material fallbackMaterial,
-                bool conformToUnityGIFormat)
+                ComputeShader flatNormalResolutionShader)
             {
                 _flatNormalResolutionShader = flatNormalResolutionShader;
                 _patchAllocationShader = patchAllocationShader;
-                _rtContext = rtContext;
-                _conformToUnityGIFormat = conformToUnityGIFormat;
 
                 _patchAllocationKernel = _patchAllocationShader.FindKernel("Allocate");
                 _flatNormalResolutionKernel = _flatNormalResolutionShader.FindKernel("ResolveFlatNormals");
 
                 _patchAllocationShader.GetKernelThreadGroupSizes(_patchAllocationKernel, out _patchAllocationKernelGroupSize.x, out _patchAllocationKernelGroupSize.y, out _patchAllocationKernelGroupSize.z);
                 _flatNormalResolutionShader.GetKernelThreadGroupSizes(_flatNormalResolutionKernel, out _flatNormalResolutionKernelGroupSize.x, out _flatNormalResolutionKernelGroupSize.y, out _flatNormalResolutionKernelGroupSize.z);
-
-                _world = new SurfaceCacheWorld();
-                _world.Init(_rtContext, worldResources);
-
-                _objDispatcher = new();
-                _worldAdapter = new SurfaceCacheWorldAdapter(_objDispatcher, _world, fallbackMaterial);
             }
 
             public void Dispose()
@@ -451,10 +509,6 @@ namespace UnityEngine.Rendering.Universal
                 _lowResScreenIrradiancesL11?.Release();
                 _lowResScreenIrradiancesL12?.Release();
                 _lowResScreenNdcDepths?.Release();
-                _worldAdapter.CleanUp(_world);
-                _objDispatcher.Dispose();
-                _world.Dispose();
-                _worldUpdateScratch?.Dispose();
             }
 
             internal void EnsureScreenResources(int2 screenResolution)
@@ -594,47 +648,9 @@ namespace UnityEngine.Rendering.Universal
                     builder.SetRenderFunc((PatchAllocationPassData data, ComputeGraphContext cgContext) => AllocatePatches(data, cgContext));
                 }
 
-                // RenderSettings.ambientIntensity is used directly as a linear value for Surface Cache, which is not currently
-                // the case for the standard ambient probe lighting, which is assumed to be in gamma space and then converted to
-                // linear space. We will make this more coherent for the ambient probe in the future.
-                // Similarly, the ambient colors are all defined in sRGB space and must be converted to linear.
-                _worldAdapter.Update(
-                    _objDispatcher,
-                    RenderSettings.ambientMode,
-                    RenderSettings.skybox,
-                    RenderSettings.ambientSkyColor.linear,
-                    RenderSettings.ambientEquatorColor.linear,
-                    RenderSettings.ambientGroundColor.linear,
-                    RenderSettings.ambientIntensity,
-                    _conformToUnityGIFormat,
-                    VolumeParams.RenderingLayerMask,
-                    _world);
-
-                using (var builder = renderGraph.AddUnsafePass("Surface Cache World Update", out WorldUpdatePassData passData))
-                {
-                    passData.World = _world;
-                    passData.EnvCubemapResolution = _environmentCubemapResolution;
-                    passData.Sun = RenderSettings.sun;
-                    passData.RestoreProjectionMatrix = cameraData.GetProjectionMatrix();
-                    passData.RestoreViewMatrix = cameraInfo.WorldToView;
-
-                    builder.AllowGlobalStateModification(true);
-                    builder.SetRenderFunc((WorldUpdatePassData data, UnsafeGraphContext graphCtx) => UpdateWorld(data, graphCtx, ref _worldUpdateScratch));
-                }
-
                 LastOutputIrradianceBufferIdx = Cache.RecordPatchUpdate(renderGraph, FrameIndex, _world);
 
                 _prevClipToWorldTransform = cameraInfo.ClipToWorld;
-            }
-
-            static void UpdateWorld(WorldUpdatePassData data, UnsafeGraphContext graphCtx, ref GraphicsBuffer scratch)
-            {
-                var cmd = CommandBufferHelpers.GetNativeCommandBuffer(graphCtx.cmd);
-                data.World.Commit(cmd, ref scratch, data.EnvCubemapResolution, data.Sun, out bool viewAndProjectionMatricesChanged);
-                if (viewAndProjectionMatricesChanged)
-                {
-                    cmd.SetViewProjectionMatrices(data.RestoreViewMatrix, data.RestoreProjectionMatrix);
-                }
             }
 
             static void ResolveFlatNormals(FlatNormalResolutionPassData data, ComputeGraphContext cgContext)
@@ -1055,6 +1071,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        private SurfaceCacheWorldUpdatePass _worldUpdatePass;
         private SurfaceCacheDriverPass _driverPass;
         private SurfaceCacheScreenResolvePass _resolvePass;
         private RayTracingContext _rtContext;
@@ -1102,6 +1119,8 @@ namespace UnityEngine.Rendering.Universal
             _driverPass = null;
             _resolvePass?.Dispose();
             _resolvePass = null;
+            _worldUpdatePass?.Dispose();
+            _worldUpdatePass = null;
             _cache?.Dispose();
             _cache = null;
             _rtContext?.Dispose();
@@ -1226,13 +1245,15 @@ namespace UnityEngine.Rendering.Universal
             _cache = new SurfaceCache(coreResources, volParams);
             _cache.SetEmissiveTriangleIntensityMultiplier(k_EmissiveTriangleIntensityMultiplier);
 
-            _driverPass = new SurfaceCacheDriverPass(
+            _worldUpdatePass = new SurfaceCacheWorldUpdatePass(
                 _rtContext,
                 worldResources,
-                universalRenderPipelineResources.allocationShader,
-                universalRenderPipelineResources.flatNormalResolutionShader,
                 universalRenderPipelineResources.fallbackMaterial,
                 k_ConformToUnityGIFormat);
+
+            _driverPass = new SurfaceCacheDriverPass(
+                universalRenderPipelineResources.allocationShader,
+                universalRenderPipelineResources.flatNormalResolutionShader);
 
             _resolvePass = new SurfaceCacheScreenResolvePass(
                 _driverPass,
@@ -1243,10 +1264,12 @@ namespace UnityEngine.Rendering.Universal
                 _parameterSet.DebugViewMode,
                 _parameterSet.DebugShowSamplePosition);
 
+            _driverPass.SetWorld(_worldUpdatePass.World);
             _driverPass.SetCache(_cache);
             _resolvePass.SetCache(_cache);
 
             // The driver runs before the resolve so the resolve samples the cache the driver updated this frame.
+            _worldUpdatePass.renderPassEvent = RenderPassEvent.AfterRenderingPrePasses;
             _driverPass.renderPassEvent = RenderPassEvent.AfterRenderingPrePasses + 1;
             _resolvePass.renderPassEvent = RenderPassEvent.AfterRenderingPrePasses + 2;
         }
@@ -1306,6 +1329,9 @@ namespace UnityEngine.Rendering.Universal
                                  || (_primaryCamera == null && _frameIdx == uint.MaxValue));
             if (runDriver)
             {
+                _worldUpdatePass.VolumeParams = volumeParams;
+                renderer.EnqueuePass(_worldUpdatePass);
+
                 bool volumeReconfigured = volumeParams.VolumeResolution != _cache.Volume.SpatialResolution
                                           || volumeParams.VolumeCascadeCount != _cache.Volume.CascadeCount;
                 if (volumeReconfigured)
