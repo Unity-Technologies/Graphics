@@ -1670,7 +1670,6 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ScreenSpaceReflection, ShaderKeywordStrings.WriteSmoothness};
             helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_ScreenSpaceReflection(ref helper.data, ref helper.featureStripTool));
 
-#if URP_SCREEN_SPACE_REFLECTION
             // ScreenSpaceReflection
             helper = new TestHelper(shader, ShaderFeatures.ScreenSpaceReflection);
             TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ScreenSpaceReflection, ShaderKeywordStrings.WriteSmoothness};
@@ -1690,7 +1689,6 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.ScreenSpaceReflection, ShaderKeywordStrings.WriteSmoothness};
             TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ScreenSpaceReflection, ShaderKeywordStrings.WriteSmoothness};
             helper.IsFalse(helper.stripper.StripUnusedFeatures_ScreenSpaceReflection(ref helper.data, ref helper.featureStripTool));
-#endif
         }
 
         public void TestStripUnusedFeatures_DecalsDbuffer(Shader shader)

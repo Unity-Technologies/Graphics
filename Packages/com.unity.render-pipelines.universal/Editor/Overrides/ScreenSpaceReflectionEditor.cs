@@ -1,4 +1,3 @@
-#if URP_SCREEN_SPACE_REFLECTION
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -239,4 +238,3 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 }
-#endif

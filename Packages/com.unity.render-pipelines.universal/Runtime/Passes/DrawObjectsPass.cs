@@ -23,12 +23,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         public bool m_ShouldTransparentsReceiveShadows;
 
-#if URP_SCREEN_SPACE_REFLECTION
         /// <summary>
         /// Used to indicate whether transparent objects should receive screen space reflections or not.
         /// </summary>
         public bool shouldTransparentsReceiveSSR { get; set; }
-#endif
 
         static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
 
@@ -93,9 +91,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             m_IsOpaque = opaque;
             m_ShouldTransparentsReceiveShadows = false;
-#if URP_SCREEN_SPACE_REFLECTION
             shouldTransparentsReceiveSSR = false;
-#endif
 
             if (stencilState.enabled)
             {
@@ -161,17 +157,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal TextureHandle albedoHdl;
             internal TextureHandle depthHdl;
             internal TextureHandle screenSpaceIrradianceHdl;
-#if URP_SCREEN_SPACE_REFLECTION
             internal TextureHandle screenSpaceReflectionHdl;
-#endif
 
             internal UniversalCameraData cameraData;
             internal UniversalShadowData shadowData;
             internal bool isOpaque;
             internal bool shouldTransparentsReceiveShadows;
-#if URP_SCREEN_SPACE_REFLECTION
             internal bool shouldTransparentsReceiveSSR;
-#endif
             internal uint batchLayerMask;
             internal bool isActiveTargetBackBuffer;
             internal RendererListHandle rendererListHdl;
@@ -193,9 +185,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             passData.shadowData = shadowData;
             passData.isOpaque = m_IsOpaque;
             passData.shouldTransparentsReceiveShadows = m_ShouldTransparentsReceiveShadows;
-#if URP_SCREEN_SPACE_REFLECTION
             passData.shouldTransparentsReceiveSSR = shouldTransparentsReceiveSSR;
-#endif
             passData.batchLayerMask = batchLayerMask;
             passData.isActiveTargetBackBuffer = isActiveTargetBackBuffer;
         }
@@ -291,7 +281,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     builder.UseTexture(irradianceTexture, AccessFlags.Read);
                 }
 
-#if URP_SCREEN_SPACE_REFLECTION
                 TextureHandle ssrTexture = resourceData.ssrTexture;
                 if (ssrTexture.IsValid())
                 {
@@ -302,7 +291,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     passData.screenSpaceReflectionHdl = TextureHandle.nullHandle;
                 }
-#endif
 
                 RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
 
@@ -355,14 +343,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                         context.cmd.SetGlobalTexture(ShaderPropertyId.screenSpaceIrradiance, data.screenSpaceIrradianceHdl);
                     }
 
-#if URP_SCREEN_SPACE_REFLECTION
                     bool useSSR = data.screenSpaceReflectionHdl.IsValid() && (data.isOpaque || data.shouldTransparentsReceiveSSR);
                     context.cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceReflection, useSSR);
                     if (useSSR)
                     {
                         context.cmd.SetGlobalTexture(ShaderPropertyId.screenSpaceReflection, data.screenSpaceReflectionHdl);
                     }
-#endif
 
                     ExecutePass(context.cmd, data, data.rendererListHdl, data.objectsWithErrorRendererListHdl, yFlip);
                 });

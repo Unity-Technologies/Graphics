@@ -91,12 +91,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             /// </summary>
             public MaterialProperty bumpMapProp;
 
-#if URP_SCREEN_SPACE_REFLECTION
             /// <summary>
             /// The MaterialProperty for screen space reflections contribute transparent.
             /// </summary>
             public MaterialProperty screenSpaceReflectionsContributeTransparent;
-#endif
 
             /// <summary>
             /// Constructor for the <c>SimpleLitProperties</c> container struct.
@@ -111,9 +109,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 smoothnessMapChannel = BaseShaderGUI.FindProperty("_SmoothnessSource", properties, false);
                 smoothness = BaseShaderGUI.FindProperty("_Smoothness", properties, false);
                 bumpMapProp = BaseShaderGUI.FindProperty("_BumpMap", properties, false);
-#if URP_SCREEN_SPACE_REFLECTION
                 screenSpaceReflectionsContributeTransparent = BaseShaderGUI.FindProperty("_ScreenSpaceReflectionsContributeTransparent", properties, false);
-#endif
             }
         }
 
@@ -145,14 +141,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 properties.specHighlights.floatValue = enabled ? (float)SpecularSource.SpecularTextureAndColor : (float)SpecularSource.NoSpecular;
             EditorGUI.showMixedValue = false;
 
-#if URP_SCREEN_SPACE_REFLECTION
             if (properties.screenSpaceReflectionsContributeTransparent != null)
             {
                 bool isTransparent = material.renderQueue >= (int)UnityEngine.Rendering.RenderQueue.Transparent;
                 if (isTransparent)
                     materialEditor.ShaderProperty(properties.screenSpaceReflectionsContributeTransparent, LitGUI.Styles.screenSpaceReflectionsContributeTransparentText);
             }
-#endif
         }
 
         /// <summary>
@@ -178,11 +172,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         {
             UpdateMaterialSpecularSource(material);
 
-#if URP_SCREEN_SPACE_REFLECTION
             if (material.HasProperty("_ScreenSpaceReflectionsContributeTransparent"))
                 CoreUtils.SetKeyword(material, "_SCREENSPACEREFLECTIONSCONTRIBUTETRANSPARENT_OFF",
                     material.GetFloat("_ScreenSpaceReflectionsContributeTransparent") == 0.0f && material.renderQueue >= (int)UnityEngine.Rendering.RenderQueue.Transparent);
-#endif
         }
 
         private static void UpdateMaterialSpecularSource(Material material)

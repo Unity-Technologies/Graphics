@@ -1,4 +1,3 @@
-#if URP_SCREEN_SPACE_REFLECTION
 using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -742,4 +741,3 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 }
-#endif

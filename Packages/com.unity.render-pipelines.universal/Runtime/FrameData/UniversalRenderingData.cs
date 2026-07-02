@@ -53,13 +53,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool stencilLodCrossFadeEnabled { get; internal set; }
 
-#if URP_SCREEN_SPACE_REFLECTION
         /// <summary>
         /// True if per-pixel smoothness should be written to the alpha channel of the CameraDepthNormals texture, if it exists.
         /// Used for screen space reflections.
         /// </summary>
         public bool writesSmoothnessToDepthNormalsAlpha { get; internal set; }
-#endif
 
         /// <inheritdoc/>
         public override void Reset()
@@ -71,9 +69,7 @@ namespace UnityEngine.Rendering.Universal
             prepassLayerMask = -1;
             opaqueLayerMask = -1;
             transparentLayerMask = -1;
-#if URP_SCREEN_SPACE_REFLECTION
             writesSmoothnessToDepthNormalsAlpha = false;
-#endif
         }
     }
 }

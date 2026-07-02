@@ -77,9 +77,7 @@ namespace UnityEditor.Rendering.Universal
 #if SURFACE_CACHE
         SurfaceCache = (1L << 54),
 #endif
-#if URP_SCREEN_SPACE_REFLECTION
         ScreenSpaceReflection = (1L << 55),
-#endif
         RenderObjectDepthInputAttachment = (1L << 56),
         All = ~0
     }
@@ -768,9 +766,7 @@ namespace UnityEditor.Rendering.Universal
                 // Check to see if it's possible to remove the OFF variant for SSAO
                 everyRendererHasSSAO &= IsFeatureEnabled(rendererShaderFeatures, ShaderFeatures.ScreenSpaceOcclusion);
 
-#if URP_SCREEN_SPACE_REFLECTION
                 everyRendererHasSSR &= IsFeatureEnabled(rendererShaderFeatures, ShaderFeatures.ScreenSpaceReflection);
-#endif
 
                 // Check for completely removing 2D passes
                 s_Strip2DPasses &= rendererData is not Renderer2DData;
@@ -1001,7 +997,6 @@ namespace UnityEditor.Rendering.Universal
                 }
 #endif
 
-#if URP_SCREEN_SPACE_REFLECTION
                 // Screen Space Reflection (SSR)...
                 // Removing the OFF variant requires every renderer to use SSR. That is checked later.
                 ScreenSpaceReflectionRendererFeature ssrFeature = rendererFeature as ScreenSpaceReflectionRendererFeature;
@@ -1010,7 +1005,6 @@ namespace UnityEditor.Rendering.Universal
                     shaderFeatures |= ShaderFeatures.ScreenSpaceReflection;
                     continue;
                 }
-#endif
 
                 // Decals...
                 DecalRendererFeature decal = rendererFeature as DecalRendererFeature;
@@ -1170,11 +1164,7 @@ namespace UnityEditor.Rendering.Universal
 #else
             spd.stripScreenSpaceIrradiance = true;
 #endif
-#if URP_SCREEN_SPACE_REFLECTION
             spd.stripWriteSmoothness = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ScreenSpaceReflection);
-#else
-            spd.stripWriteSmoothness = true;
-#endif
 
             // Rendering Modes
             // Check if only Deferred is being used
@@ -1278,7 +1268,6 @@ namespace UnityEditor.Rendering.Universal
             }
 
             spd.screenSpaceReflectionPrefilteringMode = PrefilteringMode.Remove;
-#if URP_SCREEN_SPACE_REFLECTION
             if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.ScreenSpaceReflection))
             {
                 // Remove the SSR's OFF variant if Global Settings allow it and every renderer uses it.
@@ -1288,7 +1277,6 @@ namespace UnityEditor.Rendering.Universal
                 else
                     spd.screenSpaceReflectionPrefilteringMode = PrefilteringMode.Select;
             }
-#endif
 
             // SSAO shader keywords
             spd.stripSSAODepthNormals      = true;

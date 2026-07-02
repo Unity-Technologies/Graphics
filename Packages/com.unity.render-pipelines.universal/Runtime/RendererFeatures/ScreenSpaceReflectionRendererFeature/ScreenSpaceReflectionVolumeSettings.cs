@@ -1,4 +1,3 @@
-#if URP_SCREEN_SPACE_REFLECTION
 using System;
 
 namespace UnityEngine.Rendering.Universal
@@ -15,8 +14,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public enum Resolution
         {
+            /// <summary>Render Screen Space Reflections at full resolution.</summary>
             Full = 1,
+            /// <summary>Render Screen Space Reflections at half resolution.</summary>
             Half = 2,
+            /// <summary>Render Screen Space Reflections at quarter resolution.</summary>
             Quarter = 4,
         }
 
@@ -25,7 +27,9 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public enum UpscalingMethod
         {
+            /// <summary>Upscale Screen Space Reflections using bilinear filtering. This is cheaper, but produces more blurry reflections.</summary>
             Bilinear,
+            /// <summary>Upscale Screen Space Reflections using bilateral filtering. This is more expensive, but produces sharper reflections.</summary>
             Bilateral,
         }
 
@@ -34,7 +38,9 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public enum MarchingMethod
         {
+            /// <summary>March rays in fixed linear steps. This can produce reasonable reflections at a low <see cref="maxRaySteps"/> count, making it well suited to lower-end devices such as mobile phones. Achieving accurate reflections requires tweaking additional settings.</summary>
             Linear,
+            /// <summary>March rays using a hierarchical depth buffer, allowing rays to skip large portions of the screen at a time. This is much more efficient at high <see cref="maxRaySteps"/> counts and produces accurate reflections when <see cref="maxRaySteps"/> is set sufficiently high, but building the hierarchical depth buffer adds a fixed performance cost. Recommended for higher-end devices such as desktop and consoles.</summary>
             Hierarchical,
         }
 
@@ -43,8 +49,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public enum RoughReflectionsQuality
         {
+            /// <summary>Disable rough reflections. All reflections appear mirror-like, which is the most performant option.</summary>
             Disabled,
+            /// <summary>Render rough reflections using a box blur. This is cheaper than Gaussian blur, but produces lower quality results.</summary>
             BoxBlur,
+            /// <summary>Render rough reflections using a Gaussian blur. This produces the highest quality results, but is the most expensive.</summary>
             GaussianBlur,
         }
 
@@ -53,8 +62,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public enum ReflectionMode
         {
+            /// <summary>Disable Screen Space Reflections.</summary>
             Disabled,
+            /// <summary>Only render opaque objects in reflections.</summary>
             OpaquesOnly,
+            /// <summary>Render both opaque and transparent objects in reflections.</summary>
             OpaquesAndTransparents,
         }
 
@@ -232,4 +244,3 @@ namespace UnityEngine.Rendering.Universal
 #endif
     }
 }
-#endif

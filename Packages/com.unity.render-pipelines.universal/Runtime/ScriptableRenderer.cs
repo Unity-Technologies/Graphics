@@ -1185,9 +1185,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, false);
             cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceOcclusion, false);
             cmd.SetGlobalVector(SSAOUtils.ShaderConstants._AmbientOcclusionParam, Vector4.zero);
-#if URP_SCREEN_SPACE_REFLECTION
             cmd.SetGlobalVector(ScreenSpaceReflectionPass.ShaderConstants._ReflectionParam, Vector4.zero);
-#endif
         }
 
         // Scene filtering is enabled when in prefab editing mode

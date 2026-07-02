@@ -1126,7 +1126,6 @@ namespace ShaderStrippingAndPrefiltering
         }
 #endif
 
-#if URP_SCREEN_SPACE_REFLECTION
         [Test]
         public void TestGetSupportedShaderFeaturesFromRendererFeatures_ScreenSpaceReflection()
         {
@@ -1150,7 +1149,6 @@ namespace ShaderStrippingAndPrefiltering
 
             Object.DestroyImmediate(ssrFeature);
         }
-#endif
 
         [Test]
         public void TestGetSupportedShaderFeaturesFromRendererFeatures_Decals()

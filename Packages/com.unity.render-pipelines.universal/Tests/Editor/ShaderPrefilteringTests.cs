@@ -547,7 +547,6 @@ namespace ShaderStrippingAndPrefiltering
             actual = helper.CreatePrefilteringSettings(ShaderFeatures.None);
             helper.AssertPrefilteringData(expected, actual);
 
-#if URP_SCREEN_SPACE_REFLECTION
             // SSR enabled
             expected = helper.defaultPrefilteringData;
             expected.screenSpaceReflectionPrefilteringMode = PrefilteringMode.Select;
@@ -573,7 +572,6 @@ namespace ShaderStrippingAndPrefiltering
 
             helper.stripUnusedVariants = true;
             helper.everyRendererHasSSR = false;
-#endif
         }
     }
 }

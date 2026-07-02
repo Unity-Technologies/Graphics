@@ -680,7 +680,6 @@ namespace UnityEditor.Rendering.Universal
 
         internal bool StripUnusedFeatures_ScreenSpaceReflection(ref IShaderScriptableStrippingData strippingData, ref ShaderStripTool<ShaderFeatures> stripTool)
         {
-#if URP_SCREEN_SPACE_REFLECTION
             // Screen Space Reflection
             if (stripTool.StripMultiCompile(m_ScreenSpaceReflection, ShaderFeatures.ScreenSpaceReflection))
                 return true;
@@ -689,9 +688,6 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             return false;
-#else
-            return strippingData.IsKeywordEnabled(m_ScreenSpaceReflection) || strippingData.IsKeywordEnabled(m_WriteSmoothness);
-#endif
         }
 
         internal bool StripUnusedFeatures_DecalsDbuffer(ref IShaderScriptableStrippingData strippingData, ref ShaderStripTool<ShaderFeatures> stripTool)
@@ -755,7 +751,6 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (strippingData.passName == kPassNameDepthNormals)
                 {
-#if URP_SCREEN_SPACE_REFLECTION
                     // If SSR is enabled, always keep the variant with WriteRenderingLayers disabled. We need this for the SSR transparent depthnormal pass.
                     if (strippingData.IsShaderFeatureEnabled(ShaderFeatures.ScreenSpaceReflection))
                     {
@@ -763,7 +758,6 @@ namespace UnityEditor.Rendering.Universal
                             return true;
                     }
                     else
-#endif
                     if (stripTool.StripMultiCompile(m_WriteRenderingLayers, ShaderFeatures.DepthNormalPassRenderingLayers))
                         return true;
                 }

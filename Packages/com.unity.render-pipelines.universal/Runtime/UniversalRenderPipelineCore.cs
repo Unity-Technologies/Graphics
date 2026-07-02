@@ -860,9 +860,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int hdrOutputGradingParams = Shader.PropertyToID("_HDROutputGradingParams");
         public static readonly int offscreenUIViewportParams = Shader.PropertyToID("_OffscreenUIViewportParams");
         public static readonly int screenSpaceIrradiance = Shader.PropertyToID("_ScreenSpaceIrradiance");
-#if URP_SCREEN_SPACE_REFLECTION
         public static readonly int screenSpaceReflection = Shader.PropertyToID("_ScreenSpaceReflectionTexture");
-#endif
     }
 
     /// <summary>

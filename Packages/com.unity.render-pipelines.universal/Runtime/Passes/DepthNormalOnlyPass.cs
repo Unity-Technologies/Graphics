@@ -148,11 +148,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.SetRenderAttachmentDepth(depthTexture, AccessFlags.ReadWrite);
 
                 passData.enableRenderingLayers = enableRenderingLayers;
-#if URP_SCREEN_SPACE_REFLECTION
                 passData.outputSmoothness = renderingData.writesSmoothnessToDepthNormalsAlpha;
-#else
-                passData.outputSmoothness = false;
-#endif
 
                 if (passData.enableRenderingLayers)
                 {
