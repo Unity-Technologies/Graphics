@@ -168,7 +168,7 @@ namespace UnityEditor.Rendering.Universal
 #if USING_2DCOMMON
         public void RestorePreviousTool()
         {
-            if (EditorToolManager.IsActiveTool<ShadowCaster2DShadowCasterShapeTool>())
+            if (U2D.Common.Path.EditorToolManager.IsActiveTool<ShadowCaster2DShadowCasterShapeTool>())
                 ToolManager.RestorePreviousTool();
         }
 
@@ -233,7 +233,7 @@ namespace UnityEditor.Rendering.Universal
 #if USING_2DCOMMON
             if ((ShadowCaster2D.ShadowCastingSources)m_CastingSource.intValue == ShadowCaster2D.ShadowCastingSources.ShapeEditor)
                 ShadowCaster2DInspectorGUI<ShadowCaster2DShadowCasterShapeTool>();
-            else if (EditorToolManager.IsActiveTool<ShadowCaster2DShadowCasterShapeTool>())
+            else if (U2D.Common.Path.EditorToolManager.IsActiveTool<ShadowCaster2DShadowCasterShapeTool>())
                 ToolManager.RestorePreviousTool();
 #else
             var clicked = GUILayout.Button(Styles.buttonText);

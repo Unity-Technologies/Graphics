@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.Universal
         private int shadowCount = 0;
 
         // Variables used for refresh view
-        private bool doRefresh;
+        static bool doRefresh;
         private SceneHandle cachedSceneHandle;
         private Vector3 cachedCamPos;
         private int totalLightCount;
@@ -356,11 +356,19 @@ namespace UnityEditor.Rendering.Universal
         private void OnEnable()
         {
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+
+#if UNITY_EDITOR
+            SortingLayer.onLayerChanged += QueueRefresh;
+#endif
         }
 
         private void OnDisable()
         {
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+
+#if UNITY_EDITOR
+            SortingLayer.onLayerChanged -= QueueRefresh;
+#endif
         }
 
         void OnPlayModeStateChanged(PlayModeStateChange playModeState)
@@ -528,7 +536,7 @@ namespace UnityEditor.Rendering.Universal
             doRefresh = false;
         }
 
-        public void QueueRefresh()
+        internal static void QueueRefresh()
         {
             doRefresh = true;
         }
