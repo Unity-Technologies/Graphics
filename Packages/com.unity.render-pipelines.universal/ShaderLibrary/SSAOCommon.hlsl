@@ -69,7 +69,7 @@ static const half HALF_TWO = half(2.0);
 static const half HALF_TWO_PI = half(6.28318530717958647693);
 static const half HALF_FOUR = half(4.0);
 static const half HALF_INV_NINE = half(0.11111111111111111111);
-static const half HALF_HUNDRED = half(100.0);
+static const float FLOAT_HUNDRED = 100.0;
 
 struct GTAOConfig
 {

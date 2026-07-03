@@ -135,10 +135,12 @@ half3 PickSamplePoint(float2 uv, int sampleIndex, half sampleIndexHalf, half rcp
     const half lerpVal = sampleIndexHalf * rcpSampleCount;
     const half noise = SSAO_COMMON_SAMPLE_BLUE_NOISE(((uv + BlueNoiseOffset) * BlueNoiseScale) + lerpVal);
     const half u = frac(GetRandomVal(HALF_ZERO, sampleIndexHalf).x + noise) * HALF_TWO - HALF_ONE;
-    const half theta = (GetRandomVal(HALF_ONE, sampleIndexHalf).x + noise) * HALF_TWO_PI * HALF_HUNDRED;
+    // Wrap theta to [0, TWO_PI) in float first: sincos range-reduces large arguments differently per GPU.
+    const float theta = (GetRandomVal(HALF_ONE, sampleIndexHalf).x + noise) * (TWO_PI * FLOAT_HUNDRED);
+    const half wrappedTheta = half(frac(theta * INV_TWO_PI) * TWO_PI);
     const half u2 = half(sqrt(HALF_ONE - u * u));
     half sinTheta, cosTheta;
-    sincos(theta, sinTheta, cosTheta);
+    sincos(wrappedTheta, sinTheta, cosTheta);
 
     v = half3(u2 * cosTheta, u2 * sinTheta, u);
     v *= (dot(centerNormal, v) >= HALF_ZERO) * HALF_TWO - HALF_ONE;
