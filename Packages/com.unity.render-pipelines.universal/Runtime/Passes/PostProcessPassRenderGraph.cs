@@ -603,7 +603,8 @@ namespace UnityEngine.Rendering.Universal
                 float dirtRatio = dirtTexture.width / (float)dirtTexture.height;
                 float screenRatio = srcDesc.width / (float)srcDesc.height;
                 var dirtScaleOffset = new Vector4(1f, 1f, 0f, 0f);
-                float dirtIntensity = m_Bloom.dirtIntensity.value;
+                // Must match _DIRT variant stripping in ShaderBuildPreprocessor.
+                float dirtIntensity = m_Bloom.dirtTexture.value == null ? 0f : m_Bloom.dirtIntensity.value;
 
                 if (dirtRatio > screenRatio)
                 {
