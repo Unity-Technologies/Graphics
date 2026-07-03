@@ -1064,17 +1064,6 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled && cameraData.xr.hasMotionVectorPass)
-            {
-                // Update prevView and View matrices.
-                m_XRDepthMotionPass?.Update(ref cameraData);
-
-                // Record depthMotion pass and import XR resources into the rendergraph.
-                m_XRDepthMotionPass?.Render(renderGraph, frameData);
-            }
-#endif
-
             if (requiresPrepass)
             {
                 // If we're in deferred mode, prepasses always render directly to the depth attachment rather than the camera depth texture.
@@ -1550,6 +1539,15 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_XRCopyDepthPass.CopyToDepthXR = true;
                     m_XRCopyDepthPass.Render(renderGraph, frameData, resourceData.backBufferDepth, resourceData.cameraDepth, bindAsCameraDepth: false, "XR Depth Copy");
+                }
+
+                if (cameraData.xr.hasMotionVectorPass)
+                {
+                    // Update prevView and View matrices.
+                    m_XRDepthMotionPass?.Update(ref cameraData);
+
+                    // Record depthMotion pass and import XR resources into the rendergraph.
+                    m_XRDepthMotionPass?.Render(renderGraph, frameData);
                 }
             }
 #endif
