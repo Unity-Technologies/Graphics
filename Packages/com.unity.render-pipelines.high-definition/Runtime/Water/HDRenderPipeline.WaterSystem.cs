@@ -7,6 +7,7 @@ using UnityEngine.Rendering.RenderGraphModule;
 
 #if UNITY_EDITOR
 using UnityEditor.SceneManagement;
+using UnityEditorInternal;
 #endif
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -930,6 +931,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static bool ShouldRenderWater(HDCamera hdCamera)
         {
+#if UNITY_EDITOR
+            // The Frame Debugger forces UpdateWaterSurfaces to be skipped (see HDRenderPipeline.cs:2250)
+            // to avoid blit/readback flicker. Simulation resources are stale or null in that case.
+            if (FrameDebugger.enabled)
+                return false;
+#endif
+
             WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
             return !(!settings.enable.value
                 || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water)
