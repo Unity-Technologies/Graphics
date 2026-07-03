@@ -11,38 +11,33 @@ namespace UnityEditor.Rendering.Universal
     {
         private bool m_IsInitialized;
 
-        private SerializedProperty _primaryView;
-
         // Debug parameters
-        private SerializedProperty _debugLogFocusTarget;
         private SerializedProperty _debugEnabled;
         private SerializedProperty _debugViewMode;
         private SerializedProperty _debugShowSamplePosition;
 
         private struct TextContent
         {
-            public static GUIContent PrimaryView = EditorGUIUtility.TrTextContent("Primary View", "When multiple views are present, selects the type of view to prioritize for cascade origin.");
-            public static GUIContent DebugLogFocusTarget = EditorGUIUtility.TrTextContent("Debug Focus Target", "Show the per-frame primary camera and focus position below.");
-            public static GUIContent PrimaryCamera = EditorGUIUtility.TrTextContent("Primary Camera", "The camera selected to drive the cascade origin this frame.");
-            public static GUIContent FocusPosition = EditorGUIUtility.TrTextContent("Focus Position", "World-space position the cascades are centered on.");
             public static GUIContent DebugEnabled = EditorGUIUtility.TrTextContent("Debug Enabled", "Enable debug visualization.");
+            public static GUIContent ActiveCaches = EditorGUIUtility.TrTextContent("Active Caches", "Number of per-camera surface caches currently alive.");
+            public static GUIContent WorldRenderingLayerMask = EditorGUIUtility.TrTextContent("World Rendering Layer Mask", "Combined (OR) rendering layer mask used for the shared world update this frame. This value is read only.");
             public static GUIContent DebugViewMode = EditorGUIUtility.TrTextContent("Debug View Mode", "Debug visualization mode.");
             public static GUIContent DebugShowSamplePosition = EditorGUIUtility.TrTextContent("Debug Show Sample Position", "Show sample positions in debug view.");
         }
 
         private void OnEnable()
         {
-            EditorApplication.update += RepaintWhileShowingFocusTarget;
+            EditorApplication.update += RepaintWhileDebugging;
         }
 
         private void OnDisable()
         {
-            EditorApplication.update -= RepaintWhileShowingFocusTarget;
+            EditorApplication.update -= RepaintWhileDebugging;
         }
 
-        private void RepaintWhileShowingFocusTarget()
+        private void RepaintWhileDebugging()
         {
-            if (m_IsInitialized && _debugLogFocusTarget != null && _debugLogFocusTarget.boolValue)
+            if (m_IsInitialized && _debugEnabled != null && _debugEnabled.boolValue)
                 Repaint();
         }
 
@@ -52,8 +47,6 @@ namespace UnityEditor.Rendering.Universal
 
             SerializedProperty paramSets = serializedObject.FindProperty("_parameterSet");
 
-            _primaryView = paramSets.FindPropertyRelative("PrimaryView");
-            _debugLogFocusTarget = paramSets.FindPropertyRelative("DebugLogFocusTarget");
             _debugEnabled = paramSets.FindPropertyRelative("DebugEnabled");
             _debugViewMode = paramSets.FindPropertyRelative("DebugViewMode");
             _debugShowSamplePosition = paramSets.FindPropertyRelative("DebugShowSamplePosition");
@@ -94,24 +87,19 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.Space();
 
-            EditorGUILayout.PropertyField(_primaryView, TextContent.PrimaryView);
-
-            EditorGUILayout.Space();
-
             // Debug settings
             EditorGUILayout.LabelField("Debugging", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_debugEnabled, TextContent.DebugEnabled);
             EditorGUILayout.PropertyField(_debugViewMode, TextContent.DebugViewMode);
             EditorGUILayout.PropertyField(_debugShowSamplePosition, TextContent.DebugShowSamplePosition);
-            EditorGUILayout.PropertyField(_debugLogFocusTarget, TextContent.DebugLogFocusTarget);
 
-            if (_debugLogFocusTarget.boolValue)
+            if (_debugEnabled.boolValue)
             {
                 var feature = (SurfaceCacheGIRendererFeature)target;
                 using (new EditorGUI.IndentLevelScope())
                 {
-                    EditorGUILayout.LabelField(TextContent.PrimaryCamera, new GUIContent(string.IsNullOrEmpty(feature.debugPrimaryCameraName) ? "—" : feature.debugPrimaryCameraName));
-                    EditorGUILayout.LabelField(TextContent.FocusPosition, new GUIContent(feature.debugFocusPos.ToString("F2")));
+                    EditorGUILayout.LabelField(TextContent.ActiveCaches, new GUIContent(feature.activeCacheCount.ToString()));
+                    EditorGUI.RenderingLayerMaskField(EditorGUILayout.GetControlRect(), TextContent.WorldRenderingLayerMask, feature.worldRenderingLayerMask);
                 }
             }
 
