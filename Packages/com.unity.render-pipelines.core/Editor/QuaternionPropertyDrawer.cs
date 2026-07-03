@@ -14,7 +14,15 @@ namespace UnityEditor.Rendering
             euler = EditorGUI.Vector3Field(position, label, euler);
             EditorGUIUtility.wideMode = w;
             if (EditorGUI.EndChangeCheck())
-                property.quaternionValue = Quaternion.Euler(euler);
+            {
+                bool isFinite = (!float.IsNaN(euler.x) && !float.IsInfinity(euler.x) &&
+                    !float.IsNaN(euler.y) && !float.IsInfinity(euler.y) &&
+                    !float.IsNaN(euler.z) && !float.IsInfinity(euler.z));
+                if (isFinite)
+                {
+                    property.quaternionValue = Quaternion.Euler(euler.x, euler.y, euler.z);
+                }
+            }
         }
     }
 }
