@@ -109,7 +109,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 smoothnessMapChannel = BaseShaderGUI.FindProperty("_SmoothnessSource", properties, false);
                 smoothness = BaseShaderGUI.FindProperty("_Smoothness", properties, false);
                 bumpMapProp = BaseShaderGUI.FindProperty("_BumpMap", properties, false);
-                screenSpaceReflectionsContributeTransparent = BaseShaderGUI.FindProperty("_ScreenSpaceReflectionsContributeTransparent", properties, false);
+                screenSpaceReflectionsContributeTransparent = BaseShaderGUI.FindProperty(Property.ScreenSpaceReflectionsContributeTransparent, properties, false);
             }
         }
 
@@ -172,9 +172,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         {
             UpdateMaterialSpecularSource(material);
 
-            if (material.HasProperty("_ScreenSpaceReflectionsContributeTransparent"))
-                CoreUtils.SetKeyword(material, "_SCREENSPACEREFLECTIONSCONTRIBUTETRANSPARENT_OFF",
-                    material.GetFloat("_ScreenSpaceReflectionsContributeTransparent") == 0.0f && material.renderQueue >= (int)UnityEngine.Rendering.RenderQueue.Transparent);
+            BaseShaderGUI.UpdateScreenSpaceReflectionContributeTransparentPassState(material);
         }
 
         private static void UpdateMaterialSpecularSource(Material material)

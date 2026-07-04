@@ -876,6 +876,42 @@ namespace UnityEditor
         }
 #endif
 
+        // Disables DepthNormals / DepthNormalsOnly on transparent materials that opted out
+        // of contributing to Screen Space Reflections, so the SSR transparent prepass skips them.
+        // Opaque materials always keep the passes enabled.
+        internal static void UpdateScreenSpaceReflectionContributeTransparentPassState(Material material)
+        {
+            if (!material.HasProperty(Property.ScreenSpaceReflectionsContributeTransparent))
+                return;
+
+            bool isTransparent = material.renderQueue >= (int)RenderQueue.Transparent;
+            bool contributesToSSR = material.GetFloat(Property.ScreenSpaceReflectionsContributeTransparent) != 0.0f;
+            bool enablePass = !isTransparent || contributesToSSR;
+
+            material.SetShaderPassEnabled("DepthNormals", enablePass);
+            material.SetShaderPassEnabled("DepthNormalsOnly", enablePass);
+        }
+
+        internal static void UpdateScreenSpaceReflectionsKeyword(Material material)
+        {
+            if (!material.HasProperty(Property.ScreenSpaceReflections))
+                return;
+
+            bool receiveOff = material.GetFloat(Property.ScreenSpaceReflections) == 0.0f || ShouldForceReceiveSsrOff(material);
+            CoreUtils.SetKeyword(material, "_SCREENSPACEREFLECTIONS_OFF", receiveOff);
+        }
+
+        // Returns true when the material's Receive SSR toggle should be force-disabled. Without
+        // contributing to the SSR depth prepass, a transparent material would sample the reflection
+        // of whatever sits behind it.
+        internal static bool ShouldForceReceiveSsrOff(Material material)
+        {
+            bool isTransparent = material.renderQueue >= (int)RenderQueue.Transparent;
+            bool contributesToSSR = !material.HasProperty(Property.ScreenSpaceReflectionsContributeTransparent)
+                                    || material.GetFloat(Property.ScreenSpaceReflectionsContributeTransparent) != 0.0f;
+            return isTransparent && !contributesToSSR;
+        }
+
         // this function is shared between ShaderGraph and hand-written GUIs
         internal static void UpdateMaterialRenderQueueControl(Material material)
         {

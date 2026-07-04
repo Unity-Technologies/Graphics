@@ -87,11 +87,6 @@ void DepthNormalsFragment(
         LODFadeCrossFade(input.positionCS);
     #endif
 
-    #if _SCREENSPACEREFLECTIONSCONTRIBUTETRANSPARENT_OFF_KEYWORD_DECLARED
-        if (_SCREENSPACEREFLECTIONSCONTRIBUTETRANSPARENT_OFF)
-            discard;
-    #endif
-
     #if defined(_GBUFFER_NORMALS_OCT)
         float3 normalWS = normalize(input.normalWS);
         float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms

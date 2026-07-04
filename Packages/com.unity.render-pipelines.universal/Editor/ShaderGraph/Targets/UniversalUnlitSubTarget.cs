@@ -25,6 +25,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         [SerializeField]
         bool m_DefaultSSAO = true;
 
+        [SerializeField]
+        bool m_ScreenSpaceReflectionsContributeTransparent = true;
+
         public bool keepLightingVariants
         {
             get => m_KeepLightingVariants;
@@ -41,6 +44,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             get => m_DefaultSSAO;
             set => m_DefaultSSAO = value;
+        }
+
+        public bool screenSpaceReflectionsContributeTransparent
+        {
+            get => m_ScreenSpaceReflectionsContributeTransparent;
+            set => m_ScreenSpaceReflectionsContributeTransparent = value;
         }
 
         public UniversalUnlitSubTarget()
@@ -143,6 +152,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             collector.AddFloatProperty(Property.QueueOffset, 0.0f);
             collector.AddFloatProperty(Property.QueueControl, -1.0f);
 
+            // Emitted unconditionally so UpdateScreenSpaceReflectionContributeTransparentPassState
+            // can read the sub-target default at material-update time to configure the runtime
+            // pass state.
+            collector.AddToggleProperty(Property.ScreenSpaceReflectionsContributeTransparent, screenSpaceReflectionsContributeTransparent);
+
             if (IsSpacewarpSupported())
             {
                 collector.AddFloatProperty(Property.XrMotionVectorsPass, 1.0f);
@@ -187,6 +201,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 defaultSSAO = evt.newValue;
                 onChange();
             });
+
+            if (target.surfaceType == SurfaceType.Transparent)
+            {
+                context.AddProperty("Screen Space Reflections Contribute Transparent", new Toggle() { value = screenSpaceReflectionsContributeTransparent }, (evt) =>
+                {
+                    if (Equals(screenSpaceReflectionsContributeTransparent, evt.newValue))
+                        return;
+
+                    registerUndo("Change Screen Space Reflections Contribute Transparent");
+                    screenSpaceReflectionsContributeTransparent = evt.newValue;
+                    onChange();
+                });
+            }
         }
 
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)

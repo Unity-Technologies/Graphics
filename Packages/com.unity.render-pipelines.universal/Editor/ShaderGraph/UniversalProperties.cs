@@ -24,6 +24,8 @@ namespace UnityEditor.Rendering.Universal
         public static readonly string CastShadows = "_CastShadows";
         public static readonly string ReceiveShadows = "_ReceiveShadows";
         public static readonly string QueueOffset = "_QueueOffset";
+        public static readonly string ScreenSpaceReflections = "_ScreenSpaceReflections";
+        public static readonly string ScreenSpaceReflectionsContributeTransparent = "_ScreenSpaceReflectionsContributeTransparent";
 
         // for ShaderGraph shaders only
         public static readonly string ZTest = "_ZTest";

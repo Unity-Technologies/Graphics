@@ -21,6 +21,8 @@ Shader "Universal Render Pipeline/Unlit"
         [HideInInspector] _AddPrecomputedVelocity("_AddPrecomputedVelocity", Float) = 0.0
         [HideInInspector] _XRMotionVectorsPass("_XRMotionVectorsPass", Float) = 1.0
 
+        [ToggleUI] _ScreenSpaceReflectionsContributeTransparent("Screen Space Reflections Contribute Transparent", Float) = 1.0
+
         // Editmode props
         _QueueOffset("Queue offset", Float) = 0.0
 

@@ -290,8 +290,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 // Advanced Props
                 highlights = BaseShaderGUI.FindProperty("_SpecularHighlights", properties, false);
                 reflections = BaseShaderGUI.FindProperty("_EnvironmentReflections", properties, false);
-                screenSpaceReflections = BaseShaderGUI.FindProperty("_ScreenSpaceReflections", properties, false);
-                screenSpaceReflectionsContributeTransparent = BaseShaderGUI.FindProperty("_ScreenSpaceReflectionsContributeTransparent", properties, false);
+                screenSpaceReflections = BaseShaderGUI.FindProperty(Property.ScreenSpaceReflections, properties, false);
+                screenSpaceReflectionsContributeTransparent = BaseShaderGUI.FindProperty(Property.ScreenSpaceReflectionsContributeTransparent, properties, false);
                 clearCoat = BaseShaderGUI.FindProperty("_ClearCoat", properties, false);
                 clearCoatMap = BaseShaderGUI.FindProperty("_ClearCoatMap", properties, false);
                 clearCoatMask = BaseShaderGUI.FindProperty("_ClearCoatMask", properties, false);
@@ -495,12 +495,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             if (material.HasProperty("_EnvironmentReflections"))
                 CoreUtils.SetKeyword(material, "_ENVIRONMENTREFLECTIONS_OFF",
                     material.GetFloat("_EnvironmentReflections") == 0.0f);
-            if (material.HasProperty("_ScreenSpaceReflections"))
-                CoreUtils.SetKeyword(material, "_SCREENSPACEREFLECTIONS_OFF",
-                    material.GetFloat("_ScreenSpaceReflections") == 0.0f);
-            if (material.HasProperty("_ScreenSpaceReflectionsContributeTransparent"))
-                CoreUtils.SetKeyword(material, "_SCREENSPACEREFLECTIONSCONTRIBUTETRANSPARENT_OFF",
-                    material.GetFloat("_ScreenSpaceReflectionsContributeTransparent") == 0.0f && material.renderQueue >= (int)UnityEngine.Rendering.RenderQueue.Transparent);
+            BaseShaderGUI.UpdateScreenSpaceReflectionsKeyword(material);
+            BaseShaderGUI.UpdateScreenSpaceReflectionContributeTransparentPassState(material);
             if (material.HasProperty("_OcclusionMap"))
                 CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
 

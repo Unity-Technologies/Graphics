@@ -40,6 +40,9 @@ namespace UnityEditor
 #if ENABLE_VR && ENABLE_XR_MODULE
             BaseShaderGUI.UpdateXRMotionVectorKeywordsAndPass(material);
 #endif
+
+            BaseShaderGUI.UpdateScreenSpaceReflectionsKeyword(material);
+            BaseShaderGUI.UpdateScreenSpaceReflectionContributeTransparentPassState(material);
         }
 
         public override void ValidateMaterial(Material material)

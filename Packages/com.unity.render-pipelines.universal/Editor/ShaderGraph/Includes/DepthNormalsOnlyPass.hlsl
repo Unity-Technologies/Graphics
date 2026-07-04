@@ -57,7 +57,7 @@ void frag(
         outNormalWS = half4(NormalizeNormalPerPixel(normalWS), 0.0);
     #endif
 
-    #if defined(_WRITE_SMOOTHNESS)
+    #if defined(_WRITE_SMOOTHNESS) && !defined(_SCREENSPACEREFLECTIONS_OFF)
         outNormalWS.a = surfaceDescription.Smoothness;
     #endif
 
