@@ -67,6 +67,9 @@ class NoLeaksOnEnterLeavePlaymode
     }
 
     [UnityTest]
+    [UnityPlatform(exclude = new RuntimePlatform[] {
+        RuntimePlatform.WindowsEditor // Disabled for Instability https://jira.unity3d.com/browse/UUM-146436
+    })]
     public IEnumerator NoResourceLeaks()
     {
         // Ignoring OpenGL as it has now been deprecated and this test is unstable on that platform.
