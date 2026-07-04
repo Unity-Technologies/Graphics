@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         private bool m_AutoRegister = false;
         private DiffusionProfileSettings[] m_RollBackProfiles;
         private DiffusionProfileList m_List;
+        private VolumeProfile m_VolumeProfile;
 
         static DiffusionProfileSettings CreateValidDiffusionProfile()
         {
@@ -48,7 +49,8 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             Assert.IsInstanceOf<HDRPDefaultVolumeProfileSettings>(defaultVolumeProfileSettings);
 
             m_AutoRegister = diffusionProfileDefaultSettings.autoRegister;
-            m_List = VolumeUtils.GetOrCreateDiffusionProfileList(defaultVolumeProfileSettings.volumeProfile);
+            m_VolumeProfile = defaultVolumeProfileSettings.volumeProfile;
+            m_List = VolumeUtils.GetOrCreateDiffusionProfileList(m_VolumeProfile);
             m_RollBackProfiles = m_List.ToArray();
         }
 
@@ -57,12 +59,34 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         {
             if (m_Profile != null) // If it is null, no setup has been done
             {
-                GraphicsSettings.GetRenderPipelineSettings<DiffusionProfileDefaultSettings>().autoRegister = m_AutoRegister;
-                m_List.ReplaceWithArray(m_RollBackProfiles);
+                RestoreSharedState();
 
                 AssetDatabase.DeleteAsset($"Assets/Temp/{nameof(DiffusionProfileTests)}");
                 AssetDatabase.SaveAssets();
             }
+        }
+
+        // The autoRegister flag and the default volume profile's DiffusionProfileList are process-wide singletons
+        // shared with sibling fixtures. Restore them to the captured baseline around every test so a test that
+        // mutates them (DiffusionProfile_AutoRegister, RegisterReferencedDiffusionProfiles) can't leak that state
+        // into whichever test NUnit orders next.
+        [SetUp]
+        public void SetUp() => RestoreSharedState();
+
+        [TearDown]
+        public void TearDown() => RestoreSharedState();
+
+        void RestoreSharedState()
+        {
+            if (m_List == null) // OneTimeSetup ignored the fixture (HDRP not current)
+                return;
+
+            GraphicsSettings.GetRenderPipelineSettings<DiffusionProfileDefaultSettings>().autoRegister = m_AutoRegister;
+            m_List.ReplaceWithArray(m_RollBackProfiles);
+            // Mirror the mutation path (VolumeUtils.TryAddDiffusionProfiles) so the revert flushes to disk on the
+            // next SaveAssets and VolumeManager's cached default state doesn't keep the mutated profiles.
+            EditorUtility.SetDirty(m_VolumeProfile);
+            VolumeManager.instance.OnVolumeProfileChanged(m_VolumeProfile);
         }
 
         private static void CreateMaterialAndSetProfile(string materialPath, DiffusionProfileSettings profile)
