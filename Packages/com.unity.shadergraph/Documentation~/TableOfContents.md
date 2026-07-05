@@ -56,6 +56,7 @@
         * [Custom Interpolator reference](Custom-Interpolators-reference.md)
     * [Create custom nodes with HLSL](Custom-nodes-hlsl-landing.md)
         * [Introduction to HLSL in Shader Graph](Custom-nodes-hlsl-introduction.md)
+        * [Create Custom Function node using HLSL](Custom-nodes-hlsl-create-custom-function-node.md)
         * [Create a custom node by reflection from HLSL](Custom-nodes-hlsl-create-node-by-reflection.md)
         * [Reflected function hints reference](Custom-nodes-hlsl-reflection-hints-reference.md)
 * [Node Library](Node-Library.md)
