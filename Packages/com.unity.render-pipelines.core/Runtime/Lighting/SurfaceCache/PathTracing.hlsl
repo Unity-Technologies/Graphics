@@ -1,6 +1,7 @@
 #ifndef SURFACE_CACHE_PATH_TRACING
 #define SURFACE_CACHE_PATH_TRACING
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Common.hlsl"
@@ -261,6 +262,7 @@ float3 OutgoingDirectionalBounceAndMultiBounceRadiance(
     if (multiBounce)
     {
         bouncePatchIndex = PatchUtil::FindPatchIndex(volumeParams, cellPatchIndices, position, normal);
+        UNITY_OUT_OF_BOUNDS_BRANCH
         if (bouncePatchIndex != PatchUtil::invalidPatchIndex)
             radiance += PatchUtil::EvalIrradiance(patchIrradiances[bouncePatchIndex], normal);
     }

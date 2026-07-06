@@ -1,6 +1,7 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal ps5 switch2
-
 #pragma multi_compile_local SUB_GROUP_SIZE_8 SUB_GROUP_SIZE_16 SUB_GROUP_SIZE_32 SUB_GROUP_SIZE_48 SUB_GROUP_SIZE_64
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
 #ifdef SUB_GROUP_SIZE_8
 #define SUB_GROUP_SIZE 8
@@ -66,6 +67,7 @@ void Defrag(Threading::Group group)
     const uint reclaimableCount = wave.Sum(isReclaimable);
     const uint rightReclaimableCount = reclaimableCount - leftReclaimableCount;
 
+    UNITY_OUT_OF_BOUNDS_BRANCH
     if(patchIdx == config.start)
     {
         _RingConfigBuffer[_RingConfigWriteOffset + RingBuffer::countConfigIndex] = config.count - reclaimableCount;
@@ -73,6 +75,7 @@ void Defrag(Threading::Group group)
         _RingConfigBuffer[_RingConfigWriteOffset + RingBuffer::endConfigIndex] = _RingConfigBuffer[_RingConfigReadOffset + RingBuffer::endConfigIndex];
     }
 
+    UNITY_OUT_OF_BOUNDS_BRANCH
     if(reclaimableCount != 0 && !isReclaimable && isInRingContentRange && isLaneIndexAfterFirstLaneIndexThatIsOutsideContentRange && startEndHazardCheck) {
         uint oldPatchCellIndex = _PatchCellIndices[patchIdx];
         _PatchCellIndices[patchIdx] = PatchUtil::invalidCellIndex;

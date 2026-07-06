@@ -1,7 +1,7 @@
 #ifndef SURFACE_CACHE_PATCH_UTIL
 #define SURFACE_CACHE_PATCH_UTIL
 
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "VectorLogic.hlsl"
 #include "Common.hlsl"
 #include "RingBuffer.hlsl"
@@ -335,6 +335,7 @@ namespace PatchUtil
         bool resultBool = false;
         const uint patchIdx = cellPatchIndices[cellIdx];
         resultIrradiance = (SphericalHarmonics::RGBL1)0; // Setting value only to silence shader compilation warning.
+        UNITY_OUT_OF_BOUNDS_BRANCH
         if (patchIdx != invalidPatchIndex)
         {
             resultIrradiance = patchIrradiances[patchIdx];
@@ -346,6 +347,7 @@ namespace PatchUtil
     uint FindPatchIndex(VolumeParamSet volumeParams, CellPatchIndexBufferType cellPatchIndices, float3 worldPosition, float3 worldNormal)
     {
         VolumePositionResolution posResolution = ResolveVolumePosition(worldPosition, volumeParams);
+        UNITY_OUT_OF_BOUNDS_BRANCH
         if (posResolution.isValid())
         {
             const uint directionIdx = GetDirectionIndex(worldNormal, volumeAngularResolution);

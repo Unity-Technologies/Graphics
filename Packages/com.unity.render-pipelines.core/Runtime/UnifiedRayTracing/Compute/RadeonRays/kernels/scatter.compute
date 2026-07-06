@@ -20,6 +20,8 @@ THE SOFTWARE.
 // WebGPU has extremely strict uniformity requirements that are incompatible with the current implementation of this shader.
 #pragma exclude_renderers webgpu
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
 #define SORT_VALUES
 
 uint g_constants_num_keys;
@@ -34,13 +36,11 @@ uint g_output_values_offset;
 
 RWStructuredBuffer<uint> g_buffer : register(u0);
 
-
 #define NUM_BITS_PER_PASS 4
 #define NUM_BINS (1 << NUM_BITS_PER_PASS)
 #define GROUP_SIZE 256u
 #define KEYS_PER_THREAD 4u
 //#define HISTOGRAM_TYPE short
-#define INT_MAX 0x7fffffff
 
 // Scratch memory for group operations
 groupshared int lds_scratch[GROUP_SIZE];
@@ -135,6 +135,7 @@ void Scatter(
     in uint bidx: SV_GroupID)
 {
     // Cache scanned histogram in LDS and clear block histogram
+    UNITY_OUT_OF_BOUNDS_BRANCH
     if (lidx < NUM_BINS)
     {
         lds_scanned_histogram[lidx] = g_buffer[g_group_histograms_offset + g_constants_num_blocks * lidx + bidx];
@@ -146,6 +147,7 @@ void Scatter(
     for (uint i = 0; i < KEYS_PER_THREAD; ++i)
     {
         // Clear block histogram
+        UNITY_OUT_OF_BOUNDS_BRANCH
         if (lidx < NUM_BINS)
         {
             lds_histogram[lidx] = 0;
@@ -155,9 +157,19 @@ void Scatter(
         uint key_index = block_start_index + i * GROUP_SIZE + lidx;
 
         // Fetch next element and put it in LDS
-        int key = (key_index < g_constants_num_keys) ? g_buffer[g_input_keys_offset + key_index] : INT_MAX;
+        int key;
+        UNITY_OUT_OF_BOUNDS_BRANCH
+        if (key_index < g_constants_num_keys)
+            key = g_buffer[g_input_keys_offset + key_index];
+        else
+            key = INT_MAX;
 #ifdef SORT_VALUES
-        int value = (key_index < g_constants_num_keys) ? g_buffer[g_input_values_offset + key_index] : 0;
+        int value;
+        UNITY_OUT_OF_BOUNDS_BRANCH
+        if (key_index < g_constants_num_keys)
+            value = g_buffer[g_input_values_offset + key_index];
+        else
+            value = 0;
 #endif
 
         // Sort keys locally in LDS
@@ -211,9 +223,16 @@ void Scatter(
         GroupMemoryBarrierWithGroupSync();
 
         // Scan original histogram
-        int histogram_value = BlockScan(lidx < NUM_BINS ? lds_histogram[lidx] : 0, lidx);
+        int blockScanInput;
+        UNITY_OUT_OF_BOUNDS_BRANCH
+        if (lidx < NUM_BINS)
+            blockScanInput = lds_histogram[lidx];
+        else
+            blockScanInput = 0;
+        int histogram_value = BlockScan(blockScanInput, lidx);
 
         // Broadcast scanned histogram via LDS
+        UNITY_OUT_OF_BOUNDS_BRANCH
         if (lidx < NUM_BINS)
         {
             lds_scratch[lidx] = histogram_value;
@@ -228,6 +247,7 @@ void Scatter(
         int local_offset = int(lidx) - lds_scratch[bin_index];
 
         // Write the element back to global memory
+        UNITY_OUT_OF_BOUNDS_BRANCH
         if (global_offset + local_offset < int(g_constants_num_keys))
         {
             g_buffer[g_output_keys_offset + global_offset + local_offset] = key;
@@ -239,6 +259,7 @@ void Scatter(
         GroupMemoryBarrierWithGroupSync();
 
         // Update scanned histogram
+        UNITY_OUT_OF_BOUNDS_BRANCH
         if (lidx < NUM_BINS)
         {
             lds_scanned_histogram[lidx] += lds_histogram[lidx];

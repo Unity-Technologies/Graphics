@@ -36,6 +36,7 @@ void Scroll(uint3 threadId : SV_DispatchThreadID)
 
     // If the old position (in volume space) is outside [0, VolumeSpatialResolution]^3 after the scroll (offsetDelta) has been applied, we know
     // it will no longer be queried, so we can remove it.
+    UNITY_OUT_OF_BOUNDS_BRANCH
     if (any(VECTOR_LOGIC_OR(offsettedOldPositionVolumeSpace < 0, (int)_VolumeSpatialResolution <= offsettedOldPositionVolumeSpace)))
     {
         for (uint directionIdx = 0; directionIdx < PatchUtil::volumeAngularResolution * PatchUtil::volumeAngularResolution; ++directionIdx)
@@ -43,6 +44,7 @@ void Scroll(uint3 threadId : SV_DispatchThreadID)
             const uint cellIdx = PatchUtil::GetCellIndex(cascadeIdx, positionStorageSpace, directionIdx, _VolumeSpatialResolution, PatchUtil::volumeAngularResolution);
             const uint patchIdx = _CellPatchIndices[cellIdx];
 
+            UNITY_OUT_OF_BOUNDS_BRANCH
             if (patchIdx != PatchUtil::invalidCellIndex)
             {
                 _CellAllocationMarks[cellIdx] = 0;

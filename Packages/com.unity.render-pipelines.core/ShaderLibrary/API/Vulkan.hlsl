@@ -27,6 +27,14 @@
 #define UNITY_UNROLLX(_x)   [unroll(_x)]
 #define UNITY_LOOP          [loop]
 
+// In situations where buffer accesses are correctly guarded by an
+// out of bounds check, Unity may perform branch flattening in such
+// a way that the out of bounds access happens regardless. This is
+// valid in some languages (e.g. HLSL) but not in others (e.g. MSL)
+// where it causes undefined behavior. See UUM-126860 for more
+// details. As a workaround you may use this macro.
+#define UNITY_OUT_OF_BOUNDS_BRANCH [branch]
+
 // Initialize arbitrary structure with zero values.
 // Do not exist on some platform, in this case we need to have a standard name that call a function that will initialize all parameters to 0
 #define ZERO_INITIALIZE(type, name) name = (type)0;
@@ -175,7 +183,7 @@
 float4 ApplyPretransformRotation(float4 positionCS)
 {
     if (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM == UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_90)
-    { 
+    {
         positionCS.xy = float2(positionCS.y, -positionCS.x);
     }
     else if (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM == UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_180)
@@ -186,23 +194,23 @@ float4 ApplyPretransformRotation(float4 positionCS)
     {
         positionCS.xy = float2(-positionCS.y, positionCS.x);
     }
-    
+
     return positionCS;
 }
 
 // When sampling global textures (AO, depth, normals, etc.) with a shader targeting the backbuffer, the textures are in the logical rotation
-// but the sampling UVs are in the physical orientation. Use this to correct sampling UVs, if UVs are calculated 
-// by using SV_Position and screenParams. 
+// but the sampling UVs are in the physical orientation. Use this to correct sampling UVs, if UVs are calculated
+// by using SV_Position and screenParams.
 float2 RemovePretransformRotation(float2 uv, float4 screenParam)
 {
     float2 result = uv;
     // Handle extents swaps for right/left landscape (90/270° rotation)
-    // The screenParam.zw = 1 + rcp(screenParam.xy), so rcp(x) = z - 1.0 and rcp(y) = w - 1.0 
+    // The screenParam.zw = 1 + rcp(screenParam.xy), so rcp(x) = z - 1.0 and rcp(y) = w - 1.0
     float widthOverHeight = screenParam.x * (screenParam.w - 1.0); // x/y
     float heightOverWidth = screenParam.y * (screenParam.z - 1.0); // y/x
 
     if (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM == UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_90)
-    {   
+    {
         result = float2((1.0 - uv.y) * heightOverWidth, uv.x * widthOverHeight);
     }
     else if (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM == UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_180)
@@ -225,12 +233,12 @@ float2 RemovePretransformRotation(float2 positionNDC)
 #else
     float scale = -1.0;
 #endif
-    
+
     // Shift to origin, and undo the Y-flip so rotation is axis-aligned
     float2 hc = float2(positionNDC.x - 0.5, (positionNDC.y - 0.5) * scale);
 
     if (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM == UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_90)
-    {   
+    {
         hc = float2(-hc.y, hc.x);
     }
     else if (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM == UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_180)

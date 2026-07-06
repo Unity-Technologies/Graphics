@@ -1,6 +1,7 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal ps5 switch2
 #pragma kernel Evict
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "PatchUtil.hlsl"
 
 StructuredBuffer<uint> _RingConfigBuffer;
@@ -46,5 +47,4 @@ void Evict(uint patchIdx : SV_DispatchThreadID)
             _CellPatchIndices[cellIdx] = PatchUtil::invalidPatchIndex;
         }
     }
-
 }

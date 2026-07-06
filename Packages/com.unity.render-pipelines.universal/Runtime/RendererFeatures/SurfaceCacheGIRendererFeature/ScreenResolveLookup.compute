@@ -2,7 +2,7 @@
 
 #pragma kernel Lookup
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/Common.hlsl"
@@ -73,6 +73,7 @@ void Lookup(uint2 lowResPixelPos : SV_DispatchThreadID)
     float weightSum = 0.0f;
     {
         uint patchIdx = PatchUtil::FindPatchIndexAndUpdateLastAccess(volumeParams, _CellPatchIndices, _PatchStatistics, worldPos, worldNormal, _FrameIdx);
+        UNITY_OUT_OF_BOUNDS_BRANCH
         if (patchIdx != PatchUtil::invalidPatchIndex)
         {
             const float weight = 0.01f;
