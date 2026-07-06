@@ -197,10 +197,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Create()
         {
-            TryPrepareResources();
-
-            // Create the passes
-            if (m_RasterizationShader != null)
+            if (TryPrepareResources())
             {
                 m_AAOPass = new AAOPass(m_RasterizationShader, m_BlueNoise256Textures);
 #if MODERN_SSAO
@@ -358,14 +355,19 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        void TryPrepareResources()
+        bool TryPrepareResources()
         {
             if (m_RasterizationShader == null)
             {
+                // Create() runs even for disabled features, whose resources are stripped from the build; bail
+                // out rather than dereferencing them, and only flag missing resources on an active feature.
                 if (!GraphicsSettings.TryGetRenderPipelineSettings<ScreenSpaceAmbientOcclusionCoreResources>(out var ssaoCoreResources))
                 {
-                    Debug.LogErrorFormat(
-                        $"Couldn't find the required resources for the {nameof(ScreenSpaceAmbientOcclusion)} render feature. If this exception appears in the Player, make sure at least one {nameof(ScreenSpaceAmbientOcclusion)} render feature is enabled or adjust your stripping settings.");
+                    if (isActive)
+                        Debug.LogErrorFormat(
+                            $"Couldn't find the required resources for the {nameof(ScreenSpaceAmbientOcclusion)} render feature. If this exception appears in the Player, make sure at least one {nameof(ScreenSpaceAmbientOcclusion)} render feature is enabled or adjust your stripping settings.");
+
+                    return false;
                 }
 
                 m_RasterizationShader = ssaoCoreResources.RasterizationShader;
@@ -376,6 +378,8 @@ namespace UnityEngine.Rendering.Universal
                 if (GraphicsSettings.TryGetRenderPipelineSettings<ScreenSpaceAmbientOcclusionBlueNoiseResources>(out var ssaoBlueNoiseResources))
                     m_BlueNoise256Textures = ssaoBlueNoiseResources.BlueNoise256Textures;
             }
+
+            return m_RasterizationShader != null;
         }
     }
 }
