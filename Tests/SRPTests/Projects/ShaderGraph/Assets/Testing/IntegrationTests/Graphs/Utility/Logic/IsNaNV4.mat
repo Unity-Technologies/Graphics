@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 7
+  version: 10
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
@@ -21,8 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: IsNaNV4
-  m_Shader: {fileID: -6465566751694194690, guid: a8cdd79600a6a764f91d4a1c1847ecb2,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: a8cdd79600a6a764f91d4a1c1847ecb2, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -32,7 +31,8 @@ Material:
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
-  disabledShaderPasses: []
+  disabledShaderPasses:
+  - MOTIONVECTORS
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -57,3 +57,4 @@ Material:
     - Vector4_6243F486: {r: 0, g: 5, b: 2, a: 6}
     - Vector4_B790DDF1: {r: 0, g: 1, b: 4, a: 3}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1

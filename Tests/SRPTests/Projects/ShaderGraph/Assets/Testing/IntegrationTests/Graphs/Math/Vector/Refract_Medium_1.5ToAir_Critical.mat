@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 6
+  version: 10
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
@@ -31,12 +31,17 @@ Material:
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
-  disabledShaderPasses: []
+  disabledShaderPasses:
+  - MOTIONVECTORS
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
     - _SampleCubemap_ea1d1d826a3a477fa4529558f691a0c1_Cube_1:
+        m_Texture: {fileID: 8900000, guid: e38e3a1c6e553244f848c69129f52d31, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleCubemap_ea1d1d826a3a477fa4529558f691a0c1_Cube_1_Cubemap:
         m_Texture: {fileID: 8900000, guid: e38e3a1c6e553244f848c69129f52d31, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -61,3 +66,4 @@ Material:
     - _SafeMode: 0
     m_Colors: []
   m_BuildTextureStacks: []
+  m_AllowLocking: 1

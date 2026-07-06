@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
   m_Name: 200_SSAO
   m_EditorClassIdentifier: 
-  k_AssetVersion: 12
-  k_AssetPreviousVersion: 12
+  k_AssetVersion: 13
+  k_AssetPreviousVersion: 13
   m_RendererType: 1
   m_RendererData: {fileID: 0}
   m_RendererDataList:
@@ -55,6 +55,7 @@ MonoBehaviour:
   m_AdditionalLightsShadowResolutionTierHigh: 2048
   m_ReflectionProbeBlending: 0
   m_ReflectionProbeBoxProjection: 0
+  m_ReflectionProbeAtlas: 1
   m_ShadowDistance: 56
   m_ShadowCascadeCount: 4
   m_Cascade2Split: 0.25
@@ -75,7 +76,6 @@ MonoBehaviour:
   m_MixedLightingSupported: 0
   m_SupportsLightCookies: 0
   m_SupportsLightLayers: 0
-  m_DebugLevel: 0
   m_StoreActionsOptimization: 0
   m_UseAdaptivePerformance: 1
   m_ColorGradingMode: 0
@@ -86,6 +86,7 @@ MonoBehaviour:
   m_SupportScreenSpaceLensFlare: 1
   m_GPUResidentDrawerMode: 0
   m_SmallMeshScreenPercentage: 0
+  m_ShadowSmallMeshScreenPercentages: {x: 0, y: 0, z: 0, w: 0}
   m_GPUResidentDrawerEnableOcclusionCullingInCameras: 0
   m_ShadowType: 0
   m_LocalShadowsSupported: 1
@@ -108,6 +109,8 @@ MonoBehaviour:
   m_PrefilteringModeForwardPlus: 0
   m_PrefilteringModeDeferredRendering: 1
   m_PrefilteringModeScreenSpaceOcclusion: 2
+  m_PrefilteringModeScreenSpaceReflection: 1
+  m_PrefilterWriteSmoothness: 1
   m_PrefilterDebugKeywords: 1
   m_PrefilterWriteRenderingLayers: 1
   m_PrefilterHDROutput: 1
@@ -129,8 +132,17 @@ MonoBehaviour:
   m_PrefilterSoftShadowsQualityHigh: 1
   m_PrefilterSoftShadows: 0
   m_PrefilterScreenCoord: 1
+  m_PrefilterScreenSpaceIrradiance: 0
   m_PrefilterNativeRenderPass: 0
   m_PrefilterUseLegacyLightmaps: 0
+  m_PrefilterBicubicLightmapSampling: 0
+  m_PrefilterReflectionProbeRotation: 0
+  m_PrefilterReflectionProbeBlending: 0
+  m_PrefilterReflectionProbeBoxProjection: 0
+  m_PrefilterReflectionProbeAtlas: 0
+  m_PrefilterPointSamplingUpsampling: 0
+  m_Light2DPrefilteringMode: 0
+  m_Light2DKeptVariantCombos: []
   m_ShaderVariantLogLevel: 0
   m_ShadowCascades: 3
   m_Textures:

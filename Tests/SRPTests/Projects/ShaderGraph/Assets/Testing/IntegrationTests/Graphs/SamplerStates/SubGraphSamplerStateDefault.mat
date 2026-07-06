@@ -12,31 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 6
+  version: 10
 --- !u!21 &2100000
 Material:
-  serializedVersion: 7
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: SubGraphSamplerStateDefault
-  m_Shader: {fileID: -6465566751694194690, guid: 21283ed0eb36add42ae1aa3a17a42d0f,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 21283ed0eb36add42ae1aa3a17a42d0f, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ShaderKeywords: 
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
-  disabledShaderPasses: []
+  disabledShaderPasses:
+  - MOTIONVECTORS
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
     - _SubGraphSamplerStateDefault_e28b342dc4054cc499058ebb8f4c4c62_Texture2D6304f4c713004a498b0955d2e0de0278_2234080184:
+        m_Texture: {fileID: 2800000, guid: d2be28188f7455b4bbef6bda86eb7410, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SubGraphSamplerStateDefault_e28b342dc4054cc499058ebb8f4c4c62_Texture2D6304f4c713004a498b0955d2e0de0278_2234080184_Texture2D:
         m_Texture: {fileID: 2800000, guid: d2be28188f7455b4bbef6bda86eb7410, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -58,3 +63,4 @@ Material:
     - _QueueOffset: 0
     m_Colors: []
   m_BuildTextureStacks: []
+  m_AllowLocking: 1

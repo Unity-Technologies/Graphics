@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 9
+  version: 10
 --- !u!114 &-3145512810169390853
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -34,8 +34,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: ReferenceSampleGI
-  m_Shader: {fileID: -6465566751694194690, guid: f18e1f10ac6ee2c4f8d19f765eb24211,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: f18e1f10ac6ee2c4f8d19f765eb24211, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
