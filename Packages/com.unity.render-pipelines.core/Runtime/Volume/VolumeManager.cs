@@ -641,6 +641,7 @@ namespace UnityEngine.Rendering
         {
             var components = volume.profileRef.components;
             var numComponents = components.Count;
+            bool hasOverridingSceneObject = volume.sceneObjectReference is { overrideState: true };
             for (int i = 0; i < numComponents; i++)
             {
                 var component = components[i];
@@ -651,6 +652,13 @@ namespace UnityEngine.Rendering
                 if (state != null)
                 {
                     component.Override(state, interpFactor);
+
+                    // Record the overriding Volume per component type when this Volume's scene object reference
+                    // overrides. The type is taken from the component being applied (so it respects component.active),
+                    // not stored on the reference. Volumes are applied in ascending priority, so the highest-priority
+                    // overriding Volume wins; a non-overriding Volume is skipped, letting a lower-priority one pass through.
+                    if (hasOverridingSceneObject && interpFactor > 0f)
+                        stack.SetOverridingVolume(component.GetType(), volume);
                 }
             }
 
@@ -667,6 +675,9 @@ namespace UnityEngine.Rendering
         internal void ReplaceData(VolumeStack stack)
         {
             using var profilerScope = k_ProfilerMarkerReplaceData.Auto();
+
+            // Rebuilt every frame as volumes are re-applied; never holds stale/destroyed Volume references.
+            stack.ClearOverridingVolumes();
 
             var stackParams = stack.parameters;
             bool resetAllParameters = stack.requiresResetForAllProperties;

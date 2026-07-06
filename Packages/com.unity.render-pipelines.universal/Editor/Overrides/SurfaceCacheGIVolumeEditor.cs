@@ -29,10 +29,18 @@ namespace UnityEditor.Rendering.Universal
         protected SerializedDataParameter m_VolumeResolution;
         protected SerializedDataParameter m_VolumeCascadeCount;
 
-        protected SerializedDataParameter m_CascadeMovement;
-
         protected SerializedDataParameter m_DefragCount;
         protected SerializedDataParameter m_RenderingLayerMask;
+
+        // The Focus Target is serialized on the owning Volume's GameObject (Volume.m_SceneObjectReference), not in
+        // the profile, so it is edited through this SerializedObject rather than a SerializedDataParameter.
+        const string k_ReferenceProp = "m_SceneObjectReference";
+        const string k_OverrideStateProp = "m_OverrideState";
+        const string k_ValueProp = "m_Value";
+        // Mirror VolumeComponentEditor's override-checkbox gutter so the Focus Target row aligns with parameter rows.
+        const float k_OverrideCheckboxWidth = 14f;
+        const float k_OverrideCheckboxOffset = 9f;
+        SerializedObject m_VolumeSerializedObject;
 
         static GUIContent s_Enabled = EditorGUIUtility.TrTextContent("Enabled", "Enables Surface Cache Global Illumination. When disabled, the feature performs no work.");
         static GUIContent s_Quality = EditorGUIUtility.TrTextContent("Quality", "Quality preset for Surface Cache GI. Select Custom to manually adjust individual parameters.");
@@ -50,14 +58,16 @@ namespace UnityEditor.Rendering.Universal
         static GUIContent s_VolumeSize = EditorGUIUtility.TrTextContent("Size", "Size of the surface cache volume in world units. Can be changed at runtime without a performance hitch.");
         static GUIContent s_VolumeResolution = EditorGUIUtility.TrTextContent("Resolution", "Spatial resolution of the volume grid. Higher values improve spatial detail but use more memory. Changing at runtime can cause a performance hitch if internal buffers are reallocated.");
         static GUIContent s_VolumeCascadeCount = EditorGUIUtility.TrTextContent("Cascade Count", "Number of volume cascades. More cascades extend the volume's effective range. Changing at runtime can cause a performance hitch if internal buffers are reallocated.");
-        static GUIContent s_CascadeMovement = EditorGUIUtility.TrTextContent("Cascade Movement", "Enable volume cascades to follow the camera.");
+        static GUIContent s_FocusTarget = EditorGUIUtility.TrTextContent("Focus Target", "GameObject the Surface Cache GI cascades center on. When unset, cascades follow the active camera. Stored on the Volume component, not in the shared Volume Profile.");
+        static GUIContent s_FocusTargetProfile = EditorGUIUtility.TrTextContent("Focus Target", "GameObject the Surface Cache GI cascades center on. When unset, cascades follow the active camera. Requires a scene object reference, so it cannot be stored in the Volume Profile. Assign it on the Volume component in your scene.");
+        static GUIContent s_FocusTargetProfileValue = EditorGUIUtility.TrTextContent("Scene object, set per Volume");
 
         // Section header labels with tooltips
         static GUIContent s_LightTransportHeader = EditorGUIUtility.TrTextContent("Light Transport", "Controls how many rays are cast per patch to estimate indirect lighting. More samples reduce variance but increase GPU cost per frame.");
         static GUIContent s_PatchFilteringHeader = EditorGUIUtility.TrTextContent("Patch Filtering", "Controls how patch irradiance data is filtered over time and space. These settings trade temporal stability and spatial smoothness against responsiveness to lighting changes and light leaking.");
         static GUIContent s_ScreenFilteringHeader = EditorGUIUtility.TrTextContent("Screen Filtering", "Controls how the low-resolution patch irradiance is resolved and upsampled to full screen resolution. These settings affect the final image quality and sharpness of the GI contribution.");
         static GUIContent s_VolumeConfigurationHeader = EditorGUIUtility.TrTextContent("Volume Configuration", "Defines the spatial extent and grid density of the surface cache volume. Size can be changed freely at runtime. Resolution and cascade count changes reallocate internal buffers, which may cause a brief hitch.");
-        static GUIContent s_VolumeBehaviorHeader = EditorGUIUtility.TrTextContent("Volume Behavior", "Controls how the volume cascades move relative to the camera during gameplay.");
+        static GUIContent s_VolumeBehaviorHeader = EditorGUIUtility.TrTextContent("Volume Behavior", "Controls what the volume cascades follow.");
         static GUIContent s_DefragCount = EditorGUIUtility.TrTextContent("Defrag Count", "Number of surface cache patches to defragment per frame. Higher values reduce memory fragmentation at a small per-frame cost.");
         static GUIContent s_RenderingLayerMask = EditorGUIUtility.TrTextContent("Rendering Layer Mask", "Only renderers whose Rendering Layer Mask intersects this mask contribute to Surface Cache GI.");
 
@@ -80,7 +90,6 @@ namespace UnityEditor.Rendering.Universal
             m_VolumeSize = Unpack(o.Find(obj => obj.volumeSize));
             m_VolumeResolution = Unpack(o.Find(obj => obj.volumeResolution));
             m_VolumeCascadeCount = Unpack(o.Find(obj => obj.volumeCascadeCount));
-            m_CascadeMovement = Unpack(o.Find(obj => obj.cascadeMovement));
             m_DefragCount = Unpack(o.Find(obj => obj.defragCount));
             m_RenderingLayerMask = Unpack(o.Find(obj => obj.renderingLayerMask));
 
@@ -91,6 +100,12 @@ namespace UnityEditor.Rendering.Universal
         public override void OnDisable()
         {
             ((SurfaceCacheGIVolumeOverride)target).propertyChanged -= MarkQualityDirty;
+
+            if (m_VolumeSerializedObject != null)
+            {
+                m_VolumeSerializedObject.Dispose();
+                m_VolumeSerializedObject = null;
+            }
         }
 
         public override void OnInspectorGUI()
@@ -153,10 +168,8 @@ namespace UnityEditor.Rendering.Universal
             PropertyField(m_VolumeResolution, s_VolumeResolution);
             PropertyField(m_VolumeCascadeCount, s_VolumeCascadeCount);
 
-            // Volume Behavior (always editable, not affected by quality preset)
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(s_VolumeBehaviorHeader, EditorStyles.boldLabel);
-            PropertyField(m_CascadeMovement, s_CascadeMovement);
+            // Volume Behavior section
+            DrawFocusTarget();
 
             if (showAdditionalProperties)
             {
@@ -167,6 +180,67 @@ namespace UnityEditor.Rendering.Universal
             }
 
             EditorGUI.EndDisabledGroup();
+        }
+
+        // Focus Target is bound to the owning Volume's GameObject instead of the shared profile. When editing
+        // the Profile asset there is no GameObject to store Focus Target on and nothing is drawn.
+        void DrawFocusTarget()
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(s_VolumeBehaviorHeader, EditorStyles.boldLabel);
+
+            const float gutter = k_OverrideCheckboxWidth + k_OverrideCheckboxOffset;
+
+            // When not in scene context, display a read-only UI.
+            if (volume == null)
+            {
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    EditorGUIUtility.labelWidth -= gutter + 3 + 3;
+                    // Override checkboxes are shown in Asset editor but not in Graphics Settings - special handling
+                    // needed to align the property label correctly.
+                    if (enableOverrides)
+                    {
+                        EditorGUILayout.BeginHorizontal();
+                        GUILayoutUtility.GetRect(gutter, EditorGUIUtility.singleLineHeight, GUILayout.ExpandWidth(false));
+                        EditorGUILayout.LabelField(s_FocusTargetProfile, s_FocusTargetProfileValue);
+                        EditorGUILayout.EndHorizontal();
+                    }
+                    else
+                    {
+                        EditorGUILayout.LabelField(s_FocusTargetProfile, s_FocusTargetProfileValue);
+                    }
+                    EditorGUIUtility.labelWidth += gutter + 3 + 3;
+                }
+                return;
+            }
+
+            if (m_VolumeSerializedObject == null || m_VolumeSerializedObject.targetObject != volume)
+                m_VolumeSerializedObject = new SerializedObject(volume);
+
+            m_VolumeSerializedObject.Update();
+            var reference = m_VolumeSerializedObject.FindProperty(k_ReferenceProp);
+            var overrideState = reference.FindPropertyRelative(k_OverrideStateProp);
+            var value = reference.FindPropertyRelative(k_ValueProp);
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.BeginHorizontal();
+
+            float rowHeight = EditorGUI.GetPropertyHeight(value) + EditorGUIUtility.standardVerticalSpacing;
+            var toggleSize = CoreEditorStyles.smallTickbox.CalcSize(GUIContent.none);
+            var toggleRect = GUILayoutUtility.GetRect(gutter, rowHeight, GUILayout.ExpandWidth(false));
+            toggleRect.yMin += rowHeight * 0.5f - toggleSize.y * 0.5f;
+            toggleRect.xMin += k_OverrideCheckboxOffset;
+            overrideState.boolValue = GUI.Toggle(toggleRect, overrideState.boolValue, GUIContent.none, CoreEditorStyles.smallTickbox);
+
+            EditorGUIUtility.labelWidth -= gutter + 3 + 3;
+            using (new EditorGUI.DisabledScope(!overrideState.boolValue))
+                EditorGUILayout.PropertyField(value, s_FocusTarget);
+            EditorGUIUtility.labelWidth += gutter + 3 + 3;
+
+            EditorGUILayout.EndHorizontal();
+            if (EditorGUI.EndChangeCheck())
+                m_VolumeSerializedObject.ApplyModifiedProperties();
         }
 
         private void MarkQualityDirty()

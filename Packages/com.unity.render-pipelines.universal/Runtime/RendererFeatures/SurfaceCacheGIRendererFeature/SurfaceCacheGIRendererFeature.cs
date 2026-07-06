@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
+using Unity.RenderPipelines.Core.Runtime.Shared;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.PathTracing.Core;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -130,6 +131,12 @@ namespace UnityEngine.Rendering.Universal
             return camera.cullingMask != 0;
         }
 
+        static Vector3 ResolveFocusPos(Camera camera)
+        {
+            GameObject focusTarget = VolumeManager.instance.stack?.GetSceneObjectReference<SurfaceCacheGIVolumeOverride>();
+            return focusTarget != null ? focusTarget.transform.position : camera.transform.position;
+        }
+
         private static VolumeParameterSet GetVolumeParametersOrDefaults(SurfaceCacheGIVolumeOverride volume)
         {
             if (volume != null)
@@ -156,7 +163,6 @@ namespace UnityEngine.Rendering.Universal
                         UpsamplingKernelSize = volume.upsamplingKernelSize.value,
                         UpsamplingSampleCount = (uint)volume.upsamplingSampleCount.value,
                     },
-                    CascadeMovement = volume.cascadeMovement.value,
                     VolumeSize = volume.volumeSize.value,
                     VolumeResolution = (uint)volume.volumeResolution.value,
                     VolumeCascadeCount = (uint)volume.volumeCascadeCount.value,
@@ -187,7 +193,6 @@ namespace UnityEngine.Rendering.Universal
                     UpsamplingKernelSize = DEFAULT_UPSAMPLING_KERNEL_SIZE,
                     UpsamplingSampleCount = DEFAULT_UPSAMPLING_SAMPLE_COUNT,
                 },
-                CascadeMovement = true,
                 VolumeSize = DEFAULT_VOLUME_SIZE,
                 VolumeResolution = DEFAULT_VOLUME_RESOLUTION,
                 VolumeCascadeCount = DEFAULT_VOLUME_CASCADE_COUNT,
@@ -547,8 +552,7 @@ namespace UnityEngine.Rendering.Universal
                 var flatNormalsHandle = RecordFlatNormalResolution(renderGraph, cameraInfo, resourceData.cameraDepthTexture);
                 CurrentPerCameraState.FlatNormalsHandle = flatNormalsHandle;
 
-                if (VolumeParams.CascadeMovement || CurrentPerCameraState.FrameIndex == 0)
-                    cache.Volume.TargetPos = FocusPos;
+                cache.Volume.TargetPos = FocusPos;
 
                 cache.RecordPreparation(renderGraph, CurrentPerCameraState.FrameIndex);
 
@@ -1075,7 +1079,6 @@ namespace UnityEngine.Rendering.Universal
             public SurfaceCacheEstimationParameterSet EstimationParams;
             public SurfaceCachePatchFilteringParameterSet PatchFilteringParams;
             public SurfaceCacheScreenFilteringParameterSet ScreenFilteringParams;
-            public bool CascadeMovement;
             public float VolumeSize;
             public uint VolumeResolution;
             public uint VolumeCascadeCount;
@@ -1286,7 +1289,7 @@ namespace UnityEngine.Rendering.Universal
 
             _driverPass.CurrentPerCameraState = perCameraState;
             _driverPass.VolumeParams = volumeParams;
-            _driverPass.FocusPos = camera.transform.position;
+            _driverPass.FocusPos = ResolveFocusPos(camera);
             _driverPass.ConfigureInput(driverInputs);
             renderer.EnqueuePass(_driverPass);
 

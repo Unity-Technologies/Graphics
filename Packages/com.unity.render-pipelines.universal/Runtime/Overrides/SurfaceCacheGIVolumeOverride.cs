@@ -112,15 +112,6 @@ namespace UnityEngine.Rendering.Universal
         public ClampedIntParameter volumeCascadeCount = new ClampedIntParameter(4, 1, 8);
 
         // =======================
-        // Volume Behavior
-        // =======================
-
-        /// <summary>
-        /// Enable volume cascades to follow the camera.
-        /// </summary>
-        public BoolParameter cascadeMovement = new BoolParameter(true);
-
-        // =======================
         // Advanced Properties
         // =======================
 
