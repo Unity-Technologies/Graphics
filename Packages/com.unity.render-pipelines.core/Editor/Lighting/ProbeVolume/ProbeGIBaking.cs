@@ -1930,7 +1930,7 @@ namespace UnityEngine.Rendering
             if (Lightmapping.isRunning || AdaptiveProbeVolumes.isRunning || !PrepareBaking(BakeType.ApvOnly, DoProbePlacement, AdditionalGIBakeRequestsManager.GetProbeNormalizationRequests))
                 return false;
 
-            _asyncBakeTaskId = Progress.Start("Bake Adaptive Probe Volumes");
+            _asyncBakeTaskId = Progress.Start("Bake Adaptive Probe Volumes", options: Progress.Options.Synchronous);
             Progress.RegisterCancelCallback(_asyncBakeTaskId, () =>
             {
                 OnBakeCancelled();
