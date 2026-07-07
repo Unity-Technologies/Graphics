@@ -1,10 +1,8 @@
-# Custom Interpolator reference
+# Custom Interpolator block node reference
 
-Transfer custom data from the vertex stage to the fragment stage.
+Pass per-vertex data from the vertex stage to the fragment stage through a [Custom Interpolator node](Custom-Interpolator-node-reference.md).
 
-You first create a custom interpolator block node in the Vertex context. You can then add a custom interpolator node in the workspace and connect it to a block node in the Fragment context.
-
-The following descriptions and settings apply to both the Vertex block and the Fragment node.
+To complete the setup, you need to [add a Custom interpolator](Custom-Interpolators.md) that corresponds to the Custom Interpolator block node.
 
 ## Settings
 
@@ -18,3 +16,4 @@ The following descriptions and settings apply to both the Vertex block and the F
 
 * [Built-in blocks](Built-In-Blocks.md)
 * [Add a custom interpolator](Custom-Interpolators.md)
+* [Custom Interpolator node reference](Custom-Interpolator-node-reference.md)
