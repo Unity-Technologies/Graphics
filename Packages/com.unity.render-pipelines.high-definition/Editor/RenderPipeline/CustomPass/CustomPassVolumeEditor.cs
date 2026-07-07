@@ -311,7 +311,15 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CustomPassList.onRemoveCallback = (list) =>
             {
                 foreach (int index in list.selectedIndices)
+                {
+                    // Give the pass an opportunity to free its GPU resources here on the
+                    // main thread. This is the deterministic replacement for the old ~CustomPass()
+                    // finalizer, which ran Cleanup() on the finalizer thread where the main-thread
+                    // Unity APIs it uses are illegal.
+                    m_Volume.customPasses[index]?.CleanupPassInternal();
                     passList.DeleteArrayElementAtIndex(index);
+                }
+
                 serializedObject.ApplyModifiedProperties();
                 ClearCustomPassCache();
             };

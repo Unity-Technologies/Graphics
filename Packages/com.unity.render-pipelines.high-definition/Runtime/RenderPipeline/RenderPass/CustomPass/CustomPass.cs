@@ -384,12 +384,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void InternalAggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera) => AggregateCullingParameters(ref cullingParameters, hdCamera);
 
-        /// <summary>
-        /// Cleans up the custom pass when Unity destroys it unexpectedly. Currently, this happens every time you edit
-        /// the UI because of a bug with the SerializeReference attribute.
-        /// </summary>
-        ~CustomPass() { CleanupPassInternal(); }
-
         internal void CleanupPassInternal()
         {
             if (isSetup)
