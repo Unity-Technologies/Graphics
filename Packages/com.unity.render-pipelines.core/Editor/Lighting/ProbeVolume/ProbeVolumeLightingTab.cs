@@ -325,7 +325,7 @@ namespace UnityEngine.Rendering
             if (AdaptiveProbeVolumes.isRunning)
             {
                 if (GUILayout.Button(Styles.cancelBake, Styles.buttonStyle))
-                    AdaptiveProbeVolumes.Cancel();
+                    EditorApplication.delayCall += () => AdaptiveProbeVolumes.Cancel();
                 return;
             }
 
@@ -888,7 +888,7 @@ namespace UnityEngine.Rendering
             if (AdaptiveProbeVolumes.isRunning)
             {
                 if (GUILayout.Button(Styles.cancelBake))
-                    AdaptiveProbeVolumes.Cancel();
+                    EditorApplication.delayCall += () => AdaptiveProbeVolumes.Cancel();
             }
             else
             {
