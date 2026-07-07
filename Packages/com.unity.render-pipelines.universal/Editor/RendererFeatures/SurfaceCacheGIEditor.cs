@@ -68,6 +68,9 @@ namespace UnityEditor.Rendering.Universal
             if (!m_IsInitialized)
                 Init();
 
+            if (!SurfaceCacheGISupport.IsSupportedByActiveBuildTarget())
+                EditorGUILayout.HelpBox(SurfaceCacheGISupport.k_UnsupportedMessage, MessageType.Warning);
+
             if (PlayerSettings.GetStaticBatchingForPlatform(EditorUserBuildSettings.activeBuildTarget))
             {
                 var surfaceCacheFeature = (SurfaceCacheGIRendererFeature)target;
