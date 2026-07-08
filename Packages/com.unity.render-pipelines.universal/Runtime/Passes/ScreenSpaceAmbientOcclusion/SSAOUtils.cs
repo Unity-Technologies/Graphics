@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.Universal
                 sampleCountLow = settings.Samples == ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Low;
 
 #if MODERN_SSAO
-                isGTAOMode = settings.Mode != ScreenSpaceAmbientOcclusionMode.Standard;
+                isGTAOMode = settings.Mode != ScreenSpaceAmbientOcclusionMode.SSAO;
 
                 if (isGTAOMode)
                 {
@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.Universal
                 else
                 {
 #endif
-                    // Standard mode
+                    // SSAO mode
                     bool isUsingDepthNormals = settings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
                     aoBlueNoise = settings.AOMethod == ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise;
                     aoInterleavedGradient = settings.AOMethod == ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.InterleavedGradient;

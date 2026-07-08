@@ -34,18 +34,18 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal bool AfterOpaque = false;
         [SerializeField] internal DepthSource Source = DepthSource.DepthNormals;
         [SerializeField] internal NormalQuality NormalSamples = NormalQuality.Medium;
-        [SerializeField] internal float Intensity = 3.0f;
+        [SerializeField][Min(0f)] internal float Intensity = 3.0f;
         [SerializeField] internal float DirectLightingStrength = 0.25f;
-        [SerializeField] internal float Radius = 0.035f;
+        [SerializeField][Min(0f)] internal float Radius = 0.035f;
         [SerializeField] internal AOSampleOption Samples = AOSampleOption.Medium;
         [SerializeField] internal BlurQualityOptions BlurQuality = BlurQualityOptions.High;
-        [SerializeField] internal float Falloff = 100f;
+        [SerializeField][Min(0f)] internal float Falloff = 100f;
 
         // Legacy. Kept to migrate users over to use Samples instead.
         [SerializeField] internal int SampleCount = -1;
 
 #if MODERN_SSAO
-        [SerializeField] internal ScreenSpaceAmbientOcclusionMode Mode = ScreenSpaceAmbientOcclusionMode.Standard;
+        [SerializeField] internal ScreenSpaceAmbientOcclusionMode Mode = ScreenSpaceAmbientOcclusionMode.SSAO;
 
         // GTAO Mode Parameters
         [SerializeField] internal int GTAOMinimumRadiusInPixels = 40;
@@ -191,7 +191,9 @@ namespace UnityEngine.Rendering.Universal
             public bool isDepthNormalsSource;
             public RenderPassEvent passEvent;
             public ScriptableRenderPassInput requirements;
+#if !MODERN_SSAO
             public ScreenSpaceAmbientOcclusionSettings.DepthSource effectiveDepthSource;
+#endif
         }
 
         /// <inheritdoc/>
@@ -230,41 +232,31 @@ namespace UnityEngine.Rendering.Universal
             if (m_AAOPass == null)
                 return;
 
-#if MODERN_SSAO
-            // To preserve backward compatibility with existing renderer feature setups, the volume only takes over when any parameter overriden.
-            var ssaoVolume = VolumeManager.instance.stack.GetComponent<ScreenSpaceAmbientOcclusionVolumeOverride>();
-            bool useVolume = ssaoVolume.AnyPropertiesIsOverridden();
-#endif
-
             bool usesDeferred = renderer is UniversalRenderer { usesDeferredLighting: true };
             bool shouldAdd;
             FeatureSettings resolvedSettings;
             ScriptableRenderPass activePass;
 
 #if MODERN_SSAO
-            if (useVolume)
-            {
-                resolvedSettings = ResolveFeatureSettings(ssaoVolume, usesDeferred);
-                bool useGTAO = !ssaoVolume.IsStandardMode();
+            // SSAO is driven exclusively by the volume stack; the feature settings are an inert data reference.
+            var ssaoVolume = VolumeManager.instance.stack.GetComponent<ScreenSpaceAmbientOcclusionVolumeOverride>();
+            resolvedSettings = ResolveFeatureSettings(ssaoVolume, usesDeferred);
 
-                if (useGTAO)
-                {
-                    shouldAdd = m_GTAOPass.Setup(ssaoVolume);
-                    activePass = m_GTAOPass;
-                }
-                else
-                {
-                    shouldAdd = m_AAOPass.Setup(ssaoVolume, usesDeferred);
-                    activePass = m_AAOPass;
-                }
+            if (!ssaoVolume.IsSSAOMode())
+            {
+                shouldAdd = m_GTAOPass.Setup(ssaoVolume);
+                activePass = m_GTAOPass;
             }
             else
-#endif
             {
-                resolvedSettings = ResolveFeatureSettings(m_Settings, usesDeferred);
-                shouldAdd = m_AAOPass.Setup(m_Settings, resolvedSettings.effectiveDepthSource);
+                shouldAdd = m_AAOPass.Setup(ssaoVolume, usesDeferred);
                 activePass = m_AAOPass;
             }
+#else
+            resolvedSettings = ResolveFeatureSettings(m_Settings, usesDeferred);
+            shouldAdd = m_AAOPass.Setup(m_Settings, resolvedSettings.effectiveDepthSource);
+            activePass = m_AAOPass;
+#endif
 
             if (!shouldAdd)
                 return;
@@ -314,7 +306,7 @@ namespace UnityEngine.Rendering.Universal
                 : (featureSettings.afterOpaque ? RenderPassEvent.BeforeRenderingTransparents : RenderPassEvent.AfterRenderingPrePasses + 1);
 
             featureSettings.requirements = ScriptableRenderPassInput.Depth;
-            bool isGTAO = !volume.IsStandardMode();
+            bool isGTAO = !volume.IsSSAOMode();
             featureSettings.isDepthNormalsSource = isGTAO || usesDeferred || volume.depthSource == ScreenSpaceAmbientOcclusionDepthSource.DepthNormals;
             if (featureSettings.isDepthNormalsSource)
                 featureSettings.requirements |= ScriptableRenderPassInput.Normal;
@@ -325,6 +317,7 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
 
+#if !MODERN_SSAO
         private static FeatureSettings ResolveFeatureSettings(ScreenSpaceAmbientOcclusionSettings settings, bool usesDeferred)
         {
             var featureSettings = new FeatureSettings();
@@ -343,6 +336,7 @@ namespace UnityEngine.Rendering.Universal
             featureSettings.isDepthNormalsSource = featureSettings.effectiveDepthSource == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
             return featureSettings;
         }
+#endif
 
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)

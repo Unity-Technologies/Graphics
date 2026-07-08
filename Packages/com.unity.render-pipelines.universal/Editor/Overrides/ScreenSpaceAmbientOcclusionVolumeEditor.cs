@@ -10,6 +10,7 @@ namespace UnityEditor.Rendering.Universal
         static class Styles
         {
             public static readonly GUIContent qualitySettings = EditorGUIUtility.TrTextContent("Quality Settings");
+            public static readonly GUIContent samplingMethod = EditorGUIUtility.TrTextContent("Sampling Method", "The noise pattern to use for ambient occlusion sampling. 'Interleaved Gradient Noise' is more performant and uses the same pattern every frame. 'Blue Noise' varies the pattern each frame at a slightly higher cost, producing a more subtle effect when the camera is in motion.");
             public static readonly GUIContent temporalAccumulation = EditorGUIUtility.TrTextContent("Temporal Accumulation");
             public static readonly GUIContent enable = EditorGUIUtility.TrTextContent("Enable", "Enable temporal filtering to reduce noise and improve stability over time.");
             public static readonly GUIContent minimumRadiusInPixels = EditorGUIUtility.TrTextContent("Minimum Radius (Pixels)", "Minimum radius in pixels guaranteed by GTAO. Acts as a screen-space floor on the world-space Radius so the effect remains visible at a distance.");
@@ -89,19 +90,20 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.BeginChangeCheck();
             PropertyField(m_Mode);
             bool modeChanged = EditorGUI.EndChangeCheck();
-            bool isNone = m_Mode.value.intValue == (int)ScreenSpaceAmbientOcclusionMode.None;
-            bool isStandard = m_Mode.value.intValue == (int)ScreenSpaceAmbientOcclusionMode.Standard;
+            bool isDisabled = m_Mode.value.intValue == (int)ScreenSpaceAmbientOcclusionMode.Disabled;
+            bool isSSAO = m_Mode.value.intValue == (int)ScreenSpaceAmbientOcclusionMode.SSAO;
             bool isGTAO = m_Mode.value.intValue == (int)ScreenSpaceAmbientOcclusionMode.GTAO;
 
-            if (isNone)
-                return;
-
-            PropertyField(m_Method);
+            PropertyField(m_Method, Styles.samplingMethod);
             PropertyField(m_Intensity);
             PropertyField(m_Radius);
             PropertyField(m_FalloffDistance);
-            PropertyField(m_DirectLightingStrength);
             PropertyField(m_AfterOpaque);
+
+            // Direct Lighting Strength only affects SSAO applied during the lighting pass.
+            // When After Opaque is enabled, SSAO is multiplied onto the final opaque image instead, so this has no effect.
+            using (new EditorGUI.DisabledScope(m_AfterOpaque.value.boolValue))
+                PropertyField(m_DirectLightingStrength);
 
             if (isGTAO)
             {
@@ -128,14 +130,14 @@ namespace UnityEditor.Rendering.Universal
             PropertyField(m_Quality);
             bool qualityChanged = EditorGUI.EndChangeCheck();
 
-            // Apply presets when quality or mode changes, but only if quality override is enabled
-            if ((qualityChanged || modeChanged) && m_Quality.overrideState.boolValue)
+            // Apply presets when quality or mode changes, but only for an active algorithm and when the quality override is enabled.
+            if (!isDisabled && (qualityChanged || modeChanged) && m_Quality.overrideState.boolValue)
             {
                 var qualityValue = (ScreenSpaceAmbientOcclusionQuality)m_Quality.value.intValue;
                 if (qualityValue != ScreenSpaceAmbientOcclusionQuality.Custom)
                 {
-                    if (isStandard)
-                        ApplyStandardPreset(qualityValue);
+                    if (isSSAO)
+                        ApplySSAOPreset(qualityValue);
                     else if (useComputeShader)
                         ApplyGTAOComputePreset(qualityValue);
                     else
@@ -149,7 +151,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 using (new EditorGUI.DisabledScope(!isCustom))
                 {
-                    if (isStandard)
+                    if (isSSAO)
                     {
                         PropertyField(m_DepthSource);
                         bool isDepthNormals = m_DepthSource.value.intValue == (int)ScreenSpaceAmbientOcclusionDepthSource.DepthNormals;
@@ -162,7 +164,7 @@ namespace UnityEditor.Rendering.Universal
 
                     PropertyField(m_Downsample);
 
-                    if (isStandard)
+                    if (isSSAO)
                     {
                         PropertyField(m_BlurQuality);
                         PropertyField(m_SampleCount);
@@ -201,7 +203,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        void ApplyStandardPreset(ScreenSpaceAmbientOcclusionQuality quality)
+        void ApplySSAOPreset(ScreenSpaceAmbientOcclusionQuality quality)
         {
             if (quality == ScreenSpaceAmbientOcclusionQuality.Custom)
                 return;
@@ -220,8 +222,6 @@ namespace UnityEditor.Rendering.Universal
 
             m_BlurQuality.value.intValue = (int)ScreenSpaceAmbientOcclusionVolumeOverride.GetPresetBlurQuality(quality);
             m_BlurQuality.overrideState.boolValue = true;
-
-            serializedObject.ApplyModifiedProperties();
         }
 
         void ApplyGTAOStandardPreset(ScreenSpaceAmbientOcclusionQuality quality)
@@ -234,8 +234,6 @@ namespace UnityEditor.Rendering.Universal
 
             m_Downsample.value.boolValue = ScreenSpaceAmbientOcclusionVolumeOverride.GetPresetDownsample(quality);
             m_Downsample.overrideState.boolValue = true;
-
-            serializedObject.ApplyModifiedProperties();
         }
 
         void ApplyGTAOComputePreset(ScreenSpaceAmbientOcclusionQuality quality)
@@ -251,8 +249,6 @@ namespace UnityEditor.Rendering.Universal
 
             m_StepCount.value.intValue = ScreenSpaceAmbientOcclusionVolumeOverride.GetPresetStepCount(quality);
             m_StepCount.overrideState.boolValue = true;
-
-            serializedObject.ApplyModifiedProperties();
         }
     }
 }

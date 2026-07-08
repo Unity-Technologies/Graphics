@@ -11,14 +11,14 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Disables Screen Space Ambient Occlusion.
         /// </summary>
-        [InspectorName("None")]
-        None = 0,
+        [InspectorName("Disabled")]
+        Disabled = 0,
 
         /// <summary>
-        /// Standard SSAO algorithm - Alchemy method with configurable noise and blur.
+        /// Alchemy-based SSAO with configurable noise and blur.
         /// </summary>
-        [InspectorName("Standard")]
-        Standard = 1,
+        [InspectorName("SSAO")]
+        SSAO = 1,
 
         /// <summary>
         /// Ground Truth Ambient Occlusion.
@@ -52,19 +52,19 @@ namespace UnityEngine.Rendering.Universal
     public enum ScreenSpaceAmbientOcclusionSampleCount
     {
         /// <summary>
-        /// Low quality preset - 4 samples in Standard mode. 2 iterations in fragment GTAO.
+        /// Low quality preset - 4 samples in SSAO mode. 2 iterations in fragment GTAO.
         /// </summary>
         [InspectorName("Low")]
         Low = 0,
 
         /// <summary>
-        /// Medium quality - 8 samples in Standard mode, 8 iterations in fragment GTAO.
+        /// Medium quality - 8 samples in SSAO mode, 8 iterations in fragment GTAO.
         /// </summary>
         [InspectorName("Medium")]
         Medium = 1,
 
         /// <summary>
-        /// High quality - 12 samples in Standard mode, 16 iterations in fragment GTAO.
+        /// High quality - 12 samples in SSAO mode, 16 iterations in fragment GTAO.
         /// </summary>
         [InspectorName("High")]
         High = 2
@@ -202,9 +202,9 @@ namespace UnityEngine.Rendering.Universal
             get => m_Mode.value;
             set => m_Mode.value = value;
         }
-        [Tooltip("The ambient occlusion algorithm to use. Standard uses the Alchemy SSAO method. GTAO (Ground Truth Ambient Occlusion) provides higher quality.")]
+        [Tooltip("The ambient occlusion algorithm to use. SSAO uses the Alchemy method. GTAO (Ground Truth Ambient Occlusion) provides higher quality.")]
         [SerializeField]
-        private ScreenSpaceAmbientOcclusionModeParameter m_Mode = new ScreenSpaceAmbientOcclusionModeParameter(ScreenSpaceAmbientOcclusionMode.None);
+        private ScreenSpaceAmbientOcclusionModeParameter m_Mode = new ScreenSpaceAmbientOcclusionModeParameter(ScreenSpaceAmbientOcclusionMode.Disabled);
 
         /// <summary>
         /// Quality preset for ambient occlusion. Selecting a preset automatically configures all quality-related parameters.
@@ -557,13 +557,13 @@ namespace UnityEngine.Rendering.Universal
         /// Query if the effect is active and should be rendered.
         /// </summary>
         /// <returns><c>true</c> if the effect should be rendered, <c>false</c> otherwise.</returns>
-        public bool IsActive() => m_Mode.value != ScreenSpaceAmbientOcclusionMode.None && m_Intensity.value > 0f && m_Radius.value > 0f && m_FalloffDistance.value > 0f;
+        public bool IsActive() => m_Mode.value != ScreenSpaceAmbientOcclusionMode.Disabled && m_Intensity.value > 0f && m_Radius.value > 0f && m_FalloffDistance.value > 0f;
 
         /// <summary>
-        /// Query if the effect is using the Standard SSAO mode.
+        /// Query if the effect is using the SSAO mode.
         /// </summary>
-        /// <returns><c>true</c> if using Standard mode, <c>false</c> otherwise.</returns>
-        public bool IsStandardMode() => m_Mode.value == ScreenSpaceAmbientOcclusionMode.Standard;
+        /// <returns><c>true</c> if using SSAO mode, <c>false</c> otherwise.</returns>
+        public bool IsSSAOMode() => m_Mode.value == ScreenSpaceAmbientOcclusionMode.SSAO;
 
         /// <summary>
         /// Query if blue noise sampling is enabled.

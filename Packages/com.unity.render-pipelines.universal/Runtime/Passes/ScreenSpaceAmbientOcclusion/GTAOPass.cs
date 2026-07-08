@@ -287,7 +287,7 @@ namespace UnityEngine.Rendering.Universal
         internal static void CalculateGTAOViewParams(ScreenSpaceAmbientOcclusionSettings settings, UniversalCameraData cameraData,
             bool orthographicCamera, float radius, in TextureDesc cameraColorDesc, out Vector4 ssaoParams2, out Vector4 depthToViewParams)
         {
-            if (settings.Mode == ScreenSpaceAmbientOcclusionMode.Standard)
+            if (settings.Mode == ScreenSpaceAmbientOcclusionMode.SSAO)
             {
                 ssaoParams2 = Vector4.zero;
                 depthToViewParams = Vector4.zero;

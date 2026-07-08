@@ -3,7 +3,7 @@ using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
-    // Alchemy Ambient Occlusion (AAO) Pass - Standard SSAO mode using raster shaders.
+    // Alchemy Ambient Occlusion (AAO) Pass - SSAO mode using raster shaders.
     internal class AAOPass : ScriptableRenderPass, IDisposable
     {
         private readonly bool m_SupportsR8RenderTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8);
@@ -24,23 +24,22 @@ namespace UnityEngine.Rendering.Universal
             m_BlueNoiseTextures = blueNoiseTextures;
         }
 
+#if !MODERN_SSAO
         // Sets up AAO pass using renderer feature settings. Returns false if the pass should be skipped.
         internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings, ScreenSpaceAmbientOcclusionSettings.DepthSource depthSource)
         {
             m_CurrentSettings = featureSettings;
             m_CurrentSettings.Source = depthSource;
-#if MODERN_SSAO
-            m_CurrentSettings.Mode = ScreenSpaceAmbientOcclusionMode.Standard;
-#endif
             m_BlurType = SSAOUtils.GetBlurType(m_CurrentSettings.BlurQuality);
 
             return m_CurrentSettings.Intensity > 0.0f
                    && m_CurrentSettings.Radius > 0.0f
                    && m_CurrentSettings.Falloff > 0.0f;
         }
+#endif
 
 #if MODERN_SSAO
-        // Sets up AAO pass using active volume for Standard mode. Returns false if the pass should be skipped.
+        // Sets up AAO pass using active volume for SSAO mode. Returns false if the pass should be skipped.
         internal bool Setup(ScreenSpaceAmbientOcclusionVolumeOverride ssaoVolume, bool usesDeferredLighting)
         {
             ApplyVolumeSettings(m_CurrentSettings, ssaoVolume, usesDeferredLighting);
@@ -50,7 +49,7 @@ namespace UnityEngine.Rendering.Universal
 
         private static void ApplyVolumeSettings(ScreenSpaceAmbientOcclusionSettings settings, ScreenSpaceAmbientOcclusionVolumeOverride volume, bool usesDeferredLighting)
         {
-            settings.Mode = ScreenSpaceAmbientOcclusionMode.Standard;
+            settings.Mode = ScreenSpaceAmbientOcclusionMode.SSAO;
             settings.Intensity = volume.intensity;
             settings.Radius = volume.radius;
             settings.DirectLightingStrength = volume.directLightingStrength;
