@@ -1,6 +1,7 @@
 // For now OpenGL is considered at GLES2 level
 #define UNITY_UV_STARTS_AT_TOP 0
 #define UNITY_REVERSED_Z 0
+#define UNITY_NEAR_CLIP_VALUE (-1.0)
 #define UNITY_GATHER_SUPPORTED 0
 #define UNITY_CAN_READ_POSITION_IN_FRAGMENT_PROGRAM 1
 

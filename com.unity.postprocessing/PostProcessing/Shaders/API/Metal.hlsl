@@ -1,5 +1,6 @@
 #define UNITY_UV_STARTS_AT_TOP 1
 #define UNITY_REVERSED_Z 1
+#define UNITY_NEAR_CLIP_VALUE (1.0)
 #define UNITY_GATHER_SUPPORTED 0 // Currently broken on Metal for some reason (May 2017)
 #define UNITY_CAN_READ_POSITION_IN_FRAGMENT_PROGRAM 1
 
