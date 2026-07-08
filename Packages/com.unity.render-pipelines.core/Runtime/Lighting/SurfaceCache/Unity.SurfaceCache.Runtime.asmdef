@@ -10,6 +10,8 @@
     "includePlatforms": [
         "Android",
         "Editor",
+        "GameCoreScarlett",
+        "GameCoreXboxOne",
         "iOS",
         "LinuxStandalone64",
         "macOSStandalone",
