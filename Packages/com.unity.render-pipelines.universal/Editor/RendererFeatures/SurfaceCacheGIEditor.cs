@@ -101,8 +101,8 @@ namespace UnityEditor.Rendering.Universal
                 var feature = (SurfaceCacheGIRendererFeature)target;
                 using (new EditorGUI.IndentLevelScope())
                 {
-                    EditorGUILayout.LabelField(TextContent.ActiveCaches, new GUIContent(feature.activeCacheCount.ToString()));
-                    EditorGUI.RenderingLayerMaskField(EditorGUILayout.GetControlRect(), TextContent.WorldRenderingLayerMask, feature.worldRenderingLayerMask);
+                    EditorGUILayout.LabelField(TextContent.ActiveCaches, new GUIContent(feature.ActiveCacheCount.ToString()));
+                    EditorGUI.RenderingLayerMaskField(EditorGUILayout.GetControlRect(), TextContent.WorldRenderingLayerMask, feature.WorldRenderingLayerMask);
                 }
             }
 
