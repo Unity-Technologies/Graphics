@@ -426,15 +426,6 @@ namespace UnityEditor.VFX.UI
             m_GpuSystems = new List<int>();
         }
 
-        ~VFXUIDebug()
-        {
-            Clear();
-            m_View = null;
-            m_VFX = null;
-            m_GpuSystems = null;
-            m_CurrentMode = Modes.None;
-        }
-
         public Modes GetDebugMode()
         {
             return m_CurrentMode;
