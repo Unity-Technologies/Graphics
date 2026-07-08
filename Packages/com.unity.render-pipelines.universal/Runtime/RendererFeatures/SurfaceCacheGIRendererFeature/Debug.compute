@@ -73,8 +73,8 @@ void Visualize(uint2 threadIdx : SV_DispatchThreadID)
                 if (pixelPosYPercentage < statusBarHeightPercentage * 0.5f)
                 {
                     PatchUtil::PatchStatisticsSet stats = _PatchStatistics[patchIdx];
-                    const uint frameSinceLastAccess = PatchUtil::GetFramesSinceLastAccess(_FrameIdx, PatchUtil::GetLastAccessFrame(stats.counters));
-                    output *= 1.0f - float(frameSinceLastAccess) / float(PatchUtil::evictionThreshold);
+                    const uint framesSinceHeartbeat = PatchUtil::GetFramesSinceHeartbeat(_FrameIdx, PatchUtil::GetHeartbeat(stats.counters));
+                    output *= 1.0f - float(framesSinceHeartbeat) / float(PatchUtil::evictionThreshold);
                 }
             }
         }
@@ -117,7 +117,7 @@ void Visualize(uint2 threadIdx : SV_DispatchThreadID)
             {
                 patchIrradiance = _PatchIrradiances[patchIdx];
                 patchPos = _PatchGeometries[patchIdx].position;
-                PatchUtil::WriteLastFrameAccess(_PatchStatistics, patchIdx, _FrameIdx);
+                PatchUtil::UpdateHeartbeat(_PatchStatistics, patchIdx, _FrameIdx);
             }
 
             if (_ShowSamplePosition == 1 && hasPatch && length(worldPos - patchPos) < 0.1f * PatchUtil::GetVoxelSize(_VolumeVoxelMinSize, posResolution.cascadeIdx))

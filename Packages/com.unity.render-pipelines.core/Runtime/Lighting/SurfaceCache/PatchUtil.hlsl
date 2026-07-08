@@ -56,7 +56,7 @@ namespace PatchUtil
         // Layout
         // 0x000000FF: Update count.
         // 0x0000FF00: Rank.
-        // 0xFFFF0000: Last access frame.
+        // 0xFFFF0000: Heartbeat.
         uint data;
     };
 
@@ -82,14 +82,14 @@ namespace PatchUtil
         return min(dif, modulo - dif);
     }
 
-    uint GetFramesSinceLastAccess(uint currentFrameIdx, uint patchLastAccessFrame)
+    uint GetFramesSinceHeartbeat(uint currentFrameIdx, uint patchHeartbeat)
     {
-        // Here we take into account that last access frame index is in [0, 2^16-1].
+        // Here we take into account that heartbeat frame index is in [0, 2^16-1].
         // We use that the last frame index can never be later than current frame index.
         const uint modulo = 65536; // 2^16
         return ModuloDistance(
             currentFrameIdx % modulo,
-            patchLastAccessFrame,
+            patchHeartbeat,
             modulo);
     }
 
@@ -113,7 +113,7 @@ namespace PatchUtil
         set.data = (rank << 8) | (set.data & 0xFFFF00FF);
     }
 
-    uint GetLastAccessFrame(PatchCounterSet set)
+    uint GetHeartbeat(PatchCounterSet set)
     {
         return set.data >> 16;
     }
@@ -123,9 +123,9 @@ namespace PatchUtil
         set.data = updateCount | (set.data & 0xFFFFFF00);
     }
 
-    void SetLastAccessFrame(inout PatchCounterSet set, uint lastAccessFrame)
+    void SetHeartbeat(inout PatchCounterSet set, uint heartbeat)
     {
-        set.data = (lastAccessFrame << 16) | (set.data & 0xFFFF);
+        set.data = (heartbeat << 16) | (set.data & 0xFFFF);
     }
 
     bool IsEqual(PatchCounterSet a, PatchCounterSet b)
@@ -133,10 +133,10 @@ namespace PatchUtil
         return a.data == b.data;
     }
 
-    void WriteLastFrameAccess(RWStructuredBuffer<PatchUtil::PatchStatisticsSet> statisticsSets, uint patchIdx, uint frameIdx)
+    void UpdateHeartbeat(RWStructuredBuffer<PatchUtil::PatchStatisticsSet> statisticsSets, uint patchIdx, uint frameIdx)
     {
         PatchCounterSet counterSet = statisticsSets[patchIdx].counters;
-        SetLastAccessFrame(counterSet, frameIdx);
+        SetHeartbeat(counterSet, frameIdx);
         statisticsSets[patchIdx].counters = counterSet;
     }
 
@@ -369,16 +369,6 @@ namespace PatchUtil
         }
     }
 
-    uint FindPatchIndexAndUpdateLastAccess(VolumeParamSet volumeParams, CellPatchIndexBufferType cellPatchIndices, RWStructuredBuffer<PatchUtil::PatchStatisticsSet> patchStatisticSets, float3 worldPosition, float3 worldNormal, uint frameIdx)
-    {
-        const uint patchIdx = FindPatchIndex(volumeParams, cellPatchIndices, worldPosition, worldNormal);
-        if (patchIdx != invalidPatchIndex)
-        {
-            WriteLastFrameAccess(patchStatisticSets, patchIdx, frameIdx);
-        }
-        return patchIdx;
-    }
-
     bool ReadHemisphericalIrradiance(PatchIrradianceBufferType patchIrradiances, CellPatchIndexBufferType cellPatchIndices, VolumeParamSet volumeParams, float3 worldPosition, float3 worldNormal, uint startCascadeIdx, out SphericalHarmonics::RGBL1 resultIrradiance)
     {
         VolumePositionResolution posResolution = ResolveVolumePosition(worldPosition, volumeParams, startCascadeIdx);
@@ -453,7 +443,7 @@ namespace PatchUtil
         stats.mean = irradianceSeed;
         stats.variance = 0;
         Reset(stats.counters);
-        SetLastAccessFrame(stats.counters, frameIndex);
+        SetHeartbeat(stats.counters, frameIndex);
         SetRank(stats.counters, rank);
 
         return stats;

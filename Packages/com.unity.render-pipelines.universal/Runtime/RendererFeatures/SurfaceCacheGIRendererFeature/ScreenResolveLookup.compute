@@ -16,7 +16,7 @@ RWTexture2D<float3> _ResultL10;
 RWTexture2D<float3> _ResultL11;
 RWTexture2D<float3> _ResultL12;
 RWTexture2D<float> _ResultNdcDepths;
-RWStructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
+StructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
 
 StructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances;
 StructuredBuffer<uint> _CellPatchIndices;
@@ -27,7 +27,6 @@ uint _VolumeCascadeCount;
 uint _SampleCount;
 float _VolumeVoxelMinSize;
 float4x4 _ClipToWorldTransform;
-uint _FrameIdx;
 float3 _VolumeTargetPos;
 
 #define GROUP_SIZE 8
@@ -72,7 +71,7 @@ void Lookup(uint2 lowResPixelPos : SV_DispatchThreadID)
     SphericalHarmonics::RGBL1 irradianceSum = (SphericalHarmonics::RGBL1)0;
     float weightSum = 0.0f;
     {
-        uint patchIdx = PatchUtil::FindPatchIndexAndUpdateLastAccess(volumeParams, _CellPatchIndices, _PatchStatistics, worldPos, worldNormal, _FrameIdx);
+        uint patchIdx = PatchUtil::FindPatchIndex(volumeParams, _CellPatchIndices, worldPos, worldNormal);
         UNITY_OUT_OF_BOUNDS_BRANCH
         if (patchIdx != PatchUtil::invalidPatchIndex)
         {
@@ -99,7 +98,6 @@ void Lookup(uint2 lowResPixelPos : SV_DispatchThreadID)
             // Separating this into two if statements because certain shader compilers evaluate both conditions if we just put them together with an AND.
             if (PatchUtil::GetRank(_PatchStatistics[patchIdx].counters) == 0)  // rank used to exclude patches that are not visible from the camera
             {
-                PatchUtil::WriteLastFrameAccess(_PatchStatistics, patchIdx, _FrameIdx);
                 SphericalHarmonics::AddMut(irradianceSum, _PatchIrradiances[patchIdx]);
                 weightSum += 1.0f;
             }

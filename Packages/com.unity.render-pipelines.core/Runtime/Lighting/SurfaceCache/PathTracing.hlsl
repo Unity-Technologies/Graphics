@@ -345,7 +345,7 @@ float3 IncomingEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
                     PatchUtil::PatchCounterSet counters = patchStatistics[bouncePatchIndex].counters;
                     if (PatchUtil::GetRank(counters) == 1)
                     {
-                        PatchUtil::SetLastAccessFrame(counters, frameIndex);
+                        PatchUtil::SetHeartbeat(counters, frameIndex);
                         patchStatistics[bouncePatchIndex].counters = counters;
                     }
                 }

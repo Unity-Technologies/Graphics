@@ -517,7 +517,6 @@ namespace UnityEngine.Rendering.Universal
                 internal uint VolumeSpatialResolution;
                 internal uint VolumeCascadeCount;
                 internal uint SampleCount;
-                internal uint FrameIndex;
                 internal float VolumeVoxelMinSize;
                 internal Matrix4x4 ClipToWorldTransform;
                 internal Vector3 VolumeTargetPos;
@@ -760,7 +759,6 @@ namespace UnityEngine.Rendering.Universal
                     data.VolumeVoxelMinSize = cache.Volume.VoxelMinSize;
                     data.VolumeCascadeCount = cache.Volume.CascadeCount;
                     data.SampleCount = VolumeParams.ScreenFilteringParams.LookupSampleCount;
-                    data.FrameIndex = CurrentPerCameraState.FrameIndex;
 
                     builder.UseBuffer(cellAllocationMarkHandle, AccessFlags.Read);
                     builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
@@ -920,7 +918,6 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeIntParam(shader, ShaderIDs._VolumeSpatialResolution, (int)data.VolumeSpatialResolution);
                 cmd.SetComputeIntParam(shader, ShaderIDs._VolumeCascadeCount, (int)data.VolumeCascadeCount);
                 cmd.SetComputeIntParam(shader, ShaderIDs._SampleCount, (int)data.SampleCount);
-                cmd.SetComputeIntParam(shader, ShaderIDs._FrameIdx, (int)data.FrameIndex);
                 cmd.SetComputeFloatParam(shader, ShaderIDs._VolumeVoxelMinSize, data.VolumeVoxelMinSize);
                 cmd.SetComputeMatrixParam(shader, ShaderIDs._ClipToWorldTransform, data.ClipToWorldTransform);
                 cmd.SetComputeVectorParam(shader, ShaderIDs._VolumeTargetPos, data.VolumeTargetPos);

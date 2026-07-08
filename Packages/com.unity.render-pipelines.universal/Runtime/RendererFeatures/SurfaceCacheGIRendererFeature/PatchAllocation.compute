@@ -148,14 +148,11 @@ void Allocate(uint2 lowResPixelPos : SV_DispatchThreadID)
 
         if (resolutionResult.code == PatchUtil::patchIndexResolutionCodeLookup)
         {
-            // with this, we allow patches that were spawn from a hit bounce to, in turn, triger bounce allocation
-            // once they are seen again by the camera
-            PatchUtil::PatchStatisticsSet stats = _PatchStatistics[resolutionResult.patchIdx];
-            if (PatchUtil::GetRank(stats.counters) != 0)
-            {
-                PatchUtil::SetRank(stats.counters, 0);
-                _PatchStatistics[resolutionResult.patchIdx] = stats;
-            }
+            // Visible this frame: refresh keep-alive and force rank 0 so bounce-spawned patches can trigger bounce alloc.
+            PatchUtil::PatchCounterSet counters = _PatchStatistics[resolutionResult.patchIdx].counters;
+            PatchUtil::SetRank(counters, 0);
+            PatchUtil::SetHeartbeat(counters, _FrameIdx);
+            _PatchStatistics[resolutionResult.patchIdx].counters = counters;
         }
         else if (resolutionResult.code == PatchUtil::patchIndexResolutionCodeAllocationSuccess)
         {
