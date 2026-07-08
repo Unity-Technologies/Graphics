@@ -1199,6 +1199,7 @@ namespace UnityEngine.Rendering.Universal
             m_DrawOffscreenUIPass?.Dispose();
             m_DrawOverlayUIPass?.Dispose();
             m_PostProcess?.Dispose();
+            m_RenderingLayerMaskPass.Dispose();
             m_ColorGradingLutPassRenderGraph?.Cleanup();
 
             m_RenderGraphCameraColorHandles[0]?.Release();

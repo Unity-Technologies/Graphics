@@ -10,8 +10,22 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly string k_RenderingLayersTextureName = "_CameraRenderingLayersTexture";
 
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_RenderingLayerMaskPass);
-        private static readonly ShaderTagId k_RenderingLayerMaskShaderTag = new ShaderTagId("RenderingLayerMask");
         private static readonly int k_RenderingLayerMaskID = Shader.PropertyToID(k_RenderingLayersTextureName);
+
+        Material m_Material = null;
+
+        internal CameraRenderingLayerMaskPass()
+        {
+            if (GraphicsSettings.TryGetRenderPipelineSettings<Renderer2DResources>(out var resources))
+            {
+                m_Material = CoreUtils.CreateEngineMaterial(resources.renderingLayerMaskShader);
+            }
+        }
+
+        internal void Dispose()
+        {
+            CoreUtils.Destroy(m_Material);
+        }
 
         private class PassData
         {
@@ -23,11 +37,11 @@ namespace UnityEngine.Rendering.Universal
             cmd.DrawRendererList(passData.rendererList);
         }
 
-        public void Render(RenderGraph graph, ContextContainer frameData)
+        internal void Render(RenderGraph graph, ContextContainer frameData)
         {
             Renderer2DData rendererData = frameData.Get<Universal2DRenderingData>().renderingData;
 
-            if (!rendererData.useRenderingLayers)
+            if (!rendererData.useRenderingLayers || m_Material == null)
                 return;
 
             Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
@@ -42,7 +56,8 @@ namespace UnityEngine.Rendering.Universal
                 var filterSettings = new FilteringSettings(RenderQueueRange.all);
                 filterSettings.layerMask = rendererData.layerMask;
 
-                var drawSettings = CreateDrawingSettings(k_RenderingLayerMaskShaderTag, renderingData, cameraData, lightData, SortingCriteria.CommonTransparent);
+                var drawSettings = CreateDrawingSettings(DrawRenderer2DPass.k_ShaderTags, renderingData, cameraData, lightData, SortingCriteria.CommonTransparent);
+                drawSettings.overrideMaterial = m_Material; // render with override RenderingLayerMask.shader
                 var sortSettings = drawSettings.sortingSettings;
                 RendererLighting.GetTransparencySortingMode(rendererData, cameraData.camera, ref sortSettings);
                 drawSettings.sortingSettings = sortSettings;

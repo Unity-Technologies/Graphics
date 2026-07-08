@@ -142,46 +142,5 @@ Shader "Universal Render Pipeline/2D/Mesh2D-Lit-Default"
             }
             ENDHLSL
         }
-
-        Pass
-        {
-            Tags { "LightMode" = "RenderingLayerMask" }
-
-            Blend Off
-
-            HLSLPROGRAM
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Core2D.hlsl"
-
-            #pragma vertex UnlitVertex
-            #pragma fragment UnlitFragment
-
-            // GPU Instancing
-            #pragma multi_compile_instancing
-
-            struct Attributes
-            {
-                COMMON_2D_INPUTS
-            };
-
-            struct Varyings
-            {
-                COMMON_2D_OUTPUTS
-            };
-
-            float4 _White;
-
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/2DCommon.hlsl"
-
-            Varyings UnlitVertex(Attributes input)
-            {
-                return CommonUnlitVertex(input);
-            }
-
-            uint UnlitFragment(Varyings input) : SV_Target
-            {
-                return GetMeshRenderingLayer();
-}
-            ENDHLSL
-        }
     }
 }
