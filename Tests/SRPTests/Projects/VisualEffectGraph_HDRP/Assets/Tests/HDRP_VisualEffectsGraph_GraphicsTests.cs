@@ -41,6 +41,16 @@ namespace UnityEngine.VFX.Test
         [IgnoreGraphicsTest("PrewarmCompute", "No reference images provided")]
         [IgnoreGraphicsTest("Readback_ParticleCount", "No reference images provided")]
         [IgnoreGraphicsTest("009_MultiCamera", "See UUM-140411", RuntimePlatform.OSXEditor)]
+        [IgnoreGraphicsTest(
+            "009_MultiCamera_MotionVector",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-146723",
+            RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer
+        )]
+        [IgnoreGraphicsTest(
+            "07_UnityLogo",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-146723",
+            RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer
+        )]
 
         [TestNotSupportedOn(
             "008_AssetBundle|025_Flipbook|16_MeshParticles|21_DepthModules|23_ParameterBinders|24_MotionVector|25_PerParticleLOD|32_ExcludeFromTAA|42_CollisionEvents|45_CustomPassCulling|HDRPFogVolumetric|PositionDepthOperator",
