@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.PostProcessing
     /// An asset holding a set of post-processing settings to use with a <see cref="PostProcessVolume"/>.
     /// </summary>
     /// <seealso cref="PostProcessVolume"/>
+    [System.Obsolete("Post Processing Stack v2 is deprecated. Use URP or HDRP's Volume-based post-processing instead.", false)]
     public sealed class PostProcessProfile : ScriptableObject
     {
         /// <summary>

@@ -4,6 +4,16 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [3.6.0] - 2026-06-01
+
+### Deprecated
+- **The entire `com.unity.postprocessing` package is now deprecated and no longer actively developed.**
+  - For URP and HDRP projects, migrate to the integrated Volume-based post-processing system.
+  - For Built-in Render Pipeline projects, consider migrating to URP.
+  - See [Post-processing Overview](https://docs.unity3d.com/Manual/urp/upgrading-from-birp.html) for migration guidance.
+- Added `[Obsolete]` attributes to `PostProcessVolume`, `PostProcessLayer`, and `PostProcessProfile` classes.
+- Added startup dialog notification that appears once per Unity session, with optional "Don't ask again on this computer" checkbox for permanent dismissal.
+
 ## [3.5.4] - 2026-03-13
 
 ### Fixed

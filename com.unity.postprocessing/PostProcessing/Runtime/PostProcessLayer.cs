@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.PostProcessing
     [DisallowMultipleComponent, ImageEffectAllowedInSceneView]
     [AddComponentMenu("Rendering/Post-process Layer", 1000)]
     [RequireComponent(typeof(Camera))]
+    [System.Obsolete("Post Processing Stack v2 is deprecated. Use URP or HDRP's Volume-based post-processing instead.", false)]
     public sealed class PostProcessLayer : MonoBehaviour
     {
         /// <summary>

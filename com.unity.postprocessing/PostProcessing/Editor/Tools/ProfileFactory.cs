@@ -4,6 +4,8 @@ using System.IO;
 using UnityEngine.SceneManagement;
 using UnityEngine.Rendering.PostProcessing;
 
+#pragma warning disable CS0618 // Type or member is obsolete
+
 namespace UnityEditor.Rendering.PostProcessing
 {
     /// <summary>
@@ -96,3 +98,5 @@ namespace UnityEditor.Rendering.PostProcessing
     }
 #endif
 }
+
+#pragma warning restore CS0618 // Type or member is obsolete
