@@ -1001,7 +1001,8 @@ namespace UnityEngine.Rendering.Universal
                 if (cameraData.xr.enabled)
                 {
                     var xrPassUniversal = cameraData.xr as XRPassUniversal;
-                    if (!cameraData.xr.isQuadViewInnerPass)
+                    data.reuseCullingResult = cameraData.xr.isQuadViewInnerPass;
+                    if (!data.reuseCullingResult)
                         xrPassUniversal.cullingResults = context.Cull(ref cullingParameters);
                     data.cullResults = xrPassUniversal.cullingResults;
                 }
