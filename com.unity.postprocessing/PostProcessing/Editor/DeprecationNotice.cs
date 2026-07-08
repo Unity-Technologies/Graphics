@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.PostProcessing
                 "For URP and HDRP projects, use the integrated post-processing via the Volume framework.\n\n" +
                 "For Built-in Render Pipeline projects, consider migrating to URP.\n\n" +
                 "See documentation for migration guidance:\n" +
-                "https://docs.unity3d.com/Manual/PostProcessingOverview.html",
+                "https://docs.unity3d.com/Manual/urp/upgrading-from-birp.html",
                 "OK",
                 DialogOptOutDecisionType.ForThisUser,
                 k_DialogOptOutKey);
