@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     internal class DrawScreenSpaceUIPass : ScriptableRenderPass
     {
+        // Renderer-owned materials (created and destroyed by the renderer, not this pass).
         readonly Material m_UIBackdropFilterCompositeMaterial;
         // Blits each camera's post-FX color into the composite buffer.
         readonly Material m_SeedBlitMaterial;
@@ -32,15 +33,15 @@ namespace UnityEngine.Rendering.Universal
         /// Creates a new <c>DrawScreenSpaceUIPass</c> instance.
         /// </summary>
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
-        /// <param name="uiBackdropFilterCompositeShader">Shader for the diff composite blit; the pass creates and owns a local material from it. Pass null when this pass instance never runs the unsafe overlay path.</param>
-        /// <param name="seedBlitShader">URP blit shader for the per-camera scene-to-buffer seed step; the pass creates and owns a local material from it. Pass null when this pass instance never runs the unsafe overlay path.</param>
+        /// <param name="uiBackdropFilterCompositeMaterial">Material for the diff composite blit, created and owned by the renderer. Pass null when this pass instance never runs the unsafe overlay path.</param>
+        /// <param name="seedBlitMaterial">URP blit material for the per-camera scene-to-buffer seed step, created and owned by the renderer. Pass null when this pass instance never runs the unsafe overlay path.</param>
         /// <seealso cref="RenderPassEvent"/>
-        public DrawScreenSpaceUIPass(RenderPassEvent evt, Shader uiBackdropFilterCompositeShader = null, Shader seedBlitShader = null)
+        public DrawScreenSpaceUIPass(RenderPassEvent evt, Material uiBackdropFilterCompositeMaterial = null, Material seedBlitMaterial = null)
         {
             profilingSampler = URPProfilingSamplers.DrawScreenSpaceUI;
             renderPassEvent = evt;
-            m_UIBackdropFilterCompositeMaterial = uiBackdropFilterCompositeShader != null ? CoreUtils.CreateEngineMaterial(uiBackdropFilterCompositeShader) : null;
-            m_SeedBlitMaterial = seedBlitShader != null ? CoreUtils.CreateEngineMaterial(seedBlitShader) : null;
+            m_UIBackdropFilterCompositeMaterial = uiBackdropFilterCompositeMaterial;
+            m_SeedBlitMaterial = seedBlitMaterial;
         }
 
         // Computes this frame's composite need; the renderer calls it each frame like other passes' Setup().
@@ -97,8 +98,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void Dispose()
         {
-            CoreUtils.Destroy(m_UIBackdropFilterCompositeMaterial);
-            CoreUtils.Destroy(m_SeedBlitMaterial);
+            // Materials are owned by the renderer; this pass only releases the buffers it allocates.
             m_OverlayCompositeBuffer?.Release();
             m_OverlayCompositeBuffer = null;
             m_OverlayCompositeBufferBefore?.Release();

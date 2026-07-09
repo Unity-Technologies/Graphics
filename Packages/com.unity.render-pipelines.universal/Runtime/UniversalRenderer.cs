@@ -196,6 +196,7 @@ namespace UnityEngine.Rendering.Universal
         Material m_BlitHDRMaterial = null;
         Material m_SamplingMaterial = null;
         Material m_BlitOffscreenUICoverMaterial = null;
+        Material m_BackdropFilterCompositeMaterial = null;
         Material m_StencilDeferredMaterial = null;
         Material m_ClusterDeferredMaterial = null;
         Material m_CameraMotionVecMaterial = null;
@@ -247,6 +248,7 @@ namespace UnityEngine.Rendering.Universal
                 m_SamplingMaterial = CoreUtils.CreateEngineMaterial(shadersResources.samplingPS);
                 // Share viewport for all the cameras.
                 m_BlitOffscreenUICoverMaterial = CoreUtils.CreateEngineMaterial(shadersResources.blitHDROverlay);
+                m_BackdropFilterCompositeMaterial = CoreUtils.CreateEngineMaterial(shadersResources.uiBackdropFilterCompositePS);
             }
 
             Shader copyDephPS = null;
@@ -415,7 +417,7 @@ namespace UnityEngine.Rendering.Universal
             m_HistoryRawDepthCopyPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingPostProcessing, copyDephPS, false, customPassName: "Copy Depth Raw History");
 
             m_DrawOffscreenUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.BeforeRenderingPostProcessing);
-            m_DrawOverlayUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, shadersResources?.uiBackdropFilterCompositePS, shadersResources?.coreBlitPS); // after m_FinalBlitPass
+            m_DrawOverlayUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, m_BackdropFilterCompositeMaterial, m_BlitMaterial); // after m_FinalBlitPass
 
             if (postProcessEnabled)
             {
@@ -518,6 +520,7 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_BlitHDRMaterial);
             CoreUtils.Destroy(m_BlitOffscreenUICoverMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
+            CoreUtils.Destroy(m_BackdropFilterCompositeMaterial);
             CoreUtils.Destroy(m_StencilDeferredMaterial);
             CoreUtils.Destroy(m_ClusterDeferredMaterial);
             CoreUtils.Destroy(m_CameraMotionVecMaterial);
