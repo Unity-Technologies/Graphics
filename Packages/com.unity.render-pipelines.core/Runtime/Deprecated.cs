@@ -240,8 +240,8 @@ namespace UnityEngine.Rendering
             /// <param name="names">names to fill the enum</param>
             public void Fill(string[] names)
             {
-                using (ListPool<GUIContent>.Get(out var tmpNames))
-                using (ListPool<int>.Get(out var tmpValues))
+                using (UnityEngine.Pool.ListPool<GUIContent>.Get(out var tmpNames))
+                using (UnityEngine.Pool.ListPool<int>.Get(out var tmpValues))
                 {
                     for (int i = 0; i < (names.Length); ++i)
                     {

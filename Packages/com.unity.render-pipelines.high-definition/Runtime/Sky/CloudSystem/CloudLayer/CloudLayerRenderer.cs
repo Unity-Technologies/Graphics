@@ -221,7 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 public PrecomputationData data = new PrecomputationData();
             }
 
-            ObjectPool<RefCountedData> m_DataPool = new ObjectPool<RefCountedData>(null, null);
+            UnityEngine.Pool.ObjectPool<RefCountedData> m_DataPool = new UnityEngine.Pool.ObjectPool<RefCountedData>(() => new RefCountedData(), null, null);
             Dictionary<int, RefCountedData> m_CachedData = new Dictionary<int, RefCountedData>();
 
             public PrecomputationData Get(CloudLayer cloudLayer, int currentHash)

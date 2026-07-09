@@ -3,8 +3,6 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Analytics;
 using UnityEngine.Rendering;
-using static UnityEngine.Analytics.IAnalytic;
-using Scene = UnityEditor.SearchService.SceneSearch;
 
 namespace UnityEditor.Rendering.Analytics
 {
@@ -18,7 +16,7 @@ namespace UnityEditor.Rendering.Analytics
         {
             public Analytic(Volume volume, string guid)
             {
-                using (GenericPool<Data>.Get(out var data))
+                using (UnityEngine.Pool.GenericPool<Data>.Get(out var data))
                 {
                     data.volume_name = Hash128.Compute(volume.name).ToString();
                     data.scene_name = guid;

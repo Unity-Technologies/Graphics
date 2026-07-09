@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -69,7 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public State CreateState(Camera camera)
         {
-            State state = GenericPool<State>.Get();
+            State state = UnityEngine.Pool.GenericPool<State>.Get();
             state.Init(camera);
             m_CameraStates.Add(state.key, state);
             return state;
@@ -114,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_CameraStates.Remove(invalidKey);
                 cameraState.Dispose();
-                GenericPool<State>.Release(cameraState);
+                UnityEngine.Pool.GenericPool<State>.Release(cameraState);
             }
 
             m_InvalidCameraKeys.Clear();

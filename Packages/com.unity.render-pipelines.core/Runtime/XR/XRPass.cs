@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
@@ -67,7 +66,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <returns> Default XRPass created from createInfo descriptor. </returns>
         public static XRPass CreateDefault(XRPassCreateInfo createInfo)
         {
-            XRPass pass = GenericPool<XRPass>.Get();
+            XRPass pass = UnityEngine.Pool.GenericPool<XRPass>.Get();
             pass.InitBase(createInfo);
             return pass;
         }
@@ -78,7 +77,7 @@ namespace UnityEngine.Experimental.Rendering
         virtual public void Release()
         {
             m_VisibleMesh.Dispose();
-            GenericPool<XRPass>.Release(this);
+            UnityEngine.Pool.GenericPool<XRPass>.Release(this);
         }
 
         /// <summary>

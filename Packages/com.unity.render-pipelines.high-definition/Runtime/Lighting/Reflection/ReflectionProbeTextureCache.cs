@@ -395,7 +395,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private bool RelayoutTextureAtlas()
         {
-            using (ListPool<(TextureId textureId, Vector4 scaleOffset)>.Get(out var atlasEntries))
+            using (UnityEngine.Pool.ListPool<(TextureId textureId, Vector4 scaleOffset)>.Get(out var atlasEntries))
             {
                 atlasEntries.Capacity = m_TextureLRUAndHash.Count;
 

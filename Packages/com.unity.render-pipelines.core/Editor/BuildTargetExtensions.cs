@@ -1,5 +1,3 @@
-using JetBrains.Annotations;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using UnityEditor.Build;
@@ -38,13 +36,13 @@ namespace UnityEditor.Rendering
             if (!includeSceneDependencies && !includeAssetsWithLabel)
                 return;
 
-            using (ListPool<string>.Get(out var assetsPaths))
+            using (UnityEngine.Pool.ListPool<string>.Get(out var assetsPaths))
             {
                 assetsPaths.AddRange(AssetDatabaseHelper.FindAssetPaths<T>(".asset"));
 
                 if (includeSceneDependencies)
                 {
-                    using (ListPool<string>.Get(out var scenesPaths))
+                    using (UnityEngine.Pool.ListPool<string>.Get(out var scenesPaths))
                     {
                         foreach (var scene in EditorBuildSettings.scenes)
                             if (scene.enabled)
@@ -81,7 +79,6 @@ namespace UnityEditor.Rendering
         /// <param name="buildTarget">The <see cref="BuildTarget"/> to obtain the assets.</param>
         /// <param name="srpAssets">The output list of <see cref="RenderPipelineAsset"/> that are referenced by the platform.</param>
         /// <returns>false if there was an error fetching the <see cref="RenderPipelineAsset"/> for this <see cref="BuildTarget"/></returns>
-        [MustUseReturnValue]
         public static bool TryGetRenderPipelineAssets<T>([DisallowNull] this BuildTarget buildTarget, List<T> srpAssets)
             where T : RenderPipelineAsset
         {

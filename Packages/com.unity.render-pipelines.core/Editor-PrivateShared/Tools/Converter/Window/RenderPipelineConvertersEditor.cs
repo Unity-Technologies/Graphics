@@ -7,7 +7,6 @@ using UnityEditor.Categorization;
 using UnityEditor.Rendering.Analytics;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.Pool;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
@@ -180,8 +179,8 @@ namespace UnityEditor.Rendering.Converter
             m_SourcePipelineDropDown = rootVisualElement.Q<DropdownField>("sourcePipelineDropDown");
             m_DestinationPipelineDropDown = rootVisualElement.Q<DropdownField>("targetPipelineDropDown");
 
-            using (HashSetPool<string>.Get(out var sourcePipelines))
-            using (HashSetPool<string>.Get(out var dstPipelines))
+            using (UnityEngine.Pool.HashSetPool<string>.Get(out var sourcePipelines))
+            using (UnityEngine.Pool.HashSetPool<string>.Get(out var dstPipelines))
             {
                 foreach (var converterNodeCategory in m_CoreConvertersList)
                 {

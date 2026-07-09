@@ -413,7 +413,7 @@ namespace UnityEngine.Rendering
         /// <returns>Reference to the requested debug item.</returns>
         public DebugUI.Widget[] GetItems(DebugUI.Flags flags)
         {
-            using (ListPool<DebugUI.Widget>.Get(out var temp))
+            using (UnityEngine.Pool.ListPool<DebugUI.Widget>.Get(out var temp))
             {
                 foreach (var panel in m_Panels)
                 {
@@ -427,7 +427,7 @@ namespace UnityEngine.Rendering
 
         internal DebugUI.Widget[] GetItemsFromContainer(DebugUI.Flags flags, DebugUI.IContainer container)
         {
-            using (ListPool<DebugUI.Widget>.Get(out var temp))
+            using (UnityEngine.Pool.ListPool<DebugUI.Widget>.Get(out var temp))
             {
                 foreach (var child in container.children)
                 {

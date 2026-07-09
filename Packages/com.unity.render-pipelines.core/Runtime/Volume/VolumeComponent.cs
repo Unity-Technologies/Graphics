@@ -215,10 +215,10 @@ namespace UnityEngine.Rendering
         protected virtual void OnEnable()
         {
             // Automatically grab all fields of type VolumeParameter for this instance
-            ListPool<VolumeParameter>.Get(out var tempList);
+            UnityEngine.Pool.ListPool<VolumeParameter>.Get(out var tempList);
             FindParameters(this, tempList);
             parameterList = tempList.ToArray();
-            ListPool<VolumeParameter>.Release(tempList);
+            UnityEngine.Pool.ListPool<VolumeParameter>.Release(tempList);
 
             foreach (var parameter in parameterList)
             {

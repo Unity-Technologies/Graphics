@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Unity.Scripting.LifecycleManagement;
-using UnityEditor.Rendering;
 using UnityEngine.Rendering.HighDefinition.Attributes;
-using UnityEngine.Rendering.RenderGraphModule;
-using UnityEngine.Experimental.Rendering;
 using NameAndTooltip = UnityEngine.Rendering.DebugUI.Widget.NameAndTooltip;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -341,7 +337,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [Obsolete("This API has been deprecated. #from(6000.6)")] // TODO: Remove with debugCameraToFreeze
             private static Camera[] GetAvailableDebuggableCameras()
             {
-                using (ListPool<Camera>.Get(out var tmp))
+                using (UnityEngine.Pool.ListPool<Camera>.Get(out var tmp))
                 {
 
 #if UNITY_EDITOR

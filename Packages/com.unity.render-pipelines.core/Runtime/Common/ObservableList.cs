@@ -178,7 +178,7 @@ namespace UnityEngine.Rendering
             }
             else
             {
-                using (ListPool<T>.Get(out var buffer))
+                using (UnityEngine.Pool.ListPool<T>.Get(out var buffer))
                 {
                     buffer.AddRange(items);
                     m_List.AddRange(buffer);
@@ -215,7 +215,7 @@ namespace UnityEngine.Rendering
             }
             else
             {
-                using (ListPool<T>.Get(out var buffer))
+                using (UnityEngine.Pool.ListPool<T>.Get(out var buffer))
                 {
                     buffer.AddRange(items);
                     m_List.InsertRange(index, buffer);

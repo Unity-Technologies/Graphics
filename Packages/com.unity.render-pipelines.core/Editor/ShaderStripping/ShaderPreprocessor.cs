@@ -1,4 +1,3 @@
-using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -37,7 +36,7 @@ namespace UnityEditor.Rendering
             // We can not rely on Shader.globalRenderPipeline as if there wasn't a Camera.Render the variable won't be initialized.
             // Therefore, we fetch the RenderPipeline assets that are included by the Quality Settings and or Graphics Settings
             string globalRenderPipelineTag = string.Empty;
-            using (ListPool<RenderPipelineAsset>.Get(out List<RenderPipelineAsset> rpAssets))
+            using (UnityEngine.Pool.ListPool<RenderPipelineAsset>.Get(out List<RenderPipelineAsset> rpAssets))
             {
                 if (EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets<RenderPipelineAsset>(rpAssets))
                 {
@@ -91,8 +90,6 @@ namespace UnityEditor.Rendering
         /// <param name="shader">The <see cref="T" /> that might be stripped.</param>
         /// <param name="shaderVariant">The <see cref="TShaderVariant" /></param>
         /// <param name="compilerDataList">A list of <see cref="ShaderCompilerData" /></param>
-        [CollectionAccess(CollectionAccessType.ModifyExistingContent)]
-        [MustUseReturnValue]
         protected bool TryStripShaderVariants([DisallowNull] TShader shader, TShaderVariant shaderVariant, IList<ShaderCompilerData> compilerDataList, [NotNullWhen(false)] out Exception error)
         {
             if (shader == null)

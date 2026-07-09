@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Pool;
 using static UnityEditor.Rendering.MaterialUpgrader;
 
 namespace UnityEditor.Rendering.Converter
@@ -99,7 +98,7 @@ namespace UnityEditor.Rendering.Converter
             }
 
             var materialsGroupByShader = MaterialFinder.GroupAllMaterialsInProject();
-            using (HashSetPool<string>.Get(out var destinationShaders))
+            using (UnityEngine.Pool.HashSetPool<string>.Get(out var destinationShaders))
             {
                 foreach (var upgrader in m_UpgradersCache)
                 {

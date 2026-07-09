@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var diffusionProfileList = VolumeUtils.GetOrCreateDiffusionProfileList(volumeProfile);
 
-            using (HashSetPool<DiffusionProfileSettings>.Get(out var tmp))
+            using (UnityEngine.Pool.HashSetPool<DiffusionProfileSettings>.Get(out var tmp))
             {
                 var currentOverrides = diffusionProfileList.ToArray();
 

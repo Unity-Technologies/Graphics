@@ -1,4 +1,3 @@
-using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -35,7 +34,7 @@ namespace UnityEditor.Rendering
 
         static void RemoveAdditionalData([DisallowNull] Component additionalDataComponent, bool promptDisplay = true)
         {
-            using (ListPool<Type>.Get(out var componentTypesToRemove))
+            using (UnityEngine.Pool.ListPool<Type>.Get(out var componentTypesToRemove))
             {
                 if (!TryGetComponentsToRemove(additionalDataComponent as IAdditionalData, componentTypesToRemove, out var error))
                     throw error;
@@ -79,7 +78,7 @@ namespace UnityEditor.Rendering
 
         static void RemoveAdditionalDataComponent([DisallowNull] Component additionalDataComponent, [DisallowNull] List<Type> componentsTypeToRemove)
         {
-            using (ListPool<Component>.Get(out var components))
+            using (UnityEngine.Pool.ListPool<Component>.Get(out var components))
             {
                 // Fetch all components
                 foreach (var type in componentsTypeToRemove)
@@ -96,7 +95,6 @@ namespace UnityEditor.Rendering
         }
 
         //internal for tests
-        [MustUseReturnValue]
         internal static bool TryGetComponentsToRemove([DisallowNull] IAdditionalData additionalData, [DisallowNull] List<Type> componentsToRemove, [NotNullWhen(false)] out Exception error)
         {
             if (additionalData == null)

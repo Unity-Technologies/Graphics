@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.Universal
 
             static void RemoveDeletedCameras()
             {
-                using (ListPool<EntityId>.Get(out var deletedCameras))
+                using (UnityEngine.Pool.ListPool<EntityId>.Get(out var deletedCameras))
                 {
                     foreach (var id in s_MetadataCache.Keys)
                     {
@@ -803,7 +803,7 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    using (ListPool<Camera>.Get(out var tmp))
+                    using (UnityEngine.Pool.ListPool<Camera>.Get(out var tmp))
                     {
                         tmp.Add(camera);
 

@@ -2,7 +2,6 @@ using System;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine.Analytics;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -45,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var activeBuildTarget = EditorUserBuildSettings.activeBuildTarget;
 
-            using (ListPool<HDRenderPipelineAsset>.Get(out var tmp))
+            using (UnityEngine.Pool.ListPool<HDRenderPipelineAsset>.Get(out var tmp))
             {
                 if (!EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets<HDRenderPipelineAsset>(tmp) || tmp.Count == 0)
                     return;

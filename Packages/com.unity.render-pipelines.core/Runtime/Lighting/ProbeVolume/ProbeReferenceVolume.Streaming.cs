@@ -1,8 +1,8 @@
-using System.Diagnostics;
 using System.Collections.Generic;
-using Unity.IO.LowLevel.Unsafe;
+using System.Diagnostics;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.IO.LowLevel.Unsafe;
 using Unity.Scripting.LifecycleManagement;
 
 namespace UnityEngine.Rendering
@@ -390,7 +390,7 @@ namespace UnityEngine.Rendering
         Queue<CellStreamingRequest> m_StreamingQueue = new Queue<CellStreamingRequest>();
         // List of active requests. Needed to query the result every frame.
         List<CellStreamingRequest> m_ActiveStreamingRequests = new List<CellStreamingRequest>();
-        ObjectPool<CellStreamingRequest> m_StreamingRequestsPool = new ObjectPool<CellStreamingRequest>(null, (val) => val.Clear());
+        UnityEngine.Pool.ObjectPool<CellStreamingRequest> m_StreamingRequestsPool = new UnityEngine.Pool.ObjectPool<CellStreamingRequest>(() => new CellStreamingRequest(), null, (val) => val.Clear());
         bool m_DiskStreamingUseCompute = false;
         ProbeVolumeScratchBufferPool m_ScratchBufferPool;
 
@@ -411,9 +411,9 @@ namespace UnityEngine.Rendering
 
             Debug.Assert(m_StreamingQueue.Count == 0);
             Debug.Assert(m_ActiveStreamingRequests.Count == 0);
-            Debug.Assert(m_StreamingRequestsPool.countAll == m_StreamingRequestsPool.countInactive); // Everything should have been released.
+            Debug.Assert(m_StreamingRequestsPool.CountAll == m_StreamingRequestsPool.CountInactive); // Everything should have been released.
 
-            for (int i = 0; i < m_StreamingRequestsPool.countAll; ++i)
+            for (int i = 0; i < m_StreamingRequestsPool.CountAll; ++i)
             {
                 var request = m_StreamingRequestsPool.Get();
                 request.Dispose();
@@ -425,7 +425,7 @@ namespace UnityEngine.Rendering
                 m_ScratchBufferPool = null;
             }
 
-            m_StreamingRequestsPool = new ObjectPool<CellStreamingRequest>((val) => val.Clear(), null);
+            m_StreamingRequestsPool = new UnityEngine.Pool.ObjectPool<CellStreamingRequest>(() => new CellStreamingRequest(), null, (val) => val.Clear());
             m_ActiveStreamingRequests.Clear();
             m_StreamingQueue.Clear();
 

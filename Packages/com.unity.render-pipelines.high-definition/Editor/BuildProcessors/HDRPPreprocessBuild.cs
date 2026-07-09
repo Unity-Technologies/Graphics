@@ -162,7 +162,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static void LogIncludedAssets(List<HDRenderPipelineAsset> assetsList)
         {
-            using (GenericPool<StringBuilder>.Get(out var assetsIncluded))
+            using (UnityEngine.Pool.GenericPool<StringBuilder>.Get(out var assetsIncluded))
             {
                 assetsIncluded.Clear();
 
@@ -546,7 +546,7 @@ namespace UnityEditor.Rendering.HighDefinition
         private static void GatherShaderFeatures(BuildTarget buildTarget)
         {
             s_SupportedFeaturesList.Clear();
-            using (ListPool<HDRenderPipelineAsset>.Get(out List<HDRenderPipelineAsset> hdrpAssets))
+            using (UnityEngine.Pool.ListPool<HDRenderPipelineAsset>.Get(out List<HDRenderPipelineAsset> hdrpAssets))
             {
                 bool buildingForHDRP = buildTarget.TryGetRenderPipelineAssets(hdrpAssets);
                 if (buildingForHDRP)

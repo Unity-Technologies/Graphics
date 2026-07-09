@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Unity.Scripting.LifecycleManagement;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Scripting.APIUpdating;
 // Typedef for the in-engine RendererList API (to avoid conflicts with the experimental version)
 using CoreRendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
@@ -1568,7 +1567,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             // The reverse loop prunes deleted cameras and checks if the current camera needs to be registered.
             bool alreadyRegistered = false;
-            using var deletedExecutionIdsDisposable = ListPool<EntityId>.Get(out var deletedExecutionIds);
+            using var deletedExecutionIdsDisposable = UnityEngine.Pool.ListPool<EntityId>.Get(out var deletedExecutionIds);
             for (int i = registeredExecutions.Count - 1; i >= 0; i--)
             {
                 DebugExecutionItem executionItem = registeredExecutions[i];

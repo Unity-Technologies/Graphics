@@ -687,7 +687,7 @@ namespace UnityEngine.Rendering
         internal Bounds globalBounds { get { return m_CurrGlobalBounds; } set { m_CurrGlobalBounds = value; } }
 
         internal Dictionary<int, Cell> cells = new Dictionary<int, Cell>();
-        ObjectPool<Cell> m_CellPool = new ObjectPool<Cell>(x => x.Clear(), null, false);
+        UnityEngine.Pool.ObjectPool<Cell> m_CellPool = new UnityEngine.Pool.ObjectPool<Cell>(() => new Cell(), x => x.Clear(), null, null, false);
 
         ProbeBrickPool.DataLocation m_TemporaryDataLocation;
         int m_TemporaryDataLocationMemCost;

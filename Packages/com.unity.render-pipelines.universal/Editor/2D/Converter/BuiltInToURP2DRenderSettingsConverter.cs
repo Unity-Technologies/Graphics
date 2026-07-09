@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Categorization;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Pool;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -61,7 +62,7 @@ namespace UnityEditor.Rendering.Universal
             defaultIndex = 0;
 
 
-            using (ListPool<ScriptableRendererData>.Get(out var tmp))
+            using (UnityEngine.Pool.ListPool<ScriptableRendererData>.Get(out var tmp))
             {
                 tmp.Add(CreateRenderer2DDataAsset());
 

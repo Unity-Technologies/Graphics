@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Text;
 using UnityEditor.Rendering.Converter;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -39,7 +38,7 @@ namespace UnityEditor.Rendering.Universal
         static void ListAvailableConverters()
         {
             // Get all converters and group them by container
-            var containersDict = DictionaryPool<string,List<string>>.Get();
+            var containersDict = UnityEngine.Pool.DictionaryPool<string,List<string>>.Get();
             foreach (var container in TypeCache.GetTypesWithAttribute<BatchModeConverterClassInfo>())
             {
                 if (container.IsAbstract || container.IsInterface)
@@ -147,7 +146,7 @@ namespace UnityEditor.Rendering.Universal
             if (batchmodeArgIndex == -1)
                 throw new ArgumentException($"No {k_BatchmodeCommand} argument found. Exiting.");
 
-            var parsedArgs = DictionaryPool<string,List<string>>.Get();
+            var parsedArgs = UnityEngine.Pool.DictionaryPool<string,List<string>>.Get();
             parsedArgs["Flags"] = new List<string>();
 
             string currentKey = null; // are we collecting values for a key?

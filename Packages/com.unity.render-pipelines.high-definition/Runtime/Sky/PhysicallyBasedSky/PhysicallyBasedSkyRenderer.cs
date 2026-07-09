@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 
@@ -18,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 public PrecomputationData data = new PrecomputationData();
             }
 
-            ObjectPool<RefCountedData> m_DataPool = new ObjectPool<RefCountedData>(null, null);
+            UnityEngine.Pool.ObjectPool<RefCountedData> m_DataPool = new UnityEngine.Pool.ObjectPool<RefCountedData>(() => new RefCountedData(), null, null);
             Dictionary<int, RefCountedData> m_CachedData = new Dictionary<int, RefCountedData>();
 
             public bool HasAliveData() => m_CachedData.Count != 0;

@@ -794,8 +794,8 @@ namespace UnityEngine.Rendering
                 if (enumType == null || !enumType.IsEnum)
                     throw new ArgumentException($"{nameof(enumType)} must not be null and it must be an Enum type");
 
-                using (ListPool<GUIContent>.Get(out var tmpNames))
-                using (ListPool<int>.Get(out var tmpValues))
+                using (UnityEngine.Pool.ListPool<GUIContent>.Get(out var tmpNames))
+                using (UnityEngine.Pool.ListPool<int>.Get(out var tmpValues))
                 {
                     var enumEntries = enumType.GetFields(BindingFlags.Public | BindingFlags.Static)
                         .Where(fieldInfo => !fieldInfo.IsDefined(typeof(ObsoleteAttribute)) && !fieldInfo.IsDefined(typeof(HideInInspector)));

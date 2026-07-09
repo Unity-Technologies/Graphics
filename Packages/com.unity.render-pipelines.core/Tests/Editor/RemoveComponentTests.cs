@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.Tests
             return typesOfFirstSelected.ToArray();
         }
 
-        bool DoesAllGameObjectHaveSameComponents([NotNull] System.Collections.Generic.IEnumerable<GameObject> objectsToCheck, System.Collections.Generic.IEnumerable<Type> typesToCheck)
+        bool DoesAllGameObjectHaveSameComponents([DisallowNull] System.Collections.Generic.IEnumerable<GameObject> objectsToCheck, System.Collections.Generic.IEnumerable<Type> typesToCheck)
         {
             var typeAmount = typesToCheck.Count();
             foreach(var objectToCheck in objectsToCheck)
@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.Tests
             string[] result = Array.Empty<string>();
             var additionalData = m_GameObject.AddComponent(type) as IAdditionalData;
 
-            using (ListPool<Type>.Get(out var componentsToRemove))
+            using (UnityEngine.Pool.ListPool<Type>.Get(out var componentsToRemove))
             {
                 if (RemoveAdditionalDataUtils.TryGetComponentsToRemove(additionalData, componentsToRemove, out var error))
                     result = componentsToRemove.Select(t => t.Name).ToArray();

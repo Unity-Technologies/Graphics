@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
     {
         public static XRPass Create(XRPassCreateInfo createInfo)
         {
-            XRPassUniversal pass = GenericPool<XRPassUniversal>.Get();
+            XRPassUniversal pass = UnityEngine.Pool.GenericPool<XRPassUniversal>.Get();
             pass.InitBase(createInfo);
 
             // Initialize fields specific to Universal
@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.Universal
 
         override public void Release()
         {
-            GenericPool<XRPassUniversal>.Release(this);
+            UnityEngine.Pool.GenericPool<XRPassUniversal>.Release(this);
         }
 
         /// If true, late latching mechanism is available for the frame.

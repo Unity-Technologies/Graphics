@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine.Rendering.HighDefinition.Attributes;
 using System.Linq;
@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!attr.needParamDebug)
                 return;
 
-            using (ListPool<(GUIContent, int)>.Get(out var tmp))
+            using (UnityEngine.Pool.ListPool<(GUIContent, int)>.Get(out var tmp))
             {
                 var fields = type.GetFields();
                 var localIndex = 0;
@@ -462,8 +462,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static void FillMaterialsInfos(List<MaterialItem> materialItems)
         {
-            using (ListPool<GUIContent>.Get(out var debugViewMaterialStringsList))
-            using (ListPool<int>.Get(out var debugViewMaterialValuesList))
+            using (UnityEngine.Pool.ListPool<GUIContent>.Get(out var debugViewMaterialStringsList))
+            using (UnityEngine.Pool.ListPool<int>.Get(out var debugViewMaterialValuesList))
             {
                 // First element is a reserved location and should not be used (allow to track error)
                 // Special case for None since it cannot be inferred from SurfaceData/BuiltinData

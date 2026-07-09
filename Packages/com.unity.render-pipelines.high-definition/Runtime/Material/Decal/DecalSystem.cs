@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (!m_Requests.TryGetValue(index, out var v))
                     {
-                        v = GenericPool<Set>.Get();
+                        v = UnityEngine.Pool.GenericPool<Set>.Get();
                         m_Requests.Add(index, v);
                     }
                     return v;
@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 foreach (var pair in m_Requests)
                 {
                     pair.Value.Clear();
-                    GenericPool<Set>.Release(pair.Value);
+                    UnityEngine.Pool.GenericPool<Set>.Release(pair.Value);
                 }
                 m_Requests.Clear();
             }
@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (!m_Requests.TryGetValue(index, out var v))
                     {
-                        v = GenericPool<Set>.Get();
+                        v = UnityEngine.Pool.GenericPool<Set>.Get();
                         m_Requests.Add(index, v);
                     }
                     return v;
@@ -172,7 +172,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 foreach (var pair in m_Requests)
                 {
                     pair.Value.Clear();
-                    GenericPool<Set>.Release(pair.Value);
+                    UnityEngine.Pool.GenericPool<Set>.Release(pair.Value);
                 }
                 m_Requests.Clear();
             }

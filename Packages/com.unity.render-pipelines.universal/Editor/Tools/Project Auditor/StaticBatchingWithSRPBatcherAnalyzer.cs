@@ -4,6 +4,7 @@ using Unity.ProjectAuditor.Editor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Pool;
 
 namespace UnityEditor.Rendering.Universal.ProjectAuditor
 {

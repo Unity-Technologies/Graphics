@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 data = null;
 
-                using (ListPool<PostProcessData>.Get(out var tmp))
+                using (UnityEngine.Pool.ListPool<PostProcessData>.Get(out var tmp))
                 {
                     if (TryGatherPostProcessDataIncludedInBuild(tmp))
                         data = GatherDataToBeSent(ExtractData(tmp));
@@ -141,7 +141,7 @@ namespace UnityEditor.Rendering.Universal
 
             public static IAnalytic.DataList<AnalyticsData> GatherDataToBeSent(PropertyToGUIDs[] dictionary)
             {
-                using (ListPool<AnalyticsData>.Get(out var tmp))
+                using (UnityEngine.Pool.ListPool<AnalyticsData>.Get(out var tmp))
                 {
                     var uniques = new HashSet<string>();
 

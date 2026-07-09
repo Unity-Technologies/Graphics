@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -28,7 +27,6 @@ internal static readonly string k_DialogKey = $"{nameof(UnityEditor)}.{nameof(Re
             /// <summary>
             /// The material being evaluated.
             /// </summary>
-            [CanBeNull]
             public Material Material { get; set; }
 
             /// <summary>
@@ -49,7 +47,6 @@ internal static readonly string k_DialogKey = $"{nameof(UnityEditor)}.{nameof(Re
             /// <summary>
             /// The base material is <see cref="IsVariant"/> is true
             /// </summary>
-            [CanBeNull]
             public Material BaseMaterial { get; set; }
 
             /// <summary>
@@ -452,7 +449,7 @@ internal static readonly string k_DialogKey = $"{nameof(UnityEditor)}.{nameof(Re
         /// <param name="flags">Material Upgrader flags.</param>
         public static void Upgrade(Material material, MaterialUpgrader upgrader, UpgradeFlags flags)
         {
-            using (ListPool<MaterialUpgrader>.Get(out List<MaterialUpgrader> upgraders))
+            using (UnityEngine.Pool.ListPool<MaterialUpgrader>.Get(out List<MaterialUpgrader> upgraders))
             {
                 upgraders.Add(upgrader);
                 Upgrade(material, upgraders, flags);
@@ -519,7 +516,7 @@ internal static readonly string k_DialogKey = $"{nameof(UnityEditor)}.{nameof(Re
         /// <param name="flags">Material Upgrader flags.</param>
         public static void UpgradeProjectFolder(List<MaterialUpgrader> upgraders, HashSet<string> shaderNamesToIgnore, string progressBarName, UpgradeFlags flags = UpgradeFlags.None)
         {
-            using (ListPool<MaterialUpgradeEntry>.Get(out var tmp))
+            using (UnityEngine.Pool.ListPool<MaterialUpgradeEntry>.Get(out var tmp))
             {
                 tmp.AddRange(FetchUpgradeOptions(upgraders));
                 PerformUpgrade(tmp, upgraders, shaderNamesToIgnore, progressBarName, flags);
@@ -547,9 +544,9 @@ internal static readonly string k_DialogKey = $"{nameof(UnityEditor)}.{nameof(Re
         /// <param name="flags">Material Upgrader flags.</param>
         public static void UpgradeSelection(List<MaterialUpgrader> upgraders, HashSet<string> shaderNamesToIgnore, string progressBarName, UpgradeFlags flags = UpgradeFlags.None)
         {
-            using (ListPool<MaterialUpgradeEntry>.Get(out var tmp))
+            using (UnityEngine.Pool.ListPool<MaterialUpgradeEntry>.Get(out var tmp))
             {
-                using (ListPool<Material>.Get(out var selectedMaterials))
+                using (UnityEngine.Pool.ListPool<Material>.Get(out var selectedMaterials))
                 {
                     var selection = Selection.objects;
                     if (selection != null)

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var listTypes = new List<Type>();
 
-            using (HashSetPool<string>.Get(out var tmp))
+            using (UnityEngine.Pool.HashSetPool<string>.Get(out var tmp))
             {
                 for (int i = 0; i < list.arraySize; i++)
                 {

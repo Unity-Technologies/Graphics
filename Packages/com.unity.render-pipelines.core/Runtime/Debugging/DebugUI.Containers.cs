@@ -545,7 +545,7 @@ namespace UnityEngine.Rendering
                 var container = new UIElements.VisualElement();
                 container.AddToClassList("debug-window-table");
 
-                using (ListPool<string>.Get(out var tmp))
+                using (UnityEngine.Pool.ListPool<string>.Get(out var tmp))
                 {
                     if (children.Count != 0 && children[0] is Row row)
                     {

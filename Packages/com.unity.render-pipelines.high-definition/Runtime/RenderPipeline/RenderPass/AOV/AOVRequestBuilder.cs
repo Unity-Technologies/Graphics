@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
             FramePassCallback callback
         )
         {
-            (m_AOVRequestDataData ?? (m_AOVRequestDataData = ListPool<AOVRequestData>.Get())).Add(
+            (m_AOVRequestDataData ?? (m_AOVRequestDataData = UnityEngine.Pool.ListPool<AOVRequestData>.Get())).Add(
                 new AOVRequestData(settings, bufferAllocator, includedLightList, aovBuffers, callback));
             return this;
         }
@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
             FramePassCallbackEx callback
         )
         {
-            (m_AOVRequestDataData ?? (m_AOVRequestDataData = ListPool<AOVRequestData>.Get())).Add(
+            (m_AOVRequestDataData ?? (m_AOVRequestDataData = UnityEngine.Pool.ListPool<AOVRequestData>.Get())).Add(
                 new AOVRequestData(settings, bufferAllocator, includedLightList, aovBuffers, customPassAovBuffers, customPassbufferAllocator, callback));
             return this;
         }
@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Dispose()
         {
             if (m_AOVRequestDataData == null) return;
-            ListPool<AOVRequestData>.Release(m_AOVRequestDataData);
+            UnityEngine.Pool.ListPool<AOVRequestData>.Release(m_AOVRequestDataData);
             m_AOVRequestDataData = null;
         }
     }

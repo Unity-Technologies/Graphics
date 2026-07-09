@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
-using JetBrains.Annotations;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
@@ -268,7 +267,7 @@ namespace UnityEditor.Rendering
             }
         }
 
-        [CanBeNull] private ShaderStrippingInfo m_LastShaderStrippingInfo = null;
+        private ShaderStrippingInfo m_LastShaderStrippingInfo = null;
 
         private ShaderStrippingInfo FindLastShaderStrippingInfo<TShader>([DisallowNull] TShader shader)
             where TShader : UnityEngine.Object
@@ -295,7 +294,6 @@ namespace UnityEditor.Rendering
             return m_LastShaderStrippingInfo;
         }
 
-        [MustUseReturnValue]
         internal static bool TryGetVariantName<TShader, TShaderVariant>([DisallowNull] TShader shader, TShaderVariant shaderVariant, out string variantName)
             where TShader : UnityEngine.Object
         {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -499,7 +499,7 @@ namespace UnityEditor.Rendering.Universal
             GetEveryShaderFeatureAndPrefilteringData(rendererFeaturesList, ref spd);
 
             // Update each asset so it has every feature enabled
-            using (ListPool<UniversalRenderPipelineAsset>.Get(out List<UniversalRenderPipelineAsset> urpAssets))
+            using (UnityEngine.Pool.ListPool<UniversalRenderPipelineAsset>.Get(out List<UniversalRenderPipelineAsset> urpAssets))
             {
                 bool buildingForURP = EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets(urpAssets);
                 if (!buildingForURP)
@@ -528,7 +528,7 @@ namespace UnityEditor.Rendering.Universal
         private static void HandleEnabledShaderStripping()
         {
             s_Strip2DPasses = true;
-            using (ListPool<UniversalRenderPipelineAsset>.Get(out List<UniversalRenderPipelineAsset> urpAssets))
+            using (UnityEngine.Pool.ListPool<UniversalRenderPipelineAsset>.Get(out List<UniversalRenderPipelineAsset> urpAssets))
             {
                 bool buildingForURP = EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets(urpAssets);
                 if (buildingForURP)

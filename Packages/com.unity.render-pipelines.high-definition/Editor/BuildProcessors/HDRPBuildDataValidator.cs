@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static bool IsProjectValidForBuilding(BuildReport report, out string message)
         {
-            using (GenericPool<StringBuilder>.Get(out var failures))
+            using (UnityEngine.Pool.GenericPool<StringBuilder>.Get(out var failures))
             {
                 failures.Clear();
 

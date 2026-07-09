@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using System;
 
 namespace UnityEngine.Rendering
 {
@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering
             public AtlasNode m_BottomChild = null;
             public Vector4 m_Rect = new Vector4(0, 0, 0, 0); // x,y is width and height (scale) z,w offset into atlas (offset)
 
-            public AtlasNode Allocate(ref ObjectPool<AtlasNode> pool, int width, int height, bool powerOfTwoPadding)
+            public AtlasNode Allocate(ref UnityEngine.Pool.ObjectPool<AtlasNode> pool, int width, int height, bool powerOfTwoPadding)
             {
                 // not a leaf node, try children
                 if (m_RightChild != null)
@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering
                 return null;
             }
 
-            public void Release(ref ObjectPool<AtlasNode> pool)
+            public void Release(ref UnityEngine.Pool.ObjectPool<AtlasNode> pool)
             {
                 if (m_RightChild != null)
                 {
@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering
         private int m_Width;
         private int m_Height;
         private bool powerOfTwoPadding;
-        private ObjectPool<AtlasNode> m_NodePool;
+        private UnityEngine.Pool.ObjectPool<AtlasNode> m_NodePool;
 
         public AtlasAllocator(int width, int height, bool potPadding)
         {
@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering
             m_Width = width;
             m_Height = height;
             powerOfTwoPadding = potPadding;
-            m_NodePool = new ObjectPool<AtlasNode>(_ => { }, _ => { });
+            m_NodePool = new UnityEngine.Pool.ObjectPool<AtlasNode>(() => new AtlasNode(), _ => { }, _ => { });
         }
 
         public bool Allocate(ref Vector4 result, int width, int height)

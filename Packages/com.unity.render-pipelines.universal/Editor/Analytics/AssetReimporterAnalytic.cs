@@ -1,7 +1,5 @@
-using JetBrains.Annotations;
 using System;
 using UnityEngine.Analytics;
-using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Universal.Analytics
 {
@@ -15,7 +13,7 @@ namespace UnityEditor.Rendering.Universal.Analytics
         {
             public Analytic(double duration, uint numberOfAssets, string assetType)
             {
-                using (GenericPool<Data>.Get(out var data))
+                using (UnityEngine.Pool.GenericPool<Data>.Get(out var data))
                 {
                     data.duration = duration;
                     data.num_assets = numberOfAssets;

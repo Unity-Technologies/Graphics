@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering;
 using IMaterial = UnityEditor.Rendering.UpgradeUtility.IMaterial;
 using MaterialProxy = UnityEditor.Rendering.UpgradeUtility.MaterialProxy;
 
@@ -56,10 +55,10 @@ namespace UnityEditor.Rendering
             public void GetSharedMaterials(List<IMaterial> materials)
             {
                 materials.Clear();
-                var m = ListPool<Material>.Get();
+                var m = UnityEngine.Pool.ListPool<Material>.Get();
                 m_Renderer.GetSharedMaterials(m);
                 materials.AddRange(m.Select(mm => (MaterialProxy)mm).Cast<IMaterial>());
-                ListPool<Material>.Release(m);
+                UnityEngine.Pool.ListPool<Material>.Release(m);
             }
 
             public static implicit operator Renderer(RendererProxy proxy) => proxy.m_Renderer;

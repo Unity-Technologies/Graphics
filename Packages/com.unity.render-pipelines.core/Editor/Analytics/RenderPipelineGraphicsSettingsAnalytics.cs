@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering
 
             public static IAnalytic.DataList<AnalyticsData> GatherDataToBeSent()
             {
-                using (ListPool<AnalyticsData>.Get(out var tmp))
+                using (UnityEngine.Pool.ListPool<AnalyticsData>.Get(out var tmp))
                 {
                     GraphicsSettings.ForEach(settings =>
                     {

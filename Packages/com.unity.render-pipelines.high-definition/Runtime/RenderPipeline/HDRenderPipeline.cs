@@ -80,6 +80,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         readonly List<RenderPipelineMaterial> m_MaterialList = new List<RenderPipelineMaterial>();
 
+        // Persistent work buffers for FlattenRenderRequestGraph to avoid per-frame allocations
+        readonly List<int> m_RenderRequestIndicesToRender = new List<int>(256);
+        readonly List<int> m_VisitStatus = new List<int>(256);
+
 #if ENABLE_UPSCALER_FRAMEWORK
         internal Upscaling upscaling;
 #endif
@@ -434,7 +438,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         ScriptableCullingParameters frozenCullingParams;
         bool frozenCullingParamAvailable = false;
-        ObjectPool<HDCullingResults> m_CullingResultsPool = new ObjectPool<HDCullingResults>((cullResult) => cullResult.Reset(), null, false);
+        UnityEngine.Pool.ObjectPool<HDCullingResults> m_CullingResultsPool = new UnityEngine.Pool.ObjectPool<HDCullingResults>(() => new HDCullingResults(), (cullResult) => cullResult.Reset(), null, null, false);
 
         // RENDER GRAPH
         RenderGraph m_RenderGraph = new RenderGraph("HDRP");
@@ -1537,16 +1541,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void FlattenRenderRequestGraph(List<RenderRequest> requests, List<int> renderIndices)
         {
-            using (ListPool<int>.Get(out List<int> visitStatus))
-            {
-                // mark everything as "not visited"
-                for (int i = 0; i < requests.Count; ++i)
-                    visitStatus.Add(0);
+            m_VisitStatus.Clear();
 
-                // iterate in request order (recursively visits dependencies first)
-                for (int i = 0; i < requests.Count; ++i)
-                    VisitRenderRequestRecursive(requests, visitStatus, i, renderIndices);
-            }
+            // mark everything as "not visited"
+            for (int i = 0; i < requests.Count; ++i)
+                m_VisitStatus.Add(0);
+
+            // iterate in request order (recursively visits dependencies first)
+            for (int i = 0; i < requests.Count; ++i)
+                VisitRenderRequestRecursive(requests, m_VisitStatus, i, renderIndices);
         }
 
         class HDCullingResults
@@ -1564,7 +1567,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (decalCullResults != null)
                     decalCullResults.Clear();
                 else
-                    decalCullResults = GenericPool<DecalSystem.CullResult>.Get();
+                    decalCullResults = UnityEngine.Pool.GenericPool<DecalSystem.CullResult>.Get();
             }
         }
 
@@ -1703,10 +1706,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     depthId = targetDepthId,
                     face = cubemapFace
                 },
-                dependsOnRenderRequestIndices = ListPool<int>.Get(),
+                dependsOnRenderRequestIndices = UnityEngine.Pool.ListPool<int>.Get(),
                 index = renderRequests.Count,
                 cameraSettings = CameraSettings.From(hdCamera),
-                viewDependentProbesData = ListPool<(HDProbe.RenderData, HDProbe)>.Get(),
+                viewDependentProbesData = UnityEngine.Pool.ListPool<(HDProbe.RenderData, HDProbe)>.Get(),
                 cullingResultIsShared = cullingResultIsShared,
                 xrPass = xrPass
                 // TODO: store DecalCullResult
@@ -1788,7 +1791,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!renderRequestIndicesWhereTheProbeIsVisible.TryGetValue(probe, out var visibleInIndices))
             {
-                visibleInIndices = ListPool<(int index, float weight)>.Get();
+                visibleInIndices = UnityEngine.Pool.ListPool<(int index, float weight)>.Get();
                 renderRequestIndicesWhereTheProbeIsVisible.Add(probe, visibleInIndices);
             }
 
@@ -1974,10 +1977,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     hdCamera = hdCamera,
                     cullingResults = _cullingResults,
                     clearCameraSettings = true,
-                    dependsOnRenderRequestIndices = ListPool<int>.Get(),
+                    dependsOnRenderRequestIndices = UnityEngine.Pool.ListPool<int>.Get(),
                     index = renderRequests.Count,
                     cameraSettings = cameraSettings[j],
-                    viewDependentProbesData = ListPool<(HDProbe.RenderData, HDProbe)>.Get(),
+                    viewDependentProbesData = UnityEngine.Pool.ListPool<(HDProbe.RenderData, HDProbe)>.Get(),
                     xrPass =  XRSystem.emptyPass,
                     // TODO: store DecalCullResult
                 };
@@ -2081,7 +2084,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         hdParentCamera = visibleInRenderRequest.hdCamera;
 
-                        var renderDatas = ListPool<HDProbe.RenderData>.Get();
+                        var renderDatas = UnityEngine.Pool.ListPool<HDProbe.RenderData>.Get();
 
                         s_TempGenerateProbeRenderRequestsList.Clear();
                         s_TempGenerateProbeRenderRequestsList.Add(visibility);
@@ -2102,7 +2105,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             visibleInRenderRequest.viewDependentProbesData.Add((renderData, visibleProbe));
                         }
 
-                        ListPool<HDProbe.RenderData>.Release(renderDatas);
+                        UnityEngine.Pool.ListPool<HDProbe.RenderData>.Release(renderDatas);
                     }
                 }
                 else
@@ -2119,10 +2122,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (visibleInOneViewer)
                     {
-                        var renderDatas = ListPool<HDProbe.RenderData>.Get();
+                        var renderDatas = UnityEngine.Pool.ListPool<HDProbe.RenderData>.Get();
                         AddHDProbeRenderRequests(visibleProbe, null, visibilities, 0, hdParentCamera, referenceFieldOfView: 90, referenceAspect: 1, ref renderDatas,
                             cameraSettings, cameraPositionSettings, cameraCubemapFaces, renderRequests, renderContext);
-                        ListPool<HDProbe.RenderData>.Release(renderDatas);
+                        UnityEngine.Pool.ListPool<HDProbe.RenderData>.Release(renderDatas);
                     }
                 }
             }
@@ -2154,8 +2157,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (renderRequest.clearCameraSettings)
                 renderRequest.hdCamera.camera.targetTexture = null;
 
-            ListPool<int>.Release(renderRequest.dependsOnRenderRequestIndices);
-            ListPool<(HDProbe.RenderData, HDProbe)>.Release(renderRequest.viewDependentProbesData);
+            UnityEngine.Pool.ListPool<int>.Release(renderRequest.dependsOnRenderRequestIndices);
+            UnityEngine.Pool.ListPool<(HDProbe.RenderData, HDProbe)>.Release(renderRequest.viewDependentProbesData);
 
             // Culling results can be shared between render requests: clear only when required
             if (!renderRequest.cullingResultIsShared)
@@ -2293,11 +2296,11 @@ namespace UnityEngine.Rendering.HighDefinition
             var xrLayout = XRSystem.NewLayout();
 
             // This syntax is awful and hostile to debugging, please don't use it...
-            using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
-            using (DictionaryPool<HDProbe, List<(int index, float weight)>>.Get(out Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible))
-            using (ListPool<CameraSettings>.Get(out List<CameraSettings> cameraSettings))
-            using (ListPool<CameraPositionSettings>.Get(out List<CameraPositionSettings> cameraPositionSettings))
-            using (ListPool<CubemapFace>.Get(out List<CubemapFace> cameraCubemapFaces))
+            using (UnityEngine.Pool.ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
+            using (UnityEngine.Pool.DictionaryPool<HDProbe, List<(int index, float weight)>>.Get(out Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible))
+            using (UnityEngine.Pool.ListPool<CameraSettings>.Get(out List<CameraSettings> cameraSettings))
+            using (UnityEngine.Pool.ListPool<CameraPositionSettings>.Get(out List<CameraPositionSettings> cameraPositionSettings))
+            using (UnityEngine.Pool.ListPool<CubemapFace>.Get(out List<CubemapFace> cameraCubemapFaces))
             {
                 // With XR multi-pass enabled, each camera can be rendered multiple times with different parameters
                 foreach (var c in cameras)
@@ -2422,24 +2425,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 GenerateProbeRenderRequests(renderRequestIndicesWhereTheProbeIsVisible, renderRequests, cameraSettings, cameraPositionSettings, cameraCubemapFaces, renderContext);
 
                 foreach (var pair in renderRequestIndicesWhereTheProbeIsVisible)
-                    ListPool<(int index, float weight)>.Release(pair.Value);
+                    UnityEngine.Pool.ListPool<(int index, float weight)>.Release(pair.Value);
                 renderRequestIndicesWhereTheProbeIsVisible.Clear();
 
-                using (ListPool<int>.Get(out List<int> renderRequestIndicesToRender))
+                m_RenderRequestIndicesToRender.Clear();
+
+                // Flatten the render requests graph in an array that guarantee dependency constraints
+                FlattenRenderRequestGraph(renderRequests, m_RenderRequestIndicesToRender);
+
+                using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest)))
                 {
-                    // Flatten the render requests graph in an array that guarantee dependency constraints
-                    FlattenRenderRequestGraph(renderRequests, renderRequestIndicesToRender);
-
-                    using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest)))
+                    // Warm up the RTHandle system so that it gets init to the maximum resolution available (avoiding to call multiple resizes
+                    // that can lead to high memory spike as the memory release is delayed while the creation is immediate).
                     {
-                        // Warm up the RTHandle system so that it gets init to the maximum resolution available (avoiding to call multiple resizes
-                        // that can lead to high memory spike as the memory release is delayed while the creation is immediate).
-                        {
-                            Vector2Int maxSize = new Vector2Int(1, 1);
+                        Vector2Int maxSize = new Vector2Int(1, 1);
 
-                            for (int i = 0; i < renderRequestIndicesToRender.Count; ++i)
-                            {
-                                var renderRequestIndex = renderRequestIndicesToRender[i];
+                        for (int i = 0; i < m_RenderRequestIndicesToRender.Count; ++i)
+                        {
+                            var renderRequestIndex = m_RenderRequestIndicesToRender[i];
                                 var renderRequest = renderRequests[renderRequestIndex];
                                 var hdCamera = renderRequest.hdCamera;
 
@@ -2453,13 +2456,13 @@ namespace UnityEngine.Rendering.HighDefinition
                             RTHandles.SetReferenceSize(maxSize.x, maxSize.y);
                         }
 
-                        ScriptableRenderContext.PushDisableApiRenderers();
+                    ScriptableRenderContext.PushDisableApiRenderers();
 
-                        // Execute render request graph, in reverse order
-                        for (int i = 0; i < renderRequestIndicesToRender.Count; ++i)
-                        {
-                            bool isLast = i == renderRequestIndicesToRender.Count - 1;
-                            var renderRequestIndex = renderRequestIndicesToRender[i];
+                    // Execute render request graph, in reverse order
+                    for (int i = 0; i < m_RenderRequestIndicesToRender.Count; ++i)
+                    {
+                        bool isLast = i == m_RenderRequestIndicesToRender.Count - 1;
+                        var renderRequestIndex = m_RenderRequestIndicesToRender[i];
                             var renderRequest = renderRequests[renderRequestIndex];
                             renderRequest.isLast = isLast;
 
@@ -2515,10 +2518,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 //  EndCameraRendering callback should be executed outside of any profiling scope in case user code submits the renderContext
                                 EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
                             }
-                        }
-
-                        ScriptableRenderContext.PopDisableApiRenderers();
                     }
+
+                    ScriptableRenderContext.PopDisableApiRenderers();
                 }
             }
 
@@ -2762,8 +2764,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             SetHDRState(hdCamera);
 
-            using (ListPool<RTHandle>.Get(out var aovBuffers))
-            using (ListPool<RTHandle>.Get(out var aovCustomPassBuffers))
+            using (UnityEngine.Pool.ListPool<RTHandle>.Get(out var aovBuffers))
+            using (UnityEngine.Pool.ListPool<RTHandle>.Get(out var aovCustomPassBuffers))
             {
                 aovRequest.AllocateTargetTexturesIfRequired(ref aovBuffers, ref aovCustomPassBuffers);
 
@@ -2942,7 +2944,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.LogError("Error while building Render Graph.");
                     Debug.LogException(e);
                 }
-            } // using (ListPool<RTHandle>.Get(out var aovCustomPassBuffers))
+            } // using (UnityEngine.Pool.ListPool<RTHandle>.Get(out var aovCustomPassBuffers))
         }
 
         void SetupCameraProperties(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
@@ -3225,7 +3227,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
                 {
                     // decal system needs to be updated with current camera, it needs it to set up culling and light list generation parameters
-                    decalCullRequest = GenericPool<DecalSystem.CullRequest>.Get();
+                    decalCullRequest = UnityEngine.Pool.GenericPool<DecalSystem.CullRequest>.Get();
                     DecalSystem.instance.CurrentCamera = camera;
                     DecalSystem.instance.BeginCull(decalCullRequest);
                 }
@@ -3272,7 +3274,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (decalCullRequest != null)
                 {
                     decalCullRequest.Clear();
-                    GenericPool<DecalSystem.CullRequest>.Release(decalCullRequest);
+                    UnityEngine.Pool.GenericPool<DecalSystem.CullRequest>.Release(decalCullRequest);
                 }
 
                 return true;

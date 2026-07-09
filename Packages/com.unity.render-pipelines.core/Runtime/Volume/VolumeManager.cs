@@ -9,7 +9,6 @@ using UnityEngine.Assertions;
 
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.Rendering;
 #endif
 
 namespace UnityEngine.Rendering
@@ -451,7 +450,7 @@ namespace UnityEngine.Rendering
         // initialization, on domain reload, or whenever we need an authoritative list independent of any profile.
         static Type[] GetBaseComponentTypesByReflection(Type pipelineAssetType)
         {
-            using (ListPool<Type>.Get(out var list))
+            using (UnityEngine.Pool.ListPool<Type>.Get(out var list))
             {
                 foreach (var t in CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>())
                 {
@@ -477,7 +476,7 @@ namespace UnityEngine.Rendering
             if (globalDefaultVolumeProfile == null)
                 return Array.Empty<Type>();
 
-            using (ListPool<Type>.Get(out var list))
+            using (UnityEngine.Pool.ListPool<Type>.Get(out var list))
             {
                 foreach (var comp in globalDefaultVolumeProfile.components)
                 {
@@ -529,7 +528,7 @@ namespace UnityEngine.Rendering
             // Initialize() and the default state can be updated a lot quicker.
 
             // First, default-construct all VolumeComponents
-            using var _ = ListPool<VolumeComponent>.Get(out var componentsDefaultStateList);
+            using var _ = UnityEngine.Pool.ListPool<VolumeComponent>.Get(out var componentsDefaultStateList);
             foreach (var type in m_BaseComponentTypeArray)
             {
                 componentsDefaultStateList.Add((VolumeComponent) ScriptableObject.CreateInstance(type));

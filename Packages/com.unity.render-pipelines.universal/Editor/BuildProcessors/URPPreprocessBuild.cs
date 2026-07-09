@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEditor.Build;
@@ -53,7 +52,7 @@ namespace UnityEditor.Rendering.Universal
 
         internal static void LogIncludedAssets(List<UniversalRenderPipelineAsset> assetsList)
         {
-            using (GenericPool<StringBuilder>.Get(out var assetsIncluded))
+            using (UnityEngine.Pool.GenericPool<StringBuilder>.Get(out var assetsIncluded))
             {
                 assetsIncluded.Clear();
 

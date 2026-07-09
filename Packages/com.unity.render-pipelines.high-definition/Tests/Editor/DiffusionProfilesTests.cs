@@ -177,7 +177,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [Test]
         public void ReplaceWithArrayExceedsLimitThrowsException()
         {
-            using (ListPool<DiffusionProfileSettings>.Get(out var tmp))
+            using (UnityEngine.Pool.ListPool<DiffusionProfileSettings>.Get(out var tmp))
             {
                 for (int i = 0; i < DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT; ++i)
                     tmp.Add(ScriptableObject.CreateInstance<DiffusionProfileSettings>());

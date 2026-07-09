@@ -3,7 +3,6 @@ using System;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Pool;
 
 namespace UnityEditor.Rendering.Tests
 {
@@ -141,7 +140,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GivenAnObjectWithSerializableFields_WhenAllFieldsAreRequested_AllOfThemAreReturnedCorrectly()
         {
-            using (ListPool<string>.Get(out var tmp))
+            using (UnityEngine.Pool.ListPool<string>.Get(out var tmp))
             {
                 foreach (var testCase in s_TestCaseDatas)
                 {

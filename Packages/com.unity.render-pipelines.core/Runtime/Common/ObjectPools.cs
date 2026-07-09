@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering
     /// Generic object pool.
     /// </summary>
     /// <typeparam name="T">Type of the object pool.</typeparam>
+    [Obsolete("UnityEngine.Rendering.ObjectPool has been deprecated. Use UnityEngine.Pool.ObjectPool instead.", false)]
     public class ObjectPool<T> where T : new()
     {
         readonly Stack<T> m_Stack = new Stack<T>();
@@ -112,6 +113,7 @@ namespace UnityEngine.Rendering
     /// Generic pool.
     /// </summary>
     /// <typeparam name="T">Type of the objects in the pull.</typeparam>
+    [Obsolete("UnityEngine.Rendering.GenericPool has been deprecated. Use UnityEngine.Pool.GenericPool instead.", false)]
     public static class GenericPool<T>
         where T : new()
     {
@@ -145,6 +147,7 @@ namespace UnityEngine.Rendering
     /// This pool doesn't do any of these comparison because we don't check if the stack already contains the element before releasing it.
     /// </summary>
     /// <typeparam name="T">Type of the objects in the pull.</typeparam>
+    [Obsolete("UnityEngine.Rendering.UnsafeGenericPool has been deprecated. Use UnityEngine.Pool.UnsafeGenericPool instead.", false)]
     public static class UnsafeGenericPool<T>
         where T : new()
     {
@@ -175,6 +178,7 @@ namespace UnityEngine.Rendering
     /// List Pool.
     /// </summary>
     /// <typeparam name="T">Type of the objects in the pooled lists.</typeparam>
+    [Obsolete("UnityEngine.Rendering.ListPool has been deprecated. Use UnityEngine.Pool.ListPool instead.", false)]
     public static class ListPool<T>
     {
         // Object pool to avoid allocations.
@@ -204,6 +208,7 @@ namespace UnityEngine.Rendering
     /// HashSet Pool.
     /// </summary>
     /// <typeparam name="T">Type of the objects in the pooled hashsets.</typeparam>
+    [Obsolete("UnityEngine.Rendering.HashSetPool has been deprecated. Use UnityEngine.Pool.HashSetPool instead.", false)]
     public static class HashSetPool<T>
     {
         // Object pool to avoid allocations.
@@ -234,6 +239,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     /// <typeparam name="TKey">Key type.</typeparam>
     /// <typeparam name="TValue">Value type.</typeparam>
+    [Obsolete("UnityEngine.Rendering.DictionaryPool has been deprecated. Use UnityEngine.Pool.DictionaryPool instead.", false)]
     public static class DictionaryPool<TKey, TValue>
     {
         // Object pool to avoid allocations.

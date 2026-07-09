@@ -1016,7 +1016,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
             bool executed = false;
-            using (ListPool<CustomPassVolume>.Get(out var tempCustomPassVolumeList))
+            using (UnityEngine.Pool.ListPool<CustomPassVolume>.Get(out var tempCustomPassVolumeList))
             {
                 CustomPassVolume.GetActivePassVolumes(injectionPoint, tempCustomPassVolumeList);
                 foreach (var customPassVolume in tempCustomPassVolumeList)
@@ -1098,7 +1098,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Obsolete("Please use CoreUtils.DrawRendererList instead. #from(2021.1)")]
         public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, UnityEngine.Rendering.RendererList rendererList)
         {
-            CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
+            CoreUtils.DrawRendererList(cmd, rendererList);
         }
 
         // $"HDProbe RenderCamera ({probeName}: {face:00} for viewer '{viewerName}')"

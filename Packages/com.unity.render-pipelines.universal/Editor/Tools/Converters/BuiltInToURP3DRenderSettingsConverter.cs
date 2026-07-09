@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering.Universal
             var targetGrp = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
             var tier = EditorGraphicsSettings.GetTierSettings(targetGrp, GraphicsTier.Tier3);
 
-            using (ListPool<ScriptableRendererData>.Get(out var tmp))
+            using (UnityEngine.Pool.ListPool<ScriptableRendererData>.Get(out var tmp))
             {
                 var renderingPath = tier.renderingPath;
                 var renderingMode = GetEquivalentRenderMode(renderingPath);

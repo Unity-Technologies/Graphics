@@ -963,7 +963,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             if (passToMerge.numFragments > 0)
             {
                 // Temporary cache of sampled textures in current Native Render Pass for conflict detection against fragments
-                using (HashSetPool<int>.Get(out var tempSampledTextures))
+                using (UnityEngine.Pool.HashSetPool<int>.Get(out var tempSampledTextures))
                 {
                     for (int i = nativePass.firstGraphPass; i < nativePass.lastGraphPass + 1; ++i)
                     {

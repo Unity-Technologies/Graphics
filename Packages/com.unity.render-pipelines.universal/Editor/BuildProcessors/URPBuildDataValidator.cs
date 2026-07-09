@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEditor.Build.Reporting;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -55,7 +54,7 @@ namespace UnityEditor.Rendering.Universal
 
         public static bool IsProjectValidForBuilding(BuildReport report, out string message)
         {
-            using (GenericPool<StringBuilder>.Get(out var failures))
+            using (UnityEngine.Pool.GenericPool<StringBuilder>.Get(out var failures))
             {
                 failures.Clear();
 

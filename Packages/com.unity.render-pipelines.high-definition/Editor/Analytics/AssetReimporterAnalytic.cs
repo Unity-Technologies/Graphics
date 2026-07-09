@@ -1,7 +1,5 @@
 using System;
 using UnityEngine.Analytics;
-using UnityEngine.Rendering;
-using static UnityEditor.VFX.VFXAnalytics;
 
 namespace UnityEditor.Rendering.HighDefinition.Analytics
 {
@@ -46,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition.Analytics
             if (!EditorAnalytics.enabled)
                 return;
 
-            using (GenericPool<Data>.Get(out var data))
+            using (UnityEngine.Pool.GenericPool<Data>.Get(out var data))
             {
                 data.duration = duration;
                 data.num_assets = numberOfAssets;

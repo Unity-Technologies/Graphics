@@ -1133,7 +1133,7 @@ namespace UnityEditor.Rendering.Universal
             IDisposable SelectUniqueAndCast(IEnumerable<SerializedProperty> properties, out HashSet<UniversalRendererData> uniques)
             {
                 var e = properties.GetEnumerator();
-                var disposer = HashSetPool<UniversalRendererData>.Get(out uniques);
+                var disposer = UnityEngine.Pool.HashSetPool<UniversalRendererData>.Get(out uniques);
                 while (e.MoveNext())
                     if (!e.Current.hasMultipleDifferentValues
                         && e.Current.boxedValue is UniversalRendererData universalData
@@ -1186,7 +1186,7 @@ namespace UnityEditor.Rendering.Universal
             // The returned IDisposable is for being able to return the HashSet to the pool when Dispose is call like at end of Using.
             IDisposable GetUniversalRendererWithTileOnlyModeEnabled(UniversalRenderPipelineAsset asset, out HashSet<UniversalRendererData> set)
             {
-                IDisposable disposer = HashSetPool<UniversalRendererData>.Get(out set);
+                IDisposable disposer = UnityEngine.Pool.HashSetPool<UniversalRendererData>.Get(out set);
                 for (int rendererIndex = 0; rendererIndex < asset.rendererDataList.Length; ++rendererIndex)
                     if (asset.rendererDataList[rendererIndex] is UniversalRendererData universalData && universalData.tileOnlyMode)
                         set.Add(universalData);
