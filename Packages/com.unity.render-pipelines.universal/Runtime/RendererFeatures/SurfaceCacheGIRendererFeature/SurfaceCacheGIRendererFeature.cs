@@ -125,10 +125,18 @@ namespace UnityEngine.Rendering.Universal
 
         static bool IsEligibleCamera(Camera camera)
         {
-            if (camera.cameraType != CameraType.Game && camera.cameraType != CameraType.SceneView && camera.cameraType != CameraType.Preview)
+            if (camera.cullingMask == 0)
                 return false;
 
-            return camera.cullingMask != 0;
+            if (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.SceneView)
+                return true;
+
+            // Only allow in preview cameras via the RenderRequest API (i.e. 'Cameras' overlay in scene view)
+            // Don't allow regular preview cameras (i.e. thumbnails, material previews)
+            if (camera.cameraType == CameraType.Preview && camera.isProcessingRenderRequest)
+                return true;
+
+            return false;
         }
 
         static Vector3 ResolveFocusPos(Camera camera)
