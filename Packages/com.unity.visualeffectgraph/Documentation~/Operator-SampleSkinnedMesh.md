@@ -1,4 +1,4 @@
-# Sample Skinned Mesh
+# Sample Skinned Mesh Operator
 
 Menu Path: **Operator > Sampling > Sample Skinned Mesh**
 

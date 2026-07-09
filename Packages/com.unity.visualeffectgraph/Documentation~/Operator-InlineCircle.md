@@ -1,4 +1,4 @@
-# Circle
+# Circle Operator
 
 Menu Path : **Operator > Inline > Circle**
 

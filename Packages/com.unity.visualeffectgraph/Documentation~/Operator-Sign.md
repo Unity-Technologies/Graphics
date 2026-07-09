@@ -1,4 +1,4 @@
-# Sign
+# Sign Operator
 
 Menu Path : **Operator > Math > Arithmetic > Sign**
 

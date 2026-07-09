@@ -1,4 +1,4 @@
-# Orient: Face [Mode]
+# Orient: Face [Mode] Block
 
 Menu Path : **Orientation > Orient: Face [Mode]**
 

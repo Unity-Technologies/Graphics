@@ -1,4 +1,4 @@
-# Sample CameraBuffer
+# Sample CameraBuffer Operator
 
 Menu Path : **Operator > Sampling > Sample CameraBuffer**
 

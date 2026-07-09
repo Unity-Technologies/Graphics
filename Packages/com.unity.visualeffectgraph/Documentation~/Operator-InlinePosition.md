@@ -1,4 +1,4 @@
-# Position
+# Position Operator
 
 Menu Path : **Operator > Inline > Position**
 

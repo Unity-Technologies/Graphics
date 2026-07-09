@@ -1,4 +1,4 @@
-# Squared Distance
+# Squared Distance Operator
 
 Menu Path : **Operator > Math > Vector**
 

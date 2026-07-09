@@ -1,4 +1,4 @@
-# AABox
+# AABox Operator
 
 Menu Path : **Operator > Inline > AABox**
 

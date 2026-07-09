@@ -1,4 +1,4 @@
-# GPU Event
+# GPU Event Context
 
 Menu Path : **Context > GPUEvent**
 

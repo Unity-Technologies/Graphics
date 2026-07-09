@@ -1,6 +1,6 @@
-# Output Particle Line
+# Output Particle Line Context
 
-Menu Path : **Context > Output Particle Line**
+Menu Path : **Context** > **Output Particle Line**
 
 This **Output Particle Line** Context uses lines to render a particle system. Lines are defined by two end-points and are always a single pixel width regardless of the distance of the particle to the camera or the particle's size and scale attributes.
 

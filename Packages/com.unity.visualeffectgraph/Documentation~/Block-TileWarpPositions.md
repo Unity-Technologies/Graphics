@@ -1,4 +1,4 @@
-# Tile/Warp Positions
+# Tile/Warp Positions Block
 
 Menu Path : **Position > Tile Warp Positions**
 

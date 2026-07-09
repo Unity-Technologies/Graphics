@@ -1,4 +1,4 @@
-# Gradient
+# Gradient Operator
 
 Menu Path : **Operator > Inline > Gradient**
 

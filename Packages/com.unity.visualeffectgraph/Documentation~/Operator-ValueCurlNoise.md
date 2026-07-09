@@ -1,4 +1,4 @@
-# Value Curl Noise
+# Value Curl Noise Operator
 
 Menu Path : **Operator > Noise > Value Curl Noise**
 

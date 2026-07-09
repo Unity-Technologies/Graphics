@@ -1,6 +1,6 @@
-# Xor (Bitwise)
+# Xor (Bitwise) Operator
 
-Menu Path : **Operator > Bitwise > Xor**
+Menu Path : **Operator** > **Bitwise** > **Xor**
 
 The Xor Operator takes two inputs and outputs the result of a bitwise logical Xor operation to each bit of a number in its binary form. For each bit in **A** and **B**, if only one of them is **1**, the output is **1**. If both of them are **1** or neither of them are **1**, the output is **0**.
 

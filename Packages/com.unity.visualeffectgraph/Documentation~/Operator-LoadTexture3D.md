@@ -1,4 +1,4 @@
-# Load Texture3D
+# Load Texture3D Operator
 
 Menu Path : **Operator > Sampling > Load Texture3D**
 

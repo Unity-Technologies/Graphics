@@ -1,4 +1,4 @@
-# Absolute
+# Absolute Operator
 
 Menu Path : **Operator > Math > Arithmetic > Absolute**
 

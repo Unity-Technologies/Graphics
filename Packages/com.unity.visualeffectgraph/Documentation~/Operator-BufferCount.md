@@ -1,4 +1,4 @@
-# Buffer Count
+# Buffer Count Operator
 
 **Menu Path : Operator > Sampling > Buffer Count**
 

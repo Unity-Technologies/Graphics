@@ -1,6 +1,6 @@
 # Custom HLSL Operator
 
-Menu Path : **Operator > HLSL > Custom HLSL**
+Menu Path : **Operator** > **HLSL** > **Custom HLSL**
 
 The **Custom HLSL Operator** allows you to write an HLSL function that takes **inputs** and produce **outputs**.
 For general information about Custom HLSL nodes, refer to [Custom HLSL Nodes](CustomHLSL-Common.md).

@@ -1,4 +1,4 @@
-# Cellular Curl Noise
+# Cellular Curl Noise Operator
 
 Menu Path : **Operator > Noise > Cellular Curl Noise**
 

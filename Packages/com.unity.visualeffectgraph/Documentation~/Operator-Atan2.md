@@ -1,4 +1,4 @@
-# Atan2
+# Atan2 Operator
 
 Menu Path : **Operator > Math > Trigonometry > Atan2**
 

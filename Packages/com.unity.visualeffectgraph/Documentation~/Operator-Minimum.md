@@ -1,4 +1,4 @@
-# Minimum
+# Minimum Operator
 
 Menu Path : **Operator > Math > Clamp > Minimum**
 

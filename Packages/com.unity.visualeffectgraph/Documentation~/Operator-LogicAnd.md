@@ -1,4 +1,4 @@
-# And (Logic)
+# And (Logic) Operator
 
 Menu Path : **Operator > Logic > And**
 

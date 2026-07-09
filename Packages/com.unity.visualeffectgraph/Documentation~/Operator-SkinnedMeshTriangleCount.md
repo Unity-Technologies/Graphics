@@ -1,4 +1,4 @@
-# Get Skinned Mesh Triangle Count
+# Get Skinned Mesh Triangle Count Operator
 
 Menu Path: **Operator > Sampling > Get Mesh Triangle Count**
 

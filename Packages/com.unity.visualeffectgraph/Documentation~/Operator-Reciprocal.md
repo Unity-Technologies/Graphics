@@ -1,6 +1,6 @@
-# Reciprocal (1/x)
+# Reciprocal (1/x) Operator
 
-Menu Path : **Operator > Math > Arithmetic > Reciprocal (1/x)**
+Menu Path : **Operator** > **Math** > **Arithmetic** > **Reciprocal (1/x)**
 
 The **Reciprocal** Operator calculates the result of dividing 1 by the input value. For example, an input of (0.2, 2, -5) outputs (5, 0.5, -0.2).
 

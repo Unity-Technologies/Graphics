@@ -1,4 +1,4 @@
-# Or (Logic)
+# Or (Logic) Operator
 
 Menu Path : **Operator > Logic > Or**
 
