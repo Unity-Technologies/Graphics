@@ -8,11 +8,11 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Compute/RadeonRays/kernels/intersector_common.hlsl"
 
 #ifndef UNIFIED_RT_GROUP_SIZE_X
-#define UNIFIED_RT_GROUP_SIZE_X 16
+#define UNIFIED_RT_GROUP_SIZE_X 128
 #endif
 
 #ifndef UNIFIED_RT_GROUP_SIZE_Y
-#define UNIFIED_RT_GROUP_SIZE_Y 8
+#define UNIFIED_RT_GROUP_SIZE_Y 1
 #endif
 
 #ifndef UNIFIED_RT_GROUP_SIZE_Z

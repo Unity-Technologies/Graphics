@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             var hwAccelStruct = accelStruct as HardwareRayTracingAccelStruct;
             Debug.Assert(hwAccelStruct != null);
 
-            cmd.SetRayTracingAccelerationStructure(m_Shader, Shader.PropertyToID(name+"accelStruct"), hwAccelStruct.accelStruct);
+            cmd.SetRayTracingAccelerationStructure(m_Shader, Shader.PropertyToID(name + "accelStruct"), hwAccelStruct.accelStruct);
         }
 
         public void SetIntParam(CommandBuffer cmd, int nameID, int val)

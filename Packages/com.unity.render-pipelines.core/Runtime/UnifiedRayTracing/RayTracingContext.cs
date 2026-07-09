@@ -306,6 +306,29 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         }
 
         /// <summary>
+        /// Creates a scratch buffer suitable for both <see cref="IRayTracingShader.Dispatch"/> and <see cref="IRayTracingAccelStruct.Build"/>.
+        /// </summary>
+        /// <param name="accelStruct">The acceleration structure that will be passed to <see cref="IRayTracingAccelStruct.Build"/>.</param>
+        /// <param name="context">The <see cref="RayTracingContext"/> used to determine the required trace scratch buffer size.</param>
+        /// <param name="dispatchWidth">Number of threads in the X dimension that will be passed to <see cref="IRayTracingShader.Dispatch"/>.</param>
+        /// <param name="dispatchHeight">Number of threads in the Y dimension that will be passed to <see cref="IRayTracingShader.Dispatch"/>.</param>
+        /// <param name="dispatchDepth">Number of threads in the Z dimension that will be passed to <see cref="IRayTracingShader.Dispatch"/>.</param>
+        /// <returns>The scratch buffer.</returns>
+        static public GraphicsBuffer CreateScratchBufferForBuildAndDispatch(
+            IRayTracingAccelStruct accelStruct, RayTracingContext context, uint dispatchWidth, uint dispatchHeight, uint dispatchDepth)
+        {
+            Utils.CheckArgIsNotNull(accelStruct, nameof(accelStruct));
+            Utils.CheckArgIsNotNull(context, nameof(context));
+            Utils.CheckArgIsNotNull(accelStruct, nameof(accelStruct));
+
+            var sizeInBytes = System.Math.Max(accelStruct.GetBuildScratchBufferRequiredSizeInBytes(), context.GetRequiredTraceScratchBufferSizeInBytes(dispatchWidth, dispatchHeight, dispatchDepth));
+            if (sizeInBytes == 0)
+                return null;
+
+            return new GraphicsBuffer(GraphicsBuffer.Target.Structured, (int)(sizeInBytes / 4), 4);
+        }
+
+        /// <summary>
         /// Creates a scratch buffer suitable for <see cref="IRayTracingAccelStruct.Build"/>.
         /// </summary>
         /// <param name="accelStruct">The acceleration structure that will be passed to <see cref="IRayTracingAccelStruct.Build"/>.</param>

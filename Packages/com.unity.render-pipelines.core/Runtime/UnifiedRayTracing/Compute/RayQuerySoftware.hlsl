@@ -3,6 +3,9 @@
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Bindings.hlsl"
 
+#define UNIFIED_RT_RAY_QUERY_TYPE(staticRayFlags) UnifiedRT::RayQuery
+#define UNIFIED_RT_INIT_RAY_QUERY(staticRayFlags, rayQuery, globalThreadIndex, localThreadIndex, accelStruct, dynamicRayFlags, instanceMask, ray) rayQuery.Init(globalThreadIndex, localThreadIndex, accelStruct, staticRayFlags | dynamicRayFlags, instanceMask, ray)
+
 #pragma warning(disable : 4008) // fast_intersect_bbox is designed to handle inf and nans, so we disable the `floating point division by zero` warning
 
 #ifndef UNIFIED_RT_LDS_STACK_SIZE
@@ -26,8 +29,8 @@ static const uint kCommittedNothing = 0;
 static const uint kCommittedTriangleHit = 1;
 static const uint kCommittedProceduralHit = 2;
 
-static const uint kCandidateNonOpaqueTriangle = 1;
-static const uint kCandidateProceduralPrimitive = 2;
+static const uint kCandidateNonOpaqueTriangle = 0;
+static const uint kCandidateProceduralPrimitive = 1;
 
 // unpack constants for CurrentInstance.flags:
 // NOTE: There is an unused bit between kNonOpaqueInstanceBit and kProceduralInstanceBit. This is a workaround for a shader compiler bug happening on Apple Silicon M2
@@ -247,6 +250,7 @@ struct RayQuery
     bool Proceed()
     {
         bool transparencyEnabled = !(rayFlags & (UnifiedRT::kRayFlagForceOpaque | UnifiedRT::kRayFlagCullNonOpaque));
+        bool proceduralEnabled = !(rayFlags & (UnifiedRT::kRayFlagForceOpaque | UnifiedRT::kRayFlagCullNonOpaque));
 
         currentLeafPrimIndex++;
 
@@ -314,7 +318,7 @@ struct RayQuery
                 uint triangleCullMode = (currentInstance.flags & kCullModeMask);
                 bool nonOpaqueInstance = (currentInstance.flags & kNonOpaqueInstanceBit);
 
-                #ifdef UNIFIED_RT_INTERSECTION_FUNC
+                #if defined(UNIFIED_RT_INTERSECTION_FUNC) || defined(UNIFIED_RT_ENABLE_RAY_QUERIES_PROCEDURAL_PRIMITIVES)
                 bool proceduralInstance = (currentInstance.flags & kProceduralInstanceBit);
                 if (proceduralInstance)
                 {
@@ -418,12 +422,12 @@ struct RayQuery
     uint CandidatePrimitiveIndex() { return candidateHit.isFrontFace_isProc_primitiveIndex & kHitPrimitiveIndexMask; }
     float2 CandidateTriangleBarycentrics() { return candidateHit.uv; }
     bool CandidateTriangleFrontFace() { return candidateHit.isFrontFace_isProc_primitiveIndex & kHitIsFrontFaceBit; }
-    float3 CandidateLocalRayOrigin() { return rayOrigin; }
-    float3 CandidateLocalRayDirection() { return rayDirection; }
-    float3x4 CandidateWorldToLocal3x4() { return ConvertToFloat3x4(accelStruct.instance_infos[currentInstanceIndex].world_to_local_transform); }
-    float4x3 CandidateWorldToLocal4x3() { return ConvertToFloat4x3(accelStruct.instance_infos[currentInstanceIndex].world_to_local_transform); }
-    float3x4 CandidateLocalToWorld3x4() { return ConvertToFloat3x4(accelStruct.instance_infos[currentInstanceIndex].local_to_world_transform); }
-    float4x3 CandidateLocalToWorld4x3() { return ConvertToFloat4x3(accelStruct.instance_infos[currentInstanceIndex].local_to_world_transform); }
+    float3 CandidateObjectRayOrigin() { return rayOrigin; }
+    float3 CandidateObjectRayDirection() { return rayDirection; }
+    float3x4 CandidateWorldToObject3x4() { return ConvertToFloat3x4(accelStruct.instance_infos[currentInstanceIndex].world_to_local_transform); }
+    float4x3 CandidateWorldToObject4x3() { return ConvertToFloat4x3(accelStruct.instance_infos[currentInstanceIndex].world_to_local_transform); }
+    float3x4 CandidateObjectToWorld3x4() { return ConvertToFloat3x4(accelStruct.instance_infos[currentInstanceIndex].local_to_world_transform); }
+    float4x3 CandidateObjectToWorld4x3() { return ConvertToFloat4x3(accelStruct.instance_infos[currentInstanceIndex].local_to_world_transform); }
     bool CandidateProceduralPrimitiveNonOpaque() { return currentInstance.flags & kNonOpaqueInstanceBit; }
 
     uint CommittedStatus()
@@ -441,12 +445,12 @@ struct RayQuery
     uint CommittedPrimitiveIndex() { return closestHit.isFrontFace_isProc_primitiveIndex & kHitPrimitiveIndexMask; }
     float2 CommittedTriangleBarycentrics() { return closestHit.uv; }
     bool CommittedTriangleFrontFace() { return closestHit.isFrontFace_isProc_primitiveIndex & kHitIsFrontFaceBit; }
-    float3 CommittedLocalRayOrigin() { return TransformPointT(rayOriginInWorld, accelStruct.instance_infos[closestHit.instanceIndex].world_to_local_transform); }
-    float3 CommittedLocalRayDirection() { return TransformDirection(rayDirectionInWorld, accelStruct.instance_infos[closestHit.instanceIndex].world_to_local_transform); }
-    float3x4 CommittedWorldToLocal3x4() { return ConvertToFloat3x4(accelStruct.instance_infos[closestHit.instanceIndex].world_to_local_transform); }
-    float4x3 CommittedWorldToLocal4x3() { return ConvertToFloat4x3(accelStruct.instance_infos[closestHit.instanceIndex].world_to_local_transform); }
-    float3x4 CommittedLocalToWorld3x4() { return ConvertToFloat3x4(accelStruct.instance_infos[closestHit.instanceIndex].local_to_world_transform); }
-    float4x3 CommittedLocalToWorld4x3() { return ConvertToFloat4x3(accelStruct.instance_infos[closestHit.instanceIndex].local_to_world_transform); }
+    float3 CommittedObjectRayOrigin() { return TransformPointT(rayOriginInWorld, accelStruct.instance_infos[closestHit.instanceIndex].world_to_local_transform); }
+    float3 CommittedObjectRayDirection() { return TransformDirection(rayDirectionInWorld, accelStruct.instance_infos[closestHit.instanceIndex].world_to_local_transform); }
+    float3x4 CommittedWorldToObject3x4() { return ConvertToFloat3x4(accelStruct.instance_infos[closestHit.instanceIndex].world_to_local_transform); }
+    float4x3 CommittedWorldToObject4x3() { return ConvertToFloat4x3(accelStruct.instance_infos[closestHit.instanceIndex].world_to_local_transform); }
+    float3x4 CommittedObjectToWorld3x4() { return ConvertToFloat3x4(accelStruct.instance_infos[closestHit.instanceIndex].local_to_world_transform); }
+    float4x3 CommittedObjectToWorld4x3() { return ConvertToFloat4x3(accelStruct.instance_infos[closestHit.instanceIndex].local_to_world_transform); }
 
     // read only data
     uint rayFlags;

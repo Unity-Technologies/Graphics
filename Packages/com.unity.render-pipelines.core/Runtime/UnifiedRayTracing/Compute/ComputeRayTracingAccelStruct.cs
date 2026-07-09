@@ -775,7 +775,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             shader.SetBufferParam(cmd, Shader.PropertyToID(name + "vertexBuffer"), m_BlasPositions.VertexBuffer);
         }
 
-        public void Bind(CommandBuffer cmd, string name, ComputeShader shader, int kernelIndex)
+        public void Bind(CommandBuffer cmd, ComputeShader shader, int kernelIndex, string name)
         {
             cmd.SetComputeBufferParam(shader, kernelIndex, Shader.PropertyToID(name + "bvh"), topLevelBvhBuffer);
             cmd.SetComputeBufferParam(shader, kernelIndex, Shader.PropertyToID(name + "bottomBvhs"), bottomLevelBvhBuffer);
