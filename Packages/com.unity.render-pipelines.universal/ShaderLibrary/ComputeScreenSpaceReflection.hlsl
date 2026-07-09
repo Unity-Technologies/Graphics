@@ -138,6 +138,7 @@ bool TraceScreenSpaceRay(
     rayHitPosNDC = 0;
     float prevT = 0;
     bool hitCoarse = false;
+    float rawSceneDepth = startZ;
 
     for (iterCount = 0; iterCount < rayScreenDelta; iterCount++)
     {
@@ -151,7 +152,7 @@ bool TraceScreenSpaceRay(
         rayHitT = lerp((rayPosSS.y - startPosSS.y) / rayScreenDeltaY, (rayPosSS.x - startPosSS.x) / rayScreenDeltaX, useDeltaX);
 
         // Get current depth of scene at the ray position.
-        float rawSceneDepth = LoadSceneDepth(rayPosSS.xy * _Downsample);
+        rawSceneDepth = LoadSceneDepth(rayPosSS.xy * _Downsample);
 
         // Check if we've hit something
         bool aboveBase = !COMPARE_DEVICE_DEPTH_CLOSER(rayPosSS.z, rawSceneDepth);
@@ -182,14 +183,14 @@ bool TraceScreenSpaceRay(
             float2 candidateHitPosSS = lerp(startPosSS, endPosSS, t);
             candidateHitPosSS = round(candidateHitPosSS - 0.5) + 0.5; // round to nearest texel center
             float rayDepth = lerp(startZ, endZ, t);
-            float rawSceneDepth = LoadSceneDepth(candidateHitPosSS * _Downsample);
+            float rawSceneDepthFine = LoadSceneDepth(candidateHitPosSS * _Downsample);
 
-            bool aboveBase = !COMPARE_DEVICE_DEPTH_CLOSER(rayDepth, rawSceneDepth);
-            bool belowFloor = COMPARE_DEVICE_DEPTH_CLOSER(rayDepth, rawSceneDepth * GetThicknessScale() + GetThicknessBias());
+            bool aboveBase = !COMPARE_DEVICE_DEPTH_CLOSER(rayDepth, rawSceneDepthFine);
+            bool belowFloor = COMPARE_DEVICE_DEPTH_CLOSER(rayDepth, rawSceneDepthFine * GetThicknessScale() + GetThicknessBias());
             [branch]
             if (aboveBase && belowFloor)
             {
-                hitFine = COMPARE_DEVICE_DEPTH_CLOSER(rayDepth, rawSceneDepth * GetThicknessScaleFine() + GetThicknessBiasFine());
+                hitFine = COMPARE_DEVICE_DEPTH_CLOSER(rayDepth, rawSceneDepthFine * GetThicknessScaleFine() + GetThicknessBiasFine());
 
                 rayHitPosNDC = float3(candidateHitPosSS * screenSizeWithInverse.xy, rayDepth);
                 t1 = t;
@@ -206,7 +207,19 @@ bool TraceScreenSpaceRay(
     }
     #endif
 
-    return hitCoarse || _ReflectSky;
+    // If we have a hit, we are done.
+    if (hitCoarse)
+        return true;
+
+    // If we hit no geometry, and the depth is at the far plane, we have hit the skybox.
+    // Treat it as a valid hit if _ReflectSky is enabled, otherwise return false.
+    UNITY_BRANCH
+    if (_ReflectSky)
+    {
+        rayHitPosNDC.z = UNITY_RAW_FAR_CLIP_VALUE;
+        return rawSceneDepth == UNITY_RAW_FAR_CLIP_VALUE;
+    }
+    return false;
 }
 
 bool TraceScreenSpaceRayHiZ(
@@ -438,6 +451,8 @@ float4 ComputeSSR(Varyings input) : SV_Target
 
     UNITY_BRANCH if (hit)
     {
+        const bool hitIsSky = rayHitPosNDC.z == UNITY_RAW_FAR_CLIP_VALUE;
+
         #ifdef _USE_MOTION_VECTORS
         // Reproject position
         rayHitPosNDC.xy -= SampleMotionVector(rayHitPosNDC.xy);
@@ -462,9 +477,10 @@ float4 ComputeSSR(Varyings input) : SV_Target
                 if (!isInView)
                     continue;
 
-                // Reject samples that land on the skybox (unless we are intentionally reflecting skybox)
+                // We are either reflecting the sky or not, never mix sky and non-sky hits.
                 const float sampleDeviceDepth = LOAD_TEXTURE2D_X_LOD(_LastFrameCameraDepthTexture, samplePixelPos, 0).x;
-                if (sampleDeviceDepth == UNITY_RAW_FAR_CLIP_VALUE && rayHitPosNDC.z != UNITY_RAW_FAR_CLIP_VALUE)
+                const bool sampleIsSky = sampleDeviceDepth == UNITY_RAW_FAR_CLIP_VALUE;
+                if (sampleIsSky != hitIsSky)
                     continue;
 
                 // Calculate bilinear weight and accumulate
@@ -497,7 +513,7 @@ float4 ComputeSSR(Varyings input) : SV_Target
 
         // Fade rays hitting near the max distance, if we aren't reflecting the sky.
         #ifndef _HIZ_TRACE
-        if (!_ReflectSky)
+        if (!hitIsSky)
         {
             float4 rayHitPosCS = ComputeClipSpacePosition(rayHitPosNDC.xy, rayHitPosNDC.z);
             float4 rayHitPosVS = mul(_CameraInverseProjections[unity_eyeIndex], rayHitPosCS);
