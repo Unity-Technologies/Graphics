@@ -43,6 +43,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             GraphicsDeviceType.Metal,
             Architecture.X64
         )]
+        [IgnoreGraphicsTest(
+            "8109_IsFrontFace",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-146901",
+            RuntimePlatform.WindowsEditor
+        )]
         [TestNotSupportedOn(
             "8103|8107|8108|8207_InstanceID|8207_InstancingAPIs|8210|8211",
             "Not XR compatible",
