@@ -506,6 +506,21 @@ namespace UnityEngine.Rendering.Universal
             CameraMetadataCache.Clear();
             requireOffscreenUICoverPrepass = false;
             offscreenUIRenderedInCurrentFrame = false;
+
+#if ENABLE_UPSCALER_FRAMEWORK
+            // Dispose only clears the contexts, leaving the registered-upscaler list intact.
+            // The command buffer signals upscaler plugins on the render thread to release their native resources;
+            // it records no GPU work. Release can be asynchronous, so this can't be a plain managed Dispose on the
+            // main thread. ExecuteCommandBuffer dispatches the signal immediately, as there's no render context to
+            // submit to at pipeline teardown.
+            if (upscaling != null)
+            {
+                var upscalerCmd = CommandBufferPool.Get("Upscaler Dispose");
+                upscaling.Dispose(upscalerCmd);
+                Graphics.ExecuteCommandBuffer(upscalerCmd);
+                CommandBufferPool.Release(upscalerCmd);
+            }
+#endif
         }
 
         // If the URP gets destroyed, we must clean up all the added URP specific camera data and
@@ -1459,23 +1474,6 @@ namespace UnityEngine.Rendering.Universal
             // If upscaling is active, set the scaled width and height
             baseCameraData.scaledWidth = Mathf.Max(1, (int)(baseCameraData.pixelWidth * baseCameraData.renderScale));
             baseCameraData.scaledHeight = Mathf.Max(1, (int)(baseCameraData.pixelHeight * baseCameraData.renderScale));
-#if ENABLE_UPSCALER_FRAMEWORK
-            IUpscaler activeUpscaler = upscaling.activeUpscaler;
-            if (baseCameraData.isDefaultViewport && activeUpscaler != null) // baseCameraData.isDefaultViewport only. (XRDisplaySubsystem.scaleOfAllViewports isn't supported.)
-            {
-                // An IUpscaler is active. It might want to change the pre-upscale resolution. Negotiate with it.
-                if (activeUpscaler.supportsXR)
-                {
-                    Vector2Int res = new Vector2Int(baseCameraData.scaledWidth, baseCameraData.scaledHeight);
-                    activeUpscaler.NegotiatePreUpscaleResolution(ref res, new Vector2Int(baseCameraData.pixelWidth, baseCameraData.pixelHeight));
-                    baseCameraData.scaledWidth = res.x;
-                    baseCameraData.scaledHeight = res.y;
-                    // Feedback new scaledWidth and scaledHeight to cameraTargetDescriptor immediately.
-                    baseCameraData.cameraTargetDescriptor.width = baseCameraData.scaledWidth;
-                    baseCameraData.cameraTargetDescriptor.height = baseCameraData.scaledHeight;
-                }
-            }
-#endif
         }
 
         static void UpdateOffscreenUIRendering(UniversalCameraData cameraData, bool finalOutputHDR)
@@ -1611,6 +1609,110 @@ namespace UnityEngine.Rendering.Universal
             cameraData.scaledHeight = Mathf.Max(1, (int) (camera.pixelHeight * cameraData.renderScale));
         }
 
+#if ENABLE_UPSCALER_FRAMEWORK
+        // Whether the active upscaler drives this camera's render resolution. False for editor cameras (scene/preview/
+        // reflection would get resized to the upscaler's resolution) and hardware-DRS cameras (ScalableBufferManager
+        // owns scaling and is mutually exclusive with the framework upscaler; see UpscalerPostProcessPass).
+        internal static bool UpscalerDrivesCameraResolution(UniversalCameraData cameraData, IUpscaler activeUpscaler)
+        {
+            if (activeUpscaler == null)
+                return false;
+
+            var cameraType = cameraData.camera.cameraType;
+            if (cameraType == CameraType.SceneView
+                || cameraType == CameraType.Preview
+                || cameraType == CameraType.Reflection)
+                return false;
+
+            return !cameraData.camera.allowDynamicResolution;
+        }
+
+        // Determines whether the active upscaler dictates the render resolution for this camera.
+        // Returns false (the pipeline keeps its Render Scale) when:
+        //  - no upscaler is active, or the camera is an editor (scene/preview/reflection) camera, or
+        //  - the upscaler does not pin the resolution (constraint != Fixed, e.g. STP/spatial filters, or range-driven custom scaling).
+        // A quality-mode upscaler that renders at native (e.g. DLSS DLAA) still dictates (qualityModeResolution == display),
+        // so it correctly forces native regardless of Render Scale.
+        internal static bool TryGetUpscalerDictatedResolution(UniversalCameraData cameraData, IUpscaler activeUpscaler, out Vector2Int renderResolution)
+        {
+            renderResolution = default;
+
+            if (!UpscalerDrivesCameraResolution(cameraData, activeUpscaler))
+                return false;
+
+            // Use cameraData.pixelWidth/Height (the viewport size, XR-adjusted) rather than camera.pixelWidth, to match
+            // the display resolution the rest of the pipeline scales from.
+            var displayResolution = new Vector2Int(cameraData.pixelWidth, cameraData.pixelHeight);
+            var info = activeUpscaler.GetResolutionInfo(displayResolution, upscaling.GetGlobalOptions(activeUpscaler));
+
+            if (info.constraint != UpscalerResolutionConstraint.Fixed)
+                return false;
+
+            renderResolution = info.qualityModeResolution;
+            return true;
+        }
+
+        // Last requested Render Scale (rounded to 2 decimals) we warned about; NaN means none. Tracked so a clamp warns
+        // once per distinct out-of-range value instead of every frame.
+        float m_LastWarnedClampRequestedScale = float.NaN;
+
+        // Clamps a pipeline-chosen render size to the active upscaler's supported [min,max] range, for upscalers that
+        // constrain the resolution without dictating it (constraint == Range). Returns the
+        // size unchanged when the range doesn't apply, and warns when a clamp occurs.
+        internal static Vector2Int ClampRenderSizeToUpscalerBounds(UniversalCameraData cameraData, IUpscaler activeUpscaler, Vector2Int renderSize)
+        {
+            if (!UpscalerDrivesCameraResolution(cameraData, activeUpscaler))
+                return renderSize;
+
+            // In upscaler terms we have two resolutions: Render Resolution and Display Resolution.
+            // In this context, the target(display resolution) is the camera's output viewport.
+            // The local name deliberately mirrors the IUpscaler API parameters.
+            var displayResolution = new Vector2Int(cameraData.pixelWidth, cameraData.pixelHeight);
+
+            // Only upscalers actually upscale (render size below the display). At render scale >= 1.0 the image is native
+            // or supersampled (downscaled) and the upscaler is inactive, so its range doesn't apply — don't clamp (it
+            // would corrupt the supersampling resolution) and don't warn.
+            if (renderSize.x >= displayResolution.x && renderSize.y >= displayResolution.y)
+                return renderSize;
+
+            var info = activeUpscaler.GetResolutionInfo(displayResolution, upscaling.GetGlobalOptions(activeUpscaler));
+
+            if (info.constraint != UpscalerResolutionConstraint.Range)
+                return renderSize;
+
+            var clamped = new Vector2Int(
+                Mathf.Clamp(renderSize.x, info.minResolution.x, info.maxResolution.x),
+                Mathf.Clamp(renderSize.y, info.minResolution.y, info.maxResolution.y));
+
+            if (Debug.isDebugBuild && RenderPipelineManager.currentPipeline is UniversalRenderPipeline urp)
+            {
+                if (clamped == renderSize)
+                {
+                    urp.m_LastWarnedClampRequestedScale = float.NaN; // in range: clear it so a later out-of-range value warns again
+                }
+                else
+                {
+                    // A clamp occurred: warn once per distinct requested Render Scale
+                    float requestedScale = (float)renderSize.x / displayResolution.x;
+                    float roundedRequested = Mathf.Floor(requestedScale * 100f + 0.5f) / 100f;
+                    if (!Mathf.Approximately(urp.m_LastWarnedClampRequestedScale, roundedRequested))
+                    {
+                        urp.m_LastWarnedClampRequestedScale = roundedRequested;
+                        float minScale = (float)info.minResolution.x / displayResolution.x;
+                        float maxScale = (float)info.maxResolution.x / displayResolution.x;
+                        Debug.LogWarning(
+                            $"Requested Render Scale {requestedScale:0.00} is outside {activeUpscaler.name}'s supported range " +
+                            $"[{minScale:0.00}..{maxScale:0.00}] and was clamped. Keep Render Scale / dynamic resolution within " +
+                            "the upscaler's limits to avoid this.");
+                    }
+                }
+            }
+
+            return clamped;
+        }
+
+#endif
+
         static UniversalCameraData CreateCameraData(ContextContainer frameData, Camera camera, UniversalAdditionalCameraData additionalCameraData)
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeCameraData);
@@ -1634,14 +1736,26 @@ namespace UnityEngine.Rendering.Universal
             InitializeScaledDimensions(camera, cameraData);
 #if ENABLE_UPSCALER_FRAMEWORK
             IUpscaler activeUpscaler = upscaling.activeUpscaler;
-            if (activeUpscaler != null)
+            bool upscalerDictatesResolution = TryGetUpscalerDictatedResolution(cameraData, activeUpscaler, out var upscalerRenderSize);
+            if (upscalerDictatesResolution)
             {
-                // An IUpscaler is active. It might want to change the pre-upscale resolution. Negotiate with it.
-                Vector2Int res = new Vector2Int(cameraData.scaledWidth, cameraData.scaledHeight);
-                activeUpscaler.NegotiatePreUpscaleResolution(ref res, new Vector2Int(cameraData.pixelWidth, cameraData.pixelHeight));
-                cameraData.scaledWidth = res.x;
-                cameraData.scaledHeight = res.y;
+                cameraData.scaledWidth = upscalerRenderSize.x;
+                cameraData.scaledHeight = upscalerRenderSize.y;
             }
+            else
+            {
+                // Upscaler doesn't dictate the resolution but may constrain it to a supported range; clamp into it.
+                var clamped = ClampRenderSizeToUpscalerBounds(cameraData, activeUpscaler,
+                    new Vector2Int(cameraData.scaledWidth, cameraData.scaledHeight));
+                cameraData.scaledWidth = clamped.x;
+                cameraData.scaledHeight = clamped.y;
+            }
+
+            // Capture the global hardware-DRS (ScalableBufferManager) scale once here so upscaler passes read this stable
+            // per-camera value rather than the live global, which another pass could mutate mid-frame.
+            cameraData.hardwareDynamicResolutionScale = camera.allowDynamicResolution
+                ? new Vector2(ScalableBufferManager.widthScaleFactor, ScalableBufferManager.heightScaleFactor)
+                : Vector2.one;
 #endif
 
 #if ENABLE_MULTI_WINDOWING && PLATFORM_SUPPORTS_PER_WINDOW_TRANSPARENCY && !UNITY_EDITOR
@@ -1794,16 +1908,6 @@ namespace UnityEngine.Rendering.Universal
 
             cameraData.xr = XRSystem.emptyPass;
             var renderScaleXR = cameraData.renderScale;
-#if ENABLE_UPSCALER_FRAMEWORK
-            if (activeUpscaler != null)
-            {
-                // XRSystem.SetRenderScale() will change the resolution for back buffers on XR.
-                // When IUpscaler is enabled, must be set renderScaleXR to 1 to disable this behavior.
-                // If the value of cameraData.renderScale and renderScaleXR are 0.5, the scale for UpscalingIO.preUpscaleResolution is 0.25.
-                if (activeUpscaler.supportsXR)
-                    renderScaleXR = 1.0f;
-            }
-#endif
             XRSystem.SetRenderScale(renderScaleXR);
 
             var commonOpaqueFlags = SortingCriteria.CommonOpaque;
@@ -2776,13 +2880,18 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.cameraTargetDescriptor.height = Mathf.Max(1, (int)(cameraData.pixelHeight * cameraData.renderScale));
 #if ENABLE_UPSCALER_FRAMEWORK
                 IUpscaler activeUpscaler = upscaling.activeUpscaler;
-                if (activeUpscaler != null) // An IUpscaler is active.
+                if (TryGetUpscalerDictatedResolution(cameraData, activeUpscaler, out var upscalerRenderSize))
                 {
-                    // It might want to change the pre-upscale resolution. Negotiate with it.
-                    Vector2Int res = new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
-                    activeUpscaler.NegotiatePreUpscaleResolution(ref res, new Vector2Int(cameraData.pixelWidth, cameraData.pixelHeight));
-                    cameraData.cameraTargetDescriptor.width = Mathf.Max(1, res.x);
-                    cameraData.cameraTargetDescriptor.height = Mathf.Max(1, res.y);
+                    cameraData.cameraTargetDescriptor.width = Mathf.Max(1, upscalerRenderSize.x);
+                    cameraData.cameraTargetDescriptor.height = Mathf.Max(1, upscalerRenderSize.y);
+                }
+                else
+                {
+                    // Upscaler doesn't dictate the resolution but may constrain it to a supported range; clamp into it.
+                    var clamped = ClampRenderSizeToUpscalerBounds(cameraData, activeUpscaler,
+                        new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height));
+                    cameraData.cameraTargetDescriptor.width = Mathf.Max(1, clamped.x);
+                    cameraData.cameraTargetDescriptor.height = Mathf.Max(1, clamped.y);
                 }
 #endif
                 cameraData.scaledWidth = cameraData.cameraTargetDescriptor.width;

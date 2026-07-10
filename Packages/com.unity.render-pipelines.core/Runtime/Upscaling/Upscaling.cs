@@ -206,6 +206,9 @@ namespace UnityEngine.Rendering
         private string[] m_UpscalerNamesCache;
         private int m_ActiveUpscalerIndex = -1;
         private readonly UpscalerContextManager m_ContextManager = new();
+        // Pipeline-wide ("global") options per upscaler, keyed by upscaler name; GetGlobalOptions() returns these.
+        // Absent for upscalers registered without an options type (spatial/embedded) — their options are null.
+        private readonly Dictionary<string, UpscalerOptions> m_GlobalOptions = new();
         #endregion
 
         /// <summary>
@@ -249,16 +252,23 @@ namespace UnityEngine.Rendering
                 bool optionsNotFound = optionsIndex == -1;
                 UpscalerOptions? options = optionsNotFound ? null: upscalerOptions[optionsIndex];
 
-                // construct upscaler
-                IUpscaler upscaler = optionsType != null
-                    ? (IUpscaler)Activator.CreateInstance(upscalerType, new object[] { options! })
-                    : (IUpscaler)Activator.CreateInstance(upscalerType);
+                // construct upscaler (always parameterless; options are owned by the framework, not the instance)
+                IUpscaler upscaler = (IUpscaler)Activator.CreateInstance(upscalerType);
 
-                if(options != null && string.IsNullOrEmpty(options.upscalerName))
+                // Create a fresh options object when the asset provided none, so a quality-mode upscaler always has one.
+                // Upscalers without an options type (spatial/embedded) keep no entry, leaving their options null.
+                if (options == null && optionsType != null)
+                {
+                    options = (UpscalerOptions)ScriptableObject.CreateInstance(optionsType);
+                    options.upscalerName = upscaler.name;
+                }
+                if (options != null && string.IsNullOrEmpty(options.upscalerName))
                 {
                     Debug.LogWarningFormat("[Upscaling] UpscalerOptions with empty upscalerName for {0}", upscaler.name);
                     options.upscalerName = upscaler.name;
                 }
+                if (options != null)
+                    m_GlobalOptions[upscaler.name] = options;
 
                 bool isEmbedded = embeddedTypes != null && embeddedTypes.Contains(upscalerType);
                 m_Upscalers.Add(new UpscalerEntry(upscaler, isEmbedded ? UpscalerIntegrationType.EmbeddedPass : UpscalerIntegrationType.StandalonePass));
@@ -329,6 +339,16 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Returns the registered IUpscaler instance with the given name, or null if none matches. Resolves the same
+        /// name as <see cref="SetActiveUpscaler"/> (the registered upscaler name).
+        /// </summary>
+        public IUpscaler? GetIUpscalerByName(string upscalerName)
+        {
+            int index = IndexOf(upscalerName);
+            return index >= 0 ? m_Upscalers[index].Instance : null;
+        }
+
+        /// <summary>
         /// Returns null if no IUpscaler exists for given type
         /// </summary>
         public IUpscaler? GetIUpscalerOfType<T>() where T : IUpscaler
@@ -355,6 +375,35 @@ namespace UnityEngine.Rendering
             Debug.LogErrorFormat($"Upscaler type {T} not found");
             return null;
         }
+
+        #region Options
+
+        /// <summary>
+        /// Returns the pipeline-wide ("global") options for the given upscaler — the live, user-configured options
+        /// object the pipeline supplied (e.g. an RP-asset sub-asset), shared by all cameras — or <c>null</c> if the
+        /// upscaler was registered without an options type (e.g. spatial/embedded upscalers).
+        /// </summary>
+        /// <param name="upscaler">The upscaler whose global options to fetch.</param>
+        /// <returns>The pipeline-wide options, or null if the upscaler has no options type.</returns>
+        /// <remarks>
+        /// This is not a copy and not factory defaults: editing the returned object (inspector or C# API) is reflected
+        /// here, because it is the same serialized instance. Options are owned by the framework, not the
+        /// <see cref="IUpscaler"/> instance.
+        /// <para>
+        /// Per-camera options (future) layer on top of this: add an override-aware
+        /// <c>ResolveOptions(IUpscaler, UpscalerOptions perCameraOverride)</c> returning
+        /// <c>perCameraOverride ?? GetGlobalOptions(upscaler)</c>, and have the call sites pass the camera's serialized
+        /// override (read from the pipeline-specific camera component — core cannot see it). That is a non-breaking
+        /// addition and this method stays as the global fallback. Not added now because no per-camera override source
+        /// exists yet (it would be a no-op).
+        /// </para>
+        /// </remarks>
+        public UpscalerOptions? GetGlobalOptions(IUpscaler upscaler)
+        {
+            return upscaler != null && m_GlobalOptions.TryGetValue(upscaler.name, out var options) ? options : null;
+        }
+
+        #endregion
 
         #region Context Management
 
@@ -385,6 +434,16 @@ namespace UnityEngine.Rendering
         public void CleanupExpiredContexts(CommandBuffer cmd)
         {
             m_ContextManager.CleanupExpiredContexts(cmd);
+        }
+
+        /// <summary>
+        /// Cleans up all contexts. Call when the upscaling system is torn down (e.g. when the render
+        /// pipeline is disposed)
+        /// </summary>
+        /// <param name="cmd">The command buffer to record cleanup commands into.</param>
+        public void Dispose(CommandBuffer cmd)
+        {
+            m_ContextManager.Dispose(cmd);
         }
 
         #endregion

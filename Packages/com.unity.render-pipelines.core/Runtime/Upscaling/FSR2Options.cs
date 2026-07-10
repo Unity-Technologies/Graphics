@@ -23,10 +23,6 @@ public class FSR2Options : UpscalerOptions
     private FSR2Quality m_FSR2QualityMode = FSR2Quality.Quality;
 
     [SerializeField]
-    [Tooltip("Forces a fixed resolution scale derived from the selected quality mode, ignoring dynamic resolution.")]
-    private bool m_FixedResolutionMode = false;
-
-    [SerializeField]
     [Tooltip("Enable an additional sharpening pass on FidelityFX 2.0 Super Resolution (FSR2).")]
     private bool m_EnableSharpening = false;
 
@@ -44,15 +40,6 @@ public class FSR2Options : UpscalerOptions
     {
         get { return m_FSR2QualityMode; }
         set { m_FSR2QualityMode = value; }
-    }
-
-    /// <summary>
-    /// If true, forces a fixed resolution scale derived from the quality mode, ignoring dynamic resolution settings.
-    /// </summary>
-    public bool fixedResolutionMode
-    {
-        get { return m_FixedResolutionMode; }
-        set { m_FixedResolutionMode = value; }
     }
 
     /// <summary>
@@ -82,8 +69,8 @@ public class FSR2Options : UpscalerOptions
         if (other == null)
             return;
 
+        resolutionMode = other.resolutionMode;
         m_FSR2QualityMode = other.m_FSR2QualityMode;
-        m_FixedResolutionMode = other.m_FixedResolutionMode;
         m_EnableSharpening = other.m_EnableSharpening;
         m_Sharpness = other.m_Sharpness;
     }

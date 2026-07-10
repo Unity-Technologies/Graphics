@@ -310,6 +310,13 @@ namespace UnityEditor.Rendering.Universal
                 p => p.intValue != (int)MsaaQuality.Disabled && AnyTileOnlyDeferredRenderer(serialized),
                 Styles.msaaText, MessageType.Warning, Styles.msaaTileOnlyDeferredWarning);
 
+#if ENABLE_UPSCALER_FRAMEWORK
+            // A quality-mode upscaler dictates the render resolution, so Render Scale is ignored for it.
+            bool renderScaleDrivenByUpscaler = SelectedUpscalerDictatesResolution(serialized);
+#else
+            const bool renderScaleDrivenByUpscaler = false;
+#endif
+            using (new EditorGUI.DisabledScope(renderScaleDrivenByUpscaler))
             using (new EditorGUI.MixedValueScope(serialized.renderScale.hasMultipleDifferentValues))
             {
                 EditorGUI.BeginChangeCheck();
@@ -317,6 +324,32 @@ namespace UnityEditor.Rendering.Universal
                 if (EditorGUI.EndChangeCheck())
                     serialized.renderScale.floatValue = newRenderScale;
             }
+#if ENABLE_UPSCALER_FRAMEWORK
+            if (renderScaleDrivenByUpscaler)
+            {
+                // Quality mode dictates the render resolution; Render Scale is ignored (the upscaler still runs).
+                EditorGUILayout.HelpBox(Styles.renderScaleQualityModeInfo, MessageType.Info, true);
+            }
+            else if (serialized.renderScale.floatValue > 1.0f)
+            {
+                // Above 1.0 the image is rendered larger than the display and downsampled (supersampling), so no
+                // upscaler runs — show this regardless of the selected upscaler/filter.
+                EditorGUILayout.HelpBox(Styles.renderScaleSupersamplingInfo, MessageType.Info, true);
+            }
+            else if (TryGetCustomScalingClampInfo(serialized, out float upscalerMinScale, out float upscalerMaxScale, out bool upscalerPinsResolution, out bool upscalerHardRange))
+            {
+                float renderScale = serialized.renderScale.floatValue;
+                if (upscalerPinsResolution)
+                    EditorGUILayout.HelpBox(Styles.renderScaleUpscalerNoRangeInfo, MessageType.Info, true);
+                else if (renderScale < upscalerMinScale || renderScale > upscalerMaxScale)
+                {
+                    if (upscalerHardRange) // enforced limits → warn that it will be clamped at runtime
+                        EditorGUILayout.HelpBox(string.Format(Styles.renderScaleUpscalerClampWarning, upscalerMinScale, upscalerMaxScale), MessageType.Warning, true);
+                    else // advisory floor → info that quality degrades, no clamp
+                        EditorGUILayout.HelpBox(string.Format(Styles.renderScaleUpscalerRecommendedInfo, upscalerMinScale), MessageType.Info, true);
+                }
+            }
+#endif
             DisplayTileOnlyHelpBox(
                 serialized.renderScale,
                 p =>
@@ -436,6 +469,7 @@ namespace UnityEditor.Rendering.Universal
                     if (upscalerOptionsEditor != null)
                     {
                         ++EditorGUI.indentLevel;
+                        // Delegate to the upscaler's own options editor so each draws its own fields and conditional logic.
                         upscalerOptionsEditor.OnInspectorGUI();
                         --EditorGUI.indentLevel;
                     }
@@ -528,6 +562,114 @@ namespace UnityEditor.Rendering.Universal
             }
 #endif
         }
+
+#if ENABLE_UPSCALER_FRAMEWORK
+        // True if the named upscaler exposes a quality mode.
+        static bool SelectedUpscalerHasQualityMode(string upscalerName)
+        {
+            Upscaling upscaling = UniversalRenderPipeline.upscaling;
+            if (upscaling == null || string.IsNullOrEmpty(upscalerName))
+                return false;
+
+            IUpscaler upscaler = upscaling.GetIUpscalerByName(upscalerName);
+            return upscaler != null && upscaler.hasQualityMode;
+        }
+
+        // True when the selected upscaler's quality mode dictates the render resolution (Render Scale / DRS ignored).
+        static bool SelectedUpscalerDictatesResolution(SerializedUniversalRenderPipelineAsset serialized)
+        {
+            string selectedName = serialized.selectedUpscalerName.stringValue;
+            if (!SelectedUpscalerHasQualityMode(selectedName))
+                return false;
+
+            UpscalerOptions options = serialized.asset.GetUpscalerOptions(selectedName);
+            return options != null && options.resolutionMode != UpscalerResolutionMode.CustomScaling;
+        }
+
+        // For an upscaler in Custom Scaling, reports how it constrains Render Scale at runtime:
+        //  - returns false when this doesn't apply (no quality-mode upscaler, not Custom Scaling, or it leaves Render
+        //    Scale fully free), so the caller draws nothing;
+        //  - driven == true: the quality mode has no range (e.g. UltraPerformance), so Render Scale is ignored and the
+        //    render resolution is pinned to the recommended size;
+        //  - hardRange == true: minScale/maxScale are the hard range Render Scale is clamped into at runtime (DLSS);
+        //  - hardRange == false: minScale is an advisory floor (FSR2's recommended minimum) — not clamped, info only.
+        static bool TryGetCustomScalingClampInfo(SerializedUniversalRenderPipelineAsset serialized, out float minScale, out float maxScale, out bool driven, out bool hardRange)
+        {
+            minScale = 0f;
+            maxScale = 1f;
+            driven = false;
+            hardRange = false;
+
+            string selectedName = serialized.selectedUpscalerName.stringValue;
+            if (!SelectedUpscalerHasQualityMode(selectedName))
+                return false;
+
+            UpscalerOptions options = serialized.asset.GetUpscalerOptions(selectedName);
+            if (options == null || options.resolutionMode != UpscalerResolutionMode.CustomScaling)
+                return false;
+
+            // Evaluate the upscaler's pixel range at the actual display resolution and convert to a Render Scale ratio.
+            Vector2Int referenceResolution = GetUpscalerReferenceResolution();
+            if (referenceResolution.x <= 0
+                || !TryGetSelectedUpscalerResolutionInfo(serialized, referenceResolution, out UpscalerResolutionInfo info))
+                return false;
+
+            driven = info.constraint == UpscalerResolutionConstraint.Fixed;
+            if (driven)
+                return true; // pinned to optimal; Render Scale ignored
+
+            if (info.constraint == UpscalerResolutionConstraint.Range)
+            {
+                // Hard limits: the pipeline clamps Render Scale into this range at runtime (e.g. DLSS).
+                hardRange = true;
+                minScale = (float)info.minResolution.x / referenceResolution.x;
+                maxScale = (float)info.maxResolution.x / referenceResolution.x;
+                return true;
+            }
+
+            if (info.recommendedMinScale > 0f)
+            {
+                // Advisory floor only: the upscaler runs below it but degrades in quality; not clamped (e.g. FSR2). It's
+                // already a render-scale ratio, so no reference-resolution conversion is needed.
+                minScale = info.recommendedMinScale;
+                maxScale = 1f; // no upper recommendation; Render Scale > 1.0 is handled by the supersampling notice
+                return true;
+            }
+
+            return false; // upscaler leaves Render Scale fully free (e.g. STP)
+        }
+
+        // The display resolution to evaluate the upscaler's [min,max] against. Uses the actual main Game View size so the
+        // resulting Render Scale ratios match what will render (handles any resolution, including above 4K); falls back
+        // to 4K if the Game View size isn't available (e.g. no Game View open).
+        static Vector2Int GetUpscalerReferenceResolution()
+        {
+            Vector2 gameViewSize = UnityEditor.Handles.GetMainGameViewSize();
+            int width = Mathf.RoundToInt(gameViewSize.x);
+            int height = Mathf.RoundToInt(gameViewSize.y);
+            if (width <= 0 || height <= 0)
+                return new Vector2Int(3840, 2160);
+            return new Vector2Int(width, height);
+        }
+
+        static bool TryGetSelectedUpscalerResolutionInfo(SerializedUniversalRenderPipelineAsset serialized, Vector2Int referenceResolution, out UpscalerResolutionInfo info)
+        {
+            info = default;
+
+            Upscaling upscaling = UniversalRenderPipeline.upscaling;
+            string selectedName = serialized.selectedUpscalerName.stringValue;
+            if (upscaling == null || string.IsNullOrEmpty(selectedName))
+                return false;
+
+            IUpscaler upscaler = upscaling.GetIUpscalerByName(selectedName);
+            if (upscaler == null || !upscaler.hasQualityMode)
+                return false;
+
+            info = upscaler.GetResolutionInfo(referenceResolution, upscaling.GetGlobalOptions(upscaler));
+            return true;
+        }
+
+#endif
 
         public static readonly string disabledPostprocessing = L10n.Tr("HDR is not supported by one of the Universal Render Pipeline renderers.");
 
