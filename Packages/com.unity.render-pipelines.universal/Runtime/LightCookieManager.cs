@@ -20,12 +20,6 @@ namespace UnityEngine.Rendering.Universal
 
             public static readonly int additionalLightsCookieEnableBits = Shader.PropertyToID("_AdditionalLightsCookieEnableBits");
 
-            public static readonly int additionalLightsCookieAtlasUVRectBuffer = Shader.PropertyToID("_AdditionalLightsCookieAtlasUVRectBuffer");
-
-            // TODO: these should be generic light property
-            public static readonly int additionalLightsWorldToLightBuffer = Shader.PropertyToID("_AdditionalLightsWorldToLightBuffer");
-            public static readonly int additionalLightsLightTypeBuffer = Shader.PropertyToID("_AdditionalLightsLightTypeBuffer");
-
             public static readonly int additionalLightsLightTypes = Shader.PropertyToID("_AdditionalLightsLightTypes");
 
             // CBUFFER binding for main persistent CB path
@@ -59,7 +53,6 @@ namespace UnityEngine.Rendering.Universal
             public AtlasSettings atlas;
             public int maxAdditionalLights;        // UniversalRenderPipeline.maxVisibleAdditionalLights;
             public float cubeOctahedralSizeScale;  // Cube octahedral projection size scale.
-            public bool useStructuredBuffer;       // RenderingUtils.useStructuredBuffer
             public bool useConstantBuffer;         // RenderingUtils.usePersistentConstantBuffer
 
             public static Settings Create()
@@ -73,7 +66,6 @@ namespace UnityEngine.Rendering.Universal
                 // 1: 1/6 = 16%, 2: 4/6 = 66%, 4: 16/6 == 266% of cube pixels
                 // 100% cube pixels == sqrt(6) ~= 2.45f --> 2.5;
                 s.cubeOctahedralSizeScale = 2.5f;
-                s.useStructuredBuffer = RenderingUtils.useStructuredBuffer;
                 s.useConstantBuffer = RenderingUtils.usePersistentConstantBuffer;
                 return s;
             }
@@ -166,7 +158,6 @@ namespace UnityEngine.Rendering.Universal
         private class LightCookieShaderData : IDisposable
         {
             int m_Size = 0;
-            bool m_UseStructuredBuffer;
             bool m_UseConstantBuffer;
 
             // Shader data CPU arrays, used to upload the data to GPU
@@ -175,12 +166,7 @@ namespace UnityEngine.Rendering.Universal
             float[] m_LightTypeCpuData;
             ShaderBitArray m_CookieEnableBitsCpuData;
 
-            // SSBO path - Compute buffer counterparts for the CPU data
-            ComputeBuffer m_WorldToLightBuffer;    // TODO: WorldToLight matrices should be general property of lights!!
-            ComputeBuffer m_AtlasUVRectBuffer;
-            ComputeBuffer m_LightTypeBuffer;
-
-            // Persistent constant buffer path        
+            // Persistent constant buffer path
             // Layout matches CBUFFER(LightCookies) std140 packing, with N = m_Size:
             //   [    0 .. N*4)  float4x4 _AdditionalLightsWorldToLights[N]    (4 vec4 per matrix)
             //   [  N*4 .. N*5)  float4   _AdditionalLightsCookieAtlasUVRects[N]
@@ -196,22 +182,15 @@ namespace UnityEngine.Rendering.Universal
 
             public bool isUploaded { get; set; }
 
-            public LightCookieShaderData(int size, bool useStructuredBuffer, bool useConstantBuffer)
+            public LightCookieShaderData(int size, bool useConstantBuffer)
             {
-                m_UseStructuredBuffer = useStructuredBuffer;
                 m_UseConstantBuffer = useConstantBuffer;
                 Resize(size);
             }
 
             public void Dispose()
             {
-                if (m_UseStructuredBuffer)
-                {
-                    m_WorldToLightBuffer?.Dispose();
-                    m_AtlasUVRectBuffer?.Dispose();
-                    m_LightTypeBuffer?.Dispose();
-                }
-                else if (m_UseConstantBuffer)
+                if (m_UseConstantBuffer)
                 {
                     if (m_LightCookieData.IsCreated)
                         m_LightCookieData.Dispose();
@@ -238,13 +217,7 @@ namespace UnityEngine.Rendering.Universal
                 m_LightTypeCpuData = new float[size];
                 m_CookieEnableBitsCpuData.Resize(size);
 
-                if (m_UseStructuredBuffer)
-                {
-                    m_WorldToLightBuffer = new ComputeBuffer(size, Marshal.SizeOf<Matrix4x4>());
-                    m_AtlasUVRectBuffer = new ComputeBuffer(size, Marshal.SizeOf<Vector4>());
-                    m_LightTypeBuffer = new ComputeBuffer(size, Marshal.SizeOf<float>());
-                }
-                else if (m_UseConstantBuffer)
+                if (m_UseConstantBuffer)
                 {
                     int length = size * k_LightCookieChannelCount;
                     m_LightCookieData = new NativeArray<Vector4>(length, Allocator.Persistent);
@@ -263,17 +236,7 @@ namespace UnityEngine.Rendering.Universal
 
             public void Upload(CommandBuffer cmd)
             {
-                if (m_UseStructuredBuffer)
-                {
-                    m_WorldToLightBuffer.SetData(m_WorldToLightCpuData);
-                    m_AtlasUVRectBuffer.SetData(m_AtlasUVRectCpuData);
-                    m_LightTypeBuffer.SetData(m_LightTypeCpuData);
-
-                    cmd.SetGlobalBuffer(ShaderProperty.additionalLightsWorldToLightBuffer, m_WorldToLightBuffer);
-                    cmd.SetGlobalBuffer(ShaderProperty.additionalLightsCookieAtlasUVRectBuffer, m_AtlasUVRectBuffer);
-                    cmd.SetGlobalBuffer(ShaderProperty.additionalLightsLightTypeBuffer, m_LightTypeBuffer);
-                }
-                else if (m_UseConstantBuffer)
+                if (m_UseConstantBuffer)
                 {
                     if (m_LightCookieBuffer != null)
                     {
@@ -357,7 +320,7 @@ namespace UnityEngine.Rendering.Universal
                 false); // to support mips, use Pow2Atlas
 
 
-            m_AdditionalLightsCookieShaderData = new LightCookieShaderData(size, m_Settings.useStructuredBuffer, m_Settings.useConstantBuffer);
+            m_AdditionalLightsCookieShaderData = new LightCookieShaderData(size, m_Settings.useConstantBuffer);
             const int mainLightCount = 1;
             m_VisibleLightIndexToShaderDataIndex = new int[m_Settings.maxAdditionalLights + mainLightCount];
 

@@ -84,23 +84,8 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static bool useStructuredBuffer
-        {
-            // There are some performance issues with StructuredBuffers in some platforms.
-            // We fallback to UBO in those cases.
-            get
-            {
-                // TODO: For now disabling SSBO until figure out Vulkan binding issues.
-                // When enabling this also enable USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA in shader side in Input.hlsl
-                return false;
-
-                // We don't use SSBO in D3D because we can't figure out without adding shader variants if platforms is D3D10.
-                //GraphicsDeviceType deviceType = SystemInfo.graphicsDeviceType;
-                //return !Application.isMobilePlatform &&
-                //    (deviceType == GraphicsDeviceType.Metal || deviceType == GraphicsDeviceType.Vulkan ||
-                //     deviceType == GraphicsDeviceType.PlayStation4 || deviceType == GraphicsDeviceType.PlayStation5 || deviceType == GraphicsDeviceType.XboxOne);
-            }
-        }
+        // Reserved for future SSBO experiments.
+        internal static bool useStructuredBuffer => false;
         
         // Persistent CBUFFERs exist on C# side as Graphics/ComputeBuffer and are filled with SetData(), unlike transient CBUFFERs that have no real existence on C# side
         internal static bool usePersistentConstantBuffer

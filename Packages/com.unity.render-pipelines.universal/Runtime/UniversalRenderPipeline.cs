@@ -483,7 +483,6 @@ namespace UnityEngine.Rendering.Universal
             pipelineAsset.DestroyRenderers();
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
-            ShaderData.instance.Dispose();
             XRSystem.Dispose();
 
             s_RenderGraph.Cleanup();
@@ -2455,8 +2454,7 @@ namespace UnityEngine.Rendering.Universal
             if (universalLightData.additionalLightsCount > 0 && !isForwardPlus)
             {
                 // In this case we also need per-object indices (unity_LightIndices)
-                if (!RenderingUtils.useStructuredBuffer)
-                    configuration |= PerObjectData.LightIndices;
+                configuration |= PerObjectData.LightIndices;
             }
 
             return configuration;

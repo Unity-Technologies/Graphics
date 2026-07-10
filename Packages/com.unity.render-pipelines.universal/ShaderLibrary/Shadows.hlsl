@@ -85,7 +85,6 @@ float4      _AdditionalShadowFadeParams; // x: additional light fade scale, y: a
 float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
 
 #if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
-#if !USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
 // Point lights can use 6 shadow slices. Some mobile GPUs performance decrease drastically with uniform
 // blocks bigger than 8kb while others have a 64kb max uniform block size. This number ensures size of buffer
 // AdditionalLightShadows stays reasonable. It also avoids shader compilation errors on SHADER_API_GLES30
@@ -100,15 +99,6 @@ float4      _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];         // Per-light da
 #ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
 #endif
-#endif
-#endif
-
-
-#if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
-    #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-        StructuredBuffer<float4>   _AdditionalShadowParams_SSBO;        // Per-light data - TODO: test if splitting _AdditionalShadowParams_SSBO[lightIndex].w into a separate StructuredBuffer<int> buffer is faster
-        StructuredBuffer<float4x4> _AdditionalLightsWorldToShadow_SSBO; // Per-shadow-slice-data - A shadow casting light can have 6 shadow slices (if it's a point light)
-    #endif
 #endif
 
 // x: depth bias,
@@ -198,14 +188,10 @@ half4 GetAdditionalLightShadowParams(int lightIndex)
 {
     half4 results;
     #if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
-        #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-            results = _AdditionalShadowParams_SSBO[lightIndex];
-        #else
-            results = _AdditionalShadowParams[lightIndex];
-            // workaround: Avoid failing the graphics test using Terrain Shader on Android Vulkan when using dynamic branching for fog keywords.
-            #if !SKIP_SHADOWS_LIGHT_INDEX_CHECK
-                results.w = lightIndex < 0 ? -1 : results.w;
-            #endif
+        results = _AdditionalShadowParams[lightIndex];
+        // workaround: Avoid failing the graphics test using Terrain Shader on Android Vulkan when using dynamic branching for fog keywords.
+        #if !SKIP_SHADOWS_LIGHT_INDEX_CHECK
+            results.w = lightIndex < 0 ? -1 : results.w;
         #endif
     #else
         // Same defaults as set in AdditionalLightsShadowCasterPass.cs
@@ -419,11 +405,7 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 ligh
             shadowSliceIndex += cubeFaceOffset;
         }
 
-        #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-            float4 shadowCoord = mul(_AdditionalLightsWorldToShadow_SSBO[shadowSliceIndex], float4(positionWS, 1.0));
-        #else
-            float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[shadowSliceIndex], float4(positionWS, 1.0));
-        #endif
+        float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[shadowSliceIndex], float4(positionWS, 1.0));
 
         return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, true);
     #else
@@ -602,11 +584,7 @@ half GetMainLightShadowStrength()
 half GetAdditionalLightShadowStrenth(int lightIndex)
 {
     #if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
-        #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-            return half(_AdditionalShadowParams_SSBO[lightIndex].x);
-        #else
-            return half(_AdditionalShadowParams[lightIndex].x);
-        #endif
+        return half(_AdditionalShadowParams[lightIndex].x);
     #else
         return half(1.0);
     #endif

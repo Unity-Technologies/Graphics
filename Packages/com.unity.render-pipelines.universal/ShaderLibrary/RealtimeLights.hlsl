@@ -156,19 +156,11 @@ Light GetMainLight(InputData inputData, half4 shadowMask, AmbientOcclusionFactor
 Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
 {
     // Abstraction over Light input constants
-#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    float4 lightPositionWS = _AdditionalLightsBuffer[perObjectLightIndex].position;
-    half3 color = _AdditionalLightsBuffer[perObjectLightIndex].color.rgb;
-    half4 distanceAndSpotAttenuation = _AdditionalLightsBuffer[perObjectLightIndex].attenuation;
-    half4 spotDirection = _AdditionalLightsBuffer[perObjectLightIndex].spotDirection;
-    uint lightLayerMask = _AdditionalLightsBuffer[perObjectLightIndex].layerMask;
-#else
     float4 lightPositionWS = _AdditionalLightsPosition[perObjectLightIndex];
     half3 color = _AdditionalLightsColor[perObjectLightIndex].rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsAttenuation[perObjectLightIndex];
     half4 spotDirection = _AdditionalLightsSpotDir[perObjectLightIndex];
     uint lightLayerMask = asuint(_AdditionalLightsLayerMasks[perObjectLightIndex]);
-#endif
 
     // Directional lights store direction in lightPosition.xyz and have .w set to 0.0.
     // This way the following code will work for both directional and punctual lights.
@@ -204,28 +196,13 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
 
 uint GetPerObjectLightIndexOffset()
 {
-#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    return uint(unity_LightData.x);
-#else
     return 0;
-#endif
 }
 
 // Returns a per-object index given a loop index.
 // This abstract the underlying data implementation for storing lights/light indices
 int GetPerObjectLightIndex(uint index)
 {
-#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-/////////////////////////////////////////////////////////////////////////////////////////////
-// Structured Buffer Path                                                                   /
-//                                                                                          /
-// Lights and light indices are stored in StructuredBuffer. We can just index them.         /
-// Currently all non-mobile platforms take this path :(                                     /
-// There are limitation in mobile GPUs to use SSBO (performance / no vertex shader support) /
-/////////////////////////////////////////////////////////////////////////////////////////////
-    uint offset = uint(unity_LightData.x);
-    return _AdditionalLightsIndices[offset + index];
-#else
 /////////////////////////////////////////////////////////////////////////////////////////////
 // UBO path                                                                                 /
 //                                                                                          /
@@ -236,8 +213,7 @@ int GetPerObjectLightIndex(uint index)
     uint4 packed4 = asuint(unity_PackedLightIndices);
     uint2 pair = index >= 4 ? packed4.zw : packed4.xy;
     uint word = (index & 2) ? pair.y : pair.x;
-    return (word >> ((index & 1) << 4)) & 0xFFFF;    
-#endif
+    return (word >> ((index & 1) << 4)) & 0xFFFF;
 }
 
 // Fills a light struct given a loop i index. This will convert the i
@@ -261,11 +237,7 @@ Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
 #endif
     Light light = GetAdditionalPerObjectLight(lightIndex, positionWS);
 
-#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    half4 occlusionProbeChannels = _AdditionalLightsBuffer[lightIndex].occlusionProbeChannels;
-#else
     half4 occlusionProbeChannels = _AdditionalLightsOcclusionProbes[lightIndex];
-#endif
     light.shadowAttenuation = AdditionalLightShadow(lightIndex, positionWS, light.direction, shadowMask, occlusionProbeChannels);
 #if defined(_LIGHT_COOKIES)
     real3 cookieColor = SampleAdditionalLightCookie(lightIndex, positionWS);

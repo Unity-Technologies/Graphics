@@ -38,7 +38,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 #endif
 
-        private readonly bool m_UseStructuredBuffer;
         private readonly bool m_UsePersistentConstantBuffer;
         private readonly int m_MaxVisibleAdditionalLights;
         private float m_MaxShadowDistanceSq;
@@ -91,8 +90,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _AdditionalShadowFadeParams = Shader.PropertyToID("_AdditionalShadowFadeParams");
             public static readonly int _AdditionalShadowmapSize = Shader.PropertyToID("_AdditionalShadowmapSize");
             public static readonly int _AdditionalLightsShadowmapID = Shader.PropertyToID(k_AdditionalLightShadowMapTextureName);
-            public static readonly int _AdditionalLightsWorldToShadow_SSBO = Shader.PropertyToID("_AdditionalLightsWorldToShadow_SSBO");
-            public static readonly int _AdditionalShadowParams_SSBO = Shader.PropertyToID("_AdditionalShadowParams_SSBO");
             public static readonly int _AdditionalLightShadowsBufferID = Shader.PropertyToID("AdditionalLightShadows");
         }
 
@@ -101,7 +98,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal int shadowmapID;
             internal bool emptyShadowmap;
             internal bool setKeywordForEmptyShadowmap;
-            internal bool useStructuredBuffer;
             internal bool usePersistentConstantBuffer;
             internal bool stripShadowsOffVariants;
             internal Vector2Int allocatedShadowAtlasSize;
@@ -122,14 +118,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             profilingSampler = new ProfilingSampler("Draw Additional Lights Shadowmap");
             renderPassEvent = evt;
 
-            m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
             m_UsePersistentConstantBuffer = RenderingUtils.usePersistentConstantBuffer;
             m_MaxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
 
             // Pre-allocated a fixed size. CommandBuffer.SetGlobal* does allow this data to grow.
             const int maxMainLights = 1;
             int maxVisibleLights = m_MaxVisibleAdditionalLights + maxMainLights;
-            int maxAdditionalLightShadowParams = m_UseStructuredBuffer ? maxVisibleLights : Math.Min(maxVisibleLights, m_MaxVisibleAdditionalLights);
+            int maxAdditionalLightShadowParams = Math.Min(maxVisibleLights, m_MaxVisibleAdditionalLights);
 
             // These array sizes should be as big as ScriptableCullingParameters.maximumVisibleLights (that is defined during ScriptableRenderer.SetupCullingParameters).
             // We initialize these array sizes with the number of visible lights allowed by the UniversalRenderer.
@@ -506,7 +501,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_VisibleLightIndexToIsCastingShadows = new bool[visibleLights.Length];
             }
 
-            int maxAdditionalLightShadowParams = m_UseStructuredBuffer ? visibleLights.Length : Math.Min(visibleLights.Length, m_MaxVisibleAdditionalLights);
+            int maxAdditionalLightShadowParams = Math.Min(visibleLights.Length, m_MaxVisibleAdditionalLights);
             if (m_AdditionalLightIndexToVisibleLightIndex.Length < maxAdditionalLightShadowParams)
             {
                 m_AdditionalLightIndexToVisibleLightIndex = new short[maxAdditionalLightShadowParams];
@@ -544,10 +539,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_AdditionalLightsShadowSlices == null || m_AdditionalLightsShadowSlices.Length < totalShadowSlicesCount)
                 m_AdditionalLightsShadowSlices = new ShadowSliceData[totalShadowSlicesCount];
 
-            bool willResizeWorldShadowMatrix = m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix == null ||
-                (m_UseStructuredBuffer && (m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length < totalShadowSlicesCount));
-
-            if (willResizeWorldShadowMatrix)
+            if (m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix == null)
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[totalShadowSlicesCount];
 
             // initialize _AdditionalShadowParams
@@ -877,13 +869,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             rasterCommandBuffer.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowFadeParams, s_EmptyAdditionalShadowFadeParams);
 
-            if (RenderingUtils.useStructuredBuffer)
-            {
-                ComputeBuffer shadowParamsBuffer = ShaderData.instance.GetAdditionalLightShadowParamsStructuredBuffer(s_EmptyAdditionalLightIndexToShadowParams.Length);
-                shadowParamsBuffer.SetData(s_EmptyAdditionalLightIndexToShadowParams);
-                rasterCommandBuffer.SetGlobalBuffer(AdditionalShadowsConstantBuffer._AdditionalShadowParams_SSBO, shadowParamsBuffer);
-            }
-            else if (RenderingUtils.usePersistentConstantBuffer && shadowData.emptyAdditionalLightShadowsBuffer != null)
+            if (RenderingUtils.usePersistentConstantBuffer && shadowData.emptyAdditionalLightShadowsBuffer != null)
             {
                 var bufferSize = shadowData.emptyAdditionalLightShadowsBuffer.count * shadowData.emptyAdditionalLightShadowsBuffer.stride;
                 rasterCommandBuffer.SetGlobalConstantBuffer(shadowData.emptyAdditionalLightShadowsBuffer, AdditionalShadowsConstantBuffer._AdditionalLightShadowsBufferID, 0, bufferSize);
@@ -952,11 +938,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                                                data.lightData.mainLightIndex != -1 &&
                                                visibleLights[data.lightData.mainLightIndex].light.shadows == LightShadows.Soft;
 
-                SetShadowGlobalKeywordsAndConstants(cmd, ref data, data.allocatedShadowAtlasSize, data.useStructuredBuffer, additionalLightHasSoftShadows, anyShadowSliceRenderer, mainLightHasSoftShadows);
+                SetShadowGlobalKeywordsAndConstants(cmd, ref data, data.allocatedShadowAtlasSize, additionalLightHasSoftShadows, anyShadowSliceRenderer, mainLightHasSoftShadows);
             }
         }
 
-        private void SetShadowGlobalKeywordsAndConstants(RasterCommandBuffer cmd, ref PassData data, Vector2Int allocatedShadowAtlasSize, bool useStructuredBuffer, bool additionalLightHasSoftShadows, bool anyShadowSliceRenderer, bool mainLightHasSoftShadows)
+        private void SetShadowGlobalKeywordsAndConstants(RasterCommandBuffer cmd, ref PassData data, Vector2Int allocatedShadowAtlasSize, bool additionalLightHasSoftShadows, bool anyShadowSliceRenderer, bool mainLightHasSoftShadows)
         {
             // If the OFF variant has been stripped, the additional light shadows keyword must always be enabled
             bool hasOffVariant = !data.stripShadowsOffVariants;
@@ -968,25 +954,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             ShadowUtils.SetSoftShadowQualityShaderKeywords(cmd, data.shadowData);
 
             if (anyShadowSliceRenderer)
-                SetupAdditionalLightsShadowReceiverConstants(cmd, data.allocatedShadowAtlasSize, data.useStructuredBuffer, data.usePersistentConstantBuffer, softShadows);
+                SetupAdditionalLightsShadowReceiverConstants(cmd, data.allocatedShadowAtlasSize, data.usePersistentConstantBuffer, softShadows);
         }
 
         // Set constant buffer data that will be used during the lighting/shadowing pass
-        private void SetupAdditionalLightsShadowReceiverConstants(RasterCommandBuffer cmd, Vector2Int allocatedShadowAtlasSize, bool useStructuredBuffer, bool usePersistentCBuffer, bool softShadows)
+        private void SetupAdditionalLightsShadowReceiverConstants(RasterCommandBuffer cmd, Vector2Int allocatedShadowAtlasSize, bool usePersistentCBuffer, bool softShadows)
         {
-            if (useStructuredBuffer)
-            {
-                // per-light data
-                var shadowParamsBuffer = ShaderData.instance.GetAdditionalLightShadowParamsStructuredBuffer(m_AdditionalLightIndexToShadowParams.Length);
-                shadowParamsBuffer.SetData(m_AdditionalLightIndexToShadowParams);
-                cmd.SetGlobalBuffer(AdditionalShadowsConstantBuffer._AdditionalShadowParams_SSBO, shadowParamsBuffer);
-
-                // per-shadow-slice data
-                var shadowSliceMatricesBuffer = ShaderData.instance.GetAdditionalLightShadowSliceMatricesStructuredBuffer(m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length);
-                shadowSliceMatricesBuffer.SetData(m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix);
-                cmd.SetGlobalBuffer(AdditionalShadowsConstantBuffer._AdditionalLightsWorldToShadow_SSBO, shadowSliceMatricesBuffer);
-            }
-            else if (usePersistentCBuffer)
+            if (usePersistentCBuffer)
             {
                 if (m_AdditionalLightShadowsData.IsCreated && m_AdditionalLightShadowsBuffer != null)
                 {
@@ -1044,7 +1018,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             passData.emptyShadowmap = m_CreateEmptyShadowmap;
             passData.setKeywordForEmptyShadowmap = m_SetKeywordForEmptyShadowmap;
-            passData.useStructuredBuffer = m_UseStructuredBuffer;
             passData.usePersistentConstantBuffer = m_UsePersistentConstantBuffer;
         }
 
@@ -1120,7 +1093,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                                                    data.lightData.mainLightIndex != -1 &&
                                                    visibleLights[data.lightData.mainLightIndex].light.shadows == LightShadows.Soft;
 
-                    data.pass.SetShadowGlobalKeywordsAndConstants(rasterCommandBuffer, ref data, data.allocatedShadowAtlasSize, data.useStructuredBuffer, additionalLightHasSoftShadows, anyShadowSliceRenderer, mainLightHasSoftShadows);
+                    data.pass.SetShadowGlobalKeywordsAndConstants(rasterCommandBuffer, ref data, data.allocatedShadowAtlasSize, additionalLightHasSoftShadows, anyShadowSliceRenderer, mainLightHasSoftShadows);
 
                     if (data.emptyShadowmap)
                     {

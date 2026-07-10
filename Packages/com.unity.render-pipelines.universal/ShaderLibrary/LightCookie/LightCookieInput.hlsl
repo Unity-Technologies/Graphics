@@ -12,7 +12,6 @@ TEXTURE2D(_AdditionalLightsCookieAtlasTexture);
 SAMPLER(sampler_MainLightCookieTexture);
 
 // Buffers
-#if !USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
 // GLES3 causes a performance regression in some devices when using CBUFFER.
 #ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_START(LightCookies)
@@ -22,7 +21,6 @@ CBUFFER_START(LightCookies)
 #ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
 #endif
-#endif
 
 float4x4 _MainLightWorldToLight;
 float _MainLightCookieTextureFormat;
@@ -31,43 +29,23 @@ float _AdditionalLightsCookieAtlasTextureFormat;
 // Cannot be included in the CBUFFER, float[] arrays padding differs between std140 (CBUFFER)
 // and Metal MSL when packed alongside float4/float4x4 arrays.
 float _AdditionalLightsCookieEnableBits[(MAX_VISIBLE_LIGHTS + 31) / 32];
-#if !USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
 float _AdditionalLightsLightTypes[MAX_VISIBLE_LIGHTS];
-#endif
-
-#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    StructuredBuffer<float4x4> _AdditionalLightsWorldToLightBuffer;
-    StructuredBuffer<float4>   _AdditionalLightsCookieAtlasUVRectBuffer; // UV rect into light cookie atlas (xy: uv offset, zw: uv size)
-    StructuredBuffer<float>    _AdditionalLightsLightTypeBuffer;
-#endif
 
 // Data Getters
 
 float4x4 GetLightCookieWorldToLightMatrix(int lightIndex)
 {
-    #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-        return _AdditionalLightsWorldToLightBuffer[lightIndex];
-    #else
-        return _AdditionalLightsWorldToLights[lightIndex];
-    #endif
+    return _AdditionalLightsWorldToLights[lightIndex];
 }
 
 float4 GetLightCookieAtlasUVRect(int lightIndex)
 {
-    #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-        return _AdditionalLightsCookieAtlasUVRectBuffer[lightIndex];
-    #else
-        return _AdditionalLightsCookieAtlasUVRects[lightIndex];
-    #endif
+    return _AdditionalLightsCookieAtlasUVRects[lightIndex];
 }
 
 int GetLightCookieLightType(int lightIndex)
 {
-    #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-        return _AdditionalLightsLightTypeBuffer[lightIndex];
-    #else
-        return _AdditionalLightsLightTypes[lightIndex];
-    #endif
+    return _AdditionalLightsLightTypes[lightIndex];
 }
 
 bool IsMainLightCookieTextureRGBFormat()
@@ -119,11 +97,7 @@ bool IsLightCookieEnabled(int lightBufferIndex)
     uint elemIndex = ((uint)lightBufferIndex) >> 5;
     uint bitOffset = (uint)lightBufferIndex & ((1 << 5) - 1);
 
-    #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-        uint elem = asuint(_AdditionalLightsCookieEnableBitsBuffer[elemIndex]);
-    #else
-        uint elem = asuint(_AdditionalLightsCookieEnableBits[elemIndex]);
-    #endif
+    uint elem = asuint(_AdditionalLightsCookieEnableBits[elemIndex]);
 
     return (elem & (1u << bitOffset)) != 0u;
 #endif

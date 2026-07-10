@@ -5,11 +5,6 @@
 
 #include "Packages/com.unity.render-pipelines.universal-config/Runtime/ShaderConfig.cs.hlsl"
 
-#define MAX_VISIBLE_LIGHTS_UBO  32
-#define MAX_VISIBLE_LIGHTS_SSBO 256
-
-// Keep in sync with RenderingUtils.useStructuredBuffer
-#define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
@@ -163,10 +158,6 @@ float4 _FPParams2;
 
 #endif
 
-#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-StructuredBuffer<LightData> _AdditionalLightsBuffer;
-StructuredBuffer<int> _AdditionalLightsIndices;
-#else
 // GLES3 causes a performance regression in some devices when using CBUFFER.
 #ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_START(AdditionalLights)
@@ -184,7 +175,6 @@ CBUFFER_END
 // Keeping mask buffer outside of AdditionalLights due to padding issue (std140 vs Metal MSL)
 // We want uint[] but the Unity API does not support it.
 float _AdditionalLightsLayerMasks[MAX_VISIBLE_LIGHTS];
-#endif
 
 #if USE_CLUSTER_LIGHT_LOOP
 

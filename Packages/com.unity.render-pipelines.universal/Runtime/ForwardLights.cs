@@ -50,9 +50,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _EnableProbeVolumes = Shader.PropertyToID("_EnableProbeVolumes");
         }
 
-        int m_AdditionalLightsStructuredBufferId;
-        int m_AdditionalLightsIndicesId;
-
         const string k_SetupLightConstants = "Setup Light Constants";
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_SetupLightConstants);
         private static readonly ProfilingSampler m_ProfilingSamplerFPSetup = new ProfilingSampler("Forward+ Setup");
@@ -87,7 +84,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         int m_MaxVisibleAdditionalLights;
 
-        bool m_UseStructuredBuffer;
         bool m_UseConstantBuffer;
 
         bool m_UseForwardPlus;
@@ -144,17 +140,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal ForwardLights(InitParams initParams)
         {
-            m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
             m_UseConstantBuffer = RenderingUtils.usePersistentConstantBuffer;
             m_UseForwardPlus = initParams.forwardPlus;
             m_MaxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
 
-            if (m_UseStructuredBuffer)
-            {
-                m_AdditionalLightsStructuredBufferId = Shader.PropertyToID("_AdditionalLightsBuffer");
-                m_AdditionalLightsIndicesId = Shader.PropertyToID("_AdditionalLightsIndices");
-            }
-            else if (m_UseConstantBuffer)
+            if (m_UseConstantBuffer)
             {
                 CreateAdditionalLightsConstantBuffer();
             }
@@ -224,11 +214,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         void ResizeAdditionalLightsBuffer(int maxLights)
         {
             m_MaxVisibleAdditionalLights = maxLights;
-            if (m_UseStructuredBuffer)
-            {
-                // SSBO buffers are sized on demand inside ShaderData
-            }
-            else if (m_UseConstantBuffer)
+            if (m_UseConstantBuffer)
             {
                 DisposeAdditionalLightsConstantBuffer();
                 CreateAdditionalLightsConstantBuffer();
@@ -736,35 +722,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (additionalLightsCount > 0)
             {
                 int mainLight = lightData.mainLightIndex;
-                if (m_UseStructuredBuffer)
-                {
-                    NativeArray<ShaderInput.LightData> additionalLightsData = new NativeArray<ShaderInput.LightData>(additionalLightsCount, Allocator.Temp);
-                    for (int i = 0, lightIter = 0; i < lights.Length && lightIter < maxAdditionalLightsCount; ++i)
-                    {
-                        if (mainLight != i)
-                        {
-                            ShaderInput.LightData data;
-                            InitializeLightConstants(lights, i, supportsLightLayers,
-                                out data.position, out data.color, out data.attenuation,
-                                out data.spotDirection, out data.occlusionProbeChannels,
-                                out data.layerMask, out _);
-                            additionalLightsData[lightIter] = data;
-                            lightIter++;
-                        }
-                    }
-
-                    var lightDataBuffer = ShaderData.instance.GetLightDataBuffer(additionalLightsCount);
-                    lightDataBuffer.SetData(additionalLightsData);
-
-                    int lightIndices = cullResults.lightAndReflectionProbeIndexCount;
-                    var lightIndicesBuffer = ShaderData.instance.GetLightIndicesBuffer(lightIndices);
-
-                    cmd.SetGlobalBuffer(m_AdditionalLightsStructuredBufferId, lightDataBuffer);
-                    cmd.SetGlobalBuffer(m_AdditionalLightsIndicesId, lightIndicesBuffer);
-
-                    additionalLightsData.Dispose();
-                }
-                else if (m_UseConstantBuffer)
+                if (m_UseConstantBuffer)
                 {
                     int positionOffset    = maxAdditionalLightsCount * k_AdditionalLightsPositionChannel;
                     int colorOffset       = maxAdditionalLightsCount * k_AdditionalLightsColorChannel;
@@ -909,13 +867,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 perObjectLightIndexMap[i] = -1;
 
             cullResults.SetLightIndexMap(perObjectLightIndexMap);
-
-            if (m_UseStructuredBuffer && additionalLightsCount > 0)
-            {
-                int lightAndReflectionProbeIndices = cullResults.lightAndReflectionProbeIndexCount;
-                Assertions.Assert.IsTrue(lightAndReflectionProbeIndices > 0, "Pipelines configures additional lights but per-object light and probe indices count is zero.");
-                cullResults.FillLightAndReflectionProbeIndices(ShaderData.instance.GetLightIndicesBuffer(lightAndReflectionProbeIndices));
-            }
 
             perObjectLightIndexMap.Dispose();
             return additionalLightsCount;
