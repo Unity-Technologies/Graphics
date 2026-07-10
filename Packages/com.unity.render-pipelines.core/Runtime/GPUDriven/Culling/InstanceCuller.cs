@@ -685,6 +685,11 @@ namespace UnityEngine.Rendering
         [ReadOnly] public int debugCounterIndexBase;
         [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> splitDebugCounters;
 
+#if UNITY_EDITOR && ENABLE_PROFILER
+        [ReadOnly] public bool collectBatchDrawn;
+        [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> batchDrawnVisibleCounts;
+#endif
+
         bool IsInstanceFlipped(int rendererIndex)
         {
             InstanceHandle instance = InstanceHandle.Create(rendererIndex);
@@ -769,6 +774,22 @@ namespace UnityEngine.Rendering
                 visibleCountPerConfig[configIndex]++;
                 configUsedMasks[configIndex >> 6] |= 1ul << (configIndex & 0x3f);
             }
+
+#if UNITY_EDITOR && ENABLE_PROFILER
+            if (collectBatchDrawn)
+            {
+                int batchVisibleCount = 0;
+                for (int i = 0; i < configCount; ++i)
+                    batchVisibleCount += visibleCountPerConfig[i];
+
+                if (batchVisibleCount > 0)
+                {
+                    // Interlocked: several Camera-view culls add into the same batchIndex per frame.
+                    int* drawnPtr = (int*)batchDrawnVisibleCounts.GetUnsafePtr();
+                    Interlocked.Add(ref UnsafeUtility.AsRef<int>(drawnPtr + batchIndex), batchVisibleCount);
+                }
+            }
+#endif
 
             // allocate and store the non-empty configs as bins
             int binCount = 0;
@@ -2037,6 +2058,13 @@ namespace UnityEngine.Rendering
 #endif
         private NativeArray<int> m_CullingDebugCounters;
         private InstanceCullerSplitDebugArray m_SplitDebugArray;
+#if UNITY_EDITOR && ENABLE_PROFILER
+        // Per-frame DRAWN visible-instance count per batch (by drawBatches index), summed across Camera
+        // culls. Separate from the m_SplitDebugArray path because consumers read it gate-free (no category).
+        private NativeArray<int> m_BatchDrawnVisibleCounts;
+        private NativeQueue<JobHandle> m_BatchDrawnSync;
+        private const int k_InitialBatchDrawnCapacity = 1024;
+#endif
         private InstanceOcclusionEventDebugArray m_OcclusionEventDebugArray;
         private ProfilingSampler m_ProfilingSampleInstanceOcclusionTest;
 
@@ -2099,7 +2127,85 @@ namespace UnityEngine.Rendering
             // would still pay the per-instance Interlocked.Add cost even with the Profiler off.
             if (m_AdvancedDebugStats != null)
                 m_CullingDebugCounters = new NativeArray<int>((int)CullingDebugCounter.Count, Allocator.Persistent);
+
+#if UNITY_EDITOR
+            // Per-frame DRAWN batch stats buffer. Allocated whenever advanced stats exist (editor);
+            // grown lazily to the batch count in EnsureBatchDrawnCapacity.
+            if (m_AdvancedDebugStats != null && !m_BatchDrawnVisibleCounts.IsCreated)
+            {
+                m_BatchDrawnVisibleCounts = new NativeArray<int>(k_InitialBatchDrawnCapacity, Allocator.Persistent);
+                m_BatchDrawnSync = new NativeQueue<JobHandle>(Allocator.Persistent);
+            }
+#endif
         }
+
+#if UNITY_EDITOR
+        // Grow-only sizing of the per-frame DRAWN batch buffer, to at least 2x capacity so a scene that
+        // adds batches over time doesn't reallocate every frame. Waits for in-flight writers before
+        // reallocating; only grows past the previous high-water mark, so steady state never drains here.
+        private void EnsureBatchDrawnCapacity(int batchCount)
+        {
+            if (!m_BatchDrawnVisibleCounts.IsCreated || m_BatchDrawnVisibleCounts.Length >= batchCount)
+                return;
+
+            while (m_BatchDrawnSync.TryDequeue(out var jobHandle))
+                jobHandle.Complete();
+
+            int newCapacity = math.max(batchCount, m_BatchDrawnVisibleCounts.Length * 2);
+            m_BatchDrawnVisibleCounts.Dispose();
+            m_BatchDrawnVisibleCounts = new NativeArray<int>(newCapacity, Allocator.Persistent);
+        }
+
+        // Derives the per-frame DRAWN batch stats from the per-batch visible-instance counts the
+        // Camera-view cull jobs accumulated this frame, and writes them into advStats.batchStats.
+        // Drain → aggregate → clear are kept together here, mirroring
+        // InstanceCullerSplitDebugArray.MoveToDebugStatsAndClear: the read-then-clear invariant (the
+        // buffer is NOT cleared in UpdateFrame) never leaks to the caller. drawBatches supplies the
+        // mesh/material keys for unique counting; visible count 0 = not drawn, 1 = single-instance draw.
+        // Basis: post CPU frustum/LOD/small-mesh cull, GPU occlusion not reflected.
+        internal void MoveBatchStatsToDebugStatsAndClear(in NativeList<DrawBatch> drawBatches, GRDDebugStats advStats)
+        {
+            if (advStats == null)
+                return;
+
+            ref var stats = ref advStats.batchStats;
+            stats.Clear();
+
+            if (!m_BatchDrawnVisibleCounts.IsCreated)
+                return;
+
+            // Wait for the Camera-view cull jobs that wrote the buffer before reading on the main thread.
+            while (m_BatchDrawnSync.TryDequeue(out var jobHandle))
+                jobHandle.Complete();
+
+            int count = math.min(drawBatches.Length, m_BatchDrawnVisibleCounts.Length);
+
+            using var uniqueMeshes = new NativeHashSet<BatchMeshID>(count, Allocator.Temp);
+            using var uniqueMaterials = new NativeHashSet<BatchMaterialID>(count, Allocator.Temp);
+
+            for (int i = 0; i < count; i++)
+            {
+                int visibleCount = m_BatchDrawnVisibleCounts[i];
+                if (visibleCount <= 0)
+                    continue;
+
+                stats.drawBatchCount++;
+                // Authored size, not visibleCount: the latter sums across cameras and would miss a
+                // single-instance batch drawn by more than one camera (reflection probes, stereo).
+                if (drawBatches[i].instanceCount == 1)
+                    stats.singleInstanceBatchCount++;
+
+                uniqueMeshes.Add(drawBatches[i].key.meshID);
+                uniqueMaterials.Add(drawBatches[i].key.materialID);
+            }
+
+            stats.uniqueMeshCount = uniqueMeshes.Count;
+            stats.uniqueMaterialCount = uniqueMaterials.Count;
+
+            // Read-then-clear: zero the per-batch buffer for next frame's accumulation.
+            m_BatchDrawnVisibleCounts.FillArray(0);
+        }
+#endif
 #endif
 
         // This relies on the fact that camera culling is scheduled ahead of shadow culling.
@@ -2400,7 +2506,7 @@ namespace UnityEngine.Rendering
                 IndirectBufferLimits indirectBufferLimits = m_IndirectStorage.GetLimits(indirectContextIndex);
                 NativeArray<IndirectBufferAllocInfo> indirectBufferAllocInfo = m_IndirectStorage.GetAllocInfoSubArray(indirectContextIndex);
 
-                var allocateBinsJob = new AllocateBinsPerBatch
+                var allocateBins = new AllocateBinsPerBatch
                 {
                     binningConfig = binningConfig,
                     drawBatches = drawInstanceData.drawBatches,
@@ -2415,10 +2521,25 @@ namespace UnityEngine.Rendering
                     binVisibleInstanceCounts = binVisibleInstanceCounts,
                     splitDebugCounters = m_SplitDebugArray.Counters,
                     debugCounterIndexBase = debugCounterBaseIndex,
-                }
-                .Schedule(batchCount, 1, cullingJobHandle);
+                };
+
+#if UNITY_EDITOR && ENABLE_PROFILER
+                // Collect per-frame DRAWN batch stats for the game camera only. Scene-view culls also
+                // use viewType == Camera, so exclude them (m_IsSceneViewCamera).
+                EnsureBatchDrawnCapacity(batchCount);
+                allocateBins.collectBatchDrawn = (context.viewType == BatchCullingViewType.Camera)
+                    && !m_IsSceneViewCamera
+                    && m_BatchDrawnVisibleCounts.IsCreated;
+                allocateBins.batchDrawnVisibleCounts = m_BatchDrawnVisibleCounts.IsCreated ? m_BatchDrawnVisibleCounts : default;
+#endif
+
+                var allocateBinsJob = allocateBins.Schedule(batchCount, 1, cullingJobHandle);
 
                 m_SplitDebugArray.AddSync(debugCounterBaseIndex, allocateBinsJob);
+#if UNITY_EDITOR && ENABLE_PROFILER
+                if (allocateBins.collectBatchDrawn)
+                    m_BatchDrawnSync.Enqueue(allocateBinsJob);
+#endif
 
                 var prefixSumJob = new PrefixSumDrawsAndInstances
                 {
@@ -3065,6 +3186,16 @@ namespace UnityEngine.Rendering
             m_DebugStats = null;
 #if ENABLE_PROFILER
             m_AdvancedDebugStats = null;
+#endif
+#if UNITY_EDITOR && ENABLE_PROFILER
+            if (m_BatchDrawnSync.IsCreated)
+            {
+                while (m_BatchDrawnSync.TryDequeue(out var jobHandle))
+                    jobHandle.Complete();
+                m_BatchDrawnSync.Dispose();
+            }
+            if (m_BatchDrawnVisibleCounts.IsCreated)
+                m_BatchDrawnVisibleCounts.Dispose();
 #endif
             if (m_CullingDebugCounters.IsCreated)
                 m_CullingDebugCounters.Dispose();

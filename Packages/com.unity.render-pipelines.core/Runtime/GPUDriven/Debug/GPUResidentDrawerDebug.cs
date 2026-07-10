@@ -221,6 +221,31 @@ namespace UnityEngine.Rendering
     }
 
     /// <summary>
+    /// Batching statistics emitted via ProfilerRecorder for editor consumers.
+    /// Populated once per frame from the current draw batch set; cumulative semantics
+    /// (latest snapshot persists).
+    /// </summary>
+    internal struct GRDBatchStats
+    {
+        /// <summary>Total draw batches (mesh/material combinations).</summary>
+        public int drawBatchCount;
+        /// <summary>Number of unique meshes across all batches.</summary>
+        public int uniqueMeshCount;
+        /// <summary>Number of unique materials across all batches.</summary>
+        public int uniqueMaterialCount;
+        /// <summary>Number of batches with a single instance — instancing yields no win for these.</summary>
+        public int singleInstanceBatchCount;
+
+        public void Clear()
+        {
+            drawBatchCount = 0;
+            uniqueMeshCount = 0;
+            uniqueMaterialCount = 0;
+            singleInstanceBatchCount = 0;
+        }
+    }
+
+    /// <summary>
     /// Combined debug statistics for GRD.
     /// </summary>
     internal class GRDDebugStats : IDisposable
@@ -229,6 +254,8 @@ namespace UnityEngine.Rendering
         public GRDCullingStats cullingStats;
         /// <summary>LOD distribution statistics.</summary>
         public GRDLODStats lodStats;
+        /// <summary>Batch statistics.</summary>
+        public GRDBatchStats batchStats;
 
         // Coverage tracking — source of truth.
         // Mutate only through RegisterGRDRenderers / UnregisterRenderers / RegisterExcludedRenderers.
@@ -290,6 +317,7 @@ namespace UnityEngine.Rendering
 
             cullingStats.Clear();
             lodStats.Clear();
+            batchStats.Clear();
             m_GRDRendererSet.Clear();
             m_ExcludedRendererDict.Clear();
             System.Array.Clear(m_PerReasonCount, 0, m_PerReasonCount.Length);

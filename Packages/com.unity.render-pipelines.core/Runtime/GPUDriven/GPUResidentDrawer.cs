@@ -598,6 +598,7 @@ namespace UnityEngine.Rendering
             m_WorldProcessor = null;
 #if ENABLE_PROFILER
             DisposePipelineRecorders();
+            GRDProfilerCounters.ResetCounters();
 #endif
 #if ENABLE_TERRAIN_MODULE
             m_SpeedTreeWindGPUDataUpdater.Dispose();
@@ -734,6 +735,15 @@ namespace UnityEngine.Rendering
             m_OcclusionCullingCommon.UpdateFrame();
             if (m_GRDContext.debugStats != null)
                 m_OcclusionCullingCommon.UpdateOccluderStats(m_GRDContext.debugStats);
+
+#if UNITY_EDITOR && ENABLE_PROFILER
+            // Emit on the render path (edit + play mode), not the player-loop-only PostPostLateUpdate,
+            // so editor panels update live — and outside the IsCategoryEnabled gate so they work
+            // without Profiler recording.
+            GRDProfilerCounters.EmitActive();
+            m_Culler.MoveBatchStatsToDebugStatsAndClear(m_Batcher.GetDrawInstanceData().drawBatches, m_GRDContext.advancedDebugStats);
+            GRDProfilerCounters.EmitBatchStats(m_GRDContext.advancedDebugStats);
+#endif
         }
 
 #if ENABLE_PROFILER

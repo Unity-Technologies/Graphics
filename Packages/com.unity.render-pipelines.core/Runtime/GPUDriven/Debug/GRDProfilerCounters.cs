@@ -5,7 +5,8 @@ namespace UnityEngine.Rendering
 {
     /// <summary>
     /// ProfilerCounter declarations for GPU Resident Drawer.
-    /// Emitted every frame in PostPostLateUpdate; read by the GRD Profiler module in the Editor.
+    /// Emitted each frame the GRD path runs (PostPostLateUpdate in play mode, the render path in
+    /// edit mode); read in the Editor via ProfilerRecorder.
     /// </summary>
     /// <remarks>
     /// Counters land under "User &gt; GPU Resident Drawer" in the Profiler Module Editor. Same
@@ -19,6 +20,11 @@ namespace UnityEngine.Rendering
     {
         internal const string k_CategoryName = "GPU Resident Drawer";
         internal static readonly ProfilerCategory k_Category = new(k_CategoryName);
+
+        // --- Liveness ---
+        // The authoritative "GRD is the active render path" signal — editor consumers gate GRD UI on
+        // it instead of inferring activity from other counters being non-zero. See EmitActive.
+        internal const string k_Active = "GRD Active";
 
         // --- Pipeline Timing (top-level stages) ---
         // All four stages are main-thread CPU time. The Culling Schedule stage measures only
@@ -66,6 +72,12 @@ namespace UnityEngine.Rendering
         internal const string k_LOD2 = "LOD 2";
         internal const string k_LOD3Plus = "LOD 3+";
 
+        // --- Batch Stats ---
+        internal const string k_BatchCount = "Batch Count";
+        internal const string k_UniqueMaterials = "Unique Materials";
+        internal const string k_UniqueMeshes = "Unique Meshes";
+        internal const string k_SingleInstanceBatches = "Single-Instance Batches";
+
         // --- Exclusion Reasons (per-reason breakdown) ---
         internal const string k_ExclLODAnimateCrossFading = "Excl: LOD Animate CrossFading";
         internal const string k_ExclCustomMaterialPropertyBlock = "Excl: Custom MaterialPropertyBlock";
@@ -109,6 +121,9 @@ namespace UnityEngine.Rendering
 
         // ===== Counter instances =====
 
+        // Liveness — cumulative (sticky); zeroed by ResetCounters on teardown. See EmitActive.
+        static readonly ProfilerCounterValue<int> s_Active = NewCumulativeCounter(k_Active);
+
         // Pipeline Timing (TimeNanoseconds for StackedTimeArea chart compatibility)
         static readonly ProfilerCounterValue<long> s_DataCollection = NewTimingCounter(k_DataCollection);
         static readonly ProfilerCounterValue<long> s_BatchBuilding = NewTimingCounter(k_BatchBuilding);
@@ -145,6 +160,12 @@ namespace UnityEngine.Rendering
         static readonly ProfilerCounterValue<int> s_LOD1 = NewPerFrameCounter(k_LOD1);
         static readonly ProfilerCounterValue<int> s_LOD2 = NewPerFrameCounter(k_LOD2);
         static readonly ProfilerCounterValue<int> s_LOD3Plus = NewPerFrameCounter(k_LOD3Plus);
+
+        // Batch Stats — cumulative (latest snapshot persists, like Coverage counters).
+        static readonly ProfilerCounterValue<int> s_BatchCount = NewCumulativeCounter(k_BatchCount);
+        static readonly ProfilerCounterValue<int> s_UniqueMaterials = NewCumulativeCounter(k_UniqueMaterials);
+        static readonly ProfilerCounterValue<int> s_UniqueMeshes = NewCumulativeCounter(k_UniqueMeshes);
+        static readonly ProfilerCounterValue<int> s_SingleInstanceBatches = NewCumulativeCounter(k_SingleInstanceBatches);
 
         // Exclusion Reasons (per-reason)
         static readonly ProfilerCounterValue<int>[] s_ExclusionReasonCounters = CreateExclusionReasonCounters();
@@ -222,6 +243,49 @@ namespace UnityEngine.Rendering
                 s_ExclusionReasonCounters[i].Value = stats.GetExcludedCountForReason((GRDExclusionReason)i);
         }
 
+        // Cumulative counters (FlushOnEndOfFrame, no ResetToZeroOnFlush) keep flushing their last
+        // value after EmitAll stops, so zero them on teardown. Per-frame counters self-zero on flush.
+        internal static void ResetCounters()
+        {
+            s_GRDRenderers.Value = 0;
+            s_ExcludedRenderers.Value = 0;
+            s_NonRenderingRenderers.Value = 0;
+            s_InactiveRenderers.Value = 0;
+            s_CoveragePercent.Value = 0f;
+
+            s_BatchCount.Value = 0;
+            s_UniqueMaterials.Value = 0;
+            s_UniqueMeshes.Value = 0;
+            s_SingleInstanceBatches.Value = 0;
+
+            s_Active.Value = 0;
+
+            for (int i = 1; i < (int)GRDExclusionReason.Count; i++)
+                s_ExclusionReasonCounters[i].Value = 0;
+        }
+
+        // Authoritative "GRD is the active render path" flag; editor consumers gate GRD UI on it.
+        // Cumulative, not self-zeroing: in edit mode EmitActive only fires on the throttled
+        // CullerUpdateFrame tick while the Profiler flushes every repaint, so a self-zeroing flag
+        // would read 0 in between and blink the UI. ResetCounters zeroes it on teardown.
+        internal static void EmitActive()
+        {
+            s_Active.Value = 1;
+        }
+
+        // Flushed outside the IsCategoryEnabled gate (unlike EmitAll) so consumers can read these
+        // without activating the Profiler category.
+        internal static void EmitBatchStats(GRDDebugStats stats)
+        {
+            if (stats == null)
+                return;
+
+            s_BatchCount.Value = stats.batchStats.drawBatchCount;
+            s_UniqueMaterials.Value = stats.batchStats.uniqueMaterialCount;
+            s_UniqueMeshes.Value = stats.batchStats.uniqueMeshCount;
+            s_SingleInstanceBatches.Value = stats.batchStats.singleInstanceBatchCount;
+        }
+
         // ===== Test hooks =====
 
         // Returns every counter name this class registers, in stable enumeration order.
@@ -231,6 +295,7 @@ namespace UnityEngine.Rendering
         {
             var names = new System.Collections.Generic.List<string>(48)
             {
+                k_Active,
                 k_DataCollection, k_BatchBuilding, k_CpuToGpuUpload, k_CullingSchedule,
                 k_TransformDispatch, k_MotionDispatch, k_ProbeDispatch, k_ComponentOverride,
                 k_GRDRenderers, k_ExcludedRenderers, k_NonRenderingRenderers, k_InactiveRenderers, k_CoveragePercent,
@@ -238,6 +303,7 @@ namespace UnityEngine.Rendering
                 k_VisibleInstances, k_DisabledRendererCulled, k_LayerCulled, k_FrustumCulled,
                 k_OcclusionCulled, k_GpuOcclusionCulled, k_LODGroupCulled, k_SmallMeshCulled, k_OtherCulled,
                 k_LOD0, k_LOD1, k_LOD2, k_LOD3Plus,
+                k_BatchCount, k_UniqueMaterials, k_UniqueMeshes, k_SingleInstanceBatches,
             };
             for (int i = 1; i < (int)GRDExclusionReason.Count; i++)
             {
