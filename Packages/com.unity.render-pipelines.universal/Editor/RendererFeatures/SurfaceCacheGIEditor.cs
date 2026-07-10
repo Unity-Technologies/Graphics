@@ -68,14 +68,18 @@ namespace UnityEditor.Rendering.Universal
             if (!m_IsInitialized)
                 Init();
 
+            SurfaceCacheGIRendererFeature surfaceCacheGIRendererFeature = (SurfaceCacheGIRendererFeature)target;
             if (!SurfaceCacheGISupport.IsSupportedByActiveBuildTarget())
-                EditorGUILayout.HelpBox(SurfaceCacheGISupport.k_UnsupportedMessage, MessageType.Warning);
+            {
+                if (surfaceCacheGIRendererFeature.isActive)
+                    EditorGUILayout.HelpBox(SurfaceCacheGISupport.k_UnsupportedErrorMessage, MessageType.Error);
+                else
+                    EditorGUILayout.HelpBox(SurfaceCacheGISupport.k_UnsupportedWarningMessage, MessageType.Warning);
+            }
 
             if (PlayerSettings.GetStaticBatchingForPlatform(EditorUserBuildSettings.activeBuildTarget))
             {
-                var surfaceCacheFeature = (SurfaceCacheGIRendererFeature)target;
-
-                EditorGUILayout.HelpBox(SurfaceCacheGIRendererFeature.k_StaticBatchingErrorMesssage, surfaceCacheFeature.isActive ? MessageType.Error : MessageType.Warning);
+                EditorGUILayout.HelpBox(SurfaceCacheGIRendererFeature.k_StaticBatchingErrorMesssage, surfaceCacheGIRendererFeature.isActive ? MessageType.Error : MessageType.Warning);
             }
             else if (SceneView.lastActiveSceneView && !SceneView.lastActiveSceneView.sceneViewState.alwaysRefreshEnabled)
             {
@@ -98,11 +102,10 @@ namespace UnityEditor.Rendering.Universal
 
             if (_debugEnabled.boolValue)
             {
-                var feature = (SurfaceCacheGIRendererFeature)target;
                 using (new EditorGUI.IndentLevelScope())
                 {
-                    EditorGUILayout.LabelField(TextContent.ActiveCaches, new GUIContent(feature.ActiveCacheCount.ToString()));
-                    EditorGUI.RenderingLayerMaskField(EditorGUILayout.GetControlRect(), TextContent.WorldRenderingLayerMask, feature.WorldRenderingLayerMask);
+                    EditorGUILayout.LabelField(TextContent.ActiveCaches, new GUIContent(surfaceCacheGIRendererFeature.ActiveCacheCount.ToString()));
+                    EditorGUI.RenderingLayerMaskField(EditorGUILayout.GetControlRect(), TextContent.WorldRenderingLayerMask, surfaceCacheGIRendererFeature.WorldRenderingLayerMask);
                 }
             }
 

@@ -8,8 +8,11 @@ namespace UnityEditor.Rendering.Universal
     {
         const string k_AssemblyName = "Unity.SurfaceCache.Runtime";
 
-        internal const string k_UnsupportedMessage =
-            "Surface Cache GI is not supported on the active build target and is disabled in player builds for it.";
+        internal const string k_UnsupportedWarningMessage =
+            "If activated, this Surface Cache GI renderer feature will not be supported on the active Build target.";
+
+        internal const string k_UnsupportedErrorMessage =
+            "Surface Cache GI is not supported on the active Build target, remove Surface Cache GI renderer feature or build with a renderer that does not use it.";
 
         static BuildTarget s_CachedTarget = (BuildTarget)(-1);
         static bool s_CachedSupported;
