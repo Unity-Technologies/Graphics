@@ -41,6 +41,7 @@ float3 _VolumeTargetPos;
 uint2 _LowResScreenSize;
 uint2 _FullResPixelOffset;
 int _UseMotionVectorSeeding;
+int _PatchWarping;
 
 uint CountLeadingZeroes(uint x)
 {
@@ -121,6 +122,7 @@ void Allocate(uint2 lowResPixelPos : SV_DispatchThreadID)
     volumeParams.voxelMinSize = _VolumeVoxelMinSize;
     volumeParams.cascadeOffsets = _VolumeCascadeOffsets;
     volumeParams.cascadeCount = _VolumeCascadeCount;
+    volumeParams.patchWarping = _PatchWarping != 0;
 
     PatchUtil::VolumePositionResolution patchPosResolution = PatchUtil::ResolveVolumePosition(sourceWorldPosition, volumeParams);
 

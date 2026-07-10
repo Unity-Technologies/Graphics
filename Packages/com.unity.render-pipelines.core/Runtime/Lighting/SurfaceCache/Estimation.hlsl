@@ -39,6 +39,7 @@ uint _SampleCount;
 float _ShortHysteresis;
 uint _RingConfigOffset;
 float3 _VolumeTargetPos;
+int _PatchWarping;
 float _MaterialAtlasTexelSize; // The size of 1 texel in the atlases above
 float _AlbedoBoost;
 float _EnvironmentIntensityMultiplier;
@@ -240,6 +241,7 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
     volumeParams.targetPos = _VolumeTargetPos;
     volumeParams.cascadeOffsets = _VolumeCascadeOffsets;
     volumeParams.cascadeCount = _VolumeCascadeCount;
+    volumeParams.patchWarping = _PatchWarping != 0;
 
     SphericalHarmonics::RGBL1 radianceSampleMean = (SphericalHarmonics::RGBL1)0;
     bool gotValidSamples = false;

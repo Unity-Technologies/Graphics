@@ -22,6 +22,7 @@ uint _SampleCount;
 uint _RingConfigOffset;
 float _Radius;
 float3 _VolumeTargetPos;
+int _PatchWarping;
 
 [numthreads(64, 1, 1)]
 void FilterSpatially(uint patchIdx : SV_DispatchThreadID)
@@ -50,6 +51,7 @@ void FilterSpatially(uint patchIdx : SV_DispatchThreadID)
     volume.voxelMinSize = _VolumeVoxelMinSize;
     volume.cascadeOffsets = _VolumeCascadeOffsets;
     volume.cascadeCount = _VolumeCascadeCount;
+    volume.patchWarping = _PatchWarping != 0;
 
     for (uint sampleIdx = 0; sampleIdx < _SampleCount; ++sampleIdx)
     {

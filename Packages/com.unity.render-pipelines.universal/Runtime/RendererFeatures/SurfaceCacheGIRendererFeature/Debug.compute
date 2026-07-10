@@ -31,6 +31,7 @@ float4x4 _ClipToWorldTransform;
 uint _FrameIdx;
 float _VolumeVoxelMinSize;
 float3 _VolumeTargetPos;
+int _PatchWarping;
 
 uint _DummyBlackbox; // By using a uniform we force the compiler to not make any assumptions.
 float3 IsActuallyNan(float3 val) {
@@ -100,6 +101,7 @@ void Visualize(uint2 threadIdx : SV_DispatchThreadID)
         volumeParams.voxelMinSize = _VolumeVoxelMinSize;
         volumeParams.cascadeOffsets = _VolumeCascadeOffsets;
         volumeParams.cascadeCount = _VolumeCascadeCount;
+        volumeParams.patchWarping = _PatchWarping != 0;
 
         PatchUtil::VolumePositionResolution posResolution = PatchUtil::ResolveVolumePosition(worldPos, volumeParams);
         output = float3(1.0f, 0.0f, 1.0f);

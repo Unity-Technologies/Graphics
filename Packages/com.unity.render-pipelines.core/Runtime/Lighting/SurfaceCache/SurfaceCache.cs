@@ -124,6 +124,7 @@ namespace UnityEngine.Rendering
         public readonly uint SpatialResolution;
         public readonly uint CascadeCount;
         public float VoxelMinSize;
+        public bool PatchWarpingEnabled;
         public readonly int3[] CascadeOffsets;
         public readonly GraphicsBuffer CascadeOffsetBuffer;
         public readonly GraphicsBuffer CellAllocationMarks;
@@ -377,6 +378,7 @@ namespace UnityEngine.Rendering
             internal uint SampleCount;
             internal uint VolumeSpatialResolution;
             internal float VolumeVoxelMinSize;
+            internal bool PatchWarpingEnabled;
             internal Vector3 VolumeTargetPos;
             internal GraphicsBuffer TraceScratchBuffer;
             internal uint[] Zero;
@@ -402,6 +404,7 @@ namespace UnityEngine.Rendering
             internal uint VolumeSpatialResolution;
             internal uint CascadeCount;
             internal float VolumeVoxelMinSize;
+            internal bool PatchWarpingEnabled;
             internal Vector3 VolumeTargetPos;
             internal uint FrameIndex;
         }
@@ -422,6 +425,7 @@ namespace UnityEngine.Rendering
             internal uint CascadeCount;
             internal uint VolumeSpatialResolution;
             internal float VolumeVoxelMinSize;
+            internal bool PatchWarpingEnabled;
             internal uint SampleCount;
             internal float Radius;
             internal uint RingConfigOffset;
@@ -466,6 +470,7 @@ namespace UnityEngine.Rendering
             public static readonly int _SampleCount = Shader.PropertyToID("_SampleCount");
             public static readonly int _MultiBounce = Shader.PropertyToID("_MultiBounce");
             public static readonly int _VolumeVoxelMinSize = Shader.PropertyToID("_VolumeVoxelMinSize");
+            public static readonly int _PatchWarping = Shader.PropertyToID("_PatchWarping");
             public static readonly int _PunctualLightSampleCount = Shader.PropertyToID("_PunctualLightSampleCount");
             public static readonly int _ShortHysteresis = Shader.PropertyToID("_ShortHysteresis");
             public static readonly int _PatchCellIndices = Shader.PropertyToID("_PatchCellIndices");
@@ -539,6 +544,11 @@ namespace UnityEngine.Rendering
         public void SetVolumeSize(float size)
         {
             _volume.VoxelMinSize = size / (_volume.SpatialResolution * (float)(1u << (int)(_volume.CascadeCount - 1u)));
+        }
+
+        public void SetPatchWarpingEnabled(bool enabled)
+        {
+            _volume.PatchWarpingEnabled = enabled;
         }
 
         public void RecordPreparation(RenderGraph renderGraph, uint frameIdx)
@@ -631,6 +641,7 @@ namespace UnityEngine.Rendering
                     passData.CascadeCount = Volume.CascadeCount;
                     passData.VolumeSpatialResolution = Volume.SpatialResolution;
                     passData.VolumeVoxelMinSize = Volume.VoxelMinSize;
+                    passData.PatchWarpingEnabled = Volume.PatchWarpingEnabled;
                     passData.SampleCount = _patchFilteringParams.SpatialFilterSampleCount;
                     passData.Radius = _patchFilteringParams.SpatialFilterRadius;
                     passData.CellPatchIndices = Volume.CellPatchIndices;
@@ -698,6 +709,7 @@ namespace UnityEngine.Rendering
                 passData.RingConfigOffset = RingConfig.OffsetA;
                 passData.SampleCount = _estimationParams.SampleCount;
                 passData.VolumeVoxelMinSize = Volume.VoxelMinSize;
+                passData.PatchWarpingEnabled = Volume.PatchWarpingEnabled;
                 passData.Zero = _zero;
 
                 RayTracingHelper.ResizeScratchBufferForTrace(passData.EstimationShader, passData.PatchCapacity, 1, 1, ref _traceScratch);
@@ -729,6 +741,7 @@ namespace UnityEngine.Rendering
                 passData.CascadeCount = Volume.CascadeCount;
                 passData.VolumeSpatialResolution = Volume.SpatialResolution;
                 passData.VolumeVoxelMinSize = Volume.VoxelMinSize;
+                passData.PatchWarpingEnabled = Volume.PatchWarpingEnabled;
                 passData.VolumeTargetPos = Volume.TargetPos;
                 passData.VolumeCascadeOffsets = Volume.CascadeOffsetBuffer;
                 passData.FrameIndex = frameIdx;
@@ -799,6 +812,7 @@ namespace UnityEngine.Rendering
             cmd.SetComputeIntParam(shader, ShaderIDs._VolumeSpatialResolution, (int)passData.VolumeSpatialResolution);
             cmd.SetComputeIntParam(shader, ShaderIDs._VolumeCascadeCount, (int)passData.CascadeCount);
             cmd.SetComputeFloatParam(shader, ShaderIDs._VolumeVoxelMinSize, passData.VolumeVoxelMinSize);
+            cmd.SetComputeIntParam(shader, ShaderIDs._PatchWarping, passData.PatchWarpingEnabled ? 1 : 0);
             cmd.SetComputeVectorParam(shader, ShaderIDs._VolumeTargetPos, passData.VolumeTargetPos);
             cmd.SetComputeIntParam(shader, ShaderIDs._FrameIndex, (int)passData.FrameIndex);
 
@@ -849,6 +863,7 @@ namespace UnityEngine.Rendering
                 shader.SetIntParam(cmd, ShaderIDs._SampleCount, (int)data.SampleCount);
                 shader.SetIntParam(cmd, ShaderIDs._MultiBounce, data.MultiBounce ? 1 : 0);
                 shader.SetFloatParam(cmd, ShaderIDs._VolumeVoxelMinSize, data.VolumeVoxelMinSize);
+                shader.SetIntParam(cmd, ShaderIDs._PatchWarping, data.PatchWarpingEnabled ? 1 : 0);
                 shader.SetFloatParam(cmd, ShaderIDs._PunctualLightSampleCount, data.PunctualLightSampleCount);
                 shader.SetFloatParam(cmd, ShaderIDs._ShortHysteresis, data.ShortHysteresis);
                 shader.SetIntParam(cmd, ShaderIDs._RingConfigOffset, (int)data.RingConfigOffset);
@@ -934,6 +949,7 @@ namespace UnityEngine.Rendering
             cmd.SetComputeIntParam(shader, ShaderIDs._VolumeCascadeCount, (int)data.CascadeCount);
             cmd.SetComputeIntParam(shader, ShaderIDs._VolumeSpatialResolution, (int)data.VolumeSpatialResolution);
             cmd.SetComputeFloatParam(shader, ShaderIDs._VolumeVoxelMinSize, data.VolumeVoxelMinSize);
+            cmd.SetComputeIntParam(shader, ShaderIDs._PatchWarping, data.PatchWarpingEnabled ? 1 : 0);
             cmd.SetComputeIntParam(shader, ShaderIDs._SampleCount, (int)data.SampleCount);
             cmd.SetComputeFloatParam(shader, ShaderIDs._Radius, data.Radius);
             cmd.SetComputeIntParam(shader, ShaderIDs._RingConfigOffset, (int)data.RingConfigOffset);

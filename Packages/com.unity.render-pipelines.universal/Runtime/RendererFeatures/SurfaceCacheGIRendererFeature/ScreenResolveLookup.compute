@@ -28,6 +28,7 @@ uint _SampleCount;
 float _VolumeVoxelMinSize;
 float4x4 _ClipToWorldTransform;
 float3 _VolumeTargetPos;
+int _PatchWarping;
 
 #define GROUP_SIZE 8
 
@@ -63,6 +64,7 @@ void Lookup(uint2 lowResPixelPos : SV_DispatchThreadID)
     volumeParams.voxelMinSize = _VolumeVoxelMinSize;
     volumeParams.cascadeOffsets = _VolumeCascadeOffsets;
     volumeParams.cascadeCount = _VolumeCascadeCount;
+    volumeParams.patchWarping = _PatchWarping != 0;
 
     const int cascadeResolution = PatchUtil::ResolveCascadeIndex(_VolumeTargetPos, worldPos, _VolumeSpatialResolution, _VolumeCascadeCount, _VolumeVoxelMinSize);
     const uint cascadeIdx = cascadeResolution == -1 ? _VolumeCascadeCount - 1 : cascadeResolution;

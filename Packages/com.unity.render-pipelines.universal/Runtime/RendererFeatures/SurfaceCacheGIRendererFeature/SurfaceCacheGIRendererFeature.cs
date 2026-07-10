@@ -175,7 +175,8 @@ namespace UnityEngine.Rendering.Universal
                     VolumeResolution = (uint)volume.volumeResolution.value,
                     VolumeCascadeCount = (uint)volume.volumeCascadeCount.value,
                     DefragCount = (uint)volume.defragCount.value,
-                    RenderingLayerMask = volume.renderingLayerMask.value
+                    RenderingLayerMask = volume.renderingLayerMask.value,
+                    PatchWarpingEnabled = volume.patchWarping.value
                 };
             }
 
@@ -205,7 +206,8 @@ namespace UnityEngine.Rendering.Universal
                 VolumeResolution = DEFAULT_VOLUME_RESOLUTION,
                 VolumeCascadeCount = DEFAULT_VOLUME_CASCADE_COUNT,
                 DefragCount = DEFAULT_DEFRAG_COUNT,
-                RenderingLayerMask = 0xFFFFFFFF
+                RenderingLayerMask = 0xFFFFFFFF,
+                PatchWarpingEnabled = true
             };
         }
 
@@ -264,6 +266,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _LowResScreenSize = Shader.PropertyToID("_LowResScreenSize");
             public static readonly int _VolumeCascadeCount = Shader.PropertyToID("_VolumeCascadeCount");
             public static readonly int _VolumeVoxelMinSize = Shader.PropertyToID("_VolumeVoxelMinSize");
+            public static readonly int _PatchWarping = Shader.PropertyToID("_PatchWarping");
             public static readonly int _VolumeCascadeOffsets = Shader.PropertyToID("_VolumeCascadeOffsets");
             public static readonly int _PatchCellIndices = Shader.PropertyToID("_PatchCellIndices");
         }
@@ -470,6 +473,7 @@ namespace UnityEngine.Rendering.Universal
                 internal bool UseMotionVectorSeeding;
                 internal GraphicsBuffer CascadeOffsets;
                 internal float VoxelMinSize;
+                internal bool PatchWarpingEnabled;
                 internal Matrix4x4 CurrentClipToWorldTransform;
                 internal Matrix4x4 PreviousClipToWorldTransform;
                 internal Vector3 VolumeTargetPos;
@@ -498,6 +502,7 @@ namespace UnityEngine.Rendering.Universal
                 internal bool ShowSamplePosition;
                 internal uint VolumeSpatialResolution;
                 internal float VolumeVoxelMinSize;
+                internal bool PatchWarpingEnabled;
                 internal uint VolumeCascadeCount;
                 internal GraphicsBuffer CascadeOffsets;
                 internal uint RingConfigOffset;
@@ -526,6 +531,7 @@ namespace UnityEngine.Rendering.Universal
                 internal uint VolumeCascadeCount;
                 internal uint SampleCount;
                 internal float VolumeVoxelMinSize;
+                internal bool PatchWarpingEnabled;
                 internal Matrix4x4 ClipToWorldTransform;
                 internal Vector3 VolumeTargetPos;
             }
@@ -656,6 +662,7 @@ namespace UnityEngine.Rendering.Universal
                 cache.SetPatchFilteringParams(VolumeParams.PatchFilteringParams);
                 cache.SetVolumeSize(VolumeParams.VolumeSize);
                 cache.SetDefragCount(VolumeParams.DefragCount);
+                cache.SetPatchWarpingEnabled(VolumeParams.PatchWarpingEnabled);
 
                 CurrentPerCameraState.EnsureScreenResources(cameraInfo.ScreenResolution);
 
@@ -715,6 +722,7 @@ namespace UnityEngine.Rendering.Universal
                     passData.UseMotionVectorSeeding = useMotionVectorPatchSeeding;
                     passData.CascadeOffsets = cache.Volume.CascadeOffsetBuffer;
                     passData.VoxelMinSize = cache.Volume.VoxelMinSize;
+                    passData.PatchWarpingEnabled = cache.Volume.PatchWarpingEnabled;
                     passData.CurrentClipToWorldTransform = cameraInfo.ClipToWorld;
                     passData.PreviousClipToWorldTransform = CurrentPerCameraState.PrevClipToWorldTransform;
                     passData.VolumeTargetPos = cache.Volume.TargetPos;
@@ -765,6 +773,7 @@ namespace UnityEngine.Rendering.Universal
                     data.CascadeOffsets = cache.Volume.CascadeOffsetBuffer;
                     data.VolumeSpatialResolution = cache.Volume.SpatialResolution;
                     data.VolumeVoxelMinSize = cache.Volume.VoxelMinSize;
+                    data.PatchWarpingEnabled = cache.Volume.PatchWarpingEnabled;
                     data.VolumeCascadeCount = cache.Volume.CascadeCount;
                     data.SampleCount = VolumeParams.ScreenFilteringParams.LookupSampleCount;
 
@@ -802,6 +811,7 @@ namespace UnityEngine.Rendering.Universal
                         passData.PatchStatistics = cache.Patches.Statistics;
                         passData.VolumeSpatialResolution = cache.Volume.SpatialResolution;
                         passData.VolumeVoxelMinSize = cache.Volume.VoxelMinSize;
+                        passData.PatchWarpingEnabled = cache.Volume.PatchWarpingEnabled;
                         passData.VolumeCascadeCount = cache.Volume.CascadeCount;
                         passData.CascadeOffsets = cache.Volume.CascadeOffsetBuffer;
                         passData.ViewMode = _debugViewMode;
@@ -899,6 +909,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeIntParams(shader, ShaderIDs._LowResScreenSize, (int)data.LowResScreenSize.x, (int)data.LowResScreenSize.y);
                 cmd.SetComputeIntParam(shader, ShaderIDs._UseMotionVectorSeeding, data.UseMotionVectorSeeding ? 1 : 0);
                 cmd.SetComputeFloatParam(shader, ShaderIDs._VolumeVoxelMinSize, data.VoxelMinSize);
+                cmd.SetComputeIntParam(shader, ShaderIDs._PatchWarping, data.PatchWarpingEnabled ? 1 : 0);
                 cmd.SetComputeMatrixParam(shader, ShaderIDs._CurrentClipToWorldTransform, data.CurrentClipToWorldTransform);
                 cmd.SetComputeMatrixParam(shader, ShaderIDs._PreviousClipToWorldTransform, data.PreviousClipToWorldTransform);
                 cmd.SetComputeVectorParam(shader, ShaderIDs._VolumeTargetPos, data.VolumeTargetPos);
@@ -927,6 +938,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeIntParam(shader, ShaderIDs._VolumeCascadeCount, (int)data.VolumeCascadeCount);
                 cmd.SetComputeIntParam(shader, ShaderIDs._SampleCount, (int)data.SampleCount);
                 cmd.SetComputeFloatParam(shader, ShaderIDs._VolumeVoxelMinSize, data.VolumeVoxelMinSize);
+                cmd.SetComputeIntParam(shader, ShaderIDs._PatchWarping, data.PatchWarpingEnabled ? 1 : 0);
                 cmd.SetComputeMatrixParam(shader, ShaderIDs._ClipToWorldTransform, data.ClipToWorldTransform);
                 cmd.SetComputeVectorParam(shader, ShaderIDs._VolumeTargetPos, data.VolumeTargetPos);
 
@@ -979,6 +991,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeIntParam(shader, ShaderIDs._FrameIdx, (int)data.FrameIndex);
                 cmd.SetComputeIntParam(shader, ShaderIDs._ShowSamplePosition, data.ShowSamplePosition ? 1 : 0);
                 cmd.SetComputeFloatParam(shader, ShaderIDs._VolumeVoxelMinSize, data.VolumeVoxelMinSize);
+                cmd.SetComputeIntParam(shader, ShaderIDs._PatchWarping, data.PatchWarpingEnabled ? 1 : 0);
                 cmd.SetComputeFloatParam(shader, ShaderIDs._RingConfigOffset, data.RingConfigOffset);
                 cmd.SetComputeVectorParam(shader, ShaderIDs._VolumeTargetPos, data.VolumeTargetPos);
                 cmd.SetComputeMatrixParam(shader, ShaderIDs._ClipToWorldTransform, data.ClipToWorldTransform);
@@ -1043,6 +1056,7 @@ namespace UnityEngine.Rendering.Universal
             public uint VolumeCascadeCount;
             public uint DefragCount;
             public uint RenderingLayerMask;
+            public bool PatchWarpingEnabled;
         }
 
         SurfaceCache CreateCache(in VolumeParameterSet vp)

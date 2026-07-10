@@ -116,17 +116,26 @@ namespace UnityEngine.Rendering.Universal
         // =======================
 
         /// <summary>
+        /// Only renderers whose Rendering Layer Mask intersects this mask contribute to Surface Cache Global Illumination.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Only renderers whose Rendering Layer Mask intersects this mask contribute to Surface Cache Global Illumination.")]
+        public RenderingLayerMaskParameter renderingLayerMask = new RenderingLayerMaskParameter(0xFFFFFFFF);
+
+        /// <summary>
         /// Number of surface cache patches to defragment per frame.
         /// </summary>
         [AdditionalProperty]
         public ClampedIntParameter defragCount = new ClampedIntParameter(2, 1, 32);
 
         /// <summary>
-        /// Only renderers whose Rendering Layer Mask intersects this mask contribute to Surface Cache Global Illumination.
+        /// Applies a small periodic warping to sample positions before they resolve to a patch, reducing
+        /// flickering on flat surfaces lined up with the voxel grid (e.g. a floor at height 0). When off,
+        /// no warping is applied and the calculation is skipped.
         /// </summary>
         [AdditionalProperty]
-        [Tooltip("Only renderers whose Rendering Layer Mask intersects this mask contribute to Surface Cache Global Illumination.")]
-        public RenderingLayerMaskParameter renderingLayerMask = new RenderingLayerMaskParameter(0xFFFFFFFF);
+        [Tooltip("Reduces flickering on flat surfaces lined up with the voxel grid (e.g. a floor at height 0). When off, no warping is applied.")]
+        public BoolParameter patchWarping = new BoolParameter(true);
 
         // =======================
         // Preset Utility

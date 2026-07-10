@@ -74,6 +74,7 @@ namespace PatchUtil
         float3 targetPos;
         StructuredBuffer<int3> cascadeOffsets;
         uint cascadeCount;
+        bool patchWarping;
     };
 
     uint ModuloDistance(uint a, uint b, uint modulo)
@@ -143,6 +144,33 @@ namespace PatchUtil
     float GetVoxelSize(float voxelMinSize, uint cascadeIdx)
     {
         return voxelMinSize * (1u << cascadeIdx);
+    }
+
+    // Surfaces sitting exactly on a voxel boundary (e.g. a floor at y = 0) flicker because
+    // floating-point noise flips neighboring samples between the two bordering cells. We displace
+    // the position by a continuous, world-anchored wave before quantizing, so nearby samples (and
+    // the same point across frames) resolve to a consistent voxel. Each axis is displaced by a
+    // function of the *other* two, so axis-aligned planes still vary across their surface, and the
+    // wave is quasi-periodic (a sum of incommensurate sines) to avoid collapsing into a regular
+    // lattice. This mitigates rather than fully fixes the ambiguity.
+    // See https://history.siggraph.org/learning/advances-in-spatial-hashing-a-pragmatic-approach-towards-robust-real-time-light-transport-simulation-by-gautron/
+    float QuasiPeriodicWave(float t)
+    {
+        const float3 waves = sin(float3(t, 2.19f * t + 1.7f, 3.73f * t + 4.2f));
+        return (waves.x + waves.y + waves.z) * (1.0f / 3.0f);
+    }
+
+    float3 GetVoxelWarpOffset(float3 queryPos, float voxelSize)
+    {
+        const float waveStrength = 0.01f;
+        const float waveFrequency = 0.01f;
+        // Base frequency in radians per voxel, with a different irrational multiplier per axis.
+        const float3 axisFrequency = waveFrequency * float3(1.0f, 1.41421356f, 1.73205081f);
+        const float3 phase = queryPos / voxelSize * axisFrequency;
+        const float3 wave = float3(QuasiPeriodicWave(phase.x), QuasiPeriodicWave(phase.y), QuasiPeriodicWave(phase.z));
+        const float3 offset = float3(wave.y + wave.z, wave.z + wave.x, wave.x + wave.y);
+        // Each QuasiPeriodicWave is in [-1, 1], so their sum is in [-2, 2]; 0.5 keeps the max displacement at waveStrength voxels.
+        return offset * (0.5f * waveStrength * voxelSize);
     }
 
     float2 OctWrap(float2 v)
@@ -242,8 +270,12 @@ namespace PatchUtil
             if (IsInsideCascade(volumeParams.targetPos, queryPos, cascadeVoxelSize, volumeParams.spatialResolution))
             {
                 const int3 cascadeOffset = volumeParams.cascadeOffsets[cascadeIdx];
-                const float3 centerRelativePositionVolumeSpace = queryPos / cascadeVoxelSize - cascadeOffset;
-                resolution.positionVolumeSpace = centerRelativePositionVolumeSpace + halfVolumeSize;
+                float3 warpedQueryPos = queryPos;
+                if (volumeParams.patchWarping)
+                    warpedQueryPos += GetVoxelWarpOffset(queryPos, cascadeVoxelSize);
+                const float3 centerRelativePositionVolumeSpace = warpedQueryPos / cascadeVoxelSize - cascadeOffset;
+                const int3 positionVolumeSpaceSigned = int3(centerRelativePositionVolumeSpace + halfVolumeSize);
+                resolution.positionVolumeSpace = uint3(clamp(positionVolumeSpaceSigned, 0, int(volumeParams.spatialResolution) - 1));
                 resolution.cascadeIdx = cascadeIdx;
                 break;
             }

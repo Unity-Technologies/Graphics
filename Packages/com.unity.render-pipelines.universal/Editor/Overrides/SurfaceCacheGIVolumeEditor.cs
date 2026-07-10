@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering.Universal
         protected SerializedDataParameter m_VolumeSize;
         protected SerializedDataParameter m_VolumeResolution;
         protected SerializedDataParameter m_VolumeCascadeCount;
+        protected SerializedDataParameter m_PatchWarping;
 
         protected SerializedDataParameter m_DefragCount;
         protected SerializedDataParameter m_RenderingLayerMask;
@@ -58,6 +59,7 @@ namespace UnityEditor.Rendering.Universal
         static GUIContent s_VolumeSize = EditorGUIUtility.TrTextContent("Size", "Size of the surface cache volume in world units. Can be changed at runtime without a performance hitch.");
         static GUIContent s_VolumeResolution = EditorGUIUtility.TrTextContent("Resolution", "Spatial resolution of the volume grid. Higher values improve spatial detail but use more memory. Changing at runtime can cause a performance hitch if internal buffers are reallocated.");
         static GUIContent s_VolumeCascadeCount = EditorGUIUtility.TrTextContent("Cascade Count", "Number of volume cascades. More cascades extend the volume's effective range. Changing at runtime can cause a performance hitch if internal buffers are reallocated.");
+        static GUIContent s_PatchWarping = EditorGUIUtility.TrTextContent("Patch Warping", "Reduces flickering on flat surfaces lined up with the voxel grid (e.g. a floor at height 0). When off, no warping is applied.");
         static GUIContent s_FocusTarget = EditorGUIUtility.TrTextContent("Focus Target", "GameObject the Surface Cache GI cascades center on. When unset, cascades follow the active camera. Stored on the Volume component, not in the shared Volume Profile.");
         static GUIContent s_FocusTargetProfile = EditorGUIUtility.TrTextContent("Focus Target", "GameObject the Surface Cache GI cascades center on. When unset, cascades follow the active camera. Requires a scene object reference, so it cannot be stored in the Volume Profile. Assign it on the Volume component in your scene.");
         static GUIContent s_FocusTargetProfileValue = EditorGUIUtility.TrTextContent("Scene object, set per Volume");
@@ -67,7 +69,6 @@ namespace UnityEditor.Rendering.Universal
         static GUIContent s_PatchFilteringHeader = EditorGUIUtility.TrTextContent("Patch Filtering", "Controls how patch irradiance data is filtered over time and space. These settings trade temporal stability and spatial smoothness against responsiveness to lighting changes and light leaking.");
         static GUIContent s_ScreenFilteringHeader = EditorGUIUtility.TrTextContent("Screen Filtering", "Controls how the low-resolution patch irradiance is resolved and upsampled to full screen resolution. These settings affect the final image quality and sharpness of the GI contribution.");
         static GUIContent s_VolumeConfigurationHeader = EditorGUIUtility.TrTextContent("Volume Configuration", "Defines the spatial extent and grid density of the surface cache volume. Size can be changed freely at runtime. Resolution and cascade count changes reallocate internal buffers, which may cause a brief hitch.");
-        static GUIContent s_VolumeBehaviorHeader = EditorGUIUtility.TrTextContent("Volume Behavior", "Controls what the volume cascades follow.");
         static GUIContent s_DefragCount = EditorGUIUtility.TrTextContent("Defrag Count", "Number of surface cache patches to defragment per frame. Higher values reduce memory fragmentation at a small per-frame cost.");
         static GUIContent s_RenderingLayerMask = EditorGUIUtility.TrTextContent("Rendering Layer Mask", "Only renderers whose Rendering Layer Mask intersects this mask contribute to Surface Cache GI.");
 
@@ -90,6 +91,7 @@ namespace UnityEditor.Rendering.Universal
             m_VolumeSize = Unpack(o.Find(obj => obj.volumeSize));
             m_VolumeResolution = Unpack(o.Find(obj => obj.volumeResolution));
             m_VolumeCascadeCount = Unpack(o.Find(obj => obj.volumeCascadeCount));
+            m_PatchWarping = Unpack(o.Find(obj => obj.patchWarping));
             m_DefragCount = Unpack(o.Find(obj => obj.defragCount));
             m_RenderingLayerMask = Unpack(o.Find(obj => obj.renderingLayerMask));
 
@@ -167,16 +169,15 @@ namespace UnityEditor.Rendering.Universal
             PropertyField(m_VolumeSize, s_VolumeSize);
             PropertyField(m_VolumeResolution, s_VolumeResolution);
             PropertyField(m_VolumeCascadeCount, s_VolumeCascadeCount);
-
-            // Volume Behavior section
             DrawFocusTarget();
 
             if (showAdditionalProperties)
             {
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Advanced", EditorStyles.boldLabel);
-                PropertyField(m_DefragCount, s_DefragCount);
                 PropertyField(m_RenderingLayerMask, s_RenderingLayerMask);
+                PropertyField(m_DefragCount, s_DefragCount);
+                PropertyField(m_PatchWarping, s_PatchWarping);
             }
 
             EditorGUI.EndDisabledGroup();
@@ -186,9 +187,6 @@ namespace UnityEditor.Rendering.Universal
         // the Profile asset there is no GameObject to store Focus Target on and nothing is drawn.
         void DrawFocusTarget()
         {
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(s_VolumeBehaviorHeader, EditorStyles.boldLabel);
-
             const float gutter = k_OverrideCheckboxWidth + k_OverrideCheckboxOffset;
 
             // When not in scene context, display a read-only UI.
@@ -202,6 +200,7 @@ namespace UnityEditor.Rendering.Universal
                     if (enableOverrides)
                     {
                         EditorGUILayout.BeginHorizontal();
+                        GUILayout.Space(3f);
                         GUILayoutUtility.GetRect(gutter, EditorGUIUtility.singleLineHeight, GUILayout.ExpandWidth(false));
                         EditorGUILayout.LabelField(s_FocusTargetProfile, s_FocusTargetProfileValue);
                         EditorGUILayout.EndHorizontal();
@@ -225,6 +224,9 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.BeginHorizontal();
+            // The whole hand-drawn Focus Target row sits 3px left of the generated parameter rows; inset it
+            // so the checkbox, label, and field all line up with the rows above and below.
+            GUILayout.Space(3f);
 
             float rowHeight = EditorGUI.GetPropertyHeight(value) + EditorGUIUtility.standardVerticalSpacing;
             var toggleSize = CoreEditorStyles.smallTickbox.CalcSize(GUIContent.none);
@@ -235,7 +237,13 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUIUtility.labelWidth -= gutter + 3 + 3;
             using (new EditorGUI.DisabledScope(!overrideState.boolValue))
-                EditorGUILayout.PropertyField(value, s_FocusTarget);
+            {
+                // GetControlRect reserves the same rect EditorGUILayout.PropertyField uses, so the label/field
+                // split and width stay correct; nudge it up 3px to cancel the vertical offset this custom row adds.
+                Rect fieldRowRect = EditorGUILayout.GetControlRect(GUILayout.ExpandWidth(true));
+                fieldRowRect.y -= 2f;
+                EditorGUI.PropertyField(fieldRowRect, value, s_FocusTarget);
+            }
             EditorGUIUtility.labelWidth += gutter + 3 + 3;
 
             EditorGUILayout.EndHorizontal();

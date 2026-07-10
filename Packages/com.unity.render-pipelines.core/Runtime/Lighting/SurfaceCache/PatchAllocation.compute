@@ -23,6 +23,7 @@ uint _VolumeSpatialResolution;
 uint _VolumeCascadeCount;
 float _VolumeVoxelMinSize;
 float3 _VolumeTargetPos;
+int _PatchWarping;
 uint _FrameIndex;
 
 [numthreads(256, 1, 1)]
@@ -38,6 +39,7 @@ void Allocate(uint threadIdx : SV_DispatchThreadID)
         volumeParams.targetPos = _VolumeTargetPos;
         volumeParams.cascadeOffsets = _VolumeCascadeOffsets;
         volumeParams.cascadeCount = _VolumeCascadeCount;
+        volumeParams.patchWarping = _PatchWarping != 0;
 
         const PatchAllocationRequest req = _Requests[threadIdx];
 
