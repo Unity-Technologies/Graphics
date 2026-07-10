@@ -256,7 +256,7 @@ namespace UnityEngine.PathTracing.Core
                 volumeDepth = 1,
                 msaaSamples = 1,
                 vrUsage = VRTextureUsage.OneEye,
-                graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat,
+                graphicsFormat = GraphicsFormat.R32G32B32A32_SFloat,
                 enableRandomWrite = true
             });
             texture.Create();

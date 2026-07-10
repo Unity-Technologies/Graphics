@@ -759,7 +759,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             Dictionary<int, List<LodInstanceBuildData>> lodInstances;
             Dictionary<Int32, List<ContributorLodInfo>> lodgroupToContributorInstances;
             WorldHelpers.AddContributingInstancesToWorld(world.PathTracingWorld, in fatInstances, out lodInstances, out lodgroupToContributorInstances);
-            world.PathTracingWorld.Build(sceneBounds, cmd, ref world.ScratchBuffer, samplingResources, true, 1024, (int)input.bakeInput.GetLightingSettings().lightGridMaxCells);
+            world.PathTracingWorld.Build(sceneBounds, cmd, ref world.ScratchBuffer, samplingResources, true, 128, (int)input.bakeInput.GetLightingSettings().lightGridMaxCells);
         }
 
         internal static void DeserializeAndInjectBakeInputData(

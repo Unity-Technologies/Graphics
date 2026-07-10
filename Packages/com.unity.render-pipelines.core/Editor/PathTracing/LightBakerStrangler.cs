@@ -363,7 +363,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
 
                 // Build world with extracted data
                 const bool emissiveSampling = true;
-                world.PathTracingWorld.Build(sceneBounds, deviceContext.GetCommandBuffer(), ref world.ScratchBuffer, samplingResources, emissiveSampling, 1024, (int)bakeInput.lightingSettings.lightGridMaxCells);
+                world.PathTracingWorld.Build(sceneBounds, deviceContext.GetCommandBuffer(), ref world.ScratchBuffer, samplingResources, emissiveSampling, 128, (int)bakeInput.lightingSettings.lightGridMaxCells);
 
                 LightmapBakeSettings lightmapBakeSettings = GetLightmapBakeSettings(in bakeInput.lightingSettings, world.PathTracingWorld);
                 // Build array of lightmap descriptors based on the atlassing data and instances.

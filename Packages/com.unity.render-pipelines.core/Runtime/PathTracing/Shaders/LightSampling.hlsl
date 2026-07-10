@@ -1218,6 +1218,7 @@ float3 EvalDirectIllumination(
         environmentLight.castsShadows = 1;
         environmentLight.contributesToDirectLighting = 1;
         environmentLight.layerMask = UINT_MAX;
+        environmentLight.indirectScale = 1.0f;
         LightSample environmentLightSample;
         SampleLightRadiance(dispatchInfo, accelStruct, instanceList, shadowRayOrigin, hitGeom.worldNormal, options, environmentLight, rngState, environmentLightSample);
 

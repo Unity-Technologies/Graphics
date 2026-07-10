@@ -190,8 +190,6 @@ void AddEnvironmentRadiance(inout PathIterator iterator, bool applyIndirectScale
     float envPdf;
     if (GetEnvironmentLightEmissionAndDensity(iterator.ray.direction, envRadiance, envPdf))
     {
-        envPdf /= GetNumLights(iterator.ray.origin);
-
         if (applyIndirectScale)
             envRadiance *= g_IndirectScale;
 
