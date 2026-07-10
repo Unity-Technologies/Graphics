@@ -16,7 +16,10 @@
         "Unity.PackageManagerDocTools.Editor",
         "Unity.Rendering.Denoising.Runtime",
         "Unity.RenderPipelines.HighDefinition.Config.Runtime",
-        "Unity.RenderPipelines.GPUDriven.Runtime"
+        "Unity.RenderPipelines.GPUDriven.Runtime",
+        "Unity.XR.Management.Editor",
+        "Unity.XR.Management",
+        "Unity.InternalAPIEngineBridge.RenderPipelines.Core.Editor"
     ],
     "includePlatforms": [
         "Editor"
@@ -35,7 +38,7 @@
         },
         {
             "name": "com.unity.xr.management",
-            "expression": "1.0.0",
+            "expression": "4.0.1",
             "define": "ENABLE_XR_MANAGEMENT"
         },
         {
