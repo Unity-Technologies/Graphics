@@ -12,6 +12,7 @@ using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
 using Object = UnityEngine.Object;
 #if OCULUS_SDK || OPENXR_SDK
+using System.Collections.Generic;
 using UnityEngine.XR;
 #endif
 
@@ -109,21 +110,43 @@ namespace Unity.Rendering.Universal.Tests
         }
 #endif
 
-        // If we're running using OCULUS_SDK or OPENXR_SDK, we need to use the ScreenCapture API to get stereo images for comparison
+        // OCULUS_SDK/OPENXR_SDK: built-in stereo ScreenCapture falls back to a mono game-view mirror on device
+        // (no OpenXR IVRDeviceScreenCapture), so grab the XR eye render textures and compose them side-by-side
+        // via ScreenCapture.CaptureXREyeTexturesToTexture2D.
 #if OCULUS_SDK || OPENXR_SDK
+        var xrDisplays = new List<XRDisplaySubsystem>();
+        SubsystemManager.GetInstances(xrDisplays);
+        Assert.IsTrue(xrDisplays.Count > 0 && xrDisplays[0].running, "No active XR display for stereo screen capture.");
+        var xrDisplay = xrDisplays[0];
+
         yield return new WaitForSeconds(1);
         yield return new WaitForEndOfFrame();
-        var screenShot = new Texture2D(1, 1, TextureFormat.RGBA32, false);
-        screenShot = ScreenCapture.CaptureScreenshotAsTexture(ScreenCapture.StereoScreenCaptureMode.BothEyes);
 
-        // Log the frame we are comparing to catch/debug waitFrame differences.
-        Debug.Log($"OCULUS_SDK || OPENXR_SDK == true: ImageAssert.AreEqual called on Frame #{Time.frameCount} using capture from {nameof(ScreenCapture.CaptureScreenshotAsTexture)}");
-        ImageAssert.AreEqual(testCase.ReferenceImage.Image, screenShot, settings.ImageComparisonSettings, testCase.ReferenceImage.LoadMessage);
+        var eyeRenderTextures = new List<RenderTexture>();
+        int passCount = xrDisplay.GetRenderPassCount();
+        for (int p = 0; p < passCount; p++)
+        {
+            var eyeRT = xrDisplay.GetRenderTextureForRenderPass(p);
+            if (eyeRT != null)
+                eyeRenderTextures.Add(eyeRT);
+        }
+
+        var screenShot = ScreenCapture.CaptureXREyeTexturesToTexture2D(eyeRenderTextures.ToArray());
+        Assert.IsNotNull(screenShot, "No XR eye render textures were captured.");
+        GraphicsTestLogger.Log($"Both-eyes eye-RT capture {screenShot.width}x{screenShot.height} on Frame #{Time.frameCount}");
+        try
+        {
+            ImageAssert.AreEqual(testCase.ReferenceImage.Image, screenShot, settings.ImageComparisonSettings, testCase.ReferenceImage.LoadMessage);
+        }
+        finally
+        {
+            Object.DestroyImmediate(screenShot);
+        }
 
         // Else continue to use the camera for image comparison
 #else
             // Log the frame we are comparing to catch/debug waitFrame differences.
-            Debug.Log($"ImageAssert.AreEqual called on Frame #{Time.frameCount} using capture from {nameof(cameras)}");
+            GraphicsTestLogger.Log($"ImageAssert.AreEqual called on Frame #{Time.frameCount} using capture from {nameof(cameras)}");
 
 #if UNITY_2023_2_OR_NEWER
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.WebGPU)

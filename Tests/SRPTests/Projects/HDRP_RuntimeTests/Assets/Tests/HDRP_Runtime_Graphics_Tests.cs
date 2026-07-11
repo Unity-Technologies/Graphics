@@ -96,8 +96,7 @@ public class HDRP_Runtime_Graphics_Tests
     )]
     [TestNotSupportedOn(
         "012|011",
-        "Not XR compatible",
-        XrDevice.OculusLoader, XrDevice.OpenXRLoader
+        "Not XR compatible", XrDevice.Any
     )]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {

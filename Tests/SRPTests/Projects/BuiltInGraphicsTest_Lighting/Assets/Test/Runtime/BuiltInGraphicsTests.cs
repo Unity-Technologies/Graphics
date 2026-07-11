@@ -34,8 +34,7 @@ public class BuiltInGraphicsTests
     )]
     [TestNotSupportedOn(
         "118",
-        "Not XR compatible",
-        XrDevice.OculusLoader, XrDevice.OpenXRLoader
+        "Not XR compatible", XrDevice.Any
     )]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {

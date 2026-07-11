@@ -59,8 +59,7 @@ namespace UnityEngine.VFX.Test
         )]
         [TestNotSupportedOn(
             "008_AssetBundle|025_Flipbook|16_MeshParticles|21_DepthModules|23_ParameterBinders|24_MotionVector|25_PerParticleLOD|32_ExcludeFromTAA|42_CollisionEvents|45_CustomPassCulling|HDRPFogVolumetric|PositionDepthOperator",
-            "Not XR compatible",
-            XrDevice.OculusLoader, XrDevice.OpenXRLoader
+            "Not XR compatible", XrDevice.Any
         )]
 
         [MockHmdSetup]

@@ -96,8 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         )]
         [TestNotSupportedOn(
             "2004|2224|2318|2319|2320|2551",
-            "Not XR compatible",
-            XrDevice.OculusLoader, XrDevice.OpenXRLoader
+            "Not XR compatible", XrDevice.Any
         )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {

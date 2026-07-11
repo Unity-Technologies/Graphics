@@ -90,8 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition.DXR_Tests
         )]
         [TestNotSupportedOn(
             "10_BackBufferCapture|105_ReflectionsDenoised|114|1000_RaytracingQualityKeyword_PathTracer",
-            "Not XR compatible",
-            XrDevice.OculusLoader, XrDevice.OpenXRLoader
+            "Not XR compatible", XrDevice.Any
         )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {
@@ -127,8 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition.DXR_Tests
         )]
         [TestNotSupportedOn(
             "200[1457]",
-            "Not XR compatible",
-            XrDevice.OculusLoader, XrDevice.OpenXRLoader
+            "Not XR compatible", XrDevice.Any
         )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {
@@ -172,8 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition.DXR_Tests
         )]
         [TestNotSupportedOn(
             "500[1-8]|501[0-9]|502[01236]|5009|10004",
-            "Not XR compatible",
-            XrDevice.OculusLoader, XrDevice.OpenXRLoader
+            "Not XR compatible", XrDevice.Any
         )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {
