@@ -400,14 +400,16 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
-                RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.ParticlesLit),
-                    UpdateStandardSurface);
+                RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.ParticlesLit), UpdateStandardSurface);
                 RenameFloat("_Glossiness", "_Smoothness");
             }
 
             RenameTexture("_MainTex", "_BaseMap");
             RenameColor("_Color", "_BaseColor");
             RenameFloat("_FlipbookMode", "_FlipbookBlending");
+
+            // Forward the _EMISSION keyword state from old shader to new shader
+            TransferKeyword("_EMISSION");
         }
 
         /// <summary>
@@ -418,6 +420,7 @@ namespace UnityEditor.Rendering.Universal
         {
             UpdateSurfaceBlendModes(material);
             MaterialUpgradeUtils.DisableKeywords(material);
+            FixEmissiveFlags(material);
         }
 
         /// <summary>
@@ -428,6 +431,38 @@ namespace UnityEditor.Rendering.Universal
         {
             UpdateSurfaceBlendModes(material);
             MaterialUpgradeUtils.DisableKeywords(material);
+            FixEmissiveFlags(material);
+        }
+
+        /// <summary>
+        /// Fixes emission keyword and global illumination flags on the upgraded material.
+        /// Call this in the finalizer after the _EMISSION keyword has been forwarded.
+        /// </summary>
+        /// <param name="material">The upgraded material with the new shader.</param>
+        static void FixEmissiveFlags(Material material)
+        {
+            if (material == null)
+                return;
+
+            // If _EMISSION keyword is enabled, ensure globalIlluminationFlags are set correctly
+            if (material.IsKeywordEnabled("_EMISSION"))
+            {
+                LightingSettings lightingSettingsOrDefaultsFallback = Lightmapping.GetLightingSettingsOrDefaultsFallback();
+                MaterialGlobalIlluminationFlags materialGlobalIlluminationFlags =
+                    (lightingSettingsOrDefaultsFallback.realtimeGI ? MaterialGlobalIlluminationFlags.RealtimeEmissive :
+                    (lightingSettingsOrDefaultsFallback.bakedGI ? MaterialGlobalIlluminationFlags.BakedEmissive :
+                    MaterialGlobalIlluminationFlags.None));
+                material.globalIlluminationFlags = materialGlobalIlluminationFlags;
+            }
+
+            // Fix emission checkbox appearing enabled after conversion when it was disabled in BiRP.
+            // BiRP Particles that never had emission toggled in inspector have None flags by default,
+            // but the emission checkbox checks if flags != EmissiveIsBlack (see MaterialEditor.EmissionEnabledProperty).
+            // Set EmissiveIsBlack to match what BiRP Standard does when emission is unchecked.
+            else if (material.globalIlluminationFlags == MaterialGlobalIlluminationFlags.None)
+            {
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+            }
         }
 
         /// <summary>

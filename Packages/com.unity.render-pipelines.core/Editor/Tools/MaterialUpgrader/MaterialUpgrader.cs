@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -43,13 +44,39 @@ namespace UnityEditor.Rendering
         List<string> m_TexturesToRemove = new List<string>();
         Dictionary<string, Texture> m_TexturesToSet = new Dictionary<string, Texture>();
 
-        class KeywordFloatRename
+        interface IKeywordMigration
+        {
+            void Apply(Material srcMaterial, Material dstMaterial);
+        }
+
+        class KeywordRename : IKeywordMigration
+        {
+            public string oldKeyword;
+            public string newKeyword;
+
+            public void Apply(Material srcMaterial, Material dstMaterial)
+            {
+                bool isEnabled = srcMaterial.IsKeywordEnabled(oldKeyword);
+                CoreUtils.SetKeyword(dstMaterial, newKeyword, isEnabled);
+            }
+        }
+
+        class KeywordToFloat : IKeywordMigration
         {
             public string keyword;
             public string property;
             public float setVal, unsetVal;
+
+            public void Apply(Material srcMaterial, Material dstMaterial)
+            {
+                if (!dstMaterial.HasProperty(property))
+                    return;
+
+                dstMaterial.SetFloat(property, srcMaterial.IsKeywordEnabled(keyword) ? setVal : unsetVal);
+            }
         }
-        List<KeywordFloatRename> m_KeywordFloatRename = new List<KeywordFloatRename>();
+
+        List<IKeywordMigration> m_KeywordMigrations = new List<IKeywordMigration>();
         Dictionary<string, (string, System.Func<float, bool>)> m_ConditionalFloatRename;
 
         /// <summary>
@@ -206,12 +233,10 @@ namespace UnityEditor.Rendering
                 dstMaterial.SetColor(prop.Key, prop.Value);
             }
 
-            foreach (var t in m_KeywordFloatRename)
+            // Handle keyword migrations
+            foreach (var migration in m_KeywordMigrations)
             {
-                if (!dstMaterial.HasProperty(t.property))
-                    continue;
-
-                dstMaterial.SetFloat(t.property, srcMaterial.IsKeywordEnabled(t.keyword) ? t.setVal : t.unsetVal);
+                migration.Apply(srcMaterial, dstMaterial);
             }
 
             // Handle conditional float renaming
@@ -320,7 +345,7 @@ namespace UnityEditor.Rendering
         /// <param name="unsetVal">Value when unset.</param>
         public void RenameKeywordToFloat(string oldName, string newName, float setVal, float unsetVal)
         {
-            m_KeywordFloatRename.Add(new KeywordFloatRename { keyword = oldName, property = newName, setVal = setVal, unsetVal = unsetVal });
+            m_KeywordMigrations.Add(new KeywordToFloat { keyword = oldName, property = newName, setVal = setVal, unsetVal = unsetVal });
         }
 
         /// <summary>
@@ -332,6 +357,26 @@ namespace UnityEditor.Rendering
         protected void RenameFloat(string oldName, string newName, System.Func<float, bool> condition)
         {
             (m_ConditionalFloatRename ??= new Dictionary<string, (string, System.Func<float, bool>)>())[oldName] = (newName, condition);
+        }
+
+        /// <summary>
+        /// Rename a keyword from old shader to new shader.
+        /// </summary>
+        /// <param name="oldName">Old keyword name.</param>
+        /// <param name="newName">New keyword name.</param>
+        public void RenameKeyword(string oldName, string newName)
+        {
+            m_KeywordMigrations.Add(new KeywordRename { oldKeyword = oldName, newKeyword = newName });
+        }
+
+        /// <summary>
+        /// Transfer a keyword state from old shader to new shader (same keyword name in both shaders).
+        /// Use this when the keyword name doesn't change between shaders, only forwarding its enabled/disabled state.
+        /// </summary>
+        /// <param name="keywordName">Keyword name to transfer.</param>
+        public void TransferKeyword(string keywordName)
+        {
+            m_KeywordMigrations.Add(new KeywordRename { oldKeyword = keywordName, newKeyword = keywordName });
         }
     }
 }
