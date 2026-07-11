@@ -9,7 +9,7 @@ Returns the arctangent of the value of input **In**. Each component should be wi
 | Name        | Direction           | Type  | Description |
 |:------------ |:-------------|:-----|:---|
 | In      | Input | Dynamic Vector | Input value |
-| Out | Output      |    Dynamic Vector | Output value |
+| Out | Output      |    Dynamic Vector | The arctangent of the input value, in radians |
 
 ## Generated Code Example
 

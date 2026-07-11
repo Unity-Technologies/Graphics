@@ -10,7 +10,7 @@ Returns the arctangent of the values of both input **A** and input **B**. The si
 |:------------ |:-------------|:-----|:---|
 | A      | Input | Dynamic Vector | First input value |
 | B      | Input | Dynamic Vector | Second input value |
-| Out | Output      |    Dynamic Vector | Output value |
+| Out | Output      |    Dynamic Vector | The arctangent of both inputs, in radians |
 
 ## Generated Code Example
 
