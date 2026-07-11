@@ -58,6 +58,7 @@ namespace UnityEngine.Rendering.Universal
         Material m_BlitHDRMaterial;
         Material m_BlitOffscreenUICoverMaterial;
         Material m_SamplingMaterial;
+        Material m_BackdropFilterCompositeMaterial;
 
         // 2D specific render passes
         CameraRenderingLayerMaskPass m_RenderingLayerMaskPass = new CameraRenderingLayerMaskPass();
@@ -138,6 +139,7 @@ namespace UnityEngine.Rendering.Universal
                 m_BlitHDRMaterial = CoreUtils.CreateEngineMaterial(shadersResources.blitHDROverlay);
                 m_BlitOffscreenUICoverMaterial = CoreUtils.CreateEngineMaterial(shadersResources.blitHDROverlay);
                 m_SamplingMaterial = CoreUtils.CreateEngineMaterial(shadersResources.samplingPS);
+                m_BackdropFilterCompositeMaterial = CoreUtils.CreateEngineMaterial(shadersResources.uiBackdropFilterCompositePS);
             }
 
             if (GraphicsSettings.TryGetRenderPipelineSettings<Renderer2DResources>(out var renderer2DResources))
@@ -155,7 +157,7 @@ namespace UnityEngine.Rendering.Universal
             m_OffscreenUICoverPrepass = new FinalBlitPass(RenderPassEvent.BeforeRenderingPostProcessing, m_BlitMaterial, m_BlitOffscreenUICoverMaterial);
 
             m_DrawOffscreenUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.BeforeRenderingPostProcessing);
-            m_DrawOverlayUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset); // after m_FinalBlitPass
+            m_DrawOverlayUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, m_BackdropFilterCompositeMaterial, m_BlitMaterial); // after m_FinalBlitPass
 
             m_Renderer2DData = data;
             m_Renderer2DData.lightCullResult = new Light2DCullResult();
@@ -508,6 +510,9 @@ namespace UnityEngine.Rendering.Universal
 
                 m_CreateColorTexture |= forceCreateColorTexture;
 
+                // Backdrop-filter compositing needs an intermediate color target to sample.
+                m_CreateColorTexture |= m_DrawOverlayUIPass.RequiresComposition();
+
                 // RTHandles do not support combining color and depth in the same texture so we create them separately
                 m_CreateDepthTexture |= m_CreateColorTexture;
 
@@ -840,6 +845,9 @@ namespace UnityEngine.Rendering.Universal
 
             InitializeLayerBatches();
 
+            // Before CreateResources: it reads RequiresComposition() to force an intermediate color target.
+            m_DrawOverlayUIPass.Setup(cameraData);
+
             CreateResources(renderGraph);
 
             DebugHandler?.Setup(renderGraph, cameraData.isPreviewCamera);
@@ -1082,7 +1090,7 @@ namespace UnityEngine.Rendering.Universal
             // Don't resolve during post processing if there are passes after or pixel perfect camera is used
             bool pixelPerfectCameraEnabled = ppc != null && ppc.enabled;
             bool hasCaptureActions = cameraData.captureActions != null && cameraData.resolveFinalTarget;
-            bool resolvePostProcessingToCameraTarget = cameraData.resolveFinalTarget && !hasCaptureActions && !hasPassesAfterPostProcessing && !applyFinalPostProcessing && !pixelPerfectCameraEnabled;
+            bool resolvePostProcessingToCameraTarget = cameraData.resolveFinalTarget && !hasCaptureActions && !hasPassesAfterPostProcessing && !applyFinalPostProcessing && !pixelPerfectCameraEnabled && !m_DrawOverlayUIPass.RequiresComposition();
             bool doSRGBEncoding = resolvePostProcessingToCameraTarget && needsColorEncoding;
 
             if (applyPostProcessing)
@@ -1130,6 +1138,12 @@ namespace UnityEngine.Rendering.Universal
                 m_CapturePass.RecordRenderGraph(renderGraph, frameData);
             }
 
+            // Composite needs cameraColor, so blit it into the overlay buffer before final post / the final blit
+            // swap it to the backbuffer. Skipped once the active target is already the backbuffer.
+            bool renderOverlayComposite = m_DrawOverlayUIPass.RequiresComposition() && !commonResourceData.isActiveTargetBackBuffer;
+            if (renderOverlayComposite)
+                m_DrawOverlayUIPass.BlitCameraColorToOverlayCompositeBuffer(renderGraph, commonResourceData, cameraData.pixelRect, CoreUtils.GetDefaultDepthStencilFormat());
+
             if (applyFinalPostProcessing)
             {
                 //Will swap the active camera targets to backbuffer (resourceData.SwitchActiveTexturesToBackbuffer)
@@ -1150,7 +1164,15 @@ namespace UnityEngine.Rendering.Universal
             bool outputToHDR = cameraData.isHDROutputActive;
             if (shouldRenderUI && !outputToHDR)
             {
-                m_DrawOverlayUIPass.RenderOverlay(renderGraph, frameData, commonResourceData.backBufferColor, commonResourceData.backBufferDepth);
+                var color = commonResourceData.backBufferColor;
+                var depth = commonResourceData.backBufferDepth;
+
+                if (renderOverlayComposite)
+                    m_DrawOverlayUIPass.RenderOverlayUIToolkitAndUGUIComposite(renderGraph, frameData, in color);
+                else
+                    m_DrawOverlayUIPass.RenderOverlayUIToolkitAndUGUI(renderGraph, frameData, in color, in depth);
+
+                m_DrawOverlayUIPass.RenderOverlayIMGUI(renderGraph, frameData, in color, in depth);
             }
 
             // If HDR debug views are enabled, debugHandler will perform the blit from debugScreenColor (== finalColorHandle) to backBufferColor.
@@ -1211,6 +1233,7 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_BlitHDRMaterial);
             CoreUtils.Destroy(m_BlitOffscreenUICoverMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
+            CoreUtils.Destroy(m_BackdropFilterCompositeMaterial);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             XRSystem.Dispose();
