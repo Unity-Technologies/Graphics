@@ -186,12 +186,12 @@ namespace UnityEditor.Rendering.Universal.Path2D
         private void HandleActivation()
         {
             if (m_IsActive == false && ToolManager.IsActiveTool(this))
-                Activate();
+                ActivateTool();
             else if (m_IsActive)
-                Deactivate();
+                DeactivateTool();
         }
 
-        private void Activate()
+        private void ActivateTool()
         {
             m_IsActive = true;
             RegisterCallbacks();
@@ -199,7 +199,7 @@ namespace UnityEditor.Rendering.Universal.Path2D
             OnActivate();
         }
 
-        private void Deactivate()
+        private void DeactivateTool()
         {
             OnDeactivate();
             DestroyCache();
