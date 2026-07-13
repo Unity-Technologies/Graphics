@@ -136,6 +136,17 @@ namespace Unity.Rendering.Universal.Tests
         GraphicsTestLogger.Log($"Both-eyes eye-RT capture {screenShot.width}x{screenShot.height} on Frame #{Time.frameCount}");
         try
         {
+            // Match the reference's format so comparison isn't rejected on a format mismatch.
+            var expectedImage = testCase.ReferenceImage.Image;
+            if (expectedImage != null && screenShot.format != expectedImage.format)
+            {
+                var normalized = new Texture2D(screenShot.width, screenShot.height, expectedImage.format, false, true);
+                normalized.SetPixels(screenShot.GetPixels());
+                normalized.Apply();
+                Object.DestroyImmediate(screenShot);
+                screenShot = normalized;
+            }
+
             ImageAssert.AreEqual(testCase.ReferenceImage.Image, screenShot, settings.ImageComparisonSettings, testCase.ReferenceImage.LoadMessage);
         }
         finally
