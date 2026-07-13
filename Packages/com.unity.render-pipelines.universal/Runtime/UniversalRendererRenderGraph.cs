@@ -1510,7 +1510,8 @@ namespace UnityEngine.Rendering.Universal
                     var cameraDepthDesc = renderGraph.GetTextureDesc(in cameraDepth);
 
                     // Using the cameraDepth avoids switching the depth target, that would break the native render pass.
-                    depth = HasMatchingAttachmentProperties(backbufferInfo, cameraDepthDesc) ? cameraDepth : resourceData.activeDepthTexture;
+                    bool isDynamicScaled = cameraDepthDesc.useDynamicScale && IsScalableBufferManagerUsed(cameraData);
+                    depth = (!isDynamicScaled && HasMatchingAttachmentProperties(backbufferInfo, cameraDepthDesc)) ? cameraDepth : resourceData.activeDepthTexture;
                 }
                 else
                 {
