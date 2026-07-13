@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// This renderer feature lets you create single-pass full screen post processing effects without needing to write code.
     /// </summary>
-    [URPHelpURL("renderer-features/renderer-feature-full-screen-pass")]
+    [URPHelpURL("urp/renderer-features/renderer-feature-full-screen-pass")]
     public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
     {
         /// <summary>

@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering
     /// A generic Volume component holding a <see cref="VolumeProfile"/>.
     /// </summary>
     [PipelineHelpURL("HDRenderPipelineAsset","understand-volumes")]
-    [PipelineHelpURL("UniversalRenderPipelineAsset", "Volumes")]
+    [PipelineHelpURL("UniversalRenderPipelineAsset", "urp/Volumes")]
     [ExecuteAlways]
     [AddComponentMenu("Miscellaneous/Volume")]
     [Icon("Packages/com.unity.render-pipelines.core/Editor/Icons/Processed/Volume Icon.asset")]

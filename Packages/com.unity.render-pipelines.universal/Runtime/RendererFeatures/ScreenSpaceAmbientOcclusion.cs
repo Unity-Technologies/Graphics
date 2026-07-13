@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering.Universal
     [SupportedOnRenderer(typeof(UniversalRendererData))]
     [DisallowMultipleRendererFeature("Screen Space Ambient Occlusion")]
     [Tooltip("The Ambient Occlusion effect darkens creases, holes, intersections and surfaces that are close to each other.")]
-    [URPHelpURL("post-processing-ssao")]
+    [URPHelpURL("urp/post-processing-ssao")]
     public class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
     {
         // Serialized Fields

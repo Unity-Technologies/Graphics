@@ -11,7 +11,8 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// GPU Resident Drawer Rendering Debugger settings.
     /// </summary>
-    [CurrentPipelineHelpURL("gpu-resident-drawer")]
+    [PipelineHelpURL("UniversalRenderPipelineAsset", "urp/gpu-resident-drawer")]
+    [PipelineHelpURL("HDRenderPipelineAsset", "gpu-resident-drawer")]
     [Serializable]
     public class DebugDisplayGPUResidentDrawer : IDebugDisplaySettingsData, ISerializedDebugDisplaySettings
     {

@@ -18,7 +18,7 @@ using URPRendering = UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [URPHelpURL("features/rp-converter")]
+    [URPHelpURL("urp/features/rp-converter")]
     [Serializable]
     [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
     [BatchModeConverterClassInfo("BuiltInToURP", "PPv2")]

@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="ClampedFloatParameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/White Balance")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [URPHelpURL("Post-Processing-White-Balance")]
+    [URPHelpURL("urp/Post-Processing-White-Balance")]
     public sealed class WhiteBalance : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

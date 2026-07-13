@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.Universal
     /// Class containing resources needed for the <c>UniversalRenderer</c>.
     /// </summary>
     [Serializable, ReloadGroup, ExcludeFromPreset]
-    [URPHelpURL("urp-universal-renderer")]
+    [URPHelpURL("urp/urp-universal-renderer")]
     public partial class UniversalRendererData : ScriptableRendererData, ISerializationCallbackReceiver
     {
 #if UNITY_EDITOR
