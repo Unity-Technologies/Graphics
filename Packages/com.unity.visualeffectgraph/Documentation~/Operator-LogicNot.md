@@ -1,4 +1,4 @@
-# Not (Logic)
+# Not (Logic) Operator
 
 Menu Path : **Operator > Logic > Not**
 

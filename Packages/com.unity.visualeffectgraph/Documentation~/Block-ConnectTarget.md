@@ -1,4 +1,4 @@
-# Connect Target
+# Connect Target Block
 
 Menu Path : **Orientation > Connect Target**
 

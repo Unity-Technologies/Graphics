@@ -1,10 +1,10 @@
 <div style="border: solid 1px #999; border-radius:12px; background-color:#EEE; padding: 8px; padding-left:14px; color: #555; font-size:14px;"><b>Experimental:</b> This Feature is currently experimental and is subject to change in later major versions.</div>
 
-# Sample Mesh Index
+# Sample Mesh Index Operator
 
-**Menu Path : Operator > Sampling > Sample Mesh Index**
+Menu Path : **Operator** > **Sampling** > **Sample Mesh Index**
 
-**Menu Path : Operator > Sampling > Sample Skinned Mesh Renderer Index**
+Menu Path : **Operator** > **Sampling** > **Sample Skinned Mesh Renderer Index**
 
 The Sample Mesh or Skinned Mesh Renderer Index Operator allows you to fetch index buffer data of geometry. Both [UInt16](https://docs.unity3d.com/ScriptReference/ModelImporterIndexFormat.UInt16.html) and [UInt32](https://docs.unity3d.com/ScriptReference/ModelImporterIndexFormat.UInt32.html) format are supported the output of this operator is always an UInt.
 

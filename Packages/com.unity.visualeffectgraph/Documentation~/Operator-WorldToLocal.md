@@ -1,4 +1,4 @@
-# World To Local
+# World to Local Operator
 
 Menu Path : **Operator > BuiltIn > World To Local**
 

@@ -1,6 +1,6 @@
-# Spawn State
+# Spawn State Operator
 
-Menu Path : **Operator > Spawn > Spawn Context State**
+Menu Path : **Operator** > **Spawn** > **Spawn Context State**
 
 The **Spawn State** Operator contains information about the [state](https://docs.unity3d.com/ScriptReference/VFX.VFXSpawnerState.html) of a [Spawn](Context-Spawn.md) system. It contains information such as: the number of particles spawned in the current frame, the duration of the spawn loop, and the current delta time.
 

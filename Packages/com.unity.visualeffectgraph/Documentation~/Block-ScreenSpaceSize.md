@@ -1,6 +1,6 @@
-# Screen Space Size
+# Screen Space Size Block
 
-Menu Path : **Output > Screen Space Size**
+Menu Path : **Output** > **Screen Space Size**
 
 The **Screen Space Size** Block calculates the scaleXYZ property of each particle to reach a size relative to the pixel size or screen size.
 

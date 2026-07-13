@@ -1,4 +1,4 @@
-# Get Attribute: texIndex
+# Get Attribute: texIndex Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: texIndex**
 

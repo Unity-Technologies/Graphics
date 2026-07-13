@@ -1,4 +1,4 @@
-# Plane
+# Plane Operator
 
 Menu Path : **Operator > Inline > Plane**
 

@@ -1,4 +1,4 @@
-# Acos
+# Acos Operator
 
 Menu Path : **Operator > Math > Trigonometry > Acos**
 

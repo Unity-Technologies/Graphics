@@ -1,4 +1,4 @@
-# Load CameraBuffer
+# Load CameraBuffer Operator
 
 Menu Path : **Operator > Sampling > Load CameraBuffer**
 

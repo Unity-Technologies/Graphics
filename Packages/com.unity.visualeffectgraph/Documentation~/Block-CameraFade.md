@@ -1,4 +1,4 @@
-# Camera Fade
+# Camera Fade Block
 
 Menu Path : **Output > Camera Fade**
 

@@ -1,6 +1,6 @@
-# Viewport To World Point
+# Viewport To World Point Operator
 
-Menu Path : **Operator > Camera > Viewport To World Point**
+Menu Path : **Operator** > **Camera** > **Viewport To World Point**
 
 The **Viewport To World Point** Operator transforms a position from viewport space to world space. The input viewport space is normalized and relative to the camera. The bottom-left of the camera is (0,0) and the top-right is (1,1). The z position is in world units from the camera.
 

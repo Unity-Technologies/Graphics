@@ -1,4 +1,4 @@
-# Perlin Curl Noise
+# Perlin Curl Noise Operator
 
 Menu Path : **Operator > Noise > Perlin Curl Noise**
 

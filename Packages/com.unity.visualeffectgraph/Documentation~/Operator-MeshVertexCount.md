@@ -1,4 +1,4 @@
-# Get Mesh Vertex Count
+# Get Mesh Vertex Count Operator
 
 Menu Path: **Operator > Sampling > Get Mesh Vertex Count**
 

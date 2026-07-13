@@ -1,4 +1,4 @@
-# Discretize
+# Discretize Operator
 
 Menu Path : **Operator > Math > Clamp > Discretize**
 

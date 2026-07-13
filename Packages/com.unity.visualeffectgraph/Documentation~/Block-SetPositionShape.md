@@ -1,4 +1,4 @@
-# Set Position Shape Block reference
+# Set Position Shape Block
 
 The Set Position Shape Block calculates particle positions based on an input shape, then stores them in the [position attribute](Reference-Attributes.md) of particles.
 

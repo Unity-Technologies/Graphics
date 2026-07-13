@@ -1,4 +1,4 @@
-# Standard Attribute Reference
+# Standard Attributes Reference
 
 ## Standard Attributes
 

@@ -1,4 +1,4 @@
-# Tangent
+# Tangent Operator
 
 Menu Path : **Operator > Math > Trigonometry > Tangent**
 

@@ -1,6 +1,6 @@
-# Set Position (Skinned Mesh)
+# Set Position (Skinned Mesh) Block
 
-Menu Path: **Position > Set Position (Skinned Mesh)**
+Menu Path: **Position** > **Set Position (Skinned Mesh)**
 
 Use the **Set Position (Skinned Mesh)** Block to set particle positions based on the shape of a Skinned Mesh Renderer component.
 

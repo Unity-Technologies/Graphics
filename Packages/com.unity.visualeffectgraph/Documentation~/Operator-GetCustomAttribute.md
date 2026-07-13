@@ -1,4 +1,4 @@
-# Get Custom Attribute
+# Get Custom Attribute Operator
 
 Menu Path : **Operator > Attribute > Get Custom Attribute**
 

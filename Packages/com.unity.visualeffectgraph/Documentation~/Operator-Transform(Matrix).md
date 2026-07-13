@@ -1,6 +1,6 @@
-# Transform (Matrix)
+# Transform (Matrix) Operator
 
-Menu Path : **Operator > Math > Geometry > Transform (Matrix)**
+Menu Path : **Operator** > **Math** > **Geometry** > **Transform (Matrix)**
 
 The **Transform (Matrix)** Operator applies a transformation to a Matrix to modify its position, rotation, or scale.
 
