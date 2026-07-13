@@ -305,6 +305,7 @@ namespace UnityEngine.Rendering
         {
             cullingStats = new GRDCullingStats();
             lodStats = new GRDLODStats();
+            FrameDebuggerGRDLookup.Clear();
         }
 
         /// <summary>Clear all statistics.</summary>
@@ -323,6 +324,7 @@ namespace UnityEngine.Rendering
             System.Array.Clear(m_PerReasonCount, 0, m_PerReasonCount.Length);
             System.Array.Clear(m_PerCategoryCount, 0, m_PerCategoryCount.Length);
             liveDisabledGRDCount = 0;
+            FrameDebuggerGRDLookup.Clear();
         }
 
         public void Dispose() => Clear();
@@ -424,6 +426,7 @@ namespace UnityEngine.Rendering
                 {
                     m_PerReasonCount[(int)reason]--;
                     m_PerCategoryCount[(int)reason.GetCategory()]--;
+                    FrameDebuggerGRDLookup.Remove(id);
                 }
 
                 CheckRestoreBatchingTypeUserValue(id);
@@ -438,6 +441,7 @@ namespace UnityEngine.Rendering
                 {
                     m_PerReasonCount[(int)oldReason]--;
                     m_PerCategoryCount[(int)oldReason.GetCategory()]--;
+                    FrameDebuggerGRDLookup.Remove(id);
                 }
                 m_GRDRendererSet.Add(id); // HashSet.Add is idempotent — re-registering an already-tracked renderer is a no-op.
 
@@ -462,6 +466,7 @@ namespace UnityEngine.Rendering
                 m_PerReasonCount[(int)reason]++;
                 m_PerCategoryCount[(int)reason.GetCategory()]++;
                 m_ExcludedRendererDict[id] = reason;
+                FrameDebuggerGRDLookup.Add(id, (byte)reason);
 
                 CheckSetBatchingTypeUserValue(id, reason);
             }
@@ -485,6 +490,7 @@ namespace UnityEngine.Rendering
                 m_PerReasonCount[(int)reason]++;
                 m_PerCategoryCount[newCategoryIndex]++;
                 m_ExcludedRendererDict[id] = reason;
+                FrameDebuggerGRDLookup.Add(id, (byte)reason);
 
                 CheckSetBatchingTypeUserValue(id, reason);
             }

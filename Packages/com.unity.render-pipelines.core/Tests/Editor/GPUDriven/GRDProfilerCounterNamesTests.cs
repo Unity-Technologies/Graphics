@@ -171,6 +171,59 @@ namespace UnityEngine.Rendering.Tests
             }
             return set;
         }
+
+        // GRDExclusionReasonText is the editor-side single source of reason label/tooltip text, index-aligned to GRDExclusionReason.
+        // It lives in the UnityEditor assembly (not this package), so we reach it by reflection — same approach as the GRDCounterNames mirror.
+        const string k_ReasonTextTypeName = "UnityEditor.Rendering.GRDExclusionReasonText";
+
+        static Type ResolveEditorType(string fullName)
+        {
+            foreach (var asm in CurrentAssemblies.GetLoadedAssemblies())
+            {
+                var t = asm.GetType(fullName, throwOnError: false);
+                if (t != null)
+                {
+                    return t;
+                }
+            }
+            return null;
+        }
+
+        static string[] GetStaticStringArray(Type t, string fieldName)
+        {
+            var field = t.GetField(fieldName, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+            Assert.IsNotNull(field, $"{t.FullName}.{fieldName} not found.");
+
+            var value = field.GetValue(null) as string[];
+            Assert.IsNotNull(value, $"{t.FullName}.{fieldName} is null or not string[].");
+
+            return value;
+        }
+
+        // The reason text arrays must stay index-aligned with GRDExclusionReason (None at 0) and must have a non-empty label + tooltip for every real reason.
+        // If the enum grows, this fails until GRDExclusionReasonText gets the matching entry.
+        [Test]
+        public void ExclusionReasonTextIsAlignedWithEnum()
+        {
+            var textType = ResolveEditorType(k_ReasonTextTypeName);
+            Assert.IsNotNull(textType, $"{k_ReasonTextTypeName} not found in any loaded assembly. If it moved, update this test.");
+
+            var labels = GetStaticStringArray(textType, "k_Labels");
+            var tooltips = GetStaticStringArray(textType, "k_Tooltips");
+
+            int count = (int)GRDExclusionReason.Count;
+            Assert.AreEqual(count, labels.Length, "GRDExclusionReasonText.k_Labels length must equal GRDExclusionReason.Count.");
+            Assert.AreEqual(count, tooltips.Length, "GRDExclusionReasonText.k_Tooltips length must equal GRDExclusionReason.Count.");
+
+            Assert.IsNull(labels[0], "Index 0 (None) label must be null.");
+            Assert.IsNull(tooltips[0], "Index 0 (None) tooltip must be null.");
+
+            for (int i = 1; i < count; i++)
+            {
+                Assert.IsFalse(string.IsNullOrEmpty(labels[i]), $"Missing label for {(GRDExclusionReason)i} (index {i}).");
+                Assert.IsFalse(string.IsNullOrEmpty(tooltips[i]), $"Missing tooltip for {(GRDExclusionReason)i} (index {i}).");
+            }
+        }
     }
 }
 #endif
