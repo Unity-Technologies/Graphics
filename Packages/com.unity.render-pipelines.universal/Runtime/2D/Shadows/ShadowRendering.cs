@@ -18,7 +18,7 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.Universal
 {
-    // TODO: Culling of shadow casters, rotate color channels for shadow casting, check get material functions.
+    // TODO: Culling of shadow casters, rotate color channels for shadow casting.
     internal static class ShadowRendering
     {
         internal enum ShadowTestType
@@ -29,7 +29,6 @@ namespace UnityEngine.Rendering.Universal
 
         private static readonly int k_LightPosID = Shader.PropertyToID("_LightPos");
         private static readonly int k_ShadowRadiusID = Shader.PropertyToID("_ShadowRadius");
-        private static readonly int k_ShadowColorMaskID = Shader.PropertyToID("_ShadowColorMask");
         private static readonly int k_ShadowModelMatrixID = Shader.PropertyToID("_ShadowModelMatrix");
         private static readonly int k_ShadowModelInvMatrixID = Shader.PropertyToID("_ShadowModelInvMatrix");
         private static readonly int k_ShadowModelScaleID = Shader.PropertyToID("_ShadowModelScale");
@@ -47,137 +46,149 @@ namespace UnityEngine.Rendering.Universal
 
         static readonly string k_NotTransformable = "NOT_TRANSFORMABLE";
 
-        private static Material CreateMaterial(Shader shader, int offset, int pass)
+        // Logical pass roles that URP looks up by name on shadow materials.
+        // The integer values index into CachedShadowMaterial.passIndices.
+        // Custom user shaders (and the future ShaderGraph 2D shadow master node)
+        // declare passes by name; URP resolves name -> shader pass index once
+        // at material creation, then per-frame uses passIndices[(int)role].
+        internal enum ShadowPassRole
         {
-            Material material = CoreUtils.CreateEngineMaterial(shader);
-            material.SetInt(k_ShadowColorMaskID, 1 << (offset + 1));
-            material.SetPass(pass);
-
-            return material;
+            Self,
+            UnshadowMark,
+            UnshadowUnmark,
+            ProjectedSelf,
+            ProjectedUnshadow,
+            Count,
         }
 
-        private static Material GetProjectedShadowMaterial(
-            Material material,
-            Func<Renderer2DResources, Shader> shaderFunc,
-            int offset, int pass)
+        // Bit-set of pass roles a given shader is expected to declare. Used by
+        // BuildPassIndices to warn when an expected pass is missing.
+        [Flags]
+        internal enum ShadowPassRoles : uint
         {
+            None              = 0,
+            Self              = 1u << (int)ShadowPassRole.Self,
+            UnshadowMark      = 1u << (int)ShadowPassRole.UnshadowMark,
+            UnshadowUnmark    = 1u << (int)ShadowPassRole.UnshadowUnmark,
+            ProjectedSelf     = 1u << (int)ShadowPassRole.ProjectedSelf,
+            ProjectedUnshadow = 1u << (int)ShadowPassRole.ProjectedUnshadow,
 
-#if !UNITY_EDITOR // In standalone builds, shaders are never changed. We can early exit
-            if (material != null)
-                return material;
-#endif
+            // Sprite and geometry caster shaders implement these three roles.
+            Caster    = Self | UnshadowMark | UnshadowUnmark,
+            // Projected shadow shaders implement these two roles.
+            Projected = ProjectedSelf | ProjectedUnshadow,
+            // All known roles (used for validating against an arbitrary shader).
+            All       = Caster | Projected,
+        }
 
-            if (!GraphicsSettings.TryGetRenderPipelineSettings<Renderer2DResources>(out var renderer2DResources))
-                return null;
+        // Pass names on the consolidated shadow shaders. Looked up via Material.FindPass
+        // exactly once per material, at cache-creation time.
+        internal const string k_SelfPassName = "Self";
+        internal const string k_UnshadowMarkPassName = "UnshadowMark";
+        internal const string k_UnshadowUnmarkPassName = "UnshadowUnmark";
+        internal const string k_ProjectedSelfPassName = "ProjectedSelf";
+        internal const string k_ProjectedUnshadowPassName = "ProjectedUnshadow";
 
-            var shader = shaderFunc(renderer2DResources);
+        // A cached shadow material plus its resolved pass indices, keyed in the
+        // Renderer2DData dictionaries by a bitmask of variant bits (e.g. SKINNED_SPRITE).
+        // passIndices is length ShadowPassRole.Count; slots with -1 indicate the shader
+        // does not declare that role. Invariant: if material is non-null, passIndices is non-null.
+        internal readonly struct CachedShadowMaterial
+        {
+            public readonly Material material;
+            public readonly int[] passIndices;
 
-            if (material != null)
+            public CachedShadowMaterial(Material material, int[] passIndices)
             {
-                if (material.shader != shader)
-                    material = null;
+                this.material = material;
+                this.passIndices = passIndices;
             }
-
-            if (material == null)
-            {
-                material = CoreUtils.CreateEngineMaterial(shader);
-                material.SetInt(k_ShadowColorMaskID, 1 << (offset + 1));
-                material.SetPass(pass);
-            }
-
-            return material;
         }
 
-        internal static Material GetProjectedShadowMaterial(this Renderer2DData rendererData)
-        {
-            rendererData.projectedShadowMaterial = GetProjectedShadowMaterial(
-                rendererData.projectedShadowMaterial,
-                r => r.projectedShadowShader,
-                0, 0);
-
-            return rendererData.projectedShadowMaterial;
-        }
-
-        internal static Material GetProjectedUnshadowMaterial(this Renderer2DData rendererData)
-        {
-            rendererData.projectedUnshadowMaterial = GetProjectedShadowMaterial(
-                rendererData.projectedUnshadowMaterial,
-                r => r.projectedShadowShader,
-                1, 1);
-
-            return rendererData.projectedUnshadowMaterial;
-        }
-
-        private static Material GetSpriteShadowMaterial(this Renderer2DData rendererData)
-        {
-            rendererData.spriteSelfShadowMaterial = GetProjectedShadowMaterial(
-                rendererData.spriteSelfShadowMaterial,
-                r => r.spriteShadowShader,
-                0, 0);
-
-            return rendererData.spriteSelfShadowMaterial;
-        }
-
-        private static Material GetSpriteUnshadowMaterial(this Renderer2DData rendererData)
-        {
-            rendererData.spriteUnshadowMaterial = GetProjectedShadowMaterial(
-                rendererData.spriteUnshadowMaterial,
-                r => r.spriteUnshadowShader,
-                1, 0);
-
-            return rendererData.spriteUnshadowMaterial;
-        }
-
-#if USING_2DANIMATION
+        // Bitmask key for the sprite shadow material cache.
+        private const uint k_SpriteShadowMaterialSkinnedBit = 1u;
         private const string k_SkinnedSpriteKeyword = "SKINNED_SPRITE";
 
-        private static Material GetSpriteShadowMaterialSkinned(this Renderer2DData rendererData)
+        private static string GetPassName(ShadowPassRole role)
         {
-            if (rendererData.spriteSelfShadowMaterialSkinned != null)
-                return rendererData.spriteSelfShadowMaterialSkinned;
-
-            var baseMaterial = rendererData.GetSpriteShadowMaterial();
-            if (baseMaterial == null || !baseMaterial.shader.isSupported)
-                return null;
-
-            rendererData.spriteSelfShadowMaterialSkinned = new Material(baseMaterial);
-            rendererData.spriteSelfShadowMaterialSkinned.EnableKeyword(k_SkinnedSpriteKeyword);
-            return rendererData.spriteSelfShadowMaterialSkinned;
+            switch (role)
+            {
+                case ShadowPassRole.Self:              return k_SelfPassName;
+                case ShadowPassRole.UnshadowMark:      return k_UnshadowMarkPassName;
+                case ShadowPassRole.UnshadowUnmark:    return k_UnshadowUnmarkPassName;
+                case ShadowPassRole.ProjectedSelf:     return k_ProjectedSelfPassName;
+                case ShadowPassRole.ProjectedUnshadow: return k_ProjectedUnshadowPassName;
+                default:
+                    // If a new ShadowPassRole is added without updating this switch, fail loudly
+                    // during development rather than silently producing empty pass names.
+                    throw new ArgumentOutOfRangeException(nameof(role), role, "Unknown ShadowPassRole; update GetPassName when adding new roles.");
+            }
         }
 
-        private static Material GetSpriteUnshadowMaterialSkinned(this Renderer2DData rendererData)
+        private static int[] BuildPassIndices(Material material, ShadowPassRoles expected)
         {
-            if (rendererData.spriteUnshadowMaterialSkinned != null)
-                return rendererData.spriteUnshadowMaterialSkinned;
+            var indices = new int[(int)ShadowPassRole.Count];
+            for (int i = 0; i < (int)ShadowPassRole.Count; i++)
+            {
+                var passName = GetPassName((ShadowPassRole)i);
+                indices[i] = material.FindPass(passName);
 
-            var baseMaterial = rendererData.GetSpriteUnshadowMaterial();
-            if (baseMaterial == null || !baseMaterial.shader.isSupported)
-                return null;
-
-            rendererData.spriteUnshadowMaterialSkinned = new Material(baseMaterial);
-            rendererData.spriteUnshadowMaterialSkinned.EnableKeyword(k_SkinnedSpriteKeyword);
-            return rendererData.spriteUnshadowMaterialSkinned;
+                var roleBit = (ShadowPassRoles)(1u << i);
+                if ((expected & roleBit) != 0 && indices[i] < 0)
+                {
+                    // Diagnostic for custom user shaders / future ShaderGraph master nodes
+                    // that forget to declare a pass URP is going to ask for at draw time.
+                    // Fires once per material (cache miss), not per frame.
+                    var shaderName = material.shader != null ? material.shader.name : "<null>";
+                    Debug.LogWarning($"[Shadow2D] Material '{material.name}' (shader '{shaderName}') is missing expected pass '{passName}'. Add `Pass {{ Name \"{passName}\" ... }}` to the shader; casters using this role will not render until then.");
+                }
+            }
+            return indices;
         }
+
+        private static CachedShadowMaterial GetOrCreateCachedShadowMaterial(Dictionary<uint, CachedShadowMaterial> cache, uint key, Shader shader, bool enableSkinnedKeyword, ShadowPassRoles expectedRoles)
+        {
+            if (shader == null)
+                return default;
+
+#if UNITY_EDITOR
+            // In editor the resource shader can be re-assigned; ensure the cached material still matches.
+            if (cache.TryGetValue(key, out var existing))
+            {
+                if (existing.material != null && existing.material.shader == shader)
+                    return existing;
+                if (existing.material != null)
+                    CoreUtils.Destroy(existing.material);
+                cache.Remove(key);
+            }
+#else
+            if (cache.TryGetValue(key, out var cached) && cached.material != null)
+                return cached;
 #endif
 
-        private static Material GetGeometryShadowMaterial(this Renderer2DData rendererData)
-        {
-            rendererData.geometrySelfShadowMaterial = GetProjectedShadowMaterial(
-                rendererData.geometrySelfShadowMaterial,
-                r => r.geometryShadowShader,
-                0, 0);
+            var material = CoreUtils.CreateEngineMaterial(shader);
+            if (enableSkinnedKeyword)
+                material.EnableKeyword(k_SkinnedSpriteKeyword);
 
-            return rendererData.geometrySelfShadowMaterial;
+            var entry = new CachedShadowMaterial(material, BuildPassIndices(material, expectedRoles));
+            cache[key] = entry;
+            return entry;
         }
 
-        private static Material GetGeometryUnshadowMaterial(this Renderer2DData rendererData)
+        internal static CachedShadowMaterial GetSpriteShadowMaterial(this Renderer2DData rendererData, Renderer2DResources resources, bool skinned)
         {
-            rendererData.geometryUnshadowMaterial = GetProjectedShadowMaterial(
-                rendererData.geometryUnshadowMaterial,
-                r => r.geometryUnshadowShader,
-                1, 0);
+            uint key = skinned ? k_SpriteShadowMaterialSkinnedBit : 0u;
+            return GetOrCreateCachedShadowMaterial(rendererData.spriteShadowMaterials, key, resources.spriteShadowShader, skinned, ShadowPassRoles.Caster);
+        }
 
-            return rendererData.geometryUnshadowMaterial;
+        internal static CachedShadowMaterial GetGeometryShadowMaterial(this Renderer2DData rendererData, Renderer2DResources resources)
+        {
+            return GetOrCreateCachedShadowMaterial(rendererData.geometryShadowMaterials, 0u, resources.geometryShadowShader, false, ShadowPassRoles.Caster);
+        }
+
+        internal static CachedShadowMaterial GetProjectedShadowMaterial(this Renderer2DData rendererData, Renderer2DResources resources)
+        {
+            return GetOrCreateCachedShadowMaterial(rendererData.projectedShadowMaterials, 0u, resources.projectedShadowShader, false, ShadowPassRoles.Projected);
         }
 
         private static void CalculateFrustumCornersPerspective(Camera camera, float distance, NativeArray<Vector3> corners)
@@ -345,8 +356,15 @@ namespace UnityEngine.Rendering.Universal
             return renderer;
         }
 
-        private static void RenderProjectedShadows(UnsafeCommandBuffer cmdBuffer, int layerToRender, Light2D light, List<ShadowCaster2D> shadowCasters, Material projectedShadowsMaterial, int pass, ShadowTestType shadowTestType)
+        private static void RenderProjectedShadows(UnsafeCommandBuffer cmdBuffer, int layerToRender, Light2D light, List<ShadowCaster2D> shadowCasters, CachedShadowMaterial projected, ShadowPassRole passRole, ShadowTestType shadowTestType)
         {
+            if (projected.material == null)
+                return;
+
+            int pass = projected.passIndices[(int)passRole];
+            if (pass < 0)
+                return;
+
             // Draw the projected shadows for the shadow caster group. Writing into the group stencil buffer bit
             for (var i = 0; i < shadowCasters.Count; i++)
             {
@@ -355,12 +373,12 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (ShadowCasterIsVisible(shadowCaster) && shadowCaster.castsShadows && shadowCaster.IsLit(light))
                     {
-                        if (shadowCaster != null && projectedShadowsMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
+                        if (shadowCaster != null && shadowCaster.IsShadowedLayer(layerToRender))
                         {
                             if (shadowCaster.shadowCastingSource != ShadowCaster2D.ShadowCastingSources.None && shadowCaster.mesh != null)
                             {
                                 SetShadowProjectionGlobals(cmdBuffer, shadowCaster, light);
-                                cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedShadowsMaterial, 0, pass);
+                                cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projected.material, 0, pass);
                             }
                         }
                     }
@@ -389,8 +407,21 @@ namespace UnityEngine.Rendering.Universal
             return numberOfSubmeshes;
         }
 
-        private static void RenderSpriteShadow(UnsafeCommandBuffer cmdBuffer, int layerToRender, Light2D light, List<ShadowCaster2D> shadowCasters, Material spriteShadowMaterial, Material spriteUnshadowMaterial, Material geometryShadowMaterial, Material geometryUnshadowMaterial, Material spriteShadowMaterialSkinned, Material spriteUnshadowMaterialSkinned, int pass, ShadowTestType shadowTestType)
+        private static void RenderSpriteShadow(UnsafeCommandBuffer cmdBuffer, int layerToRender, Light2D light, List<ShadowCaster2D> shadowCasters, CachedShadowMaterial sprite, CachedShadowMaterial spriteSkinned, CachedShadowMaterial geometry, ShadowPassRole unshadowRole, ShadowTestType shadowTestType)
         {
+            // Self-shadow casters always use ShadowPassRole.Self; only the unshadow role varies
+            // between phases (UnshadowMark in phase 1, UnshadowUnmark in phase 4). Resolve once
+            // from the pre-built per-material arrays.
+            const int selfRoleIdx = (int)ShadowPassRole.Self;
+            int unshadowRoleIdx = (int)unshadowRole;
+
+            int spriteSelfPass            = (sprite.material         != null) ? sprite.passIndices[selfRoleIdx]            : -1;
+            int spriteUnshadowPass        = (sprite.material         != null) ? sprite.passIndices[unshadowRoleIdx]        : -1;
+            int spriteSelfPassSkinned     = (spriteSkinned.material  != null) ? spriteSkinned.passIndices[selfRoleIdx]     : -1;
+            int spriteUnshadowPassSkinned = (spriteSkinned.material  != null) ? spriteSkinned.passIndices[unshadowRoleIdx] : -1;
+            int geometrySelfPass          = (geometry.material       != null) ? geometry.passIndices[selfRoleIdx]          : -1;
+            int geometryUnshadowPass      = (geometry.material       != null) ? geometry.passIndices[unshadowRoleIdx]      : -1;
+
             //Draw the sprites, either as self shadowing or unshadowing
             for (var i = 0; i < shadowCasters.Count; i++)
             {
@@ -407,33 +438,48 @@ namespace UnityEngine.Rendering.Universal
                     if (renderer != null)
                     {
                         bool useSkinnedMaterials = ShouldUseSkinnedSpriteShadowMaterials(shadowCaster, renderer);
-                        var shadowMat = useSkinnedMaterials ? spriteShadowMaterialSkinned : spriteShadowMaterial;
-                        var unshadowMat = useSkinnedMaterials ? spriteUnshadowMaterialSkinned : spriteUnshadowMaterial;
+                        var spriteMat    = useSkinnedMaterials ? spriteSkinned.material      : sprite.material;
+                        int selfPass     = useSkinnedMaterials ? spriteSelfPassSkinned       : spriteSelfPass;
+                        int unshadowPass = useSkinnedMaterials ? spriteUnshadowPassSkinned   : spriteUnshadowPass;
+
+                        if (spriteMat == null)
+                            continue;
 
                         if (ShadowCasterIsVisible(shadowCaster) && shadowCaster.selfShadows)
                         {
+                            if (selfPass < 0)
+                                continue;
                             int numberOfSubmeshes = GetRendererSubmeshes(renderer, shadowCaster);
                             for (int submeshIndex = 0; submeshIndex < numberOfSubmeshes; submeshIndex++)
-                                cmdBuffer.DrawRenderer(renderer, shadowMat, submeshIndex, pass);
+                                cmdBuffer.DrawRenderer(renderer, spriteMat, submeshIndex, selfPass);
                         }
                         else
                         {
+                            if (unshadowPass < 0)
+                                continue;
                             int numberOfSubmeshes = GetRendererSubmeshes(renderer, shadowCaster);
                             for (int submeshIndex = 0; submeshIndex < numberOfSubmeshes; submeshIndex++)
                             {
-                                cmdBuffer.DrawRenderer(renderer, unshadowMat, submeshIndex, pass);
-
+                                cmdBuffer.DrawRenderer(renderer, spriteMat, submeshIndex, unshadowPass);
                             }
                         }
                     }
                     else
                     {
-                        if (shadowCaster.mesh != null)
+                        if (geometry.material == null || shadowCaster.mesh == null)
+                            continue;
+
+                        if (ShadowCasterIsVisible(shadowCaster) && shadowCaster.selfShadows)
                         {
-                            if (ShadowCasterIsVisible(shadowCaster) && shadowCaster.selfShadows)
-                                cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, geometryShadowMaterial, 0, pass);
-                            else
-                                cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, geometryUnshadowMaterial, 0, pass);
+                            if (geometrySelfPass < 0)
+                                continue;
+                            cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, geometry.material, 0, geometrySelfPass);
+                        }
+                        else
+                        {
+                            if (geometryUnshadowPass < 0)
+                                continue;
+                            cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, geometry.material, 0, geometryUnshadowPass);
                         }
                     }
                 }
@@ -454,6 +500,11 @@ namespace UnityEngine.Rendering.Universal
 
         private static void RenderShadows(UnsafeCommandBuffer cmdBuffer, Renderer2DData rendererData, ref LayerBatch layer, Light2D light)
         {
+            // Resolve the resources lookup once per call; pass down so the four Get* calls below
+            // don't each hit GraphicsSettings.TryGetRenderPipelineSettings.
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<Renderer2DResources>(out var resources))
+                return;
+
             using (new ProfilingScope(cmdBuffer, ProfilerMarkers.s_ProfilingSamplerShadows))
             {
                 var shadowRadius = light.boundingSphere.radius + (light.transform.position - light.boundingSphere.position).magnitude;
@@ -462,33 +513,28 @@ namespace UnityEngine.Rendering.Universal
                 cmdBuffer.SetGlobalFloat(k_ShadowRadiusID, shadowRadius);
                 cmdBuffer.SetGlobalFloat(k_SoftShadowAngle, Mathf.Deg2Rad * light.shadowSoftness * k_MaxShadowSoftnessAngle);
 
-                var projectedShadowMaterial = rendererData.GetProjectedShadowMaterial();
-                var projectedUnshadowMaterial = rendererData.GetProjectedUnshadowMaterial();
-                var spriteShadowMaterial = rendererData.GetSpriteShadowMaterial();
-                var spriteUnshadowMaterial = rendererData.GetSpriteUnshadowMaterial();
+                var projectedShadowMaterial = rendererData.GetProjectedShadowMaterial(resources);
+                var spriteShadowMaterial = rendererData.GetSpriteShadowMaterial(resources, skinned: false);
 #if USING_2DANIMATION
-                var spriteShadowMaterialSkinned = rendererData.GetSpriteShadowMaterialSkinned();
-                var spriteUnshadowMaterialSkinned = rendererData.GetSpriteUnshadowMaterialSkinned();
+                var spriteShadowMaterialSkinned = rendererData.GetSpriteShadowMaterial(resources, skinned: true);
 #else
-                Material spriteShadowMaterialSkinned = null;
-                Material spriteUnshadowMaterialSkinned = null;
+                CachedShadowMaterial spriteShadowMaterialSkinned = default;
 #endif
-                var geometryShadowMaterial = rendererData.GetGeometryShadowMaterial();
-                var geometryUnshadowMaterial = rendererData.GetGeometryUnshadowMaterial();
+                var geometryShadowMaterial = rendererData.GetGeometryShadowMaterial(resources);
 
 
                 for (var group = 0; group < layer.shadowCasters.Count; group++)
                 {
                     var shadowCasters = layer.shadowCasters[group].GetShadowCasters();
 
-                    // Render self shadowing or non self shadowing
-                    RenderSpriteShadow(cmdBuffer, layer.startLayerID, light, shadowCasters, spriteShadowMaterial, spriteUnshadowMaterial, geometryShadowMaterial, geometryUnshadowMaterial, spriteShadowMaterialSkinned, spriteUnshadowMaterialSkinned, 0, ShadowTestType.Always);
-                    // Draw the projected shadows for the shadow caster group. Only writes the composite stencil bit
-                    RenderProjectedShadows(cmdBuffer, layer.startLayerID, light, shadowCasters, projectedShadowMaterial, 0, ShadowTestType.Always);
-                    // Draw the projected shadows for the shadow caster group. Only writes the composite stencil bit
-                    RenderProjectedShadows(cmdBuffer, layer.startLayerID, light, shadowCasters, projectedShadowMaterial, 1, ShadowTestType.Unshadow);
-                    //Render self shadowing or non self shadowing
-                    RenderSpriteShadow(cmdBuffer, layer.startLayerID, light, shadowCasters, spriteShadowMaterial, spriteUnshadowMaterial, geometryShadowMaterial, geometryUnshadowMaterial, spriteShadowMaterialSkinned, spriteUnshadowMaterialSkinned, 1, ShadowTestType.Unshadow);
+                    // Phase 1: self-shadow casters draw their "Self" pass; non-self casters draw their "UnshadowMark" pass (sets stencil ref 1).
+                    RenderSpriteShadow(cmdBuffer, layer.startLayerID, light, shadowCasters, spriteShadowMaterial, spriteShadowMaterialSkinned, geometryShadowMaterial, ShadowPassRole.UnshadowMark, ShadowTestType.Always);
+                    // Phase 2: projected shadows are written for all casters (stencil NotEqual gates the contribution).
+                    RenderProjectedShadows(cmdBuffer, layer.startLayerID, light, shadowCasters, projectedShadowMaterial, ShadowPassRole.ProjectedSelf, ShadowTestType.Always);
+                    // Phase 3: projected unshadow re-writes the projected channel for non-self casters where stencil == 1.
+                    RenderProjectedShadows(cmdBuffer, layer.startLayerID, light, shadowCasters, projectedShadowMaterial, ShadowPassRole.ProjectedUnshadow, ShadowTestType.Unshadow);
+                    // Phase 4: non-self casters draw their "UnshadowUnmark" pass to clear stencil ref 0.
+                    RenderSpriteShadow(cmdBuffer, layer.startLayerID, light, shadowCasters, spriteShadowMaterial, spriteShadowMaterialSkinned, geometryShadowMaterial, ShadowPassRole.UnshadowUnmark, ShadowTestType.Unshadow);
 
 #if ENABLE_PROFILER && PROFILER_INSTALLED
                     if (Renderer2D.canProfilerCapture)

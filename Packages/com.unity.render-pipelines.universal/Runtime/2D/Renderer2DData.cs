@@ -106,20 +106,8 @@ namespace UnityEngine.Rendering.Universal
         internal void Dispose()
         {
             UnityEngine.RenderAs2DUtil.DisposeCanRenderAs2D();
-
-            foreach(var mat in lightMaterials)
-                CoreUtils.Destroy(mat.Value);
-
-            lightMaterials.Clear();
-
-            CoreUtils.Destroy(spriteSelfShadowMaterial);
-            CoreUtils.Destroy(spriteUnshadowMaterial);
-            CoreUtils.Destroy(spriteSelfShadowMaterialSkinned);
-            CoreUtils.Destroy(spriteUnshadowMaterialSkinned);
-            CoreUtils.Destroy(geometrySelfShadowMaterial);
-            CoreUtils.Destroy(geometryUnshadowMaterial);
-            CoreUtils.Destroy(projectedShadowMaterial);
-            CoreUtils.Destroy(projectedUnshadowMaterial);
+            ClearLightMaterialCache();
+            ClearShadowMaterialCaches();
         }
 
         /// <summary>
@@ -129,19 +117,17 @@ namespace UnityEngine.Rendering.Universal
         {
             base.OnEnable();
 
-            geometrySelfShadowMaterial = null;
-            geometryUnshadowMaterial = null;
-
-            spriteSelfShadowMaterial = null;
-            spriteUnshadowMaterial = null;
-            spriteSelfShadowMaterialSkinned = null;
-            spriteUnshadowMaterialSkinned = null;
-            projectedShadowMaterial = null;
-            projectedUnshadowMaterial = null;
+            // Shadow material caches are cleared on enable so editor shader changes
+            // force a rebuild on the next render. (Mirrors the previous behavior of
+            // null'ing the individual shadow material properties here.)
+            ClearShadowMaterialCaches();
         }
 
         // transient data
         internal Dictionary<uint, Material> lightMaterials { get; } = new Dictionary<uint, Material>();
+        internal Dictionary<uint, ShadowRendering.CachedShadowMaterial> spriteShadowMaterials { get; } = new Dictionary<uint, ShadowRendering.CachedShadowMaterial>();
+        internal Dictionary<uint, ShadowRendering.CachedShadowMaterial> geometryShadowMaterials { get; } = new Dictionary<uint, ShadowRendering.CachedShadowMaterial>();
+        internal Dictionary<uint, ShadowRendering.CachedShadowMaterial> projectedShadowMaterials { get; } = new Dictionary<uint, ShadowRendering.CachedShadowMaterial>();
 
         /// <summary>
         /// Clears the cached light materials, forcing them to be recreated.
@@ -156,14 +142,33 @@ namespace UnityEngine.Rendering.Universal
             }
             lightMaterials.Clear();
         }
-        internal Material spriteSelfShadowMaterial { get; set; }
-        internal Material spriteUnshadowMaterial { get; set; }
-        internal Material spriteSelfShadowMaterialSkinned { get; set; }
-        internal Material spriteUnshadowMaterialSkinned { get; set; }
-        internal Material geometrySelfShadowMaterial { get; set; }
-        internal Material geometryUnshadowMaterial { get; set; }
-        internal Material projectedShadowMaterial { get; set; }
-        internal Material projectedUnshadowMaterial { get; set; }
+
+        /// <summary>
+        /// Clears the cached shadow materials, forcing them to be recreated.
+        /// </summary>
+        internal void ClearShadowMaterialCaches()
+        {
+            foreach (var entry in spriteShadowMaterials.Values)
+            {
+                if (entry.material != null)
+                    CoreUtils.Destroy(entry.material);
+            }
+            spriteShadowMaterials.Clear();
+
+            foreach (var entry in geometryShadowMaterials.Values)
+            {
+                if (entry.material != null)
+                    CoreUtils.Destroy(entry.material);
+            }
+            geometryShadowMaterials.Clear();
+
+            foreach (var entry in projectedShadowMaterials.Values)
+            {
+                if (entry.material != null)
+                    CoreUtils.Destroy(entry.material);
+            }
+            projectedShadowMaterials.Clear();
+        }
 
         internal RTHandle normalsRenderTarget;
         internal RTHandle cameraSortingLayerRenderTarget;

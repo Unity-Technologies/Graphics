@@ -17,9 +17,6 @@ namespace UnityEngine.Rendering.Universal
             // Reusing the depth/stencil so we have to clear it
             cmd.ClearRenderTarget(RTClearFlags.All, Color.clear, 1, 0);
 
-            var projectedShadowMaterial = passData.rendererData.GetProjectedShadowMaterial();
-            var projectedUnshadowMaterial = passData.rendererData.GetProjectedUnshadowMaterial();
-
             ShadowRendering.PrerenderShadows(cmd, passData.rendererData, ref passData.layerBatch, light, 0, light.shadowIntensity);
         }
 

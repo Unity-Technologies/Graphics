@@ -1,10 +1,5 @@
 Shader "Hidden/ShadowProjected2D"
 {
-    Properties
-    {
-        [HideInInspector] _ShadowColorMask("__ShadowColorMask", Float) = 0
-    }
-
     SubShader
     {
         Tags { "RenderType"="Transparent" }
@@ -25,7 +20,7 @@ Shader "Hidden/ShadowProjected2D"
         // This pass draws the projected shadows
         Pass
         {
-            Name "Projected Shadow (R)"
+            Name "ProjectedSelf"
 
             // Draw the shadow
             ColorMask R
@@ -75,7 +70,7 @@ Shader "Hidden/ShadowProjected2D"
             }
 
 
-            Name "Projected Unshadow (G) - Stencil: Ref 1, Comp Eq, Pass Keep"
+            Name "ProjectedUnshadow"
 
             // Draw the shadow
             ColorMask G

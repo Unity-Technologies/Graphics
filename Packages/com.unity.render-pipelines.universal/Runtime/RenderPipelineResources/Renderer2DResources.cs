@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.Universal
             set => this.SetValueAndNotify(ref m_ProjectedShadowShader, value, nameof(m_ProjectedShadowShader));
         }
 
-        [SerializeField, ResourcePath("Shaders/2D/Shadow2D-Shadow-Sprite.shader")]
+        [SerializeField, ResourcePath("Shaders/2D/Shadow2D-Sprite.shader")]
         Shader m_SpriteShadowShader;
 
         internal Shader spriteShadowShader
@@ -48,30 +48,12 @@ namespace UnityEngine.Rendering.Universal
             set => this.SetValueAndNotify(ref m_SpriteShadowShader, value, nameof(m_SpriteShadowShader));
         }
 
-        [SerializeField, ResourcePath("Shaders/2D/Shadow2D-Unshadow-Sprite.shader")]
-        Shader m_SpriteUnshadowShader;
-
-        internal Shader spriteUnshadowShader
-        {
-            get => m_SpriteUnshadowShader;
-            set => this.SetValueAndNotify(ref m_SpriteUnshadowShader, value, nameof(m_SpriteUnshadowShader));
-        }
-
-        [SerializeField, ResourcePath("Shaders/2D/Shadow2D-Shadow-Geometry.shader")]
+        [SerializeField, ResourcePath("Shaders/2D/Shadow2D-Geometry.shader")]
         Shader m_GeometryShadowShader;
         internal Shader geometryShadowShader
         {
             get => m_GeometryShadowShader;
             set => this.SetValueAndNotify(ref m_GeometryShadowShader, value, nameof(m_GeometryShadowShader));
-        }
-
-        [SerializeField, ResourcePath("Shaders/2D/Shadow2D-Unshadow-Geometry.shader")]
-        Shader m_GeometryUnshadowShader;
-
-        internal Shader geometryUnshadowShader
-        {
-            get => m_GeometryUnshadowShader;
-            set => this.SetValueAndNotify(ref m_GeometryUnshadowShader, value, nameof(m_GeometryUnshadowShader));
         }
 
         [SerializeField,ResourcePath("Shaders/Utils/CopyDepth.shader")]
