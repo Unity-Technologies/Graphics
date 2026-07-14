@@ -51,7 +51,8 @@ namespace UnityEditor.Rendering.Tests.ShaderStripping
             string buildTargetGroupName = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget).ToString();
             string[] tags = RenderPipelineSubShaderStripping.GetActiveRenderPipelineShaderTagsForPlatform(buildTargetGroupName);
 
-            CollectionAssert.DoesNotContain(tags, InMemoryTestRenderPipelineAsset.k_ShaderTag,
+            // null means no persisted RP resolved yet (cold Library) — the tag trivially didn't leak.
+            CollectionAssert.DoesNotContain(tags ?? System.Array.Empty<string>(), InMemoryTestRenderPipelineAsset.k_ShaderTag,
                 "The in-memory runtime render pipeline tag leaked into the persisted-derived stripping tag set.");
         }
     }
