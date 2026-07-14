@@ -52,6 +52,14 @@ namespace UnityEngine.Rendering.Tests
         // Call from [SetUp] before constructing the harness, so a skip fires before any GPU resource is allocated.
         public static void EnsureSupportedOrIgnore(RayTracingBackend backend = RayTracingBackend.Compute)
         {
+            // Assert.Ignore (not Assume.That): UTR reports Ignore as Skipped but maps Inconclusive to failure.
+            if (SystemInfo.renderingThreadingMode == RenderingThreadingMode.NativeGraphicsJobsSplitThreading)
+                Assert.Ignore("Skipping under NativeGraphicsJobsSplitThreading; tracked in GFXLIGHT-2292.");
+
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+                Assert.Ignore("Skipping on OpenGL; SurfaceCache requires Vulkan/D3D12/Metal (SSBO binding budget).");
+
             // No UnifiedRayTracing compute backend on this platform; matches UnifiedRayTracing_RuntimeTests.
             if (backend == RayTracingBackend.Compute && Application.platform == RuntimePlatform.PS5)
                 Assert.Ignore("SurfaceCache Core tests do not support the Compute ray-tracing backend on this platform.");
@@ -86,7 +94,7 @@ namespace UnityEngine.Rendering.Tests
             SolidColorShader = testResources.solidColorShader,
         };
 
-        public TestHarness(RayTracingBackend backend = RayTracingBackend.Compute)
+        public TestHarness(RayTracingBackend backend = RayTracingBackend.Compute, uint sampleCount = 1, uint defragCount = 0)
         {
             var volParams = new SurfaceCacheVolumeParameterSet
             {
@@ -135,7 +143,7 @@ namespace UnityEngine.Rendering.Tests
             _cache = new SurfaceCache(_coreResources, volParams);
             _cache.SetEstimationParams(new SurfaceCacheEstimationParameterSet
             {
-                SampleCount = 1,
+                SampleCount = sampleCount,
                 MultiBounce = false,
                 BouncePatchAllocation = false
             });
@@ -147,6 +155,7 @@ namespace UnityEngine.Rendering.Tests
                 SpatialFilterRadius = 0f,
                 TemporalPostFilterEnabled = false
             });
+            _cache.SetDefragCount(defragCount);
 
             _world = new SurfaceCacheWorld();
             _world.Init(_rtContext, CreateWorldResourceSet(testResources));
@@ -247,9 +256,17 @@ namespace UnityEngine.Rendering.Tests
             _cache.Patches.Statistics.SetData(new PatchStatisticsSeed[_cache.Patches.Statistics.count]);
         }
 
-        public static void AssertL0IrradianceApproximatelyEqual(SHRGBL1 expected, SHRGBL1 actual, float epsilon)
+        public static void AssertSphericalHarmonicsL0ApproximatelyEqual(SHRGBL1 expected, SHRGBL1 actual, float epsilon)
         {
             AssertVector3ApproximatelyEqual(expected.L0,   actual.L0,   epsilon, "L0");
+        }
+
+        public static void AssertSphericalHarmonicsApproximatelyEqual(SHRGBL1 expected, SHRGBL1 actual, Vector3 epsilon)
+        {
+            AssertVector3ApproximatelyEqual(expected.L0,  actual.L0,  epsilon, "L0");
+            AssertVector3ApproximatelyEqual(expected.L10, actual.L10, epsilon, "L10");
+            AssertVector3ApproximatelyEqual(expected.L11, actual.L11, epsilon, "L11");
+            AssertVector3ApproximatelyEqual(expected.L12, actual.L12, epsilon, "L12");
         }
 
         static void AssertVector3ApproximatelyEqual(Vector3 expected, Vector3 actual, float epsilon, string label)
@@ -257,6 +274,13 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(expected.x, actual.x, epsilon, label + ".x");
             Assert.AreEqual(expected.y, actual.y, epsilon, label + ".y");
             Assert.AreEqual(expected.z, actual.z, epsilon, label + ".z");
+        }
+
+        static void AssertVector3ApproximatelyEqual(Vector3 expected, Vector3 actual, Vector3 epsilon, string label)
+        {
+            Assert.AreEqual(expected.x, actual.x, epsilon.x, label + ".x");
+            Assert.AreEqual(expected.y, actual.y, epsilon.y, label + ".y");
+            Assert.AreEqual(expected.z, actual.z, epsilon.z, label + ".z");
         }
 
         public void Dispose()

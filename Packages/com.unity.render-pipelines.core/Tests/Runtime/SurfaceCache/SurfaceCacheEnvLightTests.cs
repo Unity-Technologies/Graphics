@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using NUnit.Framework;
 using UnityEngine.Rendering.UnifiedRayTracing;
+using UnityEngine.TestTools;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -17,21 +19,22 @@ namespace UnityEngine.Rendering.Tests
         [SetUp]
         public void SetUp()
         {
-            // Assert.Ignore (not Assume.That): UTR reports Ignore as Skipped but maps Inconclusive to failure.
-            if (SystemInfo.renderingThreadingMode == RenderingThreadingMode.NativeGraphicsJobsSplitThreading)
-                Assert.Ignore("Skipping under NativeGraphicsJobsSplitThreading; tracked in GFXLIGHT-2292.");
-
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore ||
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
-                Assert.Ignore("Skipping on OpenGL; SurfaceCache requires Vulkan/D3D12/Metal (SSBO binding budget).");
-
             TestHarness.EnsureSupportedOrIgnore(m_Backend);
 
             m_Harness = new TestHarness(m_Backend);
         }
 
-        [TearDown]
-        public void TearDown() => m_Harness?.Dispose();
+        [UnityTearDown]
+        public IEnumerator TearDown()
+        {
+            m_Harness?.Dispose();
+
+            // This is not elegant but we need it: Dispose only queues GPU memory for release, and on Metal it is
+            // reclaimed later, at frame boundaries. Synchronous tests never yield, so per-test allocations stack
+            // up, which on iOS exhausts the per-process memory cap.
+            for (int i = 0; i < 8; ++i)
+                yield return null;
+        }
 
         [Test]
         public void Env_WhenNoLights_ThenZeroIrradiance()
@@ -55,7 +58,7 @@ namespace UnityEngine.Rendering.Tests
             }
 
             SHRGBL1 actual = m_Harness.ReadPatchIrradiance(patchIndex: 0);
-            TestHarness.AssertL0IrradianceApproximatelyEqual(
+            TestHarness.AssertSphericalHarmonicsL0ApproximatelyEqual(
                 expected: default, actual, epsilon: 1e-4f);
         }
 
@@ -103,7 +106,7 @@ namespace UnityEngine.Rendering.Tests
                 L12 = Vector3.zero,
             };
             SHRGBL1 actual = m_Harness.ReadPatchIrradiance(patchIndex: 0);
-            TestHarness.AssertL0IrradianceApproximatelyEqual(expected, actual, epsilon: 1e-2f);
+            TestHarness.AssertSphericalHarmonicsL0ApproximatelyEqual(expected, actual, epsilon: 1e-2f);
         }
     }
 }
