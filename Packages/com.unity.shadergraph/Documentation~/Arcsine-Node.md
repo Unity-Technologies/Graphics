@@ -9,7 +9,7 @@ Returns the arcsine of each component of the input **In** as a vector of the sam
 | Name        | Direction           | Type  | Description |
 |:------------ |:-------------|:-----|:---|
 | In      | Input | Dynamic Vector | Input value |
-| Out | Output      |    Dynamic Vector | Output value |
+| Out | Output      |    Dynamic Vector | The arcsine of the input value, in radians |
 
 ## Generated Code Example
 
