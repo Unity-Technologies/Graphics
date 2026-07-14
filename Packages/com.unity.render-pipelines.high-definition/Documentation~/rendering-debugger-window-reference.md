@@ -327,6 +327,10 @@ The **Color monitors** are a set of industry-standard monitors to help artists c
 | **Exposure**    | Determines the exposure multiplier HDRP applies to the vectorscope values. This property only appears when you enable the **Vectorscope** checkbox.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | **Size**        | The size ratio of the color monitors.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 
+<a name="render-graph"></a>
+
+### Render Graph
+
 | **Property**                         | **Description**                                                                      |
 |--------------------------------------|--------------------------------------------------------------------------------------|
 | **Clear Render Targets At Creation** | Clears render textures the first time the render graph system uses them.             |

@@ -6,37 +6,13 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering.Universal;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.Rendering.Tests
+namespace UnityEditor.Rendering.Tests.Documentation
 {
-    public class VolumeHelpUrlTests
+    public class VolumeHelpUrlTests : HelpUrlTestsBase
     {
-        RenderPipelineAsset m_GraphicsSettingsRPAsset = null;
-
-        [SetUp]
-        public void SetUp()
-        {
-            m_GraphicsSettingsRPAsset = GraphicsSettings.defaultRenderPipeline;
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            GraphicsSettings.defaultRenderPipeline = m_GraphicsSettingsRPAsset;
-        }
-
-        RenderPipelineAsset LoadAsset(string renderPipelineAssetPath)
-        {
-            if (string.IsNullOrEmpty(renderPipelineAssetPath))
-                return null;
-
-            var asset = AssetDatabase.LoadMainAssetAtPath(renderPipelineAssetPath) as RenderPipelineAsset;
-            Assert.IsNotNull(asset, renderPipelineAssetPath, $"Unable to load {renderPipelineAssetPath}");
-            return asset;
-        }
-
         static TestCaseData[] s_VolumeTestsCaseDatas =
         {
-            new TestCaseData("Assets/PipelineAssets/UniversalRenderPipelineAsset.asset" , typeof(UniversalRenderPipeline), "Volumes")
+            new TestCaseData("Assets/PipelineAssets/UniversalRenderPipelineAsset.asset" , typeof(UniversalRenderPipeline), "urp/Volumes")
                 .SetName("Volumes URL's are correct when URP is the active pipeline"),
             new TestCaseData("Assets/PipelineAssets/HDRenderPipelineAsset.asset", typeof(HDRenderPipeline), "understand-volumes")
                 .SetName("Volumes URL's are correct when HDRP is the active pipeline"),
@@ -54,12 +30,12 @@ namespace UnityEditor.Rendering.Tests
 
             Object.DestroyImmediate(go);
         }
-        
+
         static TestCaseData[] s_VolumeProfileTestsCaseDatas =
         {
-            new TestCaseData("Assets/PipelineAssets/UniversalRenderPipelineAsset.asset" , typeof(UniversalRenderPipeline), "Volume-Profile")
+            new TestCaseData(k_URPAssetPath, typeof(UniversalRenderPipeline), "urp/Volume-Profile")
                 .SetName("Volumes URL's are correct when URP is the active pipeline"),
-            new TestCaseData("Assets/PipelineAssets/HDRenderPipelineAsset.asset", typeof(HDRenderPipeline), "create-a-volume-profile")
+            new TestCaseData(k_HDRPAssetPath, typeof(HDRenderPipeline), "create-a-volume-profile")
                 .SetName("Volumes URL's are correct when HDRP is the active pipeline"),
         };
 
@@ -77,8 +53,14 @@ namespace UnityEditor.Rendering.Tests
         string SetRPAndGetExpectedDocumentationLink(string renderPipelineAsset, Type renderPipelineType, string pageName)
         {
             GraphicsSettings.defaultRenderPipeline = LoadAsset(renderPipelineAsset);
+
+            // URP documentation is in the Unity Manual since 6000.0. Page paths are relative to the
+            // Manual's "md" root (passed in via pageName, e.g. "urp/Volumes").
+            if (renderPipelineType == typeof(UniversalRenderPipeline))
+                return DocumentationInfo.GetManualLink(pageName);
+
             Assume.That(DocumentationUtils.TryGetPackageInfoForType(renderPipelineType, out var name, out var version), Is.True);
-            return  DocumentationInfo.GetPackageLink(name, version, pageName);
+            return DocumentationInfo.GetPackageLink(name, version, pageName);
         }
     }
 }

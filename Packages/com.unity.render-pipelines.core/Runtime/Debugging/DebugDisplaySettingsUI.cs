@@ -53,7 +53,9 @@ namespace UnityEngine.Rendering
                     createIfNull: true,
                     groupIndex: (disposableSettingsPanel is DebugDisplaySettingsPanel debugDisplaySettingsPanel) ? debugDisplaySettingsPanel.Order : 0);
 #if UNITY_EDITOR
-                panel.documentationUrl = disposableSettingsPanel.GetType().GetCustomAttribute<HelpURLAttribute>()?.URL;
+
+                if (DocumentationUtils.TryGetHelpURL(disposableSettingsPanel.GetType(), out var documentationUrl))
+                    panel.documentationUrl = documentationUrl;
 #endif
 
                 ObservableList<DebugUI.Widget> panelChildren = panel.children;

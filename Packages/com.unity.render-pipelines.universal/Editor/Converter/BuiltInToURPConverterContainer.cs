@@ -3,7 +3,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [URPHelpURL("features/rp-converter")]
+    [URPHelpURL("urp/features/rp-converter")]
     internal sealed class BuiltInToURPConverterContainer : RenderPipelineConverterContainer
     {
         public override string name => "Built-in to URP";

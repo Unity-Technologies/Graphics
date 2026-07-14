@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Lighting-related Rendering Debugger settings.
     /// </summary>
-    [URPHelpURL("features/rendering-debugger-reference", "lighting")]
+    [URPHelpURL("urp/features/rendering-debugger-reference", "lighting")]
     public class DebugDisplaySettingsLighting : IDebugDisplaySettingsData
     {
         /// <summary>

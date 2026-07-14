@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="ClampedFloatParameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/Motion Blur")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [URPHelpURL("Post-Processing-Motion-Blur")]
+    [URPHelpURL("urp/Post-Processing-Motion-Blur")]
     public sealed class MotionBlur : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
