@@ -49,12 +49,24 @@
     "com.unity.modules.vehicles": "1.0.0",
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
-    "com.unity.modules.xr": "1.0.0"
+    "com.unity.modules.xr": "1.0.0",
+    "com.unity.test-profiler": "0.1.0-exp.1",
+    "com.unity.yamato": "1.0.1"
   },
   "testables": [
     "com.unity.render-pipelines.core",
     "com.unity.render-pipelines.universal",
     "com.unity.testing.xr",
     "com.unity.testing.urp"
+  ],
+  "scopedRegistries": [
+    {
+      "name": "Unity Internal Candidates",
+      "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
+      "scopes": [
+        "com.unity.yamato",
+        "com.unity.test-profiler"
+      ]
+    }
   ]
 }

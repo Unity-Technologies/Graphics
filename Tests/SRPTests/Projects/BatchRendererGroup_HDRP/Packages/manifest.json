@@ -26,11 +26,23 @@
     "com.unity.modules.physics": "1.0.0",
     "com.unity.modules.physics2d": "1.0.0",
     "com.unity.modules.ui": "1.0.0",
-    "com.unity.modules.uielements": "1.0.0"
+    "com.unity.modules.uielements": "1.0.0",
+    "com.unity.test-profiler": "0.1.0-exp.1",
+    "com.unity.yamato": "1.0.1"
   },
   "testables": [
     "com.unity.testing.xr"
   ],
   "useSatSolver": true,
-  "registry": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
+  "registry": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
+  "scopedRegistries": [
+    {
+      "name": "Unity Internal Candidates",
+      "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
+      "scopes": [
+        "com.unity.yamato",
+        "com.unity.test-profiler"
+      ]
+    }
+  ]
 }
