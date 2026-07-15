@@ -1384,6 +1384,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DisableKeyword(_FOVEATED_RENDERING_NON_UNIFORM_RASTER);
         }
 
+#if ENABLE_UPSCALER_FRAMEWORK
+        // Last (requested, clamped) forced render percentages we warned about; NaN means none. Keying on both values
+        // (rather than a once-ever bool) warns on each new out-of-range value without spamming per frame, and the
+        // clamped key also catches a quality-mode change that moves the supported range under an unchanged forced value.
+        float m_LastWarnedForcedScale = float.NaN;
+        float m_LastWarnedClampedScale = float.NaN;
+#endif
+
         void SetupPartnerUpscalers(
             in HDAdditionalCameraData hdCam,
             Camera camera,
@@ -1455,28 +1463,37 @@ namespace UnityEngine.Rendering.HighDefinition
                     default:
                     {
                         // The upscaler name should be an IUpscaler
-                        IUpscaler optActiveIUpscaler = this.upscaling.activeUpscaler;
+                        IUpscaler optActiveIUpscaler = upscaling.activeUpscaler;
 
 
-                        // TODO (Apoorva): Make this condition dynamic from the IUpscaler interface, so that an
-                        // individual upscaling package can decide whether it is supported in the current config.
-                        bool isSupported = ((drsSettings.dynResType == DynamicResolutionType.Hardware) && isHwDrsSupported) || drsSettings.forceResolution;
+                        // Support is decided by DRS mode + device capability, not per-upscaler, since any IUpscaler rides
+                        // the DynamicResolutionHandler. Software DRS is always renderable via HDRP's RTHandle
+                        // reference-size model (the viewport scales within a max-size allocation, no device support
+                        // needed); hardware DRS needs device support; a user-forced fixed resolution is always
+                        // renderable. The only unsupported case is hardware DRS requested on a device that can't do it.
+                        bool isSupported = (drsSettings.dynResType == DynamicResolutionType.Software)
+                            || ((drsSettings.dynResType == DynamicResolutionType.Hardware) && isHwDrsSupported)
+                            || drsSettings.forceResolution;
                         if (isSupported)
                         {
                             if (optActiveIUpscaler == null || name != optActiveIUpscaler.name)
                             {
                                 // The active upscaler should be an IUpscaler, but it isn't currently set active in the
                                 // upscaling manager.
-                                bool ok = this.upscaling.SetActiveUpscaler(name);
+                                bool ok = upscaling.SetActiveUpscaler(name);
                                 if (!ok)
                                 {
                                     Debug.LogWarning(
                                         $"Upscaler with name '{name}' is listed in the HDRP asset, but not found at run-time. Maybe an upscaling package is missing. Skipping over this upscaler.");
+
+                                    // Clear the stale previously-active upscaler so the block below skips this entry
+                                    // and the priority loop falls through to the next candidate.
+                                    optActiveIUpscaler = null;
                                 }
                                 else
                                 {
                                     // The upscaler was successfully set. Get a handle to it.
-                                    optActiveIUpscaler = this.upscaling.activeUpscaler;
+                                    optActiveIUpscaler = upscaling.activeUpscaler;
                                     Debug.Assert(optActiveIUpscaler != null);
                                 }
                             }
@@ -1486,6 +1503,86 @@ namespace UnityEngine.Rendering.HighDefinition
                                 hdCam.cameraCanRenderIUpscaler = true;
                                 hdCam.cameraIUpscalerIsTemporalUpscaler = optActiveIUpscaler.isTemporal;
                                 found = true;
+
+                                // If the upscaler exposes a render-resolution range, drive the DynamicResolutionHandler
+                                // within it by overriding the project's min/max percentages, so its scaler varies the
+                                // resolution within the upscaler's bounds. A single-resolution quality mode (constraint != Range)
+                                // is left to the fixed-mode path.
+                                Rect drsViewport = xrPass != null && xrPass.enabled
+                                    ? xrPass.GetViewport()
+                                    : new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
+                                var displayResolution = new Vector2Int((int)drsViewport.width, (int)drsViewport.height);
+
+                                var upscalerOptions = upscaling.GetGlobalOptions(optActiveIUpscaler);
+
+                                // Acquire the context for the upscaler to ensure it's created for future use
+                                upscaling.AcquireContext(EntityId.ToULong(camera.GetEntityId()), optActiveIUpscaler, upscalerOptions, displayResolution);
+
+                                var resInfo = optActiveIUpscaler.GetResolutionInfo(displayResolution, upscalerOptions);
+                                if (resInfo.constraint == UpscalerResolutionConstraint.Range)
+                                {
+                                    // Guard the divisor so a degenerate viewport can't write NaN percentages into the
+                                    // DynamicResolutionHandler (leave the project defaults in that case).
+                                    if (drsViewport.width > 0.0f && drsViewport.height > 0.0f)
+                                    {
+                                        outDrsSettings.maxPercentage = Mathf.Min((float)resInfo.maxResolution.x / drsViewport.width, (float)resInfo.maxResolution.y / drsViewport.height) * 100.0f;
+                                        outDrsSettings.minPercentage = Mathf.Max((float)resInfo.minResolution.x / drsViewport.width, (float)resInfo.minResolution.y / drsViewport.height) * 100.0f;
+
+                                        // A forced render percentage bypasses the handler's min/max clamp (it only clamps
+                                        // forced values to the hard [0.1, 1.5]), so clamp it into the upscaler's range
+                                        // here. Otherwise a forced scale below the upscaler's hard minimum reaches the
+                                        // upscaler and e.g. DLSS rejects it and renders a black screen. The reference
+                                        // size alone isn't enough: the forced percentage also drives the actual render
+                                        // scale and the hardware ScalableBufferManager factor.
+                                        if (outDrsSettings.forceResolution)
+                                        {
+                                            float requestedPercentage = outDrsSettings.forcedPercentage;
+                                            float clampedPercentage = Mathf.Clamp(requestedPercentage, outDrsSettings.minPercentage, outDrsSettings.maxPercentage);
+                                            outDrsSettings.forcedPercentage = clampedPercentage;
+
+                                            if (Debug.isDebugBuild)
+                                            {
+                                                if (clampedPercentage != requestedPercentage)
+                                                {
+                                                    // Re-warn when the requested forced value OR the clamp target changes.
+                                                    // Keyed by value so a steady situation does not spam per frame.
+                                                    if (!Mathf.Approximately(m_LastWarnedForcedScale, requestedPercentage)
+                                                        || !Mathf.Approximately(m_LastWarnedClampedScale, clampedPercentage))
+                                                    {
+                                                        m_LastWarnedForcedScale = requestedPercentage;
+                                                        m_LastWarnedClampedScale = clampedPercentage;
+                                                        Debug.LogWarning(
+                                                            $"Forced Render Scale {requestedPercentage / 100.0f:0.00} is outside {optActiveIUpscaler.name}'s " +
+                                                            $"supported range [{outDrsSettings.minPercentage / 100.0f:0.00}..{outDrsSettings.maxPercentage / 100.0f:0.00}] and was " +
+                                                            $"clamped to {clampedPercentage / 100.0f:0.00}. Keep Force Screen Percentage within the upscaler's range.");
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    // In range: reset so a later out-of-range value (or range change) warns again.
+                                                    m_LastWarnedForcedScale = float.NaN;
+                                                    m_LastWarnedClampedScale = float.NaN;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                else if (resInfo.constraint == UpscalerResolutionConstraint.Fixed)
+                                {
+                                    // Fixed quality mode (e.g. DLSS presets like Ultra Performance or DLAA, FSR2 presets): the upscaler's
+                                    // native feature is created for exactly this render resolution, so force the
+                                    // DynamicResolutionHandler to render at it. Otherwise the scene renders at the project
+                                    // DRS resolution while the upscaler consumes only its optimal-sized sub-rect, giving a
+                                    // zoomed/incorrect image.
+                                    if (drsViewport.width > 0.0f && drsViewport.height > 0.0f)
+                                    {
+                                        float qualityModePercentage = Mathf.Min(
+                                            (float)resInfo.qualityModeResolution.x / drsViewport.width,
+                                            (float)resInfo.qualityModeResolution.y / drsViewport.height) * 100.0f;
+                                        outDrsSettings.forceResolution = true;
+                                        outDrsSettings.forcedPercentage = qualityModePercentage;
+                                    }
+                                }
                             }
                         }
                     }

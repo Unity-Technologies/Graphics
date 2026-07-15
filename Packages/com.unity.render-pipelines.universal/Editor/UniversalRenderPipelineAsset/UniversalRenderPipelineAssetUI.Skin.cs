@@ -42,6 +42,15 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent lodCrossFadeDitheringTypeText = EditorGUIUtility.TrTextContent("LOD Cross Fade Dithering Type", "Controls the LOD Cross Fade Dithering Type that will be used to draw Renderer LOD when LODGroup has CrossFade Fade Mode selected.");
             public static GUIContent shEvalModeText = EditorGUIUtility.TrTextContent("SH Evaluation Mode", "Defines the Spherical Harmonic (SH) lighting evaluation type (per vertex, per pixel, or mixed).");
             public static readonly string stpMobilePlatformWarning = "STP is selected for use on a mobile platform. STP is only supported on modern compute-capable hardware and its performance overhead may make it impractical on lower-end devices.";
+#if ENABLE_UPSCALER_FRAMEWORK
+            public static readonly string renderScaleQualityModeInfo = "Render Scale is controlled by the active upscaler's quality mode. Set the upscaler's Resolution Mode to Custom Scaling to drive the render resolution from Render Scale.";
+            // {0} = min scale, {1} = max scale (Render Scale values, e.g. 0.50).
+            public static readonly string renderScaleUpscalerClampWarning = "Render Scale is outside the active upscaler's supported range [{0:0.00}..{1:0.00}] for the current quality mode. It will be clamped to that range at runtime (the upscaler may fail to evaluate otherwise).";
+            public static readonly string renderScaleUpscalerNoRangeInfo = "The active upscaler's current quality mode has no dynamic resolution range, so Custom Scaling has no effect: the render resolution is fixed at the recommended size and Render Scale is ignored.";
+            // {0} = recommended min scale (Render Scale value, e.g. 0.33).
+            public static readonly string renderScaleUpscalerRecommendedInfo = "Render Scale is below the active upscaler's recommended minimum of {0:0.00} for the current quality mode. The upscaler still runs (Render Scale is not clamped), but image quality may degrade at this scale.";
+            public static readonly string renderScaleSupersamplingInfo = "Render Scale is above 1.0, so the image is rendered larger than the display and downsampled (supersampling). Upscaling is inactive at this Render Scale.";
+#endif
 
             // Main light
             public static GUIContent mainLightRenderingModeText = EditorGUIUtility.TrTextContent("Main Light", "Main light is the brightest directional light.");

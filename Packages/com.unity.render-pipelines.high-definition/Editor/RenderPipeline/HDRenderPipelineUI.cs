@@ -572,6 +572,67 @@ namespace UnityEditor.Rendering.HighDefinition
 #if ENABLE_AMD && !ENABLE_AMD_MODULE
         static bool s_DisplayAMDModuleButtonInstall = true;
 #endif
+
+#if ENABLE_UPSCALER_FRAMEWORK
+        // Resolve the framework IUpscaler instance for a registered upscaler name.
+        static IUpscaler ResolveIUpscalerByName(string upscalerName)
+        {
+            Upscaling upscaling = HDRenderPipeline.currentPipeline?.upscaling;
+            if (upscaling == null || string.IsNullOrEmpty(upscalerName))
+                return null;
+            return upscaling.GetIUpscalerByName(upscalerName);
+        }
+
+        // Contextual HelpBox under a framework upscaler's Resolution Mode dropdown, explaining how the chosen mode
+        // interacts with HDRP Dynamic Resolution: Quality Mode pins the render resolution (the screen-percentage range is
+        // ignored); Custom Scaling lets Dynamic Resolution drive within the upscaler's limits (a hard clamp for upscalers
+        // that report a range, an advisory floor otherwise). Driven entirely by GetResolutionInfo, so it works for any
+        // framework upscaler (including future ones) with no per-upscaler code.
+        static void DrawIUpscalerResolutionModeHelp(UpscalerOptions upscalerOptions, SerializedHDRenderPipelineAsset serialized)
+        {
+            IUpscaler upscaler = ResolveIUpscalerByName(upscalerOptions.upscalerName);
+            if (upscaler == null || !upscaler.hasQualityMode)
+                return; // no quality mode -> the resolution mode is dormant, nothing to explain
+
+            if (upscalerOptions.resolutionMode == UpscalerResolutionMode.QualityMode)
+            {
+                EditorGUILayout.HelpBox(Styles.iUpscalerQualityModeInfo, MessageType.Info, wide: true);
+                return;
+            }
+
+            // Custom Scaling: branch on what the upscaler reports. The reference resolution is arbitrary -- only the
+            // min/max-to-display ratio is used (for the percentages shown), and that ratio is resolution-independent.
+            var reference = new Vector2Int(3840, 2160);
+            UpscalerResolutionInfo info = upscaler.GetResolutionInfo(reference, upscalerOptions);
+
+            if (info.constraint == UpscalerResolutionConstraint.Fixed)
+            {
+                // Single valid render resolution for this preset (e.g. DLSS Ultra Performance): DRS is ignored.
+                // Report the pinned size as a render-scale % (resolution-independent; the pixel size depends on the
+                // actual display resolution).
+                float pinnedScale = (float)info.qualityModeResolution.x / reference.x;
+                EditorGUILayout.HelpBox(string.Format(Styles.iUpscalerCustomSingleResInfo, pinnedScale * 100f), MessageType.Info, wide: true);
+            }
+            else if (info.constraint == UpscalerResolutionConstraint.Range)
+            {
+                float minScale = (float)info.minResolution.x / reference.x;
+                float maxScale = (float)info.maxResolution.x / reference.x;
+                EditorGUILayout.HelpBox(string.Format(Styles.iUpscalerCustomClampInfo, minScale * 100f, maxScale * 100f), MessageType.Info, wide: true);
+
+                // Warn if the configured minimum Screen Percentage is below the upscaler's hard minimum (it would be
+                // clamped at runtime).
+                float configuredMinPct = serialized.renderPipelineSettings.dynamicResolutionSettings.minPercentage.floatValue;
+                if (configuredMinPct < minScale * 100f - 0.5f)
+                    EditorGUILayout.HelpBox(string.Format(Styles.iUpscalerCustomMinBelowRangeWarning, configuredMinPct, minScale * 100f, upscaler.name), MessageType.Warning, wide: true);
+            }
+            else if (info.recommendedMinScale > 0f)
+            {
+                EditorGUILayout.HelpBox(string.Format(Styles.iUpscalerCustomAdvisoryInfo, info.recommendedMinScale * 100f), MessageType.Info, wide: true);
+            }
+            // else: no opinion / fully free -> no message.
+        }
+#endif
+
         static void Drawer_SectionDynamicResolutionSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
 #if ENABLE_UPSCALER_FRAMEWORK
@@ -981,6 +1042,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                                 editor.OnInspectorGUI();
                             }
+
+                            // Contextual help on how the selected Resolution Mode interacts with HDRP Dynamic Resolution.
+                            DrawIUpscalerResolutionModeHelp(upscalerOptions, serialized);
 
                             --EditorGUI.indentLevel;
 

@@ -10,6 +10,11 @@ namespace UnityEngine.Rendering.Universal
         Texture2D[] m_BlueNoise16LTex;
         bool m_IsValid;
 
+#if ENABLE_UPSCALER_FRAMEWORK
+        bool m_WarnedHardwareDrsTemporalUnsupported;
+        bool m_WarnedMissingMotionData;
+#endif
+
         public UpscalerPostProcessPass(Texture2D[] blueNoise16LTex)
         {
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
@@ -38,6 +43,30 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.imageScalingMode != ImageScalingMode.Upscaling)
                 return;
 
+            // Skip temporal upscaling when the camera uses hardware DRS (ScalableBufferManager). A temporal upscaler
+            // reconstructs to full resolution mid-frame, but ScalableBufferManager is a single global scale with no per-stage
+            // render->display transition, so the post-upscale chain (UberPost, final blit) keeps writing into the
+            // ScalableBufferManager-scaled sub-rect and only that sub-rect of the screen updates.
+            // Gate on camera.allowDynamicResolution (the stable opt-in), not the live ScalableBufferManager factor, 
+            // which would flip per-frame as the app crosses factor 1.0. 
+            if (cameraData.camera.allowDynamicResolution && postProcessingData.activeUpscaler.isTemporal)
+            {
+                if (Debug.isDebugBuild && !m_WarnedHardwareDrsTemporalUnsupported)
+                {
+                    m_WarnedHardwareDrsTemporalUnsupported = true;
+                    Debug.LogWarning(
+                        "Hardware Dynamic Resolution (Allow Dynamic Resolution / ScalableBufferManager) is not supported " +
+                        $"with the temporal upscaler '{postProcessingData.activeUpscaler.name}' in URP yet (in any " +
+                        "Resolution Mode); the upscaler is skipped and the camera falls back to hardware DRS without " +
+                        "temporal upscaling. To use the temporal upscaler, disable Allow Dynamic Resolution on the camera" +
+                        " and control the resolution via Render Scale or the upscaler's quality mode if available.");
+                }
+                return;
+            }
+            // Left the skip path: reset so re-entering it warns again.
+            if (Debug.isDebugBuild)
+                m_WarnedHardwareDrsTemporalUnsupported = false;
+
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             var sourceTexture = resourceData.cameraColor;
             var srcDesc = sourceTexture.GetDescriptor(renderGraph);
@@ -53,22 +82,51 @@ namespace UnityEngine.Rendering.Universal
             // io.exposureTexture; // TODO: set exposure texture when available
             io.preExposureValue = 1.0f; // TODO: set if exposure value is pre-multiplied
             io.hdrDisplayInformation = cameraData.isHDROutputActive ? cameraData.hdrDisplayInformation : new HDROutputUtils.HDRDisplayInformation(-1, -1, -1, 160.0f);
-            io.preUpscaleResolution = new Vector2Int(
-                cameraData.cameraTargetDescriptor.width,
-                cameraData.cameraTargetDescriptor.height
-            );
-            io.previousPreUpscaleResolution = io.preUpscaleResolution; // URP doesn't support Dynamic Resolution Scaling (DRS).
             io.postUpscaleResolution = new Vector2Int(cameraData.pixelWidth, cameraData.pixelHeight);
+
+            // Report DRS as active whenever the camera is aliased by hardware DRS / ScalableBufferManager (SBM)
+            // (descriptor.useDynamicScale), not only when the
+            // current factor is < 1.0: the upscaler bakes its dynamic-resolution state at context-creation time (e.g.
+            // FSR2's EnableDynamicResolution flag) and isn't recreated when the factor changes, so a context created at
+            // factor 1.0 would otherwise run with DRS off while later receiving a varying sub-rect. Use the SBM scale
+            // captured on cameraData at setup, not the live global, which another pass could mutate before this point.
+            Vector2 hwDrsScale = cameraData.hardwareDynamicResolutionScale;
+            bool cameraUsesHardwareDrs = cameraData.cameraTargetDescriptor.useDynamicScale;
+            io.dynamicResolution = cameraUsesHardwareDrs ? DynamicResolutionType.Hardware : (DynamicResolutionType?)null;
+            // preUpscaleResolution is the actually-rendered region (the descriptor scaled by the SBM factor), not the
+            // full descriptor allocation, so the upscaler reconstructs from what was rendered.
+            io.preUpscaleResolution = cameraUsesHardwareDrs
+                ? new Vector2Int(
+                    Mathf.CeilToInt(hwDrsScale.x * cameraData.cameraTargetDescriptor.width),
+                    Mathf.CeilToInt(hwDrsScale.y * cameraData.cameraTargetDescriptor.height))
+                : new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
+
+            // The max render size = the full camera-target allocation (the descriptor). Under SBM the rendered region
+            // (preUpscaleResolution) is a sub-rect of it; without DRS they're equal. Upscalers allocate history at this.
+            io.maxPreUpscaleResolution = new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
+
+            cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData);
+            MotionVectorsPersistentData motionData = additionalCameraData != null ? additionalCameraData.motionVectorsPersistentData : null;
+            if (motionData == null) // Per-camera motion data is required for upscaling (camera matrices, positions, previous-frame sizes).
+            {
+                if (Debug.isDebugBuild && !m_WarnedMissingMotionData)
+                {
+                    m_WarnedMissingMotionData = true;
+                    Debug.LogWarning("UpscalerPostProcessPass: camera has no UniversalAdditionalCameraData/" +
+                        "MotionVectorsPersistentData, which the temporal upscaler requires; skipping upscaling for this camera.");
+                }
+                return;
+            }
+            
+            if (Debug.isDebugBuild) // Saw valid motion data: reset so a later missing-data camera warns again.
+                m_WarnedMissingMotionData = false;
+
+            // Track the previous frame's render resolution for temporal upscalers via the per-camera persistent state.
+            io.previousPreUpscaleResolution = motionData.previousPreUpscaleResolution;
+            motionData.previousPreUpscaleResolution = io.preUpscaleResolution;
+
             io.motionVectorTextureSize = io.preUpscaleResolution;
             io.enableTexArray = cameraData.xr.enabled && cameraData.xr.singlePassEnabled;
-
-            MotionVectorsPersistentData motionData = null;
-            {
-                cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData);
-                Debug.Assert(additionalCameraData != null);
-                motionData = additionalCameraData.motionVectorsPersistentData;
-                Debug.Assert(motionData != null);
-            }
 
             io.cameraInstanceID = EntityId.ToULong(cameraData.camera.GetEntityId());
             io.nearClipPlane = cameraData.camera.nearClipPlane;
@@ -79,21 +137,39 @@ namespace UnityEngine.Rendering.Universal
             io.flippedX = false;
             io.hdrInput = Experimental.Rendering.GraphicsFormatUtility.IsHDRFormat(srcDesc.format);
             io.numActiveViews = cameraData.xr.enabled ? cameraData.xr.viewCount : 1;
-            io.worldSpaceCameraPositions = new Vector3[io.numActiveViews];
-            io.previousWorldSpaceCameraPositions = new Vector3[io.numActiveViews];
-            io.previousPreviousWorldSpaceCameraPositions = new Vector3[io.numActiveViews];
-            for (int i = 0; i < io.numActiveViews; i++)
-            {
-                io.worldSpaceCameraPositions[i] = motionData.worldSpaceCameraPos;
-                io.previousWorldSpaceCameraPositions[i] = motionData.previousWorldSpaceCameraPos;
-                io.previousPreviousWorldSpaceCameraPositions[i] = motionData.previousPreviousWorldSpaceCameraPos;
-            }
+
             io.projectionMatrices = motionData.projectionStereo;
             io.previousProjectionMatrices = motionData.previousProjectionStereo;
             io.previousPreviousProjectionMatrices = motionData.previousPreviousProjectionStereo;
             io.viewMatrices = motionData.viewStereo;
             io.previousViewMatrices = motionData.previousViewStereo;
             io.previousPreviousViewMatrices = motionData.previousPreviousViewStereo;
+
+            // Per-view world-space camera positions into persistent per-camera buffers (resized only on view-count
+            // change) to avoid a per-frame allocation. Mono reuses the stored camera position; each XR eye is at a
+            // distinct position, derived from its view matrix via CoreMatrixUtils.GetWorldPositionFromOrthonormalViewMatrix
+            // instead of a full inverse.
+            var camPosViews = motionData.GetWorldSpaceCameraPosViews(io.numActiveViews);
+            var prevCamPosViews = motionData.GetPreviousWorldSpaceCameraPosViews(io.numActiveViews);
+            var prevPrevCamPosViews = motionData.GetPreviousPreviousWorldSpaceCameraPosViews(io.numActiveViews);
+            if (io.numActiveViews == 1)
+            {
+                camPosViews[0] = motionData.worldSpaceCameraPos;
+                prevCamPosViews[0] = motionData.previousWorldSpaceCameraPos;
+                prevPrevCamPosViews[0] = motionData.previousPreviousWorldSpaceCameraPos;
+            }
+            else
+            {
+                for (int i = 0; i < io.numActiveViews; i++)
+                {
+                    camPosViews[i] = CoreMatrixUtils.GetWorldPositionFromOrthonormalViewMatrix(motionData.viewStereo[i]);
+                    prevCamPosViews[i] = CoreMatrixUtils.GetWorldPositionFromOrthonormalViewMatrix(motionData.previousViewStereo[i]);
+                    prevPrevCamPosViews[i] = CoreMatrixUtils.GetWorldPositionFromOrthonormalViewMatrix(motionData.previousPreviousViewStereo[i]);
+                }
+            }
+            io.worldSpaceCameraPositions = camPosViews;
+            io.previousWorldSpaceCameraPositions = prevCamPosViews;
+            io.previousPreviousWorldSpaceCameraPositions = prevPrevCamPosViews;
             io.resetHistory = cameraData.resetHistory;
             io.frameIndex = TemporalAA.CalculateTaaFrameIndex(ref cameraData.taaSettings);
             io.deltaTime = motionData.deltaTime;
@@ -108,7 +184,6 @@ namespace UnityEngine.Rendering.Universal
 #else
             io.enableMotionScaling = true;
 #endif
-            io.enableHwDrs = false; // URP doesn't support hardware dynamic resolution scaling
 
             // Acquire the per-camera context for the active upscaler
             // In XR multi-pass rendering, encode eye information into the camera ID to ensure separate contexts per eye
@@ -117,15 +192,21 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled && !cameraData.xr.singlePassEnabled)
                 viewId = (ulong)HashCode.Combine(io.cameraInstanceID, cameraData.xr.multipassId);
 
+            // Fetch the framework-owned options for this upscaler (per-camera overrides are future work).
+            UpscalerOptions upscalerOptions = UniversalRenderPipeline.upscaling.GetGlobalOptions(upscaler);
+
             io.context = UniversalRenderPipeline.upscaling.AcquireContext(
                 viewId,
                 upscaler,
-                upscaler.options,
+                upscalerOptions,
                 io.postUpscaleResolution
             );
 
             // Use jitter already computed during camera setup
             io.subpixelJitter = cameraData.subpixelJitter;
+
+            // Per-frame settings (sharpness, etc.); upscalers read these from io.options, not from the context.
+            io.options = upscalerOptions;
 
             // Insert the active upscaler's render graph passes
             upscaler.RecordRenderGraph(renderGraph, frameData);
