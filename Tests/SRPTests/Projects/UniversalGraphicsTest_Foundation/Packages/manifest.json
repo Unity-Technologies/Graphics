@@ -6,7 +6,7 @@
     "com.unity.2d.tilemap": "1.0.0",
     "com.unity.ext.nunit": "1.0.0",
     "com.unity.external.test-protocol": "file:../../../../../ShadowPackages/com.unity.external.test-protocol",
-    "com.unity.formats.alembic": "2.4.5",
+    "com.unity.formats.alembic": "file:../../../../../ShadowPackages/com.unity.formats.alembic",
     "com.unity.ide.rider": "3.0.7",
     "com.unity.ide.visualstudio": "file:../../../../../ShadowPackages/com.unity.ide.visualstudio",
     "com.unity.nuget.newtonsoft-json": "file:../../../../../ShadowPackages/com.unity.nuget.newtonsoft-json",
