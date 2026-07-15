@@ -1,6 +1,6 @@
-# Set Attribute from Curve/Gradient
+# Set Attribute from Curve/Gradient Block
 
-Menu Path : **Attribute > Curve > [Add/Set] \<Attribute> \<Mode>**
+Menu Path : **Attribute** > **Curve** > **[Add/Set] \<Attribute> \<Mode>**
 
 The **Set Attribute from Curve/Gradient** Block is a generic Block that allows you to write values to an attribute, based on a sample from an **Animation Curve** or **Gradient**, using composition. This Block can use various sampling modes to do this. The sampling modes are:
 

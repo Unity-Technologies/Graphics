@@ -1,6 +1,6 @@
-# Collide with Depth Buffer
+# Collide with Depth Buffer Block
 
-Menu Path : **Collision > Collide with Depth Buffer**
+Menu Path : **Collision** > **Collide with Depth Buffer**
 
 The **Collide with Depth Buffer** Block makes particles collide with a specific Camera’s depth buffer. This is especially useful for fast moving particles like sparks or rain drops where precise collision is not as important.
 

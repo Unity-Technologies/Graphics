@@ -1,6 +1,6 @@
-# RGB to HSV
+# RGB to HSV Operator
 
-Menu Path : **Operator > Color > RGB to HSV**
+Menu Path : **Operator** > **Color** > **RGB to HSV**
 
 This Operator converts RGB (Red, Green, Blue) color values to HSV (Hue, Saturation, Value) color values.
 

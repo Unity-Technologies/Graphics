@@ -1,4 +1,4 @@
-# Sine
+# Sine Operator
 
 Menu Path : **Operator > Math > Trigonometry > Sine**
 

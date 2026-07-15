@@ -1,4 +1,4 @@
-# Vector2
+# Vector2 Operator
 
 Menu Path : **Operator > Inline > Vector2**
 

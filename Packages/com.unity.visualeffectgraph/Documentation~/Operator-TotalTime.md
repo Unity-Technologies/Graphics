@@ -1,4 +1,4 @@
-# Total Time
+# Total Time Operator
 
 Menu Path : **Operator > BuiltIn > Total Time**
 

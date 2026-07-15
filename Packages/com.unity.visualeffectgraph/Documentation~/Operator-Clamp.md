@@ -1,4 +1,4 @@
-# Clamp
+# Clamp Operator
 
 Menu Path : **Operator > Math > Clamp > Clamp**
 

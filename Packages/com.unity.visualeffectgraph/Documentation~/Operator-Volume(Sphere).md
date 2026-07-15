@@ -1,6 +1,6 @@
-# Volume (Sphere)
+# Volume (Sphere) Operator
 
-Menu Path : **Operator > Math > Geometry > Volume (Sphere)**
+Menu Path : **Operator** > **Math** > **Geometry** > **Volume (Sphere)**
 
 The **Volume (Sphere)** Operator calculates the volume of a sphere. This is equal to **4/3 π r<sup>2</sup> h**.
 

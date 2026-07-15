@@ -1,4 +1,4 @@
-# Blackboard
+# Blackboard panel
 
 The Blackboard is a utility panel in the [Visual Effect Graph window](VisualEffectGraphWindow.md) that allows you to manage:
 - [Properties](Properties.md)

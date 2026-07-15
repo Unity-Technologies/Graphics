@@ -1,6 +1,6 @@
-# Set Position (Depth)
+# Set Position (Depth) Block
 
-Menu Path : **Position > Set Position (Depth)**
+Menu Path : **Position** > **Set Position (Depth)**
 
 The **Set Position (Depth)** Block calculates a position based on a Camera and its depth buffer then stores the position to the [position attribute](Reference-Attributes.md).
 

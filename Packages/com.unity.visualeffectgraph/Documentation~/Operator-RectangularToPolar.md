@@ -1,4 +1,4 @@
-# Rectangular to Polar
+# Rectangular to Polar Operator
 
 Menu Path : **Operator >  Math > Coordinates**
 

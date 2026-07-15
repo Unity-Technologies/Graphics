@@ -1,4 +1,4 @@
-# Default VFX Graph Templates window
+# VFX Graph template window
 
 Use the template window to create a VFX Graph asset with a predefined effect. You can use these templates as a starting point for your own effects.
 Each template has a description and an image to describe its behavior.

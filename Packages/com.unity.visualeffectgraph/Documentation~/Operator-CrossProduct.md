@@ -1,4 +1,4 @@
-# Cross Product
+# Cross Product Operator
 
 Menu Path : **Operator > Math > Vector**
 

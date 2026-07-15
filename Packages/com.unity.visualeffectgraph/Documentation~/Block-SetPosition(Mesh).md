@@ -1,6 +1,6 @@
-# Set Position (Mesh)
+# Set Position (Mesh) Block
 
-Menu Path: **Position > Set Position (Mesh)**
+Menu Path: **Position** > **Set Position (Mesh)**
 
 Use the **Set Position (Mesh)** Block to set particle positions based on the shape of a mesh.
 
