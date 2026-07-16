@@ -393,7 +393,7 @@ namespace UnityEngine.Rendering.Universal
             s_RenderGraph = new RenderGraph("URPRenderGraph");
             s_RTHandlePool = new RTHandleResourcePool();
 
-            DebugManager.instance.RefreshEditor();
+            DebugManager.instance.RecreateDebugUI();
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             m_DebugDisplaySettingsUI.RegisterDebug(UniversalRenderPipelineDebugDisplaySettings.Instance);

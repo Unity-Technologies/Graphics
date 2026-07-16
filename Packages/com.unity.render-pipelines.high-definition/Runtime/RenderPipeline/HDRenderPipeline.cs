@@ -512,7 +512,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Asset = asset;
             HDProbeSystem.Parameters = asset.reflectionSystemParameters;
 
-            DebugManager.instance.RefreshEditor();
+            DebugManager.instance.RecreateDebugUI();
             m_DebugDisplaySettings = DebugDisplaySerializer.GetOrCreate<DebugDisplaySettings>();
 
             m_ValidAPI = true;

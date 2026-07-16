@@ -261,7 +261,7 @@ namespace UnityEngine.Rendering
                 };
                 foldout.children.Add(helpBox);
 
-                GPUResidentDrawer.initializedChanged += OnGPUResidentDrawerInitialzedChanged;
+                GPUResidentDrawer.initializedChanged += OnGPUResidentDrawerInitializedChanged;
 
                 // Avoid creating GRD debug modes when it's not enabled.
                 // This debug UI currently creates ~650 DebugUI Widgets (over 80% of all debug widgets in URP).
@@ -299,19 +299,15 @@ namespace UnityEngine.Rendering
                 AddInstanceCullingStatsWidget(data);
             }
 
-            private void OnGPUResidentDrawerInitialzedChanged(bool previousValue, bool currentValue)
+            private void OnGPUResidentDrawerInitializedChanged(bool previousValue, bool currentValue)
             {
-                // Reload the UI if GRD enabled state changes, from disabled to enabled only, as the UI did not have all the widgets and we need to add them
-                // in assembly reloads, or entering playmode we do not have this code path and the SettingsPanel will be recreated itself by the Rendering Debugger
-                // reconstruction.
-                if ( previousValue == false && currentValue == true )
-                    DebugManager.instance.Reset();
+                DebugManager.instance.RecreateDebugUI();
             }
 
             public override void Dispose()
             {
                 base.Dispose();
-                GPUResidentDrawer.initializedChanged -= OnGPUResidentDrawerInitialzedChanged;
+                GPUResidentDrawer.initializedChanged -= OnGPUResidentDrawerInitializedChanged;
             }
 
             private void AddInstanceCullingStatsWidget(DebugDisplayGPUResidentDrawer data)

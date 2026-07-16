@@ -139,9 +139,14 @@ namespace UnityEngine.Rendering
         event Action resetData;
 
         /// <summary>
-        /// Force an editor request.
+        /// Event invoked when debug UI needs to be recreated (panels torn down and rebuilt).
         /// </summary>
-        public bool refreshEditorRequested;
+        internal event Action onRecreateDebugUI;
+
+        /// <summary>
+        /// Event invoked when a panel selection is requested.
+        /// </summary>
+        internal event Action<string> onPanelSelectionRequested;
 
         string m_RequestedPanel;
 
@@ -178,11 +183,13 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Refresh the debug window.
+        /// Recreates the debug UI for all panels. Use this when the panel structure needs to be rebuilt
+        /// (e.g., when widgets need to be added/removed dynamically based on feature availability).
+        /// For simple value refreshes, the UI automatically updates through widget getters.
         /// </summary>
-        public void RefreshEditor()
+        public void RecreateDebugUI()
         {
-            refreshEditorRequested = true;
+            onRecreateDebugUI?.Invoke();
         }
 
         /// <summary>
@@ -193,18 +200,6 @@ namespace UnityEngine.Rendering
             DebugDisplaySerializer.SaveFoldoutStates();
             DebugDisplaySerializer.Clear();
             resetData?.Invoke();
-        }
-
-        /// <summary>
-        /// Request the runtime debug UI be redrawn on the next update.
-        /// </summary>
-        [Obsolete("This method is obsolete. #from(6000.5)")]
-        public void ReDrawOnScreenDebug()
-        {
-#if ENABLE_RENDERING_DEBUGGER_UI
-            if (displayRuntimeUI)
-                m_RuntimeDebugWindow?.RequestRecreateGUI();
-#endif
         }
 
         /// <summary>
@@ -297,18 +292,6 @@ namespace UnityEngine.Rendering
             return -1;
         }
 
-
-        /// <summary>
-        /// Returns the panel display name
-        /// </summary>
-        /// <param name="panelIndex">The panelIndex for the panel to get the name</param>
-        /// <returns>The display name of the panel, or empty string otherwise</returns>
-        [Obsolete("Method is obsolete. Use PanelDisplayName instead. #from(6000.4) (UnityUpgradable) -> PanelDisplayName", true)]
-        public string PanelDiplayName(int panelIndex)
-        {
-            return PanelDisplayName(panelIndex);
-        }
-
         /// <summary>
         /// Returns the panel display name
         /// </summary>
@@ -325,36 +308,18 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Request DebugWindow to open the specified panel.
         /// </summary>
-        /// <param name="index">Index of the debug window panel to activate.</param>
-        [Obsolete("Use RequestEditorWindowPanelName instead. #from(6000.5)")]
-        public void RequestEditorWindowPanelIndex(int index)
-        {
-            if (m_Panels[index] != null)
-                RequestEditorWindowPanel(m_Panels[index].displayName);
-        }
-
-        /// <summary>
-        /// Request DebugWindow to open the specified panel.
-        /// </summary>
         /// <param name="panelName">Name of window panel to activate.</param>
-        public void RequestEditorWindowPanel(string panelName)
+        public void RequestPanelSelection(string panelName)
         {
             int panelIndex = FindPanelIndex(panelName);
             if (panelIndex != -1)
             {
-                m_RequestedPanel = panelName;
+                onPanelSelectionRequested?.Invoke(panelName);
             }
             else
             {
                 Debug.LogWarning($"No panel with name {panelName} has been registered.");
             }
-        }
-
-        internal string GetRequestedEditorWindowPanel()
-        {
-            string requestedPanel = m_RequestedPanel;
-            m_RequestedPanel = null;
-            return requestedPanel;
         }
 
         // TODO: Optimally we should use a query path here instead of a display name
