@@ -65,13 +65,13 @@ class VisualEffectAssetEditor : UnityEditor.Editor
         else if (obj is VisualEffectObject)
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(AssetDatabase.GetAssetPath(obj));
-            var window = VFXViewWindow.GetWindow(resource, false);
-            if (window == null)
+            var window = VFXViewWindow.GetWindow(resource, true);
+            if (window != null)
             {
-                window = VFXViewWindow.GetWindow(resource, true);
-                window.LoadResource(resource, null);
+                if (window.displayedResource != resource)
+                    window.LoadResource(resource, null);
+                window.Focus();
             }
-            window.Focus();
             return true;
         }
         else if (obj is Material || obj is Shader || obj is ComputeShader)

@@ -256,6 +256,7 @@ namespace UnityEditor.VFX.UI
             m_Treeview.bindItem += BindItem;
             m_Treeview.unbindItem += UnbindItem;
             m_Treeview.selectionChanged += OnSelectionChanged;
+            m_Treeview.RegisterCallback<NavigationMoveEvent>(OnTreeViewNavigationMove, TrickleDown.TrickleDown);
             // Trickle down because on macOS the context menu is opened on PointerDown event which stop the event propagation
             m_Treeview.RegisterCallback<PointerDownEvent>(OnTreeViewPointerDown, TrickleDown.TrickleDown);
             Add(m_Treeview);
@@ -355,7 +356,7 @@ namespace UnityEditor.VFX.UI
                             {
                                 AddToSelection(parameterItem.selectable);
                             }
-                            else
+                            else if (parameterItem is not AttributeSeparator)
                             {
                                 lastPendingItem = parameterItem;
                             }
@@ -682,6 +683,22 @@ namespace UnityEditor.VFX.UI
             }
             toggle.RegisterCallback<ChangeEvent<bool>, IParameterItem>(OnToggleExpandRow, item);
             rootElement.AddToClassList(item.isLast ? "last" : null);
+        }
+
+        private void OnTreeViewNavigationMove(NavigationMoveEvent evt)
+        {
+            if (evt.direction != NavigationMoveEvent.Direction.Left)
+                return;
+            if (m_Treeview.selectedItem is not AttributeSeparator separator)
+                return;
+
+            var parentId = m_Treeview.viewController.GetParentId(separator.id);
+            if (parentId != -1)
+            {
+                m_Treeview.SetSelectionById(parentId);
+                m_Treeview.ScrollToItemById(parentId);
+            }
+            evt.StopPropagation();
         }
 
         private void OnToggleExpandRow(ChangeEvent<bool> evt, IParameterItem item)
@@ -1223,7 +1240,7 @@ namespace UnityEditor.VFX.UI
         {
             if (TryGetValidCategoryName(ref newTitle))
             {
-                if (controller.RenameCategory(cat.title, newTitle))
+                if (cat.title != newTitle && controller.RenameCategory(cat.title, newTitle))
                 {
                     cat.title = newTitle;
                     cat.category.title = newTitle;

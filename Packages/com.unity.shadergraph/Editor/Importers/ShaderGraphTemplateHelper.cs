@@ -56,6 +56,7 @@ namespace UnityEditor.ShaderGraph
                         description = template.description,
                         icon = template.icon,
                         thumbnail = template.thumbnail,
+                        order = template.order,
                     };
                     return true;
                 }

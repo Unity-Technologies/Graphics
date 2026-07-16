@@ -491,6 +491,7 @@ namespace UnityEditor.VFX
         {
             base.OnEnable();
 
+            onModified -= OnModified;
             onModified += OnModified;
             if (!isOutput && outputSlots.Count > 0)
             {

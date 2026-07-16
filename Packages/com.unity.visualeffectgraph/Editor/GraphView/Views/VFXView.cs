@@ -1258,6 +1258,8 @@ namespace UnityEditor.VFX.UI
                     {
                         selectionCopy.Remove(category);
                         blackboard.RemoveCategory(category.title);
+                        selection.Remove(category);
+                        selection.RemoveAll(x => x is VFXBlackboardField field && field.controller.model.category == category.title);
                         shouldClearBlackboardSelection = true;
                     }
                     selectionCopy.RemoveAll(x => x is VFXBlackboardField field && field.controller.model.category == category.title);
@@ -1266,7 +1268,11 @@ namespace UnityEditor.VFX.UI
                 foreach (var parameter in selectionCopy.OfType<VFXBlackboardField>().ToArray())
                 {
                     selectionCopy.Remove(parameter);
-                    shouldClearBlackboardSelection |= blackboard.RemoveParameter(parameter.PropertyItem);
+                    if (blackboard.RemoveParameter(parameter.PropertyItem))
+                    {
+                        selection.Remove(parameter);
+                        shouldClearBlackboardSelection = true;
+                    }
                 }
 
                 foreach (var attributeField in selectionCopy.OfType<VFXBlackboardAttributeField>().ToArray())
@@ -1274,7 +1280,11 @@ namespace UnityEditor.VFX.UI
                     selectionCopy.Remove(attributeField);
                     if (attributeField.attribute.isEditable)
                     {
-                        shouldClearBlackboardSelection |= blackboard.RemoveCustomAttribute(attributeField.attribute);
+                        if (blackboard.RemoveCustomAttribute(attributeField.attribute))
+                        {
+                            selection.Remove(attributeField);
+                            shouldClearBlackboardSelection = true;
+                        }
                     }
                     else
                     {
@@ -1293,7 +1303,13 @@ namespace UnityEditor.VFX.UI
                 var newSelection = Selection.objects.ToList();
                 newSelection.RemoveAll(x => x is VFXModel);
 
-                selection.Clear();
+                // Drop the graph elements that controller.Remove is about to destroy
+                foreach (var element in selectionCopy.OfType<IControlledElement>())
+                {
+                    if (element is ISelectable selectable)
+                        selection.Remove(selectable);
+                }
+
                 Selection.objects = newSelection.ToArray();
                 controller.Remove(selectionCopy.OfType<IControlledElement>().Select(t => t.controller).ToArray(), true);
             }
