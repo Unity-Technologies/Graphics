@@ -26,7 +26,6 @@ Visual Effect Graph is compatible with the Universal Render Pipeline (URP) and t
 - For both render pipelines, the minimum hardware requirements are:
   - Support for compute shaders. If a platform supports compute shaders, it returns `true` for [SystemInfo.supportsComputeShaders](https://docs.unity3d.com/ScriptReference/SystemInfo-supportsComputeShaders.html).
   - Support for Shader Storage Buffer Objects (SSBOs). If a platform supports SSBOs, it returns a value greater than 0 for [SystemInfo.maxComputeBufferInputsVertex](https://docs.unity3d.com/ScriptReference/SystemInfo-maxComputeBufferInputsVertex.html).
-- The Visual Effect Graph isn't out of preview for mobile platforms.
 - The Visual Effect Graph does not support Open GL ES.
 
 For more information on general system requirements for the Unity Player, see [System requirements for Unity](https://docs.unity3d.com/Manual/system-requirements.html).
