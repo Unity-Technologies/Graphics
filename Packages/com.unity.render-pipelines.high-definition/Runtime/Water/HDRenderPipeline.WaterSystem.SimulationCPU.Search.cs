@@ -398,6 +398,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             EvaluateVerticalDisplacement(wsd, wsp, currentPositionOS, currentVertical, out var currentHeight);
+            if (float.IsNaN(currentHeight))
+                return false;
 
             // Convert the positions from OS to world space
             sr.projectedPositionWS = mul(wsd.rendering.waterToWorldMatrix, float4(targetPositionOS.x, currentHeight, targetPositionOS.z, 1.0f)).xyz;
@@ -523,7 +525,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Do the search
             var wsr = new WaterSearchResult();
-            WaterSystem.ProjectPointOnWaterSurface(simSearchData, wsp, ref wsr);
+            if (!WaterSystem.ProjectPointOnWaterSurface(simSearchData, wsp, ref wsr))
+            {
+                // Search failed: keep the query position instead of snapping to origin.
+                wsr.projectedPositionWS = wsr.candidateLocationWS = wsp.targetPositionWS;
+            }
 
             // Output the result to the output buffers
             errorBuffer[index] = wsr.error;
