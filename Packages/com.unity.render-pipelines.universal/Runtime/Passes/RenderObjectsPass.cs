@@ -141,6 +141,11 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = passData.cameraData.camera;
 
+            if (passData.cameraData.xr.enabled && passData.isActiveTargetBackBuffer)
+            {
+                cmd.SetViewport(passData.cameraData.xr.GetViewport());
+            }
+
             // In case of camera stacking we need to take the viewport rect from base camera
             Rect pixelRect = passData.cameraData.pixelRect;
             float cameraAspect = (float)pixelRect.width / (float)pixelRect.height;
@@ -194,13 +199,16 @@ namespace UnityEngine.Rendering.Universal
 
             // Required for code sharing purpose between RG and non-RG.
             internal RendererList rendererList;
+
+            internal bool isActiveTargetBackBuffer;
         }
 
-        private void InitPassData(UniversalCameraData cameraData, ref PassData passData)
+        private void InitPassData(UniversalCameraData cameraData, ref PassData passData, bool isActiveTargetBackBuffer = false)
         {
             passData.cameraSettings = m_CameraSettings;
             passData.renderPassEvent = renderPassEvent;
             passData.cameraData = cameraData;
+            passData.isActiveTargetBackBuffer = isActiveTargetBackBuffer;
         }
 
         private void InitRendererLists(UniversalRenderingData renderingData, UniversalLightData lightData,
@@ -240,7 +248,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
-                InitPassData(cameraData, ref passData);
+                InitPassData(cameraData, ref passData, resourceData.isActiveTargetBackBuffer);
 
                 passData.color = resourceData.activeColorTexture;
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
@@ -283,7 +291,8 @@ namespace UnityEngine.Rendering.Universal
                 builder.AllowGlobalStateModification(true);
                 if (cameraData.xr.enabled)
                 {
-                    builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && cameraData.xrUniversal.canFoveateIntermediatePasses);
+                    bool passSupportsFoveation = cameraData.xrUniversal.canFoveateIntermediatePasses || resourceData.isActiveTargetBackBuffer;
+                    builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
                     // Apply MultiviewRenderRegionsCompatible flag only to the peripheral view in Quad Views
                     if (cameraData.xr.multipassId == 0)
                     {
