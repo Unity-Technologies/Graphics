@@ -94,9 +94,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 // - On GLES3 non-WebGL, CBs are disabled (not even transient, see LIGHT_SHADOWS_NO_CBUFFER) due to Adreno perf issues with large CBs
                 // - On WebGL, CBs remains temporarily transient due to a graphics buffer bug
-                // - On WebGPU, CBs remains temporarily transient due to the current problematic need to explicitly bind CBUFFERs even when not used
                 // - Everywhere else we use the persistent CB path for optimal performance at shader setup on native engine side.
-                return SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 && SystemInfo.graphicsDeviceType != GraphicsDeviceType.WebGPU;
+                return SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3;
             }
         }
 
