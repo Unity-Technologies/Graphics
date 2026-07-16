@@ -67,6 +67,9 @@ namespace UnityEngine.Rendering.Universal
             textureDesc.depthBufferBits = 0;
             textureDesc.width = Screen.width;
             textureDesc.height = Screen.height;
+            // we dont need multisampling, and not explicitly setting this can violate validation layers on vulkan
+            textureDesc.msaaSamples = MSAASamples.None;
+            textureDesc.bindTextureMS = false;
         }
 
         /// <summary>
@@ -83,6 +86,9 @@ namespace UnityEngine.Rendering.Universal
             descriptor.depthStencilFormat = depthStencilFormat;
             descriptor.width = screenWidth;
             descriptor.height = screenHeight;
+            // we dont need multisampling, and not explicitly setting this can violate validation layers on vulkan
+            descriptor.msaaSamples = 1;
+            descriptor.bindMS = false;
         }
 
         private static void ExecutePass(RasterCommandBuffer commandBuffer, PassData passData, RendererList rendererList)
