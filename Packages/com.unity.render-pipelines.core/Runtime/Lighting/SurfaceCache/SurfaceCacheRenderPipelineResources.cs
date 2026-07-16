@@ -23,6 +23,9 @@ namespace UnityEngine.Rendering
         [ResourcePath("Runtime/Lighting/SurfaceCache/Scrolling.compute")]
         public ComputeShader m_ScrollingShader;
 
+        [ResourcePath("Runtime/Lighting/SurfaceCache/GlobalProbe.compute")]
+        public ComputeShader m_GlobalProbeShader;
+
         [ResourcePath("Runtime/Lighting/SurfaceCache/Defrag.compute")]
         public ComputeShader m_DefragShader;
 
@@ -90,6 +93,12 @@ namespace UnityEngine.Rendering
         {
             get => m_ScrollingShader;
             set => this.SetValueAndNotify(ref m_ScrollingShader, value, nameof(m_ScrollingShader));
+        }
+
+        public ComputeShader globalProbeShader
+        {
+            get => m_GlobalProbeShader;
+            set => this.SetValueAndNotify(ref m_GlobalProbeShader, value, nameof(m_GlobalProbeShader));
         }
 
         public ComputeShader evictionShader

@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.Tests
 
             _coreResources = new SurfaceCacheResourceSet((uint)SystemInfo.computeSubGroupSize);
             _coreResources.Load(
-                testResources.scrolling, testResources.eviction, testResources.patchAllocation,
+                testResources.globalProbe, testResources.scrolling, testResources.eviction, testResources.patchAllocation,
                 testResources.spatialFiltering, testResources.temporalFiltering, testResources.defrag,
                 punctualLightSamplingShader, estimationShader);
             foreach (var field in typeof(SurfaceCacheResourceSet).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
@@ -191,7 +191,7 @@ namespace UnityEngine.Rendering.Tests
         public void Estimate()
         {
             _cache.RecordPreparation(_renderGraph, _frameIdx);
-            _outputIrradianceBufferIdx = _cache.RecordPatchUpdate(_renderGraph, _frameIdx, _world);
+            _outputIrradianceBufferIdx = _cache.RecordUpdate(_renderGraph, _frameIdx, _world);
         }
 
         public void EndFrame()

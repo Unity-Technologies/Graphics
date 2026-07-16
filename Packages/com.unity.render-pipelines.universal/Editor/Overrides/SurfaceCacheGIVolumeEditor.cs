@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering.Universal
         protected SerializedDataParameter m_Enabled;
         protected SerializedDataParameter m_MultiBounce;
         protected SerializedDataParameter m_BouncePatchAllocation;
+        protected SerializedDataParameter m_DistanceFallback;
         protected SerializedDataParameter m_SampleCount;
 
         protected SerializedDataParameter m_TemporalSmoothing;
@@ -68,7 +69,7 @@ namespace UnityEditor.Rendering.Universal
         static GUIContent s_LightTransportHeader = EditorGUIUtility.TrTextContent("Light Transport", "Controls how many rays are cast per patch to estimate indirect lighting. More samples reduce variance but increase GPU cost per frame.");
         static GUIContent s_PatchFilteringHeader = EditorGUIUtility.TrTextContent("Patch Filtering", "Controls how patch irradiance data is filtered over time and space. These settings trade temporal stability and spatial smoothness against responsiveness to lighting changes and light leaking.");
         static GUIContent s_ScreenFilteringHeader = EditorGUIUtility.TrTextContent("Screen Filtering", "Controls how the low-resolution patch irradiance is resolved and upsampled to full screen resolution. These settings affect the final image quality and sharpness of the GI contribution.");
-        static GUIContent s_VolumeConfigurationHeader = EditorGUIUtility.TrTextContent("Volume Configuration", "Defines the spatial extent and grid density of the surface cache volume. Size can be changed freely at runtime. Resolution and cascade count changes reallocate internal buffers, which may cause a brief hitch.");
+        static GUIContent s_VolumeHeader = EditorGUIUtility.TrTextContent("Volume", "Defines the spatial extent and grid density of the surface cache volume. Size can be changed freely at runtime. Resolution and cascade count changes reallocate internal buffers, which may cause a brief hitch.");
         static GUIContent s_DefragCount = EditorGUIUtility.TrTextContent("Defrag Count", "Number of surface cache patches to defragment per frame. Higher values reduce memory fragmentation at a small per-frame cost.");
         static GUIContent s_RenderingLayerMask = EditorGUIUtility.TrTextContent("Rendering Layer Mask", "Only renderers whose Rendering Layer Mask intersects this mask contribute to Surface Cache GI.");
 
@@ -79,6 +80,7 @@ namespace UnityEditor.Rendering.Universal
             m_Enabled = Unpack(o.Find(obj => obj.enabled));
             m_MultiBounce = Unpack(o.Find(obj => obj.multiBounce));
             m_BouncePatchAllocation = Unpack(o.Find(obj => obj.bouncePatchAllocation));
+            m_DistanceFallback = Unpack(o.Find(obj => obj.distanceFallback));
             m_SampleCount = Unpack(o.Find(obj => obj.sampleCount));
             m_TemporalSmoothing = Unpack(o.Find(obj => obj.temporalSmoothing));
             m_SpatialFilterEnabled = Unpack(o.Find(obj => obj.spatialFilterEnabled));
@@ -165,11 +167,12 @@ namespace UnityEditor.Rendering.Universal
 
             // Volume Configuration section (always editable, not affected by quality preset)
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField(s_VolumeConfigurationHeader, EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(s_VolumeHeader, EditorStyles.boldLabel);
             PropertyField(m_VolumeSize, s_VolumeSize);
             PropertyField(m_VolumeResolution, s_VolumeResolution);
             PropertyField(m_VolumeCascadeCount, s_VolumeCascadeCount);
             DrawFocusTarget();
+            PropertyField(m_DistanceFallback);
 
             if (showAdditionalProperties)
             {

@@ -261,10 +261,14 @@ float3 OutgoingDirectionalBounceAndMultiBounceRadiance(
     bouncePatchIndex = PatchUtil::invalidPatchIndex;
     if (multiBounce)
     {
-        bouncePatchIndex = PatchUtil::FindPatchIndex(volumeParams, cellPatchIndices, position, normal);
+        PatchUtil::PatchIndexLookupResult result = PatchUtil::LookupPatchIndex(volumeParams, cellPatchIndices, position, normal);
         UNITY_OUT_OF_BOUNDS_BRANCH
-        if (bouncePatchIndex != PatchUtil::invalidPatchIndex)
+        if (PatchUtil::HasValidPatchIndex(result))
+        {
+            bouncePatchIndex = PatchUtil::GetPatchIndex(result);
             radiance += PatchUtil::EvalIrradiance(patchIrradiances[bouncePatchIndex], normal);
+        }
+
     }
 
     radiance *= albedo * INV_PI;

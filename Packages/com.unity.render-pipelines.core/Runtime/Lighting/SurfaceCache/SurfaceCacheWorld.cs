@@ -389,9 +389,14 @@ namespace UnityEngine.Rendering
             return _materialPool.TransmissionTextures;
         }
 
-        public Texture GetEnvironmentTexture()
+        public Texture GetEnvironmentCubemap()
         {
             return _cubemapRender.GetCubemap();
+        }
+
+        public int GetEnvironmentCubemapHash()
+        {
+            return _cubemapRender.Hash;
         }
 
         public void Dispose()

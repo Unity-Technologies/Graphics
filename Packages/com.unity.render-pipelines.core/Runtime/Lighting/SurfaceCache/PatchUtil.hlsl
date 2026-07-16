@@ -173,19 +173,6 @@ namespace PatchUtil
         return offset * (0.5f * waveStrength * voxelSize);
     }
 
-    float2 OctWrap(float2 v)
-    {
-        return (1.0 - abs(v.yx)) * VECTOR_LOGIC_SELECT(v.xy >= 0.0, 1.0, -1.0);
-    }
-
-    float2 SphereToSquare(float3 n)
-    {
-        n /= (abs(n.x) + abs(n.y) + abs(n.z));
-        n.xy = VECTOR_LOGIC_SELECT(n.z >= 0.0, n.xy, OctWrap(n.xy));
-        n.xy = n.xy * 0.5 + 0.5;
-        return n.xy;
-    }
-
     struct VolumePositionResolution
     {
         uint cascadeIdx;
@@ -223,7 +210,7 @@ namespace PatchUtil
             float3(-0.888f, -0.41629f, 0.19536f));
         const float3 rotatedDirection = mul(arbitraryRotation, direction);
 
-        const uint2 angularSquarePos = min(uint2(angularResolution - 1, angularResolution - 1), SphereToSquare(rotatedDirection) * angularResolution);
+        const uint2 angularSquarePos = min(uint2(angularResolution - 1, angularResolution - 1), OctahedralSphereToSquare(rotatedDirection) * angularResolution);
         return angularSquarePos.y * angularResolution + angularSquarePos.x;
     }
 
@@ -359,46 +346,58 @@ namespace PatchUtil
         return result;
     }
 
-    bool ReadHemisphericalIrradiance(PatchIrradianceBufferType patchIrradiances, CellPatchIndexBufferType cellPatchIndices, uint spatialResolution, uint cascadeIdx, uint3 volumeSpacePosition, float3 worldNormal, out SphericalHarmonics::RGBL1 resultIrradiance)
+    void MarkInvalid(inout SphericalHarmonics::RGBL1 irradiance)
     {
-        const uint directionIdx = GetDirectionIndex(worldNormal, volumeAngularResolution);
-        const uint cellIdx = GetCellIndex(cascadeIdx, volumeSpacePosition, directionIdx, spatialResolution, volumeAngularResolution);
-
-        bool resultBool = false;
-        const uint patchIdx = cellPatchIndices[cellIdx];
-        resultIrradiance = (SphericalHarmonics::RGBL1)0; // Setting value only to silence shader compilation warning.
-        UNITY_OUT_OF_BOUNDS_BRANCH
-        if (patchIdx != invalidPatchIndex)
-        {
-            resultIrradiance = patchIrradiances[patchIdx];
-            resultBool = true;
-        }
-        return resultBool;
+        irradiance.l0 = -1.0f;
     }
 
-    uint FindPatchIndex(VolumeParamSet volumeParams, CellPatchIndexBufferType cellPatchIndices, float3 worldPosition, float3 worldNormal)
+    bool IsValid(in SphericalHarmonics::RGBL1 irradiance)
     {
+        return all(irradiance.l0 != -1.0f);
+    }
+
+    static const uint patchIndexLookupCodeInvalidPatchIndex = invalidPatchIndex;
+    static const uint patchIndexLookupCodeOutsideVolume = UINT_MAX - 1;
+    struct PatchIndexLookupResult
+    {
+        uint patchIdxOrCode;
+    };
+
+    uint HasValidPatchIndex(in PatchIndexLookupResult result)
+    {
+        return result.patchIdxOrCode != patchIndexLookupCodeInvalidPatchIndex && result.patchIdxOrCode != patchIndexLookupCodeOutsideVolume;
+    }
+
+    // You should only call this if you are sure the passed-in PatchIndexLookupResult
+    // contains a patch index.
+    uint GetPatchIndex(in PatchIndexLookupResult result)
+    {
+        return result.patchIdxOrCode;
+    }
+
+    uint LookupPatchIndex(VolumeParamSet volumeParams, CellPatchIndexBufferType cellPatchIndices, uint3 posVolSpace, uint directionIdx, uint cascadeIdx)
+    {
+        const uint3 positionStorageSpace = ConvertVolumeSpaceToStorageSpace(posVolSpace, volumeParams.spatialResolution, volumeParams.cascadeOffsets[cascadeIdx]);
+        const uint cellIdx = GetCellIndex(cascadeIdx, positionStorageSpace, directionIdx, volumeParams.spatialResolution, volumeAngularResolution);
+        const uint patchIdx = cellPatchIndices[cellIdx];
+        return patchIdx;
+    }
+
+    PatchIndexLookupResult LookupPatchIndex(VolumeParamSet volumeParams, CellPatchIndexBufferType cellPatchIndices, float3 worldPosition, float3 worldNormal)
+    {
+        PatchIndexLookupResult result;
         VolumePositionResolution posResolution = ResolveVolumePosition(worldPosition, volumeParams);
         UNITY_OUT_OF_BOUNDS_BRANCH
         if (posResolution.isValid())
         {
             const uint directionIdx = GetDirectionIndex(worldNormal, volumeAngularResolution);
-            const uint3 positionStorageSpace = ConvertVolumeSpaceToStorageSpace(posResolution.positionVolumeSpace, volumeParams.spatialResolution, volumeParams.cascadeOffsets[posResolution.cascadeIdx]);
-            const uint cellIdx = GetCellIndex(posResolution.cascadeIdx, positionStorageSpace, directionIdx, volumeParams.spatialResolution, volumeAngularResolution);
-            const uint patchIdx = cellPatchIndices[cellIdx];
-            if (patchIdx != invalidPatchIndex)
-            {
-                return patchIdx;
-            }
-            else
-            {
-                return invalidPatchIndex;
-            }
+            result.patchIdxOrCode = LookupPatchIndex(volumeParams, cellPatchIndices, posResolution.positionVolumeSpace, directionIdx, posResolution.cascadeIdx);
         }
         else
         {
-            return invalidPatchIndex;
+            result.patchIdxOrCode = patchIndexLookupCodeOutsideVolume;
         }
+        return result;
     }
 
     bool ReadHemisphericalIrradiance(PatchIrradianceBufferType patchIrradiances, CellPatchIndexBufferType cellPatchIndices, VolumeParamSet volumeParams, float3 worldPosition, float3 worldNormal, uint startCascadeIdx, out SphericalHarmonics::RGBL1 resultIrradiance)
@@ -410,8 +409,14 @@ namespace PatchUtil
 
         if (posResolution.isValid())
         {
-            const uint3 positionStorageSpace = ConvertVolumeSpaceToStorageSpace(posResolution.positionVolumeSpace, volumeParams.spatialResolution, volumeParams.cascadeOffsets[posResolution.cascadeIdx]);
-            resultBool = ReadHemisphericalIrradiance(patchIrradiances, cellPatchIndices, volumeParams.spatialResolution, posResolution.cascadeIdx, positionStorageSpace, worldNormal, resultIrradiance);
+            const uint directionIdx = GetDirectionIndex(worldNormal, volumeAngularResolution);
+            const uint patchIdx = LookupPatchIndex(volumeParams, cellPatchIndices, posResolution.positionVolumeSpace, directionIdx, posResolution.cascadeIdx);
+            UNITY_OUT_OF_BOUNDS_BRANCH
+            if (patchIdx != invalidPatchIndex)
+            {
+                resultIrradiance = patchIrradiances[patchIdx];
+                resultBool = true;
+            }
         }
 
         return resultBool;
@@ -433,40 +438,6 @@ namespace PatchUtil
     float3 EvalIrradiance(SphericalHarmonics::RGBL1 irradiance, float3 normal)
     {
         return max(0, SphericalHarmonics::Eval(irradiance, normal));
-    }
-
-    float3 ReadPlanarIrradiance(PatchIrradianceBufferType patchIrradiances, CellPatchIndexBufferType cellPatchIndices, uint spatialResolution, uint cascadeIdx, uint3 volumeSpacePosition, float3 worldNormal)
-    {
-        SphericalHarmonics::RGBL1 resultIrradiance;
-        bool resultBool = ReadHemisphericalIrradiance(patchIrradiances, cellPatchIndices, spatialResolution, cascadeIdx, volumeSpacePosition, worldNormal, resultIrradiance);
-        if (resultBool)
-            return EvalIrradiance(resultIrradiance, worldNormal);
-        else
-            return invalidIrradiance;
-    }
-
-    float3 ReadPlanarIrradiance(PatchIrradianceBufferType patchIrradiances, CellPatchIndexBufferType cellPatchIndices, VolumeParamSet volumeParams, float3 worldPosition, float3 worldNormal)
-    {
-        VolumePositionResolution posResolution = ResolveVolumePosition(worldPosition, volumeParams);
-        if (posResolution.isValid())
-        {
-            const uint3 positionStorageSpace = ConvertVolumeSpaceToStorageSpace(posResolution.positionVolumeSpace, volumeParams.spatialResolution, volumeParams.cascadeOffsets[posResolution.cascadeIdx]);
-            return ReadPlanarIrradiance(patchIrradiances, cellPatchIndices, volumeParams.spatialResolution, posResolution.cascadeIdx, positionStorageSpace, worldNormal);
-        }
-        else
-        {
-            return invalidIrradiance;
-        }
-    }
-
-    void MarkInvalid(inout SphericalHarmonics::RGBL1 irradiance)
-    {
-        irradiance.l0 = -1.0f;
-    }
-
-    bool IsValid(inout SphericalHarmonics::RGBL1 irradiance)
-    {
-        return all(irradiance.l0 != -1.0f);
     }
 
     PatchStatisticsSet InitPatchStatistics(float3 irradianceSeed, uint frameIndex, uint rank)

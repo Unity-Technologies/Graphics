@@ -3,6 +3,7 @@ namespace UnityEngine.Rendering.Tests
     [CreateAssetMenu(menuName = "SurfaceCache/Test Shaders", fileName = "TestShaders")]
     internal sealed class TestResourceAsset : ScriptableObject
     {
+        public ComputeShader globalProbe;
         public ComputeShader scrolling;
         public ComputeShader eviction;
         public ComputeShader patchAllocation;

@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
         public BoolParameter multiBounce = new BoolParameter(k_Presets[(int)k_defaultPresetQuality].multiBounce);
 
         /// <summary>
-        /// Bounce Patch Allocation. When enabled, new patches are allocated at ray hit locations when multi-bounce cache lookups fail.
+        /// When enabled, new patches are allocated at ray hit locations when multi-bounce cache lookups fail.
         /// </summary>
         [Tooltip("When enabled, new patches are allocated at ray hit locations when multi-bounce cache lookups fail.")]
         public BoolParameter bouncePatchAllocation = new BoolParameter(k_Presets[(int)k_defaultPresetQuality].bouncePatchAllocation);
@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.Universal
         public ClampedIntParameter upsamplingSampleCount = new ClampedIntParameter(k_Presets[(int)k_defaultPresetQuality].upsamplingSampleCount, 1, 16);
 
         // =======================
-        // Volume Configuration
+        // Volume
         // =======================
 
         /// <summary>
@@ -110,6 +110,12 @@ namespace UnityEngine.Rendering.Universal
         /// Changing this at runtime can cause a performance hitch as internal buffers are reallocated (BVH is preserved).
         /// </summary>
         public ClampedIntParameter volumeCascadeCount = new ClampedIntParameter(4, 1, 8);
+
+        /// <summary>
+        /// When enabled, a realtime global probe calculated from the environment light will be applied in the far distance.
+        /// </summary>
+        [Tooltip("When enabled, a realtime global probe calculated from the environment light will be applied in the far distance.")]
+        public BoolParameter distanceFallback = new BoolParameter(k_Presets[(int)k_defaultPresetQuality].distanceFallback);
 
         // =======================
         // Advanced Properties
@@ -176,6 +182,7 @@ namespace UnityEngine.Rendering.Universal
             public bool multiBounce;
             public bool bouncePatchAllocation;
             public int sampleCount;
+            public bool distanceFallback;
             public float temporalSmoothing;
             public bool spatialFilterEnabled;
             public int spatialSampleCount;
@@ -193,28 +200,28 @@ namespace UnityEngine.Rendering.Universal
             // Low
             new Preset
             {
-                multiBounce = false, bouncePatchAllocation = false, sampleCount = 1,
+                multiBounce = false, bouncePatchAllocation = false, sampleCount = 1, distanceFallback = false,
                 temporalSmoothing = 0.9f, spatialFilterEnabled = false, spatialSampleCount = 4, spatialRadius = 1.0f, temporalPostFilter = false,
                 lookupSampleCount = 4, upsamplingKernelSize = 2.0f, upsamplingSampleCount = 1,
             },
             // Medium
             new Preset
             {
-                multiBounce = true, bouncePatchAllocation = true, sampleCount = 2,
+                multiBounce = true, bouncePatchAllocation = true, sampleCount = 2, distanceFallback = false,
                 temporalSmoothing = 0.8f, spatialFilterEnabled = true, spatialSampleCount = 4, spatialRadius = 1.0f, temporalPostFilter = true,
                 lookupSampleCount = 6, upsamplingKernelSize = 4.0f, upsamplingSampleCount = 2,
             },
             // High
             new Preset
             {
-                multiBounce = true, bouncePatchAllocation = true, sampleCount = 4,
+                multiBounce = true, bouncePatchAllocation = true, sampleCount = 4, distanceFallback = true,
                 temporalSmoothing = 0.7f, spatialFilterEnabled = true, spatialSampleCount = 6, spatialRadius = 1.5f, temporalPostFilter = true,
                 lookupSampleCount = 8, upsamplingKernelSize = 5.0f, upsamplingSampleCount = 4,
             },
             // Ultra
             new Preset
             {
-                multiBounce = true, bouncePatchAllocation = true, sampleCount = 8,
+                multiBounce = true, bouncePatchAllocation = true, sampleCount = 8, distanceFallback = true,
                 temporalSmoothing = 0.6f, spatialFilterEnabled = true, spatialSampleCount = 8, spatialRadius = 2.0f, temporalPostFilter = true,
                 lookupSampleCount = 8, upsamplingKernelSize = 7.0f, upsamplingSampleCount = 8,
             },
@@ -233,6 +240,8 @@ namespace UnityEngine.Rendering.Universal
             bouncePatchAllocation.overrideState = true;
             sampleCount.value = settings.sampleCount;
             sampleCount.overrideState = true;
+            distanceFallback.value = settings.distanceFallback;
+            distanceFallback.overrideState = true;
             temporalSmoothing.value = settings.temporalSmoothing;
             temporalSmoothing.overrideState = true;
             spatialFilterEnabled.value = settings.spatialFilterEnabled;

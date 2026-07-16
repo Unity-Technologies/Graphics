@@ -120,6 +120,7 @@ namespace UnityEngine.Rendering
     {
         public const int InvalidOffset = Int32.MaxValue;
         public const uint InvalidPatchIndex = UInt32.MaxValue; // Must match HLSL side.
+        public const uint AngularResolution = 4; // Must match HLSL side.
 
         public readonly uint SpatialResolution;
         public readonly uint CascadeCount;
@@ -134,8 +135,7 @@ namespace UnityEngine.Rendering
 
         internal SurfaceCacheVolume(uint spatialResolution, uint cascadeCount, float size)
         {
-            const uint angularResolution = 4; // Must match HLSL side.
-            uint cellCount = spatialResolution * spatialResolution * spatialResolution * angularResolution * angularResolution * cascadeCount;
+            uint cellCount = spatialResolution * spatialResolution * spatialResolution * AngularResolution * AngularResolution * cascadeCount;
 
             SpatialResolution = spatialResolution;
             CascadeCount = cascadeCount;
@@ -179,6 +179,7 @@ namespace UnityEngine.Rendering
         public bool MultiBounce;
         public bool BouncePatchAllocation;
         public uint SampleCount;
+        public bool DistanceFallback;
     }
 
     internal struct SurfaceCachePatchFilteringParameterSet
@@ -220,6 +221,9 @@ namespace UnityEngine.Rendering
         internal int TemporalFilteringKernel;
         internal uint3 TemporalFilteringKernelGroupSize;
 
+        internal ComputeShader GlobalProbeShader;
+        internal int GlobalProbeKernel;
+
         internal readonly uint ComputeSubGroupSize;
 
         internal SurfaceCacheResourceSet(uint computeSubGroupSize)
@@ -228,6 +232,7 @@ namespace UnityEngine.Rendering
         }
 
         internal void Load(
+            ComputeShader globalProbeShader,
             ComputeShader scrollingShader,
             ComputeShader evictionShader,
             ComputeShader patchAllocationShader,
@@ -257,6 +262,9 @@ namespace UnityEngine.Rendering
             TemporalFilteringKernel = TemporalFilteringShader.FindKernel("FilterTemporally");
             TemporalFilteringShader.GetKernelThreadGroupSizes(TemporalFilteringKernel, out TemporalFilteringKernelGroupSize.x, out TemporalFilteringKernelGroupSize.y, out TemporalFilteringKernelGroupSize.z);
 
+            GlobalProbeShader = globalProbeShader;
+            GlobalProbeKernel = globalProbeShader.FindKernel("Update");
+
             Debug.Assert(ComputeSubGroupSize == 8 || ComputeSubGroupSize == 16 || ComputeSubGroupSize == 32 || ComputeSubGroupSize == 48 || ComputeSubGroupSize == 64, $"Unexpected, ComputeSubGroupSize={ComputeSubGroupSize}");
             DefragShader = defragShader;
             var defragKeyword = "SUB_GROUP_SIZE_" + ComputeSubGroupSize;
@@ -281,22 +289,26 @@ namespace UnityEngine.Rendering
         private readonly SurfaceCacheVolume _volume;
         private readonly SurfaceCacheRingConfig _ringConfig;
         private readonly SurfaceCacheResourceSet _resources;
+        private readonly GraphicsBuffer _globalProbe;
+
         private GraphicsBuffer _traceScratch;
         uint[] _zero = new uint[] { 0 };
 
         private SurfaceCacheEstimationParameterSet _estimationParams;
         private SurfaceCachePatchFilteringParameterSet _patchFilteringParams;
 
+        readonly private float _albedoBoost = 1.0f;
         private float _shortHysteresis;
         private uint _defragCount = 1;
         private uint _defragOffset = 0;
-        readonly private float _albedoBoost = 1.0f;
         private float _emissiveTriangleIntensityMultiplier = 1.0f;
+        private int _lastEnvCubemapHash = Int32.MaxValue;
 
         public GraphicsBuffer PunctualLightSamples => _punctualLightSamples;
         public SurfaceCachePatchList Patches => _patches;
         public SurfaceCacheVolume Volume => _volume;
         public SurfaceCacheRingConfig RingConfig => _ringConfig;
+        public GraphicsBuffer GlobalProbe => _globalProbe;
 
         private class ScrollingPassData
         {
@@ -372,6 +384,11 @@ namespace UnityEngine.Rendering
             internal uint FrameIdx;
             internal uint CascadeCount;
             internal bool MultiBounce;
+            internal ComputeShader GlobalProbeShader;
+            internal int GlobalProbeKernelIndex;
+            internal uint3 GlobalProbeKernelGroupSize;
+            internal bool UpdateGlobalProbe;
+            internal GraphicsBuffer GlobalProbeBuffer;
             internal bool BouncePatchAllocation;
             internal float ShortHysteresis;
             internal uint RingConfigOffset;
@@ -460,6 +477,7 @@ namespace UnityEngine.Rendering
             public static readonly int _DirectionalLightIntensity = Shader.PropertyToID("_DirectionalLightIntensity");
             public static readonly int _MaterialAtlasTexelSize = Shader.PropertyToID("_MaterialAtlasTexelSize");
             public static readonly int _PunctualLightCount = Shader.PropertyToID("_PunctualLightCount");
+            public static readonly int _GlobalProbe = Shader.PropertyToID("_GlobalProbe");
             public static readonly int _EmissionTextures = Shader.PropertyToID("_EmissionTextures");
             public static readonly int _VolumeTargetPos = Shader.PropertyToID("_VolumeTargetPos");
             public static readonly int _EnvironmentCubemap = Shader.PropertyToID("_EnvironmentCubemap");
@@ -517,6 +535,16 @@ namespace UnityEngine.Rendering
             _patches = new SurfaceCachePatchList(patchCapacity);
             _patchAllocationRequests = new SurfaceCachePatchAllocationRequestList();
             _punctualLightSamples = new GraphicsBuffer(GraphicsBuffer.Target.Structured, (int)punctualLightSampleCount, sizeof(float) * 17);
+
+            {
+                // When the global probe is turned off we theoretically do not need this buffer.
+                // However, even in these cases Unity requires us to bind _something_ so we keep
+                // it allocated always for this reason.
+                uint floatCount = 12 * SurfaceCacheVolume.AngularResolution * SurfaceCacheVolume.AngularResolution;
+                _globalProbe = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, (int)floatCount * sizeof(float));
+                var initBuffer = new float[floatCount];
+                _globalProbe.SetData(initBuffer);
+            }
         }
 
         public void SetEstimationParams(SurfaceCacheEstimationParameterSet estimationParams)
@@ -558,7 +586,7 @@ namespace UnityEngine.Rendering
             RecordDefragmentation(renderGraph, frameIdx);
         }
 
-        internal uint RecordPatchUpdate(RenderGraph renderGraph, uint frameIdx, SurfaceCacheWorld world)
+        internal uint RecordUpdate(RenderGraph renderGraph, uint frameIdx, SurfaceCacheWorld world)
         {
             RecordEstimation(renderGraph, frameIdx, world);
 
@@ -705,6 +733,12 @@ namespace UnityEngine.Rendering
                 passData.CascadeCount = Volume.CascadeCount;
                 passData.MultiBounce = _estimationParams.MultiBounce;
                 passData.BouncePatchAllocation = _estimationParams.BouncePatchAllocation;
+                passData.GlobalProbeShader = _resources.GlobalProbeShader;
+                passData.GlobalProbeKernelIndex = _resources.GlobalProbeKernel;
+                int newEnvCubemapHash = world.GetEnvironmentCubemapHash();
+                passData.UpdateGlobalProbe = _estimationParams.DistanceFallback && _lastEnvCubemapHash != newEnvCubemapHash;
+                _lastEnvCubemapHash = newEnvCubemapHash;
+                passData.GlobalProbeBuffer = _globalProbe;
                 passData.ShortHysteresis = _shortHysteresis;
                 passData.RingConfigOffset = RingConfig.OffsetA;
                 passData.SampleCount = _estimationParams.SampleCount;
@@ -826,6 +860,14 @@ namespace UnityEngine.Rendering
             var punctualLightBuffer = data.World.GetPunctualLightBuffer();
             var punctualLightCount = (int)data.World.GetPunctualLightCount();
 
+            if (data.UpdateGlobalProbe)
+            {
+                cmd.SetComputeBufferParam(data.GlobalProbeShader, data.GlobalProbeKernelIndex, ShaderIDs._GlobalProbe, data.GlobalProbeBuffer);
+                cmd.SetComputeTextureParam(data.GlobalProbeShader, data.GlobalProbeKernelIndex, ShaderIDs._EnvironmentCubemap, data.World.GetEnvironmentCubemap());
+                cmd.SetComputeFloatParam(data.GlobalProbeShader, ShaderIDs._EnvironmentIntensityMultiplier, data.EnvironmentIntensityMultiplier);
+                cmd.DispatchCompute(data.GlobalProbeShader, data.GlobalProbeKernelIndex, (int)(SurfaceCacheVolume.AngularResolution * SurfaceCacheVolume.AngularResolution), 1, 1);
+            }
+
             if (data.BouncePatchAllocation)
             {
                 cmd.SetBufferData(data.PatchAllocationRequestCount, data.Zero);
@@ -869,7 +911,7 @@ namespace UnityEngine.Rendering
                 shader.SetIntParam(cmd, ShaderIDs._RingConfigOffset, (int)data.RingConfigOffset);
                 shader.SetBufferParam(cmd, ShaderIDs._CellPatchIndices, data.CellPatchIndices);
                 shader.SetVectorParam(cmd, ShaderIDs._VolumeTargetPos, data.VolumeTargetPos);
-                shader.SetTextureParam(cmd, ShaderIDs._EnvironmentCubemap, data.World.GetEnvironmentTexture());
+                shader.SetTextureParam(cmd, ShaderIDs._EnvironmentCubemap, data.World.GetEnvironmentCubemap());
                 shader.SetBufferParam(cmd, ShaderIDs._MaterialEntries, data.World.GetMaterialListBuffer());
                 shader.SetTextureParam(cmd, ShaderIDs._AlbedoTextures, data.World.GetMaterialAlbedoTextures());
                 shader.SetTextureParam(cmd, ShaderIDs._EmissionTextures, data.World.GetMaterialEmissionTextures());
@@ -980,6 +1022,7 @@ namespace UnityEngine.Rendering
             _volume.Dispose();
             _ringConfig.Dispose();
             _patches.Dispose();
+            _globalProbe?.Dispose();
             _punctualLightSamples.Dispose();
             _traceScratch?.Dispose();
             _patchAllocationRequests.Dispose();

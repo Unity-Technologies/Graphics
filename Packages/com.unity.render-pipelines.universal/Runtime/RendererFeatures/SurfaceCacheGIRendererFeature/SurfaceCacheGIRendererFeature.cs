@@ -156,6 +156,7 @@ namespace UnityEngine.Rendering.Universal
                         MultiBounce = volume.multiBounce.value,
                         BouncePatchAllocation = volume.bouncePatchAllocation.value,
                         SampleCount = (uint)volume.sampleCount.value,
+                        DistanceFallback = volume.distanceFallback.value
                     },
                     PatchFilteringParams = new SurfaceCachePatchFilteringParameterSet
                     {
@@ -269,6 +270,8 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _PatchWarping = Shader.PropertyToID("_PatchWarping");
             public static readonly int _VolumeCascadeOffsets = Shader.PropertyToID("_VolumeCascadeOffsets");
             public static readonly int _PatchCellIndices = Shader.PropertyToID("_PatchCellIndices");
+            public static readonly int _GlobalProbe = Shader.PropertyToID("_GlobalProbe");
+            public static readonly int _DistanceFallback = Shader.PropertyToID("_DistanceFallback");
         }
 
         internal readonly struct CameraInfo
@@ -527,6 +530,8 @@ namespace UnityEngine.Rendering.Universal
                 internal GraphicsBuffer PatchIrradiances;
                 internal GraphicsBuffer PatchStatistics;
                 internal GraphicsBuffer CascadeOffsets;
+                internal GraphicsBuffer GlobalProbeBuffer;
+                internal bool DistanceFallback;
                 internal uint VolumeSpatialResolution;
                 internal uint VolumeCascadeCount;
                 internal uint SampleCount;
@@ -740,7 +745,7 @@ namespace UnityEngine.Rendering.Universal
                     builder.SetRenderFunc((PatchAllocationPassData data, ComputeGraphContext cgContext) => AllocatePatches(data, cgContext));
                 }
 
-                uint outputIrradianceBufferIdx = cache.RecordPatchUpdate(renderGraph, CurrentPerCameraState.FrameIndex, _world);
+                uint outputIrradianceBufferIdx = cache.RecordUpdate(renderGraph, CurrentPerCameraState.FrameIndex, _world);
 
                 var fullResIrradiancesDesc = new TextureDesc(cameraInfo.ScreenResolution.x, cameraInfo.ScreenResolution.y)
                 {
@@ -771,6 +776,8 @@ namespace UnityEngine.Rendering.Universal
                     data.PatchIrradiances = cache.Patches.Irradiances[outputIrradianceBufferIdx];
                     data.PatchStatistics = cache.Patches.Statistics;
                     data.CascadeOffsets = cache.Volume.CascadeOffsetBuffer;
+                    data.GlobalProbeBuffer = cache.GlobalProbe;
+                    data.DistanceFallback = VolumeParams.EstimationParams.DistanceFallback;
                     data.VolumeSpatialResolution = cache.Volume.SpatialResolution;
                     data.VolumeVoxelMinSize = cache.Volume.VoxelMinSize;
                     data.PatchWarpingEnabled = cache.Volume.PatchWarpingEnabled;
@@ -934,6 +941,8 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchIrradiances, data.PatchIrradiances);
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._VolumeCascadeOffsets, data.CascadeOffsets);
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchStatistics, data.PatchStatistics);
+                cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._GlobalProbe, data.GlobalProbeBuffer);
+                cmd.SetComputeIntParam(shader, ShaderIDs._DistanceFallback, data.DistanceFallback ? 1 : 0);
                 cmd.SetComputeIntParam(shader, ShaderIDs._VolumeSpatialResolution, (int)data.VolumeSpatialResolution);
                 cmd.SetComputeIntParam(shader, ShaderIDs._VolumeCascadeCount, (int)data.VolumeCascadeCount);
                 cmd.SetComputeIntParam(shader, ShaderIDs._SampleCount, (int)data.SampleCount);
@@ -1150,6 +1159,7 @@ namespace UnityEngine.Rendering.Universal
             IRayTracingShader estimationShader = _rtContext.CreateRayTracingShader(estimationUnifiedObj);
 
             coreResources.Load(
+                coreRpResources.globalProbeShader,
                 coreRpResources.scrollingShader,
                 coreRpResources.evictionShader,
                 coreRpResources.patchAllocationShader,
