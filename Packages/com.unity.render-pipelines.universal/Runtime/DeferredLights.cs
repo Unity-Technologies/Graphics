@@ -596,7 +596,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (m_UseDeferredPlus)
                     RenderClusterLights(cmd, shadowData);
                 else
-                    RenderStencilLights(cmd, lightData, shadowData, cameraData.renderer.stripShadowsOffVariants);
+                    RenderStencilLights(cmd, lightData, shadowData);
 
                 cmd.SetKeyword(ShaderGlobalKeywords._DEFERRED_MIXED_LIGHTING, false);
 
@@ -777,7 +777,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             Profiler.EndSample();
         }
 
-        void RenderStencilLights(RasterCommandBuffer cmd, UniversalLightData lightData, UniversalShadowData shadowData, bool stripShadowsOffVariants)
+        void RenderStencilLights(RasterCommandBuffer cmd, UniversalLightData lightData, UniversalShadowData shadowData)
         {
             if (m_stencilVisLights.Length == 0)
                 return;
@@ -797,27 +797,31 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool hasAdditionalLightPass = m_AdditionalLightsShadowCasterPass != null;
 
                 if (HasStencilLightsOfType(LightType.Directional))
-                    RenderStencilDirectionalLights(cmd, stripShadowsOffVariants, lightData, shadowData, visibleLights, hasAdditionalLightPass, hasLightCookieManager, lightData.mainLightIndex);
+                    RenderStencilDirectionalLights(cmd, lightData, shadowData, visibleLights, hasAdditionalLightPass, hasLightCookieManager, lightData.mainLightIndex);
 
                 if (lightData.supportsAdditionalLights)
                 {
                     if (HasStencilLightsOfType(LightType.Point))
-                        RenderStencilPointLights(cmd, stripShadowsOffVariants, lightData, shadowData, visibleLights, hasAdditionalLightPass, hasLightCookieManager);
+                        RenderStencilPointLights(cmd, lightData, shadowData, visibleLights, hasAdditionalLightPass, hasLightCookieManager);
 
                     if (HasStencilLightsOfType(LightType.Spot))
-                        RenderStencilSpotLights(cmd, stripShadowsOffVariants, lightData, shadowData, visibleLights, hasAdditionalLightPass, hasLightCookieManager);
+                        RenderStencilSpotLights(cmd, lightData, shadowData, visibleLights, hasAdditionalLightPass, hasLightCookieManager);
                 }
             }
 
             Profiler.EndSample();
         }
 
-        void RenderStencilDirectionalLights(RasterCommandBuffer cmd, bool stripShadowsOffVariants, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights, bool hasAdditionalLightPass, bool hasLightCookieManager, int mainLightIndex)
+        void RenderStencilDirectionalLights(RasterCommandBuffer cmd, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights, bool hasAdditionalLightPass, bool hasLightCookieManager, int mainLightIndex)
         {
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
 
             cmd.SetKeyword(ShaderGlobalKeywords._DIRECTIONAL, true);
+
+            // Note: we intentionally do NOT override _MAIN_LIGHT_SHADOWS* per directional draw here.
+            // The canonical state set by MainLightShadowCasterPass is left untouched. Additional-light
+            // shadows keep their per-light toggling below.
 
             // TODO bundle extra directional lights rendering by batches of 8.
             // Also separate shadow caster lights from non-shadow caster.
@@ -862,7 +866,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 // Update keywords states
-                SetAdditionalLightsShadowsKeyword(ref cmd, stripShadowsOffVariants, shadowData.additionalLightShadowsEnabled, hasDeferredShadows, isFirstLight, ref lastShadowsKeywordState);
+                // StencilDeferred's _ADDITIONAL_LIGHT_SHADOWS off variant is preserved by the carve-out in
+                // ShaderScriptableStripper.StripUnusedFeatures_AdditionalLightShadows, so we pass false here
+                // to enable the per-light branch of SetAdditionalLightsShadowsKeyword regardless of the
+                // renderer-wide stripShadowsOffVariants flag.
+                SetAdditionalLightsShadowsKeyword(ref cmd, shadowData.additionalLightShadowsEnabled, hasDeferredShadows, isFirstLight, ref lastShadowsKeywordState);
                 SetSoftShadowsKeyword(cmd, shadowData, light, hasDeferredShadows, isFirstLight, ref lastSoftShadowsKeywordState);
                 cmd.SetKeyword(ShaderGlobalKeywords._DEFERRED_FIRST_LIGHT, isFirstLight); // First directional light applies SSAO
                 cmd.SetKeyword(ShaderGlobalKeywords._DEFERRED_MAIN_LIGHT, isMainLight); // main directional light use different uniform constants from additional directional lights
@@ -882,7 +890,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetKeyword(ShaderGlobalKeywords._DIRECTIONAL, false);
         }
 
-        void RenderStencilPointLights(RasterCommandBuffer cmd, bool stripShadowsOffVariants, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights, bool hasAdditionalLightPass, bool hasLightCookieManager)
+        void RenderStencilPointLights(RasterCommandBuffer cmd, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights, bool hasAdditionalLightPass, bool hasLightCookieManager)
         {
             if (m_SphereMesh == null)
                 m_SphereMesh = CreateSphereMesh();
@@ -927,7 +935,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool hasDeferredShadows = light && light.shadows != LightShadows.None && shadowLightIndex >= 0;
 
                 // Update keywords states
-                SetAdditionalLightsShadowsKeyword(ref cmd, stripShadowsOffVariants, shadowData.additionalLightShadowsEnabled, hasDeferredShadows, isFirstLight, ref lastShadowsKeywordState);
+                SetAdditionalLightsShadowsKeyword(ref cmd, shadowData.additionalLightShadowsEnabled, hasDeferredShadows, isFirstLight, ref lastShadowsKeywordState);
                 SetSoftShadowsKeyword(cmd, shadowData, light, hasDeferredShadows, isFirstLight, ref lastSoftShadowsKeywordState);
                 SetLightCookiesKeyword(cmd, visLightIndex, hasLightCookieManager, isFirstLight, ref lastLightCookieKeywordState, ref lastLightCookieIndex);
 
@@ -952,7 +960,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetKeyword(ShaderGlobalKeywords._POINT, false);
         }
 
-        void RenderStencilSpotLights(RasterCommandBuffer cmd, bool stripShadowsOffVariants, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights, bool hasAdditionalLightPass, bool hasLightCookieManager)
+        void RenderStencilSpotLights(RasterCommandBuffer cmd, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights, bool hasAdditionalLightPass, bool hasLightCookieManager)
         {
             if (m_HemisphereMesh == null)
                 m_HemisphereMesh = CreateHemisphereMesh();
@@ -996,7 +1004,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool hasDeferredShadows = light && light.shadows != LightShadows.None && shadowLightIndex >= 0;
 
                 // Update keywords states
-                SetAdditionalLightsShadowsKeyword(ref cmd, stripShadowsOffVariants, shadowData.additionalLightShadowsEnabled, hasDeferredShadows, isFirstLight, ref lastShadowsKeywordState);
+                // See comment in RenderStencilDirectionalLights for why we pass false here.
+                SetAdditionalLightsShadowsKeyword(ref cmd, shadowData.additionalLightShadowsEnabled, hasDeferredShadows, isFirstLight, ref lastShadowsKeywordState);
                 SetSoftShadowsKeyword(cmd, shadowData, light, hasDeferredShadows, isFirstLight, ref lastSoftShadowsKeywordState);
                 SetLightCookiesKeyword(cmd, visLightIndex, hasLightCookieManager, isFirstLight, ref lastLightCookieKeywordState, ref lastLightCookieIndex);
 
@@ -1238,16 +1247,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         // Enable/Disable the _ADDITIONAL_LIGHT_SHADOWS keyword if it has changed...
-        private void SetAdditionalLightsShadowsKeyword(ref RasterCommandBuffer cmd, bool stripShadowsOffVariants, bool additionalLightShadowsEnabled, bool hasDeferredShadows, bool shouldOverride, ref bool lastShadowsKeyword)
+        private void SetAdditionalLightsShadowsKeyword(ref RasterCommandBuffer cmd, bool additionalLightShadowsEnabled, bool hasDeferredShadows, bool shouldOverride, ref bool lastShadowsKeyword)
         {
             bool additionalLightShadowsEnabledInAsset = additionalLightShadowsEnabled;
-            bool hasOffVariant = !stripShadowsOffVariants;
 
             // AdditionalLightShadows Keyword is enabled when:
             // Shadows are enabled in Asset and
-            // a) the OFF variant has been stripped
-            // b) light is casting a shadow
-            bool shouldEnable = additionalLightShadowsEnabledInAsset && (!hasOffVariant || hasDeferredShadows);
+            // light is casting a shadow
+            bool shouldEnable = additionalLightShadowsEnabledInAsset && hasDeferredShadows;
 
             // Return if the state hasn't changed...
             if (!shouldOverride && lastShadowsKeyword == shouldEnable)

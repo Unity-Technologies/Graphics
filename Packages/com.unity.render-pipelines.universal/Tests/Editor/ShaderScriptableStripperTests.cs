@@ -1213,6 +1213,11 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper helper;
             List<string> additionalLightShadowKeywords = new List<string>() { ShaderKeywordStrings.AdditionalLightShadows };
 
+            // StencilDeferred is exempted from additional-light shadows-off variant stripping
+            // (see ShaderScriptableStripper.StripUnusedFeatures_AdditionalLightShadows).
+            bool isStencilDeferred = shader != null && shader.name == "Hidden/Universal Render Pipeline/StencilDeferred";
+            bool expectedStripOffVariant = shader != null && !isStencilDeferred;
+
             // None
             helper = new TestHelper(shader, ShaderFeatures.None);
             helper.IsFalse(helper.stripper.StripUnusedFeatures_AdditionalLightShadows(ref helper.data, ref helper.featureStripTool));
@@ -1229,7 +1234,7 @@ namespace ShaderStrippingAndPrefiltering
             // AdditionalLightShadows
             helper = new TestHelper(shader, ShaderFeatures.AdditionalLightShadows);
             TestHelper.s_PassKeywords = additionalLightShadowKeywords;
-            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_AdditionalLightShadows(ref helper.data, ref helper.featureStripTool));
+            helper.AreEqual(expectedStripOffVariant, helper.stripper.StripUnusedFeatures_AdditionalLightShadows(ref helper.data, ref helper.featureStripTool));
 
             helper = new TestHelper(shader, ShaderFeatures.AdditionalLightShadows);
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.AdditionalLightShadows };
@@ -1254,6 +1259,21 @@ namespace ShaderStrippingAndPrefiltering
 
             helper = new TestHelper(shader, ShaderFeatures.ShadowsKeepOffVariants | ShaderFeatures.AdditionalLightShadows);
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.AdditionalLightShadows };
+            TestHelper.s_PassKeywords = additionalLightShadowKeywords;
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_AdditionalLightShadows(ref helper.data, ref helper.featureStripTool));
+        }
+
+        // StencilDeferred's _ADDITIONAL_LIGHT_SHADOWS off variant must survive variant stripping
+        // regardless of the renderer's stripShadowsOffVariants flag.
+        [Test]
+        public void StencilDeferred_KeepsAdditionalLightShadowsOffVariant_EvenWhenShadowsKeepOffVariantsDisabled()
+        {
+            Shader shader = Shader.Find("Hidden/Universal Render Pipeline/StencilDeferred");
+            Assert.IsNotNull(shader, "StencilDeferred shader must be available for this test.");
+
+            List<string> additionalLightShadowKeywords = new List<string>() { ShaderKeywordStrings.AdditionalLightShadows };
+
+            var helper = new TestHelper(shader, ShaderFeatures.AdditionalLightShadows);
             TestHelper.s_PassKeywords = additionalLightShadowKeywords;
             helper.IsFalse(helper.stripper.StripUnusedFeatures_AdditionalLightShadows(ref helper.data, ref helper.featureStripTool));
         }

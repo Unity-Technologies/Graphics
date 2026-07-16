@@ -494,6 +494,8 @@ namespace UnityEditor.Rendering.Universal
         internal bool StripUnusedFeatures_MainLightShadows(ref IShaderScriptableStrippingData strippingData, ref ShaderStripTool<ShaderFeatures> stripTool)
         {
             // strip main light shadows, cascade and screen variants
+            // Note: StencilDeferred is intentionally NOT carved out here.
+            // Additional-light shadows keep their carve-out below.
             if (strippingData.IsShaderFeatureEnabled(ShaderFeatures.ShadowsKeepOffVariants))
             {
                 if (stripTool.StripMultiCompileKeepOffVariant(
@@ -516,8 +518,12 @@ namespace UnityEditor.Rendering.Universal
 
         internal bool StripUnusedFeatures_AdditionalLightShadows(ref IShaderScriptableStrippingData strippingData, ref ShaderStripTool<ShaderFeatures> stripTool)
         {
-            // No additional light shadows
-            if (strippingData.IsShaderFeatureEnabled(ShaderFeatures.ShadowsKeepOffVariants))
+            // Sole owner of additional-light shadow variant stripping (the equivalent
+            // [ShaderKeywordFilter.RemoveIf/SelectIf] attributes on m_PrefilteringModeAdditionalLightShadows were removed).
+            // StencilDeferred always keeps the _ADDITIONAL_LIGHT_SHADOWS off variant regardless of
+            // renderer-wide stripping.
+            if (strippingData.IsShaderFeatureEnabled(ShaderFeatures.ShadowsKeepOffVariants)
+                || strippingData.shader  == m_StencilDeferred)
             {
                 if (stripTool.StripMultiCompileKeepOffVariant(m_AdditionalLightShadows, ShaderFeatures.AdditionalLightShadows))
                     return true;
@@ -846,7 +852,7 @@ namespace UnityEditor.Rendering.Universal
 
             return false;
         }
-        
+
         internal bool StripUnusedFeatures_CrossFadeLod(ref IShaderScriptableStrippingData strippingData)
         {
             if (!strippingData.IsKeywordEnabled(m_LODFadeCrossFade))

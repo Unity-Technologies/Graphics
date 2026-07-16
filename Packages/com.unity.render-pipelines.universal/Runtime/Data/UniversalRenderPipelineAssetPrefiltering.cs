@@ -62,6 +62,8 @@ namespace UnityEngine.Rendering.Universal
         // User can change cascade count at runtime so we have to include both MainLightShadows and MainLightShadowCascades.
         // ScreenSpaceShadows renderer feature has separate filter attribute for keeping MainLightShadowScreen.
         // NOTE: off variants are atm always removed when shadows are supported
+        // Note: StencilDeferred is intentionally NOT carved out here.
+        // Additional-light shadows keep their carve-out below.
         [ShaderKeywordFilter.RemoveIf(PrefilteringModeMainLightShadows.Remove,                     keywordNames: new [] {ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades})]
         [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectMainLight,            keywordNames: ShaderKeywordStrings.MainLightShadows)]
         [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectMainLightAndOff,      keywordNames: new [] {"", ShaderKeywordStrings.MainLightShadows})]
@@ -82,9 +84,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] private PrefilteringModeAdditionalLights m_PrefilteringModeAdditionalLight = PrefilteringModeAdditionalLights.SelectPixelAndOff;
 
         // Additional Lights Shadows
-        [ShaderKeywordFilter.RemoveIf(PrefilteringMode.Remove,     keywordNames: ShaderKeywordStrings.AdditionalLightShadows)]
-        [ShaderKeywordFilter.SelectIf(PrefilteringMode.Select,     keywordNames: new string[] {"", ShaderKeywordStrings.AdditionalLightShadows})]
-        [ShaderKeywordFilter.SelectIf(PrefilteringMode.SelectOnly, keywordNames: ShaderKeywordStrings.AdditionalLightShadows)]
+        // Prefiltering rules for the additional-light shadow keyword now live in
+        // ShaderScriptableStripper.StripUnusedFeatures_AdditionalLightShadows.
+        // The field below is a dead-write today (still computed/serialized) but no longer consumed by any
+        // [ShaderKeywordFilter.*] attribute; it's kept so existing URP assets deserialize without migration.
         [SerializeField] private PrefilteringMode m_PrefilteringModeAdditionalLightShadows = PrefilteringMode.Select;
 
         // XR Specific keywords
