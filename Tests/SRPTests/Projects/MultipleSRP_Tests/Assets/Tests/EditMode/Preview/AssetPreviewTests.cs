@@ -15,122 +15,165 @@ using Object = UnityEngine.Object;
 
 namespace Preview
 {
+    [TestFixture("Built-In", TestName ="BiRP")]
+    [TestFixture("URP", TestName = "URP")]
+    [TestFixture("HDRP", TestName = "HDRP")]
     public class AssetPreviewTests
     {
         public const string k_PreviewFolderPrefix = "Assets/GraphicsTests/0x_Base/0003_Preview";
         public const string k_GeneratedImagesProjectFolder = "Assets/PreviewImporterGeneratedImages";
         public const string k_GeneratedImagesLibraryFolder = "Library/TempArtifacts/Debug";
+
+        private readonly string m_PipelineName;
+        private readonly Type m_RenderPipelineAssetType;
+        private RenderPipelineScope m_RenderPipelineScope;
+
         private int m_OriginalDesiredImportWorkerCount = -1;
         private int m_OriginalStandbyImportWorkerCount = -1;
         private int m_OriginalIdleImportWorkerShutdownDelayMilliseconds = -1;
 
-        static TestCaseData[] s_TestCaseDataAssetPreviewUpdater =
-        {
-            new TestCaseData(new MaterialFactory($"TestMaterial-Built-In"), null)
-                .SetName($"Preview generation for Material Built-In")
-                .Returns(null),
-            new TestCaseData(new MaterialFactory($"TestMaterial-{nameof(UniversalRenderPipelineAsset)}"), typeof(UniversalRenderPipelineAsset))
-                .SetName($"Preview generation for Material {nameof(UniversalRenderPipelineAsset)}")
-                .Returns(null),
-            new TestCaseData(new MaterialFactory($"TestMaterial-{nameof(HDRenderPipelineAsset)}"), typeof(HDRenderPipelineAsset))
-                .SetName($"Preview generation for Material {nameof(HDRenderPipelineAsset)}")
-                .Returns(null),
-            new TestCaseData(new GameObjectFactory($"Hammer.fbx"), null)
-                .SetName($"Preview generation for Model Built-In")
-                .Returns(null),
-            new TestCaseData(new GameObjectFactory($"Hammer.fbx"), typeof(UniversalRenderPipelineAsset))
-                .SetName($"Preview generation for Model {nameof(UniversalRenderPipelineAsset)}")
-                .Returns(null),
-            new TestCaseData(new GameObjectFactory($"Hammer.fbx"), typeof(HDRenderPipelineAsset))
-                .SetName($"Preview generation for Model {nameof(HDRenderPipelineAsset)}")
-                .Returns(null),
-            new TestCaseData(new GameObjectFactory($"Hammer.prefab"), null)
-                .SetName($"Preview generation for Prefab Built-In")
-                .Returns(null),
-            new TestCaseData(new GameObjectFactory($"Hammer.prefab"), typeof(UniversalRenderPipelineAsset))
-                .SetName($"Preview generation for Prefab {nameof(UniversalRenderPipelineAsset)}")
-                .Returns(null),
-            new TestCaseData(new GameObjectFactory($"Hammer.prefab"), typeof(HDRenderPipelineAsset))
-                .SetName($"Preview generation for Prefab {nameof(HDRenderPipelineAsset)}")
-                .Returns(null),
-        };
-
-        static TestCaseData[] s_TestCaseDataPreviewImporter =
-        {
-            new TestCaseData(new MaterialFactory($"TestMaterial-Built-In"), null)
-                .SetName($"Preview generation for Material Built-In with PreviewImporter")
-                .Returns(null),
-            new TestCaseData(new MaterialFactory($"TestMaterial-{nameof(UniversalRenderPipelineAsset)}"), typeof(UniversalRenderPipelineAsset))
-                .SetName($"Preview generation for Material {nameof(UniversalRenderPipelineAsset)} with PreviewImporter")
-                .Returns(null),
-            new TestCaseData(new MaterialFactory($"TestMaterial-{nameof(HDRenderPipelineAsset)}"), typeof(HDRenderPipelineAsset))
-                .SetName($"Preview generation for Material {nameof(HDRenderPipelineAsset)} with PreviewImporter")
-                .Returns(null)
-                .Ignore("Reports incompatible keyword space errors"),
-            new TestCaseData(new GameObjectFactory($"Hammer.fbx"), null)
-                .SetName($"Preview generation for Model Built-In with PreviewImporter")
-                .Returns(null),
-            new TestCaseData(new GameObjectFactory($"Hammer.fbx"), typeof(UniversalRenderPipelineAsset))
-                .SetName($"Preview generation for Model {nameof(UniversalRenderPipelineAsset)} with PreviewImporter")
-                .Returns(null),
-            new TestCaseData(new GameObjectFactory($"Hammer.fbx"), typeof(HDRenderPipelineAsset))
-                .SetName($"Preview generation for Model {nameof(HDRenderPipelineAsset)} with PreviewImporter")
-                .Returns(null)
-                .Ignore("Reports incompatible keyword space errors"),
-            new TestCaseData(new GameObjectFactory($"Hammer.prefab"), null)
-                .SetName($"Preview generation for Prefab Built-In with PreviewImporter")
-                .Returns(null),
-            new TestCaseData(new GameObjectFactory($"Hammer.prefab"), typeof(UniversalRenderPipelineAsset))
-                .SetName($"Preview generation for Prefab {nameof(UniversalRenderPipelineAsset)} with PreviewImporter")
-                .Returns(null),
-            new TestCaseData(new GameObjectFactory($"Hammer.prefab"), typeof(HDRenderPipelineAsset))
-                .SetName($"Preview generation for Prefab {nameof(HDRenderPipelineAsset)} with PreviewImporter")
-                .Returns(null)
-                .Ignore("Reports incompatible keyword space errors"),
-        };
-
         string m_CreatedObjectPath;
         AssetFactoryResultStatus m_AssetFactoryAssetFactoryResultStatus;
 
+        public AssetPreviewTests(string pipelineName)
+        {
+            m_PipelineName = pipelineName;
+            m_RenderPipelineAssetType = pipelineName switch
+            {
+                "URP" => typeof(UniversalRenderPipelineAsset),
+                "HDRP" => typeof(HDRenderPipelineAsset),
+                _ => null
+            };
+        }
+
+        string GetPipelineName()
+        {
+            // Use BIRP instead of Built-In for consistency
+            return m_PipelineName == "Built-In" ? "BIRP" : m_PipelineName;
+        }
+
+        IEnumerator CreatePreviewInternal(AssetFactory objectFactory, string assetTypeName)
+        {
+            yield return null;
+
+            //Arrange
+            var testObject = ProduceNewObject(objectFactory, m_RenderPipelineAssetType, out m_CreatedObjectPath);
+            var loadIcon = LoadIcon($"AssetPreviewTests_{GetPipelineName()}_{assetTypeName}");
+
+            yield return new WaitForEndOfFrame();
+
+            //Act
+            yield return WaitForShadersToCompile(testObject, m_CreatedObjectPath);
+            var tex = AssetPreviewUpdater.CreatePreviewForAsset(testObject, null, m_CreatedObjectPath);
+
+            //Assert
+            ImageAssert.AreEqual(loadIcon, tex, new ImageComparisonSettings
+            {
+                TargetWidth = 128,
+                TargetHeight = 128,
+                AverageCorrectnessThreshold = 0.005f,
+                PerPixelCorrectnessThreshold = 0.005f
+            }, saveFailedImage: true);
+        }
+
         [UnityTest]
-        [TestCaseSource(nameof(s_TestCaseDataAssetPreviewUpdater))]
-        public IEnumerator CreatePreview(AssetFactory objectFactory, Type renderPipelineAssetType)
+        public IEnumerator CreatePreview_Model()
+        {
+            yield return CreatePreviewInternal(new GameObjectFactory("Hammer.fbx"), "Model");
+        }
+
+        [UnityTest]
+        public IEnumerator CreatePreview_Prefab()
+        {
+            yield return CreatePreviewInternal(new GameObjectFactory("Hammer.prefab"), "Prefab");
+        }
+
+        [UnityTest]
+        public IEnumerator CreatePreview_Material()
         {
             var threadingMode = SystemInfo.renderingThreadingMode;
             bool nativeGfxJobs = threadingMode == RenderingThreadingMode.NativeGraphicsJobs
                 || threadingMode == RenderingThreadingMode.NativeGraphicsJobsWithoutRenderThread
                 || threadingMode == RenderingThreadingMode.NativeGraphicsJobsSplitThreading;
             bool isD3D12 = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12;
-            if (objectFactory is MaterialFactory && renderPipelineAssetType == typeof(HDRenderPipelineAsset) && isD3D12 && nativeGfxJobs)
+            if (m_PipelineName == "HDRP" && isD3D12 && nativeGfxJobs)
                 Assert.Ignore("HDRP material preview renders blank under native/split graphics jobs on D3D12. Tracking: UUM-147205");
+          
+            yield return CreatePreviewInternal(new MaterialFactory($"TestMaterial-{GetPipelineName()}"), "Material");
+        }
 
-            using (new RenderPipelineScope(renderPipelineAssetType))
+        IEnumerator CreatePreviewAssetImportWorkerInternal(AssetFactory objectFactory, string assetTypeName)
+        {
+            // Configure the worker to dump preview images to disk for debugging purposes
+            using (var diagnosticSwitchGuard = new Diagnostics.DiagnosticSwitchGuard(Diagnostics.DiagnosticSwitches.ExportPreviewPNGs, true))
             {
                 yield return null;
 
-                //Arrange
-                var testObject = ProduceNewObject(objectFactory, renderPipelineAssetType, out m_CreatedObjectPath);
-                var loadIcon = LoadIcon(TestContext.CurrentContext.Test.Name);
+                var objectToPreview = ProduceNewObject(objectFactory, m_RenderPipelineAssetType, out m_CreatedObjectPath);
 
-                //Act
-                yield return WaitForShadersToCompile(testObject, m_CreatedObjectPath);
-                var tex = AssetPreviewUpdater.CreatePreviewForAsset(testObject, null, m_CreatedObjectPath);
+                // Prepare to force generate the preview using the PreviewImporter specifically
+                var createdObjectGUID = AssetDatabase.GUIDFromAssetPath(m_CreatedObjectPath);
+                var artifactKey = new ArtifactKey(createdObjectGUID, typeof(PreviewImporter));
 
-                //Assert
-                ImageAssert.AreEqual(loadIcon, tex, new ImageComparisonSettings
+                // Snapshot worker logs before import iterations to establish baseline
+                var preIterationSnapshot = WorkerLogAnalyzer.SnapshotWorkerLogs(m_CreatedObjectPath);
+                Debug.Log($"Pre-iteration worker log snapshot: {preIterationSnapshot.GetSummary()}");
+
+                // Perform the generation itself more than once. The bug should occur on subsequent generations on the same worker.
+                // This is because workers unload any assets loaded during the import, so any problems caused by unloading the render pipeline asset should
+                // occur on a subsequent import.
+                int iterations = 5;
+                for (int importIteration = 0; importIteration < iterations; importIteration++)
                 {
-                    TargetWidth = 128,
-                    TargetHeight = 128,
-                    AverageCorrectnessThreshold = 0.005f,
-                    PerPixelCorrectnessThreshold = 0.005f
-                }, saveFailedImage: true);
+                    ClearGeneratedPreviewImporterImages();
+
+                    var importResultID = AssetDatabaseExperimental.ForceProduceArtifact(artifactKey);
+                    Assert.IsTrue(importResultID.isValid, "AssetDatabaseExperimental.ForceProduceArtifact should return a valid Import Result ID (it is synchronous)");
+
+                    // The PreviewImporter debug mode writes the preview(s) to disk in the project Library
+                    var pathToGeneratedImages = "Library/TempArtifacts/Debug/" + m_CreatedObjectPath;
+                    FileUtil.CopyDirectoryRecursive(pathToGeneratedImages, k_GeneratedImagesProjectFolder);
+                    AssetDatabase.Refresh();
+                    var previewFilepaths = System.IO.Directory.GetFiles(k_GeneratedImagesProjectFolder, "*.png", System.IO.SearchOption.AllDirectories);
+                    Assert.IsTrue(previewFilepaths.Length > 0, $"There should be at least one generated preview in {k_GeneratedImagesProjectFolder}");
+
+                    foreach (var previewFilepath in previewFilepaths)
+                    {
+                        var previewFilename = System.IO.Path.GetFileName(previewFilepath);
+                        var previewProjectFilepath = String.Format("{0}/{1}", k_GeneratedImagesProjectFolder, previewFilename);
+                        var textureImporter = AssetImporter.GetAtPath(previewProjectFilepath) as TextureImporter;
+                        textureImporter.isReadable = true;
+                        textureImporter.textureCompression = TextureImporterCompression.Uncompressed;
+                        textureImporter.SaveAndReimport();
+                        var generatedPreview = AssetDatabase.LoadAssetAtPath<Texture2D>(previewProjectFilepath);
+
+                        Assert.IsNotNull(generatedPreview, $"The generated preview at {previewFilename} should be loadable");
+                        var referenceImage = LoadIcon(String.Format("AssetPreviewTests_Importer_{0}_{1}_{2}", GetPipelineName(), assetTypeName, previewFilename));
+                        //Assert
+                        ImageAssert.AreEqual(referenceImage, generatedPreview, new ImageComparisonSettings
+                        {
+                            TargetWidth = 128,
+                            TargetHeight = 128,
+                            AverageCorrectnessThreshold = 0.005f,
+                            PerPixelCorrectnessThreshold = 0.005f
+                        }, saveFailedImage: true);
+                    }
+                }
+
+                // Snapshot worker logs after import iterations and verify single worker usage
+                var postIterationSnapshot = WorkerLogAnalyzer.SnapshotWorkerLogs(m_CreatedObjectPath);
+                Debug.Log($"Post-iteration worker log snapshot: {postIterationSnapshot.GetSummary()}");
+
+                var importDifference = postIterationSnapshot.GetDifference(preIterationSnapshot);
+                Debug.Log($"Import difference: {importDifference.GetSummary()}");
+
+                // Assert that all imports occurred on a single worker
+                WorkerLogAnalyzer.AssertSingleWorkerUsedAtLeastTwice(importDifference, m_CreatedObjectPath, iterations);
             }
         }
 
-        [UnityTest]
-        [TestCaseSource(nameof(s_TestCaseDataPreviewImporter))]
         /// <summary>
-        /// Test that the PreviewImporter on an Asset Import Worker generates a representative preview.
+        /// Test that the PreviewImporter on an Asset Import Worker generates a representative preview for Model.
         /// </summary>
         /// <description>
         /// This is a test for a historic bug that occurred on Asset Import Workers in ~2023, where the worker would unload render pipeline assets after
@@ -139,82 +182,45 @@ namespace Preview
         /// The Preview manager caches previews, so this test forces the generation of a new preview by using AssetDatabaseExperimental.ForceProduceArtifact
         /// and specifying the PreviewImporter explicitly as that is where the bug occurred.
         /// </description>
-        public IEnumerator CreatePreviewAssetImportWorker(AssetFactory objectFactory, Type renderPipelineAssetType)
+        [UnityTest]
+        public IEnumerator CreatePreviewAssetImportWorker_Model()
         {
-            // Configure the worker to dump preview images to disk for debugging purposes
-            using (var diagnosticSwitchGuard = new Diagnostics.DiagnosticSwitchGuard(Diagnostics.DiagnosticSwitches.ExportPreviewPNGs, true))
-            {
-                using (new RenderPipelineScope(renderPipelineAssetType))
-                {
-                    yield return null;
+            if (m_RenderPipelineAssetType == typeof(HDRenderPipelineAsset))
+                Assert.Ignore("Reports incompatible keyword space errors");
 
-                    var objectToPreview = ProduceNewObject(objectFactory, renderPipelineAssetType, out m_CreatedObjectPath);
+            yield return CreatePreviewAssetImportWorkerInternal(new GameObjectFactory("Hammer.fbx"), "Model");
+        }
 
-                    // Prepare to force generate the preview using the PreviewImporter specifically
-                    var createdObjectGUID = AssetDatabase.GUIDFromAssetPath(m_CreatedObjectPath);
-                    var artifactKey = new ArtifactKey(createdObjectGUID, typeof(PreviewImporter));
+        /// <summary>
+        /// Test that the PreviewImporter on an Asset Import Worker generates a representative preview for Prefab.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator CreatePreviewAssetImportWorker_Prefab()
+        {
+            if (m_RenderPipelineAssetType == typeof(HDRenderPipelineAsset))
+                Assert.Ignore("Reports incompatible keyword space errors");
 
-                    // Snapshot worker logs before import iterations to establish baseline
-                    var preIterationSnapshot = WorkerLogAnalyzer.SnapshotWorkerLogs(m_CreatedObjectPath);
-                    Debug.Log($"Pre-iteration worker log snapshot: {preIterationSnapshot.GetSummary()}");
+            yield return CreatePreviewAssetImportWorkerInternal(new GameObjectFactory("Hammer.prefab"), "Prefab");
+        }
 
-                    // Perform the generation itself more than once. The bug should occur on subsequent generations on the same worker.
-                    // This is because workers unload any assets loaded during the import, so any problems caused by unloading the render pipeline asset should
-                    // occur on a subsequent import.
-                    int iterations = 5;
-                    for (int importIteration = 0; importIteration < iterations; importIteration++)
-                    {
-                        ClearGeneratedPreviewImporterImages();
+        /// <summary>
+        /// Test that the PreviewImporter on an Asset Import Worker generates a representative preview for Material.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator CreatePreviewAssetImportWorker_Material()
+        {
+            if (m_RenderPipelineAssetType == typeof(HDRenderPipelineAsset))
+                Assert.Ignore("Reports incompatible keyword space errors");
 
-                        var importResultID = AssetDatabaseExperimental.ForceProduceArtifact(artifactKey);
-                        Assert.IsTrue(importResultID.isValid, "AssetDatabaseExperimental.ForceProduceArtifact should return a valid Import Result ID (it is synchronous)");
-
-                        // The PreviewImporter debug mode writes the preview(s) to disk in the project Library
-                        var pathToGeneratedImages = "Library/TempArtifacts/Debug/" + m_CreatedObjectPath;
-                        FileUtil.CopyDirectoryRecursive(pathToGeneratedImages, k_GeneratedImagesProjectFolder);
-                        AssetDatabase.Refresh();
-                        var previewFilepaths = System.IO.Directory.GetFiles(k_GeneratedImagesProjectFolder, "*.png", System.IO.SearchOption.AllDirectories);
-                        Assert.IsTrue(previewFilepaths.Length > 0, $"There should be at least one generated preview in {k_GeneratedImagesProjectFolder}");
-
-                        foreach (var previewFilepath in previewFilepaths)
-                        {
-                            var previewFilename = System.IO.Path.GetFileName(previewFilepath);
-                            var previewProjectFilepath = String.Format("{0}/{1}", k_GeneratedImagesProjectFolder, previewFilename);
-                            var textureImporter = AssetImporter.GetAtPath(previewProjectFilepath) as TextureImporter;
-                            textureImporter.isReadable = true;
-                            textureImporter.textureCompression = TextureImporterCompression.Uncompressed;
-                            textureImporter.SaveAndReimport();
-                            var generatedPreview = AssetDatabase.LoadAssetAtPath<Texture2D>(previewProjectFilepath);
-
-                            Assert.IsNotNull(generatedPreview, $"The generated preview at {previewFilename} should be loadable");
-                            var referenceImage = LoadIcon(String.Format("{0}_{1}", TestContext.CurrentContext.Test.Name, previewFilename));
-                            //Assert
-                            ImageAssert.AreEqual(referenceImage, generatedPreview, new ImageComparisonSettings
-                            {
-                                TargetWidth = 128,
-                                TargetHeight = 128,
-                                AverageCorrectnessThreshold = 0.005f,
-                                PerPixelCorrectnessThreshold = 0.005f
-                            }, saveFailedImage: true);
-                        }
-                    }
-
-                    // Snapshot worker logs after import iterations and verify single worker usage
-                    var postIterationSnapshot = WorkerLogAnalyzer.SnapshotWorkerLogs(m_CreatedObjectPath);
-                    Debug.Log($"Post-iteration worker log snapshot: {postIterationSnapshot.GetSummary()}");
-
-                    var importDifference = postIterationSnapshot.GetDifference(preIterationSnapshot);
-                    Debug.Log($"Import difference: {importDifference.GetSummary()}");
-
-                    // Assert that all imports occurred on a single worker
-                    WorkerLogAnalyzer.AssertSingleWorkerUsedAtLeastTwice(importDifference, m_CreatedObjectPath, iterations);
-                }
-            }
+            yield return CreatePreviewAssetImportWorkerInternal(new MaterialFactory($"TestMaterial-{GetPipelineName()}"), "Material");
         }
 
         [OneTimeSetUp]
         public void OneTimeSetup()
         {
+            // Switch to the render pipeline for this test fixture
+            m_RenderPipelineScope = new RenderPipelineScope(m_RenderPipelineAssetType);
+
             // Request that only one worker is used, to give the maximum possibility that multiple previews are generated on the same worker.
             m_OriginalDesiredImportWorkerCount = EditorUserSettings.desiredImportWorkerCount;
             m_OriginalStandbyImportWorkerCount = EditorUserSettings.standbyImportWorkerCount;
@@ -230,6 +236,10 @@ namespace Preview
         [OneTimeTearDown]
         public void OneTimeTeardown()
         {
+            // Restore the original render pipeline
+            m_RenderPipelineScope?.Dispose();
+            m_RenderPipelineScope = null;
+
             if (m_OriginalDesiredImportWorkerCount != -1)
             {
                 EditorUserSettings.desiredImportWorkerCount = m_OriginalDesiredImportWorkerCount;

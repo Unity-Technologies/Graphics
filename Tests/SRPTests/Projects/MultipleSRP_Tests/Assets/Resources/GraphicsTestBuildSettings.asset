@@ -41,6 +41,11 @@ MonoBehaviour:
     rootPath: Assets/ReferenceImagesBase
     nodes: []
     typeString: 
-  m_BuildPlatformSchemata: []
-  m_BuildPlatformNames: []
+  m_BuildPlatformSchemata:
+  - name: Default Base
+    rootPath: Assets/ReferenceImagesBase
+    nodes: []
+    typeString:
+  m_BuildPlatformNames:
+  - Default Base
   m_SceneLists: []
