@@ -130,7 +130,7 @@ namespace UnityEngine.PathTracing.Tests
             }
             using var deviceOutputBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, sizeof(float) * 3);
 
-            var cubemapMat = new Material(Shader.Find("PathIteratorTesting/UniformCubemap"));
+            var cubemapMat = new Material(Shader.Find("Hidden/PathIteratorTesting/UniformCubemap"));
             cubemapMat.SetVector("_Radiance", new Vector4(envRed, envGreen, envBlue, 1.0f));
             _world.SetEnvironmentMaterial(cubemapMat);
             GraphicsBuffer buildScratchBuffer = null;
@@ -180,12 +180,12 @@ namespace UnityEngine.PathTracing.Tests
             }
             using var deviceOutputBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, sizeof(float) * 3);
 
-            var cubemapMaterial = new Material(Shader.Find("PathIteratorTesting/UniformCubemap"));
+            var cubemapMaterial = new Material(Shader.Find("Hidden/PathIteratorTesting/UniformCubemap"));
             cubemapMaterial.SetVector("_Radiance", new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
             GraphicsBuffer buildScratchBuffer = null;
 
             var mesh = MeshUtil.CreateQuadMesh();
-            var material = new Material(Shader.Find("PathIteratorTesting/UniformAlbedoMetaPass"));
+            var material = new Material(Shader.Find("Hidden/PathIteratorTesting/UniformAlbedoMetaPass"));
             material.SetColor("_Albedo", new Color(albedoRed, albedoGreen, albedoBlue, 1));
 
             var matDesc = MaterialPool.ConvertUnityMaterialToMaterialDescriptor(material, EmissionMode.Baked);

@@ -1,4 +1,4 @@
-Shader "PathIteratorTesting/UniformCubemap" {
+Shader "Hidden/PathIteratorTesting/UniformCubemap" {
     Properties {
         _Radiance ("Radiance", Vector) = (.5, .5, .5, 1.0)
     }

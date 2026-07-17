@@ -1,4 +1,4 @@
-Shader "PathIteratorTesting/UniformAlbedoMetaPass"
+Shader "Hidden/PathIteratorTesting/UniformAlbedoMetaPass"
 {
     Properties {
         _Albedo ("Albedo", Color) = (.5, .5, .5, 1.0)
