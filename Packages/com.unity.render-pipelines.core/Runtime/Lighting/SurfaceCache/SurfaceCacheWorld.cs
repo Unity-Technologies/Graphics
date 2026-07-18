@@ -129,6 +129,7 @@ namespace UnityEngine.Rendering
             public DirectionalLight? DirectionalLight => 0 < _directionalLights.Count ? _directionalLights.Values[0] : null;
             public GraphicsBuffer PunctualLightBuffer => _punctualLights.Buffer;
             public uint PunctualLightCount => _punctualLights.Count;
+            public PunctualLight GetPunctualLight(int index) => _punctualLights.Values[index];
 
             Handle<Light> AddToList(LightDescriptor desc)
             {
@@ -337,6 +338,11 @@ namespace UnityEngine.Rendering
         public uint GetPunctualLightCount()
         {
             return _lights.PunctualLightCount;
+        }
+
+        internal PunctualLight GetPunctualLight(int index)
+        {
+            return _lights.GetPunctualLight(index);
         }
 
         public void SetEnvironmentMaterial(Material mat)

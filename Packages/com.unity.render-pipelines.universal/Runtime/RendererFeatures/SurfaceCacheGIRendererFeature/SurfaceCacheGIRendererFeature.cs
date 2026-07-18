@@ -309,7 +309,7 @@ namespace UnityEngine.Rendering.Universal
 
             private readonly SurfaceCacheWorld _world;
             private readonly SurfaceCacheWorldAdapter _worldAdapter;
-            private readonly InternalBridge.ObjectDispatcher _objDispatcher;
+            private readonly ObjectDispatcherChangeSource _changeSource;
             private GraphicsBuffer _worldUpdateScratch;
             private readonly uint _environmentCubemapResolution = 32;
             private readonly bool _conformToUnityGIFormat;
@@ -326,8 +326,8 @@ namespace UnityEngine.Rendering.Universal
                 _conformToUnityGIFormat = conformToUnityGIFormat;
                 _world = new SurfaceCacheWorld();
                 _world.Init(rtContext, worldResources);
-                _objDispatcher = new();
-                _worldAdapter = new SurfaceCacheWorldAdapter(_objDispatcher, _world, fallbackMaterial);
+                _changeSource = new ObjectDispatcherChangeSource();
+                _worldAdapter = new SurfaceCacheWorldAdapter(fallbackMaterial);
             }
 
             public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
@@ -338,17 +338,20 @@ namespace UnityEngine.Rendering.Universal
                 // the case for the standard ambient probe lighting, which is assumed to be in gamma space and then converted to
                 // linear space. We will make this more coherent for the ambient probe in the future.
                 // Similarly, the ambient colors are all defined in sRGB space and must be converted to linear.
-                _worldAdapter.Update(
-                    _objDispatcher,
-                    RenderSettings.ambientMode,
-                    RenderSettings.skybox,
-                    RenderSettings.ambientSkyColor.linear,
-                    RenderSettings.ambientEquatorColor.linear,
-                    RenderSettings.ambientGroundColor.linear,
-                    RenderSettings.ambientIntensity,
-                    _conformToUnityGIFormat,
-                    RenderingLayerMask,
-                    _world);
+                using (var changeSet = _changeSource.CollectChanges())
+                {
+                    _worldAdapter.Update(
+                        changeSet.WorldChangeSet,
+                        RenderSettings.ambientMode,
+                        RenderSettings.skybox,
+                        RenderSettings.ambientSkyColor.linear,
+                        RenderSettings.ambientEquatorColor.linear,
+                        RenderSettings.ambientGroundColor.linear,
+                        RenderSettings.ambientIntensity,
+                        _conformToUnityGIFormat,
+                        RenderingLayerMask,
+                        _world);
+                }
 
                 using (var builder = renderGraph.AddUnsafePass("Surface Cache World Update", out WorldUpdatePassData passData))
                 {
@@ -376,7 +379,7 @@ namespace UnityEngine.Rendering.Universal
             public void Dispose()
             {
                 _worldAdapter.CleanUp(_world);
-                _objDispatcher.Dispose();
+                _changeSource.Dispose();
                 _world.Dispose();
                 _worldUpdateScratch?.Dispose();
             }

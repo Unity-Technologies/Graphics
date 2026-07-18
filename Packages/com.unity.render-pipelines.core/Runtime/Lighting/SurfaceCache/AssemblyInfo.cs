@@ -4,3 +4,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Editor")]
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Core.Editor.Tests")]
 [assembly: InternalsVisibleTo("Unity.SurfaceCache.Tests")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.SurfaceCache.Tests")]

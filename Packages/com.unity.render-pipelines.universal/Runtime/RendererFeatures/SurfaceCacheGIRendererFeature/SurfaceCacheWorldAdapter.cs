@@ -6,7 +6,6 @@ using UnityEngine.PathTracing.Core;
 using InstanceHandle = UnityEngine.PathTracing.Core.Handle<UnityEngine.Rendering.SurfaceCacheWorld.Instance>;
 using LightHandle = UnityEngine.PathTracing.Core.Handle<UnityEngine.Rendering.SurfaceCacheWorld.Light>;
 using MaterialHandle = UnityEngine.PathTracing.Core.Handle<UnityEngine.PathTracing.Core.MaterialPool.MaterialDescriptor>;
-using ObjectDispatcher = UnityEngine.InternalBridge.ObjectDispatcher;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -24,27 +23,13 @@ namespace UnityEngine.Rendering.Universal
         // Defaults to Everything so that, absent a Surface Cache volume override, every instance contributes.
         uint _renderingLayerMaskFilter = 0xFFFFFFFF;
 
-        public SurfaceCacheWorldAdapter(ObjectDispatcher objDispatcher, SurfaceCacheWorld world, Material fallbackMaterial)
+        public SurfaceCacheWorldAdapter(Material fallbackMaterial)
         {
             _lights = new LightSet();
             _sharedMaterials = new SharedMaterialSet(fallbackMaterial);
             _meshRenderers = new MeshRendererSet(fallbackMaterial);
 #if ENABLE_TERRAIN_MODULE
             _terrains = new TerrainSet(fallbackMaterial);
-#endif
-
-#if UNITY_EDITOR
-            objDispatcher.maxDispatchHistoryFramesCount = int.MaxValue;
-#endif
-            objDispatcher.EnableTypeTracking<MeshRenderer>(ObjectDispatcher.TypeTrackingFlags.SceneObjects);
-            objDispatcher.EnableTransformTracking<MeshRenderer>(ObjectDispatcher.TransformTrackingType.GlobalTRS);
-            objDispatcher.EnableTypeTracking<Light>(ObjectDispatcher.TypeTrackingFlags.SceneObjects);
-            objDispatcher.EnableTransformTracking<Light>(ObjectDispatcher.TransformTrackingType.GlobalTRS);
-            objDispatcher.EnableTypeTracking<Material>(ObjectDispatcher.TypeTrackingFlags.SceneObjects | ObjectDispatcher.TypeTrackingFlags.Assets);
-#if ENABLE_TERRAIN_MODULE
-            objDispatcher.EnableTypeTracking<Terrain>(ObjectDispatcher.TypeTrackingFlags.SceneObjects);
-            objDispatcher.EnableTransformTracking<Terrain>(ObjectDispatcher.TransformTrackingType.GlobalTRS);
-            objDispatcher.EnableTypeTracking<TerrainData>(ObjectDispatcher.TypeTrackingFlags.SceneObjects | ObjectDispatcher.TypeTrackingFlags.Assets);
 #endif
         }
 
@@ -58,18 +43,18 @@ namespace UnityEngine.Rendering.Universal
             _sharedMaterials.CleanUp(world);
         }
 
-        public void Update(ObjectDispatcher objDispatcher, AmbientMode ambientMode, Material skyboxMaterial,
+        public void Update(SurfaceCacheWorldChangeSet changes, AmbientMode ambientMode, Material skyboxMaterial,
             Color ambientSkycolor, Color ambientEquatorColor, Color ambientGroundColor, float materialEnvIntensityMultiplier,
             bool divideEnvIntensityByPI, uint renderingLayerMaskFilter, SurfaceCacheWorld world)
         {
             bool filterChanged = renderingLayerMaskFilter != _renderingLayerMaskFilter;
             _renderingLayerMaskFilter = renderingLayerMaskFilter;
 
-            UpdateMeshRenderers(objDispatcher, world);
+            UpdateMeshRenderers(changes.MeshRendererTransformChangedList, changes.MeshRendererChangedList, changes.MeshRendererDestroyedList, world);
 #if ENABLE_TERRAIN_MODULE
-            UpdateTerrains(objDispatcher, world);
+            UpdateTerrains(changes.TerrainTransformChangedList, changes.TerrainChangedList, changes.TerrainDestroyedList, changes.TerrainDataChangedList, world);
 #endif
-            UpdateLights(objDispatcher, world);
+            UpdateLights(changes.LightTransformChangedList, changes.LightChangedList, changes.LightDestroyedList, world);
 
             // A change to the global rendering layer mask filter is not reported as a per-object change by the
             // ObjectDispatcher, so re-evaluate every known instance to add the newly-included and remove the
@@ -84,7 +69,7 @@ namespace UnityEngine.Rendering.Universal
                 _lights.ReevaluateAll(world, _renderingLayerMaskFilter);
             }
 
-            UpdateMaterials(objDispatcher, world);
+            UpdateMaterials(changes.MaterialChangedList, world);
             UpdateEnvironment(
                 ambientMode,
                 skyboxMaterial,
@@ -96,56 +81,45 @@ namespace UnityEngine.Rendering.Universal
                 world);
         }
 
-        void UpdateMeshRenderers(ObjectDispatcher objDispatcher, SurfaceCacheWorld world)
+        void UpdateMeshRenderers(IEnumerable<Component> transformChanged, IEnumerable<Object> changed, IEnumerable<EntityId> destroyed, SurfaceCacheWorld world)
         {
-            var transformChanges = objDispatcher.GetTransformChangesAndClear<MeshRenderer>(ObjectDispatcher.TransformTrackingType.GlobalTRS, false);
-            foreach (var component in transformChanges)
+            foreach (var component in transformChanged)
             {
                 var meshRenderer = (MeshRenderer)component;
                 _meshRenderers.Refresh(meshRenderer, _sharedMaterials, world, true, _renderingLayerMaskFilter);
             }
 
-            using (var typeChanges = objDispatcher.GetTypeChangesAndClear<MeshRenderer>(Unity.Collections.Allocator.Temp))
+            foreach (var component in changed)
             {
-                foreach (var component in typeChanges.changed)
-                {
-                    var meshRenderer = (MeshRenderer)component;
-                    _meshRenderers.Refresh(meshRenderer, _sharedMaterials, world, false, _renderingLayerMaskFilter);
-                }
+                var meshRenderer = (MeshRenderer)component;
+                _meshRenderers.Refresh(meshRenderer, _sharedMaterials, world, false, _renderingLayerMaskFilter);
+            }
 
-                foreach (var entityId in typeChanges.destroyedID)
-                {
-                    if (_meshRenderers.Contains(entityId))
-                        _meshRenderers.Remove(entityId, _sharedMaterials, world);
-                }
+            foreach (var entityId in destroyed)
+            {
+                if (_meshRenderers.Contains(entityId))
+                    _meshRenderers.Remove(entityId, _sharedMaterials, world);
             }
         }
 
 #if ENABLE_TERRAIN_MODULE
-        void UpdateTerrains(ObjectDispatcher objDispatcher, SurfaceCacheWorld world)
+        void UpdateTerrains(IEnumerable<Component> transformChanged, IEnumerable<Object> changed, IEnumerable<EntityId> destroyed, IEnumerable<Object> terrainDataChanged, SurfaceCacheWorld world)
         {
             Debug.Assert(_dirtyTerrainDataThisFrame.Count == 0);
 
-            using (var terrainDataChanges = objDispatcher.GetTypeChangesAndClear<TerrainData>(Unity.Collections.Allocator.Temp))
-            {
-                foreach (var obj in terrainDataChanges.changed)
-                    _dirtyTerrainDataThisFrame.Add(((TerrainData)obj).GetEntityId());
-            }
+            foreach (var obj in terrainDataChanged)
+                _dirtyTerrainDataThisFrame.Add(((TerrainData)obj).GetEntityId());
 
-            var transformChanges = objDispatcher.GetTransformChangesAndClear<Terrain>(ObjectDispatcher.TransformTrackingType.GlobalTRS, false);
-            foreach (var component in transformChanges)
+            foreach (var component in transformChanged)
                 _terrains.Refresh((Terrain)component, _sharedMaterials, world, true, _renderingLayerMaskFilter);
 
-            using (var typeChanges = objDispatcher.GetTypeChangesAndClear<Terrain>(Unity.Collections.Allocator.Temp))
-            {
-                foreach (var component in typeChanges.changed)
-                    _terrains.Refresh((Terrain)component, _sharedMaterials, world, false, _renderingLayerMaskFilter);
+            foreach (var component in changed)
+                _terrains.Refresh((Terrain)component, _sharedMaterials, world, false, _renderingLayerMaskFilter);
 
-                foreach (var entityId in typeChanges.destroyedID)
-                {
-                    if (_terrains.Contains(entityId))
-                        _terrains.Remove(entityId, _sharedMaterials, world);
-                }
+            foreach (var entityId in destroyed)
+            {
+                if (_terrains.Contains(entityId))
+                    _terrains.Remove(entityId, _sharedMaterials, world);
             }
 
             // TerrainData changes require remove + re-add of the World instance because terrain geometry is baked at AddInstance time and currently cannot be patched in place.
@@ -194,49 +168,42 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void UpdateLights(ObjectDispatcher objDispatcher, SurfaceCacheWorld world)
+        void UpdateLights(IEnumerable<Component> transformChanged, IEnumerable<Object> changed, IEnumerable<EntityId> destroyed, SurfaceCacheWorld world)
         {
-            var transformChanges = objDispatcher.GetTransformChangesAndClear<Light>(ObjectDispatcher.TransformTrackingType.GlobalTRS, false);
-            foreach (var component in transformChanges)
+            foreach (var component in transformChanged)
                 _lights.Refresh((Light)component, world, _renderingLayerMaskFilter);
 
-            using (var typeChanges = objDispatcher.GetTypeChangesAndClear<Light>(Unity.Collections.Allocator.Temp))
-            {
-                foreach (var component in typeChanges.changed)
-                    _lights.Refresh((Light)component, world, _renderingLayerMaskFilter);
+            foreach (var component in changed)
+                _lights.Refresh((Light)component, world, _renderingLayerMaskFilter);
 
-                foreach (var entityId in typeChanges.destroyedID)
-                {
-                    if (_lights.Contains(entityId))
-                        _lights.Remove(entityId, world);
-                }
+            foreach (var entityId in destroyed)
+            {
+                if (_lights.Contains(entityId))
+                    _lights.Remove(entityId, world);
             }
         }
 
-        void UpdateMaterials(ObjectDispatcher objDispatcher, SurfaceCacheWorld world)
+        void UpdateMaterials(IEnumerable<Object> changed, SurfaceCacheWorld world)
         {
 #if UNITY_EDITOR
             _sharedMaterials.Update(world);
 #endif
 
-            using (var typeChanges = objDispatcher.GetTypeChangesAndClear<Material>(Unity.Collections.Allocator.Temp))
+            foreach (var obj in changed)
             {
-                foreach (var obj in typeChanges.changed)
+                var material = (Material)obj;
+                var matEntityId = material.GetEntityId();
+                if (_sharedMaterials.IsReferenced(matEntityId))
                 {
-                    var material = (Material)obj;
-                    var matEntityId = material.GetEntityId();
-                    if (_sharedMaterials.IsReferenced(matEntityId))
-                    {
-                        _sharedMaterials.Update(matEntityId, material, world);
-                    }
+                    _sharedMaterials.Update(matEntityId, material, world);
                 }
-
-                // For now we do not explicitly handle material _removal_. This is acceptable for these reasons:
-                // 1) Even without explicit handling, the user experience is decent. If a user removes a material currently
-                //    being used by a mesh renderer, they can assign a new material and everything will be in sync again.
-                // 2) Keeping the associated data structures consistent is not easy and requires extra complexity and
-                //    and tracking. It is a lot of work and cost for little gain.
             }
+
+            // For now we do not explicitly handle material _removal_. This is acceptable for these reasons:
+            // 1) Even without explicit handling, the user experience is decent. If a user removes a material currently
+            //    being used by a mesh renderer, they can assign a new material and everything will be in sync again.
+            // 2) Keeping the associated data structures consistent is not easy and requires extra complexity and
+            //    and tracking. It is a lot of work and cost for little gain.
         }
 
         // Ensures the right MeshRenderers are present in the SurfaceCacheWorld at the right time, according to game
