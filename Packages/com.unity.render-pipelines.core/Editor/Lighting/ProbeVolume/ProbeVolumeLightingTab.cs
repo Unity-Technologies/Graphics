@@ -640,9 +640,8 @@ namespace UnityEngine.Rendering
                 onRemoveCallback = (list) =>
                 {
                     var guid = (string)list.list[list.index];
-                    activeSet.RemoveScene(guid);
                     Undo.RegisterCompleteObjectUndo(new Object[] { activeSet }, "Deleted scene in baking set");
-                    EditorUtility.SetDirty(activeSet);
+                    activeSet.RemoveScene(guid);
                 },
 
                 drawHeaderCallback = (rect) =>
