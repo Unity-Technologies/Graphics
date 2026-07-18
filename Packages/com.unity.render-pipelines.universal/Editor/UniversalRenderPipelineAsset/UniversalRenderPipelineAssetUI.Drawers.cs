@@ -310,10 +310,9 @@ namespace UnityEditor.Rendering.Universal
                 serialized.renderScale, 
                 p =>
                 {
-                    // Duplicating logic from UniversalRenderPipeline.InitializeStackedCameraData
-                    const float kRenderScaleThreshold = 0.05f;
-                    bool canRequireIntermediateTexture = Mathf.Abs(1.0f - p.floatValue) >= kRenderScaleThreshold;
-                    if (!canRequireIntermediateTexture)
+                    // Usual threshold is 0.05f, but display warning to users even when RenderScale not actually applied since users are not aware of threshold
+                    bool userAttemptingRenderScale = !Mathf.Approximately(p.floatValue, 1.0f);
+                    if (!userAttemptingRenderScale)
                         return false;
                     
                     // This operation is actually ok on Quest
@@ -333,7 +332,7 @@ namespace UnityEditor.Rendering.Universal
 
             if (serialized.renderScale.floatValue < 1.0f || stpUpscalingSelected || fsr1UpscalingSelected)
             {
-                EditorGUILayout.HelpBox("Camera depth isn't supported when Upscaling is turned on in the game view. We will automatically fall back to not doing depth-testing for this pass.", MessageType.Warning, true);
+                EditorGUILayout.HelpBox("Camera depth isn't supported when Upscaling is turned on in the game view. We will automatically fall back to not doing depth-testing for this pass when upscaling is applied.", MessageType.Warning, true);
             }
 
             EditorGUILayout.PropertyField(serialized.enableLODCrossFadeProp, Styles.enableLODCrossFadeText);
