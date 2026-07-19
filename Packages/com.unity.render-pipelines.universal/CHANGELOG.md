@@ -6,6 +6,9 @@ uid: urp-changelog
 
 ## [Unreleased]
 
+### Fixed
+- Fixed a Render Graph execution error ("Adding the final blit pass when Tile-Only Mode is on") when Tile-Only Mode was enabled on displays with a non-sRGB backbuffer (for example OpenGL ES in Linear color space); Tile-Only Mode now falls back to regular rendering on those displays.
+
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 

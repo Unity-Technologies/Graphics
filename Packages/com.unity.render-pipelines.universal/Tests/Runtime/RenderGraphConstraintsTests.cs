@@ -257,6 +257,9 @@ namespace UnityEngine.Rendering.Universal.Tests
         [UnityTest]
         public IEnumerator CameraStackingProduceWarning()
         {
+            if (Display.main.requiresSrgbBlitToBackbuffer)
+                Assert.Ignore("Tile-Only Mode falls back to normal rendering when the display requires an sRGB present blit; the overlay-unsupported warning won't be produced.");
+
             // Arrange
             var gameObject = new GameObject();
             var camera = gameObject.AddComponent<Camera>();

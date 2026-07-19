@@ -274,6 +274,13 @@ namespace UnityEngine.Rendering.Universal
                 useTileOnlyMode = false;
             }
 
+            // Tile-Only can't do the linear->sRGB present conversion on-tile: a non-sRGB
+            // backbuffer forces a sampling final blit, which the on-tile path forbids.
+            if (useTileOnlyMode && Display.main.requiresSrgbBlitToBackbuffer)
+            {
+                useTileOnlyMode = false;
+            }
+
             m_ValidationHandler = new ValidationHandler(useTileOnlyMode);
 
             var asset = UniversalRenderPipeline.asset;
