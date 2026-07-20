@@ -24,8 +24,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: SixWayShaderGraphMat
-  m_Shader: {fileID: -6465566751694194690, guid: 095407aa2b3822a4ebcdb052db167213,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 095407aa2b3822a4ebcdb052db167213, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
@@ -33,6 +32,7 @@ Material:
   - _SURFACE_TYPE_TRANSPARENT
   m_InvalidKeywords:
   - _DEPTHOFFSET_ON
+  - _EMISSION
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -96,6 +96,7 @@ Material:
     - _DoubleSidedNormalMode: 2
     - _DstBlend: 10
     - _DstBlend2: 10
+    - _DstBlendAlpha: 10
     - _EmissionScale: 1
     - _EnableBlendModePreserveSpecularLighting: 0
     - _EnableFogOnTransparent: 0
@@ -107,6 +108,7 @@ Material:
     - _ReceiveShadows: 1
     - _RenderQueueType: 3
     - _SrcBlend: 1
+    - _SrcBlendAlpha: 1
     - _Surface: 1
     - _SurfaceType: 1
     - _TransparentBackfaceEnable: 0
@@ -141,4 +143,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Editor::UnityEditor.Rendering.Universal.AssetVersion
-  version: 9
+  version: 10
