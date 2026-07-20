@@ -34,6 +34,36 @@ namespace UnityEngine.Rendering
                     return sceneToBakingSet;
                 }
             }
+
+            // Undo/redo restores a set's serialized scene list without going through Add/Remove/SetScene.
+            internal static void Resync(ProbeVolumeBakingSet set)
+            {
+                if (sceneToBakingSet == null)
+                    return;
+
+                var entityId = set.GetEntityId();
+                var staleGUIDs = new List<string>();
+                foreach (var kvp in sceneToBakingSet)
+                {
+                    if (kvp.Value.m_EntityId == entityId && !set.m_SceneGUIDs.Contains(kvp.Key))
+                        staleGUIDs.Add(kvp.Key);
+                }
+                foreach (var guid in staleGUIDs)
+                    sceneToBakingSet.Remove(guid);
+
+                var reference = new ProbeVolumeBakingSetWeakReference(set);
+                foreach (var guid in set.m_SceneGUIDs)
+                {
+                    // Don't steal scenes whose current owner is loaded and still lists them (e.g. a duplicated set asset).
+                    if (sceneToBakingSet.TryGetValue(guid, out var existing) && existing.m_EntityId != entityId)
+                    {
+                        var owner = existing.IsLoaded() ? existing.Get() : null;
+                        if (owner == null || owner.m_SceneGUIDs.Contains(guid))
+                            continue;
+                    }
+                    sceneToBakingSet[guid] = reference;
+                }
+            }
         }
 
         [SerializeField]
@@ -72,7 +102,8 @@ namespace UnityEngine.Rendering
             m_SceneGUIDs.Remove(guid);
             m_SceneBakeData.Remove(guid);
 
-            SceneToBakingSet.Instance.Remove(guid);
+            if (SceneToBakingSet.Instance.TryGetValue(guid, out var mapped) && mapped.m_EntityId == this.GetEntityId())
+                SceneToBakingSet.Instance.Remove(guid);
 
             EditorUtility.SetDirty(this);
         }
@@ -82,7 +113,8 @@ namespace UnityEngine.Rendering
             var previousSceneGUID = m_SceneGUIDs[index];
             m_SceneGUIDs[index] = guid;
 
-            SceneToBakingSet.Instance.Remove(previousSceneGUID);
+            if (SceneToBakingSet.Instance.TryGetValue(previousSceneGUID, out var mapped) && mapped.m_EntityId == this.GetEntityId())
+                SceneToBakingSet.Instance.Remove(previousSceneGUID);
             SceneToBakingSet.Instance[guid] = new ProbeVolumeBakingSetWeakReference(this);
 
             m_SceneBakeData.Add(guid, bakeData != null ? bakeData : new SceneBakeData());
