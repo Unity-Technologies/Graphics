@@ -65,9 +65,9 @@ If you don't use XR or VR, you can [disable the XR and VR modules](https://docs.
 
 ## Strip debug shader variants
 
-If you don't need to use the [Rendering Debugger](use-the-rendering-debugger.md) in a development build, you can disable **Runtime Debug Shaders** under **Miscellaneous** in the [Graphics settings window](Default-Settings-Window.md). This strips any debug shader variants that the Rendering Debugger uses.
+If you don't need to use the [Rendering Debugger](use-the-rendering-debugger.md) in your build, you can disable **Runtime Debug Shaders** under **Miscellaneous** in the [Graphics settings window](Default-Settings-Window.md). This strips any debug shader variants that the Rendering Debugger uses.
 
-You don't need to do this if you disable **Development Build** in your [Build Settings](https://docs.unity3d.com/Manual/BuildSettings.html).
+You don't need to do this if **Managed Code Variant** is set to **Release** (the default) in [**Player Settings**](https://docs.unity3d.com/Manual/class-PlayerSettings.html), because Unity strips these shader variants automatically.
 
 ## Features that affect build time but not variants
 

@@ -18,7 +18,12 @@ The **Render Graph Viewer** window displays the render graph for the active came
 <a name="built-project"></a>
 ## View the render graph for a build
 
-To connect the Render Graph Viewer window to a build, enable **Development Build** in the **Build Profiles** window when you build the project. If you build for WebGL or Universal Windows Platform (UWP), enable both **Development Build** and **Autoconnect Profiler**.
+To connect the Render Graph Viewer window to a build, when you build the project, do the following:
+
+* In the [**Build Profiles** window](https://docs.unity3d.com/Manual/build-profiles.html), enable **Development Build**.
+* In [**Player Settings**]([../class-PlayerSettings](https://docs.unity3d.com/Manual/class-PlayerSettings.html)), set **Managed Code Variant** to **Debug** or **Checked**.
+
+If you build for WebGL or Universal Windows Platform (UWP), also enable **Autoconnect Profiler**.
 
 After you build your project, follow these steps:
 
