@@ -1,4 +1,4 @@
-# Subtract
+# Subtract Operator
 
 Menu Path : **Operator > Math > Arithmetic > Subtract**
 

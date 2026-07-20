@@ -1,4 +1,4 @@
-# uint
+# uint Operator
 
 Menu Path : **Operator > Inline > uint**
 

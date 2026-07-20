@@ -1,4 +1,4 @@
-# Get Attribute: particleCountInStrip
+# Get Attribute: particleCountInStrip Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: particleCountInStrip**
 

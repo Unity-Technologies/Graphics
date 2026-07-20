@@ -1,4 +1,4 @@
-# Transform
+# Transform Operator
 
 Menu Path : **Operator > Inline > Transform**
 

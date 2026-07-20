@@ -1,6 +1,6 @@
-# InvertTRS (Matrix)
+# InvertTRS (Matrix) Operator
 
-Menu Path : **Operator > Math > Geometry > InvertTRS (Matrix)**
+Menu Path : **Operator** > **Math** > **Geometry** > **InvertTRS (Matrix)**
 
 The **Invert TRS (Matrix)** Operator inverts a TRS (Translation, Rotation, and Scaling) matrix.
 

@@ -1,4 +1,4 @@
-# Perlin Noise
+# Perlin Noise Operator
 
 Menu Path : **Operator > Noise > Perlin Noise**
 

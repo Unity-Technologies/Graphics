@@ -1,6 +1,6 @@
-# Position (Depth)
+# Position (Depth) Operator
 
-Menu Path : **Operator > Sampling > Position (Depth)**
+Menu Path : **Operator** > **Sampling** > **Position (Depth)**
 
 The **Position (Depth)** Operator samples the depth-buffer of a Camera and retrieves the position in world space. You can use this depth information to project particles into the scene.
 

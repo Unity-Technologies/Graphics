@@ -1,6 +1,6 @@
-# Volume (Torus)
+# Volume (Torus) Operator
 
-Menu Path : **Operator > Math > Geometry > Volume (Torus)**
+Menu Path : **Operator** > **Math** > **Geometry** > **Volume (Torus)**
 
 The **Volume (Torus)** Operator calculates the volume of a torus. This is equal to **2 π<sup>2</sup> R r<sup>2</sup>** where **R** is the major radius and **r** is the minor radius.
 

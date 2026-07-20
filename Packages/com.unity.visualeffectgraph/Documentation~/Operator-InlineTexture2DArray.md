@@ -1,4 +1,4 @@
-# Texture2DArray
+# Texture2DArray Operator
 
 Menu Path : **Operator > Inline > Texture2DArray**
 

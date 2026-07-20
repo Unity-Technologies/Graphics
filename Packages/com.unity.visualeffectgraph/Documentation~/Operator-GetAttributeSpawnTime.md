@@ -1,4 +1,4 @@
-# Get Attribute: spawnTime
+# Get Attribute: spawnTime Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: spawnTime**
 

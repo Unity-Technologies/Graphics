@@ -1,4 +1,4 @@
-# Get Attribute: axisX
+# Get Attribute: axisX Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: axisX**
 
