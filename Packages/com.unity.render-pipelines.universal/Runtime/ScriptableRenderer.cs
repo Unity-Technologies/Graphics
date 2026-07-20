@@ -738,6 +738,8 @@ namespace UnityEngine.Rendering.Universal
             public RendererListHandle gizmoRenderList;
             public TextureHandle color;
             public TextureHandle depth;
+            public bool clampViewport;
+            public Rect viewport;
         };
 
         /// <summary>
@@ -751,6 +753,7 @@ namespace UnityEngine.Rendering.Universal
         {
 #if UNITY_EDITOR
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
             if (!Handles.ShouldRenderGizmos() || cameraData.camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
                 return;
@@ -766,6 +769,12 @@ namespace UnityEngine.Rendering.Universal
                 passData.gizmoRenderList = renderGraph.CreateGizmoRendererList(cameraData.camera, gizmoSubset);
                 passData.color = color;
                 passData.depth = depth;
+                // Gizmos are drawn to the full render target. When that target is the backbuffer, the camera
+                // only occupies its viewport rect, so we must clamp the viewport to it. When drawing to an
+                // intermediate camera-sized target, SetRenderTarget's full-target viewport is already correct
+                // (and pixelRect's screen-space origin/size would be wrong there), so leave it untouched (UUM-131882).
+                passData.clampViewport = resourceData.isActiveTargetBackBuffer;
+                passData.viewport = cameraData.pixelRect;
                 builder.UseRendererList(passData.gizmoRenderList);
                 builder.AllowPassCulling(false);
 
@@ -774,6 +783,10 @@ namespace UnityEngine.Rendering.Universal
                     using (new ProfilingScope(rgContext.cmd, Profiling.drawGizmos))
                     {
                         rgContext.cmd.SetRenderTarget(data.color, data.depth);
+                        // SetRenderTarget resets the viewport to the full target; re-clamp to the camera rect
+                        // when rendering to the backbuffer.
+                        if (data.clampViewport)
+                            rgContext.cmd.SetViewport(data.viewport);
                         rgContext.cmd.DrawRendererList(data.gizmoRenderList);
                     }
                 });
