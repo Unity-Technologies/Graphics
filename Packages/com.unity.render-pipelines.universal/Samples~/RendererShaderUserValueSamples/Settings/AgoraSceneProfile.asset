@@ -64,7 +64,7 @@ MonoBehaviour:
   resolution:
     m_OverrideState: 0
     m_Value: 4
-  chromaticAbberationIntensity:
+  chromaticAberrationIntensity:
     m_OverrideState: 0
     m_Value: 0.5
 --- !u!114 &-32820517437979890

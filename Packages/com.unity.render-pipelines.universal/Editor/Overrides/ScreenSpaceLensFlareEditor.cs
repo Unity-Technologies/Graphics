@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.Universal
         protected SerializedDataParameter m_VignetteEffect;
         protected SerializedDataParameter m_StartingPosition;
         protected SerializedDataParameter m_Scale;
-        protected SerializedDataParameter m_ChromaticAbberationIntensity;
+        protected SerializedDataParameter m_ChromaticAberrationIntensity;
         protected SerializedDataParameter m_StreaksIntensity;
         protected SerializedDataParameter m_StreaksLength;
         protected SerializedDataParameter m_StreaksOrientation;
@@ -38,7 +38,7 @@ namespace UnityEditor.Rendering.Universal
         static GUIContent s_VignetteEffect = EditorGUIUtility.TrTextContent("Vignette Effect", "Controls the intensity of the vignette effect to occlude the Lens Flare effect at the center of the screen.");
         static GUIContent s_StartingPosition = EditorGUIUtility.TrTextContent("Starting Position", "Controls the starting position of the flares in screen space relative to their source.");
         static GUIContent s_Scale = EditorGUIUtility.TrTextContent("Scale", "Controls the scale at which the flares are sampled. This parameter only impacts regular, reversed and warped flares.");
-        static GUIContent s_ChromaticAbberationIntensity = EditorGUIUtility.TrTextContent("Intensity", "Controls the strength of the Chromatic Aberration effect. The higher the value, the more light is dispersed on the sides of the screen.");
+        static GUIContent s_ChromaticAberrationIntensity = EditorGUIUtility.TrTextContent("Intensity", "Controls the strength of the Chromatic Aberration effect. The higher the value, the more light is dispersed on the sides of the screen.");
         static GUIContent s_StreaksIntensity = EditorGUIUtility.TrTextContent("Multiplier", "Controls the intensity of streaks effect. This effect has an impact on performance when above zero. When this intensity is zero, this effect is not evaluated to save costs.");
         static GUIContent s_StreaksOrientation = EditorGUIUtility.TrTextContent("Orientation", "Controls the orientation streaks effect in degrees. A value of 0 creates horizontal streaks.");
         static GUIContent s_StreaksLength = EditorGUIUtility.TrTextContent("Length", "Controls the length of streaks effect. A value of one creates streaks about the width of the screen.");
@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.Universal
             m_VignetteEffect = Unpack(o.Find(x => x.vignetteEffect));
             m_StartingPosition = Unpack(o.Find(x => x.startingPosition));
             m_Scale = Unpack(o.Find(x => x.scale));
-            m_ChromaticAbberationIntensity = Unpack(o.Find(x => x.chromaticAbberationIntensity));
+            m_ChromaticAberrationIntensity = Unpack(o.Find(x => x.chromaticAberrationIntensity));
             m_StreaksIntensity = Unpack(o.Find(x => x.streaksIntensity));
             m_StreaksLength = Unpack(o.Find(x => x.streaksLength));
             m_StreaksOrientation = Unpack(o.Find(x => x.streaksOrientation));
@@ -113,7 +113,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             //Chromatic Aberration
-            PropertyField(m_ChromaticAbberationIntensity, s_ChromaticAbberationIntensity);
+            PropertyField(m_ChromaticAberrationIntensity, s_ChromaticAberrationIntensity);
         }
 
     }
