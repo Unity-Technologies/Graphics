@@ -311,6 +311,10 @@ namespace UnityEngine.Rendering
                 m_LightingScenarios = new List<string>() { ProbeReferenceVolume.defaultLightingScenario };
 
             settings.Upgrade();
+
+#if UNITY_EDITOR
+            SceneToBakingSet.Resync(this);
+#endif
         }
 
         void OnEnable()
