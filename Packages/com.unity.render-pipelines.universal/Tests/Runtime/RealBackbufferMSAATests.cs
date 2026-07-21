@@ -68,9 +68,6 @@ namespace UnityEngine.Rendering.Universal.Tests
             if (GraphicsSettings.currentRenderPipeline is not UniversalRenderPipelineAsset)
                 IgnoreWithLog("These tests only run when URP is the active render pipeline.");
 
-            if (IsForcedUGK())
-                IgnoreWithLog("UGK keeps the real back buffer single-sampled (the request is always 1), so there is nothing to test here. [UGK-2671]");
-
             // No multisampled back buffer where MSAA is resolved explicitly (editor, desktop, Intel/AMD Mac),
             // so the request is always 1 and there is nothing to discriminate. Real coverage runs on the
             // device/player jobs (see fixture header).
