@@ -671,15 +671,23 @@ namespace UnityEngine.Rendering.Universal
             return supportsPerLightSoftShadowQuality;
         }
 
-        internal static void SetPerLightSoftShadowKeyword(RasterCommandBuffer cmd, bool hasSoftShadows)
+        internal static void SetPerLightSoftShadowKeyword(RasterCommandBuffer cmd, UniversalShadowData shadowData, bool hasSoftShadows)
         {
             if (SupportsPerLightSoftShadowQuality())
                 cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, hasSoftShadows);
+            else
+                // keep static quality keywords in lockstep with the per-light shadow keywords (UUM-147509)
+                SetSoftShadowQualityShaderKeywords(cmd, shadowData, hasSoftShadows);
         }
 
         internal static void SetSoftShadowQualityShaderKeywords(RasterCommandBuffer cmd, UniversalShadowData shadowData)
         {
-            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, shadowData.isKeywordSoftShadowsEnabled);
+            SetSoftShadowQualityShaderKeywords(cmd, shadowData, shadowData.isKeywordSoftShadowsEnabled);
+        }
+
+        internal static void SetSoftShadowQualityShaderKeywords(RasterCommandBuffer cmd, UniversalShadowData shadowData, bool enabled)
+        {
+            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, enabled);
             if (SupportsPerLightSoftShadowQuality())
             {
                 cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, false);
@@ -688,26 +696,32 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                if (shadowData.isKeywordSoftShadowsEnabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.Low)
+                if (enabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.Low)
                 {
                     cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, true);
                     cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsMedium, false);
                     cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsHigh, false);
                     cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, false);
                 }
-                else if (shadowData.isKeywordSoftShadowsEnabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.Medium)
+                else if (enabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.Medium)
                 {
                     cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, false);
                     cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsMedium, true);
                     cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsHigh, false);
                     cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, false);
                 }
-                else if (shadowData.isKeywordSoftShadowsEnabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.High)
+                else if (enabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.High)
                 {
                     cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, false);
                     cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsMedium, false);
                     cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsHigh, true);
                     cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, false);
+                }
+                else
+                {
+                    cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, false);
+                    cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsMedium, false);
+                    cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsHigh, false);
                 }
             }
         }

@@ -1276,7 +1276,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Update the keyword state
             lastHasSoftShadow = hasSoftShadow;
-            ShadowUtils.SetPerLightSoftShadowKeyword(cmd, hasSoftShadow);
+            ShadowUtils.SetPerLightSoftShadowKeyword(cmd, shadowData, hasSoftShadow);
         }
 
         // Enable/Disable the _LIGHT_COOKIES keyword if it has changed and the light cookie index
