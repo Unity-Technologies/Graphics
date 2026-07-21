@@ -36,7 +36,7 @@ abstract class MaterialUpgraderTestBase<T> where T : MaterialUpgrader
             Assert.Ignore("Project without URP. Skipping test");
 
         var shader = Shader.Find(m_OldShaderPath);
-        Assume.That(shader, Is.Not.Null, $"Shader '{m_OldShaderPath}' not found.");
+        Assume.That(shader != null, $"Shader '{m_OldShaderPath}' not found.");
         m_Material = new Material(shader);
     }
 
