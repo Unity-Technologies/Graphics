@@ -249,7 +249,11 @@ namespace UnityEngine.Rendering.Universal.Tests
 
             yield return null;
 
-            Assert.That(OnlyBackbufferOrMemoryless(outputNonMemoryless: true), Is.True, "Non-memoryless intermediate targets were produced.");
+            // No need to go further if we don't support memoryless textures
+            if (SystemInfo.supportsMemorylessTextures)    
+            {
+                Assert.That(OnlyBackbufferOrMemoryless(outputNonMemoryless: true), Is.True, "Non-memoryless intermediate targets were produced.");
+            }
             LogAssert.ignoreFailingMessages = false;
         }
 
