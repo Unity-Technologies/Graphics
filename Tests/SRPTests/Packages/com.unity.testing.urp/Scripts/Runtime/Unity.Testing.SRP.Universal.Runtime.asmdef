@@ -23,9 +23,14 @@
     ],
     "autoReferenced": false,
     "defineConstraints": [
-        "UNITY_INCLUDE_TESTS"
+        "UNITY_TESTS_FRAMEWORK"
     ],
     "versionDefines": [
+        {
+            "name": "com.unity.testing.urp",
+            "expression": "",
+            "define": "UNITY_TESTS_FRAMEWORK"
+        },
         {
             "name": "com.unity.xr.oculus",
             "expression": "0.0.1",

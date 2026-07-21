@@ -30,9 +30,6 @@
     "com.unity.test-profiler": "0.1.0-exp.1",
     "com.unity.yamato": "1.0.1"
   },
-  "testables": [
-    "com.unity.testing.xr"
-  ],
   "useSatSolver": true,
   "registry": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
   "scopedRegistries": [

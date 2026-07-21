@@ -49,12 +49,6 @@
     "com.unity.yamato": "1.0.1"
   },
   "disableProjectUpdate": true,
-  "testables": [
-    "com.unity.render-pipelines.core",
-    "com.unity.render-pipelines.high-definition",
-    "com.unity.testing.hdrp",
-    "com.unity.testing.xr"
-  ],
   "scopedRegistries": [
     {
       "name": "Unity Internal Candidates",

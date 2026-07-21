@@ -56,10 +56,7 @@
     "com.unity.yamato": "1.0.1"
   },
   "testables": [
-    "com.unity.testing.visualeffectgraph",
-    "com.unity.testing.xr",
-    "com.unity.render-pipelines.visualeffectgraph",
-    "com.unity.shadergraph"
+    "com.unity.testing.visualeffectgraph"
   ],
   "scopedRegistries": [
     {

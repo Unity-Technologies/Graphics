@@ -47,10 +47,6 @@
     "com.unity.yamato": "1.0.1"
   },
   "disableProjectUpdate": true,
-  "testables": [
-    "com.unity.render-pipelines.core",
-    "com.unity.render-pipelines.universal"
-  ],
   "scopedRegistries": [
     {
       "name": "Unity Internal Candidates",

@@ -2,6 +2,7 @@ using NUnit.Framework;
 using UnityEditor.Shaders;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.TestTools;
 
 namespace UnityEditor.Rendering.Tests.ShaderStripping
 {
@@ -41,6 +42,7 @@ namespace UnityEditor.Rendering.Tests.ShaderStripping
         // dependency and reimport every RenderPipeline-tagged shader on each swap, timing out shader-heavy
         // tests on CI.
         [Test]
+        [UnityPlatform(exclude = new [] { RuntimePlatform.OSXEditor })] // https://jira.unity3d.com/browse/UUM-147149
         public void GetActiveRenderPipelineShaderTagsForPlatform_IgnoresRuntimeInMemoryRenderPipeline()
         {
             Assert.IsFalse(EditorUtility.IsPersistent(m_InMemoryRenderPipeline),

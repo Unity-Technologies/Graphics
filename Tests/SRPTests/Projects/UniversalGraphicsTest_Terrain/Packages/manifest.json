@@ -52,12 +52,6 @@
     "com.unity.test-profiler": "0.1.0-exp.1",
     "com.unity.yamato": "1.0.1"
   },
-  "testables": [
-    "com.unity.render-pipelines.core",
-    "com.unity.render-pipelines.universal",
-    "com.unity.testing.xr",
-    "com.unity.testing.urp"
-  ],
   "scopedRegistries": [
     {
       "name": "Unity Internal Candidates",

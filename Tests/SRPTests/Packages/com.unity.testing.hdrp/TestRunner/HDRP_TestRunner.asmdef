@@ -9,14 +9,22 @@
         "UnityEditor.TestTools.Graphics",
         "Unity.RenderPipelines.GPUDriven.Runtime"
     ],
-    "optionalUnityReferences": [
-        "TestAssemblies"
-    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
     "autoReferenced": true,
-    "defineConstraints": []
+    "defineConstraints": [
+        "UNITY_TESTS_FRAMEWORK"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.testing.hdrp",
+            "expression": "",
+            "define": "UNITY_TESTS_FRAMEWORK"
+        }
+    ]
 }

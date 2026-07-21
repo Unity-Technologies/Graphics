@@ -51,9 +51,6 @@
     "com.unity.test-profiler": "0.1.0-exp.1",
     "com.unity.yamato": "1.0.1"
   },
-  "testables": [
-    "com.unity.testing.xr"
-  ],
   "scopedRegistries": [
     {
       "name": "Unity Internal Candidates",

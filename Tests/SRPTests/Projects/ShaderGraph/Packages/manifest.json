@@ -50,7 +50,6 @@
   },
   "disableProjectUpdate": true,
   "testables": [
-    "com.unity.shadergraph",
     "com.unity.graph-authoring"
   ],
   "scopedRegistries": [

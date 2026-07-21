@@ -21,8 +21,14 @@
     ],
     "autoReferenced": true,
     "defineConstraints": [
-        "UNITY_INCLUDE_TESTS"
+        "UNITY_TESTS_FRAMEWORK"
     ],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.testing.visualeffectgraph",
+            "expression": "",
+            "define": "UNITY_TESTS_FRAMEWORK"
+        }
+    ],
     "noEngineReferences": false
 }

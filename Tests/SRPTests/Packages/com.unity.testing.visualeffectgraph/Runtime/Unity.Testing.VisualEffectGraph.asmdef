@@ -14,9 +14,14 @@
     ],
     "autoReferenced": true,
     "defineConstraints": [
-        "UNITY_INCLUDE_TESTS"
+        "UNITY_TESTS_FRAMEWORK"
     ],
     "versionDefines": [
+        {
+            "name": "com.unity.testing.visualeffectgraph",
+            "expression": "",
+            "define": "UNITY_TESTS_FRAMEWORK"
+        },
         {
             "name": "com.unity.timeline",
             "expression": "[0.0.0-builtin]",
