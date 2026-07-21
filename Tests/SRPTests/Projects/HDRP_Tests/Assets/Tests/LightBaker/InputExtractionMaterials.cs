@@ -22,6 +22,9 @@ namespace UnityEditor.LightBaking.Tests
         public int TextureCount { get; set; }
         public float RMSEThreshold { get; set; } = 0.0001f;
 
+        // Vulkan diverges at sub-texel sampling boundaries (UUM-134767); 0 = no Vulkan-specific floor.
+        public float VulkanRMSEThreshold { get; set; } = 0.0f;
+
         public override string ToString()
         {
             return $"{SceneName}-{ObjectName}-{MetaPassType}";
@@ -53,98 +56,112 @@ namespace UnityEditor.LightBaking.Tests
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "default",
                 MetaPassType = MetaPassType.Albedo,
-                TextureCount = 13
+                TextureCount = 13,
+                VulkanRMSEThreshold = 0.035f
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "default",
                 MetaPassType = MetaPassType.Emission,
-                TextureCount = 13
+                TextureCount = 13,
+                VulkanRMSEThreshold = 0.035f
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "emissive",
                 MetaPassType = MetaPassType.Emission,
-                TextureCount = 13
+                TextureCount = 13,
+                VulkanRMSEThreshold = 0.035f
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "albedo",
                 MetaPassType = MetaPassType.Albedo,
-                TextureCount = 13
+                TextureCount = 13,
+                VulkanRMSEThreshold = 0.035f
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "emissiveTex",
                 MetaPassType = MetaPassType.Emission,
-                TextureCount = 13
+                TextureCount = 13,
+                VulkanRMSEThreshold = 0.035f
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "albedoTex",
                 MetaPassType = MetaPassType.Albedo,
-                TextureCount = 13
+                TextureCount = 13,
+                VulkanRMSEThreshold = 0.035f
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "albedoTexTriplanarWorldSpace",
                 MetaPassType = MetaPassType.Albedo,
-                TextureCount = 13
+                TextureCount = 13,
+                VulkanRMSEThreshold = 0.035f
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "albedoTexPlanarWorldSpace",
                 MetaPassType = MetaPassType.Albedo,
-                TextureCount = 13
+                TextureCount = 13,
+                VulkanRMSEThreshold = 0.035f
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "albedoTexTriplanarObjectSpace",
                 MetaPassType = MetaPassType.Albedo,
-                TextureCount = 13
+                TextureCount = 13,
+                VulkanRMSEThreshold = 0.035f
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "albedoTexPlanarObjectSpace",
                 MetaPassType = MetaPassType.Albedo,
-                TextureCount = 13
+                TextureCount = 13,
+                VulkanRMSEThreshold = 0.035f
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "emissiveTexTiling23",
                 MetaPassType = MetaPassType.Emission,
-                TextureCount = 13
+                TextureCount = 13,
+                VulkanRMSEThreshold = 0.035f
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "albedoTexTiling23",
                 MetaPassType = MetaPassType.Albedo,
-                TextureCount = 13
+                TextureCount = 13,
+                VulkanRMSEThreshold = 0.035f
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "emissiveTexOffset_p5p3",
                 MetaPassType = MetaPassType.Emission,
-                TextureCount = 13
+                TextureCount = 13,
+                VulkanRMSEThreshold = 0.035f
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "albedoTexOffset_p5p3",
                 MetaPassType = MetaPassType.Albedo,
-                TextureCount = 13
+                TextureCount = 13,
+                VulkanRMSEThreshold = 0.035f
             },
             new()
             {
@@ -237,7 +254,10 @@ namespace UnityEditor.LightBaking.Tests
             // Tests need higher threshold on AMD due to platform-specific rasterization differences.
             bool isAMD = SystemInfo.graphicsDeviceVendor.Contains("amd", StringComparison.InvariantCultureIgnoreCase) ||
                          SystemInfo.graphicsDeviceVendor.Contains("ati", StringComparison.InvariantCultureIgnoreCase);
-float rmseThreshold = isAMD ? Math.Max(0.02f, metaPassTest.RMSEThreshold) : metaPassTest.RMSEThreshold;
+            float rmseThreshold = isAMD ? Math.Max(0.02f, metaPassTest.RMSEThreshold) : metaPassTest.RMSEThreshold;
+
+            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Vulkan)
+                rmseThreshold = Math.Max(metaPassTest.VulkanRMSEThreshold, rmseThreshold);
 
             ImageComparisonSettings imageComparisonSettings =
                 new()
