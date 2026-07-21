@@ -83,6 +83,9 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 
             m_DiffusionProfileList.ReplaceWithArray(Array.Empty<DiffusionProfileSettings>());
             m_DiffusionProfileSettings.autoRegister = true;
+            // Mark the settings dirty and save to ensure the change is persisted before the material import
+            EditorUtility.SetDirty(hdGlobalSettings);
+            AssetDatabase.SaveAssets();
 
             HDMaterial.SetDiffusionProfile(m_Material, m_Profile);
             AssetDatabase.SaveAssets();
