@@ -1380,6 +1380,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if ENABLE_UPSCALER_FRAMEWORK
             bool fsr1Enabled = cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_FSR1;
+            bool hasActiveUpscaler = postProcessingData.activeUpscaler != null;
 #else
             bool fsr1Enabled = cameraData.upscalingFilter == ImageUpscalingFilter.FSR;
 #endif
@@ -1392,6 +1393,9 @@ namespace UnityEngine.Rendering.Universal
             bool applyFinalPostProcessing = anyPostProcessing && cameraData.resolveFinalTarget &&
                                             ((cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing) ||
                                              ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && fsr1Enabled) ||
+#if ENABLE_UPSCALER_FRAMEWORK
+                                             ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && hasActiveUpscaler) ||
+#endif
                                              (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f));
             bool hasCaptureActions = cameraData.captureActions != null && cameraData.resolveFinalTarget;
 

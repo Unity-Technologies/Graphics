@@ -1076,6 +1076,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if ENABLE_UPSCALER_FRAMEWORK
             bool fsr1Enabled = cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_FSR1;
+            bool hasActiveUpscaler = postProcessingData.activeUpscaler != null;
 #else
             bool fsr1Enabled = cameraData.upscalingFilter == ImageUpscalingFilter.FSR;
 #endif
@@ -1088,7 +1089,10 @@ namespace UnityEngine.Rendering.Universal
             // FSR1 also requires the final pass (unlike upscalers using IUpscaler, it does not self-schedule).
             bool applyFinalPostProcessing = cameraData.resolveFinalTarget && !ppcUpscaleRT && anyPostProcessing &&
                                             ((cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing) ||
-                                            (cameraData.imageScalingMode == ImageScalingMode.Upscaling && fsr1Enabled));
+#if ENABLE_UPSCALER_FRAMEWORK
+                                            ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && hasActiveUpscaler) ||
+#endif
+                                            ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && fsr1Enabled));
 
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing || (x as ScriptableRenderPass2D)?.renderPassEvent2D == RenderPassEvent2D.AfterRenderingPostProcessing) != null;
             bool needsColorEncoding = !resolveToDebugScreen;

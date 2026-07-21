@@ -317,7 +317,7 @@ namespace UnityEngine.Rendering.Universal
         /// A read-only list of strings containing the names of all supported upscalers.
         /// Returns an empty list if the upscaling framework is not initialized.
         /// </value>
-        public IReadOnlyList<string> availableUpscalerNames { get { return upscaling?.upscalerNames ?? Array.Empty<string>(); } }
+        public IReadOnlyList<string> availableUpscalerNames => upscaling?.upscalerNames ?? Array.Empty<string>();
 
         /// <summary>
         /// Sets the active upscaler for the pipeline by its unique name.
@@ -347,15 +347,7 @@ namespace UnityEngine.Rendering.Universal
         /// <value>
         /// The name of the active upscaler, or an empty string if the upscaling framework is null.
         /// </value>
-        public string activeUpscalerName
-        {
-            get
-            {
-                if (upscaling != null)
-                    return upscaling.activeUpscaler.name;
-                return "";
-            }
-        }
+        public string activeUpscalerName => upscaling?.activeUpscaler?.name ?? string.Empty;
 #endif
 
         /// <summary>
@@ -1642,7 +1634,20 @@ namespace UnityEngine.Rendering.Universal
             // Use cameraData.pixelWidth/Height (the viewport size, XR-adjusted) rather than camera.pixelWidth, to match
             // the display resolution the rest of the pipeline scales from.
             var displayResolution = new Vector2Int(cameraData.pixelWidth, cameraData.pixelHeight);
-            var info = activeUpscaler.GetResolutionInfo(displayResolution, upscaling.GetGlobalOptions(activeUpscaler));
+
+            // Acquire the per-camera context for the active upscaler
+            // In XR multi-pass rendering, encode eye information into the camera ID to ensure separate contexts per eye
+            var cameraInstanceID = EntityId.ToULong(cameraData.camera.GetEntityId());
+            ulong viewId = cameraInstanceID;
+            if (cameraData.xr.enabled && !cameraData.xr.singlePassEnabled)
+                viewId = (ulong)HashCode.Combine(cameraInstanceID, cameraData.xr.multipassId);
+
+            UpscalerOptions options = upscaling.GetGlobalOptions(activeUpscaler);
+
+            // Acquire context early
+            upscaling.AcquireContext(viewId, activeUpscaler, options, displayResolution);
+
+            var info = activeUpscaler.GetResolutionInfo(displayResolution, options);
 
             if (info.constraint != UpscalerResolutionConstraint.Fixed)
                 return false;
@@ -1674,7 +1679,19 @@ namespace UnityEngine.Rendering.Universal
             if (renderSize.x >= displayResolution.x && renderSize.y >= displayResolution.y)
                 return renderSize;
 
-            var info = activeUpscaler.GetResolutionInfo(displayResolution, upscaling.GetGlobalOptions(activeUpscaler));
+            // Acquire the per-camera context for the active upscaler
+            // In XR multi-pass rendering, encode eye information into the camera ID to ensure separate contexts per eye
+            var cameraInstanceID = EntityId.ToULong(cameraData.camera.GetEntityId());
+            ulong viewId = cameraInstanceID;
+            if (cameraData.xr.enabled && !cameraData.xr.singlePassEnabled)
+                viewId = (ulong)HashCode.Combine(cameraInstanceID, cameraData.xr.multipassId);
+
+            UpscalerOptions options = upscaling.GetGlobalOptions(activeUpscaler);
+
+            // Acquire context early
+            upscaling.AcquireContext(viewId, activeUpscaler, options, displayResolution);
+
+            var info = activeUpscaler.GetResolutionInfo(displayResolution, options);
 
             if (info.constraint != UpscalerResolutionConstraint.Range)
                 return renderSize;
