@@ -303,6 +303,7 @@ namespace UnityEngine.Rendering
             const MeshRendererComponentMask UpdateInstanceDataMask = MeshRendererComponentMask.Mesh
                 | MeshRendererComponentMask.Material
                 | MeshRendererComponentMask.SubMeshStartIndex
+                | MeshRendererComponentMask.StaticBatchSubMeshCount
                 | MeshRendererComponentMask.LocalBounds
                 | MeshRendererComponentMask.RendererSettings
                 | MeshRendererComponentMask.ParentLODGroup
@@ -318,6 +319,7 @@ namespace UnityEngine.Rendering
             const MeshRendererComponentMask UpdateDrawBatchesMask = MeshRendererComponentMask.Mesh
                 | MeshRendererComponentMask.Material
                 | MeshRendererComponentMask.SubMeshStartIndex
+                | MeshRendererComponentMask.StaticBatchSubMeshCount
                 | MeshRendererComponentMask.RendererSettings
                 | MeshRendererComponentMask.Lightmap
                 | MeshRendererComponentMask.RendererPriority;
@@ -529,6 +531,7 @@ namespace UnityEngine.Rendering
                 | MeshRendererComponentMask.Mesh
                 | MeshRendererComponentMask.Material
                 | MeshRendererComponentMask.SubMeshStartIndex
+                | MeshRendererComponentMask.StaticBatchSubMeshCount
                 | MeshRendererComponentMask.LocalBounds
                 | MeshRendererComponentMask.RendererSettings
                 | MeshRendererComponentMask.ParentLODGroup
@@ -558,6 +561,7 @@ namespace UnityEngine.Rendering
                 materialIDs = rendererData.material,
                 subMaterialRanges = rendererData.subMaterialRange,
                 subMeshStartIndices = rendererData.subMeshStartIndex,
+                staticBatchSubMeshCounts = rendererData.staticBatchSubMeshCount,
                 localBounds = rendererData.localBounds.Reinterpret<AABB>(),
                 rendererSettings = rendererData.rendererSettings,
                 parentLODGroupIDs = rendererData.lodGroup,
