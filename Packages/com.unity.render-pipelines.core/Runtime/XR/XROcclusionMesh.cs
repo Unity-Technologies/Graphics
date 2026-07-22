@@ -74,7 +74,8 @@ namespace UnityEngine.Experimental.Rendering
                         Mesh mesh = m_Pass.GetOcclusionMesh(0);
                         if (mesh != null)
                         {
-                            cmd.DrawMesh(mesh, Matrix4x4.identity, m_Material);
+                            Vector3 scale = new Vector3(occlusionMeshScale, yFlip ? occlusionMeshScale : -occlusionMeshScale, 1.0f);
+                            cmd.DrawMesh(mesh, Matrix4x4.Scale(scale), m_Material);
                         }
                     }
                 }
