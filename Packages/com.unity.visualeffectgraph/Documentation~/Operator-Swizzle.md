@@ -1,4 +1,4 @@
-# Swizzle
+# Swizzle Operator
 
 Menu Path : **Operator > Math > Vector**
 

@@ -1,4 +1,4 @@
-# Visual Effects and Timeline
+# Using Visual Effects and Timeline
 
 Use Unity’s [Timeline](https://docs.unity3d.com/Packages/com.unity.timeline@latest/index.html?subfolder=/manual/index.html) to control a Visual Effect Graph’s properties and [Events](#Events). To do this, add the following to a [Timeline instance](https://docs.unity3d.com/Packages/com.unity.timeline@latest/index.html?subfolder=/manual/wf_instance.html):
 

@@ -1,4 +1,4 @@
-# Linear Drag
+# Linear Drag Block
 
 Menu Path : **Force >** **Linear Drag**
 

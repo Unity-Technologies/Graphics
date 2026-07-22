@@ -1,4 +1,4 @@
-# Construct Matrix
+# Construct Matrix Operator
 
 Menu Path : **Operator > Math > Vector**
 

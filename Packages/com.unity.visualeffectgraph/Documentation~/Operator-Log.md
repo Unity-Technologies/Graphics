@@ -1,4 +1,4 @@
-# Log
+# Log Operator
 
 Menu Path : **Operator > Math > Log**
 

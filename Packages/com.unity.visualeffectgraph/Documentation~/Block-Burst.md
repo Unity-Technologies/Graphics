@@ -1,9 +1,9 @@
-# Single/Periodic Burst
+# Single/Periodic Burst Blocks
 
 Menu Path:
 
-- **Spawn > Single Burst**
-- **Spawn > Periodic Burst**
+- **Spawn** > **Single Burst**
+- **Spawn** > **Periodic Burst**
 
 The Single/Periodic Burst Block spawns a number of particles instantly either once, or periodically using a delay. When this Block triggers a burst of particles to spawn, it increments the [spawnCount](https://docs.unity3d.com/Documentation/ScriptReference/VFX.VFXSpawnerState-spawnCount.html) instantly. If you change the **Repeat** setting to **Periodic**, this Block changes its name to **Periodic Burst** and spawns bursts of particles after a delay.
 
@@ -11,7 +11,7 @@ The Single/Periodic Burst Block spawns a number of particles instantly either on
 
 This Block is compatible with the following Contexts:
 
-- [Spawn](Context-Spawn.md)
+- [Spawn Context](Context-Spawn.md)
 
 ## Block settings
 

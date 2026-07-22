@@ -1,6 +1,6 @@
-# Volume (Cylinder)
+# Volume (Cylinder) Operator
 
-Menu Path : **Operator > Math > Geometry > Volume (Cylinder)**
+Menu Path : **Operator** > **Math** > **Geometry** > **Volume (Cylinder)**
 
 The **Volume (Cylinder)** Operator calculates the volume of a cylinder. This is equal to **π r<sup>2</sup> h** where **r** is the radius and **h** is the height of the cylinder.
 

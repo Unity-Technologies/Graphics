@@ -1,6 +1,6 @@
-# And (Bitwise)
+# And (Bitwise) Operator
 
-Menu Path : **Operator > Bitwise > And**
+Menu Path : **Operator** > **Bitwise** > **And**
 
 The **And** Operator takes two inputs and outputs the result of a bitwise *And* operation between them. For each bit in **A** and **B**, if both are **1**, the output is **1**. Otherwise, the output is **0**.
 

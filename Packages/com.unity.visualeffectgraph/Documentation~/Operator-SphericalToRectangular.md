@@ -1,4 +1,4 @@
-# Spherical to Rectangular
+# Spherical to Rectangular Operator
 
 Menu Path : **Operator >  Math> Coordinates**
 

@@ -1,4 +1,4 @@
-# Sample Texture2DArray
+# Sample Texture2DArray Operator
 
 Menu Path : **Operator > Sampling > Sample Texture2DArray**
 
