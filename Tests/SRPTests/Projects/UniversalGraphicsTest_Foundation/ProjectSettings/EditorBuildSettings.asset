@@ -567,6 +567,9 @@ EditorBuildSettings:
     path: Assets/Scenes/352_RendererUserValue.unity
     guid: 957ad4772bc7fdb43b51303b8c582e8d
   - enabled: 1
+    path: Assets/Scenes/352_RendererUserValue_Shadows.unity
+    guid: 526d8c9b47914564ac6432becd421d90
+  - enabled: 1
     path: Assets/Scenes/364_Cubemap_Mipmaps.unity
     guid: f737a52042020b04683b9cccd9b4a5b5
   m_configObjects:
