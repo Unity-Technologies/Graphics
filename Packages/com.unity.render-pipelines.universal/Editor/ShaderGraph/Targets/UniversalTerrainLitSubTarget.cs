@@ -335,25 +335,39 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            context.AddProperty("Depth Write", new EnumField(ZWriteControl.Auto) { value = target.zWriteControl }, (evt) =>
+            context.AddProperty("Override Depth", "Override the default depth write and depth test settings.", 0, new Toggle() { value = target.overrideDepthState }, (evt) =>
             {
-                if (Equals(target.zWriteControl, evt.newValue))
+                if (Equals(target.overrideDepthState, evt.newValue))
                     return;
 
-                registerUndo("Change Depth Write Control");
-                target.zWriteControl = (ZWriteControl)evt.newValue;
+                registerUndo("Change Override Depth");
+                target.overrideDepthState = evt.newValue;
                 onChange();
             });
 
-            context.AddProperty("Depth Test", new EnumField(ZTestModeForUI.LEqual) { value = (ZTestModeForUI)target.zTestMode }, (evt) =>
+            if (target.overrideDepthState)
             {
-                if (Equals(target.zTestMode, evt.newValue))
-                    return;
+                bool writeDepth = target.zWriteControl != ZWriteControl.ForceDisabled;
+                context.AddProperty("Write Depth", "Enable or disable depth buffer writes.", 1, new Toggle() { value = writeDepth }, (evt) =>
+                {
+                    if (Equals(writeDepth, evt.newValue))
+                        return;
 
-                registerUndo("Change Depth Test");
-                target.zTestMode = (ZTestMode)evt.newValue;
-                onChange();
-            });
+                    registerUndo("Change Write Depth");
+                    target.zWriteControl = evt.newValue ? ZWriteControl.ForceEnabled : ZWriteControl.ForceDisabled;
+                    onChange();
+                });
+
+                context.AddProperty("Depth Test", "The comparison function used for depth testing.", 1, new EnumField(ZTestModeForUI.LEqual) { value = (ZTestModeForUI)target.zTestMode }, (evt) =>
+                {
+                    if (Equals(target.zTestMode, evt.newValue))
+                        return;
+
+                    registerUndo("Change Depth Test");
+                    target.zTestMode = (ZTestMode)evt.newValue;
+                    onChange();
+                });
+            }
 
             context.AddProperty("Alpha Clipping", new Toggle() { value = target.alphaClip }, (evt) =>
             {
@@ -661,7 +675,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (target.castShadows || target.allowMaterialOverride)
                     result.passes.Add(PassVariant(TerrainLitPasses.ShadowCaster(target), TerrainCorePragmas.DOTSInstanced));
 
-                if (target.mayWriteDepth)
+                if (target.needsDepthOnlyPass)
                     result.passes.Add(PassVariant(TerrainLitPasses.DepthOnly(target), TerrainCorePragmas.DOTSInstanced));
 
                 result.passes.Add(PassVariant(TerrainLitPasses.DepthNormal(target), TerrainCorePragmas.DOTSInstanced));
@@ -703,7 +717,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (target.castShadows || target.allowMaterialOverride)
                     result.passes.Add(TerrainLitPasses.ShadowCaster(target));
 
-                if (target.mayWriteDepth)
+                if (target.needsDepthOnlyPass)
                     result.passes.Add(TerrainLitPasses.DepthOnly(target));
 
                 result.passes.Add(TerrainLitPasses.DepthNormal(target));
@@ -819,10 +833,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             var result = new RenderStateCollection
             {
-                RenderState.ZTest(target.zTestMode.ToString()),
                 RenderState.Cull(Cull.Back),
                 RenderState.Blend(Blend.One, Blend.Zero)
             };
+
+            result.Add(RenderState.ZTest(target.zTestMode.ToString()));
             switch (target.zWriteControl)
             {
                 case ZWriteControl.Auto:
@@ -833,6 +848,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     result.Add(RenderState.ZWrite(ZWrite.Off));
                     break;
             }
+
             return result;
         }
 

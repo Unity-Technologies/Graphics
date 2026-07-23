@@ -234,7 +234,8 @@ namespace UnityEngine.Rendering.Universal
             if (settings.stencilSettings.overrideStencilState)
                 renderObjectsPass.SetStencilState(settings.stencilSettings.stencilReference,
                     settings.stencilSettings.stencilCompareFunction, settings.stencilSettings.passOperation,
-                    settings.stencilSettings.failOperation, settings.stencilSettings.zFailOperation);
+                    settings.stencilSettings.failOperation, settings.stencilSettings.zFailOperation,
+                    settings.stencilSettings.stencilReadMask, settings.stencilSettings.stencilWriteMask);
         }
 
         /// <inheritdoc/>

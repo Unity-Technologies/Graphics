@@ -91,6 +91,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override bool IsActive() => true;
 
+        internal override bool supportsStencilOverride => true;
+
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
@@ -207,12 +209,41 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 collector.AddFloatProperty(Property.DstBlendAlpha, 0.0f);    // always set by material inspector, ok to have incorrect values here
                 collector.AddToggleProperty(Property.ZWrite, (target.surfaceType == SurfaceType.Opaque));
                 collector.AddFloatProperty(Property.ZWriteControl, (float)target.zWriteControl);
-                collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
+                collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);
                 collector.AddFloatProperty(Property.CullMode, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
+                if (target.overrideStencilState)
+                {
+                    collector.AddFloatProperty(Property.StencilRef, target.stencilReference);
+                    collector.AddFloatProperty(Property.StencilReadMask, target.stencilReadMask);
+                    collector.AddFloatProperty(Property.StencilWriteMask, target.stencilWriteMask);
+                    collector.AddFloatProperty(Property.StencilCompFunc, (float)target.stencilCompareFunction);
+                    collector.AddFloatProperty(Property.StencilPassOp, (float)target.stencilPassOperation);
+                    collector.AddFloatProperty(Property.StencilFailOp, (float)target.stencilFailOperation);
+                    collector.AddFloatProperty(Property.StencilZFailOp, (float)target.stencilZFailOperation);
+                    collector.AddFloatProperty(Property.StencilCompFuncBack, (float)target.stencilCompareFunctionBack);
+                    collector.AddFloatProperty(Property.StencilPassOpBack, (float)target.stencilPassOperationBack);
+                    collector.AddFloatProperty(Property.StencilFailOpBack, (float)target.stencilFailOperationBack);
+                    collector.AddFloatProperty(Property.StencilZFailOpBack, (float)target.stencilZFailOperationBack);
+                    AddStencilDefaultProperties(collector);
+                }
 
                 bool enableAlphaToMask = (target.alphaClip && (target.surfaceType == SurfaceType.Opaque));
                 collector.AddFloatProperty(Property.AlphaToMask, enableAlphaToMask ? 1.0f : 0.0f);
             }
+
+            // Always emit _Cull so the engine can detect two-pass rendering (BackToFront/FrontToBack)
+            // even when allowMaterialOverride is false and the cull mode is baked into the shader.
+            if (!target.allowMaterialOverride)
+                collector.AddFloatProperty(Property.CullMode, (float)target.renderFace);
+
+            // Marker for the material UI: this shader bakes stencil writes into the ShadowCaster pass.
+            // BaseShaderGUI uses this to show a warning when the URP renderer's Shadowmap Stencil is off.
+            if (target.overrideStencilState && target.depthStencilPassMask.Has(DepthStencilPassMask.ShadowPass))
+                collector.AddFloatProperty(Property.StencilUsesShadowPass, 1.0f);
+
+            // Material-UI marker (Property.StencilUsesPrepass); condition mirrors needsDepthOnlyPass.
+            if ((target.overrideStencilState || target.allowMaterialOverride) && target.depthStencilPassMask.Has(DepthStencilPassMask.Prepass))
+                collector.AddFloatProperty(Property.StencilUsesPrepass, 1.0f);
 
             // We always need these properties regardless of whether the material is allowed to override other shader properties.
             // Queue control & offset enable correct automatic render queue behavior.  Control == 0 is automatic, 1 is user-specified.
@@ -425,7 +456,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (IsSpacewarpSupported())
                     result.passes.Add(PassVariant(CorePasses.XRMotionVectors(target), CorePragmas.XRMotionVectors));
 
-                if (target.mayWriteDepth)
+                if (target.needsDepthOnlyPass)
                     result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.Instanced));
 
                 if (complexLit)
@@ -509,6 +540,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 AddWorkflowModeControlToPass(ref result, target, workflowMode);
                 AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
                 CorePasses.AddLODCrossFadeControlToPass(ref result, target);
+                bool colorOn = target.depthStencilPassMask.Has(DepthStencilPassMask.ColorPass);
+                CorePasses.AddDepthStateControlToPass(ref result, target, useDefaults: !colorOn);
+                CorePasses.AddStencilStateControlToPass(ref result, target, useDefaults: !colorOn);
 
                 return result;
             }
@@ -563,6 +597,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 AddWorkflowModeControlToPass(ref result, target, workflowMode);
                 AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
                 CorePasses.AddLODCrossFadeControlToPass(ref result, target);
+                bool colorOn = target.depthStencilPassMask.Has(DepthStencilPassMask.ColorPass);
+                CorePasses.AddDepthStateControlToPass(ref result, target, useDefaults: !colorOn);
+                CorePasses.AddStencilStateControlToPass(ref result, target, useDefaults: !colorOn);
 
                 return result;
             }
@@ -606,6 +643,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 AddWorkflowModeControlToPass(ref result, target, workflowMode);
                 AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
                 CorePasses.AddLODCrossFadeControlToPass(ref result, target);
+                CorePasses.AddDepthStateControlToPass(ref result, target, useDefaults: !target.depthStencilPassMask.Has(DepthStencilPassMask.ColorPass));
 
                 return result;
             }
@@ -681,6 +719,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 CorePasses.AddAlphaClipControlToPass(ref result, target);
+                CorePasses.AddDepthStateControlToPass(ref result, target, useDefaults: !target.depthStencilPassMask.Has(DepthStencilPassMask.ColorPass));
 
                 return result;
             }
@@ -727,6 +766,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CorePasses.AddAlphaClipControlToPass(ref result, target);
                 CorePasses.AddLODCrossFadeControlToPass(ref result, target);
 
+                CorePasses.AddStencilStateControlToPass(ref result, target,
+                    useDefaults: !target.depthStencilPassMask.Has(DepthStencilPassMask.Prepass));
+
                 return result;
             }
 
@@ -770,6 +812,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 CorePasses.AddAlphaClipControlToPass(ref result, target);
                 CorePasses.AddLODCrossFadeControlToPass(ref result, target);
+
+                CorePasses.AddStencilStateControlToPass(ref result, target,
+                    useDefaults: !target.depthStencilPassMask.Has(DepthStencilPassMask.Prepass));
 
                 return result;
             }

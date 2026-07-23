@@ -260,9 +260,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (depthTarget.IsValid())
                 {
-                    var depthAccessFlags = (disableZWrite) ? AccessFlags.Read : AccessFlags.ReadWrite;
+                    // Priming disables ZWrite, but the pass may still write stencil into the shared
+                    // depth-stencil attachment, so it must be read-write, not read-only.
                     passData.depthHdl = depthTarget;
-                    builder.SetRenderAttachmentDepth(depthTarget, depthAccessFlags);
+                    builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.ReadWrite);
                 }
 
                 if (mainShadowsTexture.IsValid())
@@ -408,9 +409,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.SetRenderAttachment(renderingLayersTexture, 1, AccessFlags.Write);
 
                 bool disableZWrite = CanDisableZWrite(cameraData, passData.basePassData.isOpaque);
-                var depthAccessFlags = (disableZWrite) ? AccessFlags.Read : AccessFlags.ReadWrite;
+                // Priming disables ZWrite, but the pass may still write stencil into the shared
+                // depth-stencil attachment, so it must be read-write, not read-only.
                 passData.basePassData.depthHdl = depthTarget;
-                builder.SetRenderAttachmentDepth(depthTarget, depthAccessFlags);
+                builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.ReadWrite);
 
                 if (mainShadowsTexture.IsValid())
                     builder.UseTexture(mainShadowsTexture, AccessFlags.Read);

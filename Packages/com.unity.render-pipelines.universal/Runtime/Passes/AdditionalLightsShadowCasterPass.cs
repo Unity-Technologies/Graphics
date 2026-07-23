@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using UnityEngine.Experimental.Rendering;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Rendering.RenderGraphModule;
 
@@ -15,6 +16,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal RTHandle m_AdditionalLightsShadowmapHandle;
 
         // Private
+        private GraphicsFormat shadowmapDepthStencilFormat;
         private int renderTargetWidth;
         private int renderTargetHeight;
         private bool m_CreateEmptyShadowmap;
@@ -55,7 +57,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         private RenderTextureDescriptor m_AdditionalLightShadowDescriptor;                      // Never modified after initialization
 
         // Constants and Statics
-        private const int k_ShadowmapBufferBits = 16;
         // Magic numbers used to identify light type when rendering shadow receiver.
         // Keep in sync with AdditionalLightRealtimeShadow code in com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl
         private const float k_LightTypeIdentifierInShadowParams_Spot = 0;
@@ -433,6 +434,20 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <returns>Returns true if additional shadows are enabled otherwise false.</returns>
         public bool Setup(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData, UniversalShadowData shadowData)
         {
+            return Setup(renderingData, cameraData, lightData, shadowData, false);
+        }
+
+        /// <summary>
+        /// Sets up the pass.
+        /// </summary>
+        /// <param name="renderingData">Data containing rendering settings.</param>
+        /// <param name="cameraData">Data containing camera settings.</param>
+        /// <param name="lightData">Data containing light settings.</param>
+        /// <param name="shadowData">Data containing shadow settings.</param>
+        /// <param name="stencilBuffer">Whether to allocate a stencil buffer for the shadowmap textures.</param>
+        /// <returns>Returns true if additional shadows are enabled otherwise false.</returns>
+        public bool Setup(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData, UniversalShadowData shadowData, bool stencilBuffer)
+        {
             using var profScope = new ProfilingScope(m_ProfilingSetupSampler);
 
             // Lazy init: ensure buffers exist (may have been destroyed by domain reload or graphics device reset)
@@ -440,6 +455,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Populate shadowData with empty buffer info for TransparentSettingsPass
             shadowData.emptyAdditionalLightShadowsBuffer = m_EmptyAdditionalLightShadowsBuffer;
+
+            shadowmapDepthStencilFormat = ShadowUtils.GetShadowmapDepthStencilFormat(stencilBuffer);
 
             bool shadowsEnabled = shadowData.additionalLightShadowsEnabled;
             if (!shadowsEnabled)
@@ -743,10 +760,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (   m_AdditionalLightShadowDescriptor.width != renderTargetWidth
                 || m_AdditionalLightShadowDescriptor.height != renderTargetHeight
-                || m_AdditionalLightShadowDescriptor.depthBufferBits != k_ShadowmapBufferBits
+                || m_AdditionalLightShadowDescriptor.depthStencilFormat != shadowmapDepthStencilFormat
                 || m_AdditionalLightShadowDescriptor.colorFormat != RenderTextureFormat.Shadowmap)
             {
-                m_AdditionalLightShadowDescriptor = new RenderTextureDescriptor(renderTargetWidth, renderTargetHeight, RenderTextureFormat.Shadowmap, k_ShadowmapBufferBits);
+                m_AdditionalLightShadowDescriptor = new RenderTextureDescriptor(renderTargetWidth, renderTargetHeight, GraphicsFormat.None, shadowmapDepthStencilFormat, Texture.GenerateAllMips)
+                {
+                    shadowSamplingMode = ShadowSamplingMode.CompareDepths
+                };
             }
         }
 
@@ -1032,7 +1052,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int visibleLightIndex = m_AdditionalLightIndexToVisibleLightIndex[additionalLightIndex];
 
                 ShadowDrawingSettings settings = new (cullResults, visibleLightIndex) {
-                    useRenderingLayerMaskTest = UniversalRenderPipeline.asset.useRenderingLayers
+                    useRenderingLayerMaskTest = UniversalRenderPipeline.asset.useRenderingLayers,
+                    sortShadowcastersByRenderQueue = GraphicsFormatUtility.IsStencilFormat(shadowmapDepthStencilFormat),
                 };
                 passData.shadowRendererListsHdl[globalShadowSliceIndex] = renderGraph.CreateShadowRendererList(ref settings);
             }

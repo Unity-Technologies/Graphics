@@ -764,12 +764,12 @@ namespace UnityEngine.Rendering.Universal
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
             UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
-            if (m_MainLightShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData))
+            if (m_MainLightShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData, shadowmapStencil))
             {
                 resourceData.mainShadowsTexture = m_MainLightShadowCasterPass.Render(renderGraph, frameData);
             }
 
-            if (m_AdditionalLightsShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData))
+            if (m_AdditionalLightsShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData, shadowmapStencil))
             {
                 resourceData.additionalShadowsTexture = m_AdditionalLightsShadowCasterPass.Render(renderGraph, frameData);
             }
@@ -798,7 +798,7 @@ namespace UnityEngine.Rendering.Universal
 
             bool renderShadows = false;
 
-            if (m_MainLightShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData))
+            if (m_MainLightShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData, shadowmapStencil))
             {
                 renderShadows = true;
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -813,7 +813,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            if (m_AdditionalLightsShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData))
+            if (m_AdditionalLightsShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData, shadowmapStencil))
             {
                 renderShadows = true;
 #if ENABLE_VR && ENABLE_XR_MODULE

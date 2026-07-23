@@ -1,3 +1,5 @@
+using UnityEngine.Rendering.Universal.Internal;
+
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -15,6 +17,16 @@ namespace UnityEngine.Rendering.Universal
         /// The stencil reference value.
         /// </summary>
         public int stencilReference = 0;
+
+        /// <summary>
+        /// Bitmask applied to the reference value and the value already in the stencil buffer before the comparison.
+        /// </summary>
+        public int stencilReadMask = (int)StencilUsage.UserMask;
+
+        /// <summary>
+        /// Bitmask applied when writing to the stencil buffer.
+        /// </summary>
+        public int stencilWriteMask = (int)StencilUsage.UserMask;
 
         /// <summary>
         /// The comparison function to use.

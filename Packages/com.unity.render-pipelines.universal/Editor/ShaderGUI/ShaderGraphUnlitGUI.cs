@@ -10,6 +10,11 @@ namespace UnityEditor
     {
         MaterialProperty[] properties;
 
+        // ShaderGraph materials use the SG-internal RenderFace enum, which adds the BackToFront /
+        // FrontToBack two-pass values not exposed in the public BaseShaderGUI.RenderFace.
+        protected override void DrawRenderFaceDropdown()
+            => DoEnumPopup<UnityEditor.Rendering.Universal.ShaderGraph.RenderFace>(Styles.cullingText, cullingProp);
+
         // collect properties from the material properties
         public override void FindProperties(MaterialProperty[] properties)
         {
@@ -45,7 +50,7 @@ namespace UnityEditor
         public override void DrawAdvancedOptions(Material material)
         {
             // Always show the queue control field.  Only show the render queue field if queue control is set to user override
-            DoPopup(Styles.queueControl, queueControlProp, Styles.queueControlNames);
+            DoEnumPopup<QueueControl>(Styles.queueControl, queueControlProp);
             if (material.HasProperty(Property.QueueControl) && material.GetFloat(Property.QueueControl) == (float)QueueControl.UserOverride)
                 materialEditor.RenderQueueField();
             base.DrawAdvancedOptions(material);

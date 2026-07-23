@@ -155,7 +155,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 collector.AddFloatProperty(Property.DstBlendAlpha, 0.0f);    // always set by material inspector, ok to have incorrect values here
                 collector.AddToggleProperty(Property.ZWrite, (target.surfaceType == SurfaceType.Opaque));
                 collector.AddFloatProperty(Property.ZWriteControl, (float)target.zWriteControl);
-                collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
+                collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);
                 collector.AddFloatProperty(Property.CullMode, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
 
                 bool enableAlphaToMask = (target.alphaClip && (target.surfaceType == SurfaceType.Opaque));
@@ -221,7 +221,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (target.castShadows || target.allowMaterialOverride)
                     result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.Instanced));
 
-                if (target.mayWriteDepth)
+                if (target.needsDepthOnlyPass)
                     result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.Instanced));
 
                 result.passes.Add(PassVariant(SixWayPasses.Meta(target), CorePragmas.Default));
@@ -328,6 +328,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
                 CorePasses.AddLODCrossFadeControlToPass(ref result, target);
                 AddColorAbsorptionControlToPass(ref result, target, useColorAbsorption);
+                // Stencil wiring is present for forward compatibility when supportsStencilOverride is enabled for SixWay.
+                bool colorOn = target.depthStencilPassMask.Has(DepthStencilPassMask.ColorPass);
+                CorePasses.AddDepthStateControlToPass(ref result, target, useDefaults: !colorOn);
+                CorePasses.AddStencilStateControlToPass(ref result, target, useDefaults: !colorOn);
 
                 return result;
             }

@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
@@ -12,6 +13,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal RTHandle m_MainLightShadowmapTexture;
 
         // Private
+        private GraphicsFormat m_ShadowmapDepthStencilFormat;
         private int m_RenderTargetWidth;
         private int m_RenderTargetHeight;
         private int m_ShadowCasterCascadesCount;
@@ -28,7 +30,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Constants and Statics
         private const int k_EmptyShadowMapDimensions = 1;
         private const int k_MaxCascades = 4;
-        private const int k_ShadowmapBufferBits = 16;
         private const string k_MainLightShadowMapTextureName = "_MainLightShadowmapTexture";
         private static readonly Vector4 k_DefaultEmptyShadowParams = new Vector4(0f, 0f, 1f, 0f);
         private static Vector4 s_EmptyShadowParams = k_DefaultEmptyShadowParams;
@@ -145,6 +146,23 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <seealso cref="RenderingData"/>
         public bool Setup(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData, UniversalShadowData shadowData)
         {
+            return Setup(renderingData, cameraData, lightData, shadowData, false);
+        }
+
+        /// <summary>
+        /// Sets up the pass.
+        /// </summary>
+        /// <param name="renderingData">Data containing rendering settings.</param>
+        /// <param name="cameraData">Data containing camera settings.</param>
+        /// <param name="lightData">Data containing light settings.</param>
+        /// <param name="shadowData">Data containing shadow settings.</param>
+        /// <param name="stencilBuffer">Whether to allocate a stencil buffer for the shadowmap textures.</param>
+        /// <returns>True if the pass should be enqueued, otherwise false.</returns>
+        /// <seealso cref="RenderingData"/>
+        public bool Setup(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData, UniversalShadowData shadowData, bool stencilBuffer)
+        {
+            m_ShadowmapDepthStencilFormat = ShadowUtils.GetShadowmapDepthStencilFormat(stencilBuffer);
+
             bool shadowsEnabled = shadowData.mainLightShadowsEnabled;
             bool shadowsSupported = shadowData.supportsMainLightShadows;
 
@@ -234,10 +252,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (   m_MainLightShadowDescriptor.width != m_RenderTargetWidth
                 || m_MainLightShadowDescriptor.height != m_RenderTargetHeight
-                || m_MainLightShadowDescriptor.depthBufferBits != k_ShadowmapBufferBits
+                || m_MainLightShadowDescriptor.depthStencilFormat != m_ShadowmapDepthStencilFormat
                 || m_MainLightShadowDescriptor.colorFormat != RenderTextureFormat.Shadowmap)
             {
-                m_MainLightShadowDescriptor = new RenderTextureDescriptor(m_RenderTargetWidth, m_RenderTargetHeight, RenderTextureFormat.Shadowmap, k_ShadowmapBufferBits);
+                m_MainLightShadowDescriptor = new RenderTextureDescriptor(m_RenderTargetWidth, m_RenderTargetHeight, GraphicsFormat.None, m_ShadowmapDepthStencilFormat, Texture.GenerateAllMips)
+                {
+                    shadowSamplingMode = ShadowSamplingMode.CompareDepths
+                };
             }
         }
 
@@ -413,7 +434,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (!m_CreateEmptyShadowmap && shadowLightIndex != -1)
             {
                 ShadowDrawingSettings settings = new (passData.renderingData.cullResults, shadowLightIndex) {
-                    useRenderingLayerMaskTest = UniversalRenderPipeline.asset.useRenderingLayers
+                    useRenderingLayerMaskTest = UniversalRenderPipeline.asset.useRenderingLayers,
+                    sortShadowcastersByRenderQueue = GraphicsFormatUtility.IsStencilFormat(m_ShadowmapDepthStencilFormat),
                 };
 
                 for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)

@@ -29,6 +29,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent CopyDepthModeLabel = EditorGUIUtility.TrTextContent("Depth Texture Mode", "Controls after which pass URP copies the scene depth. It has a significant impact on mobile devices bandwidth usage. It also allows to force a depth prepass to generate it.");
             public static readonly GUIContent DepthAttachmentFormat = EditorGUIUtility.TrTextContent("Depth Attachment Format", "Which format to use (if it is supported) when creating _CameraDepthAttachment.");
             public static readonly GUIContent DepthTextureFormat = EditorGUIUtility.TrTextContent("Depth Texture Format", "Which format to use (if it is supported) when creating _CameraDepthTexture.");
+            public static readonly GUIContent ShadowmapStencil = EditorGUIUtility.TrTextContent("Shadowmap Stencil", "Whether to allocate stencil bits when creating shadowmap textures. When enabled, the shadow caster pass will also respect material render queue order.");
             public static readonly GUIContent ShadowsSectionLabel = EditorGUIUtility.TrTextContent("Shadows", "This section contains properties related to rendering shadows.");
             public static readonly GUIContent PostProcessingSectionLabel = EditorGUIUtility.TrTextContent("Post-processing", "This section contains properties related to rendering post-processing.");
 
@@ -53,6 +54,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_CopyDepthMode;
         SerializedProperty m_DepthAttachmentFormat;
         SerializedProperty m_DepthTextureFormat;
+        SerializedProperty m_ShadowmapStencil;
         SerializedProperty m_AccurateGbufferNormals;
         SerializedProperty m_DefaultStencilState;
         SerializedProperty m_PostProcessData;
@@ -73,6 +75,7 @@ namespace UnityEditor.Rendering.Universal
             m_CopyDepthMode = serializedObject.FindProperty("m_CopyDepthMode");
             m_DepthAttachmentFormat = serializedObject.FindProperty("m_DepthAttachmentFormat");
             m_DepthTextureFormat = serializedObject.FindProperty("m_DepthTextureFormat");
+            m_ShadowmapStencil = serializedObject.FindProperty("m_ShadowmapStencil");
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
             m_DefaultStencilState = serializedObject.FindProperty("m_DefaultStencilState");
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
@@ -219,6 +222,8 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_TileOnlyMode, Styles.tileOnlyMode);
             if (m_TileOnlyMode.boolValue)
                 EditorGUILayout.HelpBox(Styles.tileOnlyModeWarning, MessageType.Info);
+
+            EditorGUILayout.PropertyField(m_ShadowmapStencil, Styles.ShadowmapStencil);
 
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();

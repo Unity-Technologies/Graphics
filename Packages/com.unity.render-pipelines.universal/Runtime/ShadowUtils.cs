@@ -782,5 +782,32 @@ namespace UnityEngine.Rendering.Universal
         {
             return softShadow ? kMinimumPunctualLightSoftShadowResolution : kMinimumPunctualLightHardShadowResolution;
         }
+
+        static bool s_WarnedNoShadowmapStencilFormat;
+
+        internal static GraphicsFormat GetShadowmapDepthStencilFormat(bool stencilBuffer)
+        {
+            if (stencilBuffer)
+            {
+                // If we need stencil bits, pick whichever supported format is the smallest
+                if (SystemInfo.IsFormatSupported(GraphicsFormat.D16_UNorm_S8_UInt, GraphicsFormatUsage.Render))
+                    return GraphicsFormat.D16_UNorm_S8_UInt;
+                if (SystemInfo.IsFormatSupported(GraphicsFormat.D24_UNorm_S8_UInt, GraphicsFormatUsage.Render))
+                    return GraphicsFormat.D24_UNorm_S8_UInt;
+                if (SystemInfo.IsFormatSupported(GraphicsFormat.D32_SFloat_S8_UInt, GraphicsFormatUsage.Render))
+                    return GraphicsFormat.D32_SFloat_S8_UInt;
+
+                // No depth-stencil format is supported here: the shadowmap falls back to depth-only and
+                // stencil writes silently no-op. Warn once so an enabled Shadowmap Stencil toggle that
+                // can't be honored on this device isn't invisible.
+                if (!s_WarnedNoShadowmapStencilFormat)
+                {
+                    s_WarnedNoShadowmapStencilFormat = true;
+                    Debug.LogWarning("Shadowmap Stencil is enabled but this device supports no depth-stencil shadowmap format; falling back to a depth-only shadowmap (stencil writes will have no effect).");
+                }
+            }
+
+            return GraphicsFormatUtility.GetDepthStencilFormat(16);
+        }
     }
 }

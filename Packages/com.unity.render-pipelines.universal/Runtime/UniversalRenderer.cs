@@ -103,6 +103,9 @@ namespace UnityEngine.Rendering.Universal
             return Screen.currentBackbufferMSAASamples;
         }
 
+        // Whether shadowmap textures should be allocated with stencil bits.
+        internal bool shadowmapStencil => m_ShadowmapStencil;
+
         bool deferredModeUnsupported => GL.wireframe ||
                                               (DebugHandler != null && DebugHandler.IsActiveModeUnsupportedForDeferred) ||
                                               m_DeferredLights == null ||
@@ -187,6 +190,7 @@ namespace UnityEngine.Rendering.Universal
         CopyDepthMode m_CopyDepthMode;
         DepthFormat m_CameraDepthAttachmentFormat;
         DepthFormat m_CameraDepthTextureFormat;
+        bool m_ShadowmapStencil;
         StencilState m_DefaultStencilState;
         LightCookieManager m_LightCookieManager;
         IntermediateTextureMode m_IntermediateTextureMode;
@@ -270,6 +274,8 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetPassOperation(stencilData.passOperation);
             m_DefaultStencilState.SetFailOperation(stencilData.failOperation);
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
+            m_DefaultStencilState.readMask = (byte)stencilData.stencilReadMask;
+            m_DefaultStencilState.writeMask = (byte)stencilData.stencilWriteMask;
 
             m_IntermediateTextureMode = data.intermediateTextureMode;
             prepassLayerMask = data.prepassLayerMask;
@@ -326,6 +332,7 @@ namespace UnityEngine.Rendering.Universal
             this.m_CopyDepthMode = data.copyDepthMode;
             this.m_CameraDepthAttachmentFormat = data.depthAttachmentFormat;
             this.m_CameraDepthTextureFormat = data.depthTextureFormat;
+            this.m_ShadowmapStencil = data.shadowmapStencil;
             this.postProcessEnabled = data.postProcessData != null;
             this.name = data.name;
 
@@ -346,7 +353,7 @@ namespace UnityEngine.Rendering.Universal
                     // use this as well. We just make sure we disable the internal post processing on the
                     // renderer because this is not on-tile compatible currently.
                     postProcessEnabled = false;
-                }                
+                }
             }
 
             // Note: Since all custom render passes inject first and we have stable sort,

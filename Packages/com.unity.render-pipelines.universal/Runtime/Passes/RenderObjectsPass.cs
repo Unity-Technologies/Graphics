@@ -89,12 +89,29 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="zFailOp">The stencil operation to use when the stencil test fails because of depth.</param>
         public void SetStencilState(int reference, CompareFunction compareFunction, StencilOp passOp, StencilOp failOp, StencilOp zFailOp)
         {
+            SetStencilState(reference, compareFunction, passOp, failOp, zFailOp, 0xFF, 0xFF);
+        }
+
+        /// <summary>
+        /// Sets up the stencil settings for the pass, including read/write masks.
+        /// </summary>
+        /// <param name="reference">The stencil reference value.</param>
+        /// <param name="compareFunction">The comparison function to use.</param>
+        /// <param name="passOp">The stencil operation to use when the stencil test passes.</param>
+        /// <param name="failOp">The stencil operation to use when the stencil test fails.</param>
+        /// <param name="zFailOp">The stencil operation to use when the stencil test fails because of depth.</param>
+        /// <param name="readMask">Bitmask applied to the reference value and the stencil buffer value before comparison.</param>
+        /// <param name="writeMask">Bitmask applied when writing to the stencil buffer.</param>
+        public void SetStencilState(int reference, CompareFunction compareFunction, StencilOp passOp, StencilOp failOp, StencilOp zFailOp, int readMask, int writeMask)
+        {
             StencilState stencilState = StencilState.defaultValue;
             stencilState.enabled = true;
             stencilState.SetCompareFunction(compareFunction);
             stencilState.SetPassOperation(passOp);
             stencilState.SetFailOperation(failOp);
             stencilState.SetZFailOperation(zFailOp);
+            stencilState.readMask = (byte)readMask;
+            stencilState.writeMask = (byte)writeMask;
 
             m_RenderStateBlock.mask |= RenderStateMask.Stencil;
             m_RenderStateBlock.stencilReference = reference;
