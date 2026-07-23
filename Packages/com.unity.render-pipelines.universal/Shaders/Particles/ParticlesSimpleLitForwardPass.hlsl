@@ -3,6 +3,7 @@
 
 #include "ParticlesSimpleLitInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
 void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData inputData)
@@ -34,7 +35,6 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData i
     inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
 
-    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
     inputData.vertexLighting = half3(0.0h, 0.0h, 0.0h);
 #if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
     inputData.bakedGI = SAMPLE_GI(input.vertexSH,
@@ -87,9 +87,6 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
     OUTPUT_SH4(vertexInput.positionWS, output.normalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH, output.probeOcclusion);
 
     half fogFactor = 0.0;
-#if !defined(_FOG_FRAGMENT)
-    fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
-#endif
 
     output.positionWS.xyz = vertexInput.positionWS.xyz;
     output.positionWS.w = fogFactor;
@@ -145,7 +142,7 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
 
     half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, specularGloss.a, emission, alpha, normalTS);
 
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    color.rgb = BlendDistanceFog(color.rgb, input.clipPos);
     color.a = OutputAlpha(color.a, IsSurfaceTypeTransparent());
 
     return color;

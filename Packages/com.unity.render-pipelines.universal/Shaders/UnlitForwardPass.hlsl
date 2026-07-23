@@ -5,6 +5,7 @@
 #include "UnlitInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Unlit.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 #if defined(LOD_FADE_CROSSFADE)
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
 #endif
@@ -25,7 +26,6 @@ struct Attributes
 struct Varyings
 {
     float2 uv : TEXCOORD0;
-    float fogCoord : TEXCOORD1;
     float4 positionCS : SV_POSITION;
 
     #if defined(DEBUG_DISPLAY)
@@ -72,11 +72,6 @@ Varyings UnlitPassVertex(Attributes input)
 
     output.positionCS = vertexInput.positionCS;
     output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
-    #if defined(_FOG_FRAGMENT)
-    output.fogCoord = vertexInput.positionVS.z;
-    #else
-    output.fogCoord = ComputeFogFactor(vertexInput.positionCS.z);
-    #endif
 
     #if defined(DEBUG_DISPLAY)
     // normalWS and tangentWS already normalize.
@@ -133,35 +128,7 @@ void UnlitPassFragment(
     finalColor.rgb *= aoFactor.directAmbientOcclusion;
 #endif
 
-    half fogFactor = 0;
-#if defined(_FOG_FRAGMENT)
-    bool anyFogEnabled = false;
-    
-    #if defined(FOG_LINEAR_KEYWORD_DECLARED)
-    if (FOG_LINEAR)
-        anyFogEnabled = true;
-    #endif
-    
-    #if defined(FOG_EXP_KEYWORD_DECLARED)
-    if (FOG_EXP)
-        anyFogEnabled = true;
-    #endif
-    
-    #if defined(FOG_EXP2_KEYWORD_DECLARED)
-    if (FOG_EXP2)
-        anyFogEnabled = true;
-    #endif
-    
-    if (anyFogEnabled)
-    {
-        float viewZ = -input.fogCoord;
-        float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
-        fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
-    }
-#else // #if defined(_FOG_FRAGMENT)
-    fogFactor = input.fogCoord;
-#endif // #if defined(_FOG_FRAGMENT)
-    finalColor.rgb = MixFog(finalColor.rgb, fogFactor);
+    finalColor.rgb = BlendDistanceFog(finalColor.rgb, input.positionCS);
     finalColor.a = OutputAlpha(finalColor.a, IsSurfaceTypeTransparent());
 
     outColor = finalColor;

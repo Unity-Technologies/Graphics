@@ -3,6 +3,7 @@
 
 #include "ParticlesUnlitInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Unlit.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
 void InitializeInputData(VaryingsParticle input, SurfaceData surfaceData, out InputData inputData)
@@ -26,7 +27,6 @@ void InitializeInputData(VaryingsParticle input, SurfaceData surfaceData, out In
 
     inputData.viewDirectionWS = viewDirWS;
 
-    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
     inputData.vertexLighting = 0;
 #if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
     inputData.bakedGI = SAMPLE_GI(input.vertexSH,
@@ -98,9 +98,6 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
     VertexNormalInputs normalInput = GetParticleVertexNormalInputs(input.normalOS, input.tangentOS);
 
     half fogFactor = 0.0;
-#if !defined(_FOG_FRAGMENT)
-    fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
-#endif
 
     // position ws is used to compute eye depth in vertFading
     output.positionWS.xyz = vertexInput.positionWS;
@@ -158,7 +155,7 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
         finalColor.rgb *= aoFactor.directAmbientOcclusion;
     #endif
 
-    finalColor.rgb = MixFog(finalColor.rgb, inputData.fogCoord);
+    finalColor.rgb = BlendDistanceFog(finalColor.rgb, input.clipPos);
     finalColor.a = OutputAlpha(finalColor.a, IsSurfaceTypeTransparent());
 
     return finalColor;

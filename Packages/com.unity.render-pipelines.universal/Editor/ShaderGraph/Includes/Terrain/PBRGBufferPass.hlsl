@@ -20,7 +20,6 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
         inputData.shadowCoord = float4(0, 0, 0, 0);
     #endif
 
-    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 
 #if defined(DYNAMICLIGHTMAP_ON)
@@ -111,7 +110,7 @@ GBufferFragOutput frag(PackedVaryings packedInput)
                                         inputData.bakedGI, surfaceDescription.Occlusion, inputData.positionWS,
                                         inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
     color.a = alpha;
-    SplatmapFinalColor(color, inputData.fogCoord);
+    SplatmapFinalColor(color, unpacked.positionCS);
 
     // Dynamic lighting: emulate SplatmapFinalColor() by scaling gbuffer material properties. This will not give the same results
     // as forward renderer because we apply blending pre-lighting instead of post-lighting.

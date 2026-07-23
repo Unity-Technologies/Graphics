@@ -1,3 +1,5 @@
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
+
 void InitializeInputData(Varyings input, bool frontFace, out InputData inputData)
 {
     inputData = (InputData)0;
@@ -22,7 +24,6 @@ void InitializeInputData(Varyings input, bool frontFace, out InputData inputData
         inputData.shadowCoord = float4(0, 0, 0, 0);
     #endif
 
-    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
@@ -112,7 +113,7 @@ void frag(
 
 
     half4 color = UniversalFragmentSixWay(inputData, surfaceData);
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    color.rgb = BlendDistanceFog(color.rgb, unpacked.positionCS);
 
     color.a = OutputAlpha(color.a, isTransparent);
 

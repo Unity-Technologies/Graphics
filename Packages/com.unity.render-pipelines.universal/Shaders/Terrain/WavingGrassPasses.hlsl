@@ -2,6 +2,7 @@
 #define UNIVERSAL_WAVING_GRASS_PASSES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 
@@ -64,16 +65,6 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
     inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
 
-#if defined(_FOG_FRAGMENT)
-    float clipZ = input.clipPos.z;
-    #if !UNITY_REVERSED_Z
-    clipZ = lerp(UNITY_NEAR_CLIP_VALUE, 1, clipZ);    // OpenGL NDC, -1 < z < 1
-    #endif
-    clipZ *= input.clipPos.w;
-    inputData.fogCoord = ComputeFogFactor(clipZ);
-#else
-    inputData.fogCoord = input.fogFactorAndVertexLight.x;
-#endif
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 
 #if defined(_SCREEN_SPACE_IRRADIANCE)
@@ -133,11 +124,7 @@ void InitializeVertData(GrassVertexInput input, inout GrassVertexOutput vertData
     OUTPUT_SH4(vertexInput.positionWS, vertData.normal.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), vertData.vertexSH, vertData.probeOcclusion);
 
     half3 vertexLight = VertexLighting(vertexInput.positionWS, vertData.normal.xyz);
-#if defined(_FOG_FRAGMENT)
     half fogFactor = 0;
-#else
-    half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
-#endif
     vertData.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
@@ -231,7 +218,7 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
     return PackGBuffersSurfaceData(surfaceData, inputData, color.rgb);
 #else
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    color.rgb = BlendDistanceFog(color.rgb, input.clipPos);
     return half4(color.rgb, OutputAlpha(surfaceData.alpha, IsSurfaceTypeTransparent(_Surface)));
 #endif
 };

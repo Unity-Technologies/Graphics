@@ -2,6 +2,7 @@
 #define UNIVERSAL_SPEEDTREE8_PASSES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
 #include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Nature/SpeedTreeCommon.hlsl"
 #include "SpeedTreeUtility.hlsl"
@@ -250,9 +251,6 @@ SpeedTreeVertexOutput SpeedTree8Vert(SpeedTreeVertexInput input)
 
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalWS);
     half fogFactor = 0.0;
-    #if !defined(_FOG_FRAGMENT)
-    fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
-    #endif
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
@@ -345,7 +343,6 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
         inputData.shadowCoord = float4(0, 0, 0, 0);
     #endif
 
-    inputData.fogCoord = InitializeInputDataFog(float4(input.interpolated.positionWS, 1.0), input.interpolated.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.interpolated.fogFactorAndVertexLight.yzw;
 #if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
     inputData.bakedGI = SAMPLE_GI(input.interpolated.vertexSH,
@@ -494,7 +491,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData);
 
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    color.rgb = BlendDistanceFog(color.rgb, input.interpolated.clipPos);
     color.a = OutputAlpha(color.a, _Surface);
 
     return color;

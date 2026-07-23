@@ -601,7 +601,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetKeyword(ShaderGlobalKeywords._DEFERRED_MIXED_LIGHTING, false);
 
                 // Legacy fog (Windows -> Rendering -> Lighting -> Environment -> Fog)
-                RenderFog(cmd, cameraData.camera.orthographic);
+                RenderFog(cmd);
             }
 
             // Restore shader keywords
@@ -1041,11 +1041,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.SSAOOnly]);
         }
 
-        void RenderFog(RasterCommandBuffer cmd, bool isOrthographic)
+        void RenderFog(RasterCommandBuffer cmd)
         {
-            // Legacy fog does not work in orthographic mode.
-            // TODO: This should be fixed.
-            if (!RenderSettings.fog || isOrthographic)
+            if (!RenderSettings.fog)
                 return;
 
             if (m_FullscreenMesh == null)

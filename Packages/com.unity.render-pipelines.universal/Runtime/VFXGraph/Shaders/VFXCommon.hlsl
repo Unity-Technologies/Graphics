@@ -2,6 +2,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/AmbientOcclusion.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
@@ -197,14 +198,12 @@ float4 VFXTransformFinalColor(float4 color, float4 posCS)
 
 float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 {
-#if defined(FOG_LINEAR_KEYWORD_DECLARED)
    if (FOG_LINEAR || FOG_EXP || FOG_EXP2)
    {
        float4 fog = (float4)0;
        fog.rgb = unity_FogColor.rgb;
 
-       float fogFactor = ComputeFogFactor(posCS.z * posCS.w);
-       fog.a = ComputeFogIntensity(fogFactor);
+       fog.a = DistanceFogOcclusionFactor(DistanceFogNearToFarZ(posCS));
 #if VFX_BLENDMODE_ALPHA || IS_OPAQUE_PARTICLE
        color.rgb = lerp(fog.rgb, color.rgb, fog.a);
 #elif VFX_BLENDMODE_ADD
@@ -213,7 +212,6 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
        color.rgb = lerp(fog.rgb * color.a, color.rgb, fog.a);
 #endif
    }
-#endif // #if defined(FOG_LINEAR_KEYWORD_DECLARED)
    return color;
 }
 

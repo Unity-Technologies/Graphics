@@ -61,7 +61,6 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 #endif
 
     inputData.shadowCoord = float4(0, 0, 0, 0);
-    inputData.fogCoord = input.uv0AndFogCoord.z;
     inputData.vertexLighting = half3(0, 0, 0);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = half4(1, 1, 1, 1);
@@ -104,11 +103,6 @@ Varyings BakedLitGBufferPassVertex(Attributes input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
     output.positionCS = vertexInput.positionCS;
     output.uv0AndFogCoord.xy = TRANSFORM_TEX(input.uv, _BaseMap);
-#if defined(_FOG_FRAGMENT)
-    output.uv0AndFogCoord.z = vertexInput.positionVS.z;
-#else
-    output.uv0AndFogCoord.z = ComputeFogFactor(vertexInput.positionCS.z);
-#endif
 
     // normalWS and tangentWS already normalize.
     // this is required to avoid skewing the direction during interpolation

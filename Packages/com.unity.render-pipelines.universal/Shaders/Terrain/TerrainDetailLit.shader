@@ -104,7 +104,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 float2  UV01            : TEXCOORD0; // UV0
                 DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 1);
                 half4   Color           : TEXCOORD2; // Vertex Color
-                half4   LightingFog     : TEXCOORD3; // Vetex Lighting, Fog Factor
+                half3   VertexLighting  : TEXCOORD3; // Vertex Lighting
                 float4  ShadowCoords    : TEXCOORD4; // Shadow UVs
                 half3   NormalWS        : TEXCOORD5; // World Space Normal
                 float3  PositionWS      : TEXCOORD6;
@@ -149,10 +149,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                     diffuseColor += LightingLambert(attenuatedLightColor, light.direction, output.NormalWS);
                 }
             #endif
-                output.LightingFog.xyz = diffuseColor;
-
-                // Fog factor
-                output.LightingFog.w = ComputeFogFactor(output.PositionCS.z);
+                output.VertexLighting = diffuseColor;
 
                 output.PositionWS = vertexInput.positionWS;
 
@@ -176,7 +173,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 half3 bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, input.NormalWS);
 #endif
 
-                half3 lighting = input.LightingFog.rgb * MainLightRealtimeShadow(input.ShadowCoords) + bakedGI;
+                half3 lighting = input.VertexLighting * MainLightRealtimeShadow(input.ShadowCoords) + bakedGI;
 
                 half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.UV01);
                 half4 color = 1.0;

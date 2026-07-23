@@ -3,6 +3,7 @@
 
 #include "BakedLitInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 #if defined(LOD_FADE_CROSSFADE)
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
 #endif
@@ -66,7 +67,6 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     #endif
 
     inputData.shadowCoord = float4(0, 0, 0, 0);
-    inputData.fogCoord = input.uv0AndFogCoord.z;
     inputData.vertexLighting = half3(0, 0, 0);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = half4(1, 1, 1, 1);
@@ -109,11 +109,6 @@ Varyings BakedLitForwardPassVertex(Attributes input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
     output.positionCS = vertexInput.positionCS;
     output.uv0AndFogCoord.xy = TRANSFORM_TEX(input.uv, _BaseMap);
-    #if defined(_FOG_FRAGMENT)
-    output.uv0AndFogCoord.z = vertexInput.positionVS.z;
-    #else
-    output.uv0AndFogCoord.z = ComputeFogFactor(vertexInput.positionCS.z);
-    #endif
 
     // normalWS and tangentWS already normalize.
     // this is required to avoid skewing the direction during interpolation
@@ -174,6 +169,7 @@ void BakedLitForwardPassFragment(
     InitializeBakedGIData(input, inputData);
 
     half4 finalColor = UniversalFragmentBakedLit(inputData, color, alpha, normalTS);
+    finalColor.rgb = BlendDistanceFog(finalColor.rgb, input.positionCS);
 
     finalColor.a = OutputAlpha(finalColor.a, IsSurfaceTypeTransparent());
     outColor = finalColor;

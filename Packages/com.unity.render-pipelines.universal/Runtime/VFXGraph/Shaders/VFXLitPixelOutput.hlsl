@@ -20,7 +20,7 @@ float4 VFXCalcPixelOutputForward(const VFX_VARYING_PS_INPUTS i, SurfaceData surf
     float4 color = UniversalFragmentPBR(inputData, surfaceData);
 #endif
 
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    color.rgb = BlendDistanceFog(color.rgb, i.VFX_VARYING_POSCS);
 
 #if IS_OPAQUE_PARTICLE
     bool isTransparent = false;

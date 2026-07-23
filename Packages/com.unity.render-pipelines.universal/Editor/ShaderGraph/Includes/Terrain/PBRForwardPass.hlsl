@@ -20,7 +20,6 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
         inputData.shadowCoord = float4(0, 0, 0, 0);
     #endif
 
-    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 
 #if defined(DYNAMICLIGHTMAP_ON)
@@ -102,7 +101,7 @@ void frag(PackedVaryings packedInput,
 #endif
 
     color = UniversalFragmentPBR(inputData, surface);
-    SplatmapFinalColor(color, inputData.fogCoord);
+    SplatmapFinalColor(color, unpacked.positionCS);
 
 #ifdef _WRITE_RENDERING_LAYERS
     outRenderingLayers = EncodeMeshRenderingLayer();

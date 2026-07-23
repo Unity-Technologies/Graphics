@@ -3,6 +3,7 @@
 #define UNIVERSAL_TERRAIN_LIT_PASSES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl"
 
@@ -92,10 +93,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
     #endif
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
-        inputData.fogCoord = InitializeInputDataFog(float4(IN.positionWS, 1.0), IN.fogFactorAndVertexLight.x);
         inputData.vertexLighting = IN.fogFactorAndVertexLight.yzw;
-    #else
-    inputData.fogCoord = InitializeInputDataFog(float4(IN.positionWS, 1.0), IN.fogFactor);
     #endif
 
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
@@ -254,16 +252,16 @@ void HeightBasedSplatModify(inout half4 splatControl, in half4 masks[4])
 }
 #endif
 
-void SplatmapFinalColor(inout half4 color, half fogCoord)
+void SplatmapFinalColor(inout half4 color, float4 positionCS)
 {
     color.rgb *= color.a;
 
     #ifndef TERRAIN_GBUFFER // Technically we don't need fogCoord, but it is still passed from the vertex shader.
 
     #ifdef TERRAIN_SPLAT_ADDPASS
-        color.rgb = MixFogColor(color.rgb, half3(0,0,0), fogCoord);
+        color.rgb = BlendDistanceFogColor(color.rgb, positionCS, half3(0,0,0));
     #else
-        color.rgb = MixFog(color.rgb, fogCoord);
+        color.rgb = BlendDistanceFog(color.rgb, positionCS);
     #endif
 
     #endif
@@ -349,9 +347,6 @@ Varyings SplatmapVert(Attributes v)
     #endif
 
     half fogFactor = 0;
-    #if !defined(_FOG_FRAGMENT)
-        fogFactor = ComputeFogFactor(Attributes.positionCS.z);
-    #endif
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
         o.fogFactorAndVertexLight.x = fogFactor;
@@ -487,7 +482,7 @@ void SplatmapFragment(
     color.rgb = GlobalIllumination(brdfData, (BRDFData)0, 0, inputData.bakedGI, occlusion, inputData.positionWS,
                                    inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
     color.a = alpha;
-    SplatmapFinalColor(color, inputData.fogCoord);
+    SplatmapFinalColor(color, IN.clipPos);
 
     // Dynamic lighting: emulate SplatmapFinalColor() by scaling gbuffer material properties. This will not give the same results
     // as forward renderer because we apply blending pre-lighting instead of post-lighting.
@@ -504,7 +499,7 @@ void SplatmapFragment(
 
     half4 color = UniversalFragmentPBR(inputData, albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha);
 
-    SplatmapFinalColor(color, inputData.fogCoord);
+    SplatmapFinalColor(color, IN.clipPos);
 
     outColor = half4(color.rgb, 1.0h);
 

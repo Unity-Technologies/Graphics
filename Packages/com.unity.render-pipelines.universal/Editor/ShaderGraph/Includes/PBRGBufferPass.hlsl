@@ -31,7 +31,6 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
 
-    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);

@@ -3,6 +3,7 @@
 
 #include "SimpleLitInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 #if defined(LOD_FADE_CROSSFADE)
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
 #endif
@@ -89,10 +90,8 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     #endif
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
-        inputData.fogCoord = InitializeInputDataFog(float4(inputData.positionWS, 1.0), input.fogFactorAndVertexLight.x);
         inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     #else
-        inputData.fogCoord = InitializeInputDataFog(float4(inputData.positionWS, 1.0), input.fogFactor);
         inputData.vertexLighting = half3(0, 0, 0);
     #endif
 
@@ -150,11 +149,7 @@ Varyings LitPassVertexSimple(Attributes input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
 
-#if defined(_FOG_FRAGMENT)
         half fogFactor = 0;
-#else
-        half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
-#endif
 
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
     output.positionWS.xyz = vertexInput.positionWS;
@@ -219,7 +214,7 @@ void LitPassFragmentSimple(
     InitializeBakedGIData(input, inputData);
 
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    color.rgb = BlendDistanceFog(color.rgb, input.positionCS);
     color.a = OutputAlpha(color.a, IsSurfaceTypeTransparent());
 
     outColor = color;

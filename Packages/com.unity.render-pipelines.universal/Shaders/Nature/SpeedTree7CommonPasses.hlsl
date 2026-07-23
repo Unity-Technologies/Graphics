@@ -2,6 +2,7 @@
 #define UNIVERSAL_SPEEDTREE7COMMON_PASSES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 #include "SpeedTreeUtility.hlsl"
@@ -114,7 +115,6 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
         inputData.shadowCoord = float4(0, 0, 0, 0);
     #endif
 
-    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     // Billboards cannot use lightmaps.
 #if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
@@ -219,7 +219,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
         return PackGBuffersSurfaceData(surfaceData, inputData, color.rgb);
     #else
         half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
-        color.rgb = MixFog(color.rgb, inputData.fogCoord);
+        color.rgb = BlendDistanceFog(color.rgb, input.clipPos);
         color.a = OutputAlpha(color.a, _Surface);
         return color;
     #endif

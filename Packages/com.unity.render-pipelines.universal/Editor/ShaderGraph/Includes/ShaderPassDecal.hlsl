@@ -56,6 +56,7 @@
 #endif
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 
 void MeshDecalsPositionZBias(inout Varyings input)
 {
@@ -83,7 +84,6 @@ void InitializeInputData(Varyings input, float3 positionWS, half3 normalWS, half
 #endif
 
 #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
-    inputData.fogCoord = InitializeInputDataFog(float4(positionWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 #endif
 
@@ -343,7 +343,8 @@ void Frag(PackedVaryings packedInput,
 
     half4 color = UniversalFragmentPBR(inputData, surface);
 
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    float linearEyeDepth = dot(GetViewForwardDir(), positionWS - GetCameraPositionWS());
+    color.rgb = BlendDistanceFogFromEyeDepth(color.rgb, linearEyeDepth);
 
     outColor = color;
 #elif defined(DECAL_GBUFFER)

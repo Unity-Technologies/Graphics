@@ -26,6 +26,8 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
 #endif
 
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
+
 float shadergraph_LWSampleSceneDepth(float2 uv)
 {
 #if defined(REQUIRE_DEPTH_TEXTURE)
@@ -116,15 +118,13 @@ void shadergraph_LWFog(float3 positionOS, out float4 color, out float density)
 {
     color = unity_FogColor;
     density = 0.0f;
-    #if defined(FOG_LINEAR_KEYWORD_DECLARED)
     if (FOG_LINEAR || FOG_EXP || FOG_EXP2)
     {
         float viewZ = -TransformWorldToView(TransformObjectToWorld(positionOS)).z;
         float nearZ0ToFarZ = max(viewZ - _ProjectionParams.y, 0);
-        // ComputeFogFactorZ0ToFar returns the fog "occlusion" (0 for full fog and 1 for no fog) so this has to be inverted for density.
-        density = 1.0f - ComputeFogIntensity(ComputeFogFactorZ0ToFar(nearZ0ToFarZ));
+        // DistanceFogOcclusionFactor returns the fog "occlusion" (0 for full fog and 1 for no fog) so this has to be inverted for density.
+        density = 1.0f - DistanceFogOcclusionFactor(nearZ0ToFarZ);
     }
-    #endif // defined(FOG_LINEAR_KEYWORD_DECLARED)
 }
 
 // This function assumes the bitangent flip is encoded in tangentWS.w

@@ -283,9 +283,6 @@ Varyings BuildVaryings(Attributes input
     #endif
     #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
         half fogFactor = 0;
-    #if !defined(_FOG_FRAGMENT)
-            fogFactor = ComputeFogFactor(output.positionCS.z);
-    #endif
         half3 vertexLight = VertexLighting(positionWS, normalWS);
         output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
     #endif

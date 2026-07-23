@@ -33,6 +33,7 @@ Pass
     ${VFXIncludeRP("VFXDecalVaryings.template")}
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DecalInput.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 
     struct ps_input
     {
@@ -80,7 +81,8 @@ Pass
 
         half4 color = UniversalFragmentPBR(inputData, surfaceData);
 
-        color.rgb = MixFog(color.rgb, inputData.fogCoord);
+        float linearEyeDepth = dot(GetViewForwardDir(), inputData.positionWS - GetCameraPositionWS());
+        color.rgb = BlendDistanceFogFromEyeDepth(color.rgb, linearEyeDepth);
         return color;
     }
 

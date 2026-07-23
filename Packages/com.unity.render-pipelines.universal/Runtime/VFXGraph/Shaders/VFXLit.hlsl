@@ -45,9 +45,6 @@ InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs po
     inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
 
-    //This ComputeFogFactor can be moved to vertex and use interpolator instead
-    float fogFactor = ComputeFogFactor(i.VFX_VARYING_POSCS.z);
-    inputData.fogCoord = InitializeInputDataFog(float4(inputData.positionWS, 1.0), fogFactor);
 
     //SampleSH could partially be done on vertex using SampleSHVertex & SampleSHPixel
     //For now, use directly the simpler per pixel fallback

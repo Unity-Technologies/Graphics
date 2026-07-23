@@ -133,9 +133,6 @@ SpeedTreeVertexOutput SpeedTree7Vert(SpeedTreeVertexInput input)
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalWS);
 
     half fogFactor = 0;
-    #if !defined(_FOG_FRAGMENT)
-        fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
-    #endif
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);

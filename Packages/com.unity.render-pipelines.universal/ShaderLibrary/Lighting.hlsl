@@ -2,6 +2,7 @@
 #define UNIVERSAL_LIGHTING_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/BRDF.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/Debugging3D.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GlobalIllumination.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RealtimeLights.hlsl"
@@ -223,38 +224,11 @@ half4 CalculateFinalColor(LightingData lightingData, half alpha)
     return half4(finalColor, alpha);
 }
 
+// Deprecated: use CalculateFinalColor(lightingData, alpha) + BlendDistanceFog. fogCoord is view-space z.
 half4 CalculateFinalColor(LightingData lightingData, half3 albedo, half alpha, float fogCoord)
 {
-    half fogFactor = 0;
-    #if defined(_FOG_FRAGMENT)
-    bool anyFogEnabled = false;
-    
-    #if defined(FOG_LINEAR_KEYWORD_DECLARED)
-    if (FOG_LINEAR)
-        anyFogEnabled = true;
-    #endif
-    
-    #if defined(FOG_EXP_KEYWORD_DECLARED)
-    if (FOG_EXP)
-        anyFogEnabled = true;
-    #endif
-    
-    #if defined(FOG_EXP2_KEYWORD_DECLARED)
-    if (FOG_EXP2)
-        anyFogEnabled = true;
-    #endif
-    
-    if (anyFogEnabled)
-    {
-        float viewZ = -fogCoord;
-        float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
-        fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
-    }
-    #else  // #if defined(_FOG_FRAGMENT)
-    fogFactor = fogCoord;
-    #endif // #if defined(_FOG_FRAGMENT)
     half3 lightingColor = CalculateLightingColor(lightingData, albedo);
-    half3 finalColor = MixFog(lightingColor, fogFactor);
+    half3 finalColor = BlendDistanceFogFromEyeDepth(lightingColor, -fogCoord);
 
     return half4(finalColor, alpha);
 }
@@ -534,7 +508,8 @@ half4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
         lightingData.giColor *= aoFactor.indirectAmbientOcclusion;
     }
 
-    return CalculateFinalColor(lightingData, surfaceData.albedo, surfaceData.alpha, inputData.fogCoord);
+    // Fog is applied by the caller via BlendDistanceFog(color, positionCS).
+    return half4(CalculateLightingColor(lightingData, surfaceData.albedo), surfaceData.alpha);
 }
 
 // Deprecated: Use the version which takes "SurfaceData" instead of passing all of these arguments...

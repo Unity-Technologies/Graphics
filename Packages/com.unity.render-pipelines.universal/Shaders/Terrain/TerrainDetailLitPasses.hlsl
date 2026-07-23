@@ -1,6 +1,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
 
@@ -19,7 +20,7 @@ struct Varyings
     float2  UV01            : TEXCOORD0; // UV0
     DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 1);
     half4   Color           : TEXCOORD2; // Vertex Color
-    half4   LightingFog     : TEXCOORD3; // Vertex Lighting, Fog Factor
+    half3   VertexLighting  : TEXCOORD3; // Vertex Lighting
     #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     float4  ShadowCoords    : TEXCOORD4; // Shadow UVs
     #endif
@@ -50,8 +51,7 @@ void InitializeInputData(Varyings input, out InputData inputData)
         inputData.shadowCoord = float4(0, 0, 0, 0);
     #endif
 
-    inputData.fogCoord = input.LightingFog.a;
-    inputData.vertexLighting = input.LightingFog.rgb;
+    inputData.vertexLighting = input.VertexLighting;
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.PositionCS);
     inputData.positionWS = input.PositionWS;
 
@@ -175,10 +175,7 @@ Varyings TerrainLitVertex(Attributes input)
     }
     #endif
 
-    output.LightingFog.xyz = diffuseColor;
-
-    // Fog factor
-    output.LightingFog.w = ComputeFogFactor(output.PositionCS.z);
+    output.VertexLighting = diffuseColor;
 
     output.NormalWS.xyz = NormalWS;
     output.PositionWS = vertexInput.positionWS;
@@ -196,7 +193,7 @@ half4 TerrainLitForwardFragment(Varyings input) : SV_Target
     half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.UV01);
     half4 color = UniversalTerrainLit(inputData, tex.rgb, tex.a);
 
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    color.rgb = BlendDistanceFog(color.rgb, input.PositionCS);
     return color;
 }
 

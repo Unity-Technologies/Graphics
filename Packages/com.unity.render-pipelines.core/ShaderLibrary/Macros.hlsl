@@ -6,6 +6,10 @@
 #define MERGE_NAME(X, Y) X##Y
 #define CALL_MERGE_NAME(X, Y) MERGE_NAME(X, Y)
 
+// True when X is defined to a non-zero (or empty) value; false when undefined or defined as literal 0.
+// undefined -> false, '#define X' -> true, '#define X 0' -> false, '#define X N' -> true (N non-zero).
+#define DEFINED_NONZERO(X) (defined(X) && ((1 - X - 1) != 0))
+
 // These define are use to abstract the way we sample into a cubemap array.
 // Some platform don't support cubemap array so we fallback on 2D latlong
 #ifdef  UNITY_NO_CUBEMAP_ARRAY
