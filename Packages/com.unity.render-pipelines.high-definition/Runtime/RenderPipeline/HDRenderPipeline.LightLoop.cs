@@ -1,4 +1,5 @@
 using System;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 
@@ -6,6 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
+        [NoAutoStaticsCleanup] // Pipeline-lifetime: bound to the big-tile prepass shader in InitializeLightLoop.
         private static LocalKeyword s_BigTileVolumetricLightListKeyword;
 
         struct LightingBuffers
