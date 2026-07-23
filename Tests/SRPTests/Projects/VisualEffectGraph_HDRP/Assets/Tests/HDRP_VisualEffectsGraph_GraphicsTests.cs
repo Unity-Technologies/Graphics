@@ -25,9 +25,6 @@ namespace UnityEngine.VFX.Test
         [IgnoreGraphicsTest("021_Check_Garbage_Spawner", "No reference images provided")]
         [IgnoreGraphicsTest("022_Repro_Crash_Null_Indexbuffer", "No reference images provided")]
         [IgnoreGraphicsTest("023_Check_Garbage_Timeline", "No reference images provided")]
-        [IgnoreGraphicsTest("026_InstancingGPUevents", "See UUM-88671", GraphicsDeviceType.Metal)]
-        [IgnoreGraphicsTest("026_RWBuffer", "Unstable: https://jira.unity3d.com/browse/UUM-119810")]
-        [IgnoreGraphicsTest("027_RWTexture", "See UUM-140411, might relate with UUM-119810", RuntimePlatform.OSXEditor)]
         [IgnoreGraphicsTest("36_SkinnedSDF", "See UUM-66822 and VFXG-539", RuntimePlatform.GameCoreXboxOne, RuntimePlatform.Switch)]
         [IgnoreGraphicsTest("39_SmokeLighting_APV", "Too many bindings when using APVs", RuntimePlatform.Switch)]
         [IgnoreGraphicsTest("102_ShadergraphShadow", "See UUM-96202", RuntimePlatform.Switch)]
@@ -40,7 +37,6 @@ namespace UnityEngine.VFX.Test
         [IgnoreGraphicsTest("NamedObject_ExposedProperties", "No reference images provided")]
         [IgnoreGraphicsTest("PrewarmCompute", "No reference images provided")]
         [IgnoreGraphicsTest("Readback_ParticleCount", "No reference images provided")]
-        [IgnoreGraphicsTest("009_MultiCamera", "See UUM-140411", RuntimePlatform.OSXEditor)]
         [IgnoreGraphicsTest(
             "009_MultiCamera_MotionVector",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-146723",

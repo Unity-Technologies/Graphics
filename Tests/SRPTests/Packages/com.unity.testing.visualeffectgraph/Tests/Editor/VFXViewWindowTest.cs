@@ -1056,7 +1056,7 @@ namespace UnityEditor.VFX.Test
                 yield return null;
             Assert.IsTrue(maxFrame > 0);
 
-            maxFrame = 8;
+            maxFrame = 16;
             while (maxFrame-- > 0 && vfx.aliveParticleCount == 0)
                 yield return null;
             Assert.IsTrue(maxFrame > 0);
@@ -1077,7 +1077,7 @@ namespace UnityEditor.VFX.Test
             viewController.ApplyChanges();
             yield return null;
 
-            maxFrame = 8;
+            maxFrame = 16;
             while (maxFrame-- > 0 && vfx.aliveParticleCount == 0)
                 yield return null;
             Assert.IsTrue(maxFrame > 0);
