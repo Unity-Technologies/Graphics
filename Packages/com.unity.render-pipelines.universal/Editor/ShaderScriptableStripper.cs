@@ -124,6 +124,7 @@ namespace UnityEditor.Rendering.Universal
         Shader m_XRMirrorViewShader = Shader.Find("Hidden/Universal Render Pipeline/XR/XRMirrorView");
         Shader m_XRMotionVectorShader = Shader.Find("Hidden/Universal Render Pipeline/XR/XRMotionVector");
         Shader m_Light2DShader = Shader.Find("Hidden/Light2D");
+        Shader m_RenderingLayerMask2DShader = Shader.Find("Hidden/2D/RenderingLayerMask");
 
         // Pass names
         public static readonly string kPassNameUniversal2D = "Universal2D";
@@ -878,6 +879,14 @@ namespace UnityEditor.Rendering.Universal
             return stripTool.StripMultiCompile(m_PointSampling, ShaderFeatures.PointSamplingUpsampling);
         }
 
+        internal bool StripUnusedFeatures_RenderingLayerMask2D(ref IShaderScriptableStrippingData strippingData)
+        {
+            if (strippingData.shader != m_RenderingLayerMask2DShader)
+                return false;
+
+            return !strippingData.IsShaderFeatureEnabled(ShaderFeatures.LightLayers);
+        }
+
         internal bool StripUnusedFeatures(ref IShaderScriptableStrippingData strippingData)
         {
             if (StripUnusedFeatures_DebugDisplay(ref strippingData))
@@ -995,6 +1004,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedFeatures_PointSamplingUpsampling(ref strippingData, ref stripTool))
+                return true;
+
+            if (StripUnusedFeatures_RenderingLayerMask2D(ref strippingData))
                 return true;
 
             return false;
