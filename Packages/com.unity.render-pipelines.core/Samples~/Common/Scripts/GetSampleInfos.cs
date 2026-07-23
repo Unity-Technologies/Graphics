@@ -40,8 +40,12 @@ public class GetSampleInfos : MonoBehaviour
     
     void UpdateText()
     {
-        if(TextMeshProComponent == null) 
+        if(TextMeshProComponent == null)
             UpdateTextMeshProReference();
+
+        if(TextMeshProComponent == null)
+            return;
+        TextMeshProComponent.text = string.Empty;
 
         switch(type)
         {
@@ -49,10 +53,12 @@ public class GetSampleInfos : MonoBehaviour
                 TextMeshProComponent.text = SamplesShowcase.GetSanitizedIntroduction();
                 break;
             case Type.Title:
-                TextMeshProComponent.text = SamplesShowcase.GetSanitizedTitle(prefab.name);
+                if(prefab != null)
+                    TextMeshProComponent.text = SamplesShowcase.GetSanitizedTitle(prefab.name);
                 break;
             case Type.Description:
-                TextMeshProComponent.text = SamplesShowcase.GetSanitizedDescription(prefab.name);
+                if(prefab != null)
+                    TextMeshProComponent.text = SamplesShowcase.GetSanitizedDescription(prefab.name);
                 break;
         }
     }
