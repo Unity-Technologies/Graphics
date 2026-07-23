@@ -21,7 +21,7 @@
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
     "com.unity.xr.management": "4.5.3",
     "com.unity.modules.uielements": "1.0.0",
-    "com.unity.test-profiler": "0.1.0-exp.1",
+    "com.unity.test-profiler": "0.1.0-exp.2",
     "com.unity.yamato": "1.0.1"
   },
   "testables": [

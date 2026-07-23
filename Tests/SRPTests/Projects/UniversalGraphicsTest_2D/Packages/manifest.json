@@ -52,7 +52,7 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0",
-    "com.unity.test-profiler": "0.1.0-exp.1",
+    "com.unity.test-profiler": "0.1.0-exp.2",
     "com.unity.yamato": "1.0.1"
   },
   "scopedRegistries": [
