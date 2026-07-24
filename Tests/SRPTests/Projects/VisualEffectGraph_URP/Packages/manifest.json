@@ -18,7 +18,7 @@
     "com.unity.testing.urp": "file:../../../Packages/com.unity.testing.urp",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
-    "com.unity.xr.legacyinputhelpers": "file:../../../../../ShadowPackages/com.unity.xr.legacyinputhelpers",
+    "com.unity.xr.legacyinputhelpers": "6.0.0",
     "com.unity.testframework.graphics": "file:../../../Packages/com.unity.test-framework.graphics",
     "com.unity.test-framework": "file:../../../../../Packages/com.unity.test-framework",
     "com.unity.modules.ai": "1.0.0",
