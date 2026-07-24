@@ -121,7 +121,7 @@ namespace UnityEditor.Rendering
 
         PlayerConnection m_PlayerConnection;
 
-        bool m_Paused = false;
+        internal bool m_Paused = false;
 
         static EntityId s_EditorWindowEntityId;
 
@@ -879,11 +879,15 @@ namespace UnityEditor.Rendering
                 emptyStateText.text = $"{kEmptyStateMessages[(int) reason]}";
         }
 
-        void OnAutoPlayStatusChanged(ChangeEvent<bool> evt)
+        internal void OnAutoPlayStatusChanged(ChangeEvent<bool> evt)
         {
             var autoPlayToggle = rootVisualElement.Q<ToolbarToggle>(Names.kAutoPauseToggle);
             autoPlayToggle.text = evt.newValue ? L10n.Tr("Auto Update") : L10n.Tr("Pause");
             m_Paused = evt.newValue;
+
+            // A play mode transition can reset the session while paused (reconnect was deferred); restore it on unpause.
+            if (!m_Paused && RenderGraphDebugSession.currentDebugSession == null)
+                ReconnectDebugSession();
 
             // When enabling Auto Update, if the current debug data is from a player that is no longer connected,
             // switch back to Editor target.
@@ -2101,6 +2105,9 @@ namespace UnityEditor.Rendering
             if (RenderGraphDebugSession.currentDebugSession == null)
                 ConnectDebugSession<RenderGraphEditorLocalDebugSession>();
 
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+
             UpdateStatusLabel();
         }
 
@@ -2113,12 +2120,42 @@ namespace UnityEditor.Rendering
             if (s_EditorWindowEntityId != GetEntityId())
                 return;
 
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
             m_CurrentDebugData?.Clear();
             DisconnectDebugSession();
 
             m_PlayerConnection?.Dispose();
 
             GraphicsToolLifetimeAnalytic.WindowClosed<RenderGraphViewer>();
+        }
+
+        internal void OnPlayModeStateChanged(PlayModeStateChange state)
+        {
+            // The static debug session is reset on play mode changes and CreateGUI does not run again to reconnect this window.
+            if (state != PlayModeStateChange.EnteredPlayMode && state != PlayModeStateChange.EnteredEditMode)
+                return;
+            // While paused the viewer shows a frozen capture; defer reconnecting to unpause so it is not cleared.
+            if (m_Paused)
+                return;
+            if (RenderGraphDebugSession.currentDebugSession != null)
+                return;
+
+            ReconnectDebugSession();
+        }
+
+        void ReconnectDebugSession()
+        {
+            bool playerConnected = m_PlayerConnection != null &&
+                m_PlayerConnection.connectionState.connectedToTarget == ConnectionTarget.Player;
+            if (playerConnected)
+            {
+                ConnectDebugSession<RenderGraphEditorRemoteDebugSession>();
+                RenderGraphDebugSession.currentDebugSession.connectionName = m_PlayerConnection.connectionState.connectionName;
+            }
+            else
+            {
+                ConnectDebugSession<RenderGraphEditorLocalDebugSession>();
+            }
         }
 
         void OnPlayerConnected(int playerID)
