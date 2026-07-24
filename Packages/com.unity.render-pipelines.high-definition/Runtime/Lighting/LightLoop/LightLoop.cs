@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Unity.Collections;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -536,22 +537,23 @@ namespace UnityEngine.Rendering.HighDefinition
             { "TileLightListGen_NoDepthRT_SrcBigTile", "TileLightListGen_DepthRT_SrcBigTile_Oblique", "TileLightListGen_DepthRT_MSAA_SrcBigTile_Oblique" }
         };
 
-        static int s_GenListPerTileKernel;
-        static readonly int[,] s_ClusterKernels = new int[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count];
-        static readonly int[,] s_ClusterObliqueKernels = new int[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count];
-        static int s_ClearVoxelAtomicKernel;
-        static int s_ClearDispatchIndirectKernel;
-        static int s_BuildIndirectKernel;
-        static int s_BuildMaterialFlagsWriteKernel;
+        // Compute kernel indices below are pipeline-lifetime: populated by InitializeLightLoop from the pipeline constructor and reused across domain reload.
+        [NoAutoStaticsCleanup] static int s_GenListPerTileKernel;
+        [NoAutoStaticsCleanup] static readonly int[,] s_ClusterKernels = new int[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count];
+        [NoAutoStaticsCleanup] static readonly int[,] s_ClusterObliqueKernels = new int[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count];
+        [NoAutoStaticsCleanup] static int s_ClearVoxelAtomicKernel;
+        [NoAutoStaticsCleanup] static int s_ClearDispatchIndirectKernel;
+        [NoAutoStaticsCleanup] static int s_BuildIndirectKernel;
+        [NoAutoStaticsCleanup] static int s_BuildMaterialFlagsWriteKernel;
 
-        static int s_shadeOpaqueDirectFptlKernel;
-        static int s_shadeOpaqueDirectFptlDebugDisplayKernel;
+        [NoAutoStaticsCleanup] static int s_shadeOpaqueDirectFptlKernel;
+        [NoAutoStaticsCleanup] static int s_shadeOpaqueDirectFptlDebugDisplayKernel;
 
-        static readonly int[] s_shadeOpaqueIndirectFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
+        [NoAutoStaticsCleanup] static readonly int[] s_shadeOpaqueIndirectFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
 
-        static int s_deferredContactShadowKernel;
+        [NoAutoStaticsCleanup] static int s_deferredContactShadowKernel;
 
-        static int s_GenListPerBigTileKernel;
+        [NoAutoStaticsCleanup] static int s_GenListPerBigTileKernel;
 
         const bool k_UseDepthBuffer = true;      // only has an impact when EnableClustered is true (requires a depth-prepass)
 
@@ -563,37 +565,8 @@ namespace UnityEngine.Rendering.HighDefinition
         const float k_ClustLogBase = 1.02f;     // each slice 2% bigger than the previous
         float m_ClusterScale;
 
+        [NoAutoStaticsCleanup] // Pipeline-lifetime: created by InitializeLightLoop, released by CleanupLightLoop.
         static DebugLightVolumes s_lightVolumes = null;
-
-#if UNITY_EDITOR
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-        static void ResetStaticsOnLoad()
-        {
-            s_GenListPerTileKernel = -1;
-            for (int i = 0; i < s_ClusterKernels.GetLength(0); i++)
-                for (int j = 0; j < s_ClusterKernels.GetLength(1); j++)
-                    s_ClusterKernels[i, j] = -1;
-            for (int i = 0; i < s_ClusterObliqueKernels.GetLength(0); i++)
-                for (int j = 0; j < s_ClusterObliqueKernels.GetLength(1); j++)
-                    s_ClusterObliqueKernels[i, j] = -1;
-            s_ClearVoxelAtomicKernel = -1;
-            s_ClearDispatchIndirectKernel = -1;
-            s_BuildIndirectKernel = -1;
-            s_BuildMaterialFlagsWriteKernel = -1;
-            s_shadeOpaqueDirectFptlKernel = -1;
-            s_shadeOpaqueDirectFptlDebugDisplayKernel = -1;
-            Array.Fill(s_shadeOpaqueIndirectFptlKernels, -1);
-            s_deferredContactShadowKernel = -1;
-            s_GenListPerBigTileKernel = -1;
-            s_lightVolumes = null;
-            // From HDRenderPipeline.LightLoop.cs
-            s_BigTileVolumetricLightListKeyword = default;
-            // From HDRenderPipeline.ProbeHelpers.cs
-            Array.Clear(m_PackedCoeffsProbe, 0, m_PackedCoeffsProbe.Length);
-            // From HDRenderPipeline.ScreenSpaceShadows.cs
-            s_ScreenSpaceShadowsMat = null;
-        }
-#endif
 
         ContactShadows m_ContactShadows = null;
         bool m_SupportContactShadow = true;
