@@ -495,6 +495,10 @@ namespace UnityEditor
         // By default, everything is expanded, except advanced
         readonly MaterialHeaderScopeList m_MaterialScopeList = new MaterialHeaderScopeList(uint.MaxValue & ~(uint)Expandable.Advanced);
 
+        // The order of the following lists have to match.
+        static readonly string[] k_emissionOptions = { "Realtime Direct Emission", "Realtime Indirect Emission", "Baked Emission" };
+        static readonly MaterialGlobalIlluminationFlags[] k_emissionOptionsInternal = { MaterialGlobalIlluminationFlags.RealtimeDirectEmission, MaterialGlobalIlluminationFlags.RealtimeIndirectEmission, MaterialGlobalIlluminationFlags.BakedEmission };
+
         #endregion
 
         private const int queueOffsetRange = 50;
@@ -1063,16 +1067,14 @@ namespace UnityEditor
         /// <param name="keyword">The keyword used for emission.</param>
         protected virtual void DrawEmissionProperties(Material material, bool keyword)
         {
-            var emissive = true;
-
             if (!keyword)
             {
                 DrawEmissionTextureProperty();
             }
             else
             {
-                emissive = materialEditor.EmissionEnabledProperty();
-                using (new EditorGUI.DisabledScope(!emissive))
+                DrawEmissionFlags(material);
+                using (new EditorGUI.DisabledScope(material.globalIlluminationFlags == MaterialGlobalIlluminationFlags.None))
                 {
                     DrawEmissionTextureProperty();
                 }
@@ -1087,10 +1089,35 @@ namespace UnityEditor
                     emissionColorProp.colorValue = Color.white;
             }
 
-            if (emissive)
+            MaterialEditor.FixupEmissiveFlag(material);
+        }
+
+        /// <summary>
+        /// Creates a int flag field for emission flags in globalIlluminationFlags for a given material.
+        /// </summary>
+        /// <param name="material">The material to draw the emission flags field from.</param>
+        protected void DrawEmissionFlags(Material material)
+        {
+            int flags = 0;
+            for (int i = 0; i < k_emissionOptionsInternal.Length; i++)
             {
-                // Change the GI emission flag and fix it up with emissive as black if necessary.
-                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true);
+                if ((material.globalIlluminationFlags & k_emissionOptionsInternal[i]) != MaterialGlobalIlluminationFlags.None)
+                    flags |= 1 << i;
+            }
+            EditorGUI.BeginChangeCheck();
+            flags = EditorGUILayout.MaskField(flags, k_emissionOptions);
+            var globalIlluminationFlags = material.globalIlluminationFlags
+                & ~(MaterialGlobalIlluminationFlags.BakedEmission | MaterialGlobalIlluminationFlags.RealtimeIndirectEmission | MaterialGlobalIlluminationFlags.RealtimeDirectEmission);
+            for (int i = 0; i < k_emissionOptions.Length; i++)
+            {
+                if ((flags & 1 << i) != 0)
+                    globalIlluminationFlags |= k_emissionOptionsInternal[i];
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(material, $"Modify Emission Flags of {material.name}");
+                material.globalIlluminationFlags = globalIlluminationFlags;
+                EditorUtility.SetDirty(material);
             }
         }
 
@@ -1359,7 +1386,7 @@ namespace UnityEditor
             if (material.HasProperty(Property.EmissionColor))
                 MaterialEditor.FixupEmissiveFlag(material);
 
-            bool shouldEmissionBeEnabled = (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.AnyEmissive) != 0;
+            bool shouldEmissionBeEnabled = (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.RealtimeDirectEmission) != 0;
 
             // Not sure what this is used for, I don't see this property declared by any Unity shader in our repo...
             // I'm guessing it is some kind of legacy material upgrade support thing?  Or maybe just dead code now...

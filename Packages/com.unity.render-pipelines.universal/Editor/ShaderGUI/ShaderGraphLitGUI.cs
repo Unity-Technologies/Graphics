@@ -36,7 +36,7 @@ namespace UnityEditor
         {
             // newly created materials should initialize the globalIlluminationFlags (default is off)
             if (updateType == MaterialUpdateType.CreatedNewMaterial)
-                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmission;
 
             bool automaticRenderQueue = GetAutomaticQueueControlSetting(material);
             BaseShaderGUI.UpdateMaterialSurfaceOptions(material, automaticRenderQueue);
@@ -88,7 +88,7 @@ namespace UnityEditor
 
             // ignore emission color for shadergraphs, because shadergraphs don't have a hard-coded emission property, it's up to the user
             materialEditor.DoubleSidedGIField();
-            materialEditor.LightmapEmissionFlagsProperty(0, enabled: true, ignoreEmissionColor: true);
+            DrawEmissionFlags(material);
         }
     }
 } // namespace UnityEditor

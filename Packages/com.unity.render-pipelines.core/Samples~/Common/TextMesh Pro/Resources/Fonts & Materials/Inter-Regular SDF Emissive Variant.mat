@@ -24,19 +24,18 @@ Material:
   m_Shader: {fileID: -6465566751694194690, guid: f8605069e61e60e4685c8e97ead17a56, type: 3}
   m_Parent: {fileID: -6055507529455485361, guid: 2f7116f10747a67409388e93052ae222, type: 2}
   m_ModifiedSerializedProperties: 2
-  m_ValidKeywords: []
-  m_InvalidKeywords:
+  m_ValidKeywords:
   - _DISABLE_SSR_TRANSPARENT
   - _DOUBLESIDED_ON
   - _ENABLE_FOG_ON_TRANSPARENT
   - _SURFACE_TYPE_TRANSPARENT
-  m_LightmapFlags: 2
+  m_InvalidKeywords: []
+  m_LightmapFlags: 10
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap:
     MotionVector: User
-    RenderType: Transparent
   disabledShaderPasses:
   - TransparentDepthPrepass
   - TransparentDepthPostpass
@@ -49,6 +48,7 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
+    - _BUILTIN_QueueControl: 1
     - _Emission_Intensity: 1
     - _QueueControl: 1
     m_Colors: []
@@ -66,7 +66,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 10
+  version: 11
 --- !u!114 &6872997888534480524
 MonoBehaviour:
   m_ObjectHideFlags: 11

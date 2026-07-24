@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering.Universal
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
         internal static bool s_NeedsSavingAssets = false;
 
-        internal static readonly Action<Material, ShaderID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4, UpgradeV5, UpgradeV6, UpgradeV7, UpgradeV8, UpgradeV9, UpgradeV10 };
+        internal static readonly Action<Material, ShaderID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4, UpgradeV5, UpgradeV6, UpgradeV7, UpgradeV8, UpgradeV9, UpgradeV10, UpgradeV11 };
 
         static internal void SaveAssetsToDisk()
         {
@@ -436,10 +436,25 @@ namespace UnityEditor.Rendering.Universal
         {
             if ((material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0)
             {
-                material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.BakedEmissive;
+                material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.BakedEmission;
                 if (material.HasProperty(Property.EmissionColor))
                     MaterialEditor.FixupEmissiveFlag(material);
-                CoreUtils.SetKeyword(material, ShaderKeywordStrings._EMISSION, (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.AnyEmissive) != 0);
+                CoreUtils.SetKeyword(material, ShaderKeywordStrings._EMISSION, (material.globalIlluminationFlags & (MaterialGlobalIlluminationFlags.BakedEmission | MaterialGlobalIlluminationFlags.RealtimeIndirectEmission)) != 0);
+            }
+        }
+
+        // Refactored emission settings and added a new flag.
+        static void UpgradeV11(Material material, ShaderID shaderID)
+        {
+            if ((material.globalIlluminationFlags & (MaterialGlobalIlluminationFlags.BakedEmission | MaterialGlobalIlluminationFlags.RealtimeIndirectEmission)) != MaterialGlobalIlluminationFlags.None)
+            {
+                if (material.HasProperty(Property.EmissionColor))
+                    MaterialEditor.FixupEmissiveFlag(material);
+
+                if ((material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0)
+                    material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeDirectEmission;
+
+                Unity.Rendering.Universal.ShaderUtils.UpdateMaterial(material, MaterialUpdateType.ModifiedMaterial, shaderID);
             }
         }
     }

@@ -179,6 +179,8 @@ namespace UnityEditor.Rendering.Universal
                 material.SetFloat("_AlphaClip", 1.0f);
             }
 
+            UpdateEmissionMode(material);
+
             material.SetFloat("_WorkflowMode", 1.0f);
             CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
             CoreUtils.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_MetallicGlossMap"));
@@ -248,6 +250,15 @@ namespace UnityEditor.Rendering.Universal
             {
                 material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
                 material.SetFloat("_Surface", (float)BaseShaderGUI.SurfaceType.Opaque);
+            }
+        }
+
+        private static void UpdateEmissionMode(Material material)
+        {
+            if ((material.globalIlluminationFlags & (MaterialGlobalIlluminationFlags.BakedEmission | MaterialGlobalIlluminationFlags.RealtimeIndirectEmission)) != MaterialGlobalIlluminationFlags.None)
+            {
+                material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeDirectEmission;
+                material.EnableKeyword("_EMISSION");
             }
         }
 
@@ -321,9 +332,19 @@ namespace UnityEditor.Rendering.Universal
             // or is enabled and may be modified at runtime. This state depends on the values of the current flag and emissive color.
             // The fixup routine makes sure that the material is in the correct state if/when changes are made to the mode or color.
             MaterialEditor.FixupEmissiveFlag(material);
-            bool shouldEmissionBeEnabled = (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.AnyEmissive) != 0;
+            bool shouldEmissionBeEnabled = (material.globalIlluminationFlags & (MaterialGlobalIlluminationFlags.BakedEmission | MaterialGlobalIlluminationFlags.RealtimeIndirectEmission)) != 0;
+            material.globalIlluminationFlags |= shouldEmissionBeEnabled ? MaterialGlobalIlluminationFlags.RealtimeDirectEmission : MaterialGlobalIlluminationFlags.None;
             CoreUtils.SetKeyword(material, "_EMISSION", shouldEmissionBeEnabled);
             MaterialUpgradeUtils.DisableKeywords(material);
+        }
+
+        private static void UpdateEmissionMode(Material material)
+        {
+            if ((material.globalIlluminationFlags & (MaterialGlobalIlluminationFlags.BakedEmission | MaterialGlobalIlluminationFlags.RealtimeIndirectEmission)) != MaterialGlobalIlluminationFlags.None)
+            {
+                material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeDirectEmission;
+                material.EnableKeyword("_EMISSION");
+            }
         }
 
         private static void UpdateMaterialSpecularSource(Material material)
@@ -418,6 +439,7 @@ namespace UnityEditor.Rendering.Universal
         /// <param name="material"></param>
         public static void UpdateStandardSurface(Material material)
         {
+            UpdateEmissionMode(material);
             UpdateSurfaceBlendModes(material);
             MaterialUpgradeUtils.DisableKeywords(material);
             FixEmissiveFlags(material);
@@ -429,6 +451,7 @@ namespace UnityEditor.Rendering.Universal
         /// <param name="material"></param>
         public static void UpdateUnlit(Material material)
         {
+            UpdateEmissionMode(material);
             UpdateSurfaceBlendModes(material);
             MaterialUpgradeUtils.DisableKeywords(material);
             FixEmissiveFlags(material);
@@ -449,8 +472,9 @@ namespace UnityEditor.Rendering.Universal
             {
                 LightingSettings lightingSettingsOrDefaultsFallback = Lightmapping.GetLightingSettingsOrDefaultsFallback();
                 MaterialGlobalIlluminationFlags materialGlobalIlluminationFlags =
-                    (lightingSettingsOrDefaultsFallback.realtimeGI ? MaterialGlobalIlluminationFlags.RealtimeEmissive :
-                    (lightingSettingsOrDefaultsFallback.bakedGI ? MaterialGlobalIlluminationFlags.BakedEmissive :
+                    MaterialGlobalIlluminationFlags.RealtimeDirectEmission |
+                    (lightingSettingsOrDefaultsFallback.realtimeGI ? MaterialGlobalIlluminationFlags.RealtimeIndirectEmission :
+                    (lightingSettingsOrDefaultsFallback.bakedGI ? MaterialGlobalIlluminationFlags.BakedEmission :
                     MaterialGlobalIlluminationFlags.None));
                 material.globalIlluminationFlags = materialGlobalIlluminationFlags;
             }
@@ -462,6 +486,15 @@ namespace UnityEditor.Rendering.Universal
             else if (material.globalIlluminationFlags == MaterialGlobalIlluminationFlags.None)
             {
                 material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+            }
+        }
+
+        private static void UpdateEmissionMode(Material material)
+        {
+            if ((material.globalIlluminationFlags & (MaterialGlobalIlluminationFlags.BakedEmission | MaterialGlobalIlluminationFlags.RealtimeIndirectEmission)) != MaterialGlobalIlluminationFlags.None)
+            {
+                material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeDirectEmission;
+                material.EnableKeyword("_EMISSION");
             }
         }
 

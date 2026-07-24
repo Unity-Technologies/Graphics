@@ -97,7 +97,7 @@ class AutodeskInteractiveTransparentMaterialUpgraderTest : MaterialUpgraderTestB
             {
                 material.SetFloat("_Mode", 3.0f); // transparent
                 material.SetColor("_EmissionColor", Color.green);
-                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmission;
             },
             verify = material =>
             {

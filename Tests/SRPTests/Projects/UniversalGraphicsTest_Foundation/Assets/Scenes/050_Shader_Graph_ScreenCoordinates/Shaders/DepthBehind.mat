@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 10
+  version: 11
 --- !u!114 &-333123546222251186
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -34,8 +34,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: DepthBehind
-  m_Shader: {fileID: -6465566751694194690, guid: b13abfde4e85e7343b89ded3e78fc99e,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: b13abfde4e85e7343b89ded3e78fc99e, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []

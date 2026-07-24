@@ -249,7 +249,7 @@ namespace UnityEngine.PathTracing.Tests
             if (isEmissive)
             {
                 material.EnableKeyword("_EMISSION");
-                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmission;
                 material.SetColor("_EmissionColor", Color.green);
             }
 
@@ -274,7 +274,7 @@ namespace UnityEngine.PathTracing.Tests
             // Make material with emission
             Material material = new Material(_defaultMaterial);
             material.EnableKeyword("_EMISSION");
-            material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+            material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmission;
             material.SetColor("_EmissionColor", Color.green);
 
             // Add instance

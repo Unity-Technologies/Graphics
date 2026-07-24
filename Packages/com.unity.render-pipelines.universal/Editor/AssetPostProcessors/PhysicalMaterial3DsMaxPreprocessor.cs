@@ -107,7 +107,10 @@ namespace UnityEditor.Rendering.Universal
                 material.SetColor("_Color", vectorProperty);
 
             if (description.TryGetProperty("emit_color", out vectorProperty))
+            {
                 material.SetColor("_EmissionColor", vectorProperty);
+                material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeDirectEmission;
+            }
 
             if (description.TryGetProperty("roughness", out floatProperty))
                 material.SetFloat("_Glossiness", floatProperty);

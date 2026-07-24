@@ -140,6 +140,7 @@ namespace UnityEditor.Rendering.Universal
             if (description.TryGetProperty("emission", out floatProperty) && floatProperty > 0.0f)
             {
                 remapPropertyColorOrTexture(description, material, "emissionColor", "_EMISSION_COLOR", floatProperty);
+                material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeDirectEmission;
             }
 
             remapPropertyFloatOrTexture(description, material, "metalness", "_METALNESS");
@@ -214,6 +215,8 @@ namespace UnityEditor.Rendering.Universal
             {
                 remapPropertyColorOrTexture3DsMax(description, material, "emission_color", "_EMISSION_COLOR",
                     floatProperty);
+
+                material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeDirectEmission;
             }
 
             remapPropertyFloatOrTexture3DsMax(description, material, "metalness", "_METALNESS");

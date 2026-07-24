@@ -42,8 +42,8 @@ namespace UnityEngine.PathTracing.Core
                 return new MaterialPropertyDesc { Type = MaterialPropertyType.None, Color = float3.zero };
             }
 
-            bool isBaked = emissiveFlags.HasFlag(MaterialGlobalIlluminationFlags.BakedEmissive);
-            bool isRealtime = emissiveFlags.HasFlag(MaterialGlobalIlluminationFlags.RealtimeEmissive);
+            bool isBaked = emissiveFlags.HasFlag(MaterialGlobalIlluminationFlags.BakedEmission);
+            bool isRealtime = emissiveFlags.HasFlag(MaterialGlobalIlluminationFlags.RealtimeIndirectEmission);
 
             bool emissionEnabled = false;
             switch (emissionMode)

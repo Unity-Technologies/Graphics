@@ -192,7 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (vectorProperty.x > 0.0f || vectorProperty.y > 0.0f || vectorProperty.z > 0.0f)
                     {
-                        material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeEmissive;
+                        material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeIndirectEmission;
                         material.EnableKeyword("_EMISSION");
                     }
 

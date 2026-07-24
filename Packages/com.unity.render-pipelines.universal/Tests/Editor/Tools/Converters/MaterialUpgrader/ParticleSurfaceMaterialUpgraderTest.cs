@@ -221,7 +221,7 @@ class ParticleSurfaceMaterialUpgraderTest : MaterialUpgraderTestBase<ParticleUpg
                 //set the material to opaque with emission enabled
                 material.SetFloat("_Mode", 0.0f); // Opaque
                 CoreUtils.SetKeyword(material, "_EMISSION", true);
-                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmission;
             },
             verify = material =>
             {
@@ -514,7 +514,7 @@ class ParticleSurfaceMaterialUpgraderTest : MaterialUpgraderTestBase<ParticleUpg
                 //set the material to transparent with emission enabled
                 material.SetFloat("_Mode", 3.0f); // Transparent
                 CoreUtils.SetKeyword(material, "_EMISSION", true);
-                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmission;
             },
             verify = material =>
             {
@@ -787,7 +787,7 @@ class ParticleSurfaceMaterialUpgraderTest : MaterialUpgraderTestBase<ParticleUpg
                 //set the material to opaque with emission keyword enabled
                 material.SetFloat("_Mode", 0.0f); // Opaque
                 CoreUtils.SetKeyword(material, "_EMISSION", true);
-                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmission;
             },
             verify = material =>
             {
@@ -827,7 +827,7 @@ class ParticleSurfaceMaterialUpgraderTest : MaterialUpgraderTestBase<ParticleUpg
                 //set the material to transparent with emission keyword enabled
                 material.SetFloat("_Mode", 3.0f); // Transparent
                 CoreUtils.SetKeyword(material, "_EMISSION", true);
-                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmission;
             },
             verify = material =>
             {
