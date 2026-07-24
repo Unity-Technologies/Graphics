@@ -1,0 +1,44 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal ps5 switch2
+#pragma kernel Add
+
+#include "EmissiveTriangles.hlsl"
+
+RWStructuredBuffer<EmissiveTriangle> _EmissiveTriangles;
+RWStructuredBuffer<uint> _EmissiveTriangleCounter;
+
+uint _SubmeshInstanceId;
+uint _SubmeshTriangleCount;
+
+groupshared uint _GroupAddCount;
+groupshared uint _GroupAddBaseOffset;
+
+[numthreads(256, 1, 1)]
+void Add(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupThreadId : SV_GroupIndex)
+{
+    // Reset append count
+    if (groupThreadId == 0)
+        _GroupAddCount = 0;
+    GroupMemoryBarrierWithGroupSync();
+
+    // Count number of triangles to append
+    const uint triangleIndex = dispatchThreadId.x;
+    bool shouldAppend = triangleIndex < _SubmeshTriangleCount;
+    uint localIndex = 0;
+    if (shouldAppend)
+        InterlockedAdd(_GroupAddCount, 1u, localIndex);
+    GroupMemoryBarrierWithGroupSync();
+
+    // Increase global count by that amount
+    if (groupThreadId == 0)
+        InterlockedAdd(_EmissiveTriangleCounter[0], _GroupAddCount, _GroupAddBaseOffset);
+    GroupMemoryBarrierWithGroupSync();
+
+    // Write triangle to the determined slot
+    if (shouldAppend)
+    {
+        EmissiveTriangle emissiveTriangle;
+        emissiveTriangle.instanceId = _SubmeshInstanceId;
+        emissiveTriangle.primitiveIndex = triangleIndex;
+        _EmissiveTriangles[_GroupAddBaseOffset + localIndex] = emissiveTriangle;
+    }
+}

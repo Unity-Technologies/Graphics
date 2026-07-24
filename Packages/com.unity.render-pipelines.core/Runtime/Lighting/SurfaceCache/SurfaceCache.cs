@@ -514,6 +514,8 @@ namespace UnityEngine.Rendering
             public static readonly int _PatchOffset = Shader.PropertyToID("_PatchOffset");
             public static readonly int _PatchGeometries = Shader.PropertyToID("_PatchGeometries");
             public static readonly int _PunctualLightSamples = Shader.PropertyToID("_PunctualLightSamples");
+            public static readonly int _EmissiveTriangles = Shader.PropertyToID("_EmissiveTriangles");
+            public static readonly int _EmissiveTriangleCount = Shader.PropertyToID("_EmissiveTriangleCount");
             public static readonly int _Samples = Shader.PropertyToID("_Samples");
             public static readonly int _RingConfigOffset = Shader.PropertyToID("_RingConfigOffset");
         }
@@ -859,6 +861,8 @@ namespace UnityEngine.Rendering
             var cmd = CommandBufferHelpers.GetNativeCommandBuffer(graphCtx.cmd);
             var punctualLightBuffer = data.World.GetPunctualLightBuffer();
             var punctualLightCount = (int)data.World.GetPunctualLightCount();
+            var emissiveTriangleBuffer = data.World.GetEmissiveTriangleBuffer();
+            var emissiveTriangleCounter = data.World.GetEmissiveTriangleCounterBuffer();
 
             if (data.UpdateGlobalProbe)
             {
@@ -895,6 +899,8 @@ namespace UnityEngine.Rendering
                 shader.SetBufferParam(cmd, ShaderIDs._PatchAllocationRequests, data.PatchAllocationRequests);
                 shader.SetBufferParam(cmd, ShaderIDs._RingConfigBuffer, data.RingConfigBuffer);
                 shader.SetBufferParam(cmd, ShaderIDs._PunctualLightSamples, data.PunctualLightSamples);
+                shader.SetBufferParam(cmd, ShaderIDs._EmissiveTriangles, emissiveTriangleBuffer);
+                shader.SetBufferParam(cmd, ShaderIDs._EmissiveTriangleCount, emissiveTriangleCounter);
                 shader.SetBufferParam(cmd, ShaderIDs._PatchIrradiances, data.PatchIrradiances);
                 shader.SetBufferParam(cmd, ShaderIDs._PatchGeometries, data.PatchGeometries);
                 shader.SetBufferParam(cmd, ShaderIDs._PatchStatistics, data.PatchStatistics);

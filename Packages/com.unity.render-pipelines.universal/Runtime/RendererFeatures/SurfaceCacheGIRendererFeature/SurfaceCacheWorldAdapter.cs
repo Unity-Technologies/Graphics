@@ -215,6 +215,7 @@ namespace UnityEngine.Rendering.Universal
             readonly List<MeshRenderer> _components = new();
             readonly List<bool> _inWorld = new();
             readonly List<InstanceHandle> _handles = new();
+            readonly List<Mesh> _meshes = new();
             // Materials assigned to the renderer the last time we checked ("null materials" are EntityId.None).
             readonly List<EntityId[]> _inputMaterialIds = new();
             // Materials currently acquired from the shared set (may include the fallback material).
@@ -307,6 +308,7 @@ namespace UnityEngine.Rendering.Universal
                 _components.Add(component);
                 _inWorld.Add(false);
                 _handles.Add(default);
+                _meshes.Add(null);
                 _inputMaterialIds.Add(null);
                 _acquiredMaterialIds.Add(null);
                 return slot;
@@ -323,6 +325,7 @@ namespace UnityEngine.Rendering.Universal
                     _components[slot] = _components[last];
                     _inWorld[slot] = _inWorld[last];
                     _handles[slot] = _handles[last];
+                    _meshes[slot] = _meshes[last];
                     _inputMaterialIds[slot] = _inputMaterialIds[last];
                     _acquiredMaterialIds[slot] = _acquiredMaterialIds[last];
                     _slots[_entityIds[slot]] = slot;
@@ -331,6 +334,7 @@ namespace UnityEngine.Rendering.Universal
                 _components.RemoveAt(last);
                 _inWorld.RemoveAt(last);
                 _handles.RemoveAt(last);
+                _meshes.RemoveAt(last);
                 _inputMaterialIds.RemoveAt(last);
                 _acquiredMaterialIds.RemoveAt(last);
             }
@@ -354,6 +358,7 @@ namespace UnityEngine.Rendering.Universal
                 ResolveMaterialHandlesAndMasks(world, sharedMaterials, renderer, inputMats, _fallbackMaterial, acquiredMatHandles, acquiredMatIds, masks);
 
                 _handles[slot] = world.AddInstance(mesh, acquiredMatHandles, masks, renderer.transform.localToWorldMatrix);
+                _meshes[slot] = mesh;
                 _inputMaterialIds[slot] = inputMatIds.ToArray();
                 _acquiredMaterialIds[slot] = acquiredMatIds.ToArray();
                 _inWorld[slot] = true;
@@ -363,6 +368,13 @@ namespace UnityEngine.Rendering.Universal
 
             void UpdateInWorld(int slot, MeshRenderer renderer, Mesh mesh, bool transformChange, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
             {
+                if (_meshes[slot] != mesh)
+                {
+                    RemoveFromWorld(slot, sharedMaterials, world);
+                    AddToWorld(slot, renderer, mesh, sharedMaterials, world);
+                    return;
+                }
+
                 if (transformChange)
                 {
                     world.UpdateInstanceTransform(_handles[slot], renderer.transform.localToWorldMatrix);
@@ -385,14 +397,14 @@ namespace UnityEngine.Rendering.Universal
                     Span<uint> masks = stackalloc uint[mesh.subMeshCount];
                     ResolveMaterialHandlesAndMasks(world, sharedMaterials, renderer, inputMats, _fallbackMaterial, acquiredMatHandles, acquiredMatIds, masks);
 
+                    world.UpdateInstanceMaterials(_handles[slot], acquiredMatHandles);
+                    world.UpdateInstanceMask(_handles[slot], masks);
+
                     foreach (var matEntityId in _acquiredMaterialIds[slot])
                         sharedMaterials.Release(matEntityId, world);
 
                     _inputMaterialIds[slot] = inputMatIds.ToArray();
                     _acquiredMaterialIds[slot] = acquiredMatIds.ToArray();
-
-                    world.UpdateInstanceMaterials(_handles[slot], acquiredMatHandles);
-                    world.UpdateInstanceMask(_handles[slot], masks);
                 }
 
                 _scratch.Clear();
@@ -405,6 +417,7 @@ namespace UnityEngine.Rendering.Universal
                 foreach (var matEntityId in _acquiredMaterialIds[slot])
                     sharedMaterials.Release(matEntityId, world);
                 _handles[slot] = default;
+                _meshes[slot] = null;
                 _inputMaterialIds[slot] = null;
                 _acquiredMaterialIds[slot] = null;
                 _inWorld[slot] = false;

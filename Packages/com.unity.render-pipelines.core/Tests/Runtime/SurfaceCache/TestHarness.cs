@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.Tests
             _cache.SetDefragCount(defragCount);
 
             _world = new SurfaceCacheWorld();
-            _world.Init(_rtContext, CreateWorldResourceSet(testResources));
+            _world.Init(_rtContext, CreateWorldResourceSet(testResources), testResources.emissiveTriangleAdditionComputeShader, testResources.emissiveTriangleRemovalComputeShader);
             _renderGraph = new RenderGraph("TestHarness");
         }
 

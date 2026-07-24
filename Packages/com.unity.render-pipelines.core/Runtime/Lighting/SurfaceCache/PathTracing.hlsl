@@ -2,6 +2,7 @@
 #define SURFACE_CACHE_PATH_TRACING
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Common.hlsl"
@@ -10,6 +11,7 @@
 #include "PatchUtil.hlsl"
 #include "PatchAllocationRequest.hlsl"
 #include "PunctualLights.hlsl"
+#include "EmissiveTriangles.hlsl"
 
 struct SurfaceGeometry
 {
@@ -54,7 +56,7 @@ struct MaterialPoolParamSet
 
 static const float3 invalidRadiance = float3(-1.0f, -1.0f, -1.0f);
 
-struct PunctualLightBounceRadianceSample
+struct RadianceSample
 {
     float3 direction;
     float3 radianceOverDensity; // L_i(X_i) / p(X_i)
@@ -131,7 +133,7 @@ bool IsSpotLight(float cosOuterAngle)
     return cosOuterAngle != -1.0f;
 }
 
-PunctualLightBounceRadianceSample SamplePunctualLightBounceRadiance(
+RadianceSample SamplePunctualLightBounceRadiance(
     UnifiedRT::DispatchInfo dispatchInfo,
     UnifiedRT::RayTracingAccelStruct accelStruct,
     StructuredBuffer<PunctualLight> lights,
@@ -142,7 +144,7 @@ PunctualLightBounceRadianceSample SamplePunctualLightBounceRadiance(
     float3 normal,
     float additionalRayOffset)
 {
-    PunctualLightBounceRadianceSample result = (PunctualLightBounceRadianceSample)0;
+    RadianceSample result = (RadianceSample)0;
 
     PunctualLightSample punctualLightSample = punctualLightSamples[min(uniformRand * punctualLightSampleCount, punctualLightSampleCount - 1)];
     if (punctualLightSample.HasHit())
@@ -221,6 +223,183 @@ PunctualLightBounceRadianceSample SamplePunctualLightBounceRadiance(
     return result;
 }
 
+// Represents a specific sample on an emissive triangle.
+struct EmissiveTriangleSample
+{
+    float3 pos;
+    float3 normal;
+    float3 emission;
+    float reciprocalDensity;
+
+    void MarkNoHit()
+    {
+        emission = -1.0f;
+    }
+
+    bool HasHit()
+    {
+        return all(emission != -1.0f);
+    }
+};
+
+struct WorldSpaceTriangle
+{
+    GeoPoolVertex v0;
+    GeoPoolVertex v1;
+    GeoPoolVertex v2;
+    float3 w0;
+    float3 w1;
+    float3 w2;
+};
+
+WorldSpaceTriangle FetchWorldSpaceTriangle(UnifiedRT::InstanceData instance, uint primitiveIndex)
+{
+    const GeoPoolMeshChunk meshInfo = g_MeshList[instance.geometryIndex];
+    const uint3 vertexIndices = UnifiedRT::Internal::FetchTriangleIndices(meshInfo, primitiveIndex);
+
+    WorldSpaceTriangle tri;
+    tri.v0 = UnifiedRT::Internal::FetchVertex(meshInfo, vertexIndices.x);
+    tri.v1 = UnifiedRT::Internal::FetchVertex(meshInfo, vertexIndices.y);
+    tri.v2 = UnifiedRT::Internal::FetchVertex(meshInfo, vertexIndices.z);
+    tri.w0 = mul(float4(tri.v0.pos, 1.0f), instance.localToWorld);
+    tri.w1 = mul(float4(tri.v1.pos, 1.0f), instance.localToWorld);
+    tri.w2 = mul(float4(tri.v2.pos, 1.0f), instance.localToWorld);
+    return tri;
+}
+
+float CalculateTriangleArea(UnifiedRT::InstanceData instance, uint primitiveIndex)
+{
+    const WorldSpaceTriangle tri = FetchWorldSpaceTriangle(instance, primitiveIndex);
+    return 0.5f * length(cross(tri.w1 - tri.w0, tri.w2 - tri.w0));
+}
+
+float EmissiveTriangleReciprocalDensity(uint emissiveTriangleCount, float triangleArea)
+{
+    return emissiveTriangleCount * triangleArea;
+}
+
+EmissiveTriangleSample SampleEmissiveTriangles(
+    StructuredBuffer<EmissiveTriangle> emissiveTriangles,
+    uint emissiveTriangleCount,
+    MaterialPoolParamSet matPoolParams,
+    float triangleSelectionRand,
+    float2 pointRand)
+{
+    EmissiveTriangleSample emissiveSample = (EmissiveTriangleSample)0;
+
+    const uint emissiveTriangleIndex = min(triangleSelectionRand * emissiveTriangleCount, emissiveTriangleCount - 1);
+    const EmissiveTriangle emissiveTriangle = emissiveTriangles[emissiveTriangleIndex];
+
+    const UnifiedRT::InstanceData instance = UnifiedRT::GetInstance(emissiveTriangle.instanceId);
+    const WorldSpaceTriangle tri = FetchWorldSpaceTriangle(instance, emissiveTriangle.primitiveIndex);
+    const float3 crossProduct = cross(tri.w1 - tri.w0, tri.w2 - tri.w0);
+    const float doubleArea = length(crossProduct);
+
+    if (doubleArea > 0.0f)
+    {
+        const float2 samplePoint = MapUnitSquareToUnitTriangle(pointRand);
+        const float bary0 = 1.0f - samplePoint.x - samplePoint.y;
+        const float bary1 = samplePoint.x;
+        const float bary2 = samplePoint.y;
+
+        const float2 uv0 = bary0 * tri.v0.uv0 + bary1 * tri.v1.uv0 + bary2 * tri.v2.uv0;
+        const float2 uv1 = bary0 * tri.v0.uv1 + bary1 * tri.v1.uv1 + bary2 * tri.v2.uv1;
+
+        const MaterialPool::MaterialEntry matEntry = matPoolParams.materialEntries[instance.userMaterialID];
+        const float3 emission = MaterialPool::LoadEmission(matEntry, matPoolParams.emissionTextures, matPoolParams.emissionSampler, matPoolParams.atlasTexelSize, uv0, uv1);
+
+        emissiveSample.pos = bary0 * tri.w0 + bary1 * tri.w1 + bary2 * tri.w2;
+        emissiveSample.normal = crossProduct * instance.localToWorldDetSign / doubleArea;
+        emissiveSample.emission = emission;
+        emissiveSample.reciprocalDensity = EmissiveTriangleReciprocalDensity(emissiveTriangleCount, 0.5f * doubleArea);
+    }
+    else
+    {
+        emissiveSample.MarkNoHit();
+    }
+
+    return emissiveSample;
+}
+
+static const float uniformHemisphereDensity = 1.0f / (2.0f * PI);
+
+RadianceSample EstimateIncomingRadianceFromEmissiveTriangles(
+    UnifiedRT::DispatchInfo dispatchInfo,
+    UnifiedRT::RayTracingAccelStruct accelStruct,
+    StructuredBuffer<EmissiveTriangle> emissiveTriangles,
+    uint emissiveTriangleCount,
+    MaterialPoolParamSet matPoolParams,
+    float emissiveTriangleIntensityMultiplier,
+    float3 position,
+    float3 normal,
+    float additionalRayOffset,
+    float triangleSelectionRand,
+    float2 pointRand)
+{
+    EmissiveTriangleSample emissiveSample = SampleEmissiveTriangles(
+        emissiveTriangles,
+        emissiveTriangleCount,
+        matPoolParams,
+        triangleSelectionRand,
+        pointRand);
+
+    RadianceSample result = (RadianceSample)0;
+
+    // Valid sample?
+    if (!emissiveSample.HasHit())
+    {
+        result.MarkInvalid();
+        return result;
+    }
+
+    // Correct hemisphere from observer's POV?
+    const float epsilon = 0.01f;
+    if (dot(normal, emissiveSample.pos - position) <= epsilon)
+    {
+        return result;
+    }
+
+    // Is the sample occluded?
+    const float3 shadowRayOrigin = OffsetRayOrigin(position, normal, additionalRayOffset);
+    const float3 toLight = emissiveSample.pos - shadowRayOrigin;
+    const float distanceToLight = length(toLight);
+    const float3 shadowRayDirection = toLight * rcp(distanceToLight);
+
+    UnifiedRT::Ray shadowRay;
+    shadowRay.origin = shadowRayOrigin;
+    shadowRay.direction = shadowRayDirection;
+    shadowRay.tMin = 0;
+    shadowRay.tMax = distanceToLight * (1.0f - epsilon); // Just a bit shorter than the real distance
+    UnifiedRT::Hit shadowHit = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, shadowRay, UnifiedRT::kRayFlagNone);
+    if (shadowHit.IsValid())
+    {
+        if (!IsValidSample(shadowHit.isFrontFace))
+        {
+            result.MarkInvalid();
+        }
+        return result;
+    }
+
+    // Correct hemisphere from light POV?
+    const float lightCosTerm = dot(-shadowRayDirection, emissiveSample.normal);
+    if (lightCosTerm <= epsilon)
+    {
+        return result;
+    }
+
+    // Calculate MIS weight for light ray hitting emissive triangle.
+    const float areaToSolidAngleJacobian = Square(distanceToLight) / lightCosTerm; // dA/dω
+    const float uniformTriangleDensity = rcp(emissiveSample.reciprocalDensity) * areaToSolidAngleJacobian; // p_A * (dA/dω) = p_ω
+    const float emissiveLightRayMISWeight = PowerHeuristic(uniformTriangleDensity, uniformHemisphereDensity);
+
+    // Get contribution.
+    result.direction = shadowRayDirection;
+    result.radianceOverDensity =
+        emissiveSample.emission * emissiveTriangleIntensityMultiplier *
+        rcp(uniformTriangleDensity) * emissiveLightRayMISWeight;
+    return result;
+}
+
 float3 OutgoingDirectionalBounceAndMultiBounceRadiance(
     float3 position,
     float3 normal,
@@ -233,8 +412,6 @@ float3 OutgoingDirectionalBounceAndMultiBounceRadiance(
     CellPatchIndexBufferType cellPatchIndices,
     PatchUtil::VolumeParamSet volumeParams,
     float3 albedo,
-    float3 emission,
-    float emissiveTriangleIntensityMultiplier,
     out uint bouncePatchIndex)
 {
     float3 radiance = 0.0f;
@@ -272,11 +449,10 @@ float3 OutgoingDirectionalBounceAndMultiBounceRadiance(
     }
 
     radiance *= albedo * INV_PI;
-    radiance += emission * emissiveTriangleIntensityMultiplier;
     return radiance;
 }
 
-float3 IncomingEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
+float3 IncomingEnvironmentAndDirectionalBounceAndMultiBounceAndEmissionRadiance(
     UnifiedRT::DispatchInfo dispatchInfo,
     UnifiedRT::RayTracingAccelStruct accelStruct,
     UnifiedRT::Ray ray,
@@ -287,6 +463,7 @@ float3 IncomingEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
     TextureCube<float3> envTex,
     float envIntensityMultiplier,
     float emissiveTriangleIntensityMultiplier,
+    uint emissiveTriangleCount,
     SamplerState envSampler,
     PatchIrradianceBufferType patchIrradiances,
     RWStructuredBuffer<PatchUtil::PatchStatisticsSet> patchStatistics,
@@ -313,6 +490,20 @@ float3 IncomingEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
             const float3 hitAlbedo = MaterialPool::LoadAlbedoWithBoost(matEntry, matPoolParams.albedoTextures, matPoolParams.albedoSampler, matPoolParams.atlasTexelSize, matPoolParams.albedoBoost, hitGeo.uv0, hitGeo.uv1);
             const float3 hitEmission = MaterialPool::LoadEmission(matEntry, matPoolParams.emissionTextures, matPoolParams.emissionSampler, matPoolParams.atlasTexelSize, hitGeo.uv0, hitGeo.uv1);
 
+            // Calculate MIS weight for hemisphere rays hitting emissive triangles.
+            float emissiveHemisphereRayMISWeight = 0.0f;
+            if (any(hitEmission > 0.0f))
+            {
+                const float lightArea = CalculateTriangleArea(hitInstance, hitResult.primitiveIndex);
+                const float lightCosTerm = dot(-ray.direction, hitGeo.normal);
+                if (lightArea > 0 && lightCosTerm > 0)
+                {
+                    const float areaToSolidAngleJacobian = Square(hitResult.hitDistance) / lightCosTerm; // dA/dω
+                    const float uniformTriangleDensity = rcp(EmissiveTriangleReciprocalDensity(emissiveTriangleCount, lightArea)) * areaToSolidAngleJacobian; // p_A * (dA/dω) = p_ω
+                    emissiveHemisphereRayMISWeight = PowerHeuristic(uniformHemisphereDensity, uniformTriangleDensity);
+                }
+            }
+
             uint bouncePatchIndex;
             radiance = OutgoingDirectionalBounceAndMultiBounceRadiance(
                 hitGeo.position,
@@ -326,9 +517,9 @@ float3 IncomingEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
                 cellPatchIndices,
                 volumeParams,
                 hitAlbedo,
-                hitEmission,
-                emissiveTriangleIntensityMultiplier,
                 bouncePatchIndex);
+
+            radiance += hitEmission * emissiveTriangleIntensityMultiplier * emissiveHemisphereRayMISWeight;
 
             if (enablePatchAllocation)
             {

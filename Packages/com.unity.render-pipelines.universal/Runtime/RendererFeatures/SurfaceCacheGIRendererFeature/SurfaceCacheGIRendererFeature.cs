@@ -320,12 +320,14 @@ namespace UnityEngine.Rendering.Universal
             public SurfaceCacheWorldPass(
                 RayTracingContext rtContext,
                 WorldResourceSet worldResources,
+                ComputeShader emissiveTriangleAdditionShader,
+                ComputeShader emissiveTriangleRemovalShader,
                 Material fallbackMaterial,
                 bool conformToUnityGIFormat)
             {
                 _conformToUnityGIFormat = conformToUnityGIFormat;
                 _world = new SurfaceCacheWorld();
-                _world.Init(rtContext, worldResources);
+                _world.Init(rtContext, worldResources, emissiveTriangleAdditionShader, emissiveTriangleRemovalShader);
                 _changeSource = new ObjectDispatcherChangeSource();
                 _worldAdapter = new SurfaceCacheWorldAdapter(fallbackMaterial);
             }
@@ -1177,6 +1179,8 @@ namespace UnityEngine.Rendering.Universal
             _worldPass = new SurfaceCacheWorldPass(
                 _rtContext,
                 worldResources,
+                coreRpResources.emissiveTriangleAdditionComputeShader,
+                coreRpResources.emissiveTriangleRemovalComputeShader,
                 universalRenderPipelineResources.fallbackMaterial,
                 k_ConformToUnityGIFormat);
 

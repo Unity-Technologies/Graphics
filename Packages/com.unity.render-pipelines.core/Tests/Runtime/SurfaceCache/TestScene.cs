@@ -33,6 +33,24 @@ namespace UnityEngine.Rendering.Tests
             m_World.AddInstance(mesh, new[] { materialHandle }, new[] { 0xFFFFFFFFu }, Matrix4x4.Translate(center));
         }
 
+        public void AddEmissiveQuad(Vector3 emission, float halfSize, Vector3 center, bool frontFaceUp = true)
+        {
+            var materialHandle = m_World.AddMaterial(new MaterialPool.MaterialDescriptor
+            {
+                Albedo = Texture2D.blackTexture,
+                AlbedoScale = Vector2.one,
+                AlbedoOffset = Vector2.zero,
+                Alpha = 1f,
+                PointSampleAlbedo = true,
+                EmissionType = PathTracing.Core.MaterialPropertyType.Color,
+                EmissionColor = emission,
+                PointSampleEmission = true,
+            }, UVChannel.UV0);
+            var mesh = CreateHorizontalQuad(halfSize, frontFaceUp);
+            m_Resources.Add(mesh);
+            m_World.AddInstance(mesh, new[] { materialHandle }, new[] { 0xFFFFFFFFu }, Matrix4x4.Translate(center));
+        }
+
         MaterialPool.MaterialDescriptor CreateUniformAlbedoDescriptor(Vector3 albedo)
         {
             const int size = 4;

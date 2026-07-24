@@ -346,23 +346,6 @@ bool SampleDiscLight(float2 rng, float3 P, PTLight light, inout LightShapeSample
     return true;
 }
 
-// A Low-Distortion Map Between Triangle and Square, by Eric Heitz, 2019
-// Preserves blue-noise quality of input samples better than sqrt parameterization.
-float2 MapUnitSquareToUnitTriangle(float2 unitSquareCoords)
-{
-    if (unitSquareCoords.y > unitSquareCoords.x)
-    {
-        unitSquareCoords.x *= 0.5f;
-        unitSquareCoords.y -= unitSquareCoords.x;
-    }
-    else
-    {
-        unitSquareCoords.y *= 0.5f;
-        unitSquareCoords.x -= unitSquareCoords.y;
-    }
-    return unitSquareCoords;
-}
-
 bool SampleEmissiveMesh(StructuredBuffer<UnifiedRT::InstanceData> instanceList, float2 rand0, float2 rand1, float3 P, PTLight light, inout LightShapeSample lightSample)
 {
     // random point in unit triangle

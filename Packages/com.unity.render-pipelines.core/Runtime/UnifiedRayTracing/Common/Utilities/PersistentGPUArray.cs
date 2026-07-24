@@ -153,10 +153,11 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             NativeArray<Tstruct>.Copy(oldList, m_CpuList, oldCapacity);
             oldList.Dispose();
 
-            var oldUpdates = m_Updates;
+            // Force reupload all elements from the old list
             m_Updates = new BitArray(m_SlotAllocator.capacity);
             for (int i = 0; i < oldCapacity; ++i)
-                m_Updates[i] = oldUpdates[i];
+                m_Updates[i] = true;
+            m_gpuBufferDirty = true;
         }
     }
 }

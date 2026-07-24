@@ -13,6 +13,8 @@ namespace UnityEngine.Rendering.Tests
 
         public ComputeShader punctualLightSamplingComputeShader;
         public RayTracingShader punctualLightSamplingRayTracingShader;
+        public ComputeShader emissiveTriangleAdditionComputeShader;
+        public ComputeShader emissiveTriangleRemovalComputeShader;
         public ComputeShader estimationComputeShader;
         public RayTracingShader estimationRayTracingShader;
 

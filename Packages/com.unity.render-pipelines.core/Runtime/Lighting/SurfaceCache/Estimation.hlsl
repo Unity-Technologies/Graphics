@@ -9,6 +9,7 @@
 #include "PatchUtil.hlsl"
 #include "TemporalFiltering.hlsl"
 #include "PunctualLights.hlsl"
+#include "EmissiveTriangles.hlsl"
 
 RWStructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances;
 RWStructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
@@ -21,6 +22,8 @@ StructuredBuffer<int3> _VolumeCascadeOffsets;
 StructuredBuffer<MaterialPool::MaterialEntry> _MaterialEntries;
 StructuredBuffer<PunctualLightSample> _PunctualLightSamples;
 StructuredBuffer<PunctualLight> _PunctualLights;
+StructuredBuffer<EmissiveTriangle> _EmissiveTriangles;
+StructuredBuffer<uint> _EmissiveTriangleCount;
 Texture2DArray _AlbedoTextures;
 Texture2DArray _EmissionTextures;
 SamplerState sampler_EmissionTextures;
@@ -103,6 +106,7 @@ void SamplePunctualLightBounceRadiance(
     inout QrngKronecker2D rng,
     UnifiedRT::RayTracingAccelStruct accelStruct,
     UnifiedRT::DispatchInfo dispatchInfo,
+    uint sampleCount,
     StructuredBuffer<PunctualLight> lights,
     StructuredBuffer<PunctualLightSample> punctualLightSamples,
     uint punctualLightSampleCount,
@@ -114,10 +118,10 @@ void SamplePunctualLightBounceRadiance(
     SphericalHarmonics::RGBL1 radianceAccumulator = (SphericalHarmonics::RGBL1)0;
 
     uint validSampleCount = 0;
-    for(uint sampleIdx = 0; sampleIdx < _SampleCount; ++sampleIdx)
+    for(uint sampleIdx = 0; sampleIdx < sampleCount; ++sampleIdx)
     {
         // Using `sample` as a variable name causes compilation errors on PS5.
-        PunctualLightBounceRadianceSample sample_ = SamplePunctualLightBounceRadiance(
+        RadianceSample sample_ = SamplePunctualLightBounceRadiance(
             dispatchInfo,
             accelStruct,
             lights,
@@ -145,13 +149,64 @@ void SamplePunctualLightBounceRadiance(
     }
 }
 
+void SampleEmissiveTriangleRadiance(
+    inout QrngKronecker2D rng,
+    UnifiedRT::RayTracingAccelStruct accelStruct,
+    UnifiedRT::DispatchInfo dispatchInfo,
+    uint sampleCount,
+    StructuredBuffer<EmissiveTriangle> emissiveTriangles,
+    uint emissiveTriangleCount,
+    MaterialPoolParamSet matPoolParams,
+    float emissiveTriangleIntensityMultiplier,
+    float volumeVoxelMinSize,
+    PatchUtil::PatchGeometry patchGeo,
+    inout SphericalHarmonics::RGBL1 accumulator,
+    inout bool gotValidSamples)
+{
+    SphericalHarmonics::RGBL1 radianceAccumulator = (SphericalHarmonics::RGBL1)0;
+
+    uint validSampleCount = 0;
+    for(uint sampleIdx = 0; sampleIdx < sampleCount; ++sampleIdx)
+    {
+        RadianceSample sample_ = EstimateIncomingRadianceFromEmissiveTriangles(
+            dispatchInfo,
+            accelStruct,
+            emissiveTriangles,
+            emissiveTriangleCount,
+            matPoolParams,
+            emissiveTriangleIntensityMultiplier,
+            patchGeo.position,
+            patchGeo.normal,
+            GetAdditionalRayOffset(volumeVoxelMinSize),
+            rng.GetSample(0).x,
+            rng.GetSample(1));
+
+        if (!sample_.IsValid())
+            continue;
+
+        validSampleCount++;
+        ProjectAndAccumulate(radianceAccumulator, sample_.radianceOverDensity, sample_.direction);
+
+        rng.NextSample();
+    }
+
+    if (validSampleCount != 0)
+    {
+        gotValidSamples = true;
+        const float normalizationFactor = rcp(validSampleCount);
+        SphericalHarmonics::AddMut(accumulator, SphericalHarmonics::MulPure(radianceAccumulator, normalizationFactor));
+    }
+}
+
 void SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
     bool enablePatchAllocation,
     uint frameIndex,
     inout QrngKronecker2D rng,
     UnifiedRT::RayTracingAccelStruct accelStruct,
     UnifiedRT::DispatchInfo dispatchInfo,
+    uint sampleCount,
     MaterialPoolParamSet matPoolParams,
+    uint emissiveTriangleCount,
     PatchUtil::PatchGeometry patchGeo,
     RWStructuredBuffer<PatchUtil::PatchStatisticsSet> patchStatistics,
     CellPatchIndexBufferType cellPatchIndices,
@@ -167,10 +222,10 @@ void SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
     SphericalHarmonics::RGBL1 radianceAccumulator = (SphericalHarmonics::RGBL1)0;
 
     uint validSampleCount = 0;
-    for(uint sampleIdx = 0; sampleIdx < _SampleCount; ++sampleIdx)
+    for(uint sampleIdx = 0; sampleIdx < sampleCount; ++sampleIdx)
     {
         ray.direction = UniformHemisphereSample(rng.GetSample(0), patchGeo.normal);
-        const float3 radiance = IncomingEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
+        const float3 radiance = IncomingEnvironmentAndDirectionalBounceAndMultiBounceAndEmissionRadiance(
             dispatchInfo,
             accelStruct,
             ray,
@@ -181,6 +236,7 @@ void SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
             _EnvironmentCubemap,
             _EnvironmentIntensityMultiplier,
             _EmissiveTriangleIntensityMultiplier,
+            emissiveTriangleCount,
             sampler_EnvironmentCubemap,
             _PatchIrradiances,
             patchStatistics,
@@ -203,8 +259,7 @@ void SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
     if (validSampleCount != 0)
     {
         gotValidSamples = true;
-        const float reciprocalDensity = 2.0f * PI;
-        const float normalizationFactor = reciprocalDensity * rcp(validSampleCount);
+        const float normalizationFactor = rcp(uniformHemisphereDensity) * rcp(validSampleCount);
         SphericalHarmonics::AddMut(accumulator, SphericalHarmonics::MulPure(radianceAccumulator, normalizationFactor));
     }
 }
@@ -248,6 +303,7 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
 
     const uint patchIdxHash = LowBiasHash32(patchIdx);
     const uint sampleOffset = _FrameIdx * _SampleCount;
+    const uint emissiveTriangleCount = _EmissiveTriangleCount[0];
 
     rng.Init(patchIdxHash, sampleOffset);
     SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
@@ -256,7 +312,9 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
         rng,
         accelStruct,
         dispatchInfo,
+        _SampleCount,
         matPoolParams,
+        emissiveTriangleCount,
         patchGeo,
         _PatchStatistics,
         _CellPatchIndices,
@@ -271,9 +329,28 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
             rng,
             accelStruct,
             dispatchInfo,
+            _SampleCount,
             _PunctualLights,
             _PunctualLightSamples,
             _PunctualLightSampleCount,
+            _VolumeVoxelMinSize,
+            patchGeo,
+            radianceSampleMean,
+            gotValidSamples);
+    }
+
+    if (emissiveTriangleCount != 0)
+    {
+        rng.Init(patchIdxHash, sampleOffset);
+        SampleEmissiveTriangleRadiance(
+            rng,
+            accelStruct,
+            dispatchInfo,
+            _SampleCount,
+            _EmissiveTriangles,
+            emissiveTriangleCount,
+            matPoolParams,
+            _EmissiveTriangleIntensityMultiplier,
             _VolumeVoxelMinSize,
             patchGeo,
             radianceSampleMean,

@@ -154,9 +154,13 @@ namespace UnityEngine.Rendering.Universal.Tests
             if (resourceSet == null || resourceSet.fallbackMaterial == null)
                 Assert.Ignore("Surface cache render pipeline resources are unavailable.");
 
+            var coreResourceSet = GraphicsSettings.GetRenderPipelineSettings<Rendering.SurfaceCacheRenderPipelineResourceSet>();
+            if (coreResourceSet == null)
+                Assert.Ignore("Surface cache core render pipeline resources are unavailable.");
+
             var ctx = new RayTracingContext(RayTracingBackend.Compute, rtResources);
             var world = new SurfaceCacheWorld();
-            world.Init(ctx, worldResources);
+            world.Init(ctx, worldResources, coreResourceSet.emissiveTriangleAdditionComputeShader, coreResourceSet.emissiveTriangleRemovalComputeShader);
             var adapter = new SurfaceCacheWorldAdapter(resourceSet.fallbackMaterial);
             return new Environment(ctx, world, adapter);
         }
