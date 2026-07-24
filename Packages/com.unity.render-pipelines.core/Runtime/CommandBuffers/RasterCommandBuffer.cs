@@ -251,6 +251,92 @@ namespace UnityEngine.Rendering
         /// <param name="platformData">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ConfigureFoveatedRendering.html)</param>
         public void ConfigureFoveatedRendering(IntPtr platformData)  { ThrowIfGlobalStateNotAllowed();  m_WrappedCommandBuffer.ConfigureFoveatedRendering(platformData); }
 
+        /// <summary>Wraps [SetBufferData](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html) on a CommandBuffer.</summary>
+        /// <param name="buffer">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="data">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        public void SetBufferData(ComputeBuffer buffer, Array data)  {  m_WrappedCommandBuffer.SetBufferData(buffer, data); }
+
+        /// <summary>Wraps [SetBufferData](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html) on a CommandBuffer.</summary>
+        /// <param name="buffer">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="data">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <typeparam name="T">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</typeparam>
+        public void SetBufferData<T>(ComputeBuffer buffer, List<T> data) where T : struct {  m_WrappedCommandBuffer.SetBufferData(buffer, data); }
+
+        /// <summary>Wraps [SetBufferData](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html) on a CommandBuffer.</summary>
+        /// <param name="buffer">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="data">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <typeparam name="T">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</typeparam>
+        public void SetBufferData<T>(ComputeBuffer buffer, NativeArray<T> data) where T : struct {  m_WrappedCommandBuffer.SetBufferData(buffer, data); }
+
+        /// <summary>Wraps [SetBufferData](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html) on a CommandBuffer.</summary>
+        /// <param name="buffer">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="data">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="managedBufferStartIndex">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="graphicsBufferStartIndex">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="count">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        public void SetBufferData(ComputeBuffer buffer, Array data, int managedBufferStartIndex, int graphicsBufferStartIndex, int count)  {  m_WrappedCommandBuffer.SetBufferData(buffer, data, managedBufferStartIndex, graphicsBufferStartIndex, count); }
+
+        /// <summary>Wraps [SetBufferData](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html) on a CommandBuffer.</summary>
+        /// <param name="buffer">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="data">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="managedBufferStartIndex">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="graphicsBufferStartIndex">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="count">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <typeparam name="T">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</typeparam>
+        public void SetBufferData<T>(ComputeBuffer buffer, List<T> data, int managedBufferStartIndex, int graphicsBufferStartIndex, int count) where T : struct {  m_WrappedCommandBuffer.SetBufferData(buffer, data, managedBufferStartIndex, graphicsBufferStartIndex, count); }
+
+        /// <summary>Wraps [SetBufferData](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html) on a CommandBuffer.</summary>
+        /// <param name="buffer">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="data">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="nativeBufferStartIndex">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="graphicsBufferStartIndex">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="count">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <typeparam name="T">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</typeparam>
+        public void SetBufferData<T>(ComputeBuffer buffer, NativeArray<T> data, int nativeBufferStartIndex, int graphicsBufferStartIndex, int count) where T : struct {  m_WrappedCommandBuffer.SetBufferData(buffer, data, nativeBufferStartIndex, graphicsBufferStartIndex, count); }
+
+        /// <summary>Wraps [SetBufferData](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html) on a CommandBuffer.</summary>
+        /// <param name="buffer">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="data">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        public void SetBufferData(GraphicsBuffer buffer, Array data)  {  m_WrappedCommandBuffer.SetBufferData(buffer, data); }
+
+        /// <summary>Wraps [SetBufferData](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html) on a CommandBuffer.</summary>
+        /// <param name="buffer">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="data">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <typeparam name="T">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</typeparam>
+        public void SetBufferData<T>(GraphicsBuffer buffer, List<T> data) where T : struct {  m_WrappedCommandBuffer.SetBufferData(buffer, data); }
+
+        /// <summary>Wraps [SetBufferData](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html) on a CommandBuffer.</summary>
+        /// <param name="buffer">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="data">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <typeparam name="T">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</typeparam>
+        public void SetBufferData<T>(GraphicsBuffer buffer, NativeArray<T> data) where T : struct {  m_WrappedCommandBuffer.SetBufferData(buffer, data); }
+
+        /// <summary>Wraps [SetBufferData](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html) on a CommandBuffer.</summary>
+        /// <param name="buffer">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="data">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="managedBufferStartIndex">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="graphicsBufferStartIndex">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="count">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        public void SetBufferData(GraphicsBuffer buffer, Array data, int managedBufferStartIndex, int graphicsBufferStartIndex, int count)  {  m_WrappedCommandBuffer.SetBufferData(buffer, data, managedBufferStartIndex, graphicsBufferStartIndex, count); }
+
+        /// <summary>Wraps [SetBufferData](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html) on a CommandBuffer.</summary>
+        /// <param name="buffer">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="data">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="managedBufferStartIndex">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="graphicsBufferStartIndex">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="count">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <typeparam name="T">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</typeparam>
+        public void SetBufferData<T>(GraphicsBuffer buffer, List<T> data, int managedBufferStartIndex, int graphicsBufferStartIndex, int count) where T : struct {  m_WrappedCommandBuffer.SetBufferData(buffer, data, managedBufferStartIndex, graphicsBufferStartIndex, count); }
+
+        /// <summary>Wraps [SetBufferData](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html) on a CommandBuffer.</summary>
+        /// <param name="buffer">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="data">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="nativeBufferStartIndex">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="graphicsBufferStartIndex">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <param name="count">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</param>
+        /// <typeparam name="T">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetBufferData.html)</typeparam>
+        public void SetBufferData<T>(GraphicsBuffer buffer, NativeArray<T> data, int nativeBufferStartIndex, int graphicsBufferStartIndex, int count) where T : struct {  m_WrappedCommandBuffer.SetBufferData(buffer, data, nativeBufferStartIndex, graphicsBufferStartIndex, count); }
+
         /// <summary>Wraps [SetupCameraProperties](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetupCameraProperties.html) on a CommandBuffer.</summary>
         /// <param name="camera">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetupCameraProperties.html)</param>
         public void SetupCameraProperties(Camera camera)  {  m_WrappedCommandBuffer.SetupCameraProperties(camera); }

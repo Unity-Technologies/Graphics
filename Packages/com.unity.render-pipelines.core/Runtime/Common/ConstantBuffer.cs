@@ -332,8 +332,17 @@ namespace UnityEngine.Rendering
         /// Constant Buffer constructor.
         /// </summary>
         public ConstantBuffer()
+            : this(ComputeBufferMode.Immutable)
         {
-            m_GPUConstantBuffer = new ComputeBuffer(1, UnsafeUtility.SizeOf<CBType>(), ComputeBufferType.Constant);
+        }
+
+        /// <summary>
+        /// Constant Buffer constructor with explicit buffer mode.
+        /// </summary>
+        /// <param name="mode">The buffer mode (Immutable or Dynamic). Dynamic mode uses UPLOAD heap on D3D12.</param>
+        public ConstantBuffer(ComputeBufferMode mode)
+        {
+            m_GPUConstantBuffer = new ComputeBuffer(1, UnsafeUtility.SizeOf<CBType>(), ComputeBufferType.Constant, mode);
 #if UNITY_INCLUDE_INSTRUMENTATION
             m_GPUConstantBuffer.name = typeof(CBType).Name;
 #endif

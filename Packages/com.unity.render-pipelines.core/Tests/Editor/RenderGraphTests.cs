@@ -3232,5 +3232,189 @@ namespace UnityEngine.Rendering.Tests
             // Should merge: different explicit slices are separate layers, no aliasing
             Assert.AreEqual(1, passes.Count, "Passes with different explicit slice bindings (no -1 involved) for the same array texture should merge into a single native render pass.");
         }
+
+        class SetBufferDataTestPassData
+        {
+            public GraphicsBuffer buffer;
+            public NativeArray<float> dataToSet;
+        }
+
+        [Test]
+        public void SetBufferDataInRasterPassWorks()
+        {
+            const int kBufferSize = 4;
+
+            var testValues = new float[] { 1.0f, 2.0f, 3.0f, 4.0f };
+            var initialData = new float[] { 0.0f, 0.0f, 0.0f, 0.0f };
+
+            // Create buffer with LockBufferForWrite to make it mappable (Dynamic mode) - required for SetBufferData inside render passes
+            var buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, GraphicsBuffer.UsageFlags.LockBufferForWrite, kBufferSize, sizeof(float));
+            buffer.SetData(initialData);
+
+            bool passExecuted = false;
+
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                if (passExecuted)
+                    return;
+
+                passExecuted = true;
+
+                var bufferHandle = m_RenderGraph.ImportBuffer(buffer);
+
+                const int kWidth = 4;
+                const int kHeight = 4;
+                TextureHandle dummyTexture = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, name = "DummyTexture" });
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<SetBufferDataTestPassData>("SetBufferDataPass", out var passData))
+                {
+                    passData.buffer = buffer;
+                    passData.dataToSet = new NativeArray<float>(testValues, Allocator.Temp);
+
+                    builder.SetRenderAttachment(dummyTexture, 0, AccessFlags.Write);
+                    builder.UseBuffer(bufferHandle, AccessFlags.Write);
+                    builder.AllowPassCulling(false);
+
+                    builder.SetRenderFunc((SetBufferDataTestPassData data, RasterGraphContext ctx) =>
+                    {
+                        ctx.cmd.SetBufferData(data.buffer, data.dataToSet);
+                    });
+                }
+            };
+
+            m_Camera.Render();
+
+            float[] result = new float[kBufferSize];
+            buffer.GetData(result);
+
+            for (int i = 0; i < kBufferSize; i++)
+            {
+                Assert.AreEqual(testValues[i], result[i], $"Buffer value at index {i} should match the value set via SetBufferData");
+            }
+
+            buffer.Release();
+        }
+
+        [Test]
+        public void SetBufferDataWithOffsetInRasterPassWorks()
+        {
+            const int kBufferSize = 8;
+            const int kOffset = 2;
+
+            var initialData = new float[] { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+            var testValues = new float[] { 10.0f, 20.0f, 30.0f, 40.0f };
+
+            // Use LockBufferForWrite to make it mappable (Dynamic mode) - required for SetBufferData inside render passes
+            var buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, GraphicsBuffer.UsageFlags.LockBufferForWrite, kBufferSize, sizeof(float));
+            buffer.SetData(initialData);
+
+            bool passExecuted = false;
+
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                if (passExecuted)
+                    return;
+
+                passExecuted = true;
+
+                var bufferHandle = m_RenderGraph.ImportBuffer(buffer);
+
+                const int kWidth = 4;
+                const int kHeight = 4;
+                TextureHandle dummyTexture = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, name = "DummyTexture" });
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<SetBufferDataTestPassData>("SetBufferDataWithOffsetPass", out var passData))
+                {
+                    passData.buffer = buffer;
+                    passData.dataToSet = new NativeArray<float>(testValues, Allocator.Temp);
+
+                    builder.SetRenderAttachment(dummyTexture, 0, AccessFlags.Write);
+                    builder.UseBuffer(bufferHandle, AccessFlags.Write);
+                    builder.AllowPassCulling(false);
+
+                    builder.SetRenderFunc((SetBufferDataTestPassData data, RasterGraphContext ctx) =>
+                    {
+                        ctx.cmd.SetBufferData(data.buffer, data.dataToSet, 0, kOffset, data.dataToSet.Length);
+                    });
+                }
+            };
+
+            m_Camera.Render();
+
+            var result = new float[kBufferSize];
+            buffer.GetData(result);
+
+            var expectedValues = new float[] { 0.0f, 0.0f, 10.0f, 20.0f, 30.0f, 40.0f, 0.0f, 0.0f };
+
+            for (int i = 0; i < kBufferSize; i++)
+            {
+                Assert.AreEqual(expectedValues[i], result[i], $"Buffer value at index {i} should match expected value after SetBufferData with offset");
+            }
+
+            buffer.Release();
+        }
+
+        [Test]
+        public void SetBufferDataWithNonMappableBufferInRasterPassLogsWarning()
+        {
+            const int kBufferSize = 4;
+
+            var testValues = new float[] { 1.0f, 2.0f, 3.0f, 4.0f };
+            var initialData = new float[kBufferSize];
+
+            // Create buffer WITHOUT LockBufferForWrite - this makes it non-mappable (Immutable mode)
+            var buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, kBufferSize, sizeof(float));
+            buffer.SetData(initialData);
+
+            bool passExecuted = false;
+
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                if (passExecuted)
+                    return;
+
+                passExecuted = true;
+
+                var bufferHandle = m_RenderGraph.ImportBuffer(buffer);
+
+                const int kWidth = 4;
+                const int kHeight = 4;
+                TextureHandle dummyTexture = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, name = "DummyTexture" });
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<SetBufferDataTestPassData>("SetBufferDataNonMappablePass", out var passData))
+                {
+                    passData.buffer = buffer;
+                    passData.dataToSet = new NativeArray<float>(testValues, Allocator.Temp);
+
+                    builder.SetRenderAttachment(dummyTexture, 0, AccessFlags.Write);
+                    builder.UseBuffer(bufferHandle, AccessFlags.Write);
+                    builder.AllowPassCulling(false);
+
+                    builder.SetRenderFunc((SetBufferDataTestPassData data, RasterGraphContext ctx) =>
+                    {
+                        ctx.cmd.SetBufferData(data.buffer, data.dataToSet);
+                    });
+                }
+            };
+
+            m_Camera.Render();
+
+            // Expect the CommandBuffer warning for non-mappable buffer inside render pass (all platforms)
+            LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex(@"The rendering command SetGraphicsBufferData is not supported inside a renderpass"));
+
+            // On D3D12, buffer should still have initial zeros since SetBufferData was rejected at device level.
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12)
+            {
+                float[] result = new float[kBufferSize];
+                buffer.GetData(result);
+
+                for (int i = 0; i < kBufferSize; i++)
+                {
+                    Assert.AreEqual(0.0f, result[i], $"Buffer value at index {i} should remain zero since SetBufferData was rejected for non-mappable buffer");
+                }
+            }
+
+            buffer.Release();
+        }
     }
 }
