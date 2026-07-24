@@ -127,12 +127,20 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 //Due to camera stacking we could be rendering to a persistent texture that is not the backbuffer
-                destinationTexture = resourceData.destinationCameraColor.IsValid() ?
-                    resourceData.destinationCameraColor
+                if (resourceData.destinationCameraColor.IsValid())
+                {
+                    destinationTexture = resourceData.destinationCameraColor;
+                }
+                else
+                {
                     //TODO here we don't seem to apply PostProcessUtils.CreateCompatibleTexture. This seems completely out of sync with the other post process passes.
                     //However, changing it, breaks some tests because rendering with the color and depth after this pass when MSAA is on leads to mismatch.
                     //It seems completely arbitrary that we continue to write out color with MSAA if no other pp pass has been applied earlier.
-                    : renderGraph.CreateTexture(sourceTexture, _CameraColorAfterPostProcessingName);
+                    var desc = renderGraph.GetTextureDesc(sourceTexture);
+                    desc.name = _CameraColorAfterPostProcessingName;
+                    desc.clearBuffer = false;
+                    destinationTexture = renderGraph.CreateTexture(desc);
+                }
                 resourceData.destinationCameraColor = TextureHandle.nullHandle;
             }
 

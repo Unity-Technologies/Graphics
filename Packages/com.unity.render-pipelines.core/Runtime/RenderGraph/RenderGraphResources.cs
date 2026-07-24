@@ -170,6 +170,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public int sharedResourceLastFrameUsed;
         public bool isBackBuffer;
 
+#if UNITY_ENABLE_CHECKS
+        public RenderGraph.DebugData.ScriptInfo debugScriptInfo { get; set; }
+#endif
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual void Reset(IRenderGraphResourcePool _ = null)
         {
@@ -182,6 +186,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
             requestFallBack = false;
             writeCount = 0;
             readCount = 0;
+    
+#if UNITY_ENABLE_CHECKS
+            debugScriptInfo = default;
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

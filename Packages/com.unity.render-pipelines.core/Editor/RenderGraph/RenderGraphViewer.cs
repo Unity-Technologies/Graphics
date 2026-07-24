@@ -1292,6 +1292,16 @@ namespace UnityEditor.Rendering
             return asset;
         }
 
+        void OpenScriptInfo(RenderGraph.DebugData.ScriptInfo scriptInfo)
+        {
+            if (string.IsNullOrEmpty(scriptInfo.filePath))
+                return;
+
+            var scriptAsset = FindScriptAssetByScriptPath(scriptInfo.filePath);
+            if (scriptAsset != null)
+                AssetDatabase.OpenAsset(scriptAsset, scriptInfo.line);
+        }
+
         VisualElement CreatePassListItem(int passId, RenderGraph.DebugData.PassData pass, int visiblePassIndex)
         {
             var passListItem = new VisualElement();
@@ -1359,10 +1369,7 @@ namespace UnityEditor.Rendering
             passBlock.RegisterCallback<ClickEvent>(evt =>
             {
                 if (evt.button == 0)
-                {
-                    var scriptAsset = FindScriptAssetByScriptPath(pass.scriptInfo.filePath);
-                    AssetDatabase.OpenAsset(scriptAsset, pass.scriptInfo.line);
-                }
+                    OpenScriptInfo(pass.scriptInfo);
                 evt.StopImmediatePropagation();
             });
 
@@ -1437,6 +1444,20 @@ namespace UnityEditor.Rendering
 
             resourceListItem.Add(resourceTitleContainer);
             resourceListItem.Add(iconContainer);
+
+            // Add context menu
+            resourceListItem.AddManipulator(new ContextualMenuManipulator(evt =>
+            {
+                evt.menu.AppendAction("Copy Resource Name", _ =>
+                {
+                    EditorGUIUtility.systemCopyBuffer = res.name;
+                });
+
+                var status = string.IsNullOrEmpty(res.scriptInfo.filePath)
+                    ? DropdownMenuAction.Status.Disabled
+                    : DropdownMenuAction.Status.Normal;
+                evt.menu.AppendAction("Open in C# editor", _ => OpenScriptInfo(res.scriptInfo), status);
+            }));
 
             m_GridResourceListTexts[resourceListItem] = new List<TextElement> { resourceLabel };
 

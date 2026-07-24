@@ -43,14 +43,22 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="filterMode">Texture filtering mode.</param>
         /// <returns>Texture compatible with post-processing effects.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static TextureHandle CreateCompatibleTexture(RenderGraph renderGraph, in TextureHandle source, string name, bool clear, FilterMode filterMode)
+        internal static TextureHandle CreateCompatibleTexture(RenderGraph renderGraph, in TextureHandle source, string name, bool clear, FilterMode filterMode
+#if !CORE_PACKAGE_DOCTOOLS && UNITY_ENABLE_CHECKS
+            , [CallerFilePath] string file = "", [CallerLineNumber] int line = 0
+#endif
+            )
         {
             var desc = source.GetDescriptor(renderGraph);
             MakeCompatible(ref desc);
             desc.name = name;
             desc.clearBuffer = clear;
             desc.filterMode = filterMode;
+#if !CORE_PACKAGE_DOCTOOLS && UNITY_ENABLE_CHECKS
+            return renderGraph.CreateTexture(desc, file, line);
+#else
             return renderGraph.CreateTexture(desc);
+#endif
         }
 
         /// <summary>
@@ -63,13 +71,21 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="filterMode">Texture filtering mode.</param>
         /// <returns>Texture compatible with post-processing effects.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static TextureHandle CreateCompatibleTexture(RenderGraph renderGraph, in TextureDesc desc, string name, bool clear, FilterMode filterMode)
+        internal static TextureHandle CreateCompatibleTexture(RenderGraph renderGraph, in TextureDesc desc, string name, bool clear, FilterMode filterMode
+#if !CORE_PACKAGE_DOCTOOLS && UNITY_ENABLE_CHECKS
+            , [CallerFilePath] string file = "", [CallerLineNumber] int line = 0
+#endif
+            )
         {
             var descCompatible = GetCompatibleDescriptor(desc);
             descCompatible.name = name;
             descCompatible.clearBuffer = clear;
             descCompatible.filterMode = filterMode;
+#if !CORE_PACKAGE_DOCTOOLS && UNITY_ENABLE_CHECKS
+            return renderGraph.CreateTexture(descCompatible, file, line);
+#else
             return renderGraph.CreateTexture(descCompatible);
+#endif
         }
 
         /// <summary>

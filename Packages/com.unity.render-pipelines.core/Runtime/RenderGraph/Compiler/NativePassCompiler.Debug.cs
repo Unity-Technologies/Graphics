@@ -255,6 +255,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     if (resourceWriteLists.ContainsKey(((RenderGraphResourceType) t, i)))
                         debugResource.producerList = resourceWriteLists[((RenderGraphResourceType) t, i)];
 
+#if UNITY_ENABLE_CHECKS
+                    if (type == RenderGraphResourceType.Texture && !isNullResource)
+                    {
+                        var texResource = graph.m_ResourcesForDebugOnly.GetTextureResource(i);
+                        debugResource.scriptInfo = texResource.debugScriptInfo;
+                    }
+#endif
+
                     debugData.resourceLists[t].Add(debugResource);
                 }
             }

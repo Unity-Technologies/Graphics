@@ -254,7 +254,11 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="wrapMode"></param>
         /// <returns></returns>
         public static TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, RenderTextureDescriptor desc, string name, bool clear,
-            FilterMode filterMode = FilterMode.Point, TextureWrapMode wrapMode = TextureWrapMode.Clamp)
+            FilterMode filterMode = FilterMode.Point, TextureWrapMode wrapMode = TextureWrapMode.Clamp
+#if !CORE_PACKAGE_DOCTOOLS && UNITY_ENABLE_CHECKS
+            , [CallerFilePath] string file = "", [CallerLineNumber] int line = 0
+#endif
+            )
         {
             TextureDesc rgDesc;
             GetTextureDesc(in desc, out rgDesc);
@@ -264,11 +268,19 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.filterMode = filterMode;
             rgDesc.wrapMode = wrapMode;
 
+#if !CORE_PACKAGE_DOCTOOLS && UNITY_ENABLE_CHECKS
+            return renderGraph.CreateTexture(rgDesc, file, line);
+#else
             return renderGraph.CreateTexture(rgDesc);
+#endif
         }
 
         internal static TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, in RenderTextureDescriptor desc, string name, bool clear, Color color,
-            FilterMode filterMode = FilterMode.Point, TextureWrapMode wrapMode = TextureWrapMode.Clamp, bool discardOnLastUse = false)
+            FilterMode filterMode = FilterMode.Point, TextureWrapMode wrapMode = TextureWrapMode.Clamp, bool discardOnLastUse = false
+#if !CORE_PACKAGE_DOCTOOLS && UNITY_ENABLE_CHECKS
+            , [CallerFilePath] string file = "", [CallerLineNumber] int line = 0
+#endif
+            )
         {
             TextureDesc rgDesc;
             GetTextureDesc(in desc, out rgDesc);
@@ -281,7 +293,11 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.wrapMode = wrapMode;
             rgDesc.discardBuffer = discardOnLastUse;
 
+#if !CORE_PACKAGE_DOCTOOLS && UNITY_ENABLE_CHECKS
+            return renderGraph.CreateTexture(rgDesc, file, line);
+#else
             return renderGraph.CreateTexture(rgDesc);
+#endif
         }
 
         internal static void GetTextureDesc(in RenderTextureDescriptor desc, out TextureDesc rgDesc)
@@ -321,7 +337,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         internal static TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, in TextureDesc desc, string name, bool clear, Color clearColor,
-                FilterMode filterMode = FilterMode.Point, TextureWrapMode wrapMode = TextureWrapMode.Clamp, bool discardOnLastUse = false)
+                FilterMode filterMode = FilterMode.Point, TextureWrapMode wrapMode = TextureWrapMode.Clamp, bool discardOnLastUse = false
+#if !CORE_PACKAGE_DOCTOOLS && UNITY_ENABLE_CHECKS
+                , [CallerFilePath] string file = "", [CallerLineNumber] int line = 0
+#endif
+                )
         {
             TextureDesc outDesc = desc;
             outDesc.name = name;
@@ -331,7 +351,11 @@ namespace UnityEngine.Rendering.Universal
             outDesc.wrapMode = wrapMode;
             outDesc.discardBuffer = discardOnLastUse;
 
+#if !CORE_PACKAGE_DOCTOOLS && UNITY_ENABLE_CHECKS
+            return renderGraph.CreateTexture(outDesc, file, line);
+#else
             return renderGraph.CreateTexture(outDesc);
+#endif
         }
 
         bool RequiresIntermediateAttachments(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs, bool requireCopyFromDepth, bool applyPostProcessing, bool overlayUIRequiresComposition)
